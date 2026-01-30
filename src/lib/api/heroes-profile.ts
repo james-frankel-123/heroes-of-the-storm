@@ -1,6 +1,10 @@
 // Heroes Profile API integration
 const API_BASE = 'https://api.heroesprofile.com'
-const API_KEY = 'SgyMDSbIpkC5ytO4BKlgOLPgDP8hcrhnXip2u3xOyWwHZXI2PcxRiYbomagi'
+const API_KEY = process.env.HEROES_PROFILE_API_KEY
+
+if (!API_KEY) {
+  console.warn('HEROES_PROFILE_API_KEY environment variable is not set')
+}
 
 export interface PlayerStats {
   battletag: string
@@ -24,7 +28,7 @@ export async function fetchPlayerHeroStats(battletag: string): Promise<PlayerSta
       battletag: battletag, // Don't double-encode - URLSearchParams handles it
       region: '1',
       game_type: 'Storm League',
-      api_token: API_KEY,
+      api_token: API_KEY || '',
       group_by_map: 'True'
     })
 
