@@ -987,15 +987,17 @@ export default function DraftPage() {
                               {hero.winRate.toFixed(1)}% • {hero.games}g
                             </div>
                           )}
-                          {isRecommendation && (
+                          {isRecommendation && displayHero && (
                             <Button
                               variant="ghost"
                               size="sm"
                               className="h-5 w-full mt-1 text-[9px] px-1"
                               onClick={() => {
-                                setActiveSlot(slotIdx)
-                                setActiveTab('your')
-                                handleHeroClick(displayHero)
+                                if (displayHero) {
+                                  setActiveSlot(slotIdx)
+                                  setActiveTab('your')
+                                  handleHeroClick(displayHero)
+                                }
                               }}
                             >
                               Pick
@@ -1061,7 +1063,7 @@ export default function DraftPage() {
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-gaming-success" />
                 <p className="text-sm font-semibold text-gaming-success">
-                  Using {yourTeam[activeSlot].battletag.split('#')[0]}'s stats ({Object.keys(yourTeam[activeSlot].playerStats!.heroStats).length} heroes)
+                  Using {yourTeam[activeSlot].battletag.split('#')[0]}&apos;s stats ({Object.keys(yourTeam[activeSlot].playerStats!.heroStats).length} heroes)
                 </p>
               </div>
             </div>
