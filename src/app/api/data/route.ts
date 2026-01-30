@@ -5,8 +5,8 @@ import { transformHeroStatsData } from '@/lib/data/transform'
 
 export async function GET() {
   try {
-    // Read the data file from parent directory
-    const dataPath = path.join(process.cwd(), '..', 'james_hero_stats_fresh.json')
+    // Read the data file from the data directory
+    const dataPath = path.join(process.cwd(), 'data', 'player-stats.json')
     const fileContents = await fs.readFile(dataPath, 'utf8')
     const rawData = JSON.parse(fileContents)
 
