@@ -23,14 +23,15 @@ export async function fetchPlayerHeroStats(battletag: string): Promise<PlayerSta
   try {
     // Build URL with correct parameters (matching working Python code)
     // URLSearchParams will handle encoding the battletag
-    const params = new URLSearchParams({
-      mode: 'json',
-      battletag: battletag, // Don't double-encode - URLSearchParams handles it
-      region: '1',
-      game_type: 'Storm League',
-      api_token: API_KEY || '',
-      group_by_map: 'True'
-    })
+    const params = new URLSearchParams()
+    params.append('mode', 'json')
+    params.append('battletag', battletag)
+    params.append('region', '1')
+    params.append('game_type', 'Storm League')
+    if (API_KEY) {
+      params.append('api_token', API_KEY)
+    }
+    params.append('group_by_map', 'True')
 
     const url = `${API_BASE}/api/Player/Hero/All?${params.toString()}`
 
