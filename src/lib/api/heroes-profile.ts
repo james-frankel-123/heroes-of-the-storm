@@ -1,11 +1,4 @@
-// Heroes Profile API integration
-const API_BASE = 'https://api.heroesprofile.com'
-const API_KEY = process.env.HEROES_PROFILE_API_KEY
-
-if (!API_KEY) {
-  console.warn('HEROES_PROFILE_API_KEY environment variable is not set')
-}
-
+// Heroes Profile API integration via server-side proxy
 export interface PlayerStats {
   battletag: string
   heroStats: Record<string, {
@@ -21,83 +14,23 @@ export interface PlayerStats {
 
 export async function fetchPlayerHeroStats(battletag: string): Promise<PlayerStats> {
   try {
-    // Build URL with correct parameters (matching working Python code)
-    // URLSearchParams will handle encoding the battletag
-    const params = new URLSearchParams()
-    params.append('mode', 'json')
-    params.append('battletag', battletag)
-    params.append('region', '1')
-    params.append('game_type', 'Storm League')
-    if (API_KEY) {
-      params.append('api_token', API_KEY)
-    }
-    params.append('group_by_map', 'True')
-
-    const url = `${API_BASE}/api/Player/Hero/All?${params.toString()}`
-
     console.log('Fetching player stats for:', battletag)
-    console.log('API URL:', url)
 
-    const response = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
+    // Call our server-side API route instead of Heroes Profile directly
+    const response = await fetch(`/api/heroes-profile/${encodeURIComponent(battletag)}`)
 
     console.log('API Response status:', response.status)
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('API error response:', errorText)
-      throw new Error(`API error: ${response.status} - ${errorText}`)
+      const errorData = await response.json()
+      console.error('API error response:', errorData)
+      throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`)
     }
 
     const data = await response.json()
-    console.log('API data received:', data)
+    console.log(`Loaded ${Object.keys(data.heroStats).length} heroes for ${battletag}`)
 
-    // Transform API response to our format
-    // The API returns data structured as: { "Storm League": { "heroName": { wins, losses, games_played, win_rate } } }
-    const heroStats: Record<string, any> = {}
-
-    if (data && data['Storm League']) {
-      console.log('Storm League heroes found:', Object.keys(data['Storm League']).length)
-
-      // Parse heroes directly (not grouped by map despite the parameter)
-      Object.entries(data['Storm League']).forEach(([heroName, stats]: [string, any]) => {
-        // Skip if this doesn't look like hero stats
-        if (typeof stats !== 'object' || !stats.wins) {
-          console.warn(`Skipping invalid entry: ${heroName}`, stats)
-          return
-        }
-
-        const games = stats.games_played || 0
-        const wins = stats.wins || 0
-        const winRate = games > 0 ? (wins / games) * 100 : 0
-
-        heroStats[heroName] = {
-          hero: heroName,
-          wins: wins,
-          losses: stats.losses || 0,
-          games: games,
-          winRate: Math.round(winRate * 10) / 10
-        }
-      })
-
-      console.log('Sample heroes loaded:', Object.keys(heroStats).slice(0, 5))
-      if (Object.keys(heroStats).length > 0) {
-        const firstHero = Object.keys(heroStats)[0]
-        console.log(`${firstHero} stats:`, heroStats[firstHero])
-      }
-    } else {
-      console.error('No Storm League data found in response:', data)
-    }
-
-    console.log(`Loaded ${Object.keys(heroStats).length} heroes for ${battletag}`)
-
-    return {
-      battletag,
-      heroStats,
-    }
+    return data
   } catch (error) {
     console.error('Failed to fetch player stats:', error)
     return {
