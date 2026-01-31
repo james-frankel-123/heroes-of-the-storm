@@ -2,11 +2,13 @@
 
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Users, TrendingUp, TrendingDown, Shield } from 'lucide-react'
+import { Users, TrendingUp, TrendingDown, Shield, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatPercent, getWinRateColor } from '@/lib/utils'
 import { TEAM_COMPOSITIONS, DuoStats } from '@/lib/data/team-compositions'
+import { TeamSynergyModal } from '@/components/modals/team-synergy-modal'
+import { usePlayerData } from '@/lib/hooks/use-data'
 
 // Use DuoStats type from team-compositions module
 type TeamComposition = DuoStats
@@ -15,6 +17,9 @@ type TeamComposition = DuoStats
 const teamCompositions: TeamComposition[] = TEAM_COMPOSITIONS
 
 export default function TeamsPage() {
+  const { data: playerData } = usePlayerData()
+  const [selectedSynergy, setSelectedSynergy] = React.useState<DuoStats | null>(null)
+
   const bestSynergies = teamCompositions
     .filter((comp) => comp.games >= 2)
     .sort((a, b) => b.winRate - a.winRate)
@@ -64,21 +69,29 @@ export default function TeamsPage() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {bestSynergies.map((comp, index) => (
-                <div
+                <button
                   key={comp.heroes}
-                  className="group relative overflow-hidden rounded-lg border border-gaming-success/30 bg-gaming-success/5 p-4 transition-all hover:scale-[1.02] hover:border-gaming-success/60"
+                  onClick={() => playerData && setSelectedSynergy(comp)}
+                  className={`group relative overflow-hidden rounded-lg border border-gaming-success/30 bg-gaming-success/5 p-4 transition-all hover:border-gaming-success/60 text-left w-full ${
+                    playerData ? 'cursor-pointer hover:scale-[1.02]' : ''
+                  }`}
                 >
                   <div className="absolute right-2 top-2 text-3xl font-bold text-gaming-success/10">
                     #{index + 1}
                   </div>
                   <div className="relative z-10 space-y-3">
-                    <div className="flex items-start gap-2">
-                      <Users className="h-5 w-5 text-gaming-success mt-0.5" />
-                      <div className="flex-1">
-                        <p className="font-bold text-sm leading-tight">
-                          {comp.heroes.split(' + ').join(' + ')}
-                        </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 flex-1">
+                        <Users className="h-5 w-5 text-gaming-success mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-bold text-sm leading-tight">
+                            {comp.heroes.split(' + ').join(' + ')}
+                          </p>
+                        </div>
                       </div>
+                      {playerData && (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
                     </div>
                     <div className="flex items-end justify-between">
                       <div>
@@ -96,7 +109,7 @@ export default function TeamsPage() {
                       )}
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </CardContent>
@@ -120,18 +133,26 @@ export default function TeamsPage() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {worstSynergies.map((comp) => (
-                  <div
+                  <button
                     key={comp.heroes}
-                    className="rounded-lg border border-gaming-danger/30 bg-gaming-danger/5 p-4 transition-all hover:scale-[1.02]"
+                    onClick={() => playerData && setSelectedSynergy(comp)}
+                    className={`group rounded-lg border border-gaming-danger/30 bg-gaming-danger/5 p-4 transition-all text-left w-full ${
+                      playerData ? 'cursor-pointer hover:scale-[1.02]' : ''
+                    }`}
                   >
                     <div className="space-y-3">
-                      <div className="flex items-start gap-2">
-                        <Users className="h-5 w-5 text-gaming-danger mt-0.5" />
-                        <div className="flex-1">
-                          <p className="font-bold text-sm leading-tight">
-                            {comp.heroes}
-                          </p>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 flex-1">
+                          <Users className="h-5 w-5 text-gaming-danger mt-0.5" />
+                          <div className="flex-1">
+                            <p className="font-bold text-sm leading-tight">
+                              {comp.heroes}
+                            </p>
+                          </div>
                         </div>
+                        {playerData && (
+                          <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
                       </div>
                       <div>
                         <p className="text-2xl font-bold text-gaming-danger">
@@ -142,7 +163,7 @@ export default function TeamsPage() {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </CardContent>
@@ -183,13 +204,19 @@ export default function TeamsPage() {
                     <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Win Rate
                     </th>
+                    <th className="px-4 py-3 w-10"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {allCompositions.map((comp, index) => (
                     <tr
                       key={comp.heroes}
-                      className="group transition-colors hover:bg-primary-500/5"
+                      onClick={() => playerData && setSelectedSynergy(comp)}
+                      className={`group transition-colors ${
+                        playerData
+                          ? 'cursor-pointer hover:bg-primary-500/5'
+                          : ''
+                      }`}
                     >
                       <td className="px-4 py-3 text-sm text-muted-foreground">
                         {index + 1}
@@ -212,6 +239,11 @@ export default function TeamsPage() {
                         >
                           {formatPercent(comp.winRate, 1)}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {playerData && (
+                          <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -254,6 +286,16 @@ export default function TeamsPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Team Synergy Modal */}
+      {selectedSynergy && playerData && (
+        <TeamSynergyModal
+          synergy={selectedSynergy}
+          playerData={playerData}
+          open={!!selectedSynergy}
+          onOpenChange={(open) => !open && setSelectedSynergy(null)}
+        />
+      )}
     </div>
   )
 }

@@ -163,7 +163,7 @@ export default function DashboardPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <HeroTable heroes={topHeroes} />
+              <HeroTable heroes={topHeroes} playerData={data} />
             </CardContent>
           </Card>
         </motion.div>
