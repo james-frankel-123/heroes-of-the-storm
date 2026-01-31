@@ -389,6 +389,25 @@ export default function DraftPage() {
     const maxCompositions = 20
     let compositionCount = 0
 
+    // Statistical helpers
+    const applyRegressionToMean = (winRate: number, games: number, targetMean: number = 50): number => {
+      // Bayesian approach: weight observed win rate by sample size
+      // More games = trust the observed rate more, fewer games = pull toward mean
+      const priorStrength = 20 // Equivalent to 20 games at the mean
+      const posteriorGames = games + priorStrength
+      const weightedWR = (winRate * games + targetMean * priorStrength) / posteriorGames
+      return weightedWR
+    }
+
+    const getConfidenceWeight = (games: number): number => {
+      // Wilson score interval approach - confidence increases with sample size
+      // Returns value between 0 and 1, representing confidence in the estimate
+      if (games === 0) return 0
+      if (games >= 50) return 1
+      // Sigmoid-like curve: sqrt approach gives reasonable confidence scaling
+      return Math.sqrt(games / 50)
+    }
+
     // Helper to calculate team win rate and return hero details
     const calculateTeamWinRate = (picks: Array<{ slot: number; hero: string | null }>): {
       winRate: number;
@@ -398,48 +417,76 @@ export default function DraftPage() {
 
       if (heroes.length === 0) return { winRate: 50, heroDetails: [] }
 
-      // Calculate average hero win rate with duo adjustments
-      let totalWR = 0
-      let count = 0
+      // Calculate weighted average with statistical adjustments
+      let totalWeightedWR = 0
+      let totalWeight = 0
       const heroDetails: Array<{ slot: number; hero: string; winRate: number; games: number }> = []
 
       heroes.forEach(({ slot, hero }) => {
         const playerStats = yourTeam[slot].playerStats?.heroStats[hero]
-        const baseWR = playerStats?.winRate || 50
+        const rawWR = playerStats?.winRate || 50
         const games = playerStats?.games || 0
 
-        // Check duo win rates with other heroes
-        let duoAdjustedWR = baseWR
-        let foundDuoData = false
+        // Apply regression to mean based on sample size
+        let adjustedWR = applyRegressionToMean(rawWR, games)
+
+        // Check for duo synergies (only use if meaningful sample size)
+        let bestDuoAdjustment = 0
+        let usedDuoData = false
 
         heroes.forEach(other => {
-          if (other.slot !== slot && !foundDuoData) {
-            const duoWR = getDuoWinRate(hero, other.hero, TEAM_COMPOSITIONS)
-            if (duoWR !== null) {
-              const duoData = TEAM_COMPOSITIONS.find(d => {
-                const heroes = d.heroes.split(' + ').map(h => h.trim())
-                return (heroes[0] === hero && heroes[1] === other.hero) ||
-                       (heroes[0] === other.hero && heroes[1] === hero)
-              })
-              if (duoData && duoData.games >= 2) {
-                // Use duo win rate with confidence adjustment
-                const confidence = Math.min(duoData.games / 10, 1)
-                duoAdjustedWR = (duoWR * confidence) + (baseWR * (1 - confidence))
-                foundDuoData = true
+          if (other.slot !== slot) {
+            const duoData = TEAM_COMPOSITIONS.find(d => {
+              const duoHeroes = d.heroes.split(' + ').map(h => h.trim())
+              return (duoHeroes[0] === hero && duoHeroes[1] === other.hero) ||
+                     (duoHeroes[0] === other.hero && duoHeroes[1] === hero)
+            })
+
+            // Only use duo data if we have at least 10 games together
+            if (duoData && duoData.games >= 10) {
+              // Calculate synergy bonus/penalty relative to individual performance
+              const duoWR = duoData.winRate
+              const expectedCombinedWR = (adjustedWR + applyRegressionToMean(
+                yourTeam[other.slot].playerStats?.heroStats[other.hero]?.winRate || 50,
+                yourTeam[other.slot].playerStats?.heroStats[other.hero]?.games || 0
+              )) / 2
+
+              const synergyEffect = duoWR - expectedCombinedWR
+
+              // Weight the synergy effect by duo sample size
+              const duoConfidence = getConfidenceWeight(duoData.games)
+              const weightedSynergy = synergyEffect * duoConfidence
+
+              // Take the strongest synergy effect (positive or negative)
+              if (Math.abs(weightedSynergy) > Math.abs(bestDuoAdjustment)) {
+                bestDuoAdjustment = weightedSynergy
+                usedDuoData = true
               }
             }
           }
         })
 
-        // Simply use the win rate - no multiplication by confidence factors
-        totalWR += duoAdjustedWR
-        count++
+        // Apply duo adjustment if found
+        const finalWR = adjustedWR + bestDuoAdjustment
 
-        heroDetails.push({ slot, hero, winRate: duoAdjustedWR, games })
+        // Weight this hero's contribution by confidence in the estimate
+        const confidence = getConfidenceWeight(games)
+        const weight = Math.max(confidence, 0.3) // Minimum weight of 0.3 to avoid complete discounting
+
+        totalWeightedWR += finalWR * weight
+        totalWeight += weight
+
+        heroDetails.push({
+          slot,
+          hero,
+          winRate: Math.round(finalWR * 10) / 10,
+          games
+        })
       })
 
-      // Simple average - no additional weighting or caps needed
-      const avgWinRate = count > 0 ? totalWR / count : 50
+      // Weighted average
+      const avgWinRate = totalWeight > 0 ? totalWeightedWR / totalWeight : 50
+
       return {
         winRate: Math.round(avgWinRate * 10) / 10,
         heroDetails
@@ -456,10 +503,13 @@ export default function DraftPage() {
         const result = calculateTeamWinRate(testPicks)
         const playerName = yourTeam[candidate.slotIndex].battletag.split('#')[0]
 
+        const confidence = getConfidenceWeight(candidate.games)
+        const confidenceLabel = confidence > 0.8 ? 'High confidence' : confidence > 0.5 ? 'Medium confidence' : 'Low confidence'
+
         compositions.push({
           heroes: result.heroDetails,
           winRate: result.winRate,
-          explanation: `${playerName} → ${candidate.hero} (${candidate.games}g, ${candidate.baseWR.toFixed(1)}%)`
+          explanation: `${playerName} → ${candidate.hero} (${candidate.games}g, ${candidate.baseWR.toFixed(1)}% base • ${confidenceLabel})`
         })
       })
     } else if (emptySlots.length === 2) {
@@ -478,10 +528,13 @@ export default function DraftPage() {
             const player1 = yourTeam[c1.slotIndex].battletag.split('#')[0]
             const player2 = yourTeam[c2.slotIndex].battletag.split('#')[0]
 
+            const avgConfidence = (getConfidenceWeight(c1.games) + getConfidenceWeight(c2.games)) / 2
+            const confidenceLabel = avgConfidence > 0.7 ? 'High confidence' : avgConfidence > 0.4 ? 'Medium confidence' : 'Low confidence'
+
             compositions.push({
               heroes: result.heroDetails,
               winRate: result.winRate,
-              explanation: `${player1} → ${c1.hero}, ${player2} → ${c2.hero}`
+              explanation: `${player1} → ${c1.hero}, ${player2} → ${c2.hero} • ${confidenceLabel}`
             })
           }
         })
@@ -507,10 +560,13 @@ export default function DraftPage() {
               const player2 = yourTeam[c2.slotIndex].battletag.split('#')[0] || `P${c2.slotIndex + 1}`
               const player3 = yourTeam[c3.slotIndex].battletag.split('#')[0] || `P${c3.slotIndex + 1}`
 
+              const avgConfidence = (getConfidenceWeight(c1.games) + getConfidenceWeight(c2.games) + getConfidenceWeight(c3.games)) / 3
+              const confidenceLabel = avgConfidence > 0.7 ? 'High confidence' : avgConfidence > 0.4 ? 'Medium confidence' : 'Low confidence'
+
               compositions.push({
                 heroes: result.heroDetails,
                 winRate: result.winRate,
-                explanation: `${player1} → ${c1.hero}, ${player2} → ${c2.hero}, ${player3} → ${c3.hero}`
+                explanation: `${player1} → ${c1.hero}, ${player2} → ${c2.hero}, ${player3} → ${c3.hero} • ${confidenceLabel}`
               })
             }
           })
