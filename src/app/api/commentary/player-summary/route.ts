@@ -28,8 +28,8 @@ export async function POST(req: Request) {
     const worstMap = sortedMaps[sortedMaps.length - 1]
 
     // Get role distribution
-    const roleStats = playerData.roleStats
-      .map(r => `${r.role}: ${r.games} games (${r.winRate.toFixed(1)}% WR)`)
+    const roleStats = Object.entries(playerData.roleStats)
+      .map(([role, stats]) => `${role}: ${stats.games} games (${stats.winRate.toFixed(1)}% WR)`)
       .join(', ')
 
     // Create the OpenAI prompt
