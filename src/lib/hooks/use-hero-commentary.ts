@@ -82,7 +82,8 @@ export function useHeroCommentary(
     if (autoFetch && heroName && playerData) {
       fetchHeroCommentary(heroName, playerData)
     }
-  }, [autoFetch, heroName, playerData, fetchHeroCommentary])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetch, heroName, playerData?.playerName])
 
   return {
     ...streaming,

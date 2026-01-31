@@ -21,15 +21,19 @@ interface PowerPickCardProps {
 
 function PowerPickCard({ pick, index, playerData }: PowerPickCardProps) {
   const { commentary, isStreaming, error, fetchCommentary } = useStreamingCommentary()
+  const fetchedKeyRef = React.useRef<string>('')
 
   React.useEffect(() => {
-    if (playerData) {
+    const pickKey = `${pick.hero}-${pick.map}`
+    if (playerData && fetchedKeyRef.current !== pickKey) {
+      fetchedKeyRef.current = pickKey
       fetchCommentary('/api/commentary/power-pick', {
         powerPick: pick,
         playerData,
       })
     }
-  }, [pick.hero, pick.map, playerData, fetchCommentary, pick])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pick.hero, pick.map, playerData?.playerName])
 
   return (
     <div

@@ -74,7 +74,8 @@ export function useMapCommentary(
     if (autoFetch && mapName && playerData) {
       fetchMapCommentary(mapName, playerData)
     }
-  }, [autoFetch, mapName, playerData, fetchMapCommentary])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetch, mapName, playerData?.playerName])
 
   return {
     ...streaming,

@@ -102,7 +102,16 @@ export function useDraftSuggestions(
         clearTimeout(debounceTimerRef.current)
       }
     }
-  }, [autoFetch, draftState, playerData, debouncedFetchSuggestions])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    autoFetch,
+    // Use stable primitive values instead of object references
+    draftState?.yourTeam.join(','),
+    draftState?.enemyTeam.join(','),
+    draftState?.bannedHeroes.join(','),
+    draftState?.selectedMap,
+    playerData?.playerName,
+  ])
 
   return {
     suggestions: streaming.commentary,
