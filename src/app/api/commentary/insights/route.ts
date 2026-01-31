@@ -30,8 +30,8 @@ export async function POST(req: Request) {
       .map(m => `${m.map}: ${m.winRate.toFixed(1)}% (${m.games} games)`)
       .join('\n')
 
-    const roleStats = playerData.roleStats
-      .map(r => `${r.role}: ${r.winRate.toFixed(1)}% WR, ${r.games} games`)
+    const roleStats = Object.entries(playerData.roleStats)
+      .map(([role, stats]) => `${role}: ${stats.winRate.toFixed(1)}% WR, ${stats.games} games`)
       .join('\n')
 
     // Create the OpenAI prompt
