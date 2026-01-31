@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface StreamingTextProps {
@@ -16,22 +16,22 @@ export function StreamingText({
   className,
   showCursor = true,
 }: StreamingTextProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  // Auto-scroll to bottom as text streams in
-  useEffect(() => {
-    if (containerRef.current && isStreaming) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight
-    }
-  }, [text, isStreaming])
-
   if (!text && !isStreaming) {
     return null
   }
 
+  // Show spinner while loading
+  if (isStreaming && !text) {
+    return (
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="text-xs">Analyzing...</span>
+      </div>
+    )
+  }
+
   return (
     <div
-      ref={containerRef}
       className={cn(
         'prose prose-sm max-w-none dark:prose-invert',
         'whitespace-pre-wrap break-words',
@@ -39,9 +39,6 @@ export function StreamingText({
       )}
     >
       {text}
-      {isStreaming && showCursor && (
-        <span className="inline-block w-2 h-4 ml-1 bg-blue-500 animate-pulse" />
-      )}
     </div>
   )
 }

@@ -49,27 +49,25 @@ export function Sidebar() {
           const Icon = item.icon
 
           return (
-            <Link key={item.name} href={item.href}>
-              <motion.div
-                className={cn(
-                  'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                  isActive
-                    ? 'bg-primary-500/10 text-primary-500'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                )}
-                whileHover={{ x: 4 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isActive && (
-                  <motion.div
-                    className="absolute left-0 h-8 w-1 rounded-r-full bg-primary-500"
-                    layoutId="sidebar-indicator"
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  />
-                )}
-                <Icon className="h-5 w-5" />
-                <span>{item.name}</span>
-              </motion.div>
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                isActive
+                  ? 'bg-primary-500/10 text-primary-500'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  className="absolute left-0 h-8 w-1 rounded-r-full bg-primary-500"
+                  layoutId="sidebar-indicator"
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                />
+              )}
+              <Icon className="h-5 w-5" />
+              <span>{item.name}</span>
             </Link>
           )
         })}
