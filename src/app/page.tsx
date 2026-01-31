@@ -8,6 +8,8 @@ import {
   TrendingUp,
   Users,
   ChevronRight,
+  Loader2,
+  Sparkles,
 } from 'lucide-react'
 import { StatCard } from '@/components/ui/stat-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,9 +23,13 @@ import { InsightsPanel } from '@/components/dashboard/insights-panel'
 import { formatNumber, getWinRateColor } from '@/lib/utils'
 import { usePlayerData } from '@/lib/hooks/use-data'
 import { generatePowerPicks, generateInsights } from '@/lib/data/transform'
+import { usePlayerSummary } from '@/lib/hooks/use-player-summary'
+import { useAIInsights } from '@/lib/hooks/use-ai-insights'
 
 export default function DashboardPage() {
   const { data, isLoading, error } = usePlayerData()
+  const { summary, isStreaming: isSummaryLoading } = usePlayerSummary(data, { autoFetch: true })
+  const { insights: aiInsights, isLoading: isInsightsLoading } = useAIInsights(data, { autoFetch: true })
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -68,7 +74,9 @@ export default function DashboardPage() {
 
   const topHeroes = data.heroStats.slice(0, 5)
   const powerPicks = generatePowerPicks(data)
-  const insights = generateInsights(data)
+
+  // Use AI insights if available, otherwise fall back to rule-based insights
+  const insights = aiInsights.length > 0 ? aiInsights : generateInsights(data)
 
   return (
     <div className="space-y-8">
@@ -81,9 +89,23 @@ export default function DashboardPage() {
         <h1 className="text-4xl font-bold tracking-tight glow">
           Welcome back, {data.playerName.split('#')[0]}
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          Here&apos;s your performance overview for Storm League
-        </p>
+        <div className="mt-2 flex items-center gap-2">
+          {isSummaryLoading && !summary ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm">Analyzing your performance...</span>
+            </div>
+          ) : summary ? (
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary-500" />
+              <p className="text-muted-foreground">{summary}</p>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              Here&apos;s your performance overview for Storm League
+            </p>
+          )}
+        </div>
       </motion.div>
 
       {/* Stats Grid */}
@@ -153,7 +175,7 @@ export default function DashboardPage() {
           animate="show"
           className="lg:col-span-1"
         >
-          <InsightsPanel insights={insights} />
+          <InsightsPanel insights={insights} isLoading={isInsightsLoading} />
         </motion.div>
       </div>
 
