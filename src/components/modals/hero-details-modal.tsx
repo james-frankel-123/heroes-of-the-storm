@@ -33,20 +33,32 @@ export function HeroDetailsModal({
     { autoFetch: open } // Only fetch when modal is open
   )
 
-  // Get map performance for this hero
-  const mapPerformance = hero.mapStats
-    ? Object.entries(hero.mapStats)
-        .map(([map, stats]: [string, any]) => ({
-          map,
-          wins: stats.wins || 0,
-          losses: stats.losses || 0,
-          games: stats.games_played || 0,
-          winRate: stats.games_played > 0
-            ? (stats.wins / stats.games_played) * 100
-            : 0,
-        }))
-        .sort((a, b) => b.winRate - a.winRate)
-    : []
+  // Get map performance for this hero from playerData
+  const mapPerformance = React.useMemo(() => {
+    const performance: Array<{
+      map: string
+      wins: number
+      losses: number
+      games: number
+      winRate: number
+    }> = []
+
+    // Find this hero's performance across all maps
+    playerData.mapStats.forEach((mapStat) => {
+      const heroOnMap = mapStat.heroes.find(h => h.hero === hero.hero)
+      if (heroOnMap && heroOnMap.games >= 3) {
+        performance.push({
+          map: mapStat.map,
+          wins: heroOnMap.wins,
+          losses: heroOnMap.losses,
+          games: heroOnMap.games,
+          winRate: heroOnMap.winRate,
+        })
+      }
+    })
+
+    return performance.sort((a, b) => b.winRate - a.winRate)
+  }, [hero.hero, playerData.mapStats])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
