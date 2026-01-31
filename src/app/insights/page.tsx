@@ -176,7 +176,7 @@ export default function InsightsPage() {
           <Sparkles className="mx-auto h-12 w-12 text-accent-cyan" />
           <h3 className="mt-4 text-xl font-semibold">More Insights Coming Soon</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            We're working on advanced AI-powered analytics including:
+            We&apos;re working on advanced AI-powered analytics including:
           </p>
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
             <li>🎯 Draft phase suggestions and counter-picks</li>

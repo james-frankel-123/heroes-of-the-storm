@@ -82,7 +82,7 @@ export default function DashboardPage() {
           Welcome back, {data.playerName.split('#')[0]}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Here's your performance overview for Storm League
+          Here&apos;s your performance overview for Storm League
         </p>
       </motion.div>
 
@@ -160,7 +160,7 @@ export default function DashboardPage() {
       {/* Map Performance & Role Distribution */}
       <div className="grid gap-6 lg:grid-cols-2">
         <motion.div variants={itemVariants}>
-          <MapPerformance mapData={data.mapStats.slice(0, 5)} />
+          <MapPerformance mapData={data.mapStats.slice(0, 5)} playerData={data} />
         </motion.div>
         <motion.div variants={itemVariants}>
           <RoleDistribution roleData={data.roleStats} />
@@ -170,7 +170,7 @@ export default function DashboardPage() {
       {/* Power Picks */}
       {powerPicks.length > 0 && (
         <motion.div variants={itemVariants}>
-          <PowerPicks powerPicks={powerPicks.slice(0, 6)} />
+          <PowerPicks powerPicks={powerPicks.slice(0, 6)} playerData={data} />
         </motion.div>
       )}
     </div>

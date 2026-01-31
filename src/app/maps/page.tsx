@@ -2,10 +2,207 @@
 
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Map, TrendingUp, Loader2, AlertTriangle } from 'lucide-react'
+import { Map, TrendingUp, Loader2, AlertTriangle, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatPercent, getWinRateColor } from '@/lib/utils'
 import { usePlayerData } from '@/lib/hooks/use-data'
+import { useMapCommentary } from '@/lib/hooks/use-map-commentary'
+import { StreamingText } from '@/components/commentary/streaming-text'
+import { PlayerData } from '@/types'
+
+interface MapData {
+  map: string
+  games: number
+  wins: number
+  losses: number
+  winRate: number
+  topHeroes: Array<{ hero: string; games: number; winRate: number; score: number }>
+  highPotential: Array<{ hero: string; games: number; winRate: number }>
+  heroesToAvoid: Array<{
+    hero: string
+    games: number
+    winRate: number
+    hypotheticalMapWinRate: number
+    improvement: number
+  }>
+}
+
+interface MapCardProps {
+  map: MapData
+  index: number
+  playerData?: PlayerData
+}
+
+function MapCard({ map, index, playerData }: MapCardProps) {
+  const { commentary, isStreaming, error } = useMapCommentary(
+    map.map,
+    playerData,
+    { autoFetch: true }
+  )
+
+  return (
+    <motion.div
+      key={map.map}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+    >
+      <Card className="glass group h-full border-primary-500/30 transition-all hover:scale-[1.02] hover:border-primary-500/60 hover:shadow-lg hover:shadow-primary-500/20">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <Map className="h-5 w-5 text-primary-500" />
+                <CardTitle className="text-lg">{map.map}</CardTitle>
+              </div>
+            </div>
+            <div className={`text-3xl font-bold ${getWinRateColor(map.winRate)}`}>
+              {formatPercent(map.winRate, 1)}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Total Games</p>
+              <p className="text-lg font-semibold">{map.games}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Record</p>
+              <p className="text-lg font-semibold">
+                {map.wins}-{map.losses}
+              </p>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gaming-success">Wins</span>
+              <span className="text-gaming-danger">Losses</span>
+            </div>
+            <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full ${
+                  map.winRate >= 52
+                    ? 'bg-gaming-success'
+                    : map.winRate >= 48
+                    ? 'bg-gaming-warning'
+                    : 'bg-gaming-danger'
+                }`}
+                style={{ width: `${map.winRate}%` }}
+              />
+            </div>
+          </div>
+
+          {/* AI Commentary */}
+          {playerData && (
+            <div className="rounded-lg border border-blue-400/20 bg-blue-400/5 p-3">
+              <div className="flex items-center gap-1 mb-2">
+                <Sparkles className="h-3 w-3 text-blue-400" />
+                <span className="text-xs font-medium text-blue-400">AI Analysis</span>
+              </div>
+              {error ? (
+                <p className="text-xs text-red-400">{error}</p>
+              ) : (
+                <StreamingText
+                  text={commentary}
+                  isStreaming={isStreaming}
+                  className="text-xs text-muted-foreground leading-relaxed"
+                  showCursor={true}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Top Heroes */}
+          {map.topHeroes.length > 0 && (
+            <div className="space-y-2 rounded-lg bg-primary-500/5 p-3">
+              <p className="text-xs font-semibold text-muted-foreground">Top Heroes (5+ games)</p>
+              <div className="space-y-2">
+                {map.topHeroes.map((heroData) => (
+                  <div
+                    key={heroData.hero}
+                    className="flex items-center justify-between rounded-lg bg-primary-500/10 px-3 py-2"
+                  >
+                    <span className="text-xs font-medium">{heroData.hero}</span>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className={getWinRateColor(heroData.winRate)}>
+                        {heroData.winRate.toFixed(1)}%
+                      </span>
+                      <span className="text-muted-foreground">
+                        {heroData.games}g
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* High Potential Heroes */}
+          {map.highPotential && map.highPotential.length > 0 && (
+            <div className="space-y-2 rounded-lg bg-accent-cyan/5 p-3">
+              <p className="text-xs font-semibold text-accent-cyan">High Potential (2-4 games)</p>
+              <div className="space-y-2">
+                {map.highPotential.map((heroData) => (
+                  <div
+                    key={heroData.hero}
+                    className="flex items-center justify-between rounded-lg bg-accent-cyan/10 px-3 py-2"
+                  >
+                    <span className="text-xs font-medium">{heroData.hero}</span>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className={getWinRateColor(heroData.winRate)}>
+                        {heroData.winRate.toFixed(1)}%
+                      </span>
+                      <span className="text-muted-foreground">
+                        {heroData.games}g
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Heroes to Avoid */}
+          {map.heroesToAvoid && map.heroesToAvoid.length > 0 && (
+            <div className="space-y-2 rounded-lg bg-gaming-danger/5 p-3">
+              <p className="text-xs font-semibold text-gaming-danger">Avoid These Heroes</p>
+              <div className="space-y-2">
+                {map.heroesToAvoid.map((heroData) => (
+                  <div
+                    key={heroData.hero}
+                    className="rounded-lg border border-gaming-danger/30 bg-gaming-danger/10 px-3 py-2"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium">{heroData.hero}</span>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-gaming-danger">
+                          {heroData.winRate.toFixed(1)}%
+                        </span>
+                        <span className="text-muted-foreground">
+                          {heroData.games}g
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <span>Without: {heroData.hypotheticalMapWinRate.toFixed(1)}%</span>
+                      <span className="text-gaming-success">
+                        (+{heroData.improvement.toFixed(1)}%)
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
 
 export default function MapsPage() {
   const { data, isLoading, error } = usePlayerData()
@@ -125,146 +322,7 @@ export default function MapsPage() {
       {/* Map Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {mapDataWithTopHeroes.map((map, index) => (
-          <motion.div
-            key={map.map}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="glass group h-full border-primary-500/30 transition-all hover:scale-[1.02] hover:border-primary-500/60 hover:shadow-lg hover:shadow-primary-500/20">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <Map className="h-5 w-5 text-primary-500" />
-                      <CardTitle className="text-lg">{map.map}</CardTitle>
-                    </div>
-                  </div>
-                  <div className={`text-3xl font-bold ${getWinRateColor(map.winRate)}`}>
-                    {formatPercent(map.winRate, 1)}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Total Games</p>
-                    <p className="text-lg font-semibold">{map.games}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Record</p>
-                    <p className="text-lg font-semibold">
-                      {map.wins}-{map.losses}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gaming-success">Wins</span>
-                    <span className="text-gaming-danger">Losses</span>
-                  </div>
-                  <div className="relative h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className={`h-full ${
-                        map.winRate >= 52
-                          ? 'bg-gaming-success'
-                          : map.winRate >= 48
-                          ? 'bg-gaming-warning'
-                          : 'bg-gaming-danger'
-                      }`}
-                      style={{ width: `${map.winRate}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Top Heroes */}
-                {map.topHeroes.length > 0 && (
-                  <div className="space-y-2 rounded-lg bg-primary-500/5 p-3">
-                    <p className="text-xs font-semibold text-muted-foreground">Top Heroes (5+ games)</p>
-                    <div className="space-y-2">
-                      {map.topHeroes.map((heroData) => (
-                        <div
-                          key={heroData.hero}
-                          className="flex items-center justify-between rounded-lg bg-primary-500/10 px-3 py-2"
-                        >
-                          <span className="text-xs font-medium">{heroData.hero}</span>
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className={getWinRateColor(heroData.winRate)}>
-                              {heroData.winRate.toFixed(1)}%
-                            </span>
-                            <span className="text-muted-foreground">
-                              {heroData.games}g
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* High Potential Heroes */}
-                {map.highPotential && map.highPotential.length > 0 && (
-                  <div className="space-y-2 rounded-lg bg-accent-cyan/5 p-3">
-                    <p className="text-xs font-semibold text-accent-cyan">High Potential (2-4 games)</p>
-                    <div className="space-y-2">
-                      {map.highPotential.map((heroData) => (
-                        <div
-                          key={heroData.hero}
-                          className="flex items-center justify-between rounded-lg bg-accent-cyan/10 px-3 py-2"
-                        >
-                          <span className="text-xs font-medium">{heroData.hero}</span>
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className={getWinRateColor(heroData.winRate)}>
-                              {heroData.winRate.toFixed(1)}%
-                            </span>
-                            <span className="text-muted-foreground">
-                              {heroData.games}g
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Heroes to Avoid */}
-                {map.heroesToAvoid && map.heroesToAvoid.length > 0 && (
-                  <div className="space-y-2 rounded-lg bg-gaming-danger/5 p-3">
-                    <p className="text-xs font-semibold text-gaming-danger">Avoid These Heroes</p>
-                    <div className="space-y-2">
-                      {map.heroesToAvoid.map((heroData) => (
-                        <div
-                          key={heroData.hero}
-                          className="rounded-lg border border-gaming-danger/30 bg-gaming-danger/10 px-3 py-2"
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium">{heroData.hero}</span>
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="text-gaming-danger">
-                                {heroData.winRate.toFixed(1)}%
-                              </span>
-                              <span className="text-muted-foreground">
-                                {heroData.games}g
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                            <span>Without: {heroData.hypotheticalMapWinRate.toFixed(1)}%</span>
-                            <span className="text-gaming-success">
-                              (+{heroData.improvement.toFixed(1)}%)
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+          <MapCard key={map.map} map={map} index={index} playerData={data} />
         ))}
       </div>
 

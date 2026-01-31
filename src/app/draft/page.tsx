@@ -22,6 +22,9 @@ import { Badge } from '@/components/ui/badge'
 import { formatPercent, getWinRateColor } from '@/lib/utils'
 import { fetchPlayerHeroStats, PlayerStats } from '@/lib/api/heroes-profile'
 import { TEAM_COMPOSITIONS, getDuoWinRate } from '@/lib/data/team-compositions'
+import { useDraftSuggestions } from '@/lib/hooks/use-draft-suggestions'
+import { usePlayerData } from '@/lib/hooks/use-data'
+import { StreamingText } from '@/components/commentary/streaming-text'
 
 // Mock hero list - will be populated from real data
 const ALL_HEROES = [
@@ -91,6 +94,25 @@ export default function DraftPage() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [activeSlot, setActiveSlot] = React.useState<number>(0)
   const [activeTab, setActiveTab] = React.useState<'your' | 'enemy' | 'ban'>('your')
+
+  // Get player data for AI suggestions
+  const { data: playerData } = usePlayerData()
+
+  // Prepare draft state for AI suggestions
+  const draftState = React.useMemo(() => ({
+    yourTeam: yourTeam.map(slot => slot.hero || slot.showing || '').filter(Boolean),
+    enemyTeam: enemyTeam,
+    bannedHeroes: bannedHeroes,
+    selectedMap: selectedMap,
+    activeSlot: activeSlot,
+  }), [yourTeam, enemyTeam, bannedHeroes, selectedMap, activeSlot])
+
+  // Get AI draft suggestions
+  const { suggestions, isStreaming, error: aiError } = useDraftSuggestions(
+    draftState,
+    playerData,
+    { autoFetch: true, debounceMs: 1500 }
+  )
 
   // Auto-fetch stats for pre-filled battletags on mount
   const [hasAutoFetched, setHasAutoFetched] = React.useState(false)
@@ -923,6 +945,44 @@ export default function DraftPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* AI Draft Suggestions */}
+      {playerData && (draftState.yourTeam.length > 0 || draftState.enemyTeam.length > 0 || draftState.selectedMap) && (
+        <Card className="glass border-blue-400/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-400" />
+                AI Draft Assistant
+              </CardTitle>
+              {isStreaming && (
+                <Badge variant="outline" className="text-blue-400 border-blue-400/30">
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  Analyzing...
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border border-blue-400/20 bg-blue-400/5 p-4">
+              {aiError ? (
+                <p className="text-sm text-red-400">{aiError}</p>
+              ) : suggestions || isStreaming ? (
+                <StreamingText
+                  text={suggestions}
+                  isStreaming={isStreaming}
+                  className="text-sm text-foreground leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                  showCursor={true}
+                />
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  <p>Select heroes, bans, or a map to get AI-powered draft suggestions.</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recommendations */}
       {/* AI Team Composition Recommendations */}
