@@ -175,7 +175,7 @@ export default function DashboardPage() {
           animate="show"
           className="lg:col-span-1"
         >
-          <InsightsPanel insights={insights} isLoading={isInsightsLoading} />
+          <InsightsPanel insights={insights} isLoading={isInsightsLoading} playerData={data} />
         </motion.div>
       </div>
 
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           <MapPerformance mapData={data.mapStats.slice(0, 5)} playerData={data} />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <RoleDistribution roleData={data.roleStats} />
+          <RoleDistribution roleData={data.roleStats} playerData={data} />
         </motion.div>
       </div>
 
