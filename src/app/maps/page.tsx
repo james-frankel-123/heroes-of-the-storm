@@ -43,6 +43,7 @@ function MapCard({ map, index, playerData }: MapCardProps) {
     wins: map.wins,
     losses: map.losses,
     winRate: map.winRate,
+    heroes: [], // Not needed for modal, but required by type
   }
 
   return (
