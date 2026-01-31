@@ -322,7 +322,7 @@ export default function MapsPage() {
       {/* Map Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {mapDataWithTopHeroes.map((map, index) => (
-          <MapCard key={map.map} map={map} index={index} playerData={data} />
+          <MapCard key={map.map} map={map} index={index} playerData={data || undefined} />
         ))}
       </div>
 

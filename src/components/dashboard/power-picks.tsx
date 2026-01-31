@@ -29,7 +29,7 @@ function PowerPickCard({ pick, index, playerData }: PowerPickCardProps) {
         playerData,
       })
     }
-  }, [pick.hero, pick.map, playerData])
+  }, [pick.hero, pick.map, playerData, fetchCommentary, pick])
 
   return (
     <div

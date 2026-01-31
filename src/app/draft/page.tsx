@@ -110,7 +110,7 @@ export default function DraftPage() {
   // Get AI draft suggestions
   const { suggestions, isStreaming, error: aiError } = useDraftSuggestions(
     draftState,
-    playerData,
+    playerData || undefined,
     { autoFetch: true, debounceMs: 1500 }
   )
 
