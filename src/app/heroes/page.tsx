@@ -2,15 +2,14 @@
 
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, TrendingUp, TrendingDown, Loader2, AlertTriangle, Trophy, Award, Shield, Star, Sparkles } from 'lucide-react'
+import { Search, Filter, TrendingUp, TrendingDown, Loader2, AlertTriangle, Trophy, Award, Shield, Star, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Heatmap } from '@/components/charts/heatmap'
 import { formatPercent, getWinRateColor } from '@/lib/utils'
 import { usePlayerData } from '@/lib/hooks/use-data'
-import { useHeroCommentary } from '@/lib/hooks/use-hero-commentary'
-import { StreamingText } from '@/components/commentary/streaming-text'
+import { HeroDetailsModal } from '@/components/modals/hero-details-modal'
 import { HeroStats, PlayerData } from '@/types'
 
 interface HeroCardProps {
@@ -20,78 +19,78 @@ interface HeroCardProps {
 }
 
 function HeroCard({ hero, index, playerData }: HeroCardProps) {
-  const { commentary, isStreaming, error } = useHeroCommentary(
-    hero.hero,
-    playerData,
-    { autoFetch: true }
-  )
+  const [modalOpen, setModalOpen] = React.useState(false)
+
+  if (!playerData) {
+    return null
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-    >
-      <Card className="glass group border-primary-500/30 transition-all hover:scale-[1.02] hover:border-primary-500/60 hover:shadow-lg hover:shadow-primary-500/20">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-lg">{hero.hero}</CardTitle>
-              <Badge variant={hero.role.toLowerCase().replace(' ', '') as any} className="mt-2 text-xs">
-                {hero.role}
-              </Badge>
-            </div>
-            <div className={`text-2xl font-bold ${getWinRateColor(hero.winRate)}`}>
-              {formatPercent(hero.winRate, 1)}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Games</span>
-            <span className="font-semibold">{hero.games}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Record</span>
-            <span className="font-semibold">
-              {hero.wins}-{hero.losses}
-            </span>
-          </div>
-          <div className="relative h-1.5 overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full rounded-full ${
-                hero.winRate >= 55
-                  ? 'bg-gaming-success'
-                  : hero.winRate >= 50
-                  ? 'bg-gaming-warning'
-                  : 'bg-gaming-danger'
-              }`}
-              style={{ width: `${hero.winRate}%` }}
-            />
-          </div>
-
-          {/* AI Commentary */}
-          {playerData && (
-            <div className="pt-3 border-t border-primary-500/20">
-              <div className="flex items-center gap-1 mb-2">
-                <Sparkles className="h-3 w-3 text-blue-400" />
-                <span className="text-xs font-medium text-blue-400">AI Analysis</span>
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.05 }}
+      >
+        <button
+          onClick={() => setModalOpen(true)}
+          className="w-full text-left"
+        >
+          <Card className="glass group border-primary-500/30 transition-all hover:scale-[1.02] hover:border-primary-500/60 hover:shadow-lg hover:shadow-primary-500/20 cursor-pointer">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    {hero.hero}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </CardTitle>
+                  <Badge variant={hero.role.toLowerCase().replace(' ', '') as any} className="mt-2 text-xs">
+                    {hero.role}
+                  </Badge>
+                </div>
+                <div className={`text-2xl font-bold ${getWinRateColor(hero.winRate)}`}>
+                  {formatPercent(hero.winRate, 1)}
+                </div>
               </div>
-              {error ? (
-                <p className="text-xs text-red-400">{error}</p>
-              ) : (
-                <StreamingText
-                  text={commentary}
-                  isStreaming={isStreaming}
-                  className="text-xs text-muted-foreground leading-relaxed"
-                  showCursor={true}
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Games</span>
+                <span className="font-semibold">{hero.games}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Record</span>
+                <span className="font-semibold">
+                  {hero.wins}-{hero.losses}
+                </span>
+              </div>
+              <div className="relative h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={`h-full rounded-full ${
+                    hero.winRate >= 55
+                      ? 'bg-gaming-success'
+                      : hero.winRate >= 50
+                      ? 'bg-gaming-warning'
+                      : 'bg-gaming-danger'
+                  }`}
+                  style={{ width: `${hero.winRate}%` }}
                 />
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
+              </div>
+              <p className="text-xs text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity pt-2">
+                Click for detailed AI analysis
+              </p>
+            </CardContent>
+          </Card>
+        </button>
+      </motion.div>
+
+      <HeroDetailsModal
+        hero={hero}
+        playerData={playerData}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
+    </>
   )
 }
 

@@ -2,13 +2,13 @@
 
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Map, TrendingUp, Loader2, AlertTriangle, Sparkles } from 'lucide-react'
+import { Map, TrendingUp, Loader2, AlertTriangle, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { formatPercent, getWinRateColor } from '@/lib/utils'
 import { usePlayerData } from '@/lib/hooks/use-data'
-import { useMapCommentary } from '@/lib/hooks/use-map-commentary'
-import { StreamingText } from '@/components/commentary/streaming-text'
-import { PlayerData } from '@/types'
+import { MapDetailsModal } from '@/components/modals/map-details-modal'
+import { PlayerData, MapStats } from '@/types'
 
 interface MapData {
   map: string
@@ -34,87 +34,86 @@ interface MapCardProps {
 }
 
 function MapCard({ map, index, playerData }: MapCardProps) {
-  const { commentary, isStreaming, error } = useMapCommentary(
-    map.map,
-    playerData,
-    { autoFetch: true }
-  )
+  const [modalOpen, setModalOpen] = React.useState(false)
+
+  // Convert MapData to MapStats format for modal
+  const mapStats: MapStats = {
+    map: map.map,
+    games: map.games,
+    wins: map.wins,
+    losses: map.losses,
+    winRate: map.winRate,
+  }
 
   return (
-    <motion.div
-      key={map.map}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-    >
-      <Card className="glass group h-full border-primary-500/30 transition-all hover:scale-[1.02] hover:border-primary-500/60 hover:shadow-lg hover:shadow-primary-500/20">
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <Map className="h-5 w-5 text-primary-500" />
-                <CardTitle className="text-lg">{map.map}</CardTitle>
+    <>
+      <motion.div
+        key={map.map}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+      >
+        <Card className="glass group h-full border-primary-500/30 transition-all hover:border-primary-500/60 hover:shadow-lg hover:shadow-primary-500/20">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Map className="h-5 w-5 text-primary-500" />
+                  <CardTitle className="text-lg">{map.map}</CardTitle>
+                </div>
+              </div>
+              <div className={`text-3xl font-bold ${getWinRateColor(map.winRate)}`}>
+                {formatPercent(map.winRate, 1)}
               </div>
             </div>
-            <div className={`text-3xl font-bold ${getWinRateColor(map.winRate)}`}>
-              {formatPercent(map.winRate, 1)}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Total Games</p>
-              <p className="text-lg font-semibold">{map.games}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Record</p>
-              <p className="text-lg font-semibold">
-                {map.wins}-{map.losses}
-              </p>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gaming-success">Wins</span>
-              <span className="text-gaming-danger">Losses</span>
-            </div>
-            <div className="relative h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className={`h-full ${
-                  map.winRate >= 52
-                    ? 'bg-gaming-success'
-                    : map.winRate >= 48
-                    ? 'bg-gaming-warning'
-                    : 'bg-gaming-danger'
-                }`}
-                style={{ width: `${map.winRate}%` }}
-              />
-            </div>
-          </div>
-
-          {/* AI Commentary */}
-          {playerData && (
-            <div className="rounded-lg border border-blue-400/20 bg-blue-400/5 p-3">
-              <div className="flex items-center gap-1 mb-2">
-                <Sparkles className="h-3 w-3 text-blue-400" />
-                <span className="text-xs font-medium text-blue-400">AI Analysis</span>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">Total Games</p>
+                <p className="text-lg font-semibold">{map.games}</p>
               </div>
-              {error ? (
-                <p className="text-xs text-red-400">{error}</p>
-              ) : (
-                <StreamingText
-                  text={commentary}
-                  isStreaming={isStreaming}
-                  className="text-xs text-muted-foreground leading-relaxed"
-                  showCursor={true}
+              <div>
+                <p className="text-xs text-muted-foreground">Record</p>
+                <p className="text-lg font-semibold">
+                  {map.wins}-{map.losses}
+                </p>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gaming-success">Wins</span>
+                <span className="text-gaming-danger">Losses</span>
+              </div>
+              <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={`h-full ${
+                    map.winRate >= 52
+                      ? 'bg-gaming-success'
+                      : map.winRate >= 48
+                      ? 'bg-gaming-warning'
+                      : 'bg-gaming-danger'
+                  }`}
+                  style={{ width: `${map.winRate}%` }}
                 />
-              )}
+              </div>
             </div>
-          )}
+
+            {/* AI Analysis Button */}
+            {playerData && (
+              <Button
+                onClick={() => setModalOpen(true)}
+                variant="outline"
+                size="sm"
+                className="w-full border-accent-cyan/30 bg-accent-cyan/5 hover:bg-accent-cyan/10"
+              >
+                <ChevronRight className="h-4 w-4 mr-2" />
+                View AI Analysis
+              </Button>
+            )}
 
           {/* Top Heroes */}
           {map.topHeroes.length > 0 && (
@@ -201,6 +200,16 @@ function MapCard({ map, index, playerData }: MapCardProps) {
         </CardContent>
       </Card>
     </motion.div>
+
+    {playerData && (
+      <MapDetailsModal
+        map={mapStats}
+        playerData={playerData}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
+    )}
+  </>
   )
 }
 
