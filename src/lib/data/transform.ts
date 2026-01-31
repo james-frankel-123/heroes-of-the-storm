@@ -151,9 +151,12 @@ export function generatePowerPicks(playerData: PlayerData): PowerPick[] {
       if (hero.winRate >= 65 && hero.games >= 5) {
         powerPicks.push({
           hero: hero.hero,
+          role: hero.role,
           map: mapStat.map,
           winRate: hero.winRate,
           games: hero.games,
+          wins: hero.wins,
+          losses: hero.losses,
         })
       }
     })

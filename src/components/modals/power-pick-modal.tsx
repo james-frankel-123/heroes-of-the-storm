@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { PlayerData } from '@/types'
+import { PlayerData, PowerPick } from '@/types'
 import {
   Dialog,
   DialogContent,
@@ -13,16 +13,6 @@ import { StreamingText } from '@/components/commentary/streaming-text'
 import { useStreamingCommentary } from '@/lib/hooks/use-streaming-commentary'
 import { Trophy, Target, Map as MapIcon, Sparkles } from 'lucide-react'
 import { getWinRateColor } from '@/lib/utils'
-
-interface PowerPick {
-  hero: string
-  role: string
-  map: string
-  winRate: number
-  games: number
-  wins: number
-  losses: number
-}
 
 interface PowerPickModalProps {
   powerPick: PowerPick

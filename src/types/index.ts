@@ -29,9 +29,12 @@ export interface PlayerData {
 
 export interface PowerPick {
   hero: string
+  role: string
   map: string
   winRate: number
   games: number
+  wins: number
+  losses: number
 }
 
 export interface Insight {
