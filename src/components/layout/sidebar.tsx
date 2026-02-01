@@ -21,7 +21,6 @@ const navigation = [
   { name: 'Maps', href: '/maps', icon: Map },
   { name: 'Teams', href: '/teams', icon: Users },
   { name: 'Draft Assistant', href: '/draft', icon: Sparkles, badge: 'Beta' },
-  { name: 'Insights', href: '/insights', icon: TrendingUp },
   { name: 'Statistics', href: '/stats', icon: Trophy },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
@@ -37,7 +36,7 @@ export function Sidebar() {
           <Trophy className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h1 className="text-lg font-bold glow">HotS Analytics</h1>
+          <h1 className="text-lg font-bold glow">Hots fever</h1>
           <p className="text-xs text-muted-foreground">Storm League Tracker</p>
         </div>
       </div>
@@ -77,19 +76,6 @@ export function Sidebar() {
           )
         })}
       </nav>
-
-      {/* Footer */}
-      <div className="border-t border-border p-4">
-        <div className="rounded-lg bg-gradient-to-br from-primary-500/10 to-accent-cyan/10 p-4">
-          <p className="text-sm font-medium">Need Help?</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Check out our guide to improve your gameplay
-          </p>
-          <button className="mt-2 text-xs font-medium text-primary-500 hover:text-primary-600">
-            Learn More →
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
