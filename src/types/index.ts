@@ -27,6 +27,12 @@ export interface PlayerData {
   roleStats: Record<string, { wins: number; games: number; winRate: number }>
 }
 
+export interface PlayerMMR {
+  mmr: number | null
+  league_tier: string | null
+  games_played: number
+}
+
 export interface PowerPick {
   hero: string
   role: string
