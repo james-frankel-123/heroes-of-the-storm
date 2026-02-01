@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { fetchPlayerReplays } from '@/lib/api/replays'
 import { ReplayResponse } from '@/types'
 
-export function useReplays(battletag?: string) {
+export function useReplays(battletag?: string, includeAllGames: boolean = false) {
   const [data, setData] = useState<ReplayResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -14,11 +14,11 @@ export function useReplays(battletag?: string) {
     }
 
     setIsLoading(true)
-    fetchPlayerReplays(battletag)
+    fetchPlayerReplays(battletag, includeAllGames)
       .then(setData)
       .catch(err => setError(err.message))
       .finally(() => setIsLoading(false))
-  }, [battletag])
+  }, [battletag, includeAllGames])
 
   return { data, isLoading, error }
 }

@@ -45,14 +45,14 @@ export default function DraftPage() {
   const currentTurn = getCurrentTurn(turnIndex)
 
   // Handle draft configuration
-  const handleConfigComplete = (
-    map: string,
-    team: DraftTeam,
-    roster: PartyMember[]
-  ) => {
-    setSelectedMap(map)
-    setYourTeam(team)
-    setPartyRoster(roster)
+  const handleConfigComplete = (config: {
+    selectedMap: string
+    yourTeam: DraftTeam
+    partyRoster: PartyMember[]
+  }) => {
+    setSelectedMap(config.selectedMap)
+    setYourTeam(config.yourTeam)
+    setPartyRoster(config.partyRoster)
     setIsConfigured(true)
   }
 
@@ -154,6 +154,7 @@ export default function DraftPage() {
     return (
       <PasswordGate requiredPassword="ronpaul2012" storageKey="protected_pages_auth">
         <DraftConfigModal
+          open={!isConfigured}
           onComplete={handleConfigComplete}
         />
       </PasswordGate>

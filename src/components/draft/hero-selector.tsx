@@ -6,7 +6,7 @@ import { Search, SortAsc } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { getAvailableHeroes, DraftTeam } from '@/lib/draft/draft-sequence'
+import { getAvailableHeroes, DraftTeam, DraftTurn } from '@/lib/draft/draft-sequence'
 
 const ALL_HEROES = [
   'Abathur', 'Alarak', 'Alexstrasza', 'Ana', 'Anduin', "Anub'arak",
@@ -30,12 +30,16 @@ interface HeroSelectorProps {
   availableHeroes: string[]
   onHeroSelect: (hero: string) => void
   disabled?: boolean
+  currentTurn?: DraftTurn
+  yourTeam?: DraftTeam
 }
 
 export function HeroSelector({
   availableHeroes,
   onHeroSelect,
-  disabled = false
+  disabled = false,
+  currentTurn,
+  yourTeam
 }: HeroSelectorProps) {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [sortBy, setSortBy] = React.useState<'name' | 'role'>('name')
@@ -61,16 +65,31 @@ export function HeroSelector({
     })
   }, [filteredHeroes, sortBy])
 
+  const isYourTurn = currentTurn && yourTeam ? currentTurn.team === yourTeam : true
+  const turnTeamLabel = currentTurn ? currentTurn.team.toUpperCase() : ''
+  const actionLabel = currentTurn ? (currentTurn.action === 'ban' ? 'BAN' : 'PICK') : ''
+
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="text-sm font-semibold">
-          Select Hero ({filteredHeroes.length} available)
+          {currentTurn ? (
+            <>
+              Select hero for <span className={currentTurn.team === 'blue' ? 'text-blue-400' : 'text-red-400'}>
+                {turnTeamLabel} TEAM {actionLabel}
+              </span> ({filteredHeroes.length} available)
+            </>
+          ) : (
+            <>Select Hero ({filteredHeroes.length} available)</>
+          )}
         </div>
-        {disabled && (
-          <Badge variant="outline" className="text-muted-foreground">
-            Opponent's turn
+        {currentTurn && (
+          <Badge
+            variant="outline"
+            className={isYourTurn ? 'text-green-400 border-green-400/30' : 'text-yellow-400 border-yellow-400/30'}
+          >
+            {isYourTurn ? 'Your Team' : 'Enemy Team'}
           </Badge>
         )}
       </div>

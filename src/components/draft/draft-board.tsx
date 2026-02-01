@@ -107,7 +107,9 @@ export function DraftBoard({
       <HeroSelector
         availableHeroes={availableHeroes}
         onHeroSelect={onHeroSelect}
-        disabled={!yourTurn}
+        disabled={false}
+        currentTurn={currentTurn}
+        yourTeam={yourTeam}
       />
     </div>
   )

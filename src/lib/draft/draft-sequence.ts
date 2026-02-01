@@ -95,13 +95,15 @@ export function getDraftPhaseName(phase: DraftPhase): string {
  * Get a human-readable turn description
  */
 export function getTurnDescription(turn: DraftTurn, yourTeam: DraftTeam): string {
-  const teamLabel = turn.team === yourTeam ? 'YOUR' : 'OPPONENT'
+  const isYourTurn = turn.team === yourTeam
+  const teamLabel = isYourTurn ? 'YOUR' : 'OPPONENT'
   const actionLabel = turn.action.toUpperCase()
+  const instructionLabel = isYourTurn ? 'Select your' : 'Enter their'
 
   if (turn.action === 'ban') {
-    return `${teamLabel} ${actionLabel} #${turn.number}`
+    return `${teamLabel} ${actionLabel} #${turn.number} - ${instructionLabel} ban`
   } else {
-    return `${teamLabel} PICK #${turn.number}`
+    return `${teamLabel} PICK #${turn.number} - ${instructionLabel} pick`
   }
 }
 

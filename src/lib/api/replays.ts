@@ -1,8 +1,9 @@
 import { ReplayResponse } from '@/types'
 
-export async function fetchPlayerReplays(battletag: string): Promise<ReplayResponse> {
+export async function fetchPlayerReplays(battletag: string, includeAllGames: boolean = false): Promise<ReplayResponse> {
   try {
-    const response = await fetch(`/api/replays/${encodeURIComponent(battletag)}`)
+    const url = `/api/replays/${encodeURIComponent(battletag)}${includeAllGames ? '?includeAllGames=true' : ''}`
+    const response = await fetch(url)
     if (!response.ok) {
       throw new Error(`Failed to fetch replays: ${response.status}`)
     }

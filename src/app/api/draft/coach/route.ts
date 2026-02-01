@@ -158,7 +158,7 @@ ${partyRoster.map((member, idx) => {
     return `${idx + 1}. ${member.battletag.split('#')[0]} (Slot ${idx + 1}) - Stats loading...`
   }
 
-  const topHeroes = comp.heroCompetencies
+  const topHeroes = comp.topHeroes
     .slice(0, 3)
     .map(h => `${h.hero} (${h.winRate}% WR, ${h.games}g${h.mapBonus ? ', strong on this map' : ''})`)
     .join(', ')

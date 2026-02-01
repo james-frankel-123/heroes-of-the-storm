@@ -14,6 +14,8 @@ export async function GET(
 ) {
   try {
     const { battletag } = params
+    const { searchParams } = new URL(request.url)
+    const includeAllGames = searchParams.get('includeAllGames') === 'true'
 
     if (!battletag) {
       return NextResponse.json(
@@ -62,7 +64,7 @@ export async function GET(
     }
 
     // Transform replay data (now fetches detailed party information)
-    const replays = await transformReplayData(data, battletag)
+    const replays = await transformReplayData(data, battletag, includeAllGames)
 
     console.log('=== PARTY DATA SUMMARY ===')
     console.log(`Total replays processed: ${replays.length}`)
@@ -109,7 +111,7 @@ export async function GET(
   }
 }
 
-async function transformReplayData(rawData: any, playerBattletag: string): Promise<ReplayData[]> {
+async function transformReplayData(rawData: any, playerBattletag: string, includeAllGames: boolean): Promise<ReplayData[]> {
   const replays: ReplayData[] = []
 
   // Navigate through the nested structure
@@ -124,9 +126,12 @@ async function transformReplayData(rawData: any, playerBattletag: string): Promi
     return replays
   }
 
-  // Get replay IDs, filter for party games only, and sort by date (most recent first)
-  const partyReplayEntries = Object.entries(stormLeagueData)
+  // Get replay IDs, optionally filter for party games, and sort by date (most recent first)
+  const replayEntries = Object.entries(stormLeagueData)
     .filter(([_, replayData]) => {
+      if (includeAllGames) {
+        return true // Include all games
+      }
       // Only include replays where player was in a party (party field != 0)
       const partyId = parseInt(String((replayData as any).party)) || 0
       return partyId !== 0
@@ -137,12 +142,12 @@ async function transformReplayData(rawData: any, playerBattletag: string): Promi
       return dateB - dateA // Most recent first
     })
 
-  // Limit to 200 most recent party games
-  const recentPartyReplays = partyReplayEntries.slice(0, 200)
+  // Limit to 200 most recent games
+  const recentReplays = replayEntries.slice(0, 200)
 
-  console.log(`Processing ${recentPartyReplays.length} party games out of ${Object.keys(stormLeagueData).length} total for player: ${playerBattletag}`)
+  console.log(`Processing ${recentReplays.length} ${includeAllGames ? 'total' : 'party'} games out of ${Object.keys(stormLeagueData).length} total for player: ${playerBattletag}`)
 
-  for (const [replayId, replayData] of recentPartyReplays) {
+  for (const [replayId, replayData] of recentReplays) {
     if (typeof replayData !== 'object') continue
 
     // Type assertion for raw API data
@@ -200,7 +205,7 @@ async function transformReplayData(rawData: any, playerBattletag: string): Promi
 
       if (!playerData) {
         // Log first replay to see what players are available
-        if (replayId === recentPartyReplays[0][0]) {
+        if (replayId === recentReplays[0][0]) {
           console.log(`Player ${playerBattletag} not found in first replay ${replayId}. Available players:`, Object.keys(replayPlayers).slice(0, 5))
         }
         continue
