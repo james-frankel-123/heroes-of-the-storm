@@ -10,6 +10,10 @@ import { StreamingText } from '@/components/commentary/streaming-text'
 import { useCoachCommentary, DraftState, HeroRecommendation, QuickAnalysis } from '@/lib/hooks/use-coach-commentary'
 import { PartyMember } from '@/components/draft/draft-config-modal'
 import { DraftTurn } from '@/lib/draft/draft-sequence'
+import { RoleBalanceIndicator } from '@/components/draft/role-balance-indicator'
+import { DraftHistoryTimeline } from '@/components/draft/draft-history-timeline'
+import { SynergyIndicator } from '@/components/draft/synergy-indicator'
+import { findSynergies } from '@/lib/data/hero-synergies'
 
 interface AICoachPanelProps {
   draftState: DraftState
@@ -28,6 +32,9 @@ export function AICoachPanel({
   draftHistory
 }: AICoachPanelProps) {
   const [showRoster, setShowRoster] = React.useState(false)
+  const [showRoleBalance, setShowRoleBalance] = React.useState(true)
+  const [showHistory, setShowHistory] = React.useState(false)
+  const [showSynergies, setShowSynergies] = React.useState(true)
 
   const {
     commentary,
@@ -36,6 +43,9 @@ export function AICoachPanel({
     recommendations,
     quickAnalysis
   } = useCoachCommentary(draftState, partyRoster, draftHistory, true)
+
+  const yourPicks = draftState.yourTeam === 'blue' ? draftState.bluePicks : draftState.redPicks
+  const enemyPicks = draftState.yourTeam === 'blue' ? draftState.redPicks : draftState.bluePicks
 
   return (
     <div className="flex flex-col h-full bg-card border-l border-border">
@@ -150,6 +160,109 @@ export function AICoachPanel({
           </Card>
         )}
 
+        {/* Role Balance (Collapsible) */}
+        {yourPicks.some(p => p !== null) && (
+          <Card className="border-border">
+            <CardHeader className="pb-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowRoleBalance(!showRoleBalance)}
+                className="w-full flex items-center justify-between p-0 h-auto hover:bg-transparent"
+              >
+                <CardTitle className="text-sm">Team Role Balance</CardTitle>
+                {showRoleBalance ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CardHeader>
+            {showRoleBalance && (
+              <CardContent className="space-y-3">
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground mb-2">
+                    Your Team ({draftState.yourTeam === 'blue' ? 'Blue' : 'Red'})
+                  </div>
+                  <RoleBalanceIndicator
+                    picks={yourPicks}
+                    teamName={draftState.yourTeam === 'blue' ? 'Blue' : 'Red'}
+                    compact={true}
+                  />
+                </div>
+                {enemyPicks.some(p => p !== null) && (
+                  <div>
+                    <div className="text-xs font-semibold text-muted-foreground mb-2">
+                      Enemy Team ({draftState.yourTeam === 'blue' ? 'Red' : 'Blue'})
+                    </div>
+                    <RoleBalanceIndicator
+                      picks={enemyPicks}
+                      teamName={draftState.yourTeam === 'blue' ? 'Red' : 'Blue'}
+                      compact={true}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            )}
+          </Card>
+        )}
+
+        {/* Team Synergies (Collapsible) */}
+        {findSynergies(yourPicks).length > 0 && (
+          <Card className="border-border">
+            <CardHeader className="pb-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSynergies(!showSynergies)}
+                className="w-full flex items-center justify-between p-0 h-auto hover:bg-transparent"
+              >
+                <CardTitle className="text-sm">Team Synergies</CardTitle>
+                {showSynergies ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CardHeader>
+            {showSynergies && (
+              <CardContent>
+                <SynergyIndicator
+                  picks={yourPicks}
+                  teamName={draftState.yourTeam === 'blue' ? 'Blue' : 'Red'}
+                  compact={false}
+                />
+              </CardContent>
+            )}
+          </Card>
+        )}
+
+        {/* Draft History (Collapsible) */}
+        {draftHistory.length > 0 && (
+          <Card className="border-border">
+            <CardHeader className="pb-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className="w-full flex items-center justify-between p-0 h-auto hover:bg-transparent"
+              >
+                <CardTitle className="text-sm">Draft History ({draftHistory.length} actions)</CardTitle>
+                {showHistory ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CardHeader>
+            {showHistory && (
+              <CardContent>
+                <DraftHistoryTimeline draftHistory={draftHistory} compact={true} />
+              </CardContent>
+            )}
+          </Card>
+        )}
+
         {/* Party Roster Summary (Collapsible) */}
         {partyRoster.some(m => m.battletag) && (
           <Card className="border-border">
@@ -179,8 +292,8 @@ export function AICoachPanel({
                     )
                   }
 
-                  const hasStats = member.playerStats && !member.playerStats.error
-                  const heroCount = hasStats ? Object.keys(member.playerStats.heroStats).length : 0
+                  const hasStats = member.playerStats !== null
+                  const heroCount = hasStats ? member.playerStats!.heroStats.length : 0
 
                   return (
                     <div key={idx} className="space-y-1">
@@ -200,12 +313,12 @@ export function AICoachPanel({
                           </span>
                         )}
                       </div>
-                      {hasStats && (
+                      {hasStats && member.playerStats && (
                         <div className="text-xs text-muted-foreground pl-8">
-                          Top: {Object.entries(member.playerStats.heroStats)
-                            .sort(([, a], [, b]) => b.winRate - a.winRate)
+                          Top: {member.playerStats.heroStats
+                            .sort((a, b) => b.winRate - a.winRate)
                             .slice(0, 3)
-                            .map(([hero, stats]) => `${hero} (${stats.winRate.toFixed(0)}%)`)
+                            .map(heroStat => `${heroStat.hero} (${heroStat.winRate.toFixed(0)}%)`)
                             .join(', ')}
                         </div>
                       )}

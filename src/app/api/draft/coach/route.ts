@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
     // Calculate player competencies
     const playerCompetencies: PlayerCompetency[] = partyRoster
-      .filter(member => member.playerStats && !member.playerStats.error)
+      .filter(member => member.playerStats !== null)
       .map(member => calculatePlayerCompetency(
         member.battletag,
         member.slot,
@@ -149,7 +149,7 @@ ${partyRoster.map((member, idx) => {
     return `${idx + 1}. ${member.battletag.split('#')[0]} (Slot ${idx + 1}) - Already picked: ${alreadyPicked}`
   }
 
-  if (!member.playerStats || member.playerStats.error) {
+  if (member.playerStats === null) {
     return `${idx + 1}. ${member.battletag.split('#')[0]} (Slot ${idx + 1}) - No stats available`
   }
 
