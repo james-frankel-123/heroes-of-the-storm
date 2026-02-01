@@ -200,7 +200,7 @@ async function transformReplayData(rawData: any, playerBattletag: string): Promi
 
       if (!playerData) {
         // Log first replay to see what players are available
-        if (replayId === recentReplayIds[0]) {
+        if (replayId === recentPartyReplays[0][0]) {
           console.log(`Player ${playerBattletag} not found in first replay ${replayId}. Available players:`, Object.keys(replayPlayers).slice(0, 5))
         }
         continue
