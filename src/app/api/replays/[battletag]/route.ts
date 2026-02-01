@@ -128,12 +128,12 @@ async function transformReplayData(rawData: any, playerBattletag: string): Promi
   const partyReplayEntries = Object.entries(stormLeagueData)
     .filter(([_, replayData]) => {
       // Only include replays where player was in a party (party field != 0)
-      const partyId = parseInt(String(replayData.party)) || 0
+      const partyId = parseInt(String((replayData as any).party)) || 0
       return partyId !== 0
     })
     .sort((a, b) => {
-      const dateA = new Date(a[1].game_date || 0).getTime()
-      const dateB = new Date(b[1].game_date || 0).getTime()
+      const dateA = new Date((a[1] as any).game_date || 0).getTime()
+      const dateB = new Date((b[1] as any).game_date || 0).getTime()
       return dateB - dateA // Most recent first
     })
 
@@ -144,6 +144,9 @@ async function transformReplayData(rawData: any, playerBattletag: string): Promi
 
   for (const [replayId, replayData] of recentPartyReplays) {
     if (typeof replayData !== 'object') continue
+
+    // Type assertion for raw API data
+    const rawReplay = replayData as any
 
     try {
       // Fetch full replay data to get all players
@@ -229,21 +232,21 @@ async function transformReplayData(rawData: any, playerBattletag: string): Promi
       const result: 'win' | 'loss' = playerData.winner === true ? 'win' : 'loss'
 
       // Get map name from detailed data (game_map field)
-      const mapName = replayFullData.game_map || replayData.map || 'Unknown'
+      const mapName = replayFullData.game_map || rawReplay.map || 'Unknown'
 
       replays.push({
         replayId,
         gameType: 'Storm League',
-        hero: replayData.hero || playerData.hero || 'Unknown',
+        hero: rawReplay.hero || playerData.hero || 'Unknown',
         map: mapName,
         result,
-        date: replayData.game_date || new Date().toISOString(),
-        duration: parseInt(replayData.game_length) || 0,
+        date: rawReplay.game_date || new Date().toISOString(),
+        duration: parseInt(rawReplay.game_length) || 0,
         partyMembers: partyMembers.sort(), // Sort for consistent membership keys
         partySize,
-        kills: parseInt(replayData.kills) || parseInt(playerData.kills) || 0,
-        deaths: parseInt(replayData.deaths) || parseInt(playerData.deaths) || 0,
-        assists: parseInt(replayData.assists) || parseInt(playerData.assists) || 0,
+        kills: parseInt(rawReplay.kills) || parseInt(playerData.kills) || 0,
+        deaths: parseInt(rawReplay.deaths) || parseInt(playerData.deaths) || 0,
+        assists: parseInt(rawReplay.assists) || parseInt(playerData.assists) || 0,
         partyMemberHeroes,
       })
     } catch (err) {
