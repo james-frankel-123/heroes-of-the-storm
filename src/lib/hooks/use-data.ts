@@ -28,8 +28,25 @@ export function usePlayerData(playerName?: string) {
   )
 
   const players = data ? Object.keys(data) : []
-  const currentPlayer = targetBattletag || players[0]
-  const playerData = currentPlayer ? data?.[currentPlayer] : null
+
+  // Find player data with case-insensitive matching
+  let playerData: PlayerData | null = null
+  if (data && targetBattletag) {
+    // Try exact match first
+    playerData = data[targetBattletag] || null
+
+    // If not found, try case-insensitive match
+    if (!playerData) {
+      const lowerTarget = targetBattletag.toLowerCase()
+      const matchedKey = Object.keys(data).find(
+        key => key.toLowerCase() === lowerTarget
+      )
+      if (matchedKey) {
+        playerData = data[matchedKey]
+        console.log(`Case mismatch: requested "${targetBattletag}", found "${matchedKey}"`)
+      }
+    }
+  }
 
   return {
     data: playerData,
