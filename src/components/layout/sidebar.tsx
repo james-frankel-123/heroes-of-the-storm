@@ -21,7 +21,7 @@ const navigation = [
   { name: 'Maps', href: '/maps', icon: Map },
   { name: 'Teams', href: '/teams', icon: Users },
   { name: 'Draft Assistant', href: '/draft', icon: Sparkles, badge: 'Beta' },
-  { name: 'Statistics', href: '/stats', icon: Trophy },
+  { name: 'Statistics', href: '/stats', icon: Trophy, badge: 'Coming Soon' },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
