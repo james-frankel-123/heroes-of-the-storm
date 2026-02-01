@@ -123,6 +123,43 @@ body {
   }
 }
 
+/* Fever animation for branding */
+@keyframes fever-shimmer {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+    filter: blur(0px);
+  }
+  50% {
+    transform: translateY(-1px) scaleY(1.01);
+    filter: blur(0.5px);
+  }
+}
+
+.fever-text {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8c42 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.fever-shimmer {
+  position: relative;
+  display: inline-block;
+}
+
+.fever-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 235, 59, 0.1) 50%, transparent 100%);
+  animation: fever-shimmer 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
