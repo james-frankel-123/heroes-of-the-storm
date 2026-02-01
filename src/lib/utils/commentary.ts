@@ -2,11 +2,6 @@ import { HeroStats, MapStats, PlayerData, PowerPick, Insight } from '@/types'
 import { TEAM_COMPOSITIONS, DuoStats } from '@/lib/data/team-compositions'
 import { generatePowerPicks } from '@/lib/data/transform'
 
-// Format commentary for display
-export function formatCommentary(text: string): string {
-  return text.trim()
-}
-
 // Parse streaming SSE response
 export async function* parseStreamingResponse(response: Response): AsyncGenerator<string> {
   const reader = response.body?.getReader()
@@ -16,19 +11,86 @@ export async function* parseStreamingResponse(response: Response): AsyncGenerato
     throw new Error('No response body')
   }
 
+  let buffer = ''
+  let yieldCount = 0
+
   try {
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
 
-      const chunk = decoder.decode(value, { stream: true })
-      const lines = chunk.split('\n')
+      // Decode the chunk and add to buffer
+      const decoded = decoder.decode(value, { stream: true })
+      buffer += decoded
 
+      console.log('=== SSE Parser: Raw Data ===')
+      console.log('Decoded bytes:', decoded.length)
+      console.log('Buffer length:', buffer.length)
+
+      // Split on double newlines (SSE message delimiter)
+      const messages = buffer.split('\n\n')
+
+      // Keep the last incomplete message in the buffer
+      buffer = messages.pop() || ''
+
+      console.log('Complete messages:', messages.length)
+      console.log('Remaining buffer:', buffer.length)
+
+      // Process complete messages
+      for (const message of messages) {
+        const lines = message.split('\n')
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') continue
+            // Parse JSON to decode newlines and special characters
+            try {
+              const parsed = JSON.parse(data)
+              yieldCount++
+              console.log('=== SSE Parser: Yielding ===')
+              console.log('Yield #:', yieldCount)
+              console.log('Parsed chunk:', JSON.stringify(parsed))
+              console.log('Chunk length:', parsed.length)
+              yield parsed
+            } catch (e) {
+              // Fallback for non-JSON data
+              yieldCount++
+              console.log('=== SSE Parser: Yielding (non-JSON) ===')
+              console.log('Yield #:', yieldCount)
+              console.log('Raw data:', JSON.stringify(data))
+              yield data
+            }
+          }
+        }
+      }
+    }
+
+    // Process any remaining buffered content
+    if (buffer.trim()) {
+      console.log('=== SSE Parser: Processing remaining buffer ===')
+      console.log('Remaining buffer:', JSON.stringify(buffer))
+      const lines = buffer.split('\n')
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6)
-          if (data === '[DONE]') continue
-          yield data
+          if (data !== '[DONE]') {
+            // Parse JSON to decode newlines and special characters
+            try {
+              const parsed = JSON.parse(data)
+              yieldCount++
+              console.log('=== SSE Parser: Yielding (final) ===')
+              console.log('Yield #:', yieldCount)
+              console.log('Parsed chunk:', JSON.stringify(parsed))
+              yield parsed
+            } catch (e) {
+              // Fallback for non-JSON data
+              yieldCount++
+              console.log('=== SSE Parser: Yielding (final, non-JSON) ===')
+              console.log('Yield #:', yieldCount)
+              console.log('Raw data:', JSON.stringify(data))
+              yield data
+            }
+          }
         }
       }
     }

@@ -1,4 +1,4 @@
-import { PlayerData, HeroStats, MapStats, PowerPick, Insight } from '@/types'
+import { PlayerData, HeroStats, MapStats, PowerPick, Insight, ReplayData, PartyStats, PartyGroup } from '@/types'
 
 // Role classification (same as Python script)
 const TANKS = ["Anub'arak", "Arthas", "Blaze", "Cho", "Diablo", "E.T.C.", "Garrosh",
@@ -219,4 +219,239 @@ export function generateInsights(playerData: PlayerData): Insight[] {
   }
 
   return insights
+}
+
+// Helper: Create unique membership key for party group
+export function createMembershipKey(members: string[]): string {
+  return [...members].sort().join('|')
+}
+
+// Aggregate party statistics from replay data
+export function aggregatePartyStats(replays: ReplayData[]): PartyStats {
+  // Maps for each party size
+  const duoMap = new Map<string, PartyGroup>()
+  const trioMap = new Map<string, PartyGroup>()
+  const quadMap = new Map<string, PartyGroup>()
+  const quintMap = new Map<string, PartyGroup>()
+
+  // Iterate through replays
+  replays.forEach((replay) => {
+    // Skip solo games
+    if (replay.partySize === 1) return
+
+    // Create membership key
+    const membershipKey = createMembershipKey(replay.partyMembers)
+
+    // Select appropriate map based on party size
+    let partyMap: Map<string, PartyGroup>
+    switch (replay.partySize) {
+      case 2:
+        partyMap = duoMap
+        break
+      case 3:
+        partyMap = trioMap
+        break
+      case 4:
+        partyMap = quadMap
+        break
+      case 5:
+        partyMap = quintMap
+        break
+      default:
+        return // Invalid party size
+    }
+
+    // Get or create party group
+    if (!partyMap.has(membershipKey)) {
+      partyMap.set(membershipKey, {
+        members: [...replay.partyMembers].sort(),
+        displayNames: replay.partyMembers
+          .map(tag => tag.split('#')[0])
+          .sort((a, b) => {
+            // Sort by name, but keep order consistent with members
+            const aIdx = replay.partyMembers.findIndex(m => m.split('#')[0] === a)
+            const bIdx = replay.partyMembers.findIndex(m => m.split('#')[0] === b)
+            return replay.partyMembers[aIdx].localeCompare(replay.partyMembers[bIdx])
+          }),
+        partySize: replay.partySize,
+        totalGames: 0,
+        totalWins: 0,
+        totalLosses: 0,
+        winRate: 0,
+        commonHeroes: [],
+        bestMaps: [],
+        membershipKey,
+        memberHeroes: {},
+        compositions: [],
+      })
+    }
+
+    const group = partyMap.get(membershipKey)!
+
+    // Update stats
+    group.totalGames++
+    if (replay.result === 'win') {
+      group.totalWins++
+    } else {
+      group.totalLosses++
+    }
+  })
+
+  // Calculate derived metrics and filter for each party size
+  const processPartyGroups = (partyMap: Map<string, PartyGroup>): PartyGroup[] => {
+    const groups = Array.from(partyMap.values())
+      .filter(group => group.totalGames >= 2) // Minimum 2 games threshold
+      .map(group => {
+        // Calculate win rate
+        group.winRate = group.totalGames > 0
+          ? Math.round((group.totalWins / group.totalGames) * 1000) / 10
+          : 0
+
+        // Aggregate heroes played in this party
+        const heroMap = new Map<string, { games: number; wins: number }>()
+        replays.forEach(replay => {
+          if (createMembershipKey(replay.partyMembers) === group.membershipKey) {
+            if (!heroMap.has(replay.hero)) {
+              heroMap.set(replay.hero, { games: 0, wins: 0 })
+            }
+            const heroStats = heroMap.get(replay.hero)!
+            heroStats.games++
+            if (replay.result === 'win') {
+              heroStats.wins++
+            }
+          }
+        })
+
+        // Convert to common heroes array
+        group.commonHeroes = Array.from(heroMap.entries())
+          .map(([hero, stats]) => ({
+            hero,
+            games: stats.games,
+            winRate: stats.games > 0
+              ? Math.round((stats.wins / stats.games) * 1000) / 10
+              : 0,
+          }))
+          .sort((a, b) => b.games - a.games)
+
+        // Aggregate heroes for EACH party member
+        const memberHeroMaps = new Map<string, Map<string, { games: number; wins: number }>>()
+        replays.forEach(replay => {
+          if (createMembershipKey(replay.partyMembers) === group.membershipKey && replay.partyMemberHeroes) {
+            Object.entries(replay.partyMemberHeroes).forEach(([battletag, hero]) => {
+              if (!memberHeroMaps.has(battletag)) {
+                memberHeroMaps.set(battletag, new Map())
+              }
+              const memberHeroMap = memberHeroMaps.get(battletag)!
+              if (!memberHeroMap.has(hero)) {
+                memberHeroMap.set(hero, { games: 0, wins: 0 })
+              }
+              const stats = memberHeroMap.get(hero)!
+              stats.games++
+              if (replay.result === 'win') {
+                stats.wins++
+              }
+            })
+          }
+        })
+
+        // Convert to memberHeroes object
+        group.memberHeroes = {}
+        memberHeroMaps.forEach((heroMap, battletag) => {
+          group.memberHeroes[battletag] = Array.from(heroMap.entries())
+            .map(([hero, stats]) => ({
+              hero,
+              games: stats.games,
+              winRate: stats.games > 0
+                ? Math.round((stats.wins / stats.games) * 1000) / 10
+                : 0,
+            }))
+            .sort((a, b) => {
+              // Sort by win rate (best to worst), then by games played
+              if (b.winRate !== a.winRate) return b.winRate - a.winRate
+              return b.games - a.games
+            })
+            .slice(0, 5) // Top 5 heroes per member
+        })
+
+        // Aggregate team compositions
+        const compositionMap = new Map<string, { games: number; wins: number; losses: number }>()
+        replays.forEach(replay => {
+          if (createMembershipKey(replay.partyMembers) === group.membershipKey && replay.partyMemberHeroes) {
+            // Get all heroes in the party for this game
+            const heroes = Object.values(replay.partyMemberHeroes).sort()
+            const compositionKey = heroes.join(' + ')
+
+            if (!compositionMap.has(compositionKey)) {
+              compositionMap.set(compositionKey, { games: 0, wins: 0, losses: 0 })
+            }
+            const compStats = compositionMap.get(compositionKey)!
+            compStats.games++
+            if (replay.result === 'win') {
+              compStats.wins++
+            } else {
+              compStats.losses++
+            }
+          }
+        })
+
+        // Convert to compositions array
+        group.compositions = Array.from(compositionMap.entries())
+          .map(([composition, stats]) => ({
+            composition,
+            games: stats.games,
+            wins: stats.wins,
+            losses: stats.losses,
+            winRate: stats.games > 0
+              ? Math.round((stats.wins / stats.games) * 1000) / 10
+              : 0,
+          }))
+          .sort((a, b) => {
+            // Sort by win rate (best to worst), then by games played
+            if (b.winRate !== a.winRate) return b.winRate - a.winRate
+            return b.games - a.games
+          })
+
+        // Aggregate maps played in this party
+        const mapMap = new Map<string, { games: number; wins: number }>()
+        replays.forEach(replay => {
+          if (createMembershipKey(replay.partyMembers) === group.membershipKey) {
+            if (!mapMap.has(replay.map)) {
+              mapMap.set(replay.map, { games: 0, wins: 0 })
+            }
+            const mapStats = mapMap.get(replay.map)!
+            mapStats.games++
+            if (replay.result === 'win') {
+              mapStats.wins++
+            }
+          }
+        })
+
+        // Convert to best maps array (show all, sorted by games then win rate)
+        group.bestMaps = Array.from(mapMap.entries())
+          .map(([map, stats]) => ({
+            map,
+            games: stats.games,
+            winRate: stats.games > 0
+              ? Math.round((stats.wins / stats.games) * 1000) / 10
+              : 0,
+          }))
+          .sort((a, b) => {
+            // Sort by games first, then by win rate
+            if (b.games !== a.games) return b.games - a.games
+            return b.winRate - a.winRate
+          })
+
+        return group
+      })
+      .sort((a, b) => b.totalGames - a.totalGames) // Sort by most games played
+
+    return groups
+  }
+
+  return {
+    duos: processPartyGroups(duoMap),
+    trios: processPartyGroups(trioMap),
+    quadruples: processPartyGroups(quadMap),
+    quintuples: processPartyGroups(quintMap),
+  }
 }

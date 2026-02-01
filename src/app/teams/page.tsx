@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatPercent, getWinRateColor } from '@/lib/utils'
 import { TEAM_COMPOSITIONS, DuoStats } from '@/lib/data/team-compositions'
 import { TeamSynergyModal } from '@/components/modals/team-synergy-modal'
+import { PartyHistory } from '@/components/teams/party-history'
 import { usePlayerData } from '@/lib/hooks/use-data'
 
 // Use DuoStats type from team-compositions module
@@ -286,6 +287,17 @@ export default function TeamsPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Party History Section */}
+      {playerData && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <PartyHistory playerData={playerData} />
+        </motion.div>
+      )}
 
       {/* Team Synergy Modal */}
       {selectedSynergy && playerData && (

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { openai, OPENAI_CONFIG } from '@/lib/api/openai'
 import { createMapPayload } from '@/lib/utils/commentary'
+import { formatCommentary } from '@/lib/utils/server-commentary'
 import { PlayerData, MapStats } from '@/types'
 
 export async function POST(req: Request) {
@@ -58,13 +59,42 @@ ${payload.highPotentialHeroes.map(h => `- ${h.hero}: ${h.winRate.toFixed(1)}% ($
 - Total Games: ${payload.playerContext.totalGames}
 - Best Overall Heroes: ${payload.playerContext.topHeroesOverall.slice(0, 3).map(h => `${h.hero} (${h.winRate.toFixed(1)}%)`).join(', ')}
 
-Provide a concise analysis (2-3 paragraphs) covering:
-1. Map performance assessment: How this map compares to their overall performance
-2. Hero recommendations: Which of their heroes work best on this map and why
-3. Strategic advice: Map-specific tactics or objectives they should focus on
-4. Draft strategy: What types of heroes to prioritize on this map based on their strengths
+CRITICAL FORMATTING REQUIREMENTS - You MUST output proper markdown:
 
-Keep it practical, specific to this player's data, and action-oriented.`
+WRONG FORMAT (DO NOT DO THIS):
+## Map Performance Summary- Win rate: **${payload.winRate.toFixed(1)}%**
+
+CORRECT FORMAT (DO THIS):
+## Map Performance Summary
+
+- Win rate: **${payload.winRate.toFixed(1)}%** (compare to overall **${payload.playerContext.overallWinRate.toFixed(1)}%**)
+- Games played: **${payload.games}** (ranked #${payload.playerContext.mapRank} of ${payload.playerContext.totalMaps} maps)
+- Overall assessment
+
+## Top Performers
+
+- Your best heroes on this map (3-5 heroes)
+- Include win rates in bold
+- Brief note on why each works well here
+
+## Heroes to Avoid
+
+- Underperforming heroes on this map (if any)
+- Performance metrics with explanations
+
+## Strategic Recommendations
+
+- Hero pool suggestions for this map
+- Map-specific strategies to focus on
+- Draft priorities based on your strengths
+
+MANDATORY RULES:
+1. Write ## then the section name, then press ENTER TWICE
+2. Then write each bullet point starting with "- " on its own line
+3. NEVER write text immediately after ## on the same line
+4. Do NOT include the word "markdown" anywhere in your response
+
+Use bullet points and bold text for stats.`
 
     // Stream the response from OpenAI
     const stream = await openai.chat.completions.create({
@@ -72,7 +102,7 @@ Keep it practical, specific to this player's data, and action-oriented.`
       messages: [
         {
           role: 'system',
-          content: 'You are an expert Heroes of the Storm coach. Provide concise, actionable map-specific advice. Reference the player\'s actual performance data. Be direct and specific.'
+          content: 'You are an expert Heroes of the Storm coach. Provide concise, actionable map-specific advice. Reference the player\'s actual performance data. Be direct and specific.\n\nABSOLUTE REQUIREMENT - YOUR RESPONSE MUST START EXACTLY LIKE THIS:\n\n##<space>Map Performance Summary\n<blank line>\n-<space>Win rate:\n\nNEVER write "Map Performance Summary- Win rate" - this is WRONG.\nALWAYS write "## Map Performance Summary" then blank line then "- Win rate" - this is CORRECT.\n\nEach section MUST have ## at the start.\nEach bullet MUST be on its own line starting with "-<space>".\nThere MUST be a blank line between ## headers and bullet points.'
         },
         {
           role: 'user',
@@ -84,19 +114,32 @@ Keep it practical, specific to this player's data, and action-oriented.`
       stream: true,
     })
 
-    // Create a readable stream for SSE
+    // Collect full response to format it
+    let fullResponse = ''
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content
+      if (content) {
+        fullResponse += content
+      }
+    }
+
+    // Format the complete response on the server
+    const formattedResponse = formatCommentary(fullResponse)
+
+    // Create a readable stream for SSE with formatted content
     const encoder = new TextEncoder()
     const customReadable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content
-            if (content) {
-              const data = `data: ${content}\n\n`
-              controller.enqueue(encoder.encode(data))
-            }
+          // Stream the formatted response in chunks
+          const chunkSize = 15
+          for (let i = 0; i < formattedResponse.length; i += chunkSize) {
+            const chunk = formattedResponse.substring(i, i + chunkSize)
+            // JSON encode to preserve newlines in SSE format
+            const data = `data: ${JSON.stringify(chunk)}\n\n`
+            controller.enqueue(encoder.encode(data))
+            await new Promise(resolve => setTimeout(resolve, 20))
           }
-          // Send done signal
           controller.enqueue(encoder.encode('data: [DONE]\n\n'))
           controller.close()
         } catch (error) {

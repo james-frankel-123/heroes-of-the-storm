@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { openai, OPENAI_CONFIG } from '@/lib/api/openai'
+import { formatCommentary } from '@/lib/utils/server-commentary'
 import { PlayerData, Insight } from '@/types'
 
 export async function POST(req: Request) {
@@ -45,13 +46,44 @@ ${topHeroes}
 **Best Maps:**
 ${bestMaps}
 
-Provide an expanded, actionable analysis (3-4 paragraphs) that:
-1. **Explains Why**: Deeper explanation of why this insight matters and what the data reveals
-2. **Strategic Impact**: How this affects their ranked performance and draft strategy
-3. **Concrete Action Steps**: Specific, numbered steps they can take to capitalize on strengths or address weaknesses
-4. **Practice Recommendations**: What to focus on in their next games
+CRITICAL FORMATTING REQUIREMENTS - You MUST output proper markdown:
 
-Be highly specific with hero names, maps, and game mechanics. Provide actionable advice they can implement immediately.`
+WRONG FORMAT (DO NOT DO THIS):
+## Deep Dive Analysis- Expanded explanation
+
+CORRECT FORMAT (DO THIS):
+## Deep Dive Analysis
+
+- Expanded explanation of the insight
+- Why this pattern is significant
+- Strategic implications
+
+## Supporting Evidence
+
+- Detailed breakdown of relevant stats
+- Comparisons and trends
+- Specific examples from your data
+
+## Actionable Recommendations
+
+1. Prioritized action steps
+2. Practice recommendations
+3. Draft adjustments
+4. Mindset or approach shifts
+
+## Expected Impact
+
+- What changes you should see
+- Timeline for improvement
+- Metrics to track
+
+MANDATORY RULES:
+1. Write ## then the section name, then press ENTER TWICE
+2. Then write each bullet point starting with "- " on its own line
+3. NEVER write text immediately after ## on the same line
+4. Do NOT include the word "markdown" anywhere in your response
+
+Use clear sections, bullets, and bold emphasis. Be highly specific with hero names, maps, and game mechanics.`
 
     // Stream the response from OpenAI
     const stream = await openai.chat.completions.create({
@@ -59,7 +91,7 @@ Be highly specific with hero names, maps, and game mechanics. Provide actionable
       messages: [
         {
           role: 'system',
-          content: 'You are an expert Heroes of the Storm coach. Provide detailed, actionable analysis that helps players improve. Be specific and practical.'
+          content: 'You are an expert Heroes of the Storm coach. Provide detailed, actionable analysis that helps players improve. Be specific and practical.\n\nABSOLUTE REQUIREMENT - YOUR RESPONSE MUST START EXACTLY LIKE THIS:\n\n##<space>Deep Dive Analysis\n<blank line>\n-<space>This pattern\n\nNEVER write "Deep Dive Analysis- This pattern" - this is WRONG.\nALWAYS write "## Deep Dive Analysis" then blank line then "- This pattern" - this is CORRECT.\n\nEach section MUST have ## at the start.\nEach bullet MUST be on its own line starting with "-<space>".\nThere MUST be a blank line between ## headers and bullet points.'
         },
         {
           role: 'user',
@@ -71,19 +103,31 @@ Be highly specific with hero names, maps, and game mechanics. Provide actionable
       stream: true,
     })
 
+    // Collect full response to format it
+    let fullResponse = ''
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content
+      if (content) {
+        fullResponse += content
+      }
+    }
+
+    // Format the complete response on the server
+    const formattedResponse = formatCommentary(fullResponse)
+
     // Create a readable stream for SSE
     const encoder = new TextEncoder()
     const customReadable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content
-            if (content) {
-              const data = `data: ${content}\n\n`
-              controller.enqueue(encoder.encode(data))
-            }
+          const chunkSize = 15
+          for (let i = 0; i < formattedResponse.length; i += chunkSize) {
+            const chunk = formattedResponse.substring(i, i + chunkSize)
+            // JSON encode to preserve newlines in SSE format
+            const data = `data: ${JSON.stringify(chunk)}\n\n`
+            controller.enqueue(encoder.encode(data))
+            await new Promise(resolve => setTimeout(resolve, 20))
           }
-          // Send done signal
           controller.enqueue(encoder.encode('data: [DONE]\n\n'))
           controller.close()
         } catch (error) {
