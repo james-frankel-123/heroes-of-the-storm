@@ -33,69 +33,74 @@ export async function POST(req: Request) {
     const payload = createHeroPayload(heroStats, playerData)
 
     // Create the OpenAI prompt
-    const prompt = `You are a professional Heroes of the Storm coach providing personalized analysis.
+    const prompt = `You're coaching a player on their ${payload.hero} performance. Talk to them directly.
 
-Analyze this player's performance with ${payload.hero}:
-
-**Hero Stats:**
+**Their ${payload.hero} Stats:**
 - Role: ${payload.role}
 - Games Played: ${payload.games}
 - Record: ${payload.wins}W - ${payload.losses}L
 - Win Rate: ${payload.winRate.toFixed(1)}%
 
-**Map Performance:**
+**Where They Play ${payload.hero}:**
 ${payload.mapPerformance
   .filter(m => m.games >= 3)
   .sort((a, b) => b.winRate - a.winRate)
   .map(m => `- ${m.map}: ${m.winRate.toFixed(1)}% (${m.games} games)`)
-  .join('\n') || 'Not enough data per map'}
+  .join('\n') || 'Not enough data per map yet'}
 
-**Player Context:**
+**Their Overall Performance:**
 - Overall Win Rate: ${payload.playerContext.overallWinRate.toFixed(1)}%
 - Total Games: ${payload.playerContext.totalGames}
 - Best Maps: ${payload.playerContext.bestMaps.map(m => `${m.map} (${m.winRate.toFixed(1)}%)`).join(', ')}
 ${payload.playerContext.topHeroes.length > 0 ? `- Top Heroes: ${payload.playerContext.topHeroes.slice(0, 3).map(h => `${h.hero} (${h.winRate.toFixed(1)}%)`).join(', ')}` : ''}
 
-${payload.playerContext.knownSynergies.length > 0 ? `**Known Team Synergies:**
+${payload.playerContext.knownSynergies.length > 0 ? `**Duo Synergies You've Played:**
 ${payload.playerContext.knownSynergies.slice(0, 3).map(s => `- ${s.hero1} + ${s.hero2}: ${s.winRate.toFixed(1)}% win rate`).join('\n')}` : ''}
 
 CRITICAL FORMATTING REQUIREMENTS - You MUST output proper markdown:
 
 WRONG FORMAT (DO NOT DO THIS):
-## Performance Overview- Win rate comparison
+## How You're Doing with ${payload.hero}- Your **${payload.winRate.toFixed(1)}%** win rate
 
 CORRECT FORMAT (DO THIS):
-## Performance Overview
+## How You're Doing with ${payload.hero}
 
-- Win rate comparison to overall average (use bold for numbers)
-- Games played and assessment
-- Overall performance summary (one sentence)
+- Your **${payload.winRate.toFixed(1)}%** win rate compares to your overall **${payload.playerContext.overallWinRate.toFixed(1)}%**
+- You've played **${payload.games}** games - that's enough to see real patterns
+- Quick take: [give them an honest, encouraging assessment in one line]
 
-## Strengths
+## What's Working
 
-- 2-3 bullet points on what's working well with this hero
-- Map-specific successes where they excel
-- Synergies that amplify this hero
+- Point out 2-3 things they're doing well with this hero
+- Mention specific maps where they crush it
+- If they have good duo partners, highlight that
+- Be specific and encouraging
 
-## Areas for Improvement
+## Where You Can Improve
 
-- 1-2 bullet points on weaknesses or inconsistencies
-- Maps where performance dips
-- Mechanics or matchups to practice
+- 1-2 concrete things to work on
+- Maps where the win rate drops and why
+- Specific mechanics or matchups to practice
+- Keep it constructive - focus on growth
 
-## Draft Recommendations
+## My Draft Advice for You
 
-- When to prioritize this hero in draft
-- Maps to pick/avoid based on their data
-- Team compositions where this hero thrives
+- When to instalock this hero (be specific about situations)
+- Maps where you should definitely pick it
+- Maps to maybe avoid or be careful on
+- Team comps where this hero will carry for you
+- Include insider tips on positioning or combos
 
 MANDATORY RULES:
 1. Write ## then the section name, then press ENTER TWICE
 2. Then write each bullet point starting with "- " on its own line
 3. NEVER write text immediately after ## on the same line
 4. Do NOT include the word "markdown" anywhere in your response
+5. Always use "you/your" not "the player"
+6. Be encouraging but honest
+7. Share expert tips and tricks
 
-Keep each section concise and data-driven. Use bold for key stats.`
+Talk like you're their coach sitting next to them reviewing their replay. Be supportive and specific.`
 
     // Stream the response from OpenAI
     const stream = await openai.chat.completions.create({
@@ -103,7 +108,7 @@ Keep each section concise and data-driven. Use bold for key stats.`
       messages: [
         {
           role: 'system',
-          content: 'You are an expert Heroes of the Storm coach. Provide concise, actionable advice. Be direct and specific. Avoid generic platitudes.\n\nABSOLUTE REQUIREMENT - YOUR RESPONSE MUST START EXACTLY LIKE THIS:\n\n##<space>Performance Overview\n<blank line>\n-<space>Win rate comparison\n\nNEVER write "Performance Overview- Win rate" - this is WRONG.\nALWAYS write "## Performance Overview" then blank line then "- Win rate" - this is CORRECT.\n\nEach section MUST have ## at the start.\nEach bullet MUST be on its own line starting with "-<space>".\nThere MUST be a blank line between ## headers and bullet points.'
+          content: 'You are an expert Heroes of the Storm coach having a one-on-one with your student about their hero. Use "you" and "your" to make it personal. Be encouraging, share insider tips, and give them actionable advice they can use in their next game. Talk like a supportive coach, not a statistics report.\n\nABSOLUTE REQUIREMENT - YOUR RESPONSE MUST START EXACTLY LIKE THIS:\n\n##<space>How You\'re Doing with [Hero Name]\n<blank line>\n-<space>Your **X.X%** win rate\n\nNEVER write "How You\'re Doing- Your" - this is WRONG.\nALWAYS write "## How You\'re Doing with [Hero Name]" then blank line then "- Your **X.X%**" - this is CORRECT.\n\nEach section MUST have ## at the start.\nEach bullet MUST be on its own line starting with "-<space>".\nThere MUST be a blank line between ## headers and bullet points.'
         },
         {
           role: 'user',
