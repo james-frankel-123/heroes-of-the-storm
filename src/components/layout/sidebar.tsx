@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Settings,
   Sparkles,
+  Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,8 +21,8 @@ const navigation = [
   { name: 'Heroes', href: '/heroes', icon: Users },
   { name: 'Maps', href: '/maps', icon: Map },
   { name: 'Teams', href: '/teams', icon: Users },
-  { name: 'Draft Assistant', href: '/draft', icon: Sparkles, badge: 'Beta' },
-  { name: 'Statistics', href: '/stats', icon: Trophy, badge: 'Coming Soon' },
+  { name: 'Draft Assistant', href: '/draft', icon: Sparkles, locked: true },
+  { name: 'Statistics', href: '/stats', icon: Trophy, locked: true },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
@@ -121,10 +122,8 @@ export function Sidebar() {
               )}
               <Icon className="h-5 w-5" />
               <span>{item.name}</span>
-              {item.badge && (
-                <span className="ml-auto rounded-full bg-accent-cyan/20 px-2 py-0.5 text-xs font-semibold text-accent-cyan">
-                  {item.badge}
-                </span>
+              {item.locked && (
+                <Lock className="ml-auto h-4 w-4 text-muted-foreground" />
               )}
             </Link>
           )

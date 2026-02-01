@@ -25,6 +25,7 @@ import { TEAM_COMPOSITIONS, getDuoWinRate } from '@/lib/data/team-compositions'
 import { useDraftSuggestions } from '@/lib/hooks/use-draft-suggestions'
 import { usePlayerData } from '@/lib/hooks/use-data'
 import { StreamingText } from '@/components/commentary/streaming-text'
+import { PasswordGate } from '@/components/auth/password-gate'
 
 // Mock hero list - will be populated from real data
 const ALL_HEROES = [
@@ -621,7 +622,8 @@ export default function DraftPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <PasswordGate requiredPassword="ronpaul2012" storageKey="protected_pages_auth">
+      <div className="space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -1233,5 +1235,6 @@ export default function DraftPage() {
         </CardContent>
       </Card>
     </div>
+    </PasswordGate>
   )
 }
