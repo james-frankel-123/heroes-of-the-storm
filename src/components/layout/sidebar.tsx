@@ -17,10 +17,10 @@ import { cn } from '@/lib/utils'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Draft Assistant', href: '/draft', icon: Sparkles },
   { name: 'Heroes', href: '/heroes', icon: Users },
   { name: 'Maps', href: '/maps', icon: Map },
   { name: 'Teams', href: '/teams', icon: Users },
+  { name: 'Draft Assistant', href: '/draft', icon: Sparkles, badge: 'Beta' },
   { name: 'Insights', href: '/insights', icon: TrendingUp },
   { name: 'Statistics', href: '/stats', icon: Trophy },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -68,6 +68,11 @@ export function Sidebar() {
               )}
               <Icon className="h-5 w-5" />
               <span>{item.name}</span>
+              {item.badge && (
+                <span className="ml-auto rounded-full bg-accent-cyan/20 px-2 py-0.5 text-xs font-semibold text-accent-cyan">
+                  {item.badge}
+                </span>
+              )}
             </Link>
           )
         })}
