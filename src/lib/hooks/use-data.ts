@@ -2,6 +2,7 @@
 
 import useSWR from 'swr'
 import { PlayerData } from '@/types'
+import { usePlayer } from '@/contexts/player-context'
 
 const fetcher = async (url: string) => {
   const response = await fetch(url)
@@ -12,8 +13,13 @@ const fetcher = async (url: string) => {
 }
 
 export function usePlayerData(playerName?: string) {
+  const { battletag } = usePlayer()
+
+  // Use provided playerName or context battletag
+  const targetBattletag = playerName || battletag
+
   const { data, error, isLoading } = useSWR<Record<string, PlayerData>>(
-    '/api/data',
+    targetBattletag ? `/api/data?battletag=${encodeURIComponent(targetBattletag)}` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -22,7 +28,7 @@ export function usePlayerData(playerName?: string) {
   )
 
   const players = data ? Object.keys(data) : []
-  const currentPlayer = playerName || players[0]
+  const currentPlayer = targetBattletag || players[0]
   const playerData = currentPlayer ? data?.[currentPlayer] : null
 
   return {

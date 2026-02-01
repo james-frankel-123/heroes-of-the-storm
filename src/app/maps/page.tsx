@@ -9,6 +9,7 @@ import { formatPercent, getWinRateColor } from '@/lib/utils'
 import { usePlayerData } from '@/lib/hooks/use-data'
 import { MapDetailsModal } from '@/components/modals/map-details-modal'
 import { PlayerData, MapStats } from '@/types'
+import { PlayerDataError } from '@/components/error-boundary/player-data-error'
 
 interface MapData {
   map: string
@@ -299,14 +300,29 @@ export default function MapsPage() {
   }
 
   // Show error state
-  if (error) {
+  if (error || !data) {
+    return <PlayerDataError error={error} reset={() => window.location.reload()} />
+  }
+
+  // Show message if no map data available
+  if (!data.mapStats || data.mapStats.length === 0) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Card className="glass border-gaming-danger/30">
-          <CardContent className="p-6 text-center">
-            <AlertTriangle className="mx-auto h-12 w-12 text-gaming-danger" />
-            <h3 className="mt-4 text-xl font-semibold">Error Loading Map Data</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight glow">Map Analytics</h1>
+          <p className="mt-2 text-muted-foreground">
+            Analyze your performance across all battlegrounds
+          </p>
+        </div>
+
+        <Card className="glass border-primary-500/30">
+          <CardContent className="p-12 text-center">
+            <Map className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Map Data Not Available</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Map-level statistics are not available from the Heroes Profile API.
+              You can still view your hero performance, role statistics, and overall stats on other pages.
+            </p>
           </CardContent>
         </Card>
       </div>

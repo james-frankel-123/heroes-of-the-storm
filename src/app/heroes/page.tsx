@@ -11,6 +11,7 @@ import { formatPercent, getWinRateColor } from '@/lib/utils'
 import { usePlayerData } from '@/lib/hooks/use-data'
 import { HeroDetailsModal } from '@/components/modals/hero-details-modal'
 import { HeroStats, PlayerData } from '@/types'
+import { PlayerDataError } from '@/components/error-boundary/player-data-error'
 
 interface HeroCardProps {
   hero: HeroStats
@@ -249,18 +250,8 @@ export default function HeroesPage() {
   }
 
   // Show error state
-  if (error) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Card className="glass border-gaming-danger/30">
-          <CardContent className="p-6 text-center">
-            <AlertTriangle className="mx-auto h-12 w-12 text-gaming-danger" />
-            <h3 className="mt-4 text-xl font-semibold">Error Loading Hero Data</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{error}</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
+  if (error || !data) {
+    return <PlayerDataError error={error} reset={() => window.location.reload()} />
   }
 
   return (

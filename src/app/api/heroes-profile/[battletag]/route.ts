@@ -26,7 +26,7 @@ export async function GET(
     if (API_KEY) {
       apiParams.append('api_token', API_KEY)
     }
-    apiParams.append('group_by_map', 'True')
+    apiParams.append('group_by_map', 'true')
 
     const url = `${API_BASE}/api/Player/Hero/All?${apiParams.toString()}`
 

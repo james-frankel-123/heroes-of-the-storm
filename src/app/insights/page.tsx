@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { usePlayerData } from '@/lib/hooks/use-data'
 import { generateInsights } from '@/lib/data/transform'
 import { Loader2 } from 'lucide-react'
+import { PlayerDataError } from '@/components/error-boundary/player-data-error'
 
 const colorMap = {
   success: {
@@ -81,18 +82,8 @@ export default function InsightsPage() {
   }
 
   // Show error state
-  if (error) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Card className="glass border-gaming-danger/30">
-          <CardContent className="p-6 text-center">
-            <AlertTriangle className="mx-auto h-12 w-12 text-gaming-danger" />
-            <h3 className="mt-4 text-xl font-semibold">Error Loading Insights</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{error}</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
+  if (error || !data) {
+    return <PlayerDataError error={error} reset={() => window.location.reload()} />
   }
 
   return (

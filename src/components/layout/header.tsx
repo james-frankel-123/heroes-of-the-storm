@@ -5,10 +5,15 @@ import { Search, Bell, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { usePlayer } from '@/contexts/player-context'
 
 export function Header() {
   const { theme, setTheme } = useTheme()
+  const { battletag } = usePlayer()
   const [mounted, setMounted] = React.useState(false)
+
+  // Extract name without discriminator for display
+  const displayName = battletag?.split('#')[0] || 'Player'
 
   React.useEffect(() => {
     setMounted(true)
@@ -56,7 +61,7 @@ export function Header() {
           <div className="ml-2 flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-600 to-primary-500"></div>
             <div className="text-sm">
-              <p className="font-medium">AzmoDonTrump</p>
+              <p className="font-medium">{displayName}</p>
               <p className="text-xs text-muted-foreground">Diamond 3</p>
             </div>
           </div>

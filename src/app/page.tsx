@@ -25,6 +25,7 @@ import { usePlayerData } from '@/lib/hooks/use-data'
 import { generatePowerPicks, generateInsights } from '@/lib/data/transform'
 import { usePlayerSummary } from '@/lib/hooks/use-player-summary'
 import { useAIInsights } from '@/lib/hooks/use-ai-insights'
+import { PlayerDataError } from '@/components/error-boundary/player-data-error'
 
 export default function DashboardPage() {
   const { data, isLoading, error } = usePlayerData()
@@ -63,13 +64,7 @@ export default function DashboardPage() {
   }
 
   if (error || !data) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Card className="glass border-gaming-danger/30 p-8">
-          <p className="text-gaming-danger">Failed to load data. Please try again.</p>
-        </Card>
-      </div>
-    )
+    return <PlayerDataError error={error} reset={() => window.location.reload()} />
   }
 
   const topHeroes = data.heroStats.slice(0, 5)
@@ -180,10 +175,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Map Performance & Role Distribution */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <motion.div variants={itemVariants}>
-          <MapPerformance mapData={data.mapStats.slice(0, 5)} playerData={data} />
-        </motion.div>
+      <div className={`grid gap-6 ${data.mapStats.length > 0 ? 'lg:grid-cols-2' : 'lg:grid-cols-1'}`}>
+        {data.mapStats.length > 0 && (
+          <motion.div variants={itemVariants}>
+            <MapPerformance mapData={data.mapStats.slice(0, 5)} playerData={data} />
+          </motion.div>
+        )}
         <motion.div variants={itemVariants}>
           <RoleDistribution roleData={data.roleStats} playerData={data} />
         </motion.div>

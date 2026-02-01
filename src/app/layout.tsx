@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { PlayerProvider } from '@/contexts/player-context'
+import { BattletagGate } from '@/components/battletag-gate'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import './globals.css'
@@ -29,15 +31,19 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex h-screen overflow-hidden gradient-gaming">
-            <Sidebar />
-            <div className="flex flex-1 flex-col overflow-hidden">
-              <Header />
-              <main className="flex-1 overflow-y-auto p-6">
-                {children}
-              </main>
-            </div>
-          </div>
+          <PlayerProvider>
+            <BattletagGate>
+              <div className="flex h-screen overflow-hidden gradient-gaming">
+                <Sidebar />
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  <Header />
+                  <main className="flex-1 overflow-y-auto p-6">
+                    {children}
+                  </main>
+                </div>
+              </div>
+            </BattletagGate>
+          </PlayerProvider>
         </ThemeProvider>
       </body>
     </html>

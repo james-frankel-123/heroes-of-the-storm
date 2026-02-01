@@ -27,8 +27,79 @@ export function classifyHeroRole(heroName: string): string {
   return 'Unknown'
 }
 
-// Transform from james_hero_stats_fresh.json format
-export function transformHeroStatsData(rawData: any): PlayerData {
+// Transform from hero-grouped API format (hero → stats)
+export function transformHeroGroupedData(rawData: any, battletag: string): PlayerData {
+  const stormLeagueData = rawData['Storm League'] || rawData
+
+  const heroStatsMap = new Map<string, {
+    wins: number
+    losses: number
+    games: number
+  }>()
+
+  // Process hero-grouped data (no map breakdown available from this API format)
+  Object.entries(stormLeagueData).forEach(([heroName, stats]: [string, any]) => {
+    if (typeof stats !== 'object') {
+      return
+    }
+
+    const wins = parseInt(stats.wins) || 0
+    const losses = parseInt(stats.losses) || 0
+    const games = parseInt(stats.games_played) || 0
+
+    if (games > 0) {
+      heroStatsMap.set(heroName, { wins, losses, games })
+    }
+  })
+
+  // Convert to HeroStats array
+  const heroStats: HeroStats[] = Array.from(heroStatsMap.entries())
+    .filter(([_, stats]) => stats.games >= 10) // Only heroes with 10+ games
+    .map(([hero, stats]) => ({
+      hero,
+      role: classifyHeroRole(hero),
+      wins: stats.wins,
+      losses: stats.losses,
+      games: stats.games,
+      winRate: stats.games > 0 ? (stats.wins / stats.games) * 100 : 0,
+    }))
+    .sort((a, b) => b.winRate - a.winRate)
+
+  // Calculate role stats
+  const roleStats: Record<string, { wins: number; games: number; winRate: number }> = {}
+  heroStats.forEach((hero) => {
+    if (!roleStats[hero.role]) {
+      roleStats[hero.role] = { wins: 0, games: 0, winRate: 0 }
+    }
+    roleStats[hero.role].wins += hero.wins
+    roleStats[hero.role].games += hero.games
+  })
+
+  Object.keys(roleStats).forEach((role) => {
+    const stats = roleStats[role]
+    stats.winRate = stats.games > 0 ? (stats.wins / stats.games) * 100 : 0
+  })
+
+  // Calculate totals
+  const totalGames = heroStats.reduce((sum, hero) => sum + hero.games, 0)
+  const totalWins = heroStats.reduce((sum, hero) => sum + hero.wins, 0)
+  const totalLosses = heroStats.reduce((sum, hero) => sum + hero.losses, 0)
+  const overallWinRate = totalGames > 0 ? (totalWins / totalGames) * 100 : 0
+
+  return {
+    playerName: battletag,
+    totalGames,
+    totalWins,
+    totalLosses,
+    overallWinRate,
+    heroStats,
+    mapStats: [], // No map breakdown available from hero-grouped API
+    roleStats,
+  }
+}
+
+// Transform from map-grouped format (map → hero → stats)
+export function transformHeroStatsData(rawData: any, battletag: string): PlayerData {
   const stormLeagueData = rawData['Storm League'] || rawData
 
   // Aggregate hero stats across all maps
@@ -131,7 +202,7 @@ export function transformHeroStatsData(rawData: any): PlayerData {
   const overallWinRate = totalGames > 0 ? (totalWins / totalGames) * 100 : 0
 
   return {
-    playerName: 'AzmoDonTrump#1139',
+    playerName: battletag,
     totalGames,
     totalWins,
     totalLosses,
