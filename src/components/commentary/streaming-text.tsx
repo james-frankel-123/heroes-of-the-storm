@@ -1,11 +1,13 @@
 'use client'
 
 import React from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface StreamingTextProps {
   text: string
@@ -20,9 +22,35 @@ export function StreamingText({
   className,
   showCursor = true,
 }: StreamingTextProps) {
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false)
+  const [password, setPassword] = React.useState('')
+  const [error, setError] = React.useState('')
+  const [isClient, setIsClient] = React.useState(false)
+
   const renderCountRef = React.useRef(0)
   const lastTextLengthRef = React.useRef(0)
   const lastNewlineCountRef = React.useRef(0)
+
+  // Check authentication on mount
+  React.useEffect(() => {
+    setIsClient(true)
+    const stored = sessionStorage.getItem('protected_pages_auth')
+    if (stored === 'ronpaul2012') {
+      setIsAuthenticated(true)
+    }
+  }, [])
+
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (password === 'ronpaul2012') {
+      sessionStorage.setItem('protected_pages_auth', password)
+      setIsAuthenticated(true)
+      setError('')
+    } else {
+      setError('Incorrect password')
+      setPassword('')
+    }
+  }
 
   React.useEffect(() => {
     if (isStreaming) {
@@ -48,6 +76,45 @@ export function StreamingText({
       lastNewlineCountRef.current = newlineCount
     }
   }, [text, isStreaming])
+
+  // Wait for client-side hydration
+  if (!isClient) {
+    return null
+  }
+
+  // Show password prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="rounded-lg border border-border bg-muted/30 p-6">
+        <div className="flex flex-col items-center space-y-4 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-500/10">
+            <Lock className="h-6 w-6 text-primary-500" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-lg">AI Commentary Locked</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Enter password to view AI-generated insights
+            </p>
+          </div>
+          <form onSubmit={handleUnlock} className="w-full max-w-sm space-y-3">
+            <Input
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={error ? 'border-red-500' : ''}
+            />
+            {error && (
+              <p className="text-sm text-red-500">{error}</p>
+            )}
+            <Button type="submit" className="w-full">
+              Unlock Commentary
+            </Button>
+          </form>
+        </div>
+      </div>
+    )
+  }
 
   if (!text && !isStreaming) {
     return null
