@@ -8,9 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { StreamingText } from '@/components/commentary/streaming-text'
-import { useMapCommentary } from '@/lib/hooks/use-map-commentary'
-import { Trophy, Target, TrendingUp, Sparkles } from 'lucide-react'
+import { Trophy, Target, TrendingUp } from 'lucide-react'
 import { getWinRateColor } from '@/lib/utils'
 
 interface MapDetailsModalProps {
@@ -26,12 +24,6 @@ export function MapDetailsModal({
   open,
   onOpenChange,
 }: MapDetailsModalProps) {
-  const { commentary, isStreaming, error } = useMapCommentary(
-    map.map,
-    playerData,
-    { autoFetch: open } // Only fetch when modal is open
-  )
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[75vw] max-h-[90vh] overflow-hidden">
@@ -39,9 +31,9 @@ export function MapDetailsModal({
           <DialogTitle className="text-2xl">{map.map}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-6 max-h-[calc(90vh-8rem)] overflow-hidden">
-          {/* Left Column: Stats and Details */}
-          <div className="flex-1 space-y-6 overflow-y-auto pr-2">
+        <div className="max-h-[calc(90vh-8rem)] overflow-hidden">
+          {/* Stats and Details */}
+          <div className="space-y-6 overflow-y-auto pr-2">
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="glass border border-primary-500/30 rounded-lg p-4">
@@ -76,27 +68,6 @@ export function MapDetailsModal({
                   <span className="text-xs font-medium">Losses</span>
                 </div>
                 <p className="text-2xl font-bold text-gaming-danger">{map.losses}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: AI Analysis */}
-          <div className="flex-1 flex flex-col">
-            <div className="glass border border-accent-cyan/30 rounded-lg p-4 flex flex-col h-full overflow-hidden">
-              <div className="flex items-center gap-2 mb-3 flex-shrink-0">
-                <Sparkles className="h-4 w-4 text-accent-cyan" />
-                <h3 className="font-semibold">AI Analysis</h3>
-              </div>
-              <div className="overflow-y-auto flex-1">
-                {error ? (
-                  <p className="text-sm text-gaming-danger">{error}</p>
-                ) : (
-                  <StreamingText
-                    text={commentary}
-                    isStreaming={isStreaming}
-                    className="text-sm text-muted-foreground leading-relaxed"
-                  />
-                )}
               </div>
             </div>
           </div>

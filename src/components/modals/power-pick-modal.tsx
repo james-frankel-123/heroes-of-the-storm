@@ -9,9 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { StreamingText } from '@/components/commentary/streaming-text'
-import { useStreamingCommentary } from '@/lib/hooks/use-streaming-commentary'
-import { Trophy, Target, Map as MapIcon, Sparkles } from 'lucide-react'
+import { Trophy, Target, Map as MapIcon } from 'lucide-react'
 import { getWinRateColor } from '@/lib/utils'
 
 interface PowerPickModalProps {
@@ -27,17 +25,6 @@ export function PowerPickModal({
   open,
   onOpenChange,
 }: PowerPickModalProps) {
-  const { commentary, isStreaming, error, fetchCommentary } = useStreamingCommentary()
-
-  React.useEffect(() => {
-    if (open && powerPick && playerData) {
-      fetchCommentary('/api/commentary/power-pick', {
-        powerPick,
-        playerData,
-      })
-    }
-  }, [open, powerPick.hero, powerPick.map, playerData?.playerName])
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[75vw] max-h-[90vh] overflow-hidden">
@@ -50,9 +37,8 @@ export function PowerPickModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-6 max-h-[calc(90vh-8rem)] overflow-hidden">
-          {/* Left Column: Stats and Details */}
-          <div className="flex-1 space-y-6 overflow-y-auto pr-2">
+        <div className="max-h-[calc(90vh-8rem)] overflow-hidden">
+          <div className="space-y-6 overflow-y-auto pr-2">
             {/* Map Badge */}
             <div className="flex items-center gap-2">
               <MapIcon className="h-4 w-4 text-primary-500" />
@@ -96,27 +82,6 @@ export function PowerPickModal({
                   <span className="text-xs font-medium">Losses</span>
                 </div>
                 <p className="text-2xl font-bold text-gaming-danger">{powerPick.losses}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: AI Analysis */}
-          <div className="flex-1 flex flex-col">
-            <div className="glass border border-accent-cyan/30 rounded-lg p-4 flex flex-col h-full overflow-hidden">
-              <div className="flex items-center gap-2 mb-3 flex-shrink-0">
-                <Sparkles className="h-4 w-4 text-accent-cyan" />
-                <h3 className="font-semibold">Why This is a Power Pick</h3>
-              </div>
-              <div className="overflow-y-auto flex-1">
-                {error ? (
-                  <p className="text-sm text-gaming-danger">{error}</p>
-                ) : (
-                  <StreamingText
-                    text={commentary}
-                    isStreaming={isStreaming}
-                    className="text-sm text-muted-foreground leading-relaxed"
-                  />
-                )}
               </div>
             </div>
           </div>

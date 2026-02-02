@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Users, Sparkles } from 'lucide-react'
+import { Users } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,6 @@ import {
 } from '@/components/ui/dialog'
 import { StatCard } from '@/components/ui/stat-card'
 import { Badge } from '@/components/ui/badge'
-import { StreamingText } from '@/components/commentary/streaming-text'
-import { useStreamingCommentary } from '@/lib/hooks/use-streaming-commentary'
 import { PartyGroup, PlayerData } from '@/types'
 import { getWinRateColor, cn } from '@/lib/utils'
 
@@ -23,17 +21,6 @@ interface PartyGroupModalProps {
 }
 
 export function PartyGroupModal({ group, playerData, open, onOpenChange }: PartyGroupModalProps) {
-  const { commentary, isStreaming, error, fetchCommentary } = useStreamingCommentary()
-
-  React.useEffect(() => {
-    if (open && group && playerData) {
-      fetchCommentary('/api/commentary/party-group', {
-        group,
-        playerData,
-      })
-    }
-  }, [open, group.membershipKey, playerData?.playerName])
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[75vw] max-h-[90vh] overflow-hidden">
@@ -50,9 +37,8 @@ export function PartyGroupModal({ group, playerData, open, onOpenChange }: Party
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-6 max-h-[calc(90vh-8rem)] overflow-hidden">
-          {/* Left Column: Stats and Details */}
-          <div className="flex-1 space-y-6 overflow-y-auto pr-2">
+        <div className="max-h-[calc(90vh-8rem)] overflow-hidden">
+          <div className="space-y-6 overflow-y-auto pr-2">
             {/* Party Members */}
             <div className="glass border border-primary-500/30 rounded-lg p-4">
               <h3 className="font-semibold mb-3">Party Members</h3>
@@ -169,27 +155,6 @@ export function PartyGroupModal({ group, playerData, open, onOpenChange }: Party
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Right Column: AI Analysis */}
-          <div className="flex-1 flex flex-col">
-            <div className="glass border border-accent-cyan/30 rounded-lg p-4 flex flex-col h-full overflow-hidden">
-              <div className="flex items-center gap-2 mb-3 flex-shrink-0">
-                <Sparkles className="h-4 w-4 text-accent-cyan" />
-                <h3 className="font-semibold">Party Dynamics Analysis</h3>
-              </div>
-              <div className="overflow-y-auto flex-1">
-                {error ? (
-                  <p className="text-sm text-gaming-danger">{error}</p>
-                ) : (
-                  <StreamingText
-                    text={commentary}
-                    isStreaming={isStreaming}
-                    className="text-sm text-muted-foreground leading-relaxed"
-                  />
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </DialogContent>

@@ -9,9 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { StreamingText } from '@/components/commentary/streaming-text'
-import { useStreamingCommentary } from '@/lib/hooks/use-streaming-commentary'
-import { Trophy, Target, TrendingUp, Sparkles, Users } from 'lucide-react'
+import { Trophy, Target, TrendingUp, Users } from 'lucide-react'
 import { getWinRateColor } from '@/lib/utils'
 
 interface RoleStats {
@@ -46,25 +44,12 @@ export function RoleDetailsModal({
   open,
   onOpenChange,
 }: RoleDetailsModalProps) {
-  const { commentary, isStreaming, error, fetchCommentary } = useStreamingCommentary()
-
   // Get heroes in this role
   const heroesInRole = React.useMemo(() => {
     return playerData.heroStats
       .filter(h => h.role === role)
       .sort((a, b) => b.winRate - a.winRate)
   }, [playerData.heroStats, role])
-
-  React.useEffect(() => {
-    if (open && role && playerData) {
-      fetchCommentary('/api/commentary/role', {
-        role,
-        stats,
-        heroesInRole,
-        playerData,
-      })
-    }
-  }, [open, role, playerData?.playerName])
 
   const losses = stats.games - stats.wins
 
@@ -81,9 +66,8 @@ export function RoleDetailsModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-6 max-h-[calc(90vh-8rem)] overflow-hidden">
-          {/* Left Column: Stats and Details */}
-          <div className="flex-1 space-y-6 overflow-y-auto pr-2">
+        <div className="max-h-[calc(90vh-8rem)] overflow-hidden">
+          <div className="space-y-6 overflow-y-auto pr-2">
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="glass border border-primary-500/30 rounded-lg p-4">
@@ -148,27 +132,6 @@ export function RoleDetailsModal({
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Right Column: AI Analysis */}
-          <div className="flex-1 flex flex-col">
-            <div className="glass border border-accent-cyan/30 rounded-lg p-4 flex flex-col h-full overflow-hidden">
-              <div className="flex items-center gap-2 mb-3 flex-shrink-0">
-                <Sparkles className="h-4 w-4 text-accent-cyan" />
-                <h3 className="font-semibold">AI Analysis</h3>
-              </div>
-              <div className="overflow-y-auto flex-1">
-                {error ? (
-                  <p className="text-sm text-gaming-danger">{error}</p>
-                ) : (
-                  <StreamingText
-                    text={commentary}
-                    isStreaming={isStreaming}
-                    className="text-sm text-muted-foreground leading-relaxed"
-                  />
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </DialogContent>
