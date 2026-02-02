@@ -3,6 +3,7 @@ import { openai, OPENAI_CONFIG } from '@/lib/api/openai'
 import { createMapPayload } from '@/lib/utils/commentary'
 import { formatCommentary } from '@/lib/utils/server-commentary'
 import { PlayerData, MapStats } from '@/types'
+import { getMapKnowledge, hasMapKnowledge, getHeroMapSynergy } from '@/lib/data/map-knowledge'
 
 export async function POST(req: Request) {
   try {
@@ -32,6 +33,69 @@ export async function POST(req: Request) {
     // Create the commentary payload
     const payload = createMapPayload(mapStats, playerData)
 
+    // Get map knowledge for strategic advice
+    const mapKnowledge = getMapKnowledge(mapName)
+
+    // Build map knowledge section
+    let mapKnowledgeSection = ''
+    if (mapKnowledge) {
+      mapKnowledgeSection = `
+
+**${mapName} MAP KNOWLEDGE (Use this to provide specific, strategic advice):**
+
+Map Size: ${mapKnowledge.size} (${mapKnowledge.laneCount} lanes)
+
+Objective: ${mapKnowledge.objective}
+- Description: ${mapKnowledge.objectiveDescription}
+- Strategy: ${mapKnowledge.objectiveStrategy}
+- Timing: ${mapKnowledge.objectiveTiming}
+
+Macro Strategy:
+- Early Game (pre-10): ${mapKnowledge.macro.earlyGame}
+- Mid Game (10-16): ${mapKnowledge.macro.midGame}
+- Late Game (16+): ${mapKnowledge.macro.lateGame}
+
+Camp Importance: ${mapKnowledge.campImportance}
+- Timing: ${mapKnowledge.campTiming}
+
+Heroes That Excel on This Map:
+${mapKnowledge.goodHeroes.map(cat => `- ${cat.category} (${cat.heroes.join(', ')}): ${cat.reason}`).join('\n')}
+
+Heroes That Struggle:
+${mapKnowledge.badHeroes.map(cat => `- ${cat.category} (${cat.heroes.join(', ')}): ${cat.reason}`).join('\n')}
+
+Pro Tips:
+${mapKnowledge.tips.map(tip => `- ${tip}`).join('\n')}
+
+IMPORTANT: Use this knowledge to explain WHY their hero choices work/don't work based on MAP MECHANICS, not just restate the stats.`
+    }
+
+    // Add hero-specific map synergies
+    let heroSynergySection = ''
+    if (payload.topHeroes.length > 0 || payload.weakHeroes.length > 0) {
+      const heroExplanations: string[] = []
+
+      if (payload.topHeroes.length > 0) {
+        heroExplanations.push('\n**Their Successful Heroes (with Mechanical Reasons):**')
+        payload.topHeroes.slice(0, 5).forEach(h => {
+          const synergy = getHeroMapSynergy(h.hero, mapName)
+          heroExplanations.push(`- ${h.hero}: ${h.winRate.toFixed(1)}% (${h.games} games)${synergy ? ` → ${synergy}` : ''}`)
+        })
+      }
+
+      if (payload.weakHeroes.length > 0) {
+        heroExplanations.push('\n**Their Struggling Heroes (with Mechanical Reasons):**')
+        payload.weakHeroes.slice(0, 3).forEach(h => {
+          const synergy = getHeroMapSynergy(h.hero, mapName)
+          heroExplanations.push(`- ${h.hero}: ${h.winRate.toFixed(1)}% (${h.games} games)${synergy ? ` → ${synergy}` : ''}`)
+        })
+      }
+
+      if (heroExplanations.length > 0) {
+        heroSynergySection = `\n${heroExplanations.join('\n')}`
+      }
+    }
+
     // Create the OpenAI prompt
     const prompt = `You're coaching a player on how they perform on ${payload.map}. Talk to them directly.
 
@@ -55,7 +119,7 @@ ${payload.highPotentialHeroes.map(h => `- ${h.hero}: ${h.winRate.toFixed(1)}% ($
 **Their Overall Stats:**
 - Overall Win Rate: ${payload.playerContext.overallWinRate.toFixed(1)}%
 - Total Games: ${payload.playerContext.totalGames}
-- Best Overall Heroes: ${payload.playerContext.topHeroesOverall.slice(0, 3).map(h => `${h.hero} (${h.winRate.toFixed(1)}%)`).join(', ')}
+- Best Overall Heroes: ${payload.playerContext.topHeroesOverall.slice(0, 3).map(h => `${h.hero} (${h.winRate.toFixed(1)}%)`).join(', ')}${mapKnowledgeSection}${heroSynergySection}
 
 CRITICAL FORMATTING REQUIREMENTS - You MUST output proper markdown:
 
@@ -71,24 +135,27 @@ CORRECT FORMAT (DO THIS):
 
 ## Your Best Picks Here
 
-- List their 3-5 heroes that crush it on this map
+- Explain WHY each hero succeeds using MAP MECHANICS (objectives, map size, macro requirements)
+- Reference specific advantages (e.g., "Nazeebo stacks efficiently on this large map")
+- Connect their success to objective strategy
+- Provide positioning or rotation tips specific to this map
 - Use bold for win rates
-- Explain why each hero works (map mechanics, objectives, etc.)
-- Include insider tips on positioning or rotations specific to this map
 
 ## Heroes to Skip
 
-- Any heroes that underperform for them here
-- Explain why the matchup or map doesn't fit
-- Suggest alternatives from their hero pool
+- Explain WHY heroes struggle using MAP MECHANICS (not just "low win rate")
+- Reference specific disadvantages (e.g., "Nova struggles on small maps with constant teamfights")
+- Suggest alternatives from their hero pool that fit the map better
+- Keep it constructive and strategic
 
 ## My Coaching Tips for ${payload.map}
 
-- Specific strategies for this map's objectives
-- Draft priorities based on what works for them
-- Map-specific positioning or timing tips
-- What to practice to improve here
-- Include expert tricks that most players don't know
+- Objective strategy (timing, control, when to fight)
+- Macro play (laning, rotations, camp timing)
+- Draft priorities based on map requirements and what works for them
+- Specific positioning tricks or rotation patterns
+- Common mistakes on this map and how to avoid them
+- Expert-level tips that most players don't know
 
 MANDATORY RULES:
 1. Write ## then the section name, then press ENTER TWICE
@@ -106,7 +173,7 @@ Talk like their personal coach reviewing their map-specific performance.`
       messages: [
         {
           role: 'system',
-          content: 'You are an expert Heroes of the Storm coach helping your student master a specific map. Use "you" and "your" to make it personal. Share map-specific insider knowledge, positioning tricks, and rotation timings that experienced players use. Be encouraging and tactical.\n\nABSOLUTE REQUIREMENT - YOUR RESPONSE MUST START EXACTLY LIKE THIS:\n\n##<space>Your [Map Name] Performance\n<blank line>\n-<space>Your **X.X%** win rate\n\nNEVER write "Your [Map Name] Performance- Your" - this is WRONG.\nALWAYS write "## Your [Map Name] Performance" then blank line then "- Your **X.X%**" - this is CORRECT.\n\nEach section MUST have ## at the start.\nEach bullet MUST be on its own line starting with "-<space>".\nThere MUST be a blank line between ## headers and bullet points.'
+          content: 'You are an expert Heroes of the Storm coach with deep map knowledge. Use "you" and "your" to make it personal.\n\nCRITICAL: Use the MAP KNOWLEDGE provided to explain their performance. Don\'t just restate stats - explain WHY:\n- Why certain heroes excel (map objectives, size, macro requirements)\n- Why others struggle (mechanical disadvantages on this map)\n- Objective strategy and timing (specific to this map)\n- Macro play (camps, rotations, laning patterns)\n- Positioning tricks for this map\'s layout\n\nFocus on STRATEGIC DEPTH and MAP-SPECIFIC REASONING, not generic stat prose.\n\nABSOLUTE REQUIREMENT - YOUR RESPONSE MUST START EXACTLY LIKE THIS:\n\n##<space>Your [Map Name] Performance\n<blank line>\n-<space>Your **X.X%** win rate\n\nNEVER write "Your [Map Name] Performance- Your" - this is WRONG.\nALWAYS write "## Your [Map Name] Performance" then blank line then "- Your **X.X%**" - this is CORRECT.\n\nEach section MUST have ## at the start.\nEach bullet MUST be on its own line starting with "-<space>".\nThere MUST be a blank line between ## headers and bullet points.'
         },
         {
           role: 'user',

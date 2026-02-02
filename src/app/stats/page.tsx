@@ -3,7 +3,6 @@
 import * as React from 'react'
 import { Loader2 } from 'lucide-react'
 import { PasswordGate } from '@/components/auth/password-gate'
-import { Skeleton } from '@/components/ui/skeleton'
 import { usePlayerData } from '@/lib/hooks/use-data'
 import { useStatisticsData } from '@/lib/hooks/use-statistics-data'
 import { useStatisticsAnalysis } from '@/lib/hooks/use-statistics-analysis'
@@ -15,6 +14,7 @@ import { PerformanceTrends } from '@/components/stats/performance-trends'
 import { HeroAnalytics } from '@/components/stats/hero-analytics'
 import { KDAStatistics } from '@/components/stats/kda-statistics'
 import { TemporalAnalysis } from '@/components/stats/temporal-analysis'
+import { StatsSkeleton } from '@/components/stats/stats-skeleton'
 
 export default function StatsPage() {
   const { data: playerData } = usePlayerData()
@@ -33,22 +33,7 @@ export default function StatsPage() {
   if (isLoading) {
     return (
       <PasswordGate requiredPassword="ronpaul2012" storageKey="protected_pages_auth">
-        <div className="flex h-screen">
-          <div className="flex-1 overflow-y-auto pr-6 space-y-8">
-            <div>
-              <Skeleton className="h-12 w-96" />
-              <Skeleton className="mt-2 h-6 w-64" />
-            </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              {[1, 2].map((i) => (
-                <Skeleton key={i} className="h-64" />
-              ))}
-            </div>
-          </div>
-          <div className="w-96 border-l border-border">
-            <Skeleton className="h-full" />
-          </div>
-        </div>
+        <StatsSkeleton />
       </PasswordGate>
     )
   }

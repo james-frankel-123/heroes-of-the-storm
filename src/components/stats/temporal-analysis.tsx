@@ -46,19 +46,19 @@ export function TemporalAnalysis({
   const handleDailyClick = (day: DayOfWeekPattern) => {
     onCellClick({
       type: 'time-period',
-      label: `Performance on ${day.dayName}`,
+      label: `Performance on ${day.day}`,
       value: day.winRate,
       relatedMetrics: {
         games: day.games,
         wins: day.wins,
         losses: day.losses,
-        dayOfWeek: day.dayName,
+        dayOfWeek: day.day,
       },
     })
   }
 
   // Day names for display
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   // Group hours into 4-hour blocks for better visualization
   const hourBlocks = [
@@ -192,7 +192,7 @@ export function TemporalAnalysis({
 
             return (
               <div
-                key={day.dayOfWeek}
+                key={day.dayNumber}
                 onClick={() => hasEnoughData && handleDailyClick(day)}
                 className={`
                   p-4 rounded-lg flex flex-col items-center justify-center
@@ -202,7 +202,7 @@ export function TemporalAnalysis({
                 `}
               >
                 <span className="text-sm font-semibold mb-2">
-                  {day.dayName}
+                  {day.day}
                 </span>
                 {hasEnoughData && (
                   <>
@@ -241,14 +241,14 @@ export function TemporalAnalysis({
                 <>
                   <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                     <p className="text-xs text-green-500 font-medium mb-1">Best Day</p>
-                    <p className="text-sm font-semibold">{best.dayName}</p>
+                    <p className="text-sm font-semibold">{best.day}</p>
                     <p className="text-xs text-muted-foreground">
                       {best.winRate.toFixed(1)}% WR ({best.games} games)
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
                     <p className="text-xs text-red-500 font-medium mb-1">Challenging Day</p>
-                    <p className="text-sm font-semibold">{worst.dayName}</p>
+                    <p className="text-sm font-semibold">{worst.day}</p>
                     <p className="text-xs text-muted-foreground">
                       {worst.winRate.toFixed(1)}% WR ({worst.games} games)
                     </p>

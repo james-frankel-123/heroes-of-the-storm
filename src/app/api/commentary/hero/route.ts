@@ -3,6 +3,8 @@ import { openai, OPENAI_CONFIG } from '@/lib/api/openai'
 import { createHeroPayload } from '@/lib/utils/commentary'
 import { formatCommentary } from '@/lib/utils/server-commentary'
 import { PlayerData, HeroStats } from '@/types'
+import { getHeroKnowledge, hasHeroKnowledge } from '@/lib/data/hero-knowledge'
+import { getHeroMapSynergy } from '@/lib/data/map-knowledge'
 
 export async function POST(req: Request) {
   try {
@@ -32,6 +34,69 @@ export async function POST(req: Request) {
     // Create the commentary payload
     const payload = createHeroPayload(heroStats, playerData)
 
+    // Get hero knowledge for mechanical/strategic advice
+    const heroKnowledge = getHeroKnowledge(heroName)
+
+    // Build hero knowledge section
+    let heroKnowledgeSection = ''
+    if (heroKnowledge) {
+      heroKnowledgeSection = `
+
+**${heroName} MECHANICAL KNOWLEDGE (Use this to provide specific, non-obvious advice):**
+
+Playstyle: ${heroKnowledge.playstyle}
+
+Core Strengths:
+${heroKnowledge.strengths.map(s => `- ${s}`).join('\n')}
+
+Core Weaknesses:
+${heroKnowledge.weaknesses.map(w => `- ${w}`).join('\n')}
+
+Counters (Heroes that beat ${heroName}):
+${heroKnowledge.counters.join(', ')}
+
+Strong Against (Heroes ${heroName} beats):
+${heroKnowledge.strongAgainst.join(', ')}
+
+Map Strategy:
+- Best Maps: ${heroKnowledge.bestMaps.join(', ')}
+- Worst Maps: ${heroKnowledge.worstMaps.join(', ')}
+- Why: ${heroKnowledge.mapStrategy}
+
+Positioning: ${heroKnowledge.positioning}
+
+Objective Play: ${heroKnowledge.objectiveValue}
+
+Draft Strategy: ${heroKnowledge.draftStrategy}
+Pick Timing: ${heroKnowledge.pickTiming}
+
+${heroKnowledge.abilities ? `Key Abilities:
+${heroKnowledge.abilities.map(a => `- ${a.name} (${a.key}): ${a.description}${a.synergies ? `\n  Synergies: ${a.synergies.join(', ')}` : ''}${a.counters ? `\n  Countered by: ${a.counters.join(', ')}` : ''}`).join('\n')}` : ''}
+
+IMPORTANT: Use this knowledge to explain WHY their stats look the way they do based on MECHANICS, not just restate the stats.`
+    }
+
+    // Add map-specific strategy explanations
+    let mapStrategySection = ''
+    if (heroKnowledge && payload.mapPerformance.length > 0) {
+      const mapExplanations = payload.mapPerformance
+        .filter(m => m.games >= 3)
+        .sort((a, b) => b.winRate - a.winRate)
+        .slice(0, 5)
+        .map(m => {
+          const synergy = getHeroMapSynergy(heroName, m.map)
+          return `- ${m.map}: ${m.winRate.toFixed(1)}% (${m.games} games)${synergy ? ` → ${synergy}` : ''}`
+        })
+        .join('\n')
+
+      if (mapExplanations) {
+        mapStrategySection = `
+
+**Their Map Performance with Mechanical Context:**
+${mapExplanations}`
+      }
+    }
+
     // Create the OpenAI prompt
     const prompt = `You're coaching a player on their ${payload.hero} performance. Talk to them directly.
 
@@ -55,7 +120,7 @@ ${payload.mapPerformance
 ${payload.playerContext.topHeroes.length > 0 ? `- Top Heroes: ${payload.playerContext.topHeroes.slice(0, 3).map(h => `${h.hero} (${h.winRate.toFixed(1)}%)`).join(', ')}` : ''}
 
 ${payload.playerContext.knownSynergies.length > 0 ? `**Duo Synergies You've Played:**
-${payload.playerContext.knownSynergies.slice(0, 3).map(s => `- ${s.hero1} + ${s.hero2}: ${s.winRate.toFixed(1)}% win rate`).join('\n')}` : ''}
+${payload.playerContext.knownSynergies.slice(0, 3).map(s => `- ${s.hero1} + ${s.hero2}: ${s.winRate.toFixed(1)}% win rate`).join('\n')}` : ''}${heroKnowledgeSection}${mapStrategySection}
 
 CRITICAL FORMATTING REQUIREMENTS - You MUST output proper markdown:
 
@@ -71,25 +136,27 @@ CORRECT FORMAT (DO THIS):
 
 ## What's Working
 
-- Point out 2-3 things they're doing well with this hero
-- Mention specific maps where they crush it
-- If they have good duo partners, highlight that
-- Be specific and encouraging
+- Explain their success using MECHANICAL reasons (e.g., "Your high win rate on Cursed Hollow makes sense - ${heroName}'s [specific ability] excels on large maps")
+- Connect their map performance to hero mechanics (stacking, mobility, teamfight impact)
+- Reference specific strengths they're leveraging
+- Be specific and encouraging - explain WHY they're succeeding, not just THAT they are
 
 ## Where You Can Improve
 
-- 1-2 concrete things to work on
-- Maps where the win rate drops and why
-- Specific mechanics or matchups to practice
-- Keep it constructive - focus on growth
+- Identify mechanical weaknesses they might be struggling with (e.g., "Your low win rate vs dive comps suggests positioning issues")
+- Explain map struggles using hero knowledge (e.g., "Braxis is tough for ${heroName} because...")
+- Recommend SPECIFIC mechanical improvements (ability usage, positioning, timing)
+- Mention counter-matchups they should be aware of
+- Keep it constructive with actionable advice
 
 ## My Draft Advice for You
 
-- When to instalock this hero (be specific about situations)
-- Maps where you should definitely pick it
-- Maps to maybe avoid or be careful on
-- Team comps where this hero will carry for you
-- Include insider tips on positioning or combos
+- When to pick ${heroName} based on enemy comp and map (use counter/synergy knowledge)
+- Specific maps where you should prioritize this pick (with mechanical reasons why)
+- Maps to avoid or be cautious on (explain the mechanical disadvantages)
+- Team compositions that enable ${heroName} (mention synergies, peel requirements)
+- Insider tips on positioning, ability usage, or combos
+- Draft timing (early vs late pick) and why
 
 MANDATORY RULES:
 1. Write ## then the section name, then press ENTER TWICE
@@ -108,7 +175,7 @@ Talk like you're their coach sitting next to them reviewing their replay. Be sup
       messages: [
         {
           role: 'system',
-          content: 'You are an expert Heroes of the Storm coach having a one-on-one with your student about their hero. Use "you" and "your" to make it personal. Be encouraging, share insider tips, and give them actionable advice they can use in their next game. Talk like a supportive coach, not a statistics report.\n\nABSOLUTE REQUIREMENT - YOUR RESPONSE MUST START EXACTLY LIKE THIS:\n\n##<space>How You\'re Doing with [Hero Name]\n<blank line>\n-<space>Your **X.X%** win rate\n\nNEVER write "How You\'re Doing- Your" - this is WRONG.\nALWAYS write "## How You\'re Doing with [Hero Name]" then blank line then "- Your **X.X%**" - this is CORRECT.\n\nEach section MUST have ## at the start.\nEach bullet MUST be on its own line starting with "-<space>".\nThere MUST be a blank line between ## headers and bullet points.'
+          content: 'You are an expert Heroes of the Storm coach with deep game knowledge. Use "you" and "your" to make it personal.\n\nCRITICAL: Use the MECHANICAL KNOWLEDGE provided to explain their performance. Don\'t just restate stats - explain WHY:\n- Why they succeed on certain maps (hero mechanics match map objectives)\n- Why they struggle on others (mechanical disadvantages)\n- What matchups they should avoid (counters)\n- What synergies they should leverage (ability combos)\n- Specific positioning/mechanical tips\n\nFocus on STRATEGIC DEPTH and MECHANICAL REASONING, not generic stat prose.\n\nABSOLUTE REQUIREMENT - YOUR RESPONSE MUST START EXACTLY LIKE THIS:\n\n##<space>How You\'re Doing with [Hero Name]\n<blank line>\n-<space>Your **X.X%** win rate\n\nNEVER write "How You\'re Doing- Your" - this is WRONG.\nALWAYS write "## How You\'re Doing with [Hero Name]" then blank line then "- Your **X.X%**" - this is CORRECT.\n\nEach section MUST have ## at the start.\nEach bullet MUST be on its own line starting with "-<space>".\nThere MUST be a blank line between ## headers and bullet points.'
         },
         {
           role: 'user',

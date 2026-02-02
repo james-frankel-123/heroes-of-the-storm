@@ -1,6 +1,35 @@
 import { NextResponse } from 'next/server'
-import { openai, OPENAI_CONFIG } from '@/lib/api/openai'
 import { PlayerData } from '@/types'
+
+/**
+ * Generate a template-based player summary without LLM
+ * This provides the same value without API costs or latency
+ */
+function generateTemplateSummary(playerData: PlayerData): string {
+  const playerName = playerData.playerName.split('#')[0]
+  const winRate = playerData.overallWinRate.toFixed(1)
+  const games = playerData.totalGames
+
+  // Get top hero
+  const topHero = playerData.heroStats[0]
+
+  // Get best map
+  const bestMap = playerData.mapStats.length > 0
+    ? playerData.mapStats[0]
+    : null
+
+  // Generate template-based summary based on performance
+  if (winRate >= '60.0') {
+    if (bestMap && bestMap.winRate >= 65) {
+      return `Welcome back, ${playerName}! Your ${topHero.hero} has ${topHero.winRate.toFixed(1)}% win rate, and you're dominating on ${bestMap.map} (${bestMap.winRate.toFixed(1)}%).`
+    }
+    return `Welcome back, ${playerName}! With ${winRate}% win rate across ${games} games, your ${topHero.hero} performance (${topHero.winRate.toFixed(1)}%) is outstanding.`
+  } else if (winRate >= '50.0') {
+    return `Welcome back, ${playerName}! You're maintaining a solid ${winRate}% win rate with ${topHero.hero} as your strongest pick (${topHero.winRate.toFixed(1)}%).`
+  } else {
+    return `Welcome back, ${playerName}! Your ${topHero.hero} shows promise at ${topHero.winRate.toFixed(1)}% win rate—let's build on that foundation.`
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -16,82 +45,22 @@ export async function POST(req: Request) {
       )
     }
 
-    // Get top performing heroes
-    const topHeroes = playerData.heroStats
-      .slice(0, 3)
-      .map(h => `${h.hero} (${h.winRate.toFixed(1)}%, ${h.games} games)`)
-      .join(', ')
+    // Generate template-based summary
+    const summary = generateTemplateSummary(playerData)
 
-    // Get best and worst maps
-    const sortedMaps = [...playerData.mapStats].sort((a, b) => b.winRate - a.winRate)
-    const bestMap = sortedMaps[0]
-    const worstMap = sortedMaps[sortedMaps.length - 1]
-
-    // Get role distribution
-    const roleStats = Object.entries(playerData.roleStats)
-      .map(([role, stats]) => `${role}: ${stats.games} games (${stats.winRate.toFixed(1)}% WR)`)
-      .join(', ')
-
-    // Create the OpenAI prompt
-    const prompt = `You are a friendly Heroes of the Storm analyst creating a personalized welcome message.
-
-**Player:** ${playerData.playerName.split('#')[0]}
-
-**Overall Stats:**
-- Total Games: ${playerData.totalGames}
-- Win Rate: ${playerData.overallWinRate.toFixed(1)}%
-- Record: ${playerData.totalWins}W - ${playerData.totalLosses}L
-
-**Top Heroes:**
-${topHeroes}
-
-**Map Performance:**
-- Best: ${bestMap.map} (${bestMap.winRate.toFixed(1)}%)
-- Worst: ${worstMap.map} (${worstMap.winRate.toFixed(1)}%)
-
-**Role Distribution:**
-${roleStats}
-
-Generate a single, engaging sentence (15-25 words) that:
-1. Acknowledges their playstyle or standout stat
-2. Mentions a specific strength (hero, map, or role)
-3. Feels personalized and motivating
-
-Examples of the tone:
-- "Your ${topHeroes.split(' ')[0]} dominance is impressive—keep crushing it on ${bestMap.map}!"
-- "A ${playerData.overallWinRate > 55 ? 'strong' : 'solid'} Storm League contender with exceptional ${bestMap.map} performance."
-
-Make it conversational and specific to THEIR data. Don't use generic phrases.`
-
-    // Stream the response from OpenAI
-    const stream = await openai.chat.completions.create({
-      model: OPENAI_CONFIG.model,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a Heroes of the Storm analyst. Create personalized, engaging welcome messages. Be specific, concise, and motivating. Avoid generic phrases.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 100, // Short summary
-      temperature: 0.8, // More creative
-      stream: true,
-    })
-
-    // Create a readable stream for SSE
+    // Create a readable stream for SSE (maintaining same interface)
     const encoder = new TextEncoder()
     const customReadable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content
-            if (content) {
-              const data = `data: ${content}\n\n`
-              controller.enqueue(encoder.encode(data))
-            }
+          // Stream the summary in small chunks to match streaming behavior
+          const chunkSize = 5
+          for (let i = 0; i < summary.length; i += chunkSize) {
+            const chunk = summary.substring(i, i + chunkSize)
+            const data = `data: ${chunk}\n\n`
+            controller.enqueue(encoder.encode(data))
+            // Small delay to maintain streaming feel
+            await new Promise(resolve => setTimeout(resolve, 10))
           }
           // Send done signal
           controller.enqueue(encoder.encode('data: [DONE]\n\n'))

@@ -25,6 +25,9 @@ export interface HeroKDA {
   assists: number
   kda: number
   games: number
+  wins: number
+  losses: number
+  winRate: number
   avgKills: number
   avgDeaths: number
   avgAssists: number
@@ -34,6 +37,8 @@ export interface TemporalPattern {
   hour: number
   winRate: number
   games: number
+  wins: number
+  losses: number
 }
 
 export interface DayOfWeekPattern {
@@ -41,6 +46,8 @@ export interface DayOfWeekPattern {
   dayNumber: number
   winRate: number
   games: number
+  wins: number
+  losses: number
 }
 
 export interface StatisticsSummary {
@@ -63,6 +70,7 @@ export interface StatisticsSummary {
     avgKills: number
     avgDeaths: number
     avgAssists: number
+    totalGames: number
   }
   kdaByHero: HeroKDA[]
 
@@ -82,6 +90,7 @@ export interface StatisticsSummary {
 
 /**
  * Calculate time series data from replays
+ * Note: Expects replays to already be sorted by date for optimal performance
  */
 export function calculateTimeSeries(
   replays: ReplayData[],
@@ -89,15 +98,10 @@ export function calculateTimeSeries(
 ): TimeSeriesPoint[] {
   if (replays.length === 0) return []
 
-  // Sort replays by date
-  const sortedReplays = [...replays].sort((a, b) =>
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  )
-
-  // Group by time period
+  // Group by time period (replays should already be sorted)
   const grouped = new Map<string, { wins: number; losses: number; games: number }>()
 
-  sortedReplays.forEach(replay => {
+  replays.forEach(replay => {
     const date = new Date(replay.date)
     let key: string
 
@@ -154,10 +158,8 @@ export function detectStreaks(replays: ReplayData[]): {
     }
   }
 
-  // Sort by date descending (most recent first)
-  const sortedReplays = [...replays].sort((a, b) =>
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
+  // Replays should already be sorted descending (most recent first) from parent function
+  // No need to re-sort for performance
 
   const streaks: Streak[] = []
   let currentStreakType: 'win' | 'loss' | null = null
@@ -166,7 +168,7 @@ export function detectStreaks(replays: ReplayData[]): {
   let currentStreakEnd = ''
 
   // Process replays from most recent to oldest
-  sortedReplays.forEach((replay, index) => {
+  replays.forEach((replay, index) => {
     if (currentStreakType === null) {
       // Start new streak
       currentStreakType = replay.result
@@ -234,7 +236,17 @@ export function detectStreaks(replays: ReplayData[]): {
  * Calculate KDA statistics from replays
  */
 export function calculateKDAStats(replays: ReplayData[], playerData: PlayerData): {
-  overall: HeroKDA['kda'] extends number ? Omit<HeroKDA, 'hero' | 'role'> : never
+  overall: {
+    kills: number
+    deaths: number
+    assists: number
+    kda: number
+    games: number
+    avgKills: number
+    avgDeaths: number
+    avgAssists: number
+    totalGames: number
+  }
   byHero: HeroKDA[]
 } {
   if (replays.length === 0) {
@@ -248,6 +260,7 @@ export function calculateKDAStats(replays: ReplayData[], playerData: PlayerData)
         avgKills: 0,
         avgDeaths: 0,
         avgAssists: 0,
+        totalGames: 0,
       },
       byHero: [],
     }
@@ -267,11 +280,12 @@ export function calculateKDAStats(replays: ReplayData[], playerData: PlayerData)
     deaths: number
     assists: number
     games: number
+    wins: number
   }>()
 
   replays.forEach(replay => {
     if (!heroMap.has(replay.hero)) {
-      heroMap.set(replay.hero, { kills: 0, deaths: 0, assists: 0, games: 0 })
+      heroMap.set(replay.hero, { kills: 0, deaths: 0, assists: 0, games: 0, wins: 0 })
     }
 
     const stats = heroMap.get(replay.hero)!
@@ -279,6 +293,7 @@ export function calculateKDAStats(replays: ReplayData[], playerData: PlayerData)
     stats.deaths += replay.deaths
     stats.assists += replay.assists
     stats.games++
+    if (replay.result === 'win') stats.wins++
   })
 
   const kdaByHero: HeroKDA[] = Array.from(heroMap.entries())
@@ -299,6 +314,9 @@ export function calculateKDAStats(replays: ReplayData[], playerData: PlayerData)
         assists: stats.assists,
         kda,
         games: stats.games,
+        wins: stats.wins,
+        losses: stats.games - stats.wins,
+        winRate: stats.games > 0 ? (stats.wins / stats.games) * 100 : 0,
         avgKills: stats.games > 0 ? stats.kills / stats.games : 0,
         avgDeaths: stats.games > 0 ? stats.deaths / stats.games : 0,
         avgAssists: stats.games > 0 ? stats.assists / stats.games : 0,
@@ -316,6 +334,7 @@ export function calculateKDAStats(replays: ReplayData[], playerData: PlayerData)
       avgKills: games > 0 ? totalKills / games : 0,
       avgDeaths: games > 0 ? totalDeaths / games : 0,
       avgAssists: games > 0 ? totalAssists / games : 0,
+      totalGames: games,
     },
     byHero: kdaByHero,
   }
@@ -365,8 +384,10 @@ export function calculateTemporalPatterns(replays: ReplayData[]): {
       hour,
       winRate: stats.games > 0 ? (stats.wins / stats.games) * 100 : 0,
       games: stats.games,
+      wins: stats.wins,
+      losses: stats.games - stats.wins,
     }))
-    .filter(p => p.games > 0) // Only include hours with games
+    .sort((a, b) => a.hour - b.hour) // Keep all 24 hours for heatmap display
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const daily: DayOfWeekPattern[] = Array.from(dailyMap.entries())
@@ -375,8 +396,10 @@ export function calculateTemporalPatterns(replays: ReplayData[]): {
       dayNumber,
       winRate: stats.games > 0 ? (stats.wins / stats.games) * 100 : 0,
       games: stats.games,
+      wins: stats.wins,
+      losses: stats.games - stats.wins,
     }))
-    .filter(p => p.games > 0) // Only include days with games
+    .sort((a, b) => a.dayNumber - b.dayNumber) // Keep all 7 days for heatmap display
 
   return { hourly, daily }
 }
@@ -402,19 +425,17 @@ export function calculateConsistencyScore(winRates: number[]): number {
 
 /**
  * Calculate recent form win rates
+ * Note: Expects replays to already be sorted descending (newest first)
  */
 export function calculateRecentForm(replays: ReplayData[]): {
   last10: number
   last20: number
   last50: number
 } {
-  // Sort by date descending (most recent first)
-  const sortedReplays = [...replays].sort((a, b) =>
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
+  // Replays should already be sorted descending (most recent first)
 
   const calculateWinRate = (games: number): number => {
-    const subset = sortedReplays.slice(0, games)
+    const subset = replays.slice(0, games)
     if (subset.length === 0) return 0
     const wins = subset.filter(r => r.result === 'win').length
     return (wins / subset.length) * 100
@@ -434,24 +455,45 @@ export function generateStatistics(
   replays: ReplayData[],
   playerData: PlayerData
 ): StatisticsSummary {
-  const winRateOverTime = calculateTimeSeries(replays, 'daily')
+  console.log('🔍 Generating statistics for', replays.length, 'replays')
+
+  // PERFORMANCE: Limit to most recent 500 games for faster processing
+  // Sort by date descending and take the most recent
+  const sortedReplays = [...replays].sort((a, b) =>
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+  const recentReplays = sortedReplays.slice(0, 500)
+
+  console.log('📊 Processing', recentReplays.length, 'most recent games')
+
+  const winRateOverTime = calculateTimeSeries(recentReplays, 'daily')
+  console.log('✅ Time series calculated')
+
   const gamesOverTime = winRateOverTime // Same data, different visualization focus
 
-  const streakData = detectStreaks(replays)
-  const kdaData = calculateKDAStats(replays, playerData)
-  const temporalData = calculateTemporalPatterns(replays)
-  const recentForm = calculateRecentForm(replays)
+  const streakData = detectStreaks(recentReplays)
+  console.log('✅ Streaks detected')
+
+  const kdaData = calculateKDAStats(recentReplays, playerData)
+  console.log('✅ KDA calculated')
+
+  const temporalData = calculateTemporalPatterns(recentReplays)
+  console.log('✅ Temporal patterns calculated')
+
+  const recentForm = calculateRecentForm(recentReplays)
+  console.log('✅ Recent form calculated')
 
   // Calculate win rate variance for consistency
   const winRates = winRateOverTime.map(p => p.winRate)
+  const mean = winRates.length > 0 ? winRates.reduce((s, w) => s + w, 0) / winRates.length : 0
   const winRateVariance = winRates.length > 0
-    ? winRates.reduce((sum, wr) => {
-        const mean = winRates.reduce((s, w) => s + w, 0) / winRates.length
-        return sum + Math.pow(wr - mean, 2)
-      }, 0) / winRates.length
+    ? winRates.reduce((sum, wr) => sum + Math.pow(wr - mean, 2), 0) / winRates.length
     : 0
 
   const consistencyScore = calculateConsistencyScore(winRates)
+  console.log('✅ Consistency score calculated')
+
+  console.log('🎉 Statistics generation complete!')
 
   return {
     winRateOverTime,

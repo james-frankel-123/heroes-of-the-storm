@@ -11,7 +11,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  TooltipProps,
 } from 'recharts'
 import { TimeSeriesPoint } from '@/lib/data/statistics'
 import { ContextData } from './clickable-metric'
@@ -36,7 +35,7 @@ export function PerformanceTrends({
     onPointClick({
       type: 'chart-point',
       label: `Win Rate on ${new Date(point.date).toLocaleDateString()}`,
-      value: point.value,
+      value: point.winRate,
       timeRange: {
         start: point.date,
         end: point.date,
@@ -44,8 +43,8 @@ export function PerformanceTrends({
       },
       relatedMetrics: {
         games: point.games,
-        wins: Math.round((point.value / 100) * point.games),
-        losses: point.games - Math.round((point.value / 100) * point.games),
+        wins: point.wins,
+        losses: point.losses,
       },
     })
   }
@@ -64,43 +63,43 @@ export function PerformanceTrends({
         granularity: 'daily',
       },
       relatedMetrics: {
-        winRate: point.value,
+        winRate: point.winRate,
       },
     })
   }
 
   // Custom tooltip component
-  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || payload.length === 0) return null
 
     const data = payload[0].payload as TimeSeriesPoint
-    const isWinRate = payload[0].dataKey === 'value'
+    const isWinRate = payload[0].dataKey === 'winRate'
 
     return (
-      <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg">
-        <p className="text-sm font-medium mb-2">
+      <div className="bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-lg p-3 shadow-lg">
+        <p className="text-sm font-medium mb-2 text-slate-100">
           {new Date(data.date).toLocaleDateString()}
         </p>
         {isWinRate ? (
           <>
-            <p className="text-xs text-muted-foreground">
-              Win Rate: <span className="font-semibold text-primary-500">{data.value.toFixed(1)}%</span>
+            <p className="text-xs text-slate-300">
+              Win Rate: <span className="font-semibold text-blue-400">{data.winRate.toFixed(1)}%</span>
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-300">
               Games: {data.games}
             </p>
           </>
         ) : (
           <>
-            <p className="text-xs text-muted-foreground">
-              Games: <span className="font-semibold text-primary-500">{data.games}</span>
+            <p className="text-xs text-slate-300">
+              Games: <span className="font-semibold text-blue-400">{data.games}</span>
             </p>
-            <p className="text-xs text-muted-foreground">
-              Win Rate: {data.value.toFixed(1)}%
+            <p className="text-xs text-slate-300">
+              Win Rate: {data.winRate.toFixed(1)}%
             </p>
           </>
         )}
-        <p className="text-xs text-primary-500/70 mt-2 flex items-center gap-1">
+        <p className="text-xs text-blue-400/80 mt-2 flex items-center gap-1">
           <Sparkles className="h-3 w-3" />
           Click to analyze
         </p>
@@ -127,27 +126,30 @@ export function PerformanceTrends({
             onClick={handleWinRateClick}
             className="cursor-pointer"
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
             <XAxis
               dataKey="date"
               tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              stroke="hsl(var(--muted-foreground))"
+              stroke="rgba(148, 163, 184, 0.8)"
               fontSize={12}
+              tick={{ fill: 'rgba(148, 163, 184, 0.9)' }}
             />
             <YAxis
               domain={[0, 100]}
-              stroke="hsl(var(--muted-foreground))"
+              stroke="rgba(148, 163, 184, 0.8)"
               fontSize={12}
               tickFormatter={(value) => `${value}%`}
+              tick={{ fill: 'rgba(148, 163, 184, 0.9)' }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Line
               type="monotone"
-              dataKey="value"
-              stroke="hsl(var(--primary-500))"
-              strokeWidth={3}
-              dot={{ fill: 'hsl(var(--primary-500))', r: 5, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
-              activeDot={{ r: 8, fill: 'hsl(var(--primary-400))', stroke: 'hsl(var(--primary-600))', strokeWidth: 2 }}
+              dataKey="winRate"
+              stroke="#60a5fa"
+              strokeWidth={4}
+              dot={{ fill: '#3b82f6', r: 6, strokeWidth: 2, stroke: '#1e40af' }}
+              activeDot={{ r: 9, fill: '#60a5fa', stroke: '#1e3a8a', strokeWidth: 3 }}
+              filter="drop-shadow(0 0 8px rgba(96, 165, 250, 0.4))"
             />
           </LineChart>
         </ResponsiveContainer>
@@ -166,24 +168,28 @@ export function PerformanceTrends({
         </div>
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={gamesOverTime}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
             <XAxis
               dataKey="date"
               tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              stroke="hsl(var(--muted-foreground))"
+              stroke="rgba(148, 163, 184, 0.8)"
               fontSize={12}
+              tick={{ fill: 'rgba(148, 163, 184, 0.9)' }}
             />
             <YAxis
-              stroke="hsl(var(--muted-foreground))"
+              stroke="rgba(148, 163, 184, 0.8)"
               fontSize={12}
+              tick={{ fill: 'rgba(148, 163, 184, 0.9)' }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar
               dataKey="games"
-              fill="hsl(var(--primary-500))"
+              fill="#3b82f6"
               radius={[4, 4, 0, 0]}
               onClick={handleGamesClick}
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              stroke="#60a5fa"
+              strokeWidth={1}
             />
           </BarChart>
         </ResponsiveContainer>
