@@ -170,7 +170,7 @@ export default function DashboardPage() {
           animate="show"
           className="lg:col-span-1"
         >
-          <InsightsPanel insights={insights} isLoading={isInsightsLoading} playerData={data} />
+          <InsightsPanel insights={insights} isLoading={isInsightsLoading} />
         </motion.div>
       </div>
 
