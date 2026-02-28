@@ -1,10 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/theme-provider'
-import { PlayerProvider } from '@/contexts/player-context'
-import { BattletagGate } from '@/components/battletag-gate'
-import { Sidebar } from '@/components/layout/sidebar'
-import { Header } from '@/components/layout/header'
 import './globals.css'
 
 const inter = Inter({
@@ -13,8 +9,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Heroes of the Storm Analytics',
-  description: 'Advanced analytics and insights for Heroes of the Storm players',
+  title: 'HotS Fever',
+  description: 'Insights and draft assistant for Heroes of the Storm',
 }
 
 export default function RootLayout({
@@ -31,19 +27,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <PlayerProvider>
-            <BattletagGate>
-              <div className="flex h-screen overflow-hidden gradient-gaming">
-                <Sidebar />
-                <div className="flex flex-1 flex-col overflow-hidden">
-                  <Header />
-                  <main className="flex-1 overflow-y-auto p-6">
-                    {children}
-                  </main>
-                </div>
-              </div>
-            </BattletagGate>
-          </PlayerProvider>
+          {children}
         </ThemeProvider>
       </body>
     </html>
