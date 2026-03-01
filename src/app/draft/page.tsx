@@ -1,6 +1,7 @@
+export const dynamic = 'force-dynamic'
+
 import { DraftClient } from './draft-client'
-import { getDraftData, getTrackedBattletags } from '@/lib/data/queries'
-import { MAPS } from '@/lib/mock/data'
+import { getDraftData, getTrackedBattletags, getAllMaps } from '@/lib/data/queries'
 import type { SkillTier } from '@/lib/types'
 import type { DraftData } from '@/lib/draft/types'
 
@@ -11,7 +12,10 @@ const TIERS: SkillTier[] = ['low', 'mid', 'high']
  * This ensures zero API calls during the timed draft.
  */
 export default async function DraftPage() {
-  const trackedBattletags = await getTrackedBattletags()
+  const [trackedBattletags, maps] = await Promise.all([
+    getTrackedBattletags(),
+    getAllMaps(),
+  ])
   const battletags = trackedBattletags.map((bt) => bt.battletag)
 
   // Pre-fetch every tier × map combo
@@ -22,7 +26,7 @@ export default async function DraftPage() {
   }
 
   const fetches = TIERS.flatMap((tier) =>
-    MAPS.map(async (map) => {
+    maps.map(async (map) => {
       const data = await getDraftData(tier, map, battletags)
       return { tier, map, data }
     })
@@ -36,7 +40,7 @@ export default async function DraftPage() {
   return (
     <DraftClient
       dataByTierMap={dataByTierMap}
-      maps={MAPS}
+      maps={maps}
       registeredBattletags={battletags}
     />
   )

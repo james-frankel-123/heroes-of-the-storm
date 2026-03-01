@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { MapsClient } from './maps-client'
 import {
   getMapStats,
@@ -5,8 +7,8 @@ import {
   getTrackedBattletags,
   getPlayerMapStats,
   getPlayerMatchHistory,
+  getAllMaps,
 } from '@/lib/data/queries'
-import { MAPS } from '@/lib/mock/data'
 import type { SkillTier, HeroMapStats } from '@/lib/types'
 
 const TIERS: SkillTier[] = ['low', 'mid', 'high']

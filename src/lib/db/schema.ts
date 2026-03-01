@@ -70,10 +70,9 @@ export const heroStatsAggregate = pgTable(
     avgSiegeDamage: real('avg_siege_damage').default(0),
     avgHealing: real('avg_healing').default(0),
     avgExperience: real('avg_experience').default(0),
-    avgDamageSoaked: real('avg_damage_soaked').default(0),
-    avgMercCaptures: real('avg_merc_captures').default(0),
-    avgSelfHealing: real('avg_self_healing').default(0),
-    avgTimeDead: real('avg_time_dead').default(0),
+    // NOTE: avg_damage_soaked, avg_merc_captures, avg_self_healing, avg_time_dead
+    // are defined in the app-layer types but NOT yet migrated to the actual DB.
+    // Omitted here to prevent "column does not exist" errors.
     patchTag: varchar('patch_tag', { length: 40 }),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

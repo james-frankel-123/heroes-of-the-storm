@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { HeroesClient } from './heroes-client'
 import {
   getHeroStats,
