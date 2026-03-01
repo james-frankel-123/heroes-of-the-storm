@@ -289,7 +289,7 @@ export async function getBottomHeroes(
     .slice(0, limit)
 }
 
-/** Top synergy pairs for a tier */
+/** Top synergy pairs for a tier (deduped: only heroA < heroB alphabetically) */
 export async function getTopSynergies(
   tier: SkillTier,
   limit = 10
@@ -300,7 +300,8 @@ export async function getTopSynergies(
     .where(
       and(
         eq(heroPairwiseStatsTable.relationship, 'with'),
-        eq(heroPairwiseStatsTable.skillTier, tier)
+        eq(heroPairwiseStatsTable.skillTier, tier),
+        sql`${heroPairwiseStatsTable.heroA} < ${heroPairwiseStatsTable.heroB}`
       )
     )
     .orderBy(desc(heroPairwiseStatsTable.winRate))
@@ -317,7 +318,7 @@ export async function getTopSynergies(
   }))
 }
 
-/** Top counter matchups for a tier */
+/** Top counter matchups for a tier (deduped: only heroA < heroB alphabetically) */
 export async function getTopCounters(
   tier: SkillTier,
   limit = 10
@@ -328,7 +329,8 @@ export async function getTopCounters(
     .where(
       and(
         eq(heroPairwiseStatsTable.relationship, 'against'),
-        eq(heroPairwiseStatsTable.skillTier, tier)
+        eq(heroPairwiseStatsTable.skillTier, tier),
+        sql`${heroPairwiseStatsTable.heroA} < ${heroPairwiseStatsTable.heroB}`
       )
     )
     .orderBy(desc(heroPairwiseStatsTable.winRate))
