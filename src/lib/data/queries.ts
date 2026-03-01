@@ -486,7 +486,7 @@ export async function getPlayersStrongOnHero(
         eq(playerHeroStatsTable.hero, hero)
       )
     )
-    .orderBy(desc(playerHeroStatsTable.winRate))
+    .orderBy(desc(playerHeroStatsTable.mawp))
 
   return rows
     .map((r) => ({
@@ -502,7 +502,7 @@ export async function getPlayersStrongOnHero(
       recentWinRate: r.recentWinRate != null ? r1(r.recentWinRate) : null,
       trend: r.trend != null ? r1(r.trend) : null,
     }))
-    .filter((r) => r.games >= 10 && r.winRate >= 52)
+    .filter((r) => r.games >= 10 && (r.mawp ?? r.winRate) >= 52)
 }
 
 // ---------------------------------------------------------------------------
@@ -647,6 +647,7 @@ export async function getDraftData(
         games: h.games,
         wins: h.wins,
         winRate: h.winRate,
+        mawp: h.mawp,
       }
     }
 

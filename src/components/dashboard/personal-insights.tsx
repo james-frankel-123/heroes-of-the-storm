@@ -14,14 +14,25 @@ interface PersonalInsightsProps {
 }
 
 export function PersonalInsights({ battletag, heroStats }: PersonalInsightsProps) {
-  const sorted = [...heroStats].sort((a, b) => b.winRate - a.winRate)
+  // Sort by MAWP (momentum-adjusted win %) when available, fall back to plain WR
+  const sorted = [...heroStats].sort((a, b) => {
+    const aMawp = a.mawp ?? a.winRate
+    const bMawp = b.mawp ?? b.winRate
+    return bMawp - aMawp
+  })
 
   const overperforming = sorted
-    .filter((h) => h.winRate >= 52 && h.games >= 5)
+    .filter((h) => {
+      const mawp = h.mawp ?? h.winRate
+      return mawp >= 52 && h.games >= 5
+    })
     .slice(0, 8)
 
   const underperforming = sorted
-    .filter((h) => h.winRate < 48 && h.games >= 10)
+    .filter((h) => {
+      const mawp = h.mawp ?? h.winRate
+      return mawp < 48 && h.games >= 10
+    })
     .reverse()
     .slice(0, 5)
 
@@ -76,12 +87,14 @@ function HeroTable({ heroes }: { heroes: PlayerHeroStats[] }) {
           <th className="text-left font-medium pb-1.5">Hero</th>
           <th className="text-right font-medium pb-1.5 w-16">Games</th>
           <th className="text-right font-medium pb-1.5 w-16">Win %</th>
+          <th className="text-right font-medium pb-1.5 w-16">MAWP</th>
           <th className="text-right font-medium pb-1.5 w-16">Trend</th>
         </tr>
       </thead>
       <tbody>
         {heroes.map((h) => {
           const trend = h.trend ?? 0
+          const mawp = h.mawp ?? null
           return (
             <tr
               key={h.hero}
@@ -98,6 +111,14 @@ function HeroTable({ heroes }: { heroes: PlayerHeroStats[] }) {
                 )}
               >
                 {formatPercent(h.winRate)}
+              </td>
+              <td
+                className={cn(
+                  'py-1.5 text-right font-semibold',
+                  mawp != null ? getWinRateColor(mawp) : 'text-muted-foreground'
+                )}
+              >
+                {mawp != null ? formatPercent(mawp) : '-'}
               </td>
               <td
                 className={cn(

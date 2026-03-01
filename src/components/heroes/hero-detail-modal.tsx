@@ -323,7 +323,7 @@ export function HeroDetailModal({
                   <CardContent>
                     {stats ? (
                       <div className="space-y-3">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
                           <StatBlock
                             label="Games"
                             value={String(stats.games)}
@@ -332,6 +332,19 @@ export function HeroDetailModal({
                             label="Win Rate"
                             value={formatPercent(stats.winRate)}
                             color={getWinRateColor(stats.winRate)}
+                          />
+                          <StatBlock
+                            label="MAWP"
+                            value={
+                              stats.mawp != null
+                                ? formatPercent(stats.mawp)
+                                : '-'
+                            }
+                            color={
+                              stats.mawp != null
+                                ? getWinRateColor(stats.mawp)
+                                : undefined
+                            }
                           />
                           <StatBlock
                             label="Trend"

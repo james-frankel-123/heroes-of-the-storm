@@ -117,6 +117,7 @@ export interface DraftData {
     games: number
     wins: number
     winRate: number
+    mawp: number | null
   }>>
   /** battletag → hero → { winRate, games } on the selected map */
   playerMapStats: Record<string, Record<string, {
