@@ -1,5 +1,9 @@
 import { sql, eq, desc } from 'drizzle-orm'
-import { playerMatchHistory, playerHeroStats, playerHeroMapStats } from '../src/lib/db/schema'
+import {
+  playerMatchHistory, playerHeroStats, playerHeroMapStats,
+  mapStatsAggregate, heroMapStatsAggregate,
+  users, trackedBattletags,
+} from '../src/lib/db/schema'
 import { SyncDb } from './db'
 import { log } from './logger'
 
@@ -93,19 +97,19 @@ function aggregateByHero(matches: Array<{
   return Object.entries(grouped).map(([hero, heroMatches]) => {
     const games = heroMatches.length
     const wins = heroMatches.filter(m => m.win).length
-    const winRate = games > 0 ? wins / games : 0
+    const winRate = games > 0 ? (wins / games) * 100 : 0
 
     // MAWP
-    const mawp = computeMAWP(heroMatches)
+    const mawp = computeMAWP(heroMatches) * 100
 
     // Recent win rate (last 20 games)
     const sorted = [...heroMatches].sort((a, b) => b.gameDate.getTime() - a.gameDate.getTime())
     const recent20 = sorted.slice(0, 20)
     const recentWinRate = recent20.length >= 5
-      ? recent20.filter(m => m.win).length / recent20.length
+      ? (recent20.filter(m => m.win).length / recent20.length) * 100
       : null
 
-    // Trend
+    // Trend (already in percent after above changes)
     const trend = recentWinRate !== null ? recentWinRate - winRate : null
 
     // Average stats
@@ -156,7 +160,7 @@ function aggregateByHeroMap(matches: Array<{
 
   return Object.values(grouped).map(g => ({
     ...g,
-    winRate: g.games > 0 ? g.wins / g.games : 0,
+    winRate: g.games > 0 ? (g.wins / g.games) * 100 : 0,
   }))
 }
 
@@ -253,9 +257,123 @@ async function computeForBattletag(db: SyncDb, battletag: string): Promise<void>
   log.info(`  Upserted ${heroMapStats.length} hero-map stats for ${battletag}`)
 }
 
+// ── Aggregate map stats from player_match_history ───────────────────
+
+async function computeMapAggregates(db: SyncDb): Promise<void> {
+  const rows = await db.execute(
+    sql`SELECT map, count(*) as games FROM player_match_history GROUP BY map`,
+  )
+
+  const SKILL_TIERS = ['low', 'mid', 'high'] as const
+
+  for (const row of rows.rows) {
+    for (const tier of SKILL_TIERS) {
+      await db.insert(mapStatsAggregate)
+        .values({
+          map: row.map as string,
+          skillTier: tier,
+          games: Number(row.games),
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: [mapStatsAggregate.map, mapStatsAggregate.skillTier],
+          set: {
+            games: sql.raw('excluded.games'),
+            updatedAt: sql`now()`,
+          },
+        })
+    }
+  }
+
+  log.info(`  Upserted map_stats_aggregate for ${rows.rows.length} maps × 3 tiers`)
+}
+
+// ── Aggregate hero-map stats from player_match_history ──────────────
+
+async function computeHeroMapAggregates(db: SyncDb): Promise<void> {
+  const rows = await db.execute(
+    sql`SELECT hero, map, count(*) as games, sum(win::int) as wins FROM player_match_history GROUP BY hero, map`,
+  )
+
+  const SKILL_TIERS = ['low', 'mid', 'high'] as const
+  const BATCH_SIZE = 100
+
+  const allValues: Array<{
+    hero: string
+    map: string
+    skillTier: 'low' | 'mid' | 'high'
+    games: number
+    wins: number
+    winRate: number
+    updatedAt: Date
+  }> = []
+
+  for (const row of rows.rows) {
+    const games = Number(row.games)
+    const wins = Number(row.wins)
+    const winRate = games > 0 ? (wins / games) * 100 : 0
+    for (const tier of SKILL_TIERS) {
+      allValues.push({
+        hero: row.hero as string,
+        map: row.map as string,
+        skillTier: tier,
+        games,
+        wins,
+        winRate,
+        updatedAt: new Date(),
+      })
+    }
+  }
+
+  for (let i = 0; i < allValues.length; i += BATCH_SIZE) {
+    const batch = allValues.slice(i, i + BATCH_SIZE)
+    await db.insert(heroMapStatsAggregate)
+      .values(batch)
+      .onConflictDoUpdate({
+        target: [heroMapStatsAggregate.hero, heroMapStatsAggregate.map, heroMapStatsAggregate.skillTier],
+        set: {
+          games: sql.raw('excluded.games'),
+          wins: sql.raw('excluded.wins'),
+          winRate: sql.raw('excluded.win_rate'),
+          updatedAt: sql`now()`,
+        },
+      })
+  }
+
+  log.info(`  Upserted hero_map_stats_aggregate: ${allValues.length} rows`)
+}
+
+// ── Seed tracked battletags ─────────────────────────────────────────
+
+async function seedTrackedBattletags(db: SyncDb, battletags: Array<{ battletag: string; region: number }>): Promise<void> {
+  // Upsert system user
+  const result = await db.insert(users)
+    .values({ email: 'system@hotsfever.local', displayName: 'System' })
+    .onConflictDoUpdate({
+      target: [users.email],
+      set: { displayName: sql.raw('excluded.display_name') },
+    })
+    .returning({ id: users.id })
+
+  const userId = result[0].id
+
+  // Upsert tracked battletags
+  for (const { battletag, region } of battletags) {
+    await db.insert(trackedBattletags)
+      .values({ userId, battletag, region })
+      .onConflictDoUpdate({
+        target: [trackedBattletags.userId, trackedBattletags.battletag],
+        set: { region: sql.raw('excluded.region') },
+      })
+  }
+
+  log.info(`  Upserted ${battletags.length} tracked battletags for system user (id=${userId})`)
+}
+
 /**
  * Compute derived statistics for all given battletags.
- * Reads from player_match_history and writes to player_hero_stats and player_hero_map_stats.
+ * Reads from player_match_history and writes to player_hero_stats, player_hero_map_stats,
+ * map_stats_aggregate, hero_map_stats_aggregate, and tracked_battletags.
  */
 export async function computeDerivedStats(db: SyncDb, battletags: string[]): Promise<void> {
   log.info(`=== Computing derived stats for ${battletags.length} battletags ===`)
@@ -267,6 +385,15 @@ export async function computeDerivedStats(db: SyncDb, battletags: string[]): Pro
       log.error(`Failed to compute derived stats for ${battletag}`, err)
     }
   }
+
+  // Aggregate stats across all players
+  log.info('Computing map and hero-map aggregates...')
+  await computeMapAggregates(db)
+  await computeHeroMapAggregates(db)
+
+  // Seed tracked battletags
+  log.info('Seeding tracked battletags...')
+  await seedTrackedBattletags(db, battletags.map(b => ({ battletag: b, region: 1 })))
 
   log.info('=== Derived stats computation complete ===')
 }
