@@ -38,5 +38,6 @@ next-env.d.ts
 # drizzle local
 drizzle/meta
 
-# sync logs
+# sync runtime artifacts
 sync/logs
+sync/progress.json
