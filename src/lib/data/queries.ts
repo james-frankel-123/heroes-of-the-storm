@@ -1,14 +1,12 @@
 /**
  * Data access layer — backed by Drizzle ORM / Neon Postgres.
  *
- * Known DB gaps handled here:
- *   - map_stats_aggregate and hero_map_stats_aggregate are empty (0 rows).
- *     We derive map-level data from player_match_history instead.
- *   - tracked_battletags has 0 rows.
- *     We derive the battletag list from distinct player_match_history entries.
+ * Notes:
  *   - avg_damage_soaked, avg_merc_captures, avg_self_healing, avg_time_dead
  *     columns were added to the schema but never migrated to the actual DB.
  *     We default these to 0 in the application layer.
+ *   - KDA / damage averages in hero_stats_aggregate are always 0 because the
+ *     upstream API (Heroes Profile /Heroes/Stats) does not return them.
  */
 
 import { db } from '@/lib/db'
@@ -23,7 +21,7 @@ import {
   playerHeroMapStats as playerHeroMapStatsTable,
   trackedBattletags,
 } from '@/lib/db/schema'
-import { eq, and, desc, asc, sql, or, inArray } from 'drizzle-orm'
+import { eq, and, desc, asc, sql, inArray } from 'drizzle-orm'
 
 import type {
   SkillTier,
@@ -47,20 +45,6 @@ import type { DraftData } from '@/lib/draft/types'
 /** Round to 1 decimal place */
 function r1(n: number): number {
   return Math.round(n * 10) / 10
-}
-
-/**
- * The sync scripts are inconsistent:
- *   hero_stats_aggregate stores win_rate as a percentage (51.65)
- *   player_hero_stats stores win_rate as a fraction (0.5416)
- *   player_hero_map_stats stores win_rate as a fraction (0.5)
- *
- * This helper normalises a value that might be fraction-scale to percent-scale.
- * Heuristic: if |value| <= 1.0 it's a fraction; multiply by 100.
- */
-function toPct(v: number | null): number {
-  if (v == null) return 0
-  return Math.abs(v) <= 1 ? r1(v * 100) : r1(v)
 }
 
 /** Shape of what we select from hero_stats_aggregate */
@@ -165,109 +149,54 @@ export async function getHeroStatsByName(hero: string): Promise<HeroStats[]> {
   return rows.map((r) => toHeroStats(r))
 }
 
-/**
- * All map stats for a skill tier.
- * Since map_stats_aggregate is empty, we derive from player_match_history.
- */
+/** All map stats for a skill tier */
 export async function getMapStats(tier: SkillTier): Promise<MapStats[]> {
-  // First try the aggregate table
-  const agg = await db
+  const rows = await db
     .select()
     .from(mapStatsAggregate)
     .where(eq(mapStatsAggregate.skillTier, tier))
-
-  if (agg.length > 0) {
-    return agg.map((r) => ({
-      map: r.map,
-      skillTier: r.skillTier as SkillTier,
-      games: r.games,
-    }))
-  }
-
-  // Fallback: derive from player_match_history (all tiers combined)
-  const rows = await db
-    .select({
-      map: playerMatchHistoryTable.map,
-      games: sql<number>`count(*)::int`,
-    })
-    .from(playerMatchHistoryTable)
-    .groupBy(playerMatchHistoryTable.map)
-    .orderBy(desc(sql`count(*)`))
+    .orderBy(desc(mapStatsAggregate.games))
 
   return rows.map((r) => ({
     map: r.map,
-    skillTier: tier, // label with the requested tier
+    skillTier: r.skillTier as SkillTier,
     games: r.games,
   }))
 }
 
-/** All map names — derived from player_match_history */
+/** All map names */
 export async function getAllMaps(): Promise<string[]> {
   const rows = await db
-    .selectDistinct({ map: playerMatchHistoryTable.map })
-    .from(playerMatchHistoryTable)
-    .orderBy(asc(playerMatchHistoryTable.map))
+    .selectDistinct({ map: mapStatsAggregate.map })
+    .from(mapStatsAggregate)
+    .orderBy(asc(mapStatsAggregate.map))
 
   return rows.map((r) => r.map)
 }
 
-/**
- * Hero performance on a specific map for a tier.
- * Since hero_map_stats_aggregate is empty, we derive from player_match_history.
- */
+/** Hero performance on a specific map for a tier */
 export async function getHeroMapStats(
   tier: SkillTier,
   map?: string,
   hero?: string
 ): Promise<HeroMapStats[]> {
-  // First try the aggregate table
   const conditions = [eq(heroMapStatsAggregate.skillTier, tier)]
   if (map) conditions.push(eq(heroMapStatsAggregate.map, map))
   if (hero) conditions.push(eq(heroMapStatsAggregate.hero, hero))
 
-  const agg = await db
+  const rows = await db
     .select()
     .from(heroMapStatsAggregate)
     .where(and(...conditions))
-
-  if (agg.length > 0) {
-    return agg
-      .map((r) => ({
-        hero: r.hero,
-        map: r.map,
-        skillTier: r.skillTier as SkillTier,
-        games: r.games,
-        wins: r.wins,
-        winRate: r.winRate,
-      }))
-      .sort((a, b) => b.winRate - a.winRate)
-  }
-
-  // Fallback: derive from player_match_history (all tiers combined since
-  // match history doesn't have a skill_tier column)
-  const matchConditions: ReturnType<typeof eq>[] = []
-  if (map) matchConditions.push(eq(playerMatchHistoryTable.map, map))
-  if (hero) matchConditions.push(eq(playerMatchHistoryTable.hero, hero))
-
-  const rows = await db
-    .select({
-      hero: playerMatchHistoryTable.hero,
-      map: playerMatchHistoryTable.map,
-      games: sql<number>`count(*)::int`,
-      wins: sql<number>`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::int`,
-    })
-    .from(playerMatchHistoryTable)
-    .where(matchConditions.length > 0 ? and(...matchConditions) : undefined)
-    .groupBy(playerMatchHistoryTable.hero, playerMatchHistoryTable.map)
-    .orderBy(desc(sql`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::float / count(*)`))
+    .orderBy(desc(heroMapStatsAggregate.winRate))
 
   return rows.map((r) => ({
     hero: r.hero,
     map: r.map,
-    skillTier: tier,
+    skillTier: r.skillTier as SkillTier,
     games: r.games,
     wins: r.wins,
-    winRate: r.games > 0 ? Math.round((r.wins / r.games) * 1000) / 10 : 0,
+    winRate: r.winRate,
   }))
 }
 
@@ -416,70 +345,46 @@ export async function getTopCounters(
   }))
 }
 
-/**
- * Power picks: hero+map combos with high win rate.
- * Derived from player_match_history since hero_map_stats_aggregate is empty.
- */
+/** Power picks: hero+map combos with high win rate for a tier */
 export async function getPowerPicks(
   tier: SkillTier,
   threshold = 55,
   limit = 15
 ): Promise<HeroMapStats[]> {
-  // Get all hero-map combos from match history
   const rows = await db
-    .select({
-      hero: playerMatchHistoryTable.hero,
-      map: playerMatchHistoryTable.map,
-      games: sql<number>`count(*)::int`,
-      wins: sql<number>`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::int`,
-    })
-    .from(playerMatchHistoryTable)
-    .groupBy(playerMatchHistoryTable.hero, playerMatchHistoryTable.map)
-    .having(sql`count(*) >= 5`)
-    .orderBy(desc(sql`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::float / count(*)`))
+    .select()
+    .from(heroMapStatsAggregate)
+    .where(
+      and(
+        eq(heroMapStatsAggregate.skillTier, tier),
+        sql`${heroMapStatsAggregate.games} >= 5`,
+        sql`${heroMapStatsAggregate.winRate} >= ${threshold}`
+      )
+    )
+    .orderBy(desc(heroMapStatsAggregate.winRate))
+    .limit(limit)
 
-  return rows
-    .map((r) => ({
-      hero: r.hero,
-      map: r.map,
-      skillTier: tier,
-      games: r.games,
-      wins: r.wins,
-      winRate: r.games > 0 ? Math.round((r.wins / r.games) * 1000) / 10 : 0,
-    }))
-    .filter((r) => r.winRate >= threshold)
-    .slice(0, limit)
+  return rows.map((r) => ({
+    hero: r.hero,
+    map: r.map,
+    skillTier: r.skillTier as SkillTier,
+    games: r.games,
+    wins: r.wins,
+    winRate: r.winRate,
+  }))
 }
 
 // ---------------------------------------------------------------------------
 // Personal player queries
 // ---------------------------------------------------------------------------
 
-/**
- * All tracked battletags.
- * Since tracked_battletags table is empty, derive from player_match_history.
- */
+/** All tracked battletags */
 export async function getTrackedBattletags(): Promise<TrackedBattletag[]> {
-  // First check the proper table
-  const tracked = await db.select().from(trackedBattletags)
-  if (tracked.length > 0) {
-    return tracked.map((r) => ({
-      battletag: r.battletag,
-      region: r.region ?? 1,
-      lastSynced: r.lastSynced,
-    }))
-  }
-
-  // Fallback: derive from distinct battletags in player_match_history
-  const rows = await db
-    .selectDistinct({ battletag: playerMatchHistoryTable.battletag })
-    .from(playerMatchHistoryTable)
-    .orderBy(asc(playerMatchHistoryTable.battletag))
-
+  const rows = await db.select().from(trackedBattletags)
   return rows.map((r) => ({
     battletag: r.battletag,
-    region: 1,
-    lastSynced: null,
+    region: r.region ?? 1,
+    lastSynced: r.lastSynced,
   }))
 }
 
@@ -498,13 +403,13 @@ export async function getPlayerHeroStats(
     hero: r.hero,
     games: r.games,
     wins: r.wins,
-    winRate: toPct(r.winRate),
-    mawp: r.mawp != null ? toPct(r.mawp) : null,
+    winRate: r1(r.winRate),
+    mawp: r.mawp != null ? r1(r.mawp) : null,
     avgKills: r1(r.avgKills ?? 0),
     avgDeaths: r1(r.avgDeaths ?? 0),
     avgAssists: r1(r.avgAssists ?? 0),
-    recentWinRate: r.recentWinRate != null ? toPct(r.recentWinRate) : null,
-    trend: r.trend != null ? toPct(r.trend) : null,
+    recentWinRate: r.recentWinRate != null ? r1(r.recentWinRate) : null,
+    trend: r.trend != null ? r1(r.trend) : null,
   }))
 }
 
@@ -528,7 +433,7 @@ export async function getPlayerHeroMapStats(
     map: r.map,
     games: r.games,
     wins: r.wins,
-    winRate: toPct(r.winRate),
+    winRate: r1(r.winRate),
   }))
 }
 
@@ -589,13 +494,13 @@ export async function getPlayersStrongOnHero(
       hero: r.hero,
       games: r.games,
       wins: r.wins,
-      winRate: toPct(r.winRate),
-      mawp: r.mawp != null ? toPct(r.mawp) : null,
+      winRate: r1(r.winRate),
+      mawp: r.mawp != null ? r1(r.mawp) : null,
       avgKills: r1(r.avgKills ?? 0),
       avgDeaths: r1(r.avgDeaths ?? 0),
       avgAssists: r1(r.avgAssists ?? 0),
-      recentWinRate: r.recentWinRate != null ? toPct(r.recentWinRate) : null,
-      trend: r.trend != null ? toPct(r.trend) : null,
+      recentWinRate: r.recentWinRate != null ? r1(r.recentWinRate) : null,
+      trend: r.trend != null ? r1(r.trend) : null,
     }))
     .filter((r) => r.games >= 10 && ((r.mawp ?? r.winRate) >= 52))
 }

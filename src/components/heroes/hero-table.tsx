@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { getHeroRole, type HeroRole } from '@/lib/data/hero-roles'
@@ -18,33 +18,6 @@ type SortField =
   | 'games'
   | 'pickRate'
   | 'banRate'
-  | 'avgKills'
-  | 'avgDeaths'
-  | 'avgAssists'
-  | 'avgHeroDamage'
-  | 'avgDamageSoaked'
-  | 'avgHealing'
-  | 'avgSiegeDamage'
-  | 'avgExperience'
-  | 'avgMercCaptures'
-  | 'avgSelfHealing'
-  | 'avgTimeDead'
-
-/** Columns that can be toggled on/off via the dropdown */
-type OptionalColumn =
-  | 'avgSiegeDamage'
-  | 'avgExperience'
-  | 'avgMercCaptures'
-  | 'avgSelfHealing'
-  | 'avgTimeDead'
-
-const OPTIONAL_COLUMNS: { key: OptionalColumn; label: string }[] = [
-  { key: 'avgSiegeDamage', label: 'Siege Damage' },
-  { key: 'avgExperience', label: 'Experience' },
-  { key: 'avgMercCaptures', label: 'Merc Captures' },
-  { key: 'avgSelfHealing', label: 'Self Healing' },
-  { key: 'avgTimeDead', label: 'Time Dead' },
-]
 
 const ROLES: (HeroRole | 'All')[] = [
   'All',
@@ -68,30 +41,6 @@ function roleBadgeVariant(role: string | null) {
   }
 }
 
-function formatColumnValue(field: OptionalColumn | SortField, value: number): string {
-  switch (field) {
-    case 'avgSiegeDamage':
-    case 'avgHeroDamage':
-    case 'avgDamageSoaked':
-    case 'avgSelfHealing':
-    case 'avgExperience':
-    case 'avgHealing':
-      return formatNumber(value)
-    case 'avgTimeDead':
-      return `${value}s`
-    case 'avgMercCaptures':
-      return String(value)
-    case 'winRate':
-    case 'pickRate':
-    case 'banRate':
-      return formatPercent(value)
-    case 'games':
-      return formatNumber(value)
-    default:
-      return String(value)
-  }
-}
-
 interface HeroTableProps {
   heroes: HeroStats[]
   onHeroClick: (hero: string) => void
@@ -102,23 +51,6 @@ export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
   const [roleFilter, setRoleFilter] = useState<HeroRole | 'All'>('All')
   const [sortField, setSortField] = useState<SortField>('winRate')
   const [sortAsc, setSortAsc] = useState(false)
-  const [visibleOptional, setVisibleOptional] = useState<Set<OptionalColumn>>(new Set())
-  const [columnsOpen, setColumnsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setColumnsOpen(false)
-      }
-    }
-    if (columnsOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [columnsOpen])
-
   const filtered = useMemo(() => {
     let result = heroes
 
@@ -154,18 +86,6 @@ export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
       setSortField(field)
       setSortAsc(field === 'hero')
     }
-  }
-
-  function toggleOptionalColumn(col: OptionalColumn) {
-    setVisibleOptional((prev) => {
-      const next = new Set(prev)
-      if (next.has(col)) {
-        next.delete(col)
-      } else {
-        next.add(col)
-      }
-      return next
-    })
   }
 
   const SortHeader = ({
@@ -219,60 +139,6 @@ export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
             </button>
           ))}
         </div>
-
-        {/* Column toggle dropdown */}
-        <div className="relative ml-auto" ref={dropdownRef}>
-          <button
-            onClick={() => setColumnsOpen(!columnsOpen)}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors border',
-              columnsOpen
-                ? 'border-primary/50 text-primary bg-primary/10'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
-            )}
-          >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"
-              />
-            </svg>
-            Columns
-            {visibleOptional.size > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] leading-none">
-                +{visibleOptional.size}
-              </span>
-            )}
-          </button>
-          {columnsOpen && (
-            <div className="absolute right-0 mt-1 w-48 bg-popover border rounded-lg shadow-lg z-50 py-1">
-              <p className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                Optional Columns
-              </p>
-              {OPTIONAL_COLUMNS.map((col) => (
-                <label
-                  key={col.key}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent/50 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={visibleOptional.has(col.key)}
-                    onChange={() => toggleOptionalColumn(col.key)}
-                    className="rounded border-border"
-                  />
-                  <span>{col.label}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Table */}
@@ -298,36 +164,6 @@ export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
               <SortHeader field="banRate" className="text-right">
                 Ban %
               </SortHeader>
-              <SortHeader field="avgKills" className="text-right">
-                K
-              </SortHeader>
-              <SortHeader field="avgDeaths" className="text-right">
-                D
-              </SortHeader>
-              <SortHeader field="avgAssists" className="text-right">
-                A
-              </SortHeader>
-              <SortHeader field="avgHeroDamage" className="text-right">
-                Hero Dmg
-              </SortHeader>
-              <SortHeader field="avgDamageSoaked" className="text-right">
-                Soak
-              </SortHeader>
-              <SortHeader field="avgHealing" className="text-right">
-                Healing
-              </SortHeader>
-              {/* Optional columns */}
-              {OPTIONAL_COLUMNS.filter((c) => visibleOptional.has(c.key)).map(
-                (col) => (
-                  <SortHeader
-                    key={col.key}
-                    field={col.key}
-                    className="text-right"
-                  >
-                    {col.label}
-                  </SortHeader>
-                )
-              )}
             </tr>
           </thead>
           <tbody>
@@ -367,32 +203,6 @@ export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
                   <td className="px-3 py-2.5 text-right text-muted-foreground">
                     {formatPercent(hero.banRate)}
                   </td>
-                  <td className="px-3 py-2.5 text-right">{hero.avgKills}</td>
-                  <td className="px-3 py-2.5 text-right">{hero.avgDeaths}</td>
-                  <td className="px-3 py-2.5 text-right">{hero.avgAssists}</td>
-                  <td className="px-3 py-2.5 text-right text-muted-foreground">
-                    {formatNumber(hero.avgHeroDamage)}
-                  </td>
-                  <td className="px-3 py-2.5 text-right text-muted-foreground">
-                    {formatNumber(hero.avgDamageSoaked)}
-                  </td>
-                  <td className="px-3 py-2.5 text-right text-muted-foreground">
-                    {formatNumber(hero.avgHealing)}
-                  </td>
-                  {/* Optional columns */}
-                  {OPTIONAL_COLUMNS.filter((c) =>
-                    visibleOptional.has(c.key)
-                  ).map((col) => (
-                    <td
-                      key={col.key}
-                      className="px-3 py-2.5 text-right text-muted-foreground"
-                    >
-                      {formatColumnValue(
-                        col.key,
-                        hero[col.key as keyof HeroStats] as number
-                      )}
-                    </td>
-                  ))}
                 </tr>
               )
             })}

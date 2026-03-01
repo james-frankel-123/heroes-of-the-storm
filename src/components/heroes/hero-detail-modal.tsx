@@ -56,7 +56,6 @@ export function HeroDetailModal({
   currentTier,
 }: HeroDetailModalProps) {
   const role = getHeroRole(heroName)
-  const currentStats = statsByTier.find((s) => s.skillTier === currentTier)
 
   // Group talents by tier
   const talentsByTier: Record<number, HeroTalentStats[]> = {}
@@ -130,12 +129,6 @@ export function HeroDetailModal({
                         <span>{formatNumber(s.games)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">KDA</span>
-                        <span>
-                          {s.avgKills}/{s.avgDeaths}/{s.avgAssists}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Pick</span>
                         <span>{formatPercent(s.pickRate)}</span>
                       </div>
@@ -143,40 +136,12 @@ export function HeroDetailModal({
                         <span className="text-muted-foreground">Ban</span>
                         <span>{formatPercent(s.banRate)}</span>
                       </div>
-                      {s.avgHealing > 5000 && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Healing</span>
-                          <span>{formatNumber(s.avgHealing)}</span>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 )
               })}
             </div>
 
-            {/* Detailed stats for current tier */}
-            {currentStats && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">
-                    Detailed Stats ({currentTier === 'low' ? 'Bronze+Silver' : currentTier === 'mid' ? 'Gold+Plat' : 'Diamond+Master'})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                    <StatBlock label="Hero Damage" value={formatNumber(currentStats.avgHeroDamage)} />
-                    <StatBlock label="Siege Damage" value={formatNumber(currentStats.avgSiegeDamage)} />
-                    <StatBlock label="Healing" value={formatNumber(currentStats.avgHealing)} />
-                    <StatBlock label="Experience" value={formatNumber(currentStats.avgExperience)} />
-                    <StatBlock label="Damage Soaked" value={formatNumber(currentStats.avgDamageSoaked)} />
-                    <StatBlock label="Self Healing" value={formatNumber(currentStats.avgSelfHealing)} />
-                    <StatBlock label="Merc Captures" value={String(currentStats.avgMercCaptures)} />
-                    <StatBlock label="Time Dead" value={`${currentStats.avgTimeDead}s`} />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
           {/* Maps Tab */}
