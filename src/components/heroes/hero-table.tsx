@@ -12,12 +12,19 @@ import {
 } from '@/lib/utils'
 import type { HeroStats } from '@/lib/types'
 
+/** Extended hero row with optional personal fields */
+export interface HeroRow extends HeroStats {
+  mawp?: number | null
+}
+
 type SortField =
   | 'hero'
   | 'winRate'
   | 'games'
   | 'pickRate'
   | 'banRate'
+  | 'mawp'
+  | 'kda'
 
 const ROLES: (HeroRole | 'All')[] = [
   'All',
@@ -42,17 +49,19 @@ function roleBadgeVariant(role: string | null) {
 }
 
 interface HeroTableProps {
-  heroes: HeroStats[]
+  heroes: HeroRow[]
   onHeroClick: (hero: string) => void
+  /** When true, show MAWP + KDA columns instead of Pick% + Ban% */
+  personal?: boolean
 }
 
-export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
+export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<HeroRole | 'All'>('All')
   const [sortField, setSortField] = useState<SortField>('winRate')
   const [sortAsc, setSortAsc] = useState(false)
   const filtered = useMemo(() => {
-    let result = heroes
+    let result = [...heroes]
 
     if (search) {
       const q = search.toLowerCase()
@@ -64,6 +73,16 @@ export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
     }
 
     result.sort((a, b) => {
+      if (sortField === 'kda') {
+        const aKda = a.avgDeaths > 0 ? (a.avgKills + a.avgAssists) / a.avgDeaths : a.avgKills + a.avgAssists
+        const bKda = b.avgDeaths > 0 ? (b.avgKills + b.avgAssists) / b.avgDeaths : b.avgKills + b.avgAssists
+        return sortAsc ? aKda - bKda : bKda - aKda
+      }
+      if (sortField === 'mawp') {
+        const aVal = (a as HeroRow).mawp ?? 0
+        const bVal = (b as HeroRow).mawp ?? 0
+        return sortAsc ? aVal - bVal : bVal - aVal
+      }
       const aVal = a[sortField as keyof HeroStats]
       const bVal = b[sortField as keyof HeroStats]
       if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -158,17 +177,31 @@ export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
               <SortHeader field="games" className="text-right">
                 Games
               </SortHeader>
-              <SortHeader field="pickRate" className="text-right">
-                Pick %
-              </SortHeader>
-              <SortHeader field="banRate" className="text-right">
-                Ban %
-              </SortHeader>
+              {personal ? (
+                <>
+                  <SortHeader field="mawp" className="text-right">
+                    MAWP
+                  </SortHeader>
+                  <SortHeader field="kda" className="text-right">
+                    KDA
+                  </SortHeader>
+                </>
+              ) : (
+                <>
+                  <SortHeader field="pickRate" className="text-right">
+                    Pick %
+                  </SortHeader>
+                  <SortHeader field="banRate" className="text-right">
+                    Ban %
+                  </SortHeader>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
             {filtered.map((hero) => {
               const role = getHeroRole(hero.hero)
+              const row = hero as HeroRow
               return (
                 <tr
                   key={hero.hero}
@@ -197,12 +230,32 @@ export function HeroTable({ heroes, onHeroClick }: HeroTableProps) {
                   <td className="px-3 py-2.5 text-right text-muted-foreground">
                     {formatNumber(hero.games)}
                   </td>
-                  <td className="px-3 py-2.5 text-right text-muted-foreground">
-                    {formatPercent(hero.pickRate)}
-                  </td>
-                  <td className="px-3 py-2.5 text-right text-muted-foreground">
-                    {formatPercent(hero.banRate)}
-                  </td>
+                  {personal ? (
+                    <>
+                      <td
+                        className={cn(
+                          'px-3 py-2.5 text-right font-semibold',
+                          row.mawp != null
+                            ? getWinRateColor(row.mawp)
+                            : 'text-muted-foreground'
+                        )}
+                      >
+                        {row.mawp != null ? formatPercent(row.mawp) : '-'}
+                      </td>
+                      <td className="px-3 py-2.5 text-right text-muted-foreground">
+                        {hero.avgKills}/{hero.avgDeaths}/{hero.avgAssists}
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-3 py-2.5 text-right text-muted-foreground">
+                        {formatPercent(hero.pickRate)}
+                      </td>
+                      <td className="px-3 py-2.5 text-right text-muted-foreground">
+                        {formatPercent(hero.banRate)}
+                      </td>
+                    </>
+                  )}
                 </tr>
               )
             })}
