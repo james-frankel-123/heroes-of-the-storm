@@ -7,7 +7,6 @@ import { HeroDetailModal } from '@/components/heroes/hero-detail-modal'
 import type {
   SkillTier,
   HeroStats,
-  HeroMapStats,
   HeroTalentStats,
   HeroPairwiseStats,
   PlayerHeroStats,
@@ -17,7 +16,6 @@ import type {
 interface HeroesClientProps {
   heroStatsByTier: Record<SkillTier, HeroStats[]>
   heroStatsByName: Record<string, HeroStats[]>
-  mapStatsByTier: Record<SkillTier, Record<string, HeroMapStats[]>>
   talentsByTier: Record<SkillTier, Record<string, HeroTalentStats[]>>
   pairwiseByTier: Record<
     SkillTier,
@@ -33,7 +31,6 @@ interface HeroesClientProps {
 export function HeroesClient({
   heroStatsByTier,
   heroStatsByName,
-  mapStatsByTier,
   talentsByTier,
   pairwiseByTier,
   personalData,
@@ -46,10 +43,6 @@ export function HeroesClient({
   // Build detail data for selected hero
   const detailStatsByTier = selectedHero
     ? heroStatsByName[selectedHero] ?? []
-    : []
-
-  const detailMapStats = selectedHero
-    ? mapStatsByTier[tier][selectedHero] ?? []
     : []
 
   const detailTalents = selectedHero
@@ -95,7 +88,7 @@ export function HeroesClient({
           onClose={() => setSelectedHero(null)}
           heroName={selectedHero}
           statsByTier={detailStatsByTier}
-          mapStats={detailMapStats}
+          mapStats={[]}
           talents={detailTalents}
           synergies={detailPairwise.synergies}
           counters={detailPairwise.counters}

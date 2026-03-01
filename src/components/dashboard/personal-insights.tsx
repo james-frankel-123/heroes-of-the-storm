@@ -88,12 +88,11 @@ function HeroTable({ heroes }: { heroes: PlayerHeroStats[] }) {
           <th className="text-right font-medium pb-1.5 w-16">Games</th>
           <th className="text-right font-medium pb-1.5 w-16">Win %</th>
           <th className="text-right font-medium pb-1.5 w-16">MAWP</th>
-          <th className="text-right font-medium pb-1.5 w-16">Trend</th>
+          {/* Trend column removed — redundant with MAWP */}
         </tr>
       </thead>
       <tbody>
         {heroes.map((h) => {
-          const trend = h.trend ?? 0
           const mawp = h.mawp ?? null
           return (
             <tr
@@ -119,20 +118,6 @@ function HeroTable({ heroes }: { heroes: PlayerHeroStats[] }) {
                 )}
               >
                 {mawp != null ? formatPercent(mawp) : '-'}
-              </td>
-              <td
-                className={cn(
-                  'py-1.5 text-right',
-                  trend > 0
-                    ? 'text-gaming-success'
-                    : trend < 0
-                      ? 'text-gaming-danger'
-                      : 'text-muted-foreground'
-                )}
-              >
-                {h.games >= 20 && trend !== 0
-                  ? `${trend > 0 ? '+' : ''}${formatPercent(trend)}`
-                  : '-'}
               </td>
             </tr>
           )

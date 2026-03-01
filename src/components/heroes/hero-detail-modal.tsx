@@ -18,7 +18,6 @@ import {
 } from '@/lib/utils'
 import type {
   HeroStats,
-  HeroMapStats,
   HeroTalentStats,
   HeroPairwiseStats,
   PlayerHeroStats,
@@ -31,7 +30,7 @@ interface HeroDetailModalProps {
   onClose: () => void
   heroName: string
   statsByTier: HeroStats[]
-  mapStats: HeroMapStats[]
+  mapStats: never[] // Temporarily disabled — no global hero+map API available
   talents: HeroTalentStats[]
   synergies: HeroPairwiseStats[]
   counters: HeroPairwiseStats[]
@@ -45,7 +44,6 @@ export function HeroDetailModal({
   onClose,
   heroName,
   statsByTier,
-  mapStats,
   talents,
   synergies,
   counters,
@@ -79,7 +77,6 @@ export function HeroDetailModal({
         <Tabs defaultValue="overview" className="mt-2">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="maps">Maps</TabsTrigger>
             <TabsTrigger value="talents">Talents</TabsTrigger>
             <TabsTrigger value="matchups">Matchups</TabsTrigger>
             <TabsTrigger value="personal">Personal</TabsTrigger>
@@ -140,50 +137,6 @@ export function HeroDetailModal({
               })}
             </div>
 
-          </TabsContent>
-
-          {/* Maps Tab */}
-          <TabsContent value="maps" className="mt-4">
-            <div className="rounded-lg border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">
-                      Map
-                    </th>
-                    <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">
-                      Win %
-                    </th>
-                    <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">
-                      Games
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mapStats
-                    .sort((a, b) => b.winRate - a.winRate)
-                    .map((ms) => (
-                      <tr
-                        key={ms.map}
-                        className="border-b last:border-0 hover:bg-accent/30"
-                      >
-                        <td className="px-3 py-2">{ms.map}</td>
-                        <td
-                          className={cn(
-                            'px-3 py-2 text-right font-semibold',
-                            getWinRateColor(ms.winRate)
-                          )}
-                        >
-                          {formatPercent(ms.winRate)}
-                        </td>
-                        <td className="px-3 py-2 text-right text-muted-foreground">
-                          {formatNumber(ms.games)}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
           </TabsContent>
 
           {/* Talents Tab */}
@@ -323,7 +276,7 @@ export function HeroDetailModal({
                   <CardContent>
                     {stats ? (
                       <div className="space-y-3">
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
                           <StatBlock
                             label="Games"
                             value={String(stats.games)}
@@ -343,23 +296,6 @@ export function HeroDetailModal({
                             color={
                               stats.mawp != null
                                 ? getWinRateColor(stats.mawp)
-                                : undefined
-                            }
-                          />
-                          <StatBlock
-                            label="Trend"
-                            value={
-                              stats.trend != null && stats.games >= 20
-                                ? `${stats.trend > 0 ? '+' : ''}${formatPercent(stats.trend)}`
-                                : '-'
-                            }
-                            color={
-                              stats.trend != null && stats.games >= 20
-                                ? stats.trend > 0
-                                  ? 'text-gaming-success'
-                                  : stats.trend < 0
-                                    ? 'text-gaming-danger'
-                                    : undefined
                                 : undefined
                             }
                           />

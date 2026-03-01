@@ -6,7 +6,6 @@ import {
   getBottomHeroes,
   getTopSynergies,
   getTopCounters,
-  getPowerPicks,
   getTrackedBattletags,
   getPlayerHeroStats,
 } from '@/lib/data/queries'
@@ -14,15 +13,14 @@ import type { SkillTier, PlayerHeroStats, TrackedBattletag } from '@/lib/types'
 
 // Pre-fetch data for all tiers so tier switching is instant (no round-trip)
 async function fetchMetaData(tier: SkillTier) {
-  const [topHeroes, bottomHeroes, synergies, counters, powerPicks] =
+  const [topHeroes, bottomHeroes, synergies, counters] =
     await Promise.all([
       getTopHeroes(tier, 10),
       getBottomHeroes(tier, 10),
       getTopSynergies(tier, 100),
       getTopCounters(tier, 100),
-      getPowerPicks(tier, 55, 10),
     ])
-  return { topHeroes, bottomHeroes, synergies, counters, powerPicks }
+  return { topHeroes, bottomHeroes, synergies, counters }
 }
 
 export default async function DashboardPage() {

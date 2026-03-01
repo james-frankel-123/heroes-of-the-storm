@@ -4,13 +4,11 @@ import { useState } from 'react'
 import { TierSelector, getTierLabel } from '@/components/shared/tier-selector'
 import { MetaHeroes } from '@/components/dashboard/meta-heroes'
 import { MetaPairwise } from '@/components/dashboard/meta-pairwise'
-import { PowerPicks } from '@/components/dashboard/power-picks'
 import { PersonalInsights } from '@/components/dashboard/personal-insights'
 import type {
   SkillTier,
   HeroStats,
   HeroPairwiseStats,
-  HeroMapStats,
   PlayerHeroStats,
   TrackedBattletag,
 } from '@/lib/types'
@@ -20,7 +18,6 @@ interface MetaData {
   bottomHeroes: HeroStats[]
   synergies: HeroPairwiseStats[]
   counters: HeroPairwiseStats[]
-  powerPicks: HeroMapStats[]
 }
 
 interface DashboardClientProps {
@@ -51,7 +48,6 @@ export function DashboardClient({ metaByTier, personalData }: DashboardClientPro
         <div className="space-y-4">
           <MetaHeroes topHeroes={meta.topHeroes} bottomHeroes={meta.bottomHeroes} />
           <MetaPairwise synergies={meta.synergies} counters={meta.counters} />
-          <PowerPicks picks={meta.powerPicks} />
         </div>
       </section>
 
