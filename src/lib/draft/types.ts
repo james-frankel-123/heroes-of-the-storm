@@ -69,26 +69,28 @@ export interface DraftState {
   selections: Record<number, string>
   /** Player slots for our team (up to 5) */
   playerSlots: PlayerSlot[]
+  /** Which battletag drafted each of our picks: stepIndex → battletag */
+  playerAssignments: Record<number, string>
 }
 
 export interface RecommendationReason {
   type:
-    | 'map_strong'      // High win rate on this map
-    | 'counter'         // Counters an enemy pick
-    | 'synergy'         // Synergy with a teammate pick
-    | 'role_need'       // Fills a needed role
+    | 'hero_wr'         // Hero base win rate delta from 50%
+    | 'counter'         // Counter-pick delta vs enemy hero
+    | 'synergy'         // Synergy delta with ally hero
+    | 'role_need'       // Fills a needed role (bonus)
+    | 'role_penalty'    // Bad composition (duplicate healer/tank, etc.)
     | 'player_strong'   // A player on the team is strong with this hero
-    | 'meta_strong'     // High overall win rate
     | 'ban_worthy'      // High ban/win rate (for ban suggestions)
   label: string
-  /** 0-1 contribution weight */
-  weight: number
+  /** Win rate delta in percentage points (e.g. +3.2 or -2.0) */
+  delta: number
 }
 
 export interface DraftRecommendation {
   hero: string
-  /** Composite score 0-100 */
-  score: number
+  /** Net expected win rate delta from 50% baseline (sum of all deltas) */
+  netDelta: number
   reasons: RecommendationReason[]
   /** If a specific player should play this hero */
   suggestedPlayer: string | null

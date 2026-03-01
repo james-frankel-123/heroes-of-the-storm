@@ -21,9 +21,20 @@ function roleBadgeVariant(role: string | null) {
 interface DraftBoardProps {
   state: DraftState
   currentStep: number
+  /** Available battletags for player assignment (unassigned ones) */
+  availableBattletags: string[]
+  /** All battletags assigned so far: stepIndex → battletag */
+  playerAssignments: Record<number, string>
+  onAssignPlayer: (stepIndex: number, battletag: string) => void
 }
 
-export function DraftBoard({ state, currentStep }: DraftBoardProps) {
+export function DraftBoard({
+  state,
+  currentStep,
+  availableBattletags,
+  playerAssignments,
+  onAssignPlayer,
+}: DraftBoardProps) {
   // Separate into Team A and Team B rows
   const teamABans: { stepIdx: number; hero: string | null }[] = []
   const teamBBans: { stepIdx: number; hero: string | null }[] = []
@@ -53,6 +64,9 @@ export function DraftBoard({ state, currentStep }: DraftBoardProps) {
         bans={teamABans}
         picks={teamAPicks}
         currentStep={currentStep}
+        availableBattletags={availableBattletags}
+        playerAssignments={playerAssignments}
+        onAssignPlayer={onAssignPlayer}
       />
 
       {/* Divider */}
@@ -65,6 +79,9 @@ export function DraftBoard({ state, currentStep }: DraftBoardProps) {
         bans={teamBBans}
         picks={teamBPicks}
         currentStep={currentStep}
+        availableBattletags={availableBattletags}
+        playerAssignments={playerAssignments}
+        onAssignPlayer={onAssignPlayer}
       />
     </div>
   )
@@ -76,12 +93,18 @@ function TeamRow({
   bans,
   picks,
   currentStep,
+  availableBattletags,
+  playerAssignments,
+  onAssignPlayer,
 }: {
   teamLabel: string
   isOurs: boolean
   bans: { stepIdx: number; hero: string | null }[]
   picks: { stepIdx: number; hero: string | null }[]
   currentStep: number
+  availableBattletags: string[]
+  playerAssignments: Record<number, string>
+  onAssignPlayer: (stepIndex: number, battletag: string) => void
 }) {
   return (
     <div className="space-y-2">
@@ -118,12 +141,43 @@ function TeamRow({
             Picks
           </span>
           {picks.map(({ stepIdx, hero }) => (
-            <Slot
-              key={stepIdx}
-              hero={hero}
-              isCurrent={stepIdx === currentStep}
-              isBan={false}
-            />
+            <div key={stepIdx} className="flex flex-col items-center gap-0.5">
+              <Slot
+                hero={hero}
+                isCurrent={stepIdx === currentStep}
+                isBan={false}
+              />
+              {/* Player assignment dropdown — only for our team's completed picks */}
+              {isOurs && hero && (
+                <select
+                  value={playerAssignments[stepIdx] ?? ''}
+                  onChange={(e) => {
+                    if (e.target.value) onAssignPlayer(stepIdx, e.target.value)
+                  }}
+                  className={cn(
+                    'w-full max-w-[100px] h-5 px-1 text-[9px] rounded border bg-background truncate',
+                    playerAssignments[stepIdx]
+                      ? 'border-purple-500/40 text-purple-400'
+                      : 'border-border/50 text-muted-foreground'
+                  )}
+                >
+                  <option value="">Who?</option>
+                  {/* Show currently assigned battletag + available ones */}
+                  {playerAssignments[stepIdx] && (
+                    <option value={playerAssignments[stepIdx]}>
+                      {playerAssignments[stepIdx].split('#')[0]}
+                    </option>
+                  )}
+                  {availableBattletags
+                    .filter((bt) => bt !== playerAssignments[stepIdx])
+                    .map((bt) => (
+                      <option key={bt} value={bt}>
+                        {bt.split('#')[0]}
+                      </option>
+                    ))}
+                </select>
+              )}
+            </div>
           ))}
         </div>
       </div>

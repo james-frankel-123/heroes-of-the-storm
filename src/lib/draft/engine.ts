@@ -1,16 +1,18 @@
 /**
  * Draft recommendation engine.
  *
- * Pure function: takes draft state + precomputed data, returns scored
- * recommendations. Runs entirely client-side for <200ms latency.
+ * Scores each hero as a net win-rate delta from a 50% baseline.
+ * Every factor is expressed in percentage points so the final score
+ * reads as "we estimate picking this hero shifts our win probability
+ * by +X%".
  *
- * Scoring weights (tuned for HotS draft priorities):
- *   - Map performance:      25%
- *   - Counter-pick value:   20%
- *   - Synergy with team:    15%
- *   - Role need:            20%
- *   - Player strength:      15%
- *   - Meta / overall WR:     5%
+ * Factors:
+ *   1. Hero base WR:    (heroWR - 50)
+ *   2. Counter-picks:   sum of (pairwise vs enemy - 50) for each enemy
+ *   3. Synergies:       sum of (pairwise with ally - 50) for each ally
+ *   4. Player strength: best available battletag's (MAWP - 50) on this hero
+ *   5. Role need:       +3 for filling critical, +1.5 for important
+ *   6. Role penalty:    -15 for 2nd healer/tank, -8 for bad comp
  */
 
 import {
@@ -23,21 +25,18 @@ import {
 import {
   getHeroRole,
   calculateRoleBalance,
-  analyzeRoleNeeds,
   HERO_ROLES,
 } from '@/lib/data/hero-roles'
-import { confidenceAdjustedWinRate, confidenceAdjustedMawp } from '@/lib/utils'
+import { confidenceAdjustedMawp } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Get all heroes that are already banned or picked */
 function getUnavailableHeroes(state: DraftState): Set<string> {
   return new Set(Object.values(state.selections))
 }
 
-/** Get heroes picked by our team */
 function getOurPicks(state: DraftState): string[] {
   const heroes: string[] = []
   for (let i = 0; i < state.currentStep; i++) {
@@ -49,7 +48,6 @@ function getOurPicks(state: DraftState): string[] {
   return heroes
 }
 
-/** Get heroes picked by the enemy team */
 function getEnemyPicks(state: DraftState): string[] {
   const enemyTeam = state.ourTeam === 'A' ? 'B' : 'A'
   const heroes: string[] = []
@@ -62,235 +60,178 @@ function getEnemyPicks(state: DraftState): string[] {
   return heroes
 }
 
-/** Get assigned battletags for our team */
-function getOurBattletags(state: DraftState): string[] {
+/** Get battletags that haven't been assigned to a pick yet */
+function getAvailableBattletags(state: DraftState): string[] {
+  const assignedBattletags = new Set(Object.values(state.playerAssignments))
   return state.playerSlots
     .map((s) => s.battletag)
-    .filter((bt): bt is string => bt !== null)
+    .filter((bt): bt is string => bt !== null && !assignedBattletags.has(bt))
 }
 
-/** Normalize a score to 0-100 range */
-function normalize(value: number, min: number, max: number): number {
-  if (max === min) return 50
-  return Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100))
+/** Format a delta as +X.X or -X.X */
+function fmtDelta(d: number): string {
+  return `${d >= 0 ? '+' : ''}${d.toFixed(1)}%`
 }
 
 // ---------------------------------------------------------------------------
-// Scoring functions
+// Scoring — each returns reasons with deltas in percentage points
 // ---------------------------------------------------------------------------
 
-function scoreMapPerformance(
+function scoreHeroWR(
   hero: string,
   data: DraftData
-): { score: number; reason: RecommendationReason | null } {
-  const mapStats = data.heroMapWinRates[hero]
-  if (!mapStats || mapStats.games < 20) {
-    return { score: 50, reason: null }
+): RecommendationReason | null {
+  const stats = data.heroStats[hero]
+  if (!stats || stats.games < 100) return null
+
+  const delta = Math.round((stats.winRate - 50) * 10) / 10
+  if (Math.abs(delta) < 0.5) return null
+
+  return {
+    type: 'hero_wr',
+    label: `${hero} ${fmtDelta(delta)} base WR`,
+    delta,
   }
-
-  const score = normalize(mapStats.winRate, 42, 58)
-
-  if (mapStats.winRate >= 53) {
-    return {
-      score,
-      reason: {
-        type: 'map_strong',
-        label: `${mapStats.winRate.toFixed(1)}% WR on this map`,
-        weight: score / 100,
-      },
-    }
-  }
-
-  return { score, reason: null }
 }
 
-function scoreCounterPick(
+function scoreCounters(
   hero: string,
   enemyPicks: string[],
   data: DraftData
-): { score: number; reasons: RecommendationReason[] } {
-  if (enemyPicks.length === 0) return { score: 50, reasons: [] }
-
+): RecommendationReason[] {
   const reasons: RecommendationReason[] = []
-  let totalScore = 0
-  let count = 0
-
   for (const enemy of enemyPicks) {
-    const counterData = data.counters[hero]?.[enemy]
-    if (counterData && counterData.games >= 30) {
-      const s = normalize(counterData.winRate, 45, 60)
-      totalScore += s
-      count++
-
-      if (counterData.winRate >= 53) {
-        reasons.push({
-          type: 'counter',
-          label: `${counterData.winRate.toFixed(1)}% vs ${enemy}`,
-          weight: s / 100,
-        })
-      }
-    } else {
-      totalScore += 50
-      count++
-    }
+    const d = data.counters[hero]?.[enemy]
+    if (!d || d.games < 30) continue
+    const delta = Math.round((d.winRate - 50) * 10) / 10
+    if (Math.abs(delta) < 1) continue
+    reasons.push({
+      type: 'counter',
+      label: `${fmtDelta(delta)} vs ${enemy}`,
+      delta,
+    })
   }
-
-  return {
-    score: count > 0 ? totalScore / count : 50,
-    reasons,
-  }
+  return reasons
 }
 
-function scoreSynergy(
+function scoreSynergies(
   hero: string,
   ourPicks: string[],
   data: DraftData
-): { score: number; reasons: RecommendationReason[] } {
-  if (ourPicks.length === 0) return { score: 50, reasons: [] }
-
+): RecommendationReason[] {
   const reasons: RecommendationReason[] = []
-  let totalScore = 0
-  let count = 0
-
   for (const ally of ourPicks) {
-    const synergyData = data.synergies[hero]?.[ally]
-    if (synergyData && synergyData.games >= 30) {
-      const s = normalize(synergyData.winRate, 45, 60)
-      totalScore += s
-      count++
-
-      if (synergyData.winRate >= 53) {
-        reasons.push({
-          type: 'synergy',
-          label: `${synergyData.winRate.toFixed(1)}% with ${ally}`,
-          weight: s / 100,
-        })
-      }
-    } else {
-      totalScore += 50
-      count++
-    }
+    const d = data.synergies[hero]?.[ally]
+    if (!d || d.games < 30) continue
+    const delta = Math.round((d.winRate - 50) * 10) / 10
+    if (Math.abs(delta) < 1) continue
+    reasons.push({
+      type: 'synergy',
+      label: `${fmtDelta(delta)} with ${ally}`,
+      delta,
+    })
   }
-
-  return {
-    score: count > 0 ? totalScore / count : 50,
-    reasons,
-  }
-}
-
-function scoreRoleNeed(
-  hero: string,
-  ourPicks: string[]
-): { score: number; reason: RecommendationReason | null } {
-  const role = getHeroRole(hero)
-  if (!role) return { score: 50, reason: null }
-
-  const balance = calculateRoleBalance(ourPicks)
-  const needs = analyzeRoleNeeds(balance)
-
-  for (const need of needs) {
-    const matches =
-      need.role === 'Damage'
-        ? role === 'Ranged Assassin' || role === 'Melee Assassin'
-        : role === need.role
-
-    if (matches) {
-      const score =
-        need.priority === 'critical' ? 95 : need.priority === 'important' ? 75 : 60
-
-      return {
-        score,
-        reason: {
-          type: 'role_need',
-          label: `Fills ${need.priority} ${need.role} need`,
-          weight: score / 100,
-        },
-      }
-    }
-  }
-
-  // If no specific need, slightly favor roles that aren't over-represented
-  return { score: 50, reason: null }
+  return reasons
 }
 
 function scorePlayerStrength(
   hero: string,
-  battletags: string[],
+  availableBattletags: string[],
   data: DraftData
-): { score: number; reason: RecommendationReason | null; player: string | null } {
-  if (battletags.length === 0) return { score: 50, reason: null, player: null }
+): { reason: RecommendationReason | null; player: string | null } {
+  if (availableBattletags.length === 0) return { reason: null, player: null }
 
-  let bestScore = 0
+  let bestDelta = 0
   let bestPlayer: string | null = null
-  let bestMawp = 0
 
-  for (const bt of battletags) {
+  for (const bt of availableBattletags) {
     const stats = data.playerStats[bt]?.[hero]
     if (!stats || stats.games < 10) continue
 
-    // Use MAWP (momentum-adjusted win %) when available, otherwise
-    // fall back to confidence-adjusted plain win rate
     const adjMawp = stats.mawp != null
       ? confidenceAdjustedMawp(stats.mawp, stats.games, 30)
-      : confidenceAdjustedWinRate(stats.wins, stats.games, 30)
+      : (stats.wins / stats.games) * 100
 
-    const s = normalize(adjMawp, 45, 65)
+    const delta = Math.round((adjMawp - 50) * 10) / 10
 
-    // Also check map-specific performance
-    const mapStats = data.playerMapStats[bt]?.[hero]
-    const mapBonus = mapStats && mapStats.games >= 5 && mapStats.winRate >= 55 ? 10 : 0
-
-    const finalScore = s + mapBonus
-
-    if (finalScore > bestScore) {
-      bestScore = finalScore
+    if (delta > bestDelta) {
+      bestDelta = delta
       bestPlayer = bt
-      bestMawp = adjMawp
     }
   }
 
-  if (bestPlayer && bestMawp >= 53) {
+  if (bestPlayer && bestDelta >= 2) {
     return {
-      score: Math.min(100, bestScore),
       reason: {
         type: 'player_strong',
-        label: `${bestPlayer.split('#')[0]} ${bestMawp.toFixed(1)}% MAWP`,
-        weight: bestScore / 100,
+        label: `${bestPlayer.split('#')[0]} ${fmtDelta(bestDelta)} on ${hero}`,
+        delta: bestDelta,
       },
       player: bestPlayer,
     }
   }
 
-  return { score: Math.max(50, bestScore), reason: null, player: bestPlayer }
+  return { reason: null, player: bestPlayer }
 }
 
-function scoreMetaStrength(
+function scoreRoleNeed(
   hero: string,
-  data: DraftData
-): { score: number; reason: RecommendationReason | null } {
-  const stats = data.heroStats[hero]
-  if (!stats || stats.games < 100) {
-    return { score: 50, reason: null }
+  ourPicks: string[]
+): RecommendationReason | null {
+  const role = getHeroRole(hero)
+  if (!role) return null
+
+  const balance = calculateRoleBalance(ourPicks)
+
+  // Critical: no tank yet
+  if (role === 'Tank' && balance.tank === 0) {
+    return { type: 'role_need', label: 'Fills Tank', delta: 3 }
+  }
+  // Critical: no healer yet
+  if (role === 'Healer' && balance.healer === 0) {
+    return { type: 'role_need', label: 'Fills Healer', delta: 3 }
+  }
+  // Critical: no damage yet
+  if ((role === 'Ranged Assassin' || role === 'Melee Assassin') &&
+      balance.rangedAssassin + balance.meleeAssassin === 0) {
+    return { type: 'role_need', label: 'Fills Damage', delta: 3 }
+  }
+  // Important: no bruiser/melee and we have a tank
+  if ((role === 'Bruiser' || role === 'Melee Assassin') &&
+      balance.bruiser === 0 && balance.meleeAssassin === 0 && balance.tank >= 1) {
+    return { type: 'role_need', label: 'Fills Bruiser/Melee', delta: 1.5 }
   }
 
-  const score = normalize(stats.winRate, 44, 56)
+  return null
+}
 
-  if (stats.winRate >= 54) {
-    return {
-      score,
-      reason: {
-        type: 'meta_strong',
-        label: `${stats.winRate.toFixed(1)}% overall WR`,
-        weight: score / 100,
-      },
-    }
+function scoreRolePenalty(
+  hero: string,
+  ourPicks: string[]
+): RecommendationReason | null {
+  const role = getHeroRole(hero)
+  if (!role) return null
+
+  const balance = calculateRoleBalance(ourPicks)
+
+  // Penalize 2nd healer
+  if (role === 'Healer' && balance.healer >= 1) {
+    return { type: 'role_penalty', label: 'Already have a healer', delta: -15 }
+  }
+  // Penalize 2nd tank
+  if (role === 'Tank' && balance.tank >= 1) {
+    return { type: 'role_penalty', label: 'Already have a tank', delta: -15 }
+  }
+  // Penalize 3rd+ support/bruiser
+  if (role === 'Support' && balance.support >= 2) {
+    return { type: 'role_penalty', label: 'Too many supports', delta: -8 }
   }
 
-  return { score, reason: null }
+  return null
 }
 
 // ---------------------------------------------------------------------------
-// Ban recommendations
+// Ban scoring
 // ---------------------------------------------------------------------------
 
 function scoreBanCandidate(
@@ -298,44 +239,70 @@ function scoreBanCandidate(
   data: DraftData,
   enemyPicks: string[],
   ourPicks: string[]
-): { score: number; reasons: RecommendationReason[] } {
+): { netDelta: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
-  let score = 0
+  let netDelta = 0
 
   const stats = data.heroStats[hero]
-  if (!stats) return { score: 0, reasons: [] }
+  if (!stats) return { netDelta: 0, reasons: [] }
 
-  // High win rate heroes are ban-worthy
-  const wrScore = normalize(stats.winRate, 48, 58) * 0.4
-  score += wrScore
-
-  // High ban rate = community agrees it's ban-worthy
-  const banScore = normalize(stats.banRate, 5, 30) * 0.3
-  score += banScore
-
-  // Map-specific dominance
-  const mapStats = data.heroMapWinRates[hero]
-  if (mapStats && mapStats.winRate >= 55) {
-    const mapScore = normalize(mapStats.winRate, 50, 62) * 0.3
-    score += mapScore
+  // High WR = good ban target (denying this hero from the enemy)
+  const wrDelta = Math.round((stats.winRate - 50) * 10) / 10
+  if (wrDelta > 1) {
     reasons.push({
       type: 'ban_worthy',
-      label: `${mapStats.winRate.toFixed(1)}% on this map`,
-      weight: mapScore / 100,
+      label: `${hero} ${fmtDelta(wrDelta)} WR`,
+      delta: wrDelta,
     })
-  } else {
-    score += 15 // neutral map contribution
+    netDelta += wrDelta
   }
 
-  if (stats.winRate >= 53 || stats.banRate >= 15) {
+  // High ban rate = community agrees
+  if (stats.banRate >= 15) {
+    const banDelta = Math.round(stats.banRate * 0.1 * 10) / 10
     reasons.push({
       type: 'ban_worthy',
-      label: `${stats.winRate.toFixed(1)}% WR, ${stats.banRate.toFixed(0)}% ban rate`,
-      weight: wrScore / 100,
+      label: `${stats.banRate.toFixed(0)}% ban rate`,
+      delta: banDelta,
+    })
+    netDelta += banDelta
+  }
+
+  // Would counter our existing picks
+  for (const ally of ourPicks) {
+    const d = data.counters[hero]?.[ally]
+    if (d && d.games >= 30 && d.winRate >= 53) {
+      const delta = Math.round((d.winRate - 50) * 10) / 10
+      reasons.push({
+        type: 'counter',
+        label: `Threatens ${ally} (${fmtDelta(delta)})`,
+        delta,
+      })
+      netDelta += delta
+    }
+  }
+
+  // Role-aware banning: don't suggest banning a healer/tank if enemy has one
+  const heroRole = getHeroRole(hero)
+  const enemyBalance = calculateRoleBalance(enemyPicks)
+  if (heroRole === 'Healer' && enemyBalance.healer >= 1) {
+    netDelta -= 8
+    reasons.push({
+      type: 'role_penalty',
+      label: 'Enemy already has healer',
+      delta: -8,
+    })
+  }
+  if (heroRole === 'Tank' && enemyBalance.tank >= 1) {
+    netDelta -= 8
+    reasons.push({
+      type: 'role_penalty',
+      label: 'Enemy already has tank',
+      delta: -8,
     })
   }
 
-  return { score, reasons }
+  return { netDelta: Math.round(netDelta * 10) / 10, reasons }
 }
 
 // ---------------------------------------------------------------------------
@@ -352,7 +319,7 @@ export function generateRecommendations(
   const unavailable = getUnavailableHeroes(state)
   const ourPicks = getOurPicks(state)
   const enemyPicks = getEnemyPicks(state)
-  const ourBattletags = getOurBattletags(state)
+  const availableBattletags = getAvailableBattletags(state)
   const isBanPhase = currentDraftStep.type === 'ban'
   const isOurTurn = currentDraftStep.team === state.ourTeam
 
@@ -360,83 +327,86 @@ export function generateRecommendations(
   const available = allHeroes.filter((h) => !unavailable.has(h))
 
   if (isBanPhase) {
-    // Ban recommendations
     const scored = available.map((hero) => {
-      const { score, reasons } = scoreBanCandidate(
-        hero,
-        data,
-        enemyPicks,
-        ourPicks
-      )
-      return {
-        hero,
-        score: Math.round(score),
-        reasons,
-        suggestedPlayer: null,
-      }
+      const { netDelta, reasons } = scoreBanCandidate(hero, data, enemyPicks, ourPicks)
+      return { hero, netDelta, reasons, suggestedPlayer: null }
     })
-
-    return scored.sort((a, b) => b.score - a.score).slice(0, 15)
+    return scored.sort((a, b) => b.netDelta - a.netDelta).slice(0, 15)
   }
 
   if (!isOurTurn) {
-    // Enemy pick phase — show what they might pick so we can plan
-    // Just show top heroes by meta strength + map
+    // Enemy pick — show what they might pick (high WR heroes that counter our team)
     const scored = available.map((hero) => {
-      const map = scoreMapPerformance(hero, data)
-      const meta = scoreMetaStrength(hero, data)
-      const counter = scoreCounterPick(hero, ourPicks, data)
-
-      const score = map.score * 0.4 + meta.score * 0.3 + counter.score * 0.3
       const reasons: RecommendationReason[] = []
-      if (map.reason) reasons.push(map.reason)
-      if (meta.reason) reasons.push(meta.reason)
-      counter.reasons.forEach((r) => reasons.push(r))
+      let netDelta = 0
+
+      const heroWR = scoreHeroWR(hero, data)
+      if (heroWR) { reasons.push(heroWR); netDelta += heroWR.delta }
+
+      // Enemy counters to OUR picks (from enemy's perspective)
+      for (const ally of ourPicks) {
+        const d = data.counters[hero]?.[ally]
+        if (d && d.games >= 30) {
+          const delta = Math.round((d.winRate - 50) * 10) / 10
+          if (Math.abs(delta) >= 1) {
+            reasons.push({
+              type: 'counter',
+              label: `${fmtDelta(delta)} vs your ${ally}`,
+              delta,
+            })
+            netDelta += delta
+          }
+        }
+      }
 
       return {
         hero,
-        score: Math.round(score),
+        netDelta: Math.round(netDelta * 10) / 10,
         reasons,
         suggestedPlayer: null,
       }
     })
-
-    return scored.sort((a, b) => b.score - a.score).slice(0, 15)
+    return scored.sort((a, b) => b.netDelta - a.netDelta).slice(0, 15)
   }
 
-  // Our pick phase — full recommendation engine
+  // Our pick — full scoring
   const scored = available.map((hero) => {
-    const map = scoreMapPerformance(hero, data)
-    const counter = scoreCounterPick(hero, enemyPicks, data)
-    const synergy = scoreSynergy(hero, ourPicks, data)
-    const role = scoreRoleNeed(hero, ourPicks)
-    const player = scorePlayerStrength(hero, ourBattletags, data)
-    const meta = scoreMetaStrength(hero, data)
-
-    // Weighted composite
-    const score =
-      map.score * 0.25 +
-      counter.score * 0.20 +
-      synergy.score * 0.15 +
-      role.score * 0.20 +
-      player.score * 0.15 +
-      meta.score * 0.05
-
     const reasons: RecommendationReason[] = []
-    if (role.reason) reasons.push(role.reason)
-    if (player.reason) reasons.push(player.reason)
-    if (map.reason) reasons.push(map.reason)
-    counter.reasons.forEach((r) => reasons.push(r))
-    synergy.reasons.forEach((r) => reasons.push(r))
-    if (meta.reason) reasons.push(meta.reason)
+    let netDelta = 0
+
+    // 1. Hero base WR
+    const heroWR = scoreHeroWR(hero, data)
+    if (heroWR) { reasons.push(heroWR); netDelta += heroWR.delta }
+
+    // 2. Counter-picks vs enemy
+    const counterReasons = scoreCounters(hero, enemyPicks, data)
+    for (const r of counterReasons) { reasons.push(r); netDelta += r.delta }
+
+    // 3. Synergies with allies
+    const synergyReasons = scoreSynergies(hero, ourPicks, data)
+    for (const r of synergyReasons) { reasons.push(r); netDelta += r.delta }
+
+    // 4. Player strength (only from unassigned battletags)
+    const { reason: playerReason, player } = scorePlayerStrength(
+      hero, availableBattletags, data
+    )
+    if (playerReason) { reasons.push(playerReason); netDelta += playerReason.delta }
+
+    // 5. Role need bonus
+    const roleNeed = scoreRoleNeed(hero, ourPicks)
+    if (roleNeed) { reasons.push(roleNeed); netDelta += roleNeed.delta }
+
+    // 6. Role penalty
+    const rolePenalty = scoreRolePenalty(hero, ourPicks)
+    if (rolePenalty) { reasons.push(rolePenalty); netDelta += rolePenalty.delta }
 
     return {
       hero,
-      score: Math.round(score),
+      netDelta: Math.round(netDelta * 10) / 10,
       reasons,
-      suggestedPlayer: player.player,
+      suggestedPlayer: player,
     }
   })
 
-  return scored.sort((a, b) => b.score - a.score).slice(0, 15)
+  return scored.sort((a, b) => b.netDelta - a.netDelta).slice(0, 15)
 }

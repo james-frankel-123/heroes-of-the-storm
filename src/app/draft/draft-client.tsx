@@ -23,6 +23,7 @@ type DraftAction =
   | { type: 'SET_PLAYER'; slotIndex: number; battletag: string | null }
   | { type: 'START_DRAFT' }
   | { type: 'SELECT_HERO'; hero: string }
+  | { type: 'ASSIGN_PLAYER'; stepIndex: number; battletag: string }
   | { type: 'UNDO' }
   | { type: 'RESET' }
 
@@ -41,6 +42,7 @@ function createInitialState(): DraftState {
       { battletag: null },
       { battletag: null },
     ],
+    playerAssignments: {},
   }
 }
 
@@ -73,14 +75,22 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
         phase,
       }
     }
+    case 'ASSIGN_PLAYER': {
+      const newAssignments = { ...state.playerAssignments, [action.stepIndex]: action.battletag }
+      return { ...state, playerAssignments: newAssignments }
+    }
     case 'UNDO': {
       if (state.currentStep === 0) return state
       const prevStep = state.currentStep - 1
       const newSelections = { ...state.selections }
       delete newSelections[prevStep]
+      // Also remove any player assignment for that step
+      const newAssignments = { ...state.playerAssignments }
+      delete newAssignments[prevStep]
       return {
         ...state,
         selections: newSelections,
+        playerAssignments: newAssignments,
         currentStep: prevStep,
         phase: 'drafting',
       }
@@ -131,6 +141,14 @@ export function DraftClient({
     (hero: string) => dispatch({ type: 'SELECT_HERO', hero }),
     []
   )
+
+  // Battletags that haven't been assigned to a pick yet
+  const availableBattletags = useMemo(() => {
+    const assigned = new Set(Object.values(state.playerAssignments))
+    return state.playerSlots
+      .map((s) => s.battletag)
+      .filter((bt): bt is string => bt !== null && !assigned.has(bt))
+  }, [state.playerSlots, state.playerAssignments])
 
   const currentStep =
     state.currentStep < DRAFT_SEQUENCE.length
@@ -291,6 +309,11 @@ export function DraftClient({
       <DraftBoard
         state={state}
         currentStep={state.currentStep}
+        availableBattletags={availableBattletags}
+        playerAssignments={state.playerAssignments}
+        onAssignPlayer={(stepIdx, bt) =>
+          dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })
+        }
       />
 
       {/* Main drafting area */}

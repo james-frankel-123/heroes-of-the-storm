@@ -17,16 +17,20 @@ function roleBadgeVariant(role: string | null) {
   }
 }
 
-function reasonBadgeColor(type: RecommendationReason['type']): string {
+function reasonColor(type: RecommendationReason['type']): string {
   switch (type) {
-    case 'map_strong': return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-    case 'counter': return 'bg-red-500/20 text-red-400 border-red-500/30'
-    case 'synergy': return 'bg-green-500/20 text-green-400 border-green-500/30'
-    case 'role_need': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-    case 'player_strong': return 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-    case 'meta_strong': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
-    case 'ban_worthy': return 'bg-red-500/20 text-red-400 border-red-500/30'
+    case 'hero_wr': return 'text-cyan-400'
+    case 'counter': return 'text-red-400'
+    case 'synergy': return 'text-green-400'
+    case 'role_need': return 'text-yellow-400'
+    case 'role_penalty': return 'text-orange-400'
+    case 'player_strong': return 'text-purple-400'
+    case 'ban_worthy': return 'text-red-400'
   }
+}
+
+function formatDelta(d: number): string {
+  return `${d >= 0 ? '+' : ''}${d.toFixed(1)}%`
 }
 
 interface RecommendationPanelProps {
@@ -63,8 +67,13 @@ export function RecommendationPanel({
           {recommendations
             .filter((r) => !unavailable.has(r.hero))
             .slice(0, 12)
-            .map((rec, idx) => {
+            .map((rec) => {
               const role = getHeroRole(rec.hero)
+              const deltaColor = rec.netDelta >= 3
+                ? 'text-gaming-success'
+                : rec.netDelta >= 0
+                  ? 'text-gaming-warning'
+                  : 'text-gaming-danger'
 
               return (
                 <button
@@ -77,13 +86,8 @@ export function RecommendationPanel({
                       : 'border-border hover:border-primary/60 hover:bg-primary/10'
                   )}
                 >
-                  {/* Rank number */}
-                  <span className="text-[10px] text-muted-foreground font-mono w-4 pt-0.5 shrink-0">
-                    {idx + 1}
-                  </span>
-
                   <div className="flex-1 min-w-0 space-y-1">
-                    {/* Hero name + role + score */}
+                    {/* Hero name + role + net delta */}
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-medium truncate">
                         {rec.hero}
@@ -96,25 +100,26 @@ export function RecommendationPanel({
                           {role.split(' ')[0]}
                         </Badge>
                       )}
-                      <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
-                        {rec.score}
+                      <span className={cn('ml-auto text-xs font-semibold shrink-0', deltaColor)}>
+                        {formatDelta(rec.netDelta)}
                       </span>
                     </div>
 
-                    {/* Reason tags */}
+                    {/* Reason breakdown — show each delta */}
                     {rec.reasons.length > 0 && (
-                      <div className="flex flex-wrap gap-0.5">
-                        {rec.reasons.slice(0, 3).map((reason, ri) => (
-                          <span
-                            key={ri}
-                            className={cn(
-                              'inline-block px-1.5 py-0 rounded text-[9px] border',
-                              reasonBadgeColor(reason.type)
-                            )}
-                          >
-                            {reason.label}
-                          </span>
-                        ))}
+                      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+                        {rec.reasons
+                          .filter((r) => Math.abs(r.delta) >= 0.5)
+                          .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+                          .slice(0, 4)
+                          .map((reason, ri) => (
+                            <span
+                              key={ri}
+                              className={cn('text-[10px]', reasonColor(reason.type))}
+                            >
+                              {reason.label}
+                            </span>
+                          ))}
                       </div>
                     )}
 
