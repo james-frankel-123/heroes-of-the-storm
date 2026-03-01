@@ -15,8 +15,6 @@ import {
   formatPercent,
   formatNumber,
   getWinRateColor,
-  confidenceAdjustedMawp,
-  confidenceLabel,
 } from '@/lib/utils'
 import type {
   HeroStats,
@@ -336,34 +334,19 @@ export function HeroDetailModal({
                             color={getWinRateColor(stats.winRate)}
                           />
                           <StatBlock
-                            label="Momentum WR"
+                            label="Trend"
                             value={
-                              stats.mawp != null
-                                ? formatPercent(
-                                    confidenceAdjustedMawp(
-                                      stats.mawp,
-                                      stats.games,
-                                      30
-                                    )
-                                  )
+                              stats.trend != null && stats.games >= 20
+                                ? `${stats.trend > 0 ? '+' : ''}${formatPercent(stats.trend)}`
                                 : '-'
                             }
                             color={
-                              stats.mawp != null
-                                ? getWinRateColor(
-                                    confidenceAdjustedMawp(
-                                      stats.mawp,
-                                      stats.games,
-                                      30
-                                    )
-                                  )
-                                : undefined
-                            }
-                            badge={
-                              confidenceLabel(stats.games, 30) !== 'high'
-                                ? confidenceLabel(stats.games, 30) === 'low'
-                                  ? 'Low data'
-                                  : 'Limited'
+                              stats.trend != null && stats.games >= 20
+                                ? stats.trend > 0
+                                  ? 'text-gaming-success'
+                                  : stats.trend < 0
+                                    ? 'text-gaming-danger'
+                                    : undefined
                                 : undefined
                             }
                           />

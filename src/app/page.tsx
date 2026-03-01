@@ -18,9 +18,9 @@ async function fetchMetaData(tier: SkillTier) {
     await Promise.all([
       getTopHeroes(tier, 10),
       getBottomHeroes(tier, 10),
-      getTopSynergies(tier, 10),
-      getTopCounters(tier, 10),
-      getPowerPicks(tier, 60, 10),
+      getTopSynergies(tier, 100),
+      getTopCounters(tier, 100),
+      getPowerPicks(tier, 55, 10),
     ])
   return { topHeroes, bottomHeroes, synergies, counters, powerPicks }
 }

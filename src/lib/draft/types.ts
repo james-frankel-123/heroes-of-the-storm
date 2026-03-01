@@ -112,11 +112,11 @@ export interface DraftData {
   synergies: Record<string, Record<string, { winRate: number; games: number }>>
   /** heroA → heroB → { winRate, games } for 'against' relationship */
   counters: Record<string, Record<string, { winRate: number; games: number }>>
-  /** battletag → hero → PlayerHeroStats */
+  /** battletag → hero → player stats */
   playerStats: Record<string, Record<string, {
     games: number
+    wins: number
     winRate: number
-    mawp: number | null
   }>>
   /** battletag → hero → { winRate, games } on the selected map */
   playerMapStats: Record<string, Record<string, {

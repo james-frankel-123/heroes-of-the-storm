@@ -21,7 +21,7 @@ export function PowerPicks({ picks }: PowerPicksProps) {
         <CardTitle className="text-lg flex items-center gap-2">
           Power Picks
           <span className="text-xs font-normal text-muted-foreground">
-            Hero+map combos with 60%+ win rate
+            Hero+map combos with 55%+ win rate (100+ games)
           </span>
         </CardTitle>
       </CardHeader>

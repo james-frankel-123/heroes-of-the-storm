@@ -357,7 +357,7 @@ export async function getPowerPicks(
     .where(
       and(
         eq(heroMapStatsAggregate.skillTier, tier),
-        sql`${heroMapStatsAggregate.games} >= 5`,
+        sql`${heroMapStatsAggregate.games} >= 100`,
         sql`${heroMapStatsAggregate.winRate} >= ${threshold}`
       )
     )
@@ -486,7 +486,7 @@ export async function getPlayersStrongOnHero(
         eq(playerHeroStatsTable.hero, hero)
       )
     )
-    .orderBy(desc(playerHeroStatsTable.mawp))
+    .orderBy(desc(playerHeroStatsTable.winRate))
 
   return rows
     .map((r) => ({
@@ -502,7 +502,7 @@ export async function getPlayersStrongOnHero(
       recentWinRate: r.recentWinRate != null ? r1(r.recentWinRate) : null,
       trend: r.trend != null ? r1(r.trend) : null,
     }))
-    .filter((r) => r.games >= 10 && ((r.mawp ?? r.winRate) >= 52))
+    .filter((r) => r.games >= 10 && r.winRate >= 52)
 }
 
 // ---------------------------------------------------------------------------
@@ -645,8 +645,8 @@ export async function getDraftData(
     for (const h of heroStatsForPlayer) {
       playerStats[bt][h.hero] = {
         games: h.games,
+        wins: h.wins,
         winRate: h.winRate,
-        mawp: h.mawp,
       }
     }
 

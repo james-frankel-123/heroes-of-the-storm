@@ -26,7 +26,7 @@ import {
   analyzeRoleNeeds,
   HERO_ROLES,
 } from '@/lib/data/hero-roles'
-import { confidenceAdjustedMawp } from '@/lib/utils'
+import { confidenceAdjustedWinRate } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -222,17 +222,15 @@ function scorePlayerStrength(
 
   let bestScore = 0
   let bestPlayer: string | null = null
-  let bestMawp = 0
+  let bestWinRate = 0
 
   for (const bt of battletags) {
     const stats = data.playerStats[bt]?.[hero]
     if (!stats || stats.games < 10) continue
 
-    const adjustedMawp = stats.mawp != null
-      ? confidenceAdjustedMawp(stats.mawp, stats.games, 30)
-      : stats.winRate
+    const adjWr = confidenceAdjustedWinRate(stats.wins, stats.games, 30)
 
-    const s = normalize(adjustedMawp, 45, 65)
+    const s = normalize(adjWr, 45, 65)
 
     // Also check map-specific performance
     const mapStats = data.playerMapStats[bt]?.[hero]
@@ -243,16 +241,16 @@ function scorePlayerStrength(
     if (finalScore > bestScore) {
       bestScore = finalScore
       bestPlayer = bt
-      bestMawp = adjustedMawp
+      bestWinRate = adjWr
     }
   }
 
-  if (bestPlayer && bestMawp >= 53) {
+  if (bestPlayer && bestWinRate >= 53) {
     return {
       score: Math.min(100, bestScore),
       reason: {
         type: 'player_strong',
-        label: `${bestPlayer.split('#')[0]} ${bestMawp.toFixed(1)}% MAWP`,
+        label: `${bestPlayer.split('#')[0]} ${bestWinRate.toFixed(1)}% WR`,
         weight: bestScore / 100,
       },
       player: bestPlayer,

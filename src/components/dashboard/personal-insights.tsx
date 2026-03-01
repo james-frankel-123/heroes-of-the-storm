@@ -1,13 +1,9 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { getHeroRole } from '@/lib/data/hero-roles'
 import {
   formatPercent,
   getWinRateColor,
-  confidenceAdjustedMawp,
-  confidenceLabel,
   cn,
 } from '@/lib/utils'
 import type { PlayerHeroStats, TrackedBattletag } from '@/lib/types'
@@ -18,22 +14,16 @@ interface PersonalInsightsProps {
 }
 
 export function PersonalInsights({ battletag, heroStats }: PersonalInsightsProps) {
-  // Sort by confidence-adjusted MAWP descending
-  const sorted = [...heroStats].sort((a, b) => {
-    const aMawp = confidenceAdjustedMawp(a.mawp ?? a.winRate, a.games, 30)
-    const bMawp = confidenceAdjustedMawp(b.mawp ?? b.winRate, b.games, 30)
-    return bMawp - aMawp
-  })
+  const sorted = [...heroStats].sort((a, b) => b.winRate - a.winRate)
 
-  const overperforming = sorted.filter((h) => {
-    const adj = confidenceAdjustedMawp(h.mawp ?? h.winRate, h.games, 30)
-    return adj >= 52
-  }).slice(0, 8)
+  const overperforming = sorted
+    .filter((h) => h.winRate >= 52 && h.games >= 5)
+    .slice(0, 8)
 
-  const underperforming = sorted.filter((h) => {
-    const adj = confidenceAdjustedMawp(h.mawp ?? h.winRate, h.games, 30)
-    return adj < 48 && h.games >= 10
-  }).reverse().slice(0, 5)
+  const underperforming = sorted
+    .filter((h) => h.winRate < 48 && h.games >= 10)
+    .reverse()
+    .slice(0, 5)
 
   return (
     <Card>
@@ -54,14 +44,11 @@ export function PersonalInsights({ battletag, heroStats }: PersonalInsightsProps
             <h4 className="text-sm font-medium text-muted-foreground mb-3">
               Strongest Heroes
             </h4>
-            <div className="space-y-2">
-              {overperforming.map((hero) => (
-                <HeroRow key={hero.hero} stats={hero} />
-              ))}
-              {overperforming.length === 0 && (
-                <p className="text-sm text-muted-foreground">Not enough data yet</p>
-              )}
-            </div>
+            {overperforming.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Not enough data yet</p>
+            ) : (
+              <HeroTable heroes={overperforming} />
+            )}
           </div>
 
           {/* Weak heroes */}
@@ -69,14 +56,11 @@ export function PersonalInsights({ battletag, heroStats }: PersonalInsightsProps
             <h4 className="text-sm font-medium text-muted-foreground mb-3">
               Needs Improvement
             </h4>
-            <div className="space-y-2">
-              {underperforming.map((hero) => (
-                <HeroRow key={hero.hero} stats={hero} />
-              ))}
-              {underperforming.length === 0 && (
-                <p className="text-sm text-muted-foreground">No underperforming heroes</p>
-              )}
-            </div>
+            {underperforming.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No underperforming heroes</p>
+            ) : (
+              <HeroTable heroes={underperforming} />
+            )}
           </div>
         </div>
       </CardContent>
@@ -84,53 +68,55 @@ export function PersonalInsights({ battletag, heroStats }: PersonalInsightsProps
   )
 }
 
-function HeroRow({ stats }: { stats: PlayerHeroStats }) {
-  const rawMawp = stats.mawp ?? stats.winRate
-  const adjMawp = confidenceAdjustedMawp(rawMawp, stats.games, 30)
-  const confidence = confidenceLabel(stats.games, 30)
-  const role = getHeroRole(stats.hero)
-  const trend = stats.trend ?? 0
-
+function HeroTable({ heroes }: { heroes: PlayerHeroStats[] }) {
   return (
-    <div className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-accent/50 transition-colors">
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="font-medium text-sm truncate">{stats.hero}</span>
-        {confidence !== 'high' && (
-          <Badge
-            variant="outline"
-            className={cn(
-              'text-[10px] px-1 py-0',
-              confidence === 'low' ? 'border-gaming-danger/50 text-gaming-danger' : 'border-gaming-warning/50 text-gaming-warning'
-            )}
-          >
-            {confidence === 'low' ? 'Low data' : 'Limited'}
-          </Badge>
-        )}
-      </div>
-      <div className="flex items-center gap-3 text-sm shrink-0">
-        <span className="text-muted-foreground text-xs">{stats.games}g</span>
-        <div className="text-right w-20">
-          <span className={`font-semibold ${getWinRateColor(adjMawp)}`}>
-            {formatPercent(adjMawp)}
-          </span>
-          {confidence === 'high' && rawMawp !== stats.winRate && (
-            <span className="text-[10px] text-muted-foreground ml-1">
-              Momentum
-            </span>
-          )}
-        </div>
-        {trend !== 0 && stats.games >= 20 && (
-          <span
-            className={cn(
-              'text-xs w-12 text-right',
-              trend > 0 ? 'text-gaming-success' : 'text-gaming-danger'
-            )}
-          >
-            {trend > 0 ? '+' : ''}
-            {formatPercent(trend)}
-          </span>
-        )}
-      </div>
-    </div>
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="text-xs text-muted-foreground">
+          <th className="text-left font-medium pb-1.5">Hero</th>
+          <th className="text-right font-medium pb-1.5 w-16">Games</th>
+          <th className="text-right font-medium pb-1.5 w-16">Win %</th>
+          <th className="text-right font-medium pb-1.5 w-16">Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        {heroes.map((h) => {
+          const trend = h.trend ?? 0
+          return (
+            <tr
+              key={h.hero}
+              className="hover:bg-accent/50 transition-colors"
+            >
+              <td className="py-1.5 pr-2 font-medium">{h.hero}</td>
+              <td className="py-1.5 text-right text-muted-foreground">
+                {h.games}
+              </td>
+              <td
+                className={cn(
+                  'py-1.5 text-right font-semibold',
+                  getWinRateColor(h.winRate)
+                )}
+              >
+                {formatPercent(h.winRate)}
+              </td>
+              <td
+                className={cn(
+                  'py-1.5 text-right',
+                  trend > 0
+                    ? 'text-gaming-success'
+                    : trend < 0
+                      ? 'text-gaming-danger'
+                      : 'text-muted-foreground'
+                )}
+              >
+                {h.games >= 20 && trend !== 0
+                  ? `${trend > 0 ? '+' : ''}${formatPercent(trend)}`
+                  : '-'}
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
   )
 }
