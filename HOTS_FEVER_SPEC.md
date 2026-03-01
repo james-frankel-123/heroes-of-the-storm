@@ -40,28 +40,47 @@ Accounts can subscribe to up to 10 battletags and have a section on personal ins
 
 #### Momentum-Adjusted Win % (MAWP) Formula
 
-Weight for game *i*:
+Estimates a player's current win probability for a hero via three mechanisms:
 
-    w(i) = w_games(i) × w_time(i)
+**1. Game-count weighting** — recent games matter more:
 
-Game count factor — full weight for last 30 games, then exponential decay:
-
-    w_games(i) = 1.0                          if game is within last 30
+    w_games(i) = 1.0                          if rank ≤ 30
     w_games(i) = exp(-λ_g × (rank - 30))      otherwise
     λ_g = ln(2) / 30   (half-life of 30 additional games, so game #60 has weight 0.5)
 
 Where `rank` is the game's position sorted newest-first (1 = most recent).
 
-Time factor — full weight for last 6 months, then exponential decay:
+**2. Time-decay blending** — old game outcomes blend toward 50%:
 
     w_time(i) = 1.0                           if game is within last 180 days
     w_time(i) = exp(-λ_t × (days - 180))      otherwise
     λ_t = ln(2) / 90   (half-life of 90 days past the cliff, so 9 months ago ≈ 0.5)
 
-Final calculation:
+    effectiveOutcome(i) = outcome(i) × w_time(i) + 0.5 × (1 - w_time(i))
 
-    MAWP = Σ(w(i) × outcome(i)) / Σ(w(i))
-    where outcome(i) = 1 for win, 0 for loss
+This ensures old games contribute roughly 50% (unknown) rather than vanishing
+entirely. A game played 2 years ago is treated almost as a coin flip regardless
+of whether it was a win or loss.
+
+**3. Bayesian padding** — low game counts shrink toward 50%:
+
+If a player has fewer than 30 games on a hero, pad with (30 - games) phantom
+50% observations at full weight. This prevents extreme MAWP values when sample
+size is small (e.g. 8 games at 62.5% WR → ~53% MAWP, not 62.5%).
+
+**Final calculation:**
+
+    MAWP = (Σ(w_games(i) × effectiveOutcome(i)) + phantomPadding)
+         / (Σ(w_games(i)) + phantomCount)
+
+    where:
+      outcome(i)          = 1 for win, 0 for loss
+      effectiveOutcome(i) = outcome(i) × w_time(i) + 0.5 × (1 - w_time(i))
+      phantomCount         = max(0, 30 - games)
+      phantomPadding       = phantomCount × 0.5
+
+Returns a value in [0, 1]. Multiply by 100 for percentage display.
+Empty input returns 0.5 (the Bayesian prior — no data means unknown).
 
 Only considers storm league games. Not split by skill level groupings (it's personal data).
 

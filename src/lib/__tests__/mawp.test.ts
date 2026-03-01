@@ -1,13 +1,12 @@
 /**
  * Tests for the MAWP (Momentum-Adjusted Win Percentage) formula.
  *
- * Spec reference: HOTS_FEVER_SPEC.md lines 42-66.
+ * Spec reference: HOTS_FEVER_SPEC.md §Momentum-Adjusted Win %
  *
- * Formula:
- *   w(i) = w_games(i) * w_time(i)
- *   w_games(i) = 1.0 if rank <= 30, else exp(-ln(2)/30 * (rank - 30))
- *   w_time(i)  = 1.0 if days <= 180, else exp(-ln(2)/90 * (days - 180))
- *   MAWP = SUM(w(i) * outcome(i)) / SUM(w(i))
+ * Three mechanisms:
+ * 1. Game-count weighting: full weight for last 30, then exp decay
+ * 2. Time-decay blending: old game outcomes blend toward 50%
+ * 3. Bayesian padding: pad with phantom 50% games up to 30
  */
 
 import { describe, it, expect } from 'vitest'
@@ -18,6 +17,7 @@ import {
   timeWeight,
   LAMBDA_G,
   LAMBDA_T,
+  CONFIDENCE_THRESHOLD,
   type MatchInput,
 } from '../mawp'
 
@@ -56,13 +56,11 @@ describe('gameCountWeight', () => {
   })
 
   it('decays exponentially after rank 30', () => {
-    // rank 31 should be slightly less than 1
     expect(gameCountWeight(31)).toBeLessThan(1.0)
     expect(gameCountWeight(31)).toBeGreaterThan(0.97)
   })
 
   it('has half-life of 30 games past the cliff (rank 60 = 0.5)', () => {
-    // rank 60 = 30 games past the cliff => weight = 0.5
     expect(gameCountWeight(60)).toBeCloseTo(0.5, 5)
   })
 
@@ -97,7 +95,6 @@ describe('timeWeight', () => {
   })
 
   it('has half-life of 90 days past the cliff (270 days = 0.5)', () => {
-    // 270 days = 180 + 90 => weight = 0.5
     expect(timeWeight(270)).toBeCloseTo(0.5, 5)
   })
 
@@ -124,130 +121,170 @@ describe('timeWeight', () => {
 // ---------------------------------------------------------------------------
 
 describe('computeMAWP', () => {
-  it('returns 0 for empty input', () => {
-    expect(computeMAWP([])).toBe(0)
+  it('returns 0.5 for empty input (Bayesian prior)', () => {
+    expect(computeMAWP([])).toBe(0.5)
   })
 
-  it('returns 1.0 for a single win within 30 games / 180 days', () => {
+  it('CONFIDENCE_THRESHOLD is 30', () => {
+    expect(CONFIDENCE_THRESHOLD).toBe(30)
+  })
+
+  // --- Bayesian padding tests ---
+
+  it('single recent win is pulled toward 50% by padding', () => {
+    // 1 game + 29 phantom 50% games
+    // MAWP = (1 + 29*0.5) / 30 = 15.5/30 = 0.5167
     const matches = [makeMatch(true, 1, NOW)]
-    expect(computeMAWP(matches, NOW)).toBe(1.0)
+    expect(computeMAWP(matches, NOW)).toBeCloseTo(15.5 / 30, 4)
   })
 
-  it('returns 0.0 for a single loss within 30 games / 180 days', () => {
+  it('single recent loss is pulled toward 50% by padding', () => {
+    // 1 loss + 29 phantom 50% games
+    // MAWP = (0 + 29*0.5) / 30 = 14.5/30 = 0.4833
     const matches = [makeMatch(false, 1, NOW)]
-    expect(computeMAWP(matches, NOW)).toBe(0.0)
+    expect(computeMAWP(matches, NOW)).toBeCloseTo(14.5 / 30, 4)
   })
 
-  it('returns 0.5 for equal wins and losses within the 30-game window', () => {
-    // 10 wins + 10 losses, all within 30 games and 180 days
-    const wins = makeMatches(Array(10).fill(true), 1, NOW)
-    const losses = makeMatches(Array(10).fill(false), 11, NOW)
-    const matches = [...wins, ...losses]
-
-    expect(computeMAWP(matches, NOW)).toBeCloseTo(0.5, 5)
+  it('8 recent games at 62.5% WR gives ~53% MAWP (E.T.C. scenario)', () => {
+    // 5 wins + 3 losses, all within 180 days
+    // 8 real games + 22 phantom = 30 total
+    // MAWP = (5 + 22*0.5) / 30 = (5 + 11) / 30 = 16/30 ≈ 53.3%
+    const matches = [
+      ...makeMatches(Array(5).fill(true), 1, NOW),
+      ...makeMatches(Array(3).fill(false), 6, NOW),
+    ]
+    const mawp = computeMAWP(matches, NOW)
+    expect(mawp).toBeCloseTo(16 / 30, 3)
+    expect(mawp * 100).toBeGreaterThan(50)
+    expect(mawp * 100).toBeLessThan(55)
   })
 
-  it('all wins within 30 games returns 1.0', () => {
+  it('27 recent games at 59.3% WR gives ~58% MAWP (Auriel scenario)', () => {
+    // 16 wins + 11 losses, all within 180 days
+    // 27 real games + 3 phantom = 30 total
+    // MAWP = (16 + 3*0.5) / 30 = 17.5/30 ≈ 58.3%
+    const matches = [
+      ...makeMatches(Array(16).fill(true), 1, NOW),
+      ...makeMatches(Array(11).fill(false), 17, NOW),
+    ]
+    const mawp = computeMAWP(matches, NOW)
+    expect(mawp).toBeCloseTo(17.5 / 30, 3)
+    expect(mawp * 100).toBeGreaterThan(55)
+    expect(mawp * 100).toBeLessThan(60)
+  })
+
+  it('30+ games get no padding', () => {
+    // 30 games, all recent wins => MAWP = 30/30 = 1.0
     const matches = makeMatches(Array(30).fill(true), 1, NOW)
     expect(computeMAWP(matches, NOW)).toBe(1.0)
   })
 
-  it('all losses within 30 games returns 0.0', () => {
-    const matches = makeMatches(Array(30).fill(false), 1, NOW)
-    expect(computeMAWP(matches, NOW)).toBe(0.0)
-  })
-
-  it('within 30 games + 180 days, MAWP equals simple win rate', () => {
-    // 18 wins out of 25 games, all recent
-    const outcomes = [
-      ...Array(18).fill(true),
-      ...Array(7).fill(false),
+  it('exactly 30 games: no padding applied', () => {
+    // 15W/15L all recent => (15/30) = 0.5
+    const matches = [
+      ...makeMatches(Array(15).fill(true), 1, NOW),
+      ...makeMatches(Array(15).fill(false), 16, NOW),
     ]
-    const matches = makeMatches(outcomes, 1, NOW)
-
-    // All weights are 1.0, so MAWP = wins/games
-    expect(computeMAWP(matches, NOW)).toBeCloseTo(18 / 25, 5)
+    expect(computeMAWP(matches, NOW)).toBeCloseTo(0.5, 5)
   })
 
-  it('weights recent wins more heavily than old wins', () => {
-    // Scenario: 10 recent losses (rank 1-10) + 20 old wins (rank 11-30)
-    // All within 180 days, all within 30 games => equal weight => 20/30
-    const recentLosses = makeMatches(Array(10).fill(false), 1, NOW)
-    const olderWins = makeMatches(Array(20).fill(true), 11, NOW)
-    const flatMawp = computeMAWP([...recentLosses, ...olderWins], NOW)
-    expect(flatMawp).toBeCloseTo(20 / 30, 5) // 0.6667
+  // --- Time-decay blending tests ---
 
-    // Now push the 20 older wins past rank 30 (add 30 more losses at rank 11-40)
-    // Recent: 10 losses (rank 1-10) + 30 losses (rank 11-40) + 20 wins (rank 41-60)
-    // The 20 wins are now in decay zone, weighted less
-    const middleLosses = makeMatches(Array(30).fill(false), 11, NOW)
-    const farWins = makeMatches(Array(20).fill(true), 41, NOW)
-    const decayedMawp = computeMAWP(
-      [...recentLosses, ...middleLosses, ...farWins],
-      NOW
-    )
-    // With decay, MAWP should be less than simple win rate (20/60 = 0.333)
-    // because the wins are down-weighted
-    expect(decayedMawp).toBeLessThan(20 / 60)
+  it('recent games within 180 days have full outcome (no blending)', () => {
+    // 30 games all within 180 days, all wins => MAWP = 1.0
+    const matches = makeMatches(Array(30).fill(true), 1, NOW)
+    expect(computeMAWP(matches, NOW)).toBe(1.0)
   })
 
-  it('time decay reduces weight of games older than 180 days', () => {
-    // 10 wins all within 180 days
-    const recentWins = makeMatches(Array(10).fill(true), 10, NOW)
-    const recentMawp = computeMAWP(recentWins, NOW)
-    expect(recentMawp).toBe(1.0)
-
-    // 10 wins + 10 losses, wins are 300 days ago, losses are recent
-    const oldWins = makeMatches(Array(10).fill(true), 300, NOW)
-    const recentLosses = makeMatches(Array(10).fill(false), 1, NOW)
-    const mixedMawp = computeMAWP([...oldWins, ...recentLosses], NOW)
-    // Recent losses have weight 1.0, old wins have reduced weight
-    // MAWP should be less than 0.5
-    expect(mixedMawp).toBeLessThan(0.5)
+  it('old losses blend toward 50% instead of vanishing', () => {
+    // 30 games: 15 recent wins + 15 old losses (400 days ago)
+    // Old formula: old losses would nearly vanish, MAWP ≈ 100%
+    // New formula: old losses contribute ~0.39 each, MAWP well below 100%
+    const recentWins = makeMatches(Array(15).fill(true), 1, NOW)
+    const oldLosses = makeMatches(Array(15).fill(false), 400, NOW, 1)
+    const mawp = computeMAWP([...recentWins, ...oldLosses], NOW)
+    // Recent wins contribute 1.0, old losses contribute ~0.39
+    // MAWP = (15 + 15*0.39) / 30 ≈ 0.695
+    expect(mawp).toBeGreaterThan(0.6)
+    expect(mawp).toBeLessThan(0.8)
+    // Critical: it must NOT be near 100% (which was the old bug)
+    expect(mawp).toBeLessThan(0.85)
   })
 
-  it('combined game + time decay compounds correctly', () => {
-    // 60 games: first 30 are wins (rank 1-30, full weight),
-    // next 30 are wins too (rank 31-60, game-decayed).
-    // All within 180 days.
-    const allWins = makeMatches(Array(60).fill(true), 1, NOW)
-    // Even though wins are decayed, they're still wins => MAWP = 1.0
-    expect(computeMAWP(allWins, NOW)).toBe(1.0)
+  it('very old game outcome approaches 50%', () => {
+    // A game from 3 years ago: wTime ≈ 0, effectiveOutcome ≈ 0.5
+    // 1 very old win + 29 phantom at 50%
+    const matches = [makeMatch(true, 1200, NOW)]
+    const mawp = computeMAWP(matches, NOW)
+    // effectiveOutcome ≈ 1.0 * ~0 + 0.5 * ~1 ≈ 0.5
+    // (0.5 + 29*0.5) / 30 = 15/30 = 0.5
+    expect(mawp).toBeCloseTo(0.5, 1)
   })
 
-  it('handles the Zul\'jin scenario: 50 games, recent losses, old wins', () => {
-    // Simulate: player had 30 wins long ago, then 20 recent losses
-    // Recent 20 losses = rank 1-20 (full game weight)
-    // Old 30 wins = rank 21-50 (ranks 21-30 full, 31-50 decayed)
-    // All within 180 days for simplicity
+  it('recent win at 270 days still has signal (wTime ≈ 0.5)', () => {
+    // 1 win at 270 days: effectiveOutcome = 1*0.5 + 0.5*0.5 = 0.75
+    // + 29 phantom at 0.5
+    // MAWP = (0.75 + 14.5) / 30 = 15.25 / 30 ≈ 0.508
+    const matches = [makeMatch(true, 270, NOW)]
+    const mawp = computeMAWP(matches, NOW)
+    expect(mawp).toBeCloseTo(15.25 / 30, 2)
+  })
+
+  // --- Combined behavior tests ---
+
+  it('E.T.C. with old losses: ~57% not 99% (the key bug fix)', () => {
+    // 5 recent wins + 3 losses from 400 days ago + 22 phantom
+    const recentWins = makeMatches(Array(5).fill(true), 1, NOW)
+    const oldLosses = makeMatches(Array(3).fill(false), 400, NOW, 1)
+    const mawp = computeMAWP([...recentWins, ...oldLosses], NOW)
+
+    // Time weight at 400 days: exp(-ln2/90 * 220) ≈ 0.22
+    // Old loss effective outcome: 0 * 0.22 + 0.5 * 0.78 = 0.39
+    // MAWP = (5*1.0 + 3*0.39 + 22*0.5) / 30 = 17.17/30 ≈ 0.572
+    expect(mawp * 100).toBeGreaterThan(53)
+    expect(mawp * 100).toBeLessThan(62)
+    // Not anywhere near 99%
+    expect(mawp * 100).toBeLessThan(65)
+  })
+
+  it('hot streak: recent wins, old losses — higher than raw WR but reasonable', () => {
+    // 20 recent wins, 80 old losses
+    const recentWins = makeMatches(Array(20).fill(true), 1, NOW)
+    const oldLosses = makeMatches(Array(80).fill(false), 21, NOW)
+    const mawp = computeMAWP([...recentWins, ...oldLosses], NOW)
+
+    // Raw WR = 20/100 = 20%, MAWP should be higher (recent wins matter more)
+    // but old losses blend toward 50%, not vanish, keeping it reasonable
+    expect(mawp).toBeGreaterThan(0.2)
+    expect(mawp).toBeLessThan(0.55)
+  })
+
+  it('cold streak: recent losses, old wins — lower than raw WR but reasonable', () => {
+    // 20 recent losses, 80 old wins
     const recentLosses = makeMatches(Array(20).fill(false), 1, NOW)
-    const oldWins = makeMatches(Array(30).fill(true), 21, NOW)
+    const oldWins = makeMatches(Array(80).fill(true), 21, NOW)
     const mawp = computeMAWP([...recentLosses, ...oldWins], NOW)
 
-    // Simple WR = 30/50 = 60%, but MAWP should be lower because
-    // recent games (losses) have full weight while some old wins
-    // are in the decay zone
-    expect(mawp).toBeLessThan(0.6)
-    // But it shouldn't be near-zero - the wins at rank 21-30 still have full weight
-    expect(mawp).toBeGreaterThan(0.2)
+    // Raw WR = 80/100 = 80%, MAWP should be lower
+    expect(mawp).toBeLessThan(0.8)
+    expect(mawp).toBeGreaterThan(0.45)
   })
 
-  it('sorts matches by date regardless of input order', () => {
-    // Provide matches in random order — result should be same
-    const matches: MatchInput[] = [
-      makeMatch(true, 50, NOW),   // oldest
-      makeMatch(false, 1, NOW),   // newest
-      makeMatch(true, 25, NOW),   // middle
-    ]
+  // --- Input handling ---
 
+  it('sorts matches by date regardless of input order', () => {
+    const matches: MatchInput[] = [
+      makeMatch(true, 50, NOW),
+      makeMatch(false, 1, NOW),
+      makeMatch(true, 25, NOW),
+    ]
     const sorted = [...matches].sort(
       (a, b) => b.gameDate.getTime() - a.gameDate.getTime()
     )
-    // After sort: rank 1 = 1 day ago (loss), rank 2 = 25 days (win), rank 3 = 50 days (win)
-    // All within 30 games, all within 180 days => equal weight
-    // MAWP = 2/3
-    expect(computeMAWP(matches, NOW)).toBeCloseTo(2 / 3, 5)
-    expect(computeMAWP(sorted, NOW)).toBeCloseTo(2 / 3, 5)
+    expect(computeMAWP(matches, NOW)).toBeCloseTo(
+      computeMAWP(sorted, NOW),
+      5
+    )
   })
 
   it('does not mutate the input array', () => {
@@ -260,6 +297,12 @@ describe('computeMAWP', () => {
     computeMAWP(matches, NOW)
     expect(matches).toEqual(copy)
   })
+
+  it('defaults to current time when no reference date provided', () => {
+    const matches = makeMatches(Array(30).fill(true), 1, new Date())
+    const mawp = computeMAWP(matches)
+    expect(mawp).toBeCloseTo(1.0, 2)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -267,21 +310,21 @@ describe('computeMAWP', () => {
 // ---------------------------------------------------------------------------
 
 describe('computeMAWPPercent', () => {
-  it('returns 0 for empty input', () => {
-    expect(computeMAWPPercent([])).toBe(0)
+  it('returns 50 for empty input', () => {
+    expect(computeMAWPPercent([])).toBe(50)
   })
 
-  it('returns 100 for all wins', () => {
-    const matches = makeMatches(Array(10).fill(true), 1, NOW)
+  it('returns 100 for 30+ all wins', () => {
+    const matches = makeMatches(Array(30).fill(true), 1, NOW)
     expect(computeMAWPPercent(matches, NOW)).toBe(100)
   })
 
-  it('returns 0 for all losses', () => {
-    const matches = makeMatches(Array(10).fill(false), 1, NOW)
+  it('returns 0 for 30+ all losses', () => {
+    const matches = makeMatches(Array(30).fill(false), 1, NOW)
     expect(computeMAWPPercent(matches, NOW)).toBe(0)
   })
 
-  it('returns ~50 for even split', () => {
+  it('returns ~50 for even split of 30+ games', () => {
     const outcomes = [...Array(15).fill(true), ...Array(15).fill(false)]
     const matches = makeMatches(outcomes, 1, NOW)
     expect(computeMAWPPercent(matches, NOW)).toBeCloseTo(50, 3)
@@ -289,13 +332,14 @@ describe('computeMAWPPercent', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Spec-specific edge cases
+// Spec edge cases
 // ---------------------------------------------------------------------------
 
 describe('MAWP spec edge cases', () => {
   it('game #30 has weight 1.0 (last in full-weight window)', () => {
-    // 30 games: first 29 losses, last (rank 30) win
-    // All equal weight, so MAWP = 1/30
+    // 30 games: 29 losses + 1 win (oldest, rank 30), all recent
+    // All weight 1.0, + no padding
+    // MAWP = 1/30
     const matches = [
       ...makeMatches(Array(29).fill(false), 1, NOW),
       makeMatch(true, 30, NOW),
@@ -303,54 +347,23 @@ describe('MAWP spec edge cases', () => {
     expect(computeMAWP(matches, NOW)).toBeCloseTo(1 / 30, 5)
   })
 
-  it('game #31 has decayed weight', () => {
-    // 31 games: first 30 losses (full weight), 31st is win (decayed)
-    // MAWP = w(31) * 1 / (30 * 1 + w(31))
+  it('game #31 has decayed game-count weight', () => {
+    // 31 games: 30 losses + 1 win at rank 31 (decayed)
     const matches = [
       ...makeMatches(Array(30).fill(false), 1, NOW),
       makeMatch(true, 31, NOW),
     ]
-    const w31 = Math.exp(-LAMBDA_G * 1) // rank 31, so (rank - 30) = 1
+    const w31 = Math.exp(-LAMBDA_G * 1)
+    // effectiveOutcome still 1.0 (within 180 days)
+    // MAWP = w31 / (30 + w31)
     const expected = w31 / (30 + w31)
     expect(computeMAWP(matches, NOW)).toBeCloseTo(expected, 5)
   })
 
-  it('game on day 180 has time weight 1.0', () => {
-    const matches = [makeMatch(true, 180, NOW)]
-    // Within 180 days => full weight => MAWP = 1.0
+  it('game on day 180 has full outcome (no blending)', () => {
+    // 30 wins all on day 180 => MAWP = 1.0
+    const matches = makeMatches(Array(30).fill(true), 180, NOW, 0)
     expect(computeMAWP(matches, NOW)).toBe(1.0)
-  })
-
-  it('game on day 181 has slightly decayed time weight', () => {
-    // 2 games: 1 loss today (weight 1.0), 1 win 181 days ago (slightly decayed)
-    const matches = [
-      makeMatch(false, 0, NOW),
-      makeMatch(true, 181, NOW),
-    ]
-    const wTime181 = Math.exp(-LAMBDA_T * 1)
-    const expected = wTime181 / (1 + wTime181)
-    // Relax precision: makeMatch uses setDate which can introduce sub-day drift
-    expect(computeMAWP(matches, NOW)).toBeCloseTo(expected, 3)
-  })
-
-  it('game at 270 days (180 + 90) has time weight 0.5', () => {
-    // 2 games: 1 loss today, 1 win 270 days ago
-    const matches = [
-      makeMatch(false, 0, NOW),
-      makeMatch(true, 270, NOW),
-    ]
-    // Win has time weight 0.5, loss has time weight 1.0
-    // Both within 30 games, so game weight = 1.0
-    const expected = 0.5 / (1.0 + 0.5) // = 1/3
-    expect(computeMAWP(matches, NOW)).toBeCloseTo(expected, 4)
-  })
-
-  it('only considers wins as 1 and losses as 0', () => {
-    // Verify there's no partial credit — only boolean outcomes
-    const allWins = makeMatches(Array(5).fill(true), 1, NOW)
-    const allLosses = makeMatches(Array(5).fill(false), 1, NOW)
-    expect(computeMAWP(allWins, NOW)).toBe(1.0)
-    expect(computeMAWP(allLosses, NOW)).toBe(0.0)
   })
 
   it('handles a large number of games correctly', () => {
@@ -358,46 +371,8 @@ describe('MAWP spec edge cases', () => {
     const outcomes = Array.from({ length: 500 }, (_, i) => i % 2 === 0)
     const matches = makeMatches(outcomes, 1, NOW)
     const mawp = computeMAWP(matches, NOW)
-    // With game decay, recent games matter more. The pattern starts with
-    // rank 1 = win, rank 2 = loss, rank 3 = win, etc.
-    // Recent games (rank 1-30) have equal weight: 15 wins / 30 = 0.5
-    // Older games are decayed but also ~50%, so overall ~0.5
-    expect(mawp).toBeCloseTo(0.5, 1) // within 0.05 of 0.5
-  })
-
-  it('hot streak scenario: all recent wins, old losses', () => {
-    // Player turned it around: 20 recent wins, 80 old losses
-    const recentWins = makeMatches(Array(20).fill(true), 1, NOW)
-    const oldLosses = makeMatches(Array(80).fill(false), 21, NOW)
-    const mawp = computeMAWP([...recentWins, ...oldLosses], NOW)
-
-    // Overall WR = 20/100 = 20%, but MAWP should be higher
-    // because recent 20 wins (rank 1-20) have full weight
-    // Old losses at ranks 21-100 still contribute (ranks 21-30 full weight),
-    // so MAWP won't be dramatically higher, but still above raw WR
-    expect(mawp).toBeGreaterThan(0.2) // better than raw WR
-    expect(mawp).toBeGreaterThan(0.29) // noticeably better
-  })
-
-  it('cold streak scenario: all recent losses, old wins', () => {
-    // Player is slumping: 20 recent losses, 80 old wins
-    const recentLosses = makeMatches(Array(20).fill(false), 1, NOW)
-    const oldWins = makeMatches(Array(80).fill(true), 21, NOW)
-    const mawp = computeMAWP([...recentLosses, ...oldWins], NOW)
-
-    // Overall WR = 80/100 = 80%, but MAWP should be lower
-    // because recent 20 losses have full weight
-    // Old wins at ranks 21-100 still contribute (ranks 21-30 full weight),
-    // so MAWP won't drop dramatically, but still below raw WR
-    expect(mawp).toBeLessThan(0.8) // worse than raw WR
-    expect(mawp).toBeLessThan(0.71) // noticeably worse
-  })
-
-  it('defaults to current time when no reference date provided', () => {
-    // Just verify it doesn't crash and returns reasonable value
-    const matches = makeMatches(Array(10).fill(true), 1, new Date())
-    const mawp = computeMAWP(matches)
-    expect(mawp).toBeCloseTo(1.0, 3)
+    // ~50% overall, no padding (>30 games)
+    expect(mawp).toBeCloseTo(0.5, 1)
   })
 })
 
@@ -407,7 +382,6 @@ describe('MAWP spec edge cases', () => {
 
 describe('MAWP mathematical properties', () => {
   it('MAWP is always in [0, 1]', () => {
-    // Random scenarios
     const scenarios = [
       makeMatches(Array(100).fill(true), 1, NOW),
       makeMatches(Array(100).fill(false), 1, NOW),
@@ -416,7 +390,8 @@ describe('MAWP mathematical properties', () => {
         1,
         NOW
       ),
-      makeMatches(Array(5).fill(true), 500, NOW), // very old games
+      makeMatches(Array(5).fill(true), 500, NOW),
+      [],
     ]
 
     for (const matches of scenarios) {
@@ -426,16 +401,16 @@ describe('MAWP mathematical properties', () => {
     }
   })
 
-  it('MAWP is monotonically related to win proportion (same weights)', () => {
-    // With all games in the full-weight window, more wins => higher MAWP
-    for (let wins = 0; wins <= 20; wins++) {
+  it('with 30+ recent games, MAWP equals simple win rate', () => {
+    // No padding, no time decay => MAWP = wins/games
+    for (let wins = 0; wins <= 30; wins++) {
       const outcomes = [
         ...Array(wins).fill(true),
-        ...Array(20 - wins).fill(false),
+        ...Array(30 - wins).fill(false),
       ]
       const matches = makeMatches(outcomes, 1, NOW)
       const mawp = computeMAWP(matches, NOW)
-      expect(mawp).toBeCloseTo(wins / 20, 5)
+      expect(mawp).toBeCloseTo(wins / 30, 5)
     }
   })
 
@@ -447,10 +422,8 @@ describe('MAWP mathematical properties', () => {
     )
     const baseMawp = computeMAWP(base, NOW)
 
-    // Add one more recent win
     const withWin = [makeMatch(true, 1, NOW), ...base]
     const winMawp = computeMAWP(withWin, NOW)
-
     expect(winMawp).toBeGreaterThan(baseMawp)
   })
 
@@ -462,10 +435,43 @@ describe('MAWP mathematical properties', () => {
     )
     const baseMawp = computeMAWP(base, NOW)
 
-    // Add one more recent loss
     const withLoss = [makeMatch(false, 1, NOW), ...base]
     const lossMawp = computeMAWP(withLoss, NOW)
-
     expect(lossMawp).toBeLessThan(baseMawp)
+  })
+
+  it('fewer games → closer to 50% (padding effect)', () => {
+    // All wins, but fewer games = more padding toward 50%
+    const mawp1 = computeMAWP(makeMatches([true], 1, NOW), NOW)
+    const mawp5 = computeMAWP(makeMatches(Array(5).fill(true), 1, NOW), NOW)
+    const mawp15 = computeMAWP(makeMatches(Array(15).fill(true), 1, NOW), NOW)
+    const mawp30 = computeMAWP(makeMatches(Array(30).fill(true), 1, NOW), NOW)
+
+    // More games = further from 50%
+    expect(mawp1).toBeLessThan(mawp5)
+    expect(mawp5).toBeLessThan(mawp15)
+    expect(mawp15).toBeLessThan(mawp30)
+    // And 30 games with all wins = 1.0
+    expect(mawp30).toBe(1.0)
+  })
+
+  it('old games have less influence than recent games', () => {
+    // Same 15W/15L, but wins are recent vs wins are old
+    const recentWins = [
+      ...makeMatches(Array(15).fill(true), 1, NOW),
+      ...makeMatches(Array(15).fill(false), 400, NOW, 1),
+    ]
+    const recentLosses = [
+      ...makeMatches(Array(15).fill(false), 1, NOW),
+      ...makeMatches(Array(15).fill(true), 400, NOW, 1),
+    ]
+
+    const mawpRecentWins = computeMAWP(recentWins, NOW)
+    const mawpRecentLosses = computeMAWP(recentLosses, NOW)
+
+    // Recent wins → MAWP > 50%
+    expect(mawpRecentWins).toBeGreaterThan(0.5)
+    // Recent losses → MAWP < 50%
+    expect(mawpRecentLosses).toBeLessThan(0.5)
   })
 })

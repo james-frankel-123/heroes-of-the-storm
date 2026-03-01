@@ -9,22 +9,29 @@ import { log } from './logger'
 
 // ── MAWP Formula (from spec) ─────────────────────────────────────────
 //
-// Weight for game i:  w(i) = w_games(i) * w_time(i)
+// Estimates a player's current win probability for a hero via three
+// mechanisms:
 //
-// Game count factor:
-//   w_games(i) = 1.0                         if rank <= 30
-//   w_games(i) = exp(-λ_g * (rank - 30))     otherwise
-//   λ_g = ln(2) / 30
+// 1. Game-count weighting — recent games matter more:
+//    w_games(i) = 1.0                         if rank <= 30
+//    w_games(i) = exp(-λ_g * (rank - 30))     otherwise
+//    λ_g = ln(2) / 30
 //
-// Time factor:
-//   w_time(i) = 1.0                          if days <= 180
-//   w_time(i) = exp(-λ_t * (days - 180))     otherwise
-//   λ_t = ln(2) / 90
+// 2. Time-decay blending — old game outcomes blend toward 50%:
+//    w_time(i) = 1.0                          if days <= 180
+//    w_time(i) = exp(-λ_t * (days - 180))     otherwise
+//    λ_t = ln(2) / 90
+//    effectiveOutcome(i) = outcome(i) * w_time(i) + 0.5 * (1 - w_time(i))
 //
-// MAWP = Σ(w(i) * outcome(i)) / Σ(w(i))
+// 3. Bayesian padding — if games < 30, pad with (30 - games) phantom
+//    50% observations at full weight.
+//
+// MAWP = (Σ(w_games(i) * effectiveOutcome(i)) + phantomPadding)
+//      / (Σ(w_games(i)) + phantomCount)
 
 const LAMBDA_G = Math.LN2 / 30
 const LAMBDA_T = Math.LN2 / 90
+const CONFIDENCE_THRESHOLD = 30
 
 interface MatchRecord {
   win: boolean
@@ -32,7 +39,7 @@ interface MatchRecord {
 }
 
 function computeMAWP(matches: MatchRecord[]): number {
-  if (matches.length === 0) return 0
+  if (matches.length === 0) return 0.5
 
   // Sort newest first
   const sorted = [...matches].sort((a, b) => b.gameDate.getTime() - a.gameDate.getTime())
@@ -50,18 +57,27 @@ function computeMAWP(matches: MatchRecord[]): number {
       ? 1.0
       : Math.exp(-LAMBDA_G * (rank - 30))
 
-    // Time factor
+    // Time factor — blends outcome toward 50% rather than reducing weight
     const daysDiff = (now.getTime() - match.gameDate.getTime()) / (1000 * 60 * 60 * 24)
     const wTime = daysDiff <= 180
       ? 1.0
       : Math.exp(-LAMBDA_T * (daysDiff - 180))
 
-    const weight = wGames * wTime
-    weightedSum += weight * (match.win ? 1 : 0)
-    weightSum += weight
+    const outcome = match.win ? 1 : 0
+    const effectiveOutcome = outcome * wTime + 0.5 * (1 - wTime)
+
+    weightedSum += wGames * effectiveOutcome
+    weightSum += wGames
   }
 
-  return weightSum > 0 ? weightedSum / weightSum : 0
+  // Bayesian padding: add phantom 50% games to reach confidence threshold
+  if (sorted.length < CONFIDENCE_THRESHOLD) {
+    const phantomCount = CONFIDENCE_THRESHOLD - sorted.length
+    weightedSum += phantomCount * 0.5
+    weightSum += phantomCount
+  }
+
+  return weightSum > 0 ? weightedSum / weightSum : 0.5
 }
 
 // ── Compute per-hero stats for a battletag ───────────────────────────
