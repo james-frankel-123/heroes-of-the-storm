@@ -49,7 +49,9 @@ export function RecommendationPanel({
   unavailable,
 }: RecommendationPanelProps) {
   const title = isBanPhase
-    ? 'Ban Suggestions'
+    ? isOurTurn
+      ? 'Your Ban Suggestions'
+      : 'Likely Enemy Bans'
     : isOurTurn
       ? 'Pick Recommendations'
       : 'Likely Enemy Picks'

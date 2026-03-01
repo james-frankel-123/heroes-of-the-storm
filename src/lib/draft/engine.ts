@@ -234,11 +234,17 @@ function scoreRolePenalty(
 // Ban scoring
 // ---------------------------------------------------------------------------
 
+/**
+ * Score a ban candidate from the banning team's perspective.
+ *
+ * @param picksToProtect  The banning team's own picks (ban heroes strong against these)
+ * @param opponentPicks   The opponent's picks (used for role-aware downranking)
+ */
 function scoreBanCandidate(
   hero: string,
   data: DraftData,
-  enemyPicks: string[],
-  ourPicks: string[]
+  picksToProtect: string[],
+  opponentPicks: string[]
 ): { netDelta: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
   let netDelta = 0
@@ -246,7 +252,7 @@ function scoreBanCandidate(
   const stats = data.heroStats[hero]
   if (!stats) return { netDelta: 0, reasons: [] }
 
-  // High WR = good ban target (denying this hero from the enemy)
+  // High WR = good ban target (denying a strong hero)
   const wrDelta = Math.round((stats.winRate - 50) * 10) / 10
   if (wrDelta > 1) {
     reasons.push({
@@ -268,36 +274,36 @@ function scoreBanCandidate(
     netDelta += banDelta
   }
 
-  // Would counter our existing picks
-  for (const ally of ourPicks) {
+  // Strong against the banning team's own picks
+  for (const ally of picksToProtect) {
     const d = data.counters[hero]?.[ally]
     if (d && d.games >= 30 && d.winRate >= 53) {
       const delta = Math.round((d.winRate - 50) * 10) / 10
       reasons.push({
         type: 'counter',
-        label: `Threatens ${ally} (${fmtDelta(delta)})`,
+        label: `Strong vs ${ally} (${fmtDelta(delta)})`,
         delta,
       })
       netDelta += delta
     }
   }
 
-  // Role-aware banning: don't suggest banning a healer/tank if enemy has one
+  // Role-aware: don't ban a healer/tank if opponent already has one
   const heroRole = getHeroRole(hero)
-  const enemyBalance = calculateRoleBalance(enemyPicks)
-  if (heroRole === 'Healer' && enemyBalance.healer >= 1) {
+  const opponentBalance = calculateRoleBalance(opponentPicks)
+  if (heroRole === 'Healer' && opponentBalance.healer >= 1) {
     netDelta -= 8
     reasons.push({
       type: 'role_penalty',
-      label: 'Enemy already has healer',
+      label: 'Opponent already has healer',
       delta: -8,
     })
   }
-  if (heroRole === 'Tank' && enemyBalance.tank >= 1) {
+  if (heroRole === 'Tank' && opponentBalance.tank >= 1) {
     netDelta -= 8
     reasons.push({
       type: 'role_penalty',
-      label: 'Enemy already has tank',
+      label: 'Opponent already has tank',
       delta: -8,
     })
   }
@@ -327,8 +333,13 @@ export function generateRecommendations(
   const available = allHeroes.filter((h) => !unavailable.has(h))
 
   if (isBanPhase) {
+    // Score from the banning team's perspective:
+    // - Our ban: protect our picks, opponent = enemy
+    // - Enemy ban: protect enemy picks, opponent = us
+    const picksToProtect = isOurTurn ? ourPicks : enemyPicks
+    const opponentPicks = isOurTurn ? enemyPicks : ourPicks
     const scored = available.map((hero) => {
-      const { netDelta, reasons } = scoreBanCandidate(hero, data, enemyPicks, ourPicks)
+      const { netDelta, reasons } = scoreBanCandidate(hero, data, picksToProtect, opponentPicks)
       return { hero, netDelta, reasons, suggestedPlayer: null }
     })
     return scored.sort((a, b) => b.netDelta - a.netDelta).slice(0, 15)
