@@ -44,6 +44,25 @@ import type { DraftData } from '@/lib/draft/types'
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Round to 1 decimal place */
+function r1(n: number): number {
+  return Math.round(n * 10) / 10
+}
+
+/**
+ * The sync scripts are inconsistent:
+ *   hero_stats_aggregate stores win_rate as a percentage (51.65)
+ *   player_hero_stats stores win_rate as a fraction (0.5416)
+ *   player_hero_map_stats stores win_rate as a fraction (0.5)
+ *
+ * This helper normalises a value that might be fraction-scale to percent-scale.
+ * Heuristic: if |value| <= 1.0 it's a fraction; multiply by 100.
+ */
+function toPct(v: number | null): number {
+  if (v == null) return 0
+  return Math.abs(v) <= 1 ? r1(v * 100) : r1(v)
+}
+
 /** Shape of what we select from hero_stats_aggregate */
 type HeroStatsRow = {
   hero: string
@@ -70,16 +89,16 @@ function toHeroStats(row: HeroStatsRow): HeroStats {
     skillTier: row.skillTier as SkillTier,
     games: row.games,
     wins: row.wins,
-    winRate: row.winRate,
-    banRate: row.banRate ?? 0,
-    pickRate: row.pickRate ?? 0,
-    avgKills: row.avgKills ?? 0,
-    avgDeaths: row.avgDeaths ?? 0,
-    avgAssists: row.avgAssists ?? 0,
-    avgHeroDamage: row.avgHeroDamage ?? 0,
-    avgSiegeDamage: row.avgSiegeDamage ?? 0,
-    avgHealing: row.avgHealing ?? 0,
-    avgExperience: row.avgExperience ?? 0,
+    winRate: r1(row.winRate),
+    banRate: r1(row.banRate ?? 0),
+    pickRate: r1(row.pickRate ?? 0),
+    avgKills: r1(row.avgKills ?? 0),
+    avgDeaths: r1(row.avgDeaths ?? 0),
+    avgAssists: r1(row.avgAssists ?? 0),
+    avgHeroDamage: Math.round(row.avgHeroDamage ?? 0),
+    avgSiegeDamage: Math.round(row.avgSiegeDamage ?? 0),
+    avgHealing: Math.round(row.avgHealing ?? 0),
+    avgExperience: Math.round(row.avgExperience ?? 0),
     // These columns don't exist in the actual DB yet — default to 0
     avgDamageSoaked: 0,
     avgMercCaptures: 0,
@@ -283,7 +302,11 @@ export async function getTalentStats(
   }))
 }
 
-/** Pairwise stats: synergies or counters for a hero */
+/**
+ * Pairwise stats: synergies or counters for a hero.
+ * The DB stores both directions (A→B and B→A), so we only query heroA = hero
+ * to avoid returning each partner twice.
+ */
 export async function getPairwiseStats(
   hero: string,
   relationship: 'with' | 'against',
@@ -294,10 +317,7 @@ export async function getPairwiseStats(
     .from(heroPairwiseStatsTable)
     .where(
       and(
-        or(
-          eq(heroPairwiseStatsTable.heroA, hero),
-          eq(heroPairwiseStatsTable.heroB, hero)
-        ),
+        eq(heroPairwiseStatsTable.heroA, hero),
         eq(heroPairwiseStatsTable.relationship, relationship),
         eq(heroPairwiseStatsTable.skillTier, tier)
       )
@@ -478,13 +498,13 @@ export async function getPlayerHeroStats(
     hero: r.hero,
     games: r.games,
     wins: r.wins,
-    winRate: r.winRate,
-    mawp: r.mawp,
-    avgKills: r.avgKills ?? 0,
-    avgDeaths: r.avgDeaths ?? 0,
-    avgAssists: r.avgAssists ?? 0,
-    recentWinRate: r.recentWinRate ?? null,
-    trend: r.trend ?? null,
+    winRate: toPct(r.winRate),
+    mawp: r.mawp != null ? toPct(r.mawp) : null,
+    avgKills: r1(r.avgKills ?? 0),
+    avgDeaths: r1(r.avgDeaths ?? 0),
+    avgAssists: r1(r.avgAssists ?? 0),
+    recentWinRate: r.recentWinRate != null ? toPct(r.recentWinRate) : null,
+    trend: r.trend != null ? toPct(r.trend) : null,
   }))
 }
 
@@ -508,7 +528,7 @@ export async function getPlayerHeroMapStats(
     map: r.map,
     games: r.games,
     wins: r.wins,
-    winRate: r.winRate,
+    winRate: toPct(r.winRate),
   }))
 }
 
@@ -564,20 +584,20 @@ export async function getPlayersStrongOnHero(
     .orderBy(desc(playerHeroStatsTable.mawp))
 
   return rows
-    .filter((r) => r.games >= 10 && ((r.mawp ?? r.winRate) >= 52))
     .map((r) => ({
       battletag: r.battletag,
       hero: r.hero,
       games: r.games,
       wins: r.wins,
-      winRate: r.winRate,
-      mawp: r.mawp,
-      avgKills: r.avgKills ?? 0,
-      avgDeaths: r.avgDeaths ?? 0,
-      avgAssists: r.avgAssists ?? 0,
-      recentWinRate: r.recentWinRate ?? null,
-      trend: r.trend ?? null,
+      winRate: toPct(r.winRate),
+      mawp: r.mawp != null ? toPct(r.mawp) : null,
+      avgKills: r1(r.avgKills ?? 0),
+      avgDeaths: r1(r.avgDeaths ?? 0),
+      avgAssists: r1(r.avgAssists ?? 0),
+      recentWinRate: r.recentWinRate != null ? toPct(r.recentWinRate) : null,
+      trend: r.trend != null ? toPct(r.trend) : null,
     }))
+    .filter((r) => r.games >= 10 && ((r.mawp ?? r.winRate) >= 52))
 }
 
 // ---------------------------------------------------------------------------
@@ -697,23 +717,17 @@ export async function getDraftData(
       ),
   ])
 
+  // DB stores both directions (A→B and B→A), so just map directly
   const synergies: DraftData['synergies'] = {}
   for (const p of synRows) {
     if (!synergies[p.heroA]) synergies[p.heroA] = {}
-    if (!synergies[p.heroB]) synergies[p.heroB] = {}
     synergies[p.heroA][p.heroB] = { winRate: p.winRate, games: p.games }
-    synergies[p.heroB][p.heroA] = { winRate: p.winRate, games: p.games }
   }
 
   const counters: DraftData['counters'] = {}
   for (const p of counterRows) {
     if (!counters[p.heroA]) counters[p.heroA] = {}
-    if (!counters[p.heroB]) counters[p.heroB] = {}
     counters[p.heroA][p.heroB] = { winRate: p.winRate, games: p.games }
-    counters[p.heroB][p.heroA] = {
-      winRate: Math.round((100 - p.winRate) * 10) / 10,
-      games: p.games,
-    }
   }
 
   // Player personal stats

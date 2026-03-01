@@ -371,7 +371,7 @@ export function HeroDetailModal({
                             color={getWinRateColor(stats.winRate)}
                           />
                           <StatBlock
-                            label="MAWP"
+                            label="Momentum WR"
                             value={
                               stats.mawp != null
                                 ? formatPercent(

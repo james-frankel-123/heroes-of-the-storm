@@ -115,7 +115,7 @@ function HeroRow({ stats }: { stats: PlayerHeroStats }) {
           </span>
           {confidence === 'high' && rawMawp !== stats.winRate && (
             <span className="text-[10px] text-muted-foreground ml-1">
-              MAWP
+              Momentum
             </span>
           )}
         </div>
