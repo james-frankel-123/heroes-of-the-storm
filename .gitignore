@@ -37,3 +37,6 @@ next-env.d.ts
 
 # drizzle local
 drizzle/meta
+
+# sync logs
+sync/logs
