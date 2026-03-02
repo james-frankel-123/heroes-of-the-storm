@@ -64,8 +64,29 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
       return { ...state, phase: 'drafting' }
     case 'SELECT_HERO': {
       if (state.currentStep >= DRAFT_SEQUENCE.length) return state
+      const currentDraftStep = DRAFT_SEQUENCE[state.currentStep]
       const newSelections = { ...state.selections, [state.currentStep]: action.hero }
-      const nextStep = state.currentStep + 1
+
+      // Cho'gall auto-pair: picking Cho pre-fills Gall (and vice versa)
+      // into the next pick slot for the same team. That slot will be
+      // auto-skipped when the draft reaches it.
+      if (currentDraftStep.type === 'pick' && (action.hero === 'Cho' || action.hero === 'Gall')) {
+        const companion = action.hero === 'Cho' ? 'Gall' : 'Cho'
+        for (let i = state.currentStep + 1; i < DRAFT_SEQUENCE.length; i++) {
+          const s = DRAFT_SEQUENCE[i]
+          if (s.type === 'pick' && s.team === currentDraftStep.team) {
+            newSelections[i] = companion
+            break
+          }
+        }
+      }
+
+      // Advance past any steps that are already pre-filled (Cho'gall companion)
+      let nextStep = state.currentStep + 1
+      while (nextStep < DRAFT_SEQUENCE.length && newSelections[nextStep]) {
+        nextStep++
+      }
+
       const phase: DraftPhase =
         nextStep >= DRAFT_SEQUENCE.length ? 'complete' : 'drafting'
       return {
@@ -81,12 +102,41 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
     }
     case 'UNDO': {
       if (state.currentStep === 0) return state
-      const prevStep = state.currentStep - 1
       const newSelections = { ...state.selections }
-      delete newSelections[prevStep]
-      // Also remove any player assignment for that step
       const newAssignments = { ...state.playerAssignments }
+      let prevStep = state.currentStep - 1
+
+      // Clear the step we're undoing
+      const undoneHero = newSelections[prevStep]
+      delete newSelections[prevStep]
       delete newAssignments[prevStep]
+
+      // Cho'gall undo: if the undone hero is Cho or Gall, also clear
+      // the auto-filled companion (which could be ahead or behind).
+      if (undoneHero === 'Cho' || undoneHero === 'Gall') {
+        const companion = undoneHero === 'Cho' ? 'Gall' : 'Cho'
+        const team = DRAFT_SEQUENCE[prevStep]?.team
+        // Check ahead for auto-filled companion
+        for (let i = prevStep + 1; i < DRAFT_SEQUENCE.length; i++) {
+          if (newSelections[i] === companion && DRAFT_SEQUENCE[i]?.team === team
+              && DRAFT_SEQUENCE[i]?.type === 'pick') {
+            delete newSelections[i]
+            delete newAssignments[i]
+            break
+          }
+        }
+        // Check behind — maybe we're at the auto-filled step, undo source too
+        for (let i = prevStep - 1; i >= 0; i--) {
+          if (newSelections[i] === companion && DRAFT_SEQUENCE[i]?.team === team
+              && DRAFT_SEQUENCE[i]?.type === 'pick') {
+            delete newSelections[i]
+            delete newAssignments[i]
+            prevStep = i
+            break
+          }
+        }
+      }
+
       return {
         ...state,
         selections: newSelections,
