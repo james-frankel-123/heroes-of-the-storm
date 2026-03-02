@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { TierSelector, getTierLabel } from '@/components/shared/tier-selector'
 import { MapCard } from '@/components/maps/map-card'
 import { MapDetailModal } from '@/components/maps/map-detail-modal'
+import { confidenceAdjustedWinRate } from '@/lib/utils'
 import type {
   SkillTier,
   MapStats,
@@ -50,6 +51,27 @@ export function MapsClient({
     }
   }
 
+  // Pre-compute confidence-adjusted top/bottom heroes per map.
+  // Threshold = 50: heroes with <50 games get phantom 50% games padded to 50.
+  const CONFIDENCE_THRESHOLD = 50
+
+  const heroRankingsByMap = useMemo(() => {
+    const result: Record<string, { top: HeroMapStats[]; bottom: HeroMapStats[] }> = {}
+    for (const mapStat of maps) {
+      const heroesOnMap = heroMapByTier[tier][mapStat.map] ?? []
+      const sorted = [...heroesOnMap].sort((a, b) => {
+        const adjA = confidenceAdjustedWinRate(a.wins, a.games, CONFIDENCE_THRESHOLD)
+        const adjB = confidenceAdjustedWinRate(b.wins, b.games, CONFIDENCE_THRESHOLD)
+        return adjB - adjA
+      })
+      result[mapStat.map] = {
+        top: sorted.slice(0, 5),
+        bottom: sorted.slice(-3).reverse(),
+      }
+    }
+    return result
+  }, [maps, heroMapByTier, tier])
+
   // Data for selected map's detail modal
   const detailHeroStats = selectedMap
     ? heroMapByTier[tier][selectedMap] ?? []
@@ -79,20 +101,21 @@ export function MapsClient({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {maps
+        {[...maps]
           .sort((a, b) => b.games - a.games)
-          .map((mapStat) => (
-            <MapCard
-              key={mapStat.map}
-              mapStat={mapStat}
-              personalStats={personalByMap[mapStat.map] ?? []}
-              topHeroes={(heroMapByTier[tier][mapStat.map] ?? []).slice(0, 5)}
-              bottomHeroes={(heroMapByTier[tier][mapStat.map] ?? [])
-                .sort((a, b) => a.winRate - b.winRate)
-                .slice(0, 3)}
-              onClick={() => setSelectedMap(mapStat.map)}
-            />
-          ))}
+          .map((mapStat) => {
+            const rankings = heroRankingsByMap[mapStat.map] ?? { top: [], bottom: [] }
+            return (
+              <MapCard
+                key={mapStat.map}
+                mapStat={mapStat}
+                personalStats={personalByMap[mapStat.map] ?? []}
+                topHeroes={rankings.top}
+                bottomHeroes={rankings.bottom}
+                onClick={() => setSelectedMap(mapStat.map)}
+              />
+            )
+          })}
       </div>
 
       {selectedMap && (

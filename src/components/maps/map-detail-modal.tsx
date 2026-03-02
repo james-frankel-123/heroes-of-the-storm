@@ -17,6 +17,7 @@ import {
   formatPercent,
   formatNumber,
   getWinRateColor,
+  confidenceAdjustedWinRate,
 } from '@/lib/utils'
 import type { HeroMapStats, PlayerMatch, SkillTier } from '@/lib/types'
 
@@ -100,6 +101,12 @@ export function MapDetailModal({
         return sortAsc
           ? a.hero.localeCompare(b.hero)
           : b.hero.localeCompare(a.hero)
+      }
+      if (sortField === 'winRate') {
+        // Confidence-adjusted: heroes with <50 games get padded to 50 with 50% phantom games
+        const adjA = confidenceAdjustedWinRate(a.wins, a.games, 50)
+        const adjB = confidenceAdjustedWinRate(b.wins, b.games, 50)
+        return sortAsc ? adjA - adjB : adjB - adjA
       }
       const aVal = a[sortField] as number
       const bVal = b[sortField] as number

@@ -15,6 +15,7 @@ import {
   formatPercent,
   formatNumber,
   getWinRateColor,
+  confidenceAdjustedWinRate,
 } from '@/lib/utils'
 import type {
   HeroStats,
@@ -166,7 +167,10 @@ export function HeroDetailModal({
                   </thead>
                   <tbody>
                     {[...mapStats]
-                      .sort((a, b) => b.winRate - a.winRate)
+                      .sort((a, b) =>
+                        confidenceAdjustedWinRate(b.wins, b.games, 50) -
+                        confidenceAdjustedWinRate(a.wins, a.games, 50)
+                      )
                       .map((ms) => (
                         <tr
                           key={ms.map}
