@@ -107,23 +107,23 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
 // ---------------------------------------------------------------------------
 
 interface DraftClientProps {
-  dataByTierMap: Record<SkillTier, Record<string, DraftData>>
+  dataByTier: Record<SkillTier, DraftData>
   maps: string[]
   registeredBattletags: string[]
 }
 
 export function DraftClient({
-  dataByTierMap,
+  dataByTier,
   maps,
   registeredBattletags,
 }: DraftClientProps) {
   const [state, dispatch] = useReducer(draftReducer, undefined, createInitialState)
 
-  // Resolve draft data for current tier + map
+  // Resolve draft data for current tier
   const draftData = useMemo(() => {
     if (!state.map) return null
-    return dataByTierMap[state.tier]?.[state.map] ?? null
-  }, [dataByTierMap, state.tier, state.map])
+    return dataByTier[state.tier] ?? null
+  }, [dataByTier, state.tier, state.map])
 
   // Generate recommendations
   const recommendations = useMemo(() => {

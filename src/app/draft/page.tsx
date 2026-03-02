@@ -8,8 +8,11 @@ import type { DraftData } from '@/lib/draft/types'
 const TIERS: SkillTier[] = ['low', 'mid', 'high']
 
 /**
- * Pre-fetch draft data for ALL tier × map combinations.
- * This ensures zero API calls during the timed draft.
+ * Pre-fetch draft data once per tier (not per tier × map).
+ *
+ * Hero stats, synergies, counters, and player stats don't vary by map.
+ * Map-specific hero data isn't used by the engine (API doesn't provide it).
+ * This reduces DB queries from ~420 to ~30.
  */
 export default async function DraftPage() {
   const [trackedBattletags, maps] = await Promise.all([
@@ -18,28 +21,22 @@ export default async function DraftPage() {
   ])
   const battletags = trackedBattletags.map((bt) => bt.battletag)
 
-  // Pre-fetch every tier × map combo
-  const dataByTierMap: Record<SkillTier, Record<string, DraftData>> = {
-    low: {},
-    mid: {},
-    high: {},
-  }
+  // Fetch once per tier — map dimension is unused by the engine
+  const dataByTier: Record<SkillTier, DraftData> = {} as Record<SkillTier, DraftData>
 
-  const fetches = TIERS.flatMap((tier) =>
-    maps.map(async (map) => {
-      const data = await getDraftData(tier, map, battletags)
-      return { tier, map, data }
-    })
-  )
+  const fetches = TIERS.map(async (tier) => {
+    const data = await getDraftData(tier, maps[0] ?? '', battletags)
+    return { tier, data }
+  })
 
   const results = await Promise.all(fetches)
-  for (const { tier, map, data } of results) {
-    dataByTierMap[tier][map] = data
+  for (const { tier, data } of results) {
+    dataByTier[tier] = data
   }
 
   return (
     <DraftClient
-      dataByTierMap={dataByTierMap}
+      dataByTier={dataByTier}
       maps={maps}
       registeredBattletags={battletags}
     />
