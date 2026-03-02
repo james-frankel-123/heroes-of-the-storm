@@ -133,10 +133,30 @@ export function DraftClient({
 
   // Heroes that are already selected (banned or picked)
   // Cho'gall: if either Cho or Gall is selected, both are unavailable
-  const unavailableHeroes = useMemo(
-    () => expandChoGall(new Set(Object.values(state.selections))),
-    [state.selections]
-  )
+  // Also block Cho/Gall from being picked when our team has <2 picks remaining
+  const unavailableHeroes = useMemo(() => {
+    const set = expandChoGall(new Set(Object.values(state.selections)))
+
+    // If it's our pick turn with <2 picks remaining, Cho'gall is invalid
+    if (state.phase === 'drafting' && state.currentStep < DRAFT_SEQUENCE.length) {
+      const step = DRAFT_SEQUENCE[state.currentStep]
+      if (step.type === 'pick' && step.team === state.ourTeam) {
+        const ourPickCount = Object.entries(state.selections).filter(([idx]) => {
+          const s = DRAFT_SEQUENCE[Number(idx)]
+          return s.type === 'pick' && s.team === state.ourTeam
+        }).length
+        const totalOurPicks = DRAFT_SEQUENCE.filter(
+          (s) => s.type === 'pick' && s.team === state.ourTeam
+        ).length
+        if (totalOurPicks - ourPickCount < 2) {
+          set.add('Cho')
+          set.add('Gall')
+        }
+      }
+    }
+
+    return set
+  }, [state.selections, state.phase, state.currentStep, state.ourTeam])
 
   const handleSelectHero = useCallback(
     (hero: string) => dispatch({ type: 'SELECT_HERO', hero }),

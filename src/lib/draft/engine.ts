@@ -371,7 +371,19 @@ export function generateRecommendations(
   const isOurTurn = currentDraftStep.team === state.ourTeam
 
   const allHeroes = Object.keys(HERO_ROLES)
-  const available = allHeroes.filter((h) => !unavailable.has(h))
+  let available = allHeroes.filter((h) => !unavailable.has(h))
+
+  // Cho'gall requires 2 pick slots — if our team has <2 picks remaining,
+  // exclude Cho and Gall from our pick suggestions.
+  if (!isBanPhase && isOurTurn) {
+    const totalOurPicks = DRAFT_SEQUENCE.filter(
+      (s) => s.type === 'pick' && s.team === state.ourTeam
+    ).length
+    const picksRemaining = totalOurPicks - ourPicks.length
+    if (picksRemaining < 2) {
+      available = available.filter((h) => h !== 'Cho' && h !== 'Gall')
+    }
+  }
 
   if (isBanPhase) {
     // Score from the banning team's perspective:

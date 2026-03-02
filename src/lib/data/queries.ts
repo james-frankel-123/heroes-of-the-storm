@@ -388,11 +388,38 @@ export async function getBottomHeroes(
     .slice(0, limit)
 }
 
+/**
+ * Merge Cho/Gall references in pairwise stats into "Cho'gall".
+ * The DB has separate rows for Cho+X and Gall+X with identical stats.
+ * Rename both to Cho'gall, drop the Cho+Gall self-pair, then dedup
+ * by keeping the first occurrence of each (heroA, heroB) pair.
+ */
+function mergeChoGallPairwise(pairs: HeroPairwiseStats[]): HeroPairwiseStats[] {
+  const renamed = pairs.map((p) => ({
+    ...p,
+    heroA: p.heroA === 'Cho' || p.heroA === 'Gall' ? "Cho'gall" : p.heroA,
+    heroB: p.heroB === 'Cho' || p.heroB === 'Gall' ? "Cho'gall" : p.heroB,
+  }))
+
+  // Drop self-pairs (Cho'gall + Cho'gall)
+  const filtered = renamed.filter((p) => p.heroA !== p.heroB)
+
+  // Dedup: keep first occurrence of each (heroA, heroB) pair
+  const seen = new Set<string>()
+  return filtered.filter((p) => {
+    const key = `${p.heroA}|${p.heroB}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 /** Top synergy pairs for a tier (deduped: only heroA < heroB alphabetically) */
 export async function getTopSynergies(
   tier: SkillTier,
   limit = 10
 ): Promise<HeroPairwiseStats[]> {
+  // Fetch extra rows to account for Cho/Gall dedup reducing count
   const rows = await db
     .select()
     .from(heroPairwiseStatsTable)
@@ -404,9 +431,9 @@ export async function getTopSynergies(
       )
     )
     .orderBy(desc(heroPairwiseStatsTable.winRate))
-    .limit(limit)
+    .limit(limit + 10)
 
-  return rows.map((r) => ({
+  const mapped = rows.map((r) => ({
     heroA: r.heroA,
     heroB: r.heroB,
     relationship: r.relationship as 'with' | 'against',
@@ -415,6 +442,10 @@ export async function getTopSynergies(
     wins: r.wins,
     winRate: r.winRate,
   }))
+
+  return mergeChoGallPairwise(mapped)
+    .sort((a, b) => b.winRate - a.winRate)
+    .slice(0, limit)
 }
 
 /** Top counter matchups for a tier (deduped: only heroA < heroB alphabetically) */
@@ -433,9 +464,9 @@ export async function getTopCounters(
       )
     )
     .orderBy(desc(heroPairwiseStatsTable.winRate))
-    .limit(limit)
+    .limit(limit + 10)
 
-  return rows.map((r) => ({
+  const mapped = rows.map((r) => ({
     heroA: r.heroA,
     heroB: r.heroB,
     relationship: r.relationship as 'with' | 'against',
@@ -444,6 +475,10 @@ export async function getTopCounters(
     wins: r.wins,
     winRate: r.winRate,
   }))
+
+  return mergeChoGallPairwise(mapped)
+    .sort((a, b) => b.winRate - a.winRate)
+    .slice(0, limit)
 }
 
 /** Power picks: hero+map combos with high win rate for a tier */
