@@ -404,10 +404,12 @@ function mergeChoGallPairwise(pairs: HeroPairwiseStats[]): HeroPairwiseStats[] {
   // Drop self-pairs (Cho'gall + Cho'gall)
   const filtered = renamed.filter((p) => p.heroA !== p.heroB)
 
-  // Dedup: keep first occurrence of each (heroA, heroB) pair
+  // Dedup: keep first occurrence of each pair (order-independent key,
+  // since Cho→Fenix and Fenix→Gall both become Cho'gall↔Fenix after rename)
   const seen = new Set<string>()
   return filtered.filter((p) => {
-    const key = `${p.heroA}|${p.heroB}`
+    const [a, b] = [p.heroA, p.heroB].sort()
+    const key = `${a}|${b}`
     if (seen.has(key)) return false
     seen.add(key)
     return true
