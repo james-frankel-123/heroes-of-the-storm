@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import type {
   SkillTier,
   HeroStats,
+  HeroMapStats,
   HeroTalentStats,
   HeroPairwiseStats,
   PlayerHeroStats,
@@ -26,6 +27,7 @@ interface HeroesClientProps {
     SkillTier,
     Record<string, { synergies: HeroPairwiseStats[]; counters: HeroPairwiseStats[] }>
   >
+  heroMapByTier: Record<SkillTier, Record<string, HeroMapStats[]>>
   personalData: {
     battletag: string
     heroStats: PlayerHeroStats[]
@@ -64,6 +66,7 @@ export function HeroesClient({
   heroStatsByName,
   talentsByTier,
   pairwiseByTier,
+  heroMapByTier,
   personalData,
 }: HeroesClientProps) {
   const [tier, setTier] = useState<SkillTier>('mid')
@@ -92,6 +95,10 @@ export function HeroesClient({
 
   const detailTalents = selectedHero
     ? talentsByTier[tier][selectedHero] ?? []
+    : []
+
+  const detailMapStats = selectedHero
+    ? heroMapByTier[tier][selectedHero] ?? []
     : []
 
   const detailPairwise = selectedHero
@@ -168,7 +175,7 @@ export function HeroesClient({
           onClose={() => setSelectedHero(null)}
           heroName={selectedHero}
           statsByTier={detailStatsByTier}
-          mapStats={[]}
+          mapStats={detailMapStats}
           talents={detailTalents}
           synergies={detailPairwise.synergies}
           counters={detailPairwise.counters}

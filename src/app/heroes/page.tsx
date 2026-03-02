@@ -5,11 +5,12 @@ import {
   getHeroStats,
   getAllTalentStats,
   getAllPairwiseStats,
+  getAllHeroMapStats,
   getTrackedBattletags,
   getPlayerHeroStats,
   getPlayerMatchHistory,
 } from '@/lib/data/queries'
-import type { SkillTier, HeroStats } from '@/lib/types'
+import type { SkillTier, HeroStats, HeroMapStats } from '@/lib/types'
 
 const TIERS: SkillTier[] = ['low', 'mid', 'high']
 
@@ -33,8 +34,8 @@ export default async function HeroesPage() {
     getTrackedBattletags(),
   ])
 
-  // Parallel: bulk talent + pairwise for all tiers + personal data
-  const [talentsByTier, pairwiseByTier, personalData] = await Promise.all([
+  // Parallel: bulk talent + pairwise + hero-map for all tiers + personal data
+  const [talentsByTier, pairwiseByTier, heroMapByTier, personalData] = await Promise.all([
     // Talents: 1 query per tier = 3 total
     (async () => {
       const results = await Promise.all(
@@ -83,6 +84,25 @@ export default async function HeroesPage() {
       return out
     })(),
 
+    // Hero-map stats: 1 query per tier = 3 total
+    (async () => {
+      const results = await Promise.all(
+        TIERS.map(async (tier) => ({
+          tier,
+          data: await getAllHeroMapStats(tier),
+        }))
+      )
+      const out: Record<SkillTier, Record<string, HeroMapStats[]>> = {
+        low: {},
+        mid: {},
+        high: {},
+      }
+      for (const { tier, data } of results) {
+        out[tier] = data
+      }
+      return out
+    })(),
+
     // Personal stats: 2 queries per battletag
     Promise.all(
       trackedBattletags.map(async (bt) => ({
@@ -108,6 +128,7 @@ export default async function HeroesPage() {
       heroStatsByName={heroStatsByName}
       talentsByTier={talentsByTier}
       pairwiseByTier={pairwiseByTier}
+      heroMapByTier={heroMapByTier}
       personalData={personalData}
     />
   )

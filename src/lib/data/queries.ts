@@ -200,6 +200,32 @@ export async function getHeroMapStats(
   }))
 }
 
+/** All hero-map stats for a tier in one query, grouped by hero */
+export async function getAllHeroMapStats(
+  tier: SkillTier
+): Promise<Record<string, HeroMapStats[]>> {
+  const rows = await db
+    .select()
+    .from(heroMapStatsAggregate)
+    .where(eq(heroMapStatsAggregate.skillTier, tier))
+    .orderBy(desc(heroMapStatsAggregate.winRate))
+
+  const result: Record<string, HeroMapStats[]> = {}
+  for (const r of rows) {
+    const entry: HeroMapStats = {
+      hero: r.hero,
+      map: r.map,
+      skillTier: r.skillTier as SkillTier,
+      games: r.games,
+      wins: r.wins,
+      winRate: r.winRate,
+    }
+    if (!result[r.hero]) result[r.hero] = []
+    result[r.hero].push(entry)
+  }
+  return result
+}
+
 /** Talent stats for a hero at a tier */
 export async function getTalentStats(
   hero: string,
@@ -489,6 +515,7 @@ export async function getPowerPicks(
   threshold = 55,
   limit = 15
 ): Promise<HeroMapStats[]> {
+  // Fetch extra to account for Cho/Gall dedup
   const rows = await db
     .select()
     .from(heroMapStatsAggregate)
@@ -500,16 +527,27 @@ export async function getPowerPicks(
       )
     )
     .orderBy(desc(heroMapStatsAggregate.winRate))
-    .limit(limit)
+    .limit(limit + 10)
 
-  return rows.map((r) => ({
-    hero: r.hero,
+  const mapped = rows.map((r) => ({
+    hero: r.hero === 'Cho' || r.hero === 'Gall' ? "Cho'gall" : r.hero,
     map: r.map,
     skillTier: r.skillTier as SkillTier,
     games: r.games,
     wins: r.wins,
     winRate: r.winRate,
   }))
+
+  // Dedup Cho'gall entries on the same map (identical stats)
+  const seen = new Set<string>()
+  return mapped
+    .filter((p) => {
+      const key = `${p.hero}|${p.map}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .slice(0, limit)
 }
 
 // ---------------------------------------------------------------------------

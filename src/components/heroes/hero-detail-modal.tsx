@@ -18,6 +18,7 @@ import {
 } from '@/lib/utils'
 import type {
   HeroStats,
+  HeroMapStats,
   HeroTalentStats,
   HeroPairwiseStats,
   PlayerHeroStats,
@@ -30,7 +31,7 @@ interface HeroDetailModalProps {
   onClose: () => void
   heroName: string
   statsByTier: HeroStats[]
-  mapStats: never[] // Temporarily disabled — no global hero+map API available
+  mapStats: HeroMapStats[]
   talents: HeroTalentStats[]
   synergies: HeroPairwiseStats[]
   counters: HeroPairwiseStats[]
@@ -44,6 +45,7 @@ export function HeroDetailModal({
   onClose,
   heroName,
   statsByTier,
+  mapStats,
   talents,
   synergies,
   counters,
@@ -77,6 +79,7 @@ export function HeroDetailModal({
         <Tabs defaultValue="overview" className="mt-2">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="maps">Maps</TabsTrigger>
             <TabsTrigger value="talents">Talents</TabsTrigger>
             <TabsTrigger value="matchups">Matchups</TabsTrigger>
             <TabsTrigger value="personal">Personal</TabsTrigger>
@@ -137,6 +140,56 @@ export function HeroDetailModal({
               })}
             </div>
 
+          </TabsContent>
+
+          {/* Maps Tab */}
+          <TabsContent value="maps" className="mt-4 space-y-2">
+            {mapStats.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No map data available for this hero.
+              </p>
+            ) : (
+              <div className="rounded-lg border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                        Map
+                      </th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">
+                        Win %
+                      </th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">
+                        Games
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...mapStats]
+                      .sort((a, b) => b.winRate - a.winRate)
+                      .map((ms) => (
+                        <tr
+                          key={ms.map}
+                          className="border-b last:border-0 hover:bg-accent/30"
+                        >
+                          <td className="px-3 py-2 font-medium">{ms.map}</td>
+                          <td
+                            className={cn(
+                              'px-3 py-2 text-right font-semibold',
+                              getWinRateColor(ms.winRate)
+                            )}
+                          >
+                            {formatPercent(ms.winRate)}
+                          </td>
+                          <td className="px-3 py-2 text-right text-muted-foreground">
+                            {formatNumber(ms.games)}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </TabsContent>
 
           {/* Talents Tab */}
