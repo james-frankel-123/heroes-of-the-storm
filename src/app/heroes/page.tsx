@@ -3,102 +3,102 @@ export const dynamic = 'force-dynamic'
 import { HeroesClient } from './heroes-client'
 import {
   getHeroStats,
-  getTalentStats,
-  getPairwiseStats,
+  getAllTalentStats,
+  getAllPairwiseStats,
   getTrackedBattletags,
   getPlayerHeroStats,
   getPlayerMatchHistory,
 } from '@/lib/data/queries'
-import { HERO_ROLES } from '@/lib/data/hero-roles'
 import type { SkillTier, HeroStats } from '@/lib/types'
 
-// Pre-fetch hero list for all tiers
-async function fetchAllTiers() {
-  const [low, mid, high] = await Promise.all([
-    getHeroStats('low'),
-    getHeroStats('mid'),
-    getHeroStats('high'),
-  ])
-  return { low, mid, high }
-}
+const TIERS: SkillTier[] = ['low', 'mid', 'high']
 
+/**
+ * Pre-fetch hero data using bulk queries.
+ *
+ * Previously fetched talents and pairwise stats per-hero per-tier
+ * (90 heroes x 3 tiers x 3 query types = ~810 queries).
+ * Now uses 3 bulk queries per tier (9 total) + hero stats (3) + personal (~6).
+ * Total: ~18 queries instead of ~820.
+ */
 export default async function HeroesPage() {
+  // Parallel: hero stats for all tiers + tracked battletags
   const [heroStatsByTier, trackedBattletags] = await Promise.all([
-    fetchAllTiers(),
+    (async () => {
+      const [low, mid, high] = await Promise.all(
+        TIERS.map((tier) => getHeroStats(tier))
+      )
+      return { low, mid, high } as Record<SkillTier, HeroStats[]>
+    })(),
     getTrackedBattletags(),
   ])
 
-  // Pre-fetch detail data for all heroes that have talent/pairwise data
-  // For the detail modal, we load on-demand via the client, but
-  // we pre-load all hero stats by name, map stats, and personal data
-  const allHeroes = Object.keys(HERO_ROLES)
-
-  // Pre-fetch talent and pairwise data for all tiers
-  const allTalentData = await Promise.all(
-    (['low', 'mid', 'high'] as SkillTier[]).map(async (tier) => {
-      const talents = await Promise.all(
-        allHeroes.map(async (hero) => ({
-          hero,
-          talents: await getTalentStats(hero, tier),
+  // Parallel: bulk talent + pairwise for all tiers + personal data
+  const [talentsByTier, pairwiseByTier, personalData] = await Promise.all([
+    // Talents: 1 query per tier = 3 total
+    (async () => {
+      const results = await Promise.all(
+        TIERS.map(async (tier) => ({
+          tier,
+          data: await getAllTalentStats(tier),
         }))
       )
-      return { tier, talents }
-    })
-  )
+      const out: Record<SkillTier, Record<string, import('@/lib/types').HeroTalentStats[]>> = {
+        low: {},
+        mid: {},
+        high: {},
+      }
+      for (const { tier, data } of results) {
+        out[tier] = data
+      }
+      return out
+    })(),
 
-  const allPairwiseData = await Promise.all(
-    (['low', 'mid', 'high'] as SkillTier[]).map(async (tier) => {
-      const pairs = await Promise.all(
-        allHeroes.map(async (hero) => ({
-          hero,
-          synergies: await getPairwiseStats(hero, 'with', tier),
-          counters: await getPairwiseStats(hero, 'against', tier),
+    // Pairwise: 1 query per tier = 3 total
+    (async () => {
+      const results = await Promise.all(
+        TIERS.map(async (tier) => ({
+          tier,
+          data: await getAllPairwiseStats(tier),
         }))
       )
-      return { tier, pairs }
-    })
-  )
+      const out: Record<
+        SkillTier,
+        Record<string, { synergies: import('@/lib/types').HeroPairwiseStats[]; counters: import('@/lib/types').HeroPairwiseStats[] }>
+      > = { low: {}, mid: {}, high: {} }
 
-  // Personal stats per battletag
-  const personalData = await Promise.all(
-    trackedBattletags.map(async (bt) => ({
-      battletag: bt.battletag,
-      heroStats: await getPlayerHeroStats(bt.battletag),
-      matches: await getPlayerMatchHistory(bt.battletag, 100),
-    }))
-  )
+      for (const { tier, data } of results) {
+        // Merge synergies and counters into per-hero records
+        const allHeroes = new Set([
+          ...Object.keys(data.synergies),
+          ...Object.keys(data.counters),
+        ])
+        for (const hero of allHeroes) {
+          out[tier][hero] = {
+            synergies: data.synergies[hero] ?? [],
+            counters: data.counters[hero] ?? [],
+          }
+        }
+      }
+      return out
+    })(),
 
-  // All hero stats by name (for detail modal tier comparison)
+    // Personal stats: 2 queries per battletag
+    Promise.all(
+      trackedBattletags.map(async (bt) => ({
+        battletag: bt.battletag,
+        heroStats: await getPlayerHeroStats(bt.battletag),
+        matches: await getPlayerMatchHistory(bt.battletag, 100),
+      }))
+    ),
+  ])
+
+  // Build heroStatsByName from the already-fetched tier data (no extra queries)
   const heroStatsByName: Record<string, HeroStats[]> = {}
-  for (const hero of allHeroes) {
-    heroStatsByName[hero] = [
-      heroStatsByTier.low.find((h) => h.hero === hero),
-      heroStatsByTier.mid.find((h) => h.hero === hero),
-      heroStatsByTier.high.find((h) => h.hero === hero),
-    ].filter(Boolean) as HeroStats[]
-  }
-
-  // Flatten talent data
-  const talentsByTier: Record<SkillTier, Record<string, typeof allTalentData[0]['talents'][0]['talents']>> = {
-    low: {},
-    mid: {},
-    high: {},
-  }
-  for (const { tier, talents } of allTalentData) {
-    for (const { hero, talents: t } of talents) {
-      talentsByTier[tier][hero] = t
-    }
-  }
-
-  // Flatten pairwise data
-  const pairwiseByTier: Record<SkillTier, Record<string, { synergies: typeof allPairwiseData[0]['pairs'][0]['synergies']; counters: typeof allPairwiseData[0]['pairs'][0]['counters'] }>> = {
-    low: {},
-    mid: {},
-    high: {},
-  }
-  for (const { tier, pairs } of allPairwiseData) {
-    for (const { hero, synergies, counters } of pairs) {
-      pairwiseByTier[tier][hero] = { synergies, counters }
+  for (const tier of TIERS) {
+    for (const h of heroStatsByTier[tier]) {
+      if (!heroStatsByName[h.hero]) heroStatsByName[h.hero] = []
+      heroStatsByName[h.hero].push(h)
     }
   }
 

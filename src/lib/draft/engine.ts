@@ -176,30 +176,43 @@ function scorePlayerStrength(
 
 function scoreRoleNeed(
   hero: string,
-  ourPicks: string[]
+  ourPicks: string[],
+  totalOurPickSlots: number
 ): RecommendationReason | null {
   const role = getHeroRole(hero)
   if (!role) return null
 
   const balance = calculateRoleBalance(ourPicks)
+  const picksRemaining = totalOurPickSlots - ourPicks.length
+
+  // Scale urgency: the fewer picks remaining, the more critical unfilled roles are.
+  // At 5 picks remaining (start): base bonus. At 1 pick remaining (last): 3x bonus.
+  const urgency = picksRemaining <= 1 ? 3.0
+    : picksRemaining <= 2 ? 2.0
+    : picksRemaining <= 3 ? 1.5
+    : 1.0
 
   // Critical: no tank yet
   if (role === 'Tank' && balance.tank === 0) {
-    return { type: 'role_need', label: 'Fills Tank', delta: 3 }
+    const delta = Math.round(5 * urgency * 10) / 10
+    return { type: 'role_need', label: 'Fills Tank', delta }
   }
   // Critical: no healer yet
   if (role === 'Healer' && balance.healer === 0) {
-    return { type: 'role_need', label: 'Fills Healer', delta: 3 }
+    const delta = Math.round(5 * urgency * 10) / 10
+    return { type: 'role_need', label: 'Fills Healer', delta }
   }
-  // Critical: no damage yet
+  // Important: no damage yet
   if ((role === 'Ranged Assassin' || role === 'Melee Assassin') &&
       balance.rangedAssassin + balance.meleeAssassin === 0) {
-    return { type: 'role_need', label: 'Fills Damage', delta: 3 }
+    const delta = Math.round(3 * urgency * 10) / 10
+    return { type: 'role_need', label: 'Fills Damage', delta }
   }
-  // Important: no bruiser/melee and we have a tank
+  // Useful: no bruiser/melee and we have a tank
   if ((role === 'Bruiser' || role === 'Melee Assassin') &&
       balance.bruiser === 0 && balance.meleeAssassin === 0 && balance.tank >= 1) {
-    return { type: 'role_need', label: 'Fills Bruiser/Melee', delta: 1.5 }
+    const delta = Math.round(2 * urgency * 10) / 10
+    return { type: 'role_need', label: 'Fills Bruiser/Melee', delta }
   }
 
   return null
@@ -403,8 +416,11 @@ export function generateRecommendations(
     )
     if (playerReason) { reasons.push(playerReason); netDelta += playerReason.delta }
 
-    // 5. Role need bonus
-    const roleNeed = scoreRoleNeed(hero, ourPicks)
+    // 5. Role need bonus (urgency scales with picks remaining)
+    const totalOurPickSlots = DRAFT_SEQUENCE.filter(
+      (s) => s.type === 'pick' && s.team === state.ourTeam
+    ).length
+    const roleNeed = scoreRoleNeed(hero, ourPicks, totalOurPickSlots)
     if (roleNeed) { reasons.push(roleNeed); netDelta += roleNeed.delta }
 
     // 6. Role penalty

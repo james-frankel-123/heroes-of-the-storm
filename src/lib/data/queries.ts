@@ -231,6 +231,38 @@ export async function getTalentStats(
   }))
 }
 
+/** All talent stats for a tier in one query, grouped by hero */
+export async function getAllTalentStats(
+  tier: SkillTier
+): Promise<Record<string, HeroTalentStats[]>> {
+  const rows = await db
+    .select()
+    .from(heroTalentStatsTable)
+    .where(eq(heroTalentStatsTable.skillTier, tier))
+    .orderBy(
+      asc(heroTalentStatsTable.hero),
+      asc(heroTalentStatsTable.talentTier),
+      desc(heroTalentStatsTable.winRate)
+    )
+
+  const result: Record<string, HeroTalentStats[]> = {}
+  for (const r of rows) {
+    const entry: HeroTalentStats = {
+      hero: r.hero,
+      skillTier: r.skillTier as SkillTier,
+      talentTier: r.talentTier,
+      talentName: r.talentName,
+      games: r.games,
+      wins: r.wins,
+      winRate: r.winRate,
+      pickRate: r.pickRate ?? 0,
+    }
+    if (!result[r.hero]) result[r.hero] = []
+    result[r.hero].push(entry)
+  }
+  return result
+}
+
 /**
  * Pairwise stats: synergies or counters for a hero.
  * The DB stores both directions (A→B and B→A), so we only query heroA = hero
@@ -262,6 +294,48 @@ export async function getPairwiseStats(
     wins: r.wins,
     winRate: r.winRate,
   }))
+}
+
+/**
+ * All pairwise stats for a tier in one query, grouped by hero.
+ * Returns { synergies: hero → HeroPairwiseStats[], counters: hero → HeroPairwiseStats[] }
+ * Only includes heroA rows (not B→A duplicates).
+ */
+export async function getAllPairwiseStats(
+  tier: SkillTier
+): Promise<{
+  synergies: Record<string, HeroPairwiseStats[]>
+  counters: Record<string, HeroPairwiseStats[]>
+}> {
+  const rows = await db
+    .select()
+    .from(heroPairwiseStatsTable)
+    .where(eq(heroPairwiseStatsTable.skillTier, tier))
+    .orderBy(desc(heroPairwiseStatsTable.winRate))
+
+  const synergies: Record<string, HeroPairwiseStats[]> = {}
+  const counters: Record<string, HeroPairwiseStats[]> = {}
+
+  for (const r of rows) {
+    const entry: HeroPairwiseStats = {
+      heroA: r.heroA,
+      heroB: r.heroB,
+      relationship: r.relationship as 'with' | 'against',
+      skillTier: r.skillTier as SkillTier,
+      games: r.games,
+      wins: r.wins,
+      winRate: r.winRate,
+    }
+    if (r.relationship === 'with') {
+      if (!synergies[r.heroA]) synergies[r.heroA] = []
+      synergies[r.heroA].push(entry)
+    } else {
+      if (!counters[r.heroA]) counters[r.heroA] = []
+      counters[r.heroA].push(entry)
+    }
+  }
+
+  return { synergies, counters }
 }
 
 // ---------------------------------------------------------------------------
