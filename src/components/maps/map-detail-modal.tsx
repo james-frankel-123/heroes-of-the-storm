@@ -250,6 +250,7 @@ export function MapDetailModal({
                 <tbody>
                   {filteredHeroes.map((h) => {
                     const role = getHeroRole(h.hero)
+                    const adjWR = confidenceAdjustedWinRate(h.wins, h.games, 50)
                     return (
                       <tr
                         key={h.hero}
@@ -269,10 +270,10 @@ export function MapDetailModal({
                         <td
                           className={cn(
                             'px-3 py-2 text-right font-semibold',
-                            getWinRateColor(h.winRate)
+                            getWinRateColor(adjWR)
                           )}
                         >
-                          {formatPercent(h.winRate)}
+                          {formatPercent(adjWR)}
                         </td>
                         <td className="px-3 py-2 text-right text-muted-foreground">
                           {formatNumber(h.games)}

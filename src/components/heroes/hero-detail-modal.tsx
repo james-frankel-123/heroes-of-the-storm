@@ -171,25 +171,28 @@ export function HeroDetailModal({
                         confidenceAdjustedWinRate(b.wins, b.games, 50) -
                         confidenceAdjustedWinRate(a.wins, a.games, 50)
                       )
-                      .map((ms) => (
-                        <tr
-                          key={ms.map}
-                          className="border-b last:border-0 hover:bg-accent/30"
-                        >
-                          <td className="px-3 py-2 font-medium">{ms.map}</td>
-                          <td
-                            className={cn(
-                              'px-3 py-2 text-right font-semibold',
-                              getWinRateColor(ms.winRate)
-                            )}
+                      .map((ms) => {
+                        const adjWR = confidenceAdjustedWinRate(ms.wins, ms.games, 50)
+                        return (
+                          <tr
+                            key={ms.map}
+                            className="border-b last:border-0 hover:bg-accent/30"
                           >
-                            {formatPercent(ms.winRate)}
-                          </td>
-                          <td className="px-3 py-2 text-right text-muted-foreground">
-                            {formatNumber(ms.games)}
-                          </td>
-                        </tr>
-                      ))}
+                            <td className="px-3 py-2 font-medium">{ms.map}</td>
+                            <td
+                              className={cn(
+                                'px-3 py-2 text-right font-semibold',
+                                getWinRateColor(adjWR)
+                              )}
+                            >
+                              {formatPercent(adjWR)}
+                            </td>
+                            <td className="px-3 py-2 text-right text-muted-foreground">
+                              {formatNumber(ms.games)}
+                            </td>
+                          </tr>
+                        )
+                      })}
                   </tbody>
                 </table>
               </div>

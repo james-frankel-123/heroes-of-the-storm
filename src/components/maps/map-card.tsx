@@ -8,6 +8,7 @@ import {
   formatPercent,
   formatNumber,
   getWinRateColor,
+  confidenceAdjustedWinRate,
 } from '@/lib/utils'
 import type { MapStats, HeroMapStats } from '@/lib/types'
 
@@ -65,6 +66,7 @@ export function MapCard({
           <div className="space-y-1">
             {topHeroes.map((h) => {
               const role = getHeroRole(h.hero)
+              const adjWR = confidenceAdjustedWinRate(h.wins, h.games, 50)
               return (
                 <div
                   key={h.hero}
@@ -88,10 +90,10 @@ export function MapCard({
                     <span
                       className={cn(
                         'font-semibold text-xs w-12 text-right',
-                        getWinRateColor(h.winRate)
+                        getWinRateColor(adjWR)
                       )}
                     >
-                      {formatPercent(h.winRate)}
+                      {formatPercent(adjWR)}
                     </span>
                   </div>
                 </div>
@@ -107,22 +109,25 @@ export function MapCard({
               Weakest Heroes
             </p>
             <div className="space-y-1">
-              {bottomHeroes.map((h) => (
-                <div
-                  key={h.hero}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="text-muted-foreground">{h.hero}</span>
-                  <span
-                    className={cn(
-                      'font-semibold text-xs w-12 text-right',
-                      getWinRateColor(h.winRate)
-                    )}
+              {bottomHeroes.map((h) => {
+                const adjWR = confidenceAdjustedWinRate(h.wins, h.games, 50)
+                return (
+                  <div
+                    key={h.hero}
+                    className="flex items-center justify-between text-sm"
                   >
-                    {formatPercent(h.winRate)}
-                  </span>
-                </div>
-              ))}
+                    <span className="text-muted-foreground">{h.hero}</span>
+                    <span
+                      className={cn(
+                        'font-semibold text-xs w-12 text-right',
+                        getWinRateColor(adjWR)
+                      )}
+                    >
+                      {formatPercent(adjWR)}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
