@@ -187,12 +187,13 @@ export function DraftClient({
   const unavailableHeroes = useMemo(() => {
     const set = expandChoGall(new Set(Object.values(state.selections)))
 
-    // If it's our pick turn with <2 consecutive picks in this turn, Cho'gall is invalid
+    // Block Cho/Gall if the current team has <2 consecutive picks this turn
+    // (applies to both our team and enemy team — it's a game rule, not team-specific)
     if (state.phase === 'drafting' && state.currentStep < DRAFT_SEQUENCE.length) {
       const step = DRAFT_SEQUENCE[state.currentStep]
-      if (step.type === 'pick' && step.team === state.ourTeam) {
+      if (step.type === 'pick') {
         const turnsLeft = consecutivePicksRemaining(
-          state.currentStep, state.ourTeam, state.selections
+          state.currentStep, step.team, state.selections
         )
         if (turnsLeft < 2) {
           set.add('Cho')
@@ -202,7 +203,7 @@ export function DraftClient({
     }
 
     return set
-  }, [state.selections, state.phase, state.currentStep, state.ourTeam])
+  }, [state.selections, state.phase, state.currentStep])
 
   const handleSelectHero = useCallback(
     (hero: string) => dispatch({ type: 'SELECT_HERO', hero }),

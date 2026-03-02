@@ -399,10 +399,11 @@ export function generateRecommendations(
   let available = allHeroes.filter((h) => !unavailable.has(h))
 
   // Cho'gall requires 2 pick slots in the current turn — exclude them
-  // if the team has <2 consecutive picks remaining right now.
-  if (!isBanPhase && isOurTurn) {
+  // if the current team has <2 consecutive picks remaining right now.
+  // This applies to BOTH teams (game rule, not team-specific).
+  if (!isBanPhase) {
     const turnsLeft = consecutivePicksRemaining(
-      state.currentStep, state.ourTeam, state.selections
+      state.currentStep, currentDraftStep.team, state.selections
     )
     if (turnsLeft < 2) {
       available = available.filter((h) => h !== 'Cho' && h !== 'Gall')
