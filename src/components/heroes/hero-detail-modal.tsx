@@ -15,7 +15,6 @@ import {
   formatPercent,
   formatNumber,
   getWinRateColor,
-  confidenceAdjustedWinRate,
 } from '@/lib/utils'
 import type {
   HeroStats,
@@ -167,13 +166,8 @@ export function HeroDetailModal({
                   </thead>
                   <tbody>
                     {[...mapStats]
-                      .sort((a, b) =>
-                        confidenceAdjustedWinRate(b.wins, b.games, 50) -
-                        confidenceAdjustedWinRate(a.wins, a.games, 50)
-                      )
-                      .map((ms) => {
-                        const adjWR = confidenceAdjustedWinRate(ms.wins, ms.games, 50)
-                        return (
+                      .sort((a, b) => b.winRate - a.winRate)
+                      .map((ms) => (
                           <tr
                             key={ms.map}
                             className="border-b last:border-0 hover:bg-accent/30"
@@ -182,17 +176,16 @@ export function HeroDetailModal({
                             <td
                               className={cn(
                                 'px-3 py-2 text-right font-semibold',
-                                getWinRateColor(adjWR)
+                                getWinRateColor(ms.winRate)
                               )}
                             >
-                              {formatPercent(adjWR)}
+                              {formatPercent(ms.winRate)}
                             </td>
                             <td className="px-3 py-2 text-right text-muted-foreground">
                               {formatNumber(ms.games)}
                             </td>
                           </tr>
-                        )
-                      })}
+                        ))}
                   </tbody>
                 </table>
               </div>
