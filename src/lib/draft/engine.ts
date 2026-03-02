@@ -14,7 +14,7 @@
  *
  * Ranking-only factors (sortBoost — affects order, not displayed %):
  *   5. Role need:       +5 for filling critical (tank/healer), scaled by urgency
- *   6. Role penalty:    -15 for 2nd healer/tank, -8 for bad comp
+ *   6. Role penalty:    -25 for 2nd healer/tank, -10 for dup support/bruiser
  */
 
 import {
@@ -81,6 +81,27 @@ function getAvailableBattletags(state: DraftState): string[] {
   return state.playerSlots
     .map((s) => s.battletag)
     .filter((bt): bt is string => bt !== null && !assignedBattletags.has(bt))
+}
+
+/**
+ * Count how many consecutive unfilled pick slots a team has starting
+ * from (and including) a given step index. Stops at the first ban,
+ * the first pick for the other team, or an already-filled slot.
+ * This represents the picks available in the "current turn".
+ */
+export function consecutivePicksRemaining(
+  stepIndex: number,
+  team: 'A' | 'B',
+  selections: Record<number, string>
+): number {
+  let count = 0
+  for (let i = stepIndex; i < DRAFT_SEQUENCE.length; i++) {
+    const s = DRAFT_SEQUENCE[i]
+    if (s.type !== 'pick' || s.team !== team) break
+    if (selections[i]) break // already filled (e.g. Cho'gall companion)
+    count++
+  }
+  return count
 }
 
 /** Format a delta as +X.X or -X.X */
@@ -242,17 +263,21 @@ function scoreRolePenalty(
 
   const balance = calculateRoleBalance(ourPicks)
 
-  // Penalize 2nd healer
+  // Penalize 2nd healer — very heavy, should never appear near top
   if (role === 'Healer' && balance.healer >= 1) {
-    return { type: 'role_penalty', label: 'Already have a healer', delta: -15 }
+    return { type: 'role_penalty', label: 'Already have a healer', delta: -25 }
   }
-  // Penalize 2nd tank
+  // Penalize 2nd tank — very heavy, should never appear near top
   if (role === 'Tank' && balance.tank >= 1) {
-    return { type: 'role_penalty', label: 'Already have a tank', delta: -15 }
+    return { type: 'role_penalty', label: 'Already have a tank', delta: -25 }
   }
-  // Penalize 3rd+ support/bruiser
-  if (role === 'Support' && balance.support >= 2) {
-    return { type: 'role_penalty', label: 'Too many supports', delta: -8 }
+  // Penalize 2nd+ support
+  if (role === 'Support' && balance.support >= 1) {
+    return { type: 'role_penalty', label: 'Already have a support', delta: -10 }
+  }
+  // Penalize 3rd+ bruiser
+  if (role === 'Bruiser' && balance.bruiser >= 2) {
+    return { type: 'role_penalty', label: 'Too many bruisers', delta: -10 }
   }
 
   return null
@@ -373,14 +398,13 @@ export function generateRecommendations(
   const allHeroes = Object.keys(HERO_ROLES)
   let available = allHeroes.filter((h) => !unavailable.has(h))
 
-  // Cho'gall requires 2 pick slots — if our team has <2 picks remaining,
-  // exclude Cho and Gall from our pick suggestions.
+  // Cho'gall requires 2 pick slots in the current turn — exclude them
+  // if the team has <2 consecutive picks remaining right now.
   if (!isBanPhase && isOurTurn) {
-    const totalOurPicks = DRAFT_SEQUENCE.filter(
-      (s) => s.type === 'pick' && s.team === state.ourTeam
-    ).length
-    const picksRemaining = totalOurPicks - ourPicks.length
-    if (picksRemaining < 2) {
+    const turnsLeft = consecutivePicksRemaining(
+      state.currentStep, state.ourTeam, state.selections
+    )
+    if (turnsLeft < 2) {
       available = available.filter((h) => h !== 'Cho' && h !== 'Gall')
     }
   }
