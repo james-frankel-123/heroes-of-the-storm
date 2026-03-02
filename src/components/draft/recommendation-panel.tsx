@@ -107,11 +107,16 @@ export function RecommendationPanel({
                       </span>
                     </div>
 
-                    {/* Reason breakdown — show each delta */}
+                    {/* Reason breakdown */}
                     {rec.reasons.length > 0 && (
                       <div className="flex flex-wrap gap-x-2 gap-y-0.5">
                         {rec.reasons
-                          .filter((r) => Math.abs(r.delta) >= 0.5)
+                          .filter((r) => {
+                            // Role reasons always shown (ranking-only, no delta threshold)
+                            if (r.type === 'role_need' || r.type === 'role_penalty') return true
+                            // Data-backed reasons need meaningful delta
+                            return Math.abs(r.delta) >= 0.5
+                          })
                           .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
                           .slice(0, 4)
                           .map((reason, ri) => (

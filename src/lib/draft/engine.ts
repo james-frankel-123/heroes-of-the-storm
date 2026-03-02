@@ -2,16 +2,18 @@
  * Draft recommendation engine.
  *
  * Scores each hero as a net win-rate delta from a 50% baseline.
- * Every factor is expressed in percentage points so the final score
- * reads as "we estimate picking this hero shifts our win probability
+ * Every data-backed factor is expressed in percentage points so the
+ * displayed score reads as "picking this hero shifts our win probability
  * by +X%".
  *
- * Factors:
+ * Data-backed factors (shown as netDelta):
  *   1. Hero base WR:    (heroWR - 50)
  *   2. Counter-picks:   sum of (pairwise vs enemy - 50) for each enemy
  *   3. Synergies:       sum of (pairwise with ally - 50) for each ally
  *   4. Player strength: best available battletag's (MAWP - 50) on this hero
- *   5. Role need:       +3 for filling critical, +1.5 for important
+ *
+ * Ranking-only factors (sortBoost — affects order, not displayed %):
+ *   5. Role need:       +5 for filling critical (tank/healer), scaled by urgency
  *   6. Role penalty:    -15 for 2nd healer/tank, -8 for bad comp
  */
 
@@ -258,12 +260,13 @@ function scoreBanCandidate(
   data: DraftData,
   picksToProtect: string[],
   opponentPicks: string[]
-): { netDelta: number; reasons: RecommendationReason[] } {
+): { netDelta: number; sortBoost: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
   let netDelta = 0
+  let sortBoost = 0
 
   const stats = data.heroStats[hero]
-  if (!stats) return { netDelta: 0, reasons: [] }
+  if (!stats) return { netDelta: 0, sortBoost: 0, reasons: [] }
 
   // High WR = good ban target (denying a strong hero)
   const wrDelta = Math.round((stats.winRate - 50) * 10) / 10
@@ -302,10 +305,11 @@ function scoreBanCandidate(
   }
 
   // Role-aware: don't ban a healer/tank if opponent already has one
+  // This is a ranking heuristic, not data-backed WR — goes into sortBoost
   const heroRole = getHeroRole(hero)
   const opponentBalance = calculateRoleBalance(opponentPicks)
   if (heroRole === 'Healer' && opponentBalance.healer >= 1) {
-    netDelta -= 8
+    sortBoost -= 8
     reasons.push({
       type: 'role_penalty',
       label: 'Opponent already has healer',
@@ -313,7 +317,7 @@ function scoreBanCandidate(
     })
   }
   if (heroRole === 'Tank' && opponentBalance.tank >= 1) {
-    netDelta -= 8
+    sortBoost -= 8
     reasons.push({
       type: 'role_penalty',
       label: 'Opponent already has tank',
@@ -321,7 +325,7 @@ function scoreBanCandidate(
     })
   }
 
-  return { netDelta: Math.round(netDelta * 10) / 10, reasons }
+  return { netDelta: Math.round(netDelta * 10) / 10, sortBoost, reasons }
 }
 
 // ---------------------------------------------------------------------------
@@ -352,10 +356,10 @@ export function generateRecommendations(
     const picksToProtect = isOurTurn ? ourPicks : enemyPicks
     const opponentPicks = isOurTurn ? enemyPicks : ourPicks
     const scored = available.map((hero) => {
-      const { netDelta, reasons } = scoreBanCandidate(hero, data, picksToProtect, opponentPicks)
-      return { hero, netDelta, reasons, suggestedPlayer: null }
+      const { netDelta, sortBoost, reasons } = scoreBanCandidate(hero, data, picksToProtect, opponentPicks)
+      return { hero, netDelta, sortBoost, reasons, suggestedPlayer: null }
     })
-    return scored.sort((a, b) => b.netDelta - a.netDelta).slice(0, 15)
+    return scored.sort((a, b) => (b.netDelta + b.sortBoost) - (a.netDelta + a.sortBoost)).slice(0, 15)
   }
 
   if (!isOurTurn) {
@@ -386,54 +390,58 @@ export function generateRecommendations(
       return {
         hero,
         netDelta: Math.round(netDelta * 10) / 10,
+        sortBoost: 0,
         reasons,
         suggestedPlayer: null,
       }
     })
-    return scored.sort((a, b) => b.netDelta - a.netDelta).slice(0, 15)
+    return scored.sort((a, b) => (b.netDelta + b.sortBoost) - (a.netDelta + a.sortBoost)).slice(0, 15)
   }
 
   // Our pick — full scoring
+  const totalOurPickSlots = DRAFT_SEQUENCE.filter(
+    (s) => s.type === 'pick' && s.team === state.ourTeam
+  ).length
+
   const scored = available.map((hero) => {
     const reasons: RecommendationReason[] = []
     let netDelta = 0
+    let sortBoost = 0
 
-    // 1. Hero base WR
+    // 1. Hero base WR — data-backed, goes into netDelta
     const heroWR = scoreHeroWR(hero, data)
     if (heroWR) { reasons.push(heroWR); netDelta += heroWR.delta }
 
-    // 2. Counter-picks vs enemy
+    // 2. Counter-picks vs enemy — data-backed
     const counterReasons = scoreCounters(hero, enemyPicks, data)
     for (const r of counterReasons) { reasons.push(r); netDelta += r.delta }
 
-    // 3. Synergies with allies
+    // 3. Synergies with allies — data-backed
     const synergyReasons = scoreSynergies(hero, ourPicks, data)
     for (const r of synergyReasons) { reasons.push(r); netDelta += r.delta }
 
-    // 4. Player strength (only from unassigned battletags)
+    // 4. Player strength — data-backed
     const { reason: playerReason, player } = scorePlayerStrength(
       hero, availableBattletags, data
     )
     if (playerReason) { reasons.push(playerReason); netDelta += playerReason.delta }
 
-    // 5. Role need bonus (urgency scales with picks remaining)
-    const totalOurPickSlots = DRAFT_SEQUENCE.filter(
-      (s) => s.type === 'pick' && s.team === state.ourTeam
-    ).length
+    // 5. Role need — ranking boost only (not shown in netDelta)
     const roleNeed = scoreRoleNeed(hero, ourPicks, totalOurPickSlots)
-    if (roleNeed) { reasons.push(roleNeed); netDelta += roleNeed.delta }
+    if (roleNeed) { reasons.push(roleNeed); sortBoost += roleNeed.delta }
 
-    // 6. Role penalty
+    // 6. Role penalty — ranking penalty only (not shown in netDelta)
     const rolePenalty = scoreRolePenalty(hero, ourPicks)
-    if (rolePenalty) { reasons.push(rolePenalty); netDelta += rolePenalty.delta }
+    if (rolePenalty) { reasons.push(rolePenalty); sortBoost += rolePenalty.delta }
 
     return {
       hero,
       netDelta: Math.round(netDelta * 10) / 10,
+      sortBoost: Math.round(sortBoost * 10) / 10,
       reasons,
       suggestedPlayer: player,
     }
   })
 
-  return scored.sort((a, b) => b.netDelta - a.netDelta).slice(0, 15)
+  return scored.sort((a, b) => (b.netDelta + b.sortBoost) - (a.netDelta + a.sortBoost)).slice(0, 15)
 }

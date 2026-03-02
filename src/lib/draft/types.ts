@@ -89,8 +89,10 @@ export interface RecommendationReason {
 
 export interface DraftRecommendation {
   hero: string
-  /** Net expected win rate delta from 50% baseline (sum of all deltas) */
+  /** Net expected win rate delta from 50% baseline (data-backed factors only) */
   netDelta: number
+  /** Hidden boost for sorting only (role need/penalty). Not displayed. */
+  sortBoost: number
   reasons: RecommendationReason[]
   /** If a specific player should play this hero */
   suggestedPlayer: string | null
