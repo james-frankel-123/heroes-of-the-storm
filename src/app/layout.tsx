@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { NavHeader } from '@/components/layout/nav-header'
+import { NavProgress } from '@/components/layout/nav-progress'
 import './globals.css'
 
 const inter = Inter({
@@ -29,6 +30,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="min-h-screen gradient-gaming">
+            <NavProgress />
             <NavHeader />
             <main className="container py-6">{children}</main>
           </div>
