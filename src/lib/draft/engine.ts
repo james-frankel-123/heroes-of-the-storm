@@ -13,7 +13,8 @@
  *   4. Player strength: best available battletag's (MAWP - 50) on this hero
  *
  * Ranking-only factors (sortBoost — affects order, not displayed %):
- *   5. Role need:       +5 for filling critical (tank/healer), scaled by urgency
+ *   5. Role need:       +5 for tank/healer, +4 for damage/bruiser, scaled by urgency
+ *                       (1x at 4+ picks, 1.5x at 3, 3.5x at 2, 5x at last pick)
  *   6. Role penalty:    -25 for 2nd healer/tank, -10 for dup support/bruiser
  */
 
@@ -222,9 +223,11 @@ function scoreRoleNeed(
   const picksRemaining = totalOurPickSlots - ourPicks.length
 
   // Scale urgency: the fewer picks remaining, the more critical unfilled roles are.
-  // At 5 picks remaining (start): base bonus. At 1 pick remaining (last): 3x bonus.
-  const urgency = picksRemaining <= 1 ? 3.0
-    : picksRemaining <= 2 ? 2.0
+  // At 5 picks remaining (start): base bonus. At 1 pick remaining (last): 5x bonus.
+  // At 2 remaining the multiplier is high enough (3.5x) that missing core roles
+  // (tank/healer/bruiser) dominate the ranking over raw WR differences.
+  const urgency = picksRemaining <= 1 ? 5.0
+    : picksRemaining <= 2 ? 3.5
     : picksRemaining <= 3 ? 1.5
     : 1.0
 
@@ -241,13 +244,13 @@ function scoreRoleNeed(
   // Important: no damage yet
   if ((role === 'Ranged Assassin' || role === 'Melee Assassin') &&
       balance.rangedAssassin + balance.meleeAssassin === 0) {
-    const delta = Math.round(3 * urgency * 10) / 10
+    const delta = Math.round(4 * urgency * 10) / 10
     return { type: 'role_need', label: 'Fills Damage', delta }
   }
-  // Useful: no bruiser/melee and we have a tank
+  // Important: no bruiser/melee and we have a tank
   if ((role === 'Bruiser' || role === 'Melee Assassin') &&
       balance.bruiser === 0 && balance.meleeAssassin === 0 && balance.tank >= 1) {
-    const delta = Math.round(2 * urgency * 10) / 10
+    const delta = Math.round(4 * urgency * 10) / 10
     return { type: 'role_need', label: 'Fills Bruiser/Melee', delta }
   }
 
