@@ -342,13 +342,37 @@ export async function getAllPairwiseStats(
 // Meta / Dashboard queries
 // ---------------------------------------------------------------------------
 
+/**
+ * Merge Cho and Gall into a single "Cho'gall" entry.
+ * They're one hero played by two people — aggregate stats are identical
+ * (same games, same wins, same WR). We keep whichever row has more games
+ * (they should be equal) and rename to Cho'gall.
+ */
+function mergeChoGall(heroes: HeroStats[]): HeroStats[] {
+  const cho = heroes.find((h) => h.hero === 'Cho')
+  const gall = heroes.find((h) => h.hero === 'Gall')
+  const merged = heroes.filter((h) => h.hero !== 'Cho' && h.hero !== 'Gall')
+
+  // Use whichever has data (they should be identical); prefer Cho's row
+  const base = cho ?? gall
+  if (base) {
+    merged.push({ ...base, hero: "Cho'gall" })
+  }
+
+  return merged
+}
+
 /** Top N heroes by win rate for a tier */
 export async function getTopHeroes(
   tier: SkillTier,
   limit = 10
 ): Promise<HeroStats[]> {
   const all = await getHeroStats(tier)
-  return all.filter((h) => h.games >= 50).slice(0, limit)
+  const merged = mergeChoGall(all)
+  return merged
+    .filter((h) => h.games >= 50)
+    .sort((a, b) => b.winRate - a.winRate)
+    .slice(0, limit)
 }
 
 /** Bottom N heroes by win rate for a tier */
@@ -357,9 +381,10 @@ export async function getBottomHeroes(
   limit = 10
 ): Promise<HeroStats[]> {
   const all = await getHeroStats(tier)
-  return all
+  const merged = mergeChoGall(all)
+  return merged
     .filter((h) => h.games >= 50)
-    .reverse()
+    .sort((a, b) => a.winRate - b.winRate)
     .slice(0, limit)
 }
 

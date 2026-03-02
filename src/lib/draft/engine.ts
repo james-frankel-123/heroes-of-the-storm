@@ -32,11 +32,24 @@ import {
 import { confidenceAdjustedMawp } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
+// Cho'gall pairing — they must be picked/banned together
+// ---------------------------------------------------------------------------
+
+/** If Cho or Gall is in the set, add the other */
+export function expandChoGall(heroes: Set<string>): Set<string> {
+  if (heroes.has('Cho') || heroes.has('Gall')) {
+    heroes.add('Cho')
+    heroes.add('Gall')
+  }
+  return heroes
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function getUnavailableHeroes(state: DraftState): Set<string> {
-  return new Set(Object.values(state.selections))
+  return expandChoGall(new Set(Object.values(state.selections)))
 }
 
 function getOurPicks(state: DraftState): string[] {
@@ -302,6 +315,17 @@ function scoreBanCandidate(
       })
       netDelta += delta
     }
+  }
+
+  // High pick rate = likely to be picked if not banned (ranking boost)
+  if (stats.pickRate >= 10) {
+    const pickBoost = Math.round(stats.pickRate * 0.3 * 10) / 10
+    sortBoost += pickBoost
+    reasons.push({
+      type: 'ban_worthy',
+      label: `${stats.pickRate.toFixed(0)}% pick rate`,
+      delta: pickBoost,
+    })
   }
 
   // Role-aware: don't ban a healer/tank if opponent already has one

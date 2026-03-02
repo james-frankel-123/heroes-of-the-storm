@@ -6,7 +6,7 @@ import { DraftBoard } from '@/components/draft/draft-board'
 import { HeroPicker } from '@/components/draft/hero-picker'
 import { RecommendationPanel } from '@/components/draft/recommendation-panel'
 import { PlayerSlots } from '@/components/draft/player-slots'
-import { generateRecommendations } from '@/lib/draft/engine'
+import { generateRecommendations, expandChoGall } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
 import type { DraftState, DraftPhase, DraftData, Team } from '@/lib/draft/types'
 import type { SkillTier } from '@/lib/types'
@@ -132,8 +132,9 @@ export function DraftClient({
   }, [state, draftData])
 
   // Heroes that are already selected (banned or picked)
+  // Cho'gall: if either Cho or Gall is selected, both are unavailable
   const unavailableHeroes = useMemo(
-    () => new Set(Object.values(state.selections)),
+    () => expandChoGall(new Set(Object.values(state.selections))),
     [state.selections]
   )
 

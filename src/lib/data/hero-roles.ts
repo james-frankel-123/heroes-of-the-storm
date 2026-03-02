@@ -8,6 +8,7 @@ export const HERO_ROLES: Record<string, HeroRole> = {
   'Anub\'arak': 'Tank',
   'Arthas': 'Tank',
   'Blaze': 'Tank',
+  'Cho': 'Tank',
   'Diablo': 'Tank',
   'E.T.C.': 'Tank',
   'Garrosh': 'Tank',
@@ -21,7 +22,7 @@ export const HERO_ROLES: Record<string, HeroRole> = {
   // Bruisers
   'Artanis': 'Bruiser',
   'Chen': 'Bruiser',
-  'Cho': 'Bruiser',
+  'Deathwing': 'Bruiser',
   'Dehaka': 'Bruiser',
   'D.Va': 'Bruiser',
   'Gazlowe': 'Bruiser',
@@ -77,6 +78,7 @@ export const HERO_ROLES: Record<string, HeroRole> = {
   'Tracer': 'Ranged Assassin',
   'Tychus': 'Ranged Assassin',
   'Valla': 'Ranged Assassin',
+  'Zagara': 'Ranged Assassin',
   'Zul\'jin': 'Ranged Assassin',
 
   // Healers
@@ -106,6 +108,8 @@ export const HERO_ROLES: Record<string, HeroRole> = {
 }
 
 export function getHeroRole(hero: string): HeroRole | null {
+  // Cho'gall is a merged display name used on the dashboard
+  if (hero === "Cho'gall") return 'Tank'
   return HERO_ROLES[hero] || null
 }
 
