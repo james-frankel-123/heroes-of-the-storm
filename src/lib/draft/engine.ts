@@ -15,7 +15,6 @@
  * Ranking-only factors (sortBoost — affects order, not displayed %):
  *   5. Composition WR:  data-driven boost/penalty based on achievable team compositions
  *                       from Heroes Profile. Scaled by picks made (0 at start → full at last pick).
- *                       Falls back to old role need/penalty heuristics if no comp data.
  */
 
 import {
@@ -226,81 +225,6 @@ function scorePlayerStrength(
   return { reason: null, player: bestPlayer }
 }
 
-function scoreRoleNeed(
-  hero: string,
-  ourPicks: string[],
-  totalOurPickSlots: number
-): RecommendationReason | null {
-  const role = getHeroRole(hero)
-  if (!role) return null
-
-  const balance = calculateRoleBalance(ourPicks)
-  const picksRemaining = totalOurPickSlots - ourPicks.length
-
-  // Scale urgency: the fewer picks remaining, the more critical unfilled roles are.
-  // At 5 picks remaining (start): base bonus. At 1 pick remaining (last): 5x bonus.
-  // At 2 remaining the multiplier is high enough (3.5x) that missing core roles
-  // (tank/healer/bruiser) dominate the ranking over raw WR differences.
-  const urgency = picksRemaining <= 1 ? 5.0
-    : picksRemaining <= 2 ? 3.5
-    : picksRemaining <= 3 ? 1.5
-    : 1.0
-
-  // Critical: no tank yet
-  if (role === 'Tank' && balance.tank === 0) {
-    const delta = Math.round(5 * urgency * 10) / 10
-    return { type: 'role_need', label: 'Fills Tank', delta }
-  }
-  // Critical: no healer yet
-  if (role === 'Healer' && balance.healer === 0) {
-    const delta = Math.round(5 * urgency * 10) / 10
-    return { type: 'role_need', label: 'Fills Healer', delta }
-  }
-  // Important: no damage yet
-  if ((role === 'Ranged Assassin' || role === 'Melee Assassin') &&
-      balance.rangedAssassin + balance.meleeAssassin === 0) {
-    const delta = Math.round(4 * urgency * 10) / 10
-    return { type: 'role_need', label: 'Fills Damage', delta }
-  }
-  // Important: no bruiser/melee and we have a tank
-  if ((role === 'Bruiser' || role === 'Melee Assassin') &&
-      balance.bruiser === 0 && balance.meleeAssassin === 0 && balance.tank >= 1) {
-    const delta = Math.round(4 * urgency * 10) / 10
-    return { type: 'role_need', label: 'Fills Bruiser/Melee', delta }
-  }
-
-  return null
-}
-
-function scoreRolePenalty(
-  hero: string,
-  ourPicks: string[]
-): RecommendationReason | null {
-  const role = getHeroRole(hero)
-  if (!role) return null
-
-  const balance = calculateRoleBalance(ourPicks)
-
-  // Penalize 2nd healer — very heavy, should never appear near top
-  if (role === 'Healer' && balance.healer >= 1) {
-    return { type: 'role_penalty', label: 'Already have a healer', delta: -25 }
-  }
-  // Penalize 2nd tank — very heavy, should never appear near top
-  if (role === 'Tank' && balance.tank >= 1) {
-    return { type: 'role_penalty', label: 'Already have a tank', delta: -25 }
-  }
-  // Penalize 2nd+ support
-  if (role === 'Support' && balance.support >= 1) {
-    return { type: 'role_penalty', label: 'Already have a support', delta: -10 }
-  }
-  // Penalize 3rd+ bruiser
-  if (role === 'Bruiser' && balance.bruiser >= 2) {
-    return { type: 'role_penalty', label: 'Too many bruisers', delta: -10 }
-  }
-
-  return null
-}
-
 // ---------------------------------------------------------------------------
 // Ban scoring
 // ---------------------------------------------------------------------------
@@ -478,10 +402,6 @@ export function generateRecommendations(
   }
 
   // Our pick — full scoring
-  const totalOurPickSlots = DRAFT_SEQUENCE.filter(
-    (s) => s.type === 'pick' && s.team === state.ourTeam
-  ).length
-
   const scored = available.map((hero) => {
     const reasons: RecommendationReason[] = []
     let netDelta = 0
@@ -505,20 +425,12 @@ export function generateRecommendations(
     )
     if (playerReason) { reasons.push(playerReason); netDelta += playerReason.delta }
 
-    // 5. Composition win rate — data-driven replacement for role need/penalty
-    if (data.compositions.length > 0) {
-      const { sortBoost: compBoost, reason: compReason } = scoreCompositionForHero(
-        hero, ourPicks, data.compositions, data.baselineCompWR
-      )
-      if (compReason) { reasons.push(compReason) }
-      sortBoost += compBoost
-    } else {
-      // Fallback to old heuristics if no composition data
-      const roleNeed = scoreRoleNeed(hero, ourPicks, totalOurPickSlots)
-      if (roleNeed) { reasons.push(roleNeed); sortBoost += roleNeed.delta }
-      const rolePenalty = scoreRolePenalty(hero, ourPicks)
-      if (rolePenalty) { reasons.push(rolePenalty); sortBoost += rolePenalty.delta }
-    }
+    // 5. Composition win rate — data-driven role/comp scoring
+    const { sortBoost: compBoost, reason: compReason } = scoreCompositionForHero(
+      hero, ourPicks, data.compositions, data.baselineCompWR
+    )
+    if (compReason) { reasons.push(compReason) }
+    sortBoost += compBoost
 
     return {
       hero,

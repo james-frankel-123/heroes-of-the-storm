@@ -211,16 +211,25 @@ export function DraftClient({
       return { ourWinPct: null, enemyWinPct: null }
     }
 
-    const our = ourPicks.length > 0
+    const ourRaw = ourPicks.length > 0
       ? computeTeamWinEstimate(ourPicks, enemyPicks, draftData, ourPlayerMap)
       : null
-    const enemy = enemyPicks.length > 0
+    const enemyRaw = enemyPicks.length > 0
       ? computeTeamWinEstimate(enemyPicks, ourPicks, draftData)
       : null
 
+    // Normalize so the two percentages sum to 100
+    if (ourRaw && enemyRaw) {
+      const sum = ourRaw.winPct + enemyRaw.winPct
+      return {
+        ourWinPct: Math.round(ourRaw.winPct / sum * 1000) / 10,
+        enemyWinPct: Math.round(enemyRaw.winPct / sum * 1000) / 10,
+      }
+    }
+
     return {
-      ourWinPct: our?.winPct ?? null,
-      enemyWinPct: enemy?.winPct ?? null,
+      ourWinPct: ourRaw?.winPct ?? null,
+      enemyWinPct: enemyRaw?.winPct ?? null,
     }
   }, [state.selections, state.playerAssignments, state.ourTeam, draftData])
 
