@@ -13,9 +13,9 @@
  *   4. Player strength: best available battletag's (MAWP - 50) on this hero
  *
  * Ranking-only factors (sortBoost — affects order, not displayed %):
- *   5. Role need:       +5 for tank/healer, +4 for damage/bruiser, scaled by urgency
- *                       (1x at 4+ picks, 1.5x at 3, 3.5x at 2, 5x at last pick)
- *   6. Role penalty:    -25 for 2nd healer/tank, -10 for dup support/bruiser
+ *   5. Composition WR:  data-driven boost/penalty based on achievable team compositions
+ *                       from Heroes Profile. Scaled by picks made (0 at start → full at last pick).
+ *                       Falls back to old role need/penalty heuristics if no comp data.
  */
 
 import {
@@ -31,6 +31,7 @@ import {
   HERO_ROLES,
 } from '@/lib/data/hero-roles'
 import { confidenceAdjustedMawp } from '@/lib/utils'
+import { scoreCompositionForHero } from './composition'
 
 // ---------------------------------------------------------------------------
 // Cho'gall pairing — they must be picked/banned together
@@ -114,19 +115,33 @@ function fmtDelta(d: number): string {
 // Scoring — each returns reasons with deltas in percentage points
 // ---------------------------------------------------------------------------
 
+/** Resolve hero win rate: prefer map-specific data, fall back to overall. */
+export function getHeroWinRate(
+  hero: string,
+  data: DraftData
+): { winRate: number; games: number; isMapSpecific: boolean } | null {
+  const mapStats = data.heroMapWinRates[hero]
+  if (mapStats && mapStats.games >= 50) {
+    return { winRate: mapStats.winRate, games: mapStats.games, isMapSpecific: true }
+  }
+  const stats = data.heroStats[hero]
+  if (!stats) return null
+  return { winRate: stats.winRate, games: stats.games, isMapSpecific: false }
+}
+
 function scoreHeroWR(
   hero: string,
   data: DraftData
 ): RecommendationReason | null {
-  const stats = data.heroStats[hero]
-  if (!stats || stats.games < 100) return null
+  const resolved = getHeroWinRate(hero, data)
+  if (!resolved || resolved.games < 100) return null
 
-  const delta = Math.round((stats.winRate - 50) * 10) / 10
+  const delta = Math.round((resolved.winRate - 50) * 10) / 10
   if (Math.abs(delta) < 0.5) return null
 
   return {
     type: 'hero_wr',
-    label: `${hero} ${fmtDelta(delta)} base WR`,
+    label: `${hero} ${fmtDelta(delta)}${resolved.isMapSpecific ? ' map' : ''} WR`,
     delta,
   }
 }
@@ -490,13 +505,20 @@ export function generateRecommendations(
     )
     if (playerReason) { reasons.push(playerReason); netDelta += playerReason.delta }
 
-    // 5. Role need — ranking boost only (not shown in netDelta)
-    const roleNeed = scoreRoleNeed(hero, ourPicks, totalOurPickSlots)
-    if (roleNeed) { reasons.push(roleNeed); sortBoost += roleNeed.delta }
-
-    // 6. Role penalty — ranking penalty only (not shown in netDelta)
-    const rolePenalty = scoreRolePenalty(hero, ourPicks)
-    if (rolePenalty) { reasons.push(rolePenalty); sortBoost += rolePenalty.delta }
+    // 5. Composition win rate — data-driven replacement for role need/penalty
+    if (data.compositions.length > 0) {
+      const { sortBoost: compBoost, reason: compReason } = scoreCompositionForHero(
+        hero, ourPicks, data.compositions, data.baselineCompWR
+      )
+      if (compReason) { reasons.push(compReason) }
+      sortBoost += compBoost
+    } else {
+      // Fallback to old heuristics if no composition data
+      const roleNeed = scoreRoleNeed(hero, ourPicks, totalOurPickSlots)
+      if (roleNeed) { reasons.push(roleNeed); sortBoost += roleNeed.delta }
+      const rolePenalty = scoreRolePenalty(hero, ourPicks)
+      if (rolePenalty) { reasons.push(rolePenalty); sortBoost += rolePenalty.delta }
+    }
 
     return {
       hero,

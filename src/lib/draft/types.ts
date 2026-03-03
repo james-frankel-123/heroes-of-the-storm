@@ -73,6 +73,13 @@ export interface DraftState {
   playerAssignments: Record<number, string>
 }
 
+export interface CompositionData {
+  roles: string[]
+  winRate: number
+  games: number
+  popularity: number
+}
+
 export interface RecommendationReason {
   type:
     | 'hero_wr'         // Hero base win rate delta from 50%
@@ -82,6 +89,7 @@ export interface RecommendationReason {
     | 'role_penalty'    // Bad composition (duplicate healer/tank, etc.)
     | 'player_strong'   // A player on the team is strong with this hero
     | 'ban_worthy'      // High ban/win rate (for ban suggestions)
+    | 'comp_wr'         // Composition win rate from data
   label: string
   /** Win rate delta in percentage points (e.g. +3.2 or -2.0) */
   delta: number
@@ -128,4 +136,8 @@ export interface DraftData {
     winRate: number
     games: number
   }>>
+  /** Composition win rate data for the current tier */
+  compositions: CompositionData[]
+  /** Popularity-weighted average composition win rate (baseline) */
+  baselineCompWR: number
 }

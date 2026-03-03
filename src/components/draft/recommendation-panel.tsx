@@ -26,6 +26,7 @@ function reasonColor(type: RecommendationReason['type']): string {
     case 'role_penalty': return 'text-orange-400'
     case 'player_strong': return 'text-purple-400'
     case 'ban_worthy': return 'text-red-400'
+    case 'comp_wr': return 'text-blue-400'
   }
 }
 
@@ -112,8 +113,8 @@ export function RecommendationPanel({
                       <div className="flex flex-wrap gap-x-2 gap-y-0.5">
                         {rec.reasons
                           .filter((r) => {
-                            // Role reasons always shown (ranking-only, no delta threshold)
-                            if (r.type === 'role_need' || r.type === 'role_penalty') return true
+                            // Role/composition reasons always shown (ranking-only, no delta threshold)
+                            if (r.type === 'role_need' || r.type === 'role_penalty' || r.type === 'comp_wr') return true
                             // Data-backed reasons need meaningful delta
                             return Math.abs(r.delta) >= 0.5
                           })

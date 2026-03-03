@@ -5,6 +5,7 @@ import { createDb } from './db'
 import { syncGlobalStats } from './sync-global'
 import { syncPlayerData, BattletagConfig } from './sync-players'
 import { computeDerivedStats } from './compute-derived'
+import { syncCompositions } from './sync-compositions'
 import { log } from './logger'
 
 // ── Configuration ────────────────────────────────────────────────────
@@ -72,6 +73,13 @@ async function main() {
 
   const db = createDb()
   const api = new HeroesProfileApi(apiKey)
+
+  // ── Phase 0: Composition data (scraped, no API key needed) ──
+  try {
+    await syncCompositions()
+  } catch (err) {
+    log.error('Composition sync failed (non-fatal)', err)
+  }
 
   // ── Phase 1: Global aggregate stats ──
   let globalLogId: number | undefined

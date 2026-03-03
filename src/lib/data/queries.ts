@@ -36,7 +36,9 @@ import type {
   TrackedBattletag,
 } from '@/lib/types'
 
-import type { DraftData } from '@/lib/draft/types'
+import type { DraftData, CompositionData } from '@/lib/draft/types'
+import compositionsJson from '@/lib/data/compositions.json'
+import { computeBaselineCompWR } from '@/lib/draft/composition'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -837,6 +839,11 @@ export async function getDraftData(
     }
   }
 
+  // Composition data from static JSON
+  const allComps = compositionsJson as Record<string, CompositionData[]>
+  const compositions = allComps[tier] ?? []
+  const baselineCompWR = computeBaselineCompWR(compositions)
+
   return {
     heroStats,
     heroMapWinRates,
@@ -844,6 +851,8 @@ export async function getDraftData(
     counters,
     playerStats,
     playerMapStats,
+    compositions,
+    baselineCompWR,
   }
 }
 

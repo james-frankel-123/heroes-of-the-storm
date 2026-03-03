@@ -1,6 +1,7 @@
 'use client'
 
 import { useReducer, useMemo, useCallback } from 'react'
+import { computeTeamWinEstimate } from '@/lib/draft/win-estimate'
 import { TierSelector } from '@/components/shared/tier-selector'
 import { DraftBoard } from '@/components/draft/draft-board'
 import { HeroPicker } from '@/components/draft/hero-picker'
@@ -180,6 +181,48 @@ export function DraftClient({
     if (!draftData || state.phase !== 'drafting') return []
     return generateRecommendations(state, draftData)
   }, [state, draftData])
+
+  // Compute running win % for both teams
+  const { ourWinPct, enemyWinPct } = useMemo(() => {
+    if (!draftData) return { ourWinPct: null, enemyWinPct: null }
+
+    const enemyTeam = state.ourTeam === 'A' ? 'B' : 'A'
+    const ourPicks: string[] = []
+    const enemyPicks: string[] = []
+    // Map pick array index → battletag for player assignment lookup
+    const ourPlayerMap: Record<number, string> = {}
+
+    for (let i = 0; i < DRAFT_SEQUENCE.length; i++) {
+      const step = DRAFT_SEQUENCE[i]
+      const hero = state.selections[i]
+      if (!hero || step.type !== 'pick') continue
+      if (step.team === state.ourTeam) {
+        const pickIdx = ourPicks.length
+        ourPicks.push(hero)
+        if (state.playerAssignments[i]) {
+          ourPlayerMap[pickIdx] = state.playerAssignments[i]
+        }
+      } else {
+        enemyPicks.push(hero)
+      }
+    }
+
+    if (ourPicks.length === 0 && enemyPicks.length === 0) {
+      return { ourWinPct: null, enemyWinPct: null }
+    }
+
+    const our = ourPicks.length > 0
+      ? computeTeamWinEstimate(ourPicks, enemyPicks, draftData, ourPlayerMap)
+      : null
+    const enemy = enemyPicks.length > 0
+      ? computeTeamWinEstimate(enemyPicks, ourPicks, draftData)
+      : null
+
+    return {
+      ourWinPct: our?.winPct ?? null,
+      enemyWinPct: enemy?.winPct ?? null,
+    }
+  }, [state.selections, state.playerAssignments, state.ourTeam, draftData])
 
   // Heroes that are already selected (banned or picked)
   // Cho'gall: if either Cho or Gall is selected, both are unavailable
@@ -382,6 +425,8 @@ export function DraftClient({
         onAssignPlayer={(stepIdx, bt) =>
           dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })
         }
+        teamAWinPct={state.ourTeam === 'A' ? ourWinPct : enemyWinPct}
+        teamBWinPct={state.ourTeam === 'B' ? ourWinPct : enemyWinPct}
       />
 
       {/* Main drafting area */}

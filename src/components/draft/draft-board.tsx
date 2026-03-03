@@ -26,6 +26,10 @@ interface DraftBoardProps {
   /** All battletags assigned so far: stepIndex → battletag */
   playerAssignments: Record<number, string>
   onAssignPlayer: (stepIndex: number, battletag: string) => void
+  /** Running win % for Team A (null if no picks yet) */
+  teamAWinPct: number | null
+  /** Running win % for Team B (null if no picks yet) */
+  teamBWinPct: number | null
 }
 
 export function DraftBoard({
@@ -34,6 +38,8 @@ export function DraftBoard({
   availableBattletags,
   playerAssignments,
   onAssignPlayer,
+  teamAWinPct,
+  teamBWinPct,
 }: DraftBoardProps) {
   // Separate into Team A and Team B rows
   const teamABans: { stepIdx: number; hero: string | null }[] = []
@@ -67,6 +73,7 @@ export function DraftBoard({
         availableBattletags={availableBattletags}
         playerAssignments={playerAssignments}
         onAssignPlayer={onAssignPlayer}
+        winPct={teamAWinPct}
       />
 
       {/* Divider */}
@@ -82,9 +89,16 @@ export function DraftBoard({
         availableBattletags={availableBattletags}
         playerAssignments={playerAssignments}
         onAssignPlayer={onAssignPlayer}
+        winPct={teamBWinPct}
       />
     </div>
   )
+}
+
+function winPctColor(pct: number): string {
+  if (pct > 53) return 'text-gaming-success bg-gaming-success/10 border-gaming-success/30'
+  if (pct < 47) return 'text-gaming-danger bg-gaming-danger/10 border-gaming-danger/30'
+  return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30'
 }
 
 function TeamRow({
@@ -96,6 +110,7 @@ function TeamRow({
   availableBattletags,
   playerAssignments,
   onAssignPlayer,
+  winPct,
 }: {
   teamLabel: string
   isOurs: boolean
@@ -105,17 +120,30 @@ function TeamRow({
   availableBattletags: string[]
   playerAssignments: Record<number, string>
   onAssignPlayer: (stepIndex: number, battletag: string) => void
+  winPct: number | null
 }) {
   return (
     <div className="space-y-2">
-      <p
-        className={cn(
-          'text-xs font-semibold uppercase tracking-wider',
-          isOurs ? 'text-primary' : 'text-muted-foreground'
+      <div className="flex items-center gap-2">
+        <p
+          className={cn(
+            'text-xs font-semibold uppercase tracking-wider',
+            isOurs ? 'text-primary' : 'text-muted-foreground'
+          )}
+        >
+          {teamLabel}
+        </p>
+        {winPct !== null && (
+          <span
+            className={cn(
+              'text-[10px] font-bold px-1.5 py-0.5 rounded border tabular-nums',
+              winPctColor(winPct)
+            )}
+          >
+            {winPct.toFixed(1)}%
+          </span>
         )}
-      >
-        {teamLabel}
-      </p>
+      </div>
       <div className="flex items-center gap-4">
         {/* Bans */}
         <div className="flex items-center gap-1.5">
