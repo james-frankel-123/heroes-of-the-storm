@@ -24,6 +24,7 @@ type DraftAction =
   | { type: 'SET_PLAYER'; slotIndex: number; battletag: string | null }
   | { type: 'START_DRAFT' }
   | { type: 'SELECT_HERO'; hero: string }
+  | { type: 'SKIP_BAN' }
   | { type: 'ASSIGN_PLAYER'; stepIndex: number; battletag: string }
   | { type: 'UNDO' }
   | { type: 'RESET' }
@@ -95,6 +96,15 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
         selections: newSelections,
         currentStep: nextStep,
         phase,
+      }
+    }
+    case 'SKIP_BAN': {
+      if (state.currentStep >= DRAFT_SEQUENCE.length) return state
+      const step = DRAFT_SEQUENCE[state.currentStep]
+      if (step.type !== 'ban') return state // only allow skipping bans
+      return {
+        ...state,
+        currentStep: state.currentStep + 1,
       }
     }
     case 'ASSIGN_PLAYER': {
@@ -404,6 +414,14 @@ export function DraftClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {currentStep?.type === 'ban' && (
+            <button
+              onClick={() => dispatch({ type: 'SKIP_BAN' })}
+              className="px-3 py-1.5 rounded-md text-xs font-medium border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+            >
+              No Ban
+            </button>
+          )}
           <button
             onClick={() => dispatch({ type: 'UNDO' })}
             disabled={state.currentStep === 0}

@@ -111,7 +111,11 @@ export function HeroPicker({
           return (
             <button
               key={hero}
-              onClick={() => !isUnavailable && onSelect(hero)}
+              onClick={() => {
+                if (isUnavailable) return
+                setSearch('')
+                onSelect(hero)
+              }}
               disabled={isUnavailable}
               className={cn(
                 'flex flex-col items-center gap-0.5 p-2 rounded-md border text-xs transition-colors',

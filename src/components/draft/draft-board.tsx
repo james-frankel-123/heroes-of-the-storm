@@ -156,6 +156,7 @@ function TeamRow({
               hero={hero}
               isCurrent={stepIdx === currentStep}
               isBan
+              isSkipped={!hero && stepIdx < currentStep}
             />
           ))}
         </div>
@@ -217,10 +218,12 @@ function Slot({
   hero,
   isCurrent,
   isBan,
+  isSkipped = false,
 }: {
   hero: string | null
   isCurrent: boolean
   isBan: boolean
+  isSkipped?: boolean
 }) {
   const role = hero ? getHeroRole(hero) : null
 
@@ -233,9 +236,11 @@ function Slot({
           ? isBan
             ? 'border-gaming-danger/40 bg-gaming-danger/10 text-gaming-danger line-through'
             : 'border-border bg-accent/30 text-foreground'
-          : isCurrent
-            ? 'border-primary border-dashed bg-primary/5 animate-pulse'
-            : 'border-border/50 bg-muted/30 text-muted-foreground/50'
+          : isSkipped
+            ? 'border-yellow-500/30 bg-yellow-500/5 text-yellow-500/60'
+            : isCurrent
+              ? 'border-primary border-dashed bg-primary/5 animate-pulse'
+              : 'border-border/50 bg-muted/30 text-muted-foreground/50'
       )}
     >
       {hero ? (
@@ -250,6 +255,8 @@ function Slot({
             </Badge>
           )}
         </div>
+      ) : isSkipped ? (
+        <span className="text-[10px] italic">Missed</span>
       ) : isCurrent ? (
         <span className="text-primary text-[10px]">Select...</span>
       ) : (
