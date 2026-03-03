@@ -3,6 +3,8 @@ import {
   heroStatsAggregate,
   heroTalentStats,
   heroPairwiseStats,
+  heroMapStatsAggregate,
+  mapStatsAggregate,
 } from '../src/lib/db/schema'
 import { HERO_ROLES } from '../src/lib/data/hero-roles'
 import { HeroesProfileApi } from './api-client'
@@ -219,13 +221,180 @@ async function syncHeroStatsForTier(
   log.info(`  Upserted ${rows.length} hero stats for tier=${tier}`)
 }
 
+// ── Minor patch resolution ───────────────────────────────────────────
+
+/**
+ * Get all minor patch versions for the current major patch.
+ * The Patches API returns { "2.55": ["2.55.15.96477", ...], ... }.
+ * The group_by_map parameter only works with timeframe_type "minor",
+ * so we fetch all of them and aggregate to maximize sample size.
+ */
+export async function getMinorPatchesForMajor(
+  api: HeroesProfileApi,
+  majorVersion: string,
+): Promise<string[]> {
+  const data = await api.getPatches()
+
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return []
+
+  const entries = (data as Record<string, any>)[majorVersion]
+  if (!Array.isArray(entries)) return []
+
+  return entries.filter((v: any) => typeof v === 'string')
+}
+
 // ── Hero-map stats sync ──────────────────────────────────────────────
-// NOTE: The Heroes Profile API's group_by_map parameter does NOT return
-// per-map breakdowns — it returns the same format as regular hero stats.
-// Hero-map aggregate stats will be populated from player replay data instead.
-// The hero_map_stats_aggregate and map_stats_aggregate tables are left empty
-// for aggregate data until a per-map API endpoint is found or we accumulate
-// enough replay data to compute meaningful aggregates.
+// Uses group_by_map=true with minor patch timeframes to get per-map
+// hero stats from the API. Aggregates across ALL minor patches within
+// the current major version to maximize sample size.
+
+/**
+ * Fetch hero-map data for one patch+tier and accumulate into the accumulators.
+ * Returns the number of hero-map entries parsed.
+ */
+function accumulatePatchData(
+  raw: any,
+  heroMapAcc: Record<string, { games: number; wins: number }>,
+  mapAcc: Record<string, number>,
+): number {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return 0
+
+  let count = 0
+  for (const [mapName, mapData] of Object.entries(raw)) {
+    if (typeof mapData !== 'object' || mapData === null) continue
+
+    const heroes = normalizeHeroData(mapData)
+    for (const h of heroes) {
+      const games = num(h.games_played ?? h.games)
+      const wins = num(h.wins)
+      if (games === 0) continue
+
+      const key = `${h.name}|${mapName}`
+      const existing = heroMapAcc[key]
+      if (existing) {
+        existing.games += games
+        existing.wins += wins
+      } else {
+        heroMapAcc[key] = { games, wins }
+      }
+
+      mapAcc[mapName] = (mapAcc[mapName] ?? 0) + games
+      count++
+    }
+  }
+  return count
+}
+
+async function syncHeroMapStatsForTier(
+  api: HeroesProfileApi,
+  db: SyncDb,
+  tier: SkillTier,
+  leagueTier: string,
+  minorPatches: string[],
+) {
+  log.info(`Syncing hero-map stats for tier=${tier}: aggregating ${minorPatches.length} minor patches`)
+
+  // Accumulate games/wins across all patches
+  const heroMapAcc: Record<string, { games: number; wins: number }> = {}
+  const mapAcc: Record<string, number> = {}
+  let okCount = 0
+  let failCount = 0
+
+  for (const patch of minorPatches) {
+    try {
+      const raw = await api.getHeroMapStats('minor', patch, leagueTier)
+      const n = accumulatePatchData(raw, heroMapAcc, mapAcc)
+      okCount++
+      if (okCount % 10 === 0) {
+        log.info(`  tier=${tier} progress: ${okCount}/${minorPatches.length} patches fetched`)
+      }
+      if (n === 0) {
+        log.debug(`  Patch ${patch} tier=${tier}: no data`)
+      }
+    } catch (err) {
+      failCount++
+      log.warn(`  Failed to fetch hero-map stats for patch=${patch} tier=${tier}: ${err}`)
+    }
+  }
+
+  log.info(`  tier=${tier} fetched: ${okCount} succeeded, ${failCount} failed`)
+
+  // Build rows with win_rate computed from aggregated totals
+  const heroMapRows = Object.entries(heroMapAcc).map(([key, { games, wins }]) => {
+    const [hero, map] = key.split('|')
+    return {
+      hero,
+      map,
+      skillTier: tier,
+      games,
+      wins,
+      winRate: games > 0 ? Math.round((wins / games) * 10000) / 100 : 0,
+      updatedAt: new Date(),
+    }
+  })
+
+  if (heroMapRows.length === 0) {
+    log.warn(`No hero-map data after aggregation for tier=${tier}`)
+    return
+  }
+
+  await batchUpsert(
+    db,
+    heroMapStatsAggregate,
+    heroMapRows,
+    [heroMapStatsAggregate.hero, heroMapStatsAggregate.map, heroMapStatsAggregate.skillTier],
+    {
+      games: sql.raw('excluded.games'),
+      wins: sql.raw('excluded.wins'),
+      winRate: sql.raw('excluded.win_rate'),
+      updatedAt: sql`now()`,
+    },
+  )
+
+  log.info(`  Upserted ${heroMapRows.length} hero-map stats for tier=${tier}`)
+
+  // Upsert map aggregate game counts
+  const mapRows = Object.entries(mapAcc).map(([map, games]) => ({
+    map,
+    skillTier: tier,
+    games,
+    updatedAt: new Date(),
+  }))
+
+  await batchUpsert(
+    db,
+    mapStatsAggregate,
+    mapRows,
+    [mapStatsAggregate.map, mapStatsAggregate.skillTier],
+    {
+      games: sql.raw('excluded.games'),
+      updatedAt: sql`now()`,
+    },
+  )
+
+  log.info(`  Upserted ${mapRows.length} map aggregate stats for tier=${tier}`)
+}
+
+export async function syncHeroMapStats(api: HeroesProfileApi, db: SyncDb) {
+  // Resolve the current major patch, then get all its minor patches
+  const majorPatch = await getCurrentPatch(api)
+  const minorPatches = await getMinorPatchesForMajor(api, majorPatch.version)
+
+  if (minorPatches.length === 0) {
+    log.warn(`No minor patches found for major ${majorPatch.version} — skipping hero-map stats`)
+    return
+  }
+
+  log.info(`Aggregating hero-map stats across ${minorPatches.length} minor patches for ${majorPatch.version}`)
+
+  for (const [tier, leagueTier] of TIER_MAPPING) {
+    try {
+      await syncHeroMapStatsForTier(api, db, tier, leagueTier, minorPatches)
+    } catch (err) {
+      log.error(`Failed to sync hero-map stats for tier=${tier}`, err)
+    }
+  }
+}
 
 // ── Talent stats sync ────────────────────────────────────────────────
 

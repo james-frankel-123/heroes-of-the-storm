@@ -13,7 +13,7 @@ import { HeroesProfileApi } from './api-client'
 import { computeDerivedStats } from './compute-derived'
 import { createDb, SyncDb } from './db'
 import { log } from './logger'
-import { getCurrentPatch } from './sync-global'
+import { getCurrentPatch, syncHeroMapStats } from './sync-global'
 import { syncPlayerData, BattletagConfig } from './sync-players'
 
 const ALL_HEROES = Object.keys(HERO_ROLES)
@@ -50,6 +50,7 @@ async function pMap<T, R>(
 
 interface Progress {
   heroStats: boolean
+  heroMapStats: boolean
   talents: Record<string, boolean>       // keyed by tier: low, mid, high
   matchups: Record<string, boolean>      // keyed by hero name
   playerReplays: Record<string, boolean> // keyed by battletag
@@ -64,6 +65,7 @@ function loadProgress(): Progress {
   }
   return {
     heroStats: false,
+    heroMapStats: false,
     talents: {},
     matchups: {},
     playerReplays: {},
@@ -82,6 +84,13 @@ async function hasHeroStats(db: SyncDb): Promise<boolean> {
     sql`SELECT count(*) as c FROM hero_stats_aggregate`,
   )
   return Number(result.rows[0].c) >= 250 // ~90 heroes × 3 tiers
+}
+
+async function hasHeroMapStats(db: SyncDb): Promise<boolean> {
+  const result = await db.execute(
+    sql`SELECT count(*) as c FROM hero_map_stats_aggregate`,
+  )
+  return Number(result.rows[0].c) >= 100 // ~90 heroes × a few maps
 }
 
 async function hasTalentsForTier(db: SyncDb, tier: string): Promise<boolean> {
@@ -125,6 +134,23 @@ async function main() {
     log.info('[TODO] Hero stats need syncing — but this costs 3 Hero Data calls')
     log.info('       Run the full sync (npx tsx sync/index.ts) if you want to refresh these')
     // Not implemented here to save calls — they already exist
+  }
+
+  // ── 1b. Hero-Map Stats (3 API calls using minor patch) ──
+  if (progress.heroMapStats || await hasHeroMapStats(db)) {
+    log.info('[SKIP] Hero-map stats — already in DB')
+    progress.heroMapStats = true
+    saveProgress(progress)
+  } else {
+    log.info('[FETCH] Hero-map stats (3 Hero Data calls, minor patch)')
+    try {
+      await syncHeroMapStats(api, db)
+      progress.heroMapStats = true
+      saveProgress(progress)
+      log.info('  ✓ Hero-map stats synced')
+    } catch (err) {
+      log.error(`  FAILED Hero-map stats: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   // ── 2. Talent Stats (per-hero to avoid bulk endpoint timeout) ──
