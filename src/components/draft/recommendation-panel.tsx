@@ -22,7 +22,6 @@ function reasonColor(type: RecommendationReason['type']): string {
     case 'hero_wr': return 'text-cyan-400'
     case 'counter': return 'text-red-400'
     case 'synergy': return 'text-green-400'
-    case 'role_penalty': return 'text-orange-400'
     case 'player_strong': return 'text-purple-400'
     case 'ban_worthy': return 'text-red-400'
     case 'comp_wr': return 'text-blue-400'
@@ -113,7 +112,7 @@ export function RecommendationPanel({
                         {rec.reasons
                           .filter((r) => {
                             // Composition/role reasons always shown (ranking-only, no delta threshold)
-                            if (r.type === 'role_penalty' || r.type === 'comp_wr') return true
+                            if (r.type === 'comp_wr') return true
                             // Data-backed reasons need meaningful delta
                             return Math.abs(r.delta) >= 0.5
                           })

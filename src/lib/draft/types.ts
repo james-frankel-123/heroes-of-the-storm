@@ -85,7 +85,6 @@ export interface RecommendationReason {
     | 'hero_wr'         // Hero base win rate delta from 50%
     | 'counter'         // Counter-pick delta vs enemy hero
     | 'synergy'         // Synergy delta with ally hero
-    | 'role_penalty'    // Bad role fit (used in ban scoring)
     | 'player_strong'   // A player on the team is strong with this hero
     | 'ban_worthy'      // High ban/win rate (for ban suggestions)
     | 'comp_wr'         // Composition win rate from data

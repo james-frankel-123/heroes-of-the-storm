@@ -22,8 +22,6 @@ import {
   DRAFT_SEQUENCE,
 } from './types'
 import {
-  getHeroRole,
-  calculateRoleBalance,
   HERO_ROLES,
 } from '@/lib/data/hero-roles'
 import { confidenceAdjustedMawp } from '@/lib/utils'
@@ -299,27 +297,6 @@ function scoreBanCandidate(
       type: 'ban_worthy',
       label: `${stats.pickRate.toFixed(0)}% pick rate`,
       delta: pickBoost,
-    })
-  }
-
-  // Role-aware: don't ban a healer/tank if opponent already has one
-  // This is a ranking heuristic, not data-backed WR — goes into sortBoost
-  const heroRole = getHeroRole(hero)
-  const opponentBalance = calculateRoleBalance(opponentPicks)
-  if (heroRole === 'Healer' && opponentBalance.healer >= 1) {
-    sortBoost -= 8
-    reasons.push({
-      type: 'role_penalty',
-      label: 'Opponent already has healer',
-      delta: -8,
-    })
-  }
-  if (heroRole === 'Tank' && opponentBalance.tank >= 1) {
-    sortBoost -= 8
-    reasons.push({
-      type: 'role_penalty',
-      label: 'Opponent already has tank',
-      delta: -8,
     })
   }
 
