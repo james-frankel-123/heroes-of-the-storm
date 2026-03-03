@@ -131,58 +131,68 @@ export function getHeroWinRate(
 function scoreHeroWR(
   hero: string,
   data: DraftData
-): RecommendationReason | null {
+): { delta: number; reason: RecommendationReason | null } {
   const resolved = getHeroWinRate(hero, data)
-  if (!resolved || resolved.games < 100) return null
+  if (!resolved || resolved.games < 100) return { delta: 0, reason: null }
 
   const delta = Math.round((resolved.winRate - 50) * 10) / 10
-  if (Math.abs(delta) < 0.5) return null
 
-  return {
-    type: 'hero_wr',
+  // Always include delta in netDelta; only show reason for notable deltas
+  const reason = Math.abs(delta) < 0.5 ? null : {
+    type: 'hero_wr' as const,
     label: `${hero} ${fmtDelta(delta)}${resolved.isMapSpecific ? ' map' : ''} WR`,
     delta,
   }
+
+  return { delta, reason }
 }
 
 function scoreCounters(
   hero: string,
   enemyPicks: string[],
   data: DraftData
-): RecommendationReason[] {
+): { totalDelta: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
+  let totalDelta = 0
   for (const enemy of enemyPicks) {
     const d = data.counters[hero]?.[enemy]
     if (!d || d.games < 30) continue
     const delta = Math.round((d.winRate - 50) * 10) / 10
-    if (Math.abs(delta) < 1) continue
-    reasons.push({
-      type: 'counter',
-      label: `${fmtDelta(delta)} vs ${enemy}`,
-      delta,
-    })
+    totalDelta += delta
+    // Only show as a reason if the delta is notable
+    if (Math.abs(delta) >= 1) {
+      reasons.push({
+        type: 'counter',
+        label: `${fmtDelta(delta)} vs ${enemy}`,
+        delta,
+      })
+    }
   }
-  return reasons
+  return { totalDelta: Math.round(totalDelta * 10) / 10, reasons }
 }
 
 function scoreSynergies(
   hero: string,
   ourPicks: string[],
   data: DraftData
-): RecommendationReason[] {
+): { totalDelta: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
+  let totalDelta = 0
   for (const ally of ourPicks) {
     const d = data.synergies[hero]?.[ally]
     if (!d || d.games < 30) continue
     const delta = Math.round((d.winRate - 50) * 10) / 10
-    if (Math.abs(delta) < 1) continue
-    reasons.push({
-      type: 'synergy',
-      label: `${fmtDelta(delta)} with ${ally}`,
-      delta,
-    })
+    totalDelta += delta
+    // Only show as a reason if the delta is notable
+    if (Math.abs(delta) >= 1) {
+      reasons.push({
+        type: 'synergy',
+        label: `${fmtDelta(delta)} with ${ally}`,
+        delta,
+      })
+    }
   }
-  return reasons
+  return { totalDelta: Math.round(totalDelta * 10) / 10, reasons }
 }
 
 function scorePlayerStrength(
@@ -371,22 +381,22 @@ export function generateRecommendations(
       const reasons: RecommendationReason[] = []
       let netDelta = 0
 
-      const heroWR = scoreHeroWR(hero, data)
-      if (heroWR) { reasons.push(heroWR); netDelta += heroWR.delta }
+      const { delta: wrDelta, reason: wrReason } = scoreHeroWR(hero, data)
+      netDelta += wrDelta
+      if (wrReason) { reasons.push(wrReason) }
 
       // Enemy counters to OUR picks (from enemy's perspective)
       for (const ally of ourPicks) {
         const d = data.counters[hero]?.[ally]
-        if (d && d.games >= 30) {
-          const delta = Math.round((d.winRate - 50) * 10) / 10
-          if (Math.abs(delta) >= 1) {
-            reasons.push({
-              type: 'counter',
-              label: `${fmtDelta(delta)} vs your ${ally}`,
-              delta,
-            })
-            netDelta += delta
-          }
+        if (!d || d.games < 30) continue
+        const delta = Math.round((d.winRate - 50) * 10) / 10
+        netDelta += delta
+        if (Math.abs(delta) >= 1) {
+          reasons.push({
+            type: 'counter',
+            label: `${fmtDelta(delta)} vs your ${ally}`,
+            delta,
+          })
         }
       }
 
@@ -408,16 +418,19 @@ export function generateRecommendations(
     let sortBoost = 0
 
     // 1. Hero base WR — data-backed, goes into netDelta
-    const heroWR = scoreHeroWR(hero, data)
-    if (heroWR) { reasons.push(heroWR); netDelta += heroWR.delta }
+    const { delta: wrDelta, reason: wrReason } = scoreHeroWR(hero, data)
+    netDelta += wrDelta
+    if (wrReason) { reasons.push(wrReason) }
 
-    // 2. Counter-picks vs enemy — data-backed
-    const counterReasons = scoreCounters(hero, enemyPicks, data)
-    for (const r of counterReasons) { reasons.push(r); netDelta += r.delta }
+    // 2. Counter-picks vs enemy — data-backed (all deltas, display only notable ones)
+    const { totalDelta: counterDelta, reasons: counterReasons } = scoreCounters(hero, enemyPicks, data)
+    netDelta += counterDelta
+    for (const r of counterReasons) { reasons.push(r) }
 
-    // 3. Synergies with allies — data-backed
-    const synergyReasons = scoreSynergies(hero, ourPicks, data)
-    for (const r of synergyReasons) { reasons.push(r); netDelta += r.delta }
+    // 3. Synergies with allies — data-backed (all deltas, display only notable ones)
+    const { totalDelta: synergyDelta, reasons: synergyReasons } = scoreSynergies(hero, ourPicks, data)
+    netDelta += synergyDelta
+    for (const r of synergyReasons) { reasons.push(r) }
 
     // 4. Player strength — data-backed
     const { reason: playerReason, player } = scorePlayerStrength(
