@@ -2,17 +2,14 @@
  * Draft recommendation engine.
  *
  * Scores each hero as a net win-rate delta from a 50% baseline.
- * Every data-backed factor is expressed in percentage points so the
- * displayed score reads as "picking this hero shifts our win probability
- * by +X%".
+ * Every factor is expressed in percentage points so the displayed
+ * score reads as "picking this hero shifts our win probability by +X%".
  *
- * Data-backed factors (shown as netDelta):
- *   1. Hero base WR:    (heroWR - 50)
+ * All factors contribute to the displayed netDelta:
+ *   1. Hero base WR:    (heroWR - 50), preferring map-specific data
  *   2. Counter-picks:   sum of (pairwise vs enemy - 50) for each enemy
  *   3. Synergies:       sum of (pairwise with ally - 50) for each ally
  *   4. Player strength: best available battletag's (MAWP - 50) on this hero
- *
- * Ranking-only factors (sortBoost — affects order, not displayed %):
  *   5. Composition WR:  data-driven boost/penalty based on achievable team compositions
  *                       from Heroes Profile. Scaled by picks made (0 at start → full at last pick).
  */
@@ -415,19 +412,18 @@ export function generateRecommendations(
   const scored = available.map((hero) => {
     const reasons: RecommendationReason[] = []
     let netDelta = 0
-    let sortBoost = 0
 
-    // 1. Hero base WR — data-backed, goes into netDelta
+    // 1. Hero base WR — data-backed
     const { delta: wrDelta, reason: wrReason } = scoreHeroWR(hero, data)
     netDelta += wrDelta
     if (wrReason) { reasons.push(wrReason) }
 
-    // 2. Counter-picks vs enemy — data-backed (all deltas, display only notable ones)
+    // 2. Counter-picks vs enemy — all pairwise deltas
     const { totalDelta: counterDelta, reasons: counterReasons } = scoreCounters(hero, enemyPicks, data)
     netDelta += counterDelta
     for (const r of counterReasons) { reasons.push(r) }
 
-    // 3. Synergies with allies — data-backed (all deltas, display only notable ones)
+    // 3. Synergies with allies — all pairwise deltas
     const { totalDelta: synergyDelta, reasons: synergyReasons } = scoreSynergies(hero, ourPicks, data)
     netDelta += synergyDelta
     for (const r of synergyReasons) { reasons.push(r) }
@@ -439,20 +435,20 @@ export function generateRecommendations(
     if (playerReason) { reasons.push(playerReason); netDelta += playerReason.delta }
 
     // 5. Composition win rate — data-driven role/comp scoring
-    const { sortBoost: compBoost, reason: compReason } = scoreCompositionForHero(
+    const { sortBoost: compDelta, reason: compReason } = scoreCompositionForHero(
       hero, ourPicks, data.compositions, data.baselineCompWR
     )
     if (compReason) { reasons.push(compReason) }
-    sortBoost += compBoost
+    netDelta += compDelta
 
     return {
       hero,
       netDelta: Math.round(netDelta * 10) / 10,
-      sortBoost: Math.round(sortBoost * 10) / 10,
+      sortBoost: 0,
       reasons,
       suggestedPlayer: player,
     }
   })
 
-  return scored.sort((a, b) => (b.netDelta + b.sortBoost) - (a.netDelta + a.sortBoost)).slice(0, 15)
+  return scored.sort((a, b) => b.netDelta - a.netDelta).slice(0, 15)
 }
