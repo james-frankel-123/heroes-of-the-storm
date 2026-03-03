@@ -484,16 +484,48 @@ export function DraftClient({
 
       {/* Complete summary */}
       {state.phase === 'complete' && (
-        <div className="rounded-lg border p-6 text-center space-y-3">
-          <p className="text-lg font-semibold text-white">
-            Draft Complete
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Good luck in your game!
-          </p>
+        <div className="rounded-lg border p-6 text-center space-y-3 overflow-hidden relative">
+          {ourWinPct !== null && ourWinPct >= 60 && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 via-amber-500/20 to-yellow-500/10 animate-pulse" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-transparent via-yellow-400/5 to-transparent animate-[shimmer_2s_infinite]" />
+            </div>
+          )}
+          {ourWinPct !== null && ourWinPct >= 60 ? (
+            <>
+              <div className="relative">
+                <p className="text-4xl md:text-5xl font-black tracking-tighter bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 bg-clip-text text-transparent animate-pulse drop-shadow-lg">
+                  DRAFT DOMINATION
+                </p>
+                <p className="text-6xl md:text-7xl font-black tabular-nums bg-gradient-to-b from-yellow-200 to-amber-500 bg-clip-text text-transparent mt-2">
+                  {ourWinPct.toFixed(1)}%
+                </p>
+                <p className="text-sm text-yellow-400/80 mt-2 font-medium tracking-wide uppercase">
+                  Expected Win Rate
+                </p>
+              </div>
+              <div className="flex justify-center gap-1 text-2xl mt-1">
+                <span className="animate-bounce" style={{ animationDelay: '0ms' }}>&#x1F451;</span>
+                <span className="animate-bounce" style={{ animationDelay: '150ms' }}>&#x1F525;</span>
+                <span className="animate-bounce" style={{ animationDelay: '300ms' }}>&#x1F451;</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Your draft is looking unstoppable. Go destroy them!
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-semibold text-white">
+                Draft Complete
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Good luck in your game!
+              </p>
+            </>
+          )}
           <button
             onClick={() => dispatch({ type: 'RESET' })}
-            className="px-6 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="relative px-6 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             New Draft
           </button>
