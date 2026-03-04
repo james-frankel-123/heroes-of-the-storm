@@ -13,6 +13,22 @@
 import type { CompositionData, RecommendationReason } from './types'
 import { getHeroRole } from '@/lib/data/hero-roles'
 
+/** Minimum games required for a composition to be considered reliable */
+const MIN_COMP_GAMES = 100
+
+/** Threshold for full confidence in composition win rate */
+const COMP_CONFIDENCE_THRESHOLD = 200
+
+/**
+ * Confidence-adjusted win rate for compositions.
+ * Blends observed WR toward 50% based on sample size.
+ */
+function confidenceAdjustedWR(winRate: number, games: number): number {
+  if (games >= COMP_CONFIDENCE_THRESHOLD) return winRate
+  const weight = games / COMP_CONFIDENCE_THRESHOLD
+  return winRate * weight + 50 * (1 - weight)
+}
+
 /**
  * Compute the popularity-weighted average win rate across all compositions.
  * This serves as the "baseline" — a comp at exactly this WR contributes 0 boost.
@@ -99,7 +115,9 @@ export function scoreComposition(
     return { sortBoost: 0, reason: null }
   }
 
+  // Filter to compositions with enough games for reliable win rates
   const achievable = getAchievableCompositions(currentRoles, candidateRole, comps)
+    .filter((c) => c.games >= MIN_COMP_GAMES)
 
   // Scale factor: ramps from 0 at start to 1 at last pick
   // This prevents composition scoring from dominating early picks
@@ -121,24 +139,27 @@ export function scoreComposition(
     }
   }
 
-  // Find the best achievable composition by win rate
+  // Find the best achievable composition by confidence-adjusted win rate.
+  // Small samples regress toward 50% to prevent fluky results from dominating.
   let best = achievable[0]
+  let bestAdjWR = confidenceAdjustedWR(best.winRate, best.games)
   for (let i = 1; i < achievable.length; i++) {
-    if (achievable[i].winRate > best.winRate) {
+    const adjWR = confidenceAdjustedWR(achievable[i].winRate, achievable[i].games)
+    if (adjWR > bestAdjWR) {
       best = achievable[i]
+      bestAdjWR = adjWR
     }
   }
 
-  const wrDelta = best.winRate - baselineWR
+  const wrDelta = bestAdjWR - baselineWR
   const sortBoost = Math.round(wrDelta * scaleFactor * 10) / 10
 
   if (Math.abs(sortBoost) < 0.5) {
     return { sortBoost, reason: null }
   }
 
-  const label = wrDelta >= 0
-    ? `Comp ${best.roles.map((r) => r.split(' ')[0]).join('/')} +${wrDelta.toFixed(1)}%`
-    : `Comp ${best.roles.map((r) => r.split(' ')[0]).join('/')} ${wrDelta.toFixed(1)}%`
+  const fmtDelta = wrDelta >= 0 ? `+${wrDelta.toFixed(1)}%` : `${wrDelta.toFixed(1)}%`
+  const label = `Comp ${best.roles.map((r) => r.split(' ')[0]).join('/')} ${fmtDelta}`
 
   return {
     sortBoost,

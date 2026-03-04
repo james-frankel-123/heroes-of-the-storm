@@ -97,7 +97,7 @@ async function fetchTierCompositions(
   const body = JSON.stringify({
     league_tier: tierCodes,
     game_type: ['sl'],
-    minimum_games: 25,
+    minimum_games: 100,
   })
 
   const resp = await fetch(`${HP_BASE}/api/v1/global/compositions`, {

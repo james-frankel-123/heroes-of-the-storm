@@ -28,6 +28,7 @@ const sampleComps: CompositionData[] = [
     popularity: 5.49,
   },
   {
+    // Low sample — below MIN_COMP_GAMES, used to test filtering
     roles: ['Healer', 'Healer', 'Ranged Assassin', 'Ranged Assassin', 'Tank'],
     winRate: 31.02,
     games: 49,

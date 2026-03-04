@@ -368,7 +368,7 @@ export function generateRecommendations(
         if (Math.abs(delta) >= 1) {
           reasons.push({
             type: 'counter',
-            label: `${fmtDelta(delta)} vs your ${ally}`,
+            label: `${fmtDelta(delta)} vs ${ally}`,
             delta,
           })
         }
