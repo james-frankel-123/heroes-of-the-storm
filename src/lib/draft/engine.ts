@@ -112,11 +112,14 @@ function fmtDelta(d: number): string {
 /** Resolve hero win rate: prefer map-specific data, fall back to overall. */
 export function getHeroWinRate(
   hero: string,
-  data: DraftData
+  data: DraftData,
+  map: string | null
 ): { winRate: number; games: number; isMapSpecific: boolean } | null {
-  const mapStats = data.heroMapWinRates[hero]
-  if (mapStats && mapStats.games >= 50) {
-    return { winRate: mapStats.winRate, games: mapStats.games, isMapSpecific: true }
+  if (map) {
+    const mapStats = data.heroMapWinRates[map]?.[hero]
+    if (mapStats && mapStats.games >= 50) {
+      return { winRate: mapStats.winRate, games: mapStats.games, isMapSpecific: true }
+    }
   }
   const stats = data.heroStats[hero]
   if (!stats) return null
@@ -125,9 +128,10 @@ export function getHeroWinRate(
 
 function scoreHeroWR(
   hero: string,
-  data: DraftData
+  data: DraftData,
+  map: string | null
 ): { delta: number; reason: RecommendationReason | null } {
-  const resolved = getHeroWinRate(hero, data)
+  const resolved = getHeroWinRate(hero, data, map)
   if (!resolved || resolved.games < 100) return { delta: 0, reason: null }
 
   const delta = Math.round((resolved.winRate - 50) * 10) / 10
@@ -249,6 +253,7 @@ function scorePlayerStrength(
 function scoreBanCandidate(
   hero: string,
   data: DraftData,
+  map: string | null,
   picksToProtect: string[],
   opponentPicks: string[]
 ): { netDelta: number; sortBoost: number; reasons: RecommendationReason[] } {
@@ -256,15 +261,15 @@ function scoreBanCandidate(
   let netDelta = 0
   let sortBoost = 0
 
-  const stats = data.heroStats[hero]
-  if (!stats) return { netDelta: 0, sortBoost: 0, reasons: [] }
+  const resolved = getHeroWinRate(hero, data, map)
+  if (!resolved) return { netDelta: 0, sortBoost: 0, reasons: [] }
 
   // High WR = good ban target (denying a strong hero)
-  const wrDelta = Math.round((stats.winRate - 50) * 10) / 10
+  const wrDelta = Math.round((resolved.winRate - 50) * 10) / 10
   if (wrDelta > 1) {
     reasons.push({
       type: 'ban_worthy',
-      label: `${hero} ${fmtDelta(wrDelta)} WR`,
+      label: `${hero} ${fmtDelta(wrDelta)}${resolved.isMapSpecific ? ' map' : ''} WR`,
       delta: wrDelta,
     })
     netDelta += wrDelta
@@ -327,7 +332,7 @@ export function generateRecommendations(
     const picksToProtect = isOurTurn ? ourPicks : enemyPicks
     const opponentPicks = isOurTurn ? enemyPicks : ourPicks
     const scored = available.map((hero) => {
-      const { netDelta, sortBoost, reasons } = scoreBanCandidate(hero, data, picksToProtect, opponentPicks)
+      const { netDelta, sortBoost, reasons } = scoreBanCandidate(hero, data, state.map, picksToProtect, opponentPicks)
       return { hero, netDelta, sortBoost, reasons, suggestedPlayer: null }
     })
     return scored.sort((a, b) => (b.netDelta + b.sortBoost) - (a.netDelta + a.sortBoost)).slice(0, 15)
@@ -339,7 +344,7 @@ export function generateRecommendations(
       const reasons: RecommendationReason[] = []
       let netDelta = 0
 
-      const { delta: wrDelta, reason: wrReason } = scoreHeroWR(hero, data)
+      const { delta: wrDelta, reason: wrReason } = scoreHeroWR(hero, data, state.map)
       netDelta += wrDelta
       if (wrReason) { reasons.push(wrReason) }
 
@@ -375,7 +380,7 @@ export function generateRecommendations(
     let netDelta = 0
 
     // 1. Hero base WR — data-backed
-    const { delta: wrDelta, reason: wrReason } = scoreHeroWR(hero, data)
+    const { delta: wrDelta, reason: wrReason } = scoreHeroWR(hero, data, state.map)
     netDelta += wrDelta
     if (wrReason) { reasons.push(wrReason) }
 

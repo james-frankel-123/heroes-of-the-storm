@@ -38,6 +38,7 @@ export function computeTeamWinEstimate(
   picks: string[],
   enemyPicks: string[],
   data: DraftData,
+  map: string | null,
   playerAssignments?: Record<number, string>,
 ): WinEstimateResult {
   if (picks.length === 0) {
@@ -65,7 +66,7 @@ export function computeTeamWinEstimate(
         : (stats.wins / stats.games) * 100
 
       const mawpDelta = adjMawp - 50
-      const resolved = getHeroWinRate(picks[i], data)
+      const resolved = getHeroWinRate(picks[i], data, map)
       const heroBaseDelta = resolved ? resolved.winRate - 50 : 0
 
       // Player adjustment is the difference between MAWP and the hero base WR
@@ -77,7 +78,7 @@ export function computeTeamWinEstimate(
 
   // 1. Hero WR — prefer map-specific, fall back to overall
   for (const hero of picks) {
-    const resolved = getHeroWinRate(hero, data)
+    const resolved = getHeroWinRate(hero, data, map)
     if (!resolved) continue
     heroWRDelta += resolved.winRate - 50
   }

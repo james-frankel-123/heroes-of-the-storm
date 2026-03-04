@@ -18,7 +18,7 @@ function makeData(overrides: Partial<DraftData> = {}): DraftData {
 
 describe('computeTeamWinEstimate', () => {
   it('returns 50% for empty picks', () => {
-    const result = computeTeamWinEstimate([], [], makeData())
+    const result = computeTeamWinEstimate([], [], makeData(), null)
     expect(result.winPct).toBe(50)
     expect(result.breakdown.heroWR).toBe(0)
     expect(result.breakdown.synergies).toBe(0)
@@ -33,7 +33,7 @@ describe('computeTeamWinEstimate', () => {
         Raynor: { winRate: 48, pickRate: 8, banRate: 2, games: 1000 },
       },
     })
-    const result = computeTeamWinEstimate(['Jaina', 'Raynor'], [], data)
+    const result = computeTeamWinEstimate(['Jaina', 'Raynor'], [], data, null)
     // heroWR delta: (54-50) + (48-50) = 4 + (-2) = 2
     expect(result.breakdown.heroWR).toBe(2)
     expect(result.winPct).toBe(52)
@@ -50,7 +50,7 @@ describe('computeTeamWinEstimate', () => {
         Arthas: { Jaina: { winRate: 55, games: 100 } },
       },
     })
-    const result = computeTeamWinEstimate(['Jaina', 'Arthas'], [], data)
+    const result = computeTeamWinEstimate(['Jaina', 'Arthas'], [], data, null)
     // Only one pair (Jaina, Arthas) → delta = 55-50 = 5, counted once
     expect(result.breakdown.synergies).toBe(5)
     expect(result.winPct).toBe(55)
@@ -65,7 +65,7 @@ describe('computeTeamWinEstimate', () => {
         Jaina: { Illidan: { winRate: 56, games: 200 } },
       },
     })
-    const result = computeTeamWinEstimate(['Jaina'], ['Illidan'], data)
+    const result = computeTeamWinEstimate(['Jaina'], ['Illidan'], data, null)
     expect(result.breakdown.counters).toBe(6)
     expect(result.winPct).toBe(56)
   })
@@ -83,7 +83,7 @@ describe('computeTeamWinEstimate', () => {
         Jaina: { Illidan: { winRate: 60, games: 5 } }, // too few games
       },
     })
-    const result = computeTeamWinEstimate(['Jaina', 'Arthas'], ['Illidan'], data)
+    const result = computeTeamWinEstimate(['Jaina', 'Arthas'], ['Illidan'], data, null)
     expect(result.breakdown.synergies).toBe(0)
     expect(result.breakdown.counters).toBe(0)
   })
@@ -100,7 +100,7 @@ describe('computeTeamWinEstimate', () => {
       },
     })
     const result = computeTeamWinEstimate(
-      ['Jaina'], [], data,
+      ['Jaina'], [], data, null,
       { 0: 'player#123' },
     )
     // heroWR: 52-50 = 2
@@ -123,7 +123,7 @@ describe('computeTeamWinEstimate', () => {
       },
     })
     const result = computeTeamWinEstimate(
-      ['Jaina'], [], data,
+      ['Jaina'], [], data, null,
       { 0: 'player#123' },
     )
     // games=15, threshold=30 → weight=0.5
@@ -142,7 +142,7 @@ describe('computeTeamWinEstimate', () => {
         C: { winRate: 90, pickRate: 10, banRate: 5, games: 1000 },
       },
     })
-    const high = computeTeamWinEstimate(['A', 'B', 'C'], [], data)
+    const high = computeTeamWinEstimate(['A', 'B', 'C'], [], data, null)
     expect(high.winPct).toBeLessThanOrEqual(99)
 
     const lowData = makeData({
@@ -151,7 +151,7 @@ describe('computeTeamWinEstimate', () => {
         Y: { winRate: 10, pickRate: 10, banRate: 5, games: 1000 },
       },
     })
-    const low = computeTeamWinEstimate(['X', 'Y'], [], lowData)
+    const low = computeTeamWinEstimate(['X', 'Y'], [], lowData, null)
     expect(low.winPct).toBeGreaterThanOrEqual(1)
   })
 
@@ -170,7 +170,7 @@ describe('computeTeamWinEstimate', () => {
       },
     })
     const result = computeTeamWinEstimate(
-      ['Jaina', 'Arthas'], ['Illidan'], data
+      ['Jaina', 'Arthas'], ['Illidan'], data, null
     )
     // heroWR: (53-50) + (51-50) = 4
     // synergies: avg of [(52-50)] = 2 (one pair)
@@ -188,10 +188,10 @@ describe('computeTeamWinEstimate', () => {
         Jaina: { winRate: 52, pickRate: 10, banRate: 5, games: 1000 },
       },
       heroMapWinRates: {
-        Jaina: { winRate: 58, games: 200 },
+        'Cursed Hollow': { Jaina: { winRate: 58, games: 200 } },
       },
     })
-    const result = computeTeamWinEstimate(['Jaina'], [], data)
+    const result = computeTeamWinEstimate(['Jaina'], [], data, 'Cursed Hollow')
     // Should use map WR (58) not overall (52)
     expect(result.breakdown.heroWR).toBe(8)
     expect(result.winPct).toBe(58)
@@ -203,10 +203,10 @@ describe('computeTeamWinEstimate', () => {
         Jaina: { winRate: 52, pickRate: 10, banRate: 5, games: 1000 },
       },
       heroMapWinRates: {
-        Jaina: { winRate: 70, games: 20 }, // below 50-game threshold
+        'Cursed Hollow': { Jaina: { winRate: 70, games: 20 } }, // below 50-game threshold
       },
     })
-    const result = computeTeamWinEstimate(['Jaina'], [], data)
+    const result = computeTeamWinEstimate(['Jaina'], [], data, 'Cursed Hollow')
     // Should use overall WR (52) since map has <50 games
     expect(result.breakdown.heroWR).toBe(2)
     expect(result.winPct).toBe(52)
@@ -218,7 +218,7 @@ describe('computeTeamWinEstimate', () => {
         Jaina: { winRate: 52, pickRate: 10, banRate: 5, games: 1000 },
       },
       heroMapWinRates: {
-        Jaina: { winRate: 55, games: 200 },
+        'Cursed Hollow': { Jaina: { winRate: 55, games: 200 } },
       },
       playerStats: {
         'player#123': {
@@ -227,7 +227,7 @@ describe('computeTeamWinEstimate', () => {
       },
     })
     const result = computeTeamWinEstimate(
-      ['Jaina'], [], data,
+      ['Jaina'], [], data, 'Cursed Hollow',
       { 0: 'player#123' },
     )
     // heroWR uses map: 55-50 = 5
@@ -250,7 +250,7 @@ describe('computeTeamWinEstimate', () => {
       },
     })
     const result = computeTeamWinEstimate(
-      ['Jaina'], [], data,
+      ['Jaina'], [], data, null,
       { 0: 'player#123' },
     )
     // Player has <10 games → no player adjustment

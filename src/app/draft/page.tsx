@@ -8,11 +8,10 @@ import type { DraftData } from '@/lib/draft/types'
 const TIERS: SkillTier[] = ['low', 'mid', 'high']
 
 /**
- * Pre-fetch draft data once per tier (not per tier × map).
+ * Pre-fetch draft data once per tier with all maps included.
  *
- * Hero stats, synergies, counters, and player stats don't vary by map.
- * Map-specific hero data isn't used by the engine (API doesn't provide it).
- * This reduces DB queries from ~420 to ~30.
+ * Hero map win rates are loaded for all maps in a single query per tier.
+ * The client selects the appropriate map's data based on user selection.
  */
 export default async function DraftPage() {
   const [trackedBattletags, maps] = await Promise.all([
@@ -21,7 +20,6 @@ export default async function DraftPage() {
   ])
   const battletags = trackedBattletags.map((bt) => bt.battletag)
 
-  // Fetch once per tier — map dimension is unused by the engine
   const dataByTier: Record<SkillTier, DraftData> = {} as Record<SkillTier, DraftData>
 
   const fetches = TIERS.map(async (tier) => {

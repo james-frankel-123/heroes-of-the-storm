@@ -771,11 +771,14 @@ export async function getDraftData(
     }
   }
 
-  // Hero-map win rates
-  const heroMapList = await getHeroMapStats(tier, map)
+  // Hero-map win rates — load all maps in one query
+  const allHeroMapStats = await getAllHeroMapStats(tier)
   const heroMapWinRates: DraftData['heroMapWinRates'] = {}
-  for (const h of heroMapList) {
-    heroMapWinRates[h.hero] = { winRate: h.winRate, games: h.games }
+  for (const [hero, mapStats] of Object.entries(allHeroMapStats)) {
+    for (const s of mapStats) {
+      if (!heroMapWinRates[s.map]) heroMapWinRates[s.map] = {}
+      heroMapWinRates[s.map][hero] = { winRate: s.winRate, games: s.games }
+    }
   }
 
   // Pairwise synergies and counters — fetch all for the tier

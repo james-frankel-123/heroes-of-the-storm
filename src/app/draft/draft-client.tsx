@@ -222,10 +222,10 @@ export function DraftClient({
     }
 
     const ourRaw = ourPicks.length > 0
-      ? computeTeamWinEstimate(ourPicks, enemyPicks, draftData, ourPlayerMap)
+      ? computeTeamWinEstimate(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
       : null
     const enemyRaw = enemyPicks.length > 0
-      ? computeTeamWinEstimate(enemyPicks, ourPicks, draftData)
+      ? computeTeamWinEstimate(enemyPicks, ourPicks, draftData, state.map)
       : null
 
     // Normalize so the two percentages sum to 100

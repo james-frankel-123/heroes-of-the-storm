@@ -116,8 +116,8 @@ export interface DraftData {
     banRate: number
     games: number
   }>
-  /** hero → winRate on selected map at selected tier */
-  heroMapWinRates: Record<string, { winRate: number; games: number }>
+  /** map → hero → { winRate, games } for all maps at this tier */
+  heroMapWinRates: Record<string, Record<string, { winRate: number; games: number }>>
   /** heroA → heroB → { winRate, games } for 'with' relationship */
   synergies: Record<string, Record<string, { winRate: number; games: number }>>
   /** heroA → heroB → { winRate, games } for 'against' relationship */
