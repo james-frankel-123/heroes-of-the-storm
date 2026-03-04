@@ -3,8 +3,8 @@
  *
  * Starting from a 50% baseline, accumulates data-backed deltas:
  *   1. Hero base WR:     sum of (heroWR - 50) for each picked hero
- *   2. Intra-team synergies: for each pair (A, B), (pairwiseWithWR - 50), counted once
- *   3. Cross-team counters:  for each (ourHero, enemyHero), (pairwiseVsWR - 50)
+ *   2. Intra-team synergies: average of (pairwiseWithWR - 50) across all ally pairs
+ *   3. Cross-team counters:  average of (pairwiseVsWR - 50) across all matchups
  *   4. Player strength:  if a player is assigned, (adjustedMAWP - 50) replaces hero base WR
  *
  * Result: 50 + totalDelta, clamped to [1, 99].
@@ -82,24 +82,36 @@ export function computeTeamWinEstimate(
     heroWRDelta += resolved.winRate - 50
   }
 
-  // 2. Intra-team synergies — each pair counted once
-  for (let i = 0; i < picks.length; i++) {
-    for (let j = i + 1; j < picks.length; j++) {
-      const d = data.synergies[picks[i]]?.[picks[j]]
-      if (d && d.games >= 30) {
-        synergyDelta += d.winRate - 50
+  // 2. Intra-team synergies — average across all pairs
+  {
+    let sum = 0
+    let count = 0
+    for (let i = 0; i < picks.length; i++) {
+      for (let j = i + 1; j < picks.length; j++) {
+        const d = data.synergies[picks[i]]?.[picks[j]]
+        if (d && d.games >= 30) {
+          sum += d.winRate - 50
+          count++
+        }
       }
     }
+    if (count > 0) synergyDelta = sum / count
   }
 
-  // 3. Cross-team counters
-  for (const ourHero of picks) {
-    for (const enemyHero of enemyPicks) {
-      const d = data.counters[ourHero]?.[enemyHero]
-      if (d && d.games >= 30) {
-        counterDelta += d.winRate - 50
+  // 3. Cross-team counters — average across all matchups
+  {
+    let sum = 0
+    let count = 0
+    for (const ourHero of picks) {
+      for (const enemyHero of enemyPicks) {
+        const d = data.counters[ourHero]?.[enemyHero]
+        if (d && d.games >= 30) {
+          sum += d.winRate - 50
+          count++
+        }
       }
     }
+    if (count > 0) counterDelta = sum / count
   }
 
   const totalDelta = heroWRDelta + synergyDelta + counterDelta + playerAdj

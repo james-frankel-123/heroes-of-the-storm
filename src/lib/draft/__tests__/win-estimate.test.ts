@@ -173,13 +173,13 @@ describe('computeTeamWinEstimate', () => {
       ['Jaina', 'Arthas'], ['Illidan'], data
     )
     // heroWR: (53-50) + (51-50) = 4
-    // synergies: (52-50) = 2
-    // counters: (54-50) + (48-50) = 4 + (-2) = 2
-    // total: 50 + 4 + 2 + 2 = 58
+    // synergies: avg of [(52-50)] = 2 (one pair)
+    // counters: avg of [(54-50), (48-50)] = avg of [4, -2] = 1
+    // total: 50 + 4 + 2 + 1 = 57
     expect(result.breakdown.heroWR).toBe(4)
     expect(result.breakdown.synergies).toBe(2)
-    expect(result.breakdown.counters).toBe(2)
-    expect(result.winPct).toBe(58)
+    expect(result.breakdown.counters).toBe(1)
+    expect(result.winPct).toBe(57)
   })
 
   it('prefers map-specific win rate over overall', () => {

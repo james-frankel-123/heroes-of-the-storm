@@ -148,12 +148,14 @@ function scoreCounters(
   data: DraftData
 ): { totalDelta: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
-  let totalDelta = 0
+  let sum = 0
+  let count = 0
   for (const enemy of enemyPicks) {
     const d = data.counters[hero]?.[enemy]
     if (!d || d.games < 30) continue
     const delta = Math.round((d.winRate - 50) * 10) / 10
-    totalDelta += delta
+    sum += delta
+    count++
     // Only show as a reason if the delta is notable
     if (Math.abs(delta) >= 1) {
       reasons.push({
@@ -163,7 +165,8 @@ function scoreCounters(
       })
     }
   }
-  return { totalDelta: Math.round(totalDelta * 10) / 10, reasons }
+  const avg = count > 0 ? sum / count : 0
+  return { totalDelta: Math.round(avg * 10) / 10, reasons }
 }
 
 function scoreSynergies(
@@ -172,12 +175,14 @@ function scoreSynergies(
   data: DraftData
 ): { totalDelta: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
-  let totalDelta = 0
+  let sum = 0
+  let count = 0
   for (const ally of ourPicks) {
     const d = data.synergies[hero]?.[ally]
     if (!d || d.games < 30) continue
     const delta = Math.round((d.winRate - 50) * 10) / 10
-    totalDelta += delta
+    sum += delta
+    count++
     // Only show as a reason if the delta is notable
     if (Math.abs(delta) >= 1) {
       reasons.push({
@@ -187,7 +192,8 @@ function scoreSynergies(
       })
     }
   }
-  return { totalDelta: Math.round(totalDelta * 10) / 10, reasons }
+  const avg = count > 0 ? sum / count : 0
+  return { totalDelta: Math.round(avg * 10) / 10, reasons }
 }
 
 function scorePlayerStrength(
