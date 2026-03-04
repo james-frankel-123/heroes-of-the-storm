@@ -13,12 +13,14 @@
 import type { DraftData } from './types'
 import { getHeroWinRate } from './engine'
 import { confidenceAdjustedMawp } from '@/lib/utils'
+import { scoreCurrentComposition } from './composition'
 
 export interface WinEstimateBreakdown {
   heroWR: number
   synergies: number
   counters: number
   playerAdj: number
+  compWR: number
 }
 
 export interface WinEstimateResult {
@@ -42,7 +44,7 @@ export function computeTeamWinEstimate(
   playerAssignments?: Record<number, string>,
 ): WinEstimateResult {
   if (picks.length === 0) {
-    return { winPct: 50, breakdown: { heroWR: 0, synergies: 0, counters: 0, playerAdj: 0 } }
+    return { winPct: 50, breakdown: { heroWR: 0, synergies: 0, counters: 0, playerAdj: 0, compWR: 0 } }
   }
 
   let heroWRDelta = 0
@@ -115,7 +117,10 @@ export function computeTeamWinEstimate(
     if (count > 0) counterDelta = sum / count
   }
 
-  const totalDelta = heroWRDelta + synergyDelta + counterDelta + playerAdj
+  // 5. Composition WR — data-driven boost/penalty based on team roles
+  const compDelta = scoreCurrentComposition(picks, data.compositions, data.baselineCompWR)
+
+  const totalDelta = heroWRDelta + synergyDelta + counterDelta + playerAdj + compDelta
   const raw = 50 + totalDelta
   const winPct = Math.round(Math.max(1, Math.min(99, raw)) * 10) / 10
 
@@ -126,6 +131,7 @@ export function computeTeamWinEstimate(
       synergies: Math.round(synergyDelta * 10) / 10,
       counters: Math.round(counterDelta * 10) / 10,
       playerAdj: Math.round(playerAdj * 10) / 10,
+      compWR: compDelta,
     },
   }
 }

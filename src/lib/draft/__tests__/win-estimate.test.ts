@@ -24,6 +24,7 @@ describe('computeTeamWinEstimate', () => {
     expect(result.breakdown.synergies).toBe(0)
     expect(result.breakdown.counters).toBe(0)
     expect(result.breakdown.playerAdj).toBe(0)
+    expect(result.breakdown.compWR).toBe(0)
   })
 
   it('adds hero base WR deltas', () => {

@@ -172,6 +172,47 @@ export function scoreComposition(
 }
 
 /**
+ * Score the current team composition as-is (no candidate hero).
+ * Returns a WR delta from baseline for the best achievable comp
+ * that contains the team's current roles as a subset, scaled by picks made.
+ */
+export function scoreCurrentComposition(
+  picks: string[],
+  comps: CompositionData[],
+  baselineWR: number
+): number {
+  if (comps.length === 0 || picks.length === 0) return 0
+
+  const currentRoles: string[] = picks
+    .map(getHeroRole)
+    .filter((r): r is NonNullable<typeof r> => r !== null)
+
+  if (currentRoles.length === 0) return 0
+
+  const sortedRoles = [...currentRoles].sort()
+
+  // Find all comps that contain our current roles as a subset
+  const achievable = comps.filter(
+    (c) => c.games >= MIN_COMP_GAMES && isMultisetSubset(sortedRoles, c.roles)
+  )
+
+  const scaleFactor = Math.min(picks.length / 4, 1)
+
+  if (achievable.length === 0) {
+    return Math.round(-15 * scaleFactor * 10) / 10
+  }
+
+  // Best achievable comp by confidence-adjusted WR
+  let bestAdjWR = confidenceAdjustedWR(achievable[0].winRate, achievable[0].games)
+  for (let i = 1; i < achievable.length; i++) {
+    const adjWR = confidenceAdjustedWR(achievable[i].winRate, achievable[i].games)
+    if (adjWR > bestAdjWR) bestAdjWR = adjWR
+  }
+
+  return Math.round((bestAdjWR - baselineWR) * scaleFactor * 10) / 10
+}
+
+/**
  * Convenience: score a hero by name using composition data.
  * Used by the draft engine to replace scoreRoleNeed + scoreRolePenalty.
  */

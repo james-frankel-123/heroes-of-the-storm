@@ -363,6 +363,13 @@ export function generateRecommendations(
         }
       }
 
+      // Composition scoring for enemy team
+      const { sortBoost: compDelta, reason: compReason } = scoreCompositionForHero(
+        hero, enemyPicks, data.compositions, data.baselineCompWR
+      )
+      if (compReason) { reasons.push(compReason) }
+      netDelta += compDelta
+
       return {
         hero,
         netDelta: Math.round(netDelta * 10) / 10,
