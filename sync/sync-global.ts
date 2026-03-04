@@ -679,12 +679,13 @@ function parseMatchupData(hero: string, data: any): MatchupRow[] {
     }
 
     // Parse enemy (counter) data
+    // API returns the OPPONENT's wins/WR, so we invert to get hero A's perspective
     if (md.enemy && typeof md.enemy === 'object') {
       const enemy = md.enemy
-      const winsA = num(enemy.wins_against ?? enemy.wins)
-      const lossesA = num(enemy.losses_against ?? enemy.losses)
-      const gamesA = winsA + lossesA
-      const winRateA = num(enemy.win_rate_against ?? enemy.win_rate)
+      const opponentWins = num(enemy.wins_against ?? enemy.wins)
+      const opponentLosses = num(enemy.losses_against ?? enemy.losses)
+      const gamesA = opponentWins + opponentLosses
+      const opponentWR = num(enemy.win_rate_against ?? enemy.win_rate)
 
       if (gamesA > 0) {
         rows.push({
@@ -692,8 +693,8 @@ function parseMatchupData(hero: string, data: any): MatchupRow[] {
           heroB,
           relationship: 'against',
           games: gamesA,
-          wins: winsA,
-          winRate: winRateA,
+          wins: gamesA - opponentWins,
+          winRate: Math.round((100 - opponentWR) * 100) / 100,
         })
       }
     }

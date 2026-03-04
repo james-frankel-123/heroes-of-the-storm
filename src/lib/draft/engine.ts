@@ -264,17 +264,6 @@ function scoreBanCandidate(
     netDelta += wrDelta
   }
 
-  // High ban rate = community agrees
-  if (stats.banRate >= 15) {
-    const banDelta = Math.round(stats.banRate * 0.1 * 10) / 10
-    reasons.push({
-      type: 'ban_worthy',
-      label: `${stats.banRate.toFixed(0)}% ban rate`,
-      delta: banDelta,
-    })
-    netDelta += banDelta
-  }
-
   // Strong against the banning team's own picks
   for (const ally of picksToProtect) {
     const d = data.counters[hero]?.[ally]
@@ -287,17 +276,6 @@ function scoreBanCandidate(
       })
       netDelta += delta
     }
-  }
-
-  // High pick rate = likely to be picked if not banned (ranking boost)
-  if (stats.pickRate >= 10) {
-    const pickBoost = Math.round(stats.pickRate * 0.3 * 10) / 10
-    sortBoost += pickBoost
-    reasons.push({
-      type: 'ban_worthy',
-      label: `${stats.pickRate.toFixed(0)}% pick rate`,
-      delta: pickBoost,
-    })
   }
 
   return { netDelta: Math.round(netDelta * 10) / 10, sortBoost, reasons }
