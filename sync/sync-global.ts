@@ -572,63 +572,64 @@ async function syncMatchupForHero(
   api: HeroesProfileApi,
   db: SyncDb,
   hero: string,
+  tier: SkillTier,
+  leagueTier: string,
   patch: PatchInfo,
 ): Promise<boolean> {
-  const raw = await api.getHeroMatchups(hero, patch.type, patch.version)
+  const raw = await api.getHeroMatchups(hero, patch.type, patch.version, leagueTier)
   const rows = parseMatchupData(hero, raw)
 
   if (rows.length === 0) return true
 
-  // Store for all 3 tiers since we're fetching overall stats
-  for (const tier of ['low', 'mid', 'high'] as SkillTier[]) {
-    const dbRows = rows.map(r => ({
-      heroA: r.heroA,
-      heroB: r.heroB,
-      relationship: r.relationship,
-      skillTier: tier,
-      games: r.games,
-      wins: r.wins,
-      winRate: r.winRate,
-      updatedAt: new Date(),
-    }))
+  const dbRows = rows.map(r => ({
+    heroA: r.heroA,
+    heroB: r.heroB,
+    relationship: r.relationship,
+    skillTier: tier,
+    games: r.games,
+    wins: r.wins,
+    winRate: r.winRate,
+    updatedAt: new Date(),
+  }))
 
-    await batchUpsert(
-      db,
-      heroPairwiseStats,
-      dbRows,
-      [heroPairwiseStats.heroA, heroPairwiseStats.heroB, heroPairwiseStats.relationship, heroPairwiseStats.skillTier],
-      {
-        games: sql.raw('excluded.games'),
-        wins: sql.raw('excluded.wins'),
-        winRate: sql.raw('excluded.win_rate'),
-        updatedAt: sql`now()`,
-      },
-    )
-  }
+  await batchUpsert(
+    db,
+    heroPairwiseStats,
+    dbRows,
+    [heroPairwiseStats.heroA, heroPairwiseStats.heroB, heroPairwiseStats.relationship, heroPairwiseStats.skillTier],
+    {
+      games: sql.raw('excluded.games'),
+      wins: sql.raw('excluded.wins'),
+      winRate: sql.raw('excluded.win_rate'),
+      updatedAt: sql`now()`,
+    },
+  )
   return true
 }
 
 async function syncMatchups(
   api: HeroesProfileApi,
   db: SyncDb,
+  tier: SkillTier,
+  leagueTier: string,
   patch: PatchInfo,
 ) {
-  log.info(`Syncing hero matchups (${ALL_HEROES.length} heroes, concurrency=${MATCHUP_CONCURRENCY})`)
+  log.info(`Syncing hero matchups for tier=${tier} (${ALL_HEROES.length} heroes, concurrency=${MATCHUP_CONCURRENCY})`)
 
   let successCount = 0
   let failCount = 0
 
   await pMap(ALL_HEROES, async (hero) => {
     try {
-      await syncMatchupForHero(api, db, hero, patch)
+      await syncMatchupForHero(api, db, hero, tier, leagueTier, patch)
       successCount++
     } catch (err) {
       failCount++
-      log.warn(`Failed to fetch matchups for ${hero}: ${err}`)
+      log.warn(`Failed to fetch matchups for ${hero} tier=${tier}: ${err}`)
     }
   }, MATCHUP_CONCURRENCY)
 
-  log.info(`Matchup sync complete: ${successCount} heroes succeeded, ${failCount} failed`)
+  log.info(`Matchup sync tier=${tier} complete: ${successCount} heroes succeeded, ${failCount} failed`)
 }
 
 interface MatchupRow {
@@ -729,11 +730,13 @@ export async function syncGlobalStats(api: HeroesProfileApi, db: SyncDb) {
     }
   }
 
-  // 3. Hero matchups — 88 heroes with concurrency pool
-  try {
-    await syncMatchups(api, db, patch)
-  } catch (err) {
-    log.error('Failed to sync matchups', err)
+  // 3. Hero matchups — 88 heroes per tier with concurrency pool
+  for (const [tier, leagueTier] of TIER_MAPPING) {
+    try {
+      await syncMatchups(api, db, tier, leagueTier, patch)
+    } catch (err) {
+      log.error(`Failed to sync matchups for tier=${tier}`, err)
+    }
   }
 
   log.info('=== Global stats sync complete ===')
