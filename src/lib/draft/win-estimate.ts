@@ -86,6 +86,8 @@ export function computeTeamWinEstimate(
   }
 
   // 2. Intra-team synergies — average across all pairs
+  // Normalized: subtract expected pair WR based on both heroes' base rates
+  // to isolate the synergy-specific effect beyond individual hero strength
   {
     let sum = 0
     let count = 0
@@ -93,7 +95,10 @@ export function computeTeamWinEstimate(
       for (let j = i + 1; j < picks.length; j++) {
         const d = data.synergies[picks[i]]?.[picks[j]]
         if (d && d.games >= 30) {
-          sum += d.winRate - 50
+          const wr1 = getHeroWinRate(picks[i], data, map)?.winRate ?? 50
+          const wr2 = getHeroWinRate(picks[j], data, map)?.winRate ?? 50
+          const expectedWR = 50 + (wr1 - 50) + (wr2 - 50)
+          sum += d.winRate - expectedWR
           count++
         }
       }
@@ -102,14 +107,19 @@ export function computeTeamWinEstimate(
   }
 
   // 3. Cross-team counters — average across all matchups
+  // Normalized: subtract expected matchup WR based on both heroes' base rates
+  // to isolate the matchup-specific effect beyond individual hero strength
   {
     let sum = 0
     let count = 0
     for (const ourHero of picks) {
+      const ourWR = getHeroWinRate(ourHero, data, map)?.winRate ?? 50
       for (const enemyHero of enemyPicks) {
         const d = data.counters[ourHero]?.[enemyHero]
         if (d && d.games >= 30) {
-          sum += d.winRate - 50
+          const enemyWR = getHeroWinRate(enemyHero, data, map)?.winRate ?? 50
+          const expectedWR = ourWR + (100 - enemyWR) - 50
+          sum += d.winRate - expectedWR
           count++
         }
       }

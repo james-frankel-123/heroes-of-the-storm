@@ -149,18 +149,23 @@ function scoreHeroWR(
 function scoreCounters(
   hero: string,
   enemyPicks: string[],
-  data: DraftData
+  data: DraftData,
+  map: string | null
 ): { totalDelta: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
   let sum = 0
   let count = 0
+  const heroWR = getHeroWinRate(hero, data, map)?.winRate ?? 50
   for (const enemy of enemyPicks) {
     const d = data.counters[hero]?.[enemy]
     if (!d || d.games < 30) continue
-    const delta = Math.round((d.winRate - 50) * 10) / 10
+    // Normalize: subtract expected WR based on both heroes' base rates
+    // to isolate the matchup-specific effect (hero base WR already counted separately)
+    const enemyWR = getHeroWinRate(enemy, data, map)?.winRate ?? 50
+    const expectedWR = heroWR + (100 - enemyWR) - 50
+    const delta = Math.round((d.winRate - expectedWR) * 10) / 10
     sum += delta
     count++
-    // Only show as a reason if the delta is notable
     if (Math.abs(delta) >= 1) {
       reasons.push({
         type: 'counter',
@@ -176,18 +181,23 @@ function scoreCounters(
 function scoreSynergies(
   hero: string,
   ourPicks: string[],
-  data: DraftData
+  data: DraftData,
+  map: string | null
 ): { totalDelta: number; reasons: RecommendationReason[] } {
   const reasons: RecommendationReason[] = []
   let sum = 0
   let count = 0
+  const heroWR = getHeroWinRate(hero, data, map)?.winRate ?? 50
   for (const ally of ourPicks) {
     const d = data.synergies[hero]?.[ally]
     if (!d || d.games < 30) continue
-    const delta = Math.round((d.winRate - 50) * 10) / 10
+    // Normalize: subtract expected pair WR based on both heroes' base rates
+    // to isolate the synergy-specific effect (hero base WRs already counted separately)
+    const allyWR = getHeroWinRate(ally, data, map)?.winRate ?? 50
+    const expectedWR = 50 + (heroWR - 50) + (allyWR - 50)
+    const delta = Math.round((d.winRate - expectedWR) * 10) / 10
     sum += delta
     count++
-    // Only show as a reason if the delta is notable
     if (Math.abs(delta) >= 1) {
       reasons.push({
         type: 'synergy',
@@ -278,8 +288,11 @@ function scoreBanCandidate(
   // Strong against the banning team's own picks
   for (const ally of picksToProtect) {
     const d = data.counters[hero]?.[ally]
-    if (d && d.games >= 30 && d.winRate >= 53) {
-      const delta = Math.round((d.winRate - 50) * 10) / 10
+    if (!d || d.games < 30) continue
+    const allyWR = getHeroWinRate(ally, data, map)?.winRate ?? 50
+    const expectedWR = resolved.winRate + (100 - allyWR) - 50
+    if (d.winRate >= expectedWR + 3) {
+      const delta = Math.round((d.winRate - expectedWR) * 10) / 10
       reasons.push({
         type: 'counter',
         label: `Strong vs ${ally} (${fmtDelta(delta)})`,
@@ -349,10 +362,13 @@ export function generateRecommendations(
       if (wrReason) { reasons.push(wrReason) }
 
       // Enemy counters to OUR picks (from enemy's perspective)
+      const enemyHeroWR = getHeroWinRate(hero, data, state.map)?.winRate ?? 50
       for (const ally of ourPicks) {
         const d = data.counters[hero]?.[ally]
         if (!d || d.games < 30) continue
-        const delta = Math.round((d.winRate - 50) * 10) / 10
+        const allyWR = getHeroWinRate(ally, data, state.map)?.winRate ?? 50
+        const expectedWR = enemyHeroWR + (100 - allyWR) - 50
+        const delta = Math.round((d.winRate - expectedWR) * 10) / 10
         netDelta += delta
         if (Math.abs(delta) >= 1) {
           reasons.push({
@@ -392,12 +408,12 @@ export function generateRecommendations(
     if (wrReason) { reasons.push(wrReason) }
 
     // 2. Counter-picks vs enemy — all pairwise deltas
-    const { totalDelta: counterDelta, reasons: counterReasons } = scoreCounters(hero, enemyPicks, data)
+    const { totalDelta: counterDelta, reasons: counterReasons } = scoreCounters(hero, enemyPicks, data, state.map)
     netDelta += counterDelta
     for (const r of counterReasons) { reasons.push(r) }
 
     // 3. Synergies with allies — all pairwise deltas
-    const { totalDelta: synergyDelta, reasons: synergyReasons } = scoreSynergies(hero, ourPicks, data)
+    const { totalDelta: synergyDelta, reasons: synergyReasons } = scoreSynergies(hero, ourPicks, data, state.map)
     netDelta += synergyDelta
     for (const r of synergyReasons) { reasons.push(r) }
 
