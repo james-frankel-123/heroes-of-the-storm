@@ -136,8 +136,7 @@ function scoreHeroWR(
 
   const delta = Math.round((resolved.winRate - 50) * 10) / 10
 
-  // Always include delta in netDelta; only show reason for notable deltas
-  const reason = Math.abs(delta) < 0.5 ? null : {
+  const reason: RecommendationReason = {
     type: 'hero_wr' as const,
     label: `${hero} ${fmtDelta(delta)}${resolved.isMapSpecific ? ' map' : ''} WR`,
     delta,
@@ -276,14 +275,12 @@ function scoreBanCandidate(
 
   // High WR = good ban target (denying a strong hero)
   const wrDelta = Math.round((resolved.winRate - 50) * 10) / 10
-  if (wrDelta > 1) {
-    reasons.push({
-      type: 'ban_worthy',
-      label: `${hero} ${fmtDelta(wrDelta)}${resolved.isMapSpecific ? ' map' : ''} WR`,
-      delta: wrDelta,
-    })
-    netDelta += wrDelta
-  }
+  reasons.push({
+    type: 'ban_worthy',
+    label: `${hero} ${fmtDelta(wrDelta)}${resolved.isMapSpecific ? ' map' : ''} WR`,
+    delta: wrDelta,
+  })
+  netDelta += wrDelta
 
   // Strong against the banning team's own picks
   for (const ally of picksToProtect) {
