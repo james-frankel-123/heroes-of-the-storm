@@ -282,7 +282,7 @@ function scoreBanCandidate(
   })
   netDelta += wrDelta
 
-  // Strong against the banning team's own picks
+  // Strong against the banning team's own picks — ban to protect our team
   for (const ally of picksToProtect) {
     const d = data.counters[hero]?.[ally]
     if (!d || d.games < 30) continue
@@ -293,6 +293,23 @@ function scoreBanCandidate(
       reasons.push({
         type: 'counter',
         label: `Strong vs ${ally} (${fmtDelta(delta)})`,
+        delta,
+      })
+      netDelta += delta
+    }
+  }
+
+  // Synergizes well with the opponent's picks — ban to deny synergy
+  for (const enemy of opponentPicks) {
+    const d = data.synergies[hero]?.[enemy]
+    if (!d || d.games < 30) continue
+    const enemyWR = getHeroWinRate(enemy, data, map)?.winRate ?? 50
+    const expectedWR = 50 + (resolved.winRate - 50) + (enemyWR - 50)
+    const delta = Math.round((d.winRate - expectedWR) * 10) / 10
+    if (delta >= 2) {
+      reasons.push({
+        type: 'synergy',
+        label: `Synergy with ${enemy} (${fmtDelta(delta)})`,
         delta,
       })
       netDelta += delta
