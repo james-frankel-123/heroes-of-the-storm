@@ -184,6 +184,8 @@ This model predicts the next ban or pick based on map, skill level tier of the p
 
 Input: team0_picks (90) + team1_picks (90) + bans (90) + map (14) + tier (3) + step (1) + type (1) = 289 features. Output: softmax over 90 heroes, masked to valid/available heroes. Architecture: 289 → 256 → 128 → 90. Each replay produces 16 training samples (one per draft step). Trained with cross-entropy loss and early stopping. Exported to ONNX for browser inference.
 
+At inference time, the model samples weighted randomly from the softmax distribution (with temperature scaling) rather than always picking the argmax. This stochastic noise makes the Generic Draft a more realistic and diverse opponent for training the Draft Policy model.
+
 Training: `python training/train_generic_draft.py` (requires `DATABASE_URL` env var).
 
 ### “Win Probability” Model
