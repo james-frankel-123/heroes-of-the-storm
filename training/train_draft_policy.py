@@ -1,16 +1,18 @@
 """
-Draft Policy Model — RL-trained policy that maximizes win probability.
+Draft Policy Model — AlphaZero-style MCTS + neural network.
 
-Uses Q-Learning where:
-- State: current draft state (heroes picked/banned + map + tier)
-- Action: pick or ban a hero (masked to valid options)
-- Reward: final win probability from the Win Probability model (only at game end)
-- Opponent: Generic Draft model (provides realistic opponent moves)
+Architecture:
+- Shared residual backbone: 289 → 512 (2 residual blocks) → 256 → 128
+- Policy head: 128 → 90 (softmax, masked to legal actions)
+- Value head: 128 → 64 → 1 (tanh, scaled to [0, 1])
 
-The policy plays as team 0 against the Generic Draft model (team 1),
-alternating moves according to the standard Storm League draft order.
-
-No discount factor — only the final win probability matters.
+Training:
+- Network plays as team 0 using MCTS (200-400 simulations per move)
+- Opponent (team 1) sampled from pool of 3-5 Generic Draft models
+- Win Probability model evaluates terminal states
+- MCTS visit count distribution → policy target
+- Final win probability → value target
+- Replay buffer of last 50k-100k drafts
 
 Usage:
     export DATABASE_URL=...
@@ -18,7 +20,9 @@ Usage:
 """
 import os
 import sys
+import math
 import random
+import copy
 import numpy as np
 import torch
 import torch.nn as nn
@@ -31,21 +35,20 @@ from shared import (
     load_replay_data, split_data,
 )
 
-# Same input dims as generic draft
 STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2  # 289
 
 # Standard Storm League draft order (16 steps)
-# Format: (team, action_type) where team 0/1, action_type 'ban'/'pick'
-# Team 0 bans first
 DRAFT_ORDER = [
-    (0, 'ban'), (1, 'ban'),  # Bans 1-2
-    (0, 'ban'), (1, 'ban'),  # Bans 3-4
-    (0, 'pick'), (1, 'pick'), (1, 'pick'), (0, 'pick'),  # Picks 1-4
-    (0, 'ban'), (1, 'ban'),  # Bans 5-6
-    (1, 'pick'), (0, 'pick'), (0, 'pick'), (1, 'pick'),  # Picks 5-8
-    (1, 'pick'), (0, 'pick'),  # Picks 9-10
+    (0, 'ban'), (1, 'ban'),
+    (0, 'ban'), (1, 'ban'),
+    (0, 'pick'), (1, 'pick'), (1, 'pick'), (0, 'pick'),
+    (0, 'ban'), (1, 'ban'),
+    (1, 'pick'), (0, 'pick'), (0, 'pick'), (1, 'pick'),
+    (1, 'pick'), (0, 'pick'),
 ]
 
+
+# ── Draft State ──────────────────────────────────────────────────────
 
 class DraftState:
     """Mutable draft state for simulation."""
@@ -58,22 +61,37 @@ class DraftState:
         self.skill_tier = skill_tier
         self.step = 0
 
-    def to_tensor(self, step_type: float) -> torch.Tensor:
+    def clone(self):
+        s = DraftState(self.game_map, self.skill_tier)
+        s.team0_picks = self.team0_picks.copy()
+        s.team1_picks = self.team1_picks.copy()
+        s.bans = self.bans.copy()
+        s.taken = set(self.taken)
+        s.step = self.step
+        return s
+
+    def to_numpy(self) -> np.ndarray:
+        step_type = 0.0 if DRAFT_ORDER[self.step][1] == 'ban' else 1.0
         map_vec = map_to_one_hot(self.game_map)
         tier_vec = tier_to_one_hot(self.skill_tier)
         step_norm = self.step / 15.0
-        x = np.concatenate([
+        return np.concatenate([
             self.team0_picks, self.team1_picks, self.bans,
             map_vec, tier_vec,
             [step_norm, step_type],
         ])
-        return torch.from_numpy(x).unsqueeze(0)
 
-    def valid_mask(self) -> torch.Tensor:
+    def to_tensor(self, device) -> torch.Tensor:
+        return torch.from_numpy(self.to_numpy()).unsqueeze(0).to(device)
+
+    def valid_mask_np(self) -> np.ndarray:
         mask = np.ones(NUM_HEROES, dtype=np.float32)
         for idx in self.taken:
             mask[idx] = 0.0
-        return torch.from_numpy(mask).unsqueeze(0)
+        return mask
+
+    def valid_mask(self, device) -> torch.Tensor:
+        return torch.from_numpy(self.valid_mask_np()).unsqueeze(0).to(device)
 
     def apply_action(self, hero_idx: int, team: int, action_type: str):
         self.taken.add(hero_idx)
@@ -85,54 +103,218 @@ class DraftState:
             self.team1_picks[hero_idx] = 1.0
         self.step += 1
 
+    def is_terminal(self) -> bool:
+        return self.step >= 16
 
-class PolicyNetwork(nn.Module):
-    """Q-network: state → Q-values per hero action."""
+    def current_team(self) -> int:
+        return DRAFT_ORDER[self.step][0]
+
+    def current_action_type(self) -> str:
+        return DRAFT_ORDER[self.step][1]
+
+
+# ── Residual Network ────────────────────────────────────────────────
+
+class ResidualBlock(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.fc1 = nn.Linear(dim, dim)
+        self.bn1 = nn.BatchNorm1d(dim)
+        self.fc2 = nn.Linear(dim, dim)
+        self.bn2 = nn.BatchNorm1d(dim)
+
+    def forward(self, x):
+        residual = x
+        out = F.relu(self.bn1(self.fc1(x)))
+        out = self.bn2(self.fc2(out))
+        out = F.relu(out + residual)
+        return out
+
+
+class AlphaZeroDraftNet(nn.Module):
+    """
+    Shared residual backbone with policy and value heads.
+    ~1M params total.
+    """
     def __init__(self):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(STATE_DIM, 256),
-            nn.ReLU(),
-            nn.Dropout(0.1),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, NUM_HEROES),
-        )
+        # Shared backbone
+        self.input_fc = nn.Linear(STATE_DIM, 512)
+        self.input_bn = nn.BatchNorm1d(512)
+        self.res_block1 = ResidualBlock(512)
+        self.res_block2 = ResidualBlock(512)
+        self.compress1 = nn.Linear(512, 256)
+        self.compress1_bn = nn.BatchNorm1d(256)
+        self.compress2 = nn.Linear(256, 128)
+        self.compress2_bn = nn.BatchNorm1d(128)
+
+        # Policy head: prior probabilities over hero actions
+        self.policy_head = nn.Linear(128, NUM_HEROES)
+
+        # Value head: estimated win probability for team 0
+        self.value_fc = nn.Linear(128, 64)
+        self.value_out = nn.Linear(64, 1)
 
     def forward(self, x, mask=None):
-        q = self.net(x)
+        # Shared backbone
+        h = F.relu(self.input_bn(self.input_fc(x)))
+        h = self.res_block1(h)
+        h = self.res_block2(h)
+        h = F.relu(self.compress1_bn(self.compress1(h)))
+        h = F.relu(self.compress2_bn(self.compress2(h)))
+
+        # Policy head
+        policy_logits = self.policy_head(h)
         if mask is not None:
-            q = q + (1 - mask) * (-1e9)
-        return q
+            policy_logits = policy_logits + (1 - mask) * (-1e9)
+
+        # Value head (tanh scaled to [0, 1])
+        v = F.relu(self.value_fc(h))
+        value = torch.tanh(self.value_out(v)) * 0.5 + 0.5  # map [-1,1] → [0,1]
+
+        return policy_logits, value.squeeze(-1)
+
+    def predict(self, state: DraftState, device) -> tuple[np.ndarray, float]:
+        """Get policy priors and value for a single state."""
+        self.eval()
+        x = state.to_tensor(device)
+        mask = state.valid_mask(device)
+        with torch.no_grad():
+            logits, value = self(x, mask)
+            priors = F.softmax(logits, dim=1).cpu().numpy()[0]
+        return priors, value.item()
 
 
-def load_pretrained_models(device):
-    """Load the pre-trained Win Probability and Generic Draft models."""
-    from train_win_probability import WinProbModel, INPUT_DIM as WP_INPUT_DIM
-    from train_generic_draft import GenericDraftModel
+# ── MCTS ─────────────────────────────────────────────────────────────
 
-    wp_path = os.path.join(os.path.dirname(__file__), "win_probability.pt")
-    gd_path = os.path.join(os.path.dirname(__file__), "generic_draft.pt")
+class MCTSNode:
+    __slots__ = ['state', 'parent', 'action', 'children', 'visit_count',
+                 'value_sum', 'prior', 'is_expanded']
 
-    if not os.path.exists(wp_path) or not os.path.exists(gd_path):
-        raise FileNotFoundError(
-            "Pre-trained models not found. Train win_probability and generic_draft first."
-        )
+    def __init__(self, state: DraftState, parent=None, action: int = -1, prior: float = 0.0):
+        self.state = state
+        self.parent = parent
+        self.action = action
+        self.children = {}  # action → MCTSNode
+        self.visit_count = 0
+        self.value_sum = 0.0
+        self.prior = prior
+        self.is_expanded = False
 
-    wp_model = WinProbModel().to(device)
-    wp_model.load_state_dict(torch.load(wp_path, weights_only=True, map_location=device))
-    wp_model.eval()
+    def q_value(self) -> float:
+        if self.visit_count == 0:
+            return 0.0
+        return self.value_sum / self.visit_count
 
-    gd_model = GenericDraftModel().to(device)
-    gd_model.load_state_dict(torch.load(gd_path, weights_only=True, map_location=device))
-    gd_model.eval()
+    def ucb_score(self, c_puct: float = 2.0) -> float:
+        if self.parent is None:
+            return 0.0
+        exploration = c_puct * self.prior * math.sqrt(self.parent.visit_count) / (1 + self.visit_count)
+        return self.q_value() + exploration
 
-    return wp_model, gd_model
+
+def mcts_search(
+    root_state: DraftState,
+    network: AlphaZeroDraftNet,
+    wp_model,
+    gd_models: list,
+    gd_temperature: float,
+    device,
+    num_simulations: int = 200,
+    c_puct: float = 2.0,
+) -> np.ndarray:
+    """
+    Run MCTS from root_state for team 0's decision.
+    Returns visit count distribution over actions (normalized).
+    """
+    root = MCTSNode(root_state)
+
+    # Expand root
+    priors, _ = network.predict(root_state, device)
+    valid = root_state.valid_mask_np()
+    priors = priors * valid
+    prior_sum = priors.sum()
+    if prior_sum > 0:
+        priors /= prior_sum
+    root.is_expanded = True
+    for a in range(NUM_HEROES):
+        if valid[a] > 0:
+            root.children[a] = MCTSNode(None, parent=root, action=a, prior=priors[a])
+
+    for _ in range(num_simulations):
+        node = root
+        scratch_state = root_state.clone()
+
+        # Selection: traverse tree using UCB
+        while node.is_expanded and not scratch_state.is_terminal():
+            if scratch_state.current_team() == 0:
+                # Our turn: select by UCB
+                best_score = -float('inf')
+                best_child = None
+                for child in node.children.values():
+                    score = child.ucb_score(c_puct)
+                    if score > best_score:
+                        best_score = score
+                        best_child = child
+                if best_child is None:
+                    break
+                team, action_type = DRAFT_ORDER[scratch_state.step]
+                scratch_state.apply_action(best_child.action, team, action_type)
+                node = best_child
+            else:
+                # Opponent turn: sample from a random Generic Draft model
+                gd_model = random.choice(gd_models)
+                x = scratch_state.to_tensor(device)
+                mask = scratch_state.valid_mask(device)
+                with torch.no_grad():
+                    logits = gd_model(x, mask)
+                    probs = F.softmax(logits / gd_temperature, dim=1)
+                    opp_action = torch.multinomial(probs, 1).item()
+                team, action_type = DRAFT_ORDER[scratch_state.step]
+                scratch_state.apply_action(opp_action, team, action_type)
+                # Opponent nodes are pass-through (not tracked in tree)
+
+        if scratch_state.is_terminal():
+            # Terminal: evaluate with Win Probability model
+            value = _evaluate_wp(wp_model, scratch_state, device)
+        else:
+            # Expansion: expand this node with network predictions
+            if not node.is_expanded and scratch_state.current_team() == 0:
+                priors_leaf, value = network.predict(scratch_state, device)
+                valid_leaf = scratch_state.valid_mask_np()
+                priors_leaf = priors_leaf * valid_leaf
+                prior_sum = priors_leaf.sum()
+                if prior_sum > 0:
+                    priors_leaf /= prior_sum
+                node.state = scratch_state
+                node.is_expanded = True
+                for a in range(NUM_HEROES):
+                    if valid_leaf[a] > 0:
+                        node.children[a] = MCTSNode(
+                            None, parent=node, action=a, prior=priors_leaf[a]
+                        )
+            else:
+                # Leaf at opponent's turn or already expanded — use network value
+                _, value = network.predict(scratch_state, device)
+
+        # Backpropagation
+        while node is not None:
+            node.visit_count += 1
+            node.value_sum += value
+            node = node.parent
+
+    # Build visit count distribution
+    visits = np.zeros(NUM_HEROES, dtype=np.float32)
+    for action, child in root.children.items():
+        visits[action] = child.visit_count
+    visit_sum = visits.sum()
+    if visit_sum > 0:
+        visits /= visit_sum
+    return visits
 
 
-def evaluate_win_prob(wp_model, state: DraftState, device) -> float:
-    """Get win probability for team 0 from current state."""
-    from shared import NUM_HEROES as NH
+def _evaluate_wp(wp_model, state: DraftState, device) -> float:
+    """Get win probability for team 0 from the Win Probability model."""
     t0 = torch.from_numpy(state.team0_picks).unsqueeze(0).to(device)
     t1 = torch.from_numpy(state.team1_picks).unsqueeze(0).to(device)
     m = torch.from_numpy(map_to_one_hot(state.game_map)).unsqueeze(0).to(device)
@@ -142,61 +324,175 @@ def evaluate_win_prob(wp_model, state: DraftState, device) -> float:
         return wp_model(x).item()
 
 
-def opponent_pick(gd_model, state: DraftState, step_type: float, device) -> int:
-    """Use Generic Draft model to pick for the opponent (team 1)."""
-    x = state.to_tensor(step_type).to(device)
-    mask = state.valid_mask().to(device)
+# ── Training ─────────────────────────────────────────────────────────
+
+def load_pretrained_models(device):
+    """Load Win Probability model and all Generic Draft model variants."""
+    from train_win_probability import WinProbModel
+    from train_generic_draft import GenericDraftModel
+
+    wp_path = os.path.join(os.path.dirname(__file__), "win_probability.pt")
+    if not os.path.exists(wp_path):
+        raise FileNotFoundError("Win Probability model not found. Train it first.")
+
+    wp_model = WinProbModel().to(device)
+    wp_model.load_state_dict(torch.load(wp_path, weights_only=True, map_location=device))
+    wp_model.eval()
+
+    # Load all Generic Draft variants
+    gd_models = []
+    for i in range(10):  # try up to 10
+        gd_path = os.path.join(os.path.dirname(__file__), f"generic_draft_{i}.pt")
+        if not os.path.exists(gd_path):
+            break
+        gd = GenericDraftModel().to(device)
+        gd.load_state_dict(torch.load(gd_path, weights_only=True, map_location=device))
+        gd.eval()
+        gd_models.append(gd)
+
+    # Fallback to single model
+    if not gd_models:
+        gd_path = os.path.join(os.path.dirname(__file__), "generic_draft.pt")
+        if not os.path.exists(gd_path):
+            raise FileNotFoundError("No Generic Draft models found. Train them first.")
+        gd = GenericDraftModel().to(device)
+        gd.load_state_dict(torch.load(gd_path, weights_only=True, map_location=device))
+        gd.eval()
+        gd_models.append(gd)
+
+    print(f"Loaded {len(gd_models)} Generic Draft model(s)")
+    return wp_model, gd_models
+
+
+def bootstrap_from_generic_draft(network: AlphaZeroDraftNet, device):
+    """Bootstrap policy head weights from a trained Generic Draft model."""
+    from train_generic_draft import GenericDraftModel, INPUT_DIM as GD_INPUT_DIM
+
+    gd_path = os.path.join(os.path.dirname(__file__), "generic_draft_0.pt")
+    if not os.path.exists(gd_path):
+        gd_path = os.path.join(os.path.dirname(__file__), "generic_draft.pt")
+    if not os.path.exists(gd_path):
+        print("No Generic Draft model to bootstrap from — starting from scratch")
+        return
+
+    gd = GenericDraftModel()
+    gd.load_state_dict(torch.load(gd_path, weights_only=True, map_location=device))
+
+    # Copy the final linear layer weights to policy head
     with torch.no_grad():
-        logits = gd_model(x, mask)
-        # Sample from distribution (with temperature) for diversity
-        probs = F.softmax(logits / 0.8, dim=1)
-        action = torch.multinomial(probs, 1).item()
-    return action
+        gd_final = gd.net[-1]  # The last Linear(128, NUM_HEROES)
+        network.policy_head.weight.copy_(gd_final.weight)
+        network.policy_head.bias.copy_(gd_final.bias)
+    print("Bootstrapped policy head from Generic Draft model")
 
 
-def simulate_draft(
-    policy: PolicyNetwork,
-    gd_model,
+def pretrain_value_head(network: AlphaZeroDraftNet, device):
+    """Briefly pre-train the value head on replay data with win/loss outcomes."""
+    print("Pre-training value head on replay data...")
+    data = load_replay_data(limit=50000)
+    if len(data) < 100:
+        print("Not enough data to pre-train value head")
+        return
+
+    train_data, _ = split_data(data)
+
+    # Prepare data
+    X_list, y_list = [], []
+    for d in train_data:
+        t0 = heroes_to_multi_hot(d["team0_heroes"])
+        t1 = heroes_to_multi_hot(d["team1_heroes"])
+        bans = np.zeros(NUM_HEROES, dtype=np.float32)
+        for h in d.get("team0_bans", []) + d.get("team1_bans", []):
+            from shared import HERO_TO_IDX
+            idx = HERO_TO_IDX.get(h)
+            if idx is not None:
+                bans[idx] = 1.0
+        m = map_to_one_hot(d["game_map"])
+        t = tier_to_one_hot(d["skill_tier"])
+        x = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0]])  # step=1, type=pick (terminal)
+        X_list.append(x)
+        y_list.append(float(d["winner"] == 0))
+
+    X = torch.tensor(np.array(X_list, dtype=np.float32)).to(device)
+    y = torch.tensor(np.array(y_list, dtype=np.float32)).to(device)
+
+    # Only train value head parameters (freeze backbone and policy)
+    value_params = list(network.value_fc.parameters()) + list(network.value_out.parameters())
+    optimizer = torch.optim.Adam(value_params, lr=1e-3)
+
+    network.train()
+    batch_size = 512
+    for epoch in range(20):
+        perm = torch.randperm(len(X))
+        total_loss = 0
+        n_batches = 0
+        for i in range(0, len(X), batch_size):
+            idx = perm[i:i+batch_size]
+            bx, by = X[idx], y[idx]
+            _, value_pred = network(bx)
+            loss = F.mse_loss(value_pred, by)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+            n_batches += 1
+        if (epoch + 1) % 5 == 0:
+            print(f"  Value pre-train epoch {epoch+1}: loss={total_loss/n_batches:.4f}")
+
+    print("Value head pre-training complete")
+
+
+def simulate_draft_with_mcts(
+    network: AlphaZeroDraftNet,
     wp_model,
+    gd_models: list,
     game_map: str,
     skill_tier: str,
     device,
-    epsilon: float = 0.1,
-) -> tuple[float, list[tuple[torch.Tensor, int, torch.Tensor]]]:
+    num_simulations: int = 200,
+) -> tuple[float, list[tuple[np.ndarray, np.ndarray, np.ndarray]]]:
     """
-    Simulate a full draft. Policy controls team 0, Generic Draft controls team 1.
-    Returns (reward, trajectory) where trajectory is [(state, action, mask), ...].
+    Simulate a full draft using MCTS for team 0, Generic Draft for team 1.
+    Returns (win_prob, training_examples) where each example is
+    (state_features, mcts_policy_target, valid_mask).
     """
     state = DraftState(game_map, skill_tier)
-    trajectory = []
+    training_examples = []
+    gd_temperature = random.choice([0.5, 0.8, 1.0, 1.2, 1.5])
 
-    for team, action_type in DRAFT_ORDER:
-        step_type = 0.0 if action_type == 'ban' else 1.0
+    while not state.is_terminal():
+        team, action_type = DRAFT_ORDER[state.step]
 
         if team == 0:
-            # Policy's turn
-            x = state.to_tensor(step_type).to(device)
-            mask = state.valid_mask().to(device)
+            # Our turn: MCTS
+            state_features = state.to_numpy()
+            valid = state.valid_mask_np()
 
-            if random.random() < epsilon:
-                # Explore: random valid action
-                valid_indices = [i for i in range(NUM_HEROES) if i not in state.taken]
-                action = random.choice(valid_indices)
-            else:
-                with torch.no_grad():
-                    q = policy(x, mask)
-                    action = q.argmax(dim=1).item()
+            visit_dist = mcts_search(
+                state, network, wp_model, gd_models, gd_temperature,
+                device, num_simulations=num_simulations,
+            )
 
-            trajectory.append((x.detach(), action, mask.detach()))
+            training_examples.append((state_features, visit_dist, valid))
+
+            # Select action: sample proportional to visit counts
+            # (or argmax for evaluation)
+            action = np.random.choice(NUM_HEROES, p=visit_dist) if visit_dist.sum() > 0 else 0
             state.apply_action(action, team, action_type)
         else:
-            # Opponent's turn (Generic Draft model)
-            action = opponent_pick(gd_model, state, step_type, device)
+            # Opponent: sample from Generic Draft model
+            gd_model = random.choice(gd_models)
+            x = state.to_tensor(device)
+            mask = state.valid_mask(device)
+            with torch.no_grad():
+                logits = gd_model(x, mask)
+                probs = F.softmax(logits / gd_temperature, dim=1)
+                action = torch.multinomial(probs, 1).item()
             state.apply_action(action, team, action_type)
 
-    # Reward = win probability for team 0
-    reward = evaluate_win_prob(wp_model, state, device)
-    return reward, trajectory
+    # Final evaluation
+    win_prob = _evaluate_wp(wp_model, state, device)
+    return win_prob, training_examples
 
 
 def train():
@@ -204,123 +500,128 @@ def train():
     print(f"Device: {device}")
 
     print("Loading pre-trained models...")
-    wp_model, gd_model = load_pretrained_models(device)
+    wp_model, gd_models = load_pretrained_models(device)
 
-    policy = PolicyNetwork().to(device)
-    target_net = PolicyNetwork().to(device)
-    target_net.load_state_dict(policy.state_dict())
-    optimizer = torch.optim.Adam(policy.parameters(), lr=5e-4)
+    # Initialize network
+    network = AlphaZeroDraftNet().to(device)
+    print(f"Network params: {sum(p.numel() for p in network.parameters()):,}")
 
-    # Load test data for evaluation
-    print("Loading replay data for evaluation...")
-    all_data = load_replay_data(limit=1000)
-    _, test_data = split_data(all_data)
-    test_maps = [d["game_map"] for d in test_data[:50]]
-    test_tiers = [d["skill_tier"] for d in test_data[:50]]
+    # Bootstrap from Generic Draft
+    bootstrap_from_generic_draft(network, device)
+    pretrain_value_head(network, device)
 
-    # Replay buffer
+    optimizer = torch.optim.Adam(network.parameters(), lr=1e-3, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5000, eta_min=1e-5)
+
+    # Replay buffer: (state, mcts_policy, valid_mask, value_target)
     buffer = []
-    BUFFER_SIZE = 50_000
-    BATCH_SIZE = 64
-    GAMMA = 1.0  # No discount — only final reward matters
-    TARGET_UPDATE = 100
+    BUFFER_SIZE = 75_000
+    BATCH_SIZE = 256
     NUM_EPISODES = 10_000
-    EVAL_EVERY = 500
+    MCTS_SIMULATIONS = 200
+    EVAL_EVERY = 250
+    EVAL_DRAFTS = 200
 
-    best_eval_reward = 0.0
-    epsilon = 0.3
+    best_eval_wp = 0.0
+    save_dir = os.path.dirname(__file__)
 
-    print(f"Training for {NUM_EPISODES} episodes...")
+    print(f"Training for {NUM_EPISODES} episodes with {MCTS_SIMULATIONS} MCTS sims each...")
+
     for episode in range(NUM_EPISODES):
-        # Random map and tier for each episode
         game_map = random.choice(MAPS)
         skill_tier = random.choice(SKILL_TIERS)
 
-        # Decay epsilon
-        epsilon = max(0.05, 0.3 - (episode / NUM_EPISODES) * 0.25)
-
-        reward, trajectory = simulate_draft(
-            policy, gd_model, wp_model, game_map, skill_tier, device, epsilon
+        network.eval()
+        win_prob, examples = simulate_draft_with_mcts(
+            network, wp_model, gd_models, game_map, skill_tier,
+            device, num_simulations=MCTS_SIMULATIONS,
         )
 
-        # Store transitions in buffer
-        # Since reward only comes at the end, assign reward to last action
-        # and 0 to all others (Q-learning will propagate backwards)
-        for i, (s, a, m) in enumerate(trajectory):
-            r = reward if i == len(trajectory) - 1 else 0.0
-            is_terminal = i == len(trajectory) - 1
-            # Next state is the state after the next policy action (skip opponent)
-            if i + 1 < len(trajectory):
-                next_s, _, next_m = trajectory[i + 1]
-            else:
-                next_s, next_m = s, m  # dummy, won't be used (terminal)
-
-            buffer.append((s, a, r, next_s, next_m, is_terminal))
+        # Add to buffer
+        for state_feat, mcts_policy, valid in examples:
+            buffer.append((state_feat, mcts_policy, valid, win_prob))
             if len(buffer) > BUFFER_SIZE:
                 buffer.pop(0)
 
         # Train from buffer
         if len(buffer) >= BATCH_SIZE:
+            network.train()
             batch = random.sample(buffer, BATCH_SIZE)
-            states = torch.cat([b[0] for b in batch]).to(device)
-            actions = torch.tensor([b[1] for b in batch], dtype=torch.long).to(device)
-            rewards = torch.tensor([b[2] for b in batch], dtype=torch.float32).to(device)
-            next_states = torch.cat([b[3] for b in batch]).to(device)
-            next_masks = torch.cat([b[4] for b in batch]).to(device)
-            terminals = torch.tensor([b[5] for b in batch], dtype=torch.bool).to(device)
+            states = torch.tensor(np.array([b[0] for b in batch])).to(device)
+            target_policies = torch.tensor(np.array([b[1] for b in batch])).to(device)
+            masks = torch.tensor(np.array([b[2] for b in batch])).to(device)
+            target_values = torch.tensor(np.array([b[3] for b in batch])).to(device)
 
-            # Current Q values
-            q_values = policy(states).gather(1, actions.unsqueeze(1)).squeeze(1)
+            pred_logits, pred_values = network(states, masks)
+            pred_log_probs = F.log_softmax(pred_logits, dim=1)
 
-            # Target Q values
-            with torch.no_grad():
-                next_q = target_net(next_states, next_masks).max(dim=1).values
-                next_q[terminals] = 0.0
-                target_q = rewards + GAMMA * next_q
+            # Policy loss: cross-entropy between MCTS policy and predicted policy
+            policy_loss = -(target_policies * pred_log_probs).sum(dim=1).mean()
 
-            loss = F.mse_loss(q_values, target_q)
+            # Value loss: MSE between predicted value and actual win probability
+            value_loss = F.mse_loss(pred_values, target_values)
+
+            loss = policy_loss + value_loss
             optimizer.zero_grad()
             loss.backward()
+            nn.utils.clip_grad_norm_(network.parameters(), 1.0)
             optimizer.step()
+            scheduler.step()
 
-        # Update target network
-        if (episode + 1) % TARGET_UPDATE == 0:
-            target_net.load_state_dict(policy.state_dict())
+        # Logging
+        if (episode + 1) % 50 == 0:
+            print(f"Episode {episode+1}: wp={win_prob:.4f} buffer={len(buffer)} "
+                  f"lr={scheduler.get_last_lr()[0]:.6f}")
 
         # Evaluate
         if (episode + 1) % EVAL_EVERY == 0:
-            eval_rewards = []
-            policy.eval()
-            for m, t in zip(test_maps, test_tiers):
-                r, _ = simulate_draft(policy, gd_model, wp_model, m, t, device, epsilon=0)
-                eval_rewards.append(r)
-            policy.train()
-            avg_reward = np.mean(eval_rewards)
-            print(f"Episode {episode+1}: avg_win_prob={avg_reward:.4f} epsilon={epsilon:.3f} buffer={len(buffer)}")
+            network.eval()
+            eval_wps = []
+            for _ in range(EVAL_DRAFTS):
+                m = random.choice(MAPS)
+                t = random.choice(SKILL_TIERS)
+                wp, _ = simulate_draft_with_mcts(
+                    network, wp_model, gd_models, m, t, device,
+                    num_simulations=MCTS_SIMULATIONS // 2,  # faster eval
+                )
+                eval_wps.append(wp)
+            avg_wp = np.mean(eval_wps)
+            std_wp = np.std(eval_wps)
+            print(f"\n  EVAL @ {episode+1}: avg_wp={avg_wp:.4f} ± {std_wp:.4f} "
+                  f"(vs {len(gd_models)} opponents)")
 
-            if avg_reward > best_eval_reward:
-                best_eval_reward = avg_reward
-                torch.save(policy.state_dict(), os.path.join(os.path.dirname(__file__), "draft_policy.pt"))
+            if avg_wp > best_eval_wp:
+                best_eval_wp = avg_wp
+                torch.save(network.state_dict(), os.path.join(save_dir, "draft_policy.pt"))
+                print(f"  New best! Saved draft_policy.pt")
+            print()
 
     # Export to ONNX
-    policy.load_state_dict(torch.load(os.path.join(os.path.dirname(__file__), "draft_policy.pt"),
-                                      weights_only=True))
-    policy.eval()
+    print("Exporting to ONNX...")
+    best_path = os.path.join(save_dir, "draft_policy.pt")
+    if os.path.exists(best_path):
+        network.load_state_dict(torch.load(best_path, weights_only=True, map_location=device))
+    network.eval()
+
     dummy_x = torch.randn(1, STATE_DIM)
     dummy_mask = torch.ones(1, NUM_HEROES)
-    onnx_path = os.path.join(os.path.dirname(__file__), "draft_policy.onnx")
+    onnx_path = os.path.join(save_dir, "draft_policy.onnx")
+
+    # Export with both outputs
     torch.onnx.export(
-        policy, (dummy_x, dummy_mask), onnx_path,
+        network, (dummy_x, dummy_mask), onnx_path,
         input_names=["state", "valid_mask"],
-        output_names=["q_values"],
+        output_names=["policy_logits", "value"],
         dynamic_axes={
             "state": {0: "batch"},
             "valid_mask": {0: "batch"},
-            "q_values": {0: "batch"},
+            "policy_logits": {0: "batch"},
+            "value": {0: "batch"},
         },
     )
     print(f"Exported ONNX model to {onnx_path}")
-    print(f"Best eval win probability: {best_eval_reward:.4f}")
+    print(f"Model size: {os.path.getsize(onnx_path) / 1024:.1f} KB")
+    print(f"Best eval win probability: {best_eval_wp:.4f}")
 
 
 if __name__ == "__main__":

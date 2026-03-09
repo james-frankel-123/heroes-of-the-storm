@@ -4,7 +4,8 @@ Win Probability Model — predicts P(team0 wins) given both team compositions + 
 Input: team0_heroes (90) + team1_heroes (90) + map (14) + tier (3) = 197 features
 Output: sigmoid probability of team 0 winning
 
-Architecture: 197 → 128 → 64 → 1 (small enough for browser inference via ONNX)
+Architecture: 197 → 256 → 128 → 1 (wider to maximize accuracy — this model is the
+quality ceiling for everything downstream)
 
 Usage:
     export DATABASE_URL=...
@@ -54,13 +55,13 @@ class WinProbModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(INPUT_DIM, 128),
+            nn.Linear(INPUT_DIM, 256),
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(128, 64),
+            nn.Linear(256, 128),
             nn.ReLU(),
             nn.Dropout(0.1),
-            nn.Linear(64, 1),
+            nn.Linear(128, 1),
             nn.Sigmoid(),
         )
 

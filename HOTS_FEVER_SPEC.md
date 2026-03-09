@@ -168,7 +168,9 @@ The complexity lies in building the datasets and training pipeline.
 
 This involves three distinct steps, all sharing a common data collection foundation.
 
-### Data Collection
+### Step 1: Data Collection
+
+Target: **500k–1M games** for the Win Probability model, **200k+** for the Generic Draft model.
 
 We collect recent Storm League replay data via a continuous daemon (`sync/replay-daemon.ts`, managed by systemd).
 
@@ -176,39 +178,91 @@ We collect recent Storm League replay data via a continuous daemon (`sync/replay
 
 **Fetch phase:** The `/Replay/Data` endpoint returns full replay JSON including `draft_order` (an array of 16 steps with hero, type (ban/pick), pick_number, and player_slot), plus per-player data with hero, team, and winner fields. This gives us everything needed for both the Generic Draft and Win Probability models — no `.StormReplay` file downloads are needed. Replay/Data supports 25,000 calls/account/week (50,000 total across both keys). We randomize fetch order for tier spread across low/mid/high skill tiers.
 
-We use two API keys (`HEROES_PROFILE_API_KEY` and `HEROES_PROFILE_API_KEY2`) via a `MultiKeyApi` round-robin wrapper that alternates calls equally between them. The daemon alternates discovery batches (200 calls) and fetch batches (300 calls) continuously, with state persisted in `replay_sync_state` for resumability. Target: 100,000–200,000 games.
+We use two API keys (`HEROES_PROFILE_API_KEY` and `HEROES_PROFILE_API_KEY2`) via a `MultiKeyApi` round-robin wrapper that alternates calls equally between them. The daemon alternates discovery batches (200 calls) and fetch batches (300 calls) continuously, with state persisted in `replay_sync_state` for resumability.
 
-### The “Generic Draft” Model
+### Step 2: Train Win Probability Model
 
-This model predicts the next ban or pick based on map, skill level tier of the players (low/medium/high as specified through this document based on average of all players), current draft state, and predicts the next pick/ban.
+This model is the game simulator and the quality ceiling for everything downstream. Every percentage point of noise here propagates into the policy.
 
-Input: team0_picks (90) + team1_picks (90) + bans (90) + map (14) + tier (3) + step (1) + type (1) = 289 features. Output: softmax over 90 heroes, masked to valid/available heroes. Architecture: 289 → 256 → 128 → 90. Each replay produces 16 training samples (one per draft step). Trained with cross-entropy loss and early stopping. Exported to ONNX for browser inference.
-
-At inference time, the model samples weighted randomly from the softmax distribution (with temperature scaling) rather than always picking the argmax. This stochastic noise makes the Generic Draft a more realistic and diverse opponent for training the Draft Policy model.
-
-Training: `python training/train_generic_draft.py` (requires `DATABASE_URL` env var).
-
-### “Win Probability” Model
-
-This model takes the heroes drafted by both teams, map, and skill tier, then outputs the probability that team 0 wins.
-
-Input: team0_heroes (90) + team1_heroes (90) + map (14) + tier (3) = 197 features. Output: sigmoid probability. Architecture: 197 → 128 → 64 → 1. Trained with BCE loss and early stopping. Exported to ONNX for browser inference.
-
-Both the Generic Draft and Win Probability models train from the same `replay_draft_data` table populated by the fetch phase above.
+Input: team0_heroes (90) + team1_heroes (90) + map (14) + tier (3) = 197 features. Output: sigmoid probability of team 0 winning. Architecture: 197 → 256 → 128 → 1 (wider than initially planned given the importance of this model). Trained with BCE loss and early stopping on a held-out test set (2% of data). Do not proceed to later steps until satisfied with accuracy. Exported to ONNX for browser inference.
 
 Training: `python training/train_win_probability.py` (requires `DATABASE_URL` env var).
 
-### “Draft Policy” Model
+### Step 3: Train 3–5 Generic Draft Models
 
-Optimizes for win probability going up against a Generic Draft. Outputs incremental win probability of each “move” (hero pick/ban option).
+This model predicts the next ban or pick based on map, skill level tier of the players (low/medium/high as specified through this document based on average of all players), current draft state, and predicts the next pick/ban.
 
-This will take into account likely counter picks, future drafts, composition, synergy, and more implicitly. We will still need to layer in player skill with specific heroes via a per move recommended probability bump based on that hero’s MAWP-50, both in that move and overall win probability for the match.
+Input: team0_picks (90) + team1_picks (90) + bans (90) + map (14) + tier (3) + step (1) + type (1) = 289 features. Output: softmax over 90 heroes, masked to valid/available heroes. Architecture: 289 → 256 → 128 → 90. Each replay produces 16 training samples (one per draft step). Trained with cross-entropy loss and early stopping.
 
-Uses Q-Learning (DQN with target network and experience replay buffer). The policy plays as team 0 against the Generic Draft model (team 1), simulating full 16-step drafts across random maps and tiers. The reward is only the final win probability as computed by the Win Probability model. There is no discount factor (gamma = 1.0). Epsilon-greedy exploration decays from 0.3 to 0.05. Evaluated against a held-out test set (2% of data).
+We train **3–5 models** with different random seeds and slight hyperparameter variation (learning rate, dropout rate). These serve as the opponent pool for AlphaZero training. Each model is evaluated on held-out data to ensure they’re all reasonable — we want diversity, not broken models. All exported to ONNX (one is used for browser inference during opponent simulation).
 
-Requires pre-trained Win Probability and Generic Draft models. Exported to ONNX for browser inference.
+At inference time, the model samples weighted randomly from the softmax distribution (with temperature scaling) rather than always picking the argmax. This stochastic noise makes the Generic Draft a more realistic and diverse opponent.
+
+Training: `python training/train_generic_draft.py` (requires `DATABASE_URL` env var). Trains all variants in one run.
+
+### Step 4: Initialize and Train the AlphaZero-Style Draft Policy Network
+
+This replaces the previous DQN approach with AlphaZero-style MCTS + neural network, which is far more effective for this kind of sequential decision problem.
+
+**Architecture:**
+
+The network uses a shared residual backbone splitting into policy and value heads:
+
+```
+Input (289)
+→ FC 512, BN, ReLU
+→ Residual block (FC 512 → BN → ReLU → FC 512 → BN → skip connection → ReLU)
+→ Residual block (FC 512 → BN → ReLU → FC 512 → BN → skip connection → ReLU)
+→ FC 256, BN, ReLU
+→ FC 128, BN, ReLU
+├─ Policy head: 128 → 90 (softmax, masked to legal actions)
+│  Outputs prior probability of each hero being the right pick/ban at this step.
+└─ Value head: 128 → 64 → 1 (tanh, scaled to [0, 1])
+   Outputs estimated win probability for team 0 from the current draft state.
+```
+
+Residual connections are critical — they’re what made AlphaZero’s network trainable and they help gradient flow during self-play training. 3–4 residual blocks of fully-connected layers is plenty for this input dimensionality. A single policy head with action type encoded as input handles both bans and picks.
+
+**Initialization:** The policy head is bootstrapped from a trained Generic Draft model’s weights. The value head is briefly pre-trained on the same data the Win Probability model used.
+
+**Training loop (MCTS vs Generic Draft opponents):**
+
+For each training episode: select a random map, random tier, and randomly choose one of the 3–5 Generic Draft models as the opponent.
+
+The network plays as team 0 using MCTS. At each of team 0’s decision points, run MCTS (200–400 simulations) using the policy head as the prior and value head for leaf evaluation. At each of team 1’s decision points, sample from the selected Generic Draft model with variable temperature (randomly chosen from [0.5, 1.0, 1.5] per episode to simulate varying opponent skill/predictability).
+
+When MCTS reaches a terminal state (draft complete), evaluate using the Win Probability model to get the outcome. After each completed draft, generate training targets: at each of team 0’s steps, the MCTS visit count distribution becomes the policy target, and the final win probability becomes the value target. Train the network on accumulated self-play data using a replay buffer of recent games (last 50k–100k drafts).
+
+Periodically evaluate: run the current network against each Generic Draft model over 1000 drafts with the Win Probability model as judge. Track win rate over time. Also run it against the statistical Draft Insights system’s greedy recommendations for comparison.
 
 Training: `python training/train_draft_policy.py` (requires `DATABASE_URL` env var and pre-trained models).
+
+**Player skill integration via MAWP adjustments:**
+
+This architecture naturally supports player-specific hero skill. During MCTS search, at each node we evaluate candidates using the policy prior and value estimate. We inject player skill by modifying value estimates at leaf nodes:
+
+1. MCTS completes a simulated draft to a leaf/terminal state
+2. Get base win probability from the Win Probability model
+3. For each pick slot that has a registered player assigned, compute their MAWP delta: `(MAWP - 50) / 100`
+4. Adjust: `adjusted_wp = base_wp + Σ(weight × mawp_delta)` for our team’s players (no opponent battletags supported)
+5. Weight calibrated empirically — start with 0.03–0.05 per player (meaning a player with 60% MAWP on a hero shifts the team’s win probability by +0.3 to +0.5 percentage points)
+
+### Step 5: Export to ONNX
+
+Export the trained AlphaZero network (both heads) to ONNX. Quantize to uint8 for browser delivery.
+
+At inference time in the browser:
+- Run MCTS with ~50–200 simulations per move (tunable based on latency budget, likely 100–300ms)
+- Opponent moves during search are sampled from a Generic Draft model (also exported to ONNX and running in browser)
+- For registered players with assigned pick slots, apply MAWP adjustments at leaf evaluations
+- The policy head’s output (after MCTS) gives the recommendation ranking
+- The value head gives the running win probability estimate
+
+**Models running in browser:** three ONNX models — the AlphaZero network (policy + value heads, ~1M params), one Generic Draft model (for simulating opponent moves during search, ~100k params), and the Win Probability model (for leaf evaluation during search, ~100k params). Total footprint roughly 1.2M params, well under 5MB even before quantization.
+
+### Retraining Cadence
+
+Retrain all models every major patch. The Win Probability and Generic Draft models retrain on fresh data from the new patch. The AlphaZero network re-initializes from the new Generic Draft model and runs the training loop again. Between major patches, if the replay daemon has accumulated significant new data, consider refreshing the Win Probability and Generic Draft models (since these are faster to train than the full MCTS loop).
 
 
 ## Hero Insights
