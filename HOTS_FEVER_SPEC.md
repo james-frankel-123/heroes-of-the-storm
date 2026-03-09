@@ -156,6 +156,43 @@ Cho and Gall are always picked/banned together. If either is selected, the other
 
 ---
 
+## Draft Insights Hyper Pro Max
+
+We’re experimenting with AI-powered draft insights. These use a small AI model that can run inference in browser to suggest the best characters to pick and ban, as well as the expected impact on win probability of making those picks.
+
+This is effectively the same net result as Draft Insights, though powered by an AI model rather than statistics. The exception is player specific hero skill; the model will not intrinsically incorporate this data, so it will be combined by top level hero-win momentum adjusted win rate adjustments per character in picks, and have no impact on bans.
+
+The UI will allow a toggle in draft insights to switch to Hyper Max Pro mode, which switches how we rank.
+
+The complexity lies in building the datasets and training pipeline. 
+
+This involves three distinct steps.
+
+As a foundation, we use the most recent Storm League matches we can download. We use the /Replay/Max endpoint to get the latest replay, then iteratively keep querying the /Replay/Min_id endpoint to get candidate matches, which supports url params to limit to the current major patch and Storm League. This should work because it appears replay ids are simply an incremented integer, so we can simply take some offset below the max_id, though we need to verify this. The /Replay/Min_id dataset allows up to 1,000,000 calls a week, and we have two distinct intermediate accounts, so will hit no limit issues with this endpoint. We would eventually like between 100,000 and 200,000 games, but will not query the ids upfront as we will get newer matches as they come in.
+
+### The “Generic Draft” Model
+
+This model predicts the next ban or pick based on map, skill level tier of the players (low/medium/high as specified through this document based on average of all players), current draft status, and predicts the next pick/ban. Output can be one hot over all heroes, masking invalid picks then applying softmax. Alternatively, this could be a simple seq2seq transformer model with tokens for each hero.
+
+We download .StormReplay files from the Replay/Downloads dataset and extract picks, ban, and draft order. Unfortunately, this dataset is limited to 5,000 queries a week, or 10,000 across both accounts. As such, the first week will merely let us bootstrap our dataset to begin training, but we’ll need to let this run for many weeks to get as much data as we want. Still, we can begin validating the entire system asap, and can continually pull in the latest matches.
+
+### “Win Probability” Model
+
+This model takes the heroes drafted by both teams and outputs the win probability.
+
+This can be /Replay/Data endpoint, which supports 25,000 queries per account per week.
+
+### “Draft Policy” Model
+
+Optimizes for win probability going up against a Generic Draft. Outputs incremental win probability of each “move” (hero pick/ban option).
+
+This will take into account likely counter picks, future drafts, composition, synergy, and more implicitly. We will still need to layer in player skill with specific heroes via a per move recommended probability bump based on that hero's MAWP-50, both in that move and overall win probability for the match.
+
+To train this, we use exclusively the Generic Draft and Win Probability models, and apply Q-Learning and RL to a repeated head to head from drafts done by the Incremental Win Probability Model against the Generic Draft Model until it starts to overfit as measured by a held-out test set (2% of data) or plateaus.
+
+The state space is the current draft state (heroes picked + banned so far + map + tier). Action space is pick/ban (masked to valid options). The reward is only final win probability as computed by the Win Probability Model. There is no discount factor.
+
+
 ## Hero Insights
 
 Page with all heroes showing aggregate averages (KDA, hero damage, etc).
