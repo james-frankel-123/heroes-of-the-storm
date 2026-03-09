@@ -23,6 +23,7 @@ const BATTLETAGS: BattletagConfig[] = [
   { battletag: 'Django#1458', region: 1 },
   { battletag: 'AzmoDonTrump#1139', region: 1 },
   { battletag: 'SirWatsonII#1400', region: 1 },
+  { battletag: 'LJeffe#1862', region: 1 },
 ]
 
 // ── Helpers ──────────────────────────────────────────────────────────

@@ -164,33 +164,49 @@ This is effectively the same net result as Draft Insights, though powered by an 
 
 The UI will allow a toggle in draft insights to switch to Hyper Max Pro mode, which switches how we rank.
 
-The complexity lies in building the datasets and training pipeline. 
+The complexity lies in building the datasets and training pipeline.
 
-This involves three distinct steps.
+This involves three distinct steps, all sharing a common data collection foundation.
 
-As a foundation, we use the most recent Storm League matches we can download. We use the /Replay/Max endpoint to get the latest replay, then iteratively keep querying the /Replay/Min_id endpoint to get candidate matches, which supports url params to limit to the current major patch and Storm League. This should work because it appears replay ids are simply an incremented integer, so we can simply take some offset below the max_id, though we need to verify this. The /Replay/Min_id dataset allows up to 1,000,000 calls a week, and we have two distinct intermediate accounts, so will hit no limit issues with this endpoint. We would eventually like between 100,000 and 200,000 games, but will not query the ids upfront as we will get newer matches as they come in.
+### Data Collection
+
+We collect recent Storm League replay data via a continuous daemon (`sync/replay-daemon.ts`, managed by systemd).
+
+**Discovery phase:** The `/Replay/Max` endpoint returns the latest replay ID as plain text (not JSON). Replay IDs are sequential integers. We scan backwards from max using `/Replay/Min_id`, which returns up to 1,000 replay metadata entries per call (1M calls/week/key). We filter for Storm League matches and enqueue them into `replay_fetch_queue`. Crucially, the Min_id response includes `league_tier` and `avg_mmr` metadata that is NOT available from Replay/Data.
+
+**Fetch phase:** The `/Replay/Data` endpoint returns full replay JSON including `draft_order` (an array of 16 steps with hero, type (ban/pick), pick_number, and player_slot), plus per-player data with hero, team, and winner fields. This gives us everything needed for both the Generic Draft and Win Probability models — no `.StormReplay` file downloads are needed. Replay/Data supports 25,000 calls/account/week (50,000 total across both keys). We randomize fetch order for tier spread across low/mid/high skill tiers.
+
+We use two API keys (`HEROES_PROFILE_API_KEY` and `HEROES_PROFILE_API_KEY2`) via a `MultiKeyApi` round-robin wrapper that alternates calls equally between them. The daemon alternates discovery batches (200 calls) and fetch batches (300 calls) continuously, with state persisted in `replay_sync_state` for resumability. Target: 100,000–200,000 games.
 
 ### The “Generic Draft” Model
 
-This model predicts the next ban or pick based on map, skill level tier of the players (low/medium/high as specified through this document based on average of all players), current draft status, and predicts the next pick/ban. Output can be one hot over all heroes, masking invalid picks then applying softmax. Alternatively, this could be a simple seq2seq transformer model with tokens for each hero.
+This model predicts the next ban or pick based on map, skill level tier of the players (low/medium/high as specified through this document based on average of all players), current draft state, and predicts the next pick/ban.
 
-We download .StormReplay files from the Replay/Downloads dataset and extract picks, ban, and draft order. Unfortunately, this dataset is limited to 5,000 queries a week, or 10,000 across both accounts. As such, the first week will merely let us bootstrap our dataset to begin training, but we’ll need to let this run for many weeks to get as much data as we want. Still, we can begin validating the entire system asap, and can continually pull in the latest matches.
+Input: team0_picks (90) + team1_picks (90) + bans (90) + map (14) + tier (3) + step (1) + type (1) = 289 features. Output: softmax over 90 heroes, masked to valid/available heroes. Architecture: 289 → 256 → 128 → 90. Each replay produces 16 training samples (one per draft step). Trained with cross-entropy loss and early stopping. Exported to ONNX for browser inference.
+
+Training: `python training/train_generic_draft.py` (requires `DATABASE_URL` env var).
 
 ### “Win Probability” Model
 
-This model takes the heroes drafted by both teams and outputs the win probability.
+This model takes the heroes drafted by both teams, map, and skill tier, then outputs the probability that team 0 wins.
 
-This can be /Replay/Data endpoint, which supports 25,000 queries per account per week.
+Input: team0_heroes (90) + team1_heroes (90) + map (14) + tier (3) = 197 features. Output: sigmoid probability. Architecture: 197 → 128 → 64 → 1. Trained with BCE loss and early stopping. Exported to ONNX for browser inference.
+
+Both the Generic Draft and Win Probability models train from the same `replay_draft_data` table populated by the fetch phase above.
+
+Training: `python training/train_win_probability.py` (requires `DATABASE_URL` env var).
 
 ### “Draft Policy” Model
 
 Optimizes for win probability going up against a Generic Draft. Outputs incremental win probability of each “move” (hero pick/ban option).
 
-This will take into account likely counter picks, future drafts, composition, synergy, and more implicitly. We will still need to layer in player skill with specific heroes via a per move recommended probability bump based on that hero's MAWP-50, both in that move and overall win probability for the match.
+This will take into account likely counter picks, future drafts, composition, synergy, and more implicitly. We will still need to layer in player skill with specific heroes via a per move recommended probability bump based on that hero’s MAWP-50, both in that move and overall win probability for the match.
 
-To train this, we use exclusively the Generic Draft and Win Probability models, and apply Q-Learning and RL to a repeated head to head from drafts done by the Incremental Win Probability Model against the Generic Draft Model until it starts to overfit as measured by a held-out test set (2% of data) or plateaus.
+Uses Q-Learning (DQN with target network and experience replay buffer). The policy plays as team 0 against the Generic Draft model (team 1), simulating full 16-step drafts across random maps and tiers. The reward is only the final win probability as computed by the Win Probability model. There is no discount factor (gamma = 1.0). Epsilon-greedy exploration decays from 0.3 to 0.05. Evaluated against a held-out test set (2% of data).
 
-The state space is the current draft state (heroes picked + banned so far + map + tier). Action space is pick/ban (masked to valid options). The reward is only final win probability as computed by the Win Probability Model. There is no discount factor.
+Requires pre-trained Win Probability and Generic Draft models. Exported to ONNX for browser inference.
+
+Training: `python training/train_draft_policy.py` (requires `DATABASE_URL` env var and pre-trained models).
 
 
 ## Hero Insights

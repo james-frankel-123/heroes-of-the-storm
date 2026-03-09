@@ -217,4 +217,67 @@ export class HeroesProfileApi {
       mode: 'json',
     })
   }
+
+  // ── Replay endpoints (for Draft Insights Hyper Pro Max training data) ──
+
+  /**
+   * Get the maximum replay ID. Returns a plain number.
+   * Does NOT go through the normal JSON pipeline — returns text.
+   */
+  async getReplayMax(): Promise<number> {
+    const url = this.buildUrl('Replay/Max', {})
+    await this.rateLimiter.acquire()
+    this.callCount++
+    const resp = await fetch(url, { signal: AbortSignal.timeout(30_000) })
+    const text = await resp.text()
+    const id = parseInt(text.trim(), 10)
+    if (isNaN(id)) throw new Error(`Replay/Max returned non-numeric: ${text.slice(0, 100)}`)
+    return id
+  }
+
+  /**
+   * Discover replay IDs starting from min_id.
+   * Returns up to 1000 replay metadata entries.
+   * Dataset: 1,000,000 calls/week per key.
+   */
+  async getReplayMinId(minId: number, gameType = 'Storm League'): Promise<any[]> {
+    return this.fetch('Replay/Min_id', {
+      min_id: String(minId),
+      game_type: gameType,
+    })
+  }
+
+  /**
+   * Get full replay data including draft order, player stats, teams, winner.
+   * Dataset: 25,000 calls/week per key.
+   */
+  async getReplayData(replayId: number): Promise<any> {
+    return this.fetch('Replay/Data', {
+      replayID: String(replayId),
+    })
+  }
+}
+
+/**
+ * Round-robin wrapper over multiple API keys.
+ * Distributes calls evenly across keys to maximize throughput.
+ */
+export class MultiKeyApi {
+  private clients: HeroesProfileApi[]
+  private index = 0
+
+  constructor(apiKeys: string[], maxCallsPerMinute = 55, maxRetries = 5) {
+    this.clients = apiKeys.map(key => new HeroesProfileApi(key, maxCallsPerMinute, maxRetries))
+  }
+
+  /** Get the next client in round-robin order. */
+  next(): HeroesProfileApi {
+    const client = this.clients[this.index]
+    this.index = (this.index + 1) % this.clients.length
+    return client
+  }
+
+  getTotalCallCount(): number {
+    return this.clients.reduce((sum, c) => sum + c.getCallCount(), 0)
+  }
 }

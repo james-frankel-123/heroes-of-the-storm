@@ -1,0 +1,15 @@
+[Unit]
+Description=HotS Fever Replay Sync Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=max
+WorkingDirectory=/home/max/heroes-of-the-storm
+EnvironmentFile=/home/max/heroes-of-the-storm/.env
+ExecStart=/home/linuxbrew/.linuxbrew/bin/npx tsx sync/replay-daemon.ts
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

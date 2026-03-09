@@ -251,6 +251,88 @@ export const playerHeroMapStats = pgTable(
 // Sync tracking
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Replay data — for AI model training (Draft Insights Hyper Pro Max)
+// ---------------------------------------------------------------------------
+
+/**
+ * Replay draft data extracted from Replay/Data endpoint.
+ * Contains everything needed for Win Probability and Generic Draft models:
+ * - Full draft order (bans + picks)
+ * - Team compositions with winner
+ * - Map, tier, MMR
+ */
+export const replayDraftData = pgTable(
+  'replay_draft_data',
+  {
+    replayId: integer('replay_id').primaryKey(),
+    region: integer('region').notNull(),
+    gameMap: varchar('game_map', { length: 80 }).notNull(),
+    gameDate: timestamp('game_date').notNull(),
+    gameLength: integer('game_length'), // seconds
+    gameVersion: varchar('game_version', { length: 40 }).notNull(),
+    avgMmr: real('avg_mmr'),
+    leagueTier: integer('league_tier'), // 1-6 (Bronze-Master)
+    // Draft order: array of { pick_number, type (0=ban,1=pick), player_slot, hero }
+    draftOrder: jsonb('draft_order').notNull(),
+    // Team compositions
+    team0Heroes: jsonb('team0_heroes').notNull(), // string[] of 5 heroes
+    team1Heroes: jsonb('team1_heroes').notNull(), // string[] of 5 heroes
+    team0Bans: jsonb('team0_bans').notNull(),     // string[] of banned heroes
+    team1Bans: jsonb('team1_bans').notNull(),     // string[] of banned heroes
+    winner: integer('winner').notNull(), // 0 or 1
+    // Skill tier bucket (low/mid/high) derived from league_tier
+    skillTier: varchar('skill_tier', { length: 10 }).notNull(),
+    fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
+  },
+  (t) => ({
+    mapIdx: index('replay_draft_map_idx').on(t.gameMap),
+    tierIdx: index('replay_draft_tier_idx').on(t.skillTier),
+    dateIdx: index('replay_draft_date_idx').on(t.gameDate),
+  })
+)
+
+/**
+ * Tracks the replay sync cursor so the daemon can resume.
+ * Stores the current scan position and high-water mark.
+ */
+export const replaySyncState = pgTable('replay_sync_state', {
+  id: serial('id').primaryKey(),
+  // Discovery cursor: next min_id to query Replay/Min_id with
+  discoveryCursor: integer('discovery_cursor').notNull().default(0),
+  // Highest known replay ID (from Replay/Max)
+  maxKnownId: integer('max_known_id').notNull().default(0),
+  // How many replays we've discovered (passed filtering)
+  discoveredCount: integer('discovered_count').notNull().default(0),
+  // How many we've fetched full data for
+  fetchedCount: integer('fetched_count').notNull().default(0),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+/**
+ * Queue of replay IDs discovered via Min_id that still need
+ * full data fetched via Replay/Data.
+ */
+export const replayFetchQueue = pgTable(
+  'replay_fetch_queue',
+  {
+    replayId: integer('replay_id').primaryKey(),
+    gameMap: varchar('game_map', { length: 80 }),
+    leagueTier: integer('league_tier'),
+    avgMmr: real('avg_mmr'),
+    gameVersion: varchar('game_version', { length: 40 }),
+    discoveredAt: timestamp('discovered_at').defaultNow().notNull(),
+    fetched: boolean('fetched').notNull().default(false),
+  },
+  (t) => ({
+    fetchedIdx: index('replay_queue_fetched_idx').on(t.fetched),
+  })
+)
+
+// ---------------------------------------------------------------------------
+// Sync tracking
+// ---------------------------------------------------------------------------
+
 export const syncLog = pgTable('sync_log', {
   id: serial('id').primaryKey(),
   syncType: varchar('sync_type', { length: 40 }).notNull(), // 'aggregate' | 'player'
