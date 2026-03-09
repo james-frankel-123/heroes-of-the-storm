@@ -41,3 +41,4 @@ drizzle/meta
 # sync runtime artifacts
 sync/logs
 sync/progress.json
+training/__pycache__/
