@@ -6,7 +6,7 @@ This site is a one-stop shop for Heroes of the Storm players to gain insights an
 
 All data only looks at storm league, no ARAM, QM, or other data.
 
-Development is all done via Claude Code via the Opus model. In addition to source code, we maintain a parallel document for each page/major feature documenting design choices and product specifications. If ever any changes need to be made from requested/specified functionality due to challenges in implementation this must be flagged in these documents in a VERY OBVIOUS MANNER. We maintain a high bar for testing, including loading the website (potentially having Claude take screenshots and viewing them via a visual model), simulating clicks, etc. Given we want to also test on real data, we primarily test with battletags Django#1458, AzmoDonTrump#1139, and SirWatsonII#1400. We know that, respectively, their Ana + Falstad, Nazeebo + Azmodan, and Malthael + Dehaka tend to be their very strong heroes, and expect to see those crop up regularly in recommendations. We commit one feature at a time, and only once it's been tested and in a working state. We do not develop multiple features on the same branch/at the same time before committing.
+Development is all done via Claude Code via the Opus model. In addition to source code, we maintain a parallel document for each page/major feature documenting design choices and product specifications. If ever any changes need to be made from requested/specified functionality due to challenges in implementation this must be flagged in these documents in a VERY OBVIOUS MANNER. We maintain a high bar for testing, including loading the website (potentially having Claude take screenshots and viewing them via a visual model), simulating clicks, etc. Given we want to also test on real data, we primarily test with battletags Django#1458, AzmoDonTrump#1139, SirWatsonII#1400, notoriusPIG#11231, and Mestupidum#1183. We know that, respectively, their Ana + Falstad, Nazeebo + Azmodan, and Malthael + Dehaka tend to be their very strong heroes, and expect to see those crop up regularly in recommendations. We commit one feature at a time, and only once it's been tested and in a working state. We do not develop multiple features on the same branch/at the same time before committing.
 
 We are heavily inspired by heroesprofile.com and use them for data, but believe we can build a superior product, especially on ease of use and responsiveness as a draft assistant.
 
@@ -96,16 +96,63 @@ Optionally, the user can enter battletags for players on their own team, though 
 
 Team A bans 1, Team B bans 1, Team A bans 1, Team B bans 1. Team A picks 1, Team B picks 2, Team A picks 2, Team B bans 1, Team A bans 1, Team B picks 2, Team A picks 2, Team B picks 1.
 
-### Recommendations
+### Scoring Model
 
-The system showcases both broad draft recommendations (aggregate data for selected skill tier) alongside personalized insights for registered users. Personalized integration uses simple heuristics layered on aggregate data:
+All scores are expressed as net win-rate deltas from a 50% baseline (e.g. "+3.2%" means "picking this hero shifts expected win probability by +3.2 percentage points"). Hero base WR prefers map-specific data when available (≥50 games on the selected map), falling back to overall WR. All pairwise data (synergies and counters) is fetched and stored per skill tier.
 
-- Is any player on the team experienced with and decent at a hero that has favorable stats on this map?
-- Does a hero counter a selected opponent pick?
-- Does a hero pair well with another hero already drafted or likely to be drafted?
-- Is a player a likely smurf or one-trick?
+#### Pick Recommendations (Our Turn)
 
-Uses only individual and pairwise stats — e.g. Lunara's win rate against Uther, not Lunara + Ana vs Uther. This limits computation branching.
+Five factors contribute to the displayed net delta:
+
+1. **Hero base WR**: `(heroWR - 50)`. Prefers map-specific data.
+2. **Counter matchups vs enemy picks**: Average of normalized pairwise deltas against each enemy hero. Normalized by subtracting the expected WR given both heroes' base rates to avoid double-counting individual hero strength.
+3. **Synergies with ally picks**: Average of normalized pairwise deltas with each ally. Same normalization as counters.
+4. **Player strength**: If a registered battletag is available and has ≥10 games on the hero, uses their confidence-adjusted MAWP. The best available player's delta replaces (not adds to) the hero base WR contribution for that slot.
+5. **Composition WR**: Data-driven scoring based on achievable 5-role team compositions from Heroes Profile. Finds the best composition (by confidence-adjusted WR) that the current picks + candidate can achieve, and scores the delta from a popularity-weighted baseline. Scales from 0 impact at the start of draft to full impact at the last pick. Penalizes heroes that lead to no known viable composition.
+
+#### Ban Recommendations
+
+Three factors determine ban priority:
+
+1. **Hero base WR**: How strong the hero is overall (or on the selected map). A strong hero is a good ban target.
+2. **Counter strength vs our picks**: If the hero is strong against heroes we've already picked, banning protects our team. Only counts matchups that exceed the expected WR by ≥3 percentage points.
+3. **Synergy with opponent's picks**: If the hero synergizes well with what the opponent has already picked, banning denies them a strong combination. Only counts synergies that exceed the expected pair WR by ≥2 percentage points.
+
+#### Enemy Pick Predictions
+
+Shows what the opponent is likely to pick, scored by hero base WR, normalized counter strength against our picks, and composition fit with their existing picks.
+
+### Running Win % Estimate
+
+A live team win percentage updates as each pick is made, giving both teams a running score throughout the draft. Starting from 50%, it accumulates:
+
+1. **Hero base WR deltas** (sum per hero, map-specific when available)
+2. **Intra-team synergies** (average across all ally pairs, normalized)
+3. **Cross-team counters** (average across all matchups, normalized)
+4. **Player adjustments** (confidence-adjusted MAWP replaces hero base WR for assigned players)
+5. **Composition WR** (data-driven boost/penalty based on team roles, scaled by picks made)
+
+Both teams' win estimates are normalized to sum to 100% when both have picks. Result clamped to [1%, 99%]. Color-coded green (>53%), yellow (47-53%), red (<47%).
+
+A "Draft Domination" celebration triggers when the draft completes with our team at ≥60% estimated win rate.
+
+### Normalization of Pairwise Deltas
+
+To avoid double-counting hero strength in pairwise stats, all synergy and counter deltas are normalized against hero base win rates:
+
+- **Counters**: `pairwiseVsWR - (heroWR + (100 - enemyWR) - 50)` — isolates the matchup-specific advantage beyond what you'd expect from each hero's individual strength.
+- **Synergies**: `pairwiseWithWR - (50 + (heroA_WR - 50) + (heroB_WR - 50))` — isolates the synergy beyond both heroes being individually strong.
+
+### Cho'gall Handling
+
+Cho and Gall are always picked/banned together. If either is selected, the other auto-fills the next available pick slot for that team. Both are excluded from recommendations if the team has fewer than 2 consecutive pick slots remaining in the current turn.
+
+### Other Draft UI Features
+
+- Skip ban button for intentional missed bans
+- Undo button to step back through selections
+- Player assignment dropdowns to map battletags to specific pick slots
+- Typeahead hero search clears on selection
 
 ---
 
@@ -141,7 +188,7 @@ Aggregate view per map with personal insights on win rate. Details view per map 
 ### Database
 
 - **Engine:** PostgreSQL (via Vercel Postgres / Neon).
-- **ORM:** Drizzle or Prisma — pick one early, stay consistent.
+- **ORM:** Drizzle ORM.
 - **Schema design principles:**
   - Precomputed aggregate tables bucketed by skill tier (low/mid/high) for heroes, maps, talents, and pairwise hero synergy/counter stats.
   - Per-user tables for match history, hero performance, and momentum-adjusted stats.
@@ -152,12 +199,13 @@ Aggregate view per map with personal insights on win rate. Details view per map 
 
 - **Runs on:** Debian server via systemd timer or cron.
 - **Frequency:** Every few hours (configurable, start with every 4h).
-- **Language:** Python or Node — match whatever is easier to maintain alongside the Next.js frontend.
+- **Language:** TypeScript (Node), same codebase as the Next.js frontend.
 - **What it does:**
-  1. Pull aggregate data from Heroes Profile API: hero stats, map stats, talent stats, pairwise hero data. Bucket by skill tier (Bronze+Silver / Gold+Plat / Diamond+Master).
+  1. Pull aggregate data from Heroes Profile API: hero stats, map stats, talent stats, pairwise hero synergy/counter data. All bucketed by skill tier (Bronze+Silver / Gold+Plat / Diamond+Master) — including pairwise matchup data, which is fetched per tier per hero.
   2. Pull personal match history for every registered user's tracked battletags (up to 10 per account).
   3. Compute derived stats: momentum-adjusted win %, hero trends, power picks (hero+map combos ≥65% WR), pairwise synergy/counter scores.
-  4. Write everything to Neon Postgres, replacing stale data.
+  4. Scrape composition win rate data from Heroes Profile (role-based 5-hero team compositions with win rates and popularity, per skill tier).
+  5. Write everything to Neon Postgres, replacing stale data.
 - **Error handling:** Log failures, retry transient errors, don't clobber good data on partial failure. Idempotent writes (upserts).
 - **Connection:** Standard Postgres connection string. Store in a `.env` file on the Debian server (same connection string as Vercel uses, obtained from Vercel dashboard or `vercel env pull`).
 
