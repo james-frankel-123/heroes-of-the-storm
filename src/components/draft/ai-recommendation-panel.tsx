@@ -11,6 +11,7 @@ import {
   isAILoaded,
   getAIRecommendations,
   getGenericDraftPredictions,
+  getValueEstimate,
   type AIDraftState,
   type AIRecommendation,
   type PlayerMAWPData,
@@ -101,21 +102,25 @@ export function AIRecommendationPanel({
         const aiState = convertToAIState(state)
         const taken = new Set(Object.values(state.selections))
 
+        // Build player data for MAWP adjustments
+        let playerData: PlayerMAWPData | undefined
+        if (draftData?.playerStats && availableBattletags.length > 0) {
+          playerData = {
+            playerStats: draftData.playerStats,
+            availableBattletags,
+          }
+        }
+
         if (opponentTurn) {
           // Opponent turn: use Generic Draft model to predict what they'll pick/ban
           const preds = await getGenericDraftPredictions(aiState, taken)
           setGdPredictions(preds)
           setRecommendations([])
+          // Still update value estimate (with MAWP) so draft board WP stays current
+          const ve = await getValueEstimate(aiState, playerData)
+          setValueEstimate(ve)
         } else {
           // Our turn: use Policy model for recommendations
-          let playerData: PlayerMAWPData | undefined
-          if (draftData?.playerStats && availableBattletags.length > 0) {
-            playerData = {
-              playerStats: draftData.playerStats,
-              availableBattletags,
-            }
-          }
-
           const { recommendations: recs, valueEstimate: ve } = await getAIRecommendations(
             aiState, taken, currentStep?.team ?? 'A', playerData
           )

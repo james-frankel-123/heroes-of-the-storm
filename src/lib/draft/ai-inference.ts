@@ -244,6 +244,57 @@ function computePlayerAdjustment(
 }
 
 /**
+ * Compute aggregate MAWP adjustment for all heroes already picked by our team
+ * that have assigned players. This adjusts the baseline WP estimate.
+ * Checks both team0 and team1 picks since playerData.availableBattletags
+ * only contains our team's unassigned players.
+ */
+function computeTeamMawpAdjustment(
+  draftState: AIDraftState,
+  playerData?: PlayerMAWPData,
+): number {
+  if (!playerData) return 0
+
+  let totalAdj = 0
+  // Check all picked heroes — computePlayerAdjustment will only match
+  // heroes that our available battletags have stats for, so it naturally
+  // only applies to our team's heroes.
+  const allPicked = [...draftState.team0Picks, ...draftState.team1Picks]
+  for (const hero of allPicked) {
+    const { adjustment } = computePlayerAdjustment(hero, playerData)
+    totalAdj += adjustment
+  }
+  return totalAdj
+}
+
+/**
+ * Get just the value estimate (WP) for the current state, with MAWP adjustment.
+ * Used on opponent turns when we don't need full recommendations.
+ */
+export async function getValueEstimate(
+  draftState: AIDraftState,
+  playerData?: PlayerMAWPData,
+): Promise<number> {
+  if (!policySession || !ort) {
+    throw new Error('AI models not loaded. Call loadAIModels() first.')
+  }
+
+  const state = encodeState(draftState)
+  const mask = buildValidMask(new Set([
+    ...draftState.team0Picks,
+    ...draftState.team1Picks,
+    ...draftState.bans,
+  ]))
+  const stateTensor = new ort.Tensor('float32', state, [1, 289])
+  const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
+  const result = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
+  const rawWP = (result.value.data as Float32Array)[0]
+
+  const mawpAdj = computeTeamMawpAdjustment(draftState, playerData)
+  return Math.max(0, Math.min(1, rawWP + mawpAdj))
+}
+
+/**
  * Get AI draft recommendations for the current state.
  *
  * For each valid hero, simulates picking/banning it and evaluates the
@@ -268,7 +319,11 @@ export async function getAIRecommendations(
   const stateTensor = new ort.Tensor('float32', state, [1, 289])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
   const baseResult = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
-  const baseValueEstimate = (baseResult.value.data as Float32Array)[0]
+  const rawValueEstimate = (baseResult.value.data as Float32Array)[0]
+
+  // Compute aggregate MAWP adjustment for all already-assigned players
+  const teamMawpAdj = computeTeamMawpAdjustment(draftState, playerData)
+  const baseValueEstimate = Math.max(0, Math.min(1, rawValueEstimate + teamMawpAdj))
 
   // Collect valid hero indices
   const validIndices: number[] = []
