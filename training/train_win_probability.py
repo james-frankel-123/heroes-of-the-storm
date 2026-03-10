@@ -147,10 +147,10 @@ def train():
                 print(f"Early stopping at epoch {epoch+1}")
                 break
 
-    # Export to ONNX
+    # Export to ONNX (on CPU to avoid device mismatch)
     model.load_state_dict(torch.load(os.path.join(os.path.dirname(__file__), "win_probability.pt"),
-                                     weights_only=True))
-    model.eval()
+                                     weights_only=True, map_location="cpu"))
+    model.cpu().eval()
     dummy_input = torch.randn(1, INPUT_DIM)
     onnx_path = os.path.join(os.path.dirname(__file__), "win_probability.onnx")
     torch.onnx.export(

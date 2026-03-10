@@ -82,7 +82,7 @@ class DraftState:
         ])
 
     def to_tensor(self, device) -> torch.Tensor:
-        return torch.from_numpy(self.to_numpy()).unsqueeze(0).to(device)
+        return torch.from_numpy(self.to_numpy()).unsqueeze(0).float().to(device)
 
     def valid_mask_np(self) -> np.ndarray:
         mask = np.ones(NUM_HEROES, dtype=np.float32)
@@ -597,11 +597,12 @@ def train():
             print()
 
     # Export to ONNX
+    # Export to ONNX (on CPU to avoid device mismatch)
     print("Exporting to ONNX...")
     best_path = os.path.join(save_dir, "draft_policy.pt")
     if os.path.exists(best_path):
-        network.load_state_dict(torch.load(best_path, weights_only=True, map_location=device))
-    network.eval()
+        network.load_state_dict(torch.load(best_path, weights_only=True, map_location="cpu"))
+    network.cpu().eval()
 
     dummy_x = torch.randn(1, STATE_DIM)
     dummy_mask = torch.ones(1, NUM_HEROES)

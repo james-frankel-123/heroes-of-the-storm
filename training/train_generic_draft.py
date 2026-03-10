@@ -237,9 +237,9 @@ def train_single_model(
                 print(f"  Early stopping at epoch {epoch+1}")
                 break
 
-    # Export to ONNX
-    model.load_state_dict(torch.load(pt_path, weights_only=True))
-    model.eval()
+    # Export to ONNX (on CPU to avoid device mismatch)
+    model.load_state_dict(torch.load(pt_path, weights_only=True, map_location="cpu"))
+    model.cpu().eval()
     dummy_x = torch.randn(1, INPUT_DIM)
     dummy_mask = torch.ones(1, NUM_HEROES)
     onnx_path = os.path.join(os.path.dirname(__file__), f"generic_draft_{variant_idx}.onnx")

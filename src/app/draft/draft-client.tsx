@@ -1,11 +1,12 @@
 'use client'
 
-import { useReducer, useMemo, useCallback } from 'react'
+import { useReducer, useMemo, useCallback, useState, useEffect } from 'react'
 import { computeTeamWinEstimate } from '@/lib/draft/win-estimate'
 import { TierSelector } from '@/components/shared/tier-selector'
 import { DraftBoard } from '@/components/draft/draft-board'
 import { HeroPicker } from '@/components/draft/hero-picker'
 import { RecommendationPanel } from '@/components/draft/recommendation-panel'
+import { AIRecommendationPanel } from '@/components/draft/ai-recommendation-panel'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
@@ -191,6 +192,9 @@ export function DraftClient({
     if (!draftData || state.phase !== 'drafting') return []
     return generateRecommendations(state, draftData)
   }, [state, draftData])
+
+  // AI mode state
+  const [aiMode, setAiMode] = useState(false)
 
   // Compute running win % for both teams
   const { ourWinPct, enemyWinPct } = useMemo(() => {
@@ -414,6 +418,17 @@ export function DraftClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setAiMode(!aiMode)}
+            className={cn(
+              'px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
+              aiMode
+                ? 'border-violet-500 bg-violet-500/20 text-violet-300'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+            )}
+          >
+            {aiMode ? 'AI Mode' : 'Stats Mode'}
+          </button>
           {currentStep?.type === 'ban' && (
             <button
               onClick={() => dispatch({ type: 'SKIP_BAN' })}
@@ -471,13 +486,22 @@ export function DraftClient({
 
           {/* Recommendations — 1/3 */}
           <div>
-            <RecommendationPanel
-              recommendations={recommendations}
-              isBanPhase={currentStep?.type === 'ban'}
-              isOurTurn={currentStep?.team === state.ourTeam}
-              onSelect={handleSelectHero}
-              unavailable={unavailableHeroes}
-            />
+            {aiMode ? (
+              <AIRecommendationPanel
+                state={state}
+                unavailable={unavailableHeroes}
+                onSelect={handleSelectHero}
+                currentStep={currentStep}
+              />
+            ) : (
+              <RecommendationPanel
+                recommendations={recommendations}
+                isBanPhase={currentStep?.type === 'ban'}
+                isOurTurn={currentStep?.team === state.ourTeam}
+                onSelect={handleSelectHero}
+                unavailable={unavailableHeroes}
+              />
+            )}
           </div>
         </div>
       )}

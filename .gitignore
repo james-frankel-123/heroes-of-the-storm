@@ -42,3 +42,6 @@ drizzle/meta
 sync/logs
 sync/progress.json
 training/__pycache__/
+training/*.pt
+training/*.onnx
+training/*.onnx.data
