@@ -89,8 +89,8 @@ export function AIRecommendationPanel({
     if (state.currentStep >= DRAFT_SEQUENCE.length) return
     if (!state.map) return
 
-    // Deduplicate
-    const stateKey = `${state.currentStep}-${JSON.stringify(state.selections)}`
+    // Deduplicate — include available battletags so assigning a player re-triggers
+    const stateKey = `${state.currentStep}-${JSON.stringify(state.selections)}-${availableBattletags.join(',')}`
     if (stateKey === prevStateRef.current) return
     prevStateRef.current = stateKey
 
