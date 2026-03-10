@@ -195,6 +195,12 @@ export function DraftClient({
 
   // AI mode state
   const [aiMode, setAiMode] = useState(false)
+  const [aiValueEstimate, setAiValueEstimate] = useState<number | null>(null)
+
+  // Stable callback ref for AI value estimate
+  const handleAiValueEstimate = useCallback((wp: number | null) => {
+    setAiValueEstimate(wp)
+  }, [])
 
   // Compute running win % for both teams
   const { ourWinPct, enemyWinPct } = useMemo(() => {
@@ -467,8 +473,12 @@ export function DraftClient({
         onAssignPlayer={(stepIdx, bt) =>
           dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })
         }
-        teamAWinPct={state.ourTeam === 'A' ? ourWinPct : enemyWinPct}
-        teamBWinPct={state.ourTeam === 'B' ? ourWinPct : enemyWinPct}
+        teamAWinPct={aiMode && aiValueEstimate !== null
+          ? Math.round(aiValueEstimate * 1000) / 10
+          : state.ourTeam === 'A' ? ourWinPct : enemyWinPct}
+        teamBWinPct={aiMode && aiValueEstimate !== null
+          ? Math.round((1 - aiValueEstimate) * 1000) / 10
+          : state.ourTeam === 'B' ? ourWinPct : enemyWinPct}
       />
 
       {/* Main drafting area */}
@@ -492,6 +502,9 @@ export function DraftClient({
                 unavailable={unavailableHeroes}
                 onSelect={handleSelectHero}
                 currentStep={currentStep}
+                draftData={draftData}
+                availableBattletags={availableBattletags}
+                onValueEstimate={handleAiValueEstimate}
               />
             ) : (
               <RecommendationPanel

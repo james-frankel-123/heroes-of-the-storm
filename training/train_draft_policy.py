@@ -38,13 +38,17 @@ from shared import (
 STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2  # 289
 
 # Standard Storm League draft order (16 steps)
+# Standard Storm League draft order (16 steps)
+# Spec: A ban 1, B ban 1, A ban 1, B ban 1,
+#        A pick 1, B pick 2, A pick 2,
+#        B ban 1, A ban 1,
+#        B pick 2, A pick 2, B pick 1
 DRAFT_ORDER = [
     (0, 'ban'), (1, 'ban'),
     (0, 'ban'), (1, 'ban'),
-    (0, 'pick'), (1, 'pick'), (1, 'pick'), (0, 'pick'),
-    (0, 'ban'), (1, 'ban'),
-    (1, 'pick'), (0, 'pick'), (0, 'pick'), (1, 'pick'),
-    (1, 'pick'), (0, 'pick'),
+    (0, 'pick'), (1, 'pick'), (1, 'pick'), (0, 'pick'), (0, 'pick'),
+    (1, 'ban'), (0, 'ban'),
+    (1, 'pick'), (1, 'pick'), (0, 'pick'), (0, 'pick'), (1, 'pick'),
 ]
 
 

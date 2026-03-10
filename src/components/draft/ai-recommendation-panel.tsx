@@ -10,9 +10,12 @@ import {
   loadAIModels,
   isAILoaded,
   getAIRecommendations,
+  getGenericDraftPredictions,
   type AIDraftState,
   type AIRecommendation,
+  type PlayerMAWPData,
 } from '@/lib/draft/ai-inference'
+import type { DraftData } from '@/lib/draft/types'
 
 function roleBadgeVariant(role: string | null) {
   switch (role) {
@@ -26,11 +29,21 @@ function roleBadgeVariant(role: string | null) {
   }
 }
 
+/** Generic Draft prediction for opponent turns */
+interface GDPrediction {
+  hero: string
+  probability: number
+}
+
 interface AIRecommendationPanelProps {
   state: DraftState
   unavailable: Set<string>
   onSelect: (hero: string) => void
   currentStep: DraftStep | null
+  draftData: DraftData | null
+  availableBattletags: string[]
+  /** Callback to report AI win probability to parent (for draft board display) */
+  onValueEstimate?: (wp: number | null) => void
 }
 
 export function AIRecommendationPanel({
@@ -38,11 +51,16 @@ export function AIRecommendationPanel({
   unavailable,
   onSelect,
   currentStep,
+  draftData,
+  availableBattletags,
+  onValueEstimate,
 }: AIRecommendationPanelProps) {
   const [loading, setLoading] = useState(!isAILoaded())
   const [error, setError] = useState<string | null>(null)
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([])
+  const [gdPredictions, setGdPredictions] = useState<GDPrediction[]>([])
   const [valueEstimate, setValueEstimate] = useState<number | null>(null)
+  const [isOpponentTurn, setIsOpponentTurn] = useState(false)
   const prevStateRef = useRef<string>('')
 
   // Load models on mount
@@ -59,6 +77,11 @@ export function AIRecommendationPanel({
       })
   }, [])
 
+  // Report value estimate to parent
+  useEffect(() => {
+    onValueEstimate?.(valueEstimate)
+  }, [valueEstimate, onValueEstimate])
+
   // Run inference when state changes
   useEffect(() => {
     if (loading || error || !isAILoaded()) return
@@ -70,21 +93,42 @@ export function AIRecommendationPanel({
     if (stateKey === prevStateRef.current) return
     prevStateRef.current = stateKey
 
+    const opponentTurn = currentStep?.team !== state.ourTeam
+    setIsOpponentTurn(opponentTurn)
+
     const run = async () => {
       try {
         const aiState = convertToAIState(state)
         const taken = new Set(Object.values(state.selections))
-        const { recommendations: recs, valueEstimate: ve } = await getAIRecommendations(
-          aiState, taken
-        )
-        setRecommendations(recs)
-        setValueEstimate(ve)
+
+        if (opponentTurn) {
+          // Opponent turn: use Generic Draft model to predict what they'll pick/ban
+          const preds = await getGenericDraftPredictions(aiState, taken)
+          setGdPredictions(preds)
+          setRecommendations([])
+        } else {
+          // Our turn: use Policy model for recommendations
+          let playerData: PlayerMAWPData | undefined
+          if (draftData?.playerStats && availableBattletags.length > 0) {
+            playerData = {
+              playerStats: draftData.playerStats,
+              availableBattletags,
+            }
+          }
+
+          const { recommendations: recs, valueEstimate: ve } = await getAIRecommendations(
+            aiState, taken, currentStep?.team ?? 'A', playerData
+          )
+          setRecommendations(recs)
+          setGdPredictions([])
+          setValueEstimate(ve)
+        }
       } catch (err: any) {
         console.error('[AI] Inference error:', err)
       }
     }
     run()
-  }, [state.currentStep, state.selections, state.map, state.tier, loading, error])
+  }, [state.currentStep, state.selections, state.map, state.tier, state.ourTeam, loading, error, draftData, availableBattletags, currentStep])
 
   if (loading) {
     return (
@@ -114,13 +158,18 @@ export function AIRecommendationPanel({
   }
 
   const isBanPhase = currentStep?.type === 'ban'
-  const isOurTurn = currentStep?.team === state.ourTeam
+
+  // Determine which list to show
+  const showOpponentPredictions = isOpponentTurn && gdPredictions.length > 0
+  const showOurRecommendations = !isOpponentTurn && recommendations.length > 0
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <h3 className="text-sm font-semibold text-violet-300">
-          AI {isBanPhase ? 'Ban' : 'Pick'} Suggestions
+          {isOpponentTurn
+            ? `Enemy ${isBanPhase ? 'Ban' : 'Pick'} Predictions`
+            : `AI ${isBanPhase ? 'Ban' : 'Pick'} Suggestions`}
         </h3>
         {valueEstimate !== null && (
           <span className={cn(
@@ -136,13 +185,51 @@ export function AIRecommendationPanel({
         )}
       </div>
       <p className="text-[10px] text-muted-foreground">
-        Preliminary model — training with more data
+        {isOpponentTurn
+          ? 'Generic Draft model — predicted opponent choices'
+          : 'AlphaZero policy — preliminary model'}
       </p>
 
-      {recommendations.length === 0 ? (
+      {!showOpponentPredictions && !showOurRecommendations ? (
         <p className="text-xs text-muted-foreground">
-          Computing recommendations...
+          Computing...
         </p>
+      ) : showOpponentPredictions ? (
+        <div className="space-y-1 max-h-[450px] overflow-y-auto pr-1">
+          {gdPredictions
+            .filter((p) => !unavailable.has(p.hero))
+            .slice(0, 12)
+            .map((pred, i) => {
+              const role = getHeroRole(pred.hero)
+              return (
+                <button
+                  key={pred.hero}
+                  onClick={() => onSelect(pred.hero)}
+                  className="w-full flex items-center gap-2 p-2 rounded-md border border-border text-left transition-colors hover:border-orange-500/60 hover:bg-orange-500/10"
+                >
+                  <span className="text-[10px] text-muted-foreground w-4 shrink-0">
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                    <span className="text-sm font-medium truncate">
+                      {pred.hero}
+                    </span>
+                    {role && (
+                      <Badge
+                        variant={roleBadgeVariant(role)}
+                        className="text-[7px] px-1 py-0 shrink-0"
+                      >
+                        {role.split(' ')[0]}
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="text-xs font-mono text-orange-300 shrink-0">
+                    {(pred.probability * 100).toFixed(1)}%
+                  </span>
+                </button>
+              )
+            })}
+        </div>
       ) : (
         <div className="space-y-1 max-h-[450px] overflow-y-auto pr-1">
           {recommendations
@@ -164,21 +251,40 @@ export function AIRecommendationPanel({
                   <span className="text-[10px] text-muted-foreground w-4 shrink-0">
                     {i + 1}
                   </span>
-                  <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                    <span className="text-sm font-medium truncate">
-                      {rec.hero}
-                    </span>
-                    {role && (
-                      <Badge
-                        variant={roleBadgeVariant(role)}
-                        className="text-[7px] px-1 py-0 shrink-0"
-                      >
-                        {role.split(' ')[0]}
-                      </Badge>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium truncate">
+                        {rec.hero}
+                      </span>
+                      {role && (
+                        <Badge
+                          variant={roleBadgeVariant(role)}
+                          className="text-[7px] px-1 py-0 shrink-0"
+                        >
+                          {role.split(' ')[0]}
+                        </Badge>
+                      )}
+                    </div>
+                    {rec.suggestedPlayer && (
+                      <span className="text-[9px] text-emerald-400 truncate block">
+                        {rec.suggestedPlayer.split('#')[0]}
+                        {rec.mawpAdj > 0 && (
+                          <span className="text-emerald-500 ml-1">
+                            +{(rec.mawpAdj * 100).toFixed(1)}%
+                          </span>
+                        )}
+                      </span>
                     )}
                   </div>
-                  <span className="text-xs font-mono text-violet-300 shrink-0">
-                    {(rec.prior * 100).toFixed(1)}%
+                  <span className={cn(
+                    'text-xs font-mono shrink-0',
+                    rec.winProb > 0.53
+                      ? 'text-gaming-success'
+                      : rec.winProb < 0.47
+                        ? 'text-gaming-danger'
+                        : 'text-yellow-400'
+                  )}>
+                    {(rec.winProb * 100).toFixed(1)}%
                   </span>
                 </button>
               )
