@@ -78,7 +78,7 @@ class DraftState:
         return np.concatenate([
             self.team0_picks, self.team1_picks, self.bans,
             map_vec, tier_vec,
-            [step_norm, step_type],
+            np.array([step_norm, step_type], dtype=np.float32),
         ])
 
     def to_tensor(self, device) -> torch.Tensor:
@@ -495,9 +495,45 @@ def simulate_draft_with_mcts(
     return win_prob, training_examples
 
 
+def _run_episode(args):
+    """Worker function for parallel episode generation."""
+    net_state_dict, wp_state_dict, gd_state_dicts, game_map, skill_tier, num_sims = args
+    device = torch.device('cpu')
+
+    # Reconstruct models in worker (can't pickle ONNX sessions or models)
+    from train_generic_draft import GenericDraftModel
+    from train_win_probability import WinProbModel
+
+    network = AlphaZeroDraftNet()
+    network.load_state_dict(net_state_dict)
+    network.eval()
+
+    wp_model = WinProbModel()
+    wp_model.load_state_dict(wp_state_dict)
+    wp_model.eval()
+
+    gd_models = []
+    for sd in gd_state_dicts:
+        gd = GenericDraftModel()
+        gd.load_state_dict(sd)
+        gd.eval()
+        gd_models.append(gd)
+
+    win_prob, examples = simulate_draft_with_mcts(
+        network, wp_model, gd_models, game_map, skill_tier,
+        device, num_simulations=num_sims,
+    )
+    return win_prob, examples
+
+
 def train():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Force CPU — batch-size-1 MCTS is 8x faster on CPU than GPU
+    device = torch.device("cpu")
     print(f"Device: {device}")
+
+    # Detect parallelism
+    NUM_WORKERS = min(48, os.cpu_count() or 1)
+    print(f"Workers: {NUM_WORKERS}")
 
     print("Loading pre-trained models...")
     wp_model, gd_models = load_pretrained_models(device)
@@ -521,73 +557,92 @@ def train():
     MCTS_SIMULATIONS = 200
     EVAL_EVERY = 250
     EVAL_DRAFTS = 200
+    PARALLEL_BATCH = NUM_WORKERS  # episodes per parallel batch
 
     best_eval_wp = 0.0
     save_dir = os.path.dirname(__file__)
 
-    print(f"Training for {NUM_EPISODES} episodes with {MCTS_SIMULATIONS} MCTS sims each...")
+    # Pre-extract state dicts for workers
+    wp_sd = wp_model.state_dict()
+    gd_sds = [gd.state_dict() for gd in gd_models]
 
-    for episode in range(NUM_EPISODES):
-        game_map = random.choice(MAPS)
-        skill_tier = random.choice(SKILL_TIERS)
+    print(f"Training for {NUM_EPISODES} episodes with {MCTS_SIMULATIONS} MCTS sims each "
+          f"({PARALLEL_BATCH} parallel)...")
 
-        network.eval()
-        win_prob, examples = simulate_draft_with_mcts(
-            network, wp_model, gd_models, game_map, skill_tier,
-            device, num_simulations=MCTS_SIMULATIONS,
-        )
+    import multiprocessing as mp
+    mp.set_start_method('spawn', force=True)
 
-        # Add to buffer
-        for state_feat, mcts_policy, valid in examples:
-            buffer.append((state_feat, mcts_policy, valid, win_prob))
-            if len(buffer) > BUFFER_SIZE:
-                buffer.pop(0)
+    episode = 0
+    while episode < NUM_EPISODES:
+        # Generate a batch of episodes in parallel
+        batch_size = min(PARALLEL_BATCH, NUM_EPISODES - episode)
+        net_sd = network.state_dict()
 
-        # Train from buffer
+        worker_args = [
+            (net_sd, wp_sd, gd_sds,
+             random.choice(MAPS), random.choice(SKILL_TIERS),
+             MCTS_SIMULATIONS)
+            for _ in range(batch_size)
+        ]
+
+        with mp.Pool(NUM_WORKERS) as pool:
+            results = pool.map(_run_episode, worker_args)
+
+        # Collect results into buffer
+        last_wp = 0.0
+        for win_prob, examples in results:
+            for state_feat, mcts_policy, valid in examples:
+                buffer.append((state_feat, mcts_policy, valid, win_prob))
+                if len(buffer) > BUFFER_SIZE:
+                    buffer.pop(0)
+            last_wp = win_prob
+            episode += 1
+
+        # Train on buffer (multiple gradient steps per batch of episodes)
         if len(buffer) >= BATCH_SIZE:
             network.train()
-            batch = random.sample(buffer, BATCH_SIZE)
-            states = torch.tensor(np.array([b[0] for b in batch])).to(device)
-            target_policies = torch.tensor(np.array([b[1] for b in batch])).to(device)
-            masks = torch.tensor(np.array([b[2] for b in batch])).to(device)
-            target_values = torch.tensor(np.array([b[3] for b in batch])).to(device)
+            num_train_steps = max(1, batch_size // 2)
+            for _ in range(num_train_steps):
+                batch = random.sample(buffer, BATCH_SIZE)
+                states = torch.tensor(np.array([b[0] for b in batch]), dtype=torch.float32)
+                target_policies = torch.tensor(np.array([b[1] for b in batch]), dtype=torch.float32)
+                masks = torch.tensor(np.array([b[2] for b in batch]), dtype=torch.float32)
+                target_values = torch.tensor(np.array([b[3] for b in batch], dtype=np.float32))
 
-            pred_logits, pred_values = network(states, masks)
-            pred_log_probs = F.log_softmax(pred_logits, dim=1)
+                pred_logits, pred_values = network(states, masks)
+                pred_log_probs = F.log_softmax(pred_logits, dim=1)
 
-            # Policy loss: cross-entropy between MCTS policy and predicted policy
-            policy_loss = -(target_policies * pred_log_probs).sum(dim=1).mean()
+                policy_loss = -(target_policies * pred_log_probs).sum(dim=1).mean()
+                value_loss = F.mse_loss(pred_values, target_values)
 
-            # Value loss: MSE between predicted value and actual win probability
-            value_loss = F.mse_loss(pred_values, target_values)
-
-            loss = policy_loss + value_loss
-            optimizer.zero_grad()
-            loss.backward()
-            nn.utils.clip_grad_norm_(network.parameters(), 1.0)
-            optimizer.step()
-            scheduler.step()
+                loss = policy_loss + value_loss
+                optimizer.zero_grad()
+                loss.backward()
+                nn.utils.clip_grad_norm_(network.parameters(), 1.0)
+                optimizer.step()
+                scheduler.step()
 
         # Logging
-        if (episode + 1) % 50 == 0:
-            print(f"Episode {episode+1}: wp={win_prob:.4f} buffer={len(buffer)} "
+        if episode % 50 < PARALLEL_BATCH or episode >= NUM_EPISODES:
+            print(f"Episode {episode}: wp={last_wp:.4f} buffer={len(buffer)} "
                   f"lr={scheduler.get_last_lr()[0]:.6f}")
 
         # Evaluate
-        if (episode + 1) % EVAL_EVERY == 0:
+        if episode % EVAL_EVERY < PARALLEL_BATCH or episode >= NUM_EPISODES:
             network.eval()
-            eval_wps = []
-            for _ in range(EVAL_DRAFTS):
-                m = random.choice(MAPS)
-                t = random.choice(SKILL_TIERS)
-                wp, _ = simulate_draft_with_mcts(
-                    network, wp_model, gd_models, m, t, device,
-                    num_simulations=MCTS_SIMULATIONS // 2,  # faster eval
-                )
-                eval_wps.append(wp)
+            net_sd_eval = network.state_dict()
+            eval_args = [
+                (net_sd_eval, wp_sd, gd_sds,
+                 random.choice(MAPS), random.choice(SKILL_TIERS),
+                 MCTS_SIMULATIONS // 2)
+                for _ in range(EVAL_DRAFTS)
+            ]
+            with mp.Pool(NUM_WORKERS) as pool:
+                eval_results = pool.map(_run_episode, eval_args)
+            eval_wps = [r[0] for r in eval_results]
             avg_wp = np.mean(eval_wps)
             std_wp = np.std(eval_wps)
-            print(f"\n  EVAL @ {episode+1}: avg_wp={avg_wp:.4f} ± {std_wp:.4f} "
+            print(f"\n  EVAL @ {episode}: avg_wp={avg_wp:.4f} +/- {std_wp:.4f} "
                   f"(vs {len(gd_models)} opponents)")
 
             if avg_wp > best_eval_wp:
@@ -597,7 +652,6 @@ def train():
             print()
 
     # Export to ONNX
-    # Export to ONNX (on CPU to avoid device mismatch)
     print("Exporting to ONNX...")
     best_path = os.path.join(save_dir, "draft_policy.pt")
     if os.path.exists(best_path):
@@ -608,7 +662,6 @@ def train():
     dummy_mask = torch.ones(1, NUM_HEROES)
     onnx_path = os.path.join(save_dir, "draft_policy.onnx")
 
-    # Export with both outputs
     torch.onnx.export(
         network, (dummy_x, dummy_mask), onnx_path,
         input_names=["state", "valid_mask"],
