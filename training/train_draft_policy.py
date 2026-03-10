@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from shared import (
     NUM_HEROES, NUM_MAPS, NUM_TIERS, HEROES, MAPS, SKILL_TIERS,
     heroes_to_multi_hot, map_to_one_hot, tier_to_one_hot,
-    load_replay_data, split_data,
+    load_replay_data, split_data, embed_onnx_weights,
 )
 
 STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2  # 289
@@ -620,6 +620,7 @@ def train():
             "value": {0: "batch"},
         },
     )
+    embed_onnx_weights(onnx_path)
     print(f"Exported ONNX model to {onnx_path}")
     print(f"Model size: {os.path.getsize(onnx_path) / 1024:.1f} KB")
     print(f"Best eval win probability: {best_eval_wp:.4f}")

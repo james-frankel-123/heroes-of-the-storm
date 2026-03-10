@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from shared import (
     NUM_HEROES, NUM_MAPS, NUM_TIERS, HERO_TO_IDX,
     map_to_one_hot, tier_to_one_hot,
-    load_replay_data, split_data,
+    load_replay_data, split_data, embed_onnx_weights,
 )
 
 INPUT_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2  # 90*3+14+3+2 = 289
@@ -253,6 +253,7 @@ def train_single_model(
             "hero_logits": {0: "batch"},
         },
     )
+    embed_onnx_weights(onnx_path)
     print(f"  Exported ONNX: {onnx_path} ({os.path.getsize(onnx_path) / 1024:.1f} KB)")
     print(f"  Best test loss: {best_test_loss:.4f}")
 

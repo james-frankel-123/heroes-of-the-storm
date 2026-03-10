@@ -108,6 +108,17 @@ def load_replay_data(limit: int | None = None) -> list[dict]:
     return rows
 
 
+def embed_onnx_weights(onnx_path: str):
+    """Re-save an ONNX model with all weights embedded (no external .data file)."""
+    import onnx
+    model = onnx.load(onnx_path, load_external_data=True)
+    onnx.save(model, onnx_path, save_as_external_data=False)
+    # Clean up any leftover .data file
+    data_path = onnx_path + ".data"
+    if os.path.exists(data_path):
+        os.remove(data_path)
+
+
 def split_data(data: list, test_frac: float = 0.02, seed: int = 42):
     """Split data into train and test sets."""
     rng = np.random.RandomState(seed)
