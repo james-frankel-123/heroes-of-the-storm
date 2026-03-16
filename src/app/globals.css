@@ -160,6 +160,20 @@ body {
   pointer-events: none;
 }
 
+/* Praise banner glow pulse */
+@keyframes pulse-subtle {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(234, 179, 8, 0.8), 0 0 60px rgba(234, 179, 8, 0.3);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;

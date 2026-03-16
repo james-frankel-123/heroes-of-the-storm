@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { NavHeader } from '@/components/layout/nav-header'
 import { NavProgress } from '@/components/layout/nav-progress'
+import { PraiseBanner } from '@/components/layout/praise-banner'
 import './globals.css'
 
 const inter = Inter({
@@ -30,6 +31,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="min-h-screen gradient-gaming">
+            <PraiseBanner />
             <NavProgress />
             <NavHeader />
             <main className="container py-6">{children}</main>
