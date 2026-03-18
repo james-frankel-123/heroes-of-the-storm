@@ -23,7 +23,7 @@ export async function SiteFooter() {
         <span>HotS Fever</span>
         {lastUpdated && (
           <span>
-            Stats updated {lastUpdated.toLocaleDateString('en-US', {
+            Stats updated {new Date(lastUpdated).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric',
