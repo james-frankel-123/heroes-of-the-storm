@@ -128,3 +128,178 @@ def split_data(data: list, test_frac: float = 0.02, seed: int = 42):
     train = [data[i] for i in range(len(data)) if i not in test_indices]
     test = [data[i] for i in range(len(data)) if i in test_indices]
     return train, test
+
+
+def optimize_onnx(onnx_path: str):
+    """Run ONNX Runtime graph optimization (constant folding, fusion, etc.)."""
+    import onnxruntime as ort
+
+    opts = ort.SessionOptions()
+    opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+    opts.optimized_model_filepath = onnx_path  # overwrite in place
+    # Creating the session triggers optimization and saves
+    ort.InferenceSession(onnx_path, opts)
+    print(f"  Optimized: {onnx_path} ({os.path.getsize(onnx_path) / 1024:.1f} KB)")
+
+
+def quantize_onnx(
+    onnx_path: str,
+    calibration_data: list[dict],
+    model_type: str = "policy",
+):
+    """
+    INT8 static quantization with MinMax calibration.
+    model_type: "policy" (state+mask→logits+value), "gd" (state+mask→logits),
+                or "wp" (input→wp)
+    """
+    import onnxruntime as ort
+    from onnxruntime.quantization import quantize_static, CalibrationMethod
+    from onnxruntime.quantization import CalibrationDataReader
+
+    quant_path = onnx_path.replace(".onnx", "_int8.onnx")
+
+    class DraftCalibrationReader(CalibrationDataReader):
+        def __init__(self, data, model_type):
+            self.data = data
+            self.model_type = model_type
+            self.idx = 0
+
+        def get_next(self):
+            if self.idx >= len(self.data):
+                return None
+            d = self.data[self.idx]
+            self.idx += 1
+
+            if self.model_type == "wp":
+                # WP model: single input tensor
+                t0 = heroes_to_multi_hot(d["team0_heroes"])
+                t1 = heroes_to_multi_hot(d["team1_heroes"])
+                m = map_to_one_hot(d["game_map"])
+                t = tier_to_one_hot(d["skill_tier"])
+                x = np.concatenate([t0, t1, m, t]).reshape(1, -1).astype(np.float32)
+                return {"input": x}
+            else:
+                # Policy or GD: state + valid_mask
+                t0 = heroes_to_multi_hot(d.get("team0_heroes", []))
+                t1 = heroes_to_multi_hot(d.get("team1_heroes", []))
+                bans = np.zeros(NUM_HEROES, dtype=np.float32)
+                for h in d.get("team0_bans", []) + d.get("team1_bans", []):
+                    idx = HERO_TO_IDX.get(h)
+                    if idx is not None:
+                        bans[idx] = 1.0
+                m = map_to_one_hot(d["game_map"])
+                t = tier_to_one_hot(d["skill_tier"])
+                state = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0]]).reshape(1, -1).astype(np.float32)
+                mask = np.ones((1, NUM_HEROES), dtype=np.float32)
+                taken = set(d.get("team0_heroes", []) + d.get("team1_heroes", []) +
+                           d.get("team0_bans", []) + d.get("team1_bans", []))
+                for h in taken:
+                    idx = HERO_TO_IDX.get(h)
+                    if idx is not None:
+                        mask[0, idx] = 0.0
+                return {"state": state, "valid_mask": mask}
+
+    reader = DraftCalibrationReader(calibration_data, model_type)
+
+    quantize_static(
+        onnx_path,
+        quant_path,
+        reader,
+        calibrate_method=CalibrationMethod.MinMax,
+    )
+
+    print(f"  Quantized: {quant_path} ({os.path.getsize(quant_path) / 1024:.1f} KB)")
+    return quant_path
+
+
+def verify_quantized_model(
+    float_path: str,
+    quant_path: str,
+    calibration_data: list[dict],
+    model_type: str = "policy",
+    num_samples: int = 1000,
+):
+    """
+    Compare float32 vs INT8 quantized model outputs.
+    Flags if mean value diff > 0.01 or policy KL divergence > 0.05.
+    """
+    import onnxruntime as ort
+
+    float_sess = ort.InferenceSession(float_path)
+    quant_sess = ort.InferenceSession(quant_path)
+
+    value_diffs = []
+    kl_divs = []
+
+    for i, d in enumerate(calibration_data[:num_samples]):
+        if model_type == "wp":
+            t0 = heroes_to_multi_hot(d["team0_heroes"])
+            t1 = heroes_to_multi_hot(d["team1_heroes"])
+            m = map_to_one_hot(d["game_map"])
+            t = tier_to_one_hot(d["skill_tier"])
+            x = np.concatenate([t0, t1, m, t]).reshape(1, -1).astype(np.float32)
+            feeds = {"input": x}
+        else:
+            t0 = heroes_to_multi_hot(d.get("team0_heroes", []))
+            t1 = heroes_to_multi_hot(d.get("team1_heroes", []))
+            bans = np.zeros(NUM_HEROES, dtype=np.float32)
+            for h in d.get("team0_bans", []) + d.get("team1_bans", []):
+                idx = HERO_TO_IDX.get(h)
+                if idx is not None:
+                    bans[idx] = 1.0
+            m = map_to_one_hot(d["game_map"])
+            t = tier_to_one_hot(d["skill_tier"])
+            state = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0]]).reshape(1, -1).astype(np.float32)
+            mask = np.ones((1, NUM_HEROES), dtype=np.float32)
+            taken = set(d.get("team0_heroes", []) + d.get("team1_heroes", []) +
+                       d.get("team0_bans", []) + d.get("team1_bans", []))
+            for h in taken:
+                idx = HERO_TO_IDX.get(h)
+                if idx is not None:
+                    mask[0, idx] = 0.0
+            feeds = {"state": state, "valid_mask": mask}
+
+        float_out = float_sess.run(None, feeds)
+        quant_out = quant_sess.run(None, feeds)
+
+        if model_type == "wp":
+            value_diffs.append(abs(float_out[0][0] - quant_out[0][0]))
+        elif model_type == "policy":
+            # Value head diff
+            value_diffs.append(abs(float_out[1][0] - quant_out[1][0]))
+            # Policy KL divergence
+            f_logits = float_out[0][0]
+            q_logits = quant_out[0][0]
+            # Softmax
+            f_probs = np.exp(f_logits - f_logits.max()) / np.exp(f_logits - f_logits.max()).sum()
+            q_probs = np.exp(q_logits - q_logits.max()) / np.exp(q_logits - q_logits.max()).sum()
+            # KL(float || quant)
+            kl = np.sum(f_probs * np.log(np.clip(f_probs, 1e-10, 1) / np.clip(q_probs, 1e-10, 1)))
+            kl_divs.append(kl)
+        else:  # gd
+            f_logits = float_out[0][0]
+            q_logits = quant_out[0][0]
+            f_probs = np.exp(f_logits - f_logits.max()) / np.exp(f_logits - f_logits.max()).sum()
+            q_probs = np.exp(q_logits - q_logits.max()) / np.exp(q_logits - q_logits.max()).sum()
+            kl = np.sum(f_probs * np.log(np.clip(f_probs, 1e-10, 1) / np.clip(q_probs, 1e-10, 1)))
+            kl_divs.append(kl)
+
+    mean_val_diff = np.mean(value_diffs) if value_diffs else 0
+    max_val_diff = np.max(value_diffs) if value_diffs else 0
+    mean_kl = np.mean(kl_divs) if kl_divs else 0
+    max_kl = np.max(kl_divs) if kl_divs else 0
+
+    print(f"  Quantization verification ({num_samples} samples):")
+    if value_diffs:
+        print(f"    Value: mean_diff={mean_val_diff:.6f} max_diff={max_val_diff:.6f}"
+              f" {'⚠ EXCEEDS THRESHOLD' if mean_val_diff > 0.01 else '✓'}")
+    if kl_divs:
+        print(f"    Policy KL: mean={mean_kl:.6f} max={max_kl:.6f}"
+              f" {'⚠ EXCEEDS THRESHOLD' if mean_kl > 0.05 else '✓'}")
+
+    return {
+        "mean_value_diff": mean_val_diff,
+        "max_value_diff": max_val_diff,
+        "mean_kl": mean_kl,
+        "max_kl": max_kl,
+    }

@@ -33,6 +33,7 @@ from shared import (
     NUM_HEROES, NUM_MAPS, NUM_TIERS, HERO_TO_IDX,
     map_to_one_hot, tier_to_one_hot,
     load_replay_data, split_data, embed_onnx_weights,
+    optimize_onnx, quantize_onnx, verify_quantized_model,
 )
 
 INPUT_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2  # 90*3+14+3+2 = 289
@@ -255,6 +256,14 @@ def train_single_model(
     )
     embed_onnx_weights(onnx_path)
     print(f"  Exported ONNX: {onnx_path} ({os.path.getsize(onnx_path) / 1024:.1f} KB)")
+
+    # Optimize + quantize (only variant 0 — used in browser)
+    if variant_idx == 0:
+        optimize_onnx(onnx_path)
+        calib_data = load_replay_data(limit=2000)
+        quant_path = quantize_onnx(onnx_path, calib_data, model_type="gd")
+        verify_quantized_model(onnx_path, quant_path, calib_data, model_type="gd")
+
     print(f"  Best test loss: {best_test_loss:.4f}")
 
     # Also save as generic_draft.pt/onnx for variant 0 (backwards compat)

@@ -24,6 +24,7 @@ from shared import (
     NUM_HEROES, NUM_MAPS, NUM_TIERS,
     heroes_to_multi_hot, map_to_one_hot, tier_to_one_hot,
     load_replay_data, split_data, embed_onnx_weights,
+    optimize_onnx, quantize_onnx, verify_quantized_model,
 )
 
 INPUT_DIM = NUM_HEROES * 2 + NUM_MAPS + NUM_TIERS  # 90+90+14+3 = 197
@@ -55,10 +56,19 @@ class WinProbModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(INPUT_DIM, 256),
+            nn.Linear(INPUT_DIM, 1024),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(1024, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(512, 512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(256, 128),
+            nn.Linear(512, 128),
             nn.ReLU(),
             nn.Dropout(0.1),
             nn.Linear(128, 1),
@@ -83,18 +93,21 @@ def train():
 
     train_ds = WinProbDataset(train_data)
     test_ds = WinProbDataset(test_data)
-    train_dl = DataLoader(train_ds, batch_size=256, shuffle=True)
-    test_dl = DataLoader(test_ds, batch_size=256)
+    batch_size = 512 if len(train_data) > 100_000 else 256
+    train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    test_dl = DataLoader(test_ds, batch_size=batch_size)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
 
     model = WinProbModel().to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-5)
+    print(f"WP params: {sum(p.numel() for p in model.parameters()):,}")
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, factor=0.5)
     criterion = nn.BCELoss()
 
     best_test_loss = float("inf")
-    patience = 10
+    patience = 20
     patience_counter = 0
 
     for epoch in range(200):
@@ -132,9 +145,13 @@ def train():
         test_acc = test_correct / test_total * 100
         avg_test_loss = test_loss / test_total
 
-        if (epoch + 1) % 10 == 0 or epoch == 0:
+        if (epoch + 1) % 5 == 0 or epoch == 0:
+            lr = optimizer.param_groups[0]['lr']
             print(f"Epoch {epoch+1:3d}: train_loss={train_loss/train_total:.4f} "
-                  f"train_acc={train_acc:.1f}% test_loss={avg_test_loss:.4f} test_acc={test_acc:.1f}%")
+                  f"train_acc={train_acc:.1f}% test_loss={avg_test_loss:.4f} test_acc={test_acc:.1f}% lr={lr:.6f}")
+
+        # LR scheduler
+        lr_scheduler.step(avg_test_loss)
 
         # Early stopping
         if avg_test_loss < best_test_loss:
@@ -162,6 +179,17 @@ def train():
     embed_onnx_weights(onnx_path)
     print(f"Exported ONNX model to {onnx_path}")
     print(f"Model size: {os.path.getsize(onnx_path) / 1024:.1f} KB")
+
+    # Optimize + quantize
+    print("Optimizing ONNX graph...")
+    optimize_onnx(onnx_path)
+
+    print("Quantizing to INT8...")
+    calib_data = load_replay_data(limit=2000)
+    quant_path = quantize_onnx(onnx_path, calib_data, model_type="wp")
+
+    print("Verifying quantization...")
+    verify_quantized_model(onnx_path, quant_path, calib_data, model_type="wp")
 
 
 if __name__ == "__main__":

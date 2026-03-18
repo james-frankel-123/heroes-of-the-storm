@@ -19,14 +19,12 @@ function sleep(ms: number): Promise<void> {
 
 async function main() {
   const key1 = process.env.HEROES_PROFILE_API_KEY
-  const key2 = process.env.HEROES_PROFILE_API_KEY2
   if (!key1) { log.error('HEROES_PROFILE_API_KEY required'); process.exit(1) }
-  if (!key2) { log.error('HEROES_PROFILE_API_KEY2 required'); process.exit(1) }
   if (!process.env.DATABASE_URL) { log.error('DATABASE_URL required'); process.exit(1) }
 
   const db = createDb()
-  // Each key gets 55 calls/min → combined ~110 calls/min
-  const api = new MultiKeyApi([key1, key2], 55, 3)
+  // Key1 is developer account (200/min)
+  const api = new MultiKeyApi([key1], 180, 3)
 
   log.info('╔══════════════════════════════════════════════╗')
   log.info('║  Replay Sync Daemon — Hyper Pro Max         ║')
@@ -34,7 +32,7 @@ async function main() {
 
   // Discovery: 200 calls/batch, Fetch: 300 calls/batch
   // At ~110 calls/min combined, each cycle takes ~5 min
-  const DISCOVERY_BATCH = 200
+  const DISCOVERY_BATCH = 2000
   const FETCH_BATCH = 300
   const CYCLE_PAUSE_MS = 10_000 // 10s pause between cycles
 

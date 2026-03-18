@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/providers/theme-provider'
 import { NavHeader } from '@/components/layout/nav-header'
 import { NavProgress } from '@/components/layout/nav-progress'
 import { PraiseBanner } from '@/components/layout/praise-banner'
+import { SiteFooter } from '@/components/layout/site-footer'
 import './globals.css'
 
 const inter = Inter({
@@ -35,6 +36,7 @@ export default function RootLayout({
             <NavProgress />
             <NavHeader />
             <main className="container py-6">{children}</main>
+            <SiteFooter />
           </div>
         </ThemeProvider>
       </body>

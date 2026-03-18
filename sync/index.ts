@@ -74,7 +74,7 @@ async function main() {
   }
 
   const db = createDb()
-  const api = new HeroesProfileApi(apiKey)
+  const api = new HeroesProfileApi(apiKey, 180)
 
   // ── Phase 0: Composition data (scraped, no API key needed) ──
   try {

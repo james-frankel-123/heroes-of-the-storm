@@ -45,3 +45,4 @@ training/__pycache__/
 training/*.pt
 training/*.onnx
 training/*.onnx.data
+wandb/
