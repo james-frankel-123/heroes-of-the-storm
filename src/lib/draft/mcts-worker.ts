@@ -25,7 +25,7 @@ const DRAFT_ORDER: [number, 'ban' | 'pick'][] = [
 const NUM_HEROES = 90
 const NUM_MAPS = 14
 const NUM_TIERS = 3
-const STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2 // 289
+const STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2 + 1 // 290 (last = our_team)
 
 const HEROES = [
   "Abathur","Alarak","Alexstrasza","Ana","Anduin","Anub'arak","Artanis",
@@ -81,6 +81,7 @@ function heroesToMultiHot(names: string[]): Float32Array {
 function encodeState(
   team0Picks: string[], team1Picks: string[], bans: string[],
   map: string, tier: string, step: number, stepType: 'ban' | 'pick',
+  ourTeam: number,
 ): Float32Array {
   const input = new Float32Array(STATE_DIM)
   const t0 = heroesToMultiHot(team0Picks)
@@ -100,6 +101,7 @@ function encodeState(
   offset += NUM_TIERS
   input[offset++] = step / 15.0
   input[offset++] = stepType === 'pick' ? 1.0 : 0.0
+  input[offset++] = ourTeam
   return input
 }
 
@@ -172,6 +174,7 @@ interface DraftMCTSState {
   step: number
   map: string
   tier: string
+  ourTeam: number  // 0 or 1
 }
 
 function cloneState(s: DraftMCTSState): DraftMCTSState {
@@ -183,6 +186,7 @@ function cloneState(s: DraftMCTSState): DraftMCTSState {
     step: s.step,
     map: s.map,
     tier: s.tier,
+    ourTeam: s.ourTeam,
   }
 }
 
@@ -204,7 +208,7 @@ function stateToTensors(s: DraftMCTSState) {
   const t1Names = s.team1Picks.map(i => HEROES[i])
   const banNames = s.bans.map(i => HEROES[i])
   const stepType: 'ban' | 'pick' = s.step < 16 ? DRAFT_ORDER[s.step][1] : 'pick'
-  const state = encodeState(t0Names, t1Names, banNames, s.map, s.tier, s.step, stepType)
+  const state = encodeState(t0Names, t1Names, banNames, s.map, s.tier, s.step, stepType, s.ourTeam)
 
   const mask = new Float32Array(NUM_HEROES).fill(1)
   for (const idx of s.taken) mask[idx] = 0
@@ -300,15 +304,15 @@ async function mctsSearch(
 
     let value: number
     if (scratch.step >= 16) {
-      // Terminal: use policy value head on terminal state
+      // Terminal: network value head (ourTeam in encoding, no flip needed)
       const { state: s, mask: m } = stateToTensors(scratch)
       const { value: v } = await runPolicy(s, m)
-      value = ourTeam === 0 ? v : 1.0 - v
+      value = v
     } else if (!node.isExpanded && DRAFT_ORDER[scratch.step][0] === ourTeam) {
-      // Expand
+      // Expand leaf
       const { state: s, mask: m } = stateToTensors(scratch)
       const { priors: leafPriors, value: v } = await runPolicy(s, m)
-      value = ourTeam === 0 ? v : 1.0 - v
+      value = v
       node.isExpanded = true
       for (let a = 0; a < NUM_HEROES; a++) {
         if (m[a] > 0) {
@@ -316,9 +320,10 @@ async function mctsSearch(
         }
       }
     } else {
+      // Leaf at opponent's turn — use network value
       const { state: s, mask: m } = stateToTensors(scratch)
       const { value: v } = await runPolicy(s, m)
-      value = ourTeam === 0 ? v : 1.0 - v
+      value = v
     }
 
     // Backpropagate
@@ -390,7 +395,7 @@ self.onmessage = async (e: MessageEvent) => {
 
       const state: DraftMCTSState = {
         team0Picks: t0Idx, team1Picks: t1Idx, bans: banIdx,
-        taken, step, map, tier,
+        taken, step, map, tier, ourTeam,
       }
 
       // Adaptive simulation count: max(30, min(150, legalActions * 2))
@@ -415,7 +420,7 @@ self.onmessage = async (e: MessageEvent) => {
       self.postMessage({
         type: 'result',
         recommendations: recommendations.slice(0, 15),
-        valueEstimate: ourTeam === 0 ? value : 1.0 - value,
+        valueEstimate: value,  // already from ourTeam's perspective
       })
     } catch (err: any) {
       self.postMessage({ type: 'error', message: err.message })

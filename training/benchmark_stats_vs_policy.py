@@ -234,7 +234,7 @@ def _stats_ban(valid, team, t0_heroes, t1_heroes, tier, game_map,
 
 def gd_pick(state: DraftState, gd_models, device, temperature=1.0) -> int:
     gd = random.choice(gd_models)
-    x = state.to_tensor(device)
+    x = state.to_tensor_gd(device)  # 289 dims for GD model
     mask = state.valid_mask(device)
     with torch.no_grad():
         logits = gd(x, mask)

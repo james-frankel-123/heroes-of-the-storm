@@ -1,18 +1,31 @@
 /**
  * Draft recommendation engine.
  *
- * Scores each hero as a net win-rate delta from a 50% baseline.
- * Every factor is expressed in percentage points so the displayed
- * score reads as "picking this hero shifts our win probability by +X%".
+ * Scores each hero as a weighted net win-rate delta from a 50% baseline.
+ * Weights were optimized by benchmarking against a Generic Draft model
+ * pool, evaluated by the Win Probability model (training/experiment_stats_weights.py).
  *
  * All factors contribute to the displayed netDelta:
- *   1. Hero base WR:    (heroWR - 50), preferring map-specific data
- *   2. Counter-picks:   sum of (pairwise vs enemy - 50) for each enemy
- *   3. Synergies:       sum of (pairwise with ally - 50) for each ally
+ *   1. Hero base WR:    1.8× (heroWR - 50), preferring map-specific data (+0.75× map bonus)
+ *   2. Counter-picks:   0.8× avg of normalized pairwise deltas vs each enemy
+ *   3. Synergies:       1.2× avg of normalized pairwise deltas with each ally
  *   4. Player strength: best available battletag's (MAWP - 50) on this hero
  *   5. Composition WR:  data-driven boost/penalty based on achievable team compositions
  *                       from Heroes Profile. Scaled by picks made (0 at start → full at last pick).
+ *
+ * Ban weights: 1.5× hero WR, 0.8× counter protection, 1.0× deny synergy.
  */
+
+// Optimized weights (from experiment_stats_weights.py benchmark)
+const W = {
+  heroWr: 1.8,        // hero base win rate importance
+  counter: 0.8,       // counter-pick importance
+  synergy: 1.2,       // synergy importance
+  mapBonus: 0.75,     // extra weight when map-specific WR data is available
+  banWr: 1.5,         // ban: hero WR importance
+  banCounter: 0.8,    // ban: counter protection importance
+  banSynergy: 1.0,    // ban: deny synergy importance
+} as const
 
 import {
   type DraftState,
@@ -134,7 +147,10 @@ function scoreHeroWR(
   const resolved = getHeroWinRate(hero, data, map)
   if (!resolved || resolved.games < 100) return { delta: 0, reason: null }
 
-  const delta = Math.round((resolved.winRate - 50) * 10) / 10
+  const rawDelta = resolved.winRate - 50
+  // Apply hero WR weight + map bonus for map-specific data
+  const weighted = rawDelta * W.heroWr + (resolved.isMapSpecific ? rawDelta * W.mapBonus : 0)
+  const delta = Math.round(weighted * 10) / 10
 
   const reason: RecommendationReason = {
     type: 'hero_wr' as const,
@@ -174,7 +190,7 @@ function scoreCounters(
     }
   }
   const avg = count > 0 ? sum / count : 0
-  return { totalDelta: Math.round(avg * 10) / 10, reasons }
+  return { totalDelta: Math.round(avg * W.counter * 10) / 10, reasons }
 }
 
 function scoreSynergies(
@@ -206,7 +222,7 @@ function scoreSynergies(
     }
   }
   const avg = count > 0 ? sum / count : 0
-  return { totalDelta: Math.round(avg * 10) / 10, reasons }
+  return { totalDelta: Math.round(avg * W.synergy * 10) / 10, reasons }
 }
 
 function scorePlayerStrength(
@@ -274,7 +290,8 @@ function scoreBanCandidate(
   if (!resolved) return { netDelta: 0, sortBoost: 0, reasons: [] }
 
   // High WR = good ban target (denying a strong hero)
-  const wrDelta = Math.round((resolved.winRate - 50) * 10) / 10
+  const rawWrDelta = resolved.winRate - 50
+  const wrDelta = Math.round(rawWrDelta * W.banWr * 10) / 10
   reasons.push({
     type: 'ban_worthy',
     label: `${hero} ${fmtDelta(wrDelta)}${resolved.isMapSpecific ? ' map' : ''} WR`,
@@ -289,7 +306,7 @@ function scoreBanCandidate(
     const allyWR = getHeroWinRate(ally, data, map)?.winRate ?? 50
     const expectedWR = resolved.winRate + (100 - allyWR) - 50
     if (d.winRate >= expectedWR + 3) {
-      const delta = Math.round((d.winRate - expectedWR) * 10) / 10
+      const delta = Math.round((d.winRate - expectedWR) * W.banCounter * 10) / 10
       reasons.push({
         type: 'counter',
         label: `Strong vs ${ally} (${fmtDelta(delta)})`,
@@ -305,7 +322,7 @@ function scoreBanCandidate(
     if (!d || d.games < 30) continue
     const enemyWR = getHeroWinRate(enemy, data, map)?.winRate ?? 50
     const expectedWR = 50 + (resolved.winRate - 50) + (enemyWR - 50)
-    const delta = Math.round((d.winRate - expectedWR) * 10) / 10
+    const delta = Math.round((d.winRate - expectedWR) * W.banSynergy * 10) / 10
     if (delta >= 2) {
       reasons.push({
         type: 'synergy',

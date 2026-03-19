@@ -69,7 +69,7 @@ def _rollout_wp(state: DraftState, wp_model, gd_models, device, n_rollouts=3) ->
         sim = state.clone()
         while not sim.is_terminal():
             gd = random.choice(gd_models)
-            x = sim.to_tensor(device)
+            x = sim.to_tensor_gd(device)
             mask = sim.valid_mask(device)
             with torch.no_grad():
                 logits = gd(x, mask)
@@ -84,7 +84,7 @@ def _rollout_wp(state: DraftState, wp_model, gd_models, device, n_rollouts=3) ->
 def gd_pick(state: DraftState, gd_models, device, temperature=1.0) -> int:
     """Pick using a Generic Draft model (baseline / random-ish)."""
     gd = random.choice(gd_models)
-    x = state.to_tensor(device)
+    x = state.to_tensor_gd(device)
     mask = state.valid_mask(device)
     with torch.no_grad():
         logits = gd(x, mask)

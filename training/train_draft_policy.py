@@ -43,7 +43,7 @@ from shared import (
     optimize_onnx, quantize_onnx, verify_quantized_model,
 )
 
-STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2  # 289
+STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2 + 1  # 290 (last = our_team indicator)
 
 # Standard Storm League draft order (16 steps)
 # Standard Storm League draft order (16 steps)
@@ -64,7 +64,7 @@ DRAFT_ORDER = [
 
 class DraftState:
     """Mutable draft state for simulation."""
-    def __init__(self, game_map: str, skill_tier: str):
+    def __init__(self, game_map: str, skill_tier: str, our_team: int = 0):
         self.team0_picks = np.zeros(NUM_HEROES, dtype=np.float32)
         self.team1_picks = np.zeros(NUM_HEROES, dtype=np.float32)
         self.bans = np.zeros(NUM_HEROES, dtype=np.float32)
@@ -72,9 +72,10 @@ class DraftState:
         self.game_map = game_map
         self.skill_tier = skill_tier
         self.step = 0
+        self.our_team = our_team  # 0 or 1 — whose perspective
 
     def clone(self):
-        s = DraftState(self.game_map, self.skill_tier)
+        s = DraftState(self.game_map, self.skill_tier, self.our_team)
         s.team0_picks = self.team0_picks.copy()
         s.team1_picks = self.team1_picks.copy()
         s.bans = self.bans.copy()
@@ -90,11 +91,15 @@ class DraftState:
         return np.concatenate([
             self.team0_picks, self.team1_picks, self.bans,
             map_vec, tier_vec,
-            np.array([step_norm, step_type], dtype=np.float32),
+            np.array([step_norm, step_type, float(self.our_team)], dtype=np.float32),
         ])
 
     def to_tensor(self, device) -> torch.Tensor:
         return torch.from_numpy(self.to_numpy()).unsqueeze(0).float().to(device)
+
+    def to_tensor_gd(self, device) -> torch.Tensor:
+        """State tensor without our_team indicator (289 dims) for GD/WP models."""
+        return torch.from_numpy(self.to_numpy()[:-1]).unsqueeze(0).float().to(device)
 
     def valid_mask_np(self) -> np.ndarray:
         mask = np.ones(NUM_HEROES, dtype=np.float32)
@@ -146,7 +151,7 @@ class ResidualBlock(nn.Module):
 class AlphaZeroDraftNet(nn.Module):
     """
     Shared residual backbone with policy and value heads.
-    289 → 768 (3 residual blocks) → 512 → 256 → heads
+    290 → 768 (3 residual blocks) → 512 → 256 → heads
     ~4M params total.
     """
     def __init__(self):
@@ -238,17 +243,19 @@ def mcts_search(
     gd_models: list,
     gd_temperature: float,
     device,
-    our_team: int = 0,
     num_simulations: int = 200,
     c_puct: float = 2.0,
 ) -> np.ndarray:
     """
-    Run MCTS from root_state for our_team's decision.
+    Run MCTS from root_state for root_state.our_team's decision.
+    The our_team indicator is embedded in the state encoding, so the network
+    naturally outputs policy/value from the correct perspective.
     Returns visit count distribution over actions (normalized).
     """
+    our_team = root_state.our_team
     root = MCTSNode(root_state)
 
-    # Expand root
+    # Expand root — network sees our_team in the state encoding
     priors, _ = network.predict(root_state, device)
     valid = root_state.valid_mask_np()
     priors = priors * valid
@@ -283,7 +290,7 @@ def mcts_search(
             else:
                 # Opponent turn: sample from a random Generic Draft model
                 gd_model = random.choice(gd_models)
-                x = scratch_state.to_tensor(device)
+                x = scratch_state.to_tensor_gd(device)  # 289 dims for GD model
                 mask = scratch_state.valid_mask(device)
                 with torch.no_grad():
                     logits = gd_model(x, mask)
@@ -294,16 +301,13 @@ def mcts_search(
                 # Opponent nodes are pass-through (not tracked in tree)
 
         if scratch_state.is_terminal():
-            # Terminal: evaluate with Win Probability model
-            # Always from our_team's perspective
-            value = _evaluate_wp(wp_model, scratch_state, device, our_team)
+            # Terminal: evaluate with Win Probability model from our_team's perspective
+            value = _evaluate_wp(wp_model, scratch_state, device)
         else:
             # Expansion: expand this node with network predictions
+            # Network output is already from our_team's perspective (embedded in state)
             if not node.is_expanded and scratch_state.current_team() == our_team:
                 priors_leaf, value = network.predict(scratch_state, device)
-                # Value head outputs team 0 WP; flip if we're team 1
-                if our_team == 1:
-                    value = 1.0 - value
                 valid_leaf = scratch_state.valid_mask_np()
                 priors_leaf = priors_leaf * valid_leaf
                 prior_sum = priors_leaf.sum()
@@ -319,8 +323,6 @@ def mcts_search(
             else:
                 # Leaf at opponent's turn or already expanded — use network value
                 _, value = network.predict(scratch_state, device)
-                if our_team == 1:
-                    value = 1.0 - value
 
         # Backpropagation
         while node is not None:
@@ -338,8 +340,8 @@ def mcts_search(
     return visits
 
 
-def _evaluate_wp(wp_model, state: DraftState, device, our_team: int = 0) -> float:
-    """Get win probability from our_team's perspective."""
+def _evaluate_wp(wp_model, state: DraftState, device) -> float:
+    """Get win probability from state.our_team's perspective using the WP model."""
     t0 = torch.from_numpy(state.team0_picks).unsqueeze(0).to(device)
     t1 = torch.from_numpy(state.team1_picks).unsqueeze(0).to(device)
     m = torch.from_numpy(map_to_one_hot(state.game_map)).unsqueeze(0).to(device)
@@ -348,7 +350,7 @@ def _evaluate_wp(wp_model, state: DraftState, device, our_team: int = 0) -> floa
     with torch.no_grad():
         wp = wp_model(x).item()
     # WP model always outputs P(team 0 wins); flip for team 1
-    return wp if our_team == 0 else 1.0 - wp
+    return wp if state.our_team == 0 else 1.0 - wp
 
 
 # ── Training ─────────────────────────────────────────────────────────
@@ -432,7 +434,7 @@ def pretrain_value_head(network: AlphaZeroDraftNet, device):
 
     train_data, _ = split_data(data)
 
-    # Prepare data
+    # Prepare data — each replay produces two examples: one from each team's perspective
     X_list, y_list = [], []
     for d in train_data:
         t0 = heroes_to_multi_hot(d["team0_heroes"])
@@ -445,9 +447,15 @@ def pretrain_value_head(network: AlphaZeroDraftNet, device):
                 bans[idx] = 1.0
         m = map_to_one_hot(d["game_map"])
         t = tier_to_one_hot(d["skill_tier"])
-        x = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0]])  # step=1, type=pick (terminal)
-        X_list.append(x)
-        y_list.append(float(d["winner"] == 0))
+        team0_won = float(d["winner"] == 0)
+        # our_team=0 perspective
+        x0 = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0, 0.0]])
+        X_list.append(x0)
+        y_list.append(team0_won)
+        # our_team=1 perspective (same board, opposite value target)
+        x1 = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0, 1.0]])
+        X_list.append(x1)
+        y_list.append(1.0 - team0_won)
 
     X = torch.tensor(np.array(X_list, dtype=np.float32)).to(device)
     y = torch.tensor(np.array(y_list, dtype=np.float32)).to(device)
@@ -493,11 +501,12 @@ def simulate_draft_with_mcts(
     """
     Simulate a full draft using MCTS for our_team, Generic Draft for opponent.
     our_team is randomly 0 or 1 so the model learns both sides.
-    Returns (win_prob, training_examples) where win_prob is from team 0's
-    perspective (for consistent value targets), and each example is
-    (state_features, mcts_policy_target, valid_mask).
+    The our_team indicator is embedded in the state encoding so the network
+    knows whose perspective to evaluate from.
+    Returns (win_prob, training_examples) where win_prob is from our_team's
+    perspective, and each example is (state_features, mcts_policy_target, valid_mask).
     """
-    state = DraftState(game_map, skill_tier)
+    state = DraftState(game_map, skill_tier, our_team=our_team)
     training_examples = []
     gd_temperature = random.choice([0.5, 0.8, 1.0, 1.2, 1.5])
 
@@ -511,7 +520,7 @@ def simulate_draft_with_mcts(
 
             visit_dist = mcts_search(
                 state, network, wp_model, gd_models, gd_temperature,
-                device, our_team=our_team, num_simulations=num_simulations,
+                device, num_simulations=num_simulations,
             )
 
             training_examples.append((state_features, visit_dist, valid))
@@ -522,7 +531,7 @@ def simulate_draft_with_mcts(
         else:
             # Opponent: sample from Generic Draft model
             gd_model = random.choice(gd_models)
-            x = state.to_tensor(device)
+            x = state.to_tensor_gd(device)  # 289 dims for GD model
             mask = state.valid_mask(device)
             with torch.no_grad():
                 logits = gd_model(x, mask)
@@ -530,9 +539,8 @@ def simulate_draft_with_mcts(
                 action = torch.multinomial(probs, 1).item()
             state.apply_action(action, team, action_type)
 
-    # Final evaluation — always from team 0's perspective for consistent
-    # value targets (the network's value head predicts team 0 WP)
-    win_prob = _evaluate_wp(wp_model, state, device, our_team=0)
+    # Final evaluation from our_team's perspective
+    win_prob = _evaluate_wp(wp_model, state, device)
     return win_prob, training_examples
 
 
@@ -560,7 +568,9 @@ def _run_episode(args):
         gd.eval()
         gd_models.append(gd)
 
-    # Randomly play as team 0 or team 1
+    # Randomly play as team 0 or team 1. The our_team indicator is
+    # embedded in the state encoding (dim 290) so the network knows
+    # whose perspective to evaluate from.
     our_team = random.randint(0, 1)
 
     win_prob, examples = simulate_draft_with_mcts(
@@ -636,7 +646,7 @@ def train():
                 "network_params": sum(p.numel() for p in network.parameters()),
                 "num_gd_opponents": len(gd_models),
                 "replay_data_count": 275_000,
-                "architecture": "289→768(3res)→512→256→heads",
+                "architecture": "290→768(3res)→512→256→heads (last input=our_team)",
             },
         )
         print(f"wandb run: {wandb.run.url}")
@@ -754,7 +764,7 @@ def train():
         network.load_state_dict(torch.load(best_path, weights_only=True, map_location="cpu"))
     network.cpu().eval()
 
-    dummy_x = torch.randn(1, STATE_DIM)
+    dummy_x = torch.randn(1, STATE_DIM)  # 290 features (last = our_team)
     dummy_mask = torch.ones(1, NUM_HEROES)
     onnx_path = os.path.join(save_dir, "draft_policy.onnx")
 

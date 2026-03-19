@@ -337,5 +337,6 @@ function convertToAIState(state: DraftState): AIDraftState {
     tier: state.tier,
     step: state.currentStep,
     stepType: currentDraftStep?.type || 'pick',
+    ourTeam: state.ourTeam === 'A' ? 0 : 1,
   }
 }

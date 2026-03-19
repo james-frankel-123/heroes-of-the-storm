@@ -177,6 +177,7 @@ export interface AIDraftState {
   tier: string
   step: number        // 0-15
   stepType: 'ban' | 'pick'
+  ourTeam: number     // 0 or 1 — whose perspective
 }
 
 function encodeState(s: AIDraftState): Float32Array {
@@ -186,8 +187,8 @@ function encodeState(s: AIDraftState): Float32Array {
   const m = mapToOneHot(s.map)
   const t = tierToOneHot(s.tier)
 
-  // 90*3 + 14 + 3 + 2 = 289
-  const input = new Float32Array(289)
+  // 90*3 + 14 + 3 + 2 + 1 = 290 (last = our_team indicator)
+  const input = new Float32Array(290)
   let offset = 0
   input.set(t0, offset); offset += NUM_HEROES
   input.set(t1, offset); offset += NUM_HEROES
@@ -196,6 +197,7 @@ function encodeState(s: AIDraftState): Float32Array {
   input.set(t, offset); offset += NUM_TIERS
   input[offset++] = s.step / 15.0
   input[offset++] = s.stepType === 'pick' ? 1.0 : 0.0
+  input[offset++] = s.ourTeam
   return input
 }
 
@@ -324,7 +326,7 @@ export async function getValueEstimate(
     ...draftState.team1Picks,
     ...draftState.bans,
   ]))
-  const stateTensor = new ort.Tensor('float32', state, [1, 289])
+  const stateTensor = new ort.Tensor('float32', state, [1, 290])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
   const result = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
   const rawWP = (result.value.data as Float32Array)[0]
@@ -423,7 +425,7 @@ export async function getAIRecommendations(
   // Get baseline value estimate for current state
   const state = encodeState(draftState)
   const mask = buildValidMask(takenHeroes)
-  const stateTensor = new ort.Tensor('float32', state, [1, 289])
+  const stateTensor = new ort.Tensor('float32', state, [1, 290])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
   const baseResult = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
   const rawValueEstimate = (baseResult.value.data as Float32Array)[0]
@@ -438,7 +440,7 @@ export async function getAIRecommendations(
 
   // Build a batch of "what-if" states: one per valid hero
   const batchSize = validIndices.length
-  const batchStates = new Float32Array(batchSize * 289)
+  const batchStates = new Float32Array(batchSize * 290)
   const batchMasks = new Float32Array(batchSize * NUM_HEROES)
   const nextStep = draftState.step + 1
   const nextStepType: 'ban' | 'pick' = nextStep < DRAFT_SEQUENCE.length
@@ -477,7 +479,7 @@ export async function getAIRecommendations(
     }
 
     // Encode the resulting state (one step ahead)
-    const offset = b * 289
+    const offset = b * 290
     batchStates.set(nextT0, offset)
     batchStates.set(nextT1, offset + NUM_HEROES)
     batchStates.set(nextBans, offset + NUM_HEROES * 2)
@@ -485,6 +487,7 @@ export async function getAIRecommendations(
     batchStates.set(tierVec, offset + NUM_HEROES * 3 + NUM_MAPS)
     batchStates[offset + NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS] = nextStep / 15.0
     batchStates[offset + NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 1] = nextStepType === 'pick' ? 1.0 : 0.0
+    batchStates[offset + NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2] = draftState.ourTeam
 
     // Mask: taken heroes + this hero
     const heroMask = new Float32Array(baseMask)
@@ -493,7 +496,7 @@ export async function getAIRecommendations(
   }
 
   // Single batched inference for all candidates
-  const batchStateTensor = new ort.Tensor('float32', batchStates, [batchSize, 289])
+  const batchStateTensor = new ort.Tensor('float32', batchStates, [batchSize, 290])
   const batchMaskTensor = new ort.Tensor('float32', batchMasks, [batchSize, NUM_HEROES])
   const batchResult = await policySession.run({ state: batchStateTensor, valid_mask: batchMaskTensor })
   const batchValues = batchResult.value.data as Float32Array
@@ -551,7 +554,7 @@ export async function getGenericDraftPredictions(
   const state = encodeState(draftState)
   const mask = buildValidMask(takenHeroes)
 
-  const stateTensor = new ort.Tensor('float32', state, [1, 289])
+  const stateTensor = new ort.Tensor('float32', state, [1, 290])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
 
   const result = await gdSession.run({
