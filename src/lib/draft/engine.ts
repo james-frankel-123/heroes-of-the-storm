@@ -22,6 +22,8 @@ const W = {
   counter: 0.8,       // counter-pick importance
   synergy: 1.2,       // synergy importance
   mapBonus: 0.75,     // extra weight when map-specific WR data is available
+  comp: 0,            // composition scoring (disabled — data too noisy, hurts WP by -1.3)
+  healerBonus: 12,    // urgency-scaled bonus for picking a healer when team lacks one
   banWr: 1.5,         // ban: hero WR importance
   banCounter: 0.8,    // ban: counter protection importance
   banSynergy: 1.0,    // ban: deny synergy importance
@@ -410,12 +412,14 @@ export function generateRecommendations(
         }
       }
 
-      // Composition scoring for enemy team
-      const { sortBoost: compDelta, reason: compReason } = scoreCompositionForHero(
-        hero, enemyPicks, data.compositions, data.baselineCompWR
-      )
-      if (compReason) { reasons.push(compReason) }
-      netDelta += compDelta
+      // Composition scoring for enemy team (disabled: W.comp=0)
+      if (W.comp > 0) {
+        const { sortBoost: compDelta, reason: compReason } = scoreCompositionForHero(
+          hero, enemyPicks, data.compositions, data.baselineCompWR
+        )
+        if (compReason) { reasons.push(compReason) }
+        netDelta += compDelta * W.comp
+      }
 
       return {
         hero,
@@ -454,12 +458,29 @@ export function generateRecommendations(
     )
     if (playerReason) { reasons.push(playerReason); netDelta += playerReason.delta }
 
-    // 5. Composition win rate — data-driven role/comp scoring
-    const { sortBoost: compDelta, reason: compReason } = scoreCompositionForHero(
-      hero, ourPicks, data.compositions, data.baselineCompWR
-    )
-    if (compReason) { reasons.push(compReason) }
-    netDelta += compDelta
+    // 5. Composition win rate — data-driven role/comp scoring (disabled: W.comp=0)
+    if (W.comp > 0) {
+      const { sortBoost: compDelta, reason: compReason } = scoreCompositionForHero(
+        hero, ourPicks, data.compositions, data.baselineCompWR
+      )
+      if (compReason) { reasons.push(compReason) }
+      netDelta += compDelta * W.comp
+    }
+
+    // 6. Healer urgency — bonus for picking a healer when team lacks one
+    if (W.healerBonus > 0) {
+      const heroRole = HERO_ROLES[hero] ?? null
+      const hasHealer = ourPicks.some((p) => HERO_ROLES[p] === 'Healer')
+      if (!hasHealer && heroRole === 'Healer') {
+        const picksRemaining = 5 - ourPicks.length - 1
+        const urgency = Math.max(0, 1 - picksRemaining / 3) // 0→0, 1→0.33, 2→0.67, 3→1
+        const bonus = Math.round(W.healerBonus * urgency * 10) / 10
+        if (bonus > 0) {
+          netDelta += bonus
+          reasons.push({ type: 'comp_wr', label: `Healer needed (+${bonus.toFixed(1)})`, delta: bonus })
+        }
+      }
+    }
 
     return {
       hero,
