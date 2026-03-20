@@ -201,6 +201,12 @@ function encodeState(s: AIDraftState): Float32Array {
   return input
 }
 
+/** Encode state without ourTeam indicator (289 dims) for GD model. */
+function encodeStateForGD(s: AIDraftState): Float32Array {
+  const full = encodeState(s)
+  return full.slice(0, 289)
+}
+
 function buildValidMask(taken: Set<string>): Float32Array {
   const mask = new Float32Array(NUM_HEROES).fill(1)
   for (const hero of taken) {
@@ -551,10 +557,10 @@ export async function getGenericDraftPredictions(
     throw new Error('AI models not loaded. Call loadAIModels() first.')
   }
 
-  const state = encodeState(draftState)
+  const state = encodeStateForGD(draftState)  // 289 dims — GD doesn't have ourTeam
   const mask = buildValidMask(takenHeroes)
 
-  const stateTensor = new ort.Tensor('float32', state, [1, 290])
+  const stateTensor = new ort.Tensor('float32', state, [1, 289])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
 
   const result = await gdSession.run({

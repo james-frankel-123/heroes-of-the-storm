@@ -257,18 +257,19 @@ def simulate_draft(
     network, wp_model, gd_models, device,
     game_map: str, skill_tier: str,
     hero_wr=None, hero_map_wr=None, synergies_data=None, counters_data=None,
+    our_team: int = 0,
 ) -> float:
     """
-    Simulate a full draft. team0 uses the given strategy; team1 always uses GD.
-    Returns win probability for team 0.
+    Simulate a full draft. our_team uses the given strategy; opponent uses GD.
+    Returns win probability from our_team's perspective.
     """
-    state = DraftState(game_map, skill_tier)
+    state = DraftState(game_map, skill_tier, our_team=our_team)
     gd_temp = random.choice([0.8, 1.0, 1.2])
 
     while not state.is_terminal():
         team, action_type = DRAFT_ORDER[state.step]
 
-        if team == 0:
+        if team == our_team:
             if team0_strategy == "policy":
                 action = policy_pick(state, network, device)
             elif team0_strategy == "stats":
@@ -308,13 +309,15 @@ def run_benchmark(strategies, num_drafts):
         n_cnt = sum(len(v) for t in counters_data.values() for v in t.values())
         print(f"  Synergies: {n_syn}, Counters: {n_cnt}")
 
-    # Use same map/tier configs for fair comparison
+    # Use same map/tier/side configs for fair comparison
+    # Alternate team 0 and team 1 so both sides are equally tested
     random.seed(42)
     np.random.seed(42)
     torch.manual_seed(42)
-    test_configs = [(random.choice(MAPS), random.choice(SKILL_TIERS)) for _ in range(num_drafts)]
+    test_configs = [(random.choice(MAPS), random.choice(SKILL_TIERS), i % 2)
+                    for i in range(num_drafts)]
 
-    print(f"\nBenchmarking {num_drafts} drafts per strategy")
+    print(f"\nBenchmarking {num_drafts} drafts per strategy (alternating sides)")
     print(f"Strategies: {strategies}")
     print(f"{'='*70}")
 
@@ -326,11 +329,12 @@ def run_benchmark(strategies, num_drafts):
 
         print(f"\n--- {strategy} ---")
         wps = []
-        for i, (game_map, tier) in enumerate(test_configs):
+        for i, (game_map, tier, our_team) in enumerate(test_configs):
             wp = simulate_draft(
                 strategy, network, wp_model, gd_models, device,
                 game_map, tier,
                 hero_wr, hero_map_wr, synergies_data, counters_data,
+                our_team=our_team,
             )
             wps.append(wp)
             if (i + 1) % 50 == 0 or i == num_drafts - 1:
