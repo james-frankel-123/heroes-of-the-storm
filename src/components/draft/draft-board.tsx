@@ -181,7 +181,7 @@ function TeamRow({
                 <select
                   value={playerAssignments[stepIdx] ?? ''}
                   onChange={(e) => {
-                    if (e.target.value) onAssignPlayer(stepIdx, e.target.value)
+                    onAssignPlayer(stepIdx, e.target.value || '')
                   }}
                   className={cn(
                     'w-full max-w-[100px] h-5 px-1 text-[9px] rounded border bg-background truncate',

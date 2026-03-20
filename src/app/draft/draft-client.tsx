@@ -109,7 +109,12 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
       }
     }
     case 'ASSIGN_PLAYER': {
-      const newAssignments = { ...state.playerAssignments, [action.stepIndex]: action.battletag }
+      const newAssignments = { ...state.playerAssignments }
+      if (action.battletag) {
+        newAssignments[action.stepIndex] = action.battletag
+      } else {
+        delete newAssignments[action.stepIndex]
+      }
       return { ...state, playerAssignments: newAssignments }
     }
     case 'UNDO': {
