@@ -192,7 +192,7 @@ export function AIRecommendationPanel({
       <p className="text-[10px] text-muted-foreground">
         {isOpponentTurn
           ? 'Generic Draft model — predicted opponent choices'
-          : 'AlphaZero policy — preliminary model'}
+          : 'HotsZero policy model'}
       </p>
 
       {!showOpponentPredictions && !showOurRecommendations ? (

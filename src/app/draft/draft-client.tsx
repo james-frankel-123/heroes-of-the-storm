@@ -474,10 +474,10 @@ export function DraftClient({
           dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })
         }
         teamAWinPct={aiMode && aiValueEstimate !== null
-          ? Math.round(aiValueEstimate * 1000) / 10
+          ? Math.round((state.ourTeam === 'A' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
           : state.ourTeam === 'A' ? ourWinPct : enemyWinPct}
         teamBWinPct={aiMode && aiValueEstimate !== null
-          ? Math.round((1 - aiValueEstimate) * 1000) / 10
+          ? Math.round((state.ourTeam === 'B' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
           : state.ourTeam === 'B' ? ourWinPct : enemyWinPct}
       />
 
