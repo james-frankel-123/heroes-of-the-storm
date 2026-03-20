@@ -427,115 +427,39 @@ export async function getAIRecommendations(
     }
   }
 
-  // Fallback: batched value-head evaluation
-  // Get baseline value estimate for current state
+  // Use the policy head directly — it was trained via MCTS to know which
+  // heroes are good picks. One forward pass, rank by policy probability.
   const state = encodeState(draftState)
   const mask = buildValidMask(takenHeroes)
   const stateTensor = new ort.Tensor('float32', state, [1, 290])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
-  const baseResult = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
-  const rawValueEstimate = (baseResult.value.data as Float32Array)[0]
+  const result = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
 
+  const policyLogits = result.policy_logits.data as Float32Array
+  const rawValueEstimate = (result.value.data as Float32Array)[0]
   const baseValueEstimate = Math.max(0, Math.min(1, rawValueEstimate + teamMawpAdj))
 
-  // Collect valid hero indices
-  const validIndices: number[] = []
-  for (let i = 0; i < NUM_HEROES; i++) {
-    if (mask[i] > 0) validIndices.push(i)
-  }
+  // Softmax the masked policy logits to get pick probabilities
+  const priors = softmaxMasked(policyLogits, mask)
 
-  // Build a batch of "what-if" states: one per valid hero
-  const batchSize = validIndices.length
-  const batchStates = new Float32Array(batchSize * 290)
-  const batchMasks = new Float32Array(batchSize * NUM_HEROES)
-  const nextStep = draftState.step + 1
-  const nextStepType: 'ban' | 'pick' = nextStep < DRAFT_SEQUENCE.length
-    ? DRAFT_SEQUENCE[nextStep].type
-    : 'pick'
-
-  // Pre-compute base vectors once
-  const baseT0 = heroesToMultiHot(draftState.team0Picks)
-  const baseT1 = heroesToMultiHot(draftState.team1Picks)
-  const baseBans = heroesToMultiHot(draftState.bans)
-  const mapVec = mapToOneHot(draftState.map)
-  const tierVec = tierToOneHot(draftState.tier)
-
-  // Pre-compute base mask
-  const baseMask = new Float32Array(NUM_HEROES).fill(1)
-  for (const hero of takenHeroes) {
-    const idx = HERO_TO_IDX[hero]
-    if (idx !== undefined) baseMask[idx] = 0
-  }
-
-  for (let b = 0; b < batchSize; b++) {
-    const heroIdx = validIndices[b]
-
-    // Clone base picks/bans and apply this hero
-    const nextT0 = new Float32Array(baseT0)
-    const nextT1 = new Float32Array(baseT1)
-    const nextBans = new Float32Array(baseBans)
-
-    if (isBanStep) {
-      nextBans[heroIdx] = 1
-    } else if (currentTeam === 'A') {
-      // Team A = team 0
-      nextT0[heroIdx] = 1
-    } else {
-      nextT1[heroIdx] = 1
-    }
-
-    // Encode the resulting state (one step ahead)
-    const offset = b * 290
-    batchStates.set(nextT0, offset)
-    batchStates.set(nextT1, offset + NUM_HEROES)
-    batchStates.set(nextBans, offset + NUM_HEROES * 2)
-    batchStates.set(mapVec, offset + NUM_HEROES * 3)
-    batchStates.set(tierVec, offset + NUM_HEROES * 3 + NUM_MAPS)
-    batchStates[offset + NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS] = nextStep / 15.0
-    batchStates[offset + NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 1] = nextStepType === 'pick' ? 1.0 : 0.0
-    batchStates[offset + NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2] = draftState.ourTeam
-
-    // Mask: taken heroes + this hero
-    const heroMask = new Float32Array(baseMask)
-    heroMask[heroIdx] = 0
-    batchMasks.set(heroMask, b * NUM_HEROES)
-  }
-
-  // Single batched inference for all candidates
-  const batchStateTensor = new ort.Tensor('float32', batchStates, [batchSize, 290])
-  const batchMaskTensor = new ort.Tensor('float32', batchMasks, [batchSize, NUM_HEROES])
-  const batchResult = await policySession.run({ state: batchStateTensor, valid_mask: batchMaskTensor })
-  const batchValues = batchResult.value.data as Float32Array
-
-  // Build recommendations ranked by per-hero WP
+  // Build recommendations ranked by policy probability + MAWP adjustment
   const ranked: AIRecommendation[] = []
-  for (let b = 0; b < batchSize; b++) {
-    const heroIdx = validIndices[b]
-    const heroWp = batchValues[b]
+  for (let i = 0; i < NUM_HEROES; i++) {
+    if (mask[i] > 0 && priors[i] > 0.001) {
+      const { adjustment, player } = isBanStep
+        ? { adjustment: 0, player: null }
+        : computePlayerAdjustment(HEROES[i], playerData)
 
-    const { adjustment, player } = isBanStep
-      ? { adjustment: 0, player: null }
-      : computePlayerAdjustment(HEROES[heroIdx], playerData)
-
-    ranked.push({
-      hero: HEROES[heroIdx],
-      prior: 0,  // not used for ranking anymore
-      winProb: Math.max(0, Math.min(1, heroWp + adjustment)),
-      mawpAdj: adjustment,
-      suggestedPlayer: player,
-    })
+      ranked.push({
+        hero: HEROES[i],
+        prior: priors[i],
+        winProb: Math.max(0, Math.min(1, baseValueEstimate + adjustment)),
+        mawpAdj: adjustment,
+        suggestedPlayer: player,
+      })
+    }
   }
-
-  // For picks: rank by highest WP (we want to maximize our win prob)
-  // For bans: rank by highest WP too (ban the hero that gives the best state for the opponent,
-  //   i.e. from team 0's perspective, ban the hero whose removal hurts the opponent most)
-  if (isBanStep) {
-    // Banning a hero the opponent would pick: we want to ban heroes where
-    // the post-ban state has the HIGHEST WP for us (team 0)
-    ranked.sort((a, b) => b.winProb - a.winProb)
-  } else {
-    ranked.sort((a, b) => b.winProb - a.winProb)
-  }
+  ranked.sort((a, b) => b.prior - a.prior)
 
   return {
     recommendations: ranked.slice(0, topK),

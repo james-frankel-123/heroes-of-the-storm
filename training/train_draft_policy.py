@@ -44,6 +44,7 @@ from shared import (
 )
 
 STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2 + 1  # 290 (last = our_team indicator)
+BACKBONE_DIM = STATE_DIM - 1  # 289 — backbone sees everything except our_team
 
 # Standard Storm League draft order (16 steps)
 # Standard Storm League draft order (16 steps)
@@ -151,13 +152,19 @@ class ResidualBlock(nn.Module):
 class AlphaZeroDraftNet(nn.Module):
     """
     Shared residual backbone with policy and value heads.
-    290 → 768 (3 residual blocks) → 512 → 256 → heads
-    ~4M params total.
+
+    Backbone sees 289 dims (board state without our_team).
+    Policy head branches from backbone — perspective-invariant.
+    Value head receives backbone output + our_team indicator — perspective-aware.
+
+    This ensures the same board state produces identical policy recommendations
+    regardless of which team is asking, while the value estimate correctly
+    reflects each team's win probability.
     """
     def __init__(self):
         super().__init__()
-        # Shared backbone: wider + deeper
-        self.input_fc = nn.Linear(STATE_DIM, 768)
+        # Shared backbone: 289 dims (no our_team)
+        self.input_fc = nn.Linear(BACKBONE_DIM, 768)
         self.input_bn = nn.BatchNorm1d(768)
         self.res_block1 = ResidualBlock(768)
         self.res_block2 = ResidualBlock(768)
@@ -168,30 +175,36 @@ class AlphaZeroDraftNet(nn.Module):
         self.compress2_bn = nn.BatchNorm1d(256)
 
         # Policy head: prior probabilities over hero actions
+        # Only sees backbone output — same board → same recommendations
         self.policy_head = nn.Linear(256, NUM_HEROES)
 
-        # Value head: estimated win probability for team 0
-        # 256 → 128 → 64 → 1 with ReLU + tanh→[0,1]
-        self.value_fc1 = nn.Linear(256, 128)
+        # Value head: estimated win probability from our_team's perspective
+        # Gets backbone output (256) + our_team indicator (1) = 257 dims
+        self.value_fc1 = nn.Linear(257, 128)
         self.value_fc2 = nn.Linear(128, 64)
         self.value_out = nn.Linear(64, 1)
 
     def forward(self, x, mask=None):
+        # Split input: backbone features (289) and our_team indicator (1)
+        backbone_input = x[:, :-1]  # everything except last feature
+        our_team = x[:, -1:]        # last feature = our_team (0 or 1)
+
         # Shared backbone
-        h = F.relu(self.input_bn(self.input_fc(x)))
+        h = F.relu(self.input_bn(self.input_fc(backbone_input)))
         h = self.res_block1(h)
         h = self.res_block2(h)
         h = self.res_block3(h)
         h = F.relu(self.compress1_bn(self.compress1(h)))
         h = F.relu(self.compress2_bn(self.compress2(h)))
 
-        # Policy head
+        # Policy head — perspective-invariant
         policy_logits = self.policy_head(h)
         if mask is not None:
             policy_logits = policy_logits + (1 - mask) * (-1e9)
 
-        # Value head (tanh scaled to [0, 1])
-        v = F.relu(self.value_fc1(h))
+        # Value head — concatenate our_team to backbone output
+        vh = torch.cat([h, our_team], dim=1)  # (B, 257)
+        v = F.relu(self.value_fc1(vh))
         v = F.relu(self.value_fc2(v))
         value = torch.tanh(self.value_out(v)) * 0.5 + 0.5  # map [-1,1] → [0,1]
 

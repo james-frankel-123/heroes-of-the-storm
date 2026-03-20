@@ -281,15 +281,8 @@ export function AIRecommendationPanel({
                       </span>
                     )}
                   </div>
-                  <span className={cn(
-                    'text-xs font-mono shrink-0',
-                    rec.winProb > 0.53
-                      ? 'text-gaming-success'
-                      : rec.winProb < 0.47
-                        ? 'text-gaming-danger'
-                        : 'text-yellow-400'
-                  )}>
-                    {(rec.winProb * 100).toFixed(1)}%
+                  <span className="text-xs font-mono text-violet-300 shrink-0">
+                    {(rec.prior * 100).toFixed(1)}%
                   </span>
                 </button>
               )
