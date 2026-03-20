@@ -1,31 +1,31 @@
 /**
  * Draft recommendation engine.
  *
- * Scores each hero as a weighted net win-rate delta from a 50% baseline.
- * Weights were optimized by benchmarking against a Generic Draft model
- * pool, evaluated by the Win Probability model (training/experiment_stats_weights.py).
+ * Scores each hero as a net win-rate delta from a 50% baseline.
+ * All factors are equally weighted (1.0×) — previous "optimized" weights
+ * were tuned against a WP model that couldn't evaluate team composition.
  *
  * All factors contribute to the displayed netDelta:
- *   1. Hero base WR:    1.8× (heroWR - 50), preferring map-specific data (+0.75× map bonus)
- *   2. Counter-picks:   0.8× avg of normalized pairwise deltas vs each enemy
- *   3. Synergies:       1.2× avg of normalized pairwise deltas with each ally
+ *   1. Hero base WR:    (heroWR - 50), preferring map-specific data
+ *   2. Counter-picks:   avg of normalized pairwise deltas vs each enemy
+ *   3. Synergies:       avg of normalized pairwise deltas with each ally
  *   4. Player strength: best available battletag's (MAWP - 50) on this hero
  *   5. Composition WR:  data-driven boost/penalty based on achievable team compositions
  *                       from Heroes Profile. Scaled by picks made (0 at start → full at last pick).
- *
- * Ban weights: 1.5× hero WR, 0.8× counter protection, 1.0× deny synergy.
  */
 
-// Optimized weights (from experiment_stats_weights.py benchmark)
+// Weights reverted to equal — the "optimized" weights were tuned against a WP
+// model that doesn't understand team composition, so they over-indexed on
+// individual hero strength. Equal weights + composition scoring is more balanced.
 const W = {
-  heroWr: 1.8,        // hero base win rate importance
-  counter: 0.8,       // counter-pick importance
-  synergy: 1.2,       // synergy importance
-  mapBonus: 0.75,     // extra weight when map-specific WR data is available
-  comp: 0,            // composition scoring (disabled — data too noisy, hurts WP by -1.3)
-  healerBonus: 12,    // urgency-scaled bonus for picking a healer when team lacks one
-  banWr: 1.5,         // ban: hero WR importance
-  banCounter: 0.8,    // ban: counter protection importance
+  heroWr: 1.0,        // hero base win rate importance
+  counter: 1.0,       // counter-pick importance
+  synergy: 1.0,       // synergy importance
+  mapBonus: 0.0,      // extra weight for map-specific data
+  comp: 1.0,          // composition scoring (re-enabled)
+  healerBonus: 0,     // healer urgency (handled by comp scoring)
+  banWr: 1.0,         // ban: hero WR importance
+  banCounter: 1.0,    // ban: counter protection importance
   banSynergy: 1.0,    // ban: deny synergy importance
 } as const
 
