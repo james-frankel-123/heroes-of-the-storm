@@ -9,7 +9,8 @@
  *
  * Hero encoding uses alphabetically sorted hero names (must match training).
  */
-import { DRAFT_SEQUENCE } from './types'
+import { DRAFT_SEQUENCE, type DraftData } from './types'
+import { HERO_ROLES } from '@/lib/data/hero-roles'
 
 // 90 heroes sorted alphabetically — must match training/shared.py exactly
 const HEROES = [
@@ -508,11 +509,168 @@ export async function getGenericDraftPredictions(
 /**
  * Get win probability estimate for a completed draft.
  */
+// Two-lane maps (must match training/shared.py TWO_LANE_MAPS)
+const TWO_LANE_MAPS = new Set(['Battlefield of Eternity', 'Braxis Holdout', 'Hanamura Temple'])
+
+// Fine-grained roles for role_counts feature (must match training/shared.py HERO_ROLE_FINE)
+const FINE_ROLES: Record<string, number> = {}
+// Map official roles to fine-grained indices: 0=tank,1=bruiser,2=healer,3=ranged_aa,4=ranged_mage,5=melee_assassin,6=support_utility,7=varian,8=pusher
+const FINE_ROLE_MAP: Record<string, number> = {
+  // Tanks
+  "Anub'arak":0,"Arthas":0,"Blaze":0,"Cho":0,"Diablo":0,"E.T.C.":0,"Garrosh":0,
+  "Johanna":0,"Mal'Ganis":0,"Mei":0,"Muradin":0,"Stitches":0,"Tyrael":0,
+  // Bruisers
+  "Artanis":1,"Chen":1,"Deathwing":1,"Dehaka":1,"D.Va":1,"Gazlowe":1,"Hogger":1,
+  "Imperius":1,"Leoric":1,"Malthael":1,"Ragnaros":1,"Rexxar":1,"Sonya":1,"Thrall":1,
+  "Xul":1,"Yrel":1,
+  // Healers
+  "Alexstrasza":2,"Ana":2,"Anduin":2,"Auriel":2,"Brightwing":2,"Deckard":2,
+  "Kharazim":2,"Li Li":2,"Lt. Morales":2,"Lúcio":2,"Malfurion":2,"Rehgar":2,
+  "Stukov":2,"Tyrande":2,"Uther":2,"Whitemane":2,
+  // Ranged AA
+  "Cassia":3,"Falstad":3,"Fenix":3,"Greymane":3,"Hanzo":3,"Lunara":3,"Raynor":3,
+  "Sgt. Hammer":3,"Sylvanas":3,"Tracer":3,"Tychus":3,"Valla":3,"Zul'jin":3,
+  // Ranged Mage
+  "Chromie":4,"Gall":4,"Genji":4,"Gul'dan":4,"Jaina":4,"Junkrat":4,"Kael'thas":4,
+  "Kel'Thuzad":4,"Li-Ming":4,"Mephisto":4,"Nova":4,"Orphea":4,"Probius":4,"Tassadar":4,
+  // Melee Assassin
+  "Alarak":5,"Illidan":5,"Kerrigan":5,"Maiev":5,"Qhira":5,"Samuro":5,
+  "The Butcher":5,"Valeera":5,"Zeratul":5,
+  // Support Utility
+  "Abathur":6,"Medivh":6,"Zarya":6,
+  // Varian
+  "Varian":7,
+  // Pusher
+  "Azmodan":8,"Nazeebo":8,"Zagara":8,"Murky":8,"The Lost Vikings":8,
+}
+const NUM_FINE_ROLES = 9
+
+/**
+ * Compute enriched features for the WP model.
+ * Requires DraftData for hero stats and pairwise data.
+ * Returns 76 enriched features matching the training groups:
+ *   role_counts(18) + team_avg_wr(2) + map_delta(2) +
+ *   pairwise_counters(2) + pairwise_synergies(2) + counter_detail(50)
+ */
+function computeEnrichedFeatures(
+  t0Heroes: string[],
+  t1Heroes: string[],
+  map: string,
+  draftData: DraftData,
+): Float32Array {
+  const features = new Float32Array(76)
+  let off = 0
+
+  // Helper: get hero WR, prefer map-specific
+  const getWR = (hero: string): number => {
+    const mapData = draftData.heroMapWinRates[map]?.[hero]
+    if (mapData && mapData.games >= 50) return mapData.winRate
+    return draftData.heroStats[hero]?.winRate ?? 50
+  }
+  const getOverallWR = (hero: string): number => draftData.heroStats[hero]?.winRate ?? 50
+
+  // 1. role_counts (18 = 9 per team)
+  for (const h of t0Heroes) {
+    const r = FINE_ROLE_MAP[h]
+    if (r !== undefined) features[off + r] += 1
+  }
+  off += NUM_FINE_ROLES
+  for (const h of t1Heroes) {
+    const r = FINE_ROLE_MAP[h]
+    if (r !== undefined) features[off + r] += 1
+  }
+  off += NUM_FINE_ROLES
+
+  // 2. team_avg_wr (2)
+  const t0wrs = t0Heroes.map(getWR)
+  const t1wrs = t1Heroes.map(getWR)
+  features[off++] = t0wrs.length > 0 ? t0wrs.reduce((a, b) => a + b, 0) / t0wrs.length : 50
+  features[off++] = t1wrs.length > 0 ? t1wrs.reduce((a, b) => a + b, 0) / t1wrs.length : 50
+
+  // 3. map_delta (2)
+  let t0mapDelta = 0, t1mapDelta = 0
+  for (const h of t0Heroes) {
+    const mapWR = draftData.heroMapWinRates[map]?.[h]
+    if (mapWR && mapWR.games >= 50) t0mapDelta += mapWR.winRate - getOverallWR(h)
+  }
+  for (const h of t1Heroes) {
+    const mapWR = draftData.heroMapWinRates[map]?.[h]
+    if (mapWR && mapWR.games >= 50) t1mapDelta += mapWR.winRate - getOverallWR(h)
+  }
+  features[off++] = t0mapDelta
+  features[off++] = t1mapDelta
+
+  // 4. pairwise_counters (2) — avg normalized counter delta per team
+  const counterDelta = (ourH: string[], theirH: string[]): number => {
+    let sum = 0, count = 0
+    for (const a of ourH) {
+      for (const b of theirH) {
+        const d = draftData.counters[a]?.[b]
+        if (!d || d.games < 30) continue
+        const expected = getWR(a) + (100 - getWR(b)) - 50
+        sum += d.winRate - expected
+        count++
+      }
+    }
+    return count > 0 ? sum / count : 0
+  }
+  features[off++] = counterDelta(t0Heroes, t1Heroes)
+  features[off++] = counterDelta(t1Heroes, t0Heroes)
+
+  // 5. pairwise_synergies (2) — avg normalized synergy delta per team
+  const synergyDelta = (heroes: string[]): number => {
+    let sum = 0, count = 0
+    for (let i = 0; i < heroes.length; i++) {
+      for (let j = i + 1; j < heroes.length; j++) {
+        const d = draftData.synergies[heroes[i]]?.[heroes[j]]
+        if (!d || d.games < 30) continue
+        const expected = 50 + (getWR(heroes[i]) - 50) + (getWR(heroes[j]) - 50)
+        sum += d.winRate - expected
+        count++
+      }
+    }
+    return count > 0 ? sum / count : 0
+  }
+  features[off++] = synergyDelta(t0Heroes)
+  features[off++] = synergyDelta(t1Heroes)
+
+  // 6. counter_detail (50 = 5×5×2) — all cross-team pairs
+  for (const a of t0Heroes) {
+    for (const b of t1Heroes) {
+      const d = draftData.counters[a]?.[b]
+      if (d && d.games >= 30) {
+        features[off] = d.winRate - (getWR(a) + (100 - getWR(b)) - 50)
+      }
+      off++
+    }
+  }
+  // Pad to 25 if fewer than 5 heroes per team
+  while (off < 18 + 2 + 2 + 2 + 2 + 25) off++
+  for (const b of t1Heroes) {
+    for (const a of t0Heroes) {
+      const d = draftData.counters[b]?.[a]
+      if (d && d.games >= 30) {
+        features[off] = d.winRate - (getWR(b) + (100 - getWR(a)) - 50)
+      }
+      off++
+    }
+  }
+  // Pad to 50 total
+  while (off < 18 + 2 + 2 + 2 + 2 + 50) off++
+
+  return features
+}
+
+/**
+ * Get win probability using the enriched WP model.
+ * Returns P(team0 wins). Requires DraftData for feature computation.
+ */
 export async function getWinProbability(
   team0Heroes: string[],
   team1Heroes: string[],
   map: string,
   tier: string,
+  draftData?: DraftData,
 ): Promise<number> {
   if (!wpSession || !ort) {
     throw new Error('AI models not loaded. Call loadAIModels() first.')
@@ -523,15 +681,28 @@ export async function getWinProbability(
   const m = mapToOneHot(map)
   const t = tierToOneHot(tier)
 
-  // 90 + 90 + 14 + 3 = 197
-  const input = new Float32Array(197)
+  // Base features: 197
+  const base = new Float32Array(197)
   let offset = 0
-  input.set(t0, offset); offset += NUM_HEROES
-  input.set(t1, offset); offset += NUM_HEROES
-  input.set(m, offset); offset += NUM_MAPS
-  input.set(t, offset); offset += NUM_TIERS
+  base.set(t0, offset); offset += NUM_HEROES
+  base.set(t1, offset); offset += NUM_HEROES
+  base.set(m, offset); offset += NUM_MAPS
+  base.set(t, offset); offset += NUM_TIERS
 
-  const tensor = new ort.Tensor('float32', input, [1, 197])
+  // Enriched features: 76 (if DraftData available)
+  let input: Float32Array
+  if (draftData) {
+    const enriched = computeEnrichedFeatures(team0Heroes, team1Heroes, map, draftData)
+    input = new Float32Array(273)
+    input.set(base, 0)
+    input.set(enriched, 197)
+  } else {
+    // Fallback: pad with zeros (enriched model still works, just less accurate)
+    input = new Float32Array(273)
+    input.set(base, 0)
+  }
+
+  const tensor = new ort.Tensor('float32', input, [1, 273])
   const result = await wpSession.run({ input: tensor })
   return (result.win_probability.data as Float32Array)[0]
 }
