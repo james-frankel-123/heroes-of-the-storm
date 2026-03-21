@@ -258,6 +258,9 @@ def mcts_search(
     device,
     num_simulations: int = 200,
     c_puct: float = 2.0,
+    stats_cache=None,
+    wp_enriched_groups=None,
+    wp_group_indices=None,
 ) -> np.ndarray:
     """
     Run MCTS from root_state for root_state.our_team's decision.
@@ -315,7 +318,8 @@ def mcts_search(
 
         if scratch_state.is_terminal():
             # Terminal: evaluate with Win Probability model from our_team's perspective
-            value = _evaluate_wp(wp_model, scratch_state, device)
+            value = _evaluate_wp(wp_model, scratch_state, device,
+                                 stats_cache, wp_enriched_groups, wp_group_indices)
         else:
             # Expansion: expand this node with network predictions
             # Network output is already from our_team's perspective (embedded in state)
@@ -353,13 +357,37 @@ def mcts_search(
     return visits
 
 
-def _evaluate_wp(wp_model, state: DraftState, device) -> float:
-    """Get win probability from state.our_team's perspective using the WP model."""
-    t0 = torch.from_numpy(state.team0_picks).unsqueeze(0).to(device)
-    t1 = torch.from_numpy(state.team1_picks).unsqueeze(0).to(device)
-    m = torch.from_numpy(map_to_one_hot(state.game_map)).unsqueeze(0).to(device)
-    t = torch.from_numpy(tier_to_one_hot(state.skill_tier)).unsqueeze(0).to(device)
-    x = torch.cat([t0, t1, m, t], dim=1)
+def _evaluate_wp(wp_model, state: DraftState, device, stats_cache=None, wp_enriched_groups=None, wp_group_indices=None) -> float:
+    """Get win probability from state.our_team's perspective using the WP model.
+    If stats_cache is provided, uses enriched features; otherwise falls back to base features.
+    """
+    if stats_cache is not None and wp_enriched_groups is not None:
+        # Enriched WP model path
+        from sweep_enriched_wp import extract_features, FEATURE_GROUPS
+        t0_heroes = [HEROES[i] for i in range(NUM_HEROES) if state.team0_picks[i] > 0]
+        t1_heroes = [HEROES[i] for i in range(NUM_HEROES) if state.team1_picks[i] > 0]
+        d = {
+            'team0_heroes': t0_heroes, 'team1_heroes': t1_heroes,
+            'game_map': state.game_map, 'skill_tier': state.skill_tier, 'winner': 0,
+        }
+        all_mask = [True] * len(FEATURE_GROUPS)
+        base, enriched = extract_features(d, stats_cache, all_mask)
+        # Select only the groups used by this model
+        cols = []
+        for g in wp_enriched_groups:
+            s, e = wp_group_indices[g]
+            cols.extend(range(s, e))
+        enriched_selected = enriched[cols] if cols else np.array([], dtype=np.float32)
+        x_np = np.concatenate([base, enriched_selected])
+        x = torch.tensor(x_np, dtype=torch.float32).unsqueeze(0).to(device)
+    else:
+        # Base WP model path (197 dims)
+        t0 = torch.from_numpy(state.team0_picks).unsqueeze(0).to(device)
+        t1 = torch.from_numpy(state.team1_picks).unsqueeze(0).to(device)
+        m = torch.from_numpy(map_to_one_hot(state.game_map)).unsqueeze(0).to(device)
+        t = torch.from_numpy(tier_to_one_hot(state.skill_tier)).unsqueeze(0).to(device)
+        x = torch.cat([t0, t1, m, t], dim=1)
+
     with torch.no_grad():
         wp = wp_model(x).item()
     # WP model always outputs P(team 0 wins); flip for team 1
@@ -510,6 +538,9 @@ def simulate_draft_with_mcts(
     device,
     our_team: int = 0,
     num_simulations: int = 200,
+    stats_cache=None,
+    wp_enriched_groups=None,
+    wp_group_indices=None,
 ) -> tuple[float, list[tuple[np.ndarray, np.ndarray, np.ndarray]]]:
     """
     Simulate a full draft using MCTS for our_team, Generic Draft for opponent.
@@ -534,6 +565,8 @@ def simulate_draft_with_mcts(
             visit_dist = mcts_search(
                 state, network, wp_model, gd_models, gd_temperature,
                 device, num_simulations=num_simulations,
+                stats_cache=stats_cache, wp_enriched_groups=wp_enriched_groups,
+                wp_group_indices=wp_group_indices,
             )
 
             training_examples.append((state_features, visit_dist, valid))
@@ -553,26 +586,54 @@ def simulate_draft_with_mcts(
             state.apply_action(action, team, action_type)
 
     # Final evaluation from our_team's perspective
-    win_prob = _evaluate_wp(wp_model, state, device)
+    win_prob = _evaluate_wp(wp_model, state, device,
+                            stats_cache, wp_enriched_groups, wp_group_indices)
     return win_prob, training_examples
 
 
 def _run_episode(args):
     """Worker function for parallel episode generation."""
-    net_state_dict, wp_state_dict, gd_state_dicts, game_map, skill_tier, num_sims = args
+    if len(args) == 6:
+        net_state_dict, wp_state_dict, gd_state_dicts, game_map, skill_tier, num_sims = args
+        wp_enriched_config = None
+    else:
+        net_state_dict, wp_state_dict, gd_state_dicts, game_map, skill_tier, num_sims, wp_enriched_config = args
+
     device = torch.device('cpu')
 
     # Reconstruct models in worker (can't pickle ONNX sessions or models)
     from train_generic_draft import GenericDraftModel
-    from train_win_probability import WinProbModel
 
     network = AlphaZeroDraftNet()
     network.load_state_dict(net_state_dict)
     network.eval()
 
-    wp_model = WinProbModel()
-    wp_model.load_state_dict(wp_state_dict)
-    wp_model.eval()
+    # Load WP model — enriched or base
+    stats_cache = None
+    wp_enriched_groups = None
+    wp_group_indices = None
+
+    if wp_enriched_config:
+        from sweep_enriched_wp import WinProbEnrichedModel, StatsCache, compute_group_indices
+        wp_model = WinProbEnrichedModel(
+            wp_enriched_config['input_dim'],
+            wp_enriched_config['hidden_dims'],
+            dropout=wp_enriched_config['dropout'],
+        )
+        wp_model.load_state_dict(wp_state_dict)
+        wp_model.eval()
+        # Reconstruct StatsCache from serialized data (avoid DB connection per worker)
+        stats_cache = StatsCache.__new__(StatsCache)
+        stats_cache.hero_wr = wp_enriched_config['_stats_hero_wr']
+        stats_cache.hero_map_wr = wp_enriched_config['_stats_hero_map_wr']
+        stats_cache.pairwise = wp_enriched_config['_stats_pairwise']
+        wp_enriched_groups = wp_enriched_config['groups']
+        wp_group_indices = compute_group_indices()
+    else:
+        from train_win_probability import WinProbModel
+        wp_model = WinProbModel()
+        wp_model.load_state_dict(wp_state_dict)
+        wp_model.eval()
 
     gd_models = []
     for sd in gd_state_dicts:
@@ -581,14 +642,13 @@ def _run_episode(args):
         gd.eval()
         gd_models.append(gd)
 
-    # Randomly play as team 0 or team 1. The our_team indicator is
-    # embedded in the state encoding (dim 290) so the network knows
-    # whose perspective to evaluate from.
     our_team = random.randint(0, 1)
 
     win_prob, examples = simulate_draft_with_mcts(
         network, wp_model, gd_models, game_map, skill_tier,
         device, our_team=our_team, num_simulations=num_sims,
+        stats_cache=stats_cache, wp_enriched_groups=wp_enriched_groups,
+        wp_group_indices=wp_group_indices,
     )
     return win_prob, examples
 
@@ -603,7 +663,42 @@ def train():
     print(f"Workers: {NUM_WORKERS}")
 
     print("Loading pre-trained models...")
-    wp_model, gd_models = load_pretrained_models(device)
+
+    # Load enriched WP model if available, otherwise fall back to base
+    WP_ENRICHED_GROUPS = ['role_counts', 'team_avg_wr', 'map_delta',
+                          'pairwise_counters', 'pairwise_synergies', 'counter_detail']
+    wp_enriched_path = os.path.join(os.path.dirname(__file__), "wp_enriched_winner.pt")
+    wp_enriched_config = None
+
+    if os.path.exists(wp_enriched_path):
+        from sweep_enriched_wp import WinProbEnrichedModel, StatsCache, compute_group_indices, FEATURE_GROUP_DIMS
+        enriched_dim = sum(FEATURE_GROUP_DIMS[g] for g in WP_ENRICHED_GROUPS)
+        wp_input_dim = 197 + enriched_dim  # base + enriched features
+        wp_model = WinProbEnrichedModel(wp_input_dim, [256, 128], dropout=0.3).to(device)
+        wp_model.load_state_dict(torch.load(wp_enriched_path, weights_only=True, map_location=device))
+        wp_model.eval()
+        # Load stats once and serialize into config for workers (avoids 58 DB connections)
+        print("Loading stats cache for enriched WP...")
+        _stats = StatsCache()
+        wp_enriched_config = {
+            'input_dim': wp_input_dim,
+            'hidden_dims': [256, 128],
+            'dropout': 0.3,
+            'groups': WP_ENRICHED_GROUPS,
+            '_stats_hero_wr': _stats.hero_wr,
+            '_stats_hero_map_wr': _stats.hero_map_wr,
+            '_stats_pairwise': _stats.pairwise,
+        }
+        print(f"Loaded enriched WP model: {wp_input_dim} dims, groups={WP_ENRICHED_GROUPS}")
+    else:
+        from train_win_probability import WinProbModel
+        wp_path = os.path.join(os.path.dirname(__file__), "win_probability.pt")
+        wp_model = WinProbModel().to(device)
+        wp_model.load_state_dict(torch.load(wp_path, weights_only=True, map_location=device))
+        wp_model.eval()
+        print("Loaded base WP model (197 dims)")
+
+    _, gd_models = load_pretrained_models(device)
 
     # Initialize network — resume from checkpoint if available
     network = AlphaZeroDraftNet().to(device)
@@ -678,7 +773,7 @@ def train():
         worker_args = [
             (net_sd, wp_sd, gd_sds,
              random.choice(MAPS), random.choice(SKILL_TIERS),
-             MCTS_SIMULATIONS)
+             MCTS_SIMULATIONS, wp_enriched_config)
             for _ in range(batch_size)
         ]
 
@@ -744,7 +839,7 @@ def train():
             eval_args = [
                 (net_sd_eval, wp_sd, gd_sds,
                  random.choice(MAPS), random.choice(SKILL_TIERS),
-                 MCTS_SIMULATIONS // 2)
+                 MCTS_SIMULATIONS // 2, wp_enriched_config)
                 for _ in range(EVAL_DRAFTS)
             ]
             with mp.Pool(NUM_WORKERS) as pool:

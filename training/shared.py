@@ -41,6 +41,66 @@ TIER_TO_IDX = {t: i for i, t in enumerate(SKILL_TIERS)}
 NUM_TIERS = len(SKILL_TIERS)
 
 
+# Fine-grained role mapping for enriched WP model features.
+# 8 categories: tank, bruiser, healer, ranged_aa, ranged_mage, melee_assassin, support_utility, varian
+# Ranged Assassin split: AA-based (auto-attack primary) vs mage (ability-based)
+HERO_ROLE_FINE = {
+    # Tanks
+    "Anub'arak": "tank", "Arthas": "tank", "Blaze": "tank", "Cho": "tank",
+    "Diablo": "tank", "E.T.C.": "tank", "Garrosh": "tank", "Johanna": "tank",
+    "Mal'Ganis": "tank", "Mei": "tank", "Muradin": "tank", "Stitches": "tank",
+    "Tyrael": "tank",
+    # Bruisers
+    "Artanis": "bruiser", "Chen": "bruiser", "Deathwing": "bruiser",
+    "Dehaka": "bruiser", "D.Va": "bruiser", "Gazlowe": "bruiser",
+    "Hogger": "bruiser", "Imperius": "bruiser", "Leoric": "bruiser",
+    "Malthael": "bruiser", "Ragnaros": "bruiser", "Rexxar": "bruiser",
+    "Sonya": "bruiser", "Thrall": "bruiser", "Xul": "bruiser", "Yrel": "bruiser",
+    # Healers
+    "Alexstrasza": "healer", "Ana": "healer", "Anduin": "healer",
+    "Auriel": "healer", "Brightwing": "healer", "Deckard": "healer",
+    "Kharazim": "healer", "Li Li": "healer", "Lt. Morales": "healer",
+    "Lúcio": "healer", "Malfurion": "healer", "Rehgar": "healer",
+    "Stukov": "healer", "Tyrande": "healer", "Uther": "healer",
+    "Whitemane": "healer",
+    # Ranged Assassins — AA-based (primary damage from auto-attacks)
+    "Cassia": "ranged_aa", "Falstad": "ranged_aa", "Fenix": "ranged_aa",
+    "Greymane": "ranged_aa", "Hanzo": "ranged_aa", "Lunara": "ranged_aa",
+    "Raynor": "ranged_aa", "Sgt. Hammer": "ranged_aa", "Sylvanas": "ranged_aa",
+    "Tracer": "ranged_aa", "Tychus": "ranged_aa", "Valla": "ranged_aa",
+    "Zul'jin": "ranged_aa",
+    # Ranged Assassins — Mage (primary damage from abilities)
+    "Chromie": "ranged_mage", "Gall": "ranged_mage",
+    "Genji": "ranged_mage", "Gul'dan": "ranged_mage", "Jaina": "ranged_mage",
+    "Junkrat": "ranged_mage", "Kael'thas": "ranged_mage",
+    "Kel'Thuzad": "ranged_mage", "Li-Ming": "ranged_mage",
+    "Mephisto": "ranged_mage", "Nova": "ranged_mage",
+    "Orphea": "ranged_mage", "Probius": "ranged_mage",
+    "Tassadar": "ranged_mage",
+    # Pushers / Specialists (macro-focused heroes)
+    "Azmodan": "pusher", "Nazeebo": "pusher", "Zagara": "pusher",
+    "Murky": "pusher", "The Lost Vikings": "pusher",
+    # Melee Assassins
+    "Alarak": "melee_assassin", "Illidan": "melee_assassin",
+    "Kerrigan": "melee_assassin", "Maiev": "melee_assassin",
+    "Qhira": "melee_assassin",
+    "Samuro": "melee_assassin", "The Butcher": "melee_assassin",
+    "Valeera": "melee_assassin", "Zeratul": "melee_assassin",
+    # Support / Utility
+    "Abathur": "support_utility", "Medivh": "support_utility",
+    "Zarya": "support_utility",
+    # Varian — own category (can be tank, bruiser, or assassin)
+    "Varian": "varian",
+}
+
+FINE_ROLE_NAMES = ["tank", "bruiser", "healer", "ranged_aa", "ranged_mage",
+                   "melee_assassin", "support_utility", "varian", "pusher"]
+FINE_ROLE_TO_IDX = {r: i for i, r in enumerate(FINE_ROLE_NAMES)}
+
+# Two-lane maps
+TWO_LANE_MAPS = {"Battlefield of Eternity", "Braxis Holdout", "Hanamura Temple"}
+
+
 def heroes_to_multi_hot(hero_names: list[str]) -> np.ndarray:
     """Convert a list of hero names to a multi-hot vector of length NUM_HEROES."""
     vec = np.zeros(NUM_HEROES, dtype=np.float32)
