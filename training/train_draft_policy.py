@@ -861,8 +861,17 @@ def train():
 
             if avg_wp > best_eval_wp:
                 best_eval_wp = avg_wp
+                # Save model weights (for inference/export)
                 torch.save(network.state_dict(), os.path.join(save_dir, "draft_policy.pt"))
-                print(f"  New best! Saved draft_policy.pt")
+                # Save full checkpoint (for resuming training)
+                torch.save({
+                    'model_state_dict': network.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'scheduler_state_dict': scheduler.state_dict(),
+                    'episode': episode,
+                    'best_eval_wp': best_eval_wp,
+                }, os.path.join(save_dir, "draft_policy_checkpoint.pt"))
+                print(f"  New best! Saved draft_policy.pt + checkpoint")
             print()
 
     # Export to ONNX
