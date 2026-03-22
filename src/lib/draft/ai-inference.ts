@@ -548,9 +548,10 @@ const NUM_FINE_ROLES = 9
 /**
  * Compute enriched features for the WP model.
  * Requires DraftData for hero stats and pairwise data.
- * Returns 76 enriched features matching the training groups:
+ * Returns 82 enriched features matching the training groups:
  *   role_counts(18) + team_avg_wr(2) + map_delta(2) +
- *   pairwise_counters(2) + pairwise_synergies(2) + counter_detail(50)
+ *   pairwise_counters(2) + pairwise_synergies(2) + counter_detail(50) +
+ *   meta_strength(4) + draft_diversity(2)
  */
 function computeEnrichedFeatures(
   t0Heroes: string[],
@@ -558,7 +559,7 @@ function computeEnrichedFeatures(
   map: string,
   draftData: DraftData,
 ): Float32Array {
-  const features = new Float32Array(76)
+  const features = new Float32Array(82)
   let off = 0
 
   // Helper: get hero WR, prefer map-specific
@@ -658,6 +659,25 @@ function computeEnrichedFeatures(
   // Pad to 50 total
   while (off < 18 + 2 + 2 + 2 + 2 + 50) off++
 
+  // 7. meta_strength (4) — avg pick_rate and ban_rate per team
+  const t0pr = t0Heroes.reduce((s, h) => s + (draftData.heroStats[h]?.pickRate ?? 0), 0) / Math.max(t0Heroes.length, 1)
+  const t0br = t0Heroes.reduce((s, h) => s + (draftData.heroStats[h]?.banRate ?? 0), 0) / Math.max(t0Heroes.length, 1)
+  const t1pr = t1Heroes.reduce((s, h) => s + (draftData.heroStats[h]?.pickRate ?? 0), 0) / Math.max(t1Heroes.length, 1)
+  const t1br = t1Heroes.reduce((s, h) => s + (draftData.heroStats[h]?.banRate ?? 0), 0) / Math.max(t1Heroes.length, 1)
+  features[off++] = t0pr
+  features[off++] = t0br
+  features[off++] = t1pr
+  features[off++] = t1br
+
+  // 8. draft_diversity (2) — std dev of hero WRs per team
+  const stdDev = (vals: number[]) => {
+    if (vals.length < 2) return 0
+    const mean = vals.reduce((a, b) => a + b, 0) / vals.length
+    return Math.sqrt(vals.reduce((s, v) => s + (v - mean) ** 2, 0) / vals.length)
+  }
+  features[off++] = stdDev(t0wrs)
+  features[off++] = stdDev(t1wrs)
+
   return features
 }
 
@@ -693,16 +713,16 @@ export async function getWinProbability(
   let input: Float32Array
   if (draftData) {
     const enriched = computeEnrichedFeatures(team0Heroes, team1Heroes, map, draftData)
-    input = new Float32Array(273)
+    input = new Float32Array(279)
     input.set(base, 0)
     input.set(enriched, 197)
   } else {
     // Fallback: pad with zeros (enriched model still works, just less accurate)
-    input = new Float32Array(273)
+    input = new Float32Array(279)
     input.set(base, 0)
   }
 
-  const tensor = new ort.Tensor('float32', input, [1, 273])
+  const tensor = new ort.Tensor('float32', input, [1, 279])
   const result = await wpSession.run({ input: tensor })
   return (result.win_probability.data as Float32Array)[0]
 }

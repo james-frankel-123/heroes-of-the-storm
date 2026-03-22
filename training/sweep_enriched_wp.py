@@ -33,6 +33,7 @@ from shared import (
     load_replay_data, split_data,
     HERO_ROLE_FINE, FINE_ROLE_NAMES, FINE_ROLE_TO_IDX, TWO_LANE_MAPS,
 )
+from hero_capabilities import HERO_CAPABILITIES, CAPABILITY_DIMS
 
 INPUT_DIM_BASE = NUM_HEROES * 2 + NUM_MAPS + NUM_TIERS  # 197
 
@@ -40,7 +41,7 @@ INPUT_DIM_BASE = NUM_HEROES * 2 + NUM_MAPS + NUM_TIERS  # 197
 
 FEATURE_GROUPS = [
     "map_type",          # 1 feature
-    "role_counts",       # 16 features (8 per team)
+    "role_counts",       # 18 features (9 per team)
     "hero_wr",           # 10 features
     "team_avg_wr",       # 2 features
     "hero_map_wr",       # 10 features
@@ -49,7 +50,12 @@ FEATURE_GROUPS = [
     "pairwise_synergies",# 2 features
     "counter_detail",    # 50 features
     "synergy_detail",    # 20 features
+    "capabilities",      # 32 features (16 dims × 2 teams)
+    "meta_strength",     # 4 features (avg pick_rate + avg ban_rate per team)
+    "draft_diversity",   # 2 features (std dev of hero WRs within each team)
 ]
+
+NUM_CAPABILITY_DIMS = len(CAPABILITY_DIMS)
 
 FEATURE_GROUP_DIMS = {
     "map_type": 1,
@@ -62,6 +68,9 @@ FEATURE_GROUP_DIMS = {
     "pairwise_synergies": 2,
     "counter_detail": 50,
     "synergy_detail": 20,
+    "capabilities": NUM_CAPABILITY_DIMS * 2,  # per team
+    "meta_strength": 4,   # avg pick_rate + avg ban_rate per team
+    "draft_diversity": 2, # std dev of hero WRs per team
 }
 
 # ── Stats cache ──
@@ -83,9 +92,12 @@ class StatsCache:
 
         # Hero WR by tier: {tier: {hero: wr}}
         self.hero_wr = {}
-        cur.execute("SELECT hero, win_rate, games, skill_tier FROM hero_stats_aggregate")
-        for hero, wr, games, tier in cur.fetchall():
+        # Hero pick/ban rates: {tier: {hero: (pick_rate, ban_rate)}}
+        self.hero_meta = {}
+        cur.execute("SELECT hero, win_rate, pick_rate, ban_rate, games, skill_tier FROM hero_stats_aggregate")
+        for hero, wr, pr, br, games, tier in cur.fetchall():
             self.hero_wr.setdefault(tier, {})[hero] = wr
+            self.hero_meta.setdefault(tier, {})[hero] = (pr or 0, br or 0)
 
         # Hero-map WR: {tier: {map: {hero: (wr, games)}}}
         self.hero_map_wr = {}
@@ -241,6 +253,42 @@ def extract_features(d, stats, groups_mask):
             while len(detail) < 20: detail.append(0.0)
             enriched_parts.append(np.array(detail[:20], dtype=np.float32))
 
+        elif group == "capabilities":
+            # Sum each capability dimension per team
+            t0_caps = np.zeros(NUM_CAPABILITY_DIMS, dtype=np.float32)
+            t1_caps = np.zeros(NUM_CAPABILITY_DIMS, dtype=np.float32)
+            for h in t0_heroes:
+                caps = HERO_CAPABILITIES.get(h, {})
+                for ci, dim in enumerate(CAPABILITY_DIMS):
+                    t0_caps[ci] += caps.get(dim, 0)
+            for h in t1_heroes:
+                caps = HERO_CAPABILITIES.get(h, {})
+                for ci, dim in enumerate(CAPABILITY_DIMS):
+                    t1_caps[ci] += caps.get(dim, 0)
+            enriched_parts.append(np.concatenate([t0_caps, t1_caps]))
+
+        elif group == "meta_strength":
+            # Avg pick_rate and ban_rate per team — how meta is this composition?
+            t0_pr, t0_br, t1_pr, t1_br = 0.0, 0.0, 0.0, 0.0
+            tier_meta = stats.hero_meta.get(tier, {})
+            for h in t0_heroes:
+                pr, br = tier_meta.get(h, (0, 0))
+                t0_pr += pr; t0_br += br
+            for h in t1_heroes:
+                pr, br = tier_meta.get(h, (0, 0))
+                t1_pr += pr; t1_br += br
+            n0 = max(len(t0_heroes), 1)
+            n1 = max(len(t1_heroes), 1)
+            enriched_parts.append(np.array([t0_pr/n0, t0_br/n0, t1_pr/n1, t1_br/n1], dtype=np.float32))
+
+        elif group == "draft_diversity":
+            # Std dev of hero WRs per team — diverse WR spread = risky draft
+            t0_wr_list = [stats.get_hero_wr(h, tier) for h in t0_heroes]
+            t1_wr_list = [stats.get_hero_wr(h, tier) for h in t1_heroes]
+            t0_std = float(np.std(t0_wr_list)) if len(t0_wr_list) > 1 else 0.0
+            t1_std = float(np.std(t1_wr_list)) if len(t1_wr_list) > 1 else 0.0
+            enriched_parts.append(np.array([t0_std, t1_std], dtype=np.float32))
+
     if enriched_parts:
         enriched = np.concatenate(enriched_parts)
     else:
@@ -347,6 +395,17 @@ def _swap_features(base, enriched):
             # Swap first 10 ↔ last 10
             enriched_swap[offset:offset+10], enriched_swap[offset+10:offset+20] = \
                 enriched[offset+10:offset+20].copy(), enriched[offset:offset+10].copy()
+        elif group == "capabilities":
+            # Swap n_caps + n_caps
+            nc = NUM_CAPABILITY_DIMS
+            enriched_swap[offset:offset+nc], enriched_swap[offset+nc:offset+2*nc] = \
+                enriched[offset+nc:offset+2*nc].copy(), enriched[offset:offset+nc].copy()
+        elif group == "meta_strength":
+            # Swap (pr0, br0, pr1, br1) → (pr1, br1, pr0, br0)
+            enriched_swap[offset:offset+2], enriched_swap[offset+2:offset+4] = \
+                enriched[offset+2:offset+4].copy(), enriched[offset:offset+2].copy()
+        elif group == "draft_diversity":
+            enriched_swap[offset], enriched_swap[offset+1] = enriched[offset+1], enriched[offset]
         offset += dim
 
     return base_swap, enriched_swap
