@@ -46,3 +46,4 @@ training/*.pt
 training/*.onnx
 training/*.onnx.data
 wandb/
+training/.replay_cache.json

@@ -53,6 +53,7 @@ FEATURE_GROUPS = [
     "capabilities",      # 32 features (16 dims × 2 teams)
     "meta_strength",     # 4 features (avg pick_rate + avg ban_rate per team)
     "draft_diversity",   # 2 features (std dev of hero WRs within each team)
+    "avg_mmr",           # 1 feature (normalized match MMR)
 ]
 
 NUM_CAPABILITY_DIMS = len(CAPABILITY_DIMS)
@@ -71,6 +72,7 @@ FEATURE_GROUP_DIMS = {
     "capabilities": NUM_CAPABILITY_DIMS * 2,  # per team
     "meta_strength": 4,   # avg pick_rate + avg ban_rate per team
     "draft_diversity": 2, # std dev of hero WRs per team
+    "avg_mmr": 1,         # normalized match MMR
 }
 
 # ── Stats cache ──
@@ -289,6 +291,12 @@ def extract_features(d, stats, groups_mask):
             t1_std = float(np.std(t1_wr_list)) if len(t1_wr_list) > 1 else 0.0
             enriched_parts.append(np.array([t0_std, t1_std], dtype=np.float32))
 
+        elif group == "avg_mmr":
+            # Normalized match MMR: (avg_mmr - 2000) / 1000
+            raw_mmr = d.get("avg_mmr") or 2600  # default to median if missing
+            normalized = (float(raw_mmr) - 2000.0) / 1000.0
+            enriched_parts.append(np.array([normalized], dtype=np.float32))
+
     if enriched_parts:
         enriched = np.concatenate(enriched_parts)
     else:
@@ -406,6 +414,8 @@ def _swap_features(base, enriched):
                 enriched[offset+2:offset+4].copy(), enriched[offset:offset+2].copy()
         elif group == "draft_diversity":
             enriched_swap[offset], enriched_swap[offset+1] = enriched[offset+1], enriched[offset]
+        elif group == "avg_mmr":
+            pass  # symmetric — same value for both teams
         offset += dim
 
     return base_swap, enriched_swap

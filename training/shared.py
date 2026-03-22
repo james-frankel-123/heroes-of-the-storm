@@ -129,8 +129,23 @@ def tier_to_one_hot(tier: str) -> np.ndarray:
     return vec
 
 
-def load_replay_data(limit: int | None = None) -> list[dict]:
-    """Load replay draft data from Postgres."""
+_REPLAY_CACHE_PATH = os.path.join(os.path.dirname(__file__), ".replay_cache.json")
+
+
+def load_replay_data(limit: int | None = None, force_refresh: bool = False) -> list[dict]:
+    """Load replay draft data. Uses local file cache to avoid repeated DB hits.
+    Call with force_refresh=True to update the cache from DB."""
+
+    # Try local cache first
+    if not force_refresh and os.path.exists(_REPLAY_CACHE_PATH) and not limit:
+        import time
+        cache_age = time.time() - os.path.getmtime(_REPLAY_CACHE_PATH)
+        if cache_age < 86400:  # cache valid for 24h
+            with open(_REPLAY_CACHE_PATH) as f:
+                rows = json.load(f)
+            print(f"Loaded {len(rows)} replays from local cache ({cache_age/3600:.1f}h old)")
+            return rows
+
     try:
         import psycopg2
     except ImportError:
@@ -145,7 +160,8 @@ def load_replay_data(limit: int | None = None) -> list[dict]:
 
     query = """
         SELECT replay_id, game_map, skill_tier, draft_order,
-               team0_heroes, team1_heroes, team0_bans, team1_bans, winner
+               team0_heroes, team1_heroes, team0_bans, team1_bans, winner,
+               avg_mmr, league_tier
         FROM replay_draft_data
         ORDER BY replay_id
     """
@@ -165,6 +181,13 @@ def load_replay_data(limit: int | None = None) -> list[dict]:
 
     cur.close()
     conn.close()
+
+    # Cache locally (skip if limit was used)
+    if not limit:
+        with open(_REPLAY_CACHE_PATH, 'w') as f:
+            json.dump(rows, f)
+        print(f"Cached {len(rows)} replays to {_REPLAY_CACHE_PATH}")
+
     return rows
 
 
