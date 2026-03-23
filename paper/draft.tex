@@ -119,7 +119,7 @@ Our enriched features function as pessimistic value correction analogous to CQL~
 
 \section{Related Work}
 
-Chen et al.~\cite{chen2018drafting} proposed MCTS-based drafting for Dota~2 using a win predictor as the value function but did not examine how value function features affect policy quality---the gap our work addresses. Houk and Chaslot~\cite{houk2019monte} studied Monte Carlo draft recommendation for HotS. Summerville et al.~\cite{summerville2016draft} modeled professional pick sequences as behavioral cloning. The sensitivity of planning to value function design has been studied in game-playing~\cite{silver2016mastering} and robotics~\cite{kalashnikov2018qtopt}; we provide a controlled example where near-identical accuracy yields 90\%+ decision disagreement.
+Chen et al.~\cite{chen2018drafting} proposed MCTS-based drafting for Dota~2 using a win predictor as the value function but did not examine how value function features affect policy quality---the gap our work addresses. Gourdeau and Archambault~\cite{gourdeau2021discriminative} trained discriminative neural networks for hero selection in professional HotS and Dota~2. Summerville et al.~\cite{summerville2016draft} modeled professional HotS pick sequences as behavioral cloning. The sensitivity of planning to value function design has been studied in game-playing~\cite{silver2016mastering} and robotics~\cite{kalashnikov2018qtopt}; we provide a controlled example where near-identical accuracy yields 90\%+ decision disagreement.
 
 \section{Conclusion}
 
@@ -138,11 +138,11 @@ S.~Levine, A.~Kumar, G.~Tucker, and J.~Fu, ``Offline Reinforcement Learning: Tut
 \bibitem{chen2018drafting}
 Z.~Chen, Y.~Sun, M.~Seif El-Nasr, and T.-H.~D.~Nguyen, ``The Art of Drafting: A Team-Oriented Hero Recommendation System for Multiplayer Online Battle Arena Games,'' in \textit{Proc. ACM Conf. Recommender Systems (RecSys)}, 2018.
 
-\bibitem{houk2019monte}
-S.~Houk and G.~Chaslot, ``Monte Carlo Draft Recommendation for Heroes of the Storm,'' \textit{IEEE Trans. Games}, vol.~12, no.~1, pp.~105--112, 2019.
+\bibitem{gourdeau2021discriminative}
+D.~Gourdeau and L.~Archambault, ``Discriminative Neural Network for Hero Selection in Professional Heroes of the Storm and DOTA 2,'' \textit{IEEE Trans. Games}, vol.~13, no.~4, pp.~380--387, 2021.
 
 \bibitem{lee2022draftrec}
-D.~Lee, M.~Kim, K.~Jung, and G.~Kim, ``DraftRec: Personalized Draft Recommendation for Winning in Multi-Player Online Battle Arena Games,'' in \textit{Proc. ACM Web Conf. (WWW)}, 2022.
+H.~Lee, D.~Hwang, H.~Kim, B.~Lee, and J.~Choo, ``DraftRec: Personalized Draft Recommendation for Winning in Multi-Player Online Battle Arena Games,'' in \textit{Proc. ACM Web Conf. (WWW)}, 2022.
 
 \bibitem{summerville2016draft}
 A.~Summerville, M.~Cook, and B.~Steenhuisen, ``Draft Prediction for Heroes of the Storm,'' \textit{arXiv preprint arXiv:1601.07803}, 2016.
