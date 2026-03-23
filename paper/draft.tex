@@ -119,7 +119,9 @@ Our enriched features function as pessimistic value correction analogous to CQL~
 
 \section{Related Work}
 
-Chen et al.~\cite{chen2018drafting} proposed MCTS-based drafting for Dota~2 using a win predictor as the value function but did not examine how value function features affect policy quality---the gap our work addresses. Gourdeau and Archambault~\cite{gourdeau2021discriminative} trained discriminative neural networks for hero selection in professional HotS and Dota~2. Summerville et al.~\cite{summerville2016draft} modeled professional HotS pick sequences as behavioral cloning. The sensitivity of planning to value function design has been studied in game-playing~\cite{silver2016mastering} and robotics~\cite{kalashnikov2018qtopt}; we provide a controlled example where near-identical accuracy yields 90\%+ decision disagreement. To test generalizability, we reproduced a siamese multi-hot architecture from an independent HotS drafting system~\cite{hairyblob2020drafter} on our dataset (55.3\% accuracy, 13/21 sanity tests). This baseline scored 5-tank compositions at 52.8\% WP---rating them as \textit{favored}---vs.\ our naive model's 44.6\% and the enriched model's 17.2\%, confirming that OOD overestimation is a property of the feature representation, not the specific architecture.
+To verify that OOD overestimation is not specific to our implementation, we trained a multi-hot feedforward baseline matching the feature representation used in prior HotS drafting systems~\cite{gourdeau2021discriminative,summerville2016draft}: shared-weight team encoders with multiplicative map conditioning, using only hero identity inputs.\footnote{Architecture based on an open-source HotS drafter: \url{https://github.com/HairyBlob/HotS-Drafter}} This baseline (55.3\% accuracy, comparable to but slightly below our naive model due to a shallower classification head; 13/21 sanity tests) scored 5-tank compositions at 52.8\% WP---rating them as \textit{favored}---compared to our naive model's 44.6\% and the enriched model's 17.2\%. The pathology is a property of the multi-hot feature representation, not our specific model.
+
+Chen et al.~\cite{chen2018drafting} proposed MCTS-based drafting for Dota~2 using a win predictor as the value function but did not examine how value function features affect policy quality---the gap our work addresses. Gourdeau and Archambault~\cite{gourdeau2021discriminative} trained discriminative neural networks for hero selection in professional HotS and Dota~2. Summerville et al.~\cite{summerville2016draft} modeled professional HotS pick sequences as behavioral cloning. The sensitivity of planning to value function design has been studied in game-playing~\cite{silver2016mastering} and robotics~\cite{kalashnikov2018qtopt}; we provide a controlled example where near-identical accuracy yields 90\%+ decision disagreement.
 
 \section{Conclusion}
 
@@ -127,7 +129,7 @@ Aggregate accuracy is a misleading proxy for value function quality. Models span
 
 \textit{Limitations.} Our experiments use a single game domain, depth-1 greedy search, and a fixed opponent model; the magnitude of the accuracy--policy gap may differ under deeper search or in other combinatorial domains.
 
-\begin{thebibliography}{10}
+\begin{thebibliography}{9}
 
 \bibitem{kumar2020conservative}
 A.~Kumar, A.~Zhou, G.~Tucker, and S.~Levine, ``Conservative Q-Learning for Offline Reinforcement Learning,'' in \textit{Advances in Neural Information Processing Systems}, vol.~33, pp.~1179--1191, 2020.
@@ -155,9 +157,6 @@ D.~Silver \textit{et al.}, ``Mastering the Game of Go with Deep Neural Networks 
 
 \bibitem{kalashnikov2018qtopt}
 D.~Kalashnikov \textit{et al.}, ``Scalable Deep Reinforcement Learning for Vision-Based Robotic Manipulation,'' in \textit{Conf. Robot Learning}, pp.~651--673, 2018.
-
-\bibitem{hairyblob2020drafter}
-HairyBlob, ``HotS-Drafter: A TensorFlow-based Win Rate Estimator for Heroes of the Storm,'' GitHub repository, 2020. [Online]. Available: \url{https://github.com/HairyBlob/HotS-Drafter}
 
 \end{thebibliography}
 
