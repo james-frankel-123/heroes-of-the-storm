@@ -97,6 +97,24 @@ def build_ablations():
     # 20. Kitchen sink: everything
     configs.append(("everything", list(FEATURE_GROUPS)))
 
+    # 21. comp_wr alone
+    configs.append(("comp_wr_only", ['comp_wr']))
+
+    # 22. Current best + comp_wr
+    configs.append(("best+comp_wr", CURRENT_BEST + ['comp_wr']))
+
+    # 23. role_counts + comp_wr (composition pair)
+    configs.append(("roles+comp_wr", ['role_counts', 'comp_wr']))
+
+    # 24. comp_wr + pairwise (comp + interactions)
+    configs.append(("comp_wr+pw", ['comp_wr', 'pairwise_counters', 'pairwise_synergies', 'counter_detail']))
+
+    # 25. comp_wr + role_counts + pairwise (full comp-aware)
+    configs.append(("comp_wr+roles+pw", ['comp_wr', 'role_counts', 'pairwise_counters', 'pairwise_synergies', 'counter_detail']))
+
+    # 26. comp_wr replacing role_counts in current best
+    configs.append(("best_swap_roles_for_comp", [g for g in CURRENT_BEST if g != 'role_counts'] + ['comp_wr']))
+
     return configs
 
 

@@ -627,6 +627,8 @@ def _run_episode(args):
         stats_cache.hero_wr = wp_enriched_config['_stats_hero_wr']
         stats_cache.hero_map_wr = wp_enriched_config['_stats_hero_map_wr']
         stats_cache.pairwise = wp_enriched_config['_stats_pairwise']
+        stats_cache.hero_meta = wp_enriched_config.get('_stats_hero_meta', {})
+        stats_cache.comp_data = wp_enriched_config.get('_stats_comp_data', {})
         wp_enriched_groups = wp_enriched_config['groups']
         wp_group_indices = compute_group_indices()
     else:
@@ -666,7 +668,8 @@ def train():
 
     # Load enriched WP model if available, otherwise fall back to base
     WP_ENRICHED_GROUPS = ['role_counts', 'team_avg_wr', 'map_delta',
-                          'pairwise_counters', 'pairwise_synergies', 'counter_detail']
+                          'pairwise_counters', 'pairwise_synergies', 'counter_detail',
+                          'meta_strength', 'draft_diversity', 'comp_wr']
     wp_enriched_path = os.path.join(os.path.dirname(__file__), "wp_enriched_winner.pt")
     wp_enriched_config = None
 
@@ -688,6 +691,8 @@ def train():
             '_stats_hero_wr': _stats.hero_wr,
             '_stats_hero_map_wr': _stats.hero_map_wr,
             '_stats_pairwise': _stats.pairwise,
+            '_stats_hero_meta': _stats.hero_meta,
+            '_stats_comp_data': _stats.comp_data,
         }
         print(f"Loaded enriched WP model: {wp_input_dim} dims, groups={WP_ENRICHED_GROUPS}")
     else:

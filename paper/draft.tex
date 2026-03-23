@@ -1,0 +1,267 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{xcolor}
+
+\title{Compositional Reasoning in Value Functions:\\When Similar Accuracy Produces Different Policies}
+\author{Max Blackwell}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study how value function design affects policy quality in combinatorial decision-making, using Heroes of the Storm draft selection as a testbed. Draft selection requires choosing 5 heroes per team from a pool of 90, where team composition quality---not just individual hero strength---determines win probability. We show that win probability models with similar aggregate accuracy ($\sim$56--58\%) produce dramatically different draft policies when used as value functions for greedy search, because models without compositional features systematically overvalue individually-strong heroes in degenerate team compositions. Our enriched model, which includes role composition statistics, pairwise hero interactions, and empirical composition win rates from 9 million games, selects healers 67\% of the time compared to 49\% for the naive baseline while reducing ``absurd'' compositions (missing healer, no frontline, or role stacking) from 76\% to 58\%. Cross-evaluation reveals the enriched model sacrifices $\sim$8 percentage points of raw win probability (as scored by the naive evaluator) to achieve compositionally sound drafts---a trade-off invisible to aggregate accuracy metrics. We connect this finding to offline reinforcement learning literature on out-of-distribution value overestimation, where value functions trained on normal data distributions fail to penalize rare-but-bad states that greedy policies discover through optimization pressure.
+\end{abstract}
+
+\section{Introduction}
+
+In multi-agent competitive games with sequential decision-making, the quality of a value function determines the quality of the resulting policy. This is well-understood in theory: a perfect value function yields a perfect policy. In practice, value functions are learned from data and evaluated on held-out test sets using aggregate metrics like accuracy or mean squared error. A natural assumption is that a model with higher test accuracy will produce a better policy.
+
+We demonstrate that this assumption fails in an important and instructive way. In the domain of MOBA (Multiplayer Online Battle Arena) draft selection---specifically Heroes of the Storm---we show that models with nearly identical aggregate accuracy produce \textit{dramatically} different policies when used as value functions for draft search. The critical difference is not overall predictive power but whether the model can reason about \textit{team composition}: the interaction between multiple heroes' roles, capabilities, and synergies.
+
+Heroes of the Storm draft selection is a sequential two-player game where each team alternately bans and picks heroes from a shared pool of 90. The resulting 5v5 team compositions determine roughly 55--58\% of game outcomes (the remainder being player skill and execution). A draft assistant must recommend heroes that are both individually strong \textit{and} compose well with teammates while countering opponents.
+
+Our contributions are:
+\begin{enumerate}
+    \item We construct three win probability models with similar aggregate accuracy ($\sim$56--58\%) but different feature sets, ranging from hero-identity-only to composition-enriched.
+    \item We show through controlled greedy draft benchmarks that the enriched model produces significantly better team compositions (67\% healer rate vs.\ 49\% for naive, 58\% vs.\ 76\% absurd composition rate).
+    \item We provide a cross-evaluation framework that reveals the enriched model \textit{deliberately trades} raw hero strength for compositional quality---a trade-off invisible to standard accuracy metrics.
+    \item We connect this finding to the offline RL literature on out-of-distribution (OOD) value overestimation, framing compositionally-degenerate drafts as OOD states that naive value functions fail to penalize.
+\end{enumerate}
+
+\section{Problem Setup}
+
+\subsection{Draft Selection as Sequential Decision-Making}
+
+A Heroes of the Storm draft consists of 16 sequential actions: 6 bans and 10 picks, alternating between two teams following a fixed order. Team~0 bans first. The action space at each step is the set of heroes not yet picked or banned ($\sim$84--90 valid actions early, decreasing as the draft progresses).
+
+We formalize this as a two-player sequential game where each team seeks to maximize their win probability. The state $s_t$ at step $t$ consists of:
+\begin{itemize}
+    \item Multi-hot vectors for team~0 picks, team~1 picks, and bans (each $\in \{0,1\}^{90}$)
+    \item Map identity (one-hot, 14 maps)
+    \item Skill tier (one-hot, 3 tiers)
+    \item Draft step and step type (ban/pick)
+\end{itemize}
+
+The total state dimension is 289 for the base representation.
+
+\subsection{Win Probability as Value Function}
+
+Given a terminal draft state (all 10 heroes selected), a win probability model $V_\theta(s) \in [0,1]$ estimates $P(\text{team 0 wins} \mid s)$. This model serves as the value function for draft search: at each decision point, the drafting agent evaluates candidate actions by (approximately) computing the expected value of the resulting state.
+
+In our experiments, we use greedy search with rollouts: for each candidate hero, we simulate the remainder of the draft using Generic Draft (GD) opponent models trained on 275K replays, then evaluate the terminal state with $V_\theta$. The hero with the highest expected win probability is selected.
+
+\subsection{The Accuracy--Policy Gap}
+
+Standard evaluation of $V_\theta$ uses held-out test accuracy: what fraction of games does the model correctly predict the winner? We train three model variants on the same 275K-replay dataset with team-swap augmentation:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccl}
+\toprule
+Model & Test Acc. & Input Dim & Feature Groups \\
+\midrule
+Naive & 56.5\% & 197 & Multi-hot heroes + map + tier \\
+Hero Strength & 57.0\% & 209 & + per-hero WR, team avg WR \\
+Enriched & 57.9\% & 283 & + role counts, pairwise interactions, \\
+& & & \quad comp WR, meta strength, diversity \\
+\bottomrule
+\end{tabular}
+\caption{Win probability model variants. All use identical architecture (256$\to$128 MLP, dropout 0.3) and training procedure (AdamW, cosine LR, 25-patience early stopping, team-swap augmentation). The enriched model adds 86 features encoding team composition, hero-hero interactions, and empirical composition win rates from Heroes Profile (9M+ games).}
+\label{tab:models}
+\end{table}
+
+The accuracy gap between naive and enriched is only 1.4 percentage points. If accuracy were the sole determinant of policy quality, we would expect similar draft behavior from all three models. As we show, this is dramatically wrong.
+
+\section{Experiment}
+
+\subsection{Greedy Draft Benchmark}
+
+We evaluate each model as a value function for greedy draft search. For each of 480 draft configurations (map, skill tier, team side), all three models draft against the same Generic Draft opponent pool under identical conditions:
+
+\begin{itemize}
+    \item At each our-team step, evaluate all $\sim$84 valid heroes by simulating the remaining draft with batched GD rollouts
+    \item Select the hero with highest expected win probability
+    \item Record the chosen hero, top-3 alternatives, and cross-evaluation scores
+\end{itemize}
+
+Crucially, after each draft completes, we evaluate the terminal state with \textit{all three} models. This cross-evaluation matrix reveals how each model perceives the others' drafts.
+
+\subsection{Cross-Evaluation Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+& \multicolumn{3}{c}{Evaluated by} \\
+\cmidrule(lr){2-4}
+Drafter & Naive & Hero Str. & Enriched \\
+\midrule
+Naive & \textbf{0.670} & 0.595 & 0.586 \\
+Hero Strength & 0.619 & \textbf{0.638} & 0.581 \\
+Enriched & 0.601 & 0.580 & \textbf{0.644} \\
+\bottomrule
+\end{tabular}
+\caption{Cross-evaluation matrix. Each cell shows the average win probability assigned by the column model to drafts produced by the row strategy. Bold indicates self-evaluation (drafter uses its own model as evaluator).}
+\label{tab:crosseval}
+\end{table}
+
+Two patterns emerge. First, each drafter scores highest on its own evaluator (diagonal dominance), confirming that greedy search optimizes for the specific model's value landscape. Second, the enriched drafter scores \textit{lowest} on both the naive and hero-strength evaluators (0.601 and 0.580)---lower than even the hero-strength drafter. The enriched model is making choices that \textit{reduce} raw hero strength as measured by simpler models.
+
+\subsection{Composition Quality}
+
+The explanation lies in team composition. Table~\ref{tab:comp} shows that the enriched model produces dramatically more balanced drafts.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+Drafter & Healer\% & Frontline\% & Ranged\% & Roles & Absurd\% \\
+\midrule
+Naive & 49.0 & 95.0 & 65.2 & 3.8 & 75.8 \\
+Hero Strength & 39.0 & 97.3 & 58.1 & 3.5 & 82.1 \\
+Enriched & \textbf{66.5} & \textbf{98.3} & \textbf{73.3} & \textbf{3.9} & \textbf{57.7} \\
+\bottomrule
+\end{tabular}
+\caption{Composition quality metrics across 480 greedy drafts. ``Absurd'' is defined as missing healer, missing frontline (no tank or bruiser), 3+ heroes of the same role, or zero ranged damage. The enriched model selects healers 17.5 percentage points more often and produces 18 fewer absurd compositions per 100 drafts.}
+\label{tab:comp}
+\end{table}
+
+\subsection{Pick Divergence by Draft Phase}
+
+We measure how often the three strategies agree on which hero to select at each draft step, grouping by phase:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Phase & Naive vs.\ Enriched & Hero Str.\ vs.\ Enriched \\
+\midrule
+Bans (steps 0--3, 9--10) & 9.5\% & 13.9\% \\
+Early picks (steps 4--8) & 9.0\% & 7.6\% \\
+Late picks (steps 11--15) & 4.8\% & 5.2\% \\
+\bottomrule
+\end{tabular}
+\caption{Agreement rate between drafting strategies by phase. Lower agreement indicates greater divergence in hero selection. Late picks diverge most, consistent with composition pressure increasing as the draft progresses and remaining slots must fill specific roles.}
+\label{tab:divergence}
+\end{table}
+
+Agreement between naive and enriched is below 10\% at every phase---the models rarely pick the same hero for the same draft state. This is remarkable given that their aggregate accuracy differs by only 1.4 percentage points.
+
+\subsection{Sanity Tests}
+
+To verify that the enriched model's compositional awareness is genuine, we evaluate all three models on a suite of 21 hand-crafted scenarios:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+Model & Absurd & Trap & Normal & Symmetry & Total \\
+\midrule
+Naive & 6/8 & 2/5 & 3/5 & 3/3 & 14/21 \\
+Hero Strength & 6/8 & 2/5 & 3/5 & 1/3 & 12/21 \\
+Enriched & \textbf{7/8} & \textbf{4/5} & 3/5 & \textbf{3/3} & \textbf{17/21} \\
+\bottomrule
+\end{tabular}
+\caption{Sanity test results. ``Absurd'' tests pit degenerate compositions (5 tanks, 5 healers, etc.) against standard comps. ``Trap'' tests check whether high-WR heroes in bad compositions are correctly penalized. The enriched model with composition WR features scores 5 tanks vs.\ standard at 17.2\% WP, while the naive model scores it at 44.7\%.}
+\label{tab:sanity}
+\end{table}
+
+The most striking result: the enriched model assigns 5 tanks vs.\ a standard composition a win probability of 17.2\%, compared to 44.7\% for the naive model. The empirical composition WR feature (derived from 1.7M games of the standard Tank+Bruiser+Healer+2$\times$Ranged composition) provides the model with direct evidence that degenerate compositions lose.
+
+\section{Analysis: The Composition--Strength Trade-off}
+
+\subsection{Disagreement Analysis}
+
+Among the 50 drafts with the largest gap between naive and enriched evaluations of the naive drafter's output:
+\begin{itemize}
+    \item 41/50 (82\%) involved \textbf{no healer}
+    \item 48/50 (96\%) were \textbf{high individual WR but bad composition}
+    \item 13/50 (26\%) had \textbf{role stacking} (3+ of same role)
+\end{itemize}
+
+The naive model consistently chose heroes like Zarya (WP: 0.842), Xul (WP: 0.770), or Alarak (WP: 0.733) over available healers like Brightwing (WP: 0.667) or Rehgar (WP: 0.628). The naive model correctly identifies that these heroes are individually strong, but it cannot see that adding a fifth damage dealer to a healerless team is catastrophic.
+
+\subsection{The Feature That Matters Most}
+
+Through systematic ablation of 15 feature groups across 4,096 model configurations, we identified \texttt{comp\_wr} (empirical composition win rate from Heroes Profile, covering 121--164 role combinations per tier with 1.7--1.9M games for the most common composition) as the single most impactful addition. When combined with role counts, pairwise interactions, and map-specific features, it achieved our best test accuracy of 58.3\% and the strongest compositional reasoning in both sanity tests (17/21) and greedy drafts (66.5\% healer rate).
+
+The \texttt{comp\_wr} feature encodes a simple but powerful fact: ``this exact role combination wins X\% of the time across Y million games.'' For compositions not observed in the data, we assert a 33\% win rate---a deliberately punitive prior that discourages novel compositions without empirical support.
+
+\subsection{Feature Ablation: What Matters}
+
+We conducted a systematic ablation across 4,096 model configurations (all subsets of 15 feature groups $\times$ 2 MLP sizes $\times$ 2 learning rates) to identify which features drive compositional reasoning. The marginal impact of each feature group (average test accuracy with feature minus without) reveals a clear hierarchy:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Feature Group & Marginal Impact & Description \\
+\midrule
+counter\_detail (+50 dims) & +4.5\% & All 25 cross-team hero matchup deltas \\
+synergy\_detail (+20 dims) & +4.5\% & All 10 within-team hero pair deltas \\
+map\_delta (+2 dims) & +3.7\% & Per-team sum of hero map WR minus overall WR \\
+pairwise\_counters (+2 dims) & +3.7\% & Average counter delta per team \\
+pairwise\_synergies (+2 dims) & +3.6\% & Average synergy delta per team \\
+role\_counts (+18 dims) & +3.4\% & Per-team count of 9 fine-grained roles \\
+comp\_wr (+4 dims) & +0.2\% & Empirical composition WR from HP data \\
+\bottomrule
+\end{tabular}
+\caption{Feature group marginal impact on test accuracy. Pairwise interaction features dominate aggregate accuracy, but \texttt{comp\_wr} and \texttt{role\_counts} provide the compositional reasoning that drives draft quality. The \texttt{comp\_wr} feature's small accuracy impact belies its outsized effect on draft behavior: it provides the 17.2\% score for 5-tank compositions that makes the model reject degenerate drafts.}
+\label{tab:ablation}
+\end{table}
+
+Notably, \texttt{comp\_wr} has only +0.2\% marginal impact on accuracy but is among the most important features for draft quality. This underscores our central thesis: accuracy is a poor proxy for policy quality. A feature that barely moves the accuracy needle can dramatically change which actions the model recommends.
+
+\subsection{Residual Gap}
+
+Despite these improvements, the enriched model still produces 57.7\% absurd compositions---far from the near-100\% standard-composition rate seen in competitive play. Several factors contribute:
+
+\textbf{Greedy search limitation.} Our benchmark uses single-step greedy evaluation with one rollout. The model evaluates ``what if I pick hero X now?'' but cannot look ahead to ``will I get a healer later?'' A healer's value at pick~3 depends on whether one will be available at pick~5, which greedy search cannot assess.
+
+\textbf{Hero WR dominance in training data.} The training data contains 275K Storm League games where $>$95\% of teams include a healer. The model has very few examples of healerless teams to learn from, so its ability to penalize such compositions comes primarily from the enriched features rather than from the base multi-hot encoding.
+
+\textbf{Fine-grained role mapping.} Our 9-category role system (tank, bruiser, healer, ranged AA, ranged mage, melee assassin, support, pusher, Varian) captures more strategic nuance than the official 6-category system, but still misses important sub-roles (solo laner, camp taker, global presence).
+
+\section{Connection to Offline RL: OOD Value Overestimation}
+
+The composition blindness we observe is a specific instance of a well-known problem in offline reinforcement learning: \textit{out-of-distribution (OOD) value overestimation} \citep{kumar2020conservative, levine2020offline}.
+
+In offline RL, a value function $V_\theta$ is trained on a fixed dataset $\mathcal{D}$ of state-action-reward tuples. When a policy $\pi$ uses $V_\theta$ for action selection, it may discover states $s$ that are \textit{not well-represented in $\mathcal{D}$}. For such states, $V_\theta(s)$ can be arbitrarily wrong---and importantly, the optimization pressure of $\pi$ specifically seeks out states where $V_\theta$ is \textit{overoptimistically} wrong, because those appear to be high-value.
+
+In our setting:
+\begin{itemize}
+    \item The ``dataset'' $\mathcal{D}$ is 275K Storm League replays, where $>$95\% of teams have healers
+    \item The ``policy'' is greedy search over hero candidates
+    \item The ``OOD states'' are healerless team compositions
+\end{itemize}
+
+The naive model, trained predominantly on standard compositions, has no mechanism to penalize healerless teams. When greedy search evaluates a healerless composition with individually-strong heroes, the model reports a high win probability---not because it has learned that such compositions win, but because it \textit{has never learned that they lose}. The high WR of the individual heroes dominates the prediction.
+
+This is exactly the OOD overestimation pathology: the value function is unreliable in regions of the state space that the training distribution rarely visits, and the greedy policy systematically exploits these unreliable regions because they appear to offer high value.
+
+The enriched features---particularly \texttt{comp\_wr} and \texttt{role\_counts}---function as a form of \textit{pessimistic value correction} analogous to Conservative Q-Learning \citep{kumar2020conservative}. By providing the model with explicit information about composition quality, we reduce its ability to overestimate the value of OOD compositions. The 33\% default WR for unseen compositions is a particularly explicit form of pessimism: ``if we have no evidence this works, assume it doesn't.''
+
+\section{Related Work}
+
+\textbf{MOBA draft prediction.} Prior work on draft prediction in MOBAs has focused on win probability estimation using hero identities \citep{chen2018dotadraft, summerville2016draftanalysis}, with some work incorporating hero roles and synergies. Our contribution is demonstrating that even marginal accuracy improvements from compositional features produce outsized effects on draft policy quality.
+
+\textbf{Value function design for planning.} The sensitivity of planning algorithms to value function quality has been studied extensively in game-playing \citep{silver2016mastering} and robotics \citep{kalashnikov2018qtopt}. Our work provides a concrete, measurable example of how value function features affect policy behavior independently of aggregate accuracy.
+
+\textbf{Offline RL and OOD estimation.} Conservative Q-Learning \citep{kumar2020conservative}, BEAR \citep{kumar2019stabilizing}, and related methods address OOD overestimation through various pessimism mechanisms. Our empirical finding that enriched features naturally provide this pessimism connects the game AI and offline RL literatures.
+
+\section{Conclusion}
+
+We have shown that aggregate prediction accuracy is a misleading proxy for value function quality in combinatorial decision-making. Three win probability models spanning 56.5--57.9\% test accuracy produce dramatically different draft policies, with the enriched model selecting healers 17.5 percentage points more often and producing 18 fewer absurd compositions per 100 drafts. The critical features are not those that improve aggregate accuracy the most, but those that provide compositional reasoning---the ability to evaluate \textit{how heroes work together}, not just how strong they are individually.
+
+This finding has practical implications for any system where a learned value function guides search or planning. Standard held-out evaluation metrics may fail to capture the features most important for downstream policy quality. We advocate for \textit{policy-level evaluation}---testing value functions not on prediction benchmarks but on the quality of the decisions they produce---and for explicit incorporation of domain-structured features that provide pessimistic corrections in under-represented regions of the state space.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

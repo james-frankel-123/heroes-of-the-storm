@@ -54,8 +54,8 @@ MODEL_CONFIGS = {
     },
     "enriched": {
         "groups": ["role_counts", "team_avg_wr", "map_delta", "pairwise_counters",
-                   "pairwise_synergies", "counter_detail", "meta_strength", "draft_diversity"],
-        "description": "Full enriched: roles, pairwise, meta, diversity",
+                   "pairwise_synergies", "counter_detail", "meta_strength", "draft_diversity", "comp_wr"],
+        "description": "Full enriched: roles, pairwise, meta, diversity, comp WR from HP data",
     },
 }
 
@@ -406,7 +406,7 @@ def run_single_draft(config_idx, game_map, skill_tier, our_team,
 # ── GPU Worker ──
 
 def gpu_worker(gpu_id, config_batch, wp_sds, wp_groups_map, gd_sds, stats_data,
-               group_indices, result_queue):
+               group_indices, result_file):
     """Worker: runs assigned draft configs for all three strategies on one GPU."""
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
     device = torch.device("cuda")
@@ -417,6 +417,7 @@ def gpu_worker(gpu_id, config_batch, wp_sds, wp_groups_map, gd_sds, stats_data,
     stats_cache.hero_map_wr = stats_data["hero_map_wr"]
     stats_cache.pairwise = stats_data["pairwise"]
     stats_cache.hero_meta = stats_data["hero_meta"]
+    stats_cache.comp_data = stats_data.get("comp_data", {})
 
     # Reconstruct GD models
     gd_models = []
@@ -453,7 +454,15 @@ def gpu_worker(gpu_id, config_batch, wp_sds, wp_groups_map, gd_sds, stats_data,
                 all_wp_models, all_wp_groups,
                 gd_models, stats_cache, group_indices, device,
             )
-            result_queue.put(record)
+            # Write to per-GPU file (avoids mp.Queue deadlock and file locking)
+            gpu_file = result_file + f".gpu{gpu_id}"
+            existing = []
+            if os.path.exists(gpu_file):
+                with open(gpu_file) as rf:
+                    existing = json.load(rf)
+            existing.append(record)
+            with open(gpu_file, 'w') as rf:
+                json.dump(existing, rf)
 
         if (ci + 1) % 10 == 0:
             print(f"  [GPU {gpu_id}] {ci+1}/{total} configs done")
@@ -511,6 +520,9 @@ def print_analysis(records, wp_model_info, sanity_results):
     for drafter in drafters:
         recs = by_drafter[drafter]
         n = len(recs)
+        if n == 0:
+            p(f"{drafter:<20} (no records)")
+            continue
         healer = sum(1 for r in recs if r["comp_has_healer"]) / n * 100
         tank = sum(1 for r in recs if r["comp_has_tank"]) / n * 100
         front = sum(1 for r in recs if r["comp_has_frontline"]) / n * 100
@@ -800,6 +812,7 @@ def main():
         "hero_map_wr": stats.hero_map_wr,
         "pairwise": stats.pairwise,
         "hero_meta": stats.hero_meta,
+        "comp_data": stats.comp_data,
     }
 
     # Distribute configs across GPUs
@@ -813,28 +826,31 @@ def main():
         print(f"  GPU {gid}: {len(gpu_batches[i])} configs")
 
     t_start = time.time()
-    result_queue = mp.Queue()
+    result_file = os.path.join(os.path.dirname(__file__), "experiment_results", "draft_records_raw.json")
+    os.makedirs(os.path.dirname(result_file), exist_ok=True)
+    if os.path.exists(result_file):
+        os.remove(result_file)
+
     processes = []
     for i, gid in enumerate(gpu_ids):
         if gpu_batches[i]:
             p = mp.Process(target=gpu_worker, args=(
                 gid, gpu_batches[i], wp_sds, wp_groups_map, gd_sds,
-                stats_data, group_indices, result_queue,
+                stats_data, group_indices, result_file,
             ))
             p.start()
             processes.append(p)
 
-    # Drain queue WHILE waiting for processes (avoids deadlock when queue is full)
-    records = []
-    while any(p.is_alive() for p in processes) or not result_queue.empty():
-        try:
-            record = result_queue.get(timeout=1)
-            records.append(record)
-        except Exception:
-            pass
-
     for p in processes:
-        p.join(timeout=10)
+        p.join()
+
+    # Load results from per-GPU files
+    records = []
+    for gid in gpu_ids:
+        gpu_file = result_file + f".gpu{gid}"
+        if os.path.exists(gpu_file):
+            with open(gpu_file) as f:
+                records.extend(json.load(f))
 
     elapsed = time.time() - t_start
     print(f"\nBenchmark complete: {len(records)} drafts in {elapsed/60:.1f} min")

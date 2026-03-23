@@ -54,6 +54,7 @@ FEATURE_GROUPS = [
     "meta_strength",     # 4 features (avg pick_rate + avg ban_rate per team)
     "draft_diversity",   # 2 features (std dev of hero WRs within each team)
     "avg_mmr",           # 1 feature (normalized match MMR)
+    "comp_wr",           # 4 features (composition WR + log_games per team from HP data)
 ]
 
 NUM_CAPABILITY_DIMS = len(CAPABILITY_DIMS)
@@ -73,6 +74,7 @@ FEATURE_GROUP_DIMS = {
     "meta_strength": 4,   # avg pick_rate + avg ban_rate per team
     "draft_diversity": 2, # std dev of hero WRs per team
     "avg_mmr": 1,         # normalized match MMR
+    "comp_wr": 4,         # SL composition WR + log_games per team
 }
 
 # ── Stats cache ──
@@ -115,6 +117,42 @@ class StatsCache:
 
         cur.close()
         conn.close()
+
+        # Load composition data from JSON file
+        # {tier: [{roles: [...], winRate: float, games: int}, ...]}
+        self.comp_data = {}  # {tier: {role_key: (wr, games)}}
+        comp_path = os.path.join(os.path.dirname(__file__), "..", "src", "lib", "data", "compositions.json")
+        if os.path.exists(comp_path):
+            import json as _json
+            raw = _json.load(open(comp_path))
+            for tier, comps in raw.items():
+                tier_map = {}
+                for c in comps:
+                    key = ",".join(sorted(c["roles"]))
+                    tier_map[key] = (c["winRate"], c["games"])
+                self.comp_data[tier] = tier_map
+
+    def get_comp_wr(self, heroes, tier):
+        """Look up composition WR from HP data given a list of hero names.
+        Returns (winRate, games) or (33.0, 0) if not found (unknown comp = bad)."""
+        roles = sorted([HERO_ROLE_FINE.get(h, "unknown") for h in heroes])
+        # Map fine roles to official HP roles
+        hp_role_map = {
+            "tank": "Tank", "bruiser": "Bruiser", "healer": "Healer",
+            "ranged_aa": "Ranged Assassin", "ranged_mage": "Ranged Assassin",
+            "melee_assassin": "Melee Assassin", "support_utility": "Support",
+            "varian": "Bruiser", "pusher": "Ranged Assassin", "unknown": "Ranged Assassin",
+        }
+        hp_roles = sorted([hp_role_map.get(r, "Ranged Assassin") for r in roles])
+        key = ",".join(hp_roles)
+        tier_data = self.comp_data.get(tier, {})
+        if key in tier_data:
+            return tier_data[key]
+        # Fallback: try without tier
+        for t in ["mid", "high", "low"]:
+            if t in self.comp_data and key in self.comp_data[t]:
+                return self.comp_data[t][key]
+        return (33.0, 0)  # unknown comp = assert 33% WR per your spec
 
     def get_hero_wr(self, hero, tier):
         return self.hero_wr.get(tier, {}).get(hero, 50.0)
@@ -297,6 +335,18 @@ def extract_features(d, stats, groups_mask):
             normalized = (float(raw_mmr) - 2000.0) / 1000.0
             enriched_parts.append(np.array([normalized], dtype=np.float32))
 
+        elif group == "comp_wr":
+            # Look up composition WR from Heroes Profile data
+            # 4 features: t0_comp_wr, t0_log_games, t1_comp_wr, t1_log_games
+            t0_wr, t0_games = stats.get_comp_wr(t0_heroes, tier)
+            t1_wr, t1_games = stats.get_comp_wr(t1_heroes, tier)
+            enriched_parts.append(np.array([
+                (t0_wr - 50.0) / 10.0,  # normalize around 50%, scale to ~[-3, 1]
+                np.log1p(t0_games) / 15.0,  # log games normalized (log(1.9M) ≈ 14.5)
+                (t1_wr - 50.0) / 10.0,
+                np.log1p(t1_games) / 15.0,
+            ], dtype=np.float32))
+
     if enriched_parts:
         enriched = np.concatenate(enriched_parts)
     else:
@@ -416,6 +466,10 @@ def _swap_features(base, enriched):
             enriched_swap[offset], enriched_swap[offset+1] = enriched[offset+1], enriched[offset]
         elif group == "avg_mmr":
             pass  # symmetric — same value for both teams
+        elif group == "comp_wr":
+            # Swap t0 (wr, games) ↔ t1 (wr, games)
+            enriched_swap[offset:offset+2], enriched_swap[offset+2:offset+4] = \
+                enriched[offset+2:offset+4].copy(), enriched[offset:offset+2].copy()
         offset += dim
 
     return base_swap, enriched_swap
