@@ -1,0 +1,85 @@
+{
+  "siamese_test_accuracy": 55.3214674900109,
+  "sanity_tests": {
+    "independent": {
+      "passed": 13,
+      "total": 21,
+      "categories": {
+        "absurd": 5,
+        "trap": 3,
+        "normal": 2,
+        "symmetry": 3
+      },
+      "category_totals": {
+        "absurd": 8,
+        "trap": 5,
+        "normal": 5,
+        "symmetry": 3
+      }
+    },
+    "naive": {
+      "passed": 14,
+      "total": 21,
+      "categories": {
+        "absurd": 6,
+        "trap": 2,
+        "normal": 3,
+        "symmetry": 3
+      },
+      "category_totals": {
+        "absurd": 8,
+        "trap": 5,
+        "normal": 5,
+        "symmetry": 3
+      }
+    },
+    "enriched": {
+      "passed": 17,
+      "total": 21,
+      "categories": {
+        "absurd": 7,
+        "trap": 4,
+        "normal": 3,
+        "symmetry": 3
+      },
+      "category_totals": {
+        "absurd": 8,
+        "trap": 5,
+        "normal": 5,
+        "symmetry": 3
+      }
+    }
+  },
+  "composition_comparison": {
+    "5 tanks vs standard": {
+      "independent": 0.5281763672828674,
+      "naive": 0.44574931263923645,
+      "enriched": 0.1715395748615265
+    },
+    "5 healers vs standard": {
+      "independent": 0.47026753425598145,
+      "naive": 0.4682341516017914,
+      "enriched": 0.16664691269397736
+    },
+    "5 ranged assassins vs std": {
+      "independent": 0.48914775252342224,
+      "naive": 0.4931051433086395,
+      "enriched": 0.40136367082595825
+    },
+    "5 melee assassins vs std": {
+      "independent": 0.4212590754032135,
+      "naive": 0.5002842545509338,
+      "enriched": 0.36284637451171875
+    },
+    "3 tanks 2 healers vs std": {
+      "independent": 0.5272780060768127,
+      "naive": 0.4941984713077545,
+      "enriched": 0.2545590102672577
+    },
+    "No healer high WR vs std": {
+      "independent": 0.4779526889324188,
+      "naive": 0.5256567597389221,
+      "enriched": 0.485786497592926
+    }
+  }
+}
