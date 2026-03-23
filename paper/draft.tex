@@ -27,7 +27,7 @@ We construct three win probability models with similar test accuracy (56.5--57.9
 
 A HotS draft consists of 16 sequential actions: 6 bans and 10 picks, alternating between two teams. The state $s_t$ comprises multi-hot vectors for each team's picks and bans ($\in \{0,1\}^{90}$ each), map identity (14 maps), skill tier (3 tiers), and draft step---289 dimensions total.
 
-A win probability model $V_\theta(s) \in [0,1]$ estimates $P(\text{team\,0 wins} \mid s)$ for terminal states. We use greedy search: for each candidate hero, complete the draft via Generic Draft (GD) opponent models trained on 275K replays, evaluate the terminal state with $V_\theta$, and select the highest-scoring candidate. All $\sim$84 candidates are evaluated via batched forward passes.
+A win probability model $V_\theta(s) \in [0,1]$ estimates $P(\text{team\,0 wins} \mid s)$ for terminal states. We use greedy search: for each candidate hero, complete the draft via Generic Draft (GD) opponent models trained on 275K replays, evaluate the terminal state with $V_\theta$, and select the highest-scoring candidate. For bans, the agent selects the hero whose removal maximizes expected win probability. All $\sim$84 candidates are evaluated via batched forward passes.
 
 All models train on 275,285 Storm League replays with team-swap augmentation: every sample $(s, y)$ generates $(s', 1\!-\!y)$ by swapping teams and all team-indexed features, doubling the training set to 550K and ensuring symmetric treatment of both sides.
 
@@ -48,7 +48,7 @@ Enriched & 57.9\% & 283 & Role counts, pairwise stats, composition WR, meta \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:models} shows the three models. The enriched model adds 86 features: per-team counts of 9 fine-grained roles (18 dims), pairwise hero counter and synergy statistics (76 dims), and empirical composition win rates (4 dims). The composition WR feature maps each team's 5 heroes to a role-tuple category (e.g., Tank--Bruiser--Healer--2$\times$Ranged Assassin) and looks up its empirical win rate from a community replay database covering 9.0M games across three skill tiers (121--164 distinct compositions per tier). Unknown compositions receive a pessimistic default of 33\% WR. The feature encodes $(w\!-\!50)/10$ and $\log(1\!+\!g)/15$ per team, where $w$ is win rate and $g$ is game count.
+Table~\ref{tab:models} shows the three models. The enriched model adds 86 features: per-team counts of 9 fine-grained roles (18 dims), pairwise hero counter and synergy statistics (76 dims), and empirical composition win rates (4 dims). The composition WR feature maps each team's 5 heroes to a role-tuple category (e.g., Tank--Bruiser--Healer--2$\times$Ranged Assassin) and looks up its empirical win rate from aggregate statistics published by Heroes Profile,\footnote{heroesprofile.com, a community replay database.} covering 9.0M games across three skill tiers (121--164 distinct compositions per tier). Over 99.9\% of training replays match a recorded composition template; the 33\% pessimistic default fires primarily for degenerate compositions that greedy search constructs but that rarely occur in human play. The feature encodes $(w\!-\!50)/10$ and $\log(1\!+\!g)/15$ per team, where $w$ is win rate and $g$ is game count.
 
 Despite the enriched model's substantially richer input, the accuracy gap is only 1.4pp.
 
@@ -83,20 +83,21 @@ In competitive play, functional teams require a healer, frontline presence, and 
 
 \begin{table}[t]
 \centering
-\caption{Composition quality across 480 drafts per model. All naive-vs-enriched differences significant at $p\!<\!0.0001$ ($\chi^2$ test). Healer rate difference: 17.5pp, 95\% CI [11.3, 23.7]. Degenerate rate difference: 18.1pp, 95\% CI [12.3, 23.9].}
+\caption{Composition quality across 480 drafts per model.\textsuperscript{$\dagger$} All naive-vs-enriched differences significant at $p\!<\!0.0001$ ($\chi^2$ test). Healer rate difference: 17.5pp, 95\% CI [11.3, 23.7]. Degenerate rate difference: 18.1pp, 95\% CI [12.3, 23.9].}
 \label{tab:comp}
-\begin{tabular}{lcccc}
+\begin{tabular}{lccc}
 \toprule
-Drafter & Healer\% & Front.\% & Ranged\% & Degen.\% \\
+Drafter & Healer\% & Ranged\% & Degen.\% \\
 \midrule
-Naive & 49.0 & 95.0 & 65.2 & 75.8 \\
-Hero Str. & 39.0 & 97.3 & 58.1 & 82.1 \\
-Enriched & \textbf{66.5} & \textbf{98.3} & \textbf{73.3} & \textbf{57.7} \\
+Naive & 49.0 & 65.2 & 75.8 \\
+Hero Str. & 39.0 & 58.1 & 82.1 \\
+Enriched & \textbf{66.5} & \textbf{73.3} & \textbf{57.7} \\
 \bottomrule
+\multicolumn{4}{l}{\footnotesize\textsuperscript{$\dagger$}All models selected frontline heroes $>$95\% of the time.}
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:comp} shows the enriched model selects healers 17.5pp more often than naive ($\chi^2\!=\!30.1$). The hero-strength model performs \textit{worse} than naive on healer selection (39.0\% vs 49.0\%), suggesting individual strength features actively steer the model toward high-WR damage dealers and away from healers, whose individual win rates are moderate. Agreement between naive and enriched is below 10\% at every draft phase despite only 1.4pp accuracy difference. On 21 hand-crafted sanity tests, the enriched model scores 17/21 vs 14/21 (naive) and 12/21 (hero strength), with the largest advantage on ``trap'' scenarios where individually-strong heroes appear in degenerate compositions.
+Table~\ref{tab:comp} shows the enriched model selects healers 17.5pp more often than naive ($\chi^2\!=\!30.1$). The hero-strength model performs \textit{worse} than naive on healer selection (39.0\% vs 49.0\%), suggesting individual strength features actively steer the model toward high-WR damage dealers and away from healers, whose individual win rates are moderate. Divergence is high across all draft phases: ban agreement is 9.5\%, early-pick agreement is 9.0\%, and late-pick agreement is 4.8\%, indicating the models disagree on strategy throughout, not only on composition-completing final picks. On 21 hand-crafted sanity tests, the enriched model scores 17/21 vs 14/21 (naive) and 12/21 (hero strength), with the largest advantage on ``trap'' scenarios where individually-strong heroes appear in degenerate compositions.
 
 \section{Analysis}
 
@@ -124,7 +125,7 @@ Chen et al.~\cite{chen2018drafting} proposed MCTS-based drafting for Dota~2 usin
 
 Aggregate accuracy is a misleading proxy for value function quality. Models spanning 56.5--57.9\% accuracy produce policies disagreeing on 90\%+ of decisions. The enriched model reduces degenerate compositions by 18pp ($p\!<\!0.0001$) through features that contribute only 0.2\% to accuracy. The residual 57.7\% degenerate rate shows feature engineering is necessary but insufficient: it partially mitigates OOD overestimation without solving it. We advocate for policy-level evaluation of value functions and note that stronger interventions---multi-step search, policy constraints, or synthetic OOD penalties---are likely needed to fully address the problem.
 
-\textit{Limitations.} Single game domain, greedy (depth-1) search, fixed opponent model. The specific gap may differ under deeper search or in other combinatorial domains.
+\textit{Limitations.} Our experiments use a single game domain, depth-1 greedy search, and a fixed opponent model; the magnitude of the accuracy--policy gap may differ under deeper search or in other combinatorial domains.
 
 \begin{thebibliography}{9}
 
