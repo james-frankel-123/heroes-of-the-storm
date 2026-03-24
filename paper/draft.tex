@@ -10,7 +10,7 @@
 \maketitle
 
 \begin{abstract}
-We show that learned value functions with similar aggregate accuracy can produce substantially different policies when used for sequential decision-making. In a controlled experiment using combinatorial team selection (Heroes of the Storm drafting), three value functions spanning 56.5--57.9\% test accuracy yield policies that differ on over 90\% of decisions. The key variable is whether the value function encodes \textit{compositional} features---information about how selected elements interact, not just their individual quality. A model with compositional features selects balanced teams 17.5 percentage points more often ($\chi^2\!=\!30.1$, $p\!<\!0.0001$) and reduces degenerate compositions from 76\% to 58\% ($\chi^2\!=\!35.5$, $p\!<\!0.0001$), despite only a 1.4pp accuracy advantage. Cross-evaluation reveals the compositional model deliberately sacrifices individual element strength for interaction quality---a trade-off invisible to aggregate accuracy. We connect this to out-of-distribution value overestimation in offline reinforcement learning: models trained on data where most compositions are reasonable cannot penalize unreasonable ones, and greedy policies exploit exactly this gap. Notably, the enriched model still produces 57.7\% degenerate compositions, showing that feature engineering partially mitigates but does not solve the underlying problem.
+We show that learned value functions with similar aggregate accuracy can produce substantially different policies when used for sequential decision-making. In a controlled experiment using combinatorial team selection (Heroes of the Storm drafting), three value functions spanning 56.5--57.9\% test accuracy yield policies that differ on over 90\% of decisions. The key variable is whether the value function encodes \textit{compositional} features---information about how selected elements interact, not just their individual quality. A model with compositional features selects balanced teams 17.5 percentage points more often ($\chi^2\!=\!30.1$, $p\!<\!0.0001$) and reduces degenerate compositions from 76\% to 58\% ($\chi^2\!=\!35.5$, $p\!<\!0.0001$), despite only a 1.4pp accuracy advantage. Cross-evaluation reveals the compositional model deliberately sacrifices individual element strength for interaction quality---a trade-off invisible to aggregate accuracy. We connect this to out-of-distribution value overestimation in offline reinforcement learning: models trained on data where most compositions are reasonable cannot penalize unreasonable ones, and greedy policies exploit exactly this gap. The enriched model still produces 52\% degenerate compositions with feature engineering alone. Adding synthetic training data for the $\sim$100 unseen role compositions absent from 9M games of human play reduces this to 26.5\% while increasing healer selection from 64\% to 94.5\%, at a cost of 0.8pp accuracy---demonstrating that targeted augmentation in OOD regions can substantially close the gap that feature engineering alone cannot.
 \end{abstract}
 
 \section{Introduction}
@@ -109,13 +109,37 @@ Among the 50 drafts with the largest naive-vs-enriched evaluation gap, 41/50 (82
 
 \subsection{The Residual Gap}
 
-The enriched model still produces 57.7\% degenerate compositions. This residual rate is one of our most informative findings: feature engineering partially mitigates but does not solve OOD overestimation. Three factors contribute. First, \textit{search horizon}: greedy evaluation cannot reason about future availability (``will a healer still be available at pick 5?''). Second, \textit{training concentration}: over 95\% of training teams include a healer, so the base model's prior for any composition is ``roughly 50\% WP''---the enriched features correct this but cannot fully override it. Third, \textit{feature granularity}: composition WR captures role balance but not fine-grained hero-specific interactions within a role category. Multi-step lookahead or synthetic OOD penalties may be needed to close this gap.
+With a larger architecture (512$\to$256$\to$128), the enriched model still produces 52\% degenerate compositions. Three factors contribute to this residual. First, \textit{search horizon}: greedy evaluation cannot reason about future availability (``will a healer still be available at pick 5?''). Second, \textit{training concentration}: over 95\% of training teams include a healer, so the base model's prior for any composition is ``roughly 50\% WP''---the enriched features correct this but cannot fully override it because the model never observes the \texttt{comp\_wr} feature's 33\% default correlated with actual losses. Third, \textit{feature granularity}: composition WR captures role balance but not fine-grained hero-specific interactions. We address the second factor directly through synthetic augmentation.
+
+\subsection{Synthetic Augmentation}
+
+Of the 252 possible 5-role compositions, only 121--164 per tier appear in 9M games of aggregate data. The remaining $\sim$100 compositions per tier are structurally degenerate---no human players draft them. The \texttt{comp\_wr} feature assigns 33\% WR to these unseen compositions, but the model never observes this value correlated with losses during training, so it underweights the signal.
+
+We generate synthetic training records for each unseen composition: heroes are sampled by role, paired against real opponent teams from the training data, with outcomes assigned at a 10\% win rate. Only 30K synthetic records ($\sim$11\% of training data) are added; the test set remains pure real games.
+
+\begin{table}[t]
+\centering
+\caption{Effect of synthetic augmentation on greedy draft quality (200 drafts, 512$\to$256$\to$128 architecture for both rows). Accuracy is on real test data.}
+\label{tab:synth}
+\begin{tabular}{lccccc}
+\toprule
+Config & Acc.\% & Healer\% & Ranged\% & Degen.\% & Sanity \\
+\midrule
+No augmentation & 57.2 & 64.0 & 80.5 & 52.0 & 17/21 \\
++ synthetic & 56.4 & \textbf{94.5} & \textbf{88.0} & \textbf{26.5} & \textbf{20/21} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:synth} shows the result. Synthetic augmentation increases healer selection from 64\% to 94.5\% and halves the degenerate rate from 52\% to 26.5\%, with an accuracy cost of 0.8pp on real games. The architecture alone (512$\to$256$\to$128 without synthetic data) only reduces degenerate rate from 58\% to 52\% with no healer improvement, confirming the synthetic data is the active ingredient. The mechanism is straightforward: the model learns to trust its own \texttt{comp\_wr} feature because training now includes examples where low composition WR correlates with actual losses.
+
+The residual 26.5\% degenerate rate likely reflects the greedy search horizon (depth-1 cannot plan for future healer availability) and genuine domain ambiguity---no-healer compositions win 43\% of real games, so the model correctly treats them as disadvantaged rather than catastrophic.
 
 \section{Connection to Offline RL}
 
 The behavior we observe is a specific instance of OOD value overestimation from offline RL~\cite{kumar2020conservative,levine2020offline}. A value function $V_\theta$ trained on dataset $\mathcal{D}$ may be arbitrarily wrong for states underrepresented in $\mathcal{D}$, and a greedy policy specifically seeks states where $V_\theta$ is overoptimistic. In our setting, $\mathcal{D}$ is 275K replays where 95\%+ of teams have healers; the OOD states are healerless compositions that greedy search constructs by repeatedly selecting individually-strong heroes.
 
-Our enriched features function as pessimistic value correction analogous to CQL~\cite{kumar2020conservative}: the 33\% default WR for unknown compositions is an explicit pessimistic prior, and role-count features let the model distinguish standard from degenerate compositions. This is feature-level pessimism rather than algorithmic pessimism. The residual 57.7\% degenerate rate demonstrates its limits: the correction applies only where features provide signal, and greedy search finds degenerate states the features do not fully cover. DraftRec~\cite{lee2022draftrec} addresses this from the policy side, restricting recommendations to observed hero combinations---implicitly constraining the policy to remain near the training distribution as in BEAR~\cite{kumar2019stabilizing}.
+Our enriched features function as pessimistic value correction analogous to CQL~\cite{kumar2020conservative}: the 33\% default WR for unknown compositions is an explicit pessimistic prior, and role-count features let the model distinguish standard from degenerate compositions. This is feature-level pessimism rather than algorithmic pessimism. Synthetic augmentation (Section~IV-C) adds a complementary mechanism: data-level pessimism. The 10\% win rate assigned to unseen compositions functions as a learned pessimistic prior---the model trains on examples where OOD states produce bad outcomes, rather than having pessimism injected via a regularization term. Together, feature-level and data-level pessimism reduce the degenerate rate from 76\% (naive) to 26.5\%. DraftRec~\cite{lee2022draftrec} addresses OOD from the policy side, restricting recommendations to observed hero combinations---implicitly constraining the policy to remain near the training distribution as in BEAR~\cite{kumar2019stabilizing}.
 
 \section{Related Work}
 
@@ -125,9 +149,9 @@ Chen et al.~\cite{chen2018drafting} proposed MCTS-based drafting for Dota~2 usin
 
 \section{Conclusion}
 
-Aggregate accuracy is a misleading proxy for value function quality. Models spanning 56.5--57.9\% accuracy produce policies disagreeing on 90\%+ of decisions. The enriched model reduces degenerate compositions by 18pp ($p\!<\!0.0001$) through features that contribute only 0.2\% to accuracy. The residual 57.7\% degenerate rate shows feature engineering is necessary but insufficient: it partially mitigates OOD overestimation without solving it. We advocate for policy-level evaluation of value functions and note that stronger interventions---multi-step search, policy constraints, or synthetic OOD penalties---are likely needed to fully address the problem.
+Aggregate accuracy is a misleading proxy for value function quality. Models spanning 56.5--57.9\% accuracy produce policies disagreeing on 90\%+ of decisions. Two interventions progressively address the resulting OOD overestimation: compositional features reduce the degenerate rate from 76\% to 52\%, and synthetic augmentation for unseen compositions further reduces it to 26.5\% while pushing healer selection to 94.5\%---close to the near-100\% rate in competitive play. The combined approach requires no algorithmic changes: domain-structured features plus targeted OOD training data are sufficient to largely solve the problem within a standard supervised learning framework. The residual 26.5\% reflects the greedy search horizon and genuine domain ambiguity (no-healer teams win 43\% in practice). We advocate for policy-level evaluation of value functions and for explicit treatment of OOD regions in training data when value functions guide search.
 
-\textit{Limitations.} Our experiments use a single game domain, depth-1 greedy search, and a fixed opponent model; the magnitude of the accuracy--policy gap may differ under deeper search or in other combinatorial domains.
+\textit{Limitations.} Single game domain, depth-1 greedy search, fixed opponent model; the magnitude of the accuracy--policy gap may differ under deeper search or in other combinatorial domains.
 
 \begin{thebibliography}{9}
 

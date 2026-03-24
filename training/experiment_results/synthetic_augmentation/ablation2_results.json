@@ -1,0 +1,607 @@
+[
+  {
+    "name": "baseline_256_128",
+    "hidden": [
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 0,
+    "params": 106497,
+    "accuracy": 57.17360973358154,
+    "all_accs": [
+      57.20435976982117,
+      57.14285969734192
+    ],
+    "eval": {
+      "sanity_passed": 16,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 7,
+          "total": 8
+        },
+        "trap": {
+          "passed": 4,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 2,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.18461841344833374,
+        "5 healers": 0.19397982954978943,
+        "5 ranged assassins": 0.3959946930408478,
+        "5 melee assassins": 0.41544175148010254,
+        "3T 2H no damage": 0.2516785264015198,
+        "No healer high WR": 0.47159504890441895
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "baseline_512_256_128",
+    "hidden": [
+      512,
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 0,
+    "params": 311553,
+    "accuracy": 57.08575248718262,
+    "all_accs": [
+      57.1692168712616,
+      57.00228810310364
+    ],
+    "eval": {
+      "sanity_passed": 17,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 7,
+          "total": 8
+        },
+        "trap": {
+          "passed": 4,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.19310258328914642,
+        "5 healers": 0.1973399519920349,
+        "5 ranged assassins": 0.41123613715171814,
+        "5 melee assassins": 0.39591771364212036,
+        "3T 2H no damage": 0.2651022672653198,
+        "No healer high WR": 0.49192267656326294
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v100_256_128",
+    "hidden": [
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 34400,
+    "params": 106497,
+    "accuracy": 56.73871040344238,
+    "all_accs": [
+      56.69478178024292,
+      56.782639026641846
+    ],
+    "eval": {
+      "sanity_passed": 19,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.04499738663434982,
+        "5 healers": 0.05237022042274475,
+        "5 ranged assassins": 0.3322875201702118,
+        "5 melee assassins": 0.08264940977096558,
+        "3T 2H no damage": 0.08572841435670853,
+        "No healer high WR": 0.38086459040641785
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v100_512_256_128",
+    "hidden": [
+      512,
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 34400,
+    "params": 311553,
+    "accuracy": 56.68599605560303,
+    "all_accs": [
+      56.70356750488281,
+      56.66842460632324
+    ],
+    "eval": {
+      "sanity_passed": 20,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 4,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.04380857199430466,
+        "5 healers": 0.04369165748357773,
+        "5 ranged assassins": 0.3385293781757355,
+        "5 melee assassins": 0.0780869647860527,
+        "3T 2H no damage": 0.07464049011468887,
+        "No healer high WR": 0.3825547397136688
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v100_768_512_256",
+    "hidden": [
+      768,
+      512,
+      256
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 34400,
+    "params": 746497,
+    "accuracy": 56.93639516830444,
+    "all_accs": [
+      56.923216581344604,
+      56.94957375526428
+    ],
+    "eval": {
+      "sanity_passed": 19,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.04288405552506447,
+        "5 healers": 0.05358847230672836,
+        "5 ranged assassins": 0.33963099122047424,
+        "5 melee assassins": 0.07506298273801804,
+        "3T 2H no damage": 0.08617926388978958,
+        "No healer high WR": 0.4029730558395386
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v100_256_128_w0.5",
+    "hidden": [
+      256,
+      128
+    ],
+    "synthetic_weight": 0.5,
+    "synthetic_count": 34400,
+    "params": 106497,
+    "accuracy": 56.580567359924316,
+    "all_accs": [
+      56.66842460632324,
+      56.49271011352539
+    ],
+    "eval": {
+      "sanity_passed": 17,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 2,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 2,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.050644438713788986,
+        "5 healers": 0.0632437989115715,
+        "5 ranged assassins": 0.31100794672966003,
+        "5 melee assassins": 0.08913945406675339,
+        "3T 2H no damage": 0.10663983970880508,
+        "No healer high WR": 0.3852769136428833
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v100_512_256_128_w0.5",
+    "hidden": [
+      512,
+      256,
+      128
+    ],
+    "synthetic_weight": 0.5,
+    "synthetic_count": 34400,
+    "params": 311553,
+    "accuracy": 56.769463419914246,
+    "all_accs": [
+      56.65085315704346,
+      56.888073682785034
+    ],
+    "eval": {
+      "sanity_passed": 19,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.045330412685871124,
+        "5 healers": 0.059001680463552475,
+        "5 ranged assassins": 0.32907620072364807,
+        "5 melee assassins": 0.0871993824839592,
+        "3T 2H no damage": 0.09496191143989563,
+        "No healer high WR": 0.3952440619468689
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v100_256_128_w0.3",
+    "hidden": [
+      256,
+      128
+    ],
+    "synthetic_weight": 0.3,
+    "synthetic_count": 34400,
+    "params": 106497,
+    "accuracy": 56.91882371902466,
+    "all_accs": [
+      56.923216581344604,
+      56.91443085670471
+    ],
+    "eval": {
+      "sanity_passed": 19,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.03910594806075096,
+        "5 healers": 0.06498631834983826,
+        "5 ranged assassins": 0.31706711649894714,
+        "5 melee assassins": 0.11978799849748611,
+        "3T 2H no damage": 0.09935539960861206,
+        "No healer high WR": 0.3712822198867798
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v50_256_128",
+    "hidden": [
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 17200,
+    "params": 106497,
+    "accuracy": 56.49271011352539,
+    "all_accs": [
+      56.571781635284424,
+      56.41363859176636
+    ],
+    "eval": {
+      "sanity_passed": 19,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.04296262934803963,
+        "5 healers": 0.07633770257234573,
+        "5 ranged assassins": 0.33780887722969055,
+        "5 melee assassins": 0.12196178734302521,
+        "3T 2H no damage": 0.10243082791566849,
+        "No healer high WR": 0.3811458945274353
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v50_512_256_128",
+    "hidden": [
+      512,
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 17200,
+    "params": 311553,
+    "accuracy": 56.67281746864319,
+    "all_accs": [
+      56.73871040344238,
+      56.606924533843994
+    ],
+    "eval": {
+      "sanity_passed": 18,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 2,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.0472591370344162,
+        "5 healers": 0.0917300432920456,
+        "5 ranged assassins": 0.3459635376930237,
+        "5 melee assassins": 0.10833696275949478,
+        "3T 2H no damage": 0.11497760564088821,
+        "No healer high WR": 0.4032297432422638
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v25_256_128",
+    "hidden": [
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 8600,
+    "params": 106497,
+    "accuracy": 56.725531816482544,
+    "all_accs": [
+      56.76506757736206,
+      56.68599605560303
+    ],
+    "eval": {
+      "sanity_passed": 20,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 4,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.0641312226653099,
+        "5 healers": 0.10869871079921722,
+        "5 ranged assassins": 0.32187792658805847,
+        "5 melee assassins": 0.13521748781204224,
+        "3T 2H no damage": 0.15456373989582062,
+        "No healer high WR": 0.4014507830142975
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v25_512_256_128",
+    "hidden": [
+      512,
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 8600,
+    "params": 311553,
+    "accuracy": 56.96275234222412,
+    "all_accs": [
+      57.03743100166321,
+      56.888073682785034
+    ],
+    "eval": {
+      "sanity_passed": 19,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.05317126587033272,
+        "5 healers": 0.0895543172955513,
+        "5 ranged assassins": 0.35010749101638794,
+        "5 melee assassins": 0.09353785216808319,
+        "3T 2H no damage": 0.1203058585524559,
+        "No healer high WR": 0.40243005752563477
+      },
+      "all_degen_below_25": false
+    }
+  },
+  {
+    "name": "wr10_v100_512_256_128_p35",
+    "hidden": [
+      512,
+      256,
+      128
+    ],
+    "synthetic_weight": 1.0,
+    "synthetic_count": 34400,
+    "params": 311553,
+    "accuracy": 56.68599605560303,
+    "all_accs": [
+      56.70356750488281,
+      56.66842460632324
+    ],
+    "eval": {
+      "sanity_passed": 20,
+      "sanity_total": 21,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 4,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.04380857199430466,
+        "5 healers": 0.04369165748357773,
+        "5 ranged assassins": 0.3385293781757355,
+        "5 melee assassins": 0.0780869647860527,
+        "3T 2H no damage": 0.07464049011468887,
+        "No healer high WR": 0.3825547397136688
+      },
+      "all_degen_below_25": false
+    }
+  }
+]
