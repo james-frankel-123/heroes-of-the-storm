@@ -1,0 +1,62 @@
+[
+  {
+    "alpha": 0.1,
+    "healer": 94.0,
+    "degen": 11.0,
+    "frontline": 96.0,
+    "ranged": 99.5,
+    "counter": -0.1,
+    "synergy": -0.15,
+    "distinct_heroes": 29,
+    "entropy": 4.15,
+    "top10_concentration": 74.2
+  },
+  {
+    "alpha": 0.5,
+    "healer": 98.0,
+    "degen": 5.5,
+    "frontline": 97.0,
+    "ranged": 99.5,
+    "counter": -0.1,
+    "synergy": -0.09,
+    "distinct_heroes": 38,
+    "entropy": 4.24,
+    "top10_concentration": 72.3
+  },
+  {
+    "alpha": 1.0,
+    "healer": 97.5,
+    "degen": 5.0,
+    "frontline": 99.0,
+    "ranged": 98.5,
+    "counter": -0.12,
+    "synergy": -0.09,
+    "distinct_heroes": 43,
+    "entropy": 4.29,
+    "top10_concentration": 73.3
+  },
+  {
+    "alpha": 2.0,
+    "healer": 98.5,
+    "degen": 3.0,
+    "frontline": 99.5,
+    "ranged": 99.5,
+    "counter": -0.11,
+    "synergy": -0.04,
+    "distinct_heroes": 38,
+    "entropy": 4.3,
+    "top10_concentration": 72.7
+  },
+  {
+    "alpha": 5.0,
+    "healer": 92.5,
+    "degen": 12.0,
+    "frontline": 98.0,
+    "ranged": 97.5,
+    "counter": -0.09,
+    "synergy": -0.2,
+    "distinct_heroes": 38,
+    "entropy": 4.31,
+    "top10_concentration": 73.1
+  }
+]
