@@ -28,7 +28,7 @@ We construct three win probability models with similar test accuracy (56.5--57.9
 
 A HotS draft consists of 16 sequential actions: 6 bans and 10 picks, alternating between two teams. The state $s_t$ comprises multi-hot vectors for each team's picks and bans ($\in \{0,1\}^{90}$ each), map identity (14 maps), skill tier (3 tiers), and draft step, for 289 dimensions total.
 
-A win probability model $V_\theta(s) \in [0,1]$ estimates $P(\text{team\,0 wins} \mid s)$ for terminal states. We use greedy search: for each candidate hero, complete the draft via Generic Draft (GD) opponent models trained on 275K replays, evaluate the terminal state with $V_\theta$, and select the highest-scoring candidate. For bans, the agent selects the hero whose removal maximizes expected win probability. All $\sim$84 candidates are evaluated via batched forward passes.
+A win probability model $V_\theta(s) \in [0,1]$ estimates $P(\text{team\,0 wins} \mid s)$ for terminal states. We use greedy search: for each candidate hero, complete the draft via Generic Draft (GD) opponent models trained on 275K replays, evaluate the terminal state with $V_\theta$, and select the highest-scoring candidate. The GD models are 289$\to$256$\to$128$\to$90 networks trained via behavioral cloning on the same replay data, predicting the next hero selection at each draft step; we train 5 variants with different random seeds to provide opponent diversity. For bans, the agent selects the hero whose removal maximizes expected win probability. All $\sim$84 candidates are evaluated via batched forward passes.
 
 All models train on 275,285 Storm League replays with team-swap augmentation: every sample $(s, y)$ generates $(s', 1\!-\!y)$ by swapping teams and all team-indexed features, doubling the training set to 550K and ensuring symmetric treatment of both sides.
 
@@ -76,7 +76,7 @@ Enriched & 0.601 & 0.580 & \textbf{0.644} \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:crosseval} shows diagonal dominance: each strategy scores highest on its own evaluator. The enriched drafter scores \textit{lowest} on both simpler evaluators (0.601, 0.580), confirming it makes choices that reduce individual element strength in exchange for compositional quality that only it can perceive.
+Table~\ref{tab:crosseval} shows diagonal dominance: each strategy scores highest on its own evaluator, confirming that greedy search optimizes for the specific model's value landscape. Each policy finds states its own evaluator rates highly but that other evaluators do not. The enriched drafter scores \textit{lowest} on both simpler evaluators (0.601, 0.580): it sacrifices 6.9pp of win probability as scored by the naive evaluator (0.670 $\to$ 0.601) to gain compositional quality, a trade-off that no single-model evaluation metric can detect.
 
 \subsection{Composition Quality}
 
@@ -134,12 +134,12 @@ No augmentation & 57.2 & 64.0 & 80.5 & 52.0 & 17/21 \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\columnwidth]{fig_composition_quality.pdf}
+\includegraphics[width=\textwidth]{fig_composition_quality.pdf}
 \caption{Healer selection and degenerate composition rates across model variants. Compositional features reduce the degenerate rate from 76\% to 58\%; synthetic augmentation further reduces it to 26.5\%. \textsuperscript{$\dagger$}512$\to$256$\to$128 architecture; all others 256$\to$128.}
 \label{fig:comp}
-\end{figure}
+\end{figure*}
 
 Table~\ref{tab:synth} and Fig.~\ref{fig:comp} show the result. Synthetic augmentation increases healer selection from 64\% to 94.5\% and halves the degenerate rate from 52\% to 26.5\%, with an accuracy cost of 0.8pp on real games. The architecture alone (512$\to$256$\to$128 without synthetic data) only reduces degenerate rate from 58\% to 52\% with no healer improvement, confirming the synthetic data is the active ingredient. The mechanism is simple: the model learns to trust its own \texttt{comp\_wr} feature because training now includes examples where low composition WR correlates with actual losses.
 
