@@ -1,0 +1,142 @@
+{
+  "GD baseline": {
+    "healer_rate": 99.5,
+    "degen_rate": 1.0,
+    "counter": -0.09,
+    "synergy": -0.05,
+    "distinct_heroes": 40,
+    "entropy": 4.24,
+    "top10_concentration": 75.3,
+    "gd_similarity": 83.2,
+    "aug_wp": 0.522,
+    "map_adapt": {
+      "Braxis Holdout": {
+        "map_rate": 15.8,
+        "other_rate": 50.8,
+        "delta": -35.0
+      },
+      "Battlefield of Eternity": {
+        "map_rate": 82.4,
+        "other_rate": 75.4,
+        "delta": 6.9
+      },
+      "Cursed Hollow": {
+        "map_rate": 33.3,
+        "other_rate": 14.1,
+        "delta": 19.2
+      }
+    }
+  },
+  "CQL a=0.5": {
+    "healer_rate": 95.0,
+    "degen_rate": 14.5,
+    "counter": -0.06,
+    "synergy": -0.17,
+    "distinct_heroes": 40,
+    "entropy": 4.35,
+    "top10_concentration": 73.1,
+    "gd_similarity": 56.7,
+    "aug_wp": 0.473,
+    "map_adapt": {
+      "Braxis Holdout": {
+        "map_rate": 31.6,
+        "other_rate": 42.5,
+        "delta": -11.0
+      },
+      "Battlefield of Eternity": {
+        "map_rate": 88.2,
+        "other_rate": 74.9,
+        "delta": 13.4
+      },
+      "Cursed Hollow": {
+        "map_rate": 66.7,
+        "other_rate": 15.2,
+        "delta": 51.5
+      }
+    }
+  },
+  "CQL a=1.0": {
+    "healer_rate": 93.5,
+    "degen_rate": 11.0,
+    "counter": -0.1,
+    "synergy": -0.14,
+    "distinct_heroes": 44,
+    "entropy": 4.42,
+    "top10_concentration": 70.7,
+    "gd_similarity": 61.5,
+    "aug_wp": 0.504,
+    "map_adapt": {
+      "Braxis Holdout": {
+        "map_rate": 15.8,
+        "other_rate": 46.4,
+        "delta": -30.6
+      },
+      "Battlefield of Eternity": {
+        "map_rate": 76.5,
+        "other_rate": 64.5,
+        "delta": 12.0
+      },
+      "Cursed Hollow": {
+        "map_rate": 22.2,
+        "other_rate": 18.3,
+        "delta": 3.9
+      }
+    }
+  },
+  "Enriched WP": {
+    "healer_rate": 77.0,
+    "degen_rate": 42.5,
+    "counter": 0.14,
+    "synergy": 1.03,
+    "distinct_heroes": 86,
+    "entropy": 5.96,
+    "top10_concentration": 32.0,
+    "gd_similarity": 4.4,
+    "aug_wp": 0.651,
+    "map_adapt": {
+      "Braxis Holdout": {
+        "map_rate": 15.8,
+        "other_rate": 22.7,
+        "delta": -6.9
+      },
+      "Battlefield of Eternity": {
+        "map_rate": 23.5,
+        "other_rate": 14.2,
+        "delta": 9.3
+      },
+      "Cursed Hollow": {
+        "map_rate": 22.2,
+        "other_rate": 7.3,
+        "delta": 14.9
+      }
+    }
+  },
+  "Enriched+aug": {
+    "healer_rate": 96.0,
+    "degen_rate": 13.5,
+    "counter": 0.06,
+    "synergy": 0.8,
+    "distinct_heroes": 90,
+    "entropy": 5.97,
+    "top10_concentration": 32.8,
+    "gd_similarity": 4.5,
+    "aug_wp": "self",
+    "map_adapt": {
+      "Braxis Holdout": {
+        "map_rate": 15.8,
+        "other_rate": 18.2,
+        "delta": -2.4
+      },
+      "Battlefield of Eternity": {
+        "map_rate": 23.5,
+        "other_rate": 18.6,
+        "delta": 5.0
+      },
+      "Cursed Hollow": {
+        "map_rate": 11.1,
+        "other_rate": 14.1,
+        "delta": -3.0
+      }
+    }
+  }
+}

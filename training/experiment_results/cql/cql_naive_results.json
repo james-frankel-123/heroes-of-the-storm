@@ -1,0 +1,77 @@
+[
+  {
+    "alpha": 0.1,
+    "features": "naive",
+    "metrics": {
+      "test_loss": 0.7112458178893654,
+      "action_match": 10.198382126348228
+    },
+    "draft_results": {
+      "healer_rate": 93.5,
+      "frontline_rate": 97.0,
+      "ranged_rate": 98.0,
+      "degen_rate": 13.0,
+      "n_drafts": 200
+    }
+  },
+  {
+    "alpha": 0.5,
+    "features": "naive",
+    "metrics": {
+      "test_loss": 0.7658719560949387,
+      "action_match": 12.23448162007484
+    },
+    "draft_results": {
+      "healer_rate": 96.0,
+      "frontline_rate": 98.5,
+      "ranged_rate": 100.0,
+      "degen_rate": 10.5,
+      "n_drafts": 200
+    }
+  },
+  {
+    "alpha": 1.0,
+    "features": "naive",
+    "metrics": {
+      "test_loss": 0.793509717400106,
+      "action_match": 12.374807395993837
+    },
+    "draft_results": {
+      "healer_rate": 93.5,
+      "frontline_rate": 98.5,
+      "ranged_rate": 99.5,
+      "degen_rate": 9.0,
+      "n_drafts": 200
+    }
+  },
+  {
+    "alpha": 2.0,
+    "features": "naive",
+    "metrics": {
+      "test_loss": 0.8128639202718296,
+      "action_match": 12.447721769755669
+    },
+    "draft_results": {
+      "healer_rate": 92.0,
+      "frontline_rate": 97.5,
+      "ranged_rate": 98.0,
+      "degen_rate": 12.5,
+      "n_drafts": 200
+    }
+  },
+  {
+    "alpha": 5.0,
+    "features": "naive",
+    "metrics": {
+      "test_loss": 0.8267153337509286,
+      "action_match": 12.444970283953335
+    },
+    "draft_results": {
+      "healer_rate": 92.0,
+      "frontline_rate": 97.5,
+      "ranged_rate": 97.5,
+      "degen_rate": 13.0,
+      "n_drafts": 200
+    }
+  }
+]
