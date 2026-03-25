@@ -591,28 +591,22 @@ def simulate_draft_with_mcts(
     return win_prob, training_examples
 
 
-def _run_episode(args):
-    """Worker function for parallel episode generation."""
-    if len(args) == 6:
-        net_state_dict, wp_state_dict, gd_state_dicts, game_map, skill_tier, num_sims = args
-        wp_enriched_config = None
-    else:
-        net_state_dict, wp_state_dict, gd_state_dicts, game_map, skill_tier, num_sims, wp_enriched_config = args
+# ── Persistent worker pool ──────────────────────────────────────────
+# Workers load models once in the initializer and keep them alive.
+# Only the network state dict is updated periodically via shared memory.
 
-    device = torch.device('cpu')
+_worker_state = {}  # global per-worker state
 
-    # Reconstruct models in worker (can't pickle ONNX sessions or models)
+
+def _worker_init(wp_state_dict, gd_state_dicts, wp_enriched_config):
+    """Called once per worker process. Loads all models into global state."""
+    import torch
     from train_generic_draft import GenericDraftModel
 
-    network = AlphaZeroDraftNet()
-    network.load_state_dict(net_state_dict)
-    network.eval()
+    device = torch.device('cpu')
+    _worker_state['device'] = device
 
-    # Load WP model — enriched or base
-    stats_cache = None
-    wp_enriched_groups = None
-    wp_group_indices = None
-
+    # WP model (never changes during training)
     if wp_enriched_config:
         from sweep_enriched_wp import WinProbEnrichedModel, StatsCache, compute_group_indices
         wp_model = WinProbEnrichedModel(
@@ -622,35 +616,61 @@ def _run_episode(args):
         )
         wp_model.load_state_dict(wp_state_dict)
         wp_model.eval()
-        # Reconstruct StatsCache from serialized data (avoid DB connection per worker)
         stats_cache = StatsCache.__new__(StatsCache)
         stats_cache.hero_wr = wp_enriched_config['_stats_hero_wr']
         stats_cache.hero_map_wr = wp_enriched_config['_stats_hero_map_wr']
         stats_cache.pairwise = wp_enriched_config['_stats_pairwise']
         stats_cache.hero_meta = wp_enriched_config.get('_stats_hero_meta', {})
         stats_cache.comp_data = wp_enriched_config.get('_stats_comp_data', {})
-        wp_enriched_groups = wp_enriched_config['groups']
-        wp_group_indices = compute_group_indices()
+        _worker_state['wp_model'] = wp_model
+        _worker_state['stats_cache'] = stats_cache
+        _worker_state['wp_enriched_groups'] = wp_enriched_config['groups']
+        _worker_state['wp_group_indices'] = compute_group_indices()
     else:
         from train_win_probability import WinProbModel
         wp_model = WinProbModel()
         wp_model.load_state_dict(wp_state_dict)
         wp_model.eval()
+        _worker_state['wp_model'] = wp_model
+        _worker_state['stats_cache'] = None
+        _worker_state['wp_enriched_groups'] = None
+        _worker_state['wp_group_indices'] = None
 
+    # GD models (never change)
     gd_models = []
     for sd in gd_state_dicts:
         gd = GenericDraftModel()
         gd.load_state_dict(sd)
         gd.eval()
         gd_models.append(gd)
+    _worker_state['gd_models'] = gd_models
+
+    # Network (will be updated via args each call)
+    _worker_state['network'] = AlphaZeroDraftNet()
+    _worker_state['network'].eval()
+
+
+def _run_episode(args):
+    """Worker function for parallel episode generation.
+    Uses persistent models from _worker_state, only receives network weights + config.
+    """
+    net_state_dict, game_map, skill_tier, num_sims = args
+
+    # Update network weights (this is the only thing that changes between batches)
+    _worker_state['network'].load_state_dict(net_state_dict)
 
     our_team = random.randint(0, 1)
-
     win_prob, examples = simulate_draft_with_mcts(
-        network, wp_model, gd_models, game_map, skill_tier,
-        device, our_team=our_team, num_simulations=num_sims,
-        stats_cache=stats_cache, wp_enriched_groups=wp_enriched_groups,
-        wp_group_indices=wp_group_indices,
+        _worker_state['network'],
+        _worker_state['wp_model'],
+        _worker_state['gd_models'],
+        game_map, skill_tier,
+        _worker_state['device'],
+        our_team=our_team,
+        num_simulations=num_sims,
+        stats_cache=_worker_state['stats_cache'],
+        wp_enriched_groups=_worker_state['wp_enriched_groups'],
+        wp_group_indices=_worker_state['wp_group_indices'],
     )
     return win_prob, examples
 
@@ -661,7 +681,7 @@ def train():
     print(f"Device: {device}")
 
     # Detect parallelism
-    NUM_WORKERS = min(58, os.cpu_count() or 1)
+    NUM_WORKERS = os.cpu_count() or 1
     print(f"Workers: {NUM_WORKERS}")
 
     print("Loading pre-trained models...")
@@ -677,7 +697,8 @@ def train():
         from sweep_enriched_wp import WinProbEnrichedModel, StatsCache, compute_group_indices, FEATURE_GROUP_DIMS
         enriched_dim = sum(FEATURE_GROUP_DIMS[g] for g in WP_ENRICHED_GROUPS)
         wp_input_dim = 197 + enriched_dim  # base + enriched features
-        wp_model = WinProbEnrichedModel(wp_input_dim, [256, 128], dropout=0.3).to(device)
+        wp_hidden = [512, 256, 128]
+        wp_model = WinProbEnrichedModel(wp_input_dim, wp_hidden, dropout=0.3).to(device)
         wp_model.load_state_dict(torch.load(wp_enriched_path, weights_only=True, map_location=device))
         wp_model.eval()
         # Load stats once and serialize into config for workers (avoids 58 DB connections)
@@ -685,7 +706,7 @@ def train():
         _stats = StatsCache()
         wp_enriched_config = {
             'input_dim': wp_input_dim,
-            'hidden_dims': [256, 128],
+            'hidden_dims': wp_hidden,
             'dropout': 0.3,
             'groups': WP_ENRICHED_GROUPS,
             '_stats_hero_wr': _stats.hero_wr,
@@ -767,23 +788,30 @@ def train():
     import multiprocessing as mp
     mp.set_start_method('spawn', force=True)
 
+    # Create persistent worker pool — models loaded once in initializer
+    print(f"Creating persistent pool with {NUM_WORKERS} workers...")
+    pool = mp.Pool(
+        NUM_WORKERS,
+        initializer=_worker_init,
+        initargs=(wp_sd, gd_sds, wp_enriched_config),
+    )
+    print("Pool ready.")
+
     train_start = time.time()
     episode = 0
     while episode < NUM_EPISODES:
         # Generate a batch of episodes in parallel on CPU
         batch_size = min(PARALLEL_BATCH, NUM_EPISODES - episode)
-        # Move network to CPU for serialization to workers
+        # Only send network weights (the only thing that changes) + lightweight config
         net_sd = network.state_dict()
 
         worker_args = [
-            (net_sd, wp_sd, gd_sds,
-             random.choice(MAPS), random.choice(SKILL_TIERS),
-             MCTS_SIMULATIONS, wp_enriched_config)
+            (net_sd, random.choice(MAPS), random.choice(SKILL_TIERS),
+             MCTS_SIMULATIONS)
             for _ in range(batch_size)
         ]
 
-        with mp.Pool(NUM_WORKERS) as pool:
-            results = pool.map(_run_episode, worker_args)
+        results = pool.map(_run_episode, worker_args)
 
         # Collect results into buffer
         last_wp = 0.0
@@ -842,13 +870,11 @@ def train():
             network.eval()
             net_sd_eval = network.state_dict()
             eval_args = [
-                (net_sd_eval, wp_sd, gd_sds,
-                 random.choice(MAPS), random.choice(SKILL_TIERS),
-                 MCTS_SIMULATIONS // 2, wp_enriched_config)
+                (net_sd_eval, random.choice(MAPS), random.choice(SKILL_TIERS),
+                 MCTS_SIMULATIONS // 2)
                 for _ in range(EVAL_DRAFTS)
             ]
-            with mp.Pool(NUM_WORKERS) as pool:
-                eval_results = pool.map(_run_episode, eval_args)
+            eval_results = pool.map(_run_episode, eval_args)
             eval_wps = [r[0] for r in eval_results]
             avg_wp = np.mean(eval_wps)
             std_wp = np.std(eval_wps)
@@ -878,6 +904,10 @@ def train():
                 }, os.path.join(save_dir, "draft_policy_checkpoint.pt"))
                 print(f"  New best! Saved draft_policy.pt + checkpoint")
             print()
+
+    # Clean up worker pool
+    pool.close()
+    pool.join()
 
     # Export to ONNX
     print("Exporting to ONNX...")
