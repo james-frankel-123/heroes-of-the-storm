@@ -319,6 +319,35 @@ function computeTeamMawpAdjustment(
  * Get just the value estimate (WP) for the current state, with MAWP adjustment.
  * Used on opponent turns when we don't need full recommendations.
  */
+/**
+ * Run the policy model and return logits + symmetrized value estimate.
+ * Runs twice with ourTeam flipped and averages: (V(ours) + 1-V(theirs)) / 2
+ * to remove the value head's team-order bias.
+ */
+async function runPolicySymmetrized(
+  draftState: AIDraftState,
+  mask: Float32Array,
+): Promise<{ policyLogits: Float32Array; value: number }> {
+  const state = encodeState(draftState)
+  const stateTensor = new ort.Tensor('float32', state, [1, 290])
+  const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
+  const result = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
+  const policyLogits = result.policy_logits.data as Float32Array
+  const rawValue = (result.value.data as Float32Array)[0]
+
+  // Symmetrize: run with flipped ourTeam and average
+  const flippedState = new Float32Array(state)
+  flippedState[289] = 1.0 - flippedState[289] // flip ourTeam
+  const flippedTensor = new ort.Tensor('float32', flippedState, [1, 290])
+  const flippedResult = await policySession.run({ state: flippedTensor, valid_mask: maskTensor })
+  const flippedValue = (flippedResult.value.data as Float32Array)[0]
+
+  return {
+    policyLogits,
+    value: (rawValue + (1 - flippedValue)) / 2,
+  }
+}
+
 export async function getValueEstimate(
   draftState: AIDraftState,
   playerData?: PlayerMAWPData,
@@ -327,19 +356,15 @@ export async function getValueEstimate(
     throw new Error('AI models not loaded. Call loadAIModels() first.')
   }
 
-  const state = encodeState(draftState)
   const mask = buildValidMask(new Set([
     ...draftState.team0Picks,
     ...draftState.team1Picks,
     ...draftState.bans,
   ]))
-  const stateTensor = new ort.Tensor('float32', state, [1, 290])
-  const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
-  const result = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
-  const rawWP = (result.value.data as Float32Array)[0]
+  const { value } = await runPolicySymmetrized(draftState, mask)
 
   const mawpAdj = computeTeamMawpAdjustment(draftState, playerData)
-  return Math.max(0, Math.min(1, rawWP + mawpAdj))
+  return Math.max(0, Math.min(1, value + mawpAdj))
 }
 
 /**
@@ -430,15 +455,9 @@ export async function getAIRecommendations(
 
   // Use the policy head directly — it was trained via MCTS to know which
   // heroes are good picks. One forward pass, rank by policy probability.
-  const state = encodeState(draftState)
   const mask = buildValidMask(takenHeroes)
-  const stateTensor = new ort.Tensor('float32', state, [1, 290])
-  const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
-  const result = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
-
-  const policyLogits = result.policy_logits.data as Float32Array
-  const rawValueEstimate = (result.value.data as Float32Array)[0]
-  const baseValueEstimate = Math.max(0, Math.min(1, rawValueEstimate + teamMawpAdj))
+  const { policyLogits, value: symmetrizedValue } = await runPolicySymmetrized(draftState, mask)
+  const baseValueEstimate = Math.max(0, Math.min(1, symmetrizedValue + teamMawpAdj))
 
   // Softmax the masked policy logits to get pick probabilities
   const priors = softmaxMasked(policyLogits, mask)
