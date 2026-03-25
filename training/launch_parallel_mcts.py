@@ -14,7 +14,7 @@ RUNS = [
     {
         "name": "run_G_augmented",
         "gpu": 0,
-        "workers": 32,
+        "workers": 16,
         "wp_model": "augmented",
         "episodes": 300_000,
         "sims": 200,
@@ -24,12 +24,32 @@ RUNS = [
     {
         "name": "run_A_base",
         "gpu": 1,
-        "workers": 32,
+        "workers": 16,
         "wp_model": "base",
         "episodes": 300_000,
         "sims": 200,
         "fresh": True,
         "log": "/tmp/mcts_run_A.log",
+    },
+    {
+        "name": "run_E_enriched",
+        "gpu": 2,
+        "workers": 16,
+        "wp_model": "enriched",
+        "episodes": 300_000,
+        "sims": 200,
+        "fresh": True,
+        "log": "/tmp/mcts_run_E.log",
+    },
+    {
+        "name": "run_G2_augmented_fresh",
+        "gpu": 3,
+        "workers": 16,
+        "wp_model": "augmented",
+        "episodes": 300_000,
+        "sims": 200,
+        "fresh": True,
+        "log": "/tmp/mcts_run_G2.log",
     },
 ]
 
