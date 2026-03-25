@@ -1,41 +1,39 @@
 """
 GPU Inference Server for batched MCTS leaf evaluation.
 
-Workers submit leaf states to a shared queue. A GPU server thread collects
-them into batches and runs a single forward pass, returning results via
-per-request events.
+Receives batch requests from worker threads, concatenates into mega-batches,
+runs single GPU forward pass, distributes results back.
 
-This turns 64 serial CPU forward passes per MCTS step into one batched
-GPU forward pass, providing ~70x throughput improvement per sample.
+Designed for virtual-loss batched MCTS where each worker submits K=32 states
+at once, yielding GPU batches of 64-1024 samples.
 """
 import threading
-import time
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
 from collections import deque
 
 
-class InferenceRequest:
-    __slots__ = ['state', 'mask', 'event', 'priors', 'value']
+class BatchInferenceRequest:
+    """A batch of states submitted by one worker."""
+    __slots__ = ['states', 'masks', 'event', 'priors', 'values']
 
-    def __init__(self, state: np.ndarray, mask: np.ndarray):
-        self.state = state
-        self.mask = mask
+    def __init__(self, states: np.ndarray, masks: np.ndarray):
+        self.states = states      # (K, state_dim)
+        self.masks = masks        # (K, num_heroes)
         self.event = threading.Event()
-        self.priors = None
-        self.value = None
+        self.priors = None        # (K, num_heroes) — filled by server
+        self.values = None        # (K,) — filled by server
 
 
 class GPUInferenceServer:
     """Batches inference requests from multiple workers onto GPU."""
 
-    def __init__(self, network, device='cuda:0', max_batch=256, timeout_ms=1.0):
+    def __init__(self, network, device='cuda:0', max_wait_ms=1.0):
         self.network = network.to(device)
         self.network.eval()
         self.device = torch.device(device)
-        self.max_batch = max_batch
-        self.timeout_ms = timeout_ms
+        self.max_wait_ms = max_wait_ms
 
         self.queue = deque()
         self.lock = threading.Lock()
@@ -48,60 +46,53 @@ class GPUInferenceServer:
         self.total_batches = 0
         self.total_samples = 0
 
-    def submit(self, state: np.ndarray, mask: np.ndarray) -> InferenceRequest:
-        """Submit a leaf evaluation request. Returns immediately.
-        Call request.event.wait() then read request.priors and request.value.
+    def batch_predict(self, states: np.ndarray, masks: np.ndarray):
+        """Blocking: submit batch of K states, wait for results.
+        Returns (priors: (K, 90), values: (K,)).
         """
-        req = InferenceRequest(state, mask)
+        req = BatchInferenceRequest(states, masks)
         with self.lock:
             self.queue.append(req)
         self.has_work.set()
-        return req
-
-    def predict(self, state: np.ndarray, mask: np.ndarray):
-        """Blocking predict: submit and wait for result."""
-        req = self.submit(state, mask)
         req.event.wait()
-        return req.priors, req.value
+        return req.priors, req.values
 
     def _server_loop(self):
         while self.running:
-            # Wait for work
-            self.has_work.wait(timeout=0.01)
+            self.has_work.wait(timeout=0.005)
             self.has_work.clear()
 
-            # Collect batch
             batch = []
             with self.lock:
-                while self.queue and len(batch) < self.max_batch:
+                while self.queue:
                     batch.append(self.queue.popleft())
 
             if not batch:
                 continue
 
-            # Batched forward pass on GPU
-            states = torch.tensor(
-                np.array([r.state for r in batch]),
-                dtype=torch.float32,
-            ).to(self.device)
-            masks = torch.tensor(
-                np.array([r.mask for r in batch]),
-                dtype=torch.float32,
-            ).to(self.device)
+            # Concatenate all requests into one mega-batch
+            all_states = np.concatenate([r.states for r in batch])
+            all_masks = np.concatenate([r.masks for r in batch])
 
+            # Single GPU forward pass
             with torch.no_grad():
-                logits, values = self.network(states, masks)
-                priors = F.softmax(logits, dim=1).cpu().numpy()
-                values = values.cpu().numpy()
+                s_t = torch.from_numpy(all_states).to(self.device)
+                m_t = torch.from_numpy(all_masks).to(self.device)
+                logits, values = self.network(s_t, m_t)
+                all_priors = F.softmax(logits, dim=1).cpu().numpy()
+                all_values = values.cpu().numpy().flatten()
 
-            # Distribute results
-            for i, req in enumerate(batch):
-                req.priors = priors[i]
-                req.value = float(values[i])
+            # Distribute results back to each request
+            offset = 0
+            for req in batch:
+                k = len(req.states)
+                req.priors = all_priors[offset:offset + k]
+                req.values = all_values[offset:offset + k]
+                offset += k
                 req.event.set()
 
             self.total_batches += 1
-            self.total_samples += len(batch)
+            self.total_samples += len(all_states)
 
     def update_weights(self, state_dict):
         """Update network weights (called from main training loop)."""
@@ -118,5 +109,5 @@ class GPUInferenceServer:
         return {
             'batches': self.total_batches,
             'samples': self.total_samples,
-            'avg_batch_size': avg,
+            'avg_batch_size': round(avg, 1),
         }
