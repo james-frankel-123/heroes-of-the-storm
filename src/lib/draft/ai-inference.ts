@@ -725,35 +725,40 @@ export async function getWinProbability(
     throw new Error('AI models not loaded. Call loadAIModels() first.')
   }
 
-  const t0 = heroesToMultiHot(team0Heroes)
-  const t1 = heroesToMultiHot(team1Heroes)
-  const m = mapToOneHot(map)
-  const t = tierToOneHot(tier)
-
-  // Base features: 197
-  const base = new Float32Array(197)
-  let offset = 0
-  base.set(t0, offset); offset += NUM_HEROES
-  base.set(t1, offset); offset += NUM_HEROES
-  base.set(m, offset); offset += NUM_MAPS
-  base.set(t, offset); offset += NUM_TIERS
-
-  // Enriched features: 86 (if DraftData available)
-  let input: Float32Array
-  if (draftData) {
-    const enriched = computeEnrichedFeatures(team0Heroes, team1Heroes, map, draftData)
-    input = new Float32Array(283)
-    input.set(base, 0)
-    input.set(enriched, 197)
-  } else {
-    // Fallback: pad with zeros (enriched model still works, just less accurate)
-    input = new Float32Array(283)
-    input.set(base, 0)
+  // Symmetrized inference: run model twice (normal + team-swapped) and
+  // average to enforce P(t0,t1) + P(t1,t0) = 1.0 exactly.
+  // This removes the model's inherent team-order bias.
+  const runWP = async (t0h: string[], t1h: string[]): Promise<number> => {
+    const t0 = heroesToMultiHot(t0h)
+    const t1 = heroesToMultiHot(t1h)
+    const m = mapToOneHot(map)
+    const t = tierToOneHot(tier)
+    const base = new Float32Array(197)
+    let off = 0
+    base.set(t0, off); off += NUM_HEROES
+    base.set(t1, off); off += NUM_HEROES
+    base.set(m, off); off += NUM_MAPS
+    base.set(t, off); off += NUM_TIERS
+    let inp: Float32Array
+    if (draftData) {
+      const enriched = computeEnrichedFeatures(t0h, t1h, map, draftData)
+      inp = new Float32Array(283)
+      inp.set(base, 0)
+      inp.set(enriched, 197)
+    } else {
+      inp = new Float32Array(283)
+      inp.set(base, 0)
+    }
+    const tensor = new ort.Tensor('float32', inp, [1, 283])
+    const result = await wpSession.run({ input: tensor })
+    return (result.win_probability.data as Float32Array)[0]
   }
 
-  const tensor = new ort.Tensor('float32', input, [1, 283])
-  const result = await wpSession.run({ input: tensor })
-  return (result.win_probability.data as Float32Array)[0]
+  const [pNormal, pSwapped] = await Promise.all([
+    runWP(team0Heroes, team1Heroes),
+    runWP(team1Heroes, team0Heroes),
+  ])
+  return (pNormal + (1 - pSwapped)) / 2
 }
 
 // ── Utilities ───────────────────────────────────────────────────────
