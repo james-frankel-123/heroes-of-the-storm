@@ -18,7 +18,7 @@ RUNS = [
         "wp_model": "augmented",
         "episodes": 300_000,
         "sims": 200,
-        "fresh": False,          # Resume from checkpoint ~228K
+        "fresh": True,          # Resume from checkpoint ~228K
         "log": "/tmp/mcts_run_G.log",
     },
     {
