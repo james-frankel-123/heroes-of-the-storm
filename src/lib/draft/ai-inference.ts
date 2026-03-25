@@ -548,10 +548,10 @@ const NUM_FINE_ROLES = 9
 /**
  * Compute enriched features for the WP model.
  * Requires DraftData for hero stats and pairwise data.
- * Returns 82 enriched features matching the training groups:
+ * Returns 86 enriched features matching the training groups:
  *   role_counts(18) + team_avg_wr(2) + map_delta(2) +
  *   pairwise_counters(2) + pairwise_synergies(2) + counter_detail(50) +
- *   meta_strength(4) + draft_diversity(2)
+ *   meta_strength(4) + draft_diversity(2) + comp_wr(4)
  */
 function computeEnrichedFeatures(
   t0Heroes: string[],
@@ -559,7 +559,7 @@ function computeEnrichedFeatures(
   map: string,
   draftData: DraftData,
 ): Float32Array {
-  const features = new Float32Array(82)
+  const features = new Float32Array(86)
   let off = 0
 
   // Helper: get hero WR, prefer map-specific
@@ -678,6 +678,35 @@ function computeEnrichedFeatures(
   features[off++] = stdDev(t0wrs)
   features[off++] = stdDev(t1wrs)
 
+  // 9. comp_wr (4) — composition win rate + log(games) per team
+  const getCompWR = (heroes: string[]): [number, number] => {
+    if (heroes.length === 0) return [33.0, 0]
+    // Map fine roles to HP official roles
+    const hpRoleMap: Record<number, string> = {
+      0: 'Tank', 1: 'Bruiser', 2: 'Healer', 3: 'Ranged Assassin',
+      4: 'Ranged Assassin', 5: 'Melee Assassin', 6: 'Support',
+      7: 'Bruiser', 8: 'Ranged Assassin',
+    }
+    const hpRoles = heroes.map(h => {
+      const fineRole = FINE_ROLE_MAP[h]
+      return fineRole !== undefined ? (hpRoleMap[fineRole] ?? 'Ranged Assassin') : 'Ranged Assassin'
+    }).sort()
+    const key = hpRoles.join(',')
+    // Look up in compositions data
+    for (const c of draftData.compositions) {
+      if (c.roles.length === hpRoles.length && [...c.roles].sort().join(',') === key) {
+        return [c.winRate, c.games]
+      }
+    }
+    return [33.0, 0]  // unknown comp = bad
+  }
+  const [t0compWR, t0compGames] = getCompWR(t0Heroes)
+  const [t1compWR, t1compGames] = getCompWR(t1Heroes)
+  features[off++] = (t0compWR - 50.0) / 10.0
+  features[off++] = Math.log1p(t0compGames) / 15.0
+  features[off++] = (t1compWR - 50.0) / 10.0
+  features[off++] = Math.log1p(t1compGames) / 15.0
+
   return features
 }
 
@@ -709,20 +738,20 @@ export async function getWinProbability(
   base.set(m, offset); offset += NUM_MAPS
   base.set(t, offset); offset += NUM_TIERS
 
-  // Enriched features: 76 (if DraftData available)
+  // Enriched features: 86 (if DraftData available)
   let input: Float32Array
   if (draftData) {
     const enriched = computeEnrichedFeatures(team0Heroes, team1Heroes, map, draftData)
-    input = new Float32Array(279)
+    input = new Float32Array(283)
     input.set(base, 0)
     input.set(enriched, 197)
   } else {
     // Fallback: pad with zeros (enriched model still works, just less accurate)
-    input = new Float32Array(279)
+    input = new Float32Array(283)
     input.set(base, 0)
   }
 
-  const tensor = new ort.Tensor('float32', input, [1, 279])
+  const tensor = new ort.Tensor('float32', input, [1, 283])
   const result = await wpSession.run({ input: tensor })
   return (result.win_probability.data as Float32Array)[0]
 }
