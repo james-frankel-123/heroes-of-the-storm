@@ -598,13 +598,17 @@ def simulate_draft_with_mcts(
 _worker_state = {}  # global per-worker state
 
 
-def _worker_init(wp_state_dict, gd_state_dicts, wp_enriched_config):
+def _worker_init(wp_state_dict, gd_state_dicts, wp_enriched_config,
+                 shared_net_flat, net_shapes, net_keys, use_torchscript):
     """Called once per worker process. Loads all models into global state."""
     import torch
     from train_generic_draft import GenericDraftModel
 
     device = torch.device('cpu')
     _worker_state['device'] = device
+    _worker_state['shared_net_flat'] = shared_net_flat
+    _worker_state['net_shapes'] = net_shapes
+    _worker_state['net_keys'] = net_keys
 
     # WP model (never changes during training)
     if wp_enriched_config:
@@ -645,19 +649,41 @@ def _worker_init(wp_state_dict, gd_state_dicts, wp_enriched_config):
         gd_models.append(gd)
     _worker_state['gd_models'] = gd_models
 
-    # Network (will be updated via args each call)
-    _worker_state['network'] = AlphaZeroDraftNet()
-    _worker_state['network'].eval()
+    # Network — will read weights from shared memory each episode
+    network = AlphaZeroDraftNet()
+    if use_torchscript:
+        try:
+            _test_x = torch.randn(1, STATE_DIM)
+            _test_m = torch.ones(1, NUM_HEROES)
+            network = torch.jit.trace(network, (_test_x, _test_m))
+        except Exception:
+            pass  # fall back to eager mode
+    network.eval()
+    _worker_state['network'] = network
+
+
+def _load_net_from_shared():
+    """Reconstruct network state dict from shared memory flat tensor."""
+    shared = _worker_state['shared_net_flat']
+    shapes = _worker_state['net_shapes']
+    keys = _worker_state['net_keys']
+    sd = {}
+    offset = 0
+    for key, shape in zip(keys, shapes):
+        numel = 1
+        for s in shape:
+            numel *= s
+        sd[key] = torch.tensor(shared[offset:offset+numel]).reshape(shape)
+        offset += numel
+    _worker_state['network'].load_state_dict(sd)
 
 
 def _run_episode(args):
-    """Worker function for parallel episode generation.
-    Uses persistent models from _worker_state, only receives network weights + config.
-    """
-    net_state_dict, game_map, skill_tier, num_sims = args
+    """Worker function. Reads network weights from shared memory, runs one episode."""
+    game_map, skill_tier, num_sims = args
 
-    # Update network weights (this is the only thing that changes between batches)
-    _worker_state['network'].load_state_dict(net_state_dict)
+    # Load latest network weights from shared memory (no pickling)
+    _load_net_from_shared()
 
     our_team = random.randint(0, 1)
     win_prob, examples = simulate_draft_with_mcts(
@@ -673,6 +699,24 @@ def _run_episode(args):
         wp_group_indices=_worker_state['wp_group_indices'],
     )
     return win_prob, examples
+
+
+def _flatten_state_dict(sd):
+    """Flatten a state dict into (flat_tensor, shapes, keys) for shared memory."""
+    keys = list(sd.keys())
+    shapes = [list(sd[k].shape) for k in keys]
+    flat = torch.cat([sd[k].cpu().flatten().float() for k in keys])
+    return flat, shapes, keys
+
+
+def _write_to_shared(shared_flat, sd, keys):
+    """Write network state dict into shared memory array."""
+    offset = 0
+    for key in keys:
+        t = sd[key].cpu().flatten().float()
+        n = t.numel()
+        shared_flat[offset:offset+n] = t.numpy()
+        offset += n
 
 
 def train():
@@ -726,26 +770,23 @@ def train():
 
     _, gd_models = load_pretrained_models(device)
 
-    # Initialize network — resume from checkpoint if available
+    # Initialize network — resume from full checkpoint if available
     network = AlphaZeroDraftNet().to(device)
     print(f"Network params: {sum(p.numel() for p in network.parameters()):,}")
 
-    checkpoint_path = os.path.join(os.path.dirname(__file__), "draft_policy.pt")
-    if os.path.exists(checkpoint_path):
-        try:
-            network.load_state_dict(torch.load(checkpoint_path, weights_only=True, map_location=device))
-            print(f"Resumed from checkpoint: {checkpoint_path}")
-        except Exception as e:
-            print(f"Could not resume (architecture mismatch?): {e}")
-            print("Starting fresh with bootstrap + pretrain")
-            bootstrap_from_generic_draft(network, device)
-            pretrain_value_head(network, device)
-    else:
-        bootstrap_from_generic_draft(network, device)
-        pretrain_value_head(network, device)
-
-    optimizer = torch.optim.Adam(network.parameters(), lr=1e-3, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=150000, eta_min=1e-5)
+    # TorchScript the network for faster CPU inference in workers
+    # (eliminates Python interpreter overhead in forward pass)
+    network_scripted = False
+    try:
+        _test_net = AlphaZeroDraftNet()
+        _test_x = torch.randn(1, STATE_DIM)
+        _test_m = torch.ones(1, NUM_HEROES)
+        _scripted = torch.jit.trace(_test_net, (_test_x, _test_m))
+        network_scripted = True
+        print("TorchScript: enabled (traced successfully)")
+        del _test_net, _test_x, _test_m, _scripted
+    except Exception as e:
+        print(f"TorchScript: disabled ({e})")
 
     # Replay buffer: (state, mcts_policy, valid_mask, value_target)
     buffer = []
@@ -755,17 +796,66 @@ def train():
     MCTS_SIMULATIONS = 200
     EVAL_EVERY = 500
     EVAL_DRAFTS = 200
-    PARALLEL_BATCH = NUM_WORKERS  # episodes per parallel batch
+    PARALLEL_BATCH = NUM_WORKERS
 
     best_eval_wp = 0.0
+    start_episode = 0
     save_dir = os.path.dirname(__file__)
+
+    checkpoint_path = os.path.join(save_dir, "draft_policy_checkpoint.pt")
+    weights_path = os.path.join(save_dir, "draft_policy.pt")
+
+    if os.path.exists(checkpoint_path):
+        try:
+            ckpt = torch.load(checkpoint_path, weights_only=False, map_location=device)
+            network.load_state_dict(ckpt['model_state_dict'])
+            start_episode = ckpt.get('episode', 0)
+            best_eval_wp = ckpt.get('best_eval_wp', 0.0)
+            print(f"Resumed from checkpoint: episode {start_episode}, best_wp={best_eval_wp:.4f}")
+        except Exception as e:
+            print(f"Could not resume from full checkpoint: {e}")
+            if os.path.exists(weights_path):
+                try:
+                    network.load_state_dict(torch.load(weights_path, weights_only=True, map_location=device))
+                    print(f"Loaded weights only from {weights_path}")
+                except Exception as e2:
+                    print(f"Could not load weights either: {e2}")
+                    bootstrap_from_generic_draft(network, device)
+                    pretrain_value_head(network, device)
+            else:
+                bootstrap_from_generic_draft(network, device)
+                pretrain_value_head(network, device)
+    elif os.path.exists(weights_path):
+        try:
+            network.load_state_dict(torch.load(weights_path, weights_only=True, map_location=device))
+            print(f"Loaded weights from {weights_path} (no full checkpoint)")
+        except Exception as e:
+            print(f"Could not load weights: {e}")
+            bootstrap_from_generic_draft(network, device)
+            pretrain_value_head(network, device)
+    else:
+        bootstrap_from_generic_draft(network, device)
+        pretrain_value_head(network, device)
+
+    optimizer = torch.optim.Adam(network.parameters(), lr=1e-3, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=150000, eta_min=1e-5)
+
+    # Restore optimizer/scheduler if resuming
+    if start_episode > 0 and os.path.exists(checkpoint_path):
+        try:
+            ckpt = torch.load(checkpoint_path, weights_only=False, map_location=device)
+            optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+            scheduler.load_state_dict(ckpt['scheduler_state_dict'])
+            print(f"Restored optimizer + scheduler state")
+        except Exception:
+            print("Could not restore optimizer/scheduler, starting fresh")
 
     # Pre-extract state dicts for workers (CPU)
     wp_sd = wp_model.state_dict()
     gd_sds = [gd.state_dict() for gd in gd_models]
 
-    print(f"Training for {NUM_EPISODES} episodes with {MCTS_SIMULATIONS} MCTS sims each "
-          f"({PARALLEL_BATCH} parallel)...")
+    print(f"Training for {NUM_EPISODES} episodes (starting at {start_episode}) "
+          f"with {MCTS_SIMULATIONS} MCTS sims each ({PARALLEL_BATCH} parallel)...")
 
     # Initialize wandb
     if HAS_WANDB:
@@ -788,26 +878,34 @@ def train():
     import multiprocessing as mp
     mp.set_start_method('spawn', force=True)
 
+    # Create shared memory for network weights (avoids pickling 17MB per worker per batch)
+    net_sd_cpu = {k: v.cpu() for k, v in network.state_dict().items()}
+    flat, net_shapes, net_keys = _flatten_state_dict(net_sd_cpu)
+    shared_net_flat = mp.Array('f', flat.numpy(), lock=False)
+    print(f"Shared memory: {len(flat)} floats ({len(flat)*4/1024/1024:.1f} MB)")
+
     # Create persistent worker pool — models loaded once in initializer
     print(f"Creating persistent pool with {NUM_WORKERS} workers...")
     pool = mp.Pool(
         NUM_WORKERS,
         initializer=_worker_init,
-        initargs=(wp_sd, gd_sds, wp_enriched_config),
+        initargs=(wp_sd, gd_sds, wp_enriched_config,
+                  shared_net_flat, net_shapes, net_keys, network_scripted),
     )
     print("Pool ready.")
 
     train_start = time.time()
-    episode = 0
+    episode = start_episode
     while episode < NUM_EPISODES:
         # Generate a batch of episodes in parallel on CPU
         batch_size = min(PARALLEL_BATCH, NUM_EPISODES - episode)
-        # Only send network weights (the only thing that changes) + lightweight config
-        net_sd = network.state_dict()
+
+        # Write latest network weights to shared memory (one write, all workers read)
+        net_sd_cpu = {k: v.cpu() for k, v in network.state_dict().items()}
+        _write_to_shared(shared_net_flat, net_sd_cpu, net_keys)
 
         worker_args = [
-            (net_sd, random.choice(MAPS), random.choice(SKILL_TIERS),
-             MCTS_SIMULATIONS)
+            (random.choice(MAPS), random.choice(SKILL_TIERS), MCTS_SIMULATIONS)
             for _ in range(batch_size)
         ]
 
@@ -868,9 +966,11 @@ def train():
         # Evaluate
         if episode % EVAL_EVERY < PARALLEL_BATCH or episode >= NUM_EPISODES:
             network.eval()
-            net_sd_eval = network.state_dict()
+            # Write eval weights to shared memory
+            net_sd_eval = {k: v.cpu() for k, v in network.state_dict().items()}
+            _write_to_shared(shared_net_flat, net_sd_eval, net_keys)
             eval_args = [
-                (net_sd_eval, random.choice(MAPS), random.choice(SKILL_TIERS),
+                (random.choice(MAPS), random.choice(SKILL_TIERS),
                  MCTS_SIMULATIONS // 2)
                 for _ in range(EVAL_DRAFTS)
             ]
