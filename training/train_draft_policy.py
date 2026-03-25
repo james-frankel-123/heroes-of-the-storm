@@ -212,13 +212,18 @@ class AlphaZeroDraftNet(nn.Module):
 
     def predict(self, state: DraftState, device) -> tuple[np.ndarray, float]:
         """Get policy priors and value for a single state."""
-        self.eval()
-        x = state.to_tensor(device)
-        mask = state.valid_mask(device)
-        with torch.no_grad():
-            logits, value = self(x, mask)
-            priors = F.softmax(logits, dim=1).cpu().numpy()[0]
-        return priors, value.item()
+        # Note: caller should set .eval() once, not per-call
+        return _predict_fn(self, state, device)
+
+
+def _predict_fn(network, state, device):
+    """Standalone predict that works with both nn.Module and traced models."""
+    x = state.to_tensor(device)
+    mask = state.valid_mask(device)
+    with torch.no_grad():
+        logits, value = network(x, mask)
+        priors = F.softmax(logits, dim=1).cpu().numpy()[0]
+    return priors, value.item()
 
 
 # ── MCTS ─────────────────────────────────────────────────────────────
@@ -272,7 +277,7 @@ def mcts_search(
     root = MCTSNode(root_state)
 
     # Expand root — network sees our_team in the state encoding
-    priors, _ = network.predict(root_state, device)
+    priors, _ = _predict_fn(network, root_state, device)
     valid = root_state.valid_mask_np()
     priors = priors * valid
     prior_sum = priors.sum()
@@ -324,7 +329,7 @@ def mcts_search(
             # Expansion: expand this node with network predictions
             # Network output is already from our_team's perspective (embedded in state)
             if not node.is_expanded and scratch_state.current_team() == our_team:
-                priors_leaf, value = network.predict(scratch_state, device)
+                priors_leaf, value = _predict_fn(network, scratch_state, device)
                 valid_leaf = scratch_state.valid_mask_np()
                 priors_leaf = priors_leaf * valid_leaf
                 prior_sum = priors_leaf.sum()
@@ -339,7 +344,7 @@ def mcts_search(
                         )
             else:
                 # Leaf at opponent's turn or already expanded — use network value
-                _, value = network.predict(scratch_state, device)
+                _, value = _predict_fn(network, scratch_state, device)
 
         # Backpropagation
         while node is not None:
@@ -392,6 +397,63 @@ def _evaluate_wp(wp_model, state: DraftState, device, stats_cache=None, wp_enric
         wp = wp_model(x).item()
     # WP model always outputs P(team 0 wins); flip for team 1
     return wp if state.our_team == 0 else 1.0 - wp
+
+
+# ── C++ MCTS bridge ──────────────────────────────────────────────────
+
+# Module-level state for C++ MCTS callbacks (set by worker_init)
+_cpp_wp_model = None
+_cpp_stats_cache = None
+_cpp_wp_enriched_groups = None
+_cpp_wp_group_indices = None
+
+
+def _evaluate_wp_for_mcts(state):
+    """Called from C++ MCTS for terminal state evaluation."""
+    return _evaluate_wp(_cpp_wp_model, state, torch.device('cpu'),
+                        _cpp_stats_cache, _cpp_wp_enriched_groups, _cpp_wp_group_indices)
+
+
+def mcts_search_cpp(root_state, network, wp_model, gd_models, gd_temperature,
+                    device, num_simulations=200, c_puct=2.0,
+                    stats_cache=None, wp_enriched_groups=None, wp_group_indices=None):
+    """C++ MCTS wrapper. Falls back to Python MCTS if C++ module unavailable."""
+    try:
+        import sys
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'mcts_cpp'))
+        import mcts_core
+    except ImportError:
+        # Fall back to Python MCTS
+        return mcts_search(root_state, network, wp_model, gd_models, gd_temperature,
+                           device, num_simulations, c_puct,
+                           stats_cache, wp_enriched_groups, wp_group_indices)
+
+    # Set module-level state for C++ callbacks
+    global _cpp_wp_model, _cpp_stats_cache, _cpp_wp_enriched_groups, _cpp_wp_group_indices
+    _cpp_wp_model = wp_model
+    _cpp_stats_cache = stats_cache
+    _cpp_wp_enriched_groups = wp_enriched_groups
+    _cpp_wp_group_indices = wp_group_indices
+
+    our_team = root_state.our_team
+
+    def network_predict_fn(state):
+        priors, value = _predict_fn(network, state, device)
+        return priors, value
+
+    def gd_sample_fn(state):
+        gd_model = random.choice(gd_models)
+        x = state.to_tensor_gd(device)
+        mask = state.valid_mask(device)
+        with torch.no_grad():
+            logits = gd_model(x, mask)
+            probs = F.softmax(logits / gd_temperature, dim=1)
+            return torch.multinomial(probs, 1).item()
+
+    return mcts_core.mcts_search(
+        root_state, network_predict_fn, gd_sample_fn,
+        our_team, num_simulations, c_puct,
+    )
 
 
 # ── Training ─────────────────────────────────────────────────────────
@@ -562,9 +624,10 @@ def simulate_draft_with_mcts(
             state_features = state.to_numpy()
             valid = state.valid_mask_np()
 
-            visit_dist = mcts_search(
+            # Try C++ MCTS first, fall back to Python
+            visit_dist = mcts_search_cpp(
                 state, network, wp_model, gd_models, gd_temperature,
-                device, num_simulations=num_simulations,
+                device, num_simulations=num_simulations, c_puct=2.0,
                 stats_cache=stats_cache, wp_enriched_groups=wp_enriched_groups,
                 wp_group_indices=wp_group_indices,
             )
