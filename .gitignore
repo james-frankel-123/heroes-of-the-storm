@@ -45,5 +45,8 @@ training/__pycache__/
 training/*.pt
 training/*.onnx
 training/*.onnx.data
+training/mcts_runs/
+training/mcts_cpp/build/
+training/mcts_cpp/*.so
 wandb/
 training/.replay_cache.json
