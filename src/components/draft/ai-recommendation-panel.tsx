@@ -89,13 +89,19 @@ export function AIRecommendationPanel({
     if (state.currentStep >= DRAFT_SEQUENCE.length) return
     if (!state.map) return
 
-    // Deduplicate — include available battletags so assigning a player re-triggers
-    const stateKey = `${state.currentStep}-${JSON.stringify(state.selections)}-${availableBattletags.join(',')}`
-    if (stateKey === prevStateRef.current) return
-    prevStateRef.current = stateKey
-
+    // Deduplicate — include map/tier/team so perspective changes recompute
+    const stateKey = [
+      state.currentStep,
+      state.map,
+      state.tier,
+      state.ourTeam,
+      JSON.stringify(state.selections),
+      availableBattletags.join(','),
+    ].join('|')
     const opponentTurn = currentStep?.team !== state.ourTeam
     setIsOpponentTurn(opponentTurn)
+    if (stateKey === prevStateRef.current) return
+    prevStateRef.current = stateKey
 
     const run = async () => {
       try {

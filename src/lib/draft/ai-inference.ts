@@ -418,7 +418,7 @@ export async function getAIRecommendations(
           mawpAdj: adjustment,
           suggestedPlayer: player,
         }
-      })
+      }).sort(recommendationSorter)
       return {
         recommendations: ranked.slice(0, topK),
         valueEstimate: Math.max(0, Math.min(1, mctsResult.valueEstimate + teamMawpAdj)),
@@ -460,7 +460,7 @@ export async function getAIRecommendations(
       })
     }
   }
-  ranked.sort((a, b) => b.prior - a.prior)
+  ranked.sort(recommendationSorter)
 
   return {
     recommendations: ranked.slice(0, topK),
@@ -746,6 +746,12 @@ function softmaxMasked(logits: Float32Array, mask: Float32Array): Float32Array {
     for (let i = 0; i < result.length; i++) result[i] /= sum
   }
   return result
+}
+
+function recommendationSorter(a: AIRecommendation, b: AIRecommendation): number {
+  if (b.prior !== a.prior) return b.prior - a.prior
+  if (b.winProb !== a.winProb) return b.winProb - a.winProb
+  return a.hero.localeCompare(b.hero)
 }
 
 export { HEROES as AI_HEROES, HERO_TO_IDX as AI_HERO_TO_IDX }
