@@ -366,39 +366,43 @@ def mcts_search(
 
 def _evaluate_wp(wp_model, state: DraftState, device, stats_cache=None, wp_enriched_groups=None, wp_group_indices=None) -> float:
     """Get win probability from state.our_team's perspective using the WP model.
-    If stats_cache is provided, uses enriched features; otherwise falls back to base features.
+    Symmetrized: runs model twice (normal + team-swapped) and averages to
+    enforce P(t0,t1) + P(t1,t0) = 1.0, removing team-order bias.
     """
-    if stats_cache is not None and wp_enriched_groups is not None:
-        # Enriched WP model path
-        from sweep_enriched_wp import extract_features, FEATURE_GROUPS
-        t0_heroes = [HEROES[i] for i in range(NUM_HEROES) if state.team0_picks[i] > 0]
-        t1_heroes = [HEROES[i] for i in range(NUM_HEROES) if state.team1_picks[i] > 0]
-        d = {
-            'team0_heroes': t0_heroes, 'team1_heroes': t1_heroes,
-            'game_map': state.game_map, 'skill_tier': state.skill_tier, 'winner': 0,
-        }
-        all_mask = [True] * len(FEATURE_GROUPS)
-        base, enriched = extract_features(d, stats_cache, all_mask)
-        # Select only the groups used by this model
-        cols = []
-        for g in wp_enriched_groups:
-            s, e = wp_group_indices[g]
-            cols.extend(range(s, e))
-        enriched_selected = enriched[cols] if cols else np.array([], dtype=np.float32)
-        x_np = np.concatenate([base, enriched_selected])
-        x = torch.tensor(x_np, dtype=torch.float32).unsqueeze(0).to(device)
-    else:
-        # Base WP model path (197 dims)
-        t0 = torch.from_numpy(state.team0_picks).unsqueeze(0).to(device)
-        t1 = torch.from_numpy(state.team1_picks).unsqueeze(0).to(device)
-        m = torch.from_numpy(map_to_one_hot(state.game_map)).unsqueeze(0).to(device)
-        t = torch.from_numpy(tier_to_one_hot(state.skill_tier)).unsqueeze(0).to(device)
-        x = torch.cat([t0, t1, m, t], dim=1)
+    t0_heroes = [HEROES[i] for i in range(NUM_HEROES) if state.team0_picks[i] > 0]
+    t1_heroes = [HEROES[i] for i in range(NUM_HEROES) if state.team1_picks[i] > 0]
 
-    with torch.no_grad():
-        wp = wp_model(x).item()
-    # WP model always outputs P(team 0 wins); flip for team 1
-    return wp if state.our_team == 0 else 1.0 - wp
+    def _run_wp(t0h, t1h):
+        if stats_cache is not None and wp_enriched_groups is not None:
+            from sweep_enriched_wp import extract_features, FEATURE_GROUPS
+            d = {
+                'team0_heroes': t0h, 'team1_heroes': t1h,
+                'game_map': state.game_map, 'skill_tier': state.skill_tier, 'winner': 0,
+            }
+            all_mask = [True] * len(FEATURE_GROUPS)
+            base, enriched = extract_features(d, stats_cache, all_mask)
+            cols = []
+            for g in wp_enriched_groups:
+                s, e = wp_group_indices[g]
+                cols.extend(range(s, e))
+            enriched_selected = enriched[cols] if cols else np.array([], dtype=np.float32)
+            x_np = np.concatenate([base, enriched_selected])
+            x = torch.tensor(x_np, dtype=torch.float32).unsqueeze(0).to(device)
+        else:
+            t0 = torch.tensor(heroes_to_multi_hot(t0h), dtype=torch.float32).unsqueeze(0).to(device)
+            t1 = torch.tensor(heroes_to_multi_hot(t1h), dtype=torch.float32).unsqueeze(0).to(device)
+            m = torch.from_numpy(map_to_one_hot(state.game_map)).unsqueeze(0).to(device)
+            t = torch.from_numpy(tier_to_one_hot(state.skill_tier)).unsqueeze(0).to(device)
+            x = torch.cat([t0, t1, m, t], dim=1)
+        with torch.no_grad():
+            return wp_model(x).item()
+
+    # Symmetrized: average normal and team-swapped predictions
+    wp_normal = _run_wp(t0_heroes, t1_heroes)       # P(t0 wins | t0, t1)
+    wp_swapped = _run_wp(t1_heroes, t0_heroes)      # P(t0 wins | t1, t0) = P(t1 wins | t0, t1)
+    wp_t0 = (wp_normal + (1.0 - wp_swapped)) / 2.0  # symmetrized P(t0 wins)
+
+    return wp_t0 if state.our_team == 0 else 1.0 - wp_t0
 
 
 # ── C++ MCTS bridge ──────────────────────────────────────────────────
