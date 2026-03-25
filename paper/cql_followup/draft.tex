@@ -181,7 +181,7 @@ To provide a controlled baseline, we scale to a 512$\to$256$\to$128 architecture
 
 Of the 252 possible 5-role compositions, only 121--164 per tier appear in 9M games. The remaining $\sim$100 compositions per tier are structurally degenerate; no human players draft them. We generate synthetic training records for each unseen composition: heroes sampled by role, paired against real opponent teams, outcomes assigned at a 10\% win rate. 30K synthetic records ($\sim$11\% of training data) are added; the test set remains pure.
 
-We swept 27 configurations: 3 assigned win rates (10\%, 20\%, 30\%) $\times$ 3 volumes (50, 100, 200 per composition per tier) $\times$ 3 scopes (unseen compositions only, sparse low-WR compositions only, or both). Two findings stood out. First, augmenting unseen compositions (Tier~2) is the dominant factor; reinforcing sparse-but-real compositions with below-average win rates (Tier~1, those with $<$300 games and $<$48\% WR) had no measurable effect on any metric. The model already has sufficient training signal for compositions that humans occasionally play. The gap is exclusively in compositions that never occur in human play. Second, a lower assigned win rate (10\%) produces stronger penalties for extreme degeneracy, though all settings achieve 19--20/21 sanity tests. We report the best configuration: 10\% WR, 100 samples per composition, unseen-only scope.
+We swept 27 configurations: 3 assigned win rates (10\%, 20\%, 30\%) $\times$ 3 volumes (50, 100, 200 per composition per tier) $\times$ 3 scopes (unseen compositions only, sparse low-WR compositions only, or both). Two findings stood out. First, augmenting unseen compositions (Tier~2) is the dominant factor; reinforcing sparse-but-real compositions with below-average win rates (Tier~1, those with $<$300 games and $<$48\% WR) had no measurable effect on any metric. The model already learns sufficient signal from even sparse real data, and the gap is exclusively in regions with zero training coverage. This suggests that the OOD problem in draft valuation is binary rather than gradual: compositions that appear at all in human play, however rarely, provide enough signal; compositions that never appear provide none. Second, a lower assigned win rate (10\%) produces stronger penalties for extreme degeneracy, though all settings achieve 19--20/21 sanity tests. We report the best configuration: 10\% WR, 100 samples per composition, unseen-only scope.
 
 \subsection{Augmentation Results}
 
@@ -254,7 +254,7 @@ The 26.5\% residual degenerate rate from greedy search is partially a depth-1 li
 
 We reformulate drafting as offline RL. Each replay provides 16 state-action-reward transitions; with team-swap augmentation this yields $\sim$7.1M training transitions. The Q-network maps state (289 dims) through 512$\to$256$\to$128 layers to 90 Q-values (one per hero), with invalid actions masked to $-\infty$.
 
-We use Monte Carlo returns with $\gamma = 1.0$: since reward is only at the terminal step and episodes are fixed-length (16 steps), the Q-target for every transition is simply the game outcome. This eliminates the bootstrapping chain that makes offline RL difficult for long horizons. Under this choice, the Bellman backup degenerates to direct regression of Q-values on game outcomes, and the CQL penalty is the only component providing offline RL benefit over standard supervised learning. CQL thus becomes supervised Q-regression plus a pessimism penalty on actions not observed in the data:
+We use Monte Carlo returns with $\gamma = 1.0$: since reward is only at the terminal step and episodes are fixed-length (16 steps), the Q-target for every transition is simply the game outcome. This eliminates the bootstrapping chain that makes offline RL difficult for long horizons. Under this choice, the Bellman backup degenerates to direct regression of Q-values on game outcomes, and the CQL penalty is the only component providing offline RL benefit over standard supervised learning. The CQL penalty is therefore the \textit{only} component providing any offline RL benefit over standard supervised learning. This makes CQL's collapse to behavioral cloning especially diagnostic: the pessimism penalty, CQL's sole contribution beyond supervised regression, produces safety by suppressing uncommon actions rather than by learning compositional reasoning. CQL thus becomes supervised Q-regression plus a pessimism penalty on actions not observed in the data:
 \begin{equation}
 \mathcal{L} = \mathcal{L}_\text{BCE}(Q(s,a), y) + \alpha \left( \mathbb{E}_\mu[\log \sum_a e^{Q(s,a)}] - \mathbb{E}_\mathcal{D}[Q(s,a)] \right)
 \end{equation}
@@ -287,18 +287,18 @@ Table~\ref{tab:cql_basic} shows CQL with naive multi-hot features achieving 9.0\
 \centering
 \caption{Comprehensive evaluation across both axes of draft quality (200 drafts per strategy). Counter and synergy are average normalized pairwise deltas (positive = favorable). Entropy is Shannon entropy of pick distribution. GD Sim is agreement with the behavioral cloning model. Aug WP is the augmented model's evaluation of each strategy's drafts (higher = better composition quality as perceived by the most aware evaluator). Marker size in Fig.~\ref{fig:scatter} encodes distinct hero count.}
 \label{tab:rich}
-\begin{tabular}{lcccccccc}
+\begin{tabular}{lccccccccc}
 \toprule
-Strategy & Healer\% & Degen.\% & Counter & Synergy & Distinct & Entropy & Top-10\% & GD Sim\% \\
+Strategy & Heal\% & Deg.\% & Counter & Synergy & Dist. & Ent. & T10\% & GD\% & Aug WP \\
 \midrule
-GD baseline & 99.5 & 1.0 & $-$0.09 & $-$0.05 & 40 & 4.24 & 75.3 & 83.2 \\
-CQL $\alpha\!=\!0.5$ (naive) & 95.0 & 14.5 & $-$0.06 & $-$0.17 & 40 & 4.35 & 73.1 & 56.7 \\
-CQL $\alpha\!=\!1.0$ (naive) & 93.5 & 11.0 & $-$0.10 & $-$0.14 & 44 & 4.42 & 70.7 & 61.5 \\
-CQL $\alpha\!=\!0.5$ (enriched) & 98.0 & 5.5 & $-$0.10 & $-$0.09 & 38 & 4.24 & 72.3 & -- \\
-CQL $\alpha\!=\!2.0$ (enriched) & 98.5 & 3.0 & $-$0.11 & $-$0.04 & 38 & 4.30 & 72.7 & -- \\
+GD baseline & 99.5 & 1.0 & $-$.09 & $-$.05 & 40 & 4.24 & 75 & 83 & .522 \\
+CQL .5 (naive) & 95.0 & 14.5 & $-$.06 & $-$.17 & 40 & 4.35 & 73 & 57 & .473 \\
+CQL 1.0 (naive) & 93.5 & 11.0 & $-$.10 & $-$.14 & 44 & 4.42 & 71 & 62 & .504 \\
+CQL .5 (enr.) & 98.0 & 5.5 & $-$.10 & $-$.09 & 38 & 4.24 & 72 & 63 & .514 \\
+CQL 2.0 (enr.) & 98.5 & 3.0 & $-$.11 & $-$.04 & 38 & 4.30 & 73 & 70 & .512 \\
 \midrule
-Enriched WP (greedy) & 77.0 & 42.5 & $+$0.14 & $+$1.03 & 86 & 5.96 & 32.0 & 4.4 \\
-Enriched+aug (greedy) & 96.0 & 13.5 & $+$0.06 & $+$0.80 & 90 & 5.97 & 32.8 & 4.5 \\
+Enriched (greedy) & 77.0 & 42.5 & $+$.14 & $+$1.03 & 86 & 5.96 & 32 & 4 & .651 \\
+Enr.+aug (greedy) & 96.0 & 13.5 & $+$.06 & $+$.80 & 90 & 5.97 & 33 & 5 & .692 \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -318,11 +318,13 @@ Table~\ref{tab:rich} and Fig.~\ref{fig:scatter} reveal the full picture. We walk
 
 \paragraph{Hero diversity.} CQL and GD use 38--44 distinct heroes with 70--75\% of picks from the top 10. The enriched models use 86--90 heroes with only 32\% top-10 concentration. CQL's hero pool is collapsed to the same popular subset that humans pick from.
 
-\paragraph{GD similarity.} CQL agrees with the GD behavioral cloning model 57--62\% of the time. The enriched model agrees only 4.4\%. CQL makes decisions highly similar to behavioral cloning; the enriched model makes fundamentally different, context-dependent decisions.
+\paragraph{GD similarity.} CQL agrees with the GD behavioral cloning model 57--70\% of the time (higher with enriched features). The enriched greedy model agrees only 4--5\%. CQL makes decisions highly similar to behavioral cloning; the enriched model makes fundamentally different, context-dependent decisions.
+
+\paragraph{Cross-model WP.} The augmented WP model's evaluation of each strategy's drafts (Aug WP column) provides an independent quality assessment. The enriched+augmented greedy strategy scores highest (0.692), followed by the enriched greedy model (0.651). GD scores 0.522 and all CQL variants score lower (0.473--0.514), confirming that CQL produces drafts perceived as lower-quality than pure behavioral cloning by the most compositionally-aware evaluator.
 
 \subsection{CQL with Enriched Features}
 
-Adding the 86 enriched features to CQL's input (375 total dims) improves composition safety (3.0\% degen at $\alpha = 2.0$) but does not produce context-awareness. Counter responsiveness remains negative ($-$0.10 to $-$0.12), synergy remains near-zero ($-$0.04 to $-$0.15), and hero diversity stays at 38 heroes with 72--74\% top-10 concentration. The enriched features help CQL be more precise about what the behavior policy's distribution looks like, but CQL's pessimism still dominates, preventing matchup-dependent decisions.
+Adding the 86 enriched features to CQL's input (375 total dims) improves composition safety (3.0\% degen at $\alpha = 2.0$) but does not produce context-awareness. Counter responsiveness remains negative ($-$0.10 to $-$0.12), synergy remains near-zero ($-$0.04 to $-$0.15), and hero diversity stays at 38 heroes with 72--74\% top-10 concentration. GD similarity actually \textit{increases} with enriched features (63--70\% vs.\ 57--62\% for naive CQL), confirming that the enriched features help CQL be more precise about what the behavior policy's distribution looks like rather than enabling it to deviate from that distribution in productive ways. CQL's pessimism dominates regardless of input features, preventing matchup-dependent decisions.
 
 \subsection{The GD Baseline Revelation}
 
@@ -348,6 +350,8 @@ Our results reveal that composition safety and context-awareness require fundame
 
 CQL's pessimism penalizes \textit{all} uncommon state-action pairs, not just bad ones. In draft, the behavior policy is concentrated: humans regularly pick from roughly 40 heroes. CQL's penalty suppresses the other 50 heroes regardless of matchup context. Adding enriched features makes CQL more precise about what ``in-distribution'' looks like (3\% degen vs.\ 11\%) but does not help it distinguish ``uncommon and bad'' from ``uncommon and good for this matchup.''
 
+CQL cannot distinguish between actions that are uncommon because they are structurally bad (picking a fifth tank) and actions that are uncommon because the matchup rarely arises (picking a niche counter-hero into a specific opponent composition on a particular map). The behavior policy's concentration reflects player habits and meta-following, not optimal play: humans default to popular heroes even when uncommon picks would be stronger for the specific matchup. CQL inherits these limitations because its pessimism anchors to the behavior distribution rather than to any understanding of why certain actions are taken. In domains where the behavior policy is shaped by suboptimal habits rather than optimal decisions, conservatism preserves suboptimality.
+
 This is a structural limitation of pessimistic offline RL in domains with concentrated behavior policies, consistent with the findings of Lyu et al.~\cite{lyu2022mildly}. The draft behavior policy's concentration ratio (40 regularly-picked heroes out of 90) is comparable to many real-world domains where the behavior policy reflects conservative institutional norms rather than optimal decision-making.
 
 \subsection{Practical Implications}
@@ -357,6 +361,8 @@ For draft recommendation systems, value function search with enriched features p
 For value function evaluation, aggregate accuracy is insufficient. Policy-level metrics including counter responsiveness, synergy exploitation, and hero diversity should be standard evaluation criteria for any system that uses learned value functions for search.
 
 For offline RL practitioners, our results caution that CQL's composition metrics can be misleading. Low degenerate rates may indicate behavioral cloning rather than learned compositional reasoning. Action diversity metrics (distinct actions, entropy, behavioral cloning agreement) should be reported alongside reward-based metrics to detect this collapse.
+
+CQL's collapse to behavioral cloning is only a limitation when the behavior policy is suboptimal and the goal is to improve upon it. In domains where the behavior policy is near-optimal and the goal is safe deployment (medical treatment protocols, autonomous driving, industrial control) staying near human behavior is exactly the right objective. Draft selection is not such a domain: human drafters make systematic mistakes including ignoring counter-picks, following stale meta trends, and defaulting to comfort picks over optimal selections. A method that merely copies these habits provides safety but misses the improvement opportunity that motivates using ML in the first place.
 
 \section{Conclusion}
 
