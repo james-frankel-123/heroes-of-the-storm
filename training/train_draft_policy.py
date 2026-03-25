@@ -217,15 +217,26 @@ class AlphaZeroDraftNet(nn.Module):
 
 
 def _predict_fn(network, state, device):
-    """Standalone predict that works with nn.Module, traced models, and GPU proxy."""
+    """Standalone predict that works with nn.Module, traced models, and GPU proxy.
+    Value is symmetrized: run from both perspectives and average to remove team bias.
+    Policy priors are perspective-invariant (backbone doesn't see our_team).
+    """
     if isinstance(network, _GPUNetworkProxy):
         return network.predict(state, device)
     x = state.to_tensor(device)
     mask = state.valid_mask(device)
+
+    # Build the swapped-perspective state (flip our_team indicator)
+    x_swap = x.clone()
+    x_swap[:, -1] = 1.0 - x_swap[:, -1]  # flip our_team: 0->1, 1->0
+
     with torch.no_grad():
         logits, value = network(x, mask)
+        _, value_swap = network(x_swap, mask)
         priors = F.softmax(logits, dim=1).cpu().numpy()[0]
-    return priors, value.item()
+        # Symmetrize value: average own perspective with flipped opponent perspective
+        sym_value = (value.item() + (1.0 - value_swap.item())) / 2.0
+    return priors, sym_value
 
 
 # ── MCTS ─────────────────────────────────────────────────────────────
@@ -743,7 +754,12 @@ class _GPUNetworkProxy:
         state_np = state.to_numpy()
         mask_np = state.valid_mask_np()
         priors, value = self.client.predict(state_np, mask_np)
-        return priors, value
+        # Symmetrize value: flip our_team indicator and average
+        state_swap = state_np.copy()
+        state_swap[-1] = 1.0 - state_swap[-1]
+        _, value_swap = self.client.predict(state_swap, mask_np)
+        sym_value = (value + (1.0 - value_swap)) / 2.0
+        return priors, sym_value
 
     def __call__(self, x, mask=None):
         # Fallback for direct calls (shouldn't happen in MCTS path)
