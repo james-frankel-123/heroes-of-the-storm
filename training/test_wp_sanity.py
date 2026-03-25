@@ -197,6 +197,40 @@ symmetry_test('Symmetry: same comp mirror',
               ['Muradin', 'Brightwing', 'Valla', 'Sonya', 'Jaina'],
               ['Muradin', 'Brightwing', 'Valla', 'Sonya', 'Jaina'])
 
+# Additional mirror/symmetry tests: different comp strengths
+symmetry_test('Symmetry: degenerate vs standard',
+              ['Muradin', 'Johanna', 'Diablo', 'E.T.C.', "Mal'Ganis"],
+              ['Muradin', 'Brightwing', 'Valla', 'Sonya', 'Jaina'])
+
+symmetry_test('Symmetry: no-healer vs healer',
+              ['Muradin', 'Johanna', 'Valla', 'Falstad', 'Li-Ming'],
+              ['Diablo', 'Brightwing', 'Raynor', 'Sonya', 'Jaina'])
+
+symmetry_test('Symmetry: off-meta mirror',
+              ['Murky', 'Probius', 'The Lost Vikings', 'Nova', 'Samuro'],
+              ['Murky', 'Probius', 'The Lost Vikings', 'Nova', 'Samuro'])
+
+symmetry_test('Symmetry: strong vs weak',
+              ['Johanna', 'Malfurion', 'Li-Ming', 'Dehaka', 'Valla'],
+              ['Murky', 'Lt. Morales', 'Nova', 'Gazlowe', 'Chen'])
+
+# Mirror matches on different maps (should all be 50/50)
+symmetry_test('Symmetry: same comp mirror (Braxis)',
+              ['Johanna', 'Brightwing', 'Valla', 'Sonya', 'Falstad'],
+              ['Johanna', 'Brightwing', 'Valla', 'Sonya', 'Falstad'],
+              game_map='Braxis Holdout')
+
+symmetry_test('Symmetry: same comp mirror (Infernal)',
+              ['Diablo', 'Rehgar', 'Li-Ming', 'Dehaka', 'Raynor'],
+              ['Diablo', 'Rehgar', 'Li-Ming', 'Dehaka', 'Raynor'],
+              game_map='Infernal Shrines')
+
+# Cross-map symmetry: same matchup should swap cleanly regardless of map
+symmetry_test('Symmetry: balanced vs balanced (Towers)',
+              ['Muradin', 'Brightwing', 'Valla', 'Sonya', 'Jaina'],
+              ['Johanna', 'Malfurion', 'Li-Ming', 'Dehaka', 'Falstad'],
+              game_map='Towers of Doom')
+
 
 # ── Runner ──
 
