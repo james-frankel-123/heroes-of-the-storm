@@ -18,7 +18,7 @@ RUNS = [
         "wp_model": "augmented",
         "episodes": 300_000,
         "sims": 200,
-        "fresh": True,          # Resume from checkpoint ~228K
+        "fresh": False,          # Resume from checkpoint ~228K
         "log": "/tmp/mcts_run_G.log",
     },
     {
@@ -28,7 +28,7 @@ RUNS = [
         "wp_model": "base",
         "episodes": 300_000,
         "sims": 200,
-        "fresh": True,
+        "fresh": False,
         "log": "/tmp/mcts_run_A.log",
     },
     {
@@ -38,7 +38,7 @@ RUNS = [
         "wp_model": "enriched",
         "episodes": 300_000,
         "sims": 200,
-        "fresh": True,
+        "fresh": False,
         "log": "/tmp/mcts_run_E.log",
     },
     {
@@ -48,7 +48,7 @@ RUNS = [
         "wp_model": "augmented",
         "episodes": 300_000,
         "sims": 200,
-        "fresh": True,
+        "fresh": False,
         "log": "/tmp/mcts_run_G2.log",
     },
 ]
@@ -56,7 +56,10 @@ RUNS = [
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    worker_script = os.path.join(script_dir, "train_mcts_worker.py")
+    worker_script = os.path.join(script_dir, "train_draft_policy_worker.py")
+
+    # Create the per-run worker script
+    create_worker_script(worker_script)
 
     processes = []
     for run in RUNS:
