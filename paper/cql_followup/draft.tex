@@ -159,7 +159,9 @@ Enriched & \textbf{66.5} & \textbf{73.3} & \textbf{57.7} \\
 \label{fig:comp}
 \end{figure}
 
-The hero-strength model performs \textit{worse} than naive on healer selection (39.0\% vs.\ 49.0\%), suggesting individual strength features actively steer the model toward high-WR damage dealers and away from healers, whose individual win rates are moderate. Divergence is high across all draft phases: ban agreement is 9.5\%, early-pick 9.0\%, and late-pick 4.8\%.
+The hero-strength model performs \textit{worse} than naive on healer selection (39.0\% vs.\ 49.0\%). The mechanism is instructive: individual hero win rates for healers cluster narrowly around 49--51\% because healers depend on teammates to function, producing mediocre solo statistics. Damage dealers like Li-Ming or Kael'thas sit at 52--54\%. A model that adds individual WR as a feature learns ``high individual WR = good pick'' and systematically undervalues healers relative to damage dealers, even though a team of five 53\%-WR damage dealers will lose to a balanced team with a 49\%-WR healer. This is the accuracy-policy disconnect in miniature: a feature that improves prediction accuracy (hero strength is a real signal correlated with game outcomes) degrades policy quality when used for search (optimizing for individual WR produces teams of strong individuals who cannot function together).
+
+Divergence is high across all draft phases: ban agreement is 9.5\%, early-pick 9.0\%, and late-pick 4.8\%.
 
 \subsection{The Accuracy-Policy Disconnect}
 
@@ -248,13 +250,15 @@ The comp\_wr feature alone (Run F) does not improve over the enriched model (Run
 
 The 26.5\% residual degenerate rate from greedy search is partially a depth-1 limitation. MCTS with 200 simulations provides multi-step lookahead, allowing the agent to plan for future healer availability rather than evaluating one pick at a time. The augmented WP model's higher average WP in MCTS (0.626 vs.\ 0.602) suggests the augmentation helps even with deeper search. Rich evaluation metrics (counter responsiveness, synergy exploitation, hero diversity) for the MCTS policy are not yet available and remain an important direction for confirming whether MCTS achieves context-awareness alongside the safety improvements demonstrated by its higher WP scores.
 
+This subsection also explains why comp\_wr helps greedy search but not MCTS (Run F $\approx$ Run E in Table~\ref{tab:mcts}). MCTS addresses the greedy search horizon problem directly: the tree search can explore sequences where a healer is picked at step 5 even though step 3's greedy evaluation would prefer a damage dealer. The policy head, trained through self-play, provides implicit composition regularization; the network learns to avoid degenerate compositions from the self-play training signal, even without explicit composition features in the value function. Comp\_wr is therefore redundant for MCTS but critical for greedy search, because MCTS learns its own implicit composition policy through experience while greedy search relies entirely on the value function for every decision.
+
 \section{CQL: Safety Without Understanding}
 
 \subsection{CQL Setup}
 
 We reformulate drafting as offline RL. Each replay provides 16 state-action-reward transitions; with team-swap augmentation this yields $\sim$7.1M training transitions. The Q-network maps state (289 dims) through 512$\to$256$\to$128 layers to 90 Q-values (one per hero), with invalid actions masked to $-\infty$.
 
-We use Monte Carlo returns with $\gamma = 1.0$: since reward is only at the terminal step and episodes are fixed-length (16 steps), the Q-target for every transition is simply the game outcome. This eliminates the bootstrapping chain that makes offline RL difficult for long horizons. Under this choice, the Bellman backup degenerates to direct regression of Q-values on game outcomes, and the CQL penalty is the only component providing offline RL benefit over standard supervised learning. The CQL penalty is therefore the \textit{only} component providing any offline RL benefit over standard supervised learning. This makes CQL's collapse to behavioral cloning especially diagnostic: the pessimism penalty, CQL's sole contribution beyond supervised regression, produces safety by suppressing uncommon actions rather than by learning compositional reasoning. CQL thus becomes supervised Q-regression plus a pessimism penalty on actions not observed in the data:
+We use Monte Carlo returns with $\gamma = 1.0$: since reward is only at the terminal step and episodes are fixed-length (16 steps), the Q-target for every transition is simply the game outcome. This eliminates the bootstrapping chain that makes offline RL difficult for long horizons. Under this choice, the Bellman backup degenerates to direct regression of Q-values on game outcomes, and the CQL penalty is the only component providing offline RL benefit over standard supervised learning. This makes CQL's collapse to behavioral cloning especially diagnostic: the pessimism penalty, CQL's sole contribution beyond supervised regression, produces safety by suppressing uncommon actions rather than by learning compositional reasoning. CQL thus becomes supervised Q-regression plus a pessimism penalty on actions not observed in the data:
 \begin{equation}
 \mathcal{L} = \mathcal{L}_\text{BCE}(Q(s,a), y) + \alpha \left( \mathbb{E}_\mu[\log \sum_a e^{Q(s,a)}] - \mathbb{E}_\mathcal{D}[Q(s,a)] \right)
 \end{equation}
@@ -324,7 +328,11 @@ Table~\ref{tab:rich} and Fig.~\ref{fig:scatter} reveal the full picture. We walk
 
 \subsection{CQL with Enriched Features}
 
-Adding the 86 enriched features to CQL's input (375 total dims) improves composition safety (3.0\% degen at $\alpha = 2.0$) but does not produce context-awareness. Counter responsiveness remains negative ($-$0.10 to $-$0.12), synergy remains near-zero ($-$0.04 to $-$0.15), and hero diversity stays at 38 heroes with 72--74\% top-10 concentration. GD similarity actually \textit{increases} with enriched features (63--70\% vs.\ 57--62\% for naive CQL), confirming that the enriched features help CQL be more precise about what the behavior policy's distribution looks like rather than enabling it to deviate from that distribution in productive ways. CQL's pessimism dominates regardless of input features, preventing matchup-dependent decisions.
+Adding the 86 enriched features to CQL's input (375 total dims) improves composition safety (3.0\% degen at $\alpha = 2.0$) but does not produce context-awareness. Counter responsiveness remains negative ($-$0.10 to $-$0.12), synergy remains near-zero ($-$0.04 to $-$0.15), and hero diversity stays at 38 heroes with 72--74\% top-10 concentration.
+
+The most counterintuitive finding: GD similarity actually \textit{increases} with enriched features (63--70\% vs.\ 57--62\% for naive CQL). One might expect richer inputs to enable richer behavior, since the enriched features encode matchup-specific information (counter deltas, synergy scores) that could guide context-dependent decisions. Instead, enriched features make CQL \textit{more} like behavioral cloning, not less. The mechanism: enriched features give CQL a sharper picture of the behavior distribution's boundaries, so the pessimism penalty becomes more precise at keeping the agent inside those boundaries. The enriched features tell CQL exactly which actions humans take in which states, and CQL uses this information to stay closer to that distribution, not to deviate from it.
+
+The Aug WP column in Table~\ref{tab:rich} confirms this interpretation. CQL enriched (0.512--0.514) barely improves over CQL naive (0.473--0.504) and remains below the GD baseline (0.522). The enriched features do not help CQL find better drafts; they help it avoid the noisiest degenerate outputs while staying firmly within the behavior policy's footprint.
 
 \subsection{The GD Baseline Revelation}
 
