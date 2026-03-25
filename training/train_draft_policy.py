@@ -503,15 +503,16 @@ def bootstrap_from_generic_draft(network: AlphaZeroDraftNet, device):
 
 def pretrain_value_head(network: AlphaZeroDraftNet, device):
     """Briefly pre-train the value head on replay data with win/loss outcomes."""
-    print("Pre-training value head on replay data...")
-    data = load_replay_data()  # use all available replay data
+    # Use GPU for pretraining if available (much faster than CPU)
+    pt_device = torch.device("cuda:0") if torch.cuda.is_available() else device
+    print(f"Pre-training value head on replay data (device={pt_device})...")
+    data = load_replay_data()
     if len(data) < 100:
         print("Not enough data to pre-train value head")
         return
 
     train_data, _ = split_data(data)
 
-    # Prepare data — each replay produces two examples: one from each team's perspective
     X_list, y_list = [], []
     for d in train_data:
         t0 = heroes_to_multi_hot(d["team0_heroes"])
@@ -525,17 +526,16 @@ def pretrain_value_head(network: AlphaZeroDraftNet, device):
         m = map_to_one_hot(d["game_map"])
         t = tier_to_one_hot(d["skill_tier"])
         team0_won = float(d["winner"] == 0)
-        # our_team=0 perspective
         x0 = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0, 0.0]])
         X_list.append(x0)
         y_list.append(team0_won)
-        # our_team=1 perspective (same board, opposite value target)
         x1 = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0, 1.0]])
         X_list.append(x1)
         y_list.append(1.0 - team0_won)
 
-    X = torch.tensor(np.array(X_list, dtype=np.float32)).to(device)
-    y = torch.tensor(np.array(y_list, dtype=np.float32)).to(device)
+    X = torch.tensor(np.array(X_list, dtype=np.float32)).to(pt_device)
+    y = torch.tensor(np.array(y_list, dtype=np.float32)).to(pt_device)
+    network.to(pt_device)
 
     # Only train value head parameters (freeze backbone and policy)
     value_params = (list(network.value_fc1.parameters()) +
@@ -562,6 +562,7 @@ def pretrain_value_head(network: AlphaZeroDraftNet, device):
         if (epoch + 1) % 5 == 0:
             print(f"  Value pre-train epoch {epoch+1}: loss={total_loss/n_batches:.4f}")
 
+    network.to(device)  # move back to original device after pretraining
     print("Value head pre-training complete")
 
 
@@ -638,7 +639,7 @@ _worker_state = {}  # global per-worker state
 def _worker_init(wp_state_dict, gd_state_dicts, wp_enriched_config,
                  shared_net_flat, net_shapes, net_keys, use_torchscript,
                  gpu_slot_flags=None, gpu_req_buf=None, gpu_resp_buf=None,
-                 gpu_state_dim=None):
+                 gpu_state_dim=None, gpu_num_slots=256):
     """Called once per worker process. Loads all models into global state."""
     import torch
     from train_generic_draft import GenericDraftModel
@@ -653,7 +654,7 @@ def _worker_init(wp_state_dict, gd_state_dicts, wp_enriched_config,
         _worker_state['gpu_client'] = WorkerInferenceClient(
             gpu_slot_flags, gpu_req_buf, gpu_resp_buf,
             gpu_state_dim, gpu_state_dim + NUM_HEROES, NUM_HEROES + 1,
-            512, worker_id=os.getpid() % 512,
+            gpu_num_slots, worker_id=os.getpid() % gpu_num_slots,
         )
     else:
         _worker_state['gpu_client'] = None
@@ -961,14 +962,15 @@ def train():
     # GPU batch inference server (workers submit leaves, GPU process batches them)
     use_gpu_server = torch.cuda.is_available()
     gpu_server = None
-    gpu_init_args = (None, None, None, None)
+    GPU_SLOTS = 256
+    gpu_init_args = (None, None, None, None, GPU_SLOTS)
     if use_gpu_server:
         from gpu_batch_server import GPUBatchServer
-        gpu_server = GPUBatchServer(network.state_dict(), STATE_DIM, num_slots=512, max_batch=256)
+        gpu_server = GPUBatchServer(network.state_dict(), STATE_DIM, num_slots=GPU_SLOTS, max_batch=128)
         gpu_server.start(AlphaZeroDraftNet)
         gpu_init_args = (gpu_server.slot_flags, gpu_server.req_buf,
-                         gpu_server.resp_buf, STATE_DIM)
-        print(f"GPU batch server: started (512 slots, max batch 256)")
+                         gpu_server.resp_buf, STATE_DIM, GPU_SLOTS)
+        print(f"GPU batch server: started ({GPU_SLOTS} slots, max batch 128)")
     else:
         print("GPU batch server: disabled (no CUDA)")
 
