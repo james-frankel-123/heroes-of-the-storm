@@ -228,7 +228,9 @@ async function runPolicy(state: Float32Array, mask: Float32Array): Promise<{ pri
 }
 
 async function runGD(state: Float32Array, mask: Float32Array): Promise<number> {
-  const stateTensor = new ort.Tensor('float32', state, [1, STATE_DIM])
+  // GD model expects 289 dims (no ourTeam indicator)
+  const gdState = state.slice(0, STATE_DIM - 1)
+  const stateTensor = new ort.Tensor('float32', gdState, [1, STATE_DIM - 1])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
   const result = await gdSession.run({ state: stateTensor, valid_mask: maskTensor })
   const logits = result.hero_logits.data as Float32Array
@@ -358,9 +360,13 @@ async function loadModels() {
   // Force WASM backend
   ort.env.wasm.numThreads = 1
 
+  const tryLoad = async (int8: string, fp32: string) => {
+    try { return await ort.InferenceSession.create(int8) }
+    catch { return await ort.InferenceSession.create(fp32) }
+  }
   const [p, g] = await Promise.all([
-    ort.InferenceSession.create('/models/draft_policy_int8.onnx'),
-    ort.InferenceSession.create('/models/generic_draft_0_int8.onnx'),
+    tryLoad('/models/draft_policy_int8.onnx', '/models/draft_policy.onnx'),
+    tryLoad('/models/generic_draft_0_int8.onnx', '/models/generic_draft_0.onnx'),
   ])
   policySession = p
   gdSession = g
