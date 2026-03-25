@@ -217,7 +217,9 @@ class AlphaZeroDraftNet(nn.Module):
 
 
 def _predict_fn(network, state, device):
-    """Standalone predict that works with both nn.Module and traced models."""
+    """Standalone predict that works with nn.Module, traced models, and GPU proxy."""
+    if isinstance(network, _GPUNetworkProxy):
+        return network.predict(state, device)
     x = state.to_tensor(device)
     mask = state.valid_mask(device)
     with torch.no_grad():
@@ -634,7 +636,9 @@ _worker_state = {}  # global per-worker state
 
 
 def _worker_init(wp_state_dict, gd_state_dicts, wp_enriched_config,
-                 shared_net_flat, net_shapes, net_keys, use_torchscript):
+                 shared_net_flat, net_shapes, net_keys, use_torchscript,
+                 gpu_slot_flags=None, gpu_req_buf=None, gpu_resp_buf=None,
+                 gpu_state_dim=None):
     """Called once per worker process. Loads all models into global state."""
     import torch
     from train_generic_draft import GenericDraftModel
@@ -642,6 +646,17 @@ def _worker_init(wp_state_dict, gd_state_dicts, wp_enriched_config,
     device = torch.device('cpu')
     _worker_state['device'] = device
     _worker_state['shared_net_flat'] = shared_net_flat
+
+    # GPU inference client (if GPU server is running)
+    if gpu_slot_flags is not None:
+        from gpu_batch_server import WorkerInferenceClient
+        _worker_state['gpu_client'] = WorkerInferenceClient(
+            gpu_slot_flags, gpu_req_buf, gpu_resp_buf,
+            gpu_state_dim, gpu_state_dim + NUM_HEROES, NUM_HEROES + 1,
+            512, worker_id=os.getpid() % 512,
+        )
+    else:
+        _worker_state['gpu_client'] = None
     _worker_state['net_shapes'] = net_shapes
     _worker_state['net_keys'] = net_keys
 
@@ -713,16 +728,39 @@ def _load_net_from_shared():
     _worker_state['network'].load_state_dict(sd)
 
 
+class _GPUNetworkProxy:
+    """Proxy that routes predict() calls to the GPU batch server."""
+    def __init__(self, gpu_client, state_dim):
+        self.client = gpu_client
+        self.state_dim = state_dim
+
+    def predict(self, state, device):
+        state_np = state.to_numpy()
+        mask_np = state.valid_mask_np()
+        priors, value = self.client.predict(state_np, mask_np)
+        return priors, value
+
+    def __call__(self, x, mask=None):
+        # Fallback for direct calls (shouldn't happen in MCTS path)
+        raise NotImplementedError("Use predict() instead")
+
+
 def _run_episode(args):
     """Worker function. Reads network weights from shared memory, runs one episode."""
     game_map, skill_tier, num_sims = args
 
-    # Load latest network weights from shared memory (no pickling)
-    _load_net_from_shared()
+    gpu_client = _worker_state.get('gpu_client')
+    if gpu_client is not None:
+        # Use GPU server for network inference (no need to load weights locally)
+        network = _GPUNetworkProxy(gpu_client, STATE_DIM)
+    else:
+        # CPU inference: load latest weights from shared memory
+        _load_net_from_shared()
+        network = _worker_state['network']
 
     our_team = random.randint(0, 1)
     win_prob, examples = simulate_draft_with_mcts(
-        _worker_state['network'],
+        network,
         _worker_state['wp_model'],
         _worker_state['gd_models'],
         game_map, skill_tier,
@@ -920,13 +958,28 @@ def train():
     shared_net_flat = mp.Array('f', flat.numpy(), lock=False)
     print(f"Shared memory: {len(flat)} floats ({len(flat)*4/1024/1024:.1f} MB)")
 
-    # Create persistent worker pool — models loaded once in initializer
+    # GPU batch inference server (workers submit leaves, GPU process batches them)
+    use_gpu_server = torch.cuda.is_available()
+    gpu_server = None
+    gpu_init_args = (None, None, None, None)
+    if use_gpu_server:
+        from gpu_batch_server import GPUBatchServer
+        gpu_server = GPUBatchServer(network.state_dict(), STATE_DIM, num_slots=512, max_batch=256)
+        gpu_server.start(AlphaZeroDraftNet)
+        gpu_init_args = (gpu_server.slot_flags, gpu_server.req_buf,
+                         gpu_server.resp_buf, STATE_DIM)
+        print(f"GPU batch server: started (512 slots, max batch 256)")
+    else:
+        print("GPU batch server: disabled (no CUDA)")
+
+    # Create persistent worker pool
     print(f"Creating persistent pool with {NUM_WORKERS} workers...")
     pool = mp.Pool(
         NUM_WORKERS,
         initializer=_worker_init,
         initargs=(wp_sd, gd_sds, wp_enriched_config,
-                  shared_net_flat, net_shapes, net_keys, network_scripted),
+                  shared_net_flat, net_shapes, net_keys, network_scripted,
+                  *gpu_init_args),
     )
     print("Pool ready.")
 
@@ -939,6 +992,8 @@ def train():
         # Write latest network weights to shared memory (one write, all workers read)
         net_sd_cpu = {k: v.cpu() for k, v in network.state_dict().items()}
         _write_to_shared(shared_net_flat, net_sd_cpu, net_keys)
+        if gpu_server is not None:
+            gpu_server.update_weights(net_sd_cpu)
 
         worker_args = [
             (random.choice(MAPS), random.choice(SKILL_TIERS), MCTS_SIMULATIONS)
@@ -1002,9 +1057,11 @@ def train():
         # Evaluate
         if episode % EVAL_EVERY < PARALLEL_BATCH or episode >= NUM_EPISODES:
             network.eval()
-            # Write eval weights to shared memory
+            # Write eval weights to shared memory + GPU server
             net_sd_eval = {k: v.cpu() for k, v in network.state_dict().items()}
             _write_to_shared(shared_net_flat, net_sd_eval, net_keys)
+            if gpu_server is not None:
+                gpu_server.update_weights(net_sd_eval)
             eval_args = [
                 (random.choice(MAPS), random.choice(SKILL_TIERS),
                  MCTS_SIMULATIONS // 2)
@@ -1041,9 +1098,12 @@ def train():
                 print(f"  New best! Saved draft_policy.pt + checkpoint")
             print()
 
-    # Clean up worker pool
+    # Clean up worker pool and GPU server
     pool.close()
     pool.join()
+    if gpu_server is not None:
+        print(f"GPU server stats: {gpu_server.stats()}")
+        gpu_server.shutdown()
 
     # Export to ONNX
     print("Exporting to ONNX...")
