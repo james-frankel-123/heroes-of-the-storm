@@ -417,43 +417,15 @@ def _evaluate_wp_for_mcts(state):
 def mcts_search_cpp(root_state, network, wp_model, gd_models, gd_temperature,
                     device, num_simulations=200, c_puct=2.0,
                     stats_cache=None, wp_enriched_groups=None, wp_group_indices=None):
-    """C++ MCTS wrapper. Falls back to Python MCTS if C++ module unavailable."""
-    try:
-        import sys
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'mcts_cpp'))
-        import mcts_core
-    except ImportError:
-        # Fall back to Python MCTS
-        return mcts_search(root_state, network, wp_model, gd_models, gd_temperature,
-                           device, num_simulations, c_puct,
-                           stats_cache, wp_enriched_groups, wp_group_indices)
-
-    # Set module-level state for C++ callbacks
-    global _cpp_wp_model, _cpp_stats_cache, _cpp_wp_enriched_groups, _cpp_wp_group_indices
-    _cpp_wp_model = wp_model
-    _cpp_stats_cache = stats_cache
-    _cpp_wp_enriched_groups = wp_enriched_groups
-    _cpp_wp_group_indices = wp_group_indices
-
-    our_team = root_state.our_team
-
-    def network_predict_fn(state):
-        priors, value = _predict_fn(network, state, device)
-        return priors, value
-
-    def gd_sample_fn(state):
-        gd_model = random.choice(gd_models)
-        x = state.to_tensor_gd(device)
-        mask = state.valid_mask(device)
-        with torch.no_grad():
-            logits = gd_model(x, mask)
-            probs = F.softmax(logits / gd_temperature, dim=1)
-            return torch.multinomial(probs, 1).item()
-
-    return mcts_core.mcts_search(
-        root_state, network_predict_fn, gd_sample_fn,
-        our_team, num_simulations, c_puct,
-    )
+    """C++ MCTS wrapper. Falls back to Python MCTS if C++ module unavailable.
+    NOTE: C++ MCTS provides <2% speedup since 91% of time is in PyTorch forward
+    passes. Disabled by default to avoid complexity with module globals in workers.
+    """
+    # Always use Python MCTS (C++ MCTS provides <2% speedup since 91% of
+    # time is in PyTorch forward passes, not tree traversal)
+    return mcts_search(root_state, network, wp_model, gd_models, gd_temperature,
+                       device, num_simulations, c_puct,
+                       stats_cache, wp_enriched_groups, wp_group_indices)
 
 
 # ── Training ─────────────────────────────────────────────────────────
@@ -842,8 +814,9 @@ def train():
     network_scripted = False
     try:
         _test_net = AlphaZeroDraftNet()
-        _test_x = torch.randn(1, STATE_DIM)
-        _test_m = torch.ones(1, NUM_HEROES)
+        _test_net.eval()  # BatchNorm needs eval mode for batch_size=1
+        _test_x = torch.randn(2, STATE_DIM)
+        _test_m = torch.ones(2, NUM_HEROES)
         _scripted = torch.jit.trace(_test_net, (_test_x, _test_m))
         network_scripted = True
         print("TorchScript: enabled (traced successfully)")
