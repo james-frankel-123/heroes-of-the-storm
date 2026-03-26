@@ -56,10 +56,7 @@ RUNS = [
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    worker_script = os.path.join(script_dir, "train_draft_policy_worker.py")
-
-    # Create the per-run worker script
-    create_worker_script(worker_script)
+    worker_script = os.path.join(script_dir, "train_mcts_worker.py")
 
     processes = []
     for run in RUNS:
