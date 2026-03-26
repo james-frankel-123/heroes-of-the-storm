@@ -292,7 +292,7 @@ private:
     float *d_batch_states_, *d_batch_masks_, *d_batch_priors_, *d_batch_values_;
 };
 
-// ── Symmetrized prediction ─────────────────────────────────────────
+// ── Symmetrized prediction (single) ────────────────────────────────
 
 void predict_symmetrized(CUDAInferenceEngine& engine, const DraftState& state,
                          float* priors, float* value) {
@@ -303,7 +303,6 @@ void predict_symmetrized(CUDAInferenceEngine& engine, const DraftState& state,
     float value1, value2;
     engine.predict_policy(state_buf, mask_buf, priors, &value1);
 
-    // Flip our_team
     state_buf[STATE_DIM - 1] = 1.0f - state_buf[STATE_DIM - 1];
     float priors_ignored[NUM_HEROES];
     engine.predict_policy(state_buf, mask_buf, priors_ignored, &value2);
@@ -311,7 +310,18 @@ void predict_symmetrized(CUDAInferenceEngine& engine, const DraftState& state,
     *value = (value1 + (1.0f - value2)) / 2.0f;
 }
 
-// ── MCTS Search ────────────────────────────────────────────────────
+// ── Batched MCTS Search with Virtual Loss ──────────────────────────
+
+constexpr int VL_BATCH = 32;
+constexpr float VIRTUAL_LOSS = 3.0f;
+
+struct LeafInfo {
+    int node_idx;
+    DraftState scratch;
+    std::vector<int> path;
+    bool is_terminal;
+    bool needs_expand;
+};
 
 void mcts_search(
     const DraftState& root_state,
@@ -354,110 +364,157 @@ void mcts_search(
         ci++;
     }
 
-    // Simulations
-    for (int sim = 0; sim < num_simulations; sim++) {
-        int node_idx = root_idx;
-        DraftState scratch = root_state;
-        std::vector<int> path = {root_idx};
+    // Batched simulations with virtual loss
+    // Pre-allocate batch buffers (K leaves × 2 perspectives for symmetrization)
+    constexpr int MAX_K = VL_BATCH;
+    float batch_states[MAX_K * 2 * STATE_DIM];
+    float batch_masks[MAX_K * 2 * NUM_HEROES];
+    float batch_priors[MAX_K * 2 * NUM_HEROES];
+    float batch_values[MAX_K * 2];
 
-        // SELECT
-        while (tree.nodes[node_idx].is_expanded && !scratch.is_terminal()) {
-            if (scratch.current_team() == our_team) {
-                MCTSNode& node = tree.nodes[node_idx];
-                float best_score = -1e30f;
-                int best_slot = -1;
+    int remaining = num_simulations;
+    while (remaining > 0) {
+        int k = std::min(MAX_K, remaining);
+        std::vector<LeafInfo> leaves(k);
 
-                for (int c = 0; c < node.num_children; c++) {
-                    int ci = tree.child_indices[node.children_start + c];
-                    MCTSNode& child = tree.nodes[ci];
-                    float q = child.q_value();
-                    float u = c_puct * child.prior *
-                              std::sqrt((float)node.visit_count) / (1.0f + child.visit_count);
-                    if (q + u > best_score) {
-                        best_score = q + u;
-                        best_slot = c;
+        // ── SELECT with virtual loss ──
+        for (int i = 0; i < k; i++) {
+            int node_idx = root_idx;
+            DraftState scratch = root_state;
+            std::vector<int> path = {root_idx};
+
+            while (tree.nodes[node_idx].is_expanded && !scratch.is_terminal()) {
+                if (scratch.current_team() == our_team) {
+                    MCTSNode& node = tree.nodes[node_idx];
+                    float best_score = -1e30f;
+                    int best_slot = -1;
+
+                    for (int c = 0; c < node.num_children; c++) {
+                        int ci2 = tree.child_indices[node.children_start + c];
+                        MCTSNode& child = tree.nodes[ci2];
+                        float q = child.q_value();
+                        float u = c_puct * child.prior *
+                                  std::sqrt((float)node.visit_count) / (1.0f + child.visit_count);
+                        if (q + u > best_score) {
+                            best_score = q + u;
+                            best_slot = c;
+                        }
                     }
-                }
 
-                if (best_slot < 0) break;
-                int chosen = tree.child_indices[node.children_start + best_slot];
-                scratch.apply_action(tree.nodes[chosen].action,
-                                     scratch.current_team(), scratch.current_is_pick());
-                node_idx = chosen;
-                path.push_back(node_idx);
-            } else {
-                // Opponent: cached GD distribution
-                MCTSNode& node = tree.nodes[node_idx];
-                if (!node.has_cached_opp) {
-                    float full[STATE_DIM], gd_state[GD_STATE_DIM], gd_mask[NUM_HEROES], gd_logits[NUM_HEROES];
-                    scratch.to_float_array(full);
-                    std::memcpy(gd_state, full, GD_STATE_DIM * sizeof(float));
-                    scratch.valid_mask(gd_mask);
+                    if (best_slot < 0) break;
+                    int chosen = tree.child_indices[node.children_start + best_slot];
 
-                    engine.predict_gd(gd_state, gd_mask, gd_logits);
+                    // Apply virtual loss
+                    tree.nodes[chosen].visit_count += (int)VIRTUAL_LOSS;
+                    tree.nodes[chosen].value_sum -= VIRTUAL_LOSS;
 
-                    float max_l = -1e30f;
-                    for (int i = 0; i < NUM_HEROES; i++) max_l = std::max(max_l, gd_logits[i]);
-                    float sum = 0;
-                    for (int i = 0; i < NUM_HEROES; i++) {
-                        node.cached_opp_probs[i] = std::exp(gd_logits[i] - max_l);
-                        sum += node.cached_opp_probs[i];
+                    scratch.apply_action(tree.nodes[chosen].action,
+                                         scratch.current_team(), scratch.current_is_pick());
+                    node_idx = chosen;
+                    path.push_back(node_idx);
+                } else {
+                    // Opponent: cached GD distribution
+                    MCTSNode& node = tree.nodes[node_idx];
+                    if (!node.has_cached_opp) {
+                        float full[STATE_DIM], gd_state[GD_STATE_DIM], gd_mask[NUM_HEROES], gd_logits[NUM_HEROES];
+                        scratch.to_float_array(full);
+                        std::memcpy(gd_state, full, GD_STATE_DIM * sizeof(float));
+                        scratch.valid_mask(gd_mask);
+                        engine.predict_gd(gd_state, gd_mask, gd_logits);
+
+                        float max_l = -1e30f;
+                        for (int j = 0; j < NUM_HEROES; j++) max_l = std::max(max_l, gd_logits[j]);
+                        float sum = 0;
+                        for (int j = 0; j < NUM_HEROES; j++) {
+                            node.cached_opp_probs[j] = std::exp(gd_logits[j] - max_l);
+                            sum += node.cached_opp_probs[j];
+                        }
+                        if (sum > 0) for (int j = 0; j < NUM_HEROES; j++) node.cached_opp_probs[j] /= sum;
+                        node.has_cached_opp = true;
                     }
-                    if (sum > 0) for (int i = 0; i < NUM_HEROES; i++) node.cached_opp_probs[i] /= sum;
-                    node.has_cached_opp = true;
+                    std::discrete_distribution<int> dist(
+                        node.cached_opp_probs, node.cached_opp_probs + NUM_HEROES);
+                    int opp_action = dist(rng);
+                    scratch.apply_action(opp_action, scratch.current_team(), scratch.current_is_pick());
                 }
-
-                std::discrete_distribution<int> dist(
-                    node.cached_opp_probs, node.cached_opp_probs + NUM_HEROES);
-                int opp_action = dist(rng);
-                scratch.apply_action(opp_action, scratch.current_team(), scratch.current_is_pick());
             }
+
+            leaves[i].node_idx = node_idx;
+            leaves[i].scratch = scratch;
+            leaves[i].path = std::move(path);
+            leaves[i].is_terminal = scratch.is_terminal();
+            leaves[i].needs_expand = !tree.nodes[node_idx].is_expanded && !scratch.is_terminal()
+                                     && scratch.current_team() == our_team;
         }
 
-        // EVALUATE
-        float value;
-        if (scratch.is_terminal() || tree.nodes[node_idx].is_expanded) {
-            float dummy_priors[NUM_HEROES];
-            predict_symmetrized(engine, scratch, dummy_priors, &value);
-        } else {
-            // Expand leaf
-            MCTSNode& leaf = tree.nodes[node_idx];
-            if (scratch.current_team() == our_team) {
-                float leaf_priors[NUM_HEROES];
-                predict_symmetrized(engine, scratch, leaf_priors, &value);
+        // ── BATCH EVALUATE with symmetrization ──
+        // Build batch: k states × 2 (normal + swapped our_team)
+        for (int i = 0; i < k; i++) {
+            float* s_normal = batch_states + i * STATE_DIM;
+            float* s_swapped = batch_states + (k + i) * STATE_DIM;
+            float* m_normal = batch_masks + i * NUM_HEROES;
+            float* m_swapped = batch_masks + (k + i) * NUM_HEROES;
 
-                float leaf_mask[NUM_HEROES];
-                scratch.valid_mask(leaf_mask);
+            leaves[i].scratch.to_float_array(s_normal);
+            leaves[i].scratch.valid_mask(m_normal);
+
+            std::memcpy(s_swapped, s_normal, STATE_DIM * sizeof(float));
+            s_swapped[STATE_DIM - 1] = 1.0f - s_normal[STATE_DIM - 1]; // flip our_team
+            std::memcpy(m_swapped, m_normal, NUM_HEROES * sizeof(float));
+        }
+
+        // Single batched GPU call for 2k samples
+        engine.predict_policy_batch(batch_states, batch_masks,
+                                     batch_priors, batch_values, 2 * k);
+
+        // Symmetrize values
+        float sym_values[MAX_K];
+        for (int i = 0; i < k; i++) {
+            sym_values[i] = (batch_values[i] + (1.0f - batch_values[k + i])) / 2.0f;
+        }
+
+        // ── EXPAND + BACKPROP ──
+        for (int i = 0; i < k; i++) {
+            float value = sym_values[i];
+            int node_idx = leaves[i].node_idx;
+
+            if (leaves[i].needs_expand) {
+                MCTSNode& leaf = tree.nodes[node_idx];
+                float* leaf_priors = batch_priors + i * NUM_HEROES;
+                float* leaf_mask = batch_masks + i * NUM_HEROES;
+
                 float psum = 0;
-                for (int i = 0; i < NUM_HEROES; i++) { leaf_priors[i] *= leaf_mask[i]; psum += leaf_priors[i]; }
-                if (psum > 0) for (int i = 0; i < NUM_HEROES; i++) leaf_priors[i] /= psum;
+                for (int j = 0; j < NUM_HEROES; j++) {
+                    leaf_priors[j] *= leaf_mask[j];
+                    psum += leaf_priors[j];
+                }
+                if (psum > 0) for (int j = 0; j < NUM_HEROES; j++) leaf_priors[j] /= psum;
 
                 int nv = 0;
-                for (int i = 0; i < NUM_HEROES; i++) if (leaf_mask[i] > 0.5f) nv++;
+                for (int j = 0; j < NUM_HEROES; j++) if (leaf_mask[j] > 0.5f) nv++;
                 leaf.is_expanded = true;
                 leaf.children_start = tree.alloc_children(nv);
                 leaf.num_children = nv;
-                int ci = 0;
-                for (int i = 0; i < NUM_HEROES; i++) {
-                    if (leaf_mask[i] < 0.5f) continue;
+                int ci2 = 0;
+                for (int j = 0; j < NUM_HEROES; j++) {
+                    if (leaf_mask[j] < 0.5f) continue;
                     int ch = tree.alloc_node();
-                    tree.child_indices[leaf.children_start + ci] = ch;
+                    tree.child_indices[leaf.children_start + ci2] = ch;
                     tree.nodes[ch].parent_idx = node_idx;
-                    tree.nodes[ch].action = i;
-                    tree.nodes[ch].prior = leaf_priors[i];
-                    ci++;
+                    tree.nodes[ch].action = j;
+                    tree.nodes[ch].prior = leaf_priors[j];
+                    ci2++;
                 }
-            } else {
-                float dummy_priors[NUM_HEROES];
-                predict_symmetrized(engine, scratch, dummy_priors, &value);
+            }
+
+            // Undo virtual loss and apply real update
+            for (int idx : leaves[i].path) {
+                tree.nodes[idx].visit_count += 1 - (int)VIRTUAL_LOSS;
+                tree.nodes[idx].value_sum += value + VIRTUAL_LOSS;
             }
         }
 
-        // BACKPROP
-        for (int idx : path) {
-            tree.nodes[idx].visit_count++;
-            tree.nodes[idx].value_sum += value;
-        }
+        remaining -= k;
     }
 
     // Extract visit distribution
