@@ -12,6 +12,7 @@ import {
   getAIRecommendations,
   getGenericDraftPredictions,
   getValueEstimate,
+  getWinProbability,
   type AIDraftState,
   type AIRecommendation,
   type PlayerMAWPData,
@@ -122,18 +123,24 @@ export function AIRecommendationPanel({
           const preds = await getGenericDraftPredictions(aiState, taken)
           setGdPredictions(preds)
           setRecommendations([])
-          // Still update value estimate (with MAWP) so draft board WP stays current
-          const ve = await getValueEstimate(aiState, playerData)
-          setValueEstimate(ve)
         } else {
           // Our turn: use Policy model for recommendations
-          const { recommendations: recs, valueEstimate: ve } = await getAIRecommendations(
+          const { recommendations: recs } = await getAIRecommendations(
             aiState, taken, currentStep?.team ?? 'A', playerData
           )
           setRecommendations(recs)
           setGdPredictions([])
-          setValueEstimate(ve)
         }
+
+        // Always update WP using the enriched WP model (properly symmetrized)
+        // instead of the policy value head (which has training artifacts)
+        const wp = await getWinProbability(
+          aiState.team0Picks, aiState.team1Picks,
+          aiState.map, aiState.tier, draftData
+        )
+        // WP model returns P(team0 wins); convert to our team's perspective
+        const ourWp = aiState.ourTeam === 0 ? wp : 1 - wp
+        setValueEstimate(ourWp)
       } catch (err: any) {
         console.error('[AI] Inference error:', err)
       }
