@@ -48,5 +48,8 @@ training/*.onnx.data
 training/mcts_runs/
 training/mcts_cpp/build/
 training/mcts_cpp/*.so
+training/cuda_mcts/build/
+training/cuda_mcts/*.so
+training/cuda_mcts/__pycache__/
 wandb/
 training/.replay_cache.json
