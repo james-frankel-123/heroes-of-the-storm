@@ -122,6 +122,8 @@ struct EpisodeMemory {
     float out_masks[MAX_OUR_TURNS][NUM_HEROES];
     int num_our_turns;
     float win_prob;
+    float terminal_state[STATE_DIM];  // for WP model evaluation on host
+    int our_team;                      // needed for WP perspective
 };
 
 
@@ -448,13 +450,14 @@ extern "C" __global__ void mcts_episodes_kernel(
         }
     }
 
-    // Terminal evaluation
+    // Terminal: write state for host-side WP evaluation (kernel value head is only for search)
     main_state.to_float_array(state_buf);
-    d_policy_backbone(state_buf, W_policy, policy_off, buf_e, workspace);
-    float final_val = d_value_head_symmetrized(
-        buf_e, (float)main_state.our_team, W_policy, policy_off, workspace);
-
+    // Copy terminal state to global memory for host WP model
+    for (int i = tid; i < STATE_DIM; i += blockDim.x)
+        ep->terminal_state[i] = state_buf[i];
     if (tid == 0) {
-        ep->win_prob = (main_state.our_team == 0) ? final_val : (1.0f - final_val);
+        ep->our_team = main_state.our_team;
+        // Use value head as fallback wp (host will overwrite with WP model)
+        ep->win_prob = 0.5f;
     }
 }

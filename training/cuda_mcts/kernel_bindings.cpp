@@ -59,6 +59,8 @@ struct EpisodeMemory {
     float out_masks[MAX_OUR_TURNS][NUM_HEROES];
     int num_our_turns;
     float win_prob;
+    float terminal_state[STATE_DIM];
+    int our_team;
 };
 
 // Kernel declaration
@@ -225,7 +227,9 @@ public:
 
     // Run episodes and write results directly into pre-allocated numpy ring buffer.
     // Returns number of training examples written.
-    int run_episodes_into_buffer(
+    // Run episodes, write training data into ring buffer, output terminal states for WP eval.
+    // Returns (n_written, terminal_states, our_teams)
+    py::tuple run_episodes_into_buffer(
         py::array_t<int> configs, int num_sims, float c_puct, unsigned long long seed,
         py::array_t<float> buf_states,    // (BUFFER_SIZE, 290)
         py::array_t<float> buf_policies,  // (BUFFER_SIZE, 90)
@@ -259,23 +263,40 @@ public:
         auto m_ptr = buf_masks.mutable_unchecked<2>();
         auto v_ptr = buf_values.mutable_unchecked<1>();
 
+        // Build terminal state output arrays
+        auto term_states = py::array_t<float>({n, STATE_DIM});
+        auto term_teams = py::array_t<int>(n);
+        auto ts_ptr = term_states.mutable_unchecked<2>();
+        auto tt_ptr = term_teams.mutable_unchecked<1>();
+
+        // Track which buffer indices belong to which episode (for WP writeback)
+        auto ep_start_idx = py::array_t<int>(n);   // buffer index of first example per episode
+        auto ep_num_turns = py::array_t<int>(n);    // num turns per episode
+        auto esi_ptr = ep_start_idx.mutable_unchecked<1>();
+        auto ent_ptr = ep_num_turns.mutable_unchecked<1>();
+
         int write_pos = write_offset;
         int total_written = 0;
 
         for (int ep = 0; ep < n; ep++) {
             EpisodeMemory& mem = h_episodes_[ep];
-            float wp = mem.win_prob;
+            // Copy terminal state for WP eval
+            std::memcpy(ts_ptr.mutable_data(ep, 0), mem.terminal_state, STATE_DIM * sizeof(float));
+            tt_ptr(ep) = mem.our_team;
+            esi_ptr(ep) = write_pos % buffer_size;
+            ent_ptr(ep) = mem.num_our_turns;
+
             for (int t = 0; t < mem.num_our_turns; t++) {
                 int idx = write_pos % buffer_size;
                 std::memcpy(s_ptr.mutable_data(idx, 0), mem.out_states[t], STATE_DIM * sizeof(float));
                 std::memcpy(p_ptr.mutable_data(idx, 0), mem.out_policies[t], NUM_HEROES * sizeof(float));
                 std::memcpy(m_ptr.mutable_data(idx, 0), mem.out_masks[t], NUM_HEROES * sizeof(float));
-                v_ptr(idx) = wp;
+                v_ptr(idx) = 0.5f;  // placeholder, host will overwrite with WP eval
                 write_pos++;
                 total_written++;
             }
         }
-        return total_written;
+        return py::make_tuple(total_written, term_states, term_teams, ep_start_idx, ep_num_turns);
     }
 
     void update_weights(py::array_t<float> new_weights) {
