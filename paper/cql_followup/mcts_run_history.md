@@ -10,172 +10,60 @@
 - **Search**: 200 MCTS simulations per move, c_puct=2.0
 - **Opponents**: 5 Generic Draft models (behavioral cloning, 275K replays, different seeds)
 - **Training**: Self-play with MCTS, replay buffer (150K transitions), cosine LR schedule
-- **Evaluation**: 200 games vs GD opponent pool every ~500 episodes
-  - Metric 1: Win rate (% of games where MCTS agent's team wins by enriched WP evaluation)
-  - Metric 2: Average WP (mean enriched WP for MCTS agent's terminal draft states)
+- **Value symmetrization**: Both WP evaluation and value head run from both perspectives, averaged to enforce P(t0,t1) + P(t1,t0) = 1.0
+- **Evaluation**: 50 games vs GD opponent pool every 5000 episodes
 
-## Run Summary
+## Prior Runs (invalidated)
 
-| Run | Date | Episodes | WP Model | Final WR | Peak WR | Final WP | Peak WP | Notes |
-|-----|------|----------|----------|----------|---------|----------|---------|-------|
-| A | Mar 18 | 79K | Base (197d) | 78.0% | 84.0% | 0.546 | 0.548 | First run, base WP, slower (1.6 ep/s) |
-| B | Mar 18 | 38K | Base (197d) | 49.0% | 55.0% | 0.485 | 0.496 | Aborted (architecture experiment) |
-| C | Mar 19 | 167K | Enriched (283d, no comp_wr) | 89.0% | 96.0% | 0.598 | 0.605 | First enriched WP, deployed as 203K model |
-| D | Mar 20 | 19K | Enriched (283d) | 91.0% | 91.0% | 0.579 | 0.583 | Aborted (testing enriched WP variant) |
-| E | Mar 20-21 | 300K | Enriched (283d, no comp_wr) | 89.5% | 95.5% | 0.602 | 0.613 | Full run, 256->128 WP, deployed |
-| F | Mar 23 | 300K | Enriched (283d, with comp_wr) | 89.5% | 93.5% | 0.598 | 0.612 | Added comp_wr to WP, deployed |
-| G | Mar 24 | 226K+ | Augmented (283d, 512->256->128 WP, synthetic data) | 92.5% | 95.5% | 0.626 | 0.639 | Current run, ~6h remaining |
+All runs before March 26 used non-symmetrized WP evaluation, which had significant team-order bias (up to 24% asymmetry on mirror matchups). These results are **not comparable** to the current runs and should not be cited in the paper.
 
-## Detailed Learning Curves
+Historical reference only:
 
-### Run A: Base WP Model (79K episodes)
+| Run | WP Model | Episodes | Final WR | Final WP | Notes |
+|-----|----------|----------|----------|----------|-------|
+| A (old) | Base (197d) | 79K | 78.0% | 0.546 | Non-symmetrized, CPU, 1.6 ep/s |
+| C (old) | Enriched (283d) | 167K | 89.0% | 0.598 | Non-symmetrized |
+| E (old) | Enriched (300K) | 300K | 89.5% | 0.602 | Non-symmetrized |
+| F (old) | + comp_wr | 300K | 89.5% | 0.598 | Non-symmetrized |
+| G (old) | Augmented | 239K | 92.5% | 0.626 | Crashed at quantization, non-symmetrized |
 
-First successful MCTS training run. Used the naive 197-dim WP model (multi-hot + map + tier only, no enriched features). Trained on CPU at 1.6 ep/s.
+## Current Runs (symmetrized, in progress)
 
-```
-Episode    Avg WP    Win Rate
-    522    0.4683      39.5%
-  5,000    ~0.48       ~47%
- 10,000    ~0.49       ~52%
- 25,000    ~0.51       ~60%
- 50,000    ~0.53       ~70%
- 79,054    0.5460      78.0%
-```
+All current runs use symmetrized WP evaluation AND symmetrized value head. Trained on the full CUDA kernel engine at ~48 ep/s per GPU.
 
-The policy learned to beat GD opponents but plateaued at 78% win rate. Limited by the base WP model's inability to evaluate compositions.
+| Run | GPU | WP Model | Episodes | Status | Notes |
+|-----|-----|----------|----------|--------|-------|
+| run_A_base | 1 | Base (197d, 256->128) | 300K | Running | Fair baseline: what does base WP achieve with full training? |
+| run_E_enriched | 2 | Enriched (283d, 256->128, no augmentation) | 300K | Running | Enriched features without synthetic data |
+| run_G_augmented | 0 | Augmented (283d, 512->256->128, synthetic) | 300K | Running | Best WP model from augmentation experiments |
+| run_G2_augmented_fresh | 3 | Augmented (same as G, different seed) | 300K | Running | Second seed for confidence |
 
-### Run C: First Enriched WP (167K episodes)
+**ETA**: All 4 complete in ~100 minutes from start (~2h wall time including pretraining).
 
-Switched to the enriched WP model (283 dims, including role_counts, pairwise stats, map_delta, meta_strength, draft_diversity -- but NOT comp_wr, which was added later). Major improvement over Run A.
+## Training Infrastructure Evolution
 
-```
-Episode    Avg WP    Win Rate
-    522    0.4779      40.0%
-  5,000    0.497       48.0%
- 25,000    0.525       60.5%
- 50,000    0.560       73.0%
-100,000    0.581       83.5%
-150,000    0.595       88.0%
-167,000    0.598       89.0%
-```
+| Version | Date | Throughput | Bottleneck |
+|---------|------|-----------|------------|
+| Python sequential MCTS | Mar 18-24 | 2-5 ep/s (all workers) | PyTorch CPU forward passes |
+| Persistent pool + shared memory | Mar 25 | 5.5 ep/s (64 workers) | Pool creation, weight pickling |
+| Python batched MCTS (virtual loss) | Mar 25 | 0.67x (slower) | Numpy buffer overhead > GPU benefit |
+| C++ MCTS + fused CUDA kernels (host-launched) | Mar 25 | 5.1 ep/s (single thread) | cudaStreamSynchronize per forward pass (2.4ms) |
+| C++ MCTS + batched CUDA (K=32, host-launched) | Mar 25 | 10.9x vs Python | Amortized sync, 85μs/sample |
+| Full CUDA kernel (one block = one episode) | Mar 26 | 26 ep/s per GPU | Zero launch overhead, all in-kernel |
+| + ring buffer + pipelining + GPU training | Mar 26 | **48 ep/s per GPU** | Approaching hardware ceiling |
 
-Peak win rate 96.0% at 154K episodes. This run was deployed as the "203K episode" model (it was extended slightly past 167K before deployment).
+**Total speedup**: 48 ep/s per GPU vs ~1.2 ep/s per run (old Python 4×16 config) = **40x per GPU, 160x total** across 4 GPUs.
 
-### Run E: Full 300K with Enriched WP (no comp_wr)
-
-Same enriched WP model as Run C, trained for the full 300K episodes.
-
-```
-Episode    Avg WP    Win Rate
-    522    0.4669      39.0%
-  5,000    0.500       47.5%
- 25,000    0.527       58.0%
- 50,000    0.565       71.5%
-100,000    0.585       83.0%
-150,000    0.597       86.0%
-200,000    0.603       89.5%
-250,000    0.608       91.0%
-300,000    0.602       89.5%
-```
-
-Peak win rate 95.5% at 299K episodes. WP plateaus around 0.61. Deployed as the "300K episode" model.
-
-### Run F: 300K with comp_wr Enriched WP
-
-Added comp_wr (empirical composition win rates from 9M Heroes Profile games) to the WP model. This is the WP model that produces 17.2% WP for 5-tank compositions (vs 44.7% naive).
-
-```
-Episode    Avg WP    Win Rate
-    522    0.4624      35.0%
-  5,000    0.497       46.5%
- 25,000    0.523       57.0%
- 50,000    0.558       69.5%
-100,000    0.580       82.5%
-150,000    0.593       86.5%
-200,000    0.598       88.5%
-250,000    0.605       90.5%
-300,000    0.598       89.5%
-```
-
-Peak win rate 93.5% at 248K episodes. Slightly lower peak than Run E despite the comp_wr feature providing better composition evaluation. The MCTS self-play may not fully exploit the comp_wr signal because the opponent (GD) always drafts reasonable compositions anyway, so degenerate states rarely arise during training.
-
-### Run G: Augmented WP (in progress, 226K/300K)
-
-Uses the best WP model from the synthetic augmentation experiment: 512->256->128 architecture trained with synthetic data for unseen compositions (10% WR, 100 samples per composition). This WP model scores 20/21 on sanity tests and achieves 94.5% healer rate in greedy drafts.
-
-```
-Episode    Avg WP    Win Rate
-    522    0.4508      34.5%
-  1,000    0.4654      39.0%
-  2,500    0.4865      45.0%
-  5,000    0.5053      49.5%
- 10,000    0.4936      52.0%
- 25,000    0.5233      56.0%
- 50,000    0.5668      69.5%
- 75,000    0.5834      81.0%
-100,000    0.5940      84.5%
-125,000    0.5943      83.5%
-150,000    0.6111      84.5%
-175,000    0.6117      89.0%
-200,000    0.6296      89.5%
-225,000    0.6244      92.5%
-```
-
-Peak win rate 95.5% at 223K episodes. Peak avg WP 0.639 at 217K episodes. The higher WP values (0.626 at 226K vs 0.602 at 300K for Run E) suggest the augmented WP model's composition awareness is being leveraged by the policy -- the MCTS agent is finding terminal states that the composition-aware evaluator rates more highly.
-
-**ETA: ~6 hours to complete 300K episodes.**
-
-## Key Observations
-
-### 1. Value function quality drives policy quality
-
-| WP Model | MCTS Final WR | MCTS Final WP | WP Model Sanity |
-|-----------|---------------|----------------|-----------------|
-| Base (197d) | 78.0% | 0.546 | 14/21 |
-| Enriched (283d, no comp_wr) | 89.5% | 0.602 | 17/21 |
-| Enriched (283d, with comp_wr) | 89.5% | 0.598 | 17/21 |
-| Augmented (283d, 512->256->128, synthetic) | 92.5%* | 0.626* | 20/21 |
-
-*Run G still in progress at 226K/300K episodes.
-
-The enriched WP model immediately boosted MCTS from 78% to 89.5% win rate. The augmented model is trending higher (92.5% at 226K vs 89.5% at 226K for Run E), consistent with the hypothesis that better value functions produce better policies.
-
-### 2. Learning dynamics are consistent across runs
-
-All runs follow the same trajectory:
-- 0-5K episodes: random play, ~35-40% win rate
-- 5-25K: rapid improvement, reaches ~55-60%
-- 25-75K: steady climb, 60-80%
-- 75-150K: diminishing returns, 80-90%
-- 150K+: plateau around 88-93%, occasional peaks to 95%+
-
-The learning curve is insensitive to the WP model variant -- the shape is the same, only the asymptote differs.
-
-### 3. Comp_wr doesn't help MCTS much
-
-Run E (enriched, no comp_wr) and Run F (enriched, with comp_wr) converge to nearly identical metrics (89.5% WR, ~0.60 WP). The comp_wr feature is most valuable for greedy search where it prevents degenerate compositions, but MCTS self-play against GD opponents rarely produces degenerate states (because GD drafts like humans, and MCTS learns to draft against human-like opponents).
-
-### 4. The augmented WP model shows the most promise
-
-Run G achieves 0.626 WP at 226K episodes -- already higher than any prior run's final WP (0.602 max). If this trend holds through 300K, it would demonstrate that training the value function to penalize degenerate compositions (via synthetic augmentation) translates into better MCTS policies, even though MCTS self-play rarely encounters those compositions.
-
-### 5. Training efficiency improved over time
-
-| Run | Speed | Hardware |
-|-----|-------|----------|
-| A | 1.6 ep/s | CPU only |
-| C | 2.0 ep/s | CPU, optimized |
-| E | 3.5 ep/s | GPU (Blackwell) |
-| G | 3.3 ep/s | GPU (Blackwell) |
-
-GPU acceleration via batched MCTS evaluation roughly doubled throughput.
+**Key insight**: The bottleneck was never the tree traversal or the neural network compute. It was the **overhead between forward passes**: Python dispatch, cudaStreamSynchronize, numpy allocation, pickle serialization. Putting the entire MCTS loop inside a single CUDA kernel eliminated all of it.
 
 ## For the Paper
 
-The MCTS results support the main thesis in two ways:
+The MCTS results will be updated once the current runs complete. Key claims that will be verifiable:
 
-1. **Value function features matter for MCTS too.** The enriched WP model produces an 11.5pp win rate improvement over the base model (78% -> 89.5%) when used as the MCTS value function, even though MCTS can theoretically compensate for a weak value function through deeper search.
+1. **Value function quality drives MCTS policy quality** — comparing Run A (base WP) vs Run E (enriched) vs Run G (augmented) at 300K episodes each, all with symmetrized evaluation.
 
-2. **Synthetic augmentation provides incremental benefit.** The augmented WP model shows higher average WP (0.626 vs 0.602) at the same training stage, suggesting the MCTS policy finds higher-quality terminal states when the value function has better composition awareness. However, the win rate improvement is modest (92.5% vs 89.5% at 226K episodes), consistent with the observation that MCTS self-play against GD opponents rarely produces the degenerate compositions where augmentation matters most.
+2. **Augmented WP produces higher average WP in MCTS** — if Run G achieves higher avg WP than Run E at the same episode count, the synthetic augmentation benefit extends beyond greedy search.
 
-The MCTS results are complementary to the greedy draft benchmark: greedy search amplifies value function differences (76% -> 26.5% degen rate), while MCTS partially compensates for weak value functions through lookahead but still benefits from better ones.
+3. **MCTS with augmented WP achieves both safety and context-awareness** — pending rich evaluation metrics (counter, synergy, diversity) on the final policies.
+
+4. **Reproducibility** — Run G vs Run G2 (same config, different seed) provides confidence intervals.
