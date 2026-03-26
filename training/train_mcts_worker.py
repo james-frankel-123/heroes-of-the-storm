@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 """
-MCTS training worker using C++/CUDA fused inference.
-
-Each worker thread calls cuda_mcts.run_episode() which does the entire
-MCTS episode in C++ with fused CUDA kernels. ~197ms per episode vs
-~2145ms in Python.
-
-Config via environment variables (see launch_parallel_mcts.py).
+MCTS training worker using full CUDA kernel (one block = one episode).
+26 ep/s per GPU, ~105 ep/s across 4 GPUs. 300K episodes in ~48 min.
 """
 import os
 import sys
@@ -17,18 +12,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import importlib.util
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cuda_mcts'))
 
 from train_draft_policy import (
-    AlphaZeroDraftNet, DRAFT_ORDER,
-    pretrain_value_head, bootstrap_from_generic_draft,
-    STATE_DIM, NUM_HEROES, HEROES,
+    AlphaZeroDraftNet, pretrain_value_head, bootstrap_from_generic_draft,
+    STATE_DIM, NUM_HEROES,
 )
 from train_generic_draft import GenericDraftModel
-from shared import MAPS, SKILL_TIERS, load_replay_data
+from extract_weights import extract_policy_weights, extract_gd_weights
+from shared import MAPS, SKILL_TIERS
 
 try:
     import wandb
@@ -36,35 +30,31 @@ try:
 except ImportError:
     HAS_WANDB = False
 
-# Load CUDA extension
+# Load kernel module
 so_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cuda_mcts')
-so_files = [f for f in os.listdir(so_dir) if f.startswith('cuda_mcts') and f.endswith('.so')]
+so_files = [f for f in os.listdir(so_dir) if f.startswith('cuda_mcts_kernel') and f.endswith('.so')]
 if not so_files:
-    raise RuntimeError(f"No cuda_mcts.*.so found in {so_dir}. Run setup.py build_ext --inplace first.")
-spec = importlib.util.spec_from_file_location('cuda_mcts', os.path.join(so_dir, so_files[0]))
-cuda_mcts = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(cuda_mcts)
+    raise RuntimeError("cuda_mcts_kernel not built. cd cuda_mcts && python3 setup.py build_ext --inplace")
+spec = importlib.util.spec_from_file_location('cuda_mcts_kernel', os.path.join(so_dir, so_files[0]))
+kernel = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(kernel)
 
-from extract_weights import extract_policy_weights, extract_gd_weights
-
-# ── Config ──
+# Config from env
 SAVE_DIR = os.environ.get("MCTS_SAVE_DIR", os.path.dirname(__file__))
-NUM_WORKERS = int(os.environ.get("MCTS_NUM_WORKERS", "16"))
-WP_MODEL_TYPE = os.environ.get("MCTS_WP_MODEL", "augmented")
 NUM_EPISODES = int(os.environ.get("MCTS_NUM_EPISODES", "300000"))
 NUM_SIMS = int(os.environ.get("MCTS_NUM_SIMS", "200"))
 FRESH = os.environ.get("MCTS_FRESH", "1") == "1"
 RUN_NAME = os.environ.get("WANDB_RUN_NAME", "mcts_run")
+BATCH_EPISODES = int(os.environ.get("MCTS_BATCH_EPISODES", "64"))
 
 
 def main():
     device = torch.device("cpu")
     print(f"Run: {RUN_NAME}")
-    print(f"Config: workers={NUM_WORKERS}, wp={WP_MODEL_TYPE}, episodes={NUM_EPISODES}, "
-          f"sims={NUM_SIMS}, fresh={FRESH}")
+    print(f"Config: episodes={NUM_EPISODES}, sims={NUM_SIMS}, batch={BATCH_EPISODES}, fresh={FRESH}")
     print(f"GPU: {os.environ.get('CUDA_VISIBLE_DEVICES', 'none')}")
 
-    # ── Load GD model for CUDA engine ──
+    # Load GD model
     gd = GenericDraftModel()
     gd_path = os.path.join(os.path.dirname(__file__), "generic_draft_0.pt")
     if not os.path.exists(gd_path):
@@ -72,9 +62,8 @@ def main():
     gd.load_state_dict(torch.load(gd_path, weights_only=True, map_location="cpu"))
     gd.eval()
     gd_flat, gd_offsets = extract_gd_weights(gd)
-    print(f"GD model: {len(gd_flat)} weights")
 
-    # ── Initialize policy network ──
+    # Init network
     network = AlphaZeroDraftNet().to(device)
     print(f"Policy: {sum(p.numel() for p in network.parameters()):,} params")
 
@@ -107,26 +96,24 @@ def main():
         except Exception:
             print("Could not restore optimizer/scheduler")
 
-    # ── Create CUDA engine ──
+    # Create kernel engine
     policy_flat, policy_offsets = extract_policy_weights(network)
-    engine = cuda_mcts.CUDAInferenceEngine(
-        policy_flat, gd_flat, policy_offsets, gd_offsets, device_id=0)
-    print("CUDA engine created")
+    engine = kernel.MCTSKernelEngine(
+        policy_flat, gd_flat, policy_offsets, gd_offsets,
+        max_concurrent=BATCH_EPISODES, device_id=0)
+    print(f"CUDA kernel engine created (batch={BATCH_EPISODES})")
 
-    # ── W&B ──
     if HAS_WANDB:
         wandb.init(project="hots-draft-policy", name=RUN_NAME,
-                   config={"wp_model": WP_MODEL_TYPE, "workers": NUM_WORKERS,
-                           "episodes": NUM_EPISODES, "sims": NUM_SIMS,
-                           "engine": "cuda_fused"})
+                   config={"episodes": NUM_EPISODES, "sims": NUM_SIMS,
+                           "batch": BATCH_EPISODES, "engine": "cuda_kernel"})
 
-    # ── Training loop ──
+    # Training loop
     buffer = []
     BUFFER_SIZE = 150_000
     BATCH_SIZE = 512
     EVAL_EVERY = 500
     EVAL_DRAFTS = 200
-
     n_maps = len(MAPS)
     n_tiers = len(SKILL_TIERS)
 
@@ -134,27 +121,19 @@ def main():
     episode = start_episode
 
     while episode < NUM_EPISODES:
-        # Generate episodes using C++ CUDA engine
-        # ThreadPoolExecutor for concurrent episodes on same GPU
-        batch_count = min(NUM_WORKERS, NUM_EPISODES - episode)
+        batch_count = min(BATCH_EPISODES, NUM_EPISODES - episode)
 
-        # Update CUDA engine with latest network weights
+        # Update kernel weights
         policy_flat, _ = extract_policy_weights(network)
-        engine.update_policy_weights(policy_flat)
+        engine.update_weights(policy_flat)
 
-        # Run episodes concurrently using threads (GIL released during C++ CUDA calls)
-        def run_one(seed):
-            return cuda_mcts.run_episode(
-                engine, random.randint(0, n_maps - 1), random.randint(0, n_tiers - 1),
-                seed % 2, NUM_SIMS, 2.0, seed)
+        # Generate episodes on GPU
+        configs = np.array([
+            [random.randint(0, n_maps-1), random.randint(0, n_tiers-1), (episode+i) % 2]
+            for i in range(batch_count)
+        ], dtype=np.int32)
 
-        seeds = [episode + i for i in range(batch_count)]
-
-        with ThreadPoolExecutor(max_workers=NUM_WORKERS) as pool:
-            futures = {pool.submit(run_one, s): s for s in seeds}
-            results = []
-            for future in as_completed(futures):
-                results.append(future.result())
+        results = engine.run_episodes(configs, NUM_SIMS, 2.0, episode)
 
         # Collect training data
         last_wp = 0.0
@@ -172,7 +151,7 @@ def main():
         # Train on buffer
         if len(buffer) >= BATCH_SIZE:
             network.train()
-            for _ in range(max(1, batch_count // 2)):
+            for _ in range(max(1, batch_count // 4)):
                 batch = random.sample(buffer, BATCH_SIZE)
                 states = torch.tensor(np.array([b[0] for b in batch])).to(device)
                 target_policies = torch.tensor(np.array([b[1] for b in batch])).to(device)
@@ -193,28 +172,27 @@ def main():
                 scheduler.step()
 
         # Logging
-        if episode % NUM_WORKERS == 0 or episode >= NUM_EPISODES:
-            elapsed = time.time() - train_start
-            eps = (episode - start_episode) / elapsed if elapsed > 0 else 0
-            eta = (NUM_EPISODES - episode) / eps / 3600 if eps > 0 else 0
-            print(f"Episode {episode}: wp={last_wp:.4f} buffer={len(buffer)} "
-                  f"lr={scheduler.get_last_lr()[0]:.6f} [{eps:.1f} ep/s, ETA {eta:.1f}h]")
-            if HAS_WANDB and wandb.run:
-                wandb.log({"episode": episode, "last_wp": last_wp,
-                           "buffer_size": len(buffer), "eps": eps}, step=episode)
+        elapsed = time.time() - train_start
+        eps = (episode - start_episode) / elapsed if elapsed > 0 else 0
+        eta = (NUM_EPISODES - episode) / eps / 3600 if eps > 0 else 0
+        print(f"Episode {episode}: wp={last_wp:.4f} buffer={len(buffer)} "
+              f"lr={scheduler.get_last_lr()[0]:.6f} [{eps:.1f} ep/s, ETA {eta:.1f}h]")
+        if HAS_WANDB and wandb.run:
+            wandb.log({"episode": episode, "last_wp": last_wp,
+                       "buffer_size": len(buffer), "eps": eps}, step=episode)
 
         # Eval
-        if episode % EVAL_EVERY < NUM_WORKERS or episode >= NUM_EPISODES:
+        if episode % EVAL_EVERY < batch_count or episode >= NUM_EPISODES:
             network.eval()
             policy_flat, _ = extract_policy_weights(network)
-            engine.update_policy_weights(policy_flat)
+            engine.update_weights(policy_flat)
 
-            eval_wps = []
-            for i in range(EVAL_DRAFTS):
-                wp, _ = cuda_mcts.run_episode(
-                    engine, random.randint(0, n_maps-1), random.randint(0, n_tiers-1),
-                    i % 2, NUM_SIMS // 2, 2.0, 10000 + i)
-                eval_wps.append(wp)
+            eval_configs = np.array([
+                [random.randint(0, n_maps-1), random.randint(0, n_tiers-1), i % 2]
+                for i in range(EVAL_DRAFTS)
+            ], dtype=np.int32)
+            eval_results = engine.run_episodes(eval_configs, NUM_SIMS // 2, 2.0, 99999)
+            eval_wps = [r[0] for r in eval_results]
 
             avg_wp = np.mean(eval_wps)
             std_wp = np.std(eval_wps)
@@ -240,8 +218,8 @@ def main():
     if HAS_WANDB and wandb.run:
         wandb.finish()
     elapsed = time.time() - train_start
-    print(f"Training complete. {episode - start_episode} episodes in {elapsed/3600:.1f}h "
-          f"({(episode - start_episode)/elapsed:.1f} ep/s)")
+    total_eps = episode - start_episode
+    print(f"Complete. {total_eps} episodes in {elapsed/3600:.1f}h ({total_eps/elapsed:.1f} ep/s)")
 
 
 if __name__ == "__main__":
