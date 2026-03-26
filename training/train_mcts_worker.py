@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """
-MCTS training worker using full CUDA kernel (one block = one episode).
+MCTS training worker — fully optimized.
 
-Optimizations:
-1. Eval every 2000 episodes (not 500) — async, doesn't block generation
-2. Pipelined: GPU generates batch N+1 while CPU trains on batch N
-3. 128 episodes per kernel launch (not 16)
-4. Weight sync every 256 episodes (not every batch)
+1. Pre-allocated numpy ring buffer (zero allocation per batch)
+2. Async pipelined: GPU generates batch N+1 while CPU trains on batch N
+3. 128 episodes per kernel launch
+4. Training on GPU (same device, interleaved with generation)
+5. Weight sync every 512 episodes
+6. Eval every 5000 episodes, 50 drafts only
 """
 import os
 import sys
 import time
 import random
 import threading
+import queue
 import numpy as np
 import torch
 import torch.nn as nn
@@ -40,7 +42,7 @@ except ImportError:
 so_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cuda_mcts')
 so_files = [f for f in os.listdir(so_dir) if f.startswith('cuda_mcts_kernel') and f.endswith('.so')]
 if not so_files:
-    raise RuntimeError("cuda_mcts_kernel not built. cd cuda_mcts && python3 setup.py build_ext --inplace")
+    raise RuntimeError("cuda_mcts_kernel not built")
 spec = importlib.util.spec_from_file_location('cuda_mcts_kernel', os.path.join(so_dir, so_files[0]))
 kernel = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(kernel)
@@ -52,15 +54,18 @@ NUM_SIMS = int(os.environ.get("MCTS_NUM_SIMS", "200"))
 FRESH = os.environ.get("MCTS_FRESH", "1") == "1"
 RUN_NAME = os.environ.get("WANDB_RUN_NAME", "mcts_run")
 BATCH_EPISODES = int(os.environ.get("MCTS_BATCH_EPISODES", "128"))
-WEIGHT_SYNC_INTERVAL = 256   # sync weights to GPU every N episodes
-EVAL_INTERVAL = 2000         # eval every N episodes
-EVAL_DRAFTS = 200
+WEIGHT_SYNC_INTERVAL = 512
+EVAL_INTERVAL = 5000
+EVAL_DRAFTS = 50
+BUFFER_SIZE = 150_000
+BATCH_SIZE = 512
 
 
 def main():
-    device = torch.device("cpu")
+    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print(f"Run: {RUN_NAME}")
-    print(f"Config: episodes={NUM_EPISODES}, sims={NUM_SIMS}, batch={BATCH_EPISODES}, fresh={FRESH}")
+    print(f"Config: episodes={NUM_EPISODES}, sims={NUM_SIMS}, batch={BATCH_EPISODES}, "
+          f"train_device={device}, fresh={FRESH}")
     print(f"GPU: {os.environ.get('CUDA_VISIBLE_DEVICES', 'none')}")
 
     # Load GD
@@ -72,9 +77,9 @@ def main():
     gd.eval()
     gd_flat, gd_offsets = extract_gd_weights(gd)
 
-    # Init network
+    # Init network on GPU for training
     network = AlphaZeroDraftNet().to(device)
-    print(f"Policy: {sum(p.numel() for p in network.parameters()):,} params")
+    print(f"Policy: {sum(p.numel() for p in network.parameters()):,} params on {device}")
 
     os.makedirs(SAVE_DIR, exist_ok=True)
     ckpt_path = os.path.join(SAVE_DIR, "draft_policy_checkpoint.pt")
@@ -115,12 +120,18 @@ def main():
     if HAS_WANDB:
         wandb.init(project="hots-draft-policy", name=RUN_NAME,
                    config={"episodes": NUM_EPISODES, "sims": NUM_SIMS,
-                           "batch": BATCH_EPISODES, "engine": "cuda_kernel_v2"})
+                           "batch": BATCH_EPISODES, "engine": "cuda_kernel_v3"})
 
-    # Training state
-    buffer = []
-    BUFFER_SIZE = 150_000
-    BATCH_SIZE = 512
+    # ── Pre-allocated ring buffer (zero allocation per batch) ──
+    buf_states = np.zeros((BUFFER_SIZE, STATE_DIM), dtype=np.float32)
+    buf_policies = np.zeros((BUFFER_SIZE, NUM_HEROES), dtype=np.float32)
+    buf_masks = np.zeros((BUFFER_SIZE, NUM_HEROES), dtype=np.float32)
+    buf_values = np.zeros(BUFFER_SIZE, dtype=np.float32)
+    buf_write_idx = 0
+    buf_size = 0
+    print(f"Ring buffer: {BUFFER_SIZE} entries, "
+          f"{(buf_states.nbytes + buf_policies.nbytes + buf_masks.nbytes + buf_values.nbytes) / 1024/1024:.0f} MB")
+
     n_maps = len(MAPS)
     n_tiers = len(SKILL_TIERS)
     episodes_since_weight_sync = 0
@@ -129,111 +140,86 @@ def main():
     train_start = time.time()
     episode = start_episode
 
-    # ── Helper: generate one batch of configs ──
     def make_configs(n, ep):
         return np.array([
             [random.randint(0, n_maps-1), random.randint(0, n_tiers-1), (ep+i) % 2]
             for i in range(n)
         ], dtype=np.int32)
 
-    # ── Helper: ingest results into buffer ──
-    def ingest_results(results):
-        nonlocal episode, last_wp
-        for wp, examples in results:
-            for state_feat, mcts_policy, valid in examples:
-                buffer.append((
-                    np.array(state_feat, dtype=np.float32),
-                    np.array(mcts_policy, dtype=np.float32),
-                    np.array(valid, dtype=np.float32),
-                    wp,
-                ))
-                if len(buffer) > BUFFER_SIZE:
-                    buffer.pop(0)
-            last_wp = wp
-            episode += 1
-
-    # ── Helper: one training step ──
-    def train_step(n_steps):
-        if len(buffer) < BATCH_SIZE:
-            return
-        network.train()
-        for _ in range(n_steps):
-            batch = random.sample(buffer, BATCH_SIZE)
-            states = torch.tensor(np.array([b[0] for b in batch])).to(device)
-            target_policies = torch.tensor(np.array([b[1] for b in batch])).to(device)
-            masks = torch.tensor(np.array([b[2] for b in batch])).to(device)
-            target_values = torch.tensor(np.array([b[3] for b in batch],
-                                                   dtype=np.float32)).to(device)
-            pred_logits, pred_values = network(states, masks)
-            pred_log_probs = F.log_softmax(pred_logits, dim=1)
-            policy_loss = -(target_policies * pred_log_probs).sum(dim=1).mean()
-            value_loss = F.mse_loss(pred_values, target_values)
-            loss = policy_loss + value_loss
-            optimizer.zero_grad()
-            loss.backward()
-            nn.utils.clip_grad_norm_(network.parameters(), 1.0)
-            optimizer.step()
-            scheduler.step()
-
-    # ── Async eval ──
-    eval_thread = None
-    def run_eval_async(ep_num):
-        nonlocal best_eval_wp
-        network.eval()
-        pw, _ = extract_policy_weights(network)
-        # Use a separate engine call (same GPU, but eval is fast)
-        eval_configs = make_configs(EVAL_DRAFTS, 99999)
-        eval_results = engine.run_episodes(eval_configs, NUM_SIMS // 2, 2.0, 99999)
-        eval_wps = [r[0] for r in eval_results]
-        avg_wp = np.mean(eval_wps)
-        std_wp = np.std(eval_wps)
-        win_rate = np.mean([1.0 if w > 0.5 else 0.0 for w in eval_wps])
-        print(f"\n  EVAL @ {ep_num}: avg_wp={avg_wp:.4f} +/- {std_wp:.4f} "
-              f"win_rate={win_rate:.1%}\n")
-        if HAS_WANDB and wandb.run:
-            wandb.log({"eval/avg_wp": avg_wp, "eval/win_rate": win_rate}, step=ep_num)
-        if avg_wp > best_eval_wp:
-            best_eval_wp = avg_wp
-            torch.save(network.state_dict(), weights_path)
-            torch.save({
-                'model_state_dict': network.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'scheduler_state_dict': scheduler.state_dict(),
-                'episode': ep_num,
-                'best_eval_wp': best_eval_wp,
-            }, ckpt_path)
-            print(f"  New best! Saved to {SAVE_DIR}\n")
-
-    last_wp = 0.0
-
     # ── Initial weight sync ──
     policy_flat, _ = extract_policy_weights(network)
     engine.update_weights(policy_flat)
 
-    # ── Kick off first generation batch (pipeline priming) ──
-    pending_configs = make_configs(BATCH_EPISODES, episode)
-    pending_results = None
+    # ── Generation thread for pipelining ──
+    gen_queue = queue.Queue(maxsize=2)
+    gen_running = True
+    gen_seed = [episode]  # mutable for thread access
+    gen_write_idx = [buf_write_idx]
+
+    def generation_thread():
+        while gen_running:
+            batch_count = min(BATCH_EPISODES, NUM_EPISODES - gen_seed[0])
+            if batch_count <= 0:
+                gen_queue.put(None)
+                break
+            configs = make_configs(batch_count, gen_seed[0])
+            n_written = engine.run_episodes_into_buffer(
+                configs, NUM_SIMS, 2.0, gen_seed[0],
+                buf_states, buf_policies, buf_masks, buf_values,
+                gen_write_idx[0], BUFFER_SIZE
+            )
+            gen_write_idx[0] = (gen_write_idx[0] + n_written) % BUFFER_SIZE
+            gen_seed[0] += batch_count
+            gen_queue.put((batch_count, n_written))
+
+    gen_thread = threading.Thread(target=generation_thread, daemon=True)
+    gen_thread.start()
 
     # ══════════════════════════════════════════════════════
-    # MAIN LOOP: pipelined generate + train
+    # MAIN LOOP: pipelined generate (GPU thread) + train (main thread)
     # ══════════════════════════════════════════════════════
+    last_wp = 0.0
+
     while episode < NUM_EPISODES:
-        batch_count = min(BATCH_EPISODES, NUM_EPISODES - episode)
-
-        # Generate on GPU (this blocks but GPU is fast)
-        configs = make_configs(batch_count, episode)
-        results = engine.run_episodes(configs, NUM_SIMS, 2.0, episode)
-
-        # Ingest results
-        ingest_results(results)
+        # Wait for next batch from generation thread
+        item = gen_queue.get()
+        if item is None:
+            break
+        batch_count, n_written = item
+        buf_size = min(buf_size + n_written, BUFFER_SIZE)
+        episode += batch_count
         episodes_since_weight_sync += batch_count
 
-        # Train (CPU, while GPU is idle — could overlap with next generate)
-        n_train_steps = max(1, batch_count // 8)
-        train_step(n_train_steps)
+        # Get latest wp from buffer for logging
+        if buf_size > 0:
+            last_wp = buf_values[(gen_write_idx[0] - 1) % BUFFER_SIZE]
 
-        # Weight sync (every WEIGHT_SYNC_INTERVAL episodes)
+        # Train on GPU (while generation thread is already launching next batch)
+        if buf_size >= BATCH_SIZE:
+            network.train()
+            n_train_steps = max(1, batch_count // 8)
+            for _ in range(n_train_steps):
+                indices = np.random.randint(0, buf_size, size=BATCH_SIZE)
+                states_t = torch.from_numpy(buf_states[indices]).to(device)
+                policies_t = torch.from_numpy(buf_policies[indices]).to(device)
+                masks_t = torch.from_numpy(buf_masks[indices]).to(device)
+                values_t = torch.from_numpy(buf_values[indices]).to(device)
+
+                pred_logits, pred_values = network(states_t, masks_t)
+                pred_log_probs = F.log_softmax(pred_logits, dim=1)
+                policy_loss = -(policies_t * pred_log_probs).sum(dim=1).mean()
+                value_loss = F.mse_loss(pred_values, values_t)
+                loss = policy_loss + value_loss
+
+                optimizer.zero_grad()
+                loss.backward()
+                nn.utils.clip_grad_norm_(network.parameters(), 1.0)
+                optimizer.step()
+                scheduler.step()
+
+        # Weight sync
         if episodes_since_weight_sync >= WEIGHT_SYNC_INTERVAL:
+            network.eval()
             policy_flat, _ = extract_policy_weights(network)
             engine.update_weights(policy_flat)
             episodes_since_weight_sync = 0
@@ -242,17 +228,43 @@ def main():
         elapsed = time.time() - train_start
         eps = (episode - start_episode) / elapsed if elapsed > 0 else 0
         eta = (NUM_EPISODES - episode) / eps / 3600 if eps > 0 else 0
-        print(f"Episode {episode}: wp={last_wp:.4f} buffer={len(buffer)} "
+        print(f"Episode {episode}: wp={last_wp:.4f} buffer={buf_size} "
               f"lr={scheduler.get_last_lr()[0]:.6f} [{eps:.1f} ep/s, ETA {eta:.1f}h]")
         if HAS_WANDB and wandb.run:
             wandb.log({"episode": episode, "last_wp": last_wp,
-                       "buffer_size": len(buffer), "eps": eps}, step=episode)
+                       "buffer_size": buf_size, "eps": eps}, step=episode)
 
-        # Eval (every EVAL_INTERVAL, non-blocking)
+        # Eval (infrequent, lightweight)
         if episode - last_eval_episode >= EVAL_INTERVAL or episode >= NUM_EPISODES:
             last_eval_episode = episode
-            # Run eval synchronously (GPU is needed, but eval is fast: 200 eps × 100 sims)
-            run_eval_async(episode)
+            network.eval()
+            policy_flat, _ = extract_policy_weights(network)
+            engine.update_weights(policy_flat)
+
+            eval_configs = make_configs(EVAL_DRAFTS, 99999)
+            eval_results = engine.run_episodes(eval_configs, NUM_SIMS // 2, 2.0, 99999)
+            eval_wps = [r[0] for r in eval_results]
+            avg_wp = np.mean(eval_wps)
+            win_rate = np.mean([1.0 if w > 0.5 else 0.0 for w in eval_wps])
+            print(f"\n  EVAL @ {episode}: avg_wp={avg_wp:.4f} win_rate={win_rate:.1%}\n")
+
+            if HAS_WANDB and wandb.run:
+                wandb.log({"eval/avg_wp": avg_wp, "eval/win_rate": win_rate}, step=episode)
+
+            if avg_wp > best_eval_wp:
+                best_eval_wp = avg_wp
+                torch.save(network.state_dict(), weights_path)
+                torch.save({
+                    'model_state_dict': network.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'scheduler_state_dict': scheduler.state_dict(),
+                    'episode': episode,
+                    'best_eval_wp': best_eval_wp,
+                }, ckpt_path)
+                print(f"  New best! Saved to {SAVE_DIR}\n")
+
+    gen_running = False
+    gen_thread.join(timeout=10)
 
     if HAS_WANDB and wandb.run:
         wandb.finish()

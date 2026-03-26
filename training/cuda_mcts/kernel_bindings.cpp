@@ -223,6 +223,61 @@ public:
         return results;
     }
 
+    // Run episodes and write results directly into pre-allocated numpy ring buffer.
+    // Returns number of training examples written.
+    int run_episodes_into_buffer(
+        py::array_t<int> configs, int num_sims, float c_puct, unsigned long long seed,
+        py::array_t<float> buf_states,    // (BUFFER_SIZE, 290)
+        py::array_t<float> buf_policies,  // (BUFFER_SIZE, 90)
+        py::array_t<float> buf_masks,     // (BUFFER_SIZE, 90)
+        py::array_t<float> buf_values,    // (BUFFER_SIZE,)
+        int write_offset, int buffer_size
+    ) {
+        auto cfg = configs.unchecked<2>();
+        int n = cfg.shape(0);
+        if (n > max_episodes_) throw std::runtime_error("Too many episodes");
+
+        // Launch kernel
+        cudaMemcpy(d_configs_, cfg.data(0, 0), n * 3 * sizeof(int), cudaMemcpyHostToDevice);
+        int shared_mem = (STATE_DIM + NUM_HEROES + NUM_HEROES + 256 + 768*3 + 512) * sizeof(float);
+        void* args[] = {&d_policy_weights_, &d_gd_weights_, &policy_off_, &gd_off_,
+                        &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed};
+        cudaLaunchKernel((void*)mcts_episodes_kernel, dim3(n), dim3(256),
+                         args, shared_mem, 0);
+        cudaDeviceSynchronize();
+
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess)
+            throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(err));
+
+        // Copy results from GPU
+        cudaMemcpy(h_episodes_, d_episodes_, n * sizeof(EpisodeMemory), cudaMemcpyDeviceToHost);
+
+        // Write directly into pre-allocated numpy buffers (zero allocation)
+        auto s_ptr = buf_states.mutable_unchecked<2>();
+        auto p_ptr = buf_policies.mutable_unchecked<2>();
+        auto m_ptr = buf_masks.mutable_unchecked<2>();
+        auto v_ptr = buf_values.mutable_unchecked<1>();
+
+        int write_pos = write_offset;
+        int total_written = 0;
+
+        for (int ep = 0; ep < n; ep++) {
+            EpisodeMemory& mem = h_episodes_[ep];
+            float wp = mem.win_prob;
+            for (int t = 0; t < mem.num_our_turns; t++) {
+                int idx = write_pos % buffer_size;
+                std::memcpy(s_ptr.mutable_data(idx, 0), mem.out_states[t], STATE_DIM * sizeof(float));
+                std::memcpy(p_ptr.mutable_data(idx, 0), mem.out_policies[t], NUM_HEROES * sizeof(float));
+                std::memcpy(m_ptr.mutable_data(idx, 0), mem.out_masks[t], NUM_HEROES * sizeof(float));
+                v_ptr(idx) = wp;
+                write_pos++;
+                total_written++;
+            }
+        }
+        return total_written;
+    }
+
     void update_weights(py::array_t<float> new_weights) {
         auto w = new_weights.unchecked<1>();
         cudaMemcpy(d_policy_weights_, w.data(0), w.shape(0) * sizeof(float), cudaMemcpyHostToDevice);
@@ -257,5 +312,6 @@ PYBIND11_MODULE(cuda_mcts_kernel, m) {
              py::arg("policy_offsets"), py::arg("gd_offsets"),
              py::arg("max_concurrent") = 128, py::arg("device_id") = 0)
         .def("run_episodes", &MCTSKernelEngine::run_episodes)
+        .def("run_episodes_into_buffer", &MCTSKernelEngine::run_episodes_into_buffer)
         .def("update_weights", &MCTSKernelEngine::update_weights);
 }
