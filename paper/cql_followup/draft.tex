@@ -211,7 +211,9 @@ The residual 26.5\% likely reflects the greedy search horizon (depth-1 cannot pl
 
 We train an AlphaZero-style network (4.4M parameters) via self-play with MCTS. The network shares a residual backbone (289 dims $\to$ 768, 3 residual blocks, compressed to 256) between a perspective-invariant policy head (256 $\to$ 90) and a perspective-aware value head (257 $\to$ 128 $\to$ 64 $\to$ 1, receiving the backbone output plus an our-team indicator). During self-play, the network plays one side with MCTS (200 simulations per move) while the opponent samples from a pool of 5 GD variants.
 
-The value function used for MCTS leaf evaluation varies across runs. We train five configurations with different WP models to measure how value function quality affects MCTS policy quality.
+The value function used for MCTS leaf evaluation varies across runs. We train four configurations with different WP models to measure how value function quality affects MCTS policy quality.
+
+Both the WP terminal evaluation and the policy value head are symmetrized: each is evaluated from both team perspectives and averaged to enforce $P(t_0, t_1) + P(t_1, t_0) = 1.0$ exactly, removing a team-order bias present in the raw model outputs (up to 24\% asymmetry on some matchups without symmetrization). The split backbone architecture makes this efficient: only the value head (257$\to$128$\to$64$\to$1) is run twice, not the full backbone.
 
 \subsection{MCTS Training Results}
 
@@ -251,6 +253,40 @@ The comp\_wr feature alone (Run F) does not improve over the enriched model (Run
 The 26.5\% residual degenerate rate from greedy search is partially a depth-1 limitation. MCTS with 200 simulations provides multi-step lookahead, allowing the agent to plan for future healer availability rather than evaluating one pick at a time. The augmented WP model's higher average WP in MCTS (0.626 vs.\ 0.602) suggests the augmentation helps even with deeper search. Rich evaluation metrics (counter responsiveness, synergy exploitation, hero diversity) for the MCTS policy are not yet available and remain an important direction for confirming whether MCTS achieves context-awareness alongside the safety improvements demonstrated by its higher WP scores.
 
 This subsection also explains why comp\_wr helps greedy search but not MCTS (Run F $\approx$ Run E in Table~\ref{tab:mcts}). MCTS addresses the greedy search horizon problem directly: the tree search can explore sequences where a healer is picked at step 5 even though step 3's greedy evaluation would prefer a damage dealer. The policy head, trained through self-play, provides implicit composition regularization; the network learns to avoid degenerate compositions from the self-play training signal, even without explicit composition features in the value function. Comp\_wr is therefore redundant for MCTS but critical for greedy search, because MCTS learns its own implicit composition policy through experience while greedy search relies entirely on the value function for every decision.
+
+\subsection{Fused CUDA Kernels for MCTS Training}
+
+AlphaZero-style MCTS training is computationally demanding: each episode requires $\sim$8 MCTS searches of 200 simulations each, with a neural network forward pass at every leaf node. Standard implementations dispatch each forward pass through PyTorch, incurring Python interpreter overhead, CUDA kernel launch latency, and host-device synchronization for every call. With $\sim$3,200 forward passes per episode, this overhead dominates wall time.
+
+We developed a fused CUDA implementation that runs the entire MCTS episode inside a single kernel launch. One thread block (256 threads) executes one complete draft episode: thread~0 drives all sequential logic (UCB selection, action sampling, backpropagation) while all 256 threads cooperate on matrix multiplications during neural network forward passes via shared memory. The forward pass functions (\texttt{linear\_layer}, \texttt{batchnorm\_relu}, \texttt{residual\_block}) are compiled as \texttt{\_\_device\_\_} functions callable from within the kernel with zero launch overhead.
+
+Three additional optimizations compound with the fused kernel:
+\begin{itemize}
+    \item \textbf{Split backbone from heads}: Since the backbone (289$\to$768$\to$3$\times$ResBlock$\to$512$\to$256) does not see the \texttt{our\_team} indicator, value symmetrization runs only the small value head (257$\to$128$\to$64$\to$1) twice rather than the full network. This halves the symmetrization cost.
+    \item \textbf{Cached opponent distributions}: Generic Draft forward passes for opponent moves are cached at each tree node after first evaluation, eliminating redundant computation across MCTS simulations visiting the same opponent state.
+    \item \textbf{Pre-allocated ring buffer with pipelined generation}: Episode results are written directly into pre-allocated numpy arrays via C++ \texttt{memcpy} (zero Python object allocation). A generation thread launches GPU batches asynchronously while the main thread performs gradient updates, fully overlapping GPU and CPU work.
+\end{itemize}
+
+Table~\ref{tab:throughput} shows the progression of optimizations. The fused kernel with pipelining achieves 48 episodes/second per GPU, a 40$\times$ improvement over the initial Python implementation and sufficient to complete 300K-episode training runs in under two hours per GPU.
+
+\begin{table}[t]
+\centering
+\caption{MCTS training throughput across implementation stages.}
+\label{tab:throughput}
+\begin{tabular}{lcc}
+\toprule
+Implementation & ep/s & Bottleneck \\
+\midrule
+Python + PyTorch CPU & 1.2 & Forward pass dispatch \\
+C++ tree + CUDA kernels & 5.1 & cudaStreamSync per call \\
++ batched virtual loss (K=32) & 10.9 & Amortized sync \\
+Full CUDA kernel (1 block=1 ep) & 26 & Python buffer overhead \\
++ ring buffer + pipelining & \textbf{48} & Near hardware ceiling \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Network weights reside in GPU global memory (10~MB for the policy network, 0.4~MB for the opponent model) and are cached in L2 across all thread blocks. Each episode requires $\sim$1~MB of global memory for the MCTS tree (2,048 nodes with cached opponent distributions). With 128 concurrent episodes per kernel launch, total GPU memory usage is $\sim$140~MB plus weights, well within the 96~GB capacity of each GPU.
 
 \section{CQL: Safety Without Understanding}
 
