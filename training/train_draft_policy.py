@@ -160,27 +160,65 @@ class AlphaZeroDraftNet(nn.Module):
     This ensures the same board state produces identical policy recommendations
     regardless of which team is asking, while the value estimate correctly
     reflects each team's win probability.
-    """
-    def __init__(self):
-        super().__init__()
-        # Shared backbone: 289 dims (no our_team)
-        self.input_fc = nn.Linear(BACKBONE_DIM, 768)
-        self.input_bn = nn.BatchNorm1d(768)
-        self.res_block1 = ResidualBlock(768)
-        self.res_block2 = ResidualBlock(768)
-        self.res_block3 = ResidualBlock(768)
-        self.compress1 = nn.Linear(768, 512)
-        self.compress1_bn = nn.BatchNorm1d(512)
-        self.compress2 = nn.Linear(512, 256)
-        self.compress2_bn = nn.BatchNorm1d(256)
 
-        # Policy head: prior probabilities over hero actions
-        # Only sees backbone output — same board → same recommendations
-        self.policy_head = nn.Linear(256, NUM_HEROES)
+    Size presets:
+      'base'  (default): 768-dim, 3 res blocks, compress to 256 → 4.4M params
+      'large':           1536-dim, 6 res blocks, compress to 512 → ~25M params
+      'xlarge':          2048-dim, 8 res blocks, compress to 512 → ~55M params
+    """
+    def __init__(self, size='base', policy_head_type='linear'):
+        super().__init__()
+        if size == 'large':
+            hdim, n_blocks, cdim, edim = 1536, 6, 768, 512
+        elif size == 'xlarge':
+            hdim, n_blocks, cdim, edim = 2048, 8, 1024, 512
+        else:  # base
+            hdim, n_blocks, cdim, edim = 768, 3, 512, 256
+
+        self._size = size
+        self._hdim = hdim
+        self._edim = edim
+        self._policy_head_type = policy_head_type
+
+        # Shared backbone: 289 dims (no our_team)
+        self.input_fc = nn.Linear(BACKBONE_DIM, hdim)
+        self.input_bn = nn.BatchNorm1d(hdim)
+
+        self.res_blocks = nn.ModuleList([ResidualBlock(hdim) for _ in range(n_blocks)])
+
+        self.compress1 = nn.Linear(hdim, cdim)
+        self.compress1_bn = nn.BatchNorm1d(cdim)
+        self.compress2 = nn.Linear(cdim, edim)
+        self.compress2_bn = nn.BatchNorm1d(edim)
+
+        # Policy head variants:
+        #   'linear':    edim → 90 (original, 23K params)
+        #   'deep':      edim → 512 → 256 → 90 (Run A, ~200K params)
+        #   'step':      edim+16 → 256 → 128 → 90 with step embedding (Run B, ~100K)
+        #   'deep_step': edim+16 → 512 → 256 → 90 with step embedding (Run C, ~230K)
+        if policy_head_type == 'deep':
+            self.policy_head = nn.Sequential(
+                nn.Linear(edim, 512), nn.ReLU(),
+                nn.Linear(512, 256), nn.ReLU(),
+                nn.Linear(256, NUM_HEROES))
+        elif policy_head_type == 'step':
+            self.step_embed = nn.Embedding(16, 16)
+            self.policy_head = nn.Sequential(
+                nn.Linear(edim + 16, 256), nn.ReLU(),
+                nn.Linear(256, 128), nn.ReLU(),
+                nn.Linear(128, NUM_HEROES))
+        elif policy_head_type == 'deep_step':
+            self.step_embed = nn.Embedding(16, 16)
+            self.policy_head = nn.Sequential(
+                nn.Linear(edim + 16, 512), nn.ReLU(),
+                nn.Linear(512, 256), nn.ReLU(),
+                nn.Linear(256, NUM_HEROES))
+        else:  # 'linear'
+            self.policy_head = nn.Linear(edim, NUM_HEROES)
 
         # Value head: estimated win probability from our_team's perspective
-        # Gets backbone output (256) + our_team indicator (1) = 257 dims
-        self.value_fc1 = nn.Linear(257, 128)
+        # Gets backbone output (edim) + our_team indicator (1)
+        self.value_fc1 = nn.Linear(edim + 1, 128)
         self.value_fc2 = nn.Linear(128, 64)
         self.value_out = nn.Linear(64, 1)
 
@@ -191,14 +229,23 @@ class AlphaZeroDraftNet(nn.Module):
 
         # Shared backbone
         h = F.relu(self.input_bn(self.input_fc(backbone_input)))
-        h = self.res_block1(h)
-        h = self.res_block2(h)
-        h = self.res_block3(h)
+        for block in self.res_blocks:
+            h = block(h)
         h = F.relu(self.compress1_bn(self.compress1(h)))
         h = F.relu(self.compress2_bn(self.compress2(h)))
 
         # Policy head — perspective-invariant
-        policy_logits = self.policy_head(h)
+        if self._policy_head_type in ('step', 'deep_step'):
+            # Extract step index from state: position STATE_DIM-3 = step/15.0
+            step_norm = backbone_input[:, -3]  # backbone_input is x[:,:-1], so -3 is STATE_DIM-3-1
+            # Actually step_norm is at position 287 in backbone_input (289 dims, index 287)
+            # STATE_DIM=290, backbone=289, step is at position 3*90+14+3-3 = 284... let me use the raw value
+            step_idx = (step_norm * 15.0).long().clamp(0, 15)
+            step_emb = self.step_embed(step_idx)  # (B, 16)
+            policy_input = torch.cat([h, step_emb], dim=1)  # (B, edim+16)
+            policy_logits = self.policy_head(policy_input)
+        else:
+            policy_logits = self.policy_head(h)
         if mask is not None:
             policy_logits = policy_logits + (1 - mask) * (-1e9)
 
@@ -499,20 +546,28 @@ def bootstrap_from_generic_draft(network: AlphaZeroDraftNet, device):
     gd = GenericDraftModel()
     gd.load_state_dict(torch.load(gd_path, weights_only=True, map_location=device))
 
-    # Copy what we can from GD's final layer to the policy head
+    # Copy what we can from GD's final layer to the policy head's final linear
     with torch.no_grad():
         gd_final = gd.net[-1]  # Linear(128, NUM_HEROES)
-        policy_in = network.policy_head.in_features
+        # Find the last Linear in the policy head
+        if isinstance(network.policy_head, nn.Linear):
+            ph_final = network.policy_head
+        elif isinstance(network.policy_head, nn.Sequential):
+            ph_final = [m for m in network.policy_head.modules() if isinstance(m, nn.Linear)][-1]
+        else:
+            print("Cannot bootstrap policy head (unknown type)")
+            return
+        policy_in = ph_final.in_features
         gd_in = gd_final.in_features
         if policy_in == gd_in:
-            network.policy_head.weight.copy_(gd_final.weight)
-            network.policy_head.bias.copy_(gd_final.bias)
+            ph_final.weight.copy_(gd_final.weight)
+            ph_final.bias.copy_(gd_final.bias)
             print("Bootstrapped policy head from Generic Draft model (full copy)")
         else:
             # Dimensions differ — copy bias and partial weights
-            network.policy_head.bias.copy_(gd_final.bias)
+            ph_final.bias.copy_(gd_final.bias)
             copy_dim = min(policy_in, gd_in)
-            network.policy_head.weight[:, :copy_dim].copy_(gd_final.weight[:, :copy_dim])
+            ph_final.weight[:, :copy_dim].copy_(gd_final.weight[:, :copy_dim])
             print(f"Bootstrapped policy head (partial: {copy_dim}/{policy_in} input dims + bias)")
 
 

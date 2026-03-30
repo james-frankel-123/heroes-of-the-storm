@@ -8,14 +8,15 @@
 #include <curand_kernel.h>
 #include <cstdint>
 #include "device_forward.cuh"
+#include "enriched_features.cuh"
 
 #define NUM_HEROES 90
 #define NUM_MAPS 14
 #define NUM_TIERS 3
 #define STATE_DIM 290
 #define GD_STATE_DIM 289
-#define MAX_NODES 2048
-#define MAX_CHILD_INDICES 40960
+#define MAX_NODES 4096
+#define MAX_CHILD_INDICES 81920
 #define MAX_OUR_TURNS 8
 #define DRAFT_STEPS 16
 #define MAX_PATH_DEPTH 64
@@ -132,8 +133,11 @@ struct EpisodeMemory {
 extern "C" __global__ void mcts_episodes_kernel(
     const float* __restrict__ W_policy,
     const float* __restrict__ W_gd,
+    const float* __restrict__ W_wp,
     PolicyNetOffsets policy_off,
     GDNetOffsets gd_off,
+    WPNetOffsets wp_off,
+    const WPLookupTables* __restrict__ lut,
     const int* __restrict__ episode_configs,  // (num_episodes, 3)
     EpisodeMemory* __restrict__ episodes,
     int num_simulations,
@@ -143,20 +147,22 @@ extern "C" __global__ void mcts_episodes_kernel(
     int ep_idx = blockIdx.x;
     int tid = threadIdx.x;
 
-    // Shared memory layout:
-    // state_buf:  290
-    // mask_buf:   90
-    // priors_buf: 90
-    // buf_e:      256 (backbone output, persists across head calls)
-    // workspace:  768*3 + 512 = 2816 (backbone scratch, also reused for value/GD)
-    // value head workspace overlaps with early part of backbone workspace (safe since sequential)
-    // Total: 290 + 90 + 90 + 256 + 2816 = 3542 floats = 14.2 KB
+    // Shared memory layout (dynamic based on policy network size):
+    // state_buf:     290
+    // mask_buf:       90
+    // priors_buf:     90
+    // buf_e:         edim (backbone output, persists across head calls)
+    // workspace:     hdim*3 + cdim (backbone scratch, reused for WP forward)
+    // enriched_buf:   86
     extern __shared__ float smem[];
+    int edim = policy_off.edim;
+    int ws_size = policy_off.hdim * 3 + policy_off.cdim;
     float* state_buf = smem;
     float* mask_buf = smem + STATE_DIM;
     float* priors_buf = smem + STATE_DIM + NUM_HEROES;
     float* buf_e = smem + STATE_DIM + NUM_HEROES + NUM_HEROES;
-    float* workspace = smem + STATE_DIM + NUM_HEROES + NUM_HEROES + 256;
+    float* workspace = smem + STATE_DIM + NUM_HEROES + NUM_HEROES + edim;
+    float* enriched_buf = smem + STATE_DIM + NUM_HEROES + NUM_HEROES + edim + ws_size;
 
     EpisodeMemory* ep = &episodes[ep_idx];
 
@@ -216,7 +222,7 @@ extern "C" __global__ void mcts_episodes_kernel(
 
             // Expand root: backbone + policy head
             d_policy_backbone(state_buf, W_policy, policy_off, buf_e, workspace);
-            d_policy_head(buf_e, mask_buf, W_policy, policy_off, priors_buf);
+            d_policy_head(buf_e, mask_buf, W_policy, policy_off, priors_buf, workspace, main_state.step);
 
             if (tid == 0) {
                 ep->nodes[0].is_expanded = 1;
@@ -343,19 +349,18 @@ extern "C" __global__ void mcts_episodes_kernel(
                     __syncthreads();
                 }
 
-                // EVALUATE leaf: backbone + heads
-                scratch.to_float_array(state_buf);
-                scratch.valid_mask(mask_buf);
-                d_policy_backbone(state_buf, W_policy, policy_off, buf_e, workspace);
+                // EVALUATE leaf: policy head for priors (if expanding) + WP model for value
 
                 __shared__ float s_value;
 
                 if (s_leaf_needs_expand) {
-                    d_policy_head(buf_e, mask_buf, W_policy, policy_off, priors_buf);
-                    float val = d_value_head_symmetrized(
-                        buf_e, (float)scratch.our_team, W_policy, policy_off, workspace);
+                    // Need backbone + policy head for expansion priors
+                    scratch.to_float_array(state_buf);
+                    scratch.valid_mask(mask_buf);
+                    d_policy_backbone(state_buf, W_policy, policy_off, buf_e, workspace);
+                    d_policy_head(buf_e, mask_buf, W_policy, policy_off, priors_buf, workspace, scratch.step);
+
                     if (tid == 0) {
-                        s_value = val;
                         MCTSNodeGPU& leaf = ep->nodes[s_leaf_idx];
                         int nv = 0;
                         for (int i = 0; i < NUM_HEROES; i++) if (mask_buf[i] > 0.5f) nv++;
@@ -379,9 +384,59 @@ extern "C" __global__ void mcts_episodes_kernel(
                             ci++;
                         }
                     }
-                } else {
-                    float val = d_value_head_symmetrized(
-                        buf_e, (float)scratch.our_team, W_policy, policy_off, workspace);
+                    __syncthreads();
+                }
+
+                // LEAF EVALUATION: rollout to terminal with GD, then evaluate with WP
+                // This ensures the WP model always sees complete 5v5 states (in-distribution)
+                // instead of partial mid-draft states (out-of-distribution)
+
+                // Rollout remaining steps using GD for both teams
+                while (!scratch.is_terminal()) {
+                    scratch.to_float_array(state_buf);
+                    scratch.valid_mask(mask_buf);
+                    d_gd_forward(state_buf, mask_buf, W_gd, priors_buf, gd_off, workspace);
+                    if (tid == 0) {
+                        // Softmax + sample
+                        float mx = -1e30f;
+                        for (int i = 0; i < NUM_HEROES; i++) mx = fmaxf(mx, priors_buf[i]);
+                        float sm = 0;
+                        for (int i = 0; i < NUM_HEROES; i++) {
+                            priors_buf[i] = expf(priors_buf[i] - mx);
+                            sm += priors_buf[i];
+                        }
+                        if (sm > 0) for (int i = 0; i < NUM_HEROES; i++) priors_buf[i] /= sm;
+                        float r = curand_uniform(&rng);
+                        float cum = 0;
+                        int action = 0;
+                        for (int i = 0; i < NUM_HEROES; i++) {
+                            cum += priors_buf[i];
+                            if (cum > r) { action = i; break; }
+                        }
+                        scratch.apply_action(action, scratch.current_team(), scratch.current_is_pick());
+                    }
+                    __syncthreads();
+                }
+
+                // Now scratch is a complete draft — evaluate with WP (in-distribution)
+                __shared__ int s_wp_t0h[5], s_wp_t1h[5], s_wp_n0, s_wp_n1;
+                if (tid == 0) {
+                    s_wp_n0 = 0; s_wp_n1 = 0;
+                    for (int i = 0; i < NUM_HEROES; i++) {
+                        int w = i / 32, b = i % 32;
+                        if ((scratch.t0_picks[w] >> b) & 1 && s_wp_n0 < 5)
+                            s_wp_t0h[s_wp_n0++] = i;
+                        if ((scratch.t1_picks[w] >> b) & 1 && s_wp_n1 < 5)
+                            s_wp_t1h[s_wp_n1++] = i;
+                    }
+                }
+                __syncthreads();
+
+                {
+                    float val = wp_eval_symmetrized(
+                        s_wp_t0h, s_wp_n0, s_wp_t1h, s_wp_n1,
+                        scratch.map_idx, scratch.tier_idx, scratch.our_team,
+                        lut, W_wp, wp_off, state_buf, enriched_buf, workspace);
                     if (tid == 0) s_value = val;
                 }
                 __syncthreads();
@@ -450,14 +505,31 @@ extern "C" __global__ void mcts_episodes_kernel(
         }
     }
 
-    // Terminal: write state for host-side WP evaluation (kernel value head is only for search)
+    // Terminal: compute WP in-kernel using enriched WP model (symmetrized)
+    __shared__ int s_term_t0h[5], s_term_t1h[5], s_term_n0, s_term_n1;
+    if (tid == 0) {
+        s_term_n0 = 0; s_term_n1 = 0;
+        for (int i = 0; i < NUM_HEROES; i++) {
+            int w = i / 32, b = i % 32;
+            if ((main_state.t0_picks[w] >> b) & 1 && s_term_n0 < 5)
+                s_term_t0h[s_term_n0++] = i;
+            if ((main_state.t1_picks[w] >> b) & 1 && s_term_n1 < 5)
+                s_term_t1h[s_term_n1++] = i;
+        }
+    }
+    __syncthreads();
+
+    float term_wp = wp_eval_symmetrized(
+        s_term_t0h, s_term_n0, s_term_t1h, s_term_n1,
+        main_state.map_idx, main_state.tier_idx, main_state.our_team,
+        lut, W_wp, wp_off, state_buf, enriched_buf, workspace);
+
+    // Write terminal state (for debugging/logging) and WP to global memory
     main_state.to_float_array(state_buf);
-    // Copy terminal state to global memory for host WP model
     for (int i = tid; i < STATE_DIM; i += blockDim.x)
         ep->terminal_state[i] = state_buf[i];
     if (tid == 0) {
         ep->our_team = main_state.our_team;
-        // Use value head as fallback wp (host will overwrite with WP model)
-        ep->win_prob = 0.5f;
+        ep->win_prob = term_wp;
     }
 }

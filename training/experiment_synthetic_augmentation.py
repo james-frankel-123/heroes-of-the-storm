@@ -95,6 +95,50 @@ def sample_heroes_for_roles(role_tuple, heroes_by_role):
     return team
 
 
+def generate_synthetic_data_v2(real_data, comp_data, stats_cache, unseen_wr=10.0,
+                               unseen_volume=100, scope="tier2_only"):
+    """
+    Generate synthetic data with pairwise-adjusted WR (v2).
+    Instead of flat 10% WR for all unseen comps, adjusts based on the
+    specific hero matchup's counter/synergy statistics.
+    """
+    heroes_by_role = build_heroes_by_blizz_role()
+    all_tuples = generate_all_role_tuples()
+
+    opponent_teams = []
+    for d in real_data:
+        opponent_teams.append(d["team0_heroes"])
+        opponent_teams.append(d["team1_heroes"])
+
+    synthetic = []
+    wr_stats = []
+
+    for tier in ["low", "mid", "high"]:
+        tier_comps = comp_data.get(tier, [])
+        known = {}
+        for c in tier_comps:
+            key = tuple(sorted(c["roles"]))
+            if key not in known or c["games"] > known[key]["games"]:
+                known[key] = c
+
+        for role_tuple in all_tuples:
+            if role_tuple not in known:
+                records = _make_records(
+                    role_tuple, heroes_by_role, unseen_wr,
+                    unseen_volume, tier, opponent_teams,
+                    stats_cache=stats_cache, pairwise_adjust=True,
+                )
+                synthetic.extend(records)
+
+    # Log WR distribution
+    actual_wrs = []
+    for rec in synthetic:
+        # Reconstruct from winner field (approximate)
+        pass
+    stats = {"total": len(synthetic), "mode": "pairwise_adjusted"}
+    return synthetic, stats
+
+
 def generate_synthetic_data(real_data, comp_data, unseen_wr=20.0, unseen_volume=100,
                             scope="both"):
     """
@@ -154,8 +198,15 @@ def generate_synthetic_data(real_data, comp_data, unseen_wr=20.0, unseen_volume=
     return synthetic, stats
 
 
-def _make_records(role_tuple, heroes_by_role, win_rate, n, tier, opponent_teams):
-    """Generate n synthetic records for a role composition."""
+def _make_records(role_tuple, heroes_by_role, win_rate, n, tier, opponent_teams,
+                   stats_cache=None, pairwise_adjust=False):
+    """Generate n synthetic records for a role composition.
+
+    If pairwise_adjust=True and stats_cache is provided, adjusts the base WR
+    based on pairwise counter/synergy statistics of the specific hero matchup.
+    This preserves pairwise gradients in the synthetic data instead of
+    flattening all degenerate comps to the same WR.
+    """
     records = []
     for _ in range(n):
         team = sample_heroes_for_roles(role_tuple, heroes_by_role)
@@ -167,7 +218,12 @@ def _make_records(role_tuple, heroes_by_role, win_rate, n, tier, opponent_teams)
         else:
             continue  # skip if can't find non-overlapping opponent
 
-        winner = 0 if random.random() < (win_rate / 100) else 1
+        actual_wr = win_rate
+        if pairwise_adjust and stats_cache is not None:
+            actual_wr = _compute_pairwise_adjusted_wr(
+                team, opp, stats_cache, tier, base_wr=win_rate)
+
+        winner = 0 if random.random() < (actual_wr / 100) else 1
         records.append({
             "team0_heroes": team,
             "team1_heroes": list(opp),
@@ -176,6 +232,44 @@ def _make_records(role_tuple, heroes_by_role, win_rate, n, tier, opponent_teams)
             "winner": winner,
         })
     return records
+
+
+def _compute_pairwise_adjusted_wr(our_heroes, opp_heroes, stats_cache, tier, base_wr=10.0):
+    """
+    Adjust synthetic WR based on pairwise counter/synergy statistics.
+
+    A degenerate comp with good counters against the opponent loses less badly
+    than one with bad counters. This preserves pairwise gradients while
+    maintaining the "degenerate = bad" signal.
+    """
+    # Counter adjustment: how well do our heroes counter theirs?
+    counter_deltas = []
+    for our_h in our_heroes:
+        for opp_h in opp_heroes:
+            raw = stats_cache.get_counter(our_h, opp_h, tier)
+            if raw is not None:
+                wr_a = stats_cache.get_hero_wr(our_h, tier)
+                wr_b = stats_cache.get_hero_wr(opp_h, tier)
+                counter_deltas.append(raw - (wr_a + (100 - wr_b) - 50))
+    avg_counter = np.mean(counter_deltas) if counter_deltas else 0.0
+
+    # Synergy adjustment: how well do our heroes synergize?
+    synergy_deltas = []
+    for i, h1 in enumerate(our_heroes):
+        for h2 in our_heroes[i+1:]:
+            raw = stats_cache.get_synergy(h1, h2, tier)
+            if raw is not None:
+                wr1 = stats_cache.get_hero_wr(h1, tier)
+                wr2 = stats_cache.get_hero_wr(h2, tier)
+                synergy_deltas.append(raw - (50 + (wr1 - 50) + (wr2 - 50)))
+    avg_synergy = np.mean(synergy_deltas) if synergy_deltas else 0.0
+
+    # Scale: counter deltas ~[-5, +5], synergy similar
+    counter_adj = avg_counter * 1.0   # +/-5pp max from counter
+    synergy_adj = avg_synergy * 0.5   # +/-2.5pp max from synergy
+
+    adjusted_wr = base_wr + counter_adj + synergy_adj
+    return float(np.clip(adjusted_wr, 5.0, 30.0))
 
 
 # ── Training ──

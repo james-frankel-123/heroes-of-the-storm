@@ -108,12 +108,14 @@ export async function discoverReplays(
         continue
       }
 
-      // Filter for valid Storm League replays
+      // Filter for valid Storm League replays on current major patch
+      const MAJOR_PATCH = '2.55'
       const valid = batch.filter((r: any) =>
         r.game_type === 'Storm League' &&
         r.valid === 1 &&
         !r.deleted &&
-        r.replayID
+        r.replayID &&
+        (r.game_version || '').startsWith(MAJOR_PATCH)
       )
 
       if (valid.length > 0) {

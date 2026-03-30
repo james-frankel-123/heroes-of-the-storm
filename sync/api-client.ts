@@ -266,8 +266,9 @@ export class MultiKeyApi {
   private clients: HeroesProfileApi[]
   private index = 0
 
-  constructor(apiKeys: string[], maxCallsPerMinute = 55, maxRetries = 5) {
-    this.clients = apiKeys.map(key => new HeroesProfileApi(key, maxCallsPerMinute, maxRetries))
+  constructor(apiKeys: string[], maxCallsPerMinute: number | number[] = 55, maxRetries = 5) {
+    const rates = Array.isArray(maxCallsPerMinute) ? maxCallsPerMinute : apiKeys.map(() => maxCallsPerMinute)
+    this.clients = apiKeys.map((key, i) => new HeroesProfileApi(key, rates[i] ?? 55, maxRetries))
   }
 
   /** Get the next client in round-robin order. */

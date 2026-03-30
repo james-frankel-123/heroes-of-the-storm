@@ -29,7 +29,7 @@ from train_draft_policy import (
     STATE_DIM, NUM_HEROES, HEROES,
 )
 from train_generic_draft import GenericDraftModel
-from extract_weights import extract_policy_weights, extract_gd_weights
+from extract_weights import extract_policy_weights, extract_gd_weights, extract_wp_weights, build_wp_net_offsets, extract_lookup_tables
 from shared import MAPS, SKILL_TIERS, heroes_to_multi_hot, map_to_one_hot, tier_to_one_hot
 
 try:
@@ -54,6 +54,8 @@ NUM_SIMS = int(os.environ.get("MCTS_NUM_SIMS", "200"))
 FRESH = os.environ.get("MCTS_FRESH", "1") == "1"
 RUN_NAME = os.environ.get("WANDB_RUN_NAME", "mcts_run")
 BATCH_EPISODES = int(os.environ.get("MCTS_BATCH_EPISODES", "128"))
+NET_SIZE = os.environ.get("MCTS_NET_SIZE", "base")  # base, large, xlarge
+POLICY_HEAD = os.environ.get("MCTS_POLICY_HEAD", "linear")  # linear, deep, step, deep_step
 WEIGHT_SYNC_INTERVAL = 512
 EVAL_INTERVAL = 5000
 EVAL_DRAFTS = 50
@@ -77,85 +79,37 @@ def main():
     gd.eval()
     gd_flat, gd_offsets = extract_gd_weights(gd)
 
-    # Load WP model for terminal state evaluation (the kernel's value head
-    # is only for search guidance; training targets must come from the WP model
-    # to avoid self-reinforcing collapse to 0.5)
+    # Load WP model — now runs IN the CUDA kernel for both MCTS search
+    # leaf evaluation and training targets (eliminates Python WP bottleneck)
     WP_MODEL_TYPE = os.environ.get("MCTS_WP_MODEL", "augmented")
-    wp_model = None
-    wp_enriched_config = None
     if WP_MODEL_TYPE == "base":
-        from train_win_probability import WinProbModel
-        wp_path = os.path.join(os.path.dirname(__file__), "win_probability.pt")
-        wp_model = WinProbModel()
-        wp_model.load_state_dict(torch.load(wp_path, weights_only=True, map_location="cpu"))
-        wp_model.eval()
-        print(f"WP model: base (197d)")
-    else:
-        from sweep_enriched_wp import WinProbEnrichedModel, StatsCache, compute_group_indices, FEATURE_GROUP_DIMS, FEATURE_GROUPS, extract_features
-        WP_GROUPS = ['role_counts', 'team_avg_wr', 'map_delta',
-                     'pairwise_counters', 'pairwise_synergies', 'counter_detail',
-                     'meta_strength', 'draft_diversity', 'comp_wr']
-        enriched_dim = sum(FEATURE_GROUP_DIMS[g] for g in WP_GROUPS)
-        wp_input_dim = 197 + enriched_dim
-        wp_hidden = [512, 256, 128] if WP_MODEL_TYPE == "augmented" else [256, 128]
-        wp_path = os.path.join(os.path.dirname(__file__),
-                               "wp_enriched_winner.pt" if WP_MODEL_TYPE == "augmented"
-                               else "wp_experiment_enriched.pt")
-        wp_model = WinProbEnrichedModel(wp_input_dim, wp_hidden, dropout=0.3)
-        wp_model.load_state_dict(torch.load(wp_path, weights_only=True, map_location="cpu"))
-        wp_model.eval()
-        wp_stats = StatsCache()
-        wp_gi = compute_group_indices()
-        wp_cols = []
-        for g in WP_GROUPS:
-            s, e = wp_gi[g]
-            wp_cols.extend(range(s, e))
-        wp_all_mask = [True] * len(FEATURE_GROUPS)
-        wp_enriched_config = {'groups': WP_GROUPS, 'cols': wp_cols,
-                              'stats': wp_stats, 'gi': wp_gi, 'all_mask': wp_all_mask}
-        print(f"WP model: {WP_MODEL_TYPE} ({wp_input_dim}d, {wp_hidden})")
+        raise ValueError("base WP model not supported for in-kernel eval; use enriched or augmented")
+    from sweep_enriched_wp import WinProbEnrichedModel, StatsCache, FEATURE_GROUP_DIMS
+    WP_GROUPS = ['role_counts', 'team_avg_wr', 'map_delta',
+                 'pairwise_counters', 'pairwise_synergies', 'counter_detail',
+                 'meta_strength', 'draft_diversity', 'comp_wr']
+    enriched_dim = sum(FEATURE_GROUP_DIMS[g] for g in WP_GROUPS)
+    wp_input_dim = 197 + enriched_dim
+    wp_hidden = [512, 256, 128] if WP_MODEL_TYPE == "augmented" else [256, 128]
+    wp_path = os.path.join(os.path.dirname(__file__),
+                           "wp_enriched_winner.pt" if WP_MODEL_TYPE == "augmented"
+                           else "wp_experiment_enriched.pt")
+    wp_model = WinProbEnrichedModel(wp_input_dim, wp_hidden, dropout=0.3)
+    wp_model.load_state_dict(torch.load(wp_path, weights_only=True, map_location="cpu"))
+    wp_model.eval()
+    print(f"WP model: {WP_MODEL_TYPE} ({wp_input_dim}d, {wp_hidden})")
 
-    def evaluate_terminal_wp(terminal_states_np, our_teams_np):
-        """Evaluate terminal states with WP model (symmetrized). Returns (N,) wp values."""
-        N = len(our_teams_np)
-        wps = np.zeros(N, dtype=np.float32)
-        for i in range(N):
-            state = terminal_states_np[i]
-            # Extract hero lists from multi-hot
-            t0h = [HEROES[j] for j in range(NUM_HEROES) if state[j] > 0.5]
-            t1h = [HEROES[j] for j in range(NUM_HEROES) if state[NUM_HEROES + j] > 0.5]
-            map_idx = int(np.argmax(state[3*NUM_HEROES:3*NUM_HEROES+14]))
-            tier_idx = int(np.argmax(state[3*NUM_HEROES+14:3*NUM_HEROES+14+3]))
-            game_map = MAPS[map_idx] if map_idx < len(MAPS) else MAPS[0]
-            tier = SKILL_TIERS[tier_idx] if tier_idx < len(SKILL_TIERS) else 'mid'
+    # Extract WP weights, offsets, and lookup tables for GPU kernel
+    wp_flat, wp_name_offsets = extract_wp_weights(wp_model)
+    wp_offsets = build_wp_net_offsets(wp_model, wp_name_offsets, wp_input_dim)
+    print(f"  WP weights: {len(wp_flat)} floats, {wp_offsets['num_layers']} layers")
 
-            def _run_wp(t0, t1):
-                if wp_enriched_config:
-                    d = {'team0_heroes': t0, 'team1_heroes': t1,
-                         'game_map': game_map, 'skill_tier': tier, 'winner': 0}
-                    base, enriched = extract_features(d, wp_enriched_config['stats'],
-                                                      wp_enriched_config['all_mask'])
-                    x = np.concatenate([base, enriched[wp_enriched_config['cols']]])
-                    with torch.no_grad():
-                        return wp_model(torch.tensor(x, dtype=torch.float32).unsqueeze(0)).item()
-                else:
-                    t0_mh = torch.tensor(heroes_to_multi_hot(t0), dtype=torch.float32).unsqueeze(0)
-                    t1_mh = torch.tensor(heroes_to_multi_hot(t1), dtype=torch.float32).unsqueeze(0)
-                    m = torch.tensor(map_to_one_hot(game_map), dtype=torch.float32).unsqueeze(0)
-                    t = torch.tensor(tier_to_one_hot(tier), dtype=torch.float32).unsqueeze(0)
-                    with torch.no_grad():
-                        return wp_model(torch.cat([t0_mh, t1_mh, m, t], dim=1)).item()
-
-            # Symmetrized
-            wp_normal = _run_wp(t0h, t1h)
-            wp_swapped = _run_wp(t1h, t0h)
-            wp_t0 = (wp_normal + (1.0 - wp_swapped)) / 2.0
-            wps[i] = wp_t0 if our_teams_np[i] == 0 else (1.0 - wp_t0)
-        return wps
+    wp_stats = StatsCache()
+    lut_blob = extract_lookup_tables(wp_stats)
 
     # Init network on GPU for training
-    network = AlphaZeroDraftNet().to(device)
-    print(f"Policy: {sum(p.numel() for p in network.parameters()):,} params on {device}")
+    network = AlphaZeroDraftNet(size=NET_SIZE, policy_head_type=POLICY_HEAD).to(device)
+    print(f"Policy ({NET_SIZE}, head={POLICY_HEAD}): {sum(p.numel() for p in network.parameters()):,} params on {device}")
 
     os.makedirs(SAVE_DIR, exist_ok=True)
     ckpt_path = os.path.join(SAVE_DIR, "draft_policy_checkpoint.pt")
@@ -186,12 +140,14 @@ def main():
         except Exception:
             print("Could not restore optimizer/scheduler")
 
-    # Create kernel engine
+    # Create kernel engine (with WP model + lookup tables for in-kernel evaluation)
     policy_flat, policy_offsets = extract_policy_weights(network)
     engine = kernel.MCTSKernelEngine(
-        policy_flat, gd_flat, policy_offsets, gd_offsets,
+        policy_flat, gd_flat, wp_flat,
+        policy_offsets, gd_offsets, wp_offsets,
+        lut_blob,
         max_concurrent=BATCH_EPISODES, device_id=0)
-    print(f"CUDA kernel engine (batch={BATCH_EPISODES})")
+    print(f"CUDA kernel engine (batch={BATCH_EPISODES}, WP in-kernel)")
 
     if HAS_WANDB:
         wandb.init(project="hots-draft-policy", name=RUN_NAME,
@@ -244,11 +200,10 @@ def main():
                 buf_states, buf_policies, buf_masks, buf_values,
                 gen_write_idx[0], BUFFER_SIZE
             )
-            n_written, term_states, term_teams, ep_starts, ep_turns = result
+            n_written, wp_values = result
             gen_write_idx[0] = (gen_write_idx[0] + n_written) % BUFFER_SIZE
             gen_seed[0] += batch_count
-            gen_queue.put((batch_count, n_written, np.array(term_states),
-                          np.array(term_teams), np.array(ep_starts), np.array(ep_turns)))
+            gen_queue.put((batch_count, n_written, np.array(wp_values)))
 
     gen_thread = threading.Thread(target=generation_thread, daemon=True)
     gen_thread.start()
@@ -263,22 +218,12 @@ def main():
         item = gen_queue.get()
         if item is None:
             break
-        batch_count, n_written, term_states, term_teams, ep_starts, ep_turns = item
+        batch_count, n_written, wp_values = item
         episode += batch_count
         episodes_since_weight_sync += batch_count
 
-        # Evaluate terminal states with WP model (the real training target)
-        wp_values = evaluate_terminal_wp(term_states, term_teams)
-
-        # Write WP values into the ring buffer for each episode's training examples
-        for ep_i in range(batch_count):
-            wp = wp_values[ep_i]
-            start = ep_starts[ep_i]
-            n_turns = ep_turns[ep_i]
-            for t in range(n_turns):
-                idx = (start + t) % BUFFER_SIZE
-                buf_values[idx] = wp
-
+        # WP values are already written into buf_values by the C++ layer
+        # (kernel computes symmetrized WP in-kernel, C++ writes to ring buffer)
         buf_size = min(buf_size + n_written, BUFFER_SIZE)
         last_wp = wp_values[-1] if len(wp_values) > 0 else 0.5
 
@@ -338,8 +283,8 @@ def main():
             result = engine.run_episodes_into_buffer(
                 eval_configs, NUM_SIMS // 2, 2.0, 99999,
                 eval_buf_s, eval_buf_p, eval_buf_m, eval_buf_v, 0, EVAL_DRAFTS * 8)
-            _, eval_term_states, eval_term_teams, _, _ = result
-            eval_wps = evaluate_terminal_wp(np.array(eval_term_states), np.array(eval_term_teams))
+            _, eval_wps = result
+            eval_wps = np.array(eval_wps)
             avg_wp = np.mean(eval_wps)
             win_rate = np.mean([1.0 if w > 0.5 else 0.0 for w in eval_wps])
             print(f"\n  EVAL @ {episode}: avg_wp={avg_wp:.4f} win_rate={win_rate:.1%}\n")
