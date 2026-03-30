@@ -136,7 +136,7 @@ export function AIRecommendationPanel({
         // instead of the policy value head (which has training artifacts)
         const wp = await getWinProbability(
           aiState.team0Picks, aiState.team1Picks,
-          aiState.map, aiState.tier, draftData
+          aiState.map, aiState.tier, draftData ?? undefined
         )
         // WP model returns P(team0 wins); convert to our team's perspective
         const ourWp = aiState.ourTeam === 0 ? wp : 1 - wp
