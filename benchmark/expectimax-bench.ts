@@ -93,7 +93,14 @@ interface DraftMetrics {
   healer: boolean
   degen: boolean
   heroes: string[]
+  wpOurs: number  // symmetrized enriched WP from our team's perspective
 }
+
+// ── WP evaluation using computeTeamWinEstimate ──
+// Uses the same 5-factor scoring (hero WR, counters, synergies, comp WR)
+// that the draft engine uses, applied to the complete terminal state.
+
+import { computeTeamWinEstimate } from '@/lib/draft/win-estimate'
 
 function computeMetrics(
   pickSteps: { hero: string; team: 'ours' | 'theirs'; step: number }[],
@@ -156,7 +163,7 @@ function computeMetrics(
   const badStack = Object.entries(roles).some(([role, count]) => count >= 3 && degenStackRoles.has(role))
   const degen = !hasHealer || !hasFront || !hasRanged || badStack
 
-  return { counter, counterLate, synergy, resilEarly, resilLate, healer: hasHealer, degen, heroes: ourHeroes }
+  return { counter, counterLate, synergy, resilEarly, resilLate, healer: hasHealer, degen, heroes: ourHeroes, wpOurs: 0.5 }
 }
 
 // ── Greedy strategy ──
@@ -276,7 +283,15 @@ async function simulateDraft(
     }
   }
 
-  return computeMetrics(pickSteps, data, replay.gameMap)
+  const metrics = computeMetrics(pickSteps, data, replay.gameMap)
+
+  // Evaluate terminal state using computeTeamWinEstimate (5-factor scoring)
+  if (ourPicks.length === 5 && enemyPicks.length === 5) {
+    const result = computeTeamWinEstimate(ourPicks, enemyPicks, data, replay.gameMap)
+    metrics.wpOurs = result.winPct / 100
+  }
+
+  return metrics
 }
 
 // ── Main ──
@@ -342,12 +357,15 @@ async function main() {
       healer: avg(allMetrics.map(m => m.healer ? 1 : 0)) * 100,
       degen: avg(allMetrics.map(m => m.degen ? 1 : 0)) * 100,
       distinct: Object.keys(heroCounter).length,
+      avgWP: avg(allMetrics.map(m => m.wpOurs)),
+      winRate: avg(allMetrics.map(m => m.wpOurs > 0.5 ? 1 : 0)) * 100,
     }
 
     console.log(`\n  ${strategy}: ctr=${agg.counter >= 0 ? '+' : ''}${agg.counter.toFixed(3)} ` +
       `ctrL=${agg.counterLate >= 0 ? '+' : ''}${agg.counterLate.toFixed(3)} ` +
       `syn=${agg.synergy.toFixed(3)} rE=${agg.resilEarly.toFixed(3)} rL=${agg.resilLate.toFixed(3)} ` +
       `hlr=${agg.healer.toFixed(0)}% deg=${agg.degen.toFixed(0)}% div=${agg.distinct} ` +
+      `avgWP=${agg.avgWP.toFixed(4)} wr=${agg.winRate.toFixed(0)}% ` +
       `(${Math.round(elapsed / 1000)}s)`)
   }
 
