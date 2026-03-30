@@ -41,10 +41,13 @@ drizzle/meta
 # sync runtime artifacts
 sync/logs
 sync/progress.json
+
+# training artifacts (models, checkpoints, caches)
 training/__pycache__/
 training/*.pt
 training/*.onnx
 training/*.onnx.data
+training/.replay_cache.json
 training/mcts_runs/
 training/mcts_cpp/build/
 training/mcts_cpp/*.so
@@ -52,4 +55,15 @@ training/cuda_mcts/build/
 training/cuda_mcts/*.so
 training/cuda_mcts/__pycache__/
 wandb/
-training/.replay_cache.json
+
+# experiment result data files (large, regenerable)
+training/experiment_results/**/*.pt
+training/experiment_results/**/*.json.gpu*
+training/experiment_results/draft_records*.json
+training/experiment_results/diagnostics/_sweep_*.json
+
+# benchmark caches (regenerable from DB)
+benchmark/cache/
+
+# CSV dumps
+training/*.csv
