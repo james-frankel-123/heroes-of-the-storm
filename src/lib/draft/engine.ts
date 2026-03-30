@@ -339,6 +339,117 @@ function scoreBanCandidate(
 }
 
 // ---------------------------------------------------------------------------
+// Pure scoring functions (no RecommendationReason overhead — for search hot path)
+// ---------------------------------------------------------------------------
+
+/**
+ * Score a hero for picking without building RecommendationReason objects.
+ * Combines all 5 factors: heroWR + counter + synergy + comp + healer urgency.
+ * Used by the expectimax prefilter and as a fast scoring path.
+ */
+export function scoreHeroForPick(
+  hero: string,
+  ourPicks: string[],
+  enemyPicks: string[],
+  data: DraftData,
+  map: string | null,
+): number {
+  let score = 0
+
+  // 1. Hero base WR
+  const resolved = getHeroWinRate(hero, data, map)
+  if (resolved && resolved.games >= 100) {
+    score += (resolved.winRate - 50) * W.heroWr
+  }
+
+  // 2. Counter-picks vs enemy
+  const heroWR = resolved?.winRate ?? 50
+  let ctrSum = 0, ctrN = 0
+  for (const enemy of enemyPicks) {
+    const d = data.counters[hero]?.[enemy]
+    if (!d || d.games < 30) continue
+    const enemyWR = getHeroWinRate(enemy, data, map)?.winRate ?? 50
+    ctrSum += d.winRate - (heroWR + (100 - enemyWR) - 50)
+    ctrN++
+  }
+  if (ctrN > 0) score += (ctrSum / ctrN) * W.counter
+
+  // 3. Synergies with allies
+  let synSum = 0, synN = 0
+  for (const ally of ourPicks) {
+    const d = data.synergies[hero]?.[ally]
+    if (!d || d.games < 30) continue
+    const allyWR = getHeroWinRate(ally, data, map)?.winRate ?? 50
+    synSum += d.winRate - (50 + (heroWR - 50) + (allyWR - 50))
+    synN++
+  }
+  if (synN > 0) score += (synSum / synN) * W.synergy
+
+  // 4. Composition scoring
+  if (W.comp > 0) {
+    const { sortBoost } = scoreCompositionForHero(
+      hero, ourPicks, data.compositions, data.baselineCompWR
+    )
+    score += sortBoost * W.comp
+  }
+
+  // 5. Healer urgency
+  if (W.healerBonus > 0) {
+    const heroRole = HERO_ROLES[hero] ?? null
+    const hasHealer = ourPicks.some(p => HERO_ROLES[p] === 'Healer')
+    if (!hasHealer && heroRole === 'Healer') {
+      const picksRemaining = 5 - ourPicks.length - 1
+      const urgency = Math.max(0, 1 - picksRemaining / 3)
+      score += W.healerBonus * urgency
+    }
+  }
+
+  return Math.round(score * 10) / 10
+}
+
+/**
+ * Score a hero for banning without building RecommendationReason objects.
+ * Used by the expectimax prefilter for ban steps.
+ */
+export function scoreHeroForBan(
+  hero: string,
+  picksToProtect: string[],
+  opponentPicks: string[],
+  data: DraftData,
+  map: string | null,
+): number {
+  const resolved = getHeroWinRate(hero, data, map)
+  if (!resolved) return 0
+
+  let score = (resolved.winRate - 50) * W.banWr
+
+  // Counter protection: ban heroes strong vs our picks
+  for (const ally of picksToProtect) {
+    const d = data.counters[hero]?.[ally]
+    if (!d || d.games < 30) continue
+    const allyWR = getHeroWinRate(ally, data, map)?.winRate ?? 50
+    const expectedWR = resolved.winRate + (100 - allyWR) - 50
+    if (d.winRate >= expectedWR + 3) {
+      score += (d.winRate - expectedWR) * W.banCounter
+    }
+  }
+
+  // Deny synergy with opponent's picks
+  for (const enemy of opponentPicks) {
+    const d = data.synergies[hero]?.[enemy]
+    if (!d || d.games < 30) continue
+    const enemyWR = getHeroWinRate(enemy, data, map)?.winRate ?? 50
+    const expectedWR = 50 + (resolved.winRate - 50) + (enemyWR - 50)
+    const delta = d.winRate - expectedWR
+    if (delta >= 2) {
+      score += delta * W.banSynergy
+    }
+  }
+
+  return Math.round(score * 10) / 10
+}
+
+// ---------------------------------------------------------------------------
 // Main engine
 // ---------------------------------------------------------------------------
 

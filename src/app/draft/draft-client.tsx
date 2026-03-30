@@ -7,6 +7,7 @@ import { DraftBoard } from '@/components/draft/draft-board'
 import { HeroPicker } from '@/components/draft/hero-picker'
 import { RecommendationPanel } from '@/components/draft/recommendation-panel'
 import { AIRecommendationPanel } from '@/components/draft/ai-recommendation-panel'
+import { SearchRecommendationPanel } from '@/components/draft/search-recommendation-panel'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
@@ -201,6 +202,59 @@ export function DraftClient({
   // AI mode state
   const [aiMode, setAiMode] = useState(false)
   const [aiValueEstimate, setAiValueEstimate] = useState<number | null>(null)
+
+  // Search mode state
+  type DraftMode = 'stats' | 'search' | 'ai'
+  const [draftMode, setDraftMode] = useState<DraftMode>('stats')
+
+  // Expectimax search state
+  const [searchResults, setSearchResults] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
+  const [searchDepth, setSearchDepth] = useState<number | null>(null)
+  const [searching, setSearching] = useState(false)
+  const [expectimaxManager, setExpectimaxManager] = useState<import('@/lib/draft/expectimax-manager').ExpectimaxManager | null>(null)
+
+  // Initialize search manager lazily when search mode is first activated
+  useEffect(() => {
+    if (draftMode !== 'search' || expectimaxManager) return
+    let cancelled = false
+    ;(async () => {
+      const { ExpectimaxManager } = await import('@/lib/draft/expectimax-manager')
+      if (cancelled) return
+      const mgr = new ExpectimaxManager()
+      mgr.onProgress = (results, depth) => {
+        setSearchResults(results)
+        setSearchDepth(depth)
+      }
+      try {
+        await mgr.init()
+        if (!cancelled) setExpectimaxManager(mgr)
+      } catch (err) {
+        console.error('Failed to init expectimax:', err)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [draftMode, expectimaxManager])
+
+  // Run search when state changes in search mode
+  useEffect(() => {
+    if (draftMode !== 'search' || !expectimaxManager || !draftData || state.phase !== 'drafting') return
+    setSearching(true)
+    setSearchResults([])
+    setSearchDepth(null)
+    expectimaxManager.search(state, draftData).then(results => {
+      setSearchResults(results)
+      setSearching(false)
+    }).catch(() => setSearching(false))
+    return () => expectimaxManager.cancel()
+  }, [draftMode, expectimaxManager, draftData, state.currentStep, state.selections, state.phase])
+
+  // Sync aiMode with draftMode for backward compat
+  useEffect(() => { setAiMode(draftMode === 'ai') }, [draftMode])
+
+  // Clean up workers on unmount
+  useEffect(() => {
+    return () => { expectimaxManager?.dispose() }
+  }, [expectimaxManager])
 
   // Stable callback ref for AI value estimate
   const handleAiValueEstimate = useCallback((wp: number | null) => {
@@ -429,17 +483,26 @@ export function DraftClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setAiMode(!aiMode)}
-            className={cn(
-              'px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
-              aiMode
-                ? 'border-violet-500 bg-violet-500/20 text-violet-300'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
-            )}
-          >
-            {aiMode ? 'AI Mode' : 'Stats Mode'}
-          </button>
+          <div className="flex items-center gap-0.5 p-0.5 rounded-md border border-border bg-muted/30">
+            {(['stats', 'search', 'ai'] as DraftMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setDraftMode(mode)}
+                className={cn(
+                  'px-2.5 py-1 rounded text-xs font-medium transition-colors',
+                  draftMode === mode
+                    ? mode === 'ai'
+                      ? 'bg-violet-500/20 text-violet-300 border border-violet-500'
+                      : mode === 'search'
+                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500'
+                        : 'bg-background text-foreground border border-border shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {mode === 'stats' ? 'Stats' : mode === 'search' ? 'Search' : 'AI'}
+              </button>
+            ))}
+          </div>
           {currentStep?.type === 'ban' && (
             <button
               onClick={() => dispatch({ type: 'SKIP_BAN' })}
@@ -501,7 +564,7 @@ export function DraftClient({
 
           {/* Recommendations — 1/3 */}
           <div>
-            {aiMode ? (
+            {draftMode === 'ai' ? (
               <AIRecommendationPanel
                 state={state}
                 unavailable={unavailableHeroes}
@@ -510,6 +573,16 @@ export function DraftClient({
                 draftData={draftData}
                 availableBattletags={availableBattletags}
                 onValueEstimate={handleAiValueEstimate}
+              />
+            ) : draftMode === 'search' ? (
+              <SearchRecommendationPanel
+                results={searchResults}
+                searchDepth={searchDepth}
+                searching={searching}
+                isBanPhase={currentStep?.type === 'ban'}
+                isOurTurn={currentStep?.team === state.ourTeam}
+                onSelect={handleSelectHero}
+                unavailable={unavailableHeroes}
               />
             ) : (
               <RecommendationPanel
