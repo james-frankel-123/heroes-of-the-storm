@@ -1,0 +1,148 @@
+======================================================================
+3a. WP MODEL ACCURACY
+======================================================================
+Model                 Avg Acc  Best Acc  Input Dim Groups
+----------------------------------------------------------------------
+naive                   0.00%     0.00%        197 (base only)
+herostrength            0.00%     0.00%        209 hero_wr, team_avg_wr
+enriched                0.00%     0.00%        283 role_counts, team_avg_wr, map_delta, pairwise_counters...
+
+======================================================================
+3b. CROSS-EVALUATION MATRIX
+======================================================================
+Drafter                by Naive by HeroStr by Enriched
+--------------------------------------------------
+naive                   0.6701     0.5952     0.5862
+herostrength            0.6193     0.6376     0.5806
+enriched                0.6005     0.5803     0.6441
+
+======================================================================
+3c. COMPOSITION QUALITY
+======================================================================
+Drafter               Healer%  Tank%  Front%  Ranged%  Roles  Absurd%
+------------------------------------------------------------
+naive                   49.0%  56.9%   95.0%    65.2%   3.8    75.8%
+herostrength            39.0%  55.8%   97.3%    58.1%   3.5    82.1%
+enriched                66.5%  51.9%   98.3%    73.3%   3.9    57.7%
+
+======================================================================
+3d. PICK DIVERGENCE BY DRAFT PHASE
+======================================================================
+Phase              Naive vs Enriched    HeroStr vs Enriched
+---------------------------------------------------------
+Bans                           9.5%                 13.9%
+Early picks                    9.0%                  7.6%
+Late picks                     4.8%                  5.2%
+
+======================================================================
+3e. DISAGREEMENT DEEP-DIVE
+======================================================================
+Top 50 disagreements (naive scores high, enriched scores low):
+  high_wr_bad_comp: 48/50
+  no_healer: 41/50
+  role_stacking: 13/50
+  no_frontline: 3/50
+
+Example drafts:
+  #1: Towers of Doom, low tier, team 0
+    Our team: Johanna, Qhira, The Butcher, Tyrael, Zarya
+    Opponent: Artanis, Diablo, Li Li, Murky, Sylvanas
+    WP naive=0.813 enriched=0.488 (gap=+0.325)
+    Issues: no healer
+    Last pick: chose Zarya (0.842)
+      Over: D.Va (0.833), Gazlowe (0.831)
+
+  #2: Sky Temple, mid tier, team 1
+    Our team: Alarak, Kerrigan, Rexxar, The Butcher, Zagara
+    Opponent: Falstad, Illidan, Muradin, Uther, Valla
+    WP naive=0.733 enriched=0.456 (gap=+0.277)
+    Issues: no healer, role stacking (melee_assassin)
+    Last pick: chose Alarak (0.733)
+      Over: Mei (0.732), Junkrat (0.728)
+
+  #3: Warhead Junction, low tier, team 0
+    Our team: Alarak, Illidan, Mei, Tyrael, Xul
+    Opponent: Lunara, Murky, Nazeebo, Stukov, Varian
+    WP naive=0.725 enriched=0.448 (gap=+0.276)
+    Issues: no healer
+    Last pick: chose Illidan (0.775)
+      Over: Gazlowe (0.751), Zarya (0.750)
+
+  #4: Dragon Shire, mid tier, team 1
+    Our team: Alarak, Kerrigan, Sonya, Tyrael, Xul
+    Opponent: Brightwing, Malthael, Orphea, Stitches, Tychus
+    WP naive=0.770 enriched=0.495 (gap=+0.275)
+    Issues: no healer
+    Last pick: chose Xul (0.770)
+      Over: Zarya (0.751), Rexxar (0.745)
+
+  #5: Tomb of the Spider Queen, high tier, team 1
+    Our team: Alexstrasza, Maiev, Mephisto, The Lost Vikings, Tychus
+    Opponent: Diablo, Johanna, Kael'thas, Rehgar, Sgt. Hammer
+    WP naive=0.716 enriched=0.456 (gap=+0.260)
+    Issues: no frontline
+    Last pick: chose Mephisto (0.716)
+      Over: Whitemane (0.667), D.Va (0.654)
+
+  #6: Tomb of the Spider Queen, high tier, team 1
+    Our team: Cho, D.Va, Probius, Whitemane, Xul
+    Opponent: Diablo, Gall, Li Li, Orphea, Sgt. Hammer
+    WP naive=0.713 enriched=0.455 (gap=+0.258)
+    Issues: none identified
+    Last pick: chose Whitemane (0.713)
+      Over: Kerrigan (0.692), Rexxar (0.690)
+
+  #7: Volskaya Foundry, high tier, team 1
+    Our team: Cho, Rexxar, Tyrael, Xul, Zarya
+    Opponent: Alexstrasza, Falstad, Gall, Mei, Valla
+    WP naive=0.708 enriched=0.454 (gap=+0.254)
+    Issues: no healer
+    Last pick: chose Xul (0.708)
+      Over: Zeratul (0.701), Alarak (0.695)
+
+  #8: Dragon Shire, mid tier, team 1
+    Our team: D.Va, Kel'Thuzad, Leoric, Malthael, Rexxar
+    Opponent: Azmodan, Gul'dan, Kerrigan, Rehgar, Stitches
+    WP naive=0.695 enriched=0.445 (gap=+0.250)
+    Issues: no healer, role stacking (bruiser)
+    Last pick: chose Kel'Thuzad (0.695)
+      Over: Deathwing (0.672), Arthas (0.667)
+
+  #9: Warhead Junction, high tier, team 1
+    Our team: Alarak, Hogger, Imperius, Kerrigan, Zarya
+    Opponent: Auriel, Kel'Thuzad, Leoric, Thrall, Tychus
+    WP naive=0.662 enriched=0.413 (gap=+0.249)
+    Issues: no healer
+    Last pick: chose Hogger (0.662)
+      Over: Tyrael (0.652), Rexxar (0.632)
+
+  #10: Blackheart's Bay, low tier, team 1
+    Our team: Alarak, Ana, Mal'Ganis, Qhira, Xul
+    Opponent: Greymane, Illidan, Jaina, Li Li, Thrall
+    WP naive=0.643 enriched=0.395 (gap=+0.248)
+    Issues: none identified
+    Last pick: chose Alarak (0.643)
+      Over: Rexxar (0.625), Hogger (0.608)
+
+======================================================================
+3f. SANITY TEST RESULTS
+======================================================================
+Model                 Absurd  Trap  Normal  Symmetry  Total
+-------------------------------------------------------
+naive                6/8 2/5 3/5 3/3 14/21/21
+herostrength         6/8 2/5 3/5 1/3 12/21/21
+enriched             7/8 4/5 3/5 3/3 17/21/21
+
+======================================================================
+3h. PER-MAP COMPOSITION ANALYSIS
+======================================================================
+
+Two-lane maps:
+  naive              healer=52% absurd=70% (n=106)
+  herostrength       healer=38% absurd=84% (n=106)
+  enriched           healer=63% absurd=53% (n=106)
+
+Three-lane maps:
+  naive              healer=48% absurd=78% (n=374)
+  herostrength       healer=39% absurd=82% (n=374)
+  enriched           healer=67% absurd=59% (n=374)

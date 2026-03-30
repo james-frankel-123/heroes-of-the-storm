@@ -1,0 +1,138 @@
+{
+  "E_seed0": {
+    "1": {
+      "resilience_avg": -0.05704083333333363,
+      "resilience_gradient": 0.7808395833333338,
+      "counter_avg": -0.29113833333333294,
+      "team_synergy": -2.3731850000000008,
+      "healer_pct": 100.0,
+      "degen_pct": 98.5,
+      "distinct": 9.0,
+      "elapsed": 0.5319228172302246,
+      "n_drafts": 200.0
+    },
+    "50": {
+      "resilience_avg": -0.010008500000000389,
+      "resilience_gradient": -0.6542004166666664,
+      "counter_avg": -0.10264083333333346,
+      "team_synergy": 0.5120149999999992,
+      "healer_pct": 83.5,
+      "degen_pct": 28.499999999999996,
+      "distinct": 23.0,
+      "elapsed": 0.43099498748779297,
+      "n_drafts": 200.0
+    },
+    "200": {
+      "resilience_avg": -0.025672500000000324,
+      "resilience_gradient": -0.578277083333333,
+      "counter_avg": -0.08176850000000023,
+      "team_synergy": 0.5026949999999992,
+      "healer_pct": 85.5,
+      "degen_pct": 26.0,
+      "distinct": 23.0,
+      "elapsed": 0.6424694061279297,
+      "n_drafts": 200.0
+    },
+    "400": {
+      "resilience_avg": -0.024530333333333623,
+      "resilience_gradient": -0.5817591666666664,
+      "counter_avg": -0.09042666666666684,
+      "team_synergy": 0.5052299999999992,
+      "healer_pct": 85.0,
+      "degen_pct": 26.0,
+      "distinct": 23.0,
+      "elapsed": 0.9229207038879395,
+      "n_drafts": 200.0
+    },
+    "600": {
+      "resilience_avg": -0.036159500000000254,
+      "resilience_gradient": -0.5708779166666665,
+      "counter_avg": -0.09534200000000012,
+      "team_synergy": 0.5101399999999993,
+      "healer_pct": 84.5,
+      "degen_pct": 27.500000000000004,
+      "distinct": 23.0,
+      "elapsed": 1.1909165382385254,
+      "n_drafts": 200.0
+    },
+    "800": {
+      "resilience_avg": -0.03992466666666689,
+      "resilience_gradient": -0.5724949999999999,
+      "counter_avg": -0.09871116666666677,
+      "team_synergy": 0.5144299999999992,
+      "healer_pct": 85.5,
+      "degen_pct": 27.500000000000004,
+      "distinct": 23.0,
+      "elapsed": 1.4596858024597168,
+      "n_drafts": 200.0
+    }
+  },
+  "G_seed4": {
+    "1": {
+      "resilience_avg": -0.05704083333333363,
+      "resilience_gradient": 0.7808395833333338,
+      "counter_avg": -0.29113833333333294,
+      "team_synergy": -2.3731850000000008,
+      "healer_pct": 100.0,
+      "degen_pct": 98.5,
+      "distinct": 9.0,
+      "elapsed": 0.5096967220306396,
+      "n_drafts": 200.0
+    },
+    "50": {
+      "resilience_avg": 0.10275216666666646,
+      "resilience_gradient": -0.3955570833333331,
+      "counter_avg": -0.15617950000000003,
+      "team_synergy": 0.13312999999999878,
+      "healer_pct": 98.0,
+      "degen_pct": 24.5,
+      "distinct": 20.0,
+      "elapsed": 0.5154256820678711,
+      "n_drafts": 200.0
+    },
+    "200": {
+      "resilience_avg": 0.09480783333333313,
+      "resilience_gradient": -0.3272179166666666,
+      "counter_avg": -0.16718200000000005,
+      "team_synergy": 0.1564499999999988,
+      "healer_pct": 98.5,
+      "degen_pct": 20.0,
+      "distinct": 20.0,
+      "elapsed": 0.9919061660766602,
+      "n_drafts": 200.0
+    },
+    "400": {
+      "resilience_avg": 0.0763046666666665,
+      "resilience_gradient": -0.32509666666666676,
+      "counter_avg": -0.16369750000000002,
+      "team_synergy": 0.16264499999999876,
+      "healer_pct": 98.5,
+      "degen_pct": 20.5,
+      "distinct": 20.0,
+      "elapsed": 1.6431403160095215,
+      "n_drafts": 200.0
+    },
+    "600": {
+      "resilience_avg": 0.07678416666666649,
+      "resilience_gradient": -0.32484375000000015,
+      "counter_avg": -0.17022750000000006,
+      "team_synergy": 0.17781499999999872,
+      "healer_pct": 98.5,
+      "degen_pct": 20.5,
+      "distinct": 20.0,
+      "elapsed": 2.277838945388794,
+      "n_drafts": 200.0
+    },
+    "800": {
+      "resilience_avg": 0.06304133333333316,
+      "resilience_gradient": -0.31237583333333346,
+      "counter_avg": -0.1668745,
+      "team_synergy": 0.17839999999999875,
+      "healer_pct": 99.0,
+      "degen_pct": 20.0,
+      "distinct": 19.0,
+      "elapsed": 2.9234509468078613,
+      "n_drafts": 200.0
+    }
+  }
+}

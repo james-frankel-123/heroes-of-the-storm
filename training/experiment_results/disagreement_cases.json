@@ -1,0 +1,1967 @@
+[
+  {
+    "wp_model": "naive",
+    "game_map": "Towers of Doom",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Johanna",
+      "Qhira",
+      "The Butcher",
+      "Tyrael",
+      "Zarya"
+    ],
+    "opp_picks": [
+      "Artanis",
+      "Diablo",
+      "Li Li",
+      "Murky",
+      "Sylvanas"
+    ],
+    "our_bans": [
+      "Zul'jin",
+      "Leoric",
+      "Orphea"
+    ],
+    "wp_by_naive": 0.8129304051399231,
+    "wp_by_herostrength": 0.5941804647445679,
+    "wp_by_enriched": 0.48803192377090454,
+    "comp_roles": {
+      "tank": 2,
+      "melee_assassin": 2,
+      "support_utility": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Sky Temple",
+    "skill_tier": "mid",
+    "our_team": 1,
+    "our_picks": [
+      "Alarak",
+      "Kerrigan",
+      "Rexxar",
+      "The Butcher",
+      "Zagara"
+    ],
+    "opp_picks": [
+      "Falstad",
+      "Illidan",
+      "Muradin",
+      "Uther",
+      "Valla"
+    ],
+    "our_bans": [
+      "Brightwing",
+      "Sgt. Hammer",
+      "Deckard"
+    ],
+    "wp_by_naive": 0.7328312397003174,
+    "wp_by_herostrength": 0.5331877768039703,
+    "wp_by_enriched": 0.45593124628067017,
+    "comp_roles": {
+      "melee_assassin": 3,
+      "bruiser": 1,
+      "pusher": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Warhead Junction",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Alarak",
+      "Illidan",
+      "Mei",
+      "Tyrael",
+      "Xul"
+    ],
+    "opp_picks": [
+      "Lunara",
+      "Murky",
+      "Nazeebo",
+      "Stukov",
+      "Varian"
+    ],
+    "our_bans": [
+      "Nova",
+      "Li Li",
+      "Orphea"
+    ],
+    "wp_by_naive": 0.7246318459510803,
+    "wp_by_herostrength": 0.6863642930984497,
+    "wp_by_enriched": 0.44828829169273376,
+    "comp_roles": {
+      "melee_assassin": 2,
+      "tank": 2,
+      "bruiser": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Dragon Shire",
+    "skill_tier": "mid",
+    "our_team": 1,
+    "our_picks": [
+      "Alarak",
+      "Kerrigan",
+      "Sonya",
+      "Tyrael",
+      "Xul"
+    ],
+    "opp_picks": [
+      "Brightwing",
+      "Malthael",
+      "Orphea",
+      "Stitches",
+      "Tychus"
+    ],
+    "our_bans": [
+      "The Lost Vikings",
+      "Greymane",
+      "D.Va"
+    ],
+    "wp_by_naive": 0.7698137909173965,
+    "wp_by_herostrength": 0.6257762014865875,
+    "wp_by_enriched": 0.49479299783706665,
+    "comp_roles": {
+      "melee_assassin": 2,
+      "bruiser": 2,
+      "tank": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Tomb of the Spider Queen",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Alexstrasza",
+      "Maiev",
+      "Mephisto",
+      "The Lost Vikings",
+      "Tychus"
+    ],
+    "opp_picks": [
+      "Diablo",
+      "Johanna",
+      "Kael'thas",
+      "Rehgar",
+      "Sgt. Hammer"
+    ],
+    "our_bans": [
+      "Kharazim",
+      "Imperius",
+      "Li-Ming"
+    ],
+    "wp_by_naive": 0.7158395648002625,
+    "wp_by_herostrength": 0.5709242224693298,
+    "wp_by_enriched": 0.4555913805961609,
+    "comp_roles": {
+      "healer": 1,
+      "melee_assassin": 1,
+      "ranged_mage": 1,
+      "pusher": 1,
+      "ranged_aa": 1
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": false,
+    "comp_has_frontline": false,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 5,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Tomb of the Spider Queen",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Cho",
+      "D.Va",
+      "Probius",
+      "Whitemane",
+      "Xul"
+    ],
+    "opp_picks": [
+      "Diablo",
+      "Gall",
+      "Li Li",
+      "Orphea",
+      "Sgt. Hammer"
+    ],
+    "our_bans": [
+      "Alexstrasza",
+      "Brightwing",
+      "Valla"
+    ],
+    "wp_by_naive": 0.7125411331653595,
+    "wp_by_herostrength": 0.6198354959487915,
+    "wp_by_enriched": 0.4546746611595154,
+    "comp_roles": {
+      "tank": 1,
+      "bruiser": 2,
+      "ranged_mage": 1,
+      "healer": 1
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": false
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Volskaya Foundry",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Cho",
+      "Rexxar",
+      "Tyrael",
+      "Xul",
+      "Zarya"
+    ],
+    "opp_picks": [
+      "Alexstrasza",
+      "Falstad",
+      "Gall",
+      "Mei",
+      "Valla"
+    ],
+    "our_bans": [
+      "Brightwing",
+      "Li-Ming",
+      "Whitemane"
+    ],
+    "wp_by_naive": 0.7081317603588104,
+    "wp_by_herostrength": 0.5523605346679688,
+    "wp_by_enriched": 0.4543026089668274,
+    "comp_roles": {
+      "tank": 2,
+      "bruiser": 2,
+      "support_utility": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Dragon Shire",
+    "skill_tier": "mid",
+    "our_team": 1,
+    "our_picks": [
+      "D.Va",
+      "Kel'Thuzad",
+      "Leoric",
+      "Malthael",
+      "Rexxar"
+    ],
+    "opp_picks": [
+      "Azmodan",
+      "Gul'dan",
+      "Kerrigan",
+      "Rehgar",
+      "Stitches"
+    ],
+    "our_bans": [
+      "Samuro",
+      "Qhira",
+      "Mephisto"
+    ],
+    "wp_by_naive": 0.6947416663169861,
+    "wp_by_herostrength": 0.5957824885845184,
+    "wp_by_enriched": 0.44456303119659424,
+    "comp_roles": {
+      "bruiser": 4,
+      "ranged_mage": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 2,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Warhead Junction",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Alarak",
+      "Hogger",
+      "Imperius",
+      "Kerrigan",
+      "Zarya"
+    ],
+    "opp_picks": [
+      "Auriel",
+      "Kel'Thuzad",
+      "Leoric",
+      "Thrall",
+      "Tychus"
+    ],
+    "our_bans": [
+      "Zagara",
+      "Lt. Morales",
+      "Probius"
+    ],
+    "wp_by_naive": 0.6622315347194672,
+    "wp_by_herostrength": 0.6217949688434601,
+    "wp_by_enriched": 0.41315770149230957,
+    "comp_roles": {
+      "melee_assassin": 2,
+      "bruiser": 2,
+      "support_utility": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Blackheart's Bay",
+    "skill_tier": "low",
+    "our_team": 1,
+    "our_picks": [
+      "Alarak",
+      "Ana",
+      "Mal'Ganis",
+      "Qhira",
+      "Xul"
+    ],
+    "opp_picks": [
+      "Greymane",
+      "Illidan",
+      "Jaina",
+      "Li Li",
+      "Thrall"
+    ],
+    "our_bans": [
+      "Tyrande",
+      "Alexstrasza",
+      "Leoric"
+    ],
+    "wp_by_naive": 0.6428389847278595,
+    "wp_by_herostrength": 0.5220321118831635,
+    "wp_by_enriched": 0.39499902725219727,
+    "comp_roles": {
+      "melee_assassin": 2,
+      "healer": 1,
+      "tank": 1,
+      "bruiser": 1
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Cursed Hollow",
+    "skill_tier": "mid",
+    "our_team": 0,
+    "our_picks": [
+      "Gazlowe",
+      "Hogger",
+      "Maiev",
+      "Samuro",
+      "Tyrael"
+    ],
+    "opp_picks": [
+      "Falstad",
+      "Johanna",
+      "Kael'thas",
+      "L\u00facio",
+      "Ragnaros"
+    ],
+    "our_bans": [
+      "Nova",
+      "Qhira",
+      "Deathwing"
+    ],
+    "wp_by_naive": 0.761478841304779,
+    "wp_by_herostrength": 0.6908603310585022,
+    "wp_by_enriched": 0.5138798356056213,
+    "comp_roles": {
+      "bruiser": 2,
+      "melee_assassin": 2,
+      "tank": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Dragon Shire",
+    "skill_tier": "mid",
+    "our_team": 1,
+    "our_picks": [
+      "Chromie",
+      "Mal'Ganis",
+      "Mei",
+      "The Butcher",
+      "Zeratul"
+    ],
+    "opp_picks": [
+      "Artanis",
+      "Genji",
+      "Tyrael",
+      "Whitemane",
+      "Zagara"
+    ],
+    "our_bans": [
+      "Muradin",
+      "Johanna",
+      "Nazeebo"
+    ],
+    "wp_by_naive": 0.6501695513725281,
+    "wp_by_herostrength": 0.5103295147418976,
+    "wp_by_enriched": 0.4033746123313904,
+    "comp_roles": {
+      "ranged_mage": 1,
+      "tank": 2,
+      "melee_assassin": 2
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Infernal Shrines",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Alarak",
+      "Anub'arak",
+      "Fenix",
+      "Mei",
+      "Murky"
+    ],
+    "opp_picks": [
+      "Anduin",
+      "D.Va",
+      "Gul'dan",
+      "Nazeebo",
+      "Stitches"
+    ],
+    "our_bans": [
+      "Valeera",
+      "Kael'thas",
+      "Gazlowe"
+    ],
+    "wp_by_naive": 0.7177817225456238,
+    "wp_by_herostrength": 0.5463413000106812,
+    "wp_by_enriched": 0.4723667502403259,
+    "comp_roles": {
+      "melee_assassin": 1,
+      "tank": 2,
+      "ranged_aa": 1,
+      "pusher": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Garden of Terror",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Alarak",
+      "Anub'arak",
+      "Mei",
+      "Rehgar",
+      "Tyrael"
+    ],
+    "opp_picks": [
+      "Auriel",
+      "Falstad",
+      "Leoric",
+      "Raynor",
+      "Varian"
+    ],
+    "our_bans": [
+      "Lt. Morales",
+      "Jaina",
+      "Arthas"
+    ],
+    "wp_by_naive": 0.7068600654602051,
+    "wp_by_herostrength": 0.535804957151413,
+    "wp_by_enriched": 0.46493399143218994,
+    "comp_roles": {
+      "melee_assassin": 1,
+      "tank": 3,
+      "healer": 1
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Warhead Junction",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Alarak",
+      "Deathwing",
+      "Kerrigan",
+      "Tyrael",
+      "Yrel"
+    ],
+    "opp_picks": [
+      "Johanna",
+      "Leoric",
+      "Medivh",
+      "Stukov",
+      "Sylvanas"
+    ],
+    "our_bans": [
+      "Kael'thas",
+      "Sgt. Hammer",
+      "Li-Ming"
+    ],
+    "wp_by_naive": 0.7682486772537231,
+    "wp_by_herostrength": 0.6899339556694031,
+    "wp_by_enriched": 0.5264671444892883,
+    "comp_roles": {
+      "melee_assassin": 2,
+      "bruiser": 2,
+      "tank": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Hanamura Temple",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Alarak",
+      "Artanis",
+      "Probius",
+      "Xul",
+      "Zarya"
+    ],
+    "opp_picks": [
+      "Cho",
+      "Gall",
+      "Hanzo",
+      "Rehgar",
+      "Thrall"
+    ],
+    "our_bans": [
+      "Garrosh",
+      "Murky",
+      "Zul'jin"
+    ],
+    "wp_by_naive": 0.77121901512146,
+    "wp_by_herostrength": 0.5742563903331757,
+    "wp_by_enriched": 0.5326613187789917,
+    "comp_roles": {
+      "melee_assassin": 1,
+      "bruiser": 2,
+      "ranged_mage": 1,
+      "support_utility": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Battlefield of Eternity",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Alarak",
+      "Chen",
+      "Hogger",
+      "Johanna",
+      "Kerrigan"
+    ],
+    "opp_picks": [
+      "Anduin",
+      "Muradin",
+      "Sylvanas",
+      "Valeera",
+      "Varian"
+    ],
+    "our_bans": [
+      "Blaze",
+      "Auriel",
+      "Zeratul"
+    ],
+    "wp_by_naive": 0.8477870672941208,
+    "wp_by_herostrength": 0.7373440265655518,
+    "wp_by_enriched": 0.6153000891208649,
+    "comp_roles": {
+      "melee_assassin": 2,
+      "bruiser": 2,
+      "tank": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Blackheart's Bay",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Deathwing",
+      "Falstad",
+      "Rexxar",
+      "The Lost Vikings",
+      "Tychus"
+    ],
+    "opp_picks": [
+      "Ana",
+      "D.Va",
+      "Johanna",
+      "Li-Ming",
+      "Orphea"
+    ],
+    "our_bans": [
+      "Junkrat",
+      "Auriel",
+      "Dehaka"
+    ],
+    "wp_by_naive": 0.7118937075138092,
+    "wp_by_herostrength": 0.6306828260421753,
+    "wp_by_enriched": 0.4795098900794983,
+    "comp_roles": {
+      "bruiser": 2,
+      "ranged_aa": 2,
+      "pusher": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Battlefield of Eternity",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Blaze",
+      "Garrosh",
+      "Probius",
+      "Rexxar",
+      "Tyrael"
+    ],
+    "opp_picks": [
+      "Artanis",
+      "Arthas",
+      "Deckard",
+      "Falstad",
+      "Uther"
+    ],
+    "our_bans": [
+      "Fenix",
+      "Orphea",
+      "Li-Ming"
+    ],
+    "wp_by_naive": 0.6183948516845703,
+    "wp_by_herostrength": 0.5351947546005249,
+    "wp_by_enriched": 0.38767269253730774,
+    "comp_roles": {
+      "tank": 3,
+      "ranged_mage": 1,
+      "bruiser": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Blackheart's Bay",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Kel'Thuzad",
+      "Leoric",
+      "Sonya",
+      "Tyrande",
+      "Xul"
+    ],
+    "opp_picks": [
+      "Anub'arak",
+      "Auriel",
+      "Hanzo",
+      "Kerrigan",
+      "Nova"
+    ],
+    "our_bans": [
+      "Anduin",
+      "Probius",
+      "Imperius"
+    ],
+    "wp_by_naive": 0.7399750649929047,
+    "wp_by_herostrength": 0.6064310073852539,
+    "wp_by_enriched": 0.5107839107513428,
+    "comp_roles": {
+      "ranged_mage": 1,
+      "bruiser": 3,
+      "healer": 1
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Hanamura Temple",
+    "skill_tier": "mid",
+    "our_team": 0,
+    "our_picks": [
+      "Auriel",
+      "E.T.C.",
+      "Maiev",
+      "Tyrael",
+      "Whitemane"
+    ],
+    "opp_picks": [
+      "Li-Ming",
+      "Sonya",
+      "Stukov",
+      "Valla",
+      "Varian"
+    ],
+    "our_bans": [
+      "Nazeebo",
+      "Thrall",
+      "Imperius"
+    ],
+    "wp_by_naive": 0.6273742318153381,
+    "wp_by_herostrength": 0.6667473912239075,
+    "wp_by_enriched": 0.40178126096725464,
+    "comp_roles": {
+      "healer": 2,
+      "tank": 2,
+      "melee_assassin": 1
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Dragon Shire",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Alarak",
+      "Illidan",
+      "Maiev",
+      "Stitches",
+      "Tyrael"
+    ],
+    "opp_picks": [
+      "Arthas",
+      "Nazeebo",
+      "Rehgar",
+      "Valeera",
+      "Valla"
+    ],
+    "our_bans": [
+      "Kerrigan",
+      "Ragnaros",
+      "Stukov"
+    ],
+    "wp_by_naive": 0.5937069654464722,
+    "wp_by_herostrength": 0.5283883810043335,
+    "wp_by_enriched": 0.36847490072250366,
+    "comp_roles": {
+      "melee_assassin": 3,
+      "tank": 2
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 2,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Sky Temple",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Anub'arak",
+      "Kerrigan",
+      "Rexxar",
+      "Tracer",
+      "Valla"
+    ],
+    "opp_picks": [
+      "Auriel",
+      "Blaze",
+      "Falstad",
+      "Nazeebo",
+      "Sylvanas"
+    ],
+    "our_bans": [
+      "Mal'Ganis",
+      "Zarya",
+      "Whitemane"
+    ],
+    "wp_by_naive": 0.7402360141277313,
+    "wp_by_herostrength": 0.5662042796611786,
+    "wp_by_enriched": 0.5151387453079224,
+    "comp_roles": {
+      "tank": 1,
+      "melee_assassin": 1,
+      "bruiser": 1,
+      "ranged_aa": 2
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Tomb of the Spider Queen",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "Kerrigan",
+      "Maiev",
+      "Mephisto",
+      "Murky",
+      "Tyrael"
+    ],
+    "opp_picks": [
+      "Azmodan",
+      "Illidan",
+      "Stitches",
+      "Tychus",
+      "Tyrande"
+    ],
+    "our_bans": [
+      "Deckard",
+      "Imperius",
+      "E.T.C."
+    ],
+    "wp_by_naive": 0.7138497829437256,
+    "wp_by_herostrength": 0.6048463881015778,
+    "wp_by_enriched": 0.4925565719604492,
+    "comp_roles": {
+      "melee_assassin": 2,
+      "ranged_mage": 1,
+      "pusher": 1,
+      "tank": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Infernal Shrines",
+    "skill_tier": "low",
+    "our_team": 1,
+    "our_picks": [
+      "Ana",
+      "Deathwing",
+      "Leoric",
+      "Tyrande",
+      "Varian"
+    ],
+    "opp_picks": [
+      "Anduin",
+      "Artanis",
+      "Arthas",
+      "Nazeebo",
+      "Xul"
+    ],
+    "our_bans": [
+      "Hanzo",
+      "Blaze",
+      "Muradin"
+    ],
+    "wp_by_naive": 0.5753406286239624,
+    "wp_by_herostrength": 0.43405061960220337,
+    "wp_by_enriched": 0.35527437925338745,
+    "comp_roles": {
+      "healer": 2,
+      "bruiser": 2,
+      "varian": 1
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Infernal Shrines",
+    "skill_tier": "high",
+    "our_team": 0,
+    "our_picks": [
+      "Alarak",
+      "Blaze",
+      "Gazlowe",
+      "Hogger",
+      "Tyrael"
+    ],
+    "opp_picks": [
+      "Chromie",
+      "Garrosh",
+      "Genji",
+      "Kharazim",
+      "Leoric"
+    ],
+    "our_bans": [
+      "Maiev",
+      "Orphea",
+      "Yrel"
+    ],
+    "wp_by_naive": 0.7746592164039612,
+    "wp_by_herostrength": 0.6714578866958618,
+    "wp_by_enriched": 0.5559785962104797,
+    "comp_roles": {
+      "melee_assassin": 1,
+      "tank": 2,
+      "bruiser": 2
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Battlefield of Eternity",
+    "skill_tier": "high",
+    "our_team": 0,
+    "our_picks": [
+      "Alarak",
+      "Gall",
+      "Jaina",
+      "Probius",
+      "Zarya"
+    ],
+    "opp_picks": [
+      "Cho",
+      "Imperius",
+      "Lunara",
+      "Muradin",
+      "Stukov"
+    ],
+    "our_bans": [
+      "Kharazim",
+      "Auriel",
+      "Brightwing"
+    ],
+    "wp_by_naive": 0.6195862293243408,
+    "wp_by_herostrength": 0.6342530250549316,
+    "wp_by_enriched": 0.40230199694633484,
+    "comp_roles": {
+      "melee_assassin": 1,
+      "ranged_mage": 3,
+      "support_utility": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": false,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Dragon Shire",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "D.Va",
+      "Maiev",
+      "Sgt. Hammer",
+      "The Lost Vikings",
+      "Zeratul"
+    ],
+    "opp_picks": [
+      "Azmodan",
+      "Chen",
+      "Hogger",
+      "Kharazim",
+      "Medivh"
+    ],
+    "our_bans": [
+      "Falstad",
+      "Garrosh",
+      "Dehaka"
+    ],
+    "wp_by_naive": 0.6141356825828552,
+    "wp_by_herostrength": 0.5971212387084961,
+    "wp_by_enriched": 0.39690977334976196,
+    "comp_roles": {
+      "bruiser": 1,
+      "melee_assassin": 2,
+      "ranged_aa": 1,
+      "pusher": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Hanamura Temple",
+    "skill_tier": "mid",
+    "our_team": 1,
+    "our_picks": [
+      "D.Va",
+      "Deathwing",
+      "Gul'dan",
+      "Tychus",
+      "Xul"
+    ],
+    "opp_picks": [
+      "Falstad",
+      "Kael'thas",
+      "Kharazim",
+      "L\u00facio",
+      "Varian"
+    ],
+    "our_bans": [
+      "Gall",
+      "Imperius",
+      "The Lost Vikings"
+    ],
+    "wp_by_naive": 0.7466377913951874,
+    "wp_by_herostrength": 0.6017098128795624,
+    "wp_by_enriched": 0.5295388102531433,
+    "comp_roles": {
+      "bruiser": 3,
+      "ranged_mage": 1,
+      "ranged_aa": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Volskaya Foundry",
+    "skill_tier": "mid",
+    "our_team": 0,
+    "our_picks": [
+      "Gazlowe",
+      "Maiev",
+      "Samuro",
+      "The Butcher",
+      "Valla"
+    ],
+    "opp_picks": [
+      "Hanzo",
+      "Illidan",
+      "Rehgar",
+      "Valeera",
+      "Varian"
+    ],
+    "our_bans": [
+      "Orphea",
+      "Gall",
+      "Sgt. Hammer"
+    ],
+    "wp_by_naive": 0.7575790882110596,
+    "wp_by_herostrength": 0.6395169496536255,
+    "wp_by_enriched": 0.5411769151687622,
+    "comp_roles": {
+      "bruiser": 1,
+      "melee_assassin": 3,
+      "ranged_aa": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Warhead Junction",
+    "skill_tier": "high",
+    "our_team": 0,
+    "our_picks": [
+      "Hogger",
+      "Kerrigan",
+      "Maiev",
+      "Tyrande",
+      "Whitemane"
+    ],
+    "opp_picks": [
+      "Deckard",
+      "Illidan",
+      "Johanna",
+      "Medivh",
+      "Tychus"
+    ],
+    "our_bans": [
+      "Rexxar",
+      "Malfurion",
+      "Gazlowe"
+    ],
+    "wp_by_naive": 0.7021768093109131,
+    "wp_by_herostrength": 0.6322361826896667,
+    "wp_by_enriched": 0.4871789813041687,
+    "comp_roles": {
+      "bruiser": 1,
+      "melee_assassin": 2,
+      "healer": 2
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Garden of Terror",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Deathwing",
+      "Gazlowe",
+      "Illidan",
+      "Probius",
+      "The Butcher"
+    ],
+    "opp_picks": [
+      "Falstad",
+      "Li Li",
+      "Muradin",
+      "Sgt. Hammer",
+      "Thrall"
+    ],
+    "our_bans": [
+      "Tyrande",
+      "Cho",
+      "Sylvanas"
+    ],
+    "wp_by_naive": 0.7458396553993225,
+    "wp_by_herostrength": 0.5903045535087585,
+    "wp_by_enriched": 0.5319150686264038,
+    "comp_roles": {
+      "bruiser": 2,
+      "melee_assassin": 2,
+      "ranged_mage": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Battlefield of Eternity",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Alexstrasza",
+      "Greymane",
+      "Johanna",
+      "Probius",
+      "Tyrael"
+    ],
+    "opp_picks": [
+      "Cassia",
+      "Diablo",
+      "Leoric",
+      "Nazeebo",
+      "Rehgar"
+    ],
+    "our_bans": [
+      "Anub'arak",
+      "The Butcher",
+      "Genji"
+    ],
+    "wp_by_naive": 0.6704126596450806,
+    "wp_by_herostrength": 0.49296489357948303,
+    "wp_by_enriched": 0.4566625654697418,
+    "comp_roles": {
+      "healer": 1,
+      "ranged_aa": 1,
+      "tank": 2,
+      "ranged_mage": 1
+    },
+    "comp_has_healer": true,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": false
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Sky Temple",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "D.Va",
+      "The Lost Vikings",
+      "Tracer",
+      "Varian",
+      "Zarya"
+    ],
+    "opp_picks": [
+      "Anduin",
+      "Falstad",
+      "Li-Ming",
+      "Thrall",
+      "Uther"
+    ],
+    "our_bans": [
+      "Zul'jin",
+      "Jaina",
+      "Auriel"
+    ],
+    "wp_by_naive": 0.7359673380851746,
+    "wp_by_herostrength": 0.5749900639057159,
+    "wp_by_enriched": 0.5225761532783508,
+    "comp_roles": {
+      "bruiser": 1,
+      "pusher": 1,
+      "ranged_aa": 1,
+      "varian": 1,
+      "support_utility": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 5,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Battlefield of Eternity",
+    "skill_tier": "low",
+    "our_team": 1,
+    "our_picks": [
+      "Azmodan",
+      "Genji",
+      "Tassadar",
+      "Thrall",
+      "Tychus"
+    ],
+    "opp_picks": [
+      "Arthas",
+      "Chromie",
+      "Deckard",
+      "Valla",
+      "Whitemane"
+    ],
+    "our_bans": [
+      "Nazeebo",
+      "Uther",
+      "Artanis"
+    ],
+    "wp_by_naive": 0.659552812576294,
+    "wp_by_herostrength": 0.5601941347122192,
+    "wp_by_enriched": 0.4469529986381531,
+    "comp_roles": {
+      "pusher": 1,
+      "ranged_mage": 2,
+      "bruiser": 1,
+      "ranged_aa": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Infernal Shrines",
+    "skill_tier": "high",
+    "our_team": 0,
+    "our_picks": [
+      "D.Va",
+      "Maiev",
+      "Mephisto",
+      "Orphea",
+      "The Lost Vikings"
+    ],
+    "opp_picks": [
+      "Auriel",
+      "Falstad",
+      "Kael'thas",
+      "Mei",
+      "Thrall"
+    ],
+    "our_bans": [
+      "Anub'arak",
+      "Valla",
+      "Sgt. Hammer"
+    ],
+    "wp_by_naive": 0.6500363945960999,
+    "wp_by_herostrength": 0.6153799295425415,
+    "wp_by_enriched": 0.43747347593307495,
+    "comp_roles": {
+      "bruiser": 1,
+      "melee_assassin": 1,
+      "ranged_mage": 2,
+      "pusher": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Alterac Pass",
+    "skill_tier": "high",
+    "our_team": 0,
+    "our_picks": [
+      "Hogger",
+      "Mei",
+      "Probius",
+      "Qhira",
+      "Samuro"
+    ],
+    "opp_picks": [
+      "Abathur",
+      "D.Va",
+      "Gul'dan",
+      "Li-Ming",
+      "Lt. Morales"
+    ],
+    "our_bans": [
+      "Imperius",
+      "Uther",
+      "Li Li"
+    ],
+    "wp_by_naive": 0.7075388431549072,
+    "wp_by_herostrength": 0.6915730834007263,
+    "wp_by_enriched": 0.49767860770225525,
+    "comp_roles": {
+      "bruiser": 1,
+      "tank": 1,
+      "ranged_mage": 1,
+      "melee_assassin": 2
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Garden of Terror",
+    "skill_tier": "mid",
+    "our_team": 1,
+    "our_picks": [
+      "D.Va",
+      "Maiev",
+      "Mephisto",
+      "Sgt. Hammer",
+      "The Lost Vikings"
+    ],
+    "opp_picks": [
+      "Anub'arak",
+      "Azmodan",
+      "Deckard",
+      "E.T.C.",
+      "Sylvanas"
+    ],
+    "our_bans": [
+      "Lt. Morales",
+      "Kel'Thuzad",
+      "Li-Ming"
+    ],
+    "wp_by_naive": 0.7636658698320389,
+    "wp_by_herostrength": 0.5798603296279907,
+    "wp_by_enriched": 0.5562708079814911,
+    "comp_roles": {
+      "bruiser": 1,
+      "melee_assassin": 1,
+      "ranged_mage": 1,
+      "ranged_aa": 1,
+      "pusher": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 5,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Battlefield of Eternity",
+    "skill_tier": "high",
+    "our_team": 0,
+    "our_picks": [
+      "Fenix",
+      "Illidan",
+      "Li-Ming",
+      "Probius",
+      "Samuro"
+    ],
+    "opp_picks": [
+      "Anduin",
+      "Artanis",
+      "Hanzo",
+      "Kel'Thuzad",
+      "Mal'Ganis"
+    ],
+    "our_bans": [
+      "Raynor",
+      "Nazeebo",
+      "Ana"
+    ],
+    "wp_by_naive": 0.7050255537033081,
+    "wp_by_herostrength": 0.5468491315841675,
+    "wp_by_enriched": 0.49837711453437805,
+    "comp_roles": {
+      "ranged_aa": 1,
+      "melee_assassin": 2,
+      "ranged_mage": 2
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": false,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Hanamura Temple",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Alarak",
+      "Deathwing",
+      "Orphea",
+      "Probius",
+      "Zul'jin"
+    ],
+    "opp_picks": [
+      "Anduin",
+      "Gul'dan",
+      "Malthael",
+      "Thrall",
+      "Tyrael"
+    ],
+    "our_bans": [
+      "Murky",
+      "Raynor",
+      "Gazlowe"
+    ],
+    "wp_by_naive": 0.681056797504425,
+    "wp_by_herostrength": 0.5553590655326843,
+    "wp_by_enriched": 0.4753847122192383,
+    "comp_roles": {
+      "melee_assassin": 1,
+      "bruiser": 1,
+      "ranged_mage": 2,
+      "ranged_aa": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Alterac Pass",
+    "skill_tier": "mid",
+    "our_team": 1,
+    "our_picks": [
+      "D.Va",
+      "Kerrigan",
+      "Maiev",
+      "The Butcher",
+      "Zarya"
+    ],
+    "opp_picks": [
+      "Illidan",
+      "Li Li",
+      "Mal'Ganis",
+      "Uther",
+      "Zagara"
+    ],
+    "our_bans": [
+      "Stukov",
+      "Qhira",
+      "Deathwing"
+    ],
+    "wp_by_naive": 0.6687573492527008,
+    "wp_by_herostrength": 0.5761031806468964,
+    "wp_by_enriched": 0.463814914226532,
+    "comp_roles": {
+      "bruiser": 1,
+      "melee_assassin": 3,
+      "support_utility": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Infernal Shrines",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Gazlowe",
+      "Leoric",
+      "Maiev",
+      "Nazeebo",
+      "The Butcher"
+    ],
+    "opp_picks": [
+      "Brightwing",
+      "Cassia",
+      "Falstad",
+      "Li Li",
+      "Mei"
+    ],
+    "our_bans": [
+      "Tychus",
+      "Arthas",
+      "Medivh"
+    ],
+    "wp_by_naive": 0.7708114385604858,
+    "wp_by_herostrength": 0.6048718690872192,
+    "wp_by_enriched": 0.5698687434196472,
+    "comp_roles": {
+      "bruiser": 2,
+      "melee_assassin": 2,
+      "pusher": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Warhead Junction",
+    "skill_tier": "mid",
+    "our_team": 0,
+    "our_picks": [
+      "Deathwing",
+      "Rexxar",
+      "Stitches",
+      "Tyrael",
+      "Zul'jin"
+    ],
+    "opp_picks": [
+      "Auriel",
+      "Malfurion",
+      "Murky",
+      "Ragnaros",
+      "Valla"
+    ],
+    "our_bans": [
+      "Leoric",
+      "Sgt. Hammer",
+      "Anduin"
+    ],
+    "wp_by_naive": 0.6427503228187561,
+    "wp_by_herostrength": 0.5600525140762329,
+    "wp_by_enriched": 0.4428657591342926,
+    "comp_roles": {
+      "bruiser": 2,
+      "tank": 2,
+      "ranged_aa": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Braxis Holdout",
+    "skill_tier": "low",
+    "our_team": 1,
+    "our_picks": [
+      "D.Va",
+      "Gall",
+      "Illidan",
+      "Junkrat",
+      "Yrel"
+    ],
+    "opp_picks": [
+      "Cho",
+      "Jaina",
+      "Mei",
+      "Rehgar",
+      "Rexxar"
+    ],
+    "our_bans": [
+      "Johanna",
+      "Qhira",
+      "Ragnaros"
+    ],
+    "wp_by_naive": 0.644295334815979,
+    "wp_by_herostrength": 0.47044122219085693,
+    "wp_by_enriched": 0.4453567862510681,
+    "comp_roles": {
+      "bruiser": 2,
+      "ranged_mage": 2,
+      "melee_assassin": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Infernal Shrines",
+    "skill_tier": "low",
+    "our_team": 0,
+    "our_picks": [
+      "Dehaka",
+      "Mei",
+      "The Butcher",
+      "Tyrael",
+      "Valeera"
+    ],
+    "opp_picks": [
+      "Azmodan",
+      "E.T.C.",
+      "Mephisto",
+      "Rehgar",
+      "Zagara"
+    ],
+    "our_bans": [
+      "Jaina",
+      "Li Li",
+      "Kel'Thuzad"
+    ],
+    "wp_by_naive": 0.6179617047309875,
+    "wp_by_herostrength": 0.5626564025878906,
+    "wp_by_enriched": 0.41949793696403503,
+    "comp_roles": {
+      "bruiser": 1,
+      "tank": 2,
+      "melee_assassin": 2
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Tomb of the Spider Queen",
+    "skill_tier": "high",
+    "our_team": 1,
+    "our_picks": [
+      "D.Va",
+      "Gall",
+      "Gazlowe",
+      "Hogger",
+      "Tyrael"
+    ],
+    "opp_picks": [
+      "Cho",
+      "Garrosh",
+      "Jaina",
+      "Li Li",
+      "Tyrande"
+    ],
+    "our_bans": [
+      "Stukov",
+      "Brightwing",
+      "Illidan"
+    ],
+    "wp_by_naive": 0.7289855480194092,
+    "wp_by_herostrength": 0.57694011926651,
+    "wp_by_enriched": 0.5311241149902344,
+    "comp_roles": {
+      "bruiser": 3,
+      "ranged_mage": 1,
+      "tank": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Warhead Junction",
+    "skill_tier": "low",
+    "our_team": 1,
+    "our_picks": [
+      "Blaze",
+      "Chen",
+      "D.Va",
+      "Deathwing",
+      "Johanna"
+    ],
+    "opp_picks": [
+      "Alarak",
+      "Arthas",
+      "Brightwing",
+      "Dehaka",
+      "Falstad"
+    ],
+    "our_bans": [
+      "Raynor",
+      "Leoric",
+      "Sonya"
+    ],
+    "wp_by_naive": 0.6373893022537231,
+    "wp_by_herostrength": 0.5672639608383179,
+    "wp_by_enriched": 0.4405546188354492,
+    "comp_roles": {
+      "tank": 2,
+      "bruiser": 3
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 2,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Tomb of the Spider Queen",
+    "skill_tier": "mid",
+    "our_team": 0,
+    "our_picks": [
+      "Mei",
+      "Mephisto",
+      "The Butcher",
+      "Valeera",
+      "Xul"
+    ],
+    "opp_picks": [
+      "Blaze",
+      "D.Va",
+      "Lunara",
+      "Muradin",
+      "Stukov"
+    ],
+    "our_bans": [
+      "Brightwing",
+      "Falstad",
+      "Gazlowe"
+    ],
+    "wp_by_naive": 0.6286729574203491,
+    "wp_by_herostrength": 0.546286404132843,
+    "wp_by_enriched": 0.4328751862049103,
+    "comp_roles": {
+      "tank": 1,
+      "ranged_mage": 1,
+      "melee_assassin": 2,
+      "bruiser": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": true,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 4,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Towers of Doom",
+    "skill_tier": "mid",
+    "our_team": 0,
+    "our_picks": [
+      "Alarak",
+      "Deathwing",
+      "Illidan",
+      "Kerrigan",
+      "Xul"
+    ],
+    "opp_picks": [
+      "Falstad",
+      "Maiev",
+      "Rehgar",
+      "Thrall",
+      "Tyrael"
+    ],
+    "our_bans": [
+      "Chen",
+      "Muradin",
+      "Arthas"
+    ],
+    "wp_by_naive": 0.630670428276062,
+    "wp_by_herostrength": 0.5766575932502747,
+    "wp_by_enriched": 0.4354077875614166,
+    "comp_roles": {
+      "melee_assassin": 3,
+      "bruiser": 2
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": false,
+    "comp_num_distinct_roles": 2,
+    "comp_is_absurd": true
+  },
+  {
+    "wp_model": "naive",
+    "game_map": "Sky Temple",
+    "skill_tier": "mid",
+    "our_team": 1,
+    "our_picks": [
+      "Gazlowe",
+      "Murky",
+      "Nova",
+      "Rexxar",
+      "Zagara"
+    ],
+    "opp_picks": [
+      "Abathur",
+      "Deathwing",
+      "E.T.C.",
+      "Tychus",
+      "Tyrande"
+    ],
+    "our_bans": [
+      "Cassia",
+      "Qhira",
+      "L\u00facio"
+    ],
+    "wp_by_naive": 0.7007438242435455,
+    "wp_by_herostrength": 0.6098124384880066,
+    "wp_by_enriched": 0.506362110376358,
+    "comp_roles": {
+      "bruiser": 2,
+      "pusher": 2,
+      "ranged_mage": 1
+    },
+    "comp_has_healer": false,
+    "comp_has_tank": false,
+    "comp_has_frontline": true,
+    "comp_has_ranged_damage": true,
+    "comp_num_distinct_roles": 3,
+    "comp_is_absurd": true
+  }
+]

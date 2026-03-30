@@ -1,0 +1,45 @@
+{
+  "naive": {
+    "name": "naive",
+    "groups": [],
+    "avg_acc": 0,
+    "best_acc": 0,
+    "best_loss": 0,
+    "all_accs": [],
+    "input_dim": 197,
+    "path": "/home/max/heroes-of-the-storm/training/wp_experiment_naive.pt"
+  },
+  "herostrength": {
+    "name": "herostrength",
+    "groups": [
+      "hero_wr",
+      "team_avg_wr"
+    ],
+    "avg_acc": 0,
+    "best_acc": 0,
+    "best_loss": 0,
+    "all_accs": [],
+    "input_dim": 209,
+    "path": "/home/max/heroes-of-the-storm/training/wp_experiment_herostrength.pt"
+  },
+  "enriched": {
+    "name": "enriched",
+    "groups": [
+      "role_counts",
+      "team_avg_wr",
+      "map_delta",
+      "pairwise_counters",
+      "pairwise_synergies",
+      "counter_detail",
+      "meta_strength",
+      "draft_diversity",
+      "comp_wr"
+    ],
+    "avg_acc": 0,
+    "best_acc": 0,
+    "best_loss": 0,
+    "all_accs": [],
+    "input_dim": 283,
+    "path": "/home/max/heroes-of-the-storm/training/wp_experiment_enriched.pt"
+  }
+}

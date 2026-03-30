@@ -1,0 +1,30 @@
+{
+  "flat_10pct": {
+    "accuracy": 56.98974132537842,
+    "elapsed": 70.66991519927979,
+    "path": "/home/max/heroes-of-the-storm/training/experiment_results/diagnostics/wp_flat_10pct.pt",
+    "counter_r": 0.12246868650151552,
+    "synergy_r": 0.49779437578248764
+  },
+  "pairwise_v2_100": {
+    "accuracy": 56.87025785446167,
+    "elapsed": 68.80816435813904,
+    "path": "/home/max/heroes-of-the-storm/training/experiment_results/diagnostics/wp_pairwise_v2_100.pt",
+    "counter_r": 0.10834714898117453,
+    "synergy_r": 0.5395014732736354
+  },
+  "pairwise_v2_50": {
+    "accuracy": 56.95577263832092,
+    "elapsed": 65.90117835998535,
+    "path": "/home/max/heroes-of-the-storm/training/experiment_results/diagnostics/wp_pairwise_v2_50.pt",
+    "counter_r": 0.06236298484263841,
+    "synergy_r": 0.5880710779479288
+  },
+  "pairwise_v2_256": {
+    "accuracy": 57.04714059829712,
+    "elapsed": 68.72535157203674,
+    "path": "/home/max/heroes-of-the-storm/training/experiment_results/diagnostics/wp_pairwise_v2_256.pt",
+    "counter_r": 0.1371167188540322,
+    "synergy_r": 0.5765123115106462
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "naive": {
+    "total": "14/21",
+    "absurd": "6",
+    "trap": "2",
+    "normal": "3",
+    "symmetry": "3"
+  },
+  "herostrength": {
+    "total": "12/21",
+    "absurd": "6",
+    "trap": "2",
+    "normal": "3",
+    "symmetry": "1"
+  },
+  "enriched": {
+    "total": "17/21",
+    "absurd": "7",
+    "trap": "4",
+    "normal": "3",
+    "symmetry": "3"
+  }
+}

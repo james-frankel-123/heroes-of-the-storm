@@ -2,16 +2,14 @@
 """
 Run multiple MCTS training seeds across 4 GPUs.
 
-5 seeds per variant × 4 variants = 20 runs total.
-4 GPUs → 5 rounds of 4 runs each → ~8.5 hours.
+5 seeds per variant × 3 variants = 15 runs total.
+4 GPUs → 4 rounds → ~7 hours.
 
-Current runs (round 0) are incorporated:
-  GPU 0: run_G_augmented (seed 0) — already done/running
-  GPU 1: run_A_base (seed 0) — already done/running
-  GPU 2: run_E_enriched (seed 0) — already done/running
-  GPU 3: run_G2_augmented (seed 1) — already done/running
+All runs use the new WP-in-kernel CUDA MCTS (enriched WP model with
+lookup tables computed on-device). Variant A (base WP, 197d) is dropped
+because the kernel requires enriched features.
 
-Remaining 16 runs across 4 more rounds.
+Priority: G (augmented) first, then E (enriched), then G400 (more sims).
 """
 import os
 import sys
@@ -21,29 +19,21 @@ import time
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKER_SCRIPT = os.path.join(SCRIPT_DIR, "train_mcts_worker.py")
 
-# All runs to execute. Each has a unique save dir.
-# "done" means already completed or in progress from current batch.
+# All runs to execute — ordered by priority (G augmented first).
 ALL_RUNS = [
-    # ── Variant A: base WP (197d) ──
-    {"name": "A_seed0", "wp": "base",      "gpu": None, "done": True},   # current run_A_base
-    {"name": "A_seed1", "wp": "base",      "gpu": None, "done": False},
-    {"name": "A_seed2", "wp": "base",      "gpu": None, "done": False},
-    {"name": "A_seed3", "wp": "base",      "gpu": None, "done": False},
-    {"name": "A_seed4", "wp": "base",      "gpu": None, "done": False},
+    # ── Variant G: augmented WP (283d, 512→256→128, synthetic) ──
+    {"name": "G_seed0", "wp": "augmented", "gpu": None, "done": True},
+    {"name": "G_seed1", "wp": "augmented", "gpu": None, "done": False},  # round 1 crash
+    {"name": "G_seed2", "wp": "augmented", "gpu": None, "done": False},  # round 1 crash
+    {"name": "G_seed3", "wp": "augmented", "gpu": None, "done": True},
+    {"name": "G_seed4", "wp": "augmented", "gpu": None, "done": True},
 
     # ── Variant E: enriched WP (283d, 256→128, no augmentation) ──
-    {"name": "E_seed0", "wp": "enriched",  "gpu": None, "done": True},   # current run_E_enriched
-    {"name": "E_seed1", "wp": "enriched",  "gpu": None, "done": False},
-    {"name": "E_seed2", "wp": "enriched",  "gpu": None, "done": False},
-    {"name": "E_seed3", "wp": "enriched",  "gpu": None, "done": False},
-    {"name": "E_seed4", "wp": "enriched",  "gpu": None, "done": False},
-
-    # ── Variant G: augmented WP (283d, 512→256→128, synthetic) ──
-    {"name": "G_seed0", "wp": "augmented", "gpu": None, "done": True},   # current run_G_augmented
-    {"name": "G_seed1", "wp": "augmented", "gpu": None, "done": True},   # current run_G2_augmented_fresh
-    {"name": "G_seed2", "wp": "augmented", "gpu": None, "done": False},
-    {"name": "G_seed3", "wp": "augmented", "gpu": None, "done": False},
-    {"name": "G_seed4", "wp": "augmented", "gpu": None, "done": False},
+    {"name": "E_seed0", "wp": "enriched",  "gpu": None, "done": True},
+    {"name": "E_seed1", "wp": "enriched",  "gpu": None, "done": True},
+    {"name": "E_seed2", "wp": "enriched",  "gpu": None, "done": True},
+    {"name": "E_seed3", "wp": "enriched",  "gpu": None, "done": True},
+    {"name": "E_seed4", "wp": "enriched",  "gpu": None, "done": True},
 
     # ── Variant G400: augmented WP, 400 MCTS sims ──
     {"name": "G400_seed0", "wp": "augmented", "gpu": None, "done": False, "sims": 400},
@@ -111,6 +101,8 @@ def main():
 
         procs = []
         for gpu_id, run in enumerate(batch):
+            if gpu_id > 0:
+                time.sleep(5)  # stagger launches to avoid CUDA driver contention
             proc, log_file, log_path = launch_run(run, gpu_id)
             procs.append((run["name"], proc, log_file, log_path))
             print(f"  {run['name']} on GPU {gpu_id} (PID {proc.pid}, log: {log_path})")
