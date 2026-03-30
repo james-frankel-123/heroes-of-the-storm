@@ -588,9 +588,11 @@ export function DraftClient({
               />
             ) : draftMode === 'search' ? (
               <SearchRecommendationPanel
-                results={searchResults}
+                results={searchResults.length > 0 ? searchResults : recommendations.map(r => ({
+                  hero: r.hero, score: r.netDelta, depth: 0, nodesVisited: 0,
+                }))}
                 searchDepth={searchDepth}
-                searching={searching}
+                searching={searching || (searchResults.length === 0 && recommendations.length > 0)}
                 isBanPhase={currentStep?.type === 'ban'}
                 isOurTurn={currentStep?.team === state.ourTeam}
                 onSelect={handleSelectHero}
