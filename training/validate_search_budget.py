@@ -161,7 +161,8 @@ def compute_draft_metrics(pick_steps, stats, tier):
         deltas = [d for d in (counter_delta(oh, our_hero, stats, tier) for oh in subsequent_opp) if d is not None]
         exposures.append(np.mean(deltas) if deltas else 0.0)
     resil_avg = -np.mean(exposures) if exposures else 0.0
-    resil_grad = (np.mean(exposures[-2:]) - np.mean(exposures[:2])) if len(exposures) >= 4 else 0.0
+    resil_early = -np.mean(exposures[:2]) if len(exposures) >= 2 else 0.0
+    resil_late = -np.mean(exposures[-2:]) if len(exposures) >= 2 else 0.0
 
     # Counter
     ctr_deltas = []
@@ -187,7 +188,7 @@ def compute_draft_metrics(pick_steps, stats, tier):
     degen = is_degenerate(our_heroes)
 
     return {
-        'resilience_avg': resil_avg, 'resilience_gradient': resil_grad,
+        'resilience_avg': resil_avg, 'resilience_early': resil_early, 'resilience_late': resil_late,
         'counter_avg': counter_avg, 'team_synergy': team_syn,
         'has_healer': has_healer, 'degen': degen, 'heroes': our_heroes,
     }
@@ -348,7 +349,7 @@ def run_sweep_for_checkpoint(ckpt_name, ckpt_path, wp_model_type, sim_counts,
         elapsed = time.time() - t0
 
         agg = {}
-        for key in ['resilience_avg', 'resilience_gradient', 'counter_avg', 'team_synergy']:
+        for key in ['resilience_avg', 'resilience_early', 'resilience_late', 'counter_avg', 'team_synergy']:
             agg[key] = np.mean([m[key] for m in all_metrics])
         agg['healer_pct'] = np.mean([m['has_healer'] for m in all_metrics]) * 100
         agg['degen_pct'] = np.mean([m['degen'] for m in all_metrics]) * 100
@@ -358,7 +359,7 @@ def run_sweep_for_checkpoint(ckpt_name, ckpt_path, wp_model_type, sim_counts,
 
         results[n_sims] = agg
         print(f"  {ckpt_name} sims={n_sims}: ctr={agg['counter_avg']:+.3f} syn={agg['team_synergy']:.3f} "
-              f"resil_grad={agg['resilience_gradient']:.3f} "
+              f"rE={agg['resilience_early']:.3f} rL={agg['resilience_late']:.3f} "
               f"hlr={agg['healer_pct']:.0f}% deg={agg['degen_pct']:.0f}% "
               f"div={agg['distinct']} ({elapsed:.1f}s)")
 
@@ -463,7 +464,7 @@ def main():
     # Summary table
     print("\n\n" + "=" * 95)
     print(f"{'Checkpoint':<12} {'Sims':>5} | {'Counter':>8} {'Synergy':>8} {'Resil':>7} "
-          f"{'R.Grad':>7} {'Hlr%':>5} {'Deg%':>5} {'Div':>4} | {'Time':>6}")
+          f"{'R.Erly':>7} {'R.Late':>7} {'Hlr%':>5} {'Deg%':>5} {'Div':>4} | {'Time':>6}")
     print("-" * 95)
     for ckpt_name in ["E_seed0", "G_seed4"]:
         if ckpt_name not in all_results:
@@ -471,7 +472,7 @@ def main():
         for n_sims in sorted(all_results[ckpt_name].keys()):
             r = all_results[ckpt_name][n_sims]
             print(f"{ckpt_name:<12} {n_sims:>5} | {r['counter_avg']:>+8.3f} {r['team_synergy']:>8.3f} "
-                  f"{r['resilience_avg']:>7.3f} {r['resilience_gradient']:>7.3f} "
+                  f"{r['resilience_avg']:>7.3f} {r.get('resilience_early', 0):>7.3f} {r.get('resilience_late', 0):>7.3f} "
                   f"{r['healer_pct']:>5.0f} {r['degen_pct']:>5.0f} {r['distinct']:>4} | "
                   f"{r['elapsed']:>5.1f}s")
         print("-" * 95)

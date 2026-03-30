@@ -440,7 +440,8 @@ def compute_metrics(pick_steps, tier):
         if not sub: exp.append(0.0); continue
         ds = [d for d in (cd(x, h, tier) for x in sub) if d is not None]
         exp.append(np.mean(ds) if ds else 0.0)
-    rg = (np.mean(exp[-2:]) - np.mean(exp[:2])) if len(exp) >= 4 else 0.0
+    re = -np.mean(exp[:2]) if len(exp) >= 2 else 0.0
+    rl = -np.mean(exp[-2:]) if len(exp) >= 2 else 0.0
     ct = []
     for h, os_ in our:
         pr = [x for x, s in opp if s < os_]
@@ -465,7 +466,7 @@ def compute_metrics(pick_steps, tier):
     for h in oh: r = HERO_ROLE_FINE.get(h, 'x'); roles[r] = roles.get(r, 0) + 1
     from shared import is_degenerate
     dg = is_degenerate(oh)
-    return {'counter': ca, 'counter_late': cl, 'synergy': ts, 'resil_grad': rg,
+    return {'counter': ca, 'counter_late': cl, 'synergy': ts, 'resil_early': re, 'resil_late': rl,
             'healer': hh, 'degen': dg, 'heroes': oh}
 
 
@@ -515,7 +516,7 @@ def main():
                 print(f"  {label}: {ci+1}/{N} ({eta:.0f}s left, {total_nodes_all/(ci+1):.0f} nodes/draft)")
 
         elapsed = time.time() - t0
-        agg = {k: np.mean([m[k] for m in all_m]) for k in ['counter', 'counter_late', 'synergy', 'resil_grad']}
+        agg = {k: np.mean([m[k] for m in all_m]) for k in ['counter', 'counter_late', 'synergy', 'resil_early', 'resil_late']}
         agg['healer'] = np.mean([m['healer'] for m in all_m]) * 100
         agg['degen'] = np.mean([m['degen'] for m in all_m]) * 100
         agg['distinct'] = len(hero_counter)
@@ -524,24 +525,24 @@ def main():
         all_results[label] = agg
 
         print(f"  {label:<20} ctr={agg['counter']:+.3f} ctrL={agg['counter_late']:+.3f} "
-              f"syn={agg['synergy']:.3f} rG={agg['resil_grad']:+.3f} "
+              f"syn={agg['synergy']:.3f} rE={agg['resil_early']:.3f} rL={agg['resil_late']:.3f} "
               f"hlr={agg['healer']:.0f}% deg={agg['degen']:.0f}% div={agg['distinct']} "
               f"nodes={agg['avg_nodes']:.0f} ({elapsed:.0f}s)\n")
 
     # Summary
     print("\n" + "=" * 115)
-    print(f"{'Config':<20} {'Ctr':>7} {'CtrL':>7} {'Syn':>7} {'R.Grad':>7} "
+    print(f"{'Config':<20} {'Ctr':>7} {'CtrL':>7} {'Syn':>7} {'R.Erly':>7} {'R.Late':>7} "
           f"{'Hlr%':>5} {'Deg%':>5} {'Div':>4} {'Nodes':>7} {'Time':>6}")
     print("-" * 115)
     for label, agg in all_results.items():
         print(f"{label:<20} {agg['counter']:>+7.3f} {agg['counter_late']:>+7.3f} "
-              f"{agg['synergy']:>7.3f} {agg['resil_grad']:>+7.3f} "
+              f"{agg['synergy']:>7.3f} {agg['resil_early']:>7.3f} {agg['resil_late']:>7.3f} "
               f"{agg['healer']:>5.0f} {agg['degen']:>5.0f} {agg['distinct']:>4} "
               f"{agg['avg_nodes']:>7.0f} {agg['time']:>5.0f}s")
     print("-" * 115)
-    print(f"{'E baseline (MCTS)':<20} {-0.082:>+7.3f} {-0.114:>+7.3f} {0.503:>7.3f} {-0.578:>+7.3f} {'86':>5} {'26':>5} {'23':>4}")
-    print(f"{'Hybrid sw=9':<20} {+0.137:>+7.3f} {+0.368:>+7.3f} {1.071:>7.3f} {-0.619:>+7.3f} {'64':>5} {'64':>5} {'66':>4}")
-    print(f"{'Greedy enriched':<20} {+0.305:>+7.3f} {+0.364:>+7.3f} {1.171:>7.3f} {+0.119:>+7.3f} {'74':>5} {'55':>5} {'83':>4}")
+    print(f"{'E baseline (MCTS)':<20} {-0.082:>+7.3f} {-0.114:>+7.3f} {0.503:>7.3f} {0.026:>7.3f} {0.058:>7.3f} {'86':>5} {'26':>5} {'23':>4}")
+    print(f"{'Hybrid sw=9':<20} {+0.137:>+7.3f} {+0.368:>+7.3f} {1.071:>7.3f} {0.081:>7.3f} {0.063:>7.3f} {'64':>5} {'64':>5} {'66':>4}")
+    print(f"{'Greedy enriched':<20} {+0.305:>+7.3f} {+0.364:>+7.3f} {1.171:>7.3f} {-0.101:>7.3f} {-0.020:>7.3f} {'74':>5} {'55':>5} {'83':>4}")
     print("=" * 115)
 
     out_dir = os.path.join(os.path.dirname(__file__), "experiment_results", "stats_search")

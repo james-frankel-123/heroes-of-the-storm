@@ -302,7 +302,8 @@ def compute_draft_metrics(pick_steps, stats, tier):
             continue
         deltas = [d for d in (counter_delta(oh, our_hero, stats, tier) for oh in subsequent_opp) if d is not None]
         exposures.append(np.mean(deltas) if deltas else 0.0)
-    resil_grad = (np.mean(exposures[-2:]) - np.mean(exposures[:2])) if len(exposures) >= 4 else 0.0
+    resil_early = -np.mean(exposures[:2]) if len(exposures) >= 2 else 0.0
+    resil_late = -np.mean(exposures[-2:]) if len(exposures) >= 2 else 0.0
 
     # Synergy
     syn_pairs = []
@@ -332,7 +333,7 @@ def compute_draft_metrics(pick_steps, stats, tier):
         'counter_early': counter_early,
         'counter_late': counter_late,
         'team_synergy': team_syn,
-        'resilience_gradient': resil_grad,
+        'resilience_early': resil_early, 'resilience_late': resil_late,
         'has_healer': has_healer,
         'degen': degen,
         'heroes': our_heroes,

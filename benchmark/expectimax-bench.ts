@@ -88,7 +88,8 @@ interface DraftMetrics {
   counter: number
   counterLate: number
   synergy: number
-  resilGrad: number
+  resilEarly: number
+  resilLate: number
   healer: boolean
   degen: boolean
   heroes: string[]
@@ -111,9 +112,10 @@ function computeMetrics(
     const ds = subs.map(s => counterDelta(s, hero, data, map)).filter((d): d is number => d !== null)
     exposures.push(ds.length > 0 ? ds.reduce((a, b) => a + b, 0) / ds.length : 0)
   }
-  const resilGrad = exposures.length >= 4
-    ? (exposures.slice(-2).reduce((a, b) => a + b, 0) / 2) - (exposures.slice(0, 2).reduce((a, b) => a + b, 0) / 2)
-    : 0
+  const resilEarly = exposures.length >= 2
+    ? -(exposures.slice(0, 2).reduce((a, b) => a + b, 0) / 2) : 0
+  const resilLate = exposures.length >= 2
+    ? -(exposures.slice(-2).reduce((a, b) => a + b, 0) / 2) : 0
 
   // Counter
   const ctrs: number[] = []
@@ -154,7 +156,7 @@ function computeMetrics(
   const badStack = Object.entries(roles).some(([role, count]) => count >= 3 && degenStackRoles.has(role))
   const degen = !hasHealer || !hasFront || !hasRanged || badStack
 
-  return { counter, counterLate, synergy, resilGrad, healer: hasHealer, degen, heroes: ourHeroes }
+  return { counter, counterLate, synergy, resilEarly, resilLate, healer: hasHealer, degen, heroes: ourHeroes }
 }
 
 // ── Greedy strategy ──
@@ -335,7 +337,8 @@ async function main() {
       counter: avg(allMetrics.map(m => m.counter)),
       counterLate: avg(allMetrics.map(m => m.counterLate)),
       synergy: avg(allMetrics.map(m => m.synergy)),
-      resilGrad: avg(allMetrics.map(m => m.resilGrad)),
+      resilEarly: avg(allMetrics.map(m => m.resilEarly)),
+      resilLate: avg(allMetrics.map(m => m.resilLate)),
       healer: avg(allMetrics.map(m => m.healer ? 1 : 0)) * 100,
       degen: avg(allMetrics.map(m => m.degen ? 1 : 0)) * 100,
       distinct: Object.keys(heroCounter).length,
@@ -343,15 +346,15 @@ async function main() {
 
     console.log(`\n  ${strategy}: ctr=${agg.counter >= 0 ? '+' : ''}${agg.counter.toFixed(3)} ` +
       `ctrL=${agg.counterLate >= 0 ? '+' : ''}${agg.counterLate.toFixed(3)} ` +
-      `syn=${agg.synergy.toFixed(3)} rG=${agg.resilGrad >= 0 ? '+' : ''}${agg.resilGrad.toFixed(3)} ` +
+      `syn=${agg.synergy.toFixed(3)} rE=${agg.resilEarly.toFixed(3)} rL=${agg.resilLate.toFixed(3)} ` +
       `hlr=${agg.healer.toFixed(0)}% deg=${agg.degen.toFixed(0)}% div=${agg.distinct} ` +
       `(${Math.round(elapsed / 1000)}s)`)
   }
 
   console.log('\n' + '='.repeat(80))
   console.log('  Reference baselines:')
-  console.log('  E MCTS:        ctr=-0.082  syn=0.503  rG=-0.578  hlr=86%  deg=26%')
-  console.log('  Greedy enrich: ctr=+0.305  syn=1.171  rG=+0.119  hlr=74%  deg=55%')
+  console.log('  E MCTS:        ctr=-0.082  syn=0.503  rE=0.026  rL=0.058  hlr=86%  deg=26%')
+  console.log('  Greedy enrich: ctr=+0.305  syn=1.171  rE=-0.101  rL=-0.020  hlr=74%  deg=55%')
   console.log('='.repeat(80))
 }
 

@@ -195,7 +195,8 @@ def full_draft_quality(pick_steps, stats, tier, valid_heroes_at_step):
 
     return {
         "resilience_avg": res["avg_resilience"],
-        "resilience_gradient": res["resilience_gradient"],
+        "resilience_early": res["early_pick_resilience"],
+        "resilience_late": res["late_pick_resilience"],
         "counter_avg": ctr["avg_counter"],
         "counter_late": ctr["late_counter"],
         "counter_gradient": ctr["counter_gradient"],
@@ -481,29 +482,28 @@ def main():
 
         results[strat_name] = agg
         print(f"\n{strat_name} ({elapsed:.1f}s):")
-        print(f"  Resilience: avg={agg['resilience_avg']:.3f} grad={agg['resilience_gradient']:.3f}")
+        print(f"  Resilience: early={agg['resilience_early']:.3f} late={agg['resilience_late']:.3f}")
         print(f"  Counter:    avg={agg['counter_avg']:.3f} late={agg['counter_late']:.3f} "
-              f"grad={agg['counter_gradient']:.3f} capt={agg['counter_capture_rate']:.1%} "
-              f"gap={agg['counter_delta_gap']:.3f}")
+              f"capt={agg['counter_capture_rate']:.1%} gap={agg['counter_delta_gap']:.3f}")
         print(f"  Synergy:    team={agg['team_synergy']:.3f} incr={agg['incremental_synergy']:.3f}")
 
     # Print summary table
-    print("\n\n" + "=" * 110)
-    header = (f"{'Strategy':<22} {'Resil':>6} {'R.Grad':>7} {'Ctr':>6} {'CtrLate':>8} "
-              f"{'C.Grad':>7} {'Capt%':>6} {'Gap':>6} {'T.Syn':>6} {'I.Syn':>6}")
+    print("\n\n" + "=" * 115)
+    header = (f"{'Strategy':<22} {'R.Early':>7} {'R.Late':>7} {'Ctr':>6} {'CtrLate':>8} "
+              f"{'Capt%':>6} {'Gap':>6} {'T.Syn':>6} {'I.Syn':>6}")
     print(header)
-    print("-" * 110)
+    print("-" * 115)
     for name in ["GD baseline", "Enriched greedy", "Augmented greedy",
                  "MCTS E (seed0)", "MCTS E (seed3)", "MCTS G (seed4)"]:
         if name not in results:
             continue
         r = results[name]
-        print(f"{name:<22} {r['resilience_avg']:>6.3f} {r['resilience_gradient']:>7.3f} "
+        print(f"{name:<22} {r['resilience_early']:>7.3f} {r['resilience_late']:>7.3f} "
               f"{r['counter_avg']:>6.3f} {r['counter_late']:>8.3f} "
-              f"{r['counter_gradient']:>7.3f} {r['counter_capture_rate']:>5.0%} "
+              f"{r['counter_capture_rate']:>5.0%} "
               f"{r['counter_delta_gap']:>6.3f} {r['team_synergy']:>6.3f} "
               f"{r['incremental_synergy']:>6.3f}")
-    print("=" * 110)
+    print("=" * 115)
 
     # Save
     out_dir = os.path.join(os.path.dirname(__file__), "experiment_results", "draft_quality")
