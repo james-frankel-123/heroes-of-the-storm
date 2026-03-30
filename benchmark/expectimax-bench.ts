@@ -148,7 +148,11 @@ function computeMetrics(
     const r = HERO_ROLES[h] || 'Unknown'
     roles[r] = (roles[r] || 0) + 1
   }
-  const degen = !hasHealer || !hasFront || !hasRanged || Object.values(roles).some(c => c >= 3)
+  // 3+ of Tank, Melee Assassin, Support, or Healer is degenerate
+  // 3 Ranged Assassins or 3 Bruisers are viable compositions
+  const degenStackRoles = new Set(['Tank', 'Melee Assassin', 'Support', 'Healer'])
+  const badStack = Object.entries(roles).some(([role, count]) => count >= 3 && degenStackRoles.has(role))
+  const degen = !hasHealer || !hasFront || !hasRanged || badStack
 
   return { counter, counterLate, synergy, resilGrad, healer: hasHealer, degen, heroes: ourHeroes }
 }

@@ -181,17 +181,10 @@ def compute_draft_metrics(pick_steps, stats, tier):
     team_syn = np.mean(syn_pairs) if syn_pairs else 0.0
 
     # Composition checks
+    from shared import is_degenerate
     healer_heroes = set(h for h, r in HERO_ROLE_FINE.items() if r == 'healer')
-    frontline = set(h for h, r in HERO_ROLE_FINE.items() if r in ('tank', 'bruiser'))
-    ranged = set(h for h, r in HERO_ROLE_FINE.items() if r in ('ranged_aa', 'ranged_mage', 'pusher'))
     has_healer = any(h in healer_heroes for h in our_heroes)
-    has_front = any(h in frontline for h in our_heroes)
-    has_ranged = any(h in ranged for h in our_heroes)
-    roles = {}
-    for h in our_heroes:
-        r = HERO_ROLE_FINE.get(h, 'unknown')
-        roles[r] = roles.get(r, 0) + 1
-    degen = not has_healer or not has_front or not has_ranged or any(c >= 3 for c in roles.values())
+    degen = is_degenerate(our_heroes)
 
     return {
         'resilience_avg': resil_avg, 'resilience_gradient': resil_grad,

@@ -26,6 +26,7 @@ from torch.utils.data import DataLoader
 
 sys.path.insert(0, os.path.dirname(__file__))
 from shared import (
+    is_degenerate,
     NUM_HEROES, HEROES, HERO_TO_IDX, MAPS, SKILL_TIERS,
     map_to_one_hot, tier_to_one_hot,
     load_replay_data, split_data,
@@ -173,8 +174,8 @@ def run_bear_drafts(q_model, gd_models, device, draft_configs, beta=1.0):
         for h in our_heroes:
             r = HERO_ROLE_FINE.get(h, "unknown")
             role_counts[r] = role_counts.get(r, 0) + 1
-        has_stacking = any(c >= 3 for c in role_counts.values())
-        is_degen = not has_healer or not has_frontline or not has_ranged or has_stacking
+        # Stacking check moved to is_degenerate()
+        is_degen = is_degenerate(our_heroes)
 
         results.append({"has_healer": has_healer, "has_frontline": has_frontline,
                         "has_ranged": has_ranged, "is_degen": is_degen})

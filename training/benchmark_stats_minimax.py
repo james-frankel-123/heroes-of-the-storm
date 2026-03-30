@@ -463,7 +463,8 @@ def compute_metrics(pick_steps, tier):
     hr = any(h in rs for h in oh)
     roles = {}
     for h in oh: r = HERO_ROLE_FINE.get(h, 'x'); roles[r] = roles.get(r, 0) + 1
-    dg = not hh or not hf or not hr or any(c >= 3 for c in roles.values())
+    from shared import is_degenerate
+    dg = is_degenerate(oh)
     return {'counter': ca, 'counter_late': cl, 'synergy': ts, 'resil_grad': rg,
             'healer': hh, 'degen': dg, 'heroes': oh}
 

@@ -26,6 +26,7 @@ from itertools import combinations_with_replacement
 
 sys.path.insert(0, os.path.dirname(__file__))
 from shared import (
+    is_degenerate,
     NUM_HEROES, HEROES, HERO_TO_IDX, MAPS, SKILL_TIERS,
     heroes_to_multi_hot, map_to_one_hot, tier_to_one_hot,
     load_replay_data, split_data,
@@ -731,7 +732,7 @@ def main():
                 role_counts_map[r] = role_counts_map.get(r, 0) + 1
             has_stacking = any(c >= 3 for c in role_counts_map.values())
 
-            is_degen = not has_healer or not has_frontline or not has_ranged or has_stacking
+            is_degen = is_degenerate(our_heroes)
 
             if has_healer:
                 healer_count += 1

@@ -324,7 +324,8 @@ def compute_draft_metrics(pick_steps, stats, tier):
     for h in our_heroes:
         r = HERO_ROLE_FINE.get(h, 'unknown')
         roles[r] = roles.get(r, 0) + 1
-    degen = not has_healer or not has_front or not has_ranged or any(c >= 3 for c in roles.values())
+    from shared import is_degenerate
+    degen = is_degenerate(our_heroes)
 
     return {
         'counter_avg': counter_avg,

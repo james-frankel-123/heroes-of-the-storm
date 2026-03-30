@@ -97,6 +97,42 @@ FINE_ROLE_NAMES = ["tank", "bruiser", "healer", "ranged_aa", "ranged_mage",
                    "melee_assassin", "support_utility", "varian", "pusher"]
 FINE_ROLE_TO_IDX = {r: i for i, r in enumerate(FINE_ROLE_NAMES)}
 
+# Blizzard 6-role mapping (for composition checks)
+FINE_TO_BLIZZ_ROLE = {
+    "tank": "Tank", "bruiser": "Bruiser", "healer": "Healer",
+    "ranged_aa": "Ranged Assassin", "ranged_mage": "Ranged Assassin",
+    "melee_assassin": "Melee Assassin", "support_utility": "Support",
+    "varian": "Bruiser", "pusher": "Ranged Assassin",
+}
+
+# Roles where 3+ is degenerate (Tank, Melee Assassin, Support, Healer)
+# Ranged Assassin and Bruiser can stack to 3 in viable compositions
+DEGEN_STACK_ROLES = {"Tank", "Melee Assassin", "Support", "Healer"}
+
+
+def is_degenerate(heroes: list[str]) -> bool:
+    """Check if a 5-hero team composition is degenerate.
+
+    Degenerate = missing healer, missing frontline (tank/bruiser),
+    missing ranged damage, OR 3+ of a stacking-bad role
+    (Tank, Melee Assassin, Support, Healer).
+    3 Ranged Assassins or 3 Bruisers are allowed.
+    """
+    blizz_roles = [FINE_TO_BLIZZ_ROLE.get(HERO_ROLE_FINE.get(h, ""), "Ranged Assassin")
+                   for h in heroes]
+    role_counts: dict[str, int] = {}
+    for r in blizz_roles:
+        role_counts[r] = role_counts.get(r, 0) + 1
+
+    has_healer = role_counts.get("Healer", 0) > 0
+    has_frontline = role_counts.get("Tank", 0) + role_counts.get("Bruiser", 0) > 0
+    has_ranged = role_counts.get("Ranged Assassin", 0) > 0
+
+    bad_stack = any(role_counts.get(r, 0) >= 3 for r in DEGEN_STACK_ROLES)
+
+    return not has_healer or not has_frontline or not has_ranged or bad_stack
+
+
 # Two-lane maps
 TWO_LANE_MAPS = {"Battlefield of Eternity", "Braxis Holdout", "Hanamura Temple"}
 

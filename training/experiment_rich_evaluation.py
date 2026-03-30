@@ -27,6 +27,7 @@ import torch.nn.functional as F
 
 sys.path.insert(0, os.path.dirname(__file__))
 from shared import (
+    is_degenerate,
     NUM_HEROES, HEROES, HERO_TO_IDX, MAPS, SKILL_TIERS,
     heroes_to_multi_hot, map_to_one_hot, tier_to_one_hot,
     load_replay_data, split_data,
@@ -184,8 +185,8 @@ def run_drafts_with_strategy(strategy_fn, draft_configs, gd_models, stats, devic
         for h in our_picks:
             r = HERO_ROLE_FINE.get(h, "unknown")
             role_counts[r] = role_counts.get(r, 0) + 1
-        has_stacking = any(c >= 3 for c in role_counts.values())
-        is_degen = not has_healer or not has_frontline or not has_ranged or has_stacking
+        # Stacking check moved to is_degenerate()
+        is_degen = is_degenerate(our_picks)
 
         all_drafts.append({
             "game_map": game_map, "tier": tier, "our_team": our_team,
