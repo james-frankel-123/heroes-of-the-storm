@@ -213,40 +213,52 @@ export function DraftClient({
   const [searching, setSearching] = useState(false)
   const [expectimaxManager, setExpectimaxManager] = useState<import('@/lib/draft/expectimax-manager').ExpectimaxManager | null>(null)
 
-  // Initialize search manager lazily when search mode is first activated
+  // Initialize search manager lazily and run search whenever state changes
   useEffect(() => {
-    if (draftMode !== 'search' || expectimaxManager) return
+    if (draftMode !== 'search' || !draftData || state.phase !== 'drafting') return
+
     let cancelled = false
+    setSearching(true)
+
+    // Show greedy results immediately while search initializes
+    if (searchResults.length === 0 && recommendations.length > 0) {
+      setSearchResults(recommendations.map(r => ({
+        hero: r.hero, score: r.netDelta, depth: 0, nodesVisited: 0,
+      })))
+    }
+
     ;(async () => {
-      const { ExpectimaxManager } = await import('@/lib/draft/expectimax-manager')
-      if (cancelled) return
-      const mgr = new ExpectimaxManager()
-      mgr.onProgress = (results, depth) => {
-        setSearchResults(results)
-        setSearchDepth(depth)
+      let mgr = expectimaxManager
+      if (!mgr) {
+        try {
+          const { ExpectimaxManager } = await import('@/lib/draft/expectimax-manager')
+          if (cancelled) return
+          mgr = new ExpectimaxManager()
+          mgr.onProgress = (results, depth) => {
+            if (!cancelled) { setSearchResults(results); setSearchDepth(depth) }
+          }
+          await mgr.init()
+          if (cancelled) { mgr.dispose(); return }
+          setExpectimaxManager(mgr)
+        } catch (err) {
+          console.error('Failed to init expectimax:', err)
+          setSearching(false)
+          return
+        }
       }
+
+      if (cancelled) return
       try {
-        await mgr.init()
-        if (!cancelled) setExpectimaxManager(mgr)
-      } catch (err) {
-        console.error('Failed to init expectimax:', err)
+        const results = await mgr.search(state, draftData)
+        if (!cancelled) { setSearchResults(results); setSearching(false) }
+      } catch {
+        if (!cancelled) setSearching(false)
       }
     })()
-    return () => { cancelled = true }
-  }, [draftMode, expectimaxManager])
 
-  // Run search when state changes in search mode
-  useEffect(() => {
-    if (draftMode !== 'search' || !expectimaxManager || !draftData || state.phase !== 'drafting') return
-    setSearching(true)
-    setSearchResults([])
-    setSearchDepth(null)
-    expectimaxManager.search(state, draftData).then(results => {
-      setSearchResults(results)
-      setSearching(false)
-    }).catch(() => setSearching(false))
-    return () => expectimaxManager.cancel()
-  }, [draftMode, expectimaxManager, draftData, state.currentStep, state.selections, state.phase])
+    return () => { cancelled = true; expectimaxManager?.cancel() }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftMode, draftData, state.currentStep, state.selections, state.phase])
 
   // Sync aiMode with draftMode for backward compat
   useEffect(() => { setAiMode(draftMode === 'ai') }, [draftMode])

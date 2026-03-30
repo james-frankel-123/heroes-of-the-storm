@@ -33,7 +33,7 @@ from shared import (
     load_replay_data, split_data,
     HERO_ROLE_FINE, FINE_ROLE_NAMES, FINE_ROLE_TO_IDX, TWO_LANE_MAPS,
 )
-from hero_capabilities import HERO_CAPABILITIES, CAPABILITY_DIMS
+from archive.hero_capabilities import HERO_CAPABILITIES, CAPABILITY_DIMS
 
 INPUT_DIM_BASE = NUM_HEROES * 2 + NUM_MAPS + NUM_TIERS  # 197
 
