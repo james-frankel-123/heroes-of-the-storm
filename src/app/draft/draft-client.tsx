@@ -215,6 +215,7 @@ export function DraftClient({
   const [expectimaxManager, setExpectimaxManager] = useState<import('@/lib/draft/expectimax-manager').ExpectimaxManager | null>(null)
   const [gdOpponentPreds, setGdOpponentPreds] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
   const [gdLoading, setGdLoading] = useState(false)
+  const [searchStatus, setSearchStatus] = useState<string>('')
 
   // GD opponent predictions for search mode (opponent turns)
   useEffect(() => {
@@ -279,33 +280,49 @@ export function DraftClient({
     setSearching(true)
     setSearchDepth(null)
     setSearchResults([])
+    setSearchStatus('Initializing...')
 
     ;(async () => {
       let mgr = expectimaxManager
       if (!mgr) {
         try {
+          setSearchStatus('Loading search engine...')
           const { ExpectimaxManager } = await import('@/lib/draft/expectimax-manager')
           if (cancelled) return
           mgr = new ExpectimaxManager()
           mgr.onProgress = (results, depth) => {
-            if (!cancelled) { setSearchResults(results); setSearchDepth(depth) }
+            if (!cancelled) {
+              setSearchResults(results)
+              setSearchDepth(depth)
+              setSearchStatus(`Depth ${depth} complete`)
+            }
           }
+          setSearchStatus('Loading GD model...')
           await mgr.init()
           if (cancelled) { mgr.dispose(); return }
           setExpectimaxManager(mgr)
         } catch (err) {
           console.error('Failed to init expectimax:', err)
           setSearching(false)
+          setSearchStatus('Failed to load')
           return
         }
       }
 
       if (cancelled) return
+      setSearchStatus('Searching...')
       try {
         const results = await mgr.search(state, draftData)
-        if (!cancelled) { setSearchResults(results); setSearching(false) }
+        if (!cancelled) {
+          setSearchResults(results)
+          setSearching(false)
+          setSearchStatus('')
+        }
       } catch {
-        if (!cancelled) setSearching(false)
+        if (!cancelled) {
+          setSearching(false)
+          setSearchStatus('Search failed')
+        }
       }
     })()
 
@@ -646,6 +663,7 @@ export function DraftClient({
                   results={searchResults}
                   searchDepth={searchDepth}
                   searching={searching}
+                  statusText={searchStatus}
                   isBanPhase={currentStep?.type === 'ban'}
                   isOurTurn={true}
                   onSelect={handleSelectHero}

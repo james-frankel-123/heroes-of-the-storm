@@ -21,6 +21,7 @@ interface SearchRecommendationPanelProps {
   results: ExpectimaxResult[]
   searchDepth: number | null
   searching: boolean
+  statusText?: string
   isBanPhase: boolean
   isOurTurn: boolean
   onSelect: (hero: string) => void
@@ -31,6 +32,7 @@ export function SearchRecommendationPanel({
   results,
   searchDepth,
   searching,
+  statusText,
   isBanPhase,
   isOurTurn,
   onSelect,
@@ -47,8 +49,8 @@ export function SearchRecommendationPanel({
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white">{title}</h3>
         {searching ? (
-          <span className="text-xs text-violet-400 animate-pulse">
-            Searching depth {(searchDepth ?? 0) + 2}...
+          <span className="text-xs text-blue-400 animate-pulse">
+            {statusText || `Searching depth ${(searchDepth ?? 0) + 2}...`}
           </span>
         ) : searchDepth ? (
           <span className="text-xs text-muted-foreground">
@@ -58,9 +60,16 @@ export function SearchRecommendationPanel({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
-          {searching ? 'Computing recommendations...' : 'Waiting for draft action...'}
-        </p>
+        <div className="space-y-2">
+          {searching && (
+            <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-blue-500/60 h-full rounded-full animate-pulse" style={{ width: '60%' }} />
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {statusText || (searching ? 'Computing recommendations...' : 'Waiting for draft action...')}
+          </p>
+        </div>
       ) : (
         <div className="space-y-1 max-h-[450px] overflow-y-auto pr-1">
           {filtered.slice(0, 12).map((rec) => {
