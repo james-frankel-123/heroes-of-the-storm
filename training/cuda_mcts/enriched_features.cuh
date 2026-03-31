@@ -128,13 +128,17 @@ __device__ void compute_enriched_features(
     int off = 0;
 
     // ── role_counts (18): 9 fine roles × 2 teams ──
+    // Order: all t0 roles first, then all t1 roles (matches Python concat([t0_roles, t1_roles]))
     for (int r = 0; r < NUM_FINE_ROLES; r++) {
-        float c0 = 0, c1 = 0;
+        float c0 = 0;
         for (int i = 0; i < n_t0; i++)
             if (lut->hero_fine_role[t0_heroes[i]] == r) c0 += 1.0f;
+        enriched[off++] = c0;
+    }
+    for (int r = 0; r < NUM_FINE_ROLES; r++) {
+        float c1 = 0;
         for (int i = 0; i < n_t1; i++)
             if (lut->hero_fine_role[t1_heroes[i]] == r) c1 += 1.0f;
-        enriched[off++] = c0;
         enriched[off++] = c1;
     }
 

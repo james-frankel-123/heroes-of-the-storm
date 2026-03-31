@@ -184,8 +184,10 @@ def extract_features(d, stats, groups_mask):
     d: replay dict with team0_heroes, team1_heroes, game_map, skill_tier, winner
     groups_mask: list of bools, one per FEATURE_GROUPS entry
     """
-    t0_heroes = d["team0_heroes"]
-    t1_heroes = d["team1_heroes"]
+    # Sort heroes by index for consistent feature ordering
+    # (CUDA kernel extracts heroes from bitset in index order)
+    t0_heroes = sorted(d["team0_heroes"], key=lambda h: HERO_TO_IDX.get(h, 0))
+    t1_heroes = sorted(d["team1_heroes"], key=lambda h: HERO_TO_IDX.get(h, 0))
     game_map = d["game_map"]
     tier = d["skill_tier"]
 
