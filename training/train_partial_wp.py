@@ -30,8 +30,12 @@ from sweep_enriched_wp import (
     FEATURE_GROUPS, FEATURE_GROUP_DIMS, INPUT_DIM_BASE,
 )
 
-ENRICHED_DIM = sum(FEATURE_GROUP_DIMS[g] for g in FEATURE_GROUPS)
-TOTAL_FEATURE_DIM = INPUT_DIM_BASE + ENRICHED_DIM  # base + enriched (no step embed yet)
+# Use the same 9 enriched feature groups as the deployed enriched WP model
+WP_GROUPS = ['role_counts', 'team_avg_wr', 'map_delta', 'pairwise_counters',
+             'pairwise_synergies', 'counter_detail', 'meta_strength',
+             'draft_diversity', 'comp_wr']
+ENRICHED_DIM = sum(FEATURE_GROUP_DIMS[g] for g in WP_GROUPS)
+TOTAL_FEATURE_DIM = INPUT_DIM_BASE + ENRICHED_DIM  # 197 + 86 = 283
 
 
 # ── Model ──
@@ -58,10 +62,19 @@ class PartialStateWP(nn.Module):
 
 def extract_partial_states(replays, stats):
     """Walk each replay's draft_order, extract features at every pick step.
-    Returns: features (N, D), step_indices (N,), labels (N,)
+    Returns: features (N, TOTAL_FEATURE_DIM), step_indices (N,), labels (N,)
+    Uses only the 9 WP enriched feature groups (86 dims), not all 14.
     Includes team-swap augmentation (doubles sample count).
     """
     all_groups_mask = [True] * len(FEATURE_GROUPS)
+    # Compute column indices for the 9 WP groups within the full enriched vector
+    from sweep_enriched_wp import compute_group_indices
+    group_indices = compute_group_indices()
+    wp_cols = []
+    for g in WP_GROUPS:
+        s, e = group_indices[g]
+        wp_cols.extend(range(s, e))
+
     features_list = []
     steps_list = []
     labels_list = []
@@ -117,11 +130,14 @@ def extract_partial_states(replays, stats):
 
             try:
                 base, enriched = extract_features(sample, stats, all_groups_mask)
-                feat = np.concatenate([base, enriched])
+                feat = np.concatenate([base, enriched[wp_cols]])
+
+                # Use pick_number from the draft entry (0-15), clamped
+                pick_num = min(max(int(step.get("pick_number", step_idx)), 0), 15)
 
                 # Original perspective
                 features_list.append(feat)
-                steps_list.append(step_idx)
+                steps_list.append(pick_num)
                 labels_list.append(label)
 
                 # Augmented: swap teams → flipped label
@@ -133,9 +149,9 @@ def extract_partial_states(replays, stats):
                     "avg_mmr": replay.get("avg_mmr"),
                 }
                 base_swap, enriched_swap = extract_features(sample_swap, stats, all_groups_mask)
-                feat_swap = np.concatenate([base_swap, enriched_swap])
+                feat_swap = np.concatenate([base_swap, enriched_swap[wp_cols]])
                 features_list.append(feat_swap)
-                steps_list.append(step_idx)
+                steps_list.append(pick_num)
                 labels_list.append(1.0 - label)
             except Exception:
                 # Some edge cases with partial data — skip silently
@@ -296,8 +312,8 @@ def train():
             S_batch = S_batch.to(device)
             preds = model(X_batch, S_batch)
             all_preds.append(preds.cpu().numpy())
-            all_labels.append(Y_batch.numpy())
-            all_steps.append(S_batch.numpy())
+            all_labels.append(Y_batch.cpu().numpy())
+            all_steps.append(S_batch.cpu().numpy())
 
     all_preds = np.concatenate(all_preds)
     all_labels = np.concatenate(all_labels)
@@ -324,8 +340,7 @@ def train():
         "step_embed_dim": 8,
         "hidden": [256, 128],
         "best_test_acc": best_test_acc,
-        "feature_groups": FEATURE_GROUPS,
-        "feature_group_dims": FEATURE_GROUP_DIMS,
+        "wp_groups": WP_GROUPS,
     }, save_path)
     print(f"\n  Model saved to {save_path}")
     print(f"  File size: {os.path.getsize(save_path) / 1024:.1f} KB")

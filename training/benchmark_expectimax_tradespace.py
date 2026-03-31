@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """
-Benchmark: Stats greedy vs 6-ply expectimax, evaluated with enriched WP model.
+Expectimax trade space exploration.
 
-The expectimax tree is traversed to collect all leaf states, then feature
-extraction and WP inference are batched for efficiency.
+Profiles tree size, timing, and draft quality across width/depth configurations.
+Runs 50 drafts per config (enough to see trends, not full 500).
+
+Reports: leaves/draft, seconds/draft, counter, synergy, healer%, degen%, avg WP.
 
 Usage:
     set -a && source .env && set +a
-    python3 -u training/benchmark_expectimax_wp.py
+    python3 -u training/benchmark_expectimax_tradespace.py
 """
 
 import os, sys, json, random, time
-from collections import Counter
 import numpy as np
 import torch
 
@@ -24,18 +25,8 @@ from sweep_enriched_wp import (StatsCache, WinProbEnrichedModel, FEATURE_GROUPS,
                                 compute_group_indices, extract_features, FEATURE_GROUP_DIMS)
 from train_draft_policy import DraftState, DRAFT_ORDER
 from train_generic_draft import GenericDraftModel
-from experiment_draft_quality import (counter_delta, synergy_delta,
-                                       draft_resilience, draft_counter_quality,
+from experiment_draft_quality import (draft_resilience, draft_counter_quality,
                                        incremental_synergy)
-
-# ── Config ──
-N_DRAFTS = 500
-TIER = 'mid'
-MAX_DEPTH = 6
-OUR_PICK_WIDTH = 8
-OUR_BAN_WIDTH = 4
-OPP_PICK_WIDTH = 6
-OPP_BAN_WIDTH = 3
 
 # ── Load models ──
 print("Loading models...")
@@ -46,19 +37,17 @@ WP_GROUPS = ['role_counts', 'team_avg_wr', 'map_delta', 'pairwise_counters',
              'draft_diversity', 'comp_wr']
 wp_cols = []
 for g in WP_GROUPS:
-    s, e = gi[g]
-    wp_cols.extend(range(s, e))
+    s, e = gi[g]; wp_cols.extend(range(s, e))
 all_mask = [True] * len(FEATURE_GROUPS)
-wp_input_dim = 197 + sum(FEATURE_GROUP_DIMS[g] for g in WP_GROUPS)
+wp_dim = 197 + sum(FEATURE_GROUP_DIMS[g] for g in WP_GROUPS)
 
-wp_model = WinProbEnrichedModel(wp_input_dim, [256, 128], dropout=0.3)
+wp_model = WinProbEnrichedModel(wp_dim, [256, 128], dropout=0.3)
 wp_model.load_state_dict(torch.load(
     os.path.join(os.path.dirname(__file__), "wp_experiment_enriched.pt"),
     weights_only=True, map_location="cpu"))
 wp_model.eval()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 wp_model = wp_model.to(device)
-print(f"  WP model on {device}")
 
 gd_models = []
 for i in range(5):
@@ -68,7 +57,6 @@ for i in range(5):
         weights_only=True, map_location="cpu"))
     gd.eval()
     gd_models.append(gd)
-print(f"  {len(gd_models)} GD models loaded")
 
 # Composition data
 HERO_TO_BLIZZ = {}
@@ -88,10 +76,11 @@ if os.path.exists(comp_path):
         COMP_DATA[tn] = parsed
         tw = sum(c["popularity"] for c in parsed)
         BASELINE_WR[tn] = sum(c["winRate"] * c["popularity"] for c in parsed) / tw if tw > 0 else 50.0
-    print(f"  Comp data for {len(COMP_DATA)} tiers")
+
+print(f"  All models loaded, device={device}")
 
 
-# ── Scoring (matches engine.ts) ──
+# ── Scoring ──
 
 def _subset(sub, sup):
     counts = {}
@@ -106,23 +95,18 @@ def score_pick(hero, our_picks, opp_picks, game_map, tier):
     md = stats.hero_map_wr.get(tier, {}).get(game_map, {}).get(hero)
     use_wr = md[0] if md and md[1] >= 50 else wr
     score = use_wr - 50.0
-    # Counter
     cs, cn = 0.0, 0
     for opp in opp_picks:
         raw = stats.get_counter(hero, opp, tier)
         if raw is None: continue
-        cs += raw - (use_wr + (100 - stats.get_hero_wr(opp, tier)) - 50)
-        cn += 1
+        cs += raw - (use_wr + (100 - stats.get_hero_wr(opp, tier)) - 50); cn += 1
     if cn > 0: score += cs / cn
-    # Synergy
     ss, sn = 0.0, 0
     for ally in our_picks:
         raw = stats.get_synergy(hero, ally, tier)
         if raw is None: continue
-        ss += raw - (50 + (use_wr - 50) + (stats.get_hero_wr(ally, tier) - 50))
-        sn += 1
+        ss += raw - (50 + (use_wr - 50) + (stats.get_hero_wr(ally, tier) - 50)); sn += 1
     if sn > 0: score += ss / sn
-    # Composition
     comps = COMP_DATA.get(tier, [])
     bl = BASELINE_WR.get(tier, 50.0)
     cr = HERO_TO_BLIZZ.get(hero)
@@ -133,12 +117,10 @@ def score_pick(hero, our_picks, opp_picks, game_map, tier):
         if not achievable:
             score += round(-15 * sf * 10) / 10
         else:
-            bwr = max((min(c["winRate"], 50 + (c["winRate"]-50)*(min(c["games"],200)/200)) for c in achievable))
+            bwr = max(min(c["winRate"], 50 + (c["winRate"]-50)*(min(c["games"],200)/200)) for c in achievable)
             score += round((bwr - bl) * sf * 10) / 10
-    return round(score * 10) / 10
+    return score
 
-
-# ── GD opponent ──
 
 def gd_predict_topn(state, game_map, tier, top_n):
     st, sty = DRAFT_ORDER[state.step]
@@ -169,10 +151,7 @@ def gd_sample(state, game_map, tier):
         return torch.multinomial(probs, 1).item()
 
 
-# ── Batched WP evaluation ──
-
 def evaluate_wp_batch(drafts, tier):
-    """Evaluate batch of (t0h, t1h, map) with symmetrized enriched WP. Returns P(t0 wins)."""
     feats_n, feats_s = [], []
     for t0h, t1h, gm in drafts:
         dn = {'team0_heroes': t0h, 'team1_heroes': t1h, 'game_map': gm, 'skill_tier': tier, 'winner': 0}
@@ -189,65 +168,54 @@ def evaluate_wp_batch(drafts, tier):
     return (wn + (1.0 - ws)) / 2.0
 
 
-# ── 6-ply Expectimax (collect leaves, batch evaluate) ──
+# ── Expectimax with configurable widths ──
 
-def expectimax_pick(state, our_team, game_map, tier):
-    """6-ply expectimax. Collects all leaf states, batch-evaluates with WP."""
+def expectimax_pick(state, our_team, game_map, tier, cfg):
+    """Full expectimax at root: evaluate all root candidates."""
     step_team, step_type = DRAFT_ORDER[state.step]
     is_ban = step_type == 'ban'
-    width = OUR_BAN_WIDTH if is_ban else OUR_PICK_WIDTH
+    root_width = cfg['our_ban'] if is_ban else cfg['our_pick']
 
-    # Prefilter root candidates
     mask = state.valid_mask_np()
     valid = [HEROES[i] for i in range(NUM_HEROES) if mask[i] > 0.5]
     our = [HEROES[i] for i in range(NUM_HEROES) if (state.team0_picks if our_team == 0 else state.team1_picks)[i] > 0.5]
     opp = [HEROES[i] for i in range(NUM_HEROES) if (state.team1_picks if our_team == 0 else state.team0_picks)[i] > 0.5]
     scored = [(h, score_pick(h, our, opp, game_map, tier)) for h in valid]
     scored.sort(key=lambda x: -x[1])
-    candidates = [h for h, _ in scored[:width]]
+    candidates = [h for h, _ in scored[:root_width]]
 
-    # For each root candidate, build the expectimax tree and collect leaves
     best_hero = candidates[0]
     best_value = -1e9
+    total_leaves = 0
 
     for hero in candidates:
         child = state.clone()
         child.apply_action(HERO_TO_IDX[hero], step_team, step_type)
-
-        # Collect all leaves from this subtree
-        leaves = []  # list of (state, weight) tuples
-        _collect_leaves(child, our_team, game_map, tier, MAX_DEPTH - 1, 1.0, leaves)
+        leaves = []
+        _collect_leaves(child, our_team, game_map, tier, cfg['depth'] - 1, 1.0, leaves, cfg)
+        total_leaves += len(leaves)
 
         if not leaves:
             continue
 
-        # Batch evaluate all leaves
         drafts = []
-        for leaf_state, _ in leaves:
-            t0h = [HEROES[j] for j in range(NUM_HEROES) if leaf_state.team0_picks[j] > 0.5]
-            t1h = [HEROES[j] for j in range(NUM_HEROES) if leaf_state.team1_picks[j] > 0.5]
+        for ls, _ in leaves:
+            t0h = [HEROES[j] for j in range(NUM_HEROES) if ls.team0_picks[j] > 0.5]
+            t1h = [HEROES[j] for j in range(NUM_HEROES) if ls.team1_picks[j] > 0.5]
             drafts.append((t0h, t1h, game_map))
 
-        wp_t0_batch = evaluate_wp_batch(drafts, tier)
+        wp_batch = evaluate_wp_batch(drafts, tier)
+        value = sum(w * (float(wp_batch[i]) if our_team == 0 else 1.0 - float(wp_batch[i]))
+                    for i, (_, w) in enumerate(leaves)) / sum(w for _, w in leaves)
 
-        # Compute weighted expected value
-        total_value = 0.0
-        total_weight = 0.0
-        for i, (_, weight) in enumerate(leaves):
-            wp_ours = float(wp_t0_batch[i]) if our_team == 0 else 1.0 - float(wp_t0_batch[i])
-            total_value += weight * wp_ours
-            total_weight += weight
-
-        value = total_value / total_weight if total_weight > 0 else 0.5
         if value > best_value:
             best_value = value
             best_hero = hero
 
-    return HERO_TO_IDX[best_hero]
+    return HERO_TO_IDX[best_hero], total_leaves
 
 
-def _collect_leaves(state, our_team, game_map, tier, depth, weight, leaves):
-    """Recursively collect (state, weight) leaf nodes for batched evaluation."""
+def _collect_leaves(state, our_team, game_map, tier, depth, weight, leaves, cfg):
     if state.is_terminal() or depth <= 0:
         leaves.append((state, weight))
         return
@@ -257,153 +225,157 @@ def _collect_leaves(state, our_team, game_map, tier, depth, weight, leaves):
     is_ban = step_type == 'ban'
 
     if is_ours:
-        # MAX node — only follow the single best candidate (greedy pruning)
-        # This is an approximation: true expectimax would evaluate all candidates
-        # and pick the best. We follow the greedy-best to keep leaf count bounded.
-        w = OUR_BAN_WIDTH if is_ban else OUR_PICK_WIDTH
+        # MAX: expand top-K candidates (not just 1)
+        w = cfg['our_ban'] if is_ban else cfg['our_pick']
         mask = state.valid_mask_np()
         valid = [HEROES[i] for i in range(NUM_HEROES) if mask[i] > 0.5]
         our = [HEROES[i] for i in range(NUM_HEROES) if (state.team0_picks if our_team == 0 else state.team1_picks)[i] > 0.5]
         opp = [HEROES[i] for i in range(NUM_HEROES) if (state.team1_picks if our_team == 0 else state.team0_picks)[i] > 0.5]
         scored = [(h, score_pick(h, our, opp, game_map, tier)) for h in valid]
         scored.sort(key=lambda x: -x[1])
-        # Follow top candidate only (to keep tree bounded)
+        # At inner MAX nodes, follow top candidate only to bound tree
+        # At root, we already expand all candidates in expectimax_pick
         for h, _ in scored[:1]:
             child = state.clone()
             child.apply_action(HERO_TO_IDX[h], step_team, step_type)
-            _collect_leaves(child, our_team, game_map, tier, depth - 1, weight, leaves)
+            _collect_leaves(child, our_team, game_map, tier, depth - 1, weight, leaves, cfg)
     else:
-        # CHANCE node — branch on GD predictions, weight by probability
-        w = OPP_BAN_WIDTH if is_ban else OPP_PICK_WIDTH
+        # CHANCE: branch on GD top-N
+        w = cfg['opp_ban'] if is_ban else cfg['opp_pick']
         preds = gd_predict_topn(state, game_map, tier, w)
         preds = [(h, p) for h, p in preds if state.valid_mask_np()[HERO_TO_IDX[h]] > 0.5]
         if not preds:
             leaves.append((state, weight))
             return
-        total_prob = sum(p for _, p in preds)
+        tp = sum(p for _, p in preds)
         for hero, prob in preds:
             child = state.clone()
             child.apply_action(HERO_TO_IDX[hero], step_team, step_type)
             _collect_leaves(child, our_team, game_map, tier, depth - 1,
-                           weight * (prob / total_prob), leaves)
+                           weight * (prob / tp), leaves, cfg)
 
 
-# ── Greedy strategy ──
-
-def greedy_pick(state, our_team, game_map, tier):
-    mask = state.valid_mask_np()
-    valid = [HEROES[i] for i in range(NUM_HEROES) if mask[i] > 0.5]
-    our = [HEROES[i] for i in range(NUM_HEROES) if (state.team0_picks if our_team == 0 else state.team1_picks)[i] > 0.5]
-    opp = [HEROES[i] for i in range(NUM_HEROES) if (state.team1_picks if our_team == 0 else state.team0_picks)[i] > 0.5]
-    return HERO_TO_IDX[max(valid, key=lambda h: score_pick(h, our, opp, game_map, tier))]
-
-def greedy_ban(state, our_team, game_map, tier):
-    mask = state.valid_mask_np()
-    valid = [HEROES[i] for i in range(NUM_HEROES) if mask[i] > 0.5]
-    return HERO_TO_IDX[max(valid, key=lambda h: stats.get_hero_wr(h, tier))]
-
-
-# ── Draft simulation ──
-
-def simulate_draft(game_map, tier, our_team, strategy='greedy'):
+def simulate_draft(game_map, tier, our_team, strategy, cfg=None):
     state = DraftState(game_map, tier, our_team=our_team)
     pick_steps = []
+    total_leaves = 0
     while not state.is_terminal():
         step_team, step_type = DRAFT_ORDER[state.step]
-        step_num = state.step
         if step_team == our_team:
             if step_type == 'ban':
-                hero_idx = greedy_ban(state, our_team, game_map, tier)
+                mask = state.valid_mask_np()
+                valid = [HEROES[i] for i in range(NUM_HEROES) if mask[i] > 0.5]
+                hero_idx = HERO_TO_IDX[max(valid, key=lambda h: stats.get_hero_wr(h, tier))]
             elif strategy == 'search':
-                hero_idx = expectimax_pick(state, our_team, game_map, tier)
+                hero_idx, nl = expectimax_pick(state, our_team, game_map, tier, cfg)
+                total_leaves += nl
             else:
-                hero_idx = greedy_pick(state, our_team, game_map, tier)
+                hero_idx = HERO_TO_IDX[max(
+                    [HEROES[i] for i in range(NUM_HEROES) if state.valid_mask_np()[i] > 0.5],
+                    key=lambda h: score_pick(h,
+                        [HEROES[i] for i in range(NUM_HEROES) if (state.team0_picks if our_team==0 else state.team1_picks)[i]>0.5],
+                        [HEROES[i] for i in range(NUM_HEROES) if (state.team1_picks if our_team==0 else state.team0_picks)[i]>0.5],
+                        game_map, tier))]
         else:
             hero_idx = gd_sample(state, game_map, tier)
         if step_type == 'pick':
-            pick_steps.append((HEROES[hero_idx], 'ours' if step_team == our_team else 'theirs', step_num))
+            pick_steps.append((HEROES[hero_idx], 'ours' if step_team == our_team else 'theirs', state.step))
         state.apply_action(hero_idx, step_team, step_type)
-    return pick_steps
+    return pick_steps, total_leaves
 
 
-def compute_metrics(pick_steps, game_map, tier):
-    res = draft_resilience(pick_steps, stats, tier)
-    ctr = draft_counter_quality(pick_steps, stats, tier)
-    syn = incremental_synergy(pick_steps, stats, tier)
-    oh = [h for h, tm, _ in pick_steps if tm == 'ours']
+def run_config(label, strategy, cfg, configs, tier):
+    t0 = time.time()
+    all_m, all_wp_in, total_leaves = [], [], 0
+    for game_map, _, our_team in configs:
+        ps, nl = simulate_draft(game_map, tier, our_team, strategy, cfg)
+        total_leaves += nl
+        res = draft_resilience(ps, stats, tier)
+        ctr = draft_counter_quality(ps, stats, tier)
+        syn = incremental_synergy(ps, stats, tier)
+        oh = [h for h, tm, _ in ps if tm == 'ours']
+        oph = [h for h, tm, _ in ps if tm == 'theirs']
+        all_m.append({
+            'counter': ctr['avg_counter'], 'counter_late': ctr['late_counter'],
+            'synergy': syn['team_synergy'],
+            're': res['early_pick_resilience'], 'rl': res['late_pick_resilience'],
+            'healer': any(HERO_ROLE_FINE.get(h) == 'healer' for h in oh),
+            'degen': is_degenerate(oh), 'oh': oh, 'oph': oph,
+        })
+        t0h = oh if our_team == 0 else oph
+        t1h = oph if our_team == 0 else oh
+        all_wp_in.append((t0h, t1h, game_map, our_team))
+
+    wps = evaluate_wp_batch([(a,b,c) for a,b,c,_ in all_wp_in], tier)
+    wp_ours = [float(wps[i]) if ot==0 else 1.0-float(wps[i]) for i,(_, _, _, ot) in enumerate(all_wp_in)]
+    elapsed = time.time() - t0
+    n = len(configs)
+
     return {
-        'counter': ctr['avg_counter'], 'counter_late': ctr['late_counter'],
-        'synergy': syn['team_synergy'],
-        'resil_early': res['early_pick_resilience'], 'resil_late': res['late_pick_resilience'],
-        'healer': any(HERO_ROLE_FINE.get(h) == 'healer' for h in oh),
-        'degen': is_degenerate(oh),
-        'our_heroes': oh,
-        'opp_heroes': [h for h, tm, _ in pick_steps if tm == 'theirs'],
-        'map': game_map,
+        'label': label,
+        'counter': np.mean([m['counter'] for m in all_m]),
+        'counter_late': np.mean([m['counter_late'] for m in all_m]),
+        'synergy': np.mean([m['synergy'] for m in all_m]),
+        're': np.mean([m['re'] for m in all_m]),
+        'rl': np.mean([m['rl'] for m in all_m]),
+        'healer': np.mean([m['healer'] for m in all_m]) * 100,
+        'degen': np.mean([m['degen'] for m in all_m]) * 100,
+        'div': len(set(h for m in all_m for h in m['oh'])),
+        'avg_wp': np.mean(wp_ours),
+        'win_rate': np.mean([1 if w > 0.5 else 0 for w in wp_ours]) * 100,
+        'leaves_per_draft': total_leaves / n if n > 0 else 0,
+        'sec_per_draft': elapsed / n,
+        'total_time': elapsed,
     }
 
 
-# ── Main ──
-
 def main():
+    N = 50
+    TIER = 'mid'
     random.seed(42); np.random.seed(42); torch.manual_seed(42)
-    configs = [(random.choice(MAPS), TIER, random.randint(0, 1)) for _ in range(N_DRAFTS)]
+    configs = [(random.choice(MAPS), TIER, random.randint(0, 1)) for _ in range(N)]
 
-    print(f"\nBenchmark: {N_DRAFTS} drafts, tier={TIER}, {MAX_DEPTH}-ply expectimax")
-    print(f"Widths: our_pick={OUR_PICK_WIDTH} our_ban={OUR_BAN_WIDTH} opp_pick={OPP_PICK_WIDTH} opp_ban={OPP_BAN_WIDTH}")
-    print(f"WP model: enriched on {device}")
-    print("=" * 90)
+    print(f"\nExpectimax Trade Space: {N} drafts, tier={TIER}")
+    print("=" * 130)
 
-    for strategy in ['greedy', 'search']:
-        t0 = time.time()
-        all_metrics = []
-        all_wp_inputs = []
+    # Configurations to test
+    sweeps = [
+        ("greedy",              'greedy', None),
+        ("d4 opp3",             'search', {'depth': 4, 'our_pick': 8, 'our_ban': 4, 'opp_pick': 3, 'opp_ban': 3}),
+        ("d4 opp5",             'search', {'depth': 4, 'our_pick': 8, 'our_ban': 4, 'opp_pick': 5, 'opp_ban': 3}),
+        ("d4 opp8",             'search', {'depth': 4, 'our_pick': 8, 'our_ban': 4, 'opp_pick': 8, 'opp_ban': 4}),
+        ("d6 opp3",             'search', {'depth': 6, 'our_pick': 8, 'our_ban': 4, 'opp_pick': 3, 'opp_ban': 3}),
+        ("d6 opp5",             'search', {'depth': 6, 'our_pick': 8, 'our_ban': 4, 'opp_pick': 5, 'opp_ban': 3}),
+        ("d6 opp8",             'search', {'depth': 6, 'our_pick': 8, 'our_ban': 4, 'opp_pick': 8, 'opp_ban': 4}),
+        ("d8 opp3",             'search', {'depth': 8, 'our_pick': 8, 'our_ban': 4, 'opp_pick': 3, 'opp_ban': 3}),
+        ("d8 opp5",             'search', {'depth': 8, 'our_pick': 8, 'our_ban': 4, 'opp_pick': 5, 'opp_ban': 3}),
+        ("d6 opp5 our10",       'search', {'depth': 6, 'our_pick': 10, 'our_ban': 5, 'opp_pick': 5, 'opp_ban': 3}),
+    ]
 
-        for ci, (game_map, tier, our_team) in enumerate(configs):
-            pick_steps = simulate_draft(game_map, tier, our_team, strategy)
-            m = compute_metrics(pick_steps, game_map, tier)
-            all_metrics.append(m)
+    results = []
+    for label, strategy, cfg in sweeps:
+        print(f"  Running: {label}...", end=" ", flush=True)
+        r = run_config(label, strategy, cfg, configs, TIER)
+        results.append(r)
+        print(f"ctr={r['counter']:+.3f} syn={r['synergy']:.3f} "
+              f"hlr={r['healer']:.0f}% deg={r['degen']:.0f}% "
+              f"wp={r['avg_wp']:.4f} wr={r['win_rate']:.0f}% "
+              f"leaves={r['leaves_per_draft']:.0f} {r['sec_per_draft']:.1f}s/draft")
 
-            t0h = m['our_heroes'] if our_team == 0 else m['opp_heroes']
-            t1h = m['opp_heroes'] if our_team == 0 else m['our_heroes']
-            all_wp_inputs.append((t0h, t1h, game_map, our_team))
+    # Summary table
+    print("\n\n" + "=" * 140)
+    print(f"{'Config':<20} {'Ctr':>7} {'CtrL':>7} {'Syn':>7} {'R.E':>6} {'R.L':>6} "
+          f"{'Hlr%':>5} {'Deg%':>5} {'Div':>4} {'AvgWP':>7} {'WR%':>5} "
+          f"{'Leaves':>7} {'s/draft':>8}")
+    print("-" * 140)
+    for r in results:
+        print(f"{r['label']:<20} {r['counter']:>+7.3f} {r['counter_late']:>+7.3f} "
+              f"{r['synergy']:>7.3f} {r['re']:>6.3f} {r['rl']:>6.3f} "
+              f"{r['healer']:>5.0f} {r['degen']:>5.0f} {r['div']:>4} "
+              f"{r['avg_wp']:>7.4f} {r['win_rate']:>5.0f} "
+              f"{r['leaves_per_draft']:>7.0f} {r['sec_per_draft']:>7.1f}s")
+    print("=" * 140)
 
-            if (ci + 1) % 50 == 0:
-                elapsed = time.time() - t0
-                eta = elapsed / (ci + 1) * (N_DRAFTS - ci - 1)
-                print(f"  {strategy}: {ci+1}/{N_DRAFTS} ({eta:.0f}s left)")
-
-        # Batch WP evaluation of all terminal states
-        wp_drafts = [(t0h, t1h, gm) for t0h, t1h, gm, _ in all_wp_inputs]
-        wp_t0 = evaluate_wp_batch(wp_drafts, TIER)
-        wp_ours = [float(wp_t0[i]) if ot == 0 else 1.0 - float(wp_t0[i])
-                   for i, (_, _, _, ot) in enumerate(all_wp_inputs)]
-
-        elapsed = time.time() - t0
-        agg = {
-            'counter': np.mean([m['counter'] for m in all_metrics]),
-            'counter_late': np.mean([m['counter_late'] for m in all_metrics]),
-            'synergy': np.mean([m['synergy'] for m in all_metrics]),
-            'resil_early': np.mean([m['resil_early'] for m in all_metrics]),
-            'resil_late': np.mean([m['resil_late'] for m in all_metrics]),
-            'healer': np.mean([m['healer'] for m in all_metrics]) * 100,
-            'degen': np.mean([m['degen'] for m in all_metrics]) * 100,
-            'distinct': len(set(h for m in all_metrics for h in m['our_heroes'])),
-            'avg_wp': np.mean(wp_ours),
-            'win_rate': np.mean([1 if w > 0.5 else 0 for w in wp_ours]) * 100,
-        }
-
-        print(f"\n  {strategy}:")
-        print(f"    Counter:    avg={agg['counter']:+.3f}  late={agg['counter_late']:+.3f}")
-        print(f"    Synergy:    {agg['synergy']:.3f}")
-        print(f"    Resilience: early={agg['resil_early']:.3f}  late={agg['resil_late']:.3f}")
-        print(f"    Comp:       healer={agg['healer']:.0f}%  degen={agg['degen']:.0f}%  div={agg['distinct']}")
-        print(f"    WP (enr.):  avg={agg['avg_wp']:.4f}  win_rate={agg['win_rate']:.1f}%")
-        print(f"    Time:       {elapsed:.0f}s")
-
-    print("\n" + "=" * 90)
-    print("  E MCTS ref:  avg_wp=0.553  wr=91%  ctr=-0.08  syn=0.50  hlr=86%  deg=26%")
-    print("=" * 90)
 
 if __name__ == "__main__":
     main()
