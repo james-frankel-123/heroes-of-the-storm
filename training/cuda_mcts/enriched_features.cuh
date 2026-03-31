@@ -34,6 +34,8 @@
 #define ENRICHED_DIM 86
 #define WP_BASE_DIM 197
 #define WP_FULL_DIM 283  // 197 + 86
+#define STEP_EMBED_DIM 8
+#define WP_INPUT_DIM 291  // 283 + 8 (step embedding)
 
 // ── Lookup table structures (uploaded to GPU once) ──
 
@@ -67,6 +69,9 @@ struct WPLookupTables {
     float comp_wr[NUM_TIERS][MAX_COMP_ENTRIES];       // win rate
     float comp_games[NUM_TIERS][MAX_COMP_ENTRIES];     // game count
     int comp_count[NUM_TIERS];                         // entries per tier
+
+    // Step embedding for partial WP model: 16 steps × 8 dims
+    float step_embed[16][STEP_EMBED_DIM];
 };
 
 
@@ -383,49 +388,45 @@ __device__ float wp_forward_device(
     return result;
 }
 
-// Symmetrized WP evaluation using enriched features
+// Symmetrized WP evaluation using enriched features + step embedding
 // Runs WP model twice (normal + team-swapped) and averages
 __device__ float wp_eval_symmetrized(
     const int* t0_heroes, int n_t0,
     const int* t1_heroes, int n_t1,
     int map_idx, int tier_idx, int our_team,
+    int step_idx,          // draft step (0-15) for step embedding
     const WPLookupTables* lut,
     const float* W_wp,
     WPNetOffsets wp_off,
-    float* state_buf,     // shared: WP_FULL_DIM floats for building WP input
+    float* state_buf,     // shared: WP_INPUT_DIM floats for building WP input
     float* enriched_buf,  // shared: ENRICHED_DIM floats
     float* workspace      // shared: 2048 floats for MLP forward
 ) {
     int tid = threadIdx.x;
 
     // ── Normal perspective: t0 as team0, t1 as team1 ──
-    // Build base features (197 dims): multi-hot heroes + map + tier
-    for (int i = tid; i < WP_FULL_DIM; i += blockDim.x) state_buf[i] = 0.0f;
+    // Build features: base(197) + enriched(86) + step_embed(8) = 291 dims
+    int clamped_step = (step_idx < 0) ? 0 : (step_idx > 15 ? 15 : step_idx);
+
+    for (int i = tid; i < WP_INPUT_DIM; i += blockDim.x) state_buf[i] = 0.0f;
     __syncthreads();
 
     if (tid == 0) {
-        for (int i = 0; i < n_t0; i++) state_buf[t0_heroes[i]] = 1.0f;
-        for (int i = 0; i < n_t1; i++) state_buf[NUM_HEROES + t1_heroes[i]] = 1.0f;
-        state_buf[2 * NUM_HEROES + map_idx] = 1.0f;  // Wait -- base WP has no bans slot
-        // Base WP: t0(90) + t1(90) + map(14) + tier(3) = 197
-        // We're putting map at position 180 (90+90), tier at 194 (90+90+14)
-        // Actually need to recheck the base feature layout...
-        // The sweep_enriched_wp extract_features does:
-        //   base = concat(t0_multi_hot, t1_multi_hot, map_one_hot, tier_one_hot) = 197
-        // So: positions 0-89 = t0, 90-179 = t1, 180-193 = map, 194-196 = tier
-        // Clear and redo:
-        for (int i = 0; i < WP_FULL_DIM; i++) state_buf[i] = 0.0f;
+        // Base: t0(90) + t1(90) + map(14) + tier(3) = 197
         for (int i = 0; i < n_t0; i++) state_buf[t0_heroes[i]] = 1.0f;
         for (int i = 0; i < n_t1; i++) state_buf[90 + t1_heroes[i]] = 1.0f;
         state_buf[180 + map_idx] = 1.0f;
         state_buf[194 + tier_idx] = 1.0f;
 
-        // Compute enriched features
+        // Enriched features (86 dims)
         compute_enriched_features(t0_heroes, n_t0, t1_heroes, n_t1,
                                   map_idx, tier_idx, lut, enriched_buf);
-        // Append enriched to base
         for (int i = 0; i < ENRICHED_DIM; i++)
             state_buf[WP_BASE_DIM + i] = enriched_buf[i];
+
+        // Step embedding (8 dims)
+        for (int i = 0; i < STEP_EMBED_DIM; i++)
+            state_buf[WP_FULL_DIM + i] = lut->step_embed[clamped_step][i];
     }
     __syncthreads();
 
@@ -433,7 +434,7 @@ __device__ float wp_eval_symmetrized(
     __syncthreads();
 
     // ── Swapped perspective: t1 as team0, t0 as team1 ──
-    for (int i = tid; i < WP_FULL_DIM; i += blockDim.x) state_buf[i] = 0.0f;
+    for (int i = tid; i < WP_INPUT_DIM; i += blockDim.x) state_buf[i] = 0.0f;
     __syncthreads();
 
     if (tid == 0) {
@@ -446,6 +447,9 @@ __device__ float wp_eval_symmetrized(
                                   map_idx, tier_idx, lut, enriched_buf);
         for (int i = 0; i < ENRICHED_DIM; i++)
             state_buf[WP_BASE_DIM + i] = enriched_buf[i];
+
+        for (int i = 0; i < STEP_EMBED_DIM; i++)
+            state_buf[WP_FULL_DIM + i] = lut->step_embed[clamped_step][i];
     }
     __syncthreads();
 

@@ -174,7 +174,7 @@ def build_wp_net_offsets(model, name_to_offset, input_dim):
     return offsets
 
 
-def extract_lookup_tables(stats_cache):
+def extract_lookup_tables(stats_cache, step_embed_weights=None):
     """Convert StatsCache to flat byte blob matching WPLookupTables C struct layout.
     Returns numpy uint8 array that can be memcpy'd directly into the GPU struct.
     """
@@ -308,6 +308,12 @@ def extract_lookup_tables(stats_cache):
         comp_count[ti] = count
 
     # Concatenate matching C struct layout (all fields contiguous, no padding)
+    # Step embedding for partial WP model (16 steps × 8 dims)
+    if step_embed_weights is not None:
+        step_embed = np.array(step_embed_weights, dtype=np.float32).reshape(16, 8)
+    else:
+        step_embed = np.zeros((16, 8), dtype=np.float32)
+
     blob = b''.join([
         hero_wr.tobytes(),
         hero_map_wr.tobytes(),
@@ -320,6 +326,7 @@ def extract_lookup_tables(stats_cache):
         comp_wr_arr.tobytes(),
         comp_games_arr.tobytes(),
         comp_count.tobytes(),
+        step_embed.tobytes(),
     ])
     print(f"  LUT blob: {len(blob)} bytes ({len(blob)/1024:.1f} KB)")
     return np.frombuffer(blob, dtype=np.uint8).copy()

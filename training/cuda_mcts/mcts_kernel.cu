@@ -148,7 +148,7 @@ extern "C" __global__ void mcts_episodes_kernel(
     int tid = threadIdx.x;
 
     // Shared memory layout (dynamic based on policy network size):
-    // state_buf:     290
+    // state_buf:     max(STATE_DIM, WP_INPUT_DIM) = 291 (reused for policy 290d and WP 291d)
     // mask_buf:       90
     // priors_buf:     90
     // buf_e:         edim (backbone output, persists across head calls)
@@ -157,12 +157,13 @@ extern "C" __global__ void mcts_episodes_kernel(
     extern __shared__ float smem[];
     int edim = policy_off.edim;
     int ws_size = policy_off.hdim * 3 + policy_off.cdim;
+    const int state_buf_size = 291;  // max(STATE_DIM=290, WP_INPUT_DIM=291)
     float* state_buf = smem;
-    float* mask_buf = smem + STATE_DIM;
-    float* priors_buf = smem + STATE_DIM + NUM_HEROES;
-    float* buf_e = smem + STATE_DIM + NUM_HEROES + NUM_HEROES;
-    float* workspace = smem + STATE_DIM + NUM_HEROES + NUM_HEROES + edim;
-    float* enriched_buf = smem + STATE_DIM + NUM_HEROES + NUM_HEROES + edim + ws_size;
+    float* mask_buf = smem + state_buf_size;
+    float* priors_buf = smem + state_buf_size + NUM_HEROES;
+    float* buf_e = smem + state_buf_size + NUM_HEROES + NUM_HEROES;
+    float* workspace = smem + state_buf_size + NUM_HEROES + NUM_HEROES + edim;
+    float* enriched_buf = smem + state_buf_size + NUM_HEROES + NUM_HEROES + edim + ws_size;
 
     EpisodeMemory* ep = &episodes[ep_idx];
 
@@ -436,6 +437,7 @@ extern "C" __global__ void mcts_episodes_kernel(
                     float val = wp_eval_symmetrized(
                         s_wp_t0h, s_wp_n0, s_wp_t1h, s_wp_n1,
                         scratch.map_idx, scratch.tier_idx, scratch.our_team,
+                        scratch.step,
                         lut, W_wp, wp_off, state_buf, enriched_buf, workspace);
                     if (tid == 0) s_value = val;
                 }
@@ -522,6 +524,7 @@ extern "C" __global__ void mcts_episodes_kernel(
     float term_wp = wp_eval_symmetrized(
         s_term_t0h, s_term_n0, s_term_t1h, s_term_n1,
         main_state.map_idx, main_state.tier_idx, main_state.our_team,
+        main_state.step,  // terminal step (15 for complete drafts)
         lut, W_wp, wp_off, state_buf, enriched_buf, workspace);
 
     // Write terminal state (for debugging/logging) and WP to global memory

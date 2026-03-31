@@ -45,6 +45,7 @@ struct WPLookupTables {
     float comp_wr[NUM_TIERS][MAX_COMP_ENTRIES];
     float comp_games[NUM_TIERS][MAX_COMP_ENTRIES];
     int comp_count[NUM_TIERS];
+    float step_embed[16][8];  // step embedding for partial WP model
 };
 
 struct WPNetOffsets {
@@ -313,7 +314,8 @@ public:
         cudaMemcpy(d_configs_, cfg.data(0, 0), n * 3 * sizeof(int), cudaMemcpyHostToDevice);
 
         // Shared memory: dynamic based on policy net size
-        int shared_mem = (STATE_DIM + NUM_HEROES + NUM_HEROES + policy_off_.edim
+        // state_buf = max(STATE_DIM=290, WP_INPUT_DIM=291) = 291
+        int shared_mem = (291 + NUM_HEROES + NUM_HEROES + policy_off_.edim
                          + policy_off_.hdim * 3 + policy_off_.cdim + ENRICHED_DIM) * sizeof(float);
 
         // Launch kernel: one block per episode
