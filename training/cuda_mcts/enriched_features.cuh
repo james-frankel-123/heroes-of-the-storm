@@ -138,16 +138,16 @@ __device__ void compute_enriched_features(
         enriched[off++] = c1;
     }
 
-    // ── team_avg_wr (2) ──
+    // ── team_avg_wr (2): raw average, NOT normalized (matches Python extract_features) ──
     float t0_wr_sum = 0, t1_wr_sum = 0;
     for (int i = 0; i < n_t0; i++)
         t0_wr_sum += lut->hero_wr[tier_idx][t0_heroes[i]];
     for (int i = 0; i < n_t1; i++)
         t1_wr_sum += lut->hero_wr[tier_idx][t1_heroes[i]];
-    enriched[off++] = n_t0 > 0 ? (t0_wr_sum / n_t0 - 50.0f) / 5.0f : 0.0f;
-    enriched[off++] = n_t1 > 0 ? (t1_wr_sum / n_t1 - 50.0f) / 5.0f : 0.0f;
+    enriched[off++] = n_t0 > 0 ? t0_wr_sum / n_t0 : 50.0f;
+    enriched[off++] = n_t1 > 0 ? t1_wr_sum / n_t1 : 50.0f;
 
-    // ── map_delta (2): sum of (hero_map_wr - hero_wr) per team ──
+    // ── map_delta (2): raw sum of (hero_map_wr - hero_wr), NOT divided by 5 ──
     float t0_map_delta = 0, t1_map_delta = 0;
     for (int i = 0; i < n_t0; i++) {
         float mwr = lut->hero_map_wr[tier_idx][map_idx][t0_heroes[i]];
@@ -159,10 +159,11 @@ __device__ void compute_enriched_features(
         float hwr = lut->hero_wr[tier_idx][t1_heroes[i]];
         if (mwr > 0) t1_map_delta += (mwr - hwr);
     }
-    enriched[off++] = t0_map_delta / 5.0f;
-    enriched[off++] = t1_map_delta / 5.0f;
+    enriched[off++] = t0_map_delta;
+    enriched[off++] = t1_map_delta;
 
-    // ── pairwise_counters (2): avg normalized counter delta per team ──
+    // ── pairwise_counters (2): avg counter delta per team ──
+    // Include 0.0 for missing data to match Python's _avg_counter_delta behavior
     float t0_counter_sum = 0, t1_counter_sum = 0;
     int t0_counter_n = 0, t1_counter_n = 0;
     for (int i = 0; i < n_t0; i++) {
@@ -173,8 +174,9 @@ __device__ void compute_enriched_features(
                 float owr = lut->hero_wr[tier_idx][t1_heroes[j]];
                 float expected = hwr + (100.0f - owr) - 50.0f;
                 t0_counter_sum += (raw - expected);
-                t0_counter_n++;
             }
+            // Always count — 0.0 contribution when missing (matches Python)
+            t0_counter_n++;
         }
     }
     for (int i = 0; i < n_t1; i++) {
@@ -185,14 +187,15 @@ __device__ void compute_enriched_features(
                 float owr = lut->hero_wr[tier_idx][t0_heroes[j]];
                 float expected = hwr + (100.0f - owr) - 50.0f;
                 t1_counter_sum += (raw - expected);
-                t1_counter_n++;
             }
+            t1_counter_n++;
         }
     }
-    enriched[off++] = t0_counter_n > 0 ? t0_counter_sum / t0_counter_n / 10.0f : 0.0f;
-    enriched[off++] = t1_counter_n > 0 ? t1_counter_sum / t1_counter_n / 10.0f : 0.0f;
+    enriched[off++] = t0_counter_n > 0 ? t0_counter_sum / t0_counter_n : 0.0f;
+    enriched[off++] = t1_counter_n > 0 ? t1_counter_sum / t1_counter_n : 0.0f;
 
-    // ── pairwise_synergies (2): avg normalized synergy delta per team ──
+    // ── pairwise_synergies (2): avg synergy delta per team ──
+    // Include 0.0 for missing data to match Python's _avg_synergy_delta behavior
     float t0_syn_sum = 0, t1_syn_sum = 0;
     int t0_syn_n = 0, t1_syn_n = 0;
     for (int i = 0; i < n_t0; i++) {
@@ -203,8 +206,8 @@ __device__ void compute_enriched_features(
                 float wr_j = lut->hero_wr[tier_idx][t0_heroes[j]];
                 float expected = 50.0f + (wr_i - 50.0f) + (wr_j - 50.0f);
                 t0_syn_sum += (raw - expected);
-                t0_syn_n++;
             }
+            t0_syn_n++;
         }
     }
     for (int i = 0; i < n_t1; i++) {
@@ -215,12 +218,12 @@ __device__ void compute_enriched_features(
                 float wr_j = lut->hero_wr[tier_idx][t1_heroes[j]];
                 float expected = 50.0f + (wr_i - 50.0f) + (wr_j - 50.0f);
                 t1_syn_sum += (raw - expected);
-                t1_syn_n++;
             }
+            t1_syn_n++;
         }
     }
-    enriched[off++] = t0_syn_n > 0 ? t0_syn_sum / t0_syn_n / 10.0f : 0.0f;
-    enriched[off++] = t1_syn_n > 0 ? t1_syn_sum / t1_syn_n / 10.0f : 0.0f;
+    enriched[off++] = t0_syn_n > 0 ? t0_syn_sum / t0_syn_n : 0.0f;
+    enriched[off++] = t1_syn_n > 0 ? t1_syn_sum / t1_syn_n : 0.0f;
 
     // ── counter_detail (50): all 25 cross-team matchup deltas × 2 ──
     // For each (t0_hero_i, t1_hero_j), compute normalized counter delta
@@ -233,7 +236,7 @@ __device__ void compute_enriched_features(
                     float hwr = lut->hero_wr[tier_idx][t0_heroes[i]];
                     float owr = lut->hero_wr[tier_idx][t1_heroes[j]];
                     float expected = hwr + (100.0f - owr) - 50.0f;
-                    enriched[off++] = (raw - expected) / 10.0f;
+                    enriched[off++] = raw - expected;
                 } else {
                     enriched[off++] = 0.0f;
                 }
@@ -251,7 +254,7 @@ __device__ void compute_enriched_features(
                     float hwr = lut->hero_wr[tier_idx][t1_heroes[i]];
                     float owr = lut->hero_wr[tier_idx][t0_heroes[j]];
                     float expected = hwr + (100.0f - owr) - 50.0f;
-                    enriched[off++] = (raw - expected) / 10.0f;
+                    enriched[off++] = raw - expected;
                 } else {
                     enriched[off++] = 0.0f;
                 }
@@ -288,8 +291,8 @@ __device__ void compute_enriched_features(
         float d = lut->hero_wr[tier_idx][t1_heroes[i]] - t1_mean;
         t1_var += d * d;
     }
-    enriched[off++] = n_t0 > 1 ? sqrtf(t0_var / n_t0) / 5.0f : 0.0f;
-    enriched[off++] = n_t1 > 1 ? sqrtf(t1_var / n_t1) / 5.0f : 0.0f;
+    enriched[off++] = n_t0 > 1 ? sqrtf(t0_var / n_t0) : 0.0f;
+    enriched[off++] = n_t1 > 1 ? sqrtf(t1_var / n_t1) : 0.0f;
 
     // ── comp_wr (4): composition WR + log_games per team ──
     if (n_t0 == 5) {
