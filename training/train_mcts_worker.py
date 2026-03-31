@@ -79,31 +79,39 @@ def main():
     gd.eval()
     gd_flat, gd_offsets = extract_gd_weights(gd)
 
-    # Load partial WP model — step-conditioned, calibrated for partial draft states
-    # Runs IN the CUDA kernel for both MCTS search leaf eval and training targets
-    from sweep_enriched_wp import StatsCache, FEATURE_GROUP_DIMS
-    from train_partial_wp import PartialStateWP
+    # Load WP model for CUDA kernel leaf evaluation
+    from sweep_enriched_wp import StatsCache, WinProbEnrichedModel, FEATURE_GROUP_DIMS
     WP_GROUPS = ['role_counts', 'team_avg_wr', 'map_delta',
                  'pairwise_counters', 'pairwise_synergies', 'counter_detail',
                  'meta_strength', 'draft_diversity', 'comp_wr']
     enriched_dim = sum(FEATURE_GROUP_DIMS[g] for g in WP_GROUPS)
-    wp_input_dim = 197 + enriched_dim  # 283 base features (step embed handled separately)
+    wp_input_dim = 197 + enriched_dim  # 283
 
-    wp_path = os.path.join(os.path.dirname(__file__), "partial_wp.pt")
-    ckpt = torch.load(wp_path, weights_only=True, map_location="cpu")
-    wp_model = PartialStateWP(input_dim=wp_input_dim, step_embed_dim=8, hidden=(256, 128))
-    wp_model.load_state_dict(ckpt['model_state_dict'])
-    wp_model.eval()
-    print(f"WP model: partial ({wp_input_dim}+8d step embed)")
+    WP_MODEL_TYPE = os.environ.get("MCTS_WP_MODEL", "enriched")
+    if WP_MODEL_TYPE == "enriched_full":
+        # Full enriched WP (no step embedding, 283→256→128→1)
+        wp_path = os.path.join(os.path.dirname(__file__), "wp_experiment_enriched.pt")
+        wp_model = WinProbEnrichedModel(wp_input_dim, [256, 128], dropout=0.3)
+        wp_model.load_state_dict(torch.load(wp_path, weights_only=True, map_location="cpu"))
+        wp_model.eval()
+        wp_flat, wp_name_offsets = extract_wp_weights(wp_model)
+        wp_offsets = build_wp_net_offsets(wp_model, wp_name_offsets, wp_input_dim)
+        step_embed = None  # zeros in LUT — kernel appends step embed but model ignores it (283 input)
+        print(f"WP model: enriched full ({wp_input_dim}d, no step embed)")
+    else:
+        # Partial WP (step-conditioned, 291→256→128→1)
+        from train_partial_wp import PartialStateWP
+        wp_path = os.path.join(os.path.dirname(__file__), "partial_wp.pt")
+        ckpt = torch.load(wp_path, weights_only=True, map_location="cpu")
+        wp_model = PartialStateWP(input_dim=wp_input_dim, step_embed_dim=8, hidden=(256, 128))
+        wp_model.load_state_dict(ckpt['model_state_dict'])
+        wp_model.eval()
+        wp_flat, wp_name_offsets = extract_wp_weights(wp_model)
+        wp_offsets = build_wp_net_offsets(wp_model, wp_name_offsets, wp_input_dim + 8)  # 291
+        step_embed = wp_model.step_embed.weight.data.cpu().numpy()  # (16, 8)
+        print(f"WP model: partial ({wp_input_dim}+8d step embed)")
 
-    # Extract WP MLP weights (excluding step_embed — that goes in the LUT)
-    # The MLP net takes 291-dim input (283 features + 8 step embed)
-    wp_flat, wp_name_offsets = extract_wp_weights(wp_model)
-    wp_offsets = build_wp_net_offsets(wp_model, wp_name_offsets, wp_input_dim + 8)  # 291
     print(f"  WP weights: {len(wp_flat)} floats, {wp_offsets['num_layers']} layers")
-
-    # Extract step embedding and include in LUT
-    step_embed = wp_model.step_embed.weight.data.cpu().numpy()  # (16, 8)
     wp_stats = StatsCache()
     lut_blob = extract_lookup_tables(wp_stats, step_embed_weights=step_embed)
 
