@@ -312,7 +312,10 @@ def quantize_onnx(
                         bans[idx] = 1.0
                 m = map_to_one_hot(d["game_map"])
                 t = tier_to_one_hot(d["skill_tier"])
-                state = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0, 0.0]]).reshape(1, -1).astype(np.float32)
+                if model_type == "gd":
+                    state = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0]]).reshape(1, -1).astype(np.float32)
+                else:
+                    state = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0, 0.0]]).reshape(1, -1).astype(np.float32)
                 mask = np.ones((1, NUM_HEROES), dtype=np.float32)
                 taken = set(d.get("team0_heroes", []) + d.get("team1_heroes", []) +
                            d.get("team0_bans", []) + d.get("team1_bans", []))
