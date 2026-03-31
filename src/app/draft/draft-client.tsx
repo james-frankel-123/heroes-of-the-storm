@@ -208,135 +208,135 @@ export function DraftClient({
   type DraftMode = 'stats' | 'search' | 'ai'
   const [draftMode, setDraftMode] = useState<DraftMode>('stats')
 
-  // Expectimax search state
+  // Expectimax search state (runs on main thread, no workers)
   const [searchResults, setSearchResults] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
   const [searchDepth, setSearchDepth] = useState<number | null>(null)
   const [searching, setSearching] = useState(false)
-  const [expectimaxManager, setExpectimaxManager] = useState<import('@/lib/draft/expectimax-manager').ExpectimaxManager | null>(null)
+  const [searchStatus, setSearchStatus] = useState<string>('')
   const [gdOpponentPreds, setGdOpponentPreds] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
   const [gdLoading, setGdLoading] = useState(false)
-  const [searchStatus, setSearchStatus] = useState<string>('')
 
-  // GD opponent predictions for search mode (opponent turns)
-  useEffect(() => {
-    if (draftMode !== 'search' || state.phase !== 'drafting') return
+  // Build AI state helper
+  const buildAIState = useCallback(() => {
     const step = state.currentStep < 16 ? DRAFT_SEQUENCE[state.currentStep] : null
-    if (!step || step.team === state.ourTeam) {
-      setGdOpponentPreds([])
-      return
+    const aiState: import('@/lib/draft/ai-inference').AIDraftState = {
+      team0Picks: [], team1Picks: [], bans: [],
+      map: state.map ?? '', tier: state.tier,
+      step: state.currentStep,
+      stepType: (step?.type ?? 'pick') as 'ban' | 'pick',
+      ourTeam: state.ourTeam === 'A' ? 0 : 1,
     }
+    for (let i = 0; i < state.currentStep; i++) {
+      const s = DRAFT_SEQUENCE[i]
+      const hero = state.selections[i]
+      if (!hero) continue
+      if (s.type === 'ban') aiState.bans.push(hero)
+      else if (s.team === 'A') aiState.team0Picks.push(hero)
+      else aiState.team1Picks.push(hero)
+    }
+    return aiState
+  }, [state.currentStep, state.selections, state.map, state.tier, state.ourTeam])
 
-    let cancelled = false
-    setGdLoading(true)
-    ;(async () => {
-      try {
-        await loadAIModels()
-        if (cancelled) return
-        // Build AI state for GD prediction
-        const aiState: import('@/lib/draft/ai-inference').AIDraftState = {
-          team0Picks: [], team1Picks: [],
-          bans: [], map: state.map ?? '', tier: state.tier,
-          step: state.currentStep,
-          stepType: step.type as 'ban' | 'pick',
-          ourTeam: state.ourTeam === 'A' ? 0 : 1,
-        }
-        for (let i = 0; i < state.currentStep; i++) {
-          const s = DRAFT_SEQUENCE[i]
-          const hero = state.selections[i]
-          if (!hero) continue
-          if (s.type === 'ban') aiState.bans.push(hero)
-          else if (s.team === 'A') aiState.team0Picks.push(hero)
-          else aiState.team1Picks.push(hero)
-        }
-        const preds = await getGenericDraftPredictions(aiState, unavailableHeroes, 12)
-        if (!cancelled) {
-          setGdOpponentPreds(preds.map(p => ({
-            hero: p.hero, score: p.probability * 100, depth: 0, nodesVisited: 0,
-          })))
-          setGdLoading(false)
-        }
-      } catch {
-        if (!cancelled) setGdLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftMode, state.currentStep, state.selections, state.phase])
-
-  // Initialize search manager lazily and run search on our turns
+  // Search mode: run expectimax on our turns, GD predictions on opponent turns
   useEffect(() => {
     if (draftMode !== 'search' || !draftData || state.phase !== 'drafting') return
-
-    // Only run search on our turns
     const step = state.currentStep < 16 ? DRAFT_SEQUENCE[state.currentStep] : null
-    if (!step || step.team !== state.ourTeam) {
-      setSearchResults([])
-      setSearchDepth(null)
-      setSearching(false)
-      return
-    }
+    if (!step) return
 
     let cancelled = false
-    setSearching(true)
-    setSearchDepth(null)
+    const isOurs = step.team === state.ourTeam
+
+    if (!isOurs) {
+      // Opponent turn: show GD predictions
+      setSearchResults([])
+      setSearching(false)
+      setGdLoading(true)
+      setSearchStatus('Loading predictions...')
+      ;(async () => {
+        try {
+          await loadAIModels()
+          if (cancelled) return
+          const preds = await getGenericDraftPredictions(buildAIState(), unavailableHeroes, 12)
+          if (!cancelled) {
+            setGdOpponentPreds(preds.map(p => ({
+              hero: p.hero, score: p.probability * 100, depth: 0, nodesVisited: 0,
+            })))
+            setGdLoading(false)
+            setSearchStatus('')
+          }
+        } catch {
+          if (!cancelled) { setGdLoading(false); setSearchStatus('Prediction failed') }
+        }
+      })()
+      return () => { cancelled = true }
+    }
+
+    // Our turn: run expectimax on main thread
     setSearchResults([])
-    setSearchStatus('Initializing...')
+    setSearchDepth(null)
+    setSearching(true)
+    setGdOpponentPreds([])
+    setSearchStatus('Loading AI models...')
 
     ;(async () => {
-      let mgr = expectimaxManager
-      if (!mgr) {
-        try {
-          setSearchStatus('Loading search engine...')
-          const { ExpectimaxManager } = await import('@/lib/draft/expectimax-manager')
-          if (cancelled) return
-          mgr = new ExpectimaxManager()
-          mgr.onProgress = (results, depth) => {
-            if (!cancelled) {
-              setSearchResults(results)
-              setSearchDepth(depth)
-              setSearchStatus(`Depth ${depth} complete`)
-            }
-          }
-          setSearchStatus('Loading GD model...')
-          await mgr.init()
-          if (cancelled) { mgr.dispose(); return }
-          setExpectimaxManager(mgr)
-        } catch (err) {
-          console.error('Failed to init expectimax:', err)
-          setSearching(false)
-          setSearchStatus('Failed to load')
-          return
-        }
-      }
-
-      if (cancelled) return
-      setSearchStatus('Searching...')
       try {
-        const results = await mgr.search(state, draftData)
+        // Load AI models (for GD opponent predictions inside the search)
+        await loadAIModels()
+        if (cancelled) return
+
+        // Import expectimax search
+        setSearchStatus('Searching...')
+        const { createSearchState, iterativeDeepeningSearch } = await import('@/lib/draft/expectimax')
+        if (cancelled) return
+
+        const searchState = createSearchState(state)
+
+        // Create GD-based opponent predictor using the already-loaded GD model
+        const opponentPredict: import('@/lib/draft/expectimax/types').OpponentPredictor = async (ss, topN) => {
+          const aiSt: import('@/lib/draft/ai-inference').AIDraftState = {
+            team0Picks: ss.ourTeam === 'A' ? ss.ourPicks : ss.enemyPicks,
+            team1Picks: ss.ourTeam === 'A' ? ss.enemyPicks : ss.ourPicks,
+            bans: ss.bans, map: ss.map, tier: ss.tier,
+            step: ss.step,
+            stepType: (DRAFT_SEQUENCE[ss.step]?.type ?? 'pick') as 'ban' | 'pick',
+            ourTeam: ss.ourTeam === 'A' ? 0 : 1,
+          }
+          const taken = new Set(ss.taken)
+          const preds = await getGenericDraftPredictions(aiSt, taken, topN)
+          return preds.map(p => ({ hero: p.hero, probability: p.probability }))
+        }
+
+        const results = await iterativeDeepeningSearch(
+          searchState, draftData,
+          { maxDepth: 6, ourPickWidth: 8, ourBanWidth: 4, oppPickWidth: 3, oppBanWidth: 3, timeBudgetMs: 5000 },
+          opponentPredict,
+          (depthResults, depth) => {
+            if (!cancelled) {
+              setSearchResults(depthResults)
+              setSearchDepth(depth)
+              setSearchStatus(`Depth ${depth} complete, refining...`)
+            }
+          },
+        )
         if (!cancelled) {
           setSearchResults(results)
           setSearching(false)
           setSearchStatus('')
         }
-      } catch {
+      } catch (err) {
+        console.error('Search failed:', err)
         if (!cancelled) {
           setSearching(false)
-          setSearchStatus('Search failed')
+          setSearchStatus(`Search failed: ${err instanceof Error ? err.message : 'unknown error'}`)
         }
       }
     })()
-
-    return () => { cancelled = true; expectimaxManager?.cancel() }
+    return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftMode, draftData, state.currentStep, state.selections, state.phase])
+  }, [draftMode, draftData, state.currentStep, state.selections, state.phase, buildAIState])
 
   // Sync aiMode with draftMode for backward compat
   useEffect(() => { setAiMode(draftMode === 'ai') }, [draftMode])
-
-  // Clean up workers on unmount
-  useEffect(() => {
-    return () => { expectimaxManager?.dispose() }
-  }, [expectimaxManager])
 
   // Stable callback ref for AI value estimate
   const handleAiValueEstimate = useCallback((wp: number | null) => {
