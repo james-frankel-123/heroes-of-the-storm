@@ -213,19 +213,27 @@ export function DraftClient({
   const [searching, setSearching] = useState(false)
   const [expectimaxManager, setExpectimaxManager] = useState<import('@/lib/draft/expectimax-manager').ExpectimaxManager | null>(null)
 
-  // Initialize search manager lazily and run search whenever state changes
+  // Initialize search manager lazily and run search on our turns
   useEffect(() => {
     if (draftMode !== 'search' || !draftData || state.phase !== 'drafting') return
 
+    // Only run search on our turns
+    const step = state.currentStep < 16 ? DRAFT_SEQUENCE[state.currentStep] : null
+    if (!step || step.team !== state.ourTeam) {
+      setSearchResults([])
+      setSearchDepth(null)
+      setSearching(false)
+      return
+    }
+
     let cancelled = false
     setSearching(true)
+    setSearchDepth(null)
 
     // Show greedy results immediately while search initializes
-    if (searchResults.length === 0 && recommendations.length > 0) {
-      setSearchResults(recommendations.map(r => ({
-        hero: r.hero, score: r.netDelta, depth: 0, nodesVisited: 0,
-      })))
-    }
+    setSearchResults(recommendations.map(r => ({
+      hero: r.hero, score: r.netDelta, depth: 0, nodesVisited: 0,
+    })))
 
     ;(async () => {
       let mgr = expectimaxManager
@@ -587,17 +595,29 @@ export function DraftClient({
                 onValueEstimate={handleAiValueEstimate}
               />
             ) : draftMode === 'search' ? (
-              <SearchRecommendationPanel
-                results={searchResults.length > 0 ? searchResults : recommendations.map(r => ({
-                  hero: r.hero, score: r.netDelta, depth: 0, nodesVisited: 0,
-                }))}
-                searchDepth={searchDepth}
-                searching={searching || (searchResults.length === 0 && recommendations.length > 0)}
-                isBanPhase={currentStep?.type === 'ban'}
-                isOurTurn={currentStep?.team === state.ourTeam}
-                onSelect={handleSelectHero}
-                unavailable={unavailableHeroes}
-              />
+              currentStep?.team === state.ourTeam ? (
+                // Our turn: show search results, fall back to greedy
+                <SearchRecommendationPanel
+                  results={searchResults.length > 0 ? searchResults : recommendations.map(r => ({
+                    hero: r.hero, score: r.netDelta, depth: 0, nodesVisited: 0,
+                  }))}
+                  searchDepth={searchDepth}
+                  searching={searching || (searchResults.length === 0 && recommendations.length > 0)}
+                  isBanPhase={currentStep?.type === 'ban'}
+                  isOurTurn={true}
+                  onSelect={handleSelectHero}
+                  unavailable={unavailableHeroes}
+                />
+              ) : (
+                // Opponent turn: use stats engine predictions (always fresh)
+                <RecommendationPanel
+                  recommendations={recommendations}
+                  isBanPhase={currentStep?.type === 'ban'}
+                  isOurTurn={false}
+                  onSelect={handleSelectHero}
+                  unavailable={unavailableHeroes}
+                />
+              )
             ) : (
               <RecommendationPanel
                 recommendations={recommendations}
