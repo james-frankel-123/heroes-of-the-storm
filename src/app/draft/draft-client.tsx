@@ -8,6 +8,7 @@ import { HeroPicker } from '@/components/draft/hero-picker'
 import { RecommendationPanel } from '@/components/draft/recommendation-panel'
 import { AIRecommendationPanel } from '@/components/draft/ai-recommendation-panel'
 import { SearchRecommendationPanel } from '@/components/draft/search-recommendation-panel'
+import { loadAIModels, getGenericDraftPredictions } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
@@ -212,6 +213,54 @@ export function DraftClient({
   const [searchDepth, setSearchDepth] = useState<number | null>(null)
   const [searching, setSearching] = useState(false)
   const [expectimaxManager, setExpectimaxManager] = useState<import('@/lib/draft/expectimax-manager').ExpectimaxManager | null>(null)
+  const [gdOpponentPreds, setGdOpponentPreds] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
+  const [gdLoading, setGdLoading] = useState(false)
+
+  // GD opponent predictions for search mode (opponent turns)
+  useEffect(() => {
+    if (draftMode !== 'search' || state.phase !== 'drafting') return
+    const step = state.currentStep < 16 ? DRAFT_SEQUENCE[state.currentStep] : null
+    if (!step || step.team === state.ourTeam) {
+      setGdOpponentPreds([])
+      return
+    }
+
+    let cancelled = false
+    setGdLoading(true)
+    ;(async () => {
+      try {
+        await loadAIModels()
+        if (cancelled) return
+        // Build AI state for GD prediction
+        const aiState: import('@/lib/draft/ai-inference').AIDraftState = {
+          team0Picks: [], team1Picks: [],
+          bans: [], map: state.map ?? '', tier: state.tier,
+          step: state.currentStep,
+          stepType: step.type as 'ban' | 'pick',
+          ourTeam: state.ourTeam === 'A' ? 0 : 1,
+        }
+        for (let i = 0; i < state.currentStep; i++) {
+          const s = DRAFT_SEQUENCE[i]
+          const hero = state.selections[i]
+          if (!hero) continue
+          if (s.type === 'ban') aiState.bans.push(hero)
+          else if (s.team === 'A') aiState.team0Picks.push(hero)
+          else aiState.team1Picks.push(hero)
+        }
+        const preds = await getGenericDraftPredictions(aiState, unavailableHeroes, 12)
+        if (!cancelled) {
+          setGdOpponentPreds(preds.map(p => ({
+            hero: p.hero, score: p.probability * 100, depth: 0, nodesVisited: 0,
+          })))
+          setGdLoading(false)
+        }
+      } catch {
+        if (!cancelled) setGdLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftMode, state.currentStep, state.selections, state.phase])
 
   // Initialize search manager lazily and run search on our turns
   useEffect(() => {
@@ -229,11 +278,7 @@ export function DraftClient({
     let cancelled = false
     setSearching(true)
     setSearchDepth(null)
-
-    // Show greedy results immediately while search initializes
-    setSearchResults(recommendations.map(r => ({
-      hero: r.hero, score: r.netDelta, depth: 0, nodesVisited: 0,
-    })))
+    setSearchResults([])
 
     ;(async () => {
       let mgr = expectimaxManager
@@ -596,22 +641,22 @@ export function DraftClient({
               />
             ) : draftMode === 'search' ? (
               currentStep?.team === state.ourTeam ? (
-                // Our turn: show search results, fall back to greedy
+                // Our turn: show search results with loading indicator
                 <SearchRecommendationPanel
-                  results={searchResults.length > 0 ? searchResults : recommendations.map(r => ({
-                    hero: r.hero, score: r.netDelta, depth: 0, nodesVisited: 0,
-                  }))}
+                  results={searchResults}
                   searchDepth={searchDepth}
-                  searching={searching || (searchResults.length === 0 && recommendations.length > 0)}
+                  searching={searching}
                   isBanPhase={currentStep?.type === 'ban'}
                   isOurTurn={true}
                   onSelect={handleSelectHero}
                   unavailable={unavailableHeroes}
                 />
               ) : (
-                // Opponent turn: use stats engine predictions (always fresh)
-                <RecommendationPanel
-                  recommendations={recommendations}
+                // Opponent turn: show GD model predictions
+                <SearchRecommendationPanel
+                  results={gdOpponentPreds}
+                  searchDepth={null}
+                  searching={gdLoading}
                   isBanPhase={currentStep?.type === 'ban'}
                   isOurTurn={false}
                   onSelect={handleSelectHero}

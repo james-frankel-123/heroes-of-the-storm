@@ -59,7 +59,7 @@ export function SearchRecommendationPanel({
 
       {filtered.length === 0 ? (
         <p className="text-xs text-muted-foreground">
-          {searching ? 'Computing...' : 'Select a map to see recommendations'}
+          {searching ? 'Computing recommendations...' : 'Waiting for draft action...'}
         </p>
       ) : (
         <div className="space-y-1 max-h-[450px] overflow-y-auto pr-1">
