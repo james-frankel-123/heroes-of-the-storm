@@ -19,6 +19,8 @@ function roleBadgeVariant(role: string | null) {
 
 interface SearchRecommendationPanelProps {
   results: ExpectimaxResult[]
+  /** Greedy recommendations to fill remaining slots */
+  greedyFallback?: { hero: string; netDelta: number }[]
   searchDepth: number | null
   searching: boolean
   statusText?: string
@@ -31,6 +33,7 @@ interface SearchRecommendationPanelProps {
 export function SearchRecommendationPanel({
   results,
   searchDepth,
+  greedyFallback,
   searching,
   statusText,
   isBanPhase,
@@ -42,7 +45,16 @@ export function SearchRecommendationPanel({
     ? isOurTurn ? 'Ban Suggestions' : 'Likely Enemy Bans'
     : isOurTurn ? 'Search Recommendations' : 'Likely Enemy Picks'
 
-  const filtered = results.filter(r => !unavailable.has(r.hero))
+  // Merge search results with greedy fallback to fill to 10
+  const searchHeroes = new Set(results.map(r => r.hero))
+  const greedyPadding: ExpectimaxResult[] = (greedyFallback ?? [])
+    .filter(r => !searchHeroes.has(r.hero) && !unavailable.has(r.hero))
+    .map(r => ({ hero: r.hero, score: r.netDelta, depth: -1, nodesVisited: 0 }))
+  const merged = [
+    ...results.filter(r => !unavailable.has(r.hero)),
+    ...greedyPadding,
+  ].slice(0, 10)
+  const filtered = merged
 
   return (
     <div className="space-y-2">
@@ -72,8 +84,9 @@ export function SearchRecommendationPanel({
         </div>
       ) : (
         <div className="space-y-1 max-h-[450px] overflow-y-auto pr-1">
-          {filtered.slice(0, 12).map((rec) => {
+          {filtered.map((rec) => {
             const role = getHeroRole(rec.hero)
+            const isGreedyPad = rec.depth === -1
             const deltaColor = rec.score >= 3
               ? 'text-gaming-success'
               : rec.score >= 0
@@ -86,6 +99,7 @@ export function SearchRecommendationPanel({
                 className={cn(
                   'w-full text-left px-3 py-2 rounded-md border transition-all',
                   'hover:scale-[1.01] active:scale-[0.99]',
+                  isGreedyPad && 'opacity-60',
                   isBanPhase
                     ? 'border-red-900/40 hover:border-red-700/60 hover:bg-red-950/30'
                     : 'border-border/40 hover:border-violet-700/60 hover:bg-violet-950/20'

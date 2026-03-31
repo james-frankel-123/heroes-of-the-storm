@@ -658,9 +658,10 @@ export function DraftClient({
               />
             ) : draftMode === 'search' ? (
               currentStep?.team === state.ourTeam ? (
-                // Our turn: show search results with loading indicator
+                // Our turn: show search results, pad with greedy to 10
                 <SearchRecommendationPanel
                   results={searchResults}
+                  greedyFallback={recommendations}
                   searchDepth={searchDepth}
                   searching={searching}
                   statusText={searchStatus}
@@ -670,9 +671,10 @@ export function DraftClient({
                   unavailable={unavailableHeroes}
                 />
               ) : (
-                // Opponent turn: show GD model predictions
+                // Opponent turn: show GD model predictions, pad with greedy
                 <SearchRecommendationPanel
                   results={gdOpponentPreds}
+                  greedyFallback={recommendations}
                   searchDepth={null}
                   searching={gdLoading}
                   isBanPhase={currentStep?.type === 'ban'}
