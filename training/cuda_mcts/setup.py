@@ -20,8 +20,7 @@ setup(
         ], extra_compile_args={
             'cxx': ['-O3', '-std=c++17'],
             'nvcc': ['-O3', '--use_fast_math', '-std=c++17',
-                     '--expt-relaxed-constexpr',
-                     '-maxrregcount=128'],
+                     '--expt-relaxed-constexpr'],
         }),
     ],
     cmdclass={'build_ext': BuildExtension},
