@@ -173,6 +173,7 @@ export async function runMCTSSearch(
     stepType: 'ban' | 'pick',
   },
   takenHeroes: Set<string>,
+  withLock: <T>(fn: () => Promise<T>) => Promise<T> = (fn) => fn(),
 ): Promise<{ recommendations: { hero: string; visits: number }[]; valueEstimate: number }> {
 
   const ourTeam = draftState.ourTeam
@@ -180,7 +181,7 @@ export async function runMCTSSearch(
   async function runPolicy(state: Float32Array, mask: Float32Array) {
     const stateTensor = new ort.Tensor('float32', state, [1, STATE_DIM])
     const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
-    const result = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
+    const result: any = await withLock(() => policySession.run({ state: stateTensor, valid_mask: maskTensor }))
     const logits = result.policy_logits.data as Float32Array
     const value = (result.value.data as Float32Array)[0]
     return { priors: softmaxMasked(logits, mask), value }
@@ -190,7 +191,7 @@ export async function runMCTSSearch(
     const gdState = state.slice(0, STATE_DIM - 1)
     const stateTensor = new ort.Tensor('float32', gdState, [1, STATE_DIM - 1])
     const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
-    const result = await gdSession.run({ state: stateTensor, valid_mask: maskTensor })
+    const result: any = await withLock(() => gdSession.run({ state: stateTensor, valid_mask: maskTensor }))
     const logits = result.hero_logits.data as Float32Array
     const probs = softmaxMasked(logits, mask)
     const r = Math.random()

@@ -57,6 +57,15 @@ let gdSession: any = null
 let wpSession: any = null
 let loadPromise: Promise<void> | null = null
 
+// Mutex to prevent concurrent ONNX session.run() calls ("Session already started" error)
+let inferLock: Promise<void> = Promise.resolve()
+function withInferLock<T>(fn: () => Promise<T>): Promise<T> {
+  const prev = inferLock
+  let resolve: () => void
+  inferLock = new Promise(r => { resolve = r })
+  return prev.then(fn).finally(() => resolve!())
+}
+
 export function isAILoaded(): boolean {
   return policySession !== null && gdSession !== null && wpSession !== null
 }
@@ -302,7 +311,7 @@ async function runPolicySymmetrized(
   const state = encodeState(draftState)
   const stateTensor = new ort.Tensor('float32', state, [1, 290])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
-  const result = await policySession.run({ state: stateTensor, valid_mask: maskTensor })
+  const result: any = await withInferLock(() => policySession.run({ state: stateTensor, valid_mask: maskTensor }))
   const policyLogits = result.policy_logits.data as Float32Array
   const rawValue = (result.value.data as Float32Array)[0]
 
@@ -310,7 +319,7 @@ async function runPolicySymmetrized(
   const flippedState = new Float32Array(state)
   flippedState[289] = 1.0 - flippedState[289] // flip ourTeam
   const flippedTensor = new ort.Tensor('float32', flippedState, [1, 290])
-  const flippedResult = await policySession.run({ state: flippedTensor, valid_mask: maskTensor })
+  const flippedResult: any = await withInferLock(() => policySession.run({ state: flippedTensor, valid_mask: maskTensor }))
   const flippedValue = (flippedResult.value.data as Float32Array)[0]
 
   return {
@@ -359,7 +368,7 @@ async function mctsSearchMainThread(
     step: draftState.step,
     ourTeam,
     stepType: draftState.stepType,
-  }, takenHeroes)
+  }, takenHeroes, withInferLock)
 }
 
 /**
@@ -461,10 +470,10 @@ export async function getGenericDraftPredictions(
   const stateTensor = new ort.Tensor('float32', state, [1, 289])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
 
-  const result = await gdSession.run({
+  const result: any = await withInferLock(() => gdSession.run({
     state: stateTensor,
     valid_mask: maskTensor,
-  })
+  }))
 
   const logits = result.hero_logits.data as Float32Array
   const probs = softmaxMasked(logits, mask)
@@ -723,7 +732,7 @@ export async function getWinProbability(
       inp.set(base, 0)
     }
     const tensor = new ort.Tensor('float32', inp, [1, 283])
-    const result = await wpSession.run({ input: tensor })
+    const result: any = await withInferLock(() => wpSession.run({ input: tensor }))
     return (result.win_probability.data as Float32Array)[0]
   }
 
