@@ -8,7 +8,7 @@ import { HeroPicker } from '@/components/draft/hero-picker'
 import { RecommendationPanel } from '@/components/draft/recommendation-panel'
 import { AIRecommendationPanel } from '@/components/draft/ai-recommendation-panel'
 import { SearchRecommendationPanel } from '@/components/draft/search-recommendation-panel'
-import { loadAIModels, getGenericDraftPredictions } from '@/lib/draft/ai-inference'
+import { loadAIModels, getGenericDraftPredictions, setActivePolicyModel, getActivePolicyModel, type PolicyModelChoice } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
@@ -207,6 +207,7 @@ export function DraftClient({
   // Search mode state
   type DraftMode = 'stats' | 'search' | 'ai'
   const [draftMode, setDraftMode] = useState<DraftMode>('stats')
+  const [policyModel, setPolicyModel] = useState<PolicyModelChoice>('f400')
 
   // Expectimax search state (runs on main thread, no workers)
   const [searchResults, setSearchResults] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
@@ -585,6 +586,20 @@ export function DraftClient({
               </button>
             ))}
           </div>
+          {draftMode === 'ai' && (
+            <select
+              value={policyModel}
+              onChange={(e) => {
+                const model = e.target.value as PolicyModelChoice
+                setPolicyModel(model)
+                setActivePolicyModel(model)
+              }}
+              className="px-2 py-1 rounded text-xs font-medium bg-muted/30 border border-border text-foreground"
+            >
+              <option value="f400">Balanced (400 sim)</option>
+              <option value="b200">Diverse (200 sim)</option>
+            </select>
+          )}
           {currentStep?.type === 'ban' && (
             <button
               onClick={() => dispatch({ type: 'SKIP_BAN' })}
