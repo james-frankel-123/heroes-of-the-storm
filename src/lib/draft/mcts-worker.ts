@@ -1,5 +1,4 @@
 /* eslint-disable no-restricted-globals */
-declare function importScripts(...urls: string[]): void
 
 /**
  * Web Worker for browser-side MCTS inference.
@@ -352,10 +351,19 @@ async function mctsSearch(
 
 // ── Worker message handling ──
 
+async function loadOrt(): Promise<any> {
+  // Load onnxruntime-web in a way that works in module workers.
+  // importScripts() doesn't work in module workers, so fetch the script
+  // and execute it via a Blob worker trick or Function constructor.
+  const resp = await fetch('https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js')
+  const code = await resp.text()
+  // Use Function constructor (not blocked by CSP like eval in most configs)
+  new Function(code).call(self)
+  return (self as any).ort
+}
+
 async function loadModels() {
-  // Load onnxruntime-web via importScripts (CDN)
-  importScripts('https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js')
-  ort = (self as any).ort
+  ort = await loadOrt()
 
   // Force WASM backend
   ort.env.wasm.numThreads = 1
