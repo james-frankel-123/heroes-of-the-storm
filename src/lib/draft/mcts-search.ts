@@ -50,7 +50,7 @@ const DRAFT_ORDER: [number, 'ban' | 'pick'][] = [
 ]
 
 const C_PUCT = 2.0
-const TIME_BUDGET_MS = 400
+const TIME_BUDGET_MS = 2000  // 2 seconds — enough for meaningful exploration
 
 function softmaxMasked(logits: Float32Array, mask: Float32Array): Float32Array {
   const result = new Float32Array(logits.length)
@@ -184,7 +184,13 @@ export async function runMCTSSearch(
     const result: any = await withLock(() => policySession.run({ state: stateTensor, valid_mask: maskTensor }))
     const logits = result.policy_logits.data as Float32Array
     const value = (result.value.data as Float32Array)[0]
-    return { priors: softmaxMasked(logits, mask), value }
+    // Apply temperature to policy logits before softmax.
+    // The RL-trained policy is near-deterministic (99%+ on top hero).
+    // Temperature softens priors so MCTS can explore alternatives.
+    const PRIOR_TEMP = 3.0
+    const tempered = new Float32Array(logits.length)
+    for (let i = 0; i < logits.length; i++) tempered[i] = logits[i] / PRIOR_TEMP
+    return { priors: softmaxMasked(tempered, mask), value }
   }
 
   async function runGD(state: Float32Array, mask: Float32Array): Promise<number> {
@@ -220,7 +226,7 @@ export async function runMCTSSearch(
   }
 
   const legalActions = NUM_HEROES - taken.size
-  const maxSims = Math.max(30, Math.min(150, legalActions * 2))
+  const maxSims = Math.max(50, Math.min(400, legalActions * 4))
 
   const root = createNode(-1, null, 0)
   const { state: rootEncoded, mask: rootMask } = stateToTensors(rootState)
