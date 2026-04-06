@@ -459,13 +459,20 @@ export async function getAIRecommendations(
   const { policyLogits, value: symmetrizedValue } = await runPolicySymmetrized(draftState, mask)
   const baseValueEstimate = Math.max(0, Math.min(1, symmetrizedValue + teamMawpAdj))
 
-  // Softmax the masked policy logits to get pick probabilities
-  const priors = softmaxMasked(policyLogits, mask)
+  // Softmax with temperature to produce informative distributions.
+  // Raw policy logits are near-deterministic after RL training (e.g. 15.3 vs 6.0),
+  // so temperature > 1 softens them to show viable alternatives.
+  const POLICY_TEMPERATURE = 5.0
+  const scaledLogits = new Float32Array(policyLogits.length)
+  for (let i = 0; i < policyLogits.length; i++) {
+    scaledLogits[i] = policyLogits[i] / POLICY_TEMPERATURE
+  }
+  const priors = softmaxMasked(scaledLogits, mask)
 
   // Build recommendations ranked by policy probability + MAWP adjustment
   const ranked: AIRecommendation[] = []
   for (let i = 0; i < NUM_HEROES; i++) {
-    if (mask[i] > 0 && priors[i] > 0.001) {
+    if (mask[i] > 0 && priors[i] > 0.0001) {
       const { adjustment, player } = isBanStep
         ? { adjustment: 0, player: null }
         : computePlayerAdjustment(HEROES[i], playerData)
