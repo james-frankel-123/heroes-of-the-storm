@@ -56,8 +56,6 @@ let policySession: any = null
 let gdSession: any = null
 let wpSession: any = null
 let loadPromise: Promise<void> | null = null
-let mctsWorker: Worker | null = null
-let mctsWorkerReady = false
 
 export function isAILoaded(): boolean {
   return policySession !== null && gdSession !== null && wpSession !== null
@@ -108,34 +106,7 @@ async function _loadModels(): Promise<void> {
     policySession = p
     gdSession = g
     wpSession = w
-    console.log('[AI] ONNX models loaded')
-
-    // Initialize MCTS Web Worker
-    try {
-      mctsWorker = new Worker(
-        new URL('./mcts-worker.ts', import.meta.url),
-        { type: 'module' }
-      )
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Worker init timeout')), 15000)
-        mctsWorker!.onmessage = (e) => {
-          if (e.data.type === 'ready') {
-            clearTimeout(timeout)
-            mctsWorkerReady = true
-            resolve()
-          } else if (e.data.type === 'error') {
-            clearTimeout(timeout)
-            reject(new Error(e.data.message))
-          }
-        }
-        mctsWorker!.postMessage({ type: 'init' })
-      })
-      console.log('[AI] MCTS Web Worker ready')
-    } catch (err) {
-      console.warn('[AI] MCTS Worker failed to init, will use direct inference:', err)
-      mctsWorker = null
-      mctsWorkerReady = false
-    }
+    console.log('[AI] ONNX models loaded (MCTS runs on main thread)')
   } catch (err) {
     console.error('[AI] Failed to load ONNX models:', err)
     loadPromise = null
@@ -368,42 +339,27 @@ export async function getValueEstimate(
 }
 
 /**
- * Run MCTS via Web Worker. Returns recommendations ranked by visit count.
+ * Run MCTS search on the main thread using pre-loaded ONNX sessions.
  */
-async function mctsSearch(
+async function mctsSearchMainThread(
   draftState: AIDraftState,
   takenHeroes: Set<string>,
   ourTeam: number,
-): Promise<{ recommendations: { hero: string; visits: number; winProb: number }[]; valueEstimate: number }> {
-  if (!mctsWorker || !mctsWorkerReady) {
-    throw new Error('MCTS worker not available')
+): Promise<{ recommendations: { hero: string; visits: number }[]; valueEstimate: number }> {
+  if (!policySession || !gdSession || !ort) {
+    throw new Error('AI models not loaded')
   }
-
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error('MCTS search timeout')), 5000)
-    mctsWorker!.onmessage = (e) => {
-      clearTimeout(timeout)
-      if (e.data.type === 'result') {
-        resolve({
-          recommendations: e.data.recommendations,
-          valueEstimate: e.data.valueEstimate,
-        })
-      } else if (e.data.type === 'error') {
-        reject(new Error(e.data.message))
-      }
-    }
-    mctsWorker!.postMessage({
-      type: 'search',
-      team0Picks: draftState.team0Picks,
-      team1Picks: draftState.team1Picks,
-      bans: draftState.bans,
-      map: draftState.map,
-      tier: draftState.tier,
-      step: draftState.step,
-      ourTeam,
-      takenHeroes: Array.from(takenHeroes),
-    })
-  })
+  const { runMCTSSearch } = await import('./mcts-search')
+  return runMCTSSearch(ort, policySession, gdSession, {
+    team0Picks: draftState.team0Picks,
+    team1Picks: draftState.team1Picks,
+    bans: draftState.bans,
+    map: draftState.map ?? 'Cursed Hollow',
+    tier: draftState.tier ?? 'mid',
+    step: draftState.step,
+    ourTeam,
+    stepType: draftState.stepType,
+  }, takenHeroes)
 }
 
 /**
@@ -428,29 +384,27 @@ export async function getAIRecommendations(
   const teamMawpAdj = computeTeamMawpAdjustment(draftState, playerData)
   const ourTeamNum = currentTeam === 'A' ? 0 : 1
 
-  // Try MCTS via Web Worker first
-  if (mctsWorkerReady && mctsWorker) {
-    try {
-      const mctsResult = await mctsSearch(draftState, takenHeroes, ourTeamNum)
-      const ranked: AIRecommendation[] = mctsResult.recommendations.map(r => {
-        const { adjustment, player } = isBanStep
-          ? { adjustment: 0, player: null }
-          : computePlayerAdjustment(r.hero, playerData)
-        return {
-          hero: r.hero,
-          prior: r.visits,
-          winProb: Math.max(0, Math.min(1, mctsResult.valueEstimate + adjustment + teamMawpAdj)),
-          mawpAdj: adjustment,
-          suggestedPlayer: player,
-        }
-      }).sort(recommendationSorter)
+  // Run MCTS search on main thread
+  try {
+    const mctsResult = await mctsSearchMainThread(draftState, takenHeroes, ourTeamNum)
+    const ranked: AIRecommendation[] = mctsResult.recommendations.map(r => {
+      const { adjustment, player } = isBanStep
+        ? { adjustment: 0, player: null }
+        : computePlayerAdjustment(r.hero, playerData)
       return {
-        recommendations: ranked.slice(0, topK),
-        valueEstimate: Math.max(0, Math.min(1, mctsResult.valueEstimate + teamMawpAdj)),
+        hero: r.hero,
+        prior: r.visits,
+        winProb: Math.max(0, Math.min(1, mctsResult.valueEstimate + adjustment + teamMawpAdj)),
+        mawpAdj: adjustment,
+        suggestedPlayer: player,
       }
-    } catch (err) {
-      console.warn('[AI] MCTS worker failed, falling back to direct inference:', err)
+    }).sort(recommendationSorter)
+    return {
+      recommendations: ranked.slice(0, topK),
+      valueEstimate: Math.max(0, Math.min(1, mctsResult.valueEstimate + teamMawpAdj)),
     }
+  } catch (err) {
+    console.warn('[AI] MCTS search failed, falling back to direct inference:', err)
   }
 
   // Use the policy head directly — it was trained via MCTS to know which
