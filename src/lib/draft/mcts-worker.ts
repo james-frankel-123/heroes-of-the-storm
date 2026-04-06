@@ -352,13 +352,16 @@ async function mctsSearch(
 // ── Worker message handling ──
 
 async function loadOrt(): Promise<any> {
-  // Load onnxruntime-web in a way that works in module workers.
-  // importScripts() doesn't work in module workers, so fetch the script
-  // and execute it via a Blob worker trick or Function constructor.
+  // Load onnxruntime-web in module workers where importScripts() is unavailable.
+  // Fetch the script, create a blob URL, and load it via dynamic import().
+  // This avoids eval/Function which may be blocked by CSP.
   const resp = await fetch('https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js')
   const code = await resp.text()
-  // Use Function constructor (not blocked by CSP like eval in most configs)
-  new Function(code).call(self)
+  // Wrap in a self-executing script that assigns to globalThis
+  const blob = new Blob([code], { type: 'application/javascript' })
+  const url = URL.createObjectURL(blob)
+  await import(/* webpackIgnore: true */ url)
+  URL.revokeObjectURL(url)
   return (self as any).ort
 }
 
