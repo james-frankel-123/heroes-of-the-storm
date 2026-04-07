@@ -103,8 +103,9 @@ export async function discoverReplays(
       callsMade++
 
       if (!Array.isArray(batch) || batch.length === 0) {
-        // No more replays in this range, jump ahead
-        state.discoveryCursor += 1000
+        // No more replays in this range, jump ahead but never past maxId
+        state.discoveryCursor = Math.min(state.discoveryCursor + 1000, maxId)
+        if (state.discoveryCursor >= maxId) break  // caught up
         continue
       }
 
