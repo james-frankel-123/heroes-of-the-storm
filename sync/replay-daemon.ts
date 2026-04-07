@@ -13,7 +13,7 @@
 import { MultiKeyApi } from './api-client'
 import { createDb } from './db'
 import { log } from './logger'
-import { discoverReplays, fetchReplayData, getReplayStats } from './sync-replays'
+import { discoverReplays, discoverBackfill, fetchReplayData, getReplayStats } from './sync-replays'
 import { replaySyncState, replayFetchQueue } from '../src/lib/db/schema'
 import { eq, sql } from 'drizzle-orm'
 
@@ -54,7 +54,8 @@ async function main() {
   log.info('╚══════════════════════════════════════════════╝')
 
   const DISCOVERY_BATCH = 2000
-  const FETCH_BATCH = 1000
+  const BACKFILL_BATCH = 500    // Backfill discovery calls per cycle
+  const FETCH_BATCH = 5000      // Increased to use more of our 250K/wk Data quota
   const CYCLE_PAUSE_MS = 10_000 // 10s pause between cycles
 
   let cycle = 0
@@ -63,8 +64,11 @@ async function main() {
     log.info(`\n=== Cycle ${cycle} ===`)
 
     try {
-      // Phase 1: Discover new replay IDs
+      // Phase 1a: Discover new replay IDs (forward scan)
       const discovered = await discoverReplays(api, db, DISCOVERY_BATCH)
+
+      // Phase 1b: Backfill older replays (backward scan)
+      const backfilled = await discoverBackfill(api, db, BACKFILL_BATCH)
 
       // Phase 2: Fetch full data for queued replays
       const fetched = await fetchReplayData(api, db, FETCH_BATCH)
@@ -74,8 +78,9 @@ async function main() {
       log.info(`Stats: ${stats.draftDataRows} drafts stored, ${stats.pendingInQueue} pending, ` +
         `cursor gap: ${stats.gapRemaining}, total API calls: ${api.getTotalCallCount()}`)
 
-      // If we're caught up (no pending and cursor near max), slow down
-      if (discovered === 0 && fetched === 0) {
+      // If we're caught up on new replays and no pending fetches, slow down
+      // (backfill continues in the background)
+      if (discovered === 0 && backfilled === 0 && fetched === 0) {
         log.info('Caught up — waiting 5 minutes before next cycle')
         await sleep(300_000)
       } else {

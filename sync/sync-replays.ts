@@ -35,6 +35,7 @@ interface DiscoveryState {
   maxKnownId: number
   discoveredCount: number
   fetchedCount: number
+  backfillCursor: number
 }
 
 async function loadState(db: SyncDb): Promise<DiscoveryState> {
@@ -45,6 +46,7 @@ async function loadState(db: SyncDb): Promise<DiscoveryState> {
       maxKnownId: rows[0].maxKnownId,
       discoveredCount: rows[0].discoveredCount,
       fetchedCount: rows[0].fetchedCount,
+      backfillCursor: rows[0].backfillCursor,
     }
   }
   // Initialize
@@ -53,8 +55,9 @@ async function loadState(db: SyncDb): Promise<DiscoveryState> {
     maxKnownId: 0,
     discoveredCount: 0,
     fetchedCount: 0,
+    backfillCursor: 0,
   })
-  return { discoveryCursor: 0, maxKnownId: 0, discoveredCount: 0, fetchedCount: 0 }
+  return { discoveryCursor: 0, maxKnownId: 0, discoveredCount: 0, fetchedCount: 0, backfillCursor: 0 }
 }
 
 async function saveState(db: SyncDb, state: DiscoveryState) {
@@ -63,6 +66,7 @@ async function saveState(db: SyncDb, state: DiscoveryState) {
     maxKnownId: state.maxKnownId,
     discoveredCount: state.discoveredCount,
     fetchedCount: state.fetchedCount,
+    backfillCursor: state.backfillCursor,
     updatedAt: new Date(),
   })
 }
@@ -157,6 +161,104 @@ export async function discoverReplays(
 
   await saveState(db, state)
   log.info(`Discovery complete: ${callsMade} calls, ${totalEnqueued} new replays enqueued`)
+  return totalEnqueued
+}
+
+// ── Phase 1b: Backfill discovery (scan backwards) ──────────────────
+
+/**
+ * Discover older replay IDs by scanning backwards from our oldest known replay.
+ * Uses Replay/Min_id to find Storm League replays on current major patch.
+ *
+ * @param maxCalls - Max discovery API calls this run
+ * @returns Number of new replays enqueued
+ */
+export async function discoverBackfill(
+  api: MultiKeyApi,
+  db: SyncDb,
+  maxCalls = 500,
+): Promise<number> {
+  const state = await loadState(db)
+
+  // Initialize backfill cursor to our oldest known replay ID
+  if (state.backfillCursor === 0) {
+    const oldest = await db.select({ minId: sql<number>`MIN(replay_id)` }).from(replayDraftData)
+    const minId = oldest[0]?.minId ?? 60769081
+    state.backfillCursor = minId
+    log.info(`Backfill: initializing cursor to ${state.backfillCursor} (oldest known replay)`)
+  }
+
+  // Stop if we've gone below a reasonable floor (patch 2.55 started ~2021)
+  const BACKFILL_FLOOR = 40_000_000
+  if (state.backfillCursor <= BACKFILL_FLOOR) {
+    log.info(`Backfill: reached floor (${BACKFILL_FLOOR}), nothing more to discover`)
+    return 0
+  }
+
+  let totalEnqueued = 0
+  let callsMade = 0
+  const MAJOR_PATCH = '2.55'
+
+  log.info(`Backfill: cursor=${state.backfillCursor}, floor=${BACKFILL_FLOOR}`)
+
+  while (state.backfillCursor > BACKFILL_FLOOR && callsMade < maxCalls) {
+    // Scan backwards: query a range ending at our cursor
+    const queryStart = Math.max(BACKFILL_FLOOR, state.backfillCursor - 1000)
+    try {
+      const batch = await api.next().getReplayMinId(queryStart)
+      callsMade++
+
+      if (!Array.isArray(batch) || batch.length === 0) {
+        state.backfillCursor = queryStart
+        continue
+      }
+
+      // Filter for valid SL replays on current major patch
+      const valid = batch.filter((r: any) =>
+        r.game_type === 'Storm League' &&
+        r.valid === 1 &&
+        !r.deleted &&
+        r.replayID &&
+        r.replayID < state.backfillCursor &&
+        (r.game_version || '').startsWith(MAJOR_PATCH)
+      )
+
+      if (valid.length > 0) {
+        const queueRows = valid.map((r: any) => ({
+          replayId: r.replayID,
+          gameMap: r.game_map || null,
+          leagueTier: r.league_tier || null,
+          avgMmr: r.avg_mmr || null,
+          gameVersion: r.game_version || null,
+          fetched: false,
+        }))
+
+        for (let i = 0; i < queueRows.length; i += 100) {
+          const chunk = queueRows.slice(i, i + 100)
+          await db.insert(replayFetchQueue)
+            .values(chunk)
+            .onConflictDoNothing()
+        }
+
+        totalEnqueued += valid.length
+        state.discoveredCount += valid.length
+      }
+
+      // Move cursor backwards
+      state.backfillCursor = queryStart
+
+      if (callsMade % 50 === 0) {
+        log.info(`  Backfill progress: ${callsMade} calls, ${totalEnqueued} enqueued, cursor=${state.backfillCursor}`)
+        await saveState(db, state)
+      }
+    } catch (err) {
+      log.warn(`Backfill error at cursor=${state.backfillCursor}: ${err}`)
+      state.backfillCursor -= 1000
+    }
+  }
+
+  await saveState(db, state)
+  log.info(`Backfill complete: ${callsMade} calls, ${totalEnqueued} new replays enqueued`)
   return totalEnqueued
 }
 

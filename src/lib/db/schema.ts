@@ -306,6 +306,8 @@ export const replaySyncState = pgTable('replay_sync_state', {
   discoveredCount: integer('discovered_count').notNull().default(0),
   // How many we've fetched full data for
   fetchedCount: integer('fetched_count').notNull().default(0),
+  // Backfill: scans backwards from oldest known replay to find older SL games
+  backfillCursor: integer('backfill_cursor').notNull().default(0),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
