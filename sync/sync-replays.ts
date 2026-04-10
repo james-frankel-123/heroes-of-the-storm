@@ -313,17 +313,25 @@ export async function fetchReplayData(
         continue
       }
 
-      // Extract team compositions from player data
+      // Extract team compositions and talents from player data
       const team0Heroes: string[] = []
       const team1Heroes: string[] = []
+      const team0Talents: { hero: string; talents: Record<string, string> }[] = []
+      const team1Talents: { hero: string; talents: Record<string, string> }[] = []
       let winner: number | null = null
 
       for (const [key, val] of Object.entries(replay)) {
         if (key === 'draft_order' || typeof val !== 'object' || val === null) continue
         const player = val as any
         if (player.hero && player.team !== undefined) {
-          if (player.team === 0) team0Heroes.push(player.hero)
-          else if (player.team === 1) team1Heroes.push(player.hero)
+          const talents = (player.talents && typeof player.talents === 'object') ? player.talents : {}
+          if (player.team === 0) {
+            team0Heroes.push(player.hero)
+            team0Talents.push({ hero: player.hero, talents })
+          } else if (player.team === 1) {
+            team1Heroes.push(player.hero)
+            team1Talents.push({ hero: player.hero, talents })
+          }
           if (player.winner === true) winner = player.team
           else if (player.winner === false && winner === null) winner = player.team === 0 ? 1 : 0
         }
@@ -356,6 +364,8 @@ export async function fetchReplayData(
       const avgMmr = queueItem.avgMmr
       const skillTier = leagueTierToSkillTier(leagueTier)
 
+      const talents = { team0: team0Talents, team1: team1Talents }
+
       await db.insert(replayDraftData)
         .values({
           replayId,
@@ -373,8 +383,13 @@ export async function fetchReplayData(
           team1Bans,
           winner,
           skillTier,
+          talents,
         })
-        .onConflictDoNothing()
+        // If the row already exists (older fetch without talents), update with talents
+        .onConflictDoUpdate({
+          target: replayDraftData.replayId,
+          set: { talents },
+        })
 
       await db.update(replayFetchQueue)
         .set({ fetched: true })

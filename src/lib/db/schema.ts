@@ -283,6 +283,10 @@ export const replayDraftData = pgTable(
     winner: integer('winner').notNull(), // 0 or 1
     // Skill tier bucket (low/mid/high) derived from league_tier
     skillTier: varchar('skill_tier', { length: 10 }).notNull(),
+    // Talents per player: {team0: [{hero, talents: {1: name, 4: name, ...}}, ...], team1: [...]}
+    // Levels: 1, 4, 7, 10, 13, 16, 20 (standard HotS talent tiers).
+    // Nullable because rows fetched before talent tracking was added don't have this.
+    talents: jsonb('talents'),
     fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
   },
   (t) => ({
