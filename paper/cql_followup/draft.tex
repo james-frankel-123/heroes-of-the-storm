@@ -205,6 +205,8 @@ The architecture alone (without synthetic data) only reduces degenerate rate fro
 
 The residual 26.5\% likely reflects the greedy search horizon (depth-1 cannot plan for future healer availability) and genuine domain ambiguity: no-healer compositions win 43\% of real games.
 
+Importantly, composition safety comes at a cost. In our MCTS experiments (Table~\ref{tab:mcts}), the augmented WP model (H\_augmented) produces negative counter responsiveness ($-0.10$ in greedy evaluation, $+0.16$ in MCTS) but with 100\% healer selection and only 25 distinct heroes. The synthetic data teaches the model to prefer safe compositions, reducing its sensitivity to matchup-specific advantages of unconventional picks. This safety--context tradeoff is a greedy-search manifestation of the same phenomenon we observe with CQL in Section~\ref{sec:cql}: methods that penalize uncommon states improve safety metrics while sacrificing context-awareness.
+
 \section{MCTS with Augmented Value Function}
 
 \subsection{MCTS Training}
@@ -313,6 +315,7 @@ MCTS experiments A\_partial and G\_base were retrained with the corrected WP mod
 This finding has broader implications: any value function trained on sequential decision data with multiple correlated observations per episode (game states, medical trajectories, financial time series) requires episode-level train/test splitting. Sample-level splitting will systematically overestimate generalization performance whenever observations within an episode share latent structure.
 
 \section{CQL: Safety Without Understanding}
+\label{sec:cql}
 
 \subsection{CQL Setup}
 
