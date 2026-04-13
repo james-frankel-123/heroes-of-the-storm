@@ -8,11 +8,11 @@
 \begin{document}
 
 \title{Safety Without Understanding: Why Conservative Value Functions Collapse to Behavioral Cloning in Combinatorial Selection}
-\author{}
+\author{Max~Segan, Ernest~Pysher, and James~Frankel}
 \maketitle
 
 \begin{abstract}
-When learned value functions guide search in combinatorial selection, two capabilities determine policy quality: \textit{composition safety} (avoiding structurally broken selections) and \textit{context-awareness} (selecting elements that interact well given the specific situation). We show that existing methods trade one for the other. In Heroes of the Storm draft selection, three win probability models spanning 56.5--57.9\% test accuracy disagree on 90\%+ of decisions. Feature engineering with synthetic out-of-distribution augmentation reduces degenerate compositions from 76\% to 26.5\% while producing context-aware drafts with positive counter responsiveness (+0.06), strong synergy exploitation (+0.80), and 90 distinct heroes across 200 drafts. Conservative Q-Learning (CQL) appears to solve composition safety more completely (9\% degenerate), but rich evaluation reveals it collapses to behavioral cloning: negative counter/synergy deltas, half the hero diversity, and 62\% agreement with the behavior policy. The behavioral cloning baseline itself achieves 99.5\% healer selection and 1\% degenerate rate, confirming that composition safety was never the hard problem. MCTS with the augmented value function achieves 0.626 average win probability against behavioral cloning opponents (vs.\ 0.602 without augmentation), combining deeper search with a well-calibrated value function. Composition safety and context-awareness are orthogonal capabilities: algorithmic pessimism provides the former by mimicking human behavior; domain-structured features with OOD augmentation provide both.
+When learned value functions guide search in combinatorial selection, two capabilities determine policy quality: \textit{composition safety} (avoiding structurally broken selections) and \textit{context-awareness} (selecting elements that interact well given the specific situation). We show that existing methods trade one for the other. In Heroes of the Storm draft selection, three win probability models spanning 56.5--57.9\% test accuracy disagree on 90\%+ of decisions. Feature engineering with synthetic out-of-distribution augmentation reduces degenerate compositions from 76\% to 26.5\% while producing context-aware drafts with positive counter responsiveness (+0.06), strong synergy exploitation (+0.80), and 90 distinct heroes across 200 drafts. Conservative Q-Learning (CQL) appears to solve composition safety more completely (9\% degenerate), but rich evaluation reveals it collapses to behavioral cloning: negative counter/synergy deltas, half the hero diversity, and 62\% agreement with the behavior policy. The behavioral cloning baseline itself achieves 99.5\% healer selection and 1\% degenerate rate, confirming that composition safety was never the hard problem. MCTS with 800 simulations per move achieves 0.712 average win probability, with monotonic improvement from 200 to 800 simulations. Across 165 training runs spanning 11 configurations, simulation budget during training is the dominant factor: 200$\to$400$\to$600$\to$800 simulations yields 0.653$\to$0.680$\to$0.696$\to$0.705 average WP at 300K episodes, with diminishing returns from longer training (the best 4M-episode run at 800 sims adds only +0.007). The enriched value function provides a +0.051 WP advantage over the true base model with identical architecture, confirming that domain-structured features remain critical even with deep search. We also report a methodological finding: step-conditioned value functions trained on sequential decision data require replay-level train/test splitting; sample-level splitting inflates accuracy by 8 percentage points due to correlated observations from the same episode. Composition safety and context-awareness are orthogonal capabilities: algorithmic pessimism provides the former by mimicking human behavior; domain-structured features with OOD augmentation provide both.
 \end{abstract}
 
 \section{Introduction}
@@ -37,7 +37,7 @@ Our contributions:
     \item We show that feature engineering plus synthetic augmentation for unseen compositions produces both safe \textit{and} context-aware drafts (healer 94.5\%, degenerate 26.5\%, counter +0.06, synergy +0.80, 90 heroes).
     \item We provide the first empirical demonstration that CQL collapses to behavioral cloning in combinatorial selection, achieving safety by mimicking humans rather than understanding composition.
     \item We decompose draft quality into orthogonal axes (safety vs.\ context-awareness) with quantitative metrics that distinguish genuine reasoning from behavioral mimicry.
-    \item We show MCTS with an augmented value function achieves the highest overall win probability against behavioral cloning opponents (0.626 avg WP), combining deeper search with a well-calibrated value function.
+    \item We show MCTS with an enriched value function achieves 0.712 average win probability at 800 simulations per move, with monotonic improvement across simulation budgets and a +0.051 WP gap attributable to domain-structured features.
 \end{enumerate}
 
 \section{Background and Related Work}
@@ -66,7 +66,7 @@ Prior work~\cite{segan2026composition} identified the composition gap and propos
 
 A HotS draft consists of 16 sequential actions: 6 bans (removing heroes from the pool) and 10 picks (selecting heroes for teams), alternating between two teams in a fixed order. The state $s_t$ at step $t$ comprises multi-hot vectors for each team's picks and combined bans ($\in \{0,1\}^{90}$ each), map identity (one-hot over 14 maps), skill tier (one-hot over 3 tiers), step number, and step type (ban or pick), for 289 dimensions total. The action space is the set of available heroes ($\sim$84--90 early, decreasing as the draft progresses). Terminal reward is the game outcome (win/loss).
 
-The behavior policy $\pi_\beta$ is defined by 275,285 Storm League replays spanning skill tiers from Bronze through Grandmaster. All models use team-swap augmentation: every sample $(s, y)$ generates a second sample $(s', 1-y)$ by swapping teams and all team-indexed features, doubling the effective training set to 550K.
+The behavior policy $\pi_\beta$ is defined by 473,559 Storm League replays spanning skill tiers from Bronze through Grandmaster. All models use team-swap augmentation: every sample $(s, y)$ generates a second sample $(s', 1-y)$ by swapping teams and all team-indexed features, doubling the effective training set to 947K.
 
 \subsection{Value Function Variants}
 
@@ -99,13 +99,13 @@ We evaluate along two orthogonal axes:
 
 \subsection{Search Methods}
 
-\textbf{Greedy search:} For each candidate hero, complete the draft via Generic Draft (GD) behavioral cloning opponents trained on 275K replays (289$\to$256$\to$128$\to$90, 5 seed variants for diversity), evaluate the terminal state with $V_\theta$, select the highest-scoring candidate. All $\sim$84 candidates evaluated via batched forward passes.
+\textbf{Greedy search:} For each candidate hero, complete the draft via Generic Draft (GD) behavioral cloning opponents trained on 473K replays (289$\to$256$\to$128$\to$90, 5 seed variants for diversity), evaluate the terminal state with $V_\theta$, select the highest-scoring candidate. All $\sim$84 candidates evaluated via batched forward passes.
 
 \textbf{GD behavioral cloning:} Argmax of the GD model at each step. The control for ``what does copying human behavior produce?''
 
 \textbf{CQL:} Argmax of conservatively-learned Q-function. No rollout needed since Q directly estimates action values.
 
-\textbf{MCTS:} AlphaZero-style~\cite{silver2016mastering} with policy and value heads sharing a residual backbone (4.4M parameters). 200 simulations per move, GD opponent sampling during self-play.
+\textbf{MCTS:} AlphaZero-style~\cite{silver2016mastering} with policy and value heads sharing a residual backbone (4.4M parameters). 200 simulations per move at inference, GD opponent sampling during self-play.
 
 \subsection{Sanity Tests}
 
@@ -181,7 +181,7 @@ To provide a controlled baseline, we scale to a 512$\to$256$\to$128 architecture
 
 \subsection{Synthetic Augmentation}
 
-Of the 252 possible 5-role compositions, only 121--164 per tier appear in 9M games. The remaining $\sim$100 compositions per tier are structurally degenerate; no human players draft them. We generate synthetic training records for each unseen composition: heroes sampled by role, paired against real opponent teams, outcomes assigned at a 10\% win rate. 30K synthetic records ($\sim$11\% of training data) are added; the test set remains pure.
+Of the 252 possible 5-role compositions, only 121--164 per tier appear in 9M games. The remaining $\sim$100 compositions per tier are structurally degenerate; no human players draft them. We generate synthetic training records for each unseen composition: heroes sampled by role, paired against real opponent teams, outcomes assigned at a 10\% win rate. 30K synthetic records ($\sim$6\% of training data) are added; the test set remains pure.
 
 We swept 27 configurations: 3 assigned win rates (10\%, 20\%, 30\%) $\times$ 3 volumes (50, 100, 200 per composition per tier) $\times$ 3 scopes (unseen compositions only, sparse low-WR compositions only, or both). Two findings stood out. First, augmenting unseen compositions (Tier~2) is the dominant factor; reinforcing sparse-but-real compositions with below-average win rates (Tier~1, those with $<$300 games and $<$48\% WR) had no measurable effect on any metric. The model already learns sufficient signal from even sparse real data, and the gap is exclusively in regions with zero training coverage. This suggests that the OOD problem in draft valuation is binary rather than gradual: compositions that appear at all in human play, however rarely, provide enough signal; compositions that never appear provide none. Second, a lower assigned win rate (10\%) produces stronger penalties for extreme degeneracy, though all settings achieve 19--20/21 sanity tests. We report the best configuration: 10\% WR, 100 samples per composition, unseen-only scope.
 
@@ -209,52 +209,63 @@ The residual 26.5\% likely reflects the greedy search horizon (depth-1 cannot pl
 
 \subsection{MCTS Training}
 
-We train an AlphaZero-style network (4.4M parameters) via self-play with MCTS. The network shares a residual backbone (289 dims $\to$ 768, 3 residual blocks, compressed to 256) between a perspective-invariant policy head (256 $\to$ 90) and a perspective-aware value head (257 $\to$ 128 $\to$ 64 $\to$ 1, receiving the backbone output plus an our-team indicator). During self-play, the network plays one side with MCTS (200 simulations per move) while the opponent samples from a pool of 5 GD variants.
+We train an AlphaZero-style network (4.4M parameters) via self-play with MCTS. The network shares a residual backbone (289 dims $\to$ 768, 3 residual blocks, compressed to 256) between a perspective-invariant policy head (256 $\to$ 90) and a perspective-aware value head (257 $\to$ 128 $\to$ 64 $\to$ 1, receiving the backbone output plus an our-team indicator). During self-play, the network plays one side with MCTS while the opponent samples from a pool of 5 GD variants.
 
-The value function used for MCTS leaf evaluation varies across runs. We train four configurations with different WP models to measure how value function quality affects MCTS policy quality.
+The value function used for MCTS leaf evaluation varies across runs. We train 12 configurations with different WP models, simulation budgets, and training lengths to measure how each factor affects MCTS policy quality. Each configuration is evaluated across 15 random seeds (4 seeds for the longest run), with 600 drafts per seed against behavioral cloning opponents across all skill tiers at 200 simulations per move at inference.
 
 Both the WP terminal evaluation and the policy value head are symmetrized: each is evaluated from both team perspectives and averaged to enforce $P(t_0, t_1) + P(t_1, t_0) = 1.0$ exactly, removing a team-order bias present in the raw model outputs (up to 24\% asymmetry on some matchups without symmetrization). The split backbone architecture makes this efficient: only the value head (257$\to$128$\to$64$\to$1) is run twice, not the full backbone.
 
 \subsection{MCTS Training Results}
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\caption{MCTS training runs. Win rate and average WP measured against behavioral cloning (GD) opponents.}
+\caption{MCTS experiment results (600 drafts per seed, all tiers randomized, 200 sims at inference). 15 seeds per configuration except L (4 seeds). WP model column shows the value function used during MCTS training.}
 \label{tab:mcts}
-\begin{tabular}{llrcc}
+\begin{tabular}{llrrrcccccc}
 \toprule
-Run & WP Model & Episodes & WR\% & Avg WP \\
+Config & WP Model & Sims & Episodes & $N$ & Avg WP & WR\% & Counter & Synergy & Hlr\% & Deg\% \\
 \midrule
-A & Base (197d) & 79K & 78.0 & 0.546 \\
-C & Enriched (283d) & 167K & 89.0 & 0.598 \\
-E & Enriched (300K) & 300K & 89.5 & 0.602 \\
-F & + comp\_wr & 300K & 89.5 & 0.598 \\
-G & Augmented & 226K$^*$ & 92.5 & 0.626 \\
+L\_800sim\_4M & enriched\_full & 800 & 4M & 4 & \textbf{0.712} & \textbf{100.0} & +0.187 & \textbf{+1.197} & 93 & 9 \\
+J\_800sim & enriched\_full & 800 & 300K & 15 & 0.705 & 99.9 & \textbf{+0.200} & +1.065 & 93 & 9 \\
+I\_600sim & enriched\_full & 600 & 300K & 15 & 0.696 & 99.8 & +0.196 & +0.991 & 95 & 7 \\
+F\_400sim & enriched\_full & 400 & 300K & 15 & 0.680 & 99.4 & +0.180 & +0.920 & 91 & 10 \\
+E\_1M & enriched\_full & 200 & 1M & 15 & 0.671 & 99.6 & +0.183 & +0.910 & 96 & 5 \\
+B\_fullwp & enriched\_full & 200 & 300K & 15 & 0.653 & 98.7 & +0.148 & +0.689 & 82 & 18 \\
+A\_partial & partial (283+8d) & 200 & 300K & 15 & 0.638 & 97.5 & +0.140 & +0.678 & 56 & 44 \\
+H\_augmented & augmented & 200 & 300K & 15 & 0.636 & 97.2 & +0.163 & +0.728 & 100 & 6 \\
+G\_base & base (197+8d) & 200 & 300K & 15 & 0.622 & 94.1 & +0.109 & +0.525 & 65 & 38 \\
+K\_truebase & true base (197d) & 200 & 300K & 15 & 0.602 & 91.2 & +0.126 & +0.538 & 26 & 75 \\
 \bottomrule
-\multicolumn{5}{l}{\footnotesize$^*$Run G in progress. Reported at 226K/300K episodes.}
 \end{tabular}
-\end{table}
+\end{table*}
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{fig_mcts_curves.pdf}
-\caption{MCTS learning curves across four training runs. Left: win rate against behavioral cloning opponents. Right: average win probability of terminal draft states. The augmented value function (Run G, green) achieves the highest average WP, confirming that synthetic OOD augmentation benefits MCTS training.}
+\caption{MCTS learning curves across training runs. Left: win rate against behavioral cloning opponents. Right: average win probability of terminal draft states. Higher simulation budgets during training produce monotonically higher asymptotic WP.}
 \label{fig:mcts}
 \end{figure*}
 
-Table~\ref{tab:mcts} and Fig.~\ref{fig:mcts} show the results. Switching from the base WP model to the enriched model produces an 11.5pp win rate improvement (78.0\% $\to$ 89.5\%) against behavioral cloning opponents. The augmented WP model (Run G) achieves 0.626 average WP at 226K episodes, already higher than any completed run's final WP (0.602), confirming that synthetic augmentation benefits MCTS training through better OOD calibration.
+Table~\ref{tab:mcts} and Fig.~\ref{fig:mcts} show results across 11 configurations $\times$ 15 seeds each (165 total runs) plus 4 seeds of the best configuration at 4M episodes.
 
-All runs follow the same learning curve: random play at 35--40\% win rate, rapid improvement to 55--60\% by 25K episodes, steady climb to 80--90\% by 100K, and plateau with occasional peaks to 95\%+ after 150K. The learning dynamics are insensitive to the WP model variant; only the asymptote differs.
+\paragraph{Simulation scaling.} The dominant finding is that more MCTS simulations during training monotonically improves all metrics. At 300K episodes with the enriched\_full value function, increasing from 200$\to$400$\to$600$\to$800 simulations per move yields 0.653$\to$0.680$\to$0.696$\to$0.705 average WP. Each doubling of simulation budget produces roughly +0.025 WP, with counter responsiveness and synergy exploitation scaling in parallel (+0.148$\to$+0.200 counter, +0.689$\to$+1.065 synergy from 200 to 800 sims).
 
-The comp\_wr feature alone (Run F) does not improve over the enriched model (Run E) in MCTS, likely because the MCTS policy head learns to avoid degenerate compositions through self-play, making the explicit composition penalty redundant. The augmented model's benefit comes from better calibration across the full state space.
+\paragraph{Training length.} Longer training also helps but with diminishing returns. At 200 sims, extending from 300K to 1M episodes improves WP from 0.653 to 0.671 (+0.018). The 4M-episode run at 800 sims (L\_800sim\_4M) achieves 0.712 WP, only +0.007 over the 300K run at the same simulation budget, suggesting that 300K episodes captures most of the learnable signal at each simulation level.
+
+\paragraph{Value function quality.} The enriched\_full value function (B\_fullwp, 0.653 WP) vs.\ the true base model with identical architecture but no enriched features (K\_truebase, 0.602 WP) shows a +0.051 WP gap. This is the cleanest comparison: both use WinProbEnrichedModel with 256$\to$128 MLP architecture and no step embedding, differing only in whether the 86 enriched features are populated or zeroed. The true base model also exhibits severe composition degradation (26\% healer rate, 75\% degenerate), confirming that domain-structured features remain critical even with deep MCTS search.
+
+\paragraph{Step-conditioned models.} The partial (A\_partial, 0.638) and base (G\_base, 0.622) step-conditioned models performed between the enriched and true base models. These models include an 8-dimensional step embedding that conditions predictions on draft progress. Their WP model accuracy was inflated by a train/test leakage bug (see Section~\ref{sec:leakage}), and the results in Table~\ref{tab:mcts} reflect retrained models with corrected splitting.
+
+\paragraph{Augmented model.} The augmented WP model (H\_augmented, 0.636 WP) achieves perfect composition safety (100\% healer, 6\% degenerate) but lower overall WP than enriched\_full at the same simulation budget. The synthetic augmentation that helps greedy search (Section~V) appears partially redundant for MCTS, which learns implicit composition regularization through self-play.
 
 \subsection{Search Depth and Value Function Calibration}
 
-The 26.5\% residual degenerate rate from greedy search is partially a depth-1 limitation. MCTS with 200 simulations provides multi-step lookahead, allowing the agent to plan for future healer availability rather than evaluating one pick at a time. The augmented WP model's higher average WP in MCTS (0.626 vs.\ 0.602) suggests the augmentation helps even with deeper search. Rich evaluation metrics (counter responsiveness, synergy exploitation, hero diversity) for the MCTS policy are not yet available and remain an important direction for confirming whether MCTS achieves context-awareness alongside the safety improvements demonstrated by its higher WP scores.
+The 26.5\% residual degenerate rate from greedy search is partially a depth-1 limitation. MCTS with 200 simulations provides multi-step lookahead, allowing the agent to plan for future healer availability rather than evaluating one pick at a time. With sufficient simulation budget (800 sims), MCTS achieves both composition safety (93\% healer, 9\% degenerate) and strong context-awareness (+0.200 counter, +1.065 synergy), demonstrating that deeper search with a well-calibrated value function can achieve both axes simultaneously.
 
-This subsection also explains why comp\_wr helps greedy search but not MCTS (Run F $\approx$ Run E in Table~\ref{tab:mcts}). MCTS addresses the greedy search horizon problem directly: the tree search can explore sequences where a healer is picked at step 5 even though step 3's greedy evaluation would prefer a damage dealer. The policy head, trained through self-play, provides implicit composition regularization; the network learns to avoid degenerate compositions from the self-play training signal, even without explicit composition features in the value function. Comp\_wr is therefore redundant for MCTS but critical for greedy search, because MCTS learns its own implicit composition policy through experience while greedy search relies entirely on the value function for every decision.
+This also explains why the augmented WP model (H\_augmented) does not dominate enriched\_full in MCTS despite its superior greedy-search composition safety. MCTS addresses the greedy search horizon problem directly: the tree search can explore sequences where a healer is picked at step 5 even though step 3's greedy evaluation would prefer a damage dealer. The policy head, trained through self-play, provides implicit composition regularization; the network learns to avoid degenerate compositions from the self-play training signal, even without explicit composition features in the value function. The augmented model's synthetic OOD penalties are therefore partially redundant for MCTS but critical for greedy search.
 
 \subsection{Fused CUDA Kernels for MCTS Training}
+\label{sec:cuda}
 
 AlphaZero-style MCTS training is computationally demanding: each episode requires $\sim$8 MCTS searches of 200 simulations each, with a neural network forward pass at every leaf node. Standard implementations dispatch each forward pass through PyTorch, incurring Python interpreter overhead, CUDA kernel launch latency, and host-device synchronization for every call. With $\sim$3,200 forward passes per episode, this overhead dominates wall time.
 
@@ -267,7 +278,9 @@ Three additional optimizations compound with the fused kernel:
     \item \textbf{Pre-allocated ring buffer with pipelined generation}: Episode results are written directly into pre-allocated numpy arrays via C++ \texttt{memcpy} (zero Python object allocation). A generation thread launches GPU batches asynchronously while the main thread performs gradient updates, fully overlapping GPU and CPU work.
 \end{itemize}
 
-Table~\ref{tab:throughput} shows the progression of optimizations. The fused kernel with pipelining achieves 48 episodes/second per GPU, a 40$\times$ improvement over the initial Python implementation and sufficient to complete 300K-episode training runs in under two hours per GPU.
+Table~\ref{tab:throughput} shows the progression of optimizations. The fused kernel with pipelining achieves 50 episodes/second per GPU, a 42$\times$ improvement over the initial Python implementation and sufficient to complete 300K-episode training runs in under two hours per GPU on NVIDIA RTX PRO 6000 Blackwell Workstation Edition GPUs (96~GB each).
+
+Two bugs were discovered during scaling to larger model configurations: (a) shared memory allocation for \texttt{run\_episodes\_into\_buffer} was hardcoded to the base model's dimensions, causing illegal memory access when running the large backbone variant; (b) the \texttt{-maxrregcount=128} compiler flag caused register spilling for larger models, degrading throughput. Both were fixed by parameterizing shared memory size based on model dimensions and removing the register count limit.
 
 \begin{table}[t]
 \centering
@@ -281,18 +294,29 @@ Python + PyTorch CPU & 1.2 & Forward pass dispatch \\
 C++ tree + CUDA kernels & 5.1 & cudaStreamSync per call \\
 + batched virtual loss (K=32) & 10.9 & Amortized sync \\
 Full CUDA kernel (1 block=1 ep) & 26 & Python buffer overhead \\
-+ ring buffer + pipelining & \textbf{48} & Near hardware ceiling \\
++ ring buffer + pipelining & \textbf{50} & Near hardware ceiling \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Network weights reside in GPU global memory (10~MB for the policy network, 0.4~MB for the opponent model) and are cached in L2 across all thread blocks. Each episode requires $\sim$1~MB of global memory for the MCTS tree (2,048 nodes with cached opponent distributions). With 128 concurrent episodes per kernel launch, total GPU memory usage is $\sim$140~MB plus weights, well within the 96~GB capacity of each GPU.
 
+\subsection{Train/Test Leakage in Step-Conditioned Models}
+\label{sec:leakage}
+
+Step-conditioned WP models (PartialStateWP) generate $\sim$10 training samples per replay (one per pick step) with team-swap augmentation doubling to $\sim$20 samples. The original implementation split training and test sets by random sample, not by replay. This meant partial states from the same game appeared in both sets, inflating test accuracy from 54.4\% to 62.5\% for the enriched partial model and from 53.9\% to 62.7\% for the base partial model.
+
+After fixing to replay-level splitting, the honest accuracy ordering is: enriched full (57.6\%) $>$ true base (56.8\%) $>$ enriched partial (54.4\%) $>$ base partial (53.9\%). The step embedding, which appeared to provide a large accuracy boost, was primarily exploiting the leakage: partial states from the same game share most features and have identical outcomes, so a model that memorizes game-level patterns can score well on ``held-out'' samples that are merely different time steps of the same game.
+
+MCTS experiments A\_partial and G\_base were retrained with the corrected WP models; their results in Table~\ref{tab:mcts} reflect the fixed models. The leakage did not affect full-state models (one sample per replay) or the CQL experiments (which use game-level outcomes directly).
+
+This finding has broader implications: any value function trained on sequential decision data with multiple correlated observations per episode (game states, medical trajectories, financial time series) requires episode-level train/test splitting. Sample-level splitting will systematically overestimate generalization performance whenever observations within an episode share latent structure.
+
 \section{CQL: Safety Without Understanding}
 
 \subsection{CQL Setup}
 
-We reformulate drafting as offline RL. Each replay provides 16 state-action-reward transitions; with team-swap augmentation this yields $\sim$7.1M training transitions. The Q-network maps state (289 dims) through 512$\to$256$\to$128 layers to 90 Q-values (one per hero), with invalid actions masked to $-\infty$.
+We reformulate drafting as offline RL. Each replay provides 16 state-action-reward transitions; with team-swap augmentation this yields $\sim$7.6M training transitions. The Q-network maps state (289 dims) through 512$\to$256$\to$128 layers to 90 Q-values (one per hero), with invalid actions masked to $-\infty$.
 
 We use Monte Carlo returns with $\gamma = 1.0$: since reward is only at the terminal step and episodes are fixed-length (16 steps), the Q-target for every transition is simply the game outcome. This eliminates the bootstrapping chain that makes offline RL difficult for long horizons. Under this choice, the Bellman backup degenerates to direct regression of Q-values on game outcomes, and the CQL penalty is the only component providing offline RL benefit over standard supervised learning. This makes CQL's collapse to behavioral cloning especially diagnostic: the pessimism penalty, CQL's sole contribution beyond supervised regression, produces safety by suppressing uncommon actions rather than by learning compositional reasoning. CQL thus becomes supervised Q-regression plus a pessimism penalty on actions not observed in the data:
 \begin{equation}
@@ -372,7 +396,7 @@ The Aug WP column in Table~\ref{tab:rich} confirms this interpretation. CQL enri
 
 \subsection{The GD Baseline Revelation}
 
-The most surprising single number in our experiments: the GD behavioral cloning model achieves 99.5\% healer selection and 1.0\% degenerate rate. Composition safety was never the hard problem. Humans in 275K Storm League games virtually always draft balanced teams, so any method that stays near human behavior inherits this property.
+The most surprising single number in our experiments: the GD behavioral cloning model achieves 99.5\% healer selection and 1.0\% degenerate rate. Composition safety was never the hard problem. Humans in 473K Storm League games virtually always draft balanced teams, so any method that stays near human behavior inherits this property.
 
 CQL's composition safety (93--98\% healer, 3--14\% degen) is \textit{worse} than the GD baseline it approximates, because CQL's Q-value noise causes occasional deviations from the behavior policy in the direction of degenerate compositions. CQL ``solves'' the composition gap not by understanding composition but by approximately reproducing behavioral cloning at the cost of some noise-induced degenerate outputs.
 
@@ -412,13 +436,17 @@ CQL's collapse to behavioral cloning is only a limitation when the behavior poli
 
 The composition gap in learned value functions reveals two orthogonal axes of quality in combinatorial selection. Composition safety is trivially achieved by behavioral cloning (99.5\% healer, 1\% degenerate) and approximately achieved by CQL (93--98\% healer, 3--11\% degenerate), but at the cost of zero context-awareness. Context-awareness is achieved only by value function search with domain features (positive counter/synergy, 90 distinct heroes), but requires feature engineering and OOD augmentation to also achieve composition safety.
 
-CQL's apparent success (9\% degenerate with naive features) is misleading: it collapses to behavioral cloning as shown by negative counter/synergy deltas, half the hero diversity, and 62\% GD agreement. Adding enriched features to CQL does not recover context-awareness. MCTS with the augmented value function achieves the highest overall win probability against behavioral cloning opponents (0.626 avg WP, 92.5\% win rate), combining deeper search with a well-calibrated value function, though rich evaluation metrics for the MCTS policy remain to be measured.
+CQL's apparent success (9\% degenerate with naive features) is misleading: it collapses to behavioral cloning as shown by negative counter/synergy deltas, half the hero diversity, and 62\% GD agreement. Adding enriched features to CQL does not recover context-awareness.
 
-The solution achieving both axes is domain-structured features (compositional reasoning) + synthetic augmentation (OOD calibration) + value function search (context-aware action selection). This requires no RL algorithm changes: standard supervised learning with targeted training data is sufficient.
+MCTS with the enriched value function achieves the highest overall policy quality. The best configuration (800 simulations, 4M episodes) reaches 0.712 average win probability and 100\% win rate against behavioral cloning opponents, with strong context-awareness (+0.187 counter, +1.197 synergy) and acceptable composition safety (93\% healer, 9\% degenerate). Simulation budget during training is the dominant scaling axis: 200$\to$800 simulations at fixed training length improves WP from 0.653 to 0.705, a larger effect than tripling training episodes at fixed simulation budget (+0.018). The enriched value function contributes a +0.051 WP advantage over the true base model with identical architecture, confirming that domain-structured features remain critical even with deep search.
 
-\textit{Limitations.} Single game domain, fixed GD opponent model, greedy search for most comparisons. The CQL collapse may be specific to domains with concentrated behavior policies. MCTS rich evaluation metrics are not yet available.
+We also report a methodological finding with implications beyond this domain: step-conditioned value functions trained on sequential decision data require replay-level train/test splitting. Sample-level splitting inflated test accuracy by 8 percentage points for our partial-state models, masking the true accuracy ordering and producing misleading conclusions about the value of step embeddings. Any value function trained on correlated within-episode observations is susceptible to this leakage.
 
-\textit{Future work.} Full rich evaluation for MCTS policies (counter/synergy/diversity), offline RL methods that preserve action diversity while maintaining conservatism, and testing the safety/context-awareness decomposition in other combinatorial domains (team sports drafts, card game deck building, portfolio selection).
+The solution achieving both safety and context-awareness axes is domain-structured features (compositional reasoning) + MCTS self-play (deep search with implicit composition regularization) + a well-calibrated value function (enriched features for OOD robustness). CQL's pessimism provides safety by mimicking human behavior; domain-structured features with search provide both safety and genuine context-awareness.
+
+\textit{Limitations.} Single game domain, fixed GD opponent model, evaluation limited to behavioral cloning opponents rather than self-play or human evaluation. The CQL collapse may be specific to domains with concentrated behavior policies.
+
+\textit{Future work.} Adaptive simulation budgets during MCTS training (allocating more simulations to harder draft states), offline RL methods that preserve action diversity while maintaining conservatism, and testing the safety/context-awareness decomposition in other combinatorial domains (team sports drafts, card game deck building, portfolio selection).
 
 \begin{thebibliography}{20}
 
@@ -459,7 +487,7 @@ D.~Silver \textit{et al.}, ``Mastering the Game of Go with Deep Neural Networks 
 D.~Kalashnikov \textit{et al.}, ``Scalable Deep Reinforcement Learning for Vision-Based Robotic Manipulation,'' in \textit{Conf. Robot Learning}, pp.~651--673, 2018.
 
 \bibitem{segan2026composition}
-``When Similar Accuracy Produces Different Policies: Value Function Features Matter More Than Aggregate Metrics,'' in \textit{Proc. IEEE Conf. Games (CoG)}, 2026.
+M.~Segan, E.~Pysher, and J.~Frankel, ``When Similar Accuracy Produces Different Policies: Value Function Features Matter More Than Aggregate Metrics,'' in \textit{Proc. IEEE Conf. Games (CoG)}, 2026.
 
 \end{thebibliography}
 
