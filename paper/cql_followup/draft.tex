@@ -171,7 +171,7 @@ Among the 50 drafts with the largest naive-vs-enriched evaluation gap, 41/50 (82
 
 \subsection{Independent Baseline}
 
-To verify that OOD overestimation is not specific to our implementation, we reproduce the win probability estimator from Gourdeau's open-source HotS drafter,\footnote{\url{https://github.com/HairyBlob/HotS-Drafter}, the codebase underlying~\cite{gourdeau2021discriminative}.} a shared-weight feedforward network with multiplicative map conditioning using only multi-hot inputs. This baseline (55.3\% accuracy, 13/21 sanity tests) scored 5-tank compositions at 52.8\% WP (rating them as favored), compared to our naive model's 44.6\% and the enriched model's 17.2\%.
+To verify that OOD overestimation is not specific to our implementation, we reproduce the win probability estimator from Gourdeau's open-source HotS drafter,\footnote{\url{https://github.com/HairyBlob/HotS-Drafter}, the codebase underlying~\cite{gourdeau2021discriminative}.} a Siamese shared-weight network (994K parameters) with multiplicative map conditioning using only multi-hot inputs (no tier, no enriched features). Our reimplementation achieves 55.7\% accuracy on our 473K-replay dataset, close to their published 55.3\%. With more training data, the 5-tank WP drops from their original 52.8\% to 43.3\%, but the OOD pathology persists: the model still rates degenerate compositions as nearly competitive, compared to our naive model's 44.6\% and the enriched model's 17.2\%. In greedy draft evaluation (Table~\ref{tab:rich}), the Gourdeau model produces positive counter and synergy deltas (+0.07, +0.25) and high hero diversity (89 distinct heroes), but with only 53\% healer selection and 51\% degenerate rate, confirming that multi-hot features without compositional encoding cannot achieve composition safety.
 
 \section{Closing the Gap}
 
@@ -358,6 +358,7 @@ Table~\ref{tab:cql_basic} shows CQL with naive multi-hot features achieving 9.0\
 \toprule
 Strategy & Heal\% & Deg.\% & Counter & Synergy & Dist. & Ent. & T10\% & GD\% & Aug WP \\
 \midrule
+Gourdeau (greedy) & 53 & 51.0 & $+$.07 & $+$.25 & 89 & 6.05 & 7 & 3 & .560 \\
 GD baseline & 99.5 & 1.0 & $-$.09 & $-$.05 & 40 & 4.24 & 75 & 83 & .522 \\
 CQL .5 (naive) & 95.0 & 14.5 & $-$.06 & $-$.17 & 40 & 4.35 & 73 & 57 & .473 \\
 CQL 1.0 (naive) & 93.5 & 11.0 & $-$.10 & $-$.14 & 44 & 4.42 & 71 & 62 & .504 \\

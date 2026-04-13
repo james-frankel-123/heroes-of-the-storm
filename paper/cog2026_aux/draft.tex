@@ -44,6 +44,7 @@ All models train on 473,559 Storm League replays with team-swap augmentation: ev
 \toprule
 Model & Acc. & Dim & Added Features \\
 \midrule
+Gourdeau & 55.7\% & 194 & Siamese, mult. map cond. (no tier, no enriched) \\
 Naive & 56.5\% & 197 & (base: multi-hot + map + tier) \\
 Hero Str. & 57.0\% & 209 & Per-hero WR, team avg WR \\
 Enriched & 57.9\% & 283 & Role counts, pairwise stats, composition WR, meta \\
@@ -78,7 +79,7 @@ Enriched & 0.601 & 0.580 & \textbf{0.644} \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:crosseval} shows diagonal dominance: each strategy scores highest on its own evaluator, confirming that greedy search optimizes for the specific model's value landscape. Each policy finds states its own evaluator rates highly but that other evaluators do not. The enriched drafter scores \textit{lowest} on both simpler evaluators (0.601, 0.580): it sacrifices 6.9pp of win probability as scored by the naive evaluator (0.670 $\to$ 0.601) to gain compositional quality, a trade-off that no single-model evaluation metric can detect.
+Table~\ref{tab:crosseval} shows diagonal dominance: each strategy scores highest on its own evaluator, confirming that greedy search optimizes for the specific model's value landscape. Each policy finds states its own evaluator rates highly but that other evaluators do not. The enriched drafter scores \textit{lowest} on both simpler evaluators (0.601, 0.580): it sacrifices 6.9pp of win probability as scored by the naive evaluator (0.670 $\to$ 0.601) to gain compositional quality, a trade-off that no single-model evaluation metric can detect. The Gourdeau baseline (Table~\ref{tab:models}) exhibits even more severe OOD overestimation: it scores 5-tank compositions at 43.3\% WP, improved from their published 52.8\% due to our larger training set (473K vs.\ their original replays), but still rating degenerate compositions as nearly competitive.
 
 \subsection{Composition Quality}
 
@@ -157,7 +158,7 @@ Our enriched features function as pessimistic value correction analogous to CQL~
 
 \section{Related Work}
 
-To verify that OOD overestimation is not specific to our implementation, we reproduced the win probability estimator from Gourdeau's open-source HotS drafter,\footnote{\url{https://github.com/HairyBlob/HotS-Drafter}, the codebase underlying~\cite{gourdeau2021discriminative}.} a shared-weight feedforward network with multiplicative map conditioning using only multi-hot hero identity inputs. This baseline (55.3\% accuracy, comparable to but slightly below our naive model due to a shallower classification head; 13/21 sanity tests) scored 5-tank compositions at 52.8\% WP (rating them as \textit{favored}), compared to our naive model's 44.6\% and the enriched model's 17.2\%. The pathology is a property of the multi-hot feature representation, not our specific model.
+To verify that OOD overestimation is not specific to our implementation, we reproduced the win probability estimator from Gourdeau's open-source HotS drafter,\footnote{\url{https://github.com/HairyBlob/HotS-Drafter}, the codebase underlying~\cite{gourdeau2021discriminative}.} a Siamese shared-weight network (994K parameters) with multiplicative map conditioning using only multi-hot hero identity inputs (no tier, no enriched features). Our reimplementation achieves 55.7\% accuracy on our 473K-replay dataset, close to their published 55.3\%. With more training data, the 5-tank WP drops from their original 52.8\% to 43.3\%, but the OOD pathology persists: the model still rates a team of five tanks as only mildly disadvantaged rather than catastrophically flawed, compared to our naive model's 44.6\% and the enriched model's 17.2\%. The pathology is a property of the multi-hot feature representation, not our specific model.
 
 Chen et al.~\cite{chen2018drafting} proposed MCTS-based drafting for Dota~2 using a win predictor as the value function but did not examine how value function features affect policy quality, the gap our work addresses. Gourdeau and Archambault~\cite{gourdeau2021discriminative} trained discriminative neural networks for hero selection in professional HotS and Dota~2. Summerville et al.~\cite{summerville2016draft} modeled professional HotS pick sequences as behavioral cloning. The sensitivity of planning to value function design has been studied in game-playing~\cite{silver2016mastering} and robotics~\cite{kalashnikov2018qtopt}; we provide a controlled example where near-identical accuracy yields 90\%+ decision disagreement.
 
