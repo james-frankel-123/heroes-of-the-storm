@@ -155,7 +155,7 @@ Enriched & \textbf{66.5} & \textbf{73.3} & \textbf{57.7} \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig_composition_quality.png}
-\caption{Healer selection and degenerate composition rates across model variants. Compositional features reduce the degenerate rate from 76\% to 58\%; synthetic augmentation further reduces it to 26.5\%. \textsuperscript{$\dagger$}512$\to$256$\to$128 architecture; all others 256$\to$128.}
+\caption{Composition quality across greedy baselines (left of divider) and MCTS with enriched WP (right). Greedy search with naive features produces 51--76\% degenerate compositions; MCTS with increasing simulation budgets reduces this to 7--18\% while achieving 82--95\% healer selection, approaching the near-100\% rate in competitive play.}
 \label{fig:comp}
 \end{figure}
 
