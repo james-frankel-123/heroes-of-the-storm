@@ -154,7 +154,7 @@ Enriched & \textbf{66.5} & \textbf{73.3} & \textbf{57.7} \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{fig_composition_quality.pdf}
+\includegraphics[width=\columnwidth]{fig_composition_quality.png}
 \caption{Healer selection and degenerate composition rates across model variants. Compositional features reduce the degenerate rate from 76\% to 58\%; synthetic augmentation further reduces it to 26.5\%. \textsuperscript{$\dagger$}512$\to$256$\to$128 architecture; all others 256$\to$128.}
 \label{fig:comp}
 \end{figure}
@@ -241,7 +241,7 @@ K\_truebase & true base (197d) & 200 & 300K & 15 & 0.602 & 91.2 & +0.126 & +0.53
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=\textwidth]{fig_mcts_curves.pdf}
+\includegraphics[width=\textwidth]{fig_mcts_curves.png}
 \caption{MCTS learning curves across training runs. Left: win rate against behavioral cloning opponents. Right: average win probability of terminal draft states. Higher simulation budgets during training produce monotonically higher asymptotic WP.}
 \label{fig:mcts}
 \end{figure*}
@@ -369,7 +369,7 @@ Enr.+aug (greedy) & 96.0 & 13.5 & $+$.06 & $+$.80 & 90 & 5.97 & 33 & 5 & .692 \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{fig_safety_context.pdf}
+\includegraphics[width=\columnwidth]{fig_safety_context.png}
 \caption{Safety vs.\ context-awareness for each strategy. The x-axis shows degenerate rate (lower = safer); the y-axis shows counter responsiveness (higher = more context-aware). Marker size encodes hero diversity. GD/CQL cluster in the safe-but-unaware quadrant (bottom-left). Enriched models occupy the context-aware region (top). Only enriched+augmented achieves both low degenerate rate and positive counter responsiveness.}
 \label{fig:scatter}
 \end{figure}
