@@ -75,6 +75,7 @@ export const HERO_ROLES: Record<string, HeroRole> = {
   'Raynor': 'Ranged Assassin',
   'Sgt. Hammer': 'Ranged Assassin',
   'Sylvanas': 'Ranged Assassin',
+  'Tassadar': 'Ranged Assassin',
   'Tracer': 'Ranged Assassin',
   'Tychus': 'Ranged Assassin',
   'Valla': 'Ranged Assassin',
@@ -103,7 +104,6 @@ export const HERO_ROLES: Record<string, HeroRole> = {
   'Abathur': 'Support',
   'Medivh': 'Support',
   'The Lost Vikings': 'Support',
-  'Tassadar': 'Support',
   'Zarya': 'Support',
 }
 
