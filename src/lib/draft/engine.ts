@@ -247,7 +247,7 @@ function resolvePlayerHeroWR(
   map: string | null,
 ): { value: number; source: 'map' | 'overall' } | null {
   if (map) {
-    const mapStats = data.playerMapStats[battletag]?.[hero]
+    const mapStats = data.playerMapStats[battletag]?.[map]?.[hero]
     if (mapStats && mapStats.games >= PLAYER_MAP_HERO_MIN_GAMES) {
       return { value: mapStats.winRate, source: 'map' }
     }

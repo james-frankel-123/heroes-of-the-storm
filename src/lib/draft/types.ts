@@ -129,11 +129,11 @@ export interface DraftData {
     winRate: number
     mawp: number | null
   }>>
-  /** battletag → hero → { winRate, games } on the selected map */
-  playerMapStats: Record<string, Record<string, {
+  /** battletag → map → hero → { winRate, games }. Populated for all maps. */
+  playerMapStats: Record<string, Record<string, Record<string, {
     winRate: number
     games: number
-  }>>
+  }>>>
   /** Composition win rate data for the current tier */
   compositions: CompositionData[]
   /** Popularity-weighted average composition win rate (baseline) */

@@ -393,7 +393,7 @@ describe('scorePlayerStrength with map-specific override', () => {
         'django#1': { Falstad: { games: 200, wins: 108, winRate: 54, mawp: 55 } },
       },
       playerMapStats: {
-        'django#1': { Falstad: { winRate: 65, games: 38 } },
+        'django#1': { 'Cursed Hollow': { Falstad: { winRate: 65, games: 38 } } },
       },
     })
     const res = scorePlayerStrength('Falstad', ['django#1'], data, 'Cursed Hollow')
@@ -408,7 +408,7 @@ describe('scorePlayerStrength with map-specific override', () => {
         'django#1': { Falstad: { games: 200, wins: 108, winRate: 54, mawp: 55 } },
       },
       playerMapStats: {
-        'django#1': { Falstad: { winRate: 80, games: 20 } },
+        'django#1': { 'Cursed Hollow': { Falstad: { winRate: 80, games: 20 } } },
       },
     })
     const res = scorePlayerStrength('Falstad', ['django#1'], data, 'Cursed Hollow')
@@ -422,7 +422,7 @@ describe('scorePlayerStrength with map-specific override', () => {
         'django#1': { Falstad: { games: 200, wins: 108, winRate: 54, mawp: 55 } },
       },
       playerMapStats: {
-        'django#1': { Falstad: { winRate: 80, games: 50 } },
+        'django#1': { 'Cursed Hollow': { Falstad: { winRate: 80, games: 50 } } },
       },
     })
     const res = scorePlayerStrength('Falstad', ['django#1'], data, null)

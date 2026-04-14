@@ -65,7 +65,7 @@ export function computeTeamWinEstimate(
 
       let adjMawp: number | null = null
       if (map) {
-        const mapStats = data.playerMapStats[bt]?.[picks[i]]
+        const mapStats = data.playerMapStats[bt]?.[map]?.[picks[i]]
         if (mapStats && mapStats.games >= 25) {
           adjMawp = mapStats.winRate
         }

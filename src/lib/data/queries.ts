@@ -834,8 +834,9 @@ export async function getDraftData(
 
     const heroMapForPlayer = await getPlayerHeroMapStats(bt, undefined)
     playerMapStats[bt] = {}
-    for (const h of heroMapForPlayer.filter((hm) => hm.map === map)) {
-      playerMapStats[bt][h.hero] = {
+    for (const h of heroMapForPlayer) {
+      if (!playerMapStats[bt][h.map]) playerMapStats[bt][h.map] = {}
+      playerMapStats[bt][h.map][h.hero] = {
         winRate: h.winRate,
         games: h.games,
       }

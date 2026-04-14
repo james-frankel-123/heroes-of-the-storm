@@ -254,8 +254,10 @@ describe('computeTeamWinEstimate', () => {
       },
       playerMapStats: {
         'django#1': {
-          // Map-specific winrate is 65% with 38 games → should override
-          Falstad: { winRate: 65, games: 38 },
+          'Cursed Hollow': {
+            // Map-specific winrate is 65% with 38 games → should override
+            Falstad: { winRate: 65, games: 38 },
+          },
         },
       },
     })
@@ -281,7 +283,9 @@ describe('computeTeamWinEstimate', () => {
       },
       playerMapStats: {
         'django#1': {
-          Falstad: { winRate: 80, games: 20 }, // high WR but below threshold
+          'Cursed Hollow': {
+            Falstad: { winRate: 80, games: 20 }, // high WR but below threshold
+          },
         },
       },
     })
