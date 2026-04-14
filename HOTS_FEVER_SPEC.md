@@ -160,7 +160,7 @@ Cho and Gall are always picked/banned together. If either is selected, the other
 
 We’re experimenting with AI-powered draft insights. These use a small AI model that can run inference in browser to suggest the best characters to pick and ban, as well as the expected impact on win probability of making those picks.
 
-This is effectively the same net result as Draft Insights, though powered by an AI model rather than statistics. The exception is player specific hero skill; the model will not intrinsically incorporate this data, so it will be combined by top level hero-win momentum adjusted win rate adjustments per character in picks, and have no impact on bans.
+This is effectively the same net result as Draft Insights, though powered by an AI model rather than statistics. The exception is player specific hero skill; the model will not intrinsically incorporate this data, so it will be combined by top level hero-win momentum adjusted win rate adjustments per character in picks, and have no impact on bans. This hasn't been implemented, yet.
 
 The UI will allow a toggle in draft insights to switch to Hyper Max Pro mode, which switches how we rank.
 
