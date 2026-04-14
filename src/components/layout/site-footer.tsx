@@ -28,6 +28,9 @@ export async function SiteFooter() {
               day: 'numeric',
               year: 'numeric',
             })}
+            {process.env.NEXT_PUBLIC_COMMIT_SHA && (
+              <span className="ml-2 opacity-60">· v{process.env.NEXT_PUBLIC_COMMIT_SHA}</span>
+            )}
           </span>
         )}
       </div>
