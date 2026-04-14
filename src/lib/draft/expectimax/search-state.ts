@@ -16,6 +16,7 @@ import type { SearchState, Team } from './types'
  */
 export function createSearchState(state: DraftState): SearchState {
   const ourPicks: string[] = []
+  const ourPickSteps: number[] = []
   const enemyPicks: string[] = []
   const bans: string[] = []
   const taken = new Set<string>()
@@ -30,6 +31,7 @@ export function createSearchState(state: DraftState): SearchState {
       bans.push(hero)
     } else if (step.team === state.ourTeam) {
       ourPicks.push(hero)
+      ourPickSteps.push(i)
     } else {
       enemyPicks.push(hero)
     }
@@ -43,6 +45,7 @@ export function createSearchState(state: DraftState): SearchState {
 
   return {
     ourPicks,
+    ourPickSteps,
     enemyPicks,
     bans,
     taken,
@@ -50,6 +53,9 @@ export function createSearchState(state: DraftState): SearchState {
     map: state.map ?? '',
     tier: state.tier,
     ourTeam: state.ourTeam,
+    playerAssignments: Object.keys(state.playerAssignments).length > 0
+      ? { ...state.playerAssignments }
+      : undefined,
   }
 }
 
@@ -64,6 +70,7 @@ export function cloneAndApply(state: SearchState, hero: string): SearchState {
 
   const newState: SearchState = {
     ourPicks: [...state.ourPicks],
+    ourPickSteps: [...state.ourPickSteps],
     enemyPicks: [...state.enemyPicks],
     bans: [...state.bans],
     taken: new Set(state.taken),
@@ -71,6 +78,7 @@ export function cloneAndApply(state: SearchState, hero: string): SearchState {
     map: state.map,
     tier: state.tier,
     ourTeam: state.ourTeam,
+    playerAssignments: state.playerAssignments,
   }
 
   newState.taken.add(hero)
@@ -79,6 +87,7 @@ export function cloneAndApply(state: SearchState, hero: string): SearchState {
     newState.bans.push(hero)
   } else if (step.team === state.ourTeam) {
     newState.ourPicks.push(hero)
+    newState.ourPickSteps.push(state.step)
   } else {
     newState.enemyPicks.push(hero)
   }
@@ -93,6 +102,7 @@ export function cloneAndApply(state: SearchState, hero: string): SearchState {
     if (nextStep && nextStep.type === 'pick' && nextStep.team === step.team) {
       if (step.team === state.ourTeam) {
         newState.ourPicks.push(partner)
+        newState.ourPickSteps.push(newState.step)
       } else {
         newState.enemyPicks.push(partner)
       }
@@ -109,7 +119,11 @@ export function cloneAndApply(state: SearchState, hero: string): SearchState {
  * regardless of the order heroes were picked within a phase.
  */
 export function hashState(state: SearchState): string {
-  const op = [...state.ourPicks].sort().join(',')
+  // When player assignments exist, pick order carries per-player strength info,
+  // so the same hero-set reached via different draft orderings can yield different
+  // leaf values. Preserve order in that case; otherwise sort for better TT reuse.
+  const hasAssignments = state.playerAssignments && Object.keys(state.playerAssignments).length > 0
+  const op = hasAssignments ? state.ourPicks.join(',') : [...state.ourPicks].sort().join(',')
   const ep = [...state.enemyPicks].sort().join(',')
   const b = [...state.bans].sort().join(',')
   return `${op}|${ep}|${b}|${state.step}`

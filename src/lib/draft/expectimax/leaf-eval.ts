@@ -16,25 +16,31 @@ import type { SearchState } from './types'
  * Returns the expected win delta from 50% baseline for our team.
  * Positive = good for us, negative = bad.
  *
- * Uses computeTeamWinEstimate which naturally scores the COMPLETE team
- * composition — a hero that looks mediocre alone but completes a strong
- * comp gets credit here.
- *
- * No player assignments in speculative states (the search doesn't know
- * which player gets which hero). Player strength only affects the root
- * prefilter where actual assignments are known.
+ * If the search state carries root-level player assignments, maps each of our
+ * picks to its acting battletag via the parallel ourPickSteps array so
+ * computeTeamWinEstimate's Stats-mode playerAdj term applies here too.
  */
 export function evaluateLeaf(state: SearchState, data: DraftData): number {
   if (state.ourPicks.length === 0) return 0
+
+  let pickAssignments: Record<number, string> | undefined
+  if (state.playerAssignments) {
+    const map: Record<number, string> = {}
+    for (let i = 0; i < state.ourPicks.length; i++) {
+      const stepIdx = state.ourPickSteps[i]
+      const bt = stepIdx !== undefined ? state.playerAssignments[stepIdx] : undefined
+      if (bt) map[i] = bt
+    }
+    if (Object.keys(map).length > 0) pickAssignments = map
+  }
 
   const result = computeTeamWinEstimate(
     state.ourPicks,
     state.enemyPicks,
     data,
     state.map || null,
-    // No player assignments in search — pass undefined
+    pickAssignments,
   )
 
-  // Return delta from 50% baseline
   return result.winPct - 50
 }

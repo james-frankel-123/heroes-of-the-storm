@@ -343,9 +343,36 @@ function scoreBanCandidate(
 // ---------------------------------------------------------------------------
 
 /**
+ * Per-player adjustment applied to a candidate hero, mirroring the Stats-mode
+ * formula in computeTeamWinEstimate: confidence-adjusted MAWP (30-game shrinkage),
+ * ≥10-game gate, deduped against the hero base WR delta.
+ * Returns 0 when no applicable player/stats are available.
+ */
+export function scorePlayerAdjForCandidate(
+  hero: string,
+  battletag: string | null | undefined,
+  data: DraftData,
+  map: string | null,
+): number {
+  if (!battletag) return 0
+  const stats = data.playerStats[battletag]?.[hero]
+  if (!stats || stats.games < 10) return 0
+  const adjMawp = stats.mawp != null
+    ? confidenceAdjustedMawp(stats.mawp, stats.games, 30)
+    : (stats.wins / stats.games) * 100
+  const resolved = getHeroWinRate(hero, data, map)
+  const heroBaseDelta = resolved ? resolved.winRate - 50 : 0
+  return (adjMawp - 50) - heroBaseDelta
+}
+
+/**
  * Score a hero for picking without building RecommendationReason objects.
  * Combines all 5 factors: heroWR + counter + synergy + comp + healer urgency.
  * Used by the expectimax prefilter and as a fast scoring path.
+ *
+ * When `actingBattletag` is provided, also applies the Stats-mode per-player
+ * adjustment (confidence-adjusted MAWP vs hero base WR). This should only be
+ * passed when the acting slot is on our team.
  */
 export function scoreHeroForPick(
   hero: string,
@@ -353,6 +380,7 @@ export function scoreHeroForPick(
   enemyPicks: string[],
   data: DraftData,
   map: string | null,
+  actingBattletag?: string | null,
 ): number {
   let score = 0
 
@@ -402,6 +430,12 @@ export function scoreHeroForPick(
       const urgency = Math.max(0, 1 - picksRemaining / 3)
       score += W.healerBonus * urgency
     }
+  }
+
+  // 6. Per-player adjustment (Stats-mode formula) — only when the acting slot
+  // has a known battletag. Mirrors computeTeamWinEstimate's playerAdj term.
+  if (actingBattletag) {
+    score += scorePlayerAdjForCandidate(hero, actingBattletag, data, map)
   }
 
   return Math.round(score * 10) / 10

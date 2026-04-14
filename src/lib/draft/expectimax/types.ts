@@ -55,6 +55,8 @@ export type OpponentPredictor = (
 export interface SearchState {
   /** Our team's picks in draft order */
   ourPicks: string[]
+  /** stepIndex (into DRAFT_SEQUENCE) of each ourPicks entry — parallel array */
+  ourPickSteps: number[]
   /** Enemy team's picks in draft order */
   enemyPicks: string[]
   /** All bans (both teams) */
@@ -69,4 +71,6 @@ export interface SearchState {
   tier: SkillTier
   /** Which team we are ('A' bans first, 'B' bans second) */
   ourTeam: Team
+  /** Root-level player assignments, keyed by stepIndex → battletag. Immutable through search. */
+  playerAssignments?: Record<number, string>
 }
