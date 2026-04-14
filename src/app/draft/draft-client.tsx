@@ -684,6 +684,8 @@ export function DraftClient({
                   isOurTurn={true}
                   onSelect={handleSelectHero}
                   unavailable={unavailableHeroes}
+                  draftData={draftData ?? undefined}
+                  availableBattletags={availableBattletags}
                 />
               ) : (
                 // Opponent turn: show GD model predictions, pad with greedy

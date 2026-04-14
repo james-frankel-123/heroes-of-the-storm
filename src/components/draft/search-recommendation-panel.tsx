@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { cn } from '@/lib/utils'
 import type { ExpectimaxResult } from '@/lib/draft/expectimax/types'
+import type { DraftData } from '@/lib/draft/types'
+import { scorePlayerStrength } from '@/lib/draft/engine'
 
 function roleBadgeVariant(role: string | null) {
   switch (role) {
@@ -28,6 +30,9 @@ interface SearchRecommendationPanelProps {
   isOurTurn: boolean
   onSelect: (hero: string) => void
   unavailable: Set<string>
+  /** Optional: enables the "which player should draft this" byline */
+  draftData?: DraftData
+  availableBattletags?: string[]
 }
 
 export function SearchRecommendationPanel({
@@ -40,7 +45,11 @@ export function SearchRecommendationPanel({
   isOurTurn,
   onSelect,
   unavailable,
+  draftData,
+  availableBattletags,
 }: SearchRecommendationPanelProps) {
+  const canShowPlayerByline =
+    isOurTurn && !isBanPhase && !!draftData && !!availableBattletags && availableBattletags.length > 0
   const title = isBanPhase
     ? isOurTurn ? 'Ban Suggestions' : 'Likely Enemy Bans'
     : isOurTurn ? 'Search Recommendations' : 'Likely Enemy Picks'
@@ -93,6 +102,10 @@ export function SearchRecommendationPanel({
                 ? 'text-gaming-warning'
                 : 'text-gaming-danger'
 
+            const playerInfo = canShowPlayerByline
+              ? scorePlayerStrength(rec.hero, availableBattletags!, draftData!)
+              : null
+
             return (
               <button
                 key={rec.hero}
@@ -119,6 +132,14 @@ export function SearchRecommendationPanel({
                     {rec.score >= 0 ? '+' : ''}{rec.score.toFixed(1)}
                   </span>
                 </div>
+                {playerInfo?.reason && (
+                  <p className="mt-1 text-[10px] text-purple-400">
+                    {playerInfo.reason.label}
+                    {playerInfo.player && (
+                      <span className="text-muted-foreground"> · {playerInfo.player.split('#')[0]} should play this</span>
+                    )}
+                  </p>
+                )}
               </button>
             )
           })}

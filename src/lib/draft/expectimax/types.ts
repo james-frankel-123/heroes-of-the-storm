@@ -71,6 +71,10 @@ export interface SearchState {
   tier: SkillTier
   /** Which team we are ('A' bans first, 'B' bans second) */
   ourTeam: Team
-  /** Root-level player assignments, keyed by stepIndex → battletag. Immutable through search. */
+  /** Root-level player assignments (stepIndex → battletag) for already-completed picks. Immutable. */
   playerAssignments?: Record<number, string>
+  /** All non-null battletags in our team's player slots. Immutable. */
+  playerSlots?: string[]
+  /** Battletags already locked into past picks (derived from playerAssignments). Immutable. */
+  usedBattletags?: Set<string>
 }

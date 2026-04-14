@@ -25,16 +25,16 @@ export function prefilterPicks(
   const ourPicks = isOurs ? state.ourPicks : state.enemyPicks
   const enemyPicks = isOurs ? state.enemyPicks : state.ourPicks
 
-  // Per-player adjustment only applies when the acting slot is on our team
-  // (we don't track enemy battletags). Look up the battletag assigned to the
-  // current step from the root-level assignments map.
-  const actingBattletag = isOurs
-    ? state.playerAssignments?.[state.step] ?? null
-    : null
+  // On our turn, compute the pool of battletags available to take the next pick
+  // (all our team's slots minus those already locked into past picks) and pass
+  // through so scoreHeroForPick can apply Stats-mode best-fit-player scoring.
+  const availableBattletags = isOurs && state.playerSlots
+    ? state.playerSlots.filter(bt => !state.usedBattletags?.has(bt))
+    : undefined
 
   const scored = valid.map(hero => ({
     hero,
-    score: scoreHeroForPick(hero, ourPicks, enemyPicks, data, state.map || null, actingBattletag),
+    score: scoreHeroForPick(hero, ourPicks, enemyPicks, data, state.map || null, availableBattletags),
   }))
 
   scored.sort((a, b) => b.score - a.score)

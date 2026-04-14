@@ -56,6 +56,10 @@ export function createSearchState(state: DraftState): SearchState {
     playerAssignments: Object.keys(state.playerAssignments).length > 0
       ? { ...state.playerAssignments }
       : undefined,
+    playerSlots: state.playerSlots
+      .map((s) => s.battletag)
+      .filter((bt): bt is string => bt !== null),
+    usedBattletags: new Set(Object.values(state.playerAssignments)),
   }
 }
 
@@ -79,6 +83,8 @@ export function cloneAndApply(state: SearchState, hero: string): SearchState {
     tier: state.tier,
     ourTeam: state.ourTeam,
     playerAssignments: state.playerAssignments,
+    playerSlots: state.playerSlots,
+    usedBattletags: state.usedBattletags,
   }
 
   newState.taken.add(hero)

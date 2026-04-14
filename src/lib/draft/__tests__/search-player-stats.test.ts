@@ -1,14 +1,13 @@
 /**
  * Tests for per-player stats propagation through expectimax Search mode.
  *
- * Covers:
- *   - createSearchState records ourPickSteps + carries playerAssignments
- *   - cloneAndApply pushes the current stepIndex into ourPickSteps
- *   - hashState preserves ourPicks order when assignments are present
- *   - scoreHeroForPick applies the Stats-mode player adjustment
- *   - evaluateLeaf applies the same adjustment via ourPickSteps → battletag
- *   - End-to-end: iterativeDeepeningSearch rankings shift when a player is
- *     dramatically stronger on a specific hero than its base WR suggests
+ * Semantics mirror Stats/Greedy mode:
+ *   - playerAssignments records which battletag played each COMPLETED pick
+ *     (step < currentStep). The current step has no assignment yet.
+ *   - For scoring the current candidate, Search picks the best-fit available
+ *     battletag from unassigned slots — same as scorePlayerStrength.
+ *   - Leaf evaluation applies player adj only for picks that already have a
+ *     locked assignment (via ourPickSteps → playerAssignments).
  */
 
 import { describe, it, expect } from 'vitest'
@@ -20,7 +19,7 @@ import {
 import { evaluateLeaf } from '../expectimax/leaf-eval'
 import { prefilterPicks } from '../expectimax/prefilter'
 import { iterativeDeepeningSearch } from '../expectimax/search'
-import { scoreHeroForPick, scorePlayerAdjForCandidate } from '../engine'
+import { scoreHeroForPick, scorePlayerStrength } from '../engine'
 import type { DraftState, DraftData } from '../types'
 import type { SkillTier } from '@/lib/types'
 import type { OpponentPredictor, SearchState } from '../expectimax/types'
@@ -57,7 +56,6 @@ function makeData(overrides: Partial<DraftData> = {}): DraftData {
 
 describe('SearchState carries player-stats plumbing', () => {
   it('createSearchState records ourPickSteps parallel to ourPicks', () => {
-    // Steps 4 and 7 are A picks; step 5 is B pick
     const ss = createSearchState(makeState({
       currentStep: 8,
       selections: {
@@ -72,16 +70,19 @@ describe('SearchState carries player-stats plumbing', () => {
     expect(ss.ourPickSteps).toEqual([4, 7])
   })
 
-  it('createSearchState carries playerAssignments when non-empty', () => {
+  it('populates playerSlots and usedBattletags from DraftState', () => {
     const ss = createSearchState(makeState({
-      playerAssignments: { 4: 'alice#1', 7: 'bob#2' },
+      currentStep: 5,
+      selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.', 4: 'Valla' },
+      playerSlots: [
+        { battletag: 'alice#1' }, { battletag: 'bob#2' },
+        { battletag: 'carol#3' }, { battletag: null },
+      ],
+      playerAssignments: { 4: 'alice#1' },
     }))
-    expect(ss.playerAssignments).toEqual({ 4: 'alice#1', 7: 'bob#2' })
-  })
-
-  it('createSearchState leaves playerAssignments undefined when empty', () => {
-    const ss = createSearchState(makeState())
-    expect(ss.playerAssignments).toBeUndefined()
+    expect(ss.playerSlots).toEqual(['alice#1', 'bob#2', 'carol#3'])
+    expect(ss.usedBattletags?.has('alice#1')).toBe(true)
+    expect(ss.usedBattletags?.has('bob#2')).toBe(false)
   })
 
   it('cloneAndApply pushes current step into ourPickSteps on our pick', () => {
@@ -91,8 +92,7 @@ describe('SearchState carries player-stats plumbing', () => {
     expect(next.ourPickSteps).toEqual([4])
   })
 
-  it('cloneAndApply records both stepIndices for Cho/Gall pairing', () => {
-    // Steps 7 + 8 are consecutive A picks; Cho at step 7 auto-fills Gall at step 8
+  it('records both stepIndices for Cho/Gall pairing', () => {
     const root = createSearchState(makeState({ currentStep: 7 }))
     const next = cloneAndApply(root, 'Cho')
     expect(next.ourPicks).toEqual(['Cho', 'Gall'])
@@ -100,17 +100,8 @@ describe('SearchState carries player-stats plumbing', () => {
     expect(next.step).toBe(9)
   })
 
-  it('cloneAndApply propagates playerAssignments by reference (immutable)', () => {
-    const root = createSearchState(makeState({
-      currentStep: 4,
-      playerAssignments: { 4: 'alice#1' },
-    }))
-    const next = cloneAndApply(root, 'Valla')
-    expect(next.playerAssignments).toBe(root.playerAssignments)
-  })
-
   it('enemy picks do not grow ourPickSteps', () => {
-    const root = createSearchState(makeState({ currentStep: 5 })) // B pick
+    const root = createSearchState(makeState({ currentStep: 5 }))
     const next = cloneAndApply(root, 'Jaina')
     expect(next.enemyPicks).toEqual(['Jaina'])
     expect(next.ourPickSteps).toEqual([])
@@ -120,105 +111,41 @@ describe('SearchState carries player-stats plumbing', () => {
 // ─── Hash behaviour ─────────────────────────────────────────────────────────
 
 describe('hashState with player assignments', () => {
-  function makePickedState(picksInOrder: string[]): SearchState {
-    // Build a state where team A has picked the given heroes at steps [4,7,8,...]
-    const selections: Record<number, string> = {
-      0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.',
-    }
-    const pickStepsA = [4, 7, 8, 13, 14]
-    const pickStepsB = [5, 6, 11, 12, 15]
-    let ai = 0, bi = 0
-    for (let i = 0; i < picksInOrder.length; i++) {
-      // alternate adding an enemy pick so step increments realistically
-      selections[pickStepsA[ai++]] = picksInOrder[i]
-      if (bi < pickStepsB.length) selections[pickStepsB[bi++]] = 'Raynor' // enemy filler
-    }
-    return createSearchState(makeState({
-      currentStep: 9,
-      selections,
-      playerAssignments: { 4: 'alice#1', 7: 'bob#2' },
-    }))
-  }
-
   it('distinguishes swapped pick order when assignments are present', () => {
-    const s1 = makePickedState(['Valla', 'Jaina'])
-    const s2 = makePickedState(['Jaina', 'Valla'])
-    expect(hashState(s1)).not.toBe(hashState(s2))
-  })
-
-  it('merges swapped pick order when no assignments (baseline behaviour)', () => {
-    const s1a = createSearchState(makeState({
+    const base = makeState({
       currentStep: 9,
       selections: {
         0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.',
         4: 'Valla', 5: 'Raynor', 6: 'Raynor', 7: 'Jaina', 8: 'Li-Ming',
       },
-    }))
-    const s1b = createSearchState(makeState({
+      playerAssignments: { 4: 'alice#1', 7: 'bob#2' },
+    })
+    const s1 = createSearchState(base)
+    const s2 = createSearchState({
+      ...base,
+      selections: { ...base.selections, 4: 'Jaina', 7: 'Valla' },
+    })
+    expect(hashState(s1)).not.toBe(hashState(s2))
+  })
+
+  it('merges swapped pick order when no assignments (baseline)', () => {
+    const sel = {
+      0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.',
+      4: 'Valla', 5: 'Raynor', 6: 'Raynor', 7: 'Jaina', 8: 'Li-Ming',
+    }
+    const s1 = createSearchState(makeState({ currentStep: 9, selections: sel }))
+    const s2 = createSearchState(makeState({
       currentStep: 9,
-      selections: {
-        0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.',
-        4: 'Jaina', 5: 'Raynor', 6: 'Raynor', 7: 'Valla', 8: 'Li-Ming',
-      },
+      selections: { ...sel, 4: 'Jaina', 7: 'Valla' },
     }))
-    expect(hashState(s1a)).toBe(hashState(s1b))
+    expect(hashState(s1)).toBe(hashState(s2))
   })
 })
 
 // ─── scoreHeroForPick ───────────────────────────────────────────────────────
 
-describe('scoreHeroForPick with actingBattletag', () => {
-  it('adds Stats-mode player adjustment when battletag provided', () => {
-    const data = makeData({
-      heroStats: {
-        Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
-      },
-      playerStats: {
-        'alice#1': {
-          Jaina: { games: 50, wins: 35, winRate: 70, mawp: 65 },
-        },
-      },
-    })
-    const base = scoreHeroForPick('Jaina', [], [], data, null)
-    const withPlayer = scoreHeroForPick('Jaina', [], [], data, null, 'alice#1')
-    // adjMawp=65 (≥30 games, no shrinkage), heroBaseDelta=0 → playerAdj = 15
-    expect(withPlayer - base).toBeCloseTo(15, 5)
-  })
-
-  it('no-op when battletag has fewer than 10 games on hero', () => {
-    const data = makeData({
-      heroStats: {
-        Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
-      },
-      playerStats: {
-        'alice#1': {
-          Jaina: { games: 5, wins: 5, winRate: 100, mawp: 90 },
-        },
-      },
-    })
-    const base = scoreHeroForPick('Jaina', [], [], data, null)
-    const withPlayer = scoreHeroForPick('Jaina', [], [], data, null, 'alice#1')
-    expect(withPlayer).toBe(base)
-  })
-
-  it('applies 30-game shrinkage for thin-sample players', () => {
-    const data = makeData({
-      heroStats: {
-        Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
-      },
-      playerStats: {
-        'alice#1': {
-          Jaina: { games: 15, wins: 12, winRate: 80, mawp: 70 },
-        },
-      },
-    })
-    // games=15, threshold=30 → weight=0.5
-    // adjusted MAWP = 70*0.5 + 50*0.5 = 60 → playerAdj = 10
-    const adj = scorePlayerAdjForCandidate('Jaina', 'alice#1', data, null)
-    expect(adj).toBeCloseTo(10, 5)
-  })
-
-  it('null/undefined battletag is a no-op', () => {
+describe('scoreHeroForPick with availableBattletags', () => {
+  it('adds best-fit player delta matching scorePlayerStrength', () => {
     const data = makeData({
       heroStats: { Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 } },
       playerStats: {
@@ -226,47 +153,105 @@ describe('scoreHeroForPick with actingBattletag', () => {
       },
     })
     const base = scoreHeroForPick('Jaina', [], [], data, null)
-    expect(scoreHeroForPick('Jaina', [], [], data, null, null)).toBe(base)
+    const withPool = scoreHeroForPick('Jaina', [], [], data, null, ['alice#1'])
+    // scorePlayerStrength reports (65-50)=15, threshold ≥2 satisfied
+    expect(withPool - base).toBeCloseTo(15, 5)
+  })
+
+  it('picks the strongest available battletag when multiple fit', () => {
+    const data = makeData({
+      heroStats: { Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 } },
+      playerStats: {
+        'alice#1': { Jaina: { games: 50, wins: 30, winRate: 60, mawp: 58 } },
+        'bob#2':   { Jaina: { games: 50, wins: 35, winRate: 70, mawp: 65 } },
+      },
+    })
+    const withPool = scoreHeroForPick('Jaina', [], [], data, null, ['alice#1', 'bob#2'])
+    const base = scoreHeroForPick('Jaina', [], [], data, null)
+    // bob is +15 vs alice +8 → best-fit=bob
+    expect(withPool - base).toBeCloseTo(15, 5)
+  })
+
+  it('skips players below the 2-point delta threshold', () => {
+    const data = makeData({
+      heroStats: { Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 } },
+      playerStats: {
+        'alice#1': { Jaina: { games: 50, wins: 26, winRate: 52, mawp: 51 } },
+      },
+    })
+    const base = scoreHeroForPick('Jaina', [], [], data, null)
+    const withPool = scoreHeroForPick('Jaina', [], [], data, null, ['alice#1'])
+    expect(withPool).toBe(base)
+  })
+
+  it('no-op when pool is empty or undefined', () => {
+    const data = makeData({
+      heroStats: { Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 } },
+      playerStats: {
+        'alice#1': { Jaina: { games: 50, wins: 35, winRate: 70, mawp: 65 } },
+      },
+    })
+    const base = scoreHeroForPick('Jaina', [], [], data, null)
+    expect(scoreHeroForPick('Jaina', [], [], data, null, [])).toBe(base)
     expect(scoreHeroForPick('Jaina', [], [], data, null, undefined)).toBe(base)
   })
 })
 
 // ─── prefilter ──────────────────────────────────────────────────────────────
 
-describe('prefilterPicks uses playerAssignments on our turn', () => {
-  it('boosts a hero the acting player is strong on', () => {
+describe('prefilterPicks uses available battletags on our turn', () => {
+  it('boosts a hero an unassigned player is strong on', () => {
     const heroStats: DraftData['heroStats'] = {}
-    const candidates = ['Valla', 'Jaina', 'Raynor', 'Falstad', 'Tychus', 'Hanzo']
-    for (const h of candidates) {
+    const heroes = ['Valla', 'Jaina', 'Raynor', 'Falstad', 'Tychus', 'Hanzo']
+    for (const h of heroes) {
       heroStats[h] = { winRate: 50, pickRate: 10, banRate: 5, games: 500 }
     }
     const data = makeData({
       heroStats,
       playerStats: {
-        'alice#1': {
-          // Alice is dramatically better than average on Falstad (+20 MAWP).
-          Falstad: { games: 100, wins: 70, winRate: 70, mawp: 70 },
-        },
+        'alice#1': { Falstad: { games: 100, wins: 70, winRate: 70, mawp: 70 } },
       },
     })
 
-    // State at step 4 (first A pick) with Alice assigned to it
+    // Alice is in our team's slots and hasn't been assigned yet (step 4 is first pick).
     const ss = createSearchState(makeState({
       currentStep: 4,
-      playerAssignments: { 4: 'alice#1' },
       selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.' },
+      playerSlots: [{ battletag: 'alice#1' }, { battletag: 'bob#2' }],
     }))
 
-    const withAssignments = prefilterPicks(ss, data, 3)
-    expect(withAssignments[0]).toBe('Falstad')
+    const ranked = prefilterPicks(ss, data, 3)
+    expect(ranked[0]).toBe('Falstad')
 
-    // Same state, no assignments: Falstad should not be specifically preferred
-    const ssNoAssign = createSearchState(makeState({
+    // Compare: no player slots → Falstad should not top the ranking
+    const ssNoSlots = createSearchState(makeState({
       currentStep: 4,
       selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.' },
     }))
-    const withoutAssignments = prefilterPicks(ssNoAssign, data, 3)
-    expect(withoutAssignments[0]).not.toBe('Falstad')
+    const rankedNoSlots = prefilterPicks(ssNoSlots, data, 3)
+    expect(rankedNoSlots[0]).not.toBe('Falstad')
+  })
+
+  it('excludes already-assigned battletags from the pool', () => {
+    const heroStats: DraftData['heroStats'] = {}
+    const heroes = ['Valla', 'Jaina', 'Raynor', 'Falstad']
+    for (const h of heroes) heroStats[h] = { winRate: 50, pickRate: 10, banRate: 5, games: 500 }
+    const data = makeData({
+      heroStats,
+      playerStats: {
+        'alice#1': { Falstad: { games: 100, wins: 70, winRate: 70, mawp: 70 } },
+      },
+    })
+    // Alice already played step 4; now at step 7, she's no longer available
+    const ss = createSearchState(makeState({
+      currentStep: 7,
+      selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.', 4: 'Valla', 5: 'Jaina', 6: 'Raynor' },
+      playerSlots: [{ battletag: 'alice#1' }, { battletag: 'bob#2' }],
+      playerAssignments: { 4: 'alice#1' },
+    }))
+    const ranked = prefilterPicks(ss, data, 3)
+    // Bob has no Falstad stats; Alice is consumed → no player boost applies
+    expect(ranked[0]).not.toBe('Falstad')
   })
 
   it('does not apply player adjustment on enemy turns', () => {
@@ -274,50 +259,37 @@ describe('prefilterPicks uses playerAssignments on our turn', () => {
       heroStats: {
         Valla: { winRate: 50, pickRate: 10, banRate: 5, games: 500 },
         Falstad: { winRate: 50, pickRate: 10, banRate: 5, games: 500 },
+        Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 500 },
       },
       playerStats: {
         'alice#1': { Falstad: { games: 100, wins: 70, winRate: 70, mawp: 70 } },
       },
     })
-    // Step 5 is enemy's turn (B pick 1), but we still carry assignments
     const ss = createSearchState(makeState({
-      currentStep: 5,
-      playerAssignments: { 4: 'alice#1' }, // for our past pick
+      currentStep: 5, // B pick
       selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.', 4: 'Valla' },
+      playerSlots: [{ battletag: 'alice#1' }],
     }))
-    // Enemy scoring should not inherit Alice's Falstad strength
-    const enemyRank = prefilterPicks(ss, data, 5)
-    // With 50% WR across the board and no player bonus for enemy,
-    // Falstad shouldn't outrank everyone — we just assert it's not uniquely at top
-    // due to a player adjustment it shouldn't receive.
-    const falstadIdx = enemyRank.indexOf('Falstad')
-    // Either not present or not singled out first with the +20 boost
-    if (falstadIdx === 0) {
-      // If it happens to be first for some other reason, the ranking should still
-      // show no big gap vs other flat-50% heroes. Probe by recomputing raw scores.
-      const withEnemyBattletag = scoreHeroForPick('Falstad', [], ['Valla'], data, null)
-      const withFakeBoost = scoreHeroForPick('Falstad', [], ['Valla'], data, null, 'alice#1')
-      // The prefilter must NOT have passed 'alice#1' here — so the two differ only
-      // if we wired it wrong.
-      expect(withEnemyBattletag).not.toBe(withFakeBoost)
-    }
+    const ranked = prefilterPicks(ss, data, 3)
+    // All heroes are 50% WR; no enemy player adj should apply. Ranking should
+    // be effectively a tie — assert Falstad isn't uniquely boosted.
+    const falstadScore = scoreHeroForPick('Falstad', [], ['Valla'], data, null)
+    const jainaScore = scoreHeroForPick('Jaina', [], ['Valla'], data, null)
+    expect(falstadScore).toBe(jainaScore)
+    expect(ranked.length).toBeGreaterThan(0)
   })
 })
 
 // ─── leaf eval ──────────────────────────────────────────────────────────────
 
-describe('evaluateLeaf applies player adjustment', () => {
-  it('adds per-player delta based on ourPickSteps → battletag mapping', () => {
+describe('evaluateLeaf applies player adjustment for completed picks', () => {
+  it('adds per-player delta for locked-in assignments', () => {
     const data = makeData({
-      heroStats: {
-        Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
-      },
+      heroStats: { Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 } },
       playerStats: {
         'alice#1': { Jaina: { games: 50, wins: 35, winRate: 70, mawp: 65 } },
       },
     })
-
-    // Build a state where Alice (step 4) picked Jaina.
     const ss = createSearchState(makeState({
       currentStep: 8,
       playerAssignments: { 4: 'alice#1' },
@@ -326,22 +298,16 @@ describe('evaluateLeaf applies player adjustment', () => {
         4: 'Jaina', 5: 'Raynor', 6: 'Li-Ming', 7: 'Valla',
       },
     }))
-
-    const valWithPlayer = evaluateLeaf(ss, data)
-
-    // Drop assignments and recompute
-    const ssNoAssign = { ...ss, playerAssignments: undefined }
-    const valWithout = evaluateLeaf(ssNoAssign, data)
-
-    // Player adj should be ~+15 on Jaina (65 MAWP − 50 base WR → +15)
-    expect(valWithPlayer - valWithout).toBeCloseTo(15, 1)
+    const withPlayer = evaluateLeaf(ss, data)
+    const ssNoAssign: SearchState = { ...ss, playerAssignments: undefined }
+    const withoutPlayer = evaluateLeaf(ssNoAssign, data)
+    // Deduped formula: (65-50) - (50-50) = +15
+    expect(withPlayer - withoutPlayer).toBeCloseTo(15, 1)
   })
 
-  it('ignores players without stats on their picked hero', () => {
+  it('does nothing when a player has no stats on their picked hero', () => {
     const data = makeData({
-      heroStats: {
-        Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
-      },
+      heroStats: { Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 } },
       playerStats: {
         'alice#1': { Raynor: { games: 50, wins: 35, winRate: 70, mawp: 65 } },
       },
@@ -351,7 +317,6 @@ describe('evaluateLeaf applies player adjustment', () => {
       playerAssignments: { 4: 'alice#1' },
       selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.', 4: 'Jaina' },
     }))
-    // Alice has no Jaina stats — no adjustment should apply
     const v = evaluateLeaf(ss, data)
     const vNoAssign = evaluateLeaf({ ...ss, playerAssignments: undefined }, data)
     expect(v).toBeCloseTo(vNoAssign, 5)
@@ -360,7 +325,7 @@ describe('evaluateLeaf applies player adjustment', () => {
 
 // ─── End-to-end ─────────────────────────────────────────────────────────────
 
-describe('iterativeDeepeningSearch respects player assignments', () => {
+describe('iterativeDeepeningSearch respects player slots', () => {
   const flatHeroes = [
     'Muradin', 'Johanna', 'Valla', 'Jaina', 'Malfurion',
     'Diablo', 'Raynor', 'Brightwing', 'Thrall', "Kael'thas",
@@ -380,51 +345,67 @@ describe('iterativeDeepeningSearch respects player assignments', () => {
 
   it('picks a player-strong hero that would otherwise tie', async () => {
     const data = makeFlatData()
-    // Alice (assigned to step 4) is an expert on Falstad
     data.playerStats = {
       'alice#1': {
         Falstad: { games: 200, wins: 140, winRate: 70, mawp: 70 },
       },
     }
-
     const ss = createSearchState(makeState({
-      currentStep: 4, // first A pick
-      playerAssignments: { 4: 'alice#1' },
+      currentStep: 4,
       selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: "Anub'arak" },
+      playerSlots: [{ battletag: 'alice#1' }, { battletag: 'bob#2' }],
     }))
-
     const results = await iterativeDeepeningSearch(
       ss, data,
       { maxDepth: 2, ourPickWidth: 5, oppPickWidth: 3, timeBudgetMs: 5000 },
       predict,
     )
-
-    expect(results.length).toBeGreaterThan(0)
     expect(results[0].hero).toBe('Falstad')
   })
 
-  it('does NOT prefer player-strong hero when assignments are omitted', async () => {
+  it('does NOT prefer player-strong hero when no slots are configured', async () => {
     const data = makeFlatData()
     data.playerStats = {
       'alice#1': {
         Falstad: { games: 200, wins: 140, winRate: 70, mawp: 70 },
       },
     }
-
     const ss = createSearchState(makeState({
       currentStep: 4,
-      // no playerAssignments
       selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: "Anub'arak" },
+      // no playerSlots
     }))
-
     const results = await iterativeDeepeningSearch(
       ss, data,
       { maxDepth: 2, ourPickWidth: 5, oppPickWidth: 3, timeBudgetMs: 5000 },
       predict,
     )
-
-    // With all heroes at 50% WR and no player signal, Falstad has no reason
-    // to top the ranking.
     expect(results[0].hero).not.toBe('Falstad')
+  })
+})
+
+// ─── scorePlayerStrength sanity (the UI byline source) ──────────────────────
+
+describe('scorePlayerStrength (used by UI byline)', () => {
+  it('returns null reason when no player beats 2pt threshold', () => {
+    const data = makeData({
+      playerStats: {
+        'alice#1': { Jaina: { games: 50, wins: 26, winRate: 52, mawp: 51 } },
+      },
+    })
+    const res = scorePlayerStrength('Jaina', ['alice#1'], data)
+    expect(res.reason).toBeNull()
+  })
+
+  it('returns the best-fit player with a populated label', () => {
+    const data = makeData({
+      playerStats: {
+        'alice#1': { Jaina: { games: 50, wins: 35, winRate: 70, mawp: 65 } },
+      },
+    })
+    const res = scorePlayerStrength('Jaina', ['alice#1'], data)
+    expect(res.player).toBe('alice#1')
+    expect(res.reason?.type).toBe('player_strong')
+    expect(res.reason?.delta).toBeCloseTo(15, 1)
   })
 })
