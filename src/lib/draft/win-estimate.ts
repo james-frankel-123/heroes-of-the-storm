@@ -55,17 +55,30 @@ export function computeTeamWinEstimate(
   // Track which pick indices have player overrides so we can skip their hero base WR
   const playerOverrideIndices = new Set<number>()
 
-  // 4. Player strength — compute first so we know which indices to skip for hero WR
+  // 4. Player strength — compute first so we know which indices to skip for hero WR.
+  //    When a (player, hero, map) triple has ≥25 games, use that map-specific winrate
+  //    directly; otherwise fall back to the shrunk overall MAWP (≥10-game gate).
   if (playerAssignments) {
     for (let i = 0; i < picks.length; i++) {
       const bt = playerAssignments[i]
       if (!bt) continue
-      const stats = data.playerStats[bt]?.[picks[i]]
-      if (!stats || stats.games < 10) continue
 
-      const adjMawp = stats.mawp != null
-        ? confidenceAdjustedMawp(stats.mawp, stats.games, 30)
-        : (stats.wins / stats.games) * 100
+      let adjMawp: number | null = null
+      if (map) {
+        const mapStats = data.playerMapStats[bt]?.[picks[i]]
+        if (mapStats && mapStats.games >= 25) {
+          adjMawp = mapStats.winRate
+        }
+      }
+      if (adjMawp == null) {
+        const stats = data.playerStats[bt]?.[picks[i]]
+        if (stats && stats.games >= 10) {
+          adjMawp = stats.mawp != null
+            ? confidenceAdjustedMawp(stats.mawp, stats.games, 30)
+            : (stats.wins / stats.games) * 100
+        }
+      }
+      if (adjMawp == null) continue
 
       const mawpDelta = adjMawp - 50
       const resolved = getHeroWinRate(picks[i], data, map)

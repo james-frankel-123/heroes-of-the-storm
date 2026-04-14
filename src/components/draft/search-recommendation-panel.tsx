@@ -33,6 +33,8 @@ interface SearchRecommendationPanelProps {
   /** Optional: enables the "which player should draft this" byline */
   draftData?: DraftData
   availableBattletags?: string[]
+  /** Current map — enables map-specific (≥25-game) override in byline */
+  map?: string | null
 }
 
 export function SearchRecommendationPanel({
@@ -47,6 +49,7 @@ export function SearchRecommendationPanel({
   unavailable,
   draftData,
   availableBattletags,
+  map,
 }: SearchRecommendationPanelProps) {
   const canShowPlayerByline =
     isOurTurn && !isBanPhase && !!draftData && !!availableBattletags && availableBattletags.length > 0
@@ -103,7 +106,7 @@ export function SearchRecommendationPanel({
                 : 'text-gaming-danger'
 
             const playerInfo = canShowPlayerByline
-              ? scorePlayerStrength(rec.hero, availableBattletags!, draftData!)
+              ? scorePlayerStrength(rec.hero, availableBattletags!, draftData!, map ?? null)
               : null
 
             return (

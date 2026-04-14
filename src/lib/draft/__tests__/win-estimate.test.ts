@@ -241,6 +241,58 @@ describe('computeTeamWinEstimate', () => {
     expect(result.winPct).toBe(62)
   })
 
+  it('prefers map-specific player winrate over MAWP when ≥25 games on pair', () => {
+    const data = makeData({
+      heroStats: {
+        Falstad: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
+      },
+      playerStats: {
+        'django#1': {
+          // Overall MAWP suggests +5
+          Falstad: { games: 200, wins: 108, winRate: 54, mawp: 55 },
+        },
+      },
+      playerMapStats: {
+        'django#1': {
+          // Map-specific winrate is 65% with 38 games → should override
+          Falstad: { winRate: 65, games: 38 },
+        },
+      },
+    })
+    const result = computeTeamWinEstimate(
+      ['Falstad'], [], data, 'Cursed Hollow',
+      { 0: 'django#1' },
+    )
+    // heroWR: 50-50 = 0
+    // playerAdj uses map WR: (65-50) - (50-50) = +15
+    expect(result.breakdown.heroWR).toBe(0)
+    expect(result.breakdown.playerAdj).toBe(15)
+  })
+
+  it('falls back to MAWP when map sample is under 25 games', () => {
+    const data = makeData({
+      heroStats: {
+        Falstad: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
+      },
+      playerStats: {
+        'django#1': {
+          Falstad: { games: 200, wins: 108, winRate: 54, mawp: 55 },
+        },
+      },
+      playerMapStats: {
+        'django#1': {
+          Falstad: { winRate: 80, games: 20 }, // high WR but below threshold
+        },
+      },
+    })
+    const result = computeTeamWinEstimate(
+      ['Falstad'], [], data, 'Cursed Hollow',
+      { 0: 'django#1' },
+    )
+    // Should fall back to overall MAWP (55), not the 80% map winrate
+    expect(result.breakdown.playerAdj).toBe(5)
+  })
+
   it('ignores player assignment with too few games', () => {
     const data = makeData({
       heroStats: {

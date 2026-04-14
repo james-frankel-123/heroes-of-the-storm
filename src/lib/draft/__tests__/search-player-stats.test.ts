@@ -386,6 +386,50 @@ describe('iterativeDeepeningSearch respects player slots', () => {
 
 // ─── scorePlayerStrength sanity (the UI byline source) ──────────────────────
 
+describe('scorePlayerStrength with map-specific override', () => {
+  it('uses map-specific winrate when ≥25 games and labels with (map)', () => {
+    const data = makeData({
+      playerStats: {
+        'django#1': { Falstad: { games: 200, wins: 108, winRate: 54, mawp: 55 } },
+      },
+      playerMapStats: {
+        'django#1': { Falstad: { winRate: 65, games: 38 } },
+      },
+    })
+    const res = scorePlayerStrength('Falstad', ['django#1'], data, 'Cursed Hollow')
+    expect(res.player).toBe('django#1')
+    expect(res.reason?.delta).toBeCloseTo(15, 1)
+    expect(res.reason?.label).toContain('(map)')
+  })
+
+  it('falls back to MAWP when map sample is under 25 games', () => {
+    const data = makeData({
+      playerStats: {
+        'django#1': { Falstad: { games: 200, wins: 108, winRate: 54, mawp: 55 } },
+      },
+      playerMapStats: {
+        'django#1': { Falstad: { winRate: 80, games: 20 } },
+      },
+    })
+    const res = scorePlayerStrength('Falstad', ['django#1'], data, 'Cursed Hollow')
+    expect(res.reason?.delta).toBeCloseTo(5, 1)
+    expect(res.reason?.label).not.toContain('(map)')
+  })
+
+  it('ignores map data when no map is provided', () => {
+    const data = makeData({
+      playerStats: {
+        'django#1': { Falstad: { games: 200, wins: 108, winRate: 54, mawp: 55 } },
+      },
+      playerMapStats: {
+        'django#1': { Falstad: { winRate: 80, games: 50 } },
+      },
+    })
+    const res = scorePlayerStrength('Falstad', ['django#1'], data, null)
+    expect(res.reason?.delta).toBeCloseTo(5, 1)
+  })
+})
+
 describe('scorePlayerStrength (used by UI byline)', () => {
   it('returns null reason when no player beats 2pt threshold', () => {
     const data = makeData({

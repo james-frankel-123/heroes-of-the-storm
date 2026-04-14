@@ -686,6 +686,7 @@ export function DraftClient({
                   unavailable={unavailableHeroes}
                   draftData={draftData ?? undefined}
                   availableBattletags={availableBattletags}
+                  map={state.map}
                 />
               ) : (
                 // Opponent turn: show GD model predictions, pad with greedy

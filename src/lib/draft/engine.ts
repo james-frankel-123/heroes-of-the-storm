@@ -227,37 +227,68 @@ function scoreSynergies(
   return { totalDelta: Math.round(avg * W.synergy * 10) / 10, reasons }
 }
 
+/**
+ * Minimum games on a (player, hero, map) triple before we trust map-specific
+ * performance over the overall hero MAWP. Above this, we substitute the raw
+ * map winrate directly (no further shrinkage — the sample is strong enough).
+ */
+export const PLAYER_MAP_HERO_MIN_GAMES = 25
+
+/**
+ * Resolve a player's "effective WR" on a candidate hero, preferring a
+ * map-specific sample when it clears PLAYER_MAP_HERO_MIN_GAMES. Otherwise
+ * falls back to confidence-adjusted overall MAWP (≥10-game gate).
+ * Returns `{ value, source }` or null if no trusted signal is available.
+ */
+function resolvePlayerHeroWR(
+  battletag: string,
+  hero: string,
+  data: DraftData,
+  map: string | null,
+): { value: number; source: 'map' | 'overall' } | null {
+  if (map) {
+    const mapStats = data.playerMapStats[battletag]?.[hero]
+    if (mapStats && mapStats.games >= PLAYER_MAP_HERO_MIN_GAMES) {
+      return { value: mapStats.winRate, source: 'map' }
+    }
+  }
+  const stats = data.playerStats[battletag]?.[hero]
+  if (!stats || stats.games < 10) return null
+  const value = stats.mawp != null
+    ? confidenceAdjustedMawp(stats.mawp, stats.games, 30)
+    : (stats.wins / stats.games) * 100
+  return { value, source: 'overall' }
+}
+
 export function scorePlayerStrength(
   hero: string,
   availableBattletags: string[],
-  data: DraftData
+  data: DraftData,
+  map: string | null = null,
 ): { reason: RecommendationReason | null; player: string | null } {
   if (availableBattletags.length === 0) return { reason: null, player: null }
 
   let bestDelta = 0
   let bestPlayer: string | null = null
+  let bestSource: 'map' | 'overall' = 'overall'
 
   for (const bt of availableBattletags) {
-    const stats = data.playerStats[bt]?.[hero]
-    if (!stats || stats.games < 10) continue
-
-    const adjMawp = stats.mawp != null
-      ? confidenceAdjustedMawp(stats.mawp, stats.games, 30)
-      : (stats.wins / stats.games) * 100
-
-    const delta = Math.round((adjMawp - 50) * 10) / 10
-
+    const resolved = resolvePlayerHeroWR(bt, hero, data, map)
+    if (!resolved) continue
+    const delta = Math.round((resolved.value - 50) * 10) / 10
     if (delta > bestDelta) {
       bestDelta = delta
       bestPlayer = bt
+      bestSource = resolved.source
     }
   }
 
   if (bestPlayer && bestDelta >= 2) {
+    const suffix = bestSource === 'map' ? ' (map)' : ''
     return {
       reason: {
         type: 'player_strong',
-        label: `${bestPlayer.split('#')[0]} ${fmtDelta(bestDelta)} on ${hero}`,
+        label: `${bestPlayer.split('#')[0]} ${fmtDelta(bestDelta)} on ${hero}${suffix}`,
         delta: bestDelta,
       },
       player: bestPlayer,
@@ -410,9 +441,10 @@ export function scoreHeroForPick(
   }
 
   // 6. Best-fit player strength (matches Stats mode's recommendation ranking).
-  // scorePlayerStrength applies a ≥2 delta threshold internally.
+  // scorePlayerStrength applies a ≥2 delta threshold internally and prefers
+  // map-specific (player,hero,map) samples over overall MAWP when available.
   if (availableBattletags && availableBattletags.length > 0) {
-    const { reason } = scorePlayerStrength(hero, availableBattletags, data)
+    const { reason } = scorePlayerStrength(hero, availableBattletags, data, map)
     if (reason) score += reason.delta
   }
 
@@ -575,9 +607,9 @@ export function generateRecommendations(
     netDelta += synergyDelta
     for (const r of synergyReasons) { reasons.push(r) }
 
-    // 4. Player strength — data-backed
+    // 4. Player strength — data-backed (map-specific ≥25 games overrides MAWP)
     const { reason: playerReason, player } = scorePlayerStrength(
-      hero, availableBattletags, data
+      hero, availableBattletags, data, state.map
     )
     if (playerReason) { reasons.push(playerReason); netDelta += playerReason.delta }
 
