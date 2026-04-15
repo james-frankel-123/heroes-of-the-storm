@@ -5,6 +5,7 @@ import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
 import type { DraftRecommendation, RecommendationReason } from '@/lib/draft/types'
+import { HEX_CLIP, METALLIC_FRAME } from './hex/constants'
 
 function roleBadgeVariant(role: string | null) {
   switch (role) {
@@ -57,11 +58,14 @@ export function RecommendationPanel({
       : 'Likely Enemy Picks'
 
   return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-white">{title}</h3>
+    <div
+      className="space-y-2 rounded-sm p-3 border border-[#3a4050]"
+      style={{ background: 'rgba(15, 20, 48, 0.6)' }}
+    >
+      <h3 className="text-sm tracking-[0.2em] text-[#d6dbe0] font-light">{title.toUpperCase()}</h3>
 
       {recommendations.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-[#8b9bc8]">
           Select a map to see recommendations
         </p>
       ) : (
@@ -72,33 +76,33 @@ export function RecommendationPanel({
             .map((rec) => {
               const role = getHeroRole(rec.hero)
               const deltaColor = rec.netDelta >= 3
-                ? 'text-gaming-success'
+                ? 'text-[#6fd46f]'
                 : rec.netDelta >= 0
-                  ? 'text-gaming-warning'
-                  : 'text-gaming-danger'
+                  ? 'text-[#d4b85a]'
+                  : 'text-[#d46b6b]'
 
               return (
                 <button
                   key={rec.hero}
                   onClick={() => onSelect(rec.hero)}
                   className={cn(
-                    'w-full flex items-start gap-2 p-2 rounded-md border text-left transition-colors',
+                    'w-full flex items-start gap-2 p-2 rounded border text-left transition-colors',
                     isBanPhase
-                      ? 'border-border hover:border-gaming-danger/60 hover:bg-gaming-danger/10'
-                      : 'border-border hover:border-primary/60 hover:bg-primary/10'
+                      ? 'border-[#3a2222] bg-[#0a0d1f]/40 hover:border-[#d46b6b]/60 hover:bg-[#d46b6b]/10'
+                      : 'border-[#3a4050] bg-[#0a0d1f]/40 hover:border-[#6b8dd4]/60 hover:bg-[#6b8dd4]/10'
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={heroImageSrc(rec.hero)}
-                    alt=""
-                    loading="lazy"
-                    className="w-8 h-8 rounded shrink-0 object-cover"
-                  />
+                  <div className="relative w-9 h-9 shrink-0">
+                    <div className="absolute inset-0" style={{ clipPath: HEX_CLIP, background: METALLIC_FRAME }} />
+                    <div className="absolute inset-[1.5px] bg-[#0a0d1f] overflow-hidden" style={{ clipPath: HEX_CLIP }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={heroImageSrc(rec.hero)} alt="" loading="lazy" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
                   <div className="flex-1 min-w-0 space-y-1">
                     {/* Hero name + role + net delta */}
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium truncate">
+                      <span className="text-sm font-medium truncate text-[#e8ecef]">
                         {rec.hero}
                       </span>
                       {role && (
