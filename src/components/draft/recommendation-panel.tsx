@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
+import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
 import type { DraftRecommendation, RecommendationReason } from '@/lib/draft/types'
 
@@ -87,6 +88,13 @@ export function RecommendationPanel({
                       : 'border-border hover:border-primary/60 hover:bg-primary/10'
                   )}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroImageSrc(rec.hero)}
+                    alt=""
+                    loading="lazy"
+                    className="w-8 h-8 rounded shrink-0 object-cover"
+                  />
                   <div className="flex-1 min-w-0 space-y-1">
                     {/* Hero name + role + net delta */}
                     <div className="flex items-center gap-1.5">

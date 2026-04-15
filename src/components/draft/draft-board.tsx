@@ -3,6 +3,7 @@
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
 import type { DraftState } from '@/lib/draft/types'
 import { getHeroRole } from '@/lib/data/hero-roles'
+import { heroImageSrc } from '@/lib/data/hero-images'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
@@ -245,6 +246,13 @@ function Slot({
     >
       {hero ? (
         <div className="flex items-center gap-1 px-2 truncate">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={heroImageSrc(hero)}
+            alt=""
+            loading="lazy"
+            className={cn('rounded shrink-0 object-cover', isBan ? 'w-5 h-5 opacity-60' : 'w-6 h-6')}
+          />
           <span className="truncate">{hero}</span>
           {role && !isBan && (
             <Badge

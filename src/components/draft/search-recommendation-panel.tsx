@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
+import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
 import type { ExpectimaxResult } from '@/lib/draft/expectimax/types'
 import type { DraftData } from '@/lib/draft/types'
@@ -123,10 +124,17 @@ export function SearchRecommendationPanel({
                 onClick={() => onSelect(rec.hero)}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">{rec.hero}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={heroImageSrc(rec.hero)}
+                      alt=""
+                      loading="lazy"
+                      className="w-8 h-8 rounded shrink-0 object-cover"
+                    />
+                    <span className="text-sm font-medium text-white truncate">{rec.hero}</span>
                     {role && (
-                      <Badge variant={roleBadgeVariant(role)} className="text-[10px] px-1 py-0">
+                      <Badge variant={roleBadgeVariant(role)} className="text-[10px] px-1 py-0 shrink-0">
                         {role}
                       </Badge>
                     )}
