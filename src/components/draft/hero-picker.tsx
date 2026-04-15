@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { HERO_ROLES, getHeroRole, type HeroRole } from '@/lib/data/hero-roles'
+import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
 
 function roleBadgeVariant(role: string | null) {
@@ -126,6 +127,16 @@ export function HeroPicker({
                     : 'border-border hover:border-primary/60 hover:bg-primary/10 cursor-pointer'
               )}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={heroImageSrc(hero)}
+                alt=""
+                loading="lazy"
+                className={cn(
+                  'w-10 h-10 rounded object-cover',
+                  isUnavailable && 'grayscale'
+                )}
+              />
               <span
                 className={cn(
                   'font-medium truncate w-full text-center text-[11px] leading-tight',
