@@ -305,6 +305,61 @@ describe('evaluateLeaf applies player adjustment for completed picks', () => {
     expect(withPlayer - withoutPlayer).toBeCloseTo(15, 1)
   })
 
+  it('greedily attributes speculative picks to best-fit available player', () => {
+    const data = makeData({
+      heroStats: { Malthael: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 } },
+      playerStats: {
+        'sirw#1': { Malthael: { games: 660, wins: 403, winRate: 61, mawp: 60.6 } },
+      },
+      playerMapStats: {
+        'sirw#1': { 'Tomb of the Spider Queen': { Malthael: { winRate: 70.8, games: 113 } } },
+      },
+    })
+    // Speculative state: ourPicks contains Malthael at step 4, no locked assignment.
+    // playerSlots includes sirw#1 — leaf eval should attribute Malthael to sirw#1
+    // and pick up the +20.8 (map override) bonus.
+    const ss = createSearchState(makeState({
+      currentStep: 5, // we have just speculatively picked at step 4
+      map: 'Tomb of the Spider Queen',
+      selections: { 0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.', 4: 'Malthael' },
+      playerSlots: [{ battletag: 'sirw#1' }, { battletag: 'bob#2' }],
+      // No playerAssignments — pick at step 4 was speculative (search-internal)
+    }))
+    const v = evaluateLeaf(ss, data)
+    // playerAdj = (70.8 - 50) - heroBaseDelta (0) = +20.8. Other terms = 0.
+    // winPct ≈ 50 + 20.8 = 70.8 → delta from 50 ≈ 20.8
+    expect(v).toBeCloseTo(20.8, 1)
+  })
+
+  it('greedy attribution does not double-assign a player across picks', () => {
+    const data = makeData({
+      heroStats: {
+        Malthael: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
+        Gazlowe: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 },
+      },
+      playerStats: {
+        // sirw#1 is good at both heroes; should be consumed by the first pick
+        'sirw#1': {
+          Malthael: { games: 200, wins: 142, winRate: 71, mawp: 70 },
+          Gazlowe:  { games: 200, wins: 130, winRate: 65, mawp: 65 },
+        },
+      },
+    })
+    const ss = createSearchState(makeState({
+      currentStep: 8,
+      selections: {
+        0: 'Muradin', 1: 'Johanna', 2: 'Diablo', 3: 'E.T.C.',
+        4: 'Malthael', 5: 'Raynor', 6: 'Li-Ming', 7: 'Gazlowe',
+      },
+      playerSlots: [{ battletag: 'sirw#1' }, { battletag: 'bob#2' }],
+    }))
+    // sirw goes to Malthael (higher delta). Gazlowe gets bob (no stats → no bonus).
+    // Total playerAdj should be ~ +20 (Malthael only), not ~ +35.
+    const v = evaluateLeaf(ss, data)
+    expect(v).toBeGreaterThan(15)
+    expect(v).toBeLessThan(25)
+  })
+
   it('does nothing when a player has no stats on their picked hero', () => {
     const data = makeData({
       heroStats: { Jaina: { winRate: 50, pickRate: 10, banRate: 5, games: 1000 } },

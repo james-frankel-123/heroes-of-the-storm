@@ -240,6 +240,15 @@ export const PLAYER_MAP_HERO_MIN_GAMES = 25
  * falls back to confidence-adjusted overall MAWP (≥10-game gate).
  * Returns `{ value, source }` or null if no trusted signal is available.
  */
+export function resolvePlayerHeroWRForLeafEval(
+  battletag: string,
+  hero: string,
+  data: DraftData,
+  map: string | null,
+): { value: number; source: 'map' | 'overall' } | null {
+  return resolvePlayerHeroWR(battletag, hero, data, map)
+}
+
 function resolvePlayerHeroWR(
   battletag: string,
   hero: string,
