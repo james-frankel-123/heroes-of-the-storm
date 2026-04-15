@@ -4,6 +4,9 @@ import { useReducer, useMemo, useCallback, useState, useEffect } from 'react'
 import { computeTeamWinEstimate } from '@/lib/draft/win-estimate'
 import { TierSelector } from '@/components/shared/tier-selector'
 import { DraftBoard } from '@/components/draft/draft-board'
+import { BanBar } from '@/components/draft/hex/BanBar'
+import { TeamColumn } from '@/components/draft/hex/TeamColumn'
+import { buildDraftView } from '@/components/draft/hex/draft-view-model'
 import { HeroPicker } from '@/components/draft/hero-picker'
 import { RecommendationPanel } from '@/components/draft/recommendation-panel'
 import { AIRecommendationPanel } from '@/components/draft/ai-recommendation-panel'
@@ -549,15 +552,25 @@ export function DraftClient({
   // ---------------------------------------------------------------------------
   // Drafting / Complete phase
   // ---------------------------------------------------------------------------
+  const draftView = buildDraftView(state)
+  const ourPicksView = state.ourTeam === 'A' ? draftView.picksA : draftView.picksB
+  const enemyPicksView = state.ourTeam === 'A' ? draftView.picksB : draftView.picksA
   return (
     <div className="space-y-4">
+      {/* HotS-inspired arena wrapper — dark navy gradient background */}
+      <div
+        className="rounded-lg p-4 sm:p-6 space-y-4"
+        style={{
+          background: 'radial-gradient(ellipse at top, #1a1f3a 0%, #0a0d1f 70%)',
+        }}
+      >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">
             Draft &mdash; {state.map}
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-[#8b9bc8] text-sm">
             {state.phase === 'complete'
               ? 'Draft complete'
               : currentStep
@@ -629,38 +642,46 @@ export function DraftClient({
         </div>
       </div>
 
-      {/* Draft board */}
-      <DraftBoard
-        state={state}
-        currentStep={state.currentStep}
-        availableBattletags={availableBattletags}
-        playerAssignments={state.playerAssignments}
-        onAssignPlayer={(stepIdx, bt) =>
-          dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })
-        }
-        teamAWinPct={aiMode && aiValueEstimate !== null
-          ? Math.round((state.ourTeam === 'A' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
-          : state.ourTeam === 'A' ? ourWinPct : enemyWinPct}
-        teamBWinPct={aiMode && aiValueEstimate !== null
-          ? Math.round((state.ourTeam === 'B' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
-          : state.ourTeam === 'B' ? ourWinPct : enemyWinPct}
+      {/* Ban bar */}
+      <BanBar
+        bansA={draftView.bansA}
+        bansB={draftView.bansB}
+        ourTeam={state.ourTeam}
       />
 
-      {/* Main drafting area */}
+      {/* Win % banner */}
+      <div className="flex items-center justify-center gap-6 text-sm">
+        <WinPctBadge
+          label="YOUR TEAM"
+          pct={aiMode && aiValueEstimate !== null
+            ? Math.round((state.ourTeam === 'A' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
+            : ourWinPct}
+          accent="blue"
+        />
+        <WinPctBadge
+          label="ENEMY"
+          pct={aiMode && aiValueEstimate !== null
+            ? Math.round((state.ourTeam === 'B' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
+            : enemyWinPct}
+          accent="red"
+        />
+      </div>
+
+      {/* Main drafting area — 3 column hex layout */}
       {state.phase !== 'complete' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Hero picker — 2/3 */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_220px] gap-6">
+          {/* Our team column */}
+          <TeamColumn picks={ourPicksView} accent="blue" label="YOUR TEAM" />
+
+          {/* Center — picker + recs */}
+          <div className="space-y-4">
             <HeroPicker
               unavailable={unavailableHeroes}
               onSelect={handleSelectHero}
               currentStepType={currentStep?.type ?? 'pick'}
               isOurTurn={currentStep?.team === state.ourTeam}
             />
-          </div>
-
-          {/* Recommendations — 1/3 */}
-          <div>
+            <div>
             {draftMode === 'ai' ? (
               <AIRecommendationPanel
                 state={state}
@@ -710,9 +731,33 @@ export function DraftClient({
                 unavailable={unavailableHeroes}
               />
             )}
+            </div>
           </div>
+
+          {/* Enemy team column */}
+          <TeamColumn picks={enemyPicksView} accent="red" label="ENEMY" />
         </div>
       )}
+
+      </div>
+      {/* End HotS arena wrapper */}
+
+      {/* Detailed draft board (keeps player-assignment controls) */}
+      <DraftBoard
+        state={state}
+        currentStep={state.currentStep}
+        availableBattletags={availableBattletags}
+        playerAssignments={state.playerAssignments}
+        onAssignPlayer={(stepIdx, bt) =>
+          dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })
+        }
+        teamAWinPct={aiMode && aiValueEstimate !== null
+          ? Math.round((state.ourTeam === 'A' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
+          : state.ourTeam === 'A' ? ourWinPct : enemyWinPct}
+        teamBWinPct={aiMode && aiValueEstimate !== null
+          ? Math.round((state.ourTeam === 'B' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
+          : state.ourTeam === 'B' ? ourWinPct : enemyWinPct}
+      />
 
       {/* Complete summary */}
       {state.phase === 'complete' && (
@@ -763,6 +808,23 @@ export function DraftClient({
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+function WinPctBadge({
+  label, pct, accent,
+}: { label: string; pct: number | null; accent: 'blue' | 'red' }) {
+  const tint = accent === 'blue' ? '#6b8dd4' : '#d46b6b'
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] tracking-[0.2em]" style={{ color: tint }}>{label}</span>
+      <span
+        className="text-lg font-bold tabular-nums"
+        style={{ color: pct === null ? '#6b7078' : '#e0e4ea' }}
+      >
+        {pct === null ? '—' : `${pct.toFixed(1)}%`}
+      </span>
     </div>
   )
 }
