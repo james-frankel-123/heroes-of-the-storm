@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
+import { HEX_CLIP, METALLIC_FRAME } from './hex/constants'
 import type { ExpectimaxResult } from '@/lib/draft/expectimax/types'
 import type { DraftData } from '@/lib/draft/types'
 import { scorePlayerStrength } from '@/lib/draft/engine'
@@ -70,15 +71,20 @@ export function SearchRecommendationPanel({
   const filtered = merged
 
   return (
-    <div className="space-y-2">
+    <div
+      className="space-y-2 rounded-sm p-3 border border-[#3a4050]"
+      style={{ background: 'rgba(15, 20, 48, 0.6)' }}
+    >
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <h3 className="text-sm tracking-[0.2em] text-[#d6dbe0] font-light">
+          {title.toUpperCase()}
+        </h3>
         {searching ? (
-          <span className="text-xs text-blue-400 animate-pulse">
+          <span className="text-xs text-[#6b8dd4] animate-pulse">
             {statusText || `Searching depth ${(searchDepth ?? 0) + 2}...`}
           </span>
         ) : searchDepth ? (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-[#8b9bc8]">
             Depth {searchDepth}
           </span>
         ) : null}
@@ -101,10 +107,10 @@ export function SearchRecommendationPanel({
             const role = getHeroRole(rec.hero)
             const isGreedyPad = rec.depth === -1
             const deltaColor = rec.score >= 3
-              ? 'text-gaming-success'
+              ? 'text-[#6fd46f]'
               : rec.score >= 0
-                ? 'text-gaming-warning'
-                : 'text-gaming-danger'
+                ? 'text-[#d4b85a]'
+                : 'text-[#d46b6b]'
 
             const playerInfo = canShowPlayerByline
               ? scorePlayerStrength(rec.hero, availableBattletags!, draftData!, map ?? null)
@@ -114,25 +120,25 @@ export function SearchRecommendationPanel({
               <button
                 key={rec.hero}
                 className={cn(
-                  'w-full text-left px-3 py-2 rounded-md border transition-all',
+                  'w-full text-left px-3 py-2 rounded border transition-all',
                   'hover:scale-[1.01] active:scale-[0.99]',
                   isGreedyPad && 'opacity-60',
                   isBanPhase
-                    ? 'border-red-900/40 hover:border-red-700/60 hover:bg-red-950/30'
-                    : 'border-border/40 hover:border-violet-700/60 hover:bg-violet-950/20'
+                    ? 'border-[#3a2222] bg-[#0a0d1f]/40 hover:border-[#d46b6b]/60 hover:bg-[#d46b6b]/10'
+                    : 'border-[#3a4050] bg-[#0a0d1f]/40 hover:border-[#6b8dd4]/60 hover:bg-[#6b8dd4]/10'
                 )}
                 onClick={() => onSelect(rec.hero)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={heroImageSrc(rec.hero)}
-                      alt=""
-                      loading="lazy"
-                      className="w-8 h-8 rounded shrink-0 object-cover"
-                    />
-                    <span className="text-sm font-medium text-white truncate">{rec.hero}</span>
+                    <div className="relative w-9 h-9 shrink-0">
+                      <div className="absolute inset-0" style={{ clipPath: HEX_CLIP, background: METALLIC_FRAME }} />
+                      <div className="absolute inset-[1.5px] bg-[#0a0d1f] overflow-hidden" style={{ clipPath: HEX_CLIP }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={heroImageSrc(rec.hero)} alt="" loading="lazy" className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-[#e8ecef] truncate">{rec.hero}</span>
                     {role && (
                       <Badge variant={roleBadgeVariant(role)} className="text-[10px] px-1 py-0 shrink-0">
                         {role}

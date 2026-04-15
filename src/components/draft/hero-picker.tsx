@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { HERO_ROLES, getHeroRole, type HeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
+import { HEX_CLIP, METALLIC_FRAME } from './hex/constants'
 
 function roleBadgeVariant(role: string | null) {
   switch (role) {
@@ -63,16 +64,19 @@ export function HeroPicker({
   }, [search, roleFilter])
 
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3 rounded-sm p-3 border border-[#3a4050]"
+      style={{ background: 'rgba(15, 20, 48, 0.6)' }}
+    >
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white">
+        <h3 className="text-sm tracking-[0.2em] text-[#d6dbe0] font-light">
           {currentStepType === 'ban'
             ? isOurTurn
-              ? 'Select a hero to ban'
-              : 'Select enemy ban'
+              ? 'SELECT A HERO TO BAN'
+              : 'SELECT ENEMY BAN'
             : isOurTurn
-              ? 'Pick a hero for your team'
-              : 'Select enemy pick'}
+              ? 'PICK A HERO FOR YOUR TEAM'
+              : 'SELECT ENEMY PICK'}
         </h3>
       </div>
 
@@ -82,7 +86,7 @@ export function HeroPicker({
           placeholder="Search heroes..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs h-8 text-sm"
+          className="max-w-xs h-8 text-sm bg-[#0a0d1f]/80 border-[#3a4050] text-[#d6dbe0] placeholder:text-[#6b7078]"
           autoFocus
         />
         <div className="flex flex-wrap gap-1">
@@ -91,10 +95,10 @@ export function HeroPicker({
               key={role}
               onClick={() => setRoleFilter(role)}
               className={cn(
-                'px-2 py-0.5 rounded text-[11px] font-medium transition-colors',
+                'px-2 py-0.5 rounded text-[11px] font-medium transition-colors border',
                 roleFilter === role
-                  ? 'bg-primary/20 text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  ? 'bg-[#d6dbe0]/10 text-[#e8ecef] border-[#d6dbe0]/40'
+                  : 'text-[#8b9bc8] border-transparent hover:text-[#d6dbe0] hover:bg-[#3a4050]/40'
               )}
             >
               {role}
@@ -103,8 +107,8 @@ export function HeroPicker({
         </div>
       </div>
 
-      {/* Hero grid */}
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-1.5 max-h-[400px] overflow-y-auto pr-1">
+      {/* Hero grid — hex thumbs */}
+      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-9 lg:grid-cols-10 gap-2 max-h-[400px] overflow-y-auto pr-1">
         {heroes.map((hero) => {
           const role = getHeroRole(hero)
           const isUnavailable = unavailable.has(hero)
@@ -119,28 +123,40 @@ export function HeroPicker({
               }}
               disabled={isUnavailable}
               className={cn(
-                'flex flex-col items-center gap-0.5 p-2 rounded-md border text-xs transition-colors',
+                'flex flex-col items-center gap-0.5 p-1 text-xs transition-all group',
                 isUnavailable
-                  ? 'opacity-25 cursor-not-allowed border-border/50 bg-muted/20'
-                  : currentStepType === 'ban'
-                    ? 'border-border hover:border-gaming-danger/60 hover:bg-gaming-danger/10 cursor-pointer'
-                    : 'border-border hover:border-primary/60 hover:bg-primary/10 cursor-pointer'
+                  ? 'opacity-30 cursor-not-allowed'
+                  : 'cursor-pointer hover:scale-[1.05]'
               )}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={heroImageSrc(hero)}
-                alt=""
-                loading="lazy"
-                className={cn(
-                  'w-10 h-10 rounded object-cover',
-                  isUnavailable && 'grayscale'
-                )}
-              />
+              <div className="relative w-11 h-11">
+                {/* Steel frame */}
+                <div
+                  className="absolute inset-0"
+                  style={{ clipPath: HEX_CLIP, background: METALLIC_FRAME }}
+                />
+                {/* Portrait */}
+                <div
+                  className="absolute inset-[2px] bg-[#0a0d1f] overflow-hidden"
+                  style={{ clipPath: HEX_CLIP }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroImageSrc(hero)}
+                    alt=""
+                    loading="lazy"
+                    className={cn(
+                      'w-full h-full object-cover',
+                      isUnavailable && 'grayscale',
+                      !isUnavailable && 'group-hover:brightness-125'
+                    )}
+                  />
+                </div>
+              </div>
               <span
                 className={cn(
-                  'font-medium truncate w-full text-center text-[11px] leading-tight',
-                  isUnavailable && 'line-through'
+                  'font-medium truncate w-full text-center text-[10px] leading-tight',
+                  isUnavailable ? 'line-through text-[#6b7078]' : 'text-[#d6dbe0]'
                 )}
               >
                 {hero}
@@ -148,7 +164,7 @@ export function HeroPicker({
               {role && (
                 <Badge
                   variant={roleBadgeVariant(role)}
-                  className="text-[7px] px-1 py-0"
+                  className="text-[7px] px-1 py-0 opacity-80"
                 >
                   {role.split(' ')[0]}
                 </Badge>

@@ -19,7 +19,7 @@ export function BanBar({ bansA, bansB, ourTeam, hexSize = 56 }: BanBarProps) {
   const enemyBans = ourTeam === 'A' ? bansB : bansA
 
   return (
-    <div className="flex items-center justify-center gap-8 pb-6 border-b border-[#d6dbe0]/20">
+    <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pb-6 border-b border-[#d6dbe0]/20">
       <BanGroup label="YOUR BANS" bans={ourBans} accent="blue" hexSize={hexSize} />
       <div className="text-[#d6dbe0]/50 text-xs tracking-widest">VS</div>
       <BanGroup label="ENEMY BANS" bans={enemyBans} accent="red" hexSize={hexSize} />

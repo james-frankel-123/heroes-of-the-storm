@@ -579,7 +579,7 @@ export function DraftClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-0.5 p-0.5 rounded-md border border-border bg-muted/30">
+          <div className="flex items-center gap-0.5 p-0.5 rounded border border-[#3a4050] bg-[#0a0d1f]/60">
             {(['stats', 'search', 'ai'] as DraftMode[]).map((mode) => (
               <button
                 key={mode}
@@ -588,11 +588,11 @@ export function DraftClient({
                   'px-2.5 py-1 rounded text-xs font-medium transition-colors',
                   draftMode === mode
                     ? mode === 'ai'
-                      ? 'bg-violet-500/20 text-violet-300 border border-violet-500'
+                      ? 'bg-[#b48ad4]/20 text-[#b48ad4] border border-[#b48ad4]/60'
                       : mode === 'search'
-                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500'
-                        : 'bg-background text-foreground border border-border shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-[#6b8dd4]/20 text-[#6b8dd4] border border-[#6b8dd4]/60'
+                        : 'bg-[#d6dbe0]/10 text-[#e8ecef] border border-[#d6dbe0]/40'
+                    : 'text-[#8b9bc8] hover:text-[#d6dbe0]'
                 )}
               >
                 {mode === 'stats' ? 'Stats' : mode === 'search' ? 'Search' : 'AI'}
@@ -607,7 +607,7 @@ export function DraftClient({
                 setPolicyModel(model)
                 setActivePolicyModel(model)
               }}
-              className="px-2 py-1 rounded text-xs font-medium bg-muted/30 border border-border text-foreground"
+              className="px-2 py-1 rounded text-xs font-medium bg-[#0a0d1f]/60 border border-[#3a4050] text-[#d6dbe0]"
             >
               <option value="f400">Balanced (400 sim)</option>
               <option value="b200">Diverse (200 sim)</option>
@@ -616,7 +616,7 @@ export function DraftClient({
           {currentStep?.type === 'ban' && (
             <button
               onClick={() => dispatch({ type: 'SKIP_BAN' })}
-              className="px-3 py-1.5 rounded-md text-xs font-medium border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+              className="px-3 py-1.5 rounded text-xs font-medium border border-[#d4b85a]/50 text-[#d4b85a] hover:bg-[#d4b85a]/10 transition-colors"
             >
               No Ban
             </button>
@@ -625,17 +625,17 @@ export function DraftClient({
             onClick={() => dispatch({ type: 'UNDO' })}
             disabled={state.currentStep === 0}
             className={cn(
-              'px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
+              'px-3 py-1.5 rounded text-xs font-medium border transition-colors',
               state.currentStep > 0
-                ? 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
-                : 'border-border/50 text-muted-foreground/50 cursor-not-allowed'
+                ? 'border-[#3a4050] text-[#8b9bc8] hover:text-[#d6dbe0] hover:bg-[#3a4050]/40'
+                : 'border-[#3a4050]/50 text-[#8b9bc8]/50 cursor-not-allowed'
             )}
           >
             Undo
           </button>
           <button
             onClick={() => dispatch({ type: 'RESET' })}
-            className="px-3 py-1.5 rounded-md text-xs font-medium border border-gaming-danger/50 text-gaming-danger hover:bg-gaming-danger/10 transition-colors"
+            className="px-3 py-1.5 rounded text-xs font-medium border border-[#d46b6b]/50 text-[#d46b6b] hover:bg-[#d46b6b]/10 transition-colors"
           >
             Reset
           </button>
