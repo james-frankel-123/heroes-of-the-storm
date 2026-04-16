@@ -673,14 +673,8 @@ export function DraftClient({
           {/* Our team column */}
           <TeamColumn picks={ourPicksView} accent="blue" label="YOUR TEAM" />
 
-          {/* Center — picker + recs */}
+          {/* Center — recs on top, picker below */}
           <div className="space-y-4">
-            <HeroPicker
-              unavailable={unavailableHeroes}
-              onSelect={handleSelectHero}
-              currentStepType={currentStep?.type ?? 'pick'}
-              isOurTurn={currentStep?.team === state.ourTeam}
-            />
             <div>
             {draftMode === 'ai' ? (
               <AIRecommendationPanel
@@ -732,6 +726,12 @@ export function DraftClient({
               />
             )}
             </div>
+            <HeroPicker
+              unavailable={unavailableHeroes}
+              onSelect={handleSelectHero}
+              currentStepType={currentStep?.type ?? 'pick'}
+              isOurTurn={currentStep?.team === state.ourTeam}
+            />
           </div>
 
           {/* Enemy team column */}
