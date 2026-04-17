@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { TierSelector, getTierLabel } from '@/components/shared/tier-selector'
 import { HeroTable } from '@/components/heroes/hero-table'
 import type { HeroRow } from '@/components/heroes/hero-table'
@@ -77,15 +77,73 @@ export function HeroesClient({
   const [viewMode, setViewMode] = useState<ViewMode>('global')
   const [selectedHero, setSelectedHero] = useState<string | null>(null)
 
+  // Search state
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [searchSuggestions, setSearchSuggestions] = useState<string[] | null>(null)
+  const [searchedPlayers, setSearchedPlayers] = useState<typeof personalData>([])
+
+  const allPersonalData = useMemo(
+    () => [...personalData, ...searchedPlayers],
+    [personalData, searchedPlayers]
+  )
+
+  const handleSearch = useCallback(async (query: string) => {
+    if (!query || query.length < 2) return
+    setSearchLoading(true)
+    setSearchError(null)
+    setSearchSuggestions(null)
+    try {
+      const res = await fetch(`/api/player-search?q=${encodeURIComponent(query)}`)
+      const data = await res.json()
+      if (data.error === 'No players found') {
+        setSearchError('No players found')
+        return
+      }
+      if (data.results && !data.battletag) {
+        setSearchSuggestions(data.results)
+        return
+      }
+      if (!data.battletag) {
+        setSearchError('No results')
+        return
+      }
+      // Check if already loaded
+      if (!allPersonalData.some(p => p.battletag === data.battletag)) {
+        setSearchedPlayers(prev => [...prev, {
+          battletag: data.battletag,
+          heroStats: data.heroStats.map((h: any) => ({
+            hero: h.hero, games: h.games, wins: h.wins,
+            winRate: h.winRate, mawp: null,
+            avgKills: 0, avgDeaths: 0, avgAssists: 0,
+            recentWinRate: null, trend: null,
+          })),
+          matches: [],
+          mapStats: data.mapStats,
+          seasonHeroStats: data.seasonHeroStats,
+        }])
+      }
+      setViewMode(data.battletag)
+      setShowSearch(false)
+      setSearchQuery('')
+    } catch {
+      setSearchError('Search failed')
+    } finally {
+      setSearchLoading(false)
+    }
+  }, [allPersonalData])
+
   const isPersonal = viewMode !== 'global'
 
   // Build rows for current view
   const heroes: HeroRow[] = useMemo(() => {
     if (!isPersonal) return heroStatsByTier[tier]
-    const pd = personalData.find((p) => p.battletag === viewMode)
+    const pd = allPersonalData.find((p) => p.battletag === viewMode)
     if (!pd) return []
     return pd.heroStats.map(toHeroRow)
-  }, [isPersonal, viewMode, tier, heroStatsByTier, personalData])
+  }, [isPersonal, viewMode, tier, heroStatsByTier, allPersonalData])
 
   // Subtitle text
   const subtitle = isPersonal
@@ -110,7 +168,7 @@ export function HeroesClient({
     : { synergies: [], counters: [] }
 
   const detailPersonal = selectedHero
-    ? personalData.map((p) => ({
+    ? allPersonalData.map((p) => ({
         battletag: p.battletag,
         stats:
           p.heroStats.find((h) => h.hero === selectedHero) ?? null,
@@ -118,7 +176,7 @@ export function HeroesClient({
     : []
 
   const detailMatches = selectedHero
-    ? personalData.map((p) => ({
+    ? allPersonalData.map((p) => ({
         battletag: p.battletag,
         matches: p.matches.filter((m) => m.hero === selectedHero),
       }))
@@ -137,26 +195,26 @@ export function HeroesClient({
       </div>
 
       {/* View mode selector */}
-      {personalData.length > 0 && (
-        <div className="flex items-center gap-1 p-1 rounded-lg bg-muted w-fit">
+      <div className="space-y-2">
+        <div className="flex items-center gap-1 p-1 rounded-lg bg-muted w-fit flex-wrap">
           <button
-            onClick={() => setViewMode('global')}
+            onClick={() => { setViewMode('global'); setShowSearch(false) }}
             className={cn(
               'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-              viewMode === 'global'
+              viewMode === 'global' && !showSearch
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
             Global
           </button>
-          {personalData.map((p) => (
+          {allPersonalData.map((p) => (
             <button
               key={p.battletag}
-              onClick={() => setViewMode(p.battletag)}
+              onClick={() => { setViewMode(p.battletag); setShowSearch(false) }}
               className={cn(
                 'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-                viewMode === p.battletag
+                viewMode === p.battletag && !showSearch
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
@@ -164,12 +222,69 @@ export function HeroesClient({
               {p.battletag.split('#')[0]}
             </button>
           ))}
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            className={cn(
+              'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+              showSearch
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Search
+          </button>
         </div>
-      )}
+
+        {showSearch && (
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearch(searchQuery)
+              }}
+              placeholder="Enter battletag (e.g. SirWatsonII)"
+              className="px-3 py-1.5 rounded-md text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground w-64"
+              autoFocus
+            />
+            <button
+              onClick={() => handleSearch(searchQuery)}
+              disabled={searchLoading || searchQuery.length < 2}
+              className={cn(
+                'px-4 py-1.5 rounded-md text-sm font-medium transition-colors',
+                searchLoading
+                  ? 'bg-muted text-muted-foreground cursor-wait'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              )}
+            >
+              {searchLoading ? 'Searching...' : 'Go'}
+            </button>
+            {searchError && (
+              <span className="text-xs text-gaming-danger">{searchError}</span>
+            )}
+          </div>
+        )}
+
+        {showSearch && searchSuggestions && (
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-xs text-muted-foreground">Did you mean:</span>
+            {searchSuggestions.map((bt) => (
+              <button
+                key={bt}
+                onClick={() => { setSearchQuery(bt); handleSearch(bt) }}
+                className="text-xs text-primary hover:underline"
+              >
+                {bt}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Player Snapshot — top 5 heroes + top 3 maps */}
       {isPersonal && (() => {
-        const pd = personalData.find((p) => p.battletag === viewMode)
+        const pd = allPersonalData.find((p) => p.battletag === viewMode)
         if (!pd) return null
         const topHeroes = [...pd.heroStats]
           .filter((h) => h.games >= 10)
@@ -184,7 +299,7 @@ export function HeroesClient({
 
       {/* Career Snapshot — top/bottom 5 by win surplus */}
       {isPersonal && (() => {
-        const pd = personalData.find((p) => p.battletag === viewMode)
+        const pd = allPersonalData.find((p) => p.battletag === viewMode)
         if (!pd) return null
         const withDiff = pd.heroStats
           .filter((h) => h.games >= 5)
@@ -197,7 +312,7 @@ export function HeroesClient({
 
       {/* This Season Snapshot */}
       {isPersonal && (() => {
-        const pd = personalData.find((p) => p.battletag === viewMode)
+        const pd = allPersonalData.find((p) => p.battletag === viewMode)
         if (!pd || pd.seasonHeroStats.length === 0) return null
         const withDiff = pd.seasonHeroStats
           .filter((h) => h.games >= 3)
