@@ -9,6 +9,7 @@ import {
   getTrackedBattletags,
   getPlayerHeroStats,
   getPlayerMatchHistory,
+  getPlayerMapStats,
 } from '@/lib/data/queries'
 import type { SkillTier, HeroStats, HeroMapStats } from '@/lib/types'
 
@@ -109,6 +110,7 @@ export default async function HeroesPage() {
         battletag: bt.battletag,
         heroStats: await getPlayerHeroStats(bt.battletag),
         matches: await getPlayerMatchHistory(bt.battletag, 100),
+        mapStats: await getPlayerMapStats(bt.battletag),
       }))
     ),
   ])

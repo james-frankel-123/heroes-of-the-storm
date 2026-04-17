@@ -6,6 +6,8 @@ import { HeroTable } from '@/components/heroes/hero-table'
 import type { HeroRow } from '@/components/heroes/hero-table'
 import { HeroDetailModal } from '@/components/heroes/hero-detail-modal'
 import { cn } from '@/lib/utils'
+import { heroImageSrc } from '@/lib/data/hero-images'
+import { mapImageSrc } from '@/lib/data/map-images'
 import type {
   SkillTier,
   HeroStats,
@@ -32,6 +34,7 @@ interface HeroesClientProps {
     battletag: string
     heroStats: PlayerHeroStats[]
     matches: PlayerMatch[]
+    mapStats: { map: string; games: number; wins: number; winRate: number }[]
   }[]
 }
 
@@ -163,6 +166,21 @@ export function HeroesClient({
         </div>
       )}
 
+      {/* Player Snapshot — top 5 heroes + top 3 maps */}
+      {isPersonal && (() => {
+        const pd = personalData.find((p) => p.battletag === viewMode)
+        if (!pd) return null
+        const topHeroes = [...pd.heroStats]
+          .filter((h) => h.games >= 10)
+          .sort((a, b) => b.winRate - a.winRate)
+          .slice(0, 5)
+        const topMaps = [...pd.mapStats]
+          .filter((m) => m.games >= 10)
+          .sort((a, b) => b.winRate - a.winRate)
+          .slice(0, 3)
+        return <PlayerSnapshot player={viewMode} topHeroes={topHeroes} topMaps={topMaps} />
+      })()}
+
       <HeroTable
         heroes={heroes}
         onHeroClick={setSelectedHero}
@@ -184,6 +202,100 @@ export function HeroesClient({
           currentTier={tier}
         />
       )}
+    </div>
+  )
+}
+
+function PlayerSnapshot({
+  player,
+  topHeroes,
+  topMaps,
+}: {
+  player: string
+  topHeroes: PlayerHeroStats[]
+  topMaps: { map: string; games: number; wins: number; winRate: number }[]
+}) {
+  const name = player.split('#')[0]
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-white">
+        Player Snapshot &mdash; {name}
+      </h3>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {/* Top heroes */}
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            Top Heroes
+          </p>
+          <div className="flex gap-3">
+            {topHeroes.map((h) => {
+              const wrColor = h.winRate >= 55
+                ? 'text-gaming-success'
+                : h.winRate >= 50
+                  ? 'text-gaming-warning'
+                  : 'text-gaming-danger'
+              return (
+                <div key={h.hero} className="flex flex-col items-center gap-1 w-14">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroImageSrc(h.hero)}
+                    alt={h.hero}
+                    className="w-12 h-12 rounded-md object-cover border border-border"
+                  />
+                  <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                    {h.hero}
+                  </span>
+                  <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
+                    {h.winRate.toFixed(1)}%
+                  </span>
+                  <span className="text-[9px] text-muted-foreground tabular-nums">
+                    {h.games}g
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Top maps */}
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            Top Maps
+          </p>
+          <div className="flex gap-3">
+            {topMaps.map((m) => {
+              const img = mapImageSrc(m.map)
+              const wrColor = m.winRate >= 55
+                ? 'text-gaming-success'
+                : m.winRate >= 50
+                  ? 'text-gaming-warning'
+                  : 'text-gaming-danger'
+              return (
+                <div key={m.map} className="flex flex-col items-center gap-1 w-20">
+                  {img && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={img}
+                      alt={m.map}
+                      className="w-full h-10 rounded-md object-cover border border-border"
+                    />
+                  )}
+                  <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                    {m.map}
+                  </span>
+                  <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
+                    {m.winRate.toFixed(1)}%
+                  </span>
+                  <span className="text-[9px] text-muted-foreground tabular-nums">
+                    {m.games}g
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
