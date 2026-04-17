@@ -18,6 +18,7 @@ import { DRAFT_SEQUENCE } from '@/lib/draft/types'
 import type { DraftState, DraftPhase, DraftData, Team } from '@/lib/draft/types'
 import type { SkillTier } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { mapImageSrc } from '@/lib/data/map-images'
 
 // ---------------------------------------------------------------------------
 // State management
@@ -459,21 +460,43 @@ export function DraftClient({
             <label className="text-sm font-medium text-muted-foreground">
               Map
             </label>
-            <div className="grid grid-cols-2 gap-1.5">
-              {maps.map((map) => (
-                <button
-                  key={map}
-                  onClick={() => dispatch({ type: 'SET_MAP', map })}
-                  className={cn(
-                    'px-3 py-2 rounded-md text-sm text-left transition-colors border',
-                    state.map === map
-                      ? 'border-primary bg-primary/10 text-primary font-medium'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
-                  )}
-                >
-                  {map}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-2">
+              {maps.map((map) => {
+                const img = mapImageSrc(map)
+                return (
+                  <button
+                    key={map}
+                    onClick={() => dispatch({ type: 'SET_MAP', map })}
+                    className={cn(
+                      'rounded-lg overflow-hidden text-sm text-left transition-all border',
+                      state.map === map
+                        ? 'border-primary ring-1 ring-primary shadow-lg scale-[1.02]'
+                        : 'border-border hover:border-foreground/40 hover:shadow-md'
+                    )}
+                  >
+                    {img && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={img}
+                        alt=""
+                        loading="lazy"
+                        className={cn(
+                          'w-full h-20 object-cover transition-all',
+                          state.map === map ? 'brightness-110' : 'brightness-75 hover:brightness-100'
+                        )}
+                      />
+                    )}
+                    <div className={cn(
+                      'px-2 py-1.5',
+                      state.map === map
+                        ? 'text-primary font-medium'
+                        : 'text-muted-foreground'
+                    )}>
+                      {map}
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
