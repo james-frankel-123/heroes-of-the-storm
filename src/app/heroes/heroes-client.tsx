@@ -293,11 +293,11 @@ export function HeroesClient({
         const pd = allPersonalData.find((p) => p.battletag === viewMode)
         if (!pd) return null
         const topHeroes = [...pd.heroStats]
-          .filter((h) => h.games >= 10)
+          .filter((h) => h.games >= 20)
           .sort((a, b) => b.winRate - a.winRate)
           .slice(0, 5)
         const topMaps = [...pd.mapStats]
-          .filter((m) => m.games >= 10)
+          .filter((m) => m.games >= 20)
           .sort((a, b) => b.winRate - a.winRate)
           .slice(0, 3)
         const seasonTopHeroes = pd.seasonHeroStats
@@ -310,12 +310,12 @@ export function HeroesClient({
           .sort((a, b) => b.winRate - a.winRate)
           .slice(0, 3)
         const threeSeasonTopHeroes = (pd.threeSeasonHeroStats ?? [])
-          .filter((h) => h.games >= 5)
+          .filter((h) => h.games >= 10)
           .map((h) => ({ ...h, winRate: h.games > 0 ? Math.round((h.wins / h.games) * 1000) / 10 : 0 }))
           .sort((a, b) => b.winRate - a.winRate)
           .slice(0, 5)
         const threeSeasonTopMaps = (pd.threeSeasonMapStats ?? [])
-          .filter((m) => m.games >= 5)
+          .filter((m) => m.games >= 10)
           .sort((a, b) => b.winRate - a.winRate)
           .slice(0, 3)
         return (
