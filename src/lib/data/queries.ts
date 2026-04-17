@@ -21,7 +21,7 @@ import {
   playerHeroMapStats as playerHeroMapStatsTable,
   trackedBattletags,
 } from '@/lib/db/schema'
-import { eq, and, desc, asc, sql, inArray } from 'drizzle-orm'
+import { eq, and, desc, asc, sql, inArray, gte } from 'drizzle-orm'
 
 import type {
   SkillTier,
@@ -708,6 +708,28 @@ export async function getPlayerMapStats(
     wins: r.wins,
     winRate: r.games > 0 ? Math.round((r.wins / r.games) * 1000) / 10 : 0,
   }))
+}
+
+/** Per-hero aggregate stats for a battletag since a given date (season snapshot) */
+export async function getPlayerHeroStatsSince(
+  battletag: string,
+  since: Date,
+): Promise<{ hero: string; games: number; wins: number }[]> {
+  const rows = await db
+    .select({
+      hero: playerMatchHistoryTable.hero,
+      games: sql<number>`count(*)::int`,
+      wins: sql<number>`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::int`,
+    })
+    .from(playerMatchHistoryTable)
+    .where(and(
+      eq(playerMatchHistoryTable.battletag, battletag),
+      gte(playerMatchHistoryTable.gameDate, since),
+    ))
+    .groupBy(playerMatchHistoryTable.hero)
+    .orderBy(desc(sql`count(*)`))
+
+  return rows.map((r) => ({ hero: r.hero, games: r.games, wins: r.wins }))
 }
 
 /** Player matches filtered to a specific map */

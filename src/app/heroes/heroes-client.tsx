@@ -35,6 +35,7 @@ interface HeroesClientProps {
     heroStats: PlayerHeroStats[]
     matches: PlayerMatch[]
     mapStats: { map: string; games: number; wins: number; winRate: number }[]
+    seasonHeroStats: { hero: string; games: number; wins: number }[]
   }[]
 }
 
@@ -192,6 +193,19 @@ export function HeroesClient({
         const worst = [...withDiff].sort((a, b) => a.diff - b.diff).slice(0, 5).filter(h => h.diff < 0)
         if (best.length === 0 && worst.length === 0) return null
         return <CareerSnapshot best={best} worst={worst} />
+      })()}
+
+      {/* This Season Snapshot */}
+      {isPersonal && (() => {
+        const pd = personalData.find((p) => p.battletag === viewMode)
+        if (!pd || pd.seasonHeroStats.length === 0) return null
+        const withDiff = pd.seasonHeroStats
+          .filter((h) => h.games >= 3)
+          .map((h) => ({ ...h, diff: h.wins - (h.games - h.wins) }))
+        const best = [...withDiff].sort((a, b) => b.diff - a.diff).slice(0, 5).filter(h => h.diff > 0)
+        const worst = [...withDiff].sort((a, b) => a.diff - b.diff).slice(0, 5).filter(h => h.diff < 0)
+        if (best.length === 0 && worst.length === 0) return null
+        return <SeasonSnapshot best={best} worst={worst} />
       })()}
 
       <HeroTable
@@ -354,6 +368,79 @@ function CareerSnapshot({
         )}
 
         {/* Worst — negative career +/- */}
+        {worst.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+              Biggest Losers
+            </p>
+            <div className="space-y-1.5">
+              {worst.map((h) => (
+                <div key={h.hero} className="flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroImageSrc(h.hero)}
+                    alt=""
+                    className="w-8 h-8 rounded object-cover border border-border"
+                  />
+                  <span className="text-sm text-foreground flex-1 truncate">{h.hero}</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {h.wins}W-{h.games - h.wins}L
+                  </span>
+                  <span className="text-sm font-bold tabular-nums text-gaming-danger">
+                    {h.diff}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SeasonSnapshot({
+  best,
+  worst,
+}: {
+  best: { hero: string; games: number; wins: number; diff: number }[]
+  worst: { hero: string; games: number; wins: number; diff: number }[]
+}) {
+  const year = new Date().getFullYear()
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-white">
+        This Season Snapshot &mdash; {year}
+      </h3>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {best.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+              Biggest Winners
+            </p>
+            <div className="space-y-1.5">
+              {best.map((h) => (
+                <div key={h.hero} className="flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroImageSrc(h.hero)}
+                    alt=""
+                    className="w-8 h-8 rounded object-cover border border-border"
+                  />
+                  <span className="text-sm text-foreground flex-1 truncate">{h.hero}</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {h.wins}W-{h.games - h.wins}L
+                  </span>
+                  <span className="text-sm font-bold tabular-nums text-gaming-success">
+                    +{h.diff}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {worst.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">

@@ -10,6 +10,7 @@ import {
   getPlayerHeroStats,
   getPlayerMatchHistory,
   getPlayerMapStats,
+  getPlayerHeroStatsSince,
 } from '@/lib/data/queries'
 import type { SkillTier, HeroStats, HeroMapStats } from '@/lib/types'
 
@@ -106,12 +107,16 @@ export default async function HeroesPage() {
 
     // Personal stats: 2 queries per battletag
     Promise.all(
-      trackedBattletags.map(async (bt) => ({
-        battletag: bt.battletag,
-        heroStats: await getPlayerHeroStats(bt.battletag),
-        matches: await getPlayerMatchHistory(bt.battletag, 100),
-        mapStats: await getPlayerMapStats(bt.battletag),
-      }))
+      trackedBattletags.map(async (bt) => {
+        const seasonStart = new Date(new Date().getFullYear(), 0, 1)
+        return {
+          battletag: bt.battletag,
+          heroStats: await getPlayerHeroStats(bt.battletag),
+          matches: await getPlayerMatchHistory(bt.battletag, 100),
+          mapStats: await getPlayerMapStats(bt.battletag),
+          seasonHeroStats: await getPlayerHeroStatsSince(bt.battletag, seasonStart),
+        }
+      })
     ),
   ])
 
