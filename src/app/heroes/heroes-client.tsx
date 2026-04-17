@@ -37,6 +37,8 @@ interface HeroesClientProps {
     mapStats: { map: string; games: number; wins: number; winRate: number }[]
     seasonHeroStats: { hero: string; games: number; wins: number }[]
     seasonMapStats: { map: string; games: number; wins: number; winRate: number }[]
+    threeSeasonHeroStats: { hero: string; games: number; wins: number }[]
+    threeSeasonMapStats: { map: string; games: number; wins: number; winRate: number }[]
   }[]
 }
 
@@ -125,6 +127,8 @@ export function HeroesClient({
           mapStats: data.mapStats,
           seasonHeroStats: data.seasonHeroStats,
           seasonMapStats: data.seasonMapStats ?? [],
+          threeSeasonHeroStats: data.threeSeasonHeroStats ?? [],
+          threeSeasonMapStats: data.threeSeasonMapStats ?? [],
         }])
       }
       setViewMode(data.battletag)
@@ -305,6 +309,15 @@ export function HeroesClient({
           .filter((m) => m.games >= 5)
           .sort((a, b) => b.winRate - a.winRate)
           .slice(0, 3)
+        const threeSeasonTopHeroes = (pd.threeSeasonHeroStats ?? [])
+          .filter((h) => h.games >= 5)
+          .map((h) => ({ ...h, winRate: h.games > 0 ? Math.round((h.wins / h.games) * 1000) / 10 : 0 }))
+          .sort((a, b) => b.winRate - a.winRate)
+          .slice(0, 5)
+        const threeSeasonTopMaps = (pd.threeSeasonMapStats ?? [])
+          .filter((m) => m.games >= 5)
+          .sort((a, b) => b.winRate - a.winRate)
+          .slice(0, 3)
         return (
           <PlayerSnapshot
             player={viewMode}
@@ -312,6 +325,8 @@ export function HeroesClient({
             topMaps={topMaps}
             seasonTopHeroes={seasonTopHeroes}
             seasonTopMaps={seasonTopMaps}
+            threeSeasonTopHeroes={threeSeasonTopHeroes}
+            threeSeasonTopMaps={threeSeasonTopMaps}
           />
         )
       })()}
@@ -393,6 +408,8 @@ function PlayerSnapshot({
   topMaps: { map: string; games: number; wins: number; winRate: number }[]
   seasonTopHeroes: { hero: string; games: number; wins: number; winRate: number }[]
   seasonTopMaps: { map: string; games: number; wins: number; winRate: number }[]
+  threeSeasonTopHeroes: { hero: string; games: number; wins: number; winRate: number }[]
+  threeSeasonTopMaps: { map: string; games: number; wins: number; winRate: number }[]
 }) {
   const name = player.split('#')[0]
   return (
@@ -524,6 +541,86 @@ function PlayerSnapshot({
               </p>
               <div className="flex gap-3">
                 {seasonTopMaps.map((m) => {
+                  const img = mapImageSrc(m.map)
+                  const wrColor = m.winRate >= 55
+                    ? 'text-gaming-success'
+                    : m.winRate >= 50
+                      ? 'text-gaming-warning'
+                      : 'text-gaming-danger'
+                  return (
+                    <div key={m.map} className="flex flex-col items-center gap-1 w-20">
+                      {img && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={img}
+                          alt={m.map}
+                          className="w-full h-10 rounded-md object-cover border border-border"
+                        />
+                      )}
+                      <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                        {m.map}
+                      </span>
+                      <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
+                        {m.winRate.toFixed(1)}%
+                      </span>
+                      <span className="text-[9px] text-muted-foreground tabular-nums">
+                        {m.games}g
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Last 3 Seasons sections */}
+      {(threeSeasonTopHeroes.length > 0 || threeSeasonTopMaps.length > 0) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 border-t border-border">
+          {threeSeasonTopHeroes.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                Last 3 Seasons Top Heroes
+              </p>
+              <div className="flex gap-3">
+                {threeSeasonTopHeroes.map((h) => {
+                  const wrColor = h.winRate >= 55
+                    ? 'text-gaming-success'
+                    : h.winRate >= 50
+                      ? 'text-gaming-warning'
+                      : 'text-gaming-danger'
+                  return (
+                    <div key={h.hero} className="flex flex-col items-center gap-1 w-14">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={heroImageSrc(h.hero)}
+                        alt={h.hero}
+                        className="w-12 h-12 rounded-md object-cover border border-border"
+                      />
+                      <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                        {h.hero}
+                      </span>
+                      <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
+                        {h.winRate.toFixed(1)}%
+                      </span>
+                      <span className="text-[9px] text-muted-foreground tabular-nums">
+                        {h.games}g
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {threeSeasonTopMaps.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                Last 3 Seasons Top Maps
+              </p>
+              <div className="flex gap-3">
+                {threeSeasonTopMaps.map((m) => {
                   const img = mapImageSrc(m.map)
                   const wrColor = m.winRate >= 55
                     ? 'text-gaming-success'

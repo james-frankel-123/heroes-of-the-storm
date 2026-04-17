@@ -109,7 +109,9 @@ export default async function HeroesPage() {
     // Personal stats: 2 queries per battletag
     Promise.all(
       trackedBattletags.map(async (bt) => {
-        const seasonStart = new Date(new Date().getFullYear(), 0, 1)
+        const year = new Date().getFullYear()
+        const seasonStart = new Date(year, 0, 1)
+        const threeSeasonStart = new Date(year - 2, 0, 1)
         return {
           battletag: bt.battletag,
           heroStats: await getPlayerHeroStats(bt.battletag),
@@ -117,6 +119,8 @@ export default async function HeroesPage() {
           mapStats: await getPlayerMapStats(bt.battletag),
           seasonHeroStats: await getPlayerHeroStatsSince(bt.battletag, seasonStart),
           seasonMapStats: await getPlayerMapStatsSince(bt.battletag, seasonStart),
+          threeSeasonHeroStats: await getPlayerHeroStatsSince(bt.battletag, threeSeasonStart),
+          threeSeasonMapStats: await getPlayerMapStatsSince(bt.battletag, threeSeasonStart),
         }
       })
     ),

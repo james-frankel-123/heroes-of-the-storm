@@ -64,8 +64,10 @@ export async function GET(request: Request) {
     .groupBy(playerMatchHistory.map)
     .orderBy(desc(sql`count(*)`))
 
-  // Fetch season stats (current year)
-  const seasonStart = new Date(new Date().getFullYear(), 0, 1)
+  // Fetch season stats (current year) + last 3 seasons
+  const year = new Date().getFullYear()
+  const seasonStart = new Date(year, 0, 1)
+  const threeSeasonStart = new Date(year - 2, 0, 1)
   const seasonStats = await db
     .select({
       hero: playerMatchHistory.hero,
@@ -120,5 +122,40 @@ export async function GET(request: Request) {
       wins: m.wins,
       winRate: m.games > 0 ? Math.round((m.wins / m.games) * 1000) / 10 : 0,
     })),
+    threeSeasonHeroStats: await (async () => {
+      const rows = await db
+        .select({
+          hero: playerMatchHistory.hero,
+          games: sql<number>`count(*)::int`,
+          wins: sql<number>`sum(case when ${playerMatchHistory.win} then 1 else 0 end)::int`,
+        })
+        .from(playerMatchHistory)
+        .where(and(
+          sql`${playerMatchHistory.battletag} = ${battletag}`,
+          gte(playerMatchHistory.gameDate, threeSeasonStart),
+        ))
+        .groupBy(playerMatchHistory.hero)
+        .orderBy(desc(sql`count(*)`))
+      return rows.map(h => ({ hero: h.hero, games: h.games, wins: h.wins }))
+    })(),
+    threeSeasonMapStats: await (async () => {
+      const rows = await db
+        .select({
+          map: playerMatchHistory.map,
+          games: sql<number>`count(*)::int`,
+          wins: sql<number>`sum(case when ${playerMatchHistory.win} then 1 else 0 end)::int`,
+        })
+        .from(playerMatchHistory)
+        .where(and(
+          sql`${playerMatchHistory.battletag} = ${battletag}`,
+          gte(playerMatchHistory.gameDate, threeSeasonStart),
+        ))
+        .groupBy(playerMatchHistory.map)
+        .orderBy(desc(sql`count(*)`))
+      return rows.map(m => ({
+        map: m.map, games: m.games, wins: m.wins,
+        winRate: m.games > 0 ? Math.round((m.wins / m.games) * 1000) / 10 : 0,
+      }))
+    })(),
   })
 }
