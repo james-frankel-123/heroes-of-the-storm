@@ -306,8 +306,22 @@ export function HeroesClient({
           .map((h) => ({ ...h, diff: h.wins - (h.games - h.wins) }))
         const best = [...withDiff].sort((a, b) => b.diff - a.diff).slice(0, 5).filter(h => h.diff > 0)
         const worst = [...withDiff].sort((a, b) => a.diff - b.diff).slice(0, 5).filter(h => h.diff < 0)
-        if (best.length === 0 && worst.length === 0) return null
-        return <CareerSnapshot best={best} worst={worst} />
+        // WAR: player winRate vs global average winRate for each hero
+        const globalStats = heroStatsByTier['mid']
+        const globalMap: Record<string, number> = {}
+        for (const g of globalStats) globalMap[g.hero] = g.winRate
+        const war = pd.heroStats
+          .filter((h) => h.games >= 10 && globalMap[h.hero] !== undefined)
+          .map((h) => ({
+            hero: h.hero,
+            games: h.games,
+            playerWR: h.winRate,
+            globalWR: globalMap[h.hero],
+            delta: Math.round((h.winRate - globalMap[h.hero]) * 10) / 10,
+          }))
+          .sort((a, b) => b.delta - a.delta)
+          .slice(0, 10)
+        return <CareerSnapshot best={best} worst={worst} war={war} />
       })()}
 
       {/* This Season Snapshot */}
@@ -445,9 +459,11 @@ function PlayerSnapshot({
 function CareerSnapshot({
   best,
   worst,
+  war,
 }: {
   best: (PlayerHeroStats & { diff: number })[]
   worst: (PlayerHeroStats & { diff: number })[]
+  war: { hero: string; games: number; playerWR: number; globalWR: number; delta: number }[]
 }) {
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-4">
@@ -510,6 +526,37 @@ function CareerSnapshot({
           </div>
         )}
       </div>
+
+      {/* Wins Above Replacement */}
+      {war.length > 0 && (
+        <div className="space-y-2 pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            Wins Above Replacement (top 10)
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+            {war.map((h) => {
+              const deltaColor = h.delta > 0 ? 'text-gaming-success' : h.delta < 0 ? 'text-gaming-danger' : 'text-muted-foreground'
+              return (
+                <div key={h.hero} className="flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroImageSrc(h.hero)}
+                    alt=""
+                    className="w-8 h-8 rounded object-cover border border-border"
+                  />
+                  <span className="text-sm text-foreground flex-1 truncate">{h.hero}</span>
+                  <span className="text-[10px] text-muted-foreground tabular-nums">
+                    {h.playerWR.toFixed(1)}% vs {h.globalWR.toFixed(1)}%
+                  </span>
+                  <span className={cn('text-sm font-bold tabular-nums', deltaColor)}>
+                    {h.delta > 0 ? '+' : ''}{h.delta.toFixed(1)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
