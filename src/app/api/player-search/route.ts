@@ -80,6 +80,21 @@ export async function GET(request: Request) {
     .groupBy(playerMatchHistory.hero)
     .orderBy(desc(sql`count(*)`))
 
+  // Season map stats
+  const seasonMapStats = await db
+    .select({
+      map: playerMatchHistory.map,
+      games: sql<number>`count(*)::int`,
+      wins: sql<number>`sum(case when ${playerMatchHistory.win} then 1 else 0 end)::int`,
+    })
+    .from(playerMatchHistory)
+    .where(and(
+      sql`${playerMatchHistory.battletag} = ${battletag}`,
+      gte(playerMatchHistory.gameDate, seasonStart),
+    ))
+    .groupBy(playerMatchHistory.map)
+    .orderBy(desc(sql`count(*)`))
+
   return NextResponse.json({
     battletag,
     heroStats: heroStats.map(h => ({
@@ -98,6 +113,12 @@ export async function GET(request: Request) {
       hero: h.hero,
       games: h.games,
       wins: h.wins,
+    })),
+    seasonMapStats: seasonMapStats.map(m => ({
+      map: m.map,
+      games: m.games,
+      wins: m.wins,
+      winRate: m.games > 0 ? Math.round((m.wins / m.games) * 1000) / 10 : 0,
     })),
   })
 }

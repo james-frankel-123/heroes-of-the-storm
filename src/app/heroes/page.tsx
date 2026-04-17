@@ -11,6 +11,7 @@ import {
   getPlayerMatchHistory,
   getPlayerMapStats,
   getPlayerHeroStatsSince,
+  getPlayerMapStatsSince,
 } from '@/lib/data/queries'
 import type { SkillTier, HeroStats, HeroMapStats } from '@/lib/types'
 
@@ -115,6 +116,7 @@ export default async function HeroesPage() {
           matches: await getPlayerMatchHistory(bt.battletag, 100),
           mapStats: await getPlayerMapStats(bt.battletag),
           seasonHeroStats: await getPlayerHeroStatsSince(bt.battletag, seasonStart),
+          seasonMapStats: await getPlayerMapStatsSince(bt.battletag, seasonStart),
         }
       })
     ),

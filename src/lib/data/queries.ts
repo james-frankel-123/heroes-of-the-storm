@@ -732,6 +732,33 @@ export async function getPlayerHeroStatsSince(
   return rows.map((r) => ({ hero: r.hero, games: r.games, wins: r.wins }))
 }
 
+/** Per-map aggregate stats for a battletag since a given date (season snapshot) */
+export async function getPlayerMapStatsSince(
+  battletag: string,
+  since: Date,
+): Promise<{ map: string; games: number; wins: number; winRate: number }[]> {
+  const rows = await db
+    .select({
+      map: playerMatchHistoryTable.map,
+      games: sql<number>`count(*)::int`,
+      wins: sql<number>`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::int`,
+    })
+    .from(playerMatchHistoryTable)
+    .where(and(
+      eq(playerMatchHistoryTable.battletag, battletag),
+      gte(playerMatchHistoryTable.gameDate, since),
+    ))
+    .groupBy(playerMatchHistoryTable.map)
+    .orderBy(desc(sql`count(*)`))
+
+  return rows.map((r) => ({
+    map: r.map,
+    games: r.games,
+    wins: r.wins,
+    winRate: r.games > 0 ? Math.round((r.wins / r.games) * 1000) / 10 : 0,
+  }))
+}
+
 /** Player matches filtered to a specific map */
 export async function getPlayerMatchesOnMap(
   battletag: string,
