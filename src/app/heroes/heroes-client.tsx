@@ -294,45 +294,30 @@ export function HeroesClient({
         )}
       </div>
 
-      {/* Player Snapshot — top 5 heroes + top 3 maps */}
+      {/* Player Snapshot — top 10 heroes by winrate */}
       {isPersonal && (() => {
         const pd = allPersonalData.find((p) => p.battletag === viewMode)
         if (!pd) return null
         const topHeroes = [...pd.heroStats]
           .filter((h) => h.games >= 20)
           .sort((a, b) => b.winRate - a.winRate)
-          .slice(0, 5)
-        const topMaps = [...pd.mapStats]
-          .filter((m) => m.games >= 20)
-          .sort((a, b) => b.winRate - a.winRate)
-          .slice(0, 3)
+          .slice(0, 10)
         const seasonTopHeroes = pd.seasonHeroStats
           .filter((h) => h.games >= 5)
           .map((h) => ({ ...h, winRate: h.games > 0 ? Math.round((h.wins / h.games) * 1000) / 10 : 0 }))
           .sort((a, b) => b.winRate - a.winRate)
-          .slice(0, 5)
-        const seasonTopMaps = (pd.seasonMapStats ?? [])
-          .filter((m) => m.games >= 5)
-          .sort((a, b) => b.winRate - a.winRate)
-          .slice(0, 3)
+          .slice(0, 10)
         const threeSeasonTopHeroes = (pd.threeSeasonHeroStats ?? [])
           .filter((h) => h.games >= 10)
           .map((h) => ({ ...h, winRate: h.games > 0 ? Math.round((h.wins / h.games) * 1000) / 10 : 0 }))
           .sort((a, b) => b.winRate - a.winRate)
-          .slice(0, 5)
-        const threeSeasonTopMaps = (pd.threeSeasonMapStats ?? [])
-          .filter((m) => m.games >= 10)
-          .sort((a, b) => b.winRate - a.winRate)
-          .slice(0, 3)
+          .slice(0, 10)
         return (
           <PlayerSnapshot
             player={viewMode}
             topHeroes={topHeroes}
-            topMaps={topMaps}
             seasonTopHeroes={seasonTopHeroes}
-            seasonTopMaps={seasonTopMaps}
             threeSeasonTopHeroes={threeSeasonTopHeroes}
-            threeSeasonTopMaps={threeSeasonTopMaps}
           />
         )
       })()}
@@ -451,19 +436,13 @@ export function HeroesClient({
 function PlayerSnapshot({
   player,
   topHeroes,
-  topMaps,
   seasonTopHeroes,
-  seasonTopMaps,
   threeSeasonTopHeroes,
-  threeSeasonTopMaps,
 }: {
   player: string
   topHeroes: PlayerHeroStats[]
-  topMaps: { map: string; games: number; wins: number; winRate: number }[]
   seasonTopHeroes: { hero: string; games: number; wins: number; winRate: number }[]
-  seasonTopMaps: { map: string; games: number; wins: number; winRate: number }[]
   threeSeasonTopHeroes: { hero: string; games: number; wins: number; winRate: number }[]
-  threeSeasonTopMaps: { map: string; games: number; wins: number; winRate: number }[]
 }) {
   const name = player.split('#')[0]
   return (
@@ -472,242 +451,64 @@ function PlayerSnapshot({
         Player Snapshot &mdash; {name}
       </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {/* Top heroes */}
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-            Top Heroes
-          </p>
-          <div className="flex gap-3">
-            {topHeroes.map((h) => {
-              const wrColor = h.winRate >= 55
-                ? 'text-gaming-success'
-                : h.winRate >= 50
-                  ? 'text-gaming-warning'
-                  : 'text-gaming-danger'
-              return (
-                <div key={h.hero} className="flex flex-col items-center gap-1 w-14">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={heroImageSrc(h.hero)}
-                    alt={h.hero}
-                    className="w-12 h-12 rounded-md object-cover border border-border"
-                  />
-                  <span className="text-[10px] text-muted-foreground truncate w-full text-center">
-                    {h.hero}
-                  </span>
-                  <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
-                    {h.winRate.toFixed(1)}%
-                  </span>
-                  <span className="text-[9px] text-muted-foreground tabular-nums">
-                    {h.games}g
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+      {/* Top Heroes */}
+      <HeroRow label="Top Heroes" heroes={topHeroes} />
 
-        {/* Top maps */}
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-            Top Maps
-          </p>
-          <div className="flex gap-3">
-            {topMaps.map((m) => {
-              const img = mapImageSrc(m.map)
-              const wrColor = m.winRate >= 55
-                ? 'text-gaming-success'
-                : m.winRate >= 50
-                  ? 'text-gaming-warning'
-                  : 'text-gaming-danger'
-              return (
-                <div key={m.map} className="flex flex-col items-center gap-1 w-20">
-                  {img && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={img}
-                      alt={m.map}
-                      className="w-full h-10 rounded-md object-cover border border-border"
-                    />
-                  )}
-                  <span className="text-[10px] text-muted-foreground truncate w-full text-center">
-                    {m.map}
-                  </span>
-                  <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
-                    {m.winRate.toFixed(1)}%
-                  </span>
-                  <span className="text-[9px] text-muted-foreground tabular-nums">
-                    {m.games}g
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+      {/* This Season Top Heroes */}
+      {seasonTopHeroes.length > 0 && (
+        <HeroRow label="This Season Top Heroes" heroes={seasonTopHeroes} border />
+      )}
+
+      {/* Last 3 Seasons Top Heroes */}
+      {threeSeasonTopHeroes.length > 0 && (
+        <HeroRow label="Last 3 Seasons Top Heroes" heroes={threeSeasonTopHeroes} border />
+      )}
+    </div>
+  )
+}
+
+function HeroRow({
+  label,
+  heroes,
+  border,
+}: {
+  label: string
+  heroes: { hero: string; games: number; wins?: number; winRate: number }[]
+  border?: boolean
+}) {
+  return (
+    <div className={cn('space-y-2', border && 'pt-2 border-t border-border')}>
+      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+        {label}
+      </p>
+      <div className="flex gap-3 flex-wrap">
+        {heroes.map((h) => {
+          const wrColor = h.winRate >= 55
+            ? 'text-gaming-success'
+            : h.winRate >= 50
+              ? 'text-gaming-warning'
+              : 'text-gaming-danger'
+          return (
+            <div key={h.hero} className="flex flex-col items-center gap-1 w-14">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={heroImageSrc(h.hero)}
+                alt={h.hero}
+                className="w-12 h-12 rounded-md object-cover border border-border"
+              />
+              <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                {h.hero}
+              </span>
+              <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
+                {h.winRate.toFixed(1)}%
+              </span>
+              <span className="text-[9px] text-muted-foreground tabular-nums">
+                {h.games}g
+              </span>
+            </div>
+          )
+        })}
       </div>
-
-      {/* This Season sections */}
-      {(seasonTopHeroes.length > 0 || seasonTopMaps.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 border-t border-border">
-          {/* Season top heroes */}
-          {seasonTopHeroes.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                This Season Top Heroes
-              </p>
-              <div className="flex gap-3">
-                {seasonTopHeroes.map((h) => {
-                  const wrColor = h.winRate >= 55
-                    ? 'text-gaming-success'
-                    : h.winRate >= 50
-                      ? 'text-gaming-warning'
-                      : 'text-gaming-danger'
-                  return (
-                    <div key={h.hero} className="flex flex-col items-center gap-1 w-14">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={heroImageSrc(h.hero)}
-                        alt={h.hero}
-                        className="w-12 h-12 rounded-md object-cover border border-border"
-                      />
-                      <span className="text-[10px] text-muted-foreground truncate w-full text-center">
-                        {h.hero}
-                      </span>
-                      <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
-                        {h.winRate.toFixed(1)}%
-                      </span>
-                      <span className="text-[9px] text-muted-foreground tabular-nums">
-                        {h.games}g
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Season top maps */}
-          {seasonTopMaps.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                This Season Top Maps
-              </p>
-              <div className="flex gap-3">
-                {seasonTopMaps.map((m) => {
-                  const img = mapImageSrc(m.map)
-                  const wrColor = m.winRate >= 55
-                    ? 'text-gaming-success'
-                    : m.winRate >= 50
-                      ? 'text-gaming-warning'
-                      : 'text-gaming-danger'
-                  return (
-                    <div key={m.map} className="flex flex-col items-center gap-1 w-20">
-                      {img && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={img}
-                          alt={m.map}
-                          className="w-full h-10 rounded-md object-cover border border-border"
-                        />
-                      )}
-                      <span className="text-[10px] text-muted-foreground truncate w-full text-center">
-                        {m.map}
-                      </span>
-                      <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
-                        {m.winRate.toFixed(1)}%
-                      </span>
-                      <span className="text-[9px] text-muted-foreground tabular-nums">
-                        {m.games}g
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Last 3 Seasons sections */}
-      {(threeSeasonTopHeroes.length > 0 || threeSeasonTopMaps.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 border-t border-border">
-          {threeSeasonTopHeroes.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Last 3 Seasons Top Heroes
-              </p>
-              <div className="flex gap-3">
-                {threeSeasonTopHeroes.map((h) => {
-                  const wrColor = h.winRate >= 55
-                    ? 'text-gaming-success'
-                    : h.winRate >= 50
-                      ? 'text-gaming-warning'
-                      : 'text-gaming-danger'
-                  return (
-                    <div key={h.hero} className="flex flex-col items-center gap-1 w-14">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={heroImageSrc(h.hero)}
-                        alt={h.hero}
-                        className="w-12 h-12 rounded-md object-cover border border-border"
-                      />
-                      <span className="text-[10px] text-muted-foreground truncate w-full text-center">
-                        {h.hero}
-                      </span>
-                      <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
-                        {h.winRate.toFixed(1)}%
-                      </span>
-                      <span className="text-[9px] text-muted-foreground tabular-nums">
-                        {h.games}g
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {threeSeasonTopMaps.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Last 3 Seasons Top Maps
-              </p>
-              <div className="flex gap-3">
-                {threeSeasonTopMaps.map((m) => {
-                  const img = mapImageSrc(m.map)
-                  const wrColor = m.winRate >= 55
-                    ? 'text-gaming-success'
-                    : m.winRate >= 50
-                      ? 'text-gaming-warning'
-                      : 'text-gaming-danger'
-                  return (
-                    <div key={m.map} className="flex flex-col items-center gap-1 w-20">
-                      {img && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={img}
-                          alt={m.map}
-                          className="w-full h-10 rounded-md object-cover border border-border"
-                        />
-                      )}
-                      <span className="text-[10px] text-muted-foreground truncate w-full text-center">
-                        {m.map}
-                      </span>
-                      <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
-                        {m.winRate.toFixed(1)}%
-                      </span>
-                      <span className="text-[9px] text-muted-foreground tabular-nums">
-                        {m.games}g
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
