@@ -393,7 +393,7 @@ export function HeroesClient({
           const topHeroes = season.heroStats
             .filter((h) => h.games >= 5)
             .sort((a, b) => b.winRate - a.winRate)
-            .slice(0, 5)
+            .slice(0, 10)
           const topMaps = season.mapStats
             .filter((m) => m.games >= 5)
             .sort((a, b) => b.winRate - a.winRate)
