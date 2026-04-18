@@ -337,15 +337,15 @@ export function HeroesClient({
         )
       })()}
 
-      {/* Career Snapshot — top/bottom 5 by win surplus */}
+      {/* Career Snapshot — all heroes +5 or greater / -5 or lower */}
       {isPersonal && (() => {
         const pd = allPersonalData.find((p) => p.battletag === viewMode)
         if (!pd) return null
         const withDiff = pd.heroStats
           .filter((h) => h.games >= 5)
           .map((h) => ({ ...h, diff: h.wins - (h.games - h.wins) }))
-        const best = [...withDiff].sort((a, b) => b.diff - a.diff).slice(0, 5).filter(h => h.diff > 0)
-        const worst = [...withDiff].sort((a, b) => a.diff - b.diff).slice(0, 5).filter(h => h.diff < 0)
+        const best = [...withDiff].filter(h => h.diff >= 5).sort((a, b) => b.diff - a.diff)
+        const worst = [...withDiff].filter(h => h.diff <= -5).sort((a, b) => a.diff - b.diff)
         // WAR: player winRate vs global average winRate for each hero
         const globalStats = heroStatsByTier['mid']
         const globalMap: Record<string, number> = {}
