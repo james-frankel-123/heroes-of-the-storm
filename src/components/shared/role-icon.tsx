@@ -36,10 +36,11 @@ export function RoleIcon({ role, size = 12, className }: RoleIconProps) {
         </svg>
       )
     case 'Ranged Assassin':
-      // Crosshair / target
+      // Bow and arrow
       return (
         <svg {...props}>
-          <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a3 3 0 100 6 3 3 0 000-6zm0 2a1 1 0 110 2 1 1 0 010-2z" />
+          <path d="M13 1l-2 .5L4.5 8 3.3 6.8 1.5 8.5l2 2L2 12l-.5 2.5L4 14l2-1.5 2-2L6.8 9.3 8 8l-1.2-1.2L13 1zM3.5 12.5l-.5-1 .5-.5 1 .5-.5.5-.5.5z" />
+          <path d="M12.5 1.5C10 4 8.5 5.5 7 7l1 1c1.5-1.5 3-3 5.5-5.5V1.5z" opacity="0.5" />
         </svg>
       )
     case 'Melee Assassin':
