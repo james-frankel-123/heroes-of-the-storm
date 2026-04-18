@@ -278,6 +278,10 @@ export class MultiKeyApi {
     return client
   }
 
+  keyCount(): number {
+    return this.clients.length
+  }
+
   getTotalCallCount(): number {
     return this.clients.reduce((sum, c) => sum + c.getCallCount(), 0)
   }

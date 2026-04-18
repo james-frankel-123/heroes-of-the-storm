@@ -23,13 +23,17 @@ function sleep(ms: number): Promise<void> {
 
 async function main() {
   const key1 = process.env.HEROES_PROFILE_API_KEY
+  const key2 = process.env.HEROES_PROFILE_API_KEY2
   if (!key1) { log.error('HEROES_PROFILE_API_KEY required'); process.exit(1) }
   if (!process.env.DATABASE_URL) { log.error('DATABASE_URL required'); process.exit(1) }
 
   const db = createDb()
-  // Key 1 = developer account (200/min limit, use 180 safe)
-  const api = new MultiKeyApi([key1], 180, 3)
-  log.info('Using dev API key (180/min)')
+  // Key 1 = dev account (180/min). Key 2 = standard account (55/min), used
+  // as fallback when key 1's weekly Replay/Data quota exhausts.
+  const keys = [key1, ...(key2 ? [key2] : [])]
+  const rates = key2 ? [180, 55] : [180]
+  const api = new MultiKeyApi(keys, rates, 3)
+  log.info(`Using ${keys.length} API key(s) (rates: ${rates.join('/')} /min)`)
 
   // --fresh flag: reset cursor to near max, clear old unfetched queue
   const fresh = process.argv.includes('--fresh')

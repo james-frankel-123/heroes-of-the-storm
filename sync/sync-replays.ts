@@ -296,6 +296,8 @@ export async function fetchReplayData(
 
   let fetched = 0
   let failed = 0
+  let consecutiveQuotaErrors = 0
+  const numKeys = api.keyCount()
 
   for (const queueItem of queue) {
     const replayId = queueItem.replayId
@@ -396,19 +398,39 @@ export async function fetchReplayData(
         .where(eq(replayFetchQueue.replayId, replayId))
 
       fetched++
+      consecutiveQuotaErrors = 0
 
       if (fetched % 100 === 0) {
         log.info(`  Fetch progress: ${fetched} succeeded, ${failed} skipped`)
       }
     } catch (err) {
       failed++
-      // Mark as fetched to avoid retrying bad IDs forever
-      await db.update(replayFetchQueue)
-        .set({ fetched: true })
-        .where(eq(replayFetchQueue.replayId, replayId))
-        .catch(() => {})
+      const errMsg = String(err)
+      const isQuota = errMsg.includes('non-JSON response') || errMsg.includes('Max calls')
+      const isTransient =
+        isQuota ||
+        errMsg.includes('Rate limited') ||
+        errMsg.includes('Server error') ||
+        errMsg.includes('Network error')
+      if (!isTransient) {
+        // Permanent: bad replay ID / not Storm League / corrupt draft. Mark as
+        // fetched so we don't retry forever.
+        await db.update(replayFetchQueue)
+          .set({ fetched: true })
+          .where(eq(replayFetchQueue.replayId, replayId))
+          .catch(() => {})
+        consecutiveQuotaErrors = 0
+      } else if (isQuota) {
+        consecutiveQuotaErrors++
+      }
       if (failed % 50 === 0) {
         log.warn(`Fetch error for replay ${replayId}: ${err}`)
+      }
+      // If every key has returned a quota error back-to-back, all keys are
+      // exhausted — stop burning the queue and let the cycle end.
+      if (consecutiveQuotaErrors >= numKeys) {
+        log.warn(`All ${numKeys} API key(s) quota-exhausted for Replay/Data; aborting fetch cycle (${failed} failures)`)
+        break
       }
     }
   }
