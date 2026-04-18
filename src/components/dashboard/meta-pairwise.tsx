@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatPercent, getWinRateColor, formatNumber } from '@/lib/utils'
+import { heroImageSrc } from '@/lib/data/hero-images'
 import type { HeroPairwiseStats } from '@/lib/types'
 
 interface MetaPairwiseProps {
@@ -64,11 +65,15 @@ function PairList({
               <span className="text-xs text-muted-foreground w-5 text-right">
                 {i + 1}
               </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={heroImageSrc(pair.heroA)} alt="" loading="lazy" className="w-6 h-6 rounded object-cover shrink-0" />
               <span className="font-medium text-sm">
                 {pair.heroA}{' '}
                 <span className="text-muted-foreground font-normal">{label}</span>{' '}
                 {pair.heroB}
               </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={heroImageSrc(pair.heroB)} alt="" loading="lazy" className="w-6 h-6 rounded object-cover shrink-0" />
             </div>
             <div className="flex items-center gap-4 text-sm shrink-0">
               <span className="text-muted-foreground">
