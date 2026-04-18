@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { getHeroRole, type HeroRole } from '@/lib/data/hero-roles'
+import { heroImageSrc } from '@/lib/data/hero-images'
 import {
   cn,
   formatPercent,
@@ -208,7 +209,13 @@ export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
                   className="border-b last:border-0 hover:bg-accent/30 cursor-pointer transition-colors"
                   onClick={() => onHeroClick(hero.hero)}
                 >
-                  <td className="px-3 py-2.5 font-medium">{hero.hero}</td>
+                  <td className="px-3 py-2.5 font-medium">
+                    <div className="flex items-center gap-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={heroImageSrc(hero.hero)} alt="" loading="lazy" className="w-6 h-6 rounded object-cover shrink-0" />
+                      {hero.hero}
+                    </div>
+                  </td>
                   <td className="px-3 py-2.5">
                     {role && (
                       <Badge
