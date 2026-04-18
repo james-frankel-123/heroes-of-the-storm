@@ -20,7 +20,7 @@ async function fetchMetaData(tier: SkillTier) {
       getBottomHeroes(tier, 10),
       getTopSynergies(tier, 100),
       getTopCounters(tier, 100),
-      getPowerPicks(tier, 55, 15),
+      getPowerPicks(tier, 55, 500),
     ])
   return { topHeroes, bottomHeroes, synergies, counters, powerPicks }
 }
