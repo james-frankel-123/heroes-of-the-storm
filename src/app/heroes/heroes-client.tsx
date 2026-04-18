@@ -407,6 +407,14 @@ export function HeroesClient({
         })
       })()}
 
+      {/* Career Journey — cumulative best heroes through each year */}
+      {isPersonal && (() => {
+        const pd = allPersonalData.find((p) => p.battletag === viewMode)
+        if (!pd || !pd.seasonBreakdown || pd.seasonBreakdown.length < 2) return null
+        const years = [...pd.seasonBreakdown].sort((a, b) => a.year - b.year)
+        return <CareerJourney years={years} />
+      })()}
+
       <HeroTable
         heroes={heroes}
         onHeroClick={setSelectedHero}
@@ -438,8 +446,6 @@ function PlayerSnapshot({
   topMaps,
   seasonTopHeroes,
   seasonTopMaps,
-  threeSeasonTopHeroes,
-  threeSeasonTopMaps,
 }: {
   player: string
   topHeroes: PlayerHeroStats[]
@@ -975,6 +981,78 @@ function YearSeasonCard({
             </div>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function CareerJourney({
+  years,
+}: {
+  years: {
+    year: number
+    heroStats: { hero: string; games: number; wins: number; winRate: number }[]
+    mapStats: { map: string; games: number; wins: number; winRate: number }[]
+  }[]
+}) {
+  const rows: {
+    label: string
+    topHeroes: { hero: string; diff: number; games: number; wins: number }[]
+  }[] = []
+
+  const cumulative: Record<string, { games: number; wins: number }> = {}
+
+  for (let i = 0; i < years.length; i++) {
+    const { year, heroStats } = years[i]
+    for (const h of heroStats) {
+      if (!cumulative[h.hero]) cumulative[h.hero] = { games: 0, wins: 0 }
+      cumulative[h.hero].games += h.games
+      cumulative[h.hero].wins += h.wins
+    }
+
+    const sorted = Object.entries(cumulative)
+      .map(([hero, s]) => ({ hero, games: s.games, wins: s.wins, diff: s.wins - (s.games - s.wins) }))
+      .filter((h) => h.diff > 0 && h.games >= 5)
+      .sort((a, b) => b.diff - a.diff)
+      .slice(0, 10)
+
+    const label = i === 0 ? `${year}` : `Through ${year}`
+    rows.push({ label, topHeroes: sorted })
+  }
+
+  if (rows.length === 0) return null
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-white">Career Journey</h3>
+      <div className="space-y-4">
+        {rows.map((row) => (
+          <div key={row.label} className="space-y-1.5">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+              {row.label}
+            </p>
+            {row.topHeroes.length > 0 ? (
+              <div className="flex gap-2 flex-wrap">
+                {row.topHeroes.map((h) => (
+                  <div key={h.hero} className="flex items-center gap-1.5 bg-accent/30 rounded px-2 py-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={heroImageSrc(h.hero)}
+                      alt=""
+                      className="w-6 h-6 rounded object-cover shrink-0"
+                    />
+                    <span className="text-xs text-foreground">{h.hero}</span>
+                    <span className="text-xs font-bold tabular-nums text-gaming-success">
+                      +{h.diff}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">No heroes above .500</p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )
