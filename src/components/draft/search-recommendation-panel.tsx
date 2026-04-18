@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
@@ -8,18 +8,6 @@ import { HEX_CLIP, METALLIC_FRAME } from './hex/constants'
 import type { ExpectimaxResult } from '@/lib/draft/expectimax/types'
 import type { DraftData } from '@/lib/draft/types'
 import { scorePlayerStrength } from '@/lib/draft/engine'
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 interface SearchRecommendationPanelProps {
   results: ExpectimaxResult[]
@@ -140,9 +128,7 @@ export function SearchRecommendationPanel({
                     </div>
                     <span className="text-sm font-medium text-[#e8ecef] truncate">{rec.hero}</span>
                     {role && (
-                      <Badge variant={roleBadgeVariant(role)} className="text-[10px] px-1 py-0 shrink-0">
-                        {role}
-                      </Badge>
+                      <RoleBadge role={role!} className="text-[10px] px-1 py-0 shrink-0" />
                     )}
                   </div>
                   <span className={cn('text-sm font-bold tabular-nums', deltaColor)}>

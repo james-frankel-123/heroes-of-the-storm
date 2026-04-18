@@ -1,23 +1,11 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { formatPercent, getWinRateColor, formatNumber } from '@/lib/utils'
 import type { HeroStats } from '@/lib/types'
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 interface MetaHeroesProps {
   topHeroes: HeroStats[]
@@ -77,9 +65,7 @@ function HeroList({ heroes }: { heroes: HeroStats[] }) {
               />
               <span className="font-medium text-sm truncate">{hero.hero}</span>
               {role && (
-                <Badge variant={roleBadgeVariant(role)} className="text-xs px-1.5 py-0">
-                  {role}
-                </Badge>
+                <RoleBadge role={role!} className="text-xs px-1.5 py-0" />
               )}
             </div>
             <div className="flex items-center gap-4 text-sm shrink-0">

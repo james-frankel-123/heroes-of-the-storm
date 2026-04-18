@@ -1,23 +1,11 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
 import type { DraftRecommendation, RecommendationReason } from '@/lib/draft/types'
 import { HEX_CLIP, METALLIC_FRAME } from './hex/constants'
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 function reasonColor(type: RecommendationReason['type']): string {
   switch (type) {
@@ -106,12 +94,7 @@ export function RecommendationPanel({
                         {rec.hero}
                       </span>
                       {role && (
-                        <Badge
-                          variant={roleBadgeVariant(role)}
-                          className="text-[7px] px-1 py-0 shrink-0"
-                        >
-                          {role.split(' ')[0]}
-                        </Badge>
+                        <RoleBadge role={role!} className="text-[7px] px-1 py-0 shrink-0" short />
                       )}
                       <span className={cn('ml-auto text-xs font-semibold shrink-0', deltaColor)}>
                         {formatDelta(rec.netDelta)}

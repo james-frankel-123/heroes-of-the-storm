@@ -4,20 +4,8 @@ import { DRAFT_SEQUENCE } from '@/lib/draft/types'
 import type { DraftState } from '@/lib/draft/types'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { cn } from '@/lib/utils'
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 interface DraftBoardProps {
   state: DraftState
@@ -255,12 +243,7 @@ function Slot({
           />
           <span className="truncate">{hero}</span>
           {role && !isBan && (
-            <Badge
-              variant={roleBadgeVariant(role)}
-              className="text-[7px] px-1 py-0 shrink-0"
-            >
-              {role.split(' ')[0]}
-            </Badge>
+            <RoleBadge role={role!} className="text-[7px] px-1 py-0 shrink-0" short />
           )}
         </div>
       ) : isSkipped ? (

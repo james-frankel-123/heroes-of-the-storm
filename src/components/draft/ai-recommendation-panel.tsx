@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { cn } from '@/lib/utils'
 import type { DraftState, DraftStep } from '@/lib/draft/types'
@@ -18,18 +18,6 @@ import {
   type PlayerMAWPData,
 } from '@/lib/draft/ai-inference'
 import type { DraftData } from '@/lib/draft/types'
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 /** Generic Draft prediction for opponent turns */
 interface GDPrediction {
@@ -233,12 +221,7 @@ export function AIRecommendationPanel({
                       {pred.hero}
                     </span>
                     {role && (
-                      <Badge
-                        variant={roleBadgeVariant(role)}
-                        className="text-[7px] px-1 py-0 shrink-0"
-                      >
-                        {role.split(' ')[0]}
-                      </Badge>
+                      <RoleBadge role={role!} className="text-[7px] px-1 py-0 shrink-0" short />
                     )}
                   </div>
                   <span className="text-xs font-mono text-orange-300 shrink-0">
@@ -275,12 +258,7 @@ export function AIRecommendationPanel({
                         {rec.hero}
                       </span>
                       {role && (
-                        <Badge
-                          variant={roleBadgeVariant(role)}
-                          className="text-[7px] px-1 py-0 shrink-0"
-                        >
-                          {role.split(' ')[0]}
-                        </Badge>
+                        <RoleBadge role={role!} className="text-[7px] px-1 py-0 shrink-0" short />
                       )}
                     </div>
                     {rec.suggestedPlayer && (

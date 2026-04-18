@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import {
   cn,
@@ -11,18 +11,6 @@ import {
   confidenceAdjustedWinRate,
 } from '@/lib/utils'
 import type { MapStats, HeroMapStats } from '@/lib/types'
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 interface MapCardProps {
   mapStat: MapStats
@@ -75,12 +63,7 @@ export function MapCard({
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{h.hero}</span>
                     {role && (
-                      <Badge
-                        variant={roleBadgeVariant(role)}
-                        className="text-[8px] px-1 py-0"
-                      >
-                        {role}
-                      </Badge>
+                      <RoleBadge role={role!} className="text-[8px] px-1 py-0" />
                     )}
                   </div>
                   <div className="flex items-center gap-2">

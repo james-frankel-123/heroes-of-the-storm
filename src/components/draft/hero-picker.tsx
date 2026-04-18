@@ -2,23 +2,11 @@
 
 import { useState, useMemo } from 'react'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { HERO_ROLES, getHeroRole, type HeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
 import { HEX_CLIP, METALLIC_FRAME } from './hex/constants'
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 const ALL_HEROES = Object.keys(HERO_ROLES)
 
@@ -162,12 +150,7 @@ export function HeroPicker({
                 {hero}
               </span>
               {role && (
-                <Badge
-                  variant={roleBadgeVariant(role)}
-                  className="text-[7px] px-1 py-0 opacity-80"
-                >
-                  {role.split(' ')[0]}
-                </Badge>
+                <RoleBadge role={role!} className="text-[7px] px-1 py-0 opacity-80" short />
               )}
             </button>
           )

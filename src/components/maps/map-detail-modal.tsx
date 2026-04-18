@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,18 +20,6 @@ import {
   confidenceAdjustedWinRate,
 } from '@/lib/utils'
 import type { HeroMapStats, PlayerMatch, SkillTier } from '@/lib/types'
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 type SortField = 'hero' | 'winRate' | 'games'
 
@@ -259,12 +247,7 @@ export function MapDetailModal({
                         <td className="px-3 py-2 font-medium">{h.hero}</td>
                         <td className="px-3 py-2">
                           {role && (
-                            <Badge
-                              variant={roleBadgeVariant(role)}
-                              className="text-[10px] px-1.5 py-0"
-                            >
-                              {role}
-                            </Badge>
+                            <RoleBadge role={role!} className="text-[10px] px-1.5 py-0" />
                           )}
                         </td>
                         <td

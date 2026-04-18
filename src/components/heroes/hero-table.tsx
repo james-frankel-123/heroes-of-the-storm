@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/shared/role-badge'
 import { Input } from '@/components/ui/input'
 import { getHeroRole, type HeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
@@ -36,18 +36,6 @@ const ROLES: (HeroRole | 'All')[] = [
   'Healer',
   'Support',
 ]
-
-function roleBadgeVariant(role: string | null) {
-  switch (role) {
-    case 'Tank': return 'tank' as const
-    case 'Bruiser': return 'bruiser' as const
-    case 'Healer': return 'healer' as const
-    case 'Ranged Assassin': return 'ranged' as const
-    case 'Melee Assassin': return 'melee' as const
-    case 'Support': return 'support' as const
-    default: return 'secondary' as const
-  }
-}
 
 interface HeroTableProps {
   heroes: HeroRow[]
@@ -218,12 +206,7 @@ export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
                   </td>
                   <td className="px-3 py-2.5">
                     {role && (
-                      <Badge
-                        variant={roleBadgeVariant(role)}
-                        className="text-[10px] px-1.5 py-0"
-                      >
-                        {role}
-                      </Badge>
+                      <RoleBadge role={role!} className="text-[10px] px-1.5 py-0" />
                     )}
                   </td>
                   <td
