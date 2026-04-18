@@ -1,9 +1,12 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
+import { mapImageSrc } from '@/lib/data/map-images'
+import { CURRENT_MAP_ROTATION, isInRotation } from '@/lib/data/map-rotation'
 import { formatPercent, getWinRateColor, formatNumber } from '@/lib/utils'
 import type { HeroMapStats } from '@/lib/types'
 
@@ -12,7 +15,12 @@ interface PowerPicksProps {
 }
 
 export function PowerPicks({ picks }: PowerPicksProps) {
-  if (picks.length === 0) {
+  const filtered = useMemo(
+    () => picks.filter((p) => isInRotation(p.map)),
+    [picks]
+  )
+
+  if (filtered.length === 0) {
     return null
   }
 
@@ -26,9 +34,37 @@ export function PowerPicks({ picks }: PowerPicksProps) {
           </span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* Current Map Rotation */}
         <div className="space-y-2">
-          {picks.map((pick, i) => {
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            Current Map Rotation
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {CURRENT_MAP_ROTATION.map((map) => {
+              const img = mapImageSrc(map)
+              return (
+                <div key={map} className="flex flex-col items-center gap-0.5 w-16">
+                  {img && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={img}
+                      alt={map}
+                      className="w-full h-8 rounded object-cover border border-border"
+                    />
+                  )}
+                  <span className="text-[9px] text-muted-foreground truncate w-full text-center">
+                    {map}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Power picks list */}
+        <div className="space-y-2">
+          {filtered.map((pick, i) => {
             const role = getHeroRole(pick.hero)
             return (
               <div
