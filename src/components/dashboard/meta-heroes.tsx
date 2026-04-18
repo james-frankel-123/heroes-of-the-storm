@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
+import { heroImageSrc } from '@/lib/data/hero-images'
 import { formatPercent, getWinRateColor, formatNumber } from '@/lib/utils'
 import type { HeroStats } from '@/lib/types'
 
@@ -67,6 +68,13 @@ function HeroList({ heroes }: { heroes: HeroStats[] }) {
               <span className="text-xs text-muted-foreground w-5 text-right">
                 {i + 1}
               </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={heroImageSrc(hero.hero)}
+                alt=""
+                loading="lazy"
+                className="w-7 h-7 rounded object-cover shrink-0"
+              />
               <span className="font-medium text-sm truncate">{hero.hero}</span>
               {role && (
                 <Badge variant={roleBadgeVariant(role)} className="text-xs px-1.5 py-0">

@@ -7,6 +7,7 @@ import {
   cn,
 } from '@/lib/utils'
 import type { PlayerHeroStats, TrackedBattletag } from '@/lib/types'
+import { heroImageSrc } from '@/lib/data/hero-images'
 
 interface PersonalInsightsProps {
   battletag: TrackedBattletag
@@ -99,7 +100,18 @@ function HeroTable({ heroes }: { heroes: PlayerHeroStats[] }) {
               key={h.hero}
               className="hover:bg-accent/50 transition-colors"
             >
-              <td className="py-1.5 pr-2 font-medium">{h.hero}</td>
+              <td className="py-1.5 pr-2 font-medium">
+                <div className="flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroImageSrc(h.hero)}
+                    alt=""
+                    loading="lazy"
+                    className="w-6 h-6 rounded object-cover shrink-0"
+                  />
+                  {h.hero}
+                </div>
+              </td>
               <td className="py-1.5 text-right text-muted-foreground">
                 {h.games}
               </td>
