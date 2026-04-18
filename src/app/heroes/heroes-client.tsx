@@ -446,6 +446,8 @@ function PlayerSnapshot({
   topMaps,
   seasonTopHeroes,
   seasonTopMaps,
+  threeSeasonTopHeroes,
+  threeSeasonTopMaps,
 }: {
   player: string
   topHeroes: PlayerHeroStats[]
