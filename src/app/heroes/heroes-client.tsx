@@ -39,6 +39,11 @@ interface HeroesClientProps {
     seasonMapStats: { map: string; games: number; wins: number; winRate: number }[]
     threeSeasonHeroStats: { hero: string; games: number; wins: number }[]
     threeSeasonMapStats: { map: string; games: number; wins: number; winRate: number }[]
+    seasonBreakdown: {
+      year: number
+      heroStats: { hero: string; games: number; wins: number; winRate: number }[]
+      mapStats: { map: string; games: number; wins: number; winRate: number }[]
+    }[]
   }[]
 }
 
@@ -129,6 +134,7 @@ export function HeroesClient({
           seasonMapStats: data.seasonMapStats ?? [],
           threeSeasonHeroStats: data.threeSeasonHeroStats ?? [],
           threeSeasonMapStats: data.threeSeasonMapStats ?? [],
+          seasonBreakdown: data.seasonBreakdown ?? [],
         }])
       }
       setViewMode(data.battletag)
@@ -371,6 +377,36 @@ export function HeroesClient({
         return <SeasonSnapshot best={best} worst={worst} />
       })()}
 
+      {/* Per-season breakdowns */}
+      {isPersonal && (() => {
+        const pd = allPersonalData.find((p) => p.battletag === viewMode)
+        if (!pd || !pd.seasonBreakdown || pd.seasonBreakdown.length === 0) return null
+        return pd.seasonBreakdown.map((season) => {
+          const topHeroes = season.heroStats
+            .filter((h) => h.games >= 5)
+            .sort((a, b) => b.winRate - a.winRate)
+            .slice(0, 5)
+          const topMaps = season.mapStats
+            .filter((m) => m.games >= 5)
+            .sort((a, b) => b.winRate - a.winRate)
+            .slice(0, 3)
+          if (topHeroes.length === 0 && topMaps.length === 0) return null
+          const totalGames = season.heroStats.reduce((s, h) => s + h.games, 0)
+          const totalWins = season.heroStats.reduce((s, h) => s + h.wins, 0)
+          const overallWR = totalGames > 0 ? Math.round((totalWins / totalGames) * 1000) / 10 : 0
+          return (
+            <YearSeasonCard
+              key={season.year}
+              year={season.year}
+              totalGames={totalGames}
+              overallWR={overallWR}
+              topHeroes={topHeroes}
+              topMaps={topMaps}
+            />
+          )
+        })
+      })()}
+
       <HeroTable
         heroes={heroes}
         onHeroClick={setSelectedHero}
@@ -402,8 +438,6 @@ function PlayerSnapshot({
   topMaps,
   seasonTopHeroes,
   seasonTopMaps,
-  threeSeasonTopHeroes,
-  threeSeasonTopMaps,
 }: {
   player: string
   topHeroes: PlayerHeroStats[]
@@ -830,6 +864,112 @@ function SeasonSnapshot({
                   </span>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function YearSeasonCard({
+  year, totalGames, overallWR, topHeroes, topMaps,
+}: {
+  year: number
+  totalGames: number
+  overallWR: number
+  topHeroes: { hero: string; games: number; wins: number; winRate: number }[]
+  topMaps: { map: string; games: number; wins: number; winRate: number }[]
+}) {
+  const wrColor = overallWR >= 55
+    ? 'text-gaming-success'
+    : overallWR >= 50
+      ? 'text-gaming-warning'
+      : 'text-gaming-danger'
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <div className="flex items-center gap-3">
+        <h3 className="text-sm font-semibold text-white">
+          {year} Season
+        </h3>
+        <span className="text-xs text-muted-foreground">{totalGames} games</span>
+        <span className={cn('text-xs font-bold tabular-nums', wrColor)}>
+          {overallWR.toFixed(1)}% WR
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {topHeroes.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+              Top Heroes
+            </p>
+            <div className="flex gap-3">
+              {topHeroes.map((h) => {
+                const c = h.winRate >= 55
+                  ? 'text-gaming-success'
+                  : h.winRate >= 50
+                    ? 'text-gaming-warning'
+                    : 'text-gaming-danger'
+                return (
+                  <div key={h.hero} className="flex flex-col items-center gap-1 w-14">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={heroImageSrc(h.hero)}
+                      alt={h.hero}
+                      className="w-12 h-12 rounded-md object-cover border border-border"
+                    />
+                    <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                      {h.hero}
+                    </span>
+                    <span className={cn('text-xs font-bold tabular-nums', c)}>
+                      {h.winRate.toFixed(1)}%
+                    </span>
+                    <span className="text-[9px] text-muted-foreground tabular-nums">
+                      {h.games}g
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {topMaps.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+              Top Maps
+            </p>
+            <div className="flex gap-3">
+              {topMaps.map((m) => {
+                const img = mapImageSrc(m.map)
+                const c = m.winRate >= 55
+                  ? 'text-gaming-success'
+                  : m.winRate >= 50
+                    ? 'text-gaming-warning'
+                    : 'text-gaming-danger'
+                return (
+                  <div key={m.map} className="flex flex-col items-center gap-1 w-20">
+                    {img && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={img}
+                        alt={m.map}
+                        className="w-full h-10 rounded-md object-cover border border-border"
+                      />
+                    )}
+                    <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                      {m.map}
+                    </span>
+                    <span className={cn('text-xs font-bold tabular-nums', c)}>
+                      {m.winRate.toFixed(1)}%
+                    </span>
+                    <span className="text-[9px] text-muted-foreground tabular-nums">
+                      {m.games}g
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

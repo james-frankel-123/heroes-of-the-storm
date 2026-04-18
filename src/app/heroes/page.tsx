@@ -12,6 +12,7 @@ import {
   getPlayerMapStats,
   getPlayerHeroStatsSince,
   getPlayerMapStatsSince,
+  getPlayerSeasonBreakdown,
 } from '@/lib/data/queries'
 import type { SkillTier, HeroStats, HeroMapStats } from '@/lib/types'
 
@@ -121,6 +122,7 @@ export default async function HeroesPage() {
           seasonMapStats: await getPlayerMapStatsSince(bt.battletag, seasonStart),
           threeSeasonHeroStats: await getPlayerHeroStatsSince(bt.battletag, threeSeasonStart),
           threeSeasonMapStats: await getPlayerMapStatsSince(bt.battletag, threeSeasonStart),
+          seasonBreakdown: await getPlayerSeasonBreakdown(bt.battletag),
         }
       })
     ),

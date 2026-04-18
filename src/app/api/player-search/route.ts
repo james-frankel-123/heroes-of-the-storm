@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { playerMatchHistory } from '@/lib/db/schema'
-import { sql, desc, and, gte } from 'drizzle-orm'
+import { sql, desc, and, gte, eq } from 'drizzle-orm'
+import { getPlayerSeasonBreakdown } from '@/lib/data/queries'
 
 /**
  * GET /api/player-search?q=SirWatsonII
@@ -157,5 +158,6 @@ export async function GET(request: Request) {
         winRate: m.games > 0 ? Math.round((m.wins / m.games) * 1000) / 10 : 0,
       }))
     })(),
+    seasonBreakdown: await getPlayerSeasonBreakdown(battletag),
   })
 }

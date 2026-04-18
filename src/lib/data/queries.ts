@@ -732,6 +732,56 @@ export async function getPlayerHeroStatsSince(
   return rows.map((r) => ({ hero: r.hero, games: r.games, wins: r.wins }))
 }
 
+/** Per-year breakdown of hero and map stats for a battletag */
+export async function getPlayerSeasonBreakdown(
+  battletag: string,
+): Promise<{
+  year: number
+  heroStats: { hero: string; games: number; wins: number; winRate: number }[]
+  mapStats: { map: string; games: number; wins: number; winRate: number }[]
+}[]> {
+  const heroRows = await db
+    .select({
+      year: sql<number>`EXTRACT(YEAR FROM ${playerMatchHistoryTable.gameDate})::int`,
+      hero: playerMatchHistoryTable.hero,
+      games: sql<number>`count(*)::int`,
+      wins: sql<number>`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::int`,
+    })
+    .from(playerMatchHistoryTable)
+    .where(eq(playerMatchHistoryTable.battletag, battletag))
+    .groupBy(sql`1`, playerMatchHistoryTable.hero)
+    .orderBy(desc(sql`1`), desc(sql`count(*)`))
+
+  const mapRows = await db
+    .select({
+      year: sql<number>`EXTRACT(YEAR FROM ${playerMatchHistoryTable.gameDate})::int`,
+      map: playerMatchHistoryTable.map,
+      games: sql<number>`count(*)::int`,
+      wins: sql<number>`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::int`,
+    })
+    .from(playerMatchHistoryTable)
+    .where(eq(playerMatchHistoryTable.battletag, battletag))
+    .groupBy(sql`1`, playerMatchHistoryTable.map)
+    .orderBy(desc(sql`1`), desc(sql`count(*)`))
+
+  const years = new Set([...heroRows.map(r => r.year), ...mapRows.map(r => r.year)])
+  return [...years].sort((a, b) => b - a).map(year => ({
+    year,
+    heroStats: heroRows
+      .filter(r => r.year === year)
+      .map(r => ({
+        hero: r.hero, games: r.games, wins: r.wins,
+        winRate: r.games > 0 ? Math.round((r.wins / r.games) * 1000) / 10 : 0,
+      })),
+    mapStats: mapRows
+      .filter(r => r.year === year)
+      .map(r => ({
+        map: r.map, games: r.games, wins: r.wins,
+        winRate: r.games > 0 ? Math.round((r.wins / r.games) * 1000) / 10 : 0,
+      })),
+  }))
+}
+
 /** Per-map aggregate stats for a battletag since a given date (season snapshot) */
 export async function getPlayerMapStatsSince(
   battletag: string,
