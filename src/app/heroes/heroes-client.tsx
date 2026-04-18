@@ -988,6 +988,8 @@ function YearSeasonCard({
   )
 }
 
+type RankChange = 'up' | 'down' | 'same' | 'new'
+
 function CareerJourney({
   years,
 }: {
@@ -999,10 +1001,11 @@ function CareerJourney({
 }) {
   const rows: {
     label: string
-    topHeroes: { hero: string; diff: number; games: number; wins: number }[]
+    topHeroes: { hero: string; diff: number; games: number; wins: number; rankChange: RankChange }[]
   }[] = []
 
   const cumulative: Record<string, { games: number; wins: number }> = {}
+  let prevRanks: Record<string, number> = {}
 
   for (let i = 0; i < years.length; i++) {
     const { year, heroStats } = years[i]
@@ -1018,8 +1021,24 @@ function CareerJourney({
       .sort((a, b) => b.diff - a.diff)
       .slice(0, 10)
 
+    const curRanks: Record<string, number> = {}
+    const withChange = sorted.map((h, rank) => {
+      curRanks[h.hero] = rank
+      let rankChange: RankChange = 'new'
+      if (i > 0 && prevRanks[h.hero] !== undefined) {
+        const prev = prevRanks[h.hero]
+        if (rank < prev) rankChange = 'up'
+        else if (rank > prev) rankChange = 'down'
+        else rankChange = 'same'
+      } else if (i === 0) {
+        rankChange = 'same'
+      }
+      return { ...h, rankChange }
+    })
+
     const label = i === 0 ? `${year}` : `Through ${year}`
-    rows.push({ label, topHeroes: sorted })
+    rows.push({ label, topHeroes: withChange })
+    prevRanks = curRanks
   }
 
   if (rows.length === 0) return null
@@ -1047,6 +1066,12 @@ function CareerJourney({
                     <span className="text-xs font-bold tabular-nums text-gaming-success">
                       +{h.diff}
                     </span>
+                    {h.rankChange === 'up' && (
+                      <span className="text-[10px] text-gaming-success">&#x25B2;</span>
+                    )}
+                    {h.rankChange === 'down' && (
+                      <span className="text-[10px] text-gaming-danger">&#x25BC;</span>
+                    )}
                   </div>
                 ))}
               </div>
