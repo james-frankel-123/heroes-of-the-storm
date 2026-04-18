@@ -29,10 +29,10 @@ export function RoleIcon({ role, size = 12, className }: RoleIconProps) {
         </svg>
       )
     case 'Bruiser':
-      // Crossed swords
+      // Fist
       return (
         <svg {...props}>
-          <path d="M2 1l4.5 4.5-1.2 1.2L2 3.4V1zm12 0v2.4L10.7 6.7l-1.2-1.2L14 1zM7.3 8.5L3.7 12.1l1.2 1.2L8.5 9.7 7.3 8.5zm1.4 0l1.2 1.2 3.4-3.4-1.2-1.2L8.7 8.5zM8 7.3L6.7 8l1.3 1.3L9.3 8 8 7.3z" />
+          <path d="M5 9V5.5a1 1 0 012 0V3a1 1 0 012 0v-.5a1 1 0 012 0V5a1 1 0 012 0v4c0 2.8-2.2 5-5 5H7c-1.7 0-3-1.3-3-3V9.5a1 1 0 012 0V9z" />
         </svg>
       )
     case 'Ranged Assassin':
@@ -43,10 +43,10 @@ export function RoleIcon({ role, size = 12, className }: RoleIconProps) {
         </svg>
       )
     case 'Melee Assassin':
-      // Dagger
+      // Crossed swords
       return (
         <svg {...props}>
-          <path d="M12.5 1L6.2 7.3 5 6.1 3.5 7.6l1.2 1.2-.8.8-2.4-.4-.5.5 2.8 2.8.5-.5-.4-2.4.8-.8 1.2 1.2 1.5-1.5-1.2-1.2L12.5 1z" />
+          <path d="M2 1l4.5 4.5-1.2 1.2L2 3.4V1zm12 0v2.4L10.7 6.7l-1.2-1.2L14 1zM7.3 8.5L3.7 12.1l1.2 1.2L8.5 9.7 7.3 8.5zm1.4 0l1.2 1.2 3.4-3.4-1.2-1.2L8.7 8.5zM8 7.3L6.7 8l1.3 1.3L9.3 8 8 7.3z" />
         </svg>
       )
     case 'Healer':
