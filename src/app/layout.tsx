@@ -32,9 +32,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="min-h-screen gradient-gaming">
-            <PraiseBanner />
-            <NavProgress />
-            <NavHeader />
+            <div id="app-header">
+              <PraiseBanner />
+              <NavProgress />
+              <NavHeader />
+            </div>
             <main className="container py-6">{children}</main>
             <SiteFooter />
           </div>

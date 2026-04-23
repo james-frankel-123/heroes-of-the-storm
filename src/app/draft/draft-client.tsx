@@ -19,6 +19,8 @@ import type { DraftState, DraftPhase, DraftData, Team } from '@/lib/draft/types'
 import type { SkillTier } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { mapImageSrc } from '@/lib/data/map-images'
+import { AMADrawer } from '@/components/draft/ama-drawer'
+import { enrichDraftContext } from '@/lib/ama/context'
 
 // ---------------------------------------------------------------------------
 // State management
@@ -203,6 +205,9 @@ export function DraftClient({
     if (!draftData || state.phase !== 'drafting') return []
     return generateRecommendations(state, draftData)
   }, [state, draftData])
+
+  // AMA drawer state
+  const [amaOpen, setAmaOpen] = useState(false)
 
   // AI mode state
   const [aiMode, setAiMode] = useState(false)
@@ -399,6 +404,45 @@ export function DraftClient({
     }
   }, [state.selections, state.playerAssignments, state.ourTeam, draftData])
 
+  // Raw win estimate (with breakdown) for AMA context enrichment
+  const ourWinEstimate = useMemo(() => {
+    if (!draftData || state.phase !== 'drafting') return null
+    const ourPicks: string[] = []
+    const enemyPicks: string[] = []
+    const ourPlayerMap: Record<number, string> = {}
+    for (let i = 0; i < DRAFT_SEQUENCE.length; i++) {
+      const step = DRAFT_SEQUENCE[i]
+      const hero = state.selections[i]
+      if (!hero || step.type !== 'pick') continue
+      if (step.team === state.ourTeam) {
+        const pickIdx = ourPicks.length
+        ourPicks.push(hero)
+        if (state.playerAssignments[i]) ourPlayerMap[pickIdx] = state.playerAssignments[i]
+      } else {
+        enemyPicks.push(hero)
+      }
+    }
+    if (ourPicks.length === 0) return null
+    return computeTeamWinEstimate(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
+  }, [state, draftData])
+
+  // AMA context (updates live with every pick/ban)
+  const amaContext = useMemo(() => {
+    if (!draftData || state.phase !== 'drafting') return null
+    return enrichDraftContext(state, recommendations, draftData, ourWinEstimate)
+  }, [state, recommendations, draftData, ourWinEstimate])
+
+  // Sync AMA context to sessionStorage so the standalone /AMA page can read it
+  useEffect(() => {
+    if (amaContext) {
+      try {
+        sessionStorage.setItem('ama-draft-context', JSON.stringify(amaContext))
+      } catch {
+        // sessionStorage unavailable
+      }
+    }
+  }, [amaContext])
+
   // Heroes that are already selected (banned or picked)
   // Cho'gall: if either Cho or Gall is selected, both are unavailable
   // Also block Cho/Gall from being picked when our team has <2 picks remaining
@@ -579,7 +623,7 @@ export function DraftClient({
   const ourPicksView = state.ourTeam === 'A' ? draftView.picksA : draftView.picksB
   const enemyPicksView = state.ourTeam === 'A' ? draftView.picksB : draftView.picksA
   return (
-    <div className="space-y-4">
+    <div className={cn('space-y-4 transition-all duration-300 ease-in-out', amaOpen && 'sm:mr-[420px]')}>
       {/* HotS-inspired arena wrapper — dark navy gradient background */}
       <div
         className="rounded-lg p-4 sm:p-6 space-y-4"
@@ -661,6 +705,12 @@ export function DraftClient({
             className="px-3 py-1.5 rounded text-xs font-medium border border-[#d46b6b]/50 text-[#d46b6b] hover:bg-[#d46b6b]/10 transition-colors"
           >
             Reset
+          </button>
+          <button
+            onClick={() => setAmaOpen(true)}
+            className="px-3 py-1.5 rounded text-xs font-medium border border-[#b48ad4]/50 text-[#b48ad4] hover:bg-[#b48ad4]/10 transition-colors"
+          >
+            Ask the Coach
           </button>
         </div>
       </div>
@@ -831,6 +881,12 @@ export function DraftClient({
           </button>
         </div>
       )}
+
+      <AMADrawer
+        open={amaOpen}
+        onClose={() => setAmaOpen(false)}
+        draftContext={amaContext}
+      />
     </div>
   )
 }
