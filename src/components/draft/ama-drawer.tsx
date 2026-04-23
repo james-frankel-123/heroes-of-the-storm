@@ -125,6 +125,7 @@ export function AMADrawer({ open, onClose, draftContext }: AMADrawerProps) {
   const [disclaimerVisible, setDisclaimerVisible] = useState(false)
   const [disclaimerHighlighted, setDisclaimerHighlighted] = useState(false)
   const [headerHeight, setHeaderHeight] = useState(56)
+  const [isMobile, setIsMobile] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const prevContextRef = useRef<string | null>(null)
@@ -136,6 +137,13 @@ export function AMADrawer({ open, onClose, draftContext }: AMADrawerProps) {
     observer.observe(el)
     setHeaderHeight(el.getBoundingClientRect().height)
     return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
   }, [])
 
   useEffect(() => {
@@ -236,18 +244,29 @@ export function AMADrawer({ open, onClose, draftContext }: AMADrawerProps) {
     /* No backdrop — drawer pushes content via margin on the parent */
     <div
       className={cn(
-        'fixed right-0 z-40 flex flex-col',
-        'w-full sm:w-[420px]',
-        'border-l border-[#3a4050] shadow-2xl',
+        'fixed z-40 flex flex-col shadow-2xl',
         'transition-transform duration-300 ease-in-out',
-        open ? 'translate-x-0' : 'translate-x-full',
+        isMobile
+          ? cn(
+              'bottom-0 left-0 right-0 rounded-t-2xl border-t border-[#3a4050]',
+              open ? 'translate-y-0' : 'translate-y-full',
+            )
+          : cn(
+              'right-0 w-[420px] border-l border-[#3a4050]',
+              open ? 'translate-x-0' : 'translate-x-full',
+            ),
       )}
-      style={{
-        background: 'radial-gradient(ellipse at top, #1a1f3a 0%, #0a0d1f 100%)',
-        top: headerHeight,
-        height: `calc(100vh - ${headerHeight}px)`,
-      }}
+      style={isMobile
+        ? { background: 'radial-gradient(ellipse at top, #1a1f3a 0%, #0a0d1f 100%)', height: '75vh' }
+        : { background: 'radial-gradient(ellipse at top, #1a1f3a 0%, #0a0d1f 100%)', top: headerHeight, height: `calc(100vh - ${headerHeight}px)` }
+      }
     >
+      {/* Mobile drag handle */}
+      {isMobile && (
+        <div className="flex justify-center pt-2.5 pb-1 shrink-0">
+          <div className="w-10 h-1 rounded-full bg-[#3a4050]" />
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#3a4050] shrink-0">
         <div className="flex items-center gap-3">

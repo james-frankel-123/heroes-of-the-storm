@@ -9,7 +9,6 @@ const NAV_ITEMS = [
   { href: '/heroes', label: 'Heroes' },
   { href: '/maps', label: 'Maps' },
   { href: '/draft', label: 'Draft' },
-  { href: '/AMA', label: 'Coach' },
 ]
 
 export function NavHeader() {
