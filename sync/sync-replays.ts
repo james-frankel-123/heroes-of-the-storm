@@ -446,6 +446,59 @@ export async function fetchReplayData(
 
 // ── Stats ────────────────────────────────────────────────────────────
 
+/**
+ * Re-queue replays that are missing talent data.
+ * Only runs when the main fetch queue is empty (pending backlog cleared).
+ * Finds replay IDs in replay_draft_data where talents is null or empty,
+ * and inserts them back into the fetch queue (the normal fetch path
+ * will re-fetch and update with talent data via onConflictDoUpdate).
+ */
+export async function backfillTalents(
+  db: SyncDb,
+  batchSize = 1000,
+): Promise<number> {
+  // Only run if the main queue is empty
+  const [pendingCount] = await db.execute(
+    sql`SELECT count(*) as c FROM replay_fetch_queue WHERE fetched = false`
+  ).then(r => r.rows)
+
+  if (Number(pendingCount.c) > 0) {
+    return 0 // Main queue still has work — don't compete
+  }
+
+  // Find replays missing talents that aren't already re-queued
+  const missing = await db.execute(
+    sql`SELECT d.replay_id, d.league_tier, d.avg_mmr
+        FROM replay_draft_data d
+        LEFT JOIN replay_fetch_queue q ON d.replay_id = q.replay_id AND q.fetched = false
+        WHERE (d.talents IS NULL OR d.talents = '{}' OR d.talents = 'null' OR d.talents::text = '{"team0":[],"team1":[]}')
+          AND q.replay_id IS NULL
+        LIMIT ${batchSize}`
+  ).then(r => r.rows)
+
+  if (missing.length === 0) {
+    return 0
+  }
+
+  // Re-queue them — mark as unfetched so the normal fetch loop picks them up
+  for (const row of missing) {
+    await db.insert(replayFetchQueue)
+      .values({
+        replayId: Number(row.replay_id),
+        leagueTier: row.league_tier != null ? Number(row.league_tier) : null,
+        avgMmr: row.avg_mmr != null ? Number(row.avg_mmr) : null,
+        fetched: false,
+      })
+      .onConflictDoUpdate({
+        target: replayFetchQueue.replayId,
+        set: { fetched: false },
+      })
+  }
+
+  log.info(`Talent backfill: re-queued ${missing.length} replays missing talent data`)
+  return missing.length
+}
+
 export async function getReplayStats(db: SyncDb) {
   const [draftCount] = await db.execute(
     sql`SELECT count(*) as c FROM replay_draft_data`

@@ -13,7 +13,7 @@
 import { MultiKeyApi } from './api-client'
 import { createDb } from './db'
 import { log } from './logger'
-import { discoverReplays, discoverBackfill, fetchReplayData, getReplayStats } from './sync-replays'
+import { discoverReplays, discoverBackfill, fetchReplayData, backfillTalents, getReplayStats } from './sync-replays'
 import { replaySyncState, replayFetchQueue } from '../src/lib/db/schema'
 import { eq, sql } from 'drizzle-orm'
 
@@ -77,14 +77,16 @@ async function main() {
       // Phase 2: Fetch full data for queued replays
       const fetched = await fetchReplayData(api, db, FETCH_BATCH)
 
+      // Phase 3: Backfill talent data for older replays (only when queue is empty)
+      const talentBackfilled = await backfillTalents(db, 2000)
+
       // Report stats
       const stats = await getReplayStats(db)
       log.info(`Stats: ${stats.draftDataRows} drafts stored, ${stats.pendingInQueue} pending, ` +
         `cursor gap: ${stats.gapRemaining}, total API calls: ${api.getTotalCallCount()}`)
 
-      // If we're caught up on new replays and no pending fetches, slow down
-      // (backfill continues in the background)
-      if (discovered === 0 && backfilled === 0 && fetched === 0) {
+      // If we're caught up on everything (including talent backfill), slow down
+      if (discovered === 0 && backfilled === 0 && fetched === 0 && talentBackfilled === 0) {
         log.info('Caught up — waiting 5 minutes before next cycle')
         await sleep(300_000)
       } else {
