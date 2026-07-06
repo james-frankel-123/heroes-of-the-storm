@@ -8,10 +8,8 @@ import { BanBar } from '@/components/draft/hex/BanBar'
 import { TeamColumn } from '@/components/draft/hex/TeamColumn'
 import { buildDraftView } from '@/components/draft/hex/draft-view-model'
 import { HeroPicker } from '@/components/draft/hero-picker'
-import { RecommendationPanel } from '@/components/draft/recommendation-panel'
-import { AIRecommendationPanel } from '@/components/draft/ai-recommendation-panel'
-import { SearchRecommendationPanel } from '@/components/draft/search-recommendation-panel'
-import { loadAIModels, getGenericDraftPredictions, setActivePolicyModel, getActivePolicyModel, type PolicyModelChoice } from '@/lib/draft/ai-inference'
+import { SearchRecommendationPanel, type OpponentPredictionRow } from '@/components/draft/search-recommendation-panel'
+import { loadAIModels, getGenericDraftPredictions } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
@@ -177,6 +175,30 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
   }
 }
 
+/**
+ * Our team's win % as displayed in the banner: the two teams' raw estimates
+ * normalized to sum to 100 (falling back to a single-sided estimate when only
+ * one team has picks). Used to quantify the impact of hypothetical picks.
+ */
+function displayedOurWinPct(
+  ourPicks: string[],
+  enemyPicks: string[],
+  data: DraftData,
+  map: string | null,
+  ourPlayerMap: Record<number, string>,
+): number {
+  const ourRaw = ourPicks.length > 0
+    ? computeTeamWinEstimate(ourPicks, enemyPicks, data, map, ourPlayerMap).winPct
+    : null
+  const enemyRaw = enemyPicks.length > 0
+    ? computeTeamWinEstimate(enemyPicks, ourPicks, data, map).winPct
+    : null
+  if (ourRaw !== null && enemyRaw !== null) return ourRaw / (ourRaw + enemyRaw) * 100
+  if (ourRaw !== null) return ourRaw
+  if (enemyRaw !== null) return 100 - enemyRaw
+  return 50
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -209,21 +231,12 @@ export function DraftClient({
   // AMA drawer state
   const [amaOpen, setAmaOpen] = useState(false)
 
-  // AI mode state
-  const [aiMode, setAiMode] = useState(false)
-  const [aiValueEstimate, setAiValueEstimate] = useState<number | null>(null)
-
-  // Search mode state
-  type DraftMode = 'stats' | 'search' | 'ai'
-  const [draftMode, setDraftMode] = useState<DraftMode>('stats')
-  const [policyModel, setPolicyModel] = useState<PolicyModelChoice>('f400')
-
   // Expectimax search state (runs on main thread, no workers)
   const [searchResults, setSearchResults] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
   const [searchDepth, setSearchDepth] = useState<number | null>(null)
   const [searching, setSearching] = useState(false)
   const [searchStatus, setSearchStatus] = useState<string>('')
-  const [gdOpponentPreds, setGdOpponentPreds] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
+  const [gdOpponentPreds, setGdOpponentPreds] = useState<OpponentPredictionRow[]>([])
   const [gdLoading, setGdLoading] = useState(false)
 
   // Build AI state helper
@@ -247,9 +260,9 @@ export function DraftClient({
     return aiState
   }, [state.currentStep, state.selections, state.map, state.tier, state.ourTeam])
 
-  // Search mode: run expectimax on our turns, GD predictions on opponent turns
+  // Run expectimax on our turns, GD predictions on opponent turns
   useEffect(() => {
-    if (draftMode !== 'search' || !draftData || state.phase !== 'drafting') return
+    if (!draftData || state.phase !== 'drafting') return
     const step = state.currentStep < 16 ? DRAFT_SEQUENCE[state.currentStep] : null
     if (!step) return
 
@@ -257,7 +270,7 @@ export function DraftClient({
     const isOurs = step.team === state.ourTeam
 
     if (!isOurs) {
-      // Opponent turn: show GD predictions
+      // Opponent turn: show GD predictions + their expected impact on our win %
       setSearchResults([])
       setSearching(false)
       setGdLoading(true)
@@ -268,8 +281,25 @@ export function DraftClient({
           if (cancelled) return
           const preds = await getGenericDraftPredictions(buildAIState(), unavailableHeroes, 12)
           if (!cancelled) {
-            setGdOpponentPreds(preds.map(p => ({
-              hero: p.hero, score: p.probability * 100, depth: 0, nodesVisited: 0,
+            const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
+            const isPick = step.type === 'pick'
+            const before = isPick
+              ? displayedOurWinPct(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
+              : 0
+            // Pad the model's predictions with statistically strong options
+            const gdHeroes = new Set(preds.map(p => p.hero))
+            const candidates: { hero: string; probability: number | null }[] = [
+              ...preds.map(p => ({ hero: p.hero, probability: p.probability as number | null })),
+              ...recommendations
+                .filter(r => !gdHeroes.has(r.hero) && !unavailableHeroes.has(r.hero))
+                .map(r => ({ hero: r.hero, probability: null })),
+            ].slice(0, 10)
+            setGdOpponentPreds(candidates.map(({ hero, probability }) => ({
+              hero,
+              probabilityPct: probability != null ? probability * 100 : null,
+              impactPp: isPick
+                ? Math.round((displayedOurWinPct(ourPicks, [...enemyPicks, hero], draftData, state.map, ourPlayerMap) - before) * 10) / 10
+                : null,
             })))
             setGdLoading(false)
             setSearchStatus('')
@@ -343,26 +373,13 @@ export function DraftClient({
     })()
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftMode, draftData, state.currentStep, state.selections, state.phase, buildAIState])
+  }, [draftData, state.currentStep, state.selections, state.phase, buildAIState])
 
-  // Sync aiMode with draftMode for backward compat
-  useEffect(() => { setAiMode(draftMode === 'ai') }, [draftMode])
-
-  // Stable callback ref for AI value estimate
-  const handleAiValueEstimate = useCallback((wp: number | null) => {
-    setAiValueEstimate(wp)
-  }, [])
-
-  // Compute running win % for both teams
-  const { ourWinPct, enemyWinPct } = useMemo(() => {
-    if (!draftData) return { ourWinPct: null, enemyWinPct: null }
-
-    const enemyTeam = state.ourTeam === 'A' ? 'B' : 'A'
+  // Pick arrays + our-team player assignments (pick index → battletag)
+  const pickArrays = useMemo(() => {
     const ourPicks: string[] = []
     const enemyPicks: string[] = []
-    // Map pick array index → battletag for player assignment lookup
     const ourPlayerMap: Record<number, string> = {}
-
     for (let i = 0; i < DRAFT_SEQUENCE.length; i++) {
       const step = DRAFT_SEQUENCE[i]
       const hero = state.selections[i]
@@ -377,6 +394,14 @@ export function DraftClient({
         enemyPicks.push(hero)
       }
     }
+    return { ourPicks, enemyPicks, ourPlayerMap }
+  }, [state.selections, state.playerAssignments, state.ourTeam])
+
+  // Compute running win % for both teams
+  const { ourWinPct, enemyWinPct } = useMemo(() => {
+    if (!draftData) return { ourWinPct: null, enemyWinPct: null }
+
+    const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
 
     if (ourPicks.length === 0 && enemyPicks.length === 0) {
       return { ourWinPct: null, enemyWinPct: null }
@@ -402,29 +427,16 @@ export function DraftClient({
       ourWinPct: ourRaw?.winPct ?? null,
       enemyWinPct: enemyRaw?.winPct ?? null,
     }
-  }, [state.selections, state.playerAssignments, state.ourTeam, draftData])
+  }, [pickArrays, state.map, draftData])
 
-  // Raw win estimate (with breakdown) for AMA context enrichment
+  // Raw win estimate (with breakdown) for AMA context enrichment and as the
+  // baseline for search-recommendation deltas
   const ourWinEstimate = useMemo(() => {
     if (!draftData || state.phase !== 'drafting') return null
-    const ourPicks: string[] = []
-    const enemyPicks: string[] = []
-    const ourPlayerMap: Record<number, string> = {}
-    for (let i = 0; i < DRAFT_SEQUENCE.length; i++) {
-      const step = DRAFT_SEQUENCE[i]
-      const hero = state.selections[i]
-      if (!hero || step.type !== 'pick') continue
-      if (step.team === state.ourTeam) {
-        const pickIdx = ourPicks.length
-        ourPicks.push(hero)
-        if (state.playerAssignments[i]) ourPlayerMap[pickIdx] = state.playerAssignments[i]
-      } else {
-        enemyPicks.push(hero)
-      }
-    }
+    const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
     if (ourPicks.length === 0) return null
     return computeTeamWinEstimate(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
-  }, [state, draftData])
+  }, [pickArrays, state.phase, state.map, draftData])
 
   // AMA context (updates live with every pick/ban)
   const amaContext = useMemo(() => {
@@ -646,40 +658,6 @@ export function DraftClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-0.5 p-0.5 rounded border border-[#3a4050] bg-[#0a0d1f]/60">
-            {(['stats', 'search', 'ai'] as DraftMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setDraftMode(mode)}
-                className={cn(
-                  'px-2.5 py-1 rounded text-xs font-medium transition-colors',
-                  draftMode === mode
-                    ? mode === 'ai'
-                      ? 'bg-[#b48ad4]/20 text-[#b48ad4] border border-[#b48ad4]/60'
-                      : mode === 'search'
-                        ? 'bg-[#6b8dd4]/20 text-[#6b8dd4] border border-[#6b8dd4]/60'
-                        : 'bg-[#d6dbe0]/10 text-[#e8ecef] border border-[#d6dbe0]/40'
-                    : 'text-[#8b9bc8] hover:text-[#d6dbe0]'
-                )}
-              >
-                {mode === 'stats' ? 'Stats' : mode === 'search' ? 'Search' : 'AI'}
-              </button>
-            ))}
-          </div>
-          {draftMode === 'ai' && (
-            <select
-              value={policyModel}
-              onChange={(e) => {
-                const model = e.target.value as PolicyModelChoice
-                setPolicyModel(model)
-                setActivePolicyModel(model)
-              }}
-              className="px-2 py-1 rounded text-xs font-medium bg-[#0a0d1f]/60 border border-[#3a4050] text-[#d6dbe0]"
-            >
-              <option value="f400">Balanced (400 sim)</option>
-              <option value="b200">Diverse (200 sim)</option>
-            </select>
-          )}
           {currentStep?.type === 'ban' && (
             <button
               onClick={() => dispatch({ type: 'SKIP_BAN' })}
@@ -724,20 +702,8 @@ export function DraftClient({
 
       {/* Win % banner */}
       <div className="flex items-center justify-center gap-6 text-sm">
-        <WinPctBadge
-          label="YOUR TEAM"
-          pct={aiMode && aiValueEstimate !== null
-            ? Math.round((state.ourTeam === 'A' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
-            : ourWinPct}
-          accent="blue"
-        />
-        <WinPctBadge
-          label="ENEMY"
-          pct={aiMode && aiValueEstimate !== null
-            ? Math.round((state.ourTeam === 'B' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
-            : enemyWinPct}
-          accent="red"
-        />
+        <WinPctBadge label="YOUR TEAM" pct={ourWinPct} accent="blue" />
+        <WinPctBadge label="ENEMY" pct={enemyWinPct} accent="red" />
       </div>
 
       {/* Main drafting area — 3 column hex layout */}
@@ -749,51 +715,33 @@ export function DraftClient({
           {/* Center — recs on top, picker below */}
           <div className="space-y-4">
             <div>
-            {draftMode === 'ai' ? (
-              <AIRecommendationPanel
-                state={state}
-                unavailable={unavailableHeroes}
-                onSelect={handleSelectHero}
-                currentStep={currentStep}
-                draftData={draftData}
-                availableBattletags={availableBattletags}
-                onValueEstimate={handleAiValueEstimate}
-              />
-            ) : draftMode === 'search' ? (
-              currentStep?.team === state.ourTeam ? (
-                // Our turn: show search results, pad with greedy to 10
-                <SearchRecommendationPanel
-                  results={searchResults}
-                  greedyFallback={recommendations}
-                  searchDepth={searchDepth}
-                  searching={searching}
-                  statusText={searchStatus}
-                  isBanPhase={currentStep?.type === 'ban'}
-                  isOurTurn={true}
-                  onSelect={handleSelectHero}
-                  unavailable={unavailableHeroes}
-                  draftData={draftData ?? undefined}
-                  availableBattletags={availableBattletags}
-                  map={state.map}
-                />
-              ) : (
-                // Opponent turn: show GD model predictions, pad with greedy
-                <SearchRecommendationPanel
-                  results={gdOpponentPreds}
-                  greedyFallback={recommendations}
-                  searchDepth={null}
-                  searching={gdLoading}
-                  isBanPhase={currentStep?.type === 'ban'}
-                  isOurTurn={false}
-                  onSelect={handleSelectHero}
-                  unavailable={unavailableHeroes}
-                />
-              )
-            ) : (
-              <RecommendationPanel
-                recommendations={recommendations}
+            {currentStep?.team === state.ourTeam ? (
+              // Our turn: show search results, pad with greedy to 10
+              <SearchRecommendationPanel
+                results={searchResults}
+                greedyFallback={recommendations}
+                baselineWinPct={ourWinEstimate?.winPct ?? null}
+                searchDepth={searchDepth}
+                searching={searching}
+                statusText={searchStatus}
                 isBanPhase={currentStep?.type === 'ban'}
-                isOurTurn={currentStep?.team === state.ourTeam}
+                isOurTurn={true}
+                onSelect={handleSelectHero}
+                unavailable={unavailableHeroes}
+                draftData={draftData ?? undefined}
+                availableBattletags={availableBattletags}
+                map={state.map}
+              />
+            ) : (
+              // Opponent turn: show GD model predictions + impact on our win %
+              <SearchRecommendationPanel
+                results={[]}
+                opponentRows={gdOpponentPreds}
+                searchDepth={null}
+                searching={gdLoading}
+                statusText={searchStatus}
+                isBanPhase={currentStep?.type === 'ban'}
+                isOurTurn={false}
                 onSelect={handleSelectHero}
                 unavailable={unavailableHeroes}
               />
@@ -824,12 +772,8 @@ export function DraftClient({
         onAssignPlayer={(stepIdx, bt) =>
           dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })
         }
-        teamAWinPct={aiMode && aiValueEstimate !== null
-          ? Math.round((state.ourTeam === 'A' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
-          : state.ourTeam === 'A' ? ourWinPct : enemyWinPct}
-        teamBWinPct={aiMode && aiValueEstimate !== null
-          ? Math.round((state.ourTeam === 'B' ? aiValueEstimate : 1 - aiValueEstimate) * 1000) / 10
-          : state.ourTeam === 'B' ? ourWinPct : enemyWinPct}
+        teamAWinPct={state.ourTeam === 'A' ? ourWinPct : enemyWinPct}
+        teamBWinPct={state.ourTeam === 'B' ? ourWinPct : enemyWinPct}
       />
 
       {/* Complete summary */}

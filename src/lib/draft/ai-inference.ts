@@ -53,22 +53,9 @@ SKILL_TIERS.forEach((t, i) => { TIER_TO_IDX[t] = i })
 
 let ort: any = null
 let policySession: any = null
-let policySessions: Record<string, any> = {}
 let gdSession: any = null
 let wpSession: any = null
 let loadPromise: Promise<void> | null = null
-let currentPolicyModel: string = 'f400'
-
-export type PolicyModelChoice = 'f400' | 'b200'
-
-export function setActivePolicyModel(model: PolicyModelChoice) {
-  currentPolicyModel = model
-  policySession = policySessions[model] ?? null
-}
-
-export function getActivePolicyModel(): PolicyModelChoice {
-  return currentPolicyModel as PolicyModelChoice
-}
 
 // Mutex to prevent concurrent ONNX session.run() calls ("Session already started" error)
 let inferLock: Promise<void> = Promise.resolve()
@@ -110,27 +97,15 @@ async function _loadModels(): Promise<void> {
   try {
     ort = await loadOrtFromCDN()
 
-    // Load quantized models (INT8) with float32 fallback
-    const tryLoad = async (int8Path: string, floatPath: string) => {
-      try {
-        return await ort.InferenceSession.create(int8Path)
-      } catch {
-        console.warn(`[AI] INT8 model failed, falling back to float32: ${floatPath}`)
-        return await ort.InferenceSession.create(floatPath)
-      }
-    }
-
-    const [pF400, pB200, g, w] = await Promise.all([
-      tryLoad('/models/draft_policy_f400.onnx', '/models/draft_policy_f400.onnx'),
-      tryLoad('/models/draft_policy_b200.onnx', '/models/draft_policy_b200.onnx'),
-      tryLoad('/models/generic_draft_0_int8.onnx', '/models/generic_draft_0.onnx'),
-      tryLoad('/models/win_probability_int8.onnx', '/models/win_probability.onnx'),
+    const [p, g, w] = await Promise.all([
+      ort.InferenceSession.create('/models/draft_policy.onnx'),
+      ort.InferenceSession.create('/models/generic_draft_0.onnx'),
+      ort.InferenceSession.create('/models/win_probability.onnx'),
     ])
-    policySessions = { f400: pF400, b200: pB200 }
-    policySession = policySessions[currentPolicyModel]
+    policySession = p
     gdSession = g
     wpSession = w
-    console.log(`[AI] ONNX models loaded (policy: ${currentPolicyModel}, MCTS on main thread)`)
+    console.log('[AI] ONNX models loaded')
   } catch (err) {
     console.error('[AI] Failed to load ONNX models:', err)
     loadPromise = null
