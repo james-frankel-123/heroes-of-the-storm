@@ -8,8 +8,8 @@ import { BanBar } from '@/components/draft/hex/BanBar'
 import { TeamColumn } from '@/components/draft/hex/TeamColumn'
 import { buildDraftView } from '@/components/draft/hex/draft-view-model'
 import { HeroPicker } from '@/components/draft/hero-picker'
-import { SearchRecommendationPanel, type OpponentPredictionRow } from '@/components/draft/search-recommendation-panel'
-import { loadAIModels, getGenericDraftPredictions } from '@/lib/draft/ai-inference'
+import { SearchRecommendationPanel, type OpponentPredictionRow, type OurTurnRow } from '@/components/draft/search-recommendation-panel'
+import { loadAIModels, getGenericDraftPredictions, getAIRecommendations } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
@@ -231,9 +231,9 @@ export function DraftClient({
   // AMA drawer state
   const [amaOpen, setAmaOpen] = useState(false)
 
-  // Expectimax search state (runs on main thread, no workers)
-  const [searchResults, setSearchResults] = useState<import('@/lib/draft/expectimax/types').ExpectimaxResult[]>([])
-  const [searchDepth, setSearchDepth] = useState<number | null>(null)
+  // MCTS search state (runs on main thread)
+  const [searchResults, setSearchResults] = useState<OurTurnRow[]>([])
+  const [searchInfo, setSearchInfo] = useState<string | null>(null)
   const [searching, setSearching] = useState(false)
   const [searchStatus, setSearchStatus] = useState<string>('')
   const [gdOpponentPreds, setGdOpponentPreds] = useState<OpponentPredictionRow[]>([])
@@ -311,55 +311,61 @@ export function DraftClient({
       return () => { cancelled = true }
     }
 
-    // Our turn: run expectimax on main thread
+    // Our turn: run MCTS (policy priors/values + GD opponent sampling + WP
+    // terminal evaluation) on the main thread.
     setSearchResults([])
-    setSearchDepth(null)
+    setSearchInfo(null)
     setSearching(true)
     setGdOpponentPreds([])
     setSearchStatus('Loading AI models...')
 
     ;(async () => {
       try {
-        // Load AI models (for GD opponent predictions inside the search)
         await loadAIModels()
         if (cancelled) return
 
-        // Import expectimax search
-        setSearchStatus('Searching...')
-        const { createSearchState, iterativeDeepeningSearch } = await import('@/lib/draft/expectimax')
+        setSearchStatus('Searching (MCTS)...')
+        const playerData = draftData.playerStats && availableBattletags.length > 0
+          ? { playerStats: draftData.playerStats, availableBattletags }
+          : undefined
+        const { recommendations: mctsRecs, valueEstimate, sims } = await getAIRecommendations(
+          buildAIState(), unavailableHeroes, step.team, playerData, 10, draftData,
+        )
         if (cancelled) return
 
-        const searchState = createSearchState(state)
+        const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
+        const isPick = step.type === 'pick'
+        const bannerNow = displayedOurWinPct(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
 
-        // Create GD-based opponent predictor using the already-loaded GD model
-        const opponentPredict: import('@/lib/draft/expectimax/types').OpponentPredictor = async (ss, topN) => {
-          const aiSt: import('@/lib/draft/ai-inference').AIDraftState = {
-            team0Picks: ss.ourTeam === 'A' ? ss.ourPicks : ss.enemyPicks,
-            team1Picks: ss.ourTeam === 'A' ? ss.enemyPicks : ss.ourPicks,
-            bans: ss.bans, map: ss.map, tier: ss.tier,
-            step: ss.step,
-            stepType: (DRAFT_SEQUENCE[ss.step]?.type ?? 'pick') as 'ban' | 'pick',
-            ourTeam: ss.ourTeam === 'A' ? 0 : 1,
+        // MCTS orders the rows (visit counts). For picks the displayed number
+        // is the banner evaluator on the post-pick state, so picking a row
+        // moves the banner to exactly that value. For bans (banner does not
+        // move) we show the search's projected final win chance instead.
+        const toRow = (hero: string, isGreedyPad: boolean, projectedWinProb?: number): OurTurnRow => {
+          if (isPick) {
+            const winPct = displayedOurWinPct([...ourPicks, hero], enemyPicks, draftData, state.map, ourPlayerMap)
+            return { hero, isGreedyPad, projected: false, winPct, deltaPp: winPct - bannerNow }
           }
-          const taken = new Set(ss.taken)
-          const preds = await getGenericDraftPredictions(aiSt, taken, topN)
-          return preds.map(p => ({ hero: p.hero, probability: p.probability }))
+          const winProb = projectedWinProb ?? valueEstimate
+          return {
+            hero, isGreedyPad, projected: true,
+            winPct: winProb * 100,
+            deltaPp: (winProb - valueEstimate) * 100,
+          }
         }
 
-        const results = await iterativeDeepeningSearch(
-          searchState, draftData,
-          { maxDepth: 6, ourPickWidth: 8, ourBanWidth: 4, oppPickWidth: 3, oppBanWidth: 3, timeBudgetMs: 5000 },
-          opponentPredict,
-          (depthResults, depth) => {
-            if (!cancelled) {
-              setSearchResults(depthResults)
-              setSearchDepth(depth)
-              setSearchStatus(`Depth ${depth} complete, refining...`)
-            }
-          },
-        )
+        const mctsHeroes = new Set(mctsRecs.map(r => r.hero))
+        const rows: OurTurnRow[] = [
+          ...mctsRecs.map(r => toRow(r.hero, false, r.winProb)),
+          // Pad to 10 with statistically strong options (marked as such)
+          ...recommendations
+            .filter(r => !mctsHeroes.has(r.hero) && !unavailableHeroes.has(r.hero))
+            .map(r => toRow(r.hero, true)),
+        ].slice(0, 10)
+
         if (!cancelled) {
-          setSearchResults(results)
+          setSearchResults(rows)
+          setSearchInfo(`${sims ?? 0} sims`)
           setSearching(false)
           setSearchStatus('')
         }
@@ -716,12 +722,10 @@ export function DraftClient({
           <div className="space-y-4">
             <div>
             {currentStep?.team === state.ourTeam ? (
-              // Our turn: show search results, pad with greedy to 10
+              // Our turn: MCTS recommendations, padded with greedy to 10
               <SearchRecommendationPanel
-                results={searchResults}
-                greedyFallback={recommendations}
-                baselineWinPct={ourWinEstimate?.winPct ?? null}
-                searchDepth={searchDepth}
+                ourRows={searchResults}
+                searchInfo={searchInfo}
                 searching={searching}
                 statusText={searchStatus}
                 isBanPhase={currentStep?.type === 'ban'}
@@ -735,9 +739,7 @@ export function DraftClient({
             ) : (
               // Opponent turn: show GD model predictions + impact on our win %
               <SearchRecommendationPanel
-                results={[]}
                 opponentRows={gdOpponentPreds}
-                searchDepth={null}
                 searching={gdLoading}
                 statusText={searchStatus}
                 isBanPhase={currentStep?.type === 'ban'}

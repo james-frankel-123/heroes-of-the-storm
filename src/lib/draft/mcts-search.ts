@@ -1,8 +1,13 @@
 /**
  * Main-thread MCTS search using the already-loaded ONNX sessions.
  *
- * Runs 30-150 simulations with a 400ms time budget.
- * Uses the policy network for tree priors and the GD model for opponent moves.
+ * AlphaZero-style search per HOTS_FEVER_SPEC.md:
+ * - policy network provides tree priors + value estimates
+ * - GD model samples opponent moves during search
+ * - WP model evaluates terminal (complete) drafts when an evaluator is provided
+ *
+ * Runs MIN_SIMS-MAX_SIMS simulations (50-200 per spec), stopping early once
+ * the time budget is exhausted after the minimum simulation count.
  */
 
 const NUM_HEROES = 90
@@ -50,7 +55,11 @@ const DRAFT_ORDER: [number, 'ban' | 'pick'][] = [
 ]
 
 const C_PUCT = 2.0
-const TIME_BUDGET_MS = 2000  // 2 seconds — enough for meaningful exploration
+// Tunables: at least MIN_SIMS simulations are always run; after that the
+// search stops when TIME_BUDGET_MS is exceeded or MAX_SIMS is reached.
+const MIN_SIMS = 50
+const MAX_SIMS = 200
+const TIME_BUDGET_MS = 1500
 
 function softmaxMasked(logits: Float32Array, mask: Float32Array): Float32Array {
   const result = new Float32Array(logits.length)
@@ -163,6 +172,14 @@ function stateToTensors(s: DraftMCTSState) {
 /**
  * Run MCTS search on the main thread using pre-loaded ONNX sessions.
  */
+export interface MCTSRecommendation {
+  hero: string
+  /** Fraction of root visits (0-1) */
+  visits: number
+  /** Mean backed-up value: P(our team wins) if we take this hero */
+  q: number
+}
+
 export async function runMCTSSearch(
   ort: any,
   policySession: any,
@@ -174,7 +191,9 @@ export async function runMCTSSearch(
   },
   takenHeroes: Set<string>,
   withLock: <T>(fn: () => Promise<T>) => Promise<T> = (fn) => fn(),
-): Promise<{ recommendations: { hero: string; visits: number }[]; valueEstimate: number }> {
+  /** Optional WP leaf evaluator for complete drafts: returns P(team0 wins). */
+  evaluateTerminal?: (team0: string[], team1: string[]) => Promise<number>,
+): Promise<{ recommendations: MCTSRecommendation[]; valueEstimate: number; sims: number }> {
 
   const ourTeam = draftState.ourTeam
 
@@ -225,9 +244,6 @@ export async function runMCTSSearch(
     taken, step: draftState.step, map: draftState.map, tier: draftState.tier, ourTeam,
   }
 
-  const legalActions = NUM_HEROES - taken.size
-  const maxSims = Math.max(50, Math.min(400, legalActions * 4))
-
   const root = createNode(-1, null, 0)
   const { state: rootEncoded, mask: rootMask } = stateToTensors(rootState)
   const { priors, value: rootValue } = await runPolicy(rootEncoded, rootMask)
@@ -238,9 +254,11 @@ export async function runMCTSSearch(
   }
 
   const startTime = performance.now()
+  let simsRun = 0
 
-  for (let sim = 0; sim < maxSims; sim++) {
-    if (performance.now() - startTime > TIME_BUDGET_MS) break
+  for (let sim = 0; sim < MAX_SIMS; sim++) {
+    if (sim >= MIN_SIMS && performance.now() - startTime > TIME_BUDGET_MS) break
+    simsRun++
 
     let node = root
     const scratch = cloneState(rootState)
@@ -265,12 +283,33 @@ export async function runMCTSSearch(
       }
     }
 
+    // Roll the draft forward through any opponent steps with GD sampling so
+    // the leaf we expand/evaluate sits at OUR next decision (or terminal).
+    // Without this, a leaf whose next step belongs to the opponent could
+    // never expand and the tree would stay one ply deep.
+    while (scratch.step < 16 && DRAFT_ORDER[scratch.step][0] !== ourTeam) {
+      const { state: s, mask: m } = stateToTensors(scratch)
+      const oppAction = await runGD(s, m)
+      applyAction(scratch, oppAction)
+    }
+
     let value: number
     if (scratch.step >= 16) {
-      const { state: s, mask: m } = stateToTensors(scratch)
-      const { value: v } = await runPolicy(s, m)
-      value = v
-    } else if (!node.isExpanded && DRAFT_ORDER[scratch.step][0] === ourTeam) {
+      // Terminal: full 10-hero draft. Prefer the dedicated WP model
+      // (leaf evaluator per spec); fall back to the policy value head.
+      if (evaluateTerminal) {
+        const wpTeam0 = await evaluateTerminal(
+          scratch.team0Picks.map(i => HEROES[i]),
+          scratch.team1Picks.map(i => HEROES[i]),
+        )
+        value = ourTeam === 0 ? wpTeam0 : 1 - wpTeam0
+      } else {
+        const { state: s, mask: m } = stateToTensors(scratch)
+        const { value: v } = await runPolicy(s, m)
+        value = v
+      }
+    } else if (!node.isExpanded) {
+      // Expand at our decision point: policy priors + value estimate
       const { state: s, mask: m } = stateToTensors(scratch)
       const { priors: leafPriors, value: v } = await runPolicy(s, m)
       value = v
@@ -293,8 +332,8 @@ export async function runMCTSSearch(
     }
   }
 
-  // Build recommendations
-  const recommendations: { hero: string; visits: number }[] = []
+  // Build recommendations (visit fraction + mean action value)
+  const recommendations: MCTSRecommendation[] = []
   let visitSum = 0
   for (const [, child] of root.children) visitSum += child.visitCount
   for (const [action, child] of root.children) {
@@ -302,10 +341,15 @@ export async function runMCTSSearch(
       recommendations.push({
         hero: HEROES[action],
         visits: visitSum > 0 ? child.visitCount / visitSum : 0,
+        q: child.valueSum / child.visitCount,
       })
     }
   }
   recommendations.sort((a, b) => b.visits - a.visits)
 
-  return { recommendations, valueEstimate: rootValue }
+  // Search-refined estimate of the current position; falls back to the
+  // network's direct value estimate when no simulations completed.
+  const valueEstimate = root.visitCount > 0 ? root.valueSum / root.visitCount : rootValue
+
+  return { recommendations, valueEstimate, sims: simsRun }
 }

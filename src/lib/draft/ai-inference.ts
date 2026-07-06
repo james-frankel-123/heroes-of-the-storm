@@ -339,33 +339,46 @@ export async function getValueEstimate(
 
 /**
  * Run MCTS search on the main thread using pre-loaded ONNX sessions.
+ * When draftData is provided, terminal (complete) drafts are evaluated with
+ * the Win Probability model on enriched features (per HOTS_FEVER_SPEC.md);
+ * otherwise the policy value head is used.
  */
 async function mctsSearchMainThread(
   draftState: AIDraftState,
   takenHeroes: Set<string>,
   ourTeam: number,
-): Promise<{ recommendations: { hero: string; visits: number }[]; valueEstimate: number }> {
+  draftData?: DraftData,
+): Promise<{ recommendations: import('./mcts-search').MCTSRecommendation[]; valueEstimate: number; sims: number }> {
   if (!policySession || !gdSession || !ort) {
     throw new Error('AI models not loaded')
   }
   const { runMCTSSearch } = await import('./mcts-search')
+  const map = draftState.map ?? 'Cursed Hollow'
+  const tier = draftState.tier ?? 'mid'
+  const evaluateTerminal = draftData
+    ? (team0: string[], team1: string[]) => getWinProbability(team0, team1, map, tier, draftData)
+    : undefined
   return runMCTSSearch(ort, policySession, gdSession, {
     team0Picks: draftState.team0Picks,
     team1Picks: draftState.team1Picks,
     bans: draftState.bans,
-    map: draftState.map ?? 'Cursed Hollow',
-    tier: draftState.tier ?? 'mid',
+    map,
+    tier,
     step: draftState.step,
     ourTeam,
     stepType: draftState.stepType,
-  }, takenHeroes, withInferLock)
+  }, takenHeroes, withInferLock, evaluateTerminal)
 }
 
 /**
  * Get AI draft recommendations for the current state.
  *
- * Uses MCTS via Web Worker when available, otherwise falls back to
- * batched value-head evaluation of what-if states.
+ * Runs main-thread MCTS (policy priors/values + GD opponent sampling + WP
+ * terminal evaluation when draftData is given), falling back to a single
+ * policy forward pass if the search fails.
+ *
+ * Each recommendation's winProb is the search's mean action value Q(s,a) —
+ * the model's P(our team wins) if we take that hero — plus MAWP adjustments.
  */
 export async function getAIRecommendations(
   draftState: AIDraftState,
@@ -374,7 +387,8 @@ export async function getAIRecommendations(
   currentTeam: 'A' | 'B',
   playerData?: PlayerMAWPData,
   topK = 15,
-): Promise<{ recommendations: AIRecommendation[]; valueEstimate: number }> {
+  draftData?: DraftData,
+): Promise<{ recommendations: AIRecommendation[]; valueEstimate: number; sims?: number }> {
   if (!policySession || !ort) {
     throw new Error('AI models not loaded. Call loadAIModels() first.')
   }
@@ -385,7 +399,7 @@ export async function getAIRecommendations(
 
   // Run MCTS search on main thread
   try {
-    const mctsResult = await mctsSearchMainThread(draftState, takenHeroes, ourTeamNum)
+    const mctsResult = await mctsSearchMainThread(draftState, takenHeroes, ourTeamNum, draftData)
     const ranked: AIRecommendation[] = mctsResult.recommendations.map(r => {
       const { adjustment, player } = isBanStep
         ? { adjustment: 0, player: null }
@@ -393,7 +407,7 @@ export async function getAIRecommendations(
       return {
         hero: r.hero,
         prior: r.visits,
-        winProb: Math.max(0, Math.min(1, mctsResult.valueEstimate + adjustment + teamMawpAdj)),
+        winProb: Math.max(0, Math.min(1, r.q + adjustment + teamMawpAdj)),
         mawpAdj: adjustment,
         suggestedPlayer: player,
       }
@@ -401,6 +415,7 @@ export async function getAIRecommendations(
     return {
       recommendations: ranked.slice(0, topK),
       valueEstimate: Math.max(0, Math.min(1, mctsResult.valueEstimate + teamMawpAdj)),
+      sims: mctsResult.sims,
     }
   } catch (err) {
     console.warn('[AI] MCTS search failed, falling back to direct inference:', err)
