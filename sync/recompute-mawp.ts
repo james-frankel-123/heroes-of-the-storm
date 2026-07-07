@@ -9,7 +9,14 @@ import { computeDerivedStats } from './compute-derived'
 import { createDb } from './db'
 import { log } from './logger'
 
-const BATTLETAGS = ['Django#1458', 'AzmoDonTrump#1139', 'SirWatsonII#1400']
+const BATTLETAGS = [
+  'Django#1458',
+  'AzmoDonTrump#1139',
+  'SirWatsonII#1400',
+  'Maballsies#1479',
+  'aaron#12738',
+  'Lumi#1912',
+]
 
 async function main() {
   if (!process.env.DATABASE_URL) {
