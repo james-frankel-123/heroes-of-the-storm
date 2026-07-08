@@ -11,21 +11,24 @@ import { scorePlayerStrength } from '@/lib/draft/engine'
 /**
  * A row shown on our turns.
  *
- * For picks, winPct is the SAME quantity the top banner shows, evaluated on
- * the post-pick state — picking a "56.3%" row makes the banner read ~56.3%.
- * For bans (the banner does not move on bans), winPct is the MCTS-projected
- * final win chance and `projected` is true so it is labeled accordingly.
+ * winPct is ONE consistent quantity for both picks and bans: the same
+ * normalized stats evaluator the top banner shows, applied to the post-action
+ * state. Picking a "56.3%" row makes the banner read ~56.3%; bans do not
+ * change either team's picks, so every ban row shows the current banner value
+ * (the old MCTS "proj. final" absolutes were on a different calibration scale
+ * and are gone). Rows are sorted strictly descending by winPct — MCTS only
+ * chooses WHICH candidates make the shortlist and badges its top choice.
  */
 export interface OurTurnRow {
   hero: string
-  /** Absolute win % to display */
+  /** Absolute win % to display — banner evaluator on the post-action state */
   winPct: number
   /** Delta vs the current estimate, in percentage points */
   deltaPp: number
   /** True when the row comes from greedy padding rather than the search */
   isGreedyPad: boolean
-  /** True when winPct is an MCTS projection of the FINAL draft (ban rows) */
-  projected: boolean
+  /** True for the MCTS search's own top choice (shown as a subtle badge) */
+  isAiTop?: boolean
 }
 
 /** A row shown on opponent turns: how likely they take the hero + what it does to us. */
@@ -78,7 +81,7 @@ export function SearchRecommendationPanel({
     : isOurTurn ? 'Search Recommendations' : 'Likely Enemy Picks'
   const subtitle = isOurTurn
     ? isBanPhase
-      ? 'Projected final win chance for each ban (AlphaZero search)'
+      ? 'Your team win estimate after each ban (same scale as the banner — bans do not move it)'
       : 'Your team win estimate after each pick (matches the banner above)'
     : isBanPhase
       ? 'How likely the enemy is to ban each hero'
@@ -174,13 +177,27 @@ export function SearchRecommendationPanel({
               key={rec.hero}
               className={rowButtonClass(rec.isGreedyPad)}
               onClick={() => onSelect(rec.hero)}
+              data-testid="rec-row"
+              data-hero={rec.hero}
+              data-winpct={rec.winPct.toFixed(1)}
             >
               <div className="flex items-center justify-between">
-                {heroCell(rec.hero)}
+                <div className="flex items-center gap-2 min-w-0">
+                  {heroCell(rec.hero)}
+                  {rec.isAiTop && (
+                    <span
+                      className="shrink-0 rounded border border-[#6b8dd4]/50 px-1 py-px text-[9px] font-medium tracking-wide text-[#6b8dd4]"
+                      title="The AI search's top choice for this turn"
+                      data-testid="ai-pick-badge"
+                    >
+                      AI pick
+                    </span>
+                  )}
+                </div>
                 <div className="text-right shrink-0">
                   <div
-                    title={rec.projected
-                      ? `Model-projected chance of winning the game if you ban ${rec.hero} (MCTS with the draft policy network)`
+                    title={isBanPhase
+                      ? `Your team's win estimate after banning ${rec.hero} — same scale as the banner above (bans do not change either team's picks, so it will not move)`
                       : `Your team's win estimate after picking ${rec.hero} — the banner above will show this value`}
                   >
                     <span className={cn(
@@ -193,18 +210,16 @@ export function SearchRecommendationPanel({
                     )}>
                       {rec.winPct.toFixed(1)}%
                     </span>
-                    <span className="ml-1 text-[9px] text-[#8b9bc8]">
-                      {rec.projected ? 'proj. final' : 'win chance'}
-                    </span>
+                    <span className="ml-1 text-[9px] text-[#8b9bc8]">win chance</span>
                   </div>
-                  <div
-                    className="text-[10px] tabular-nums text-[#8b9bc8]"
-                    title={rec.projected
-                      ? "Change vs the search's projection for the current position, in percentage points"
-                      : 'Change vs. your current win estimate, in percentage points'}
-                  >
-                    {rec.deltaPp >= 0 ? '+' : ''}{rec.deltaPp.toFixed(1)}pp vs now
-                  </div>
+                  {!isBanPhase && (
+                    <div
+                      className="text-[10px] tabular-nums text-[#8b9bc8]"
+                      title="Change vs. your current win estimate, in percentage points"
+                    >
+                      {rec.deltaPp >= 0 ? '+' : ''}{rec.deltaPp.toFixed(1)}pp vs now
+                    </div>
+                  )}
                 </div>
               </div>
               {playerByline(rec.hero)}

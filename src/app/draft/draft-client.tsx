@@ -328,7 +328,7 @@ export function DraftClient({
         const playerData = draftData.playerStats && availableBattletags.length > 0
           ? { playerStats: draftData.playerStats, availableBattletags }
           : undefined
-        const { recommendations: mctsRecs, valueEstimate, sims } = await getAIRecommendations(
+        const { recommendations: mctsRecs, sims } = await getAIRecommendations(
           buildAIState(), unavailableHeroes, step.team, playerData, 10, draftData,
         )
         if (cancelled) return
@@ -337,31 +337,36 @@ export function DraftClient({
         const isPick = step.type === 'pick'
         const bannerNow = displayedOurWinPct(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
 
-        // MCTS orders the rows (visit counts). For picks the displayed number
-        // is the banner evaluator on the post-pick state, so picking a row
-        // moves the banner to exactly that value. For bans (banner does not
-        // move) we show the search's projected final win chance instead.
-        const toRow = (hero: string, isGreedyPad: boolean, projectedWinProb?: number): OurTurnRow => {
-          if (isPick) {
-            const winPct = displayedOurWinPct([...ourPicks, hero], enemyPicks, draftData, state.map, ourPlayerMap)
-            return { hero, isGreedyPad, projected: false, winPct, deltaPp: winPct - bannerNow }
-          }
-          const winProb = projectedWinProb ?? valueEstimate
-          return {
-            hero, isGreedyPad, projected: true,
-            winPct: winProb * 100,
-            deltaPp: (winProb - valueEstimate) * 100,
-          }
+        // ONE consistent quantity everywhere: every row displays the banner
+        // evaluator applied to the post-action state. For picks that means
+        // picking a row moves the banner to exactly that value. Bans do not
+        // change either team's picks, so ban rows all equal the current
+        // banner value — the old MCTS "proj. final" absolutes (calibrated
+        // against a different opponent pool) are intentionally gone.
+        const toRow = (hero: string, isGreedyPad: boolean): OurTurnRow => {
+          const winPct = isPick
+            ? displayedOurWinPct([...ourPicks, hero], enemyPicks, draftData, state.map, ourPlayerMap)
+            : bannerNow
+          return { hero, isGreedyPad, winPct, deltaPp: winPct - bannerNow }
         }
 
         const mctsHeroes = new Set(mctsRecs.map(r => r.hero))
+        const aiTopHero = mctsRecs[0]?.hero ?? null
+        // MCTS chooses WHICH candidates make the shortlist (its ranking,
+        // padded with statistically strong options), but the VISIBLE ordering
+        // is strictly by the displayed number — the list must read
+        // monotonically. Array.prototype.sort is stable, so ties (all ban
+        // rows) keep the search's preference order. The search's own top
+        // choice keeps an "AI pick" badge wherever it sorts.
         const rows: OurTurnRow[] = [
-          ...mctsRecs.map(r => toRow(r.hero, false, r.winProb)),
-          // Pad to 10 with statistically strong options (marked as such)
+          ...mctsRecs.map(r => toRow(r.hero, false)),
           ...recommendations
             .filter(r => !mctsHeroes.has(r.hero) && !unavailableHeroes.has(r.hero))
             .map(r => toRow(r.hero, true)),
-        ].slice(0, 10)
+        ]
+          .slice(0, 10)
+          .sort((a, b) => b.winPct - a.winPct)
+          .map(r => (r.hero === aiTopHero ? { ...r, isAiTop: true } : r))
 
         if (!cancelled) {
           setSearchResults(rows)
