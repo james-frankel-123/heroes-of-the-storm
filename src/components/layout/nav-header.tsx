@@ -22,7 +22,7 @@ export function NavHeader() {
             HotS <span className="fever-text">Fever</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-1 overflow-x-auto">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}

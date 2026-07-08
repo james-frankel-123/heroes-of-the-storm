@@ -336,6 +336,53 @@ export const replayFetchQueue = pgTable(
 )
 
 // ---------------------------------------------------------------------------
+// Expert draft-rating study (paper validation)
+// ---------------------------------------------------------------------------
+
+/**
+ * Blinded draft matchup items rated by professional players.
+ * `provenance` (strategy labels / source info) is SERVER-SIDE ONLY and must
+ * never be included in any client payload — raters are blind to which
+ * strategy produced each team.
+ */
+export const ratingItems = pgTable('rating_items', {
+  id: integer('id').primaryKey(), // stable item id (1..100), seeded from data/rating-items.json
+  // { team0: string[5], team1: string[5] } — canonical order; A/B display side
+  // is randomized per rater at serve time.
+  teams: jsonb('teams').notNull(),
+  map: varchar('map', { length: 80 }).notNull(),
+  tier: varchar('tier', { length: 10 }).notNull(), // low | mid | high
+  // { source: 'tournament'|'ladder', stratum, team0Strategy?, team1Strategy?,
+  //   file?, recordIndex?, wp?, replayId?, winner?, gameDate? }
+  provenance: jsonb('provenance').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+/** One expert rating of one item. A/B are the displayed (per-rater randomized) sides. */
+export const draftRatings = pgTable(
+  'draft_ratings',
+  {
+    id: serial('id').primaryKey(),
+    rater: varchar('rater', { length: 100 }).notNull(),
+    itemId: integer('item_id')
+      .notNull()
+      .references(() => ratingItems.id),
+    pTeamA: integer('p_team_a').notNull(), // 0-100, P(displayed Team A wins)
+    betterTeam: varchar('better_team', { length: 1 }).notNull(), // 'A' | 'B' (displayed side)
+    confidence: integer('confidence').notNull(), // 1-5
+    msTaken: integer('ms_taken'), // time from item shown to submit
+    // Side mapping for scoring: true → displayed A is canonical team0.
+    // (Also recomputable via sideSwapped(rater, itemId), stored for robustness.)
+    teamAIsTeam0: boolean('team_a_is_team0').notNull(),
+    isTest: boolean('is_test').notNull().default(false),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({
+    raterItemIdx: uniqueIndex('rating_rater_item_idx').on(t.rater, t.itemId),
+  })
+)
+
+// ---------------------------------------------------------------------------
 // Sync tracking
 // ---------------------------------------------------------------------------
 

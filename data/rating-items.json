@@ -1,0 +1,3366 @@
+{
+  "seed": 20260708,
+  "generatedAt": "2026-07-08T16:12:23.915Z",
+  "items": [
+    {
+      "id": 1,
+      "map": "Blackheart's Bay",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Li Li",
+          "Muradin",
+          "Thrall",
+          "Stitches"
+        ],
+        "team1": [
+          "Valla",
+          "Anduin",
+          "Varian",
+          "Li-Ming",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "cql_enr_a2.0",
+        "team1Strategy": "gd",
+        "file": "training/rerun2026/results/roundrobin/cql_enr_a2.0__gd.json",
+        "recordIndex": 2,
+        "wpTeam0Sym": {
+          "naive": 0.48943933844566345,
+          "herostrength": 0.4881722629070282,
+          "enriched": 0.4893340617418289,
+          "augmented": 0.4472280889749527
+        }
+      }
+    },
+    {
+      "id": 2,
+      "map": "Infernal Shrines",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Auriel",
+          "Hogger",
+          "Illidan",
+          "Sgt. Hammer",
+          "Falstad"
+        ],
+        "team1": [
+          "Zagara",
+          "Mephisto",
+          "Cho",
+          "Gall",
+          "The Butcher"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "mcts",
+        "team1Strategy": "enriched",
+        "file": "training/rerun2026/results/roundrobin/mcts__enriched.json",
+        "recordIndex": 78,
+        "wpTeam0Sym": {
+          "naive": 0.5580650568008423,
+          "herostrength": 0.651906281709671,
+          "enriched": 0.635148823261261,
+          "augmented": 0.5887685120105743
+        }
+      }
+    },
+    {
+      "id": 3,
+      "map": "Blackheart's Bay",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Maiev",
+          "Tyrael",
+          "Kerrigan",
+          "Auriel",
+          "Xul"
+        ],
+        "team1": [
+          "Rehgar",
+          "Hogger",
+          "Sgt. Hammer",
+          "Illidan",
+          "Deathwing"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "mcts",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcts__constrained_mcts.json",
+        "recordIndex": 16,
+        "wpTeam0Sym": {
+          "naive": 0.42812323570251465,
+          "herostrength": 0.45193804800510406,
+          "enriched": 0.5160830467939377,
+          "augmented": 0.4822186678647995
+        }
+      }
+    },
+    {
+      "id": 4,
+      "map": "Towers of Doom",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Stukov",
+          "Li Li",
+          "Alexstrasza",
+          "Nova",
+          "Varian"
+        ],
+        "team1": [
+          "Jaina",
+          "Azmodan",
+          "Sgt. Hammer",
+          "Anub'arak",
+          "Samuro"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "mcq_t0.5",
+        "team1Strategy": "enriched",
+        "file": "training/rerun2026/results/roundrobin/mcq_t0.5__enriched.json",
+        "recordIndex": 123,
+        "wpTeam0Sym": {
+          "naive": 0.20320719480514526,
+          "herostrength": 0.17163625359535217,
+          "enriched": 0.15649551898241043,
+          "augmented": 0.14100008457899094
+        }
+      }
+    },
+    {
+      "id": 5,
+      "map": "Alterac Pass",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Li-Ming",
+          "Kharazim",
+          "Leoric",
+          "The Butcher",
+          "E.T.C."
+        ],
+        "team1": [
+          "Abathur",
+          "Li Li",
+          "Varian",
+          "Sgt. Hammer",
+          "Muradin"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64250145,
+        "winner": 0,
+        "gameDate": "2026-01-21T05:37:23.000Z"
+      }
+    },
+    {
+      "id": 6,
+      "map": "Braxis Holdout",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "D.Va",
+          "Azmodan",
+          "Lt. Morales",
+          "Samuro",
+          "Artanis"
+        ],
+        "team1": [
+          "Li Li",
+          "Alexstrasza",
+          "Nova",
+          "Varian",
+          "Falstad"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "constrained_greedy",
+        "team1Strategy": "mcq_t0.5",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_greedy__mcq_t0.5.json",
+        "recordIndex": 45,
+        "wpTeam0Sym": {
+          "naive": 0.8376078978180885,
+          "herostrength": 0.8837901316583157,
+          "enriched": 0.9035102911293507,
+          "augmented": 0.9122291430830956
+        }
+      }
+    },
+    {
+      "id": 7,
+      "map": "Hanamura Temple",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Valla",
+          "Muradin",
+          "Thrall",
+          "Li-Ming"
+        ],
+        "team1": [
+          "Probius",
+          "Malfurion",
+          "Mal'Ganis",
+          "Zarya",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "gd",
+        "team1Strategy": "gourdeau",
+        "file": "training/rerun2026/results/roundrobin/gd__gourdeau.json",
+        "recordIndex": 77,
+        "wpTeam0Sym": {
+          "naive": 0.42776037752628326,
+          "herostrength": 0.389277383685112,
+          "enriched": 0.4675292819738388,
+          "augmented": 0.4580260217189789
+        }
+      }
+    },
+    {
+      "id": 8,
+      "map": "Warhead Junction",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Tracer",
+          "Kerrigan",
+          "Auriel",
+          "Cho",
+          "Gall"
+        ],
+        "team1": [
+          "Rehgar",
+          "Ragnaros",
+          "Sgt. Hammer",
+          "Deathwing",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 125,
+        "wpTeam0Sym": {
+          "naive": 0.5231937170028687,
+          "herostrength": 0.473726287484169,
+          "enriched": 0.5217298269271851,
+          "augmented": 0.5240830481052399
+        }
+      }
+    },
+    {
+      "id": 9,
+      "map": "Infernal Shrines",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Anub'arak",
+          "Tyrande",
+          "Probius",
+          "Sgt. Hammer",
+          "Zeratul"
+        ],
+        "team1": [
+          "Valla",
+          "Anduin",
+          "Diablo",
+          "Leoric",
+          "Jaina"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "enriched_aug",
+        "team1Strategy": "gourdeau_disc",
+        "file": "training/rerun2026/results/roundrobin/enriched_aug__gourdeau_disc.json",
+        "recordIndex": 148,
+        "wpTeam0Sym": {
+          "naive": 0.6888000071048737,
+          "herostrength": 0.7377919107675552,
+          "enriched": 0.7572239488363266,
+          "augmented": 0.7577197253704071
+        }
+      }
+    },
+    {
+      "id": 10,
+      "map": "Alterac Pass",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Raynor",
+          "The Lost Vikings",
+          "D.Va",
+          "Malthael",
+          "Orphea"
+        ],
+        "team1": [
+          "Hogger",
+          "Samuro",
+          "Deathwing",
+          "Rehgar",
+          "Falstad"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 0,
+        "wpTeam0Sym": {
+          "naive": 0.38904087245464325,
+          "herostrength": 0.3148745745420456,
+          "enriched": 0.4407203048467636,
+          "augmented": 0.41180519759655
+        }
+      }
+    },
+    {
+      "id": 11,
+      "map": "Volskaya Foundry",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Tracer",
+          "Diablo",
+          "Mephisto",
+          "Illidan",
+          "Alexstrasza"
+        ],
+        "team1": [
+          "Valla",
+          "Anduin",
+          "Stitches",
+          "Rehgar",
+          "Sonya"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "enriched_aug",
+        "team1Strategy": "cql_enr_a2.0",
+        "file": "training/rerun2026/results/roundrobin/enriched_aug__cql_enr_a2.0.json",
+        "recordIndex": 82,
+        "wpTeam0Sym": {
+          "naive": 0.6467685997486115,
+          "herostrength": 0.6443083584308624,
+          "enriched": 0.7377522140741348,
+          "augmented": 0.7234256118535995
+        }
+      }
+    },
+    {
+      "id": 12,
+      "map": "Volskaya Foundry",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Azmodan",
+          "Kharazim",
+          "Mei",
+          "Samuro"
+        ],
+        "team1": [
+          "Anduin",
+          "Diablo",
+          "Li-Ming",
+          "Muradin",
+          "Tychus"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "enriched",
+        "team1Strategy": "gd",
+        "file": "training/rerun2026/results/roundrobin/enriched__gd.json",
+        "recordIndex": 26,
+        "wpTeam0Sym": {
+          "naive": 0.8067841455340385,
+          "herostrength": 0.7894506305456161,
+          "enriched": 0.8249652907252312,
+          "augmented": 0.8171456679701805
+        }
+      }
+    },
+    {
+      "id": 13,
+      "map": "Garden of Terror",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Deathwing",
+          "Samuro",
+          "Hogger",
+          "Falstad"
+        ],
+        "team1": [
+          "Anduin",
+          "Diablo",
+          "Leoric",
+          "Nazeebo",
+          "Greymane"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "constrained_mcts",
+        "team1Strategy": "cql_naive_a1.0",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_mcts__cql_naive_a1.0.json",
+        "recordIndex": 104,
+        "wpTeam0Sym": {
+          "naive": 0.7091645896434784,
+          "herostrength": 0.6570680290460587,
+          "enriched": 0.7229810357093811,
+          "augmented": 0.7007627189159393
+        }
+      }
+    },
+    {
+      "id": 14,
+      "map": "Warhead Junction",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Falstad",
+          "Varian",
+          "Abathur",
+          "Kharazim",
+          "Tychus"
+        ],
+        "team1": [
+          "Tracer",
+          "Rehgar",
+          "Gall",
+          "Cho",
+          "Ragnaros"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "cql_naive_a1.0",
+        "team1Strategy": "gourdeau",
+        "file": "training/rerun2026/results/roundrobin/cql_naive_a1.0__gourdeau.json",
+        "recordIndex": 167,
+        "wpTeam0Sym": {
+          "naive": 0.336174339056015,
+          "herostrength": 0.26188429445028305,
+          "enriched": 0.2501070946455002,
+          "augmented": 0.23874232918024063
+        }
+      }
+    },
+    {
+      "id": 15,
+      "map": "Blackheart's Bay",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Thrall",
+          "Johanna",
+          "Anduin",
+          "Hanzo",
+          "Muradin"
+        ],
+        "team1": [
+          "Sgt. Hammer",
+          "Maiev",
+          "Blaze",
+          "Kharazim",
+          "Kerrigan"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "cql_enr_a2.0",
+        "team1Strategy": "gourdeau",
+        "file": "training/rerun2026/results/roundrobin/cql_enr_a2.0__gourdeau.json",
+        "recordIndex": 198,
+        "wpTeam0Sym": {
+          "naive": 0.2599670737981796,
+          "herostrength": 0.26161281764507294,
+          "enriched": 0.2963584363460541,
+          "augmented": 0.30940189957618713
+        }
+      }
+    },
+    {
+      "id": 16,
+      "map": "Battlefield of Eternity",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Artanis",
+          "Li-Ming",
+          "Johanna",
+          "Anduin",
+          "Brightwing"
+        ],
+        "team1": [
+          "Jaina",
+          "Kel'Thuzad",
+          "Samuro",
+          "Muradin",
+          "Rehgar"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "cql_enr_a2.0",
+        "team1Strategy": "constrained_greedy",
+        "file": "training/rerun2026/results/constrained/roundrobin/cql_enr_a2.0__constrained_greedy.json",
+        "recordIndex": 127,
+        "wpTeam0Sym": {
+          "naive": 0.3602476865053177,
+          "herostrength": 0.34361720085144043,
+          "enriched": 0.3385164737701416,
+          "augmented": 0.3653911054134369
+        }
+      }
+    },
+    {
+      "id": 17,
+      "map": "Alterac Pass",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Cassia",
+          "Anduin",
+          "Leoric",
+          "Tassadar",
+          "Anub'arak"
+        ],
+        "team1": [
+          "Muradin",
+          "Nazeebo",
+          "Auriel",
+          "Varian",
+          "Orphea"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64234889,
+        "winner": 1,
+        "gameDate": "2026-07-07T23:01:42.000Z"
+      }
+    },
+    {
+      "id": 18,
+      "map": "Volskaya Foundry",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Thrall",
+          "Anub'arak",
+          "Lt. Morales",
+          "Sylvanas",
+          "Rexxar"
+        ],
+        "team1": [
+          "Varian",
+          "Anduin",
+          "Arthas",
+          "Tassadar",
+          "Kael'thas"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64189029,
+        "winner": 0,
+        "gameDate": "2026-06-19T01:23:02.000Z"
+      }
+    },
+    {
+      "id": 19,
+      "map": "Garden of Terror",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Illidan",
+          "Ragnaros",
+          "Kerrigan",
+          "Mephisto",
+          "Probius"
+        ],
+        "team1": [
+          "Rehgar",
+          "Hogger",
+          "Deathwing",
+          "Artanis",
+          "Sgt. Hammer"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "gourdeau",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/gourdeau__mcts.json",
+        "recordIndex": 20,
+        "wpTeam0Sym": {
+          "naive": 0.39971670508384705,
+          "herostrength": 0.3711988478899002,
+          "enriched": 0.2701168805360794,
+          "augmented": 0.25987688452005386
+        }
+      }
+    },
+    {
+      "id": 20,
+      "map": "Tomb of the Spider Queen",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Gazlowe",
+          "Xul",
+          "Hogger",
+          "Kel'Thuzad",
+          "Rehgar"
+        ],
+        "team1": [
+          "Nazeebo",
+          "Azmodan",
+          "Li Li",
+          "Diablo",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "constrained_greedy",
+        "team1Strategy": "cql_naive_a1.0",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_greedy__cql_naive_a1.0.json",
+        "recordIndex": 178,
+        "wpTeam0Sym": {
+          "naive": 0.7200759202241898,
+          "herostrength": 0.7396034449338913,
+          "enriched": 0.7744341194629669,
+          "augmented": 0.729388639330864
+        }
+      }
+    },
+    {
+      "id": 21,
+      "map": "Braxis Holdout",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Varian",
+          "Zul'jin",
+          "Kael'thas",
+          "Thrall",
+          "Stukov"
+        ],
+        "team1": [
+          "Uther",
+          "Artanis",
+          "Tychus",
+          "Li-Ming",
+          "Zeratul"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64185638,
+        "winner": 1,
+        "gameDate": "2026-07-04T02:36:07.000Z"
+      }
+    },
+    {
+      "id": 22,
+      "map": "Hanamura Temple",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Samuro",
+          "Zul'jin",
+          "Deathwing",
+          "Ragnaros"
+        ],
+        "team1": [
+          "Artanis",
+          "Tyrael",
+          "Hogger",
+          "Azmodan",
+          "Anduin"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "constrained_mcts",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_mcts__mcts.json",
+        "recordIndex": 175,
+        "wpTeam0Sym": {
+          "naive": 0.6366107612848282,
+          "herostrength": 0.6490112096071243,
+          "enriched": 0.6092493683099747,
+          "augmented": 0.6097632348537445
+        }
+      }
+    },
+    {
+      "id": 23,
+      "map": "Braxis Holdout",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Samuro",
+          "Mei",
+          "Zul'jin",
+          "Fenix",
+          "Lt. Morales"
+        ],
+        "team1": [
+          "Valla",
+          "Anduin",
+          "Stitches",
+          "Kael'thas",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "enriched",
+        "team1Strategy": "gourdeau_disc",
+        "file": "training/rerun2026/results/roundrobin/enriched__gourdeau_disc.json",
+        "recordIndex": 157,
+        "wpTeam0Sym": {
+          "naive": 0.7329007387161255,
+          "herostrength": 0.7941669970750809,
+          "enriched": 0.8541572391986847,
+          "augmented": 0.8300604820251465
+        }
+      }
+    },
+    {
+      "id": 24,
+      "map": "Tomb of the Spider Queen",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Hogger",
+          "Dehaka",
+          "Xul",
+          "Auriel",
+          "Samuro"
+        ],
+        "team1": [
+          "Rehgar",
+          "Sgt. Hammer",
+          "Deathwing",
+          "Leoric",
+          "Ragnaros"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "mcts",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcts__constrained_mcts.json",
+        "recordIndex": 108,
+        "wpTeam0Sym": {
+          "naive": 0.4504932463169098,
+          "herostrength": 0.44837547838687897,
+          "enriched": 0.42254771292209625,
+          "augmented": 0.3461913615465164
+        }
+      }
+    },
+    {
+      "id": 25,
+      "map": "Hanamura Temple",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Valla",
+          "Anduin",
+          "Li-Ming",
+          "Muradin",
+          "Li Li"
+        ],
+        "team1": [
+          "Mei",
+          "Yrel",
+          "Tychus",
+          "Artanis",
+          "Lt. Morales"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "cql_naive_a1.0",
+        "team1Strategy": "enriched",
+        "file": "training/rerun2026/results/roundrobin/cql_naive_a1.0__enriched.json",
+        "recordIndex": 49,
+        "wpTeam0Sym": {
+          "naive": 0.3088235706090927,
+          "herostrength": 0.3253791332244873,
+          "enriched": 0.24767953157424927,
+          "augmented": 0.2522708550095558
+        }
+      }
+    },
+    {
+      "id": 26,
+      "map": "Cursed Hollow",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Diablo",
+          "Anduin",
+          "D.Va",
+          "Tychus",
+          "Nazeebo"
+        ],
+        "team1": [
+          "Li-Ming",
+          "Thrall",
+          "Muradin",
+          "Brightwing",
+          "Zul'jin"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64164296,
+        "winner": 1,
+        "gameDate": "2026-07-02T08:33:42.000Z"
+      }
+    },
+    {
+      "id": 27,
+      "map": "Alterac Pass",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Hogger",
+          "Samuro",
+          "Deathwing",
+          "Illidan"
+        ],
+        "team1": [
+          "Anduin",
+          "Diablo",
+          "Nazeebo",
+          "Artanis",
+          "Raynor"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "mcts",
+        "team1Strategy": "gourdeau_disc",
+        "file": "training/rerun2026/results/roundrobin/mcts__gourdeau_disc.json",
+        "recordIndex": 14,
+        "wpTeam0Sym": {
+          "naive": 0.7308191508054733,
+          "herostrength": 0.7607629969716072,
+          "enriched": 0.8307293578982353,
+          "augmented": 0.8083444759249687
+        }
+      }
+    },
+    {
+      "id": 28,
+      "map": "Tomb of the Spider Queen",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Stukov",
+          "Li Li",
+          "Alexstrasza",
+          "Nova",
+          "Varian"
+        ],
+        "team1": [
+          "Tracer",
+          "Zarya",
+          "Xul",
+          "Johanna",
+          "Rehgar"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "mcq_t0.5",
+        "team1Strategy": "enriched_aug",
+        "file": "training/rerun2026/results/roundrobin/mcq_t0.5__enriched_aug.json",
+        "recordIndex": 164,
+        "wpTeam0Sym": {
+          "naive": 0.16929498314857483,
+          "herostrength": 0.09800942987203598,
+          "enriched": 0.12883245944976807,
+          "augmented": 0.13112008199095726
+        }
+      }
+    },
+    {
+      "id": 29,
+      "map": "Cursed Hollow",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Falstad",
+          "Samuro",
+          "Hogger",
+          "Auriel"
+        ],
+        "team1": [
+          "Nazeebo",
+          "Diablo",
+          "Anduin",
+          "Muradin",
+          "Raynor"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "mcts",
+        "team1Strategy": "cql_enr_a2.0",
+        "file": "training/rerun2026/results/roundrobin/mcts__cql_enr_a2.0.json",
+        "recordIndex": 88,
+        "wpTeam0Sym": {
+          "naive": 0.7090912312269211,
+          "herostrength": 0.6982084512710571,
+          "enriched": 0.7685691937804222,
+          "augmented": 0.7532830014824867
+        }
+      }
+    },
+    {
+      "id": 30,
+      "map": "Hanamura Temple",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Stukov",
+          "Li Li",
+          "Alexstrasza",
+          "Nova",
+          "Varian"
+        ],
+        "team1": [
+          "Rehgar",
+          "Samuro",
+          "Hogger",
+          "Deathwing",
+          "Azmodan"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "mcq_t0.5",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcq_t0.5__constrained_mcts.json",
+        "recordIndex": 63,
+        "wpTeam0Sym": {
+          "naive": 0.13180868327617645,
+          "herostrength": 0.05585291422903538,
+          "enriched": 0.056504521518945694,
+          "augmented": 0.06755268387496471
+        }
+      }
+    },
+    {
+      "id": 31,
+      "map": "Tomb of the Spider Queen",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Stukov",
+          "Li Li",
+          "Alexstrasza",
+          "Nova",
+          "Varian"
+        ],
+        "team1": [
+          "Anduin",
+          "Nazeebo",
+          "Diablo",
+          "Zul'jin",
+          "Leoric"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "mcq_t0.5",
+        "team1Strategy": "cql_enr_a2.0",
+        "file": "training/rerun2026/results/roundrobin/mcq_t0.5__cql_enr_a2.0.json",
+        "recordIndex": 192,
+        "wpTeam0Sym": {
+          "naive": 0.210564486682415,
+          "herostrength": 0.13308404386043549,
+          "enriched": 0.12300650775432587,
+          "augmented": 0.12935952842235565
+        }
+      }
+    },
+    {
+      "id": 32,
+      "map": "Braxis Holdout",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Valla",
+          "Anduin",
+          "Johanna",
+          "Artanis",
+          "Gul'dan"
+        ],
+        "team1": [
+          "Dehaka",
+          "E.T.C.",
+          "Maiev",
+          "Kharazim",
+          "Deathwing"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "cql_naive_a1.0",
+        "team1Strategy": "enriched",
+        "file": "training/rerun2026/results/roundrobin/cql_naive_a1.0__enriched.json",
+        "recordIndex": 31,
+        "wpTeam0Sym": {
+          "naive": 0.3920704573392868,
+          "herostrength": 0.3733994960784912,
+          "enriched": 0.3027620166540146,
+          "augmented": 0.33193475008010864
+        }
+      }
+    },
+    {
+      "id": 33,
+      "map": "Sky Temple",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Anub'arak",
+          "Greymane",
+          "Malthael",
+          "Probius",
+          "Malfurion"
+        ],
+        "team1": [
+          "Samuro",
+          "Hogger",
+          "Rehgar",
+          "Auriel",
+          "Illidan"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 65,
+        "wpTeam0Sym": {
+          "naive": 0.37747280299663544,
+          "herostrength": 0.34106628596782684,
+          "enriched": 0.4060194045305252,
+          "augmented": 0.431480273604393
+        }
+      }
+    },
+    {
+      "id": 34,
+      "map": "Hanamura Temple",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Valla",
+          "Muradin",
+          "Li-Ming",
+          "Li Li",
+          "Thrall"
+        ],
+        "team1": [
+          "Anduin",
+          "Artanis",
+          "Anub'arak",
+          "Malfurion",
+          "Zul'jin"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "cql_naive_a1.0",
+        "team1Strategy": "gd",
+        "file": "training/rerun2026/results/roundrobin/cql_naive_a1.0__gd.json",
+        "recordIndex": 63,
+        "wpTeam0Sym": {
+          "naive": 0.4071275591850281,
+          "herostrength": 0.4259638637304306,
+          "enriched": 0.400326207280159,
+          "augmented": 0.37816160917282104
+        }
+      }
+    },
+    {
+      "id": 35,
+      "map": "Towers of Doom",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Stukov",
+          "Li Li",
+          "Alexstrasza",
+          "Nova",
+          "Varian"
+        ],
+        "team1": [
+          "Nazeebo",
+          "Valla",
+          "Anduin",
+          "Stitches",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "mcq_t0.5",
+        "team1Strategy": "gd",
+        "file": "training/rerun2026/results/roundrobin/mcq_t0.5__gd.json",
+        "recordIndex": 95,
+        "wpTeam0Sym": {
+          "naive": 0.34803956747055054,
+          "herostrength": 0.32207414507865906,
+          "enriched": 0.1700698509812355,
+          "augmented": 0.17918400466442108
+        }
+      }
+    },
+    {
+      "id": 36,
+      "map": "Blackheart's Bay",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Qhira",
+          "Fenix",
+          "Leoric",
+          "Whitemane",
+          "Orphea"
+        ],
+        "team1": [
+          "Artanis",
+          "Hogger",
+          "Samuro",
+          "Auriel",
+          "Deathwing"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 128,
+        "wpTeam0Sym": {
+          "naive": 0.3856164366006851,
+          "herostrength": 0.35597924888134,
+          "enriched": 0.4954927861690521,
+          "augmented": 0.5486792922019958
+        }
+      }
+    },
+    {
+      "id": 37,
+      "map": "Battlefield of Eternity",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Anub'arak",
+          "Li Li",
+          "Raynor",
+          "Kael'thas",
+          "Varian"
+        ],
+        "team1": [
+          "Valeera",
+          "Lunara",
+          "Johanna",
+          "Abathur",
+          "Deckard"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64193243,
+        "winner": 1,
+        "gameDate": "2025-01-06T08:56:28.000Z"
+      }
+    },
+    {
+      "id": 38,
+      "map": "Infernal Shrines",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Gazlowe",
+          "Gall",
+          "Maiev",
+          "Leoric",
+          "Cho"
+        ],
+        "team1": [
+          "Kerrigan",
+          "Mal'Ganis",
+          "Zagara",
+          "Rehgar",
+          "Thrall"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "gourdeau",
+        "team1Strategy": "enriched_aug",
+        "file": "training/rerun2026/results/roundrobin/gourdeau__enriched_aug.json",
+        "recordIndex": 106,
+        "wpTeam0Sym": {
+          "naive": 0.49602213501930237,
+          "herostrength": 0.4319929778575897,
+          "enriched": 0.5340103060007095,
+          "augmented": 0.43758487701416016
+        }
+      }
+    },
+    {
+      "id": 39,
+      "map": "Garden of Terror",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Ana",
+          "Artanis",
+          "Hanzo",
+          "Varian",
+          "Illidan"
+        ],
+        "team1": [
+          "Uther",
+          "Li Li",
+          "Nazeebo",
+          "Deathwing",
+          "Azmodan"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64231321,
+        "winner": 0,
+        "gameDate": "2026-04-28T09:08:04.000Z"
+      }
+    },
+    {
+      "id": 40,
+      "map": "Cursed Hollow",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Valla",
+          "Anduin",
+          "Diablo",
+          "Artanis",
+          "Li-Ming"
+        ],
+        "team1": [
+          "Li Li",
+          "Alexstrasza",
+          "Nova",
+          "Varian",
+          "Falstad"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "cql_naive_a1.0",
+        "team1Strategy": "mcq_t0.5",
+        "file": "training/rerun2026/results/roundrobin/cql_naive_a1.0__mcq_t0.5.json",
+        "recordIndex": 172,
+        "wpTeam0Sym": {
+          "naive": 0.49884212017059326,
+          "herostrength": 0.5200544595718384,
+          "enriched": 0.551027238368988,
+          "augmented": 0.5709898322820663
+        }
+      }
+    },
+    {
+      "id": 41,
+      "map": "Blackheart's Bay",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Illidan",
+          "Tyrael",
+          "Hanzo",
+          "Xul",
+          "Alexstrasza"
+        ],
+        "team1": [
+          "Johanna",
+          "Anduin",
+          "Valla",
+          "Rehgar",
+          "Sonya"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "constrained_greedy",
+        "team1Strategy": "gd",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_greedy__gd.json",
+        "recordIndex": 156,
+        "wpTeam0Sym": {
+          "naive": 0.5139345079660416,
+          "herostrength": 0.47106075286865234,
+          "enriched": 0.5739982426166534,
+          "augmented": 0.5610208362340927
+        }
+      }
+    },
+    {
+      "id": 42,
+      "map": "Towers of Doom",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Diablo",
+          "Abathur",
+          "Lúcio",
+          "Sylvanas",
+          "Valla"
+        ],
+        "team1": [
+          "Tychus",
+          "Anduin",
+          "Tassadar",
+          "Nazeebo",
+          "Mal'Ganis"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64216607,
+        "winner": 1,
+        "gameDate": "2026-06-09T22:13:20.000Z"
+      }
+    },
+    {
+      "id": 43,
+      "map": "Battlefield of Eternity",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Sonya",
+          "Qhira",
+          "Nazeebo",
+          "Lt. Morales",
+          "Tyrael"
+        ],
+        "team1": [
+          "Anduin",
+          "Genji",
+          "Johanna",
+          "Kael'thas",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64245921,
+        "winner": 0,
+        "gameDate": "2026-07-06T21:22:43.000Z"
+      }
+    },
+    {
+      "id": 44,
+      "map": "Hanamura Temple",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Azmodan",
+          "The Lost Vikings",
+          "Anduin",
+          "E.T.C.",
+          "Artanis"
+        ],
+        "team1": [
+          "Chromie",
+          "Murky",
+          "D.Va",
+          "Alexstrasza",
+          "Blaze"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64195436,
+        "winner": 1,
+        "gameDate": "2026-04-26T23:09:48.000Z"
+      }
+    },
+    {
+      "id": 45,
+      "map": "Sky Temple",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Valeera",
+          "Dehaka",
+          "D.Va",
+          "Malthael",
+          "Probius"
+        ],
+        "team1": [
+          "Hogger",
+          "Li-Ming",
+          "Samuro",
+          "Leoric",
+          "Rehgar"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "enriched",
+        "team1Strategy": "constrained_greedy",
+        "file": "training/rerun2026/results/constrained/roundrobin/enriched__constrained_greedy.json",
+        "recordIndex": 107,
+        "wpTeam0Sym": {
+          "naive": 0.42370733618736267,
+          "herostrength": 0.3591299057006836,
+          "enriched": 0.4796134680509567,
+          "augmented": 0.3647622913122177
+        }
+      }
+    },
+    {
+      "id": 46,
+      "map": "Tomb of the Spider Queen",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Hogger",
+          "Samuro",
+          "Azmodan",
+          "Illidan"
+        ],
+        "team1": [
+          "Probius",
+          "Nazeebo",
+          "Ana",
+          "Garrosh",
+          "Malthael"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "mcts",
+        "team1Strategy": "enriched",
+        "file": "training/rerun2026/results/roundrobin/mcts__enriched.json",
+        "recordIndex": 108,
+        "wpTeam0Sym": {
+          "naive": 0.5560420453548431,
+          "herostrength": 0.4762648493051529,
+          "enriched": 0.547324150800705,
+          "augmented": 0.5749046057462692
+        }
+      }
+    },
+    {
+      "id": 47,
+      "map": "Alterac Pass",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Muradin",
+          "Nova",
+          "Abathur",
+          "Thrall",
+          "Gul'dan"
+        ],
+        "team1": [
+          "Varian",
+          "Deckard",
+          "Stitches",
+          "Tracer",
+          "Sylvanas"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64233107,
+        "winner": 1,
+        "gameDate": "2026-05-01T10:07:34.000Z"
+      }
+    },
+    {
+      "id": 48,
+      "map": "Battlefield of Eternity",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Kael'thas",
+          "Auriel",
+          "Cho",
+          "Illidan",
+          "Gall"
+        ],
+        "team1": [
+          "Samuro",
+          "Hogger",
+          "Sgt. Hammer",
+          "Rehgar",
+          "Falstad"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 99,
+        "wpTeam0Sym": {
+          "naive": 0.4641382247209549,
+          "herostrength": 0.5238139778375626,
+          "enriched": 0.5412291139364243,
+          "augmented": 0.5402456074953079
+        }
+      }
+    },
+    {
+      "id": 49,
+      "map": "Braxis Holdout",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Samuro",
+          "Zul'jin",
+          "Deathwing",
+          "Hogger",
+          "Auriel"
+        ],
+        "team1": [
+          "Valla",
+          "Anduin",
+          "Diablo",
+          "Artanis",
+          "Tassadar"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "mcts",
+        "team1Strategy": "gd",
+        "file": "training/rerun2026/results/roundrobin/mcts__gd.json",
+        "recordIndex": 143,
+        "wpTeam0Sym": {
+          "naive": 0.7238525301218033,
+          "herostrength": 0.7382299602031708,
+          "enriched": 0.7943600490689278,
+          "augmented": 0.7556696310639381
+        }
+      }
+    },
+    {
+      "id": 50,
+      "map": "Volskaya Foundry",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Illidan",
+          "Tyrael",
+          "Xul",
+          "Hogger",
+          "Anduin"
+        ],
+        "team1": [
+          "Rehgar",
+          "Auriel",
+          "Sgt. Hammer",
+          "Gall",
+          "Cho"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "mcts",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcts__constrained_mcts.json",
+        "recordIndex": 82,
+        "wpTeam0Sym": {
+          "naive": 0.38350826501846313,
+          "herostrength": 0.3736979514360428,
+          "enriched": 0.304116427898407,
+          "augmented": 0.3038649410009384
+        }
+      }
+    },
+    {
+      "id": 51,
+      "map": "Volskaya Foundry",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Rehgar",
+          "Diablo",
+          "Artanis",
+          "Hanzo"
+        ],
+        "team1": [
+          "Anduin",
+          "Zul'jin",
+          "Muradin",
+          "Leoric",
+          "Li-Ming"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "gourdeau_disc",
+        "team1Strategy": "cql_naive_a1.0",
+        "file": "training/rerun2026/results/roundrobin/gourdeau_disc__cql_naive_a1.0.json",
+        "recordIndex": 166,
+        "wpTeam0Sym": {
+          "naive": 0.4918457865715027,
+          "herostrength": 0.5262290239334106,
+          "enriched": 0.4942418038845062,
+          "augmented": 0.5117808729410172
+        }
+      }
+    },
+    {
+      "id": 52,
+      "map": "Dragon Shire",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Stitches",
+          "Azmodan",
+          "Brightwing",
+          "Probius",
+          "Illidan"
+        ],
+        "team1": [
+          "Samuro",
+          "Maiev",
+          "Zagara",
+          "Kerrigan",
+          "Arthas"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "enriched",
+        "team1Strategy": "enriched_aug",
+        "file": "training/rerun2026/results/roundrobin/enriched__enriched_aug.json",
+        "recordIndex": 33,
+        "wpTeam0Sym": {
+          "naive": 0.3585684150457382,
+          "herostrength": 0.3902047127485275,
+          "enriched": 0.466311439871788,
+          "augmented": 0.494960680603981
+        }
+      }
+    },
+    {
+      "id": 53,
+      "map": "Towers of Doom",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Deathwing",
+          "Samuro",
+          "Azmodan",
+          "Zeratul"
+        ],
+        "team1": [
+          "Anduin",
+          "Kael'thas",
+          "Orphea",
+          "Nazeebo",
+          "Illidan"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "constrained_mcts",
+        "team1Strategy": "enriched_aug",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_mcts__enriched_aug.json",
+        "recordIndex": 53,
+        "wpTeam0Sym": {
+          "naive": 0.6802546977996826,
+          "herostrength": 0.6326434165239334,
+          "enriched": 0.5364315360784531,
+          "augmented": 0.5468323081731796
+        }
+      }
+    },
+    {
+      "id": 54,
+      "map": "Garden of Terror",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Diablo",
+          "Falstad",
+          "Zeratul",
+          "Sonya"
+        ],
+        "team1": [
+          "Anduin",
+          "Valla",
+          "Muradin",
+          "Li-Ming",
+          "Leoric"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "cql_enr_a2.0",
+        "team1Strategy": "cql_naive_a1.0",
+        "file": "training/rerun2026/results/roundrobin/cql_enr_a2.0__cql_naive_a1.0.json",
+        "recordIndex": 160,
+        "wpTeam0Sym": {
+          "naive": 0.5753500908613205,
+          "herostrength": 0.5371457785367966,
+          "enriched": 0.6140419691801071,
+          "augmented": 0.6381275206804276
+        }
+      }
+    },
+    {
+      "id": 55,
+      "map": "Sky Temple",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Illidan",
+          "Falstad",
+          "Artanis",
+          "Mal'Ganis",
+          "Li Li"
+        ],
+        "team1": [
+          "Stitches",
+          "Orphea",
+          "Valla",
+          "Anduin",
+          "Dehaka"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64238924,
+        "winner": 0,
+        "gameDate": "2026-07-07T05:09:11.000Z"
+      }
+    },
+    {
+      "id": 56,
+      "map": "Sky Temple",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Hogger",
+          "Samuro",
+          "Azmodan",
+          "Artanis"
+        ],
+        "team1": [
+          "Nazeebo",
+          "Diablo",
+          "Anduin",
+          "Muradin",
+          "Raynor"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "constrained_mcts",
+        "team1Strategy": "cql_enr_a2.0",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_mcts__cql_enr_a2.0.json",
+        "recordIndex": 177,
+        "wpTeam0Sym": {
+          "naive": 0.7771307677030563,
+          "herostrength": 0.8587010428309441,
+          "enriched": 0.8158356621861458,
+          "augmented": 0.8077654913067818
+        }
+      }
+    },
+    {
+      "id": 57,
+      "map": "Tomb of the Spider Queen",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Anduin",
+          "Diablo",
+          "Leoric",
+          "Raynor"
+        ],
+        "team1": [
+          "Samuro",
+          "Hogger",
+          "Auriel",
+          "Rehgar",
+          "Illidan"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "gourdeau_disc",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/gourdeau_disc__mcts.json",
+        "recordIndex": 108,
+        "wpTeam0Sym": {
+          "naive": 0.29736366868019104,
+          "herostrength": 0.27331753075122833,
+          "enriched": 0.19810594618320465,
+          "augmented": 0.2167094498872757
+        }
+      }
+    },
+    {
+      "id": 58,
+      "map": "Dragon Shire",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Kharazim",
+          "Gul'dan"
+        ],
+        "team1": [
+          "Arthas",
+          "Junkrat",
+          "Li Li",
+          "Leoric",
+          "Hanzo"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64232136,
+        "winner": 1,
+        "gameDate": "2026-06-18T10:53:40.000Z"
+      }
+    },
+    {
+      "id": 59,
+      "map": "Garden of Terror",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Anduin",
+          "Diablo",
+          "Leoric",
+          "Raynor"
+        ],
+        "team1": [
+          "Samuro",
+          "Hogger",
+          "Rehgar",
+          "Illidan",
+          "Sgt. Hammer"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "gourdeau_disc",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/gourdeau_disc__constrained_mcts.json",
+        "recordIndex": 146,
+        "wpTeam0Sym": {
+          "naive": 0.3031950891017914,
+          "herostrength": 0.29018040746450424,
+          "enriched": 0.20157263427972794,
+          "augmented": 0.23786160349845886
+        }
+      }
+    },
+    {
+      "id": 60,
+      "map": "Battlefield of Eternity",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Qhira",
+          "Probius",
+          "Rehgar",
+          "Zul'jin",
+          "Garrosh"
+        ],
+        "team1": [
+          "Thrall",
+          "Deathwing",
+          "Hogger",
+          "Tyrael",
+          "Auriel"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "constrained_greedy",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_greedy__mcts.json",
+        "recordIndex": 29,
+        "wpTeam0Sym": {
+          "naive": 0.5305212289094925,
+          "herostrength": 0.6274787187576294,
+          "enriched": 0.6425002962350845,
+          "augmented": 0.654388964176178
+        }
+      }
+    },
+    {
+      "id": 61,
+      "map": "Dragon Shire",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Tyrael",
+          "Uther",
+          "Gul'dan",
+          "Illidan",
+          "Ragnaros"
+        ],
+        "team1": [
+          "The Lost Vikings",
+          "Rehgar",
+          "Auriel",
+          "Sgt. Hammer",
+          "Hogger"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 75,
+        "wpTeam0Sym": {
+          "naive": 0.34434613585472107,
+          "herostrength": 0.3054904341697693,
+          "enriched": 0.39626839756965637,
+          "augmented": 0.3738938868045807
+        }
+      }
+    },
+    {
+      "id": 62,
+      "map": "Braxis Holdout",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Samuro",
+          "Hogger",
+          "Deathwing",
+          "Illidan",
+          "Auriel"
+        ],
+        "team1": [
+          "Whitemane",
+          "Johanna",
+          "Tyrande",
+          "Orphea",
+          "Probius"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "mcts",
+        "team1Strategy": "enriched",
+        "file": "training/rerun2026/results/roundrobin/mcts__enriched.json",
+        "recordIndex": 31,
+        "wpTeam0Sym": {
+          "naive": 0.6550340205430984,
+          "herostrength": 0.6646458953619003,
+          "enriched": 0.599311038851738,
+          "augmented": 0.5760563611984253
+        }
+      }
+    },
+    {
+      "id": 63,
+      "map": "Sky Temple",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Gazlowe",
+          "Raynor",
+          "Illidan",
+          "Li Li"
+        ],
+        "team1": [
+          "Rehgar",
+          "Maiev",
+          "Probius",
+          "Muradin",
+          "Kerrigan"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "constrained_greedy",
+        "team1Strategy": "gourdeau",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_greedy__gourdeau.json",
+        "recordIndex": 177,
+        "wpTeam0Sym": {
+          "naive": 0.41732361912727356,
+          "herostrength": 0.4422665238380432,
+          "enriched": 0.4902091920375824,
+          "augmented": 0.4838069677352905
+        }
+      }
+    },
+    {
+      "id": 64,
+      "map": "Sky Temple",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Thrall",
+          "Alarak",
+          "Falstad",
+          "Lt. Morales",
+          "Muradin"
+        ],
+        "team1": [
+          "Rehgar",
+          "Sylvanas",
+          "Johanna",
+          "Ragnaros",
+          "Valeera"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64215688,
+        "winner": 0,
+        "gameDate": "2026-06-26T04:11:17.000Z"
+      }
+    },
+    {
+      "id": 65,
+      "map": "Battlefield of Eternity",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Yrel",
+          "Valla",
+          "Anduin",
+          "Nova",
+          "Anub'arak"
+        ],
+        "team1": [
+          "Tyrande",
+          "Garrosh",
+          "Dehaka",
+          "Li-Ming",
+          "Hanzo"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64241487,
+        "winner": 0,
+        "gameDate": "2026-06-11T21:00:17.000Z"
+      }
+    },
+    {
+      "id": 66,
+      "map": "Dragon Shire",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Hogger",
+          "Xul",
+          "Auriel",
+          "Leoric",
+          "Illidan"
+        ],
+        "team1": [
+          "Rehgar",
+          "Samuro",
+          "Deathwing",
+          "Zul'jin",
+          "Alarak"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "mcts",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcts__constrained_mcts.json",
+        "recordIndex": 61,
+        "wpTeam0Sym": {
+          "naive": 0.45954547822475433,
+          "herostrength": 0.47711674869060516,
+          "enriched": 0.5444831848144531,
+          "augmented": 0.4731983542442322
+        }
+      }
+    },
+    {
+      "id": 67,
+      "map": "Alterac Pass",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Sgt. Hammer",
+          "Hogger",
+          "Deathwing",
+          "Dehaka"
+        ],
+        "team1": [
+          "Kerrigan",
+          "Tyrael",
+          "Auriel",
+          "Xul",
+          "Leoric"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "constrained_mcts",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_mcts__mcts.json",
+        "recordIndex": 154,
+        "wpTeam0Sym": {
+          "naive": 0.6340179592370987,
+          "herostrength": 0.6382929384708405,
+          "enriched": 0.5905899554491043,
+          "augmented": 0.6285032033920288
+        }
+      }
+    },
+    {
+      "id": 68,
+      "map": "Warhead Junction",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Kharazim",
+          "Varian",
+          "Azmodan",
+          "Valeera",
+          "Leoric"
+        ],
+        "team1": [
+          "Tyrande",
+          "Deathwing",
+          "Tychus",
+          "Nazeebo",
+          "E.T.C."
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64236826,
+        "winner": 0,
+        "gameDate": "2026-07-08T00:08:43.000Z"
+      }
+    },
+    {
+      "id": 69,
+      "map": "Dragon Shire",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Valla",
+          "Azmodan",
+          "Anduin",
+          "Stitches",
+          "Artanis"
+        ],
+        "team1": [
+          "Li Li",
+          "Alexstrasza",
+          "Nova",
+          "Varian",
+          "Falstad"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "gourdeau_disc",
+        "team1Strategy": "mcq_t0.5",
+        "file": "training/rerun2026/results/roundrobin/gourdeau_disc__mcq_t0.5.json",
+        "recordIndex": 19,
+        "wpTeam0Sym": {
+          "naive": 0.7468725219368935,
+          "herostrength": 0.751213550567627,
+          "enriched": 0.7827060222625732,
+          "augmented": 0.7811306416988373
+        }
+      }
+    },
+    {
+      "id": 70,
+      "map": "Tomb of the Spider Queen",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Sgt. Hammer",
+          "Xul",
+          "Nazeebo",
+          "Stitches",
+          "Mephisto"
+        ],
+        "team1": [
+          "Rehgar",
+          "Deathwing",
+          "Hogger",
+          "Dehaka",
+          "Azmodan"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "gourdeau",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/gourdeau__constrained_mcts.json",
+        "recordIndex": 178,
+        "wpTeam0Sym": {
+          "naive": 0.43601328134536743,
+          "herostrength": 0.3974292278289795,
+          "enriched": 0.3211515098810196,
+          "augmented": 0.30553199350833893
+        }
+      }
+    },
+    {
+      "id": 71,
+      "map": "Battlefield of Eternity",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Greymane",
+          "Nazeebo",
+          "Maiev",
+          "Anub'arak",
+          "Rehgar"
+        ],
+        "team1": [
+          "Brightwing",
+          "Li-Ming",
+          "Muradin",
+          "Tychus",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "constrained_greedy",
+        "team1Strategy": "gourdeau_disc",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_greedy__gourdeau_disc.json",
+        "recordIndex": 197,
+        "wpTeam0Sym": {
+          "naive": 0.589990496635437,
+          "herostrength": 0.5860046595335007,
+          "enriched": 0.6677701771259308,
+          "augmented": 0.6606815457344055
+        }
+      }
+    },
+    {
+      "id": 72,
+      "map": "Alterac Pass",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Deathwing",
+          "Artanis",
+          "Hogger",
+          "Falstad"
+        ],
+        "team1": [
+          "Kerrigan",
+          "Auriel",
+          "Cho",
+          "Sgt. Hammer",
+          "Gall"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "mcts",
+        "team1Strategy": "enriched_aug",
+        "file": "training/rerun2026/results/roundrobin/mcts__enriched_aug.json",
+        "recordIndex": 70,
+        "wpTeam0Sym": {
+          "naive": 0.47135303914546967,
+          "herostrength": 0.49813219904899597,
+          "enriched": 0.402052566409111,
+          "augmented": 0.38849377632141113
+        }
+      }
+    },
+    {
+      "id": 73,
+      "map": "Alterac Pass",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Samuro",
+          "Illidan",
+          "Falstad",
+          "Ragnaros"
+        ],
+        "team1": [
+          "Hogger",
+          "Probius",
+          "Malthael",
+          "Lúcio",
+          "Auriel"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "constrained_mcts",
+        "team1Strategy": "constrained_greedy",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_mcts__constrained_greedy.json",
+        "recordIndex": 14,
+        "wpTeam0Sym": {
+          "naive": 0.45744559168815613,
+          "herostrength": 0.3683094084262848,
+          "enriched": 0.31476669013500214,
+          "augmented": 0.3094446063041687
+        }
+      }
+    },
+    {
+      "id": 74,
+      "map": "Sky Temple",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Garrosh",
+          "Gazlowe",
+          "Rehgar",
+          "Sylvanas",
+          "Tychus"
+        ],
+        "team1": [
+          "Gul'dan",
+          "Valla",
+          "E.T.C.",
+          "Lt. Morales",
+          "Leoric"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64231299,
+        "winner": 0,
+        "gameDate": "2026-04-26T18:54:24.000Z"
+      }
+    },
+    {
+      "id": 75,
+      "map": "Hanamura Temple",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Arthas",
+          "Stukov",
+          "Raynor",
+          "Sylvanas",
+          "Alarak"
+        ],
+        "team1": [
+          "Artanis",
+          "Falstad",
+          "Anub'arak",
+          "Tracer",
+          "Anduin"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64241837,
+        "winner": 1,
+        "gameDate": "2026-07-06T00:26:29.000Z"
+      }
+    },
+    {
+      "id": 76,
+      "map": "Cursed Hollow",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Johanna",
+          "Uther",
+          "Tassadar",
+          "Zul'jin",
+          "Imperius"
+        ],
+        "team1": [
+          "Tyrael",
+          "Li-Ming",
+          "Valla",
+          "Brightwing",
+          "Sonya"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64214955,
+        "winner": 0,
+        "gameDate": "2026-07-06T09:11:45.000Z"
+      }
+    },
+    {
+      "id": 77,
+      "map": "Garden of Terror",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Tassadar",
+          "Mei",
+          "Samuro",
+          "Tracer",
+          "Nazeebo"
+        ],
+        "team1": [
+          "Deathwing",
+          "Rehgar",
+          "Hogger",
+          "Ragnaros",
+          "Zeratul"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 90,
+        "wpTeam0Sym": {
+          "naive": 0.3571823537349701,
+          "herostrength": 0.2488141506910324,
+          "enriched": 0.3272382766008377,
+          "augmented": 0.3397720903158188
+        }
+      }
+    },
+    {
+      "id": 78,
+      "map": "Infernal Shrines",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Murky",
+          "Deathwing",
+          "Leoric",
+          "Hogger"
+        ],
+        "team1": [
+          "Valla",
+          "Kael'thas",
+          "Muradin",
+          "Nazeebo",
+          "Li Li"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "enriched",
+        "team1Strategy": "cql_enr_a2.0",
+        "file": "training/rerun2026/results/roundrobin/enriched__cql_enr_a2.0.json",
+        "recordIndex": 148,
+        "wpTeam0Sym": {
+          "naive": 0.7021240741014481,
+          "herostrength": 0.6899185925722122,
+          "enriched": 0.8022160977125168,
+          "augmented": 0.781611293554306
+        }
+      }
+    },
+    {
+      "id": 79,
+      "map": "Towers of Doom",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "The Lost Vikings",
+          "Deathwing",
+          "Auriel",
+          "Alarak",
+          "Sgt. Hammer"
+        ],
+        "team1": [
+          "Kerrigan",
+          "Tyrael",
+          "Illidan",
+          "Rehgar",
+          "Xul"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "constrained_mcts",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_mcts__mcts.json",
+        "recordIndex": 39,
+        "wpTeam0Sym": {
+          "naive": 0.5915128886699677,
+          "herostrength": 0.6184200048446655,
+          "enriched": 0.7300522476434708,
+          "augmented": 0.7219068631529808
+        }
+      }
+    },
+    {
+      "id": 80,
+      "map": "Garden of Terror",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Kerrigan",
+          "Auriel",
+          "Tyrael",
+          "Xul",
+          "Illidan"
+        ],
+        "team1": [
+          "Rehgar",
+          "Sgt. Hammer",
+          "Deathwing",
+          "Hogger",
+          "Dehaka"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "mcts",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcts__constrained_mcts.json",
+        "recordIndex": 160,
+        "wpTeam0Sym": {
+          "naive": 0.39610517024993896,
+          "herostrength": 0.39323893189430237,
+          "enriched": 0.354287326335907,
+          "augmented": 0.3702840209007263
+        }
+      }
+    },
+    {
+      "id": 81,
+      "map": "Dragon Shire",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Probius",
+          "The Lost Vikings",
+          "Whitemane",
+          "Auriel",
+          "Anub'arak"
+        ],
+        "team1": [
+          "Rehgar",
+          "Diablo",
+          "Tychus",
+          "Stitches",
+          "Falstad"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "enriched_aug",
+        "team1Strategy": "gd",
+        "file": "training/rerun2026/results/roundrobin/enriched_aug__gd.json",
+        "recordIndex": 117,
+        "wpTeam0Sym": {
+          "naive": 0.7086002081632614,
+          "herostrength": 0.6631896793842316,
+          "enriched": 0.8156838938593864,
+          "augmented": 0.8344265148043633
+        }
+      }
+    },
+    {
+      "id": 82,
+      "map": "Braxis Holdout",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Valla",
+          "Garrosh",
+          "Tassadar",
+          "Malfurion",
+          "Artanis"
+        ],
+        "team1": [
+          "Anduin",
+          "Diablo",
+          "Gul'dan",
+          "Zul'jin",
+          "Leoric"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "gd",
+        "team1Strategy": "gourdeau_disc",
+        "file": "training/rerun2026/results/roundrobin/gd__gourdeau_disc.json",
+        "recordIndex": 115,
+        "wpTeam0Sym": {
+          "naive": 0.5809008181095123,
+          "herostrength": 0.5504904091358185,
+          "enriched": 0.5858626812696457,
+          "augmented": 0.5843250006437302
+        }
+      }
+    },
+    {
+      "id": 83,
+      "map": "Hanamura Temple",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Samuro",
+          "Deathwing",
+          "Hogger",
+          "Abathur"
+        ],
+        "team1": [
+          "Anduin",
+          "Li-Ming",
+          "Muradin",
+          "Artanis",
+          "Raynor"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "mcts",
+        "team1Strategy": "cql_enr_a2.0",
+        "file": "training/rerun2026/results/roundrobin/mcts__cql_enr_a2.0.json",
+        "recordIndex": 21,
+        "wpTeam0Sym": {
+          "naive": 0.7523983269929886,
+          "herostrength": 0.8011067360639572,
+          "enriched": 0.7610693648457527,
+          "augmented": 0.7229849547147751
+        }
+      }
+    },
+    {
+      "id": 84,
+      "map": "Dragon Shire",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Li Li",
+          "Diablo",
+          "Varian",
+          "Jaina"
+        ],
+        "team1": [
+          "Valla",
+          "Anduin",
+          "Muradin",
+          "Artanis",
+          "Tassadar"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "cql_enr_a2.0",
+        "team1Strategy": "gourdeau_disc",
+        "file": "training/rerun2026/results/roundrobin/cql_enr_a2.0__gourdeau_disc.json",
+        "recordIndex": 173,
+        "wpTeam0Sym": {
+          "naive": 0.45086807012557983,
+          "herostrength": 0.44889408349990845,
+          "enriched": 0.44835756719112396,
+          "augmented": 0.4390926659107208
+        }
+      }
+    },
+    {
+      "id": 85,
+      "map": "Tomb of the Spider Queen",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Tracer",
+          "Anduin",
+          "Nazeebo",
+          "Garrosh",
+          "Ragnaros"
+        ],
+        "team1": [
+          "Uther",
+          "Tassadar",
+          "Varian",
+          "Sylvanas",
+          "Azmodan"
+        ]
+      },
+      "provenance": {
+        "source": "ladder",
+        "stratum": "ladder_anchor",
+        "replayId": 64220453,
+        "winner": 0,
+        "gameDate": "2026-07-07T03:07:48.000Z"
+      }
+    },
+    {
+      "id": 86,
+      "map": "Sky Temple",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Anduin",
+          "Diablo",
+          "Artanis",
+          "Muradin"
+        ],
+        "team1": [
+          "Hogger",
+          "Samuro",
+          "Azmodan",
+          "Rehgar",
+          "Auriel"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "gd",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/gd__constrained_mcts.json",
+        "recordIndex": 9,
+        "wpTeam0Sym": {
+          "naive": 0.22184157371520996,
+          "herostrength": 0.19606322795152664,
+          "enriched": 0.20944169908761978,
+          "augmented": 0.2046177238225937
+        }
+      }
+    },
+    {
+      "id": 87,
+      "map": "Alterac Pass",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Nazeebo",
+          "Anduin",
+          "Diablo",
+          "Artanis",
+          "Raynor"
+        ],
+        "team1": [
+          "Hogger",
+          "Samuro",
+          "Azmodan",
+          "Auriel",
+          "Deathwing"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "cql_naive_a1.0",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/cql_naive_a1.0__mcts.json",
+        "recordIndex": 42,
+        "wpTeam0Sym": {
+          "naive": 0.31822802126407623,
+          "herostrength": 0.33103929460048676,
+          "enriched": 0.27086250483989716,
+          "augmented": 0.26908354461193085
+        }
+      }
+    },
+    {
+      "id": 88,
+      "map": "Towers of Doom",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Qhira",
+          "The Lost Vikings",
+          "Deathwing",
+          "Arthas",
+          "Auriel"
+        ],
+        "team1": [
+          "Samuro",
+          "Hogger",
+          "Azmodan",
+          "Rehgar",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 179,
+        "wpTeam0Sym": {
+          "naive": 0.45763665437698364,
+          "herostrength": 0.4986761212348938,
+          "enriched": 0.5143963843584061,
+          "augmented": 0.5494715422391891
+        }
+      }
+    },
+    {
+      "id": 89,
+      "map": "Cursed Hollow",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Falstad",
+          "Tyrael",
+          "Auriel",
+          "Alarak",
+          "Imperius"
+        ],
+        "team1": [
+          "Samuro",
+          "Hogger",
+          "Deathwing",
+          "Rehgar",
+          "Sgt. Hammer"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "mcts",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcts__constrained_mcts.json",
+        "recordIndex": 46,
+        "wpTeam0Sym": {
+          "naive": 0.38556070625782013,
+          "herostrength": 0.4079708307981491,
+          "enriched": 0.42553935945034027,
+          "augmented": 0.41740669310092926
+        }
+      }
+    },
+    {
+      "id": 90,
+      "map": "Warhead Junction",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Artanis",
+          "Zul'jin",
+          "Deathwing",
+          "Leoric"
+        ],
+        "team1": [
+          "Ragnaros",
+          "Hogger",
+          "Imperius",
+          "Xul",
+          "Anduin"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "constrained_mcts",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_mcts__mcts.json",
+        "recordIndex": 13,
+        "wpTeam0Sym": {
+          "naive": 0.6051407307386398,
+          "herostrength": 0.6064176559448242,
+          "enriched": 0.5116766542196274,
+          "augmented": 0.5416921824216843
+        }
+      }
+    },
+    {
+      "id": 91,
+      "map": "Hanamura Temple",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Nazeebo",
+          "Tyrael",
+          "Zul'jin",
+          "Malthael"
+        ],
+        "team1": [
+          "Deathwing",
+          "Artanis",
+          "Samuro",
+          "Hogger",
+          "Abathur"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "mcts_vs_enriched",
+        "team0Strategy": "enriched",
+        "team1Strategy": "mcts",
+        "file": "training/rerun2026/results/roundrobin/enriched__mcts.json",
+        "recordIndex": 21,
+        "wpTeam0Sym": {
+          "naive": 0.5051517933607101,
+          "herostrength": 0.523995503783226,
+          "enriched": 0.6814320534467697,
+          "augmented": 0.7253809943795204
+        }
+      }
+    },
+    {
+      "id": 92,
+      "map": "Warhead Junction",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Kael'thas",
+          "The Butcher",
+          "Tychus",
+          "Rehgar",
+          "Anub'arak"
+        ],
+        "team1": [
+          "Mei",
+          "Lunara",
+          "Nazeebo",
+          "Azmodan",
+          "Kharazim"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "enriched_aug",
+        "team1Strategy": "constrained_greedy",
+        "file": "training/rerun2026/results/constrained/roundrobin/enriched_aug__constrained_greedy.json",
+        "recordIndex": 181,
+        "wpTeam0Sym": {
+          "naive": 0.5565488040447235,
+          "herostrength": 0.5723890364170074,
+          "enriched": 0.5786790549755096,
+          "augmented": 0.554124653339386
+        }
+      }
+    },
+    {
+      "id": 93,
+      "map": "Cursed Hollow",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Anduin",
+          "Kerrigan",
+          "Sylvanas",
+          "Maiev",
+          "Rehgar"
+        ],
+        "team1": [
+          "Stukov",
+          "Li Li",
+          "Dehaka",
+          "Nova",
+          "Varian"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "gourdeau",
+        "team1Strategy": "mcq_t0.5",
+        "file": "training/rerun2026/results/roundrobin/gourdeau__mcq_t0.5.json",
+        "recordIndex": 186,
+        "wpTeam0Sym": {
+          "naive": 0.7583412006497383,
+          "herostrength": 0.8314073458313942,
+          "enriched": 0.784503199160099,
+          "augmented": 0.7771410867571831
+        }
+      }
+    },
+    {
+      "id": 94,
+      "map": "Infernal Shrines",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Kel'Thuzad",
+          "Tyrande",
+          "Kerrigan",
+          "Illidan",
+          "Deathwing"
+        ],
+        "team1": [
+          "Gazlowe",
+          "Diablo",
+          "D.Va",
+          "Sgt. Hammer",
+          "Mephisto"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "enriched",
+        "team1Strategy": "gourdeau",
+        "file": "training/rerun2026/results/roundrobin/enriched__gourdeau.json",
+        "recordIndex": 22,
+        "wpTeam0Sym": {
+          "naive": 0.6618216782808304,
+          "herostrength": 0.6930245012044907,
+          "enriched": 0.7571375072002411,
+          "augmented": 0.751936674118042
+        }
+      }
+    },
+    {
+      "id": 95,
+      "map": "Battlefield of Eternity",
+      "tier": "mid",
+      "teams": {
+        "team0": [
+          "Thrall",
+          "Azmodan",
+          "Rehgar",
+          "Illidan",
+          "Xul"
+        ],
+        "team1": [
+          "Samuro",
+          "Hogger",
+          "Zul'jin",
+          "Auriel",
+          "Deathwing"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "mcts",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcts__constrained_mcts.json",
+        "recordIndex": 141,
+        "wpTeam0Sym": {
+          "naive": 0.3358556926250458,
+          "herostrength": 0.3637697994709015,
+          "enriched": 0.3957975208759308,
+          "augmented": 0.4056643098592758
+        }
+      }
+    },
+    {
+      "id": 96,
+      "map": "Sky Temple",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Hogger",
+          "Tyrael",
+          "Samuro",
+          "Anduin",
+          "Azmodan"
+        ],
+        "team1": [
+          "Rehgar",
+          "Artanis",
+          "Auriel",
+          "Deathwing",
+          "Sgt. Hammer"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "constrained_mcts_vs_mcts",
+        "team0Strategy": "mcts",
+        "team1Strategy": "constrained_mcts",
+        "file": "training/rerun2026/results/constrained/roundrobin/mcts__constrained_mcts.json",
+        "recordIndex": 9,
+        "wpTeam0Sym": {
+          "naive": 0.48819561302661896,
+          "herostrength": 0.4886675179004669,
+          "enriched": 0.5318571776151657,
+          "augmented": 0.51840940117836
+        }
+      }
+    },
+    {
+      "id": 97,
+      "map": "Garden of Terror",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Mephisto",
+          "Rexxar",
+          "Xul",
+          "D.Va",
+          "Alexstrasza"
+        ],
+        "team1": [
+          "Brightwing",
+          "Johanna",
+          "Ragnaros",
+          "Tychus",
+          "Li-Ming"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "constrained_greedy",
+        "team1Strategy": "gourdeau_disc",
+        "file": "training/rerun2026/results/constrained/roundrobin/constrained_greedy__gourdeau_disc.json",
+        "recordIndex": 34,
+        "wpTeam0Sym": {
+          "naive": 0.6780805736780167,
+          "herostrength": 0.6362794786691666,
+          "enriched": 0.8172889649868011,
+          "augmented": 0.7515258267521858
+        }
+      }
+    },
+    {
+      "id": 98,
+      "map": "Towers of Doom",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Valla",
+          "Anduin",
+          "Diablo",
+          "Leoric",
+          "Rehgar"
+        ],
+        "team1": [
+          "Azmodan",
+          "Artanis",
+          "Samuro",
+          "Arthas",
+          "Kel'Thuzad"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "cql_naive_a1.0",
+        "team1Strategy": "enriched_aug",
+        "file": "training/rerun2026/results/roundrobin/cql_naive_a1.0__enriched_aug.json",
+        "recordIndex": 11,
+        "wpTeam0Sym": {
+          "naive": 0.43985314667224884,
+          "herostrength": 0.4550688564777374,
+          "enriched": 0.44202756881713867,
+          "augmented": 0.4440164417028427
+        }
+      }
+    },
+    {
+      "id": 99,
+      "map": "Cursed Hollow",
+      "tier": "low",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Deathwing",
+          "Artanis",
+          "Ragnaros",
+          "Hogger"
+        ],
+        "team1": [
+          "Stukov",
+          "Li Li",
+          "Dehaka",
+          "Nova",
+          "Varian"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "other_pairs",
+        "team0Strategy": "mcts",
+        "team1Strategy": "mcq_t0.5",
+        "file": "training/rerun2026/results/roundrobin/mcts__mcq_t0.5.json",
+        "recordIndex": 4,
+        "wpTeam0Sym": {
+          "naive": 0.8031515404582024,
+          "herostrength": 0.8735986575484276,
+          "enriched": 0.8634987771511078,
+          "augmented": 0.8420536443591118
+        }
+      }
+    },
+    {
+      "id": 100,
+      "map": "Warhead Junction",
+      "tier": "high",
+      "teams": {
+        "team0": [
+          "Rehgar",
+          "Sgt. Hammer",
+          "Ragnaros",
+          "Maiev",
+          "Kerrigan"
+        ],
+        "team1": [
+          "Valla",
+          "Anduin",
+          "Muradin",
+          "Li-Ming",
+          "Artanis"
+        ]
+      },
+      "provenance": {
+        "source": "tournament",
+        "stratum": "vs_anchored",
+        "team0Strategy": "gourdeau",
+        "team1Strategy": "gourdeau_disc",
+        "file": "training/rerun2026/results/roundrobin/gourdeau__gourdeau_disc.json",
+        "recordIndex": 167,
+        "wpTeam0Sym": {
+          "naive": 0.7420293390750885,
+          "herostrength": 0.7543765157461166,
+          "enriched": 0.7091930359601974,
+          "augmented": 0.6796358227729797
+        }
+      }
+    }
+  ]
+}
