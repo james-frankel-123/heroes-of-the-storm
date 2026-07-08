@@ -207,13 +207,15 @@ export function RateClient() {
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
         if (!(target as HTMLInputElement).type || (target as HTMLInputElement).type !== 'range') return
       }
+      // The slider is displayed with Team A on the LEFT (matching the team
+      // panels), so moving the handle left must INCREASE P(Team A wins).
       if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
         e.preventDefault()
-        setP((v) => Math.max(0, v - (e.shiftKey ? 5 : 1)))
+        setP((v) => Math.min(100, v + (e.shiftKey ? 5 : 1)))
         setPTouched(true)
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
         e.preventDefault()
-        setP((v) => Math.min(100, v + (e.shiftKey ? 5 : 1)))
+        setP((v) => Math.max(0, v - (e.shiftKey ? 5 : 1)))
         setPTouched(true)
       } else if (e.key === 'a' || e.key === 'A') {
         setChoice('A')
@@ -377,32 +379,38 @@ export function RateClient() {
         <TeamPanel side="B" heroes={current.teamB} selected={choice === 'B'} />
       </div>
 
-      {/* Q1: win probability slider */}
+      {/* Q1: win probability slider.
+          Team A is displayed on the LEFT, so the slider is rendered with the
+          left end = 100% Team A: display position = 100 - p. Dragging toward
+          a team increases that team's win probability. Stored semantics
+          (p = P(Team A wins)) are unchanged. */}
       <div className="mb-4 rounded-xl border bg-card p-4 sm:p-5">
         <div className="mb-1 text-sm font-semibold">
-          1. How likely is <span className="text-sky-400">Team A</span> to win this game?
+          1. How likely is each team to win this game?
         </div>
         <div className="mb-3 text-xs text-muted-foreground">
-          Both teams at the skill level shown above, on this map.
+          Both teams at the skill level shown above, on this map. Drag toward the stronger team.
         </div>
         <div className="flex items-center gap-3 sm:gap-4">
-          <span className="w-14 shrink-0 text-right text-xs font-medium text-rose-400">B wins</span>
+          <span className="w-14 shrink-0 text-right text-xs font-medium text-sky-400">
+            Team A wins
+          </span>
           <input
             type="range"
             min={0}
             max={100}
             step={1}
-            value={p}
+            value={100 - p}
             onChange={(e) => {
-              setP(Number(e.target.value))
+              setP(100 - Number(e.target.value))
               setPTouched(true)
             }}
             onPointerUp={() => setPTouched(true)}
-            aria-label="Probability Team A wins"
+            aria-label="Win probability (left = Team A wins, right = Team B wins)"
             data-testid="rate-slider"
             className="h-2 flex-1 cursor-pointer accent-sky-400"
           />
-          <span className="w-14 shrink-0 text-xs font-medium text-sky-400">A wins</span>
+          <span className="w-14 shrink-0 text-xs font-medium text-rose-400">Team B wins</span>
         </div>
         <div className="mt-2 text-center">
           <span
@@ -418,7 +426,9 @@ export function RateClient() {
           >
             {pTouched ? (
               <>
-                Team A wins {p}% <span className="opacity-60">·</span> Team B wins {100 - p}%
+                <span className="text-sky-300">A {p}%</span>{' '}
+                <span className="opacity-60">—</span>{' '}
+                <span className="text-rose-300">{100 - p}% B</span>
               </>
             ) : (
               'Move the slider to answer'
