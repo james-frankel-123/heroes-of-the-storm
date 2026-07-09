@@ -4,6 +4,8 @@ import {
   serial,
   varchar,
   integer,
+  bigint,
+  smallint,
   real,
   boolean,
   timestamp,
@@ -11,6 +13,7 @@ import {
   uniqueIndex,
   index,
   jsonb,
+  primaryKey,
 } from 'drizzle-orm/pg-core'
 
 // ---------------------------------------------------------------------------
@@ -295,6 +298,75 @@ export const replayDraftData = pgTable(
     dateIdx: index('replay_draft_date_idx').on(t.gameDate),
   })
 )
+
+/**
+ * Per-player identity + performance sidecar for replay_draft_data (paper 3,
+ * personalization). One row per player per replay, keyed (replay_id, blizz_id).
+ * Joins replay_draft_data on replay_id — every refetched replay becomes a
+ * player-labeled draft the moment its rows land.
+ *
+ * Policy: store EVERYTHING Replay/Data returns per player. Known fields get
+ * columns; the full ~40-stat `scores` payload goes to `scoreboard`; any
+ * remaining per-player fields (mastery_taunt, mmr_date_parsed, future
+ * additions) go to `raw_extras`.
+ */
+export const replayPlayers = pgTable(
+  'replay_players',
+  {
+    replayId: integer('replay_id').notNull(), // joins replay_draft_data.replay_id
+    // Stable numeric account id — canonical player key (battletags are
+    // non-unique across accounts and can change).
+    blizzId: bigint('blizz_id', { mode: 'number' }).notNull(),
+    battletag: varchar('battletag', { length: 100 }).notNull(),
+    hero: varchar('hero', { length: 80 }).notNull(),
+    team: smallint('team').notNull(), // 0 or 1
+    winner: boolean('winner').notNull(), // denormalized for panel queries
+    party: bigint('party', { mode: 'number' }), // 0/null = solo; shared value = premade group
+    playerMmr: real('player_mmr'), // CAUTION: as-of-HP-parse, not at game time
+    heroMmr: real('hero_mmr'),
+    roleMmr: real('role_mmr'),
+    heroLevel: integer('hero_level'),
+    talents: jsonb('talents'), // per-tier talent picks
+    scoreboard: jsonb('scoreboard'), // full `scores` payload (~40 performance stats)
+    rawExtras: jsonb('raw_extras'), // any per-player fields not extracted above
+    region: integer('region'), // replay-level region, denormalized
+    fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.replayId, t.blizzId] }),
+    // (blizz_id, replay_id) composite: per-player panel scans in id (≈time) order
+    blizzIdx: index('replay_players_blizz_idx').on(t.blizzId, t.replayId),
+    tagIdx: index('replay_players_tag_idx').on(t.battletag),
+  })
+)
+
+/**
+ * Replay-level fields returned by Replay/Data that replay_draft_data does not
+ * store (fingerprint, game_type, experience_breakdown, anything future).
+ * Small sidecar so the 10x-per-replay replay_players rows don't duplicate it.
+ */
+export const replayExtras = pgTable('replay_extras', {
+  replayId: integer('replay_id').primaryKey(),
+  extras: jsonb('extras').notNull(),
+  fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
+})
+
+/**
+ * Resumable checkpoint for the player refetch worker
+ * (sync/refetch-players.ts). Cursor walks replay_draft_data.replay_id
+ * descending (recent first); single row, id = 1.
+ */
+export const playerRefetchState = pgTable('player_refetch_state', {
+  id: serial('id').primaryKey(),
+  // Next fetch processes replay_ids strictly below this (descending scan).
+  cursor: integer('cursor').notNull().default(0),
+  processedCount: integer('processed_count').notNull().default(0), // replays attempted
+  playerRowsUpserted: integer('player_rows_upserted').notNull().default(0),
+  skippedCount: integer('skipped_count').notNull().default(0), // deleted/404/no-player-data
+  errorCount: integer('error_count').notNull().default(0), // transient failures left behind
+  startedAt: timestamp('started_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 /**
  * Tracks the replay sync cursor so the daemon can resume.

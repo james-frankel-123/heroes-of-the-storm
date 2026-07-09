@@ -18,6 +18,7 @@ import {
 import { MultiKeyApi } from './api-client'
 import { createDb, SyncDb } from './db'
 import { log } from './logger'
+import { storeReplayPlayers } from './player-store'
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -305,6 +306,17 @@ export async function fetchReplayData(
       const raw = await api.next().getReplayData(replayId)
       const replayKey = String(replayId)
       const replay = raw[replayKey] || raw
+
+      // Store per-player identities + scoreboard (paper 3) regardless of
+      // draft validity — save everything the API gives us. Never let player
+      // storage failures break the draft pipeline.
+      if (replay && typeof replay === 'object') {
+        try {
+          await storeReplayPlayers(db, replayId, replay)
+        } catch (playerErr) {
+          log.warn(`Player store failed for replay ${replayId}: ${playerErr}`)
+        }
+      }
 
       if (!replay || !replay.draft_order || !Array.isArray(replay.draft_order)) {
         // No draft data — mark as fetched but don't store
