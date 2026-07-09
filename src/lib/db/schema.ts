@@ -346,7 +346,10 @@ export const replayFetchQueue = pgTable(
  * strategy produced each team.
  */
 export const ratingItems = pgTable('rating_items', {
-  id: integer('id').primaryKey(), // stable item id (1..100), seeded from data/rating-items.json
+  id: integer('id').primaryKey(), // stable item id (1..500), seeded from data/rating-items.json
+  // Study arm: 'core' (ids 1..100, pre-registered latin-square design) or
+  // 'extended' (ids 101..500, uncapped volunteer pool served after core).
+  block: varchar('block', { length: 10 }).notNull().default('core'),
   // { team0: string[5], team1: string[5] } — canonical order; A/B display side
   // is randomized per rater at serve time.
   teams: jsonb('teams').notNull(),
@@ -375,6 +378,9 @@ export const draftRatings = pgTable(
     // (Also recomputable via sideSwapped(rater, itemId), stored for robustness.)
     teamAIsTeam0: boolean('team_a_is_team0').notNull(),
     isTest: boolean('is_test').notNull().default(false),
+    // Study arm this rating belongs to: 'core' (the pre-registered latin-square
+    // 30) or 'extended' (the uncapped volunteer pool). Mirrors the item's block.
+    block: varchar('block', { length: 10 }).notNull().default('core'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => ({

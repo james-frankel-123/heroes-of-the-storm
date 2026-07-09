@@ -77,12 +77,24 @@ export async function POST(req: Request) {
     msTaken = Math.min(body.msTaken as number, 2_000_000_000)
   }
 
-  // Verify the item is actually in this rater's assignment.
-  const allIds = (await db.select({ id: ratingItems.id }).from(ratingItems)).map((r) => r.id)
-  const slot = raterSlot(rater, slotOverride)
-  const assigned = assignedItemIds(allIds, rater, slot)
-  if (!assigned.includes(itemId as number)) {
-    return NextResponse.json({ error: 'item is not in this rater\'s assignment' }, { status: 400 })
+  // Look up the item's block and verify it is servable to this rater. Core
+  // items must fall in the rater's latin-square assignment; extended items
+  // (the uncapped volunteer pool) are servable to anyone.
+  const items = await db
+    .select({ id: ratingItems.id, block: ratingItems.block })
+    .from(ratingItems)
+  const target = items.find((r) => r.id === (itemId as number))
+  if (!target) {
+    return NextResponse.json({ error: 'unknown itemId' }, { status: 400 })
+  }
+  const block = target.block === 'extended' ? 'extended' : 'core'
+  if (block === 'core') {
+    const coreIds = items.filter((r) => r.block !== 'extended').map((r) => r.id)
+    const slot = raterSlot(rater, slotOverride)
+    const assigned = assignedItemIds(coreIds, rater, slot)
+    if (!assigned.includes(itemId as number)) {
+      return NextResponse.json({ error: 'item is not in this rater\'s assignment' }, { status: 400 })
+    }
   }
 
   const normalized = normalizeRater(rater)
@@ -95,6 +107,7 @@ export async function POST(req: Request) {
     msTaken,
     teamAIsTeam0: !sideSwapped(rater, itemId as number),
     isTest: isTestRater(rater),
+    block,
   }
 
   await db
@@ -109,6 +122,7 @@ export async function POST(req: Request) {
         msTaken: values.msTaken,
         teamAIsTeam0: values.teamAIsTeam0,
         isTest: values.isTest,
+        block: values.block,
         createdAt: sql`now()`,
       },
     })

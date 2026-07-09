@@ -1,15 +1,28 @@
 /**
- * Generate the 100-item set for the expert draft-rating study.
+ * Generate the item set for the expert draft-rating study: a CORE of 100 items
+ * (the pre-registered latin-square design) plus an EXTENDED pool of 400 items
+ * (a volunteer arm for high-volume raters, served after the core 30).
  *
  * Composition (seeded, reproducible given the same DB snapshot):
- *   - 80 tournament drafts from training/rerun2026/results/{roundrobin,constrained/roundrobin},
- *     stratified with oversampling of the paper's key comparisons:
- *       A. constrained_mcts vs mcts            12 items
- *       B. mcts vs enriched                    12 items
- *       C. behavior-anchored vs non-anchored   32 items
- *          (anchored = gd, cql_naive_a1.0, cql_enr_a2.0, gourdeau_disc)
- *       D. all other strategy pairs            24 items
- *   - 20 real ladder drafts from replay_draft_data as anchors (7 low / 7 mid / 6 high).
+ *
+ *   CORE — 100 items, ids 1..100:
+ *     - 55 tournament (machine-pair) drafts, same matchup strata as before,
+ *       rebalanced to 55 in the original proportions (12:12:32:24 -> 8:8:22:17):
+ *         A. constrained_mcts vs mcts            8 items
+ *         B. mcts vs enriched                    8 items
+ *         C. behavior-anchored vs non-anchored  22 items
+ *            (anchored = gd, cql_naive_a1.0, cql_enr_a2.0, gourdeau_disc)
+ *         D. all other strategy pairs           17 items
+ *     - 45 real known-outcome ladder anchors (15 low / 15 mid / 15 high).
+ *
+ *   EXTENDED — 400 items, ids 101..500 (distinct replays/records from core):
+ *     - 100 tournament (machine-pair) drafts in the same strata proportions
+ *       (15:15:40:30).
+ *     - 300 known-outcome ladder anchors, tier-stratified 100 / 100 / 100.
+ *
+ * Every item carries a `block` field ('core' | 'extended'). Core keeps the
+ * original 10-slot latin square (30 items/rater, 3 ratings/item); extended is
+ * served as an uncapped, coverage-prioritized pool after a rater finishes core.
  *
  * Output: data/rating-items.json — committed to the repo and seeded into the
  * rating_items table by scripts/seed-rating-items.ts. Provenance (strategy
@@ -33,13 +46,19 @@ const RESULT_DIRS = [
 const OUT_PATH = path.join(REPO, 'data/rating-items.json')
 
 const ANCHORED = new Set(['gd', 'cql_naive_a1.0', 'cql_enr_a2.0', 'gourdeau_disc'])
-const STRATA: { name: string; count: number }[] = [
-  { name: 'constrained_mcts_vs_mcts', count: 12 },
-  { name: 'mcts_vs_enriched', count: 12 },
-  { name: 'vs_anchored', count: 32 },
-  { name: 'other_pairs', count: 24 },
+// Machine-pair matchup strata. `core` sums to 55 (rebalanced from the original
+// 12:12:32:24=80 in the same proportions -> 8:8:22:17); `ext` sums to 100 in
+// the same proportions (15:15:40:30). Extended records are distinct from core.
+const STRATA: { name: string; core: number; ext: number }[] = [
+  { name: 'constrained_mcts_vs_mcts', core: 8, ext: 15 },
+  { name: 'mcts_vs_enriched', core: 8, ext: 15 },
+  { name: 'vs_anchored', core: 22, ext: 40 },
+  { name: 'other_pairs', core: 17, ext: 30 },
 ]
-const LADDER_TIER_COUNTS: Record<string, number> = { low: 7, mid: 7, high: 6 }
+// Known-outcome ladder anchors. Core = 15/tier (45); extended = 100/tier (300);
+// all distinct replays.
+const LADDER_CORE_COUNTS: Record<string, number> = { low: 15, mid: 15, high: 15 }
+const LADDER_EXT_COUNTS: Record<string, number> = { low: 100, mid: 100, high: 100 }
 
 interface TournamentRecord {
   draft: number
@@ -171,63 +190,63 @@ function sampleStratum(cands: Candidate[], count: number, seed: number): Candida
   return picked
 }
 
-async function loadLadderAnchors(): Promise<Candidate[]> {
+/** Ladder anchors for one tier: `count` distinct valid drafts, map-spread. */
+async function loadLadderTier(tier: string, count: number): Promise<Candidate[]> {
   const sql = neon(process.env.DATABASE_URL!)
-  const picked: Candidate[] = []
-  for (const [tier, count] of Object.entries(LADDER_TIER_COUNTS)) {
-    // Deterministic recent window; the committed JSON freezes the sample.
-    const rows = (await sql`
-      select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner, game_date
-      from replay_draft_data
-      where skill_tier = ${tier}
-      order by replay_id desc
-      limit 2000
-    `) as {
-      replay_id: number
-      game_map: string
-      skill_tier: string
-      team0_heroes: string[]
-      team1_heroes: string[]
-      winner: number
-      game_date: string
-    }[]
-    const valid = rows.filter((r) => validTeams(r.team0_heroes, r.team1_heroes))
-    const shuffled = seededShuffle(valid, fnv1a(String(SEED) + '|ladder|' + tier))
-    const mapCount = new Map<string, number>()
-    const chosen: typeof valid = []
-    // Greedy map spread.
-    while (chosen.length < count && shuffled.length > 0) {
-      let bestIdx = 0
-      let bestScore = Infinity
-      for (let i = 0; i < shuffled.length; i++) {
-        const score = mapCount.get(shuffled[i].game_map) ?? 0
-        if (score < bestScore) {
-          bestScore = score
-          bestIdx = i
-        }
-      }
-      const r = shuffled.splice(bestIdx, 1)[0]
-      mapCount.set(r.game_map, (mapCount.get(r.game_map) ?? 0) + 1)
-      chosen.push(r)
-    }
-    for (const r of chosen) {
-      picked.push({
-        map: r.game_map,
-        tier: r.skill_tier,
-        team0: r.team0_heroes,
-        team1: r.team1_heroes,
-        pairKey: 'ladder',
-        provenance: {
-          source: 'ladder',
-          stratum: 'ladder_anchor',
-          replayId: r.replay_id,
-          winner: r.winner, // real game outcome (0 = team0 won)
-          gameDate: r.game_date,
-        },
-      })
-    }
+  // Deterministic recent window; the committed JSON freezes the sample. Pull a
+  // generous window so 115/tier (15 core + 100 extended) valid drafts are
+  // available after filtering.
+  const rows = (await sql`
+    select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner, game_date
+    from replay_draft_data
+    where skill_tier = ${tier}
+    order by replay_id desc
+    limit 6000
+  `) as {
+    replay_id: number
+    game_map: string
+    skill_tier: string
+    team0_heroes: string[]
+    team1_heroes: string[]
+    winner: number
+    game_date: string
+  }[]
+  const valid = rows.filter((r) => validTeams(r.team0_heroes, r.team1_heroes))
+  if (valid.length < count) {
+    throw new Error(`ladder tier ${tier}: only ${valid.length} valid drafts, need ${count}`)
   }
-  return picked
+  const shuffled = seededShuffle(valid, fnv1a(String(SEED) + '|ladder|' + tier))
+  const mapCount = new Map<string, number>()
+  const chosen: typeof valid = []
+  // Greedy map spread.
+  while (chosen.length < count && shuffled.length > 0) {
+    let bestIdx = 0
+    let bestScore = Infinity
+    for (let i = 0; i < shuffled.length; i++) {
+      const score = mapCount.get(shuffled[i].game_map) ?? 0
+      if (score < bestScore) {
+        bestScore = score
+        bestIdx = i
+      }
+    }
+    const r = shuffled.splice(bestIdx, 1)[0]
+    mapCount.set(r.game_map, (mapCount.get(r.game_map) ?? 0) + 1)
+    chosen.push(r)
+  }
+  return chosen.map((r) => ({
+    map: r.game_map,
+    tier: r.skill_tier,
+    team0: r.team0_heroes,
+    team1: r.team1_heroes,
+    pairKey: 'ladder',
+    provenance: {
+      source: 'ladder',
+      stratum: 'ladder_anchor',
+      replayId: r.replay_id,
+      winner: r.winner, // real game outcome (0 = team0 won)
+      gameDate: r.game_date,
+    },
+  }))
 }
 
 async function main() {
@@ -236,40 +255,68 @@ async function main() {
     process.exit(1)
   }
   const byStratum = loadTournamentCandidates()
-  const all: Candidate[] = []
-  for (const { name, count } of STRATA) {
+  const coreMachine: Candidate[] = []
+  const extMachine: Candidate[] = []
+  for (const { name, core, ext } of STRATA) {
     const cands = byStratum.get(name) ?? []
-    console.log(`stratum ${name}: ${cands.length} candidates -> sampling ${count}`)
-    all.push(...sampleStratum(cands, count, SEED ^ fnv1a(name)))
+    console.log(`stratum ${name}: ${cands.length} candidates -> sampling ${core} core + ${ext} extended`)
+    // Sample core+ext distinct records in one pass, then split so extended
+    // never reuses a core record.
+    const sampled = sampleStratum(cands, core + ext, SEED ^ fnv1a(name))
+    coreMachine.push(...sampled.slice(0, core))
+    extMachine.push(...sampled.slice(core))
   }
-  const ladder = await loadLadderAnchors()
-  console.log(`ladder anchors: ${ladder.length}`)
-  all.push(...ladder)
 
-  // Shuffle so item id carries no stratum information, then assign ids 1..N.
-  const shuffled = seededShuffle(all, SEED)
-  const items = shuffled.map((c, i) => ({
-    id: i + 1,
+  const coreLadder: Candidate[] = []
+  const extLadder: Candidate[] = []
+  for (const tier of Object.keys(LADDER_CORE_COUNTS)) {
+    const need = LADDER_CORE_COUNTS[tier] + LADDER_EXT_COUNTS[tier]
+    const drafts = await loadLadderTier(tier, need)
+    coreLadder.push(...drafts.slice(0, LADDER_CORE_COUNTS[tier]))
+    extLadder.push(...drafts.slice(LADDER_CORE_COUNTS[tier]))
+    console.log(`ladder ${tier}: ${LADDER_CORE_COUNTS[tier]} core + ${LADDER_EXT_COUNTS[tier]} extended`)
+  }
+
+  // CORE: shuffle so item id carries no stratum information; ids 1..100.
+  const core = seededShuffle([...coreMachine, ...coreLadder], SEED)
+  // EXTENDED: shuffle independently; ids continue after core.
+  const extended = seededShuffle([...extMachine, ...extLadder], SEED ^ 0x5eed_e17e)
+
+  const toItem = (c: Candidate, id: number, block: 'core' | 'extended') => ({
+    id,
+    block,
     map: c.map,
     tier: c.tier,
     teams: { team0: c.team0, team1: c.team1 },
     provenance: c.provenance,
-  }))
+  })
+  const items = [
+    ...core.map((c, i) => toItem(c, i + 1, 'core')),
+    ...extended.map((c, i) => toItem(c, core.length + i + 1, 'extended')),
+  ]
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true })
-  fs.writeFileSync(OUT_PATH, JSON.stringify({ seed: SEED, generatedAt: new Date().toISOString(), items }, null, 2))
-  console.log(`wrote ${items.length} items to ${OUT_PATH}`)
+  fs.writeFileSync(
+    OUT_PATH,
+    JSON.stringify({ seed: SEED, generatedAt: new Date().toISOString(), items }, null, 2)
+  )
+  console.log(`wrote ${items.length} items (${core.length} core + ${extended.length} extended) to ${OUT_PATH}`)
 
   // Composition report.
-  const strata = new Map<string, number>()
-  const tiers = new Map<string, number>()
-  for (const it of items) {
-    const s = (it.provenance as { stratum: string }).stratum
-    strata.set(s, (strata.get(s) ?? 0) + 1)
-    tiers.set(it.tier, (tiers.get(it.tier) ?? 0) + 1)
+  for (const block of ['core', 'extended'] as const) {
+    const strata = new Map<string, number>()
+    const tiers = new Map<string, number>()
+    const sources = new Map<string, number>()
+    for (const it of items.filter((x) => x.block === block)) {
+      const p = it.provenance as { stratum: string; source: string }
+      strata.set(p.stratum, (strata.get(p.stratum) ?? 0) + 1)
+      sources.set(p.source, (sources.get(p.source) ?? 0) + 1)
+      tiers.set(it.tier, (tiers.get(it.tier) ?? 0) + 1)
+    }
+    console.log(`[${block}] sources:`, Object.fromEntries(sources))
+    console.log(`[${block}] strata:`, Object.fromEntries(strata))
+    console.log(`[${block}] tiers:`, Object.fromEntries(tiers))
   }
-  console.log('strata:', Object.fromEntries(strata))
-  console.log('tiers:', Object.fromEntries(tiers))
 }
 
 main().catch((e) => {

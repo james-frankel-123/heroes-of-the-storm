@@ -16,10 +16,12 @@ async function main() {
   const file = path.resolve(__dirname, '../data/rating-items.json')
   const { items } = JSON.parse(fs.readFileSync(file, 'utf8'))
   for (const it of items) {
+    const block = it.block ?? 'core'
     await sql`
-      insert into rating_items (id, teams, map, tier, provenance)
-      values (${it.id}, ${JSON.stringify(it.teams)}::jsonb, ${it.map}, ${it.tier}, ${JSON.stringify(it.provenance)}::jsonb)
+      insert into rating_items (id, block, teams, map, tier, provenance)
+      values (${it.id}, ${block}, ${JSON.stringify(it.teams)}::jsonb, ${it.map}, ${it.tier}, ${JSON.stringify(it.provenance)}::jsonb)
       on conflict (id) do update set
+        block = excluded.block,
         teams = excluded.teams,
         map = excluded.map,
         tier = excluded.tier,

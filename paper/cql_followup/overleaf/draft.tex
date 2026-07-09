@@ -1,0 +1,477 @@
+\documentclass[journal]{IEEEtran}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{multirow}
+
+% ---- Anonymization toggle: \anonymoustrue for review submission, \anonymousfalse for camera-ready ----
+\newif\ifanonymous
+\anonymoustrue
+
+\ifanonymous
+\newcommand{\repourl}{\url{https://anonymous.4open.science/r/adversarial-combinatorial-assembly/}}
+% Anonymized review mirror of the deployed web tool (single line to update):
+\newcommand{\deployurl}{\url{https://draft-assistant-review.vercel.app}}
+\else
+\newcommand{\repourl}{\url{https://github.com/maxsegan/adversarial-combinatorial-assembly}}
+\newcommand{\deployurl}{\url{https://www.hotsfever.com}}
+\fi
+% -----------------------------------------------------------------------------------------------------
+
+\begin{document}
+
+\title{Adversarial Combinatorial Assembly:\\ Diagnosing and Repairing Out-of-Distribution Failure in MOBA Draft Policies}
+\ifanonymous
+\author{Anonymous Authors}
+\else
+\author{Max~Segan, Ernest~Pysher, James~Frankel, and Hod~Lipson}
+\fi
+\maketitle
+
+\begin{abstract}
+Drafting in multiplayer online battle arena (MOBA) games is a canonical instance of adversarial combinatorial assembly. Two teams alternately ban and pick heroes from a shared pool to build competing five-hero compositions, and a noisy match determines the winner. In Heroes of the Storm, a 90-hero pool spans $7.2 \times 10^{14}$ matchups; our corpus of 2.1 million ranked drafts covers a vanishing, clustered fraction, so out-of-distribution behavior dominates policy quality. Search exploits learned value functions' out-of-distribution optimism, assembling structurally broken teams rated as competitive, and pessimistic offline reinforcement learning does not repair this: conservative and implicit Q-learning collapse to behavioral cloning, and mildly conservative Q-learning to a near-deterministic ten-hero policy. We contribute a decomposition of draft policy quality into composition safety and interaction-awareness, with metrics detecting both collapses, and role-based heuristics over 9-million-game community statistics that identify never-observed compositions as reliably bad. A layered repair, domain features, targeted synthetic data, Monte Carlo tree search, and structural constraint masking, guarantees structural validity by construction while preserving the interaction-awareness (synergy +0.95) that behavioral anchoring destroys, and wins every tournament matchup at 0.67 consensus win probability, released open-source: a fused CUDA trainer (2.2$\times$ a tuned batched-evaluation baseline at equal search quality) and the agent running in-browser.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Adversarial combinatorial assembly, MOBA drafting, offline reinforcement learning, Monte Carlo tree search, out-of-distribution generalization.
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+
+We use the term \textit{adversarial combinatorial assembly} for problems with three properties: a small number of opponents (here, two) alternately claim discrete, rivalrous elements from a shared pool to assemble competing sets; the value of a set depends nonlinearly on interactions within it and against the opposing set, not only on element quality; and the winner is determined by a noisy downstream process rather than by rule. The structure recurs wherever rivals assemble from a shared scarce pool (sports drafts, roster auctions, deck drafting, procurement), but those instances lack instrumentation; drafting in multiplayer online battle arena (MOBA) games offers millions of logged episodes under fixed rules, a natural model organism for the class. In Heroes of the Storm (HotS), two teams of five alternate through 16 actions, banning 6 heroes and picking 10 from a pool of 90, before the match itself is played. We study HotS because it is in maintenance mode: a fixed 90-hero pool across 4.5 years of one major version yields an unusually clean stationary corpus. The draft matters: models that observe only the completed draft predict match outcomes at 56--58\% accuracy, a large edge in a balanced competitive game.
+
+Two properties of the domain make learned drafting hard. The first is coverage. A 90-hero pool admits roughly $7.2 \times 10^{14}$ distinct final matchups ($\tfrac{1}{2}\binom{90}{5}\binom{85}{5}$), and our corpus of 2.1 million ranked drafts covers a vanishing fraction of that space, and not uniformly: human play clusters around popular heroes and familiar groupings, leaving the rest not merely sparse but empty. Any drafting policy must therefore behave sensibly in states it has effectively never observed. The second is evaluation: unlike chess or Go, where the terminal state determines the winner by rule, a completed draft only shifts the odds of the match that follows, so the reward signal for training and search is itself a win probability model estimated from the same sparse, clustered data, and value and policy errors compound.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth,height=1.86in,keepaspectratio]{fig_glance.pdf}
+\caption{Results at a glance: the eleven-strategy head-to-head round-robin (110 ordered pairs $\times$ 200 drafts; Section~\ref{sec:tournament}); all columns measured on the tournament drafts. First column: consensus win probability, the mean over the four evaluators (dashed line: 50\%). The CQL row shows the better of the two CQL variants per column; both appear individually in Table~\ref{tab:rich}. Anchoring to human behavior (CQL, BC, the G\&A discriminator) is safe but interaction-blind; searching a value function without domain structure (G\&A estimator) is interaction-aware but unsafe; only domain features + MCTS achieves all three, and structural constraint masking (Section~\ref{sec:constrained}) removes its residual broken teams and tops the tournament.}
+\label{fig:glance}
+\end{figure}
+Prior work has treated draft outcome prediction and hero recommendation largely as supervised learning problems and reports respectable held-out accuracy~\cite{chen2018drafting,gourdeau2021discriminative,summerville2016draft,lee2022draftrec}. We show that this accuracy is a misleading foundation for a drafting policy. Three value functions separated by less than half a percentage point of test accuracy (57.7--58.1\%) yield greedy policies that disagree on roughly 90\% of decisions. When used for search, each model's out-of-distribution behavior, not its accuracy, determines policy quality: the optimizer actively seeks out states vanishingly rare in human play, a team of five tanks, or one with no healer, and the models score them as competitive. The evidence that such teams fail exists, but not in any individual game: lineups like these are essentially absent even from community aggregate statistics covering 9 million ranked games. Only when heroes are grouped by role does the pattern become visible: the role-degenerate compositions players do occasionally field consistently underperform. Directly exploiting this evidence requires representing roles, domain structure that hero-identity inputs do not carry.
+
+The offline reinforcement learning literature offers a standard remedy: pessimism toward out-of-distribution actions~\cite{kumar2020conservative,lyu2022mildly}. Applied to drafting, where reward is terminal and Monte Carlo returns are exact, algorithmic pessimism degenerates to behavioral anchoring by construction (Section~\ref{sec:cql}), and its two instantiations collapse in characteristic ways. Conservative Q-Learning (CQL) appears to succeed, reducing degenerate compositions to 2--3\%, but richer evaluation reveals it does so by collapsing to behavioral cloning: 69--74\% agreement with the behavior policy, a concentrated pick distribution, and negative synergy exploitation. Mildly Conservative Q-Learning (MCQ) collapses differently, to a near-deterministic policy over 10 heroes. We decompose draft policy quality into two separable axes: \textbf{composition safety}, whether the team includes the structural roles (healer, frontline, ranged damage) required to function at all, measured by healer rate and degenerate composition rate; and \textbf{interaction-awareness}, whether the team responds to the opponent's picks and exploits internal synergies, measured by counter responsiveness, resilience to subsequent counter-picks, synergy exploitation, and pick diversity. Safety turns out to be the easy axis, inherited by any method that stays near human behavior; interaction-awareness is the hard axis, and no pessimism-based method we tested achieves it.
+
+What achieves both is domain structure amplified by search: value function features built from the role-aggregated statistics (role counts, pairwise counter and synergy rates, composition win rates), AlphaZero-style Monte Carlo tree search (MCTS) over the resulting value function, and a final hard mask that prunes structurally invalid picks by rule.
+
+Fig.~\ref{fig:glance} previews the outcome: in an eleven-strategy head-to-head tournament, only the combination of domain features, deep search, and structural constraint masking wins every matchup while remaining both safe and interaction-aware. Its margin holds under evaluators sharing no features with its value function (0.657/0.666 win probability, naive/hero-strength evaluators), the strongest evidence that its lead is not self-graded. Our contributions:
+\begin{enumerate}
+    \item A decomposition of policy quality in adversarial combinatorial assembly into composition safety and interaction-awareness, with domain-agnostic metrics (counter responsiveness, resilience, synergy exploitation, pick diversity, behavioral similarity) that distinguish genuine compositional reasoning from mimicry. Using these, we show that CQL achieves safety by behavioral cloning, robustly across architectures and feature sets, and that MCQ's penalty does not transfer to this discrete setting, collapsing to a near-deterministic ten-hero policy.
+    \item Domain-specific aggregate heuristics: role-composition win rates from community aggregate statistics spanning 9 million games, a corpus separate from and larger than our drafts, that confidently identify classes of compositions as bad despite their absence from individual-game data. These heuristics evaluate policies, populate value function features, and target synthetic training data at never-observed states.
+    \item A layered repair, enriched features, targeted synthetic data, MCTS self-play, and structural constraint masking, that achieves both axes simultaneously, cutting degenerate compositions from 64\% under naive value-guided search to 8\%, with the final mask guaranteeing structural validity by construction, and with the enriched value function contributing +0.023 average win probability over an identical agent without domain features ($p < 0.001$); data scale narrows this gap under deep search, while features remain critical for shallow search and OOD behavior. Empirically, validity masking preserves interaction-awareness (synergy +0.95) where behavioral anchoring destroys it, and the constrained agent beats its unconstrained counterpart head-to-head, winning all 20 tournament matchups against every baseline family, including reimplementations of an independently designed published drafter and of an earlier win-rate estimator by its lead author.    \item An open-source systems stack:\footnote{\repourl} a fused CUDA MCTS implementation sustaining $\sim$150 episodes/second per GPU, 2.2$\times$ a tuned batched-evaluation host pipeline at equal search quality (supplement), and a deployment of the complete agent, search, policy, value, and opponent models, running in-browser at interactive latency in a $\sim$20~MB download.
+\end{enumerate}
+
+\section{Background and Related Work}
+
+\subsection{Drafting in MOBA and Esports Games}
+
+Game-playing agents for MOBA and real-time strategy games have concentrated on in-match control rather than the draft. OpenAI Five~\cite{berner2019dota} reached professional level in Dota~2 but restricted play to 17 heroes, drafting by exhaustive search over the reduced ($\sim$5M) matchup space; AlphaStar~\cite{vinyals2019grandmaster} faced no assembly stage at all; at full pool sizes the draft becomes a distinct combinatorial game that exhaustive methods cannot touch.
+
+Draft-specific work falls into two camps. Outcome prediction estimates win probability from completed or partial drafts and optionally searches against it: Chen et al.~\cite{chen2018drafting} used such a predictor as the value function for MCTS-based recommendation in Dota~2, and JueWuDraft~\cite{chen2021juewudraft} scaled the recipe to Honor of Kings best-of-$N$ series. Recommendation by imitation learns to reproduce expert selections: Summerville et al.~\cite{summerville2016draft} predicted professional Dota~2 draft picks with sequence models; Gourdeau and Archambault~\cite{gourdeau2021discriminative} trained a discriminator scoring a draft's proximity to the professional-play manifold in HotS and Dota~2, drafting to minimize divergence from it; and DraftRec~\cite{lee2022draftrec} personalizes suggestions while restricting them to observed hero combinations. All three imitation approaches sidestep out-of-distribution states by construction, at the cost of novel strategy discovery. Gourdeau and Archambault also conjectured that MCTS over a win-rate estimator would wander into compositions poorly characterized by low-density data, proposing to constrain such search to the professional manifold. We empirically confirm the conjectured failure (Section~\ref{sec:gap}), show that behavioral anchoring, the remedy family their proposal belongs to, achieves composition safety but not interaction-awareness (Section~\ref{sec:cql}), and evaluate an independently released win-rate estimator by the same author as an additional baseline (Section~\ref{sec:gourdeau}). Section~\ref{sec:constrained} implements a structural-validity version of their constraint proposal on top of our learned agent.
+
+\subsection{Offline RL and Pessimism}
+
+Offline RL addresses out-of-distribution value overestimation with pessimism, applied at one of two loci. Algorithmic pessimism penalizes value estimates directly: Conservative Q-Learning (CQL)~\cite{kumar2020conservative} pushes down Q-values for actions underrepresented in the data, and Mildly Conservative Q-Learning (MCQ)~\cite{lyu2022mildly} penalizes only Q-values exceeding a threshold, targeting CQL's tendency toward over-conservatism. Policy constraint keeps the learned policy near the behavior policy: BEAR~\cite{kumar2019stabilizing} via distributional matching, TD3+BC~\cite{fujimoto2021minimalist} via an explicit behavioral-cloning term; DraftRec's restriction to observed combinations is a domain-specific instance. Levine et al.~\cite{levine2020offline} survey the area. Our work adds a third locus: pessimism expressed through features and data, with no algorithmic modification; Section~\ref{sec:cql} shows that CQL, MCQ, and BC-regularized CQL each collapse, in different ways, before reaching interaction-aware behavior.
+
+\subsection{Value Functions Under Search}
+
+That search amplifies both the strengths and errors of its value function is well established in games~\cite{silver2016mastering,silver2018general}, reappearing as reward model overoptimization~\cite{gao2023scaling}; our setting differs in that no ground-truth terminal evaluation exists even in principle, the value function being learned from the same sparse data the policy must generalize beyond.
+
+\subsection{Scaling MCTS}
+
+MCTS parallelization classically distributes tree operations across CPU threads with batched or asynchronous network evaluation, root, leaf, and tree parallelism~\cite{chaslot2008parallel}, and the GPU-batched self-play pipelines of AlphaZero~\cite{silver2018general} and KataGo~\cite{wu2019accelerating}, keeping the tree on the host and paying a host-device round trip per evaluation batch. Our fused CUDA implementation instead colocates the entire episode, tree and network, inside a single kernel launch, suited to the draft domain's small networks and short episodes.
+
+\section{Problem Setup}
+\label{sec:setup}
+
+\subsection{Draft Formalization}
+
+A HotS draft consists of 16 sequential actions: 6 bans (removing heroes from the pool) and 10 picks (selecting heroes for teams), alternating between two teams in a fixed order. The state $s_t$ at step $t$ comprises multi-hot vectors for each team's picks and combined bans ($\in \{0,1\}^{90}$ each), map identity (one-hot over 14 maps), skill tier (one-hot over 3 tiers), step number, and step type (ban or pick), for 289 dimensions total. The action space is the set of available heroes ($\sim$84--90 early, decreasing as the draft progresses); terminal reward is the game outcome.
+
+The behavior policy $\pi_\beta$ is defined by our corpus of ranked Storm League replays (2.07 million drafts, continuously collected). All experiments use a snapshot pinned in May 2026 and filtered to the current major patch (2.55): 1,949,087 replays spanning December 2021 through May 2026, a window over which the hero pool is fixed at 90. Replays cover the full skill range, collapsed to three tiers (Bronze--Gold, Platinum--Diamond, Master--Grandmaster). These ranked drafts arise largely from uncoordinated solo and duo queue, where players pick by hero preference and comfort rather than explicit win maximization, so $\pi_\beta$ reflects social dynamics as much as strategic intent. All models use team-swap augmentation, swapping teams and all team-indexed features with flipped outcome, doubling the effective training set to 3.9M samples. Train/test splits are at the replay level throughout: step-conditioned models generate $\sim$10 correlated partial states per game, so sample-level splitting would leak game identity and inflate held-out accuracy ($\sim$8pp).
+
+\subsection{Value Function Variants}
+
+\begin{table}[t]
+\centering
+\caption{Win probability model variants. The top three use identical architecture (256$\to$128 MLP, dropout 0.3) and training (AdamW, cosine LR, early stopping, team-swap augmentation); Gourdeau reproduces a separately released estimator (Section~\ref{sec:gourdeau}).}
+\label{tab:models}
+\begin{tabular}{lccp{3.2cm}}
+\toprule
+Model & Acc. & Dim & Features \\
+\midrule
+Naive & 57.8\% & 197 & Multi-hot + map + tier \\
+Hero Str. & 57.7\% & 209 & + per-hero WR, team avg \\
+Enriched & 58.1\% & 283 & + role counts, pairwise, comp WR, meta \\
+\midrule
+Gourdeau & 56.2\% & 194 & Siamese, multiplicative map conditioning \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:models} shows three win probability models trained on the same data, plus the reproduced baseline. The enriched model adds 86 features: per-team counts of 9 fine-grained roles (18), per-hero counter deltas against the opposing team (50), team-level pairwise counter and synergy aggregates (4), team-average and map-specific win rate deltas (4), meta strength (4), draft diversity (2), and empirical composition win rates (4). The composition WR feature maps each team's 5 heroes to a sorted role tuple and looks up its empirical win rate from aggregate statistics published by a community replay database,\footnote{heroesprofile.com} covering 9.0M games across three skill tiers (164/127/121 distinct compositions per tier, of 252 possible). Over 99.9\% of training replays match a recorded composition; the 33\% pessimistic default fires for degenerate compositions that humans rarely draft. These published aggregates are a second data source, distinct from our replay corpus: several times more games, but only per-hero, per-pair, and per-role-composition win rates, with no individual drafts; all role-level heuristics in this paper derive from them.
+
+\subsection{Evaluation Framework}
+\label{sec:eval}
+
+We evaluate along two separable axes.
+
+\paragraph{Composition safety.} Healer selection rate, and degenerate composition rate: missing healer, missing frontline, no ranged damage, or 3+ heroes in one role. These four criteria are not stipulated; they are the composition classes that the role-composition aggregates identify as reliably underperforming, either falling well below 50\% win rate where fielded (no-healer compositions win 43\% of real games) or absent from play entirely.
+
+\paragraph{Interaction-awareness.} We measure interaction-awareness with complementary signals spanning two categories.
+
+\textit{Interaction metrics} (snapshot-dependent): both build on pairwise deltas, observed win rate minus its independence expectation from the heroes' individual win rates (in percent): the counter delta of $a$ against $b$ is $\mathrm{WR}(a\text{ vs }b) - [\mathrm{WR}(a) + (100 - \mathrm{WR}(b)) - 50]$, and the synergy delta of teammates $a, b$ is $\mathrm{WR}(a\text{ with }b) - [50 + (\mathrm{WR}(a) - 50) + (\mathrm{WR}(b) - 50)]$. \textit{Counter responsiveness}, the average normalized pairwise counter delta against the opponent's heroes (positive = favorable). \textit{Resilience}, a temporal complement: for each of our picks, the average counter delta of the opponent's \textit{subsequent} picks against it, negated: high resilience means picking heroes the opponent cannot profitably answer with their remaining picks. \textit{Synergy exploitation}, the average normalized within-team synergy delta (positive = heroes that win together more than their individual win rates predict). Comparisons across strategies remain fair because all are evaluated identically, but absolute magnitudes are snapshot-sensitive (they shifted systematically when we re-pulled statistics), so we rest the collapse diagnosis on relative gaps and on the stats-independent signals below; the supplement verifies that strategy ordering is stable across snapshots.
+
+\textit{Behavioral signals} (stats-independent): \textit{Hero diversity}: distinct heroes used, Shannon entropy of the pick distribution, and top-10 hero concentration across all drafts. \textit{GD similarity}: agreement rate with the behavioral-cloning model at each pick step. These signals depend only on the strategy's own behavior and the fixed GD model.
+
+A circularity deserves flagging: synergy and counter derive from the same aggregate pairwise statistics that populate the enriched features, so high measured synergy from an enriched-model agent partly reflects optimizing a supplied input. The behavioral signals diagnose collapse but cannot positively establish interaction-awareness. Two measurements break the circle: resilience, which scores each pick against the opponent's \textit{future} picks, information no agent observes at decision time, and the head-to-head tournament of Section~\ref{sec:tournament}.
+
+\subsection{Search Methods}
+
+\textbf{Greedy search:} For each candidate hero, complete the draft via Generic Draft (GD) behavioral-cloning opponents trained on the same replay snapshot (289$\to$256$\to$128$\to$90, 5 seed variants), evaluate the terminal state with $V_\theta$, select the highest-scoring candidate.
+
+\textbf{GD behavioral cloning:} Argmax of the GD model at each step; the control for pure human imitation.
+
+\textbf{CQL:} Argmax of a conservatively learned Q-function (no rollout needed; Q directly estimates action values).
+
+\textbf{MCTS:} AlphaZero-style~\cite{silver2018general} policy-value network (Section~\ref{sec:mcts}), 200 simulations per move at inference.
+
+\paragraph{Sanity tests} We evaluate all value functions on hand-crafted scenarios: absurd compositions (5 tanks, 5 healers), traps (high-WR heroes in bad compositions), normal comparisons, and symmetry tests; 21 tests initially, expanded to 28 (Section~\ref{sec:repair}).
+
+\paragraph{Data availability} Raw replays cannot be redistributed under the Heroes Profile terms of service, but the corpus is reconstructible through their public API: ranked Storm League drafts on patch 2.55, December 2021 through May 2026, with the exact replay-id bounds, the pinned aggregate-statistics snapshot, and processed feature matrices in the released repository.
+
+\section{The Composition Gap}
+\label{sec:gap}
+
+\subsection{Cross-Evaluation}
+\label{sec:crosseval}
+
+\begin{table}[t]
+\centering
+\caption{Cross-evaluation and composition quality (480 drafts per strategy; 256$\to$128 models of Table~\ref{tab:models}). Left: average WP assigned by column model to row strategy's drafts (bold: self-evaluation). Right: composition metrics; naive-vs-enriched healer difference 15.8pp ($p < 10^{-6}$, $\chi^2$). All models selected frontline heroes $>$92\%.}
+\label{tab:crosseval}\label{tab:comp}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccc|ccc}
+\toprule
+& \multicolumn{3}{c}{Evaluated by} & & & \\
+\cmidrule(lr){2-4}
+Drafter & Naive & H.~Str. & Enr. & Heal\% & Rng\% & Deg\% \\
+\midrule
+Naive & \textbf{.654} & .641 & .629 & 60.4 & 74.8 & 64.2 \\
+Hero Str. & .627 & \textbf{.668} & .618 & 68.5 & 78.1 & 54.0 \\
+Enriched & .614 & .610 & \textbf{.672} & \textbf{76.3} & \textbf{79.6} & \textbf{49.6} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:crosseval} shows diagonal dominance, each strategy scoring highest on its own evaluator: greedy search optimizes for the specific model's value landscape. The enriched drafter scores lowest on both simpler evaluators (0.614, 0.610), sacrificing 4.0pp of naive-scored win probability for compositional quality only the enriched evaluator perceives; no single-model metric can detect this trade-off.
+
+\subsection{Composition Quality}
+
+All three greedy drafters fail composition safety, and the failure shrinks monotonically with feature richness across healer, ranged, and degenerate rates (Table~\ref{tab:comp}). This controlled comparison uses the smaller 256$\to$128 models of Table~\ref{tab:models}; the 512$\to$256$\to$128 architecture used from Section~\ref{sec:repair} onward shrinks but does not repair these failures. Even the enriched greedy drafter leaves half of its drafts degenerate, the residual that Sections~\ref{sec:repair}--\ref{sec:mcts} address.
+
+\subsection{The Accuracy-Policy Disconnect}
+
+A sweep across 4,100 model configurations ($2^{10}$ subsets of 10 feature groups $\times$ 2 architectures $\times$ 2 learning rates) shows that at 1.95M replays accuracy has essentially stopped discriminating between feature sets: no group's marginal impact exceeds 0.2pp; pairwise counters are largest (+0.20\%) and per-hero win rate is \textit{negative} ($-$0.16\%). Yet the policy consequences of the same features are massive: the enriched feature set drops the WP assigned to a 5-tank team from 0.365 (naive) to 0.155, synthetic augmentation to 0.062 (Section~\ref{sec:repair}), and greedy-search degenerate rates separate by 14.6pp (Table~\ref{tab:comp}).
+
+Among the 50 drafts with the largest naive-vs-enriched evaluation gap, 64\% had no healer and 86\% paired individually strong heroes with degenerate team structure: the naive model cannot represent the catastrophic interaction between ``no healer'' and ``fifth damage dealer.''
+
+\subsection{Independent Baseline}
+\label{sec:gourdeau}
+
+To verify generality, we retrain an independently designed value function: a HotS win-rate estimator released by Gourdeau,\footnote{\url{https://github.com/HairyBlob/HotS-Drafter}} predating the published discriminator (Section~\ref{sec:cql}), a Siamese network (994K parameters) with multiplicative map conditioning over multi-hot inputs, originally reported at roughly 61\% accuracy on contemporaneous ranked-ladder data. Retrained on our snapshot it reaches 56.2\% accuracy, within 1.6pp of our naive model; the gap from the originally reported figure plausibly reflects data era and population, patch heterogeneity, and our stricter replay-level splitting, not the design. The OOD pathology is unambiguous: it rates a 5-tank team at 45.5\% WP, nearly competitive (enriched model: 15.5\%), and an earlier reproduction trained on 275K replays rated the same team at 52.8\%, i.e., \textit{favored}: more data attenuates but does not repair the pathology. In greedy evaluation (Table~\ref{tab:rich}), the estimator shows partial interaction-awareness (positive synergy, near-zero counter) but fails composition safety with a 41\% degenerate rate. The pathology is a property of the representation, not of any single implementation.
+
+\section{Closing the Gap: Features and Synthetic Data}
+\label{sec:repair}
+
+\subsection{Residual Gap Analysis}
+
+To provide a controlled baseline, we scale to a 512$\to$256$\to$128 architecture (311K parameters). Even with this capacity, the enriched model produces 22.0\% degenerate compositions in greedy evaluation (Table~\ref{tab:synth}, no augmentation row), down from 49.6\% at 256$\to$128 but still substantial. Three factors contribute: search horizon, training concentration (95\%+ of training teams include a healer), and feature granularity. Synthetic augmentation targets the second: the model never observes the \texttt{comp\_wr} feature's pessimistic default correlated with actual losses, so it underweights the signal.
+
+\subsection{Synthetic Augmentation}
+
+Of the 252 possible 5-role compositions, the $\sim$100 per tier absent from the aggregates (Section~\ref{sec:setup}) are structurally degenerate and never drafted. We generate synthetic training records for each unseen composition: heroes sampled by role, paired against real opponent teams, outcomes assigned at a fixed win rate. Roughly 34K synthetic records (under 2\% of training data) are added; the test set remains pure.
+
+\paragraph{Scope: unseen vs.\ sparse.} We swept 27 configurations varying win rate (10/20/30\%), volume (50/100/200 per composition per tier), and scope (unseen only, sparse low-WR only, or both). Augmenting unseen compositions is the active ingredient. At the best volume (100) and WR (10\%), sparse-only augmentation (reinforcing compositions with $<$300 games and $<$48\% WR) leaves the 5-tank pathology unrepaired (WP 0.23, vs.\ 0.15 for the unaugmented baseline), while unseen-only augmentation drives it to 0.07; the ``both'' scope is intermediate (0.11). This suggests the OOD problem in draft valuation is binary: compositions that appear at all in human play provide enough signal; compositions that never appear provide none.
+
+\paragraph{Win rate landscape.} We then swept the assigned win rate over 0\%, 5\%, 10\%, and 50\% at the best scope (unseen) and volume (100), with the 512$\to$256$\to$128 architecture and the 28-test sanity suite (Table~\ref{tab:synth}). Some unseen compositions may be unconventional-but-viable rather than structurally bad; the assigned win rate forecloses that possibility by fiat, a deliberate trade-off favoring safety.
+
+\subsection{Augmentation Results}
+
+\begin{table}[t]
+\centering
+\caption{Effect of synthetic augmentation across assigned win rates (5 seeds $\times$ 1000 drafts = 5000 per config, 512$\to$256$\to$128 architecture, unseen-only scope, volume=100, 28 sanity tests).}
+\label{tab:synth}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lccccc}
+\toprule
+Assigned WR & Acc.\% & Healer\% & Ranged\% & Degen.\% & Sanity \\
+\midrule
+No augmentation & 58.0 & 82.2 & 92.0 & 22.0 & 25/28 \\
+\midrule
+0\% & 57.9 & 87.1 & 96.2 & 18.3 & 19/28 \\
+5\% & 58.0 & 88.1 & \textbf{96.2} & 17.1 & 23/28 \\
+10\% & 57.8 & \textbf{91.2} & 94.8 & 15.6 & 22/28 \\
+50\% & 58.1 & 89.9 & 92.3 & \textbf{14.0} & 24/28 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The extremes of Table~\ref{tab:synth} expose a calibration trade-off: WR=0\% produces the strongest penalties (5-tank WP drops to 0.3\%) but over-penalization distorts the value landscape, costing the most sanity tests (19/28) while leaving the highest augmented degenerate rate (18.3\%); WR=50\% minimizes degenerate rate (14.0\%) but sits too close to the model's prior to penalize extreme compositions (5-tank WP 47.9\%). We use WR=10\% for the augmented models downstream: the best healer/degenerate balance with a still-strong penalty (5-tank WP 8.9\%).
+
+In greedy evaluation (Table~\ref{tab:rich}), the augmented model matches the unaugmented enriched model's counter, synergy, and composition safety at a higher healer rate: augmentation does not sacrifice greedy-search interaction-awareness. Feature- and data-level pessimism together reduce the degenerate rate from 64\% (naive) to 16\% with no algorithmic change.
+
+\section{Pessimistic Offline RL Collapses}
+\label{sec:cql}
+
+The repair above required domain knowledge: engineered features and synthetic data constructed from role statistics. The offline RL literature suggests this should be unnecessary, since algorithmic pessimism is designed precisely to suppress out-of-distribution value overestimation from identity features alone. Our thesis is sharper: in terminal-reward assembly problems, algorithmic pessimism degenerates to behavioral anchoring by construction (Section~\ref{sec:cqlsetup}); this section quantifies the consequences: how tightly the anchor binds, that it tightens as the corpus grows, and that MCQ's penalty does not transfer at all.
+
+\subsection{CQL Setup}
+\label{sec:cqlsetup}
+
+We reformulate drafting as offline RL. Each replay provides 16 state-action-reward transitions; with team-swap augmentation this yields $\sim$62M training transitions.
+The Q-network (311K parameters, same architecture as the controlled WP baseline) maps state (289 dims) through 512$\to$256$\to$128 layers to 90 Q-values, with invalid actions masked to $-\infty$.
+
+We use Monte Carlo returns with $\gamma = 1.0$: since reward is only at the terminal step and episodes are fixed-length, the Q-target is simply the game outcome, making the objective exactly supervised outcome regression plus a behavior-distribution penalty:
+\begin{equation}
+\mathcal{L} = \mathcal{L}_\text{BCE}(Q(s,a), y) + \alpha \left( \mathbb{E}_\mu[\log \sum_a e^{Q(s,a)}] - \mathbb{E}_\mathcal{D}[Q(s,a)] \right)
+\end{equation}
+where $y$ is the game outcome, $\alpha$ controls conservatism, and the second term penalizes high Q-values for actions not in the data. We sweep $\alpha \in \{0.1, 0.5, 1.0, 2.0, 5.0\}$. The penalty's only possible contribution is therefore anchoring toward the behavior distribution, so landing near behavioral cloning is foreordained in kind; what the experiments quantify is how tight: GD agreement rose from 59--65\% to 69--74\% as the corpus quadrupled (Table~\ref{tab:rich}).
+
+\paragraph{Algorithm selection.} CQL, MCQ, and BC-regularized CQL are the natural discrete-action candidates: each operates directly on a Q-function over the finite action set with no actor network, and BC-CQL is effectively the discrete analogue of TD3+BC's behavioral-cloning regularization~\cite{fujimoto2021minimalist}. We also run IQL~\cite{kostrikov2022iql}, the family designed to avoid over-conservatism, adapted to the same data and architecture (expectile value baseline, advantage-weighted regression (AWR) policy extraction; six-cell $\tau \times \beta$ grid). All six cells are statistically identical, and the mechanism is transparent: with terminal-only Monte Carlo returns the Q-function barely discriminates among actions, so advantages are $\approx 0$ and the AWR weights $e^{\beta(Q - V)}$ sit at 0.998--0.999, collapsing the policy objective to \textit{literal} behavioral cloning regardless of expectile or temperature. The best cell (Table~\ref{tab:rich}) reproduces the CQL profile, and in a tournament cross-check against five representative opponents it wins 2 of 10 ordered matchups (0.388 consensus WP), roughly even only against its fellow anchored policies (CQL, GD) and crushed by the search agents.
+
+\subsection{The Misleading Result}
+
+Sweeping $\alpha$ with naive multi-hot features (5 seeds $\times$ 1000 drafts per setting), CQL achieves 93.0--99.9\% healer selection and 2.2--13.4\% degenerate rate across the full range, with the best safety at $\alpha = 2.0$ (99.8\% healer, 2.2\% degenerate), far better than the enriched+augmented model's greedy-search results (Table~\ref{tab:synth}) and within noise of the GD baseline. From hero identity inputs alone, CQL appears to subsume the entire feature engineering and augmentation pipeline.
+
+\subsection{Rich Evaluation Reveals the Truth}
+
+\begin{table*}[t]
+\centering
+\caption{Comprehensive evaluation across both axes of draft quality (5 seeds $\times$ 1000 drafts = 5000 per strategy). Counter and synergy are average normalized pairwise deltas (positive = favorable); raw deltas carry a team-strength confound — strength-adjusted validation in the supplement confirms both predict outcomes; both are snapshot-dependent (Section~\ref{sec:eval}). Ent.\ is pick-distribution Shannon entropy; GD Sim is agreement with the behavioral-cloning model. Aug WP is the augmented model's evaluation of each strategy's drafts, a self-evaluation in the sense of Section~\ref{sec:crosseval}; the collapse case does not rest on it. Enriched greedy rows use the 512$\to$256$\to$128 architecture (Section~\ref{sec:repair}); Table~\ref{tab:crosseval} used 256$\to$128.}
+\label{tab:rich}
+\begin{tabular}{lccccccccc}
+\toprule
+Strategy & Heal\% & Deg.\% & Counter & Synergy & Dist. & Ent. & T10\% & GD\% & Aug WP \\
+\midrule
+Gourdeau estimator (greedy) & 66.6 & 41.1 & $-$.05 & $+$.31 & 90 & 5.75 & 42.0 & 4.8 & .585 \\
+GD baseline & 99.3 & 1.2 & $+$.06 & $-$.20 & 64 & 4.37 & 74.1 & 82.2 & .519 \\
+G\&A discriminator & 100.0 & 0.0 & $+$.07 & $+$.09 & 53 & 3.96 & 83.3 & 50.8 & .510 \\
+CQL .5 (naive) & 99.9 & 3.6 & $+$.07 & $-$.19 & 67 & 4.52 & 69.9 & 70.4 & .529 \\
+CQL 1.0 (naive) & 99.7 & 3.0 & $+$.07 & $-$.16 & 70 & 4.52 & 70.2 & 72.3 & .527 \\
+CQL .5 (enr.) & 98.1 & 2.3 & $+$.05 & $-$.16 & 65 & 4.29 & 75.5 & 68.6 & .528 \\
+CQL 2.0 (enr.) & 99.9 & 2.5 & $+$.06 & $-$.20 & 71 & 4.45 & 71.6 & 73.7 & .524 \\
+IQL $\tau$=.9 $\beta$=3 (naive) & 99.8 & 2.1 & $+$.07 & $-$.15 & 66 & 4.51 & 70.5 & 71.4 & .531 \\
+MCQ $\tau$=0.5 (naive) & 100 & 45.4 & $+$.01 & $-$1.60 & 10 & 2.87 & 100 & 0.8 & .319 \\
+BC-CQL $\beta$=1.0 & 99.9 & 2.2 & $+$.06 & $-$.16 & 68 & 4.50 & 71.0 & 70.8 & .532 \\
+\midrule
+Enriched (greedy) & 85.5 & 18.5 & $+$.25 & $+$.85 & 90 & 6.08 & 31.4 & 4.4 & .693 \\
+Enr.+aug (greedy) & 87.6 & 18.4 & $+$.21 & $+$.76 & 90 & 6.11 & 30.2 & 4.5 & --- \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Table~\ref{tab:rich} reveals the full picture. The collapse is visible first in the stats-independent behavioral signals: CQL and BC-CQL produce concentrated pick distributions and high behavioral-cloning agreement (68.6--73.7\% GD similarity), while the enriched models use the full hero pool with under 5\% GD agreement. Notably, the same variants sat at 59--65\% GD similarity on a 473K-replay predecessor corpus: quadrupling the data \textit{tightened} the collapse.
+
+The interaction metrics corroborate this picture: all collapsed methods produce negative synergy ($-$0.16 to $-$1.60), the enriched models strongly positive synergy (+0.76 to +0.85), a sign flip; counter responsiveness separates by magnitude rather than sign (+0.21 to +0.25 vs.\ +0.01 to +0.07).
+
+\subsection{CQL with Enriched Features}
+
+Adding the 86 enriched features to CQL (375 total dims) improves composition safety (2.3--2.5\% degen) but does not produce interaction-awareness: synergy remains negative ($-$0.16 to $-$0.20), hero diversity stays concentrated (entropy 4.3--4.5, top-10 concentration 72--76\%), and GD similarity does not budge (68.6--73.7\% vs.\ 70.4--72.3\% for naive CQL): enriched features sharpen CQL's picture of the behavior distribution's boundaries, and the pessimism penalty keeps the agent \textit{inside} them.
+
+The GD baseline calibrates both axes: its 99.3\% healer rate confirms that composition safety was never the hard problem, while its negative synergy ($-$0.20) shows that human drafters select by popularity and comfort rather than pairwise fit.
+
+\subsection{MCQ: A Different Collapse}
+
+MCQ~\cite{lyu2022mildly} penalizes only Q-values exceeding a threshold $\tau$, replacing CQL's log-sum-exp penalty with \mbox{$\sum_a \mathrm{ReLU}(Q(s,a) - \tau)$}. We sweep $\tau \in \{0.4, 0.5, 0.6, 0.7, 0.8\}$, the full attainable range of sigmoid-bounded Q-values, with the same architecture and data as CQL, the natural discrete instantiation of its pseudo-target construction.
+
+MCQ's penalty structure does not transfer to this discrete, sigmoid-bounded setting: two distinct failure regimes emerge depending on $\tau$. Thresholds $\tau \geq 0.6$ provide zero effective penalty, reducing the loss to pure Bellman regression and yielding a narrow policy over the same $\sim$9 heroes regardless of context. At $\tau = 0.5$ the penalty is active but destructive: it drives Q-values toward zero, and the near-zero pre-activations leave most late-layer neurons permanently dead. The resulting policy (Table~\ref{tab:rich}) is near-deterministic over 10 distinct heroes: 100\% healer selection yet 45.4\% degenerate through heavy role stacking, with the worst synergy we measure.
+
+We also evaluate BC-CQL, which adds a behavioral-cloning loss to the CQL objective: $\mathcal{L}_\text{BC} = \text{NLL}(\text{softmax}(Q), a_\text{data})$, sweeping $\beta \in \{0.1, 0.5, 1.0, 2.0\}$: near-perfect composition safety, high GD agreement, and negative synergy ($-$0.16, Table~\ref{tab:rich}); even explicit behavioral-cloning regularization cannot produce interaction-awareness.
+
+\subsection{The Professional-Manifold Discriminator}
+
+Gourdeau and Archambault's published drafter takes a third route to anchoring: a discriminator trained to distinguish real drafts from randomly perturbed ones, drafting by minimizing the generated-probability of the resulting state~\cite{gourdeau2021discriminative}. We implement their stronger non-GAN variant on our snapshot. It is the safest learned strategy we measure, 100\% healer and 0.0\% degenerate across 5{,}000 drafts (Table~\ref{tab:rich}), but its interaction-awareness is null (synergy +0.09, entropy 3.96), and training it longer tightens the anchor: hero diversity falls from 80 to 53 and GD agreement rises from 44\% to 51\% as the discriminator sharpens. Imitation, algorithmic pessimism, and manifold discrimination are three distinct mechanisms that land in the same place: safety by anchoring to human behavior, without compositional reasoning.
+
+\subsection{Robustness of CQL Collapse}
+
+CQL collapse is not an artifact of a specific architecture: sweeping three network capacities crossed with five target-network update rates at $\alpha = 1.0$ (15 configurations), the behavioral collapse signals are stable throughout (entropy 4.25--4.52, GD agreement 69.0--77.3\%), no configuration produces interaction-aware behavior, and the update rate is inert, consistent with Monte Carlo returns (no bootstrapping signal).
+
+Three offline-RL families---explicit pessimism (CQL), thresholded pessimism (MCQ), and expectile-based value learning (IQL)---thus converge on the same behavior-cloned policy, each by its own mechanism.
+
+\section{MCTS with the Repaired Value Function}
+\label{sec:mcts}
+
+\subsection{MCTS Training}
+
+We train an AlphaZero-style network (4.4M parameters) via self-play with MCTS. The network shares a residual backbone (289 dims $\to$ 768, 3 residual blocks, compressed to 256) between a perspective-invariant policy head (256 $\to$ 90) and a perspective-aware value head (257 $\to$ 128 $\to$ 64 $\to$ 1, receiving the backbone output plus an our-team indicator). During self-play, the network plays one side with MCTS while the opponent samples from a pool of 5 GD variants. Training against behavioral-cloning opponents rather than pure self-play is deliberate: the deployed assistant faces human opponents, and BC opponents keep trajectories within the WP model's training distribution; the cost, exploitability of a static opponent, is mitigated by sampling the seed-diverse pool per episode and quantified by the tournament of Section~\ref{sec:tournament}. Configurations labeled enriched\_full use the enriched WP model \textit{without} synthetic augmentation; H\_augmented adds it, isolating augmentation's effect under deep search.
+
+We train 13 configurations varying the WP model, simulation budget, training length, network capacity, policy head depth, and enriched-feature scope, each evaluated across 15 random seeds (600 drafts per seed against behavioral-cloning opponents, 200 simulations per move at inference). Both the WP evaluation and policy value head are symmetrized across team perspectives to enforce $P(t_0, t_1) + P(t_1, t_0) = 1.0$, removing team-order bias (up to 24\% asymmetry otherwise).
+
+\subsection{MCTS Training Results}
+
+\begin{table*}[t]
+\centering
+\caption{MCTS experiment results (15 seeds $\times$ 600 drafts per configuration, all tiers randomized, 200 sims at inference). WP model = value function used during training; Avg WP = mean $\pm$ across-seed std; Resil.\ = early-pick resilience (Section~\ref{sec:eval}); Dist.\ = distinct heroes per seed. C\_large doubles the backbone width; D\_deep uses a deeper policy head.}
+\label{tab:mcts}
+\begin{tabular}{llrrcccccccc}
+\toprule
+Config & WP Model & Sims & Episodes & Avg WP & WR\% & Counter & Synergy & Resil. & Hlr\% & Deg\% & Dist. \\
+\midrule
+J\_800sim & enriched\_full & 800 & 300K & \textbf{.768}{\scriptsize$\pm$.006} & \textbf{99.9} & +0.074 & +1.437 & +0.95 & 95 & 7.5 & 25 \\
+I\_600sim & enriched\_full & 600 & 300K & .764{\scriptsize$\pm$.007} & 99.8 & \textbf{+0.075} & \textbf{+1.466} & \textbf{+0.96} & 94 & 7.6 & 26 \\
+F\_400sim & enriched\_full & 400 & 300K & .753{\scriptsize$\pm$.005} & 99.7 & +0.037 & +1.341 & +0.91 & 96 & 5.9 & 23 \\
+E\_1M & enriched\_full & 200 & 1M & .752{\scriptsize$\pm$.009} & 99.4 & +0.062 & +1.418 & +0.91 & 96 & 5.4 & 19 \\
+C\_large & enriched\_full & 200 & 300K & .728{\scriptsize$\pm$.011} & 99.2 & +0.002 & +1.290 & +0.86 & 90 & 11.8 & 22 \\
+B\_fullwp & enriched\_full & 200 & 300K & .726{\scriptsize$\pm$.013} & 99.2 & +0.028 & +1.201 & +0.82 & 90 & 11.0 & 24 \\
+H\_augmented & augmented & 200 & 300K & .721{\scriptsize$\pm$.010} & 98.7 & +0.019 & +1.098 & +0.64 & 95 & 8.3 & 24 \\
+M2\_relational & relational only (273d) & 200 & 300K & .719{\scriptsize$\pm$.024} & 98.3 & +0.012 & +1.245 & +0.77 & 89 & 12.1 & 22 \\
+N2\_absolute & absolute only (229d) & 200 & 300K & .714{\scriptsize$\pm$.008} & 98.1 & $-$0.018 & +1.218 & +0.78 & 80 & 20.1 & 20 \\
+K\_truebase & true base (197d) & 200 & 300K & .703{\scriptsize$\pm$.012} & 97.5 & $-$0.040 & +1.063 & +0.65 & 81 & 20.1 & 20 \\
+D\_deep & enriched\_full & 200 & 300K & .664{\scriptsize$\pm$.013} & 97.4 & $-$0.006 & +0.404 & +0.21 & 95 & 5.3 & 21 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Table~\ref{tab:mcts} shows results across 11 of the 13 configurations (195 total runs). The WR column, like Avg WP, is adjudicated against the static behavioral-cloning opponent pool; its saturation near 99.9\% is exploitability-limited, a training diagnostic.
+
+\paragraph{Simulation scaling.} The dominant finding is that more MCTS simulations during training monotonically improves quality. At 300K episodes with the enriched\_full value function, increasing from 200$\to$400$\to$600$\to$800 simulations per move yields 0.726$\to$0.753$\to$0.764$\to$0.768 average WP (+0.042 total, $t = 11.2$, $p < 0.001$ across 15 seeds), with diminishing returns per step. Synergy exploitation and early-pick resilience scale in parallel (+1.20$\to$+1.44 synergy, +0.82$\to$+0.95 resilience from 200 to 800 sims), and counter responsiveness rises from +0.03 to +0.07: deeper search selects early picks the opponent cannot profitably answer.
+
+\paragraph{Training length.} Longer training also helps but is the weaker axis: at 200 sims, extending from 300K to 1M episodes improves WP from 0.726 to 0.752 (+0.025), roughly what doubling the simulation budget buys, for 3.3$\times$ the episode cost.
+
+\paragraph{Capacity and policy head.} Doubling the backbone width (C\_large, 0.728$\pm$.011) is statistically indistinguishable from the base network (0.726$\pm$.013) at the same episode budget: larger capacity is neutral at fixed search depth. A deeper policy head (D\_deep, 0.664) remains clearly harmful, achieving excellent safety (5.3\% degenerate) but the lowest interaction-awareness of any enriched configuration (synergy +0.40, resilience +0.21), locking onto the safe modal composition rather than exploiting matchup structure. At fixed compute, simulation budget, not network size, is the binding constraint.
+
+\paragraph{Value function quality.} The enriched\_full value function (B\_fullwp, 0.726$\pm$.013 WP) vs.\ the true base model with identical architecture but no enriched features (K\_truebase, 0.703$\pm$.012 WP) shows a +0.023 WP gap ($t = 5.0$, $p < 0.001$; 15 seeds each). The gap is real but far smaller than the +0.070 we measured on a 473K-replay predecessor corpus, where the true base agent collapsed to 26\% healer and 75\% degenerate compositions. Data scale substantially closes the value-quality gap under deep search but not the OOD gap: at 1.95M replays the true base agent still produces 20\% degenerate compositions (81\% healer) against 8--12\% for the enriched configurations, and features remain decisive for shallow search (Section~\ref{sec:repair}). To decompose the gap within the feature set, M2\_relational and N2\_absolute retrain the value function at identical settings on complementary halves of the enriched features (relational: pairwise counters/synergies, counter detail; absolute: team-average, meta, composition win rates; role counts in both arms). Neither family alone recovers the full model (0.719$\pm$.024 and 0.714$\pm$.008 vs.\ 0.726), and the gap over K\_truebase decomposes roughly additively: +0.016 relational ($t = 2.3$, $p = 0.04$) and +0.010 absolute ($t = 2.8$, $p = 0.01$) approximately sum to the full +0.023. Only N2's deficit against the full model reaches significance ($t = 3.3$, $p = 0.004$).
+\paragraph{Augmented model.} The augmented WP model (H\_augmented, 0.721 WP) achieves the best safety of any 200-sim enriched-family configuration (95\% healer, 8.3\% degenerate) but slightly lower overall WP than enriched\_full at the same simulation budget: the synthetic augmentation that helps greedy search (Section~\ref{sec:repair}) is partially redundant for MCTS, which learns implicit composition regularization through self-play.
+
+\paragraph{Implementation.} These experiments are enabled by the fused CUDA implementation of contribution 4: $\sim$150 episodes/second per GPU, 2.2$\times$ a tuned batched-evaluation host baseline doing identical per-simulation work at equal search quality; the controlled comparison and throughput progression appear in the supplementary material.
+
+\subsection{Round-Robin Tournament}
+\label{sec:tournament}
+
+The win probability results above are adjudicated by our own value functions against behavioral-cloning opponents, a circularity we address with a direct head-to-head tournament among eleven strategies: MCTS, enriched and enriched+augmented greedy, CQL (naive and enriched), GD, MCQ, the two external reimplementations (Gourdeau's win-rate estimator under greedy search, and the G\&A manifold discriminator), and constraint-masked variants of MCTS and enriched greedy (Section~\ref{sec:constrained}). Every ordered strategy pair plays 200 drafts (both first-pick assignments, stratified maps and tiers; 110 ordered pairs), terminal drafts scored by all four WP variants and the full metric suite of Section~\ref{sec:eval}, so no single model's judgment decides the outcome.
+
+Constrained MCTS wins all 20 of its ordered matchups at a consensus (mean over the four evaluators) WP of 0.670 $\pm$ 0.002 (SE across its 4{,}000 tournament drafts), and the margin is stable under each evaluator individually: 0.657 naive, 0.666 hero-strength, 0.678 enriched, 0.677 augmented. The naive and hero-strength evaluators share \textit{no} features with the underlying value function beyond hero identity: the lead is not self-graded. Consensus standings (across-draft SEs $\leq$ 0.003): constrained MCTS 0.670 (20/20 matchups won) $>$ MCTS 0.658 (18/20, losing only the two orderings against its constrained variant) $>$ constrained greedy 0.595 (16/20) $\approx$ enriched greedy 0.595 (14/20) $>$ enriched+augmented 0.580 $>$ G\&A estimator 0.519 $>$ CQL enriched 0.420 $\approx$ CQL naive 0.419 $\approx$ G\&A discriminator 0.417 $\approx$ GD 0.404 $>$ MCQ 0.225 (0/20). The two external baselines land by mechanism rather than authorship: the win-rate estimator, the only baseline that searches a value function, finishes above 0.5 (10/20 ordered matchups won), ahead of every anchored method; the discriminator falls inside the behavior-anchored cluster.
+
+\subsection{Structural Constraint Masking}
+\label{sec:constrained}
+
+Gourdeau and Archambault's discussion proposed constraining win-rate search to viable compositions~\cite{gourdeau2021discriminative}; we implement that proposal on top of the learned agent as a fourth repair layer, substituting structural validity, a weaker and cheaper constraint, for their professional manifold. At each of our pick steps, a candidate hero is masked out iff picking it would leave no completion of the team from the remaining pool with at least one healer, one frontline, and one ranged-damage hero and at most two heroes per stackable role (reachability decided exactly by memoized enumeration). This is validity masking, not behavioral anchoring: it prunes only the structurally invalid region by rule, leaving the policy free everywhere else; interaction-awareness survives where anchoring, which prunes toward human behavior, loses it. Safety is thereby a guarantee, not an empirical rate: 100\% healer and 0.0\% degenerate hold by construction. The empirical findings are two. First, interaction-awareness survives the mask (synergy +0.95, counter +0.20; masked greedy: synergy +0.74 over 90 distinct heroes), where behavioral anchoring destroys it. Second, the constrained agent beats its unconstrained counterpart head-to-head: constrained MCTS wins all 20 tournament matchups, including both orderings against unconstrained MCTS (0.577 and 0.542 consensus WP); constrained greedy wins 16/20 vs.\ 14/20 unconstrained. The cost is pick diversity: entropy 3.84 over 32 distinct heroes (top-10 concentration 84.5\%).
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Two Separable Axes}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth,height=2.12in,keepaspectratio]{fig_safety_context.pdf}
+\caption{Safety vs.\ interaction-awareness for each strategy. Marker size encodes hero diversity; shape and color distinguish method families. Only MCTS configurations reach both low degenerate rate and strong positive synergy; constraint masking (Section~\ref{sec:constrained}) pins the degenerate rate at zero.}
+\label{fig:scatter}
+\end{figure}
+
+Fig.~\ref{fig:scatter} summarizes every method on both axes, which require fundamentally different solutions. Safety is trivially solved by anchoring to human behavior, and the tighter the anchor the safer (discriminator, then GD, then CQL/BC-CQL), or made exact by structural validity masking (Section~\ref{sec:constrained}); MCQ's non-transferring penalty fails even at safety. Interaction-awareness requires value function search with domain-structured features; no anchored variant achieves it (Table~\ref{tab:rich}).
+
+\subsection{Why Pessimistic Offline RL Collapses}
+
+CQL's pessimism penalizes \textit{all} uncommon state-action pairs, not just bad ones: it cannot distinguish an action that is uncommon because it is structurally bad (a fifth tank) from one whose matchup rarely arises (a niche counter-pick), and it cannot substitute for domain-structured features that encode \textit{why} compositions work.
+
+\subsection{What Transfers Beyond HotS}
+
+Three findings are properties of the problem class, not the game: the safety/interaction-awareness decomposition, since any assembly domain separates structural validity from responsiveness to the opposing set; the anchoring-collapse mechanism, since any terminal-reward assembly problem trained with Monte Carlo returns leaves pessimism only the anchoring pathway; and the validity-masking principle, applicable wherever the invalid region is rule-describable. The interaction metrics also port, requiring only pairwise outcome statistics and a reference behavior policy. The domain content does not transfer: the role taxonomy, specific features, and aggregate heuristics must be rebuilt per domain, and a domain without a large second source of aggregate statistics loses the never-observed-composition signal that targets synthetic data.
+
+\subsection{Practical Implications}
+
+For offline RL practitioners, low degenerate rates may indicate behavioral cloning rather than learned reasoning; reporting action diversity alongside reward detects this collapse.
+
+The collapse is a limitation only when the behavior policy is suboptimal, as here, where anchoring inherits the comfort-driven habits of uncoordinated queue play (Section~\ref{sec:setup}): coordinated-league drafts prove \textit{more} meta-concentrated than the ladder's (supplement), corroborating that ladder diversity reflects comfort rather than strategy; where the behavior policy is near-optimal (medical protocols, industrial control), staying near it is the right objective.
+
+Contribution 4's deployment target is a free web tool\footnote{\deployurl} running MCTS in-browser at 50--200 simulations per move.
+
+\subsection{Open Problems}
+\label{sec:open}
+
+\textit{The talent stage.} Each player selects among talents at seven levels during the match, a configuration space refining the draft-stage assembly that our corpus records. \textit{Patch-driven non-stationarity.} Balance patches shift the reward landscape while preserving combinatorial structure, a natural transfer- and continual-learning testbed given our 4.5-year snapshot.
+\section{Conclusion}
+
+Adversarial combinatorial assembly poses a distinctive challenge for learned policies: an exponential state space, data clustered as well as sparse, and a terminal evaluation that must itself be learned. In MOBA drafting, we showed that search actively exploits the out-of-distribution optimism of learned value functions to assemble structurally broken teams. The textbook remedy, algorithmic pessimism, does not repair the failure: with Monte Carlo returns the CQL penalty can only anchor toward the behavior distribution, and it does, tightening as the corpus quadrupled, while MCQ collapses to a near-deterministic ten-hero policy and IQL's vanishing advantages reduce it to behavioral cloning.
+
+The repair that works is layered: domain-structured features give the value function the vocabulary to represent compositional quality; synthetic data supplies safety for shallow greedy deployment; MCTS self-play converts the value function into a policy that is safe and interaction-aware at once; and structural constraint masking removes the residual invalid picks by rule, without anchoring to behavior. The headline evidence is the tournament: with the constraint mask, the agent is structurally valid by construction, preserves interaction-awareness, and sweeps all twenty head-to-head matchups at 0.670 consensus win probability. The enriched features contribute +0.023 WP even under deep search ($p < 0.001$), a gap that data scale narrows but does not close.
+
+\textit{Limitations.} Single game domain. All adjudication, including the tournament, uses value functions trained on our own corpus and behavioral-cloning opponents; two of the four evaluators share no features with the winning agent, but all four share its training corpus, so bias-sharing without feature-sharing remains possible. The agent's concentration onto a small hero pool reflects ground-truth-validated synergy edges (supplement): its pairs and trios overperform independence in real games, and its role compositions lie within observed validated structures; only its exact five-hero compositions are unobserved in human play. Our validation proceeds in three tiers. Statistical validation of the metrics and the ground-truth synergy analysis is already in hand (supplement). A blinded expert study is in progress; because professional judgment is itself tier-limited---experts rarely know low-MMR metas---its design includes known-outcome anchor drafts that calibrate each rater's accuracy per skill tier, plus an extended arm for high-volume raters. The definitive test is longitudinal forward prediction under real use across skill ranks, which we pursue through integration with an amateur league (the Nexus Gaming Series) and the community statistics provider, but which requires extended lead time and is explicitly follow-up work. An external evaluation on 11{,}034 coordinated-league drafts (supplement) shows modest accuracy degradation under distribution shift (58.1\% $\to$ 55.5\%), concentrated in the least-ladder-like drafts; newly-ingested ladder games provide only same-distribution checks, not out-of-distribution (OOD) validation. The composition-quality heuristics depend on community-aggregated role statistics, and interaction-metric magnitudes are snapshot-sensitive.
+
+\ifanonymous
+\section*{AI Disclosure}
+
+Portions of this manuscript's text were drafted and edited with Claude (Anthropic)~\cite{claude}; all experiments, analyses, and claims were designed, verified, and approved by the authors.
+\else
+\section*{Acknowledgment}
+
+We thank Heroes Profile (heroesprofile.com), whose API supplied both our replay corpus and the aggregate statistics. Heroes of the Storm is a trademark of Blizzard Entertainment. Portions of this manuscript's text were drafted and edited with Claude (Anthropic)~\cite{claude}; all experiments, analyses, and claims were designed, verified, and approved by the authors.
+\fi
+
+\begin{thebibliography}{20}
+
+\bibitem{kumar2020conservative}
+A.~Kumar, A.~Zhou, G.~Tucker, and S.~Levine, ``Conservative Q-Learning for Offline Reinforcement Learning,'' in \textit{Advances in Neural Information Processing Systems}, vol.~33, pp.~1179--1191, 2020.
+
+\bibitem{levine2020offline}
+S.~Levine, A.~Kumar, G.~Tucker, and J.~Fu, ``Offline Reinforcement Learning: Tutorial, Review, and Perspectives on Open Problems,'' \textit{arXiv preprint arXiv:2005.01643}, 2020.
+
+\bibitem{kumar2019stabilizing}
+A.~Kumar, J.~Fu, M.~Soh, G.~Tucker, and S.~Levine, ``Stabilizing Off-Policy Q-Learning via Bootstrapping Error Reduction,'' in \textit{Advances in Neural Information Processing Systems}, vol.~32, 2019.
+
+\bibitem{chen2018drafting}
+Z.~Chen, Y.~Sun, M.~Seif El-Nasr, and T.-H.~D.~Nguyen, ``The Art of Drafting: A Team-Oriented Hero Recommendation System for Multiplayer Online Battle Arena Games,'' in \textit{Proc. ACM Conf. Recommender Systems (RecSys)}, 2018.
+
+\bibitem{gourdeau2021discriminative}
+D.~Gourdeau and L.~Archambault, ``Discriminative Neural Network for Hero Selection in Professional Heroes of the Storm and DOTA 2,'' \textit{IEEE Trans. Games}, vol.~13, no.~4, pp.~380--387, 2021.
+
+\bibitem{lee2022draftrec}
+H.~Lee, D.~Hwang, H.~Kim, B.~Lee, and J.~Choo, ``DraftRec: Personalized Draft Recommendation for Winning in Multi-Player Online Battle Arena Games,'' in \textit{Proc. ACM Web Conf. (WWW)}, 2022.
+
+\bibitem{summerville2016draft}
+A.~Summerville, M.~Cook, and B.~Steenhuisen, ``Draft-Analysis of the Ancients: Predicting Draft Picks in DotA 2 using Machine Learning,'' in \textit{Proc. AAAI Conf. Artificial Intelligence and Interactive Digital Entertainment (AIIDE)}, vol.~12, no.~2, pp.~100--106, 2016.
+
+\bibitem{chen2021juewudraft}
+S.~Chen, M.~Zhu, D.~Ye, W.~Zhang, Q.~Fu, and W.~Yang, ``Which Heroes to Pick? Learning to Draft in MOBA Games with Neural Networks and Tree Search,'' \textit{IEEE Trans. Games}, vol.~13, no.~4, pp.~410--421, 2021.
+
+\bibitem{lyu2022mildly}
+J.~Lyu, X.~Ma, X.~Li, and Z.~Lu, ``Mildly Conservative Q-Learning for Offline Reinforcement Learning,'' in \textit{Advances in Neural Information Processing Systems}, vol.~35, 2022.
+
+\bibitem{kostrikov2022iql}
+I.~Kostrikov, A.~Nair, and S.~Levine, ``Offline Reinforcement Learning with Implicit Q-Learning,'' in \textit{Proc. Int. Conf. Learning Representations (ICLR)}, 2022.
+
+\bibitem{silver2016mastering}
+D.~Silver \textit{et al.}, ``Mastering the Game of Go with Deep Neural Networks and Tree Search,'' \textit{Nature}, vol.~529, no.~7587, pp.~484--489, 2016.
+
+\bibitem{silver2018general}
+D.~Silver \textit{et al.}, ``A General Reinforcement Learning Algorithm that Masters Chess, Shogi, and Go through Self-Play,'' \textit{Science}, vol.~362, no.~6419, pp.~1140--1144, 2018.
+
+\bibitem{berner2019dota}
+C.~Berner \textit{et al.}, ``Dota 2 with Large Scale Deep Reinforcement Learning,'' \textit{arXiv preprint arXiv:1912.06680}, 2019.
+
+\bibitem{vinyals2019grandmaster}
+O.~Vinyals \textit{et al.}, ``Grandmaster Level in StarCraft II using Multi-Agent Reinforcement Learning,'' \textit{Nature}, vol.~575, no.~7782, pp.~350--354, 2019.
+
+\bibitem{fujimoto2021minimalist}
+S.~Fujimoto and S.~S.~Gu, ``A Minimalist Approach to Offline Reinforcement Learning,'' in \textit{Advances in Neural Information Processing Systems}, vol.~34, 2021.
+
+\bibitem{gao2023scaling}
+L.~Gao, J.~Schulman, and J.~Hilton, ``Scaling Laws for Reward Model Overoptimization,'' in \textit{Proc. Int. Conf. Machine Learning (ICML)}, 2023.
+
+\bibitem{chaslot2008parallel}
+G.~M.~J.-B.~Chaslot, M.~H.~M.~Winands, and H.~J.~van~den~Herik, ``Parallel Monte-Carlo Tree Search,'' in \textit{Proc. Int. Conf. Computers and Games}, pp.~60--71, 2008.
+
+\bibitem{wu2019accelerating}
+D.~J.~Wu, ``Accelerating Self-Play Learning in Go,'' \textit{arXiv preprint arXiv:1902.10565}, 2019.
+
+\bibitem{claude}
+Anthropic, ``Claude (Fable 5),'' large language model, 2026.
+
+
+\end{thebibliography}
+
+\end{document}

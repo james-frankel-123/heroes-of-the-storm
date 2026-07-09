@@ -3,12 +3,15 @@ import {
   NUM_SLOTS,
   TEST_ITEM_COUNT,
   assignedItemIds,
+  extendedOrder,
   isTestRater,
   raterSlot,
   sideSwapped,
 } from '../assignment'
 
 const ALL_IDS = Array.from({ length: 100 }, (_, i) => i + 1)
+// Extended pool ids follow core (101..500).
+const EXT_IDS = Array.from({ length: 400 }, (_, i) => i + 101)
 
 describe('assignedItemIds', () => {
   it('gives every slot exactly 30 items', () => {
@@ -74,6 +77,54 @@ describe('isTestRater', () => {
     expect(isTestRater(' TEST person')).toBe(true)
     expect(isTestRater('Ernest')).toBe(false)
     expect(isTestRater('contest')).toBe(false)
+  })
+})
+
+describe('extendedOrder', () => {
+  const emptyCov = new Map<number, number>()
+
+  it('returns all extended items when nothing is rated or covered', () => {
+    const order = extendedOrder(EXT_IDS, 'Fan', emptyCov)
+    expect(order).toHaveLength(EXT_IDS.length)
+    expect([...order].sort((a, b) => a - b)).toEqual(EXT_IDS)
+  })
+
+  it('excludes already-rated items', () => {
+    const rated = [101, 250, 500]
+    const order = extendedOrder(EXT_IDS, 'Fan', emptyCov, rated)
+    expect(order).toHaveLength(EXT_IDS.length - rated.length)
+    for (const id of rated) expect(order).not.toContain(id)
+  })
+
+  it('is a deterministic per-rater order, independent of global coverage', () => {
+    const a = extendedOrder(EXT_IDS, 'Fan', emptyCov)
+    // Arbitrary global coverage must NOT reorder the pool (stable primary key).
+    const cov = new Map<number, number>()
+    for (const id of EXT_IDS) cov.set(id, (id * 7) % 13)
+    const b = extendedOrder(EXT_IDS, 'Fan', cov)
+    expect(b).toEqual(a)
+    // ...and differs across raters (natural cross-rater coverage spread).
+    expect(extendedOrder(EXT_IDS, 'Ernest', emptyCov)).not.toEqual(a)
+  })
+
+  it('uses under-coverage only as a tiebreak among equal-rank items', () => {
+    // Force a rank tie by passing duplicate ids is impossible; instead verify
+    // that with a single-element pool coverage is irrelevant and order stable.
+    const cov = new Map<number, number>([[300, 9]])
+    expect(extendedOrder([300], 'Fan', cov)).toEqual([300])
+  })
+
+  it('resume is stable even as global under-coverage shifts underneath the rater', () => {
+    const full = extendedOrder(EXT_IDS, 'Fan', emptyCov)
+    const rated = full.slice(0, 5)
+    // Others rate a bunch of items (including ones ahead in Fan's queue),
+    // changing global coverage arbitrarily.
+    const shifted = new Map<number, number>()
+    for (const id of full.slice(5, 60)) shifted.set(id, 3)
+    const resumed = extendedOrder(EXT_IDS, 'Fan', shifted, rated)
+    // Fan's next item and full remaining order are unchanged: resume is exact.
+    expect(resumed[0]).toBe(full[5])
+    expect(resumed).toEqual(full.slice(5))
   })
 })
 

@@ -34,7 +34,10 @@ interface ItemsResponse {
   slot: number
   isTest: boolean
   items: RatingItem[]
+  extendedItems: RatingItem[]
   ratedItemIds: number[]
+  ratedCoreCount: number
+  ratedExtendedCount: number
 }
 
 const RATER_STORAGE_KEY = 'draft-rating-rater'
@@ -68,10 +71,16 @@ export function RateClient() {
   const [nameInput, setNameInput] = useState('')
   const [initialized, setInitialized] = useState(false)
 
-  const [queue, setQueue] = useState<RatingItem[]>([])
-  const [totalAssigned, setTotalAssigned] = useState(0)
-  const [alreadyRated, setAlreadyRated] = useState(0)
-  const [doneCount, setDoneCount] = useState(0)
+  // Two arms: 'core' (the pre-registered latin-square 30) then 'extended'
+  // (the uncapped volunteer pool). `idx` indexes the current phase's queue.
+  const [phase, setPhase] = useState<'core' | 'extended'>('core')
+  const [coreQueue, setCoreQueue] = useState<RatingItem[]>([])
+  const [extendedQueue, setExtendedQueue] = useState<RatingItem[]>([])
+  const [totalCore, setTotalCore] = useState(0)
+  const [ratedCoreBase, setRatedCoreBase] = useState(0) // core (of assigned) rated at load
+  const [ratedExtBase, setRatedExtBase] = useState(0) // extended rated at load
+  const [coreDone, setCoreDone] = useState(0) // core submitted this session
+  const [extDone, setExtDone] = useState(0) // extended submitted this session
   const [idx, setIdx] = useState(0)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -129,12 +138,20 @@ export function RateClient() {
       .then((data) => {
         if (cancelled) return
         const ratedSet = new Set(data.ratedItemIds)
-        const remaining = data.items.filter((it) => !ratedSet.has(it.id))
-        setQueue(remaining)
-        setTotalAssigned(data.items.length)
-        setAlreadyRated(data.items.length - remaining.length)
-        setDoneCount(0)
+        // Core: filter out anything already rated (cross-device resume). The
+        // extended pool is already filtered + ordered server-side.
+        const remainingCore = data.items.filter((it) => !ratedSet.has(it.id))
+        setCoreQueue(remainingCore)
+        setExtendedQueue(data.extendedItems ?? [])
+        setTotalCore(data.items.length)
+        setRatedCoreBase(data.ratedCoreCount ?? data.items.length - remainingCore.length)
+        setRatedExtBase(data.ratedExtendedCount ?? 0)
+        setCoreDone(0)
+        setExtDone(0)
         setIdx(0)
+        // Resume deep in the extended arm: if core is fully rated and the rater
+        // has already entered the extended pool, skip the completion screen.
+        setPhase(remainingCore.length === 0 && (data.ratedExtendedCount ?? 0) > 0 ? 'extended' : 'core')
         shownAtRef.current = Date.now()
       })
       .catch((err) => {
@@ -148,8 +165,12 @@ export function RateClient() {
     }
   }, [rater, slot])
 
-  const current: RatingItem | undefined = queue[idx]
+  const activeQueue = phase === 'core' ? coreQueue : extendedQueue
+  const current: RatingItem | undefined = activeQueue[idx]
   const complete = pTouched && choice !== null && confidence !== null
+  // Total ratings the rater has completed (core + extended, incl. this session).
+  const coreRatedTotal = Math.min(totalCore, ratedCoreBase + coreDone)
+  const totalRated = coreRatedTotal + ratedExtBase + extDone
 
   const resetAnswers = useCallback(() => {
     setP(50)
@@ -182,7 +203,8 @@ export function RateClient() {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.error ?? `HTTP ${res.status}`)
       }
-      setDoneCount((n) => n + 1)
+      if (phase === 'core') setCoreDone((n) => n + 1)
+      else setExtDone((n) => n + 1)
       setIdx((i) => i + 1)
       resetAnswers()
     } catch (err) {
@@ -190,7 +212,7 @@ export function RateClient() {
     } finally {
       setSubmitting(false)
     }
-  }, [current, rater, slot, complete, submitting, p, choice, confidence, resetAnswers])
+  }, [current, rater, slot, complete, submitting, p, choice, confidence, phase, resetAnswers])
 
   // Auto-advance shortly after all three questions are answered
   useEffect(() => {
@@ -298,15 +320,51 @@ export function RateClient() {
   }
 
   if (!current) {
-    const total = alreadyRated + doneCount
+    // Core finished but extended not yet started → offer the volunteer arm.
+    if (phase === 'core' && extendedQueue.length > 0) {
+      return (
+        <div className="mx-auto max-w-lg pt-16 text-center" data-testid="rate-complete">
+          <div className="rounded-xl border bg-card p-8 shadow-lg">
+            <div className="text-5xl">🎉</div>
+            <h1 className="mt-4 text-2xl font-bold">Core set complete — thank you!</h1>
+            <p className="mt-3 text-muted-foreground">
+              You rated {coreRatedTotal} of {totalCore} core drafts. Your judgments are a huge
+              help in validating our draft models against real expert intuition.
+            </p>
+            <div className="mt-6 rounded-lg border bg-background/60 p-4">
+              <p className="font-semibold">Keep going? Every extra rating helps.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                There&apos;s no cap — each additional draft sharpens our per-tier accuracy
+                estimates. Stop whenever you like; your work is already saved.
+              </p>
+              <button
+                onClick={() => {
+                  setPhase('extended')
+                  setIdx(0)
+                  resetAnswers()
+                }}
+                data-testid="rate-continue"
+                className="mt-4 h-11 rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground shadow"
+              >
+                Keep rating →
+              </button>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Or you can close this page now, <span className="font-medium">{rater}</span>.
+            </p>
+          </div>
+        </div>
+      )
+    }
+    // Extended pool exhausted (or no extended items at all).
     return (
       <div className="mx-auto max-w-lg pt-16 text-center" data-testid="rate-complete">
         <div className="rounded-xl border bg-card p-8 shadow-lg">
-          <div className="text-5xl">🎉</div>
+          <div className="text-5xl">🏆</div>
           <h1 className="mt-4 text-2xl font-bold">All done — thank you!</h1>
           <p className="mt-3 text-muted-foreground">
-            You rated {total} of {totalAssigned} drafts. Your judgments are a huge help in
-            validating our draft models against real expert intuition.
+            You rated {totalRated} drafts in total. Your judgments are a huge help in validating
+            our draft models against real expert intuition.
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             You can close this page now, <span className="font-medium">{rater}</span>.
@@ -316,26 +374,41 @@ export function RateClient() {
     )
   }
 
-  const progressDone = alreadyRated + doneCount
+  const inExtended = phase === 'extended'
+  const progressDone = ratedCoreBase + coreDone
   const tierMeta = TIER_META[current.tier] ?? TIER_META.mid
   const mapImg = mapImageSrc(current.map)
 
   return (
-    <div className="mx-auto max-w-4xl pb-16" data-testid="rate-item" data-item-id={current.id}>
+    <div
+      className="mx-auto max-w-4xl pb-16"
+      data-testid="rate-item"
+      data-item-id={current.id}
+      data-block={phase}
+    >
       {/* Progress */}
       <div className="mb-4">
         <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
           <span>
             Rater: <span className="font-medium text-foreground">{rater}</span>
+            {inExtended && (
+              <span className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 font-medium text-primary">
+                bonus round
+              </span>
+            )}
           </span>
           <span data-testid="rate-progress">
-            {progressDone + 1} / {totalAssigned}
+            {inExtended ? `${totalRated + 1} rated` : `${progressDone + 1} / ${totalCore}`}
           </span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-primary transition-all"
-            style={{ width: `${(progressDone / Math.max(1, totalAssigned)) * 100}%` }}
+            style={{
+              width: inExtended
+                ? '100%'
+                : `${(progressDone / Math.max(1, totalCore)) * 100}%`,
+            }}
           />
         </div>
       </div>

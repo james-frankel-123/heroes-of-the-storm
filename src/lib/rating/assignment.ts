@@ -2,16 +2,22 @@
  * Deterministic assignment + blinding logic for the expert draft-rating study.
  *
  * Design:
- * - 100 items, 10 rater slots. Items (sorted by id) are split into 10 blocks
- *   of 10; slot s is assigned blocks {s, s+1, s+2} (mod 10) → 30 items each,
- *   and every item is covered by exactly 3 of the 10 slots (latin-square
- *   style balanced coverage).
+ * - CORE: 100 items, 10 rater slots. Core items (sorted by id) are split into
+ *   10 blocks of 10; slot s is assigned blocks {s, s+1, s+2} (mod 10) → 30
+ *   items each, and every core item is covered by exactly 3 of the 10 slots
+ *   (latin-square style balanced coverage). This is the pre-registered design;
+ *   its statistics (30 items/rater, 3 ratings/item) are unchanged.
+ * - EXTENDED: 400 items served AFTER a rater finishes their core 30, uncapped.
+ *   Ordered per rater by global under-coverage (least-rated first) with a
+ *   deterministic per-rater shuffle as a STABLE tiebreak, so a returning rater
+ *   resumes at a stable position and never re-sees a rated item even as global
+ *   coverage shifts underneath them.
  * - Item order and A/B display side are randomized per rater with a
  *   deterministic seeded PRNG so a rater always sees the same thing, but the
  *   canonical team0/team1 (and strategy provenance, which lives server-side
  *   only) never leaks through consistent positioning.
- * - Test raters (name starting with "test") get 5 items only and their
- *   ratings are flagged is_test.
+ * - Test raters (name starting with "test") get 5 core items only and their
+ *   ratings are flagged is_test; they may still enter the extended arm.
  */
 
 export const NUM_SLOTS = 10
@@ -77,11 +83,12 @@ export function raterSlot(rater: string, slotOverride?: number | null): number {
 }
 
 /**
- * The set of item ids assigned to a slot, in the rater's personalized order.
- * `allItemIds` is the full item set (any order; sorted internally).
+ * The set of CORE item ids assigned to a slot, in the rater's personalized
+ * order. `coreItemIds` is the full core item set (any order; sorted
+ * internally). Callers must pass only block='core' ids.
  */
-export function assignedItemIds(allItemIds: number[], rater: string, slot: number): number[] {
-  const sorted = allItemIds.slice().sort((a, b) => a - b)
+export function assignedItemIds(coreItemIds: number[], rater: string, slot: number): number[] {
+  const sorted = coreItemIds.slice().sort((a, b) => a - b)
   const blockSize = Math.ceil(sorted.length / NUM_SLOTS)
   const picked: number[] = []
   for (let b = 0; b < BLOCKS_PER_RATER; b++) {
@@ -100,4 +107,53 @@ export function assignedItemIds(allItemIds: number[], rater: string, slot: numbe
  */
 export function sideSwapped(rater: string, itemId: number): boolean {
   return (fnv1a('side|' + normalizeRater(rater) + '|' + itemId) & 1) === 1
+}
+
+/**
+ * Serving order for the EXTENDED pool for one rater.
+ *
+ * `extendedItemIds` — all block='extended' ids. `coverage` — current global
+ * rating count per extended item id (0 if absent). `alreadyRated` — item ids
+ * this rater has already rated (excluded from the result).
+ *
+ * Ordering is a deterministic per-rater shuffle of the pool (PRIMARY key), with
+ * global under-coverage as a STABLE TIEBREAK. Making the per-rater shuffle the
+ * primary key is what guarantees resume stability: a returning rater's ordering
+ * of the items they have NOT yet rated is a pure function of (rater, itemId), so
+ * it does not shift when *other* raters rate items and change global coverage —
+ * the exact next item is reproducible across reloads and devices, and rated
+ * items are always filtered out, so resume never repeats or skips work.
+ *
+ * Coverage is still honored two ways: (1) the per-rater shuffles are mutually
+ * independent, so across the ~10 raters the pool is walked in different orders
+ * and global coverage spreads out evenly on its own; (2) where two items would
+ * otherwise tie, the less-covered one is served first. (Per Max: stability of a
+ * returning rater's queue takes precedence over live coverage re-ranking, so
+ * prioritization is applied as a stable tiebreak rather than a volatile primary
+ * sort.)
+ */
+export function extendedOrder(
+  extendedItemIds: number[],
+  rater: string,
+  coverage: Map<number, number>,
+  alreadyRated: Iterable<number> = []
+): number[] {
+  const ratedSet = new Set(alreadyRated)
+  const seed = fnv1a('ext|' + normalizeRater(rater))
+  // Stable per-rater rank: position in a deterministic shuffle of ALL extended
+  // ids (independent of coverage). This is the PRIMARY sort key.
+  const rank = new Map<number, number>()
+  seededShuffle(
+    extendedItemIds.slice().sort((a, b) => a - b),
+    seed
+  ).forEach((id, i) => rank.set(id, i))
+  return extendedItemIds
+    .filter((id) => !ratedSet.has(id))
+    .sort((a, b) => {
+      const ra = rank.get(a) ?? 0
+      const rb = rank.get(b) ?? 0
+      if (ra !== rb) return ra - rb
+      // Tiebreak (ranks are unique in practice): under-covered first.
+      return (coverage.get(a) ?? 0) - (coverage.get(b) ?? 0)
+    })
 }

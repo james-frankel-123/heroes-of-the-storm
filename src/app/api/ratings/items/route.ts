@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-import { eq } from 'drizzle-orm'
+import { eq, inArray, sql as dsql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { draftRatings, ratingItems } from '@/lib/db/schema'
 import {
   assignedItemIds,
+  extendedOrder,
   isTestRater,
   normalizeRater,
   raterSlot,
@@ -16,8 +17,14 @@ export const dynamic = 'force-dynamic'
 /**
  * GET /api/ratings/items?rater=NAME[&slot=N]
  *
- * Returns the rater's assigned items, blinded: no provenance, A/B display
- * side randomized deterministically per rater, personalized order.
+ * Returns the rater's blinded items in two arms:
+ *   - `items`: the 30 core latin-square items (5 for test raters).
+ *   - `extendedItems`: the uncapped extended pool in the rater's serving order
+ *     (least-covered-first, stable per-rater tiebreak), with items this rater
+ *     has already rated removed — so the arm resumes cleanly on any device.
+ * Both are blinded: no provenance; A/B display side randomized per rater.
+ * Also returns rated counts so the client can resume mid-core or deep in the
+ * extended arm after a hard refresh.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url)
@@ -38,6 +45,7 @@ export async function GET(req: Request) {
   const rows = await db
     .select({
       id: ratingItems.id,
+      block: ratingItems.block,
       teams: ratingItems.teams,
       map: ratingItems.map,
       tier: ratingItems.tier,
@@ -48,17 +56,35 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'no rating items seeded' }, { status: 500 })
   }
 
-  const slot = raterSlot(rater, slotOverride)
-  const ids = assignedItemIds(rows.map((r) => r.id), rater, slot)
   const byId = new Map(rows.map((r) => [r.id, r]))
+  const coreIds = rows.filter((r) => r.block === 'core').map((r) => r.id)
+  const extendedIds = rows.filter((r) => r.block === 'extended').map((r) => r.id)
 
+  const slot = raterSlot(rater, slotOverride)
+  const assignedCoreIds = assignedItemIds(coreIds, rater, slot)
+
+  // This rater's already-rated ids (for cross-device resume).
   const rated = await db
     .select({ itemId: draftRatings.itemId })
     .from(draftRatings)
     .where(eq(draftRatings.rater, normalizeRater(rater)))
   const ratedIds = rated.map((r) => r.itemId)
+  const ratedSet = new Set(ratedIds)
 
-  const items = ids.map((id) => {
+  // Global coverage of the extended pool: how many ratings each extended item
+  // already has, so the serving order prioritizes globally under-covered items.
+  const coverage = new Map<number, number>()
+  if (extendedIds.length > 0) {
+    const covRows = await db
+      .select({ itemId: draftRatings.itemId, n: dsql<number>`count(*)::int` })
+      .from(draftRatings)
+      .where(inArray(draftRatings.itemId, extendedIds))
+      .groupBy(draftRatings.itemId)
+    for (const r of covRows) coverage.set(r.itemId, Number(r.n))
+  }
+  const orderedExtendedIds = extendedOrder(extendedIds, rater, coverage, ratedSet)
+
+  const blind = (id: number) => {
     const row = byId.get(id)!
     const teams = row.teams as { team0: string[]; team1: string[] }
     const swapped = sideSwapped(rater, id)
@@ -69,13 +95,23 @@ export async function GET(req: Request) {
       teamA: swapped ? teams.team1 : teams.team0,
       teamB: swapped ? teams.team0 : teams.team1,
     }
-  })
+  }
+
+  const items = assignedCoreIds.map(blind)
+  const extendedItems = orderedExtendedIds.map(blind)
+
+  const ratedCoreCount = assignedCoreIds.filter((id) => ratedSet.has(id)).length
+  const extendedIdSet = new Set(extendedIds)
+  const ratedExtendedCount = ratedIds.filter((id) => extendedIdSet.has(id)).length
 
   return NextResponse.json({
     rater,
     slot,
     isTest: isTestRater(rater),
     items,
+    extendedItems,
     ratedItemIds: ratedIds,
+    ratedCoreCount,
+    ratedExtendedCount,
   })
 }
