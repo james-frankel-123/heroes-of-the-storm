@@ -2,36 +2,43 @@
  * Deterministic assignment + blinding logic for the expert draft-rating study.
  *
  * Design:
- * - CALIBRATION: 40 shared known-outcome anchor items rated by EVERY rater
- *   FIRST, before their latin-square core 30 (progress reads "1 / 70"). Same
- *   blinding as everything else; presentation order is a deterministic
- *   per-rater shuffle. Ratings carry block='calibration'.
- * - CORE: 100 items, 10 rater slots. Core items (sorted by id) are split into
- *   10 blocks of 10; slot s is assigned blocks {s, s+1, s+2} (mod 10) → 30
+ * - SCREENER: 8 shared items rated by EVERY rater FIRST (each pairs a real
+ *   ladder draft against a constructed role-degenerate team; the >= 7/8
+ *   inclusion gate is computed from these). Same blinding as everything
+ *   else; presentation order is a deterministic per-rater shuffle. Ratings
+ *   carry block='screener'.
+ * - CALIBRATION: 40 shared known-outcome anchor items rated by every rater
+ *   after the screener, before their latin-square core 45 (progress reads
+ *   "1 / 93"). Comparability block — NOT a gate. Ratings carry
+ *   block='calibration'.
+ * - CORE: 150 items, 10 rater slots. Core items (sorted by id) are split into
+ *   10 blocks of 15; slot s is assigned blocks {s, s+1, s+2} (mod 10) → 45
  *   items each, and every core item is covered by exactly 3 of the 10 slots
- *   (latin-square style balanced coverage). This is the pre-registered design;
- *   its statistics (30 items/rater, 3 ratings/item) are unchanged.
- * - EXTENDED: 700 items served AFTER a rater finishes their calibration 40 +
- *   core 30, uncapped. Ordered per rater by a deterministic per-rater shuffle
- *   (PRIMARY) with global under-coverage as a STABLE tiebreak, so a returning
- *   rater resumes at a stable position and never re-sees a rated item even as
- *   global coverage shifts underneath them.
+ *   (latin-square style balanced coverage).
+ * - EXTENDED: 700 items served AFTER a rater finishes their screener 8 +
+ *   calibration 40 + core 45, uncapped. Ordered per rater by a deterministic
+ *   per-rater shuffle (PRIMARY) with global under-coverage as a STABLE
+ *   tiebreak, so a returning rater resumes at a stable position and never
+ *   re-sees a rated item even as global coverage shifts underneath them.
  * - Item order and A/B display side are randomized per rater with a
  *   deterministic seeded PRNG so a rater always sees the same thing, but the
  *   canonical team0/team1 (and strategy provenance, which lives server-side
  *   only) never leaks through consistent positioning.
- * - Test raters (name starting with "test") get a 5-item smoke flow (2
- *   calibration + 3 core) and their ratings are flagged is_test; they may
- *   still enter the extended arm. Names starting with "testfull" get the
- *   complete real assignment (40 calibration + 30 core), still flagged
- *   is_test — used for end-to-end verification without real invites.
+ * - Test raters (name starting with "test") get a 7-item smoke flow (2
+ *   screener + 2 calibration + 3 core) and their ratings are flagged is_test;
+ *   they may still enter the extended arm. Names starting with "testfull" get
+ *   the complete real assignment (8 screener + 40 calibration + 45 core),
+ *   still flagged is_test — used for end-to-end verification without real
+ *   invites.
  */
 
 export const NUM_SLOTS = 10
 export const BLOCKS_PER_RATER = 3
+export const TEST_SCREENER_COUNT = 2
 export const TEST_CALIBRATION_COUNT = 2
 export const TEST_CORE_COUNT = 3
-export const TEST_ITEM_COUNT = TEST_CALIBRATION_COUNT + TEST_CORE_COUNT
+export const TEST_ITEM_COUNT =
+  TEST_SCREENER_COUNT + TEST_CALIBRATION_COUNT + TEST_CORE_COUNT
 
 /** FNV-1a 32-bit hash of a string. */
 export function fnv1a(str: string): number {
@@ -74,9 +81,9 @@ export function isTestRater(rater: string): boolean {
 }
 
 /**
- * Test rater that receives the FULL real assignment (40 calibration + 30
- * core) while still being flagged is_test. Lets us verify the complete
- * 70-item flow end-to-end without sending a real invite.
+ * Test rater that receives the FULL real assignment (8 screener + 40
+ * calibration + 45 core) while still being flagged is_test. Lets us verify
+ * the complete 93-item flow end-to-end without sending a real invite.
  */
 export function isFullTestRater(rater: string): boolean {
   return normalizeRater(rater).startsWith('testfull')
@@ -121,10 +128,26 @@ export function assignedItemIds(coreItemIds: number[], rater: string, slot: numb
 }
 
 /**
+ * The shared SCREENER block for one rater: ALL screener item ids, in a
+ * deterministic per-rater presentation order. Every rater rates every
+ * screener item FIRST, before calibration and core. Callers must pass only
+ * block='screener' ids.
+ */
+export function screenerOrder(screenerItemIds: number[], rater: string): number[] {
+  const ordered = seededShuffle(
+    screenerItemIds.slice().sort((a, b) => a - b),
+    fnv1a('screen|' + normalizeRater(rater))
+  )
+  return isTestRater(rater) && !isFullTestRater(rater)
+    ? ordered.slice(0, TEST_SCREENER_COUNT)
+    : ordered
+}
+
+/**
  * The shared CALIBRATION block for one rater: ALL calibration item ids, in a
  * deterministic per-rater presentation order. Every rater rates every
- * calibration item, and always BEFORE their core assignment. Callers must
- * pass only block='calibration' ids.
+ * calibration item after the screener and BEFORE their core assignment.
+ * Callers must pass only block='calibration' ids.
  */
 export function calibrationOrder(calibrationItemIds: number[], rater: string): number[] {
   const ordered = seededShuffle(

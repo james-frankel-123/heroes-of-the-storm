@@ -71,10 +71,12 @@ export function RateClient() {
   const [nameInput, setNameInput] = useState('')
   const [initialized, setInitialized] = useState(false)
 
-  // Two UI arms: 'core' (the 40 shared calibration items followed by the
-  // pre-registered latin-square 30 — served as one 70-item sequence, with
-  // calibration always first) then 'extended' (the uncapped volunteer pool).
-  // `idx` indexes the current phase's queue.
+  // Two UI arms: 'core' (the 8 shared screener items, then the 40 shared
+  // calibration items, then the pre-registered latin-square 45 — served as
+  // one 93-item sequence, screener always first) then 'extended' (the
+  // uncapped volunteer pool). `idx` indexes the current phase's queue.
+  // Resume works anywhere in the sequence, including mid-screener: the
+  // server returns already-rated ids and they are filtered out below.
   const [phase, setPhase] = useState<'core' | 'extended'>('core')
   const [coreQueue, setCoreQueue] = useState<RatingItem[]>([])
   const [extendedQueue, setExtendedQueue] = useState<RatingItem[]>([])

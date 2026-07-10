@@ -9,6 +9,7 @@ import {
   isTestRater,
   normalizeRater,
   raterSlot,
+  screenerOrder,
   sideSwapped,
 } from '@/lib/rating/assignment'
 
@@ -19,15 +20,16 @@ export const dynamic = 'force-dynamic'
  * GET /api/ratings/items?rater=NAME[&slot=N]
  *
  * Returns the rater's blinded items in two arms:
- *   - `items`: the 40 shared calibration items FIRST, then the 30 core
- *     latin-square items (70 total; 2 + 3 = 5 for test raters, unless the
- *     name starts with "testfull" which gets the full real assignment).
+ *   - `items`: the 8 shared screener items FIRST, then the 40 shared
+ *     calibration items, then the 45 core latin-square items (93 total;
+ *     2 + 2 + 3 = 7 for test raters, unless the name starts with "testfull"
+ *     which gets the full real assignment).
  *   - `extendedItems`: the uncapped extended pool in the rater's serving order
  *     (stable per-rater order, under-coverage tiebreak), with items this rater
  *     has already rated removed — so the arm resumes cleanly on any device.
  * Both are blinded: no provenance; A/B display side randomized per rater.
- * Also returns rated counts so the client can resume mid-calibration,
- * mid-core, or deep in the extended arm after a hard refresh.
+ * Also returns rated counts so the client can resume mid-screener,
+ * mid-calibration, mid-core, or deep in the extended arm after a hard refresh.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url)
@@ -60,13 +62,16 @@ export async function GET(req: Request) {
   }
 
   const byId = new Map(rows.map((r) => [r.id, r]))
+  const screenerIds = rows.filter((r) => r.block === 'screener').map((r) => r.id)
   const calibrationIds = rows.filter((r) => r.block === 'calibration').map((r) => r.id)
   const coreIds = rows.filter((r) => r.block === 'core').map((r) => r.id)
   const extendedIds = rows.filter((r) => r.block === 'extended').map((r) => r.id)
 
   const slot = raterSlot(rater, slotOverride)
-  // Calibration comes FIRST for every rater, then the latin-square core.
+  // Screener comes FIRST for every rater, then the shared calibration block,
+  // then the latin-square core.
   const assignedCoreIds = [
+    ...screenerOrder(screenerIds, rater),
     ...calibrationOrder(calibrationIds, rater),
     ...assignedItemIds(coreIds, rater, slot),
   ]

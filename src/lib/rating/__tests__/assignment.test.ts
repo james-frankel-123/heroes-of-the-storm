@@ -3,24 +3,27 @@ import {
   NUM_SLOTS,
   TEST_CALIBRATION_COUNT,
   TEST_CORE_COUNT,
+  TEST_SCREENER_COUNT,
   assignedItemIds,
   calibrationOrder,
   extendedOrder,
   isFullTestRater,
   isTestRater,
   raterSlot,
+  screenerOrder,
   sideSwapped,
 } from '../assignment'
 
-// Calibration ids 1..40, core ids 41..140, extended ids 141..840.
-const CALIB_IDS = Array.from({ length: 40 }, (_, i) => i + 1)
-const ALL_IDS = Array.from({ length: 100 }, (_, i) => i + 41)
-const EXT_IDS = Array.from({ length: 700 }, (_, i) => i + 141)
+// Screener ids 1..8, calibration ids 9..48, core ids 49..198, extended ids 199..898.
+const SCREENER_IDS = Array.from({ length: 8 }, (_, i) => i + 1)
+const CALIB_IDS = Array.from({ length: 40 }, (_, i) => i + 9)
+const ALL_IDS = Array.from({ length: 150 }, (_, i) => i + 49)
+const EXT_IDS = Array.from({ length: 700 }, (_, i) => i + 199)
 
 describe('assignedItemIds', () => {
-  it('gives every slot exactly 30 items', () => {
+  it('gives every slot exactly 45 items', () => {
     for (let slot = 0; slot < NUM_SLOTS; slot++) {
-      expect(assignedItemIds(ALL_IDS, `rater-${slot}`, slot)).toHaveLength(30)
+      expect(assignedItemIds(ALL_IDS, `rater-${slot}`, slot)).toHaveLength(45)
     }
   })
 
@@ -31,7 +34,7 @@ describe('assignedItemIds', () => {
         coverage.set(id, (coverage.get(id) ?? 0) + 1)
       }
     }
-    expect(coverage.size).toBe(100)
+    expect(coverage.size).toBe(150)
     for (const id of ALL_IDS) expect(coverage.get(id)).toBe(3)
   })
 
@@ -48,18 +51,42 @@ describe('assignedItemIds', () => {
     expect(assignedItemIds(ALL_IDS, 'Alice', 2)).not.toEqual(assignedItemIds(ALL_IDS, 'Bob', 2))
   })
 
-  it('gives test raters only 3 core items (part of the 5-item smoke flow)', () => {
+  it('gives test raters only 3 core items (part of the 7-item smoke flow)', () => {
     expect(assignedItemIds(ALL_IDS, 'test-claude', 0)).toHaveLength(TEST_CORE_COUNT)
     expect(assignedItemIds(ALL_IDS, 'Test Person', 3)).toHaveLength(TEST_CORE_COUNT)
   })
 
-  it('gives testfull raters the complete 30-item core assignment', () => {
-    expect(assignedItemIds(ALL_IDS, 'testfull-claude', 0)).toHaveLength(30)
+  it('gives testfull raters the complete 45-item core assignment', () => {
+    expect(assignedItemIds(ALL_IDS, 'testfull-claude', 0)).toHaveLength(45)
   })
 
   it('does not depend on input id order', () => {
     const shuffledInput = [...ALL_IDS].reverse()
     expect(assignedItemIds(shuffledInput, 'Alice', 4)).toEqual(assignedItemIds(ALL_IDS, 'Alice', 4))
+  })
+})
+
+describe('screenerOrder', () => {
+  it('gives every real rater ALL screener items', () => {
+    for (const rater of ['Alice', 'Bob', 'Fan', 'testfull-claude']) {
+      const order = screenerOrder(SCREENER_IDS, rater)
+      expect([...order].sort((a, b) => a - b)).toEqual(SCREENER_IDS)
+    }
+  })
+
+  it('personalizes presentation order per rater, deterministically', () => {
+    expect(screenerOrder(SCREENER_IDS, 'Alice')).toEqual(screenerOrder(SCREENER_IDS, 'alice '))
+    expect(screenerOrder(SCREENER_IDS, 'Alice')).not.toEqual(screenerOrder(SCREENER_IDS, 'Bob'))
+  })
+
+  it('gives abbreviated test raters only 2 screener items', () => {
+    expect(screenerOrder(SCREENER_IDS, 'test-claude')).toHaveLength(TEST_SCREENER_COUNT)
+  })
+
+  it('does not depend on input id order', () => {
+    expect(screenerOrder([...SCREENER_IDS].reverse(), 'Alice')).toEqual(
+      screenerOrder(SCREENER_IDS, 'Alice')
+    )
   })
 })
 
@@ -131,7 +158,7 @@ describe('extendedOrder', () => {
   })
 
   it('excludes already-rated items', () => {
-    const rated = [141, 450, 840]
+    const rated = [199, 450, 898]
     const order = extendedOrder(EXT_IDS, 'Fan', emptyCov, rated)
     expect(order).toHaveLength(EXT_IDS.length - rated.length)
     for (const id of rated) expect(order).not.toContain(id)
@@ -177,7 +204,7 @@ describe('sideSwapped', () => {
     expect(new Set(swaps).size).toBe(2)
     // Roughly balanced (loose bound).
     const flips = swaps.filter(Boolean).length
-    expect(flips).toBeGreaterThan(20)
-    expect(flips).toBeLessThan(80)
+    expect(flips).toBeGreaterThan(30)
+    expect(flips).toBeLessThan(120)
   })
 })

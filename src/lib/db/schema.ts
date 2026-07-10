@@ -418,18 +418,21 @@ export const replayFetchQueue = pgTable(
  * strategy produced each team.
  */
 export const ratingItems = pgTable('rating_items', {
-  id: integer('id').primaryKey(), // stable item id (1..840), seeded from data/rating-items.json
-  // Study arm: 'calibration' (ids 1..40, shared anchors every rater rates
-  // first), 'core' (ids 41..140, pre-registered latin-square design) or
-  // 'extended' (ids 141..840, uncapped volunteer pool served after core).
+  id: integer('id').primaryKey(), // stable item id (1..898), seeded from data/rating-items.json
+  // Study arm: 'screener' (ids 1..8, real-vs-degenerate gate items every
+  // rater rates first), 'calibration' (ids 9..48, shared anchors rated after
+  // the screener), 'core' (ids 49..198, pre-registered latin-square design)
+  // or 'extended' (ids 199..898, uncapped volunteer pool served after core).
   block: varchar('block', { length: 16 }).notNull().default('core'),
   // { team0: string[5], team1: string[5] } — canonical order; A/B display side
   // is randomized per rater at serve time.
   teams: jsonb('teams').notNull(),
   map: varchar('map', { length: 80 }).notNull(),
   tier: varchar('tier', { length: 10 }).notNull(), // low | mid | high
-  // { source: 'tournament'|'ladder', stratum, team0Strategy?, team1Strategy?,
-  //   file?, recordIndex?, wp?, replayId?, winner?, gameDate? }
+  // { source: 'tournament'|'ladder'|'screener', stratum, team0Strategy?,
+  //   team1Strategy?, file?, recordIndex?, wpTeam0Sym?, replayId?, winner?,
+  //   gameDate?, degenType?, ood_var_team0?, ood_var_team1?, ood_var_max?,
+  //   ood_var_mean? }
   provenance: jsonb('provenance').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
@@ -451,9 +454,11 @@ export const draftRatings = pgTable(
     // (Also recomputable via sideSwapped(rater, itemId), stored for robustness.)
     teamAIsTeam0: boolean('team_a_is_team0').notNull(),
     isTest: boolean('is_test').notNull().default(false),
-    // Study arm this rating belongs to: 'calibration' (the shared 40-anchor
-    // block every rater rates first), 'core' (the pre-registered latin-square
-    // 30) or 'extended' (the uncapped volunteer pool). Mirrors the item's block.
+    // Study arm this rating belongs to: 'screener' (the shared 8-item
+    // real-vs-degenerate gate block every rater rates first), 'calibration'
+    // (the shared 40-anchor block), 'core' (the pre-registered latin-square
+    // 45) or 'extended' (the uncapped volunteer pool). Mirrors the item's
+    // block.
     block: varchar('block', { length: 16 }).notNull().default('core'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
