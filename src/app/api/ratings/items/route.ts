@@ -19,8 +19,8 @@ export const dynamic = 'force-dynamic'
  * GET /api/ratings/items?rater=NAME[&slot=N]
  *
  * Returns the rater's blinded items in two arms:
- *   - `items`: the 20 shared calibration items FIRST, then the 30 core
- *     latin-square items (50 total; 2 + 3 = 5 for test raters, unless the
+ *   - `items`: the 40 shared calibration items FIRST, then the 30 core
+ *     latin-square items (70 total; 2 + 3 = 5 for test raters, unless the
  *     name starts with "testfull" which gets the full real assignment).
  *   - `extendedItems`: the uncapped extended pool in the rater's serving order
  *     (stable per-rater order, under-coverage tiebreak), with items this rater

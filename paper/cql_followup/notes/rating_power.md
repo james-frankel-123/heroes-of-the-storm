@@ -4,41 +4,41 @@ Scope: this note quantifies what the **known-outcome ladder anchors** buy us —
 i.e. our ability to estimate, per rater and per skill tier, how often an expert
 picks the team that actually won the real game. Anchors are the only items with
 a ground-truth label, so they (not the machine-pair items) drive accuracy power.
-Counts below match the frozen seed-20260709 pool (`data/rating-items.json`):
-20 shared calibration anchors + 100 core items (45 anchors) + 700 extended
+Counts below match the frozen seed-20260710 pool (`data/rating-items.json`):
+40 shared calibration anchors + 100 core items (45 anchors) + 700 extended
 items (555 anchors).
 
 ## Anchor supply per rater
 
 | Arm | Anchors | Per tier (low/mid/high) |
 | --- | --- | --- |
-| Calibration (shared, rated by every rater first) | 20 | 7 / 7 / 6 |
-| Core (latin square, 30 items/rater) | 45 total in pool; 7–21 land in any one slot's 30 | 15 / 15 / 15 in pool |
+| Calibration (shared, rated by every rater first) | 40 | 14 / 13 / 13 |
+| Core (latin square, 30 items/rater) | 45 total in pool; 9–19 land in any one slot's 30 | 15 / 15 / 15 in pool |
 | Extended (uncapped) | 555 distinct (185/185/185) | 185 / tier |
-| **Max distinct anchors one rater can reach** | **up to 596** (20 + up to 21 + 555) | **~199 / tier** |
+| **Max distinct anchors one rater can reach** | **up to 614** (40 + up to 19 + 555) | **~205 / tier** |
 
 A rater who exhausts the extended arm sees every extended anchor plus the
-calibration 20 and their slot's core anchors. The extended machine-pair items
+calibration 40 and their slot's core anchors. The extended machine-pair items
 (145) carry no ground truth and are used for expert-vs-model agreement, not
-accuracy. Pool totals: 620 anchors (207 low / 207 mid / 206 high).
+accuracy. Pool totals: 640 anchors (214 low / 213 mid / 213 high).
 
-## The shared calibration block (n = 20 per rater)
+## The shared calibration block (n = 40 per rater)
 
-All raters rate the identical 20 anchors before their core 30, so per-rater
+All raters rate the identical 40 anchors before their core 30, so per-rater
 accuracy on this block is directly comparable across raters (no
 item-assignment confounding). It doubles as the pre-registered quality gate:
-**exclude a rater whose calibration accuracy is ≤ 50% (≤ 10/20)**. Exact
+**exclude a rater whose calibration accuracy is ≤ 50% (≤ 20/40)**. Exact
 binomial operating characteristics:
 
-| True accuracy | P(pass gate, ≥ 11/20) |
+| True accuracy | P(pass gate, ≥ 21/40) |
 | --- | --- |
-| 0.50 (coin flipper) | 0.412 (**excluded w.p. 0.588**) |
-| 0.60 (marginal honest rater) | **0.755** |
-| 0.65 | 0.878 |
-| 0.70 | 0.952 |
+| 0.50 (coin flipper) | 0.437 (**excluded w.p. 0.563**) |
+| 0.60 (marginal honest rater) | **0.870** |
+| 0.65 | 0.964 |
+| 0.70 | 0.994 |
 
-At n = 20 the calibration block is a gate and comparability anchor, not a
-precise estimate: 95% CI half-width at p = 0.5 is ±21.9 pp (see table below).
+At n = 40 the calibration block is a gate and comparability anchor, not a
+precise estimate: 95% CI half-width at p = 0.5 is ±15.5 pp (see table below).
 
 ## Per-rater accuracy CI vs. number of anchors rated
 
@@ -48,25 +48,25 @@ slightly tighter and better-behaved near 0/1.
 
 | n anchors | ±half-width @ p=0.5 | @ p=0.65 | @ p=0.75 |
 | --- | --- | --- | --- |
-| 20 (calibration only) | ±21.9 pp | ±20.9 pp | ±19.0 pp |
+| 40 (calibration only) | ±15.5 pp | ±14.8 pp | ±13.4 pp |
 | 100 | ±9.8 pp | ±9.3 pp | ±8.5 pp |
 | 250 | ±6.2 pp | ±5.9 pp | ±5.4 pp |
 | 500 | ±4.4 pp | ±4.2 pp | ±3.8 pp |
 
-Headline resolutions: **≈ ±22 / ±10 / ±6 / ±4.4 pp at n = 20 / 100 / 250 /
-500**. With the expanded pool a single high-volume rater can now reach n = 596
+Headline resolutions: **≈ ±16 / ±10 / ±6 / ±4.4 pp at n = 40 / 100 / 250 /
+500**. With the expanded pool a single high-volume rater can now reach n = 614
 distinct anchors, so n = 500 is attainable without pooling across raters.
 
 ## Primary-endpoint precision (machine-pair agreement)
 
 The confirmatory endpoint pools core machine-pair judgments: 55 pairs × 3
-ratings, minus near-ties at |consensus − 0.5| ≤ 0.02 (6 pairs in the frozen
-pool) → **49 items / 147 planned judgments**. At a true agreement rate of
-0.60, a simple binomial 95% CI has half-width **±7.9 pp at n = 147**; because
-judgments are clustered 3-per-item, the effective n lies between 49 items
-(±13.7 pp) and 147, and the pre-registered mixed logistic model accounts for
-this. Sensitivity thresholds {0.01, 0.05} retain 52 / 43 items (156 / 129
-judgments; ±7.7 / ±8.5 pp).
+ratings, minus near-ties at |consensus − 0.5| ≤ 0.02 (8 pairs in the frozen
+pool) → **47 items / 141 planned judgments**. At a true agreement rate of
+0.60, a simple binomial 95% CI has half-width **±8.1 pp at n = 141**; because
+judgments are clustered 3-per-item, the effective n lies between 47 items
+(±14.0 pp) and 141, and the pre-registered mixed logistic model accounts for
+this. Sensitivity thresholds {0.01, 0.05} retain 52 / 40 items (156 / 120
+judgments; ±7.7 / ±8.8 pp).
 
 ## Per-tier splits
 
@@ -77,13 +77,13 @@ contrast). Splitting a rater's anchors three ways cuts n per cell to ~n/3:
 | --- | --- | --- |
 | 100 | ~33 | ±17 pp |
 | 250 | ~83 | ±11 pp |
-| 596 (full pool) | ~199 | ±6.9 pp |
+| 614 (full pool) | ~205 | ±6.8 pp |
 
 Single-rater per-tier accuracy at moderate volume is only coarsely resolved;
 **tier-level conclusions come from pooling raters within a tier**, where the
 effective n is (raters × per-rater per-tier anchors). With, say, 6 raters each
-completing the extended arm, a tier cell holds ~6 × 190 ≈ 1,140 anchor
-judgments → ±2.9 pp per tier.
+completing the extended arm, a tier cell holds ~6 × 200 ≈ 1,200 anchor
+judgments → ±2.8 pp per tier.
 
 ## Two-rater comparison power
 
@@ -113,16 +113,16 @@ operationalizes the paper's caveat that professional judgment may itself be
 tier-limited.
 
 Test (per the prereg): mixed-effects logistic regression `correct ~ group +
-(1|rater) + (1|item)` on **low-tier anchors only** (207 in the pool: 7
-calibration + 15 core + 185 extended; a high-volume rater can cover ~195 of
+(1|rater) + (1|item)` on **low-tier anchors only** (214 in the pool: 14
+calibration + 15 core + 185 extended; a high-volume rater can cover ~205 of
 them), one-sided group effect (A > B), α = .05. Unclustered two-proportion
 approximations bracket the MDE:
 
-- Group A = one high-volume rater (~195 low-tier anchors) vs Group B pooled at
-  ~160: `SE_diff = sqrt(0.25(1/195 + 1/160)) = 5.3 pp`, MDE ≈ **15 pp**.
+- Group A = one high-volume rater (~205 low-tier anchors) vs Group B pooled at
+  ~160: `SE_diff = sqrt(0.25(1/205 + 1/160)) = 5.3 pp`, MDE ≈ **15 pp**.
 - Same Group A vs Group B contributing only calibration + core low-tier
-  anchors (~44 pooled): `SE_diff = 8.3 pp`, MDE ≈ **23 pp**.
-- Both groups at ~195: `SE_diff = 5.1 pp`, MDE ≈ **14 pp**.
+  anchors (~72 pooled, 4 raters × ~18): `SE_diff = 6.8 pp`, MDE ≈ **19 pp**.
+- Both groups at ~205: `SE_diff = 4.9 pp`, MDE ≈ **14 pp**.
 
 The mixed model is expected to be modestly more conservative than these
 approximations (item and rater clustering). A tier-limitation effect large
@@ -137,8 +137,8 @@ pooled groups.
 
 ## Design implications baked into the study
 
-- A shared 20-anchor calibration block (7/7/6 by tier) is rated by every rater
-  first, giving an identical-items basis for the quality gate and for
+- A shared 40-anchor calibration block (14/13/13 by tier) is rated by every
+  rater first, giving an identical-items basis for the quality gate and for
   cross-rater comparability.
 - Extended anchors are tier-stratified 185/185/185 so per-tier n grows evenly
   as a volunteer keeps rating.

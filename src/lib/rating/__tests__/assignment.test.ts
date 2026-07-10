@@ -12,10 +12,10 @@ import {
   sideSwapped,
 } from '../assignment'
 
-// Calibration ids 1..20, core ids 21..120, extended ids 121..820.
-const CALIB_IDS = Array.from({ length: 20 }, (_, i) => i + 1)
-const ALL_IDS = Array.from({ length: 100 }, (_, i) => i + 21)
-const EXT_IDS = Array.from({ length: 700 }, (_, i) => i + 121)
+// Calibration ids 1..40, core ids 41..140, extended ids 141..840.
+const CALIB_IDS = Array.from({ length: 40 }, (_, i) => i + 1)
+const ALL_IDS = Array.from({ length: 100 }, (_, i) => i + 41)
+const EXT_IDS = Array.from({ length: 700 }, (_, i) => i + 141)
 
 describe('assignedItemIds', () => {
   it('gives every slot exactly 30 items', () => {
@@ -131,7 +131,7 @@ describe('extendedOrder', () => {
   })
 
   it('excludes already-rated items', () => {
-    const rated = [121, 450, 820]
+    const rated = [141, 450, 840]
     const order = extendedOrder(EXT_IDS, 'Fan', emptyCov, rated)
     expect(order).toHaveLength(EXT_IDS.length - rated.length)
     for (const id of rated) expect(order).not.toContain(id)

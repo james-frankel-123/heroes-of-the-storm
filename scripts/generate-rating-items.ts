@@ -1,17 +1,17 @@
 /**
  * Generate the item set for the expert draft-rating study: a shared
- * CALIBRATION block of 20 items (rated by every rater, first), a CORE of 100
+ * CALIBRATION block of 40 items (rated by every rater, first), a CORE of 100
  * items (the pre-registered latin-square design), and an EXTENDED pool of 700
  * items (a volunteer arm for high-volume raters, served after core).
  *
  * Composition (seeded, reproducible given the same DB snapshot):
  *
- *   CALIBRATION — 20 items, ids 1..20 (every rater rates ALL of them before
- *   their latin-square core 30 → 50 items per rater total):
- *     - 20 real known-outcome ladder anchors, tier-stratified 7 low / 7 mid /
- *       6 high, distinct from every other item in the study.
+ *   CALIBRATION — 40 items, ids 1..40 (every rater rates ALL of them before
+ *   their latin-square core 30 → 70 items per rater total):
+ *     - 40 real known-outcome ladder anchors, tier-stratified 14 low /
+ *       13 mid / 13 high, distinct from every other item in the study.
  *
- *   CORE — 100 items, ids 21..120:
+ *   CORE — 100 items, ids 41..140:
  *     - 55 tournament (machine-pair) drafts, same matchup strata as before,
  *       rebalanced to 55 in the original proportions (12:12:32:24 -> 8:8:22:17):
  *         A. constrained_mcts vs mcts            8 items
@@ -21,7 +21,7 @@
  *         D. all other strategy pairs           17 items
  *     - 45 real known-outcome ladder anchors (15 low / 15 mid / 15 high).
  *
- *   EXTENDED — 700 items, ids 121..820 (distinct replays/records from
+ *   EXTENDED — 700 items, ids 141..840 (distinct replays/records from
  *   calibration and core):
  *     - 145 tournament (machine-pair) drafts in the same strata proportions
  *       (22:22:58:43).
@@ -46,9 +46,11 @@ import { fnv1a, mulberry32, seededShuffle } from '../src/lib/rating/assignment'
 import { HERO_ROLES } from '../src/lib/data/hero-roles'
 
 // SEED history: 20260708 generated the original 500-item set (100 core + 400
-// extended). 20260709 regenerates the full pool with the shared calibration
-// block and the expanded extended arm (20 + 100 + 700 = 820 items).
-const SEED = 20260709
+// extended). 20260709 added the shared 20-item calibration block and the
+// expanded extended arm (20 + 100 + 700 = 820 items). 20260710 grows the
+// calibration block to 40 anchors per Max's review (40 + 100 + 700 = 840
+// items); the extra anchors come from fresh replays, not the extended block.
+const SEED = 20260710
 const REPO = path.resolve(__dirname, '..')
 const RESULT_DIRS = [
   path.join(REPO, 'training/rerun2026/results/roundrobin'),
@@ -67,10 +69,10 @@ const STRATA: { name: string; core: number; ext: number }[] = [
   { name: 'vs_anchored', core: 22, ext: 58 },
   { name: 'other_pairs', core: 17, ext: 43 },
 ]
-// Known-outcome ladder anchors. Calibration = 7/7/6 (20, shared across all
+// Known-outcome ladder anchors. Calibration = 14/13/13 (40, shared across all
 // raters); core = 15/tier (45); extended = 185/tier (555); all distinct
 // replays.
-const LADDER_CALIB_COUNTS: Record<string, number> = { low: 7, mid: 7, high: 6 }
+const LADDER_CALIB_COUNTS: Record<string, number> = { low: 14, mid: 13, high: 13 }
 const LADDER_CORE_COUNTS: Record<string, number> = { low: 15, mid: 15, high: 15 }
 const LADDER_EXT_COUNTS: Record<string, number> = { low: 185, mid: 185, high: 185 }
 
@@ -208,7 +210,7 @@ function sampleStratum(cands: Candidate[], count: number, seed: number): Candida
 async function loadLadderTier(tier: string, count: number): Promise<Candidate[]> {
   const sql = neon(process.env.DATABASE_URL!)
   // Deterministic recent window; the committed JSON freezes the sample. Pull a
-  // generous window so ~207/tier (7 calibration + 15 core + 185 extended)
+  // generous window so ~214/tier (14 calibration + 15 core + 185 extended)
   // valid drafts are available after filtering.
   const rows = (await sql`
     select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner, game_date
@@ -297,7 +299,7 @@ async function main() {
     console.log(`ladder ${tier}: ${calibN} calibration + ${coreN} core + ${extN} extended`)
   }
 
-  // CALIBRATION: shuffle so item id carries no tier ordering; ids 1..20.
+  // CALIBRATION: shuffle so item id carries no tier ordering; ids 1..40.
   const calibration = seededShuffle(calibLadder, SEED ^ 0xca11b)
   // CORE: shuffle so item id carries no stratum information; ids follow calibration.
   const core = seededShuffle([...coreMachine, ...coreLadder], SEED)

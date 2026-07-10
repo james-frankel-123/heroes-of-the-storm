@@ -71,8 +71,8 @@ export function RateClient() {
   const [nameInput, setNameInput] = useState('')
   const [initialized, setInitialized] = useState(false)
 
-  // Two UI arms: 'core' (the 20 shared calibration items followed by the
-  // pre-registered latin-square 30 — served as one 50-item sequence, with
+  // Two UI arms: 'core' (the 40 shared calibration items followed by the
+  // pre-registered latin-square 30 — served as one 70-item sequence, with
   // calibration always first) then 'extended' (the uncapped volunteer pool).
   // `idx` indexes the current phase's queue.
   const [phase, setPhase] = useState<'core' | 'extended'>('core')
