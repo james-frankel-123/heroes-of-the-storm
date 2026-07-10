@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { draftRatings, ratingItems } from '@/lib/db/schema'
 import {
   assignedItemIds,
+  calibrationOrder,
   extendedOrder,
   isTestRater,
   normalizeRater,
@@ -18,13 +19,15 @@ export const dynamic = 'force-dynamic'
  * GET /api/ratings/items?rater=NAME[&slot=N]
  *
  * Returns the rater's blinded items in two arms:
- *   - `items`: the 30 core latin-square items (5 for test raters).
+ *   - `items`: the 20 shared calibration items FIRST, then the 30 core
+ *     latin-square items (50 total; 2 + 3 = 5 for test raters, unless the
+ *     name starts with "testfull" which gets the full real assignment).
  *   - `extendedItems`: the uncapped extended pool in the rater's serving order
- *     (least-covered-first, stable per-rater tiebreak), with items this rater
+ *     (stable per-rater order, under-coverage tiebreak), with items this rater
  *     has already rated removed — so the arm resumes cleanly on any device.
  * Both are blinded: no provenance; A/B display side randomized per rater.
- * Also returns rated counts so the client can resume mid-core or deep in the
- * extended arm after a hard refresh.
+ * Also returns rated counts so the client can resume mid-calibration,
+ * mid-core, or deep in the extended arm after a hard refresh.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url)
@@ -57,11 +60,16 @@ export async function GET(req: Request) {
   }
 
   const byId = new Map(rows.map((r) => [r.id, r]))
+  const calibrationIds = rows.filter((r) => r.block === 'calibration').map((r) => r.id)
   const coreIds = rows.filter((r) => r.block === 'core').map((r) => r.id)
   const extendedIds = rows.filter((r) => r.block === 'extended').map((r) => r.id)
 
   const slot = raterSlot(rater, slotOverride)
-  const assignedCoreIds = assignedItemIds(coreIds, rater, slot)
+  // Calibration comes FIRST for every rater, then the latin-square core.
+  const assignedCoreIds = [
+    ...calibrationOrder(calibrationIds, rater),
+    ...assignedItemIds(coreIds, rater, slot),
+  ]
 
   // This rater's already-rated ids (for cross-device resume).
   const rated = await db

@@ -1,17 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import {
   NUM_SLOTS,
-  TEST_ITEM_COUNT,
+  TEST_CALIBRATION_COUNT,
+  TEST_CORE_COUNT,
   assignedItemIds,
+  calibrationOrder,
   extendedOrder,
+  isFullTestRater,
   isTestRater,
   raterSlot,
   sideSwapped,
 } from '../assignment'
 
-const ALL_IDS = Array.from({ length: 100 }, (_, i) => i + 1)
-// Extended pool ids follow core (101..500).
-const EXT_IDS = Array.from({ length: 400 }, (_, i) => i + 101)
+// Calibration ids 1..20, core ids 21..120, extended ids 121..820.
+const CALIB_IDS = Array.from({ length: 20 }, (_, i) => i + 1)
+const ALL_IDS = Array.from({ length: 100 }, (_, i) => i + 21)
+const EXT_IDS = Array.from({ length: 700 }, (_, i) => i + 121)
 
 describe('assignedItemIds', () => {
   it('gives every slot exactly 30 items', () => {
@@ -44,14 +48,51 @@ describe('assignedItemIds', () => {
     expect(assignedItemIds(ALL_IDS, 'Alice', 2)).not.toEqual(assignedItemIds(ALL_IDS, 'Bob', 2))
   })
 
-  it('gives test raters only 5 items', () => {
-    expect(assignedItemIds(ALL_IDS, 'test-claude', 0)).toHaveLength(TEST_ITEM_COUNT)
-    expect(assignedItemIds(ALL_IDS, 'Test Person', 3)).toHaveLength(TEST_ITEM_COUNT)
+  it('gives test raters only 3 core items (part of the 5-item smoke flow)', () => {
+    expect(assignedItemIds(ALL_IDS, 'test-claude', 0)).toHaveLength(TEST_CORE_COUNT)
+    expect(assignedItemIds(ALL_IDS, 'Test Person', 3)).toHaveLength(TEST_CORE_COUNT)
+  })
+
+  it('gives testfull raters the complete 30-item core assignment', () => {
+    expect(assignedItemIds(ALL_IDS, 'testfull-claude', 0)).toHaveLength(30)
   })
 
   it('does not depend on input id order', () => {
     const shuffledInput = [...ALL_IDS].reverse()
     expect(assignedItemIds(shuffledInput, 'Alice', 4)).toEqual(assignedItemIds(ALL_IDS, 'Alice', 4))
+  })
+})
+
+describe('calibrationOrder', () => {
+  it('gives every real rater ALL calibration items', () => {
+    for (const rater of ['Alice', 'Bob', 'Fan', 'testfull-claude']) {
+      const order = calibrationOrder(CALIB_IDS, rater)
+      expect([...order].sort((a, b) => a - b)).toEqual(CALIB_IDS)
+    }
+  })
+
+  it('personalizes presentation order per rater, deterministically', () => {
+    expect(calibrationOrder(CALIB_IDS, 'Alice')).toEqual(calibrationOrder(CALIB_IDS, 'alice '))
+    expect(calibrationOrder(CALIB_IDS, 'Alice')).not.toEqual(calibrationOrder(CALIB_IDS, 'Bob'))
+  })
+
+  it('gives abbreviated test raters only 2 calibration items', () => {
+    expect(calibrationOrder(CALIB_IDS, 'test-claude')).toHaveLength(TEST_CALIBRATION_COUNT)
+  })
+
+  it('does not depend on input id order', () => {
+    expect(calibrationOrder([...CALIB_IDS].reverse(), 'Alice')).toEqual(
+      calibrationOrder(CALIB_IDS, 'Alice')
+    )
+  })
+})
+
+describe('isFullTestRater', () => {
+  it('flags only names starting with "testfull"; both stay is_test', () => {
+    expect(isFullTestRater('testfull-claude')).toBe(true)
+    expect(isTestRater('testfull-claude')).toBe(true)
+    expect(isFullTestRater('test-claude')).toBe(false)
+    expect(isFullTestRater('Ernest')).toBe(false)
   })
 })
 
@@ -90,7 +131,7 @@ describe('extendedOrder', () => {
   })
 
   it('excludes already-rated items', () => {
-    const rated = [101, 250, 500]
+    const rated = [121, 450, 820]
     const order = extendedOrder(EXT_IDS, 'Fan', emptyCov, rated)
     expect(order).toHaveLength(EXT_IDS.length - rated.length)
     for (const id of rated) expect(order).not.toContain(id)

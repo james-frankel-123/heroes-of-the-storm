@@ -1,11 +1,17 @@
 /**
- * Generate the item set for the expert draft-rating study: a CORE of 100 items
- * (the pre-registered latin-square design) plus an EXTENDED pool of 400 items
- * (a volunteer arm for high-volume raters, served after the core 30).
+ * Generate the item set for the expert draft-rating study: a shared
+ * CALIBRATION block of 20 items (rated by every rater, first), a CORE of 100
+ * items (the pre-registered latin-square design), and an EXTENDED pool of 700
+ * items (a volunteer arm for high-volume raters, served after core).
  *
  * Composition (seeded, reproducible given the same DB snapshot):
  *
- *   CORE — 100 items, ids 1..100:
+ *   CALIBRATION — 20 items, ids 1..20 (every rater rates ALL of them before
+ *   their latin-square core 30 → 50 items per rater total):
+ *     - 20 real known-outcome ladder anchors, tier-stratified 7 low / 7 mid /
+ *       6 high, distinct from every other item in the study.
+ *
+ *   CORE — 100 items, ids 21..120:
  *     - 55 tournament (machine-pair) drafts, same matchup strata as before,
  *       rebalanced to 55 in the original proportions (12:12:32:24 -> 8:8:22:17):
  *         A. constrained_mcts vs mcts            8 items
@@ -15,13 +21,15 @@
  *         D. all other strategy pairs           17 items
  *     - 45 real known-outcome ladder anchors (15 low / 15 mid / 15 high).
  *
- *   EXTENDED — 400 items, ids 101..500 (distinct replays/records from core):
- *     - 100 tournament (machine-pair) drafts in the same strata proportions
- *       (15:15:40:30).
- *     - 300 known-outcome ladder anchors, tier-stratified 100 / 100 / 100.
+ *   EXTENDED — 700 items, ids 121..820 (distinct replays/records from
+ *   calibration and core):
+ *     - 145 tournament (machine-pair) drafts in the same strata proportions
+ *       (22:22:58:43).
+ *     - 555 known-outcome ladder anchors, tier-stratified 185 / 185 / 185.
  *
- * Every item carries a `block` field ('core' | 'extended'). Core keeps the
- * original 10-slot latin square (30 items/rater, 3 ratings/item); extended is
+ * Every item carries a `block` field ('calibration' | 'core' | 'extended').
+ * Core keeps the original 10-slot latin square (30 items/rater, 3
+ * ratings/item); calibration is served to everyone before core; extended is
  * served as an uncapped, coverage-prioritized pool after a rater finishes core.
  *
  * Output: data/rating-items.json — committed to the repo and seeded into the
@@ -37,7 +45,10 @@ import { neon } from '@neondatabase/serverless'
 import { fnv1a, mulberry32, seededShuffle } from '../src/lib/rating/assignment'
 import { HERO_ROLES } from '../src/lib/data/hero-roles'
 
-const SEED = 20260708
+// SEED history: 20260708 generated the original 500-item set (100 core + 400
+// extended). 20260709 regenerates the full pool with the shared calibration
+// block and the expanded extended arm (20 + 100 + 700 = 820 items).
+const SEED = 20260709
 const REPO = path.resolve(__dirname, '..')
 const RESULT_DIRS = [
   path.join(REPO, 'training/rerun2026/results/roundrobin'),
@@ -47,18 +58,21 @@ const OUT_PATH = path.join(REPO, 'data/rating-items.json')
 
 const ANCHORED = new Set(['gd', 'cql_naive_a1.0', 'cql_enr_a2.0', 'gourdeau_disc'])
 // Machine-pair matchup strata. `core` sums to 55 (rebalanced from the original
-// 12:12:32:24=80 in the same proportions -> 8:8:22:17); `ext` sums to 100 in
-// the same proportions (15:15:40:30). Extended records are distinct from core.
+// 12:12:32:24=80 in the same proportions -> 8:8:22:17); `ext` sums to 145 in
+// the same proportions (15:15:40:30 scaled x1.45 -> 22:22:58:43). Extended
+// records are distinct from core.
 const STRATA: { name: string; core: number; ext: number }[] = [
-  { name: 'constrained_mcts_vs_mcts', core: 8, ext: 15 },
-  { name: 'mcts_vs_enriched', core: 8, ext: 15 },
-  { name: 'vs_anchored', core: 22, ext: 40 },
-  { name: 'other_pairs', core: 17, ext: 30 },
+  { name: 'constrained_mcts_vs_mcts', core: 8, ext: 22 },
+  { name: 'mcts_vs_enriched', core: 8, ext: 22 },
+  { name: 'vs_anchored', core: 22, ext: 58 },
+  { name: 'other_pairs', core: 17, ext: 43 },
 ]
-// Known-outcome ladder anchors. Core = 15/tier (45); extended = 100/tier (300);
-// all distinct replays.
+// Known-outcome ladder anchors. Calibration = 7/7/6 (20, shared across all
+// raters); core = 15/tier (45); extended = 185/tier (555); all distinct
+// replays.
+const LADDER_CALIB_COUNTS: Record<string, number> = { low: 7, mid: 7, high: 6 }
 const LADDER_CORE_COUNTS: Record<string, number> = { low: 15, mid: 15, high: 15 }
-const LADDER_EXT_COUNTS: Record<string, number> = { low: 100, mid: 100, high: 100 }
+const LADDER_EXT_COUNTS: Record<string, number> = { low: 185, mid: 185, high: 185 }
 
 interface TournamentRecord {
   draft: number
@@ -194,8 +208,8 @@ function sampleStratum(cands: Candidate[], count: number, seed: number): Candida
 async function loadLadderTier(tier: string, count: number): Promise<Candidate[]> {
   const sql = neon(process.env.DATABASE_URL!)
   // Deterministic recent window; the committed JSON freezes the sample. Pull a
-  // generous window so 115/tier (15 core + 100 extended) valid drafts are
-  // available after filtering.
+  // generous window so ~207/tier (7 calibration + 15 core + 185 extended)
+  // valid drafts are available after filtering.
   const rows = (await sql`
     select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner, game_date
     from replay_draft_data
@@ -267,22 +281,30 @@ async function main() {
     extMachine.push(...sampled.slice(core))
   }
 
+  const calibLadder: Candidate[] = []
   const coreLadder: Candidate[] = []
   const extLadder: Candidate[] = []
   for (const tier of Object.keys(LADDER_CORE_COUNTS)) {
-    const need = LADDER_CORE_COUNTS[tier] + LADDER_EXT_COUNTS[tier]
-    const drafts = await loadLadderTier(tier, need)
-    coreLadder.push(...drafts.slice(0, LADDER_CORE_COUNTS[tier]))
-    extLadder.push(...drafts.slice(LADDER_CORE_COUNTS[tier]))
-    console.log(`ladder ${tier}: ${LADDER_CORE_COUNTS[tier]} core + ${LADDER_EXT_COUNTS[tier]} extended`)
+    const calibN = LADDER_CALIB_COUNTS[tier]
+    const coreN = LADDER_CORE_COUNTS[tier]
+    const extN = LADDER_EXT_COUNTS[tier]
+    // One pass per tier, sliced calibration → core → extended, so the three
+    // blocks are guaranteed disjoint replays.
+    const drafts = await loadLadderTier(tier, calibN + coreN + extN)
+    calibLadder.push(...drafts.slice(0, calibN))
+    coreLadder.push(...drafts.slice(calibN, calibN + coreN))
+    extLadder.push(...drafts.slice(calibN + coreN))
+    console.log(`ladder ${tier}: ${calibN} calibration + ${coreN} core + ${extN} extended`)
   }
 
-  // CORE: shuffle so item id carries no stratum information; ids 1..100.
+  // CALIBRATION: shuffle so item id carries no tier ordering; ids 1..20.
+  const calibration = seededShuffle(calibLadder, SEED ^ 0xca11b)
+  // CORE: shuffle so item id carries no stratum information; ids follow calibration.
   const core = seededShuffle([...coreMachine, ...coreLadder], SEED)
   // EXTENDED: shuffle independently; ids continue after core.
   const extended = seededShuffle([...extMachine, ...extLadder], SEED ^ 0x5eed_e17e)
 
-  const toItem = (c: Candidate, id: number, block: 'core' | 'extended') => ({
+  const toItem = (c: Candidate, id: number, block: 'calibration' | 'core' | 'extended') => ({
     id,
     block,
     map: c.map,
@@ -291,8 +313,11 @@ async function main() {
     provenance: c.provenance,
   })
   const items = [
-    ...core.map((c, i) => toItem(c, i + 1, 'core')),
-    ...extended.map((c, i) => toItem(c, core.length + i + 1, 'extended')),
+    ...calibration.map((c, i) => toItem(c, i + 1, 'calibration')),
+    ...core.map((c, i) => toItem(c, calibration.length + i + 1, 'core')),
+    ...extended.map((c, i) =>
+      toItem(c, calibration.length + core.length + i + 1, 'extended')
+    ),
   ]
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true })
@@ -300,10 +325,12 @@ async function main() {
     OUT_PATH,
     JSON.stringify({ seed: SEED, generatedAt: new Date().toISOString(), items }, null, 2)
   )
-  console.log(`wrote ${items.length} items (${core.length} core + ${extended.length} extended) to ${OUT_PATH}`)
+  console.log(
+    `wrote ${items.length} items (${calibration.length} calibration + ${core.length} core + ${extended.length} extended) to ${OUT_PATH}`
+  )
 
   // Composition report.
-  for (const block of ['core', 'extended'] as const) {
+  for (const block of ['calibration', 'core', 'extended'] as const) {
     const strata = new Map<string, number>()
     const tiers = new Map<string, number>()
     const sources = new Map<string, number>()

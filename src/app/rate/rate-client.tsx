@@ -71,8 +71,10 @@ export function RateClient() {
   const [nameInput, setNameInput] = useState('')
   const [initialized, setInitialized] = useState(false)
 
-  // Two arms: 'core' (the pre-registered latin-square 30) then 'extended'
-  // (the uncapped volunteer pool). `idx` indexes the current phase's queue.
+  // Two UI arms: 'core' (the 20 shared calibration items followed by the
+  // pre-registered latin-square 30 — served as one 50-item sequence, with
+  // calibration always first) then 'extended' (the uncapped volunteer pool).
+  // `idx` indexes the current phase's queue.
   const [phase, setPhase] = useState<'core' | 'extended'>('core')
   const [coreQueue, setCoreQueue] = useState<RatingItem[]>([])
   const [extendedQueue, setExtendedQueue] = useState<RatingItem[]>([])
@@ -328,8 +330,8 @@ export function RateClient() {
             <div className="text-5xl">🎉</div>
             <h1 className="mt-4 text-2xl font-bold">Core set complete — thank you!</h1>
             <p className="mt-3 text-muted-foreground">
-              You rated {coreRatedTotal} of {totalCore} core drafts. Your judgments are a huge
-              help in validating our draft models against real expert intuition.
+              You rated {coreRatedTotal} of {totalCore} assigned drafts. Your judgments are a
+              huge help in validating our draft models against real expert intuition.
             </p>
             <div className="mt-6 rounded-lg border bg-background/60 p-4">
               <p className="font-semibold">Keep going? Every extra rating helps.</p>

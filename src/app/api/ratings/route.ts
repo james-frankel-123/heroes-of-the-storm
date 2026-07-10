@@ -77,9 +77,10 @@ export async function POST(req: Request) {
     msTaken = Math.min(body.msTaken as number, 2_000_000_000)
   }
 
-  // Look up the item's block and verify it is servable to this rater. Core
-  // items must fall in the rater's latin-square assignment; extended items
-  // (the uncapped volunteer pool) are servable to anyone.
+  // Look up the item's block and verify it is servable to this rater.
+  // Calibration items are shared: every rater rates all of them. Core items
+  // must fall in the rater's latin-square assignment; extended items (the
+  // uncapped volunteer pool) are servable to anyone.
   const items = await db
     .select({ id: ratingItems.id, block: ratingItems.block })
     .from(ratingItems)
@@ -87,9 +88,10 @@ export async function POST(req: Request) {
   if (!target) {
     return NextResponse.json({ error: 'unknown itemId' }, { status: 400 })
   }
-  const block = target.block === 'extended' ? 'extended' : 'core'
+  const block =
+    target.block === 'extended' || target.block === 'calibration' ? target.block : 'core'
   if (block === 'core') {
-    const coreIds = items.filter((r) => r.block !== 'extended').map((r) => r.id)
+    const coreIds = items.filter((r) => r.block === 'core').map((r) => r.id)
     const slot = raterSlot(rater, slotOverride)
     const assigned = assignedItemIds(coreIds, rater, slot)
     if (!assigned.includes(itemId as number)) {
