@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server'
-import { eq, inArray, sql as dsql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { draftRatings, ratingItems } from '@/lib/db/schema'
 import {
-  assignedItemIds,
-  calibrationOrder,
-  extendedOrder,
+  fullSequence,
   isTestRater,
   normalizeRater,
+  NUM_SLOTS,
   raterSlot,
-  screenerOrder,
   sideSwapped,
+  type PoolIds,
 } from '@/lib/rating/assignment'
 
 export const runtime = 'nodejs'
@@ -19,17 +18,15 @@ export const dynamic = 'force-dynamic'
 /**
  * GET /api/ratings/items?rater=NAME[&slot=N]
  *
- * Returns the rater's blinded items in two arms:
- *   - `items`: the 8 shared screener items FIRST, then the 40 shared
- *     calibration items, then the 45 core latin-square items (93 total;
- *     2 + 2 + 3 = 7 for test raters, unless the name starts with "testfull"
- *     which gets the full real assignment).
- *   - `extendedItems`: the uncapped extended pool in the rater's serving order
- *     (stable per-rater order, under-coverage tiebreak), with items this rater
- *     has already rated removed — so the arm resumes cleanly on any device.
- * Both are blinded: no provenance; A/B display side randomized per rater.
- * Also returns rated counts so the client can resume mid-screener,
- * mid-calibration, mid-core, or deep in the extended arm after a hard refresh.
+ * Returns the rater's complete blinded 240-item sequence (v4 fixed design:
+ * interleaved screener+calibration 48, then 60 pairs + 129 anchors shuffled
+ * per rater with 3 catch items at fixed positions; 7-item smoke flow for
+ * test raters unless the name starts with "testfull", which gets the full
+ * real sequence).
+ *
+ * Blinded: no provenance, no block labels; A/B display side randomized per
+ * rater. Also returns already-rated ids so the client can resume anywhere in
+ * the sequence on any device after a hard refresh.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url)
@@ -41,8 +38,11 @@ export async function GET(req: Request) {
   let slotOverride: number | undefined
   if (slotParam !== null && slotParam !== '') {
     const n = Number(slotParam)
-    if (!Number.isInteger(n) || n < 0 || n > 9) {
-      return NextResponse.json({ error: 'slot must be an integer 0-9' }, { status: 400 })
+    if (!Number.isInteger(n) || n < 0 || n >= NUM_SLOTS) {
+      return NextResponse.json(
+        { error: `slot must be an integer 0-${NUM_SLOTS - 1}` },
+        { status: 400 }
+      )
     }
     slotOverride = n
   }
@@ -62,19 +62,22 @@ export async function GET(req: Request) {
   }
 
   const byId = new Map(rows.map((r) => [r.id, r]))
-  const screenerIds = rows.filter((r) => r.block === 'screener').map((r) => r.id)
-  const calibrationIds = rows.filter((r) => r.block === 'calibration').map((r) => r.id)
-  const coreIds = rows.filter((r) => r.block === 'core').map((r) => r.id)
-  const extendedIds = rows.filter((r) => r.block === 'extended').map((r) => r.id)
+  const anchorsByTier = new Map<string, number[]>()
+  for (const r of rows) {
+    if (r.block !== 'anchors') continue
+    if (!anchorsByTier.has(r.tier)) anchorsByTier.set(r.tier, [])
+    anchorsByTier.get(r.tier)!.push(r.id)
+  }
+  const pool: PoolIds = {
+    screener: rows.filter((r) => r.block === 'screener').map((r) => r.id),
+    calibration: rows.filter((r) => r.block === 'calibration').map((r) => r.id),
+    pairs: rows.filter((r) => r.block === 'pairs').map((r) => r.id),
+    anchorsByTier,
+    catch: rows.filter((r) => r.block === 'catch').map((r) => r.id),
+  }
 
   const slot = raterSlot(rater, slotOverride)
-  // Screener comes FIRST for every rater, then the shared calibration block,
-  // then the latin-square core.
-  const assignedCoreIds = [
-    ...screenerOrder(screenerIds, rater),
-    ...calibrationOrder(calibrationIds, rater),
-    ...assignedItemIds(coreIds, rater, slot),
-  ]
+  const sequenceIds = fullSequence(pool, rater, slot)
 
   // This rater's already-rated ids (for cross-device resume).
   const rated = await db
@@ -83,19 +86,6 @@ export async function GET(req: Request) {
     .where(eq(draftRatings.rater, normalizeRater(rater)))
   const ratedIds = rated.map((r) => r.itemId)
   const ratedSet = new Set(ratedIds)
-
-  // Global coverage of the extended pool: how many ratings each extended item
-  // already has, so the serving order prioritizes globally under-covered items.
-  const coverage = new Map<number, number>()
-  if (extendedIds.length > 0) {
-    const covRows = await db
-      .select({ itemId: draftRatings.itemId, n: dsql<number>`count(*)::int` })
-      .from(draftRatings)
-      .where(inArray(draftRatings.itemId, extendedIds))
-      .groupBy(draftRatings.itemId)
-    for (const r of covRows) coverage.set(r.itemId, Number(r.n))
-  }
-  const orderedExtendedIds = extendedOrder(extendedIds, rater, coverage, ratedSet)
 
   const blind = (id: number) => {
     const row = byId.get(id)!
@@ -110,21 +100,15 @@ export async function GET(req: Request) {
     }
   }
 
-  const items = assignedCoreIds.map(blind)
-  const extendedItems = orderedExtendedIds.map(blind)
-
-  const ratedCoreCount = assignedCoreIds.filter((id) => ratedSet.has(id)).length
-  const extendedIdSet = new Set(extendedIds)
-  const ratedExtendedCount = ratedIds.filter((id) => extendedIdSet.has(id)).length
+  const items = sequenceIds.map(blind)
+  const ratedCount = sequenceIds.filter((id) => ratedSet.has(id)).length
 
   return NextResponse.json({
     rater,
     slot,
     isTest: isTestRater(rater),
     items,
-    extendedItems,
     ratedItemIds: ratedIds,
-    ratedCoreCount,
-    ratedExtendedCount,
+    ratedCount,
   })
 }

@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Expert draft-rating study client.
+ * Expert draft-rating study client (v4: fixed 240-item paid design).
  *
  * Per item: map + skill tier prominently at top, two blinded 5-hero teams
  * side by side, then three questions:
@@ -10,10 +10,13 @@
  *   (c) confidence 1-5
  * Auto-advances once all three are answered.
  *
+ * A consent-and-data-handling notice is shown before a rater's first item
+ * (skipped on resume — a rater with saved ratings has already consented).
+ *
  * Keyboard: arrows = slider, A/B = choice, 1-5 = confidence, Enter = next.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { heroImageSrc } from '@/lib/data/hero-images'
@@ -34,14 +37,13 @@ interface ItemsResponse {
   slot: number
   isTest: boolean
   items: RatingItem[]
-  extendedItems: RatingItem[]
   ratedItemIds: number[]
-  ratedCoreCount: number
-  ratedExtendedCount: number
+  ratedCount: number
 }
 
 const RATER_STORAGE_KEY = 'draft-rating-rater'
 const SLOT_STORAGE_KEY = 'draft-rating-slot'
+const CONSENT_STORAGE_KEY = 'draft-rating-consented'
 
 const TIER_META: Record<string, { label: string; ranks: string; className: string }> = {
   low: {
@@ -70,21 +72,14 @@ export function RateClient() {
   const [slot, setSlot] = useState<number | null>(null)
   const [nameInput, setNameInput] = useState('')
   const [initialized, setInitialized] = useState(false)
+  const [consented, setConsented] = useState(false)
 
-  // Two UI arms: 'core' (the 8 shared screener items, then the 40 shared
-  // calibration items, then the pre-registered latin-square 45 — served as
-  // one 93-item sequence, screener always first) then 'extended' (the
-  // uncapped volunteer pool). `idx` indexes the current phase's queue.
-  // Resume works anywhere in the sequence, including mid-screener: the
-  // server returns already-rated ids and they are filtered out below.
-  const [phase, setPhase] = useState<'core' | 'extended'>('core')
-  const [coreQueue, setCoreQueue] = useState<RatingItem[]>([])
-  const [extendedQueue, setExtendedQueue] = useState<RatingItem[]>([])
-  const [totalCore, setTotalCore] = useState(0)
-  const [ratedCoreBase, setRatedCoreBase] = useState(0) // core (of assigned) rated at load
-  const [ratedExtBase, setRatedExtBase] = useState(0) // extended rated at load
-  const [coreDone, setCoreDone] = useState(0) // core submitted this session
-  const [extDone, setExtDone] = useState(0) // extended submitted this session
+  // One fixed sequence of 240 items (7 for test raters). Resume works
+  // anywhere: the server returns already-rated ids and they are filtered out.
+  const [queue, setQueue] = useState<RatingItem[]>([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [ratedBase, setRatedBase] = useState(0) // rated before this session
+  const [done, setDone] = useState(0) // submitted this session
   const [idx, setIdx] = useState(0)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -107,7 +102,7 @@ export function RateClient() {
     if (qpRater) {
       nextRater = qpRater
       localStorage.setItem(RATER_STORAGE_KEY, qpRater)
-      if (qpSlot !== null && /^[0-9]$/.test(qpSlot)) {
+      if (qpSlot !== null && /^(0|1[0-3]?|[2-9])$/.test(qpSlot)) {
         nextSlot = Number(qpSlot)
         localStorage.setItem(SLOT_STORAGE_KEY, qpSlot)
       } else {
@@ -118,11 +113,14 @@ export function RateClient() {
       if (stored) {
         nextRater = stored
         const storedSlot = localStorage.getItem(SLOT_STORAGE_KEY)
-        if (storedSlot !== null && /^[0-9]$/.test(storedSlot)) nextSlot = Number(storedSlot)
+        if (storedSlot !== null && /^\d+$/.test(storedSlot)) nextSlot = Number(storedSlot)
       }
     }
     setRater(nextRater)
     setSlot(nextSlot)
+    if (nextRater && localStorage.getItem(CONSENT_STORAGE_KEY) === nextRater.toLowerCase()) {
+      setConsented(true)
+    }
     setInitialized(true)
   }, [searchParams])
 
@@ -142,20 +140,14 @@ export function RateClient() {
       .then((data) => {
         if (cancelled) return
         const ratedSet = new Set(data.ratedItemIds)
-        // Core: filter out anything already rated (cross-device resume). The
-        // extended pool is already filtered + ordered server-side.
-        const remainingCore = data.items.filter((it) => !ratedSet.has(it.id))
-        setCoreQueue(remainingCore)
-        setExtendedQueue(data.extendedItems ?? [])
-        setTotalCore(data.items.length)
-        setRatedCoreBase(data.ratedCoreCount ?? data.items.length - remainingCore.length)
-        setRatedExtBase(data.ratedExtendedCount ?? 0)
-        setCoreDone(0)
-        setExtDone(0)
+        const remaining = data.items.filter((it) => !ratedSet.has(it.id))
+        setQueue(remaining)
+        setTotalItems(data.items.length)
+        setRatedBase(data.ratedCount ?? data.items.length - remaining.length)
+        setDone(0)
         setIdx(0)
-        // Resume deep in the extended arm: if core is fully rated and the rater
-        // has already entered the extended pool, skip the completion screen.
-        setPhase(remainingCore.length === 0 && (data.ratedExtendedCount ?? 0) > 0 ? 'extended' : 'core')
+        // A rater with saved ratings has already consented (cross-device resume).
+        if ((data.ratedCount ?? 0) > 0) setConsented(true)
         shownAtRef.current = Date.now()
       })
       .catch((err) => {
@@ -169,12 +161,9 @@ export function RateClient() {
     }
   }, [rater, slot])
 
-  const activeQueue = phase === 'core' ? coreQueue : extendedQueue
-  const current: RatingItem | undefined = activeQueue[idx]
+  const current: RatingItem | undefined = queue[idx]
   const complete = pTouched && choice !== null && confidence !== null
-  // Total ratings the rater has completed (core + extended, incl. this session).
-  const coreRatedTotal = Math.min(totalCore, ratedCoreBase + coreDone)
-  const totalRated = coreRatedTotal + ratedExtBase + extDone
+  const progressDone = Math.min(totalItems, ratedBase + done)
 
   const resetAnswers = useCallback(() => {
     setP(50)
@@ -207,8 +196,7 @@ export function RateClient() {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.error ?? `HTTP ${res.status}`)
       }
-      if (phase === 'core') setCoreDone((n) => n + 1)
-      else setExtDone((n) => n + 1)
+      setDone((n) => n + 1)
       setIdx((i) => i + 1)
       resetAnswers()
     } catch (err) {
@@ -216,7 +204,7 @@ export function RateClient() {
     } finally {
       setSubmitting(false)
     }
-  }, [current, rater, slot, complete, submitting, p, choice, confidence, phase, resetAnswers])
+  }, [current, rater, slot, complete, submitting, p, choice, confidence, resetAnswers])
 
   // Auto-advance shortly after all three questions are answered
   useEffect(() => {
@@ -227,7 +215,7 @@ export function RateClient() {
 
   // Keyboard shortcuts
   useEffect(() => {
-    if (!current) return
+    if (!current || !consented) return
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
@@ -256,7 +244,7 @@ export function RateClient() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [current, submit])
+  }, [current, consented, submit])
 
   // ---------------------------------------------------------------- screens
 
@@ -323,63 +311,69 @@ export function RateClient() {
     )
   }
 
-  if (!current) {
-    // Core finished but extended not yet started → offer the volunteer arm.
-    if (phase === 'core' && extendedQueue.length > 0) {
-      return (
-        <div className="mx-auto max-w-lg pt-16 text-center" data-testid="rate-complete">
-          <div className="rounded-xl border bg-card p-8 shadow-lg">
-            <div className="text-5xl">🎉</div>
-            <h1 className="mt-4 text-2xl font-bold">Core set complete — thank you!</h1>
-            <p className="mt-3 text-muted-foreground">
-              You rated {coreRatedTotal} of {totalCore} assigned drafts. Your judgments are a
-              huge help in validating our draft models against real expert intuition.
+  if (!consented && current) {
+    return (
+      <div className="mx-auto max-w-2xl pt-12" data-testid="rate-consent">
+        <div className="rounded-xl border bg-card p-6 shadow-lg sm:p-8">
+          <h1 className="text-2xl font-bold">Before you begin</h1>
+          <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
+            <p>
+              This is a <span className="font-medium text-foreground">research study</span> on
+              how experts judge Heroes of the Storm drafts. You will rate{' '}
+              <span className="font-medium text-foreground">{totalItems} pairs of drafts</span>{' '}
+              (most raters take 1.5–2.5 hours in total). You can stop and resume anytime, on any
+              device — your progress saves after every item.
             </p>
-            <div className="mt-6 rounded-lg border bg-background/60 p-4">
-              <p className="font-semibold">Keep going? Every extra rating helps.</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                There&apos;s no cap — each additional draft sharpens our per-tier accuracy
-                estimates. Stop whenever you like; your work is already saved.
-              </p>
-              <button
-                onClick={() => {
-                  setPhase('extended')
-                  setIdx(0)
-                  resetAnswers()
-                }}
-                data-testid="rate-continue"
-                className="mt-4 h-11 rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground shadow"
-              >
-                Keep rating →
-              </button>
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Or you can close this page now, <span className="font-medium">{rater}</span>.
+            <p>
+              <span className="font-medium text-foreground">What we collect:</span> your ratings,
+              response times, and the rater name on your invite. Results will be reported in
+              academic publications in aggregate or pseudonymous form; your name will never be
+              published without your permission.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Compensation:</span> $100 via Venmo on
+              completion of all {totalItems} items. Partial completion is not compensated.
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Voluntary:</span> you may stop at any
+              time. Questions or concerns: max@segan.com.
             </p>
           </div>
+          <button
+            onClick={() => {
+              localStorage.setItem(CONSENT_STORAGE_KEY, rater.toLowerCase())
+              setConsented(true)
+              shownAtRef.current = Date.now()
+            }}
+            data-testid="rate-consent-agree"
+            className="mt-6 h-12 w-full rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow"
+          >
+            I agree — start rating
+          </button>
         </div>
-      )
-    }
-    // Extended pool exhausted (or no extended items at all).
+      </div>
+    )
+  }
+
+  if (!current) {
     return (
       <div className="mx-auto max-w-lg pt-16 text-center" data-testid="rate-complete">
         <div className="rounded-xl border bg-card p-8 shadow-lg">
           <div className="text-5xl">🏆</div>
           <h1 className="mt-4 text-2xl font-bold">All done — thank you!</h1>
           <p className="mt-3 text-muted-foreground">
-            You rated {totalRated} drafts in total. Your judgments are a huge help in validating
-            our draft models against real expert intuition.
+            You rated all {progressDone} assigned drafts. Your judgments are a huge help in
+            validating our draft models against real expert intuition.
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            You can close this page now, <span className="font-medium">{rater}</span>.
+            We&apos;ll be in touch about your compensation shortly. You can close this page now,{' '}
+            <span className="font-medium">{rater}</span>.
           </p>
         </div>
       </div>
     )
   }
 
-  const inExtended = phase === 'extended'
-  const progressDone = ratedCoreBase + coreDone
   const tierMeta = TIER_META[current.tier] ?? TIER_META.mid
   const mapImg = mapImageSrc(current.map)
 
@@ -388,31 +382,21 @@ export function RateClient() {
       className="mx-auto max-w-4xl pb-16"
       data-testid="rate-item"
       data-item-id={current.id}
-      data-block={phase}
     >
       {/* Progress */}
       <div className="mb-4">
         <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
           <span>
             Rater: <span className="font-medium text-foreground">{rater}</span>
-            {inExtended && (
-              <span className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 font-medium text-primary">
-                bonus round
-              </span>
-            )}
           </span>
           <span data-testid="rate-progress">
-            {inExtended ? `${totalRated + 1} rated` : `${progressDone + 1} / ${totalCore}`}
+            {progressDone + 1} / {totalItems}
           </span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-primary transition-all"
-            style={{
-              width: inExtended
-                ? '100%'
-                : `${(progressDone / Math.max(1, totalCore)) * 100}%`,
-            }}
+            style={{ width: `${(progressDone / Math.max(1, totalItems)) * 100}%` }}
           />
         </div>
       </div>

@@ -1,59 +1,60 @@
 /**
- * Generate the item set for the expert draft-rating study: a SCREENER block of
- * 8 items (served first; competence/attention gate), a shared CALIBRATION
- * block of 40 items (rated by every rater, after screener), a CORE of 150
- * items (the pre-registered latin-square design), and an EXTENDED pool of 700
- * items (a volunteer arm for high-volume raters, served after core).
+ * Generate the item set for the expert draft-rating study (v4: paid raters,
+ * fixed 240-item assignment, 14 slots — see oss-export/docs/prereg_expert_study.md).
  *
- * Composition (seeded, reproducible given the same DB snapshot):
+ * Blocks (block labels live server-side; item ids are a GLOBAL shuffle of all
+ * 901 items so neither id nor serving position leaks block membership):
  *
- *   SCREENER — 8 items, ids 1..8 (every rater rates ALL of them FIRST):
+ *   SCREENER — 8 items:
  *     - each pairs a REAL recent ladder draft against a CONSTRUCTED
  *       role-degenerate team (5 tanks, 5 healers, no-healer+no-frontline
  *       stacks, …) built from HERO_ROLE_FINE like the synthetic-augmentation
  *       generator. Same map/tier framing as the real draft; sides blinded
  *       like every other item. A competent rater should approach 100%
  *       (pick the real draft); the inclusion gate is >= 7/8 correct.
+ *       Served INTERLEAVED among the 40 calibration items in positions 1-48
+ *       (v4: no consecutive screener run, to dilute "weird = fake" priming).
  *
- *   CALIBRATION — 40 items, ids 9..48 (every rater rates ALL of them after
- *   the screener, before their latin-square core 45 → 93 items per rater):
- *     - 40 real known-outcome ladder anchors, tier-stratified 14 low /
- *       13 mid / 13 high, distinct from every other item in the study.
- *       Comparability block + per-rater calibration estimates (NOT a gate).
+ *   CALIBRATION — 40 items:
+ *     - real known-outcome ladder anchors, tier-stratified 14 low / 13 mid /
+ *       13 high, distinct from every other item in the study. Every rater
+ *       rates all 40 within positions 1-48. Comparability block + per-rater
+ *       calibration estimates (NOT a gate; excluded from S1/S3).
  *
- *   CORE — 150 items, ids 49..198:
- *     - 135 tournament (machine-pair) drafts, strata weighted toward the
- *       anchored-vs-non-anchored contrast:
- *         A. constrained_mcts vs mcts            20 items
- *         B. mcts vs enriched                    20 items
- *         C. behavior-anchored vs non-anchored   60 items
+ *   PAIRS — 280 items (all machine-vs-machine tournament pairs, merged v3
+ *   core+extended; every one is confirmatory-eligible under fixed assignment):
+ *         A. constrained_mcts vs mcts            42 items
+ *         B. mcts vs enriched                    42 items
+ *         C. behavior-anchored vs non-anchored  118 items
  *            (anchored = gd, cql_naive_a1.0, cql_enr_a2.0, gourdeau_disc)
- *         D. all other strategy pairs            35 items
- *     - 15 real known-outcome ladder anchors (5 low / 5 mid / 5 high).
+ *         D. all other strategy pairs            78 items
+ *     Assignment: 14 blocks of 20; slot s rates blocks {s, s+1, s+2} mod 14
+ *     → 60 pairs/rater, every pair rated by exactly 3 raters.
  *
- *   EXTENDED — 700 items, ids 199..898 (distinct replays/records from
- *   every other block):
- *     - 145 tournament (machine-pair) drafts (22 / 22 / 58 / 43 by the same
- *       strata).
- *     - 555 known-outcome ladder anchors, tier-stratified 185 / 185 / 185.
+ *   ANCHORS — 570 items (190/tier), real known-outcome ladder drafts:
+ *     Assignment: per tier, a seeded global order dealt cyclically — slot s
+ *     takes positions [43s, 43s+43) of the sequence i % 190 — so each rater
+ *     gets 43/tier (129 total) and each anchor is rated by exactly 3 raters
+ *     except the first 32 per tier in the dealt order, which get 4.
  *
- * ALL real ladder drafts (screener reals + calibration + core + extended
- * anchors) POSTDATE the 2026-05-22 training snapshot (replay_id >
- * 63653039), so no anchor can appear in any model's training data.
+ *   CATCH — 3 items (1/tier), screener-grade real-vs-degenerate pairs served
+ *     at fixed positions 121 / 181 / 231 of every rater's 240-item sequence
+ *     (late-session attention checks; gate >= 2/3; no endpoint).
  *
- * Every item carries a `block` field ('screener' | 'calibration' | 'core' |
- * 'extended'). Core keeps a 10-slot latin square (10 blocks of 15; slot s
- * rates blocks {s, s+1, s+2} → 45 items/rater, 3 ratings/item); screener and
- * calibration are served to everyone before core; extended is served as an
- * uncapped pool after a rater finishes core. Rater burden: 8 + 40 + 45 = 93.
+ * Rater burden: 48 + 60 + 129 + 3 = 240 items, identical for every rater.
+ *
+ * ALL real ladder drafts (screener/catch reals + calibration + anchors)
+ * POSTDATE the 2026-05-22 training snapshot (replay_id > 63653039), so no
+ * anchor can appear in any model's training data.
  *
  * After generation, run training/rerun2026/rating_items_ood.py to freeze the
- * OOD ensemble-variance covariate into every machine-pair item's provenance,
- * THEN seed with scripts/seed-rating-items.ts.
+ * OOD ensemble-variance covariates (reference-probe AND matchup-level) into
+ * every machine-pair item's provenance, THEN seed with
+ * scripts/seed-rating-items.ts.
  *
  * Output: data/rating-items.json — committed to the repo and seeded into the
  * rating_items table by scripts/seed-rating-items.ts. Provenance (strategy
- * labels, source, winner, model WPs, OOD covariate) lives ONLY in this file /
+ * labels, source, winner, model WPs, OOD covariates) lives ONLY in this file /
  * the DB provenance column; it is never sent to the client.
  *
  * Usage: set -a && source .env && set +a && npx tsx scripts/generate-rating-items.ts
@@ -64,13 +65,19 @@ import { neon } from '@neondatabase/serverless'
 import { fnv1a, mulberry32, seededShuffle } from '../src/lib/rating/assignment'
 import { HERO_ROLES } from '../src/lib/data/hero-roles'
 
-// SEED history: 20260708 generated the original 500-item set (100 core + 400
-// extended). 20260709 added the shared 20-item calibration block and the
-// expanded extended arm. 20260710 grew the calibration block to 40 anchors.
-// 20260711 is the post-adversarial-review restructure: NEW 8-item screener
-// block, core rebalanced 15 anchors + 135 machine pairs (latin square 150),
-// all real anchors restricted to post-snapshot replays (> 63653039).
-const SEED = 20260711
+// SEED history: 20260708 original 500-item set; 20260709 calibration block;
+// 20260710 calibration grown to 40; 20260711 post-adversarial-review
+// restructure (screener block, post-snapshot anchors, latin square 150).
+// 20260712 is the v4 paid-rater redesign: core/extended merged into PAIRS
+// (280) + ANCHORS (570), new 3-item CATCH block, GLOBAL id shuffle so ids
+// carry no block information (required now that the screener is interleaved).
+const SEED = 20260712
+// The machine-pair sample is pinned to the v3 seed: v3 drew each stratum's
+// core+ext records in a single sampleStratum pass, so sampling the same
+// totals with the same seed reproduces the IDENTICAL 280 records — their
+// frozen wpTeam0Sym and OOD provenances (and the prereg's near-tie counts)
+// carry over unchanged across the v4 re-freeze.
+const PAIR_SAMPLE_SEED = 20260711
 // Last replay id in the 2026-05-22 model-training snapshot. Every real ladder
 // draft in the study must be strictly newer, so no anchor is train-set data.
 const TRAINING_SNAPSHOT_MAX_REPLAY_ID = 63653039
@@ -82,25 +89,23 @@ const RESULT_DIRS = [
 const OUT_PATH = path.join(REPO, 'data/rating-items.json')
 
 const ANCHORED = new Set(['gd', 'cql_naive_a1.0', 'cql_enr_a2.0', 'gourdeau_disc'])
-// Machine-pair matchup strata. `core` sums to 135, weighted toward the
-// anchored-vs-non-anchored stratum (a named secondary endpoint); `ext` sums
-// to 145 (unchanged from the previous pool). Extended records are distinct
-// from core.
-const STRATA: { name: string; core: number; ext: number }[] = [
-  { name: 'constrained_mcts_vs_mcts', core: 20, ext: 22 },
-  { name: 'mcts_vs_enriched', core: 20, ext: 22 },
-  { name: 'vs_anchored', core: 60, ext: 58 },
-  { name: 'other_pairs', core: 35, ext: 43 },
+// Machine-pair matchup strata (v4: single merged count per stratum = the v3
+// core+ext totals; all 280 valid tournament records are used).
+const STRATA: { name: string; count: number }[] = [
+  { name: 'constrained_mcts_vs_mcts', count: 42 },
+  { name: 'mcts_vs_enriched', count: 42 },
+  { name: 'vs_anchored', count: 118 },
+  { name: 'other_pairs', count: 78 },
 ]
-// Known-outcome ladder anchors. Screener reals = 3/3/2 (8); calibration =
-// 14/13/13 (40, shared across all raters); core = 5/tier (15); extended =
-// 185/tier (555); all distinct replays, all post-snapshot.
+// Known-outcome ladder anchors. Screener reals = 3/3/2 (8); catch reals =
+// 1/1/1 (3); calibration = 14/13/13 (40, shared); anchor block = 190/tier
+// (570); all distinct replays, all post-snapshot.
 const LADDER_SCREENER_COUNTS: Record<string, number> = { low: 3, mid: 3, high: 2 }
+const LADDER_CATCH_COUNTS: Record<string, number> = { low: 1, mid: 1, high: 1 }
 const LADDER_CALIB_COUNTS: Record<string, number> = { low: 14, mid: 13, high: 13 }
-const LADDER_CORE_COUNTS: Record<string, number> = { low: 5, mid: 5, high: 5 }
-const LADDER_EXT_COUNTS: Record<string, number> = { low: 185, mid: 185, high: 185 }
-// Extra per-tier drafts pulled so screener slots can skip real drafts whose
-// heroes collide with the constructed degenerate team.
+const LADDER_ANCHOR_COUNTS: Record<string, number> = { low: 190, mid: 190, high: 190 }
+// Extra per-tier drafts pulled so screener/catch slots can skip real drafts
+// whose heroes collide with the constructed degenerate team.
 const LADDER_BUFFER = 20
 
 // ── Fine-grained hero roles (must match training/shared.py HERO_ROLE_FINE) ──
@@ -151,10 +156,11 @@ const HERO_ROLE_FINE: Record<string, string> = {
 }
 
 /**
- * Screener degenerate-team recipes: each spec lists the fine-role groups
- * (with counts) the constructed team is sampled from, plus optional fixed
- * heroes. Cho and Gall are never sampled (pairing constraint). A competent
- * rater should see every one of these as clearly worse than a real draft.
+ * Degenerate-team recipes for screener/catch items: each spec lists the
+ * fine-role groups (with counts) the constructed team is sampled from, plus
+ * optional fixed heroes. Cho and Gall are never sampled (pairing constraint).
+ * A competent rater should see every one of these as clearly worse than a
+ * real draft.
  */
 interface ScreenerSpec {
   type: string
@@ -195,6 +201,20 @@ const SCREENER_SPECS: ScreenerSpec[] = [
     fixed: ['Abathur', 'Medivh', 'Zarya'],
     sample: [{ role: 'pusher', n: 2 }],
   },
+]
+// Late-session attention checks (v4). Distinct recipes from the screener so
+// no rater sees the same degenerate shape twice.
+const CATCH_SPECS: ScreenerSpec[] = [
+  { type: 'five_bruisers', tier: 'low', sample: [{ role: 'bruiser', n: 5 }] }, // no healer, no range
+  {
+    type: 'four_healers_one_pusher',
+    tier: 'mid',
+    sample: [
+      { role: 'healer', n: 4 },
+      { role: 'pusher', n: 1 },
+    ],
+  },
+  { type: 'five_ranged_aa', tier: 'high', sample: [{ role: 'ranged_aa', n: 5 }] }, // no healer, no frontline
 ]
 
 interface TournamentRecord {
@@ -240,9 +260,9 @@ function validTeams(team0: string[], team1: string[]): boolean {
 }
 
 /**
- * Build one role-degenerate screener team from a spec, avoiding `forbidden`
- * heroes (the paired real draft's ten heroes). Returns null if the spec
- * cannot be satisfied without collisions.
+ * Build one role-degenerate team from a spec, avoiding `forbidden` heroes
+ * (the paired real draft's ten heroes). Returns null if the spec cannot be
+ * satisfied without collisions.
  */
 function buildDegenTeam(
   spec: ScreenerSpec,
@@ -337,7 +357,8 @@ function sampleStratum(cands: Candidate[], count: number, seed: number): Candida
   const mapCount = new Map<string, number>()
   const usedKeys = new Set<string>()
   let pi = 0
-  while (picked.length < count) {
+  let stall = 0
+  while (picked.length < count && stall < pairKeys.length * 2) {
     const pool = byPair.get(pairKeys[pi % pairKeys.length])!
     pi++
     // Best remaining candidate in this pair: least-used tier, then map, random tiebreak.
@@ -353,12 +374,19 @@ function sampleStratum(cands: Candidate[], count: number, seed: number): Candida
         best = c
       }
     }
-    if (!best) continue
+    if (!best) {
+      stall++
+      continue
+    }
+    stall = 0
     const key = best.team0.join(',') + '|' + best.team1.join(',') + '|' + best.map
     usedKeys.add(key)
     tierCount.set(best.tier, (tierCount.get(best.tier) ?? 0) + 1)
     mapCount.set(best.map, (mapCount.get(best.map) ?? 0) + 1)
     picked.push(best)
+  }
+  if (picked.length < count) {
+    throw new Error(`stratum sampling exhausted at ${picked.length}/${count}`)
   }
   return picked
 }
@@ -435,18 +463,19 @@ function ladderCandidate(r: LadderDraft): Candidate {
 }
 
 /**
- * Build the 8 screener items for one tier's specs from the front of that
- * tier's draft list. Returns the screener candidates plus the set of
- * replay_ids consumed (so later blocks skip them).
+ * Build real-vs-degenerate items (screener or catch) for one tier's specs
+ * from the front of that tier's draft list. Consumed replay_ids are added to
+ * `used` so later blocks skip them.
  */
-function buildScreenerItems(
+function buildDegenItems(
   specs: ScreenerSpec[],
   drafts: LadderDraft[],
-  used: Set<number>
+  used: Set<number>,
+  sourceLabel: 'screener' | 'catch'
 ): Candidate[] {
   const out: Candidate[] = []
   for (const spec of specs) {
-    const rand = mulberry32(fnv1a(String(SEED) + '|screener|' + spec.type))
+    const rand = mulberry32(fnv1a(String(SEED) + '|' + sourceLabel + '|' + spec.type))
     let built: { real: LadderDraft; degen: string[] } | null = null
     for (const d of drafts) {
       if (used.has(d.replay_id)) continue
@@ -459,7 +488,7 @@ function buildScreenerItems(
         break
       }
     }
-    if (!built) throw new Error(`screener ${spec.type}: no compatible real draft found`)
+    if (!built) throw new Error(`${sourceLabel} ${spec.type}: no compatible real draft found`)
     used.add(built.real.replay_id)
     const realTeam =
       built.real.winner === 0 ? built.real.team0_heroes : built.real.team1_heroes
@@ -473,10 +502,10 @@ function buildScreenerItems(
       tier: built.real.skill_tier,
       team0,
       team1,
-      pairKey: 'screener',
+      pairKey: sourceLabel,
       provenance: {
-        source: 'screener',
-        stratum: 'screener',
+        source: sourceLabel,
+        stratum: sourceLabel,
         degenType: spec.type,
         // `winner` = the REAL team's canonical side (the correct answer),
         // matching the anchor scoring convention.
@@ -495,72 +524,64 @@ async function main() {
     process.exit(1)
   }
   const byStratum = loadTournamentCandidates()
-  const coreMachine: Candidate[] = []
-  const extMachine: Candidate[] = []
-  for (const { name, core, ext } of STRATA) {
+  const pairs: Candidate[] = []
+  for (const { name, count } of STRATA) {
     const cands = byStratum.get(name) ?? []
-    console.log(
-      `stratum ${name}: ${cands.length} candidates -> sampling ${core} core + ${ext} extended`
-    )
-    // Sample core+ext distinct records in one pass, then split so extended
-    // never reuses a core record.
-    const sampled = sampleStratum(cands, core + ext, SEED ^ fnv1a(name))
-    coreMachine.push(...sampled.slice(0, core))
-    extMachine.push(...sampled.slice(core))
+    console.log(`stratum ${name}: ${cands.length} candidates -> sampling ${count}`)
+    pairs.push(...sampleStratum(cands, count, PAIR_SAMPLE_SEED ^ fnv1a(name)))
   }
 
   const screener: Candidate[] = []
+  const catchItems: Candidate[] = []
   const calibLadder: Candidate[] = []
-  const coreLadder: Candidate[] = []
-  const extLadder: Candidate[] = []
-  for (const tier of Object.keys(LADDER_CORE_COUNTS)) {
+  const anchorLadder: Candidate[] = []
+  for (const tier of Object.keys(LADDER_ANCHOR_COUNTS)) {
     const screenerSpecs = SCREENER_SPECS.filter((s) => s.tier === tier)
+    const catchSpecs = CATCH_SPECS.filter((s) => s.tier === tier)
     const calibN = LADDER_CALIB_COUNTS[tier]
-    const coreN = LADDER_CORE_COUNTS[tier]
-    const extN = LADDER_EXT_COUNTS[tier]
+    const anchorN = LADDER_ANCHOR_COUNTS[tier]
     if (screenerSpecs.length !== LADDER_SCREENER_COUNTS[tier]) {
       throw new Error(`screener spec/tier count mismatch for ${tier}`)
     }
-    // One pass per tier (+ buffer for screener compatibility scans), consumed
-    // screener → calibration → core → extended, so all four blocks are
-    // guaranteed disjoint replays.
+    if (catchSpecs.length !== LADDER_CATCH_COUNTS[tier]) {
+      throw new Error(`catch spec/tier count mismatch for ${tier}`)
+    }
+    // One pass per tier (+ buffer for degen-compatibility scans), consumed
+    // screener → catch → calibration → anchors, so all blocks are guaranteed
+    // disjoint replays.
     const drafts = await loadLadderTier(
       tier,
-      screenerSpecs.length + calibN + coreN + extN + LADDER_BUFFER
+      screenerSpecs.length + catchSpecs.length + calibN + anchorN + LADDER_BUFFER
     )
     const used = new Set<number>()
-    screener.push(...buildScreenerItems(screenerSpecs, drafts, used))
+    screener.push(...buildDegenItems(screenerSpecs, drafts, used, 'screener'))
+    catchItems.push(...buildDegenItems(catchSpecs, drafts, used, 'catch'))
     const remaining = drafts.filter((d) => !used.has(d.replay_id))
     calibLadder.push(...remaining.slice(0, calibN).map(ladderCandidate))
-    coreLadder.push(...remaining.slice(calibN, calibN + coreN).map(ladderCandidate))
-    extLadder.push(
-      ...remaining.slice(calibN + coreN, calibN + coreN + extN).map(ladderCandidate)
-    )
+    anchorLadder.push(...remaining.slice(calibN, calibN + anchorN).map(ladderCandidate))
     console.log(
-      `ladder ${tier}: ${screenerSpecs.length} screener + ${calibN} calibration + ` +
-        `${coreN} core + ${extN} extended (all post-snapshot)`
+      `ladder ${tier}: ${screenerSpecs.length} screener + ${catchSpecs.length} catch + ` +
+        `${calibN} calibration + ${anchorN} anchors (all post-snapshot)`
     )
   }
 
-  // SCREENER: shuffle so item id carries no tier/type ordering; ids 1..8.
-  const screenerBlock = seededShuffle(screener, SEED ^ 0x5c5e)
-  // CALIBRATION: shuffle so item id carries no tier ordering.
-  const calibration = seededShuffle(calibLadder, SEED ^ 0xca11b)
-  // CORE: shuffle so item id carries no stratum information.
-  const core = seededShuffle([...coreMachine, ...coreLadder], SEED)
-  // EXTENDED: shuffle independently; ids continue after core.
-  const extended = seededShuffle([...extMachine, ...extLadder], SEED ^ 0x5eed_e17e)
-
   // ── Verify all-unique replay/record usage across the whole pool ──
-  const replayIds = [...screenerBlock, ...calibration, ...core, ...extended]
-    .map((c) => c.provenance.replayId)
+  const allCandidates: { c: Candidate; block: string }[] = [
+    ...screener.map((c) => ({ c, block: 'screener' })),
+    ...calibLadder.map((c) => ({ c, block: 'calibration' })),
+    ...pairs.map((c) => ({ c, block: 'pairs' })),
+    ...anchorLadder.map((c) => ({ c, block: 'anchors' })),
+    ...catchItems.map((c) => ({ c, block: 'catch' })),
+  ]
+  const replayIds = allCandidates
+    .map(({ c }) => c.provenance.replayId)
     .filter((x) => x !== undefined) as number[]
   if (new Set(replayIds).size !== replayIds.length) {
     throw new Error('duplicate ladder replay usage across blocks')
   }
-  const recordKeys = [...core, ...extended]
-    .filter((c) => c.provenance.source === 'tournament')
-    .map((c) => `${c.provenance.file}#${c.provenance.recordIndex}`)
+  const recordKeys = allCandidates
+    .filter(({ c }) => c.provenance.source === 'tournament')
+    .map(({ c }) => `${c.provenance.file}#${c.provenance.recordIndex}`)
   if (new Set(recordKeys).size !== recordKeys.length) {
     throw new Error('duplicate tournament record usage across blocks')
   }
@@ -569,25 +590,18 @@ async function main() {
       `${recordKeys.length} distinct tournament records`
   )
 
-  const toItem = (
-    c: Candidate,
-    id: number,
-    block: 'screener' | 'calibration' | 'core' | 'extended'
-  ) => ({
-    id,
-    block,
+  // ── GLOBAL id shuffle: ids carry no block/stratum/source information ──
+  // (v4 requirement: the screener is interleaved into positions 1-48, so
+  // sequential screener ids would let an id-watching rater spot gate items.)
+  const shuffled = seededShuffle(allCandidates, SEED ^ 0x91d5)
+  const items = shuffled.map(({ c, block }, i) => ({
+    id: i + 1,
+    block: block as 'screener' | 'calibration' | 'pairs' | 'anchors' | 'catch',
     map: c.map,
     tier: c.tier,
     teams: { team0: c.team0, team1: c.team1 },
     provenance: c.provenance,
-  })
-  let nextId = 1
-  const items = [
-    ...screenerBlock.map((c) => toItem(c, nextId++, 'screener')),
-    ...calibration.map((c) => toItem(c, nextId++, 'calibration')),
-    ...core.map((c) => toItem(c, nextId++, 'core')),
-    ...extended.map((c) => toItem(c, nextId++, 'extended')),
-  ]
+  }))
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true })
   fs.writeFileSync(
@@ -604,13 +618,13 @@ async function main() {
     )
   )
   console.log(
-    `wrote ${items.length} items (${screenerBlock.length} screener + ` +
-      `${calibration.length} calibration + ${core.length} core + ` +
-      `${extended.length} extended) to ${OUT_PATH}`
+    `wrote ${items.length} items (${screener.length} screener + ` +
+      `${calibLadder.length} calibration + ${pairs.length} pairs + ` +
+      `${anchorLadder.length} anchors + ${catchItems.length} catch) to ${OUT_PATH}`
   )
 
   // Composition report.
-  for (const block of ['screener', 'calibration', 'core', 'extended'] as const) {
+  for (const block of ['screener', 'calibration', 'pairs', 'anchors', 'catch'] as const) {
     const strata = new Map<string, number>()
     const tiers = new Map<string, number>()
     const sources = new Map<string, number>()

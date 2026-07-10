@@ -16,6 +16,10 @@ in ensemble_uncertainty.py. This yields two numbers per item.)
 Written into provenance (frozen before any rating is collected):
   ood_var_team0, ood_var_team1        per-team ensemble variance vs reference
   ood_var_max, ood_var_mean           item-level aggregates
+  ood_var_matchup                     ensemble variance of the ACTUAL matchup
+                                      (team0 vs team1) symmetrized WP — a
+                                      single side-invariant number per item;
+                                      v4 sensitivity covariate for H2
   ood_ref_team0, ood_ref_team1        the exact reference comp used (audit)
 
 GD-likelihood was considered as a second covariate and SKIPPED: the
@@ -77,6 +81,12 @@ def reference_for(team):
     return ref
 
 
+def _spearman(a, b):
+    ra = np.argsort(np.argsort(a)).astype(float)
+    rb = np.argsort(np.argsort(b)).astype(float)
+    return float(np.corrcoef(ra, rb)[0, 1])
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--dry-run", action="store_true")
@@ -93,7 +103,8 @@ def main():
     print(f"pool seed {pool['seed']}: {len(pool['items'])} items, "
           f"{len(machine)} machine pairs")
 
-    # One record per (item, side): team vs reference on the item's map/tier.
+    # Three records per item: team0 vs reference, team1 vs reference (the
+    # per-team probes), and team0 vs team1 (the actual matchup).
     records, refs = [], []
     for it in machine:
         for side in (0, 1):
@@ -102,23 +113,29 @@ def main():
             refs.append(ref)
             records.append({"team0_heroes": team, "team1_heroes": ref,
                             "game_map": it["map"], "skill_tier": it["tier"]})
+        refs.append(None)
+        records.append({"team0_heroes": it["teams"]["team0"],
+                        "team1_heroes": it["teams"]["team1"],
+                        "game_map": it["map"], "skill_tier": it["tier"]})
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     stats = common.stats_cache()
     feats = _extract_set(records, stats)
     P = np.stack([_member_predict(m[0], feats, device) for m in ROSTER])
-    var = P.var(axis=0, ddof=1)  # [2 * n_machine]
-    print(f"predicted {P.shape[1]} team-vs-reference records x {P.shape[0]} members")
+    var = P.var(axis=0, ddof=1)  # [3 * n_machine]
+    print(f"predicted {P.shape[1]} probe/matchup records x {P.shape[0]} members")
 
     for i, it in enumerate(machine):
-        v0, v1 = float(var[2 * i]), float(var[2 * i + 1])
+        v0, v1 = float(var[3 * i]), float(var[3 * i + 1])
+        vm = float(var[3 * i + 2])
         prov = it["provenance"]
         prov["ood_var_team0"] = v0
         prov["ood_var_team1"] = v1
         prov["ood_var_max"] = max(v0, v1)
         prov["ood_var_mean"] = 0.5 * (v0 + v1)
-        prov["ood_ref_team0"] = refs[2 * i]
-        prov["ood_ref_team1"] = refs[2 * i + 1]
+        prov["ood_var_matchup"] = vm
+        prov["ood_ref_team0"] = refs[3 * i]
+        prov["ood_ref_team1"] = refs[3 * i + 1]
 
     # Distribution summary (for the prereg / report).
     def dist(v):
@@ -133,11 +150,16 @@ def main():
         by_key.setdefault(("stratum", prov["stratum"]), []).append(prov["ood_var_max"])
     all_max = [it["provenance"]["ood_var_max"] for it in machine]
     print(f"\nood_var_max (all machine pairs): {dist(np.array(all_max))}")
+    all_matchup = [it["provenance"]["ood_var_matchup"] for it in machine]
+    print(f"ood_var_matchup (all machine pairs): {dist(np.array(all_matchup))}")
+    print("spearman(ood_var_max, ood_var_matchup) = "
+          f"{_spearman(all_max, all_matchup):.3f}")
     for (kind, key), vals in sorted(by_key.items()):
         print(f"  {kind}={key}: {dist(np.array(vals))}")
     n_sub = sum(1 for i, r in enumerate(records)
-                if refs[i] != STANDARD)
-    print(f"reference substitutions used on {n_sub}/{len(records)} records")
+                if refs[i] is not None and refs[i] != STANDARD)
+    n_probe = sum(1 for r in refs if r is not None)
+    print(f"reference substitutions used on {n_sub}/{n_probe} probe records")
 
     if args.dry_run:
         print("dry run: not writing")

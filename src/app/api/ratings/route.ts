@@ -3,11 +3,13 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { draftRatings, ratingItems } from '@/lib/db/schema'
 import {
-  assignedItemIds,
+  fullSequence,
   isTestRater,
   normalizeRater,
+  NUM_SLOTS,
   raterSlot,
   sideSwapped,
+  type PoolIds,
 } from '@/lib/rating/assignment'
 
 export const runtime = 'nodejs'
@@ -43,8 +45,15 @@ export async function POST(req: Request) {
 
   let slotOverride: number | undefined
   if (body.slot !== undefined && body.slot !== null) {
-    if (!Number.isInteger(body.slot) || (body.slot as number) < 0 || (body.slot as number) > 9) {
-      return NextResponse.json({ error: 'slot must be an integer 0-9' }, { status: 400 })
+    if (
+      !Number.isInteger(body.slot) ||
+      (body.slot as number) < 0 ||
+      (body.slot as number) >= NUM_SLOTS
+    ) {
+      return NextResponse.json(
+        { error: `slot must be an integer 0-${NUM_SLOTS - 1}` },
+        { status: 400 }
+      )
     }
     slotOverride = body.slot as number
   }
@@ -77,28 +86,34 @@ export async function POST(req: Request) {
     msTaken = Math.min(body.msTaken as number, 2_000_000_000)
   }
 
-  // Look up the item's block and verify it is servable to this rater.
-  // Screener and calibration items are shared: every rater rates all of them.
-  // Core items must fall in the rater's latin-square assignment; extended
-  // items (the uncapped volunteer pool) are servable to anyone.
+  // Look up the item's block and verify it is in this rater's fixed 240-item
+  // sequence. Screener, calibration, and catch items are shared (every rater
+  // rates all of them); pairs and anchors must fall in the rater's slot
+  // assignment. The v4 design has no open pool: everything is fixed.
   const items = await db
-    .select({ id: ratingItems.id, block: ratingItems.block })
+    .select({ id: ratingItems.id, block: ratingItems.block, tier: ratingItems.tier })
     .from(ratingItems)
   const target = items.find((r) => r.id === (itemId as number))
   if (!target) {
     return NextResponse.json({ error: 'unknown itemId' }, { status: 400 })
   }
-  const block =
-    target.block === 'extended' || target.block === 'calibration' || target.block === 'screener'
-      ? target.block
-      : 'core'
-  if (block === 'core') {
-    const coreIds = items.filter((r) => r.block === 'core').map((r) => r.id)
-    const slot = raterSlot(rater, slotOverride)
-    const assigned = assignedItemIds(coreIds, rater, slot)
-    if (!assigned.includes(itemId as number)) {
-      return NextResponse.json({ error: 'item is not in this rater\'s assignment' }, { status: 400 })
-    }
+  const anchorsByTier = new Map<string, number[]>()
+  for (const r of items) {
+    if (r.block !== 'anchors') continue
+    if (!anchorsByTier.has(r.tier)) anchorsByTier.set(r.tier, [])
+    anchorsByTier.get(r.tier)!.push(r.id)
+  }
+  const pool: PoolIds = {
+    screener: items.filter((r) => r.block === 'screener').map((r) => r.id),
+    calibration: items.filter((r) => r.block === 'calibration').map((r) => r.id),
+    pairs: items.filter((r) => r.block === 'pairs').map((r) => r.id),
+    anchorsByTier,
+    catch: items.filter((r) => r.block === 'catch').map((r) => r.id),
+  }
+  const slot = raterSlot(rater, slotOverride)
+  const sequence = fullSequence(pool, rater, slot)
+  if (!sequence.includes(itemId as number)) {
+    return NextResponse.json({ error: "item is not in this rater's assignment" }, { status: 400 })
   }
 
   const normalized = normalizeRater(rater)
@@ -111,7 +126,7 @@ export async function POST(req: Request) {
     msTaken,
     teamAIsTeam0: !sideSwapped(rater, itemId as number),
     isTest: isTestRater(rater),
-    block,
+    block: target.block,
   }
 
   await db
