@@ -92,6 +92,11 @@ export function RateClient() {
   const [choice, setChoice] = useState<'A' | 'B' | null>(null)
   const [confidence, setConfidence] = useState<number | null>(null)
   const shownAtRef = useRef<number>(Date.now())
+  // Which control the rater used LAST. Auto-advance fires only after a
+  // button answer: if the slider is the final input (e.g. buttons answered
+  // first, then the slider), a timed submit could fire mid-drag at a value
+  // the rater never intended — they confirm with Next/Enter instead.
+  const lastInputRef = useRef<'slider' | 'button' | null>(null)
 
   // Resolve rater from ?rater= or localStorage
   useEffect(() => {
@@ -171,6 +176,7 @@ export function RateClient() {
     setChoice(null)
     setConfidence(null)
     setSubmitError(null)
+    lastInputRef.current = null
     shownAtRef.current = Date.now()
   }, [])
 
@@ -206,9 +212,12 @@ export function RateClient() {
     }
   }, [current, rater, slot, complete, submitting, p, choice, confidence, resetAnswers])
 
-  // Auto-advance shortly after all three questions are answered
+  // Auto-advance shortly after all three questions are answered — but only
+  // when the completing input was a button. Slider-last requires an explicit
+  // Next/Enter so a mid-drag pause can never submit an unintended value.
   useEffect(() => {
     if (!complete || submitting || !current) return
+    if (lastInputRef.current !== 'button') return
     const t = setTimeout(() => submit(), 500)
     return () => clearTimeout(t)
   }, [complete, submitting, current, submit])
@@ -227,16 +236,21 @@ export function RateClient() {
         e.preventDefault()
         setP((v) => Math.min(100, v + (e.shiftKey ? 5 : 1)))
         setPTouched(true)
+        lastInputRef.current = 'slider'
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
         e.preventDefault()
         setP((v) => Math.max(0, v - (e.shiftKey ? 5 : 1)))
         setPTouched(true)
+        lastInputRef.current = 'slider'
       } else if (e.key === 'a' || e.key === 'A') {
         setChoice('A')
+        lastInputRef.current = 'button'
       } else if (e.key === 'b' || e.key === 'B') {
         setChoice('B')
+        lastInputRef.current = 'button'
       } else if (/^[1-5]$/.test(e.key)) {
         setConfidence(Number(e.key))
+        lastInputRef.current = 'button'
       } else if (e.key === 'Enter') {
         e.preventDefault()
         submit()
@@ -350,7 +364,8 @@ export function RateClient() {
                 <li>
                   <span className="font-medium text-foreground">Win probability</span> — drag the
                   slider to the chance each team wins the game, judging only from the drafts, map,
-                  and tier (assume otherwise equal players).
+                  and tier (assume otherwise equal players). The slider must be touched to count as
+                  an answer: for an exact 50/50, tap it in place or nudge it away and back.
                 </li>
                 <li>
                   <span className="font-medium text-foreground">Better draft</span> — pick the team
@@ -364,8 +379,9 @@ export function RateClient() {
                 </li>
               </ol>
               <p className="mt-2">
-                The page advances automatically once all three are answered. There is no time
-                limit — most pairs take 15–60 seconds, and some are genuinely hard; use your
+                The page advances automatically when your last answer is one of the buttons; if
+                the slider is your last input, press Next (or Enter) to confirm it. There is no
+                time limit — most pairs take 15–60 seconds, and some are genuinely hard; use your
                 judgment and don&apos;t overthink.
               </p>
             </div>
@@ -496,8 +512,12 @@ export function RateClient() {
             onChange={(e) => {
               setP(100 - Number(e.target.value))
               setPTouched(true)
+              lastInputRef.current = 'slider'
             }}
-            onPointerUp={() => setPTouched(true)}
+            onPointerUp={() => {
+              setPTouched(true)
+              lastInputRef.current = 'slider'
+            }}
             aria-label="Win probability (left = Team A wins, right = Team B wins)"
             data-testid="rate-slider"
             className="h-2 flex-1 cursor-pointer accent-sky-400"
@@ -537,7 +557,10 @@ export function RateClient() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => setChoice('A')}
+            onClick={() => {
+              setChoice('A')
+              lastInputRef.current = 'button'
+            }}
             data-testid="rate-choice-a"
             className={cn(
               'h-14 rounded-lg border-2 text-lg font-bold transition-colors',
@@ -549,7 +572,10 @@ export function RateClient() {
             Team A
           </button>
           <button
-            onClick={() => setChoice('B')}
+            onClick={() => {
+              setChoice('B')
+              lastInputRef.current = 'button'
+            }}
             data-testid="rate-choice-b"
             className={cn(
               'h-14 rounded-lg border-2 text-lg font-bold transition-colors',
@@ -570,7 +596,10 @@ export function RateClient() {
           {[1, 2, 3, 4, 5].map((c) => (
             <button
               key={c}
-              onClick={() => setConfidence(c)}
+              onClick={() => {
+                setConfidence(c)
+                lastInputRef.current = 'button'
+              }}
               data-testid={`rate-conf-${c}`}
               className={cn(
                 'flex h-14 flex-col items-center justify-center rounded-lg border-2 transition-colors',
