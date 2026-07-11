@@ -338,6 +338,37 @@ export function RateClient() {
               <span className="font-medium text-foreground">Voluntary:</span> you may stop at any
               time. Questions or concerns: max@segan.com.
             </p>
+            <div className="rounded-lg border bg-background/60 p-4" data-testid="rate-instructions">
+              <p className="font-semibold text-foreground">How to rate</p>
+              <p className="mt-2">
+                Each item shows two five-hero drafts (Team A and Team B) for a stated map and
+                skill tier (Low = Bronze–Silver, Mid = Gold–Platinum, High = Diamond–Master).
+                Judge the whole picture: the composition, the specific map, and what actually
+                works at that skill level.
+              </p>
+              <ol className="mt-2 list-decimal space-y-1 pl-5">
+                <li>
+                  <span className="font-medium text-foreground">Win probability</span> — drag the
+                  slider to the chance each team wins the game, judging only from the drafts, map,
+                  and tier (assume otherwise equal players).
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">Better draft</span> — pick the team
+                  you think drafted better, even when it&apos;s close. This will usually match your
+                  slider, but answer it in its own right; the slider can sit at exactly 50/50, the
+                  pick cannot.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">Confidence</span> — how sure you
+                  are (1 = guess, 5 = certain).
+                </li>
+              </ol>
+              <p className="mt-2">
+                The page advances automatically once all three are answered. There is no time
+                limit — most pairs take 15–60 seconds, and some are genuinely hard; use your
+                judgment and don&apos;t overthink.
+              </p>
+            </div>
           </div>
           <button
             onClick={() => {
