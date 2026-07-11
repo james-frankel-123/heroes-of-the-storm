@@ -360,6 +360,12 @@ export function RateClient() {
                 Judge the whole picture: the composition, the specific map, and what actually
                 works at that skill level.
               </p>
+              <p className="mt-2">
+                Treat every draft as a serious attempt to win: assume both teams picked
+                deliberately and will play their composition earnestly. Some compositions are
+                unusual — judge them on their merits at the stated tier, not on whether they look
+                like standard meta picks.
+              </p>
               <ol className="mt-2 list-decimal space-y-1 pl-5">
                 <li>
                   <span className="font-medium text-foreground">Win probability</span> — drag the
