@@ -11,17 +11,19 @@ import { scorePlayerStrength } from '@/lib/draft/engine'
 /**
  * A row shown on our turns.
  *
- * winPct is ONE consistent quantity for both picks and bans: the same
- * normalized stats evaluator the top banner shows, applied to the post-action
- * state. Picking a "56.3%" row makes the banner read ~56.3%; bans do not
- * change either team's picks, so every ban row shows the current banner value
- * (the old MCTS "proj. final" absolutes were on a different calibration scale
- * and are gone). Rows are sorted strictly descending by winPct — MCTS only
- * chooses WHICH candidates make the shortlist and badges its top choice.
+ * winPct is one visible scale with two sources. PICK rows: the banner
+ * evaluator applied to the post-action state, so picking a "56.3%" row makes
+ * the banner read ~56.3%. BAN rows: the banner value plus the search's
+ * estimated impact of that ban (MCTS child Q minus root value), because a
+ * ban changes neither team's picks and the post-action evaluator would show
+ * the identical number for every candidate. Raw MCTS absolutes remain
+ * intentionally unshown (different calibration scale). Rows are sorted
+ * strictly descending by winPct; MCTS chooses WHICH candidates make the
+ * shortlist and badges its top choice.
  */
 export interface OurTurnRow {
   hero: string
-  /** Absolute win % to display — banner evaluator on the post-action state */
+  /** Absolute win % to display (see quantity definition above) */
   winPct: number
   /** Delta vs the current estimate, in percentage points */
   deltaPp: number

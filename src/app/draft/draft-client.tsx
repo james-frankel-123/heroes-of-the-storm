@@ -328,7 +328,7 @@ export function DraftClient({
         const playerData = draftData.playerStats && availableBattletags.length > 0
           ? { playerStats: draftData.playerStats, availableBattletags }
           : undefined
-        const { recommendations: mctsRecs, sims } = await getAIRecommendations(
+        const { recommendations: mctsRecs, sims, valueEstimate } = await getAIRecommendations(
           buildAIState(), unavailableHeroes, step.team, playerData, 10, draftData,
         )
         if (cancelled) return
@@ -337,16 +337,26 @@ export function DraftClient({
         const isPick = step.type === 'pick'
         const bannerNow = displayedOurWinPct(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
 
-        // ONE consistent quantity everywhere: every row displays the banner
-        // evaluator applied to the post-action state. For picks that means
-        // picking a row moves the banner to exactly that value. Bans do not
-        // change either team's picks, so ban rows all equal the current
-        // banner value — the old MCTS "proj. final" absolutes (calibrated
-        // against a different opponent pool) are intentionally gone.
+        // One visible scale, two sources. PICK rows display the banner
+        // evaluator applied to the post-action state, so picking a row moves
+        // the banner to exactly that value. BAN rows can't work that way (a
+        // ban changes neither team's picks, so the post-action evaluator is
+        // identical for every candidate — this used to render all bans as the
+        // same 50.0%). Instead a ban row shows the banner value plus the
+        // SEARCH-estimated impact of that ban (the MCTS child Q minus the
+        // root value), i.e. the same scale, differentiated by how the search
+        // expects the rest of the draft to play out after each ban. Raw MCTS
+        // absolutes are still intentionally not shown.
+        const mctsQ = new Map(mctsRecs.map(r => [r.hero, r.winProb]))
         const toRow = (hero: string, isGreedyPad: boolean): OurTurnRow => {
-          const winPct = isPick
-            ? displayedOurWinPct([...ourPicks, hero], enemyPicks, draftData, state.map, ourPlayerMap)
-            : bannerNow
+          let winPct: number
+          if (isPick) {
+            winPct = displayedOurWinPct([...ourPicks, hero], enemyPicks, draftData, state.map, ourPlayerMap)
+          } else {
+            const q = mctsQ.get(hero)
+            const banImpactPp = q !== undefined ? (q - valueEstimate) * 100 : 0
+            winPct = bannerNow + banImpactPp
+          }
           return { hero, isGreedyPad, winPct, deltaPp: winPct - bannerNow }
         }
 
