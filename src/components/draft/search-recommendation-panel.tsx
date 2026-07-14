@@ -84,8 +84,8 @@ export function SearchRecommendationPanel({
     : isOurTurn ? 'Search Recommendations' : 'Likely Enemy Picks'
   const subtitle = isOurTurn
     ? isBanPhase
-      ? 'Your team win estimate after each ban (same scale as the banner — bans do not move it)'
-      : 'Your team win estimate after each pick (matches the banner above)'
+      ? 'Projected final win chance after each ban, if you follow the AI from here (enemy drafts like a typical player)'
+      : 'Projected final win chance after each pick, if you follow the AI from here (enemy drafts like a typical player)'
     : isBanPhase
       ? 'How likely the enemy is to ban each hero'
       : 'How likely the enemy is to pick each hero, and what it would do to your win chance'
