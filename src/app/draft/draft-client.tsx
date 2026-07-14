@@ -333,41 +333,32 @@ export function DraftClient({
         )
         if (cancelled) return
 
-        const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
-        const isPick = step.type === 'pick'
-        const bannerNow = displayedOurWinPct(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
-
-        // One visible scale, two sources. PICK rows display the banner
-        // evaluator applied to the post-action state, so picking a row moves
-        // the banner to exactly that value. BAN rows can't work that way (a
-        // ban changes neither team's picks, so the post-action evaluator is
-        // identical for every candidate — this used to render all bans as the
-        // same 50.0%). Instead a ban row shows the banner value plus the
-        // SEARCH-estimated impact of that ban (the MCTS child Q minus the
-        // root value), i.e. the same scale, differentiated by how the search
-        // expects the rest of the draft to play out after each ban. Raw MCTS
-        // absolutes are still intentionally not shown.
+        // Rows are anchored on an explicit prior (Max, 2026-07-13): from this
+        // state WE continue with the search policy and THEY draft like a
+        // typical player (the GD opponent model). Under that prior the
+        // projected final win chance after taking an action is exactly the
+        // MCTS child Q, for picks and bans alike, so both display it
+        // directly. The root value is the same projection for the current
+        // state; deltas are measured against it. Greedy-pad rows carry no
+        // search estimate and display the root projection (no claimed
+        // impact). The top banner remains the current-comps evaluator; the
+        // two are labeled distinctly in the panel.
+        const projNow = valueEstimate * 100
         const mctsQ = new Map(mctsRecs.map(r => [r.hero, r.winProb]))
         const toRow = (hero: string, isGreedyPad: boolean): OurTurnRow => {
-          let winPct: number
-          if (isPick) {
-            winPct = displayedOurWinPct([...ourPicks, hero], enemyPicks, draftData, state.map, ourPlayerMap)
-          } else {
-            const q = mctsQ.get(hero)
-            const banImpactPp = q !== undefined ? (q - valueEstimate) * 100 : 0
-            winPct = bannerNow + banImpactPp
-          }
-          return { hero, isGreedyPad, winPct, deltaPp: winPct - bannerNow }
+          const q = mctsQ.get(hero)
+          const winPct = q !== undefined ? q * 100 : projNow
+          return { hero, isGreedyPad, winPct, deltaPp: winPct - projNow }
         }
 
         const mctsHeroes = new Set(mctsRecs.map(r => r.hero))
         const aiTopHero = mctsRecs[0]?.hero ?? null
         // MCTS chooses WHICH candidates make the shortlist (its ranking,
-        // padded with statistically strong options), but the VISIBLE ordering
-        // is strictly by the displayed number — the list must read
-        // monotonically. Array.prototype.sort is stable, so ties (all ban
-        // rows) keep the search's preference order. The search's own top
-        // choice keeps an "AI pick" badge wherever it sorts.
+        // padded with statistically strong options), and the VISIBLE ordering
+        // is strictly by the displayed number, which now IS the search's own
+        // projection, so display order and search preference agree. Stable
+        // sort keeps the search's order among tied pad rows. The search's
+        // top choice keeps an "AI pick" badge wherever it sorts.
         const rows: OurTurnRow[] = [
           ...mctsRecs.map(r => toRow(r.hero, false)),
           ...recommendations

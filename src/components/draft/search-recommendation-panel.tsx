@@ -11,19 +11,20 @@ import { scorePlayerStrength } from '@/lib/draft/engine'
 /**
  * A row shown on our turns.
  *
- * winPct is one visible scale with two sources. PICK rows: the banner
- * evaluator applied to the post-action state, so picking a "56.3%" row makes
- * the banner read ~56.3%. BAN rows: the banner value plus the search's
- * estimated impact of that ban (MCTS child Q minus root value), because a
- * ban changes neither team's picks and the post-action evaluator would show
- * the identical number for every candidate. Raw MCTS absolutes remain
- * intentionally unshown (different calibration scale). Rows are sorted
- * strictly descending by winPct; MCTS chooses WHICH candidates make the
- * shortlist and badges its top choice.
+ * winPct is the PROJECTED FINAL win chance under an explicit prior: from
+ * this state our side continues with the AI search policy and the enemy
+ * drafts like a typical player (the behavioral opponent model). That is the
+ * MCTS child Q for the action, identical semantics for picks and bans, so
+ * ban rows differentiate meaningfully (a ban's value is how the rest of the
+ * draft plays out, which the search estimates). The top banner shows a
+ * different, clearly-labeled quantity (current-comps evaluator); the two
+ * converge as the draft completes because the search evaluates finished
+ * drafts with the same evaluator. Rows are sorted strictly descending by
+ * winPct, which now agrees with the search's own preference order.
  */
 export interface OurTurnRow {
   hero: string
-  /** Absolute win % to display (see quantity definition above) */
+  /** Projected final win % under the follow-the-AI prior (see above) */
   winPct: number
   /** Delta vs the current estimate, in percentage points */
   deltaPp: number
@@ -198,9 +199,7 @@ export function SearchRecommendationPanel({
                 </div>
                 <div className="text-right shrink-0">
                   <div
-                    title={isBanPhase
-                      ? `Your team's win estimate after banning ${rec.hero} — same scale as the banner above (bans do not change either team's picks, so it will not move)`
-                      : `Your team's win estimate after picking ${rec.hero} — the banner above will show this value`}
+                    title={`Projected final win chance after ${isBanPhase ? 'banning' : 'picking'} ${rec.hero}, assuming you follow the AI's suggestions from here and the enemy drafts like a typical player. The banner above shows the current teams as drafted so far; the two converge as the draft completes.`}
                   >
                     <span className={cn(
                       'text-sm font-bold tabular-nums',
@@ -212,7 +211,7 @@ export function SearchRecommendationPanel({
                     )}>
                       {rec.winPct.toFixed(1)}%
                     </span>
-                    <span className="ml-1 text-[9px] text-[#8b9bc8]">win chance</span>
+                    <span className="ml-1 text-[9px] text-[#8b9bc8]">proj. final</span>
                   </div>
                   {!isBanPhase && (
                     <div
