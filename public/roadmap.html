@@ -134,6 +134,25 @@
   .headline .big { font-size: 30px; font-weight: 800; color: var(--cyan); }
   .headline .sm { font-size: 14px; color: var(--muted); }
 
+  /* ---- Sprint plan ---- */
+  .sprint { border: 1px solid var(--card-border); border-radius: 14px; padding: 16px 18px 6px; margin: 16px 0; background: rgba(0,0,0,0.18); }
+  .sprint.pre { border-color: rgba(74,255,255,0.28); background: rgba(74,255,255,0.04); }
+  .sprint-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
+  .sprint-head .sn { font-size: 17px; font-weight: 800; color: var(--primary); }
+  .sprint-head .wk { font-size: 11px; font-weight: 700; letter-spacing: .5px; color: var(--cyan); border: 1px solid rgba(74,255,255,0.3); border-radius: 999px; padding: 2px 9px; }
+  .sprint-head .goal { font-size: 13px; color: var(--muted); }
+  .track-label { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin: 12px 0 6px; padding: 2px 9px; border-radius: 6px; }
+  .track-a { color: #bfe0ff; background: rgba(74,158,255,0.16); }
+  .track-b { color: #cdbcff; background: rgba(155,89,182,0.18); }
+  .track-x { color: #b7f7d8; background: rgba(79,255,176,0.14); }
+  .ticket { display: grid; grid-template-columns: 82px 1fr; gap: 12px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13.5px; }
+  .ticket:last-child { border-bottom: none; }
+  .ticket .id { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 700; color: #06101c; background: linear-gradient(135deg, var(--primary), var(--primary-600)); border-radius: 6px; padding: 3px 0; text-align: center; height: fit-content; }
+  .ticket .id.b { background: linear-gradient(135deg, #9b59b6, #6f3d8f); color: #fff; }
+  .ticket .ac { color: var(--muted); }
+  .ticket .ac b { color: var(--cyan); font-weight: 600; }
+  .parallel-note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--primary); padding: 8px 14px; background: rgba(74,158,255,0.06); border-radius: 8px; margin: 6px 0 18px; }
+
   /* ---- Mockups ---- */
   .mock-caption { font-size: 13px; color: var(--muted); margin: 6px 2px 22px; text-align: center; }
   .mock-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; align-items: start; }
@@ -230,6 +249,7 @@
     <a href="#backend">Backend &amp; Data</a>
     <a href="#phasing">Phasing</a>
     <a href="#mvp">MVP &amp; Timeline</a>
+    <a href="#sprints">Sprint Plan</a>
     <a href="#mockups">Mockups</a>
   </nav>
 
@@ -451,6 +471,90 @@
     </ol>
 
     <div class="flag" style="margin-top:16px;"><strong>Long pole:</strong> vision calibration needs a real <strong>Storm League</strong> draft capture (ban row + pick timer). The vs-A.I. screen we have lacks both. Earlier that capture arrives, earlier the critical path starts.</div>
+  </section>
+
+  <!-- SPRINT PLAN -->
+  <section id="sprints" class="glass">
+    <h2>Sprint Plan</h2>
+    <p class="sub">Four two-week sprints to beta, after a short foundations pre-sprint. Concrete tickets with acceptance criteria; ticket IDs group by area — <code>FND</code> foundations, <code>OVL</code> overlay, <code>CAP</code> capture, <code>VIS</code> vision, <code>ENG</code> engine, <code>INT</code> integration, <code>REL</code> release.</p>
+
+    <div class="parallel-note"><strong>Two parallel tracks.</strong> <span style="color:#bfe0ff">Track A</span> (overlay + vision) and <span style="color:#cdbcff">Track B</span> (engine port) run concurrently — that parallelism is what yields ~8 weeks. A single developer serializes the tracks and should expect ~11–12 weeks.</div>
+
+    <!-- Pre-sprint -->
+    <div class="sprint pre">
+      <div class="sprint-head"><span class="sn">Sprint 0 — Foundations</span><span class="wk">~3–5 days</span><span class="goal">De-risk before the clock starts.</span></div>
+      <div class="ticket"><span class="id">FND-1</span><span><strong>Solution scaffold</strong> — WinUI 3 / Windows App SDK project. <span class="ac"><b>AC:</b> builds and launches a blank topmost window.</span></span></div>
+      <div class="ticket"><span class="id">FND-2</span><span><strong>Shared encoding source</strong> — one source generates the C# hero/map/tier constants. <span class="ac"><b>AC:</b> parity test asserts byte-identical ordering to <code>ai-inference.ts</code> (90 heroes, 14 maps, 3 tiers).</span></span></div>
+      <div class="ticket"><span class="id">FND-3</span><span><strong>Golden test set</strong> — export ≥200 draft states with the TS engine's policy / value / top-pick. <span class="ac"><b>AC:</b> fixtures committed for parity tests.</span></span></div>
+      <div class="ticket"><span class="id">FND-4</span><span><strong>Portrait asset library</strong> — 90 hero portraits at draft-hex resolution. <span class="ac"><b>AC:</b> one clean asset per hero in the repo.</span></span></div>
+      <div class="ticket"><span class="id">FND-5</span><span><strong>Storm League capture</strong> — ≥3 real SL draft recordings (varied resolutions) with ban phase + timer. <span class="ac"><b>AC:</b> footage archived. <em>Dependency: needs a live SL draft.</em></span></span></div>
+    </div>
+
+    <!-- Sprint 1 -->
+    <div class="sprint">
+      <div class="sprint-head"><span class="sn">Sprint 1</span><span class="wk">Weeks 1–2</span><span class="goal">First pixels on screen; engine talks ONNX.</span></div>
+      <span class="track-label track-a">Track A · Overlay &amp; Capture</span>
+      <div class="ticket"><span class="id">OVL-1</span><span><strong>Transparent click-through overlay</strong> — layered, topmost, non-activating via P/Invoke ex-styles. <span class="ac"><b>AC:</b> a card renders over a borderless test app and clicks pass through.</span></span></div>
+      <div class="ticket"><span class="id">OVL-2</span><span><strong>Borderless detection</strong> — distinguish exclusive-fullscreen vs borderless; prompt if exclusive. <span class="ac"><b>AC:</b> correct state in both modes.</span></span></div>
+      <div class="ticket"><span class="id">CAP-1</span><span><strong>WGC capture</strong> — capture the game window to a bitmap at ~2–4 fps. <span class="ac"><b>AC:</b> frame matches on-screen content, no black frames.</span></span></div>
+      <span class="track-label track-b">Track B · Engine</span>
+      <div class="ticket"><span class="id b">ENG-1</span><span><strong>ONNX load + forward pass</strong> — load all three models via Microsoft.ML.OnnxRuntime. <span class="ac"><b>AC:</b> one inference returns finite tensors.</span></span></div>
+      <div class="ticket"><span class="id b">ENG-2</span><span><strong>State encoding in C#</strong> — build model input vectors from a draft state. <span class="ac"><b>AC:</b> vectors match TS on the golden set within 1e-5.</span></span></div>
+      <div class="ticket"><span class="id b">ENG-3</span><span><strong>Single-pass parity</strong> — policy + win% vs TS. <span class="ac"><b>AC:</b> top-pick agreement ≥99%, win% within tolerance.</span></span></div>
+    </div>
+
+    <!-- Sprint 2 -->
+    <div class="sprint">
+      <div class="sprint-head"><span class="sn">Sprint 2</span><span class="wk">Weeks 3–4</span><span class="goal">Read the draft; run the full search.</span></div>
+      <span class="track-label track-a">Track A · Vision core</span>
+      <div class="ticket"><span class="id">VIS-1</span><span><strong>ROI map for SL draft</strong> — normalized coordinates for 10 portraits, bans, map, battletags. <span class="ac"><b>AC:</b> ROIs align on 1080p footage.</span></span></div>
+      <div class="ticket"><span class="id">VIS-2</span><span><strong>Portrait matching</strong> — OpenCvSharp crop→hero + confidence. <span class="ac"><b>AC:</b> ≥95% correct on clean footage.</span></span></div>
+      <div class="ticket"><span class="id">VIS-3</span><span><strong>Map + ban OCR</strong> — Tesseract on the map banner and ban slots. <span class="ac"><b>AC:</b> map correct; bans read.</span></span></div>
+      <div class="ticket"><span class="id">VIS-4</span><span><strong>Draft-state model</strong> — assemble picks/bans/map/side/on-clock from detections. <span class="ac"><b>AC:</b> reconstructs a known recorded draft.</span></span></div>
+      <span class="track-label track-b">Track B · Engine search</span>
+      <div class="ticket"><span class="id b">ENG-4</span><span><strong>Port expectimax / MCTS</strong> orchestration to C#. <span class="ac"><b>AC:</b> produces a ranked recommendation list.</span></span></div>
+      <div class="ticket"><span class="id b">ENG-5</span><span><strong>Full-search parity</strong> vs TS golden set. <span class="ac"><b>AC:</b> top-pick agreement ≥98% at equal search budget.</span></span></div>
+      <div class="ticket"><span class="id b">ENG-6</span><span><strong>Off-thread search + cancellation</strong>. <span class="ac"><b>AC:</b> overlay stays responsive; search cancels on state change.</span></span></div>
+    </div>
+
+    <!-- Sprint 3 -->
+    <div class="sprint">
+      <div class="sprint-head"><span class="sn">Sprint 3</span><span class="wk">Weeks 5–6</span><span class="goal">Make it robust and wire it together.</span></div>
+      <span class="track-label track-a">Track A · Robustness &amp; correction</span>
+      <div class="ticket"><span class="id">VIS-5</span><span><strong>Confidence + correction UI</strong> — flag low-confidence slots; one-click fix. <span class="ac"><b>AC:</b> a misread is correctable in ≤2 clicks.</span></span></div>
+      <div class="ticket"><span class="id">VIS-6</span><span><strong>Resolution normalization</strong> — 1080p + 1440p (16:9). <span class="ac"><b>AC:</b> ROIs align on both.</span></span></div>
+      <div class="ticket"><span class="id">VIS-7</span><span><strong>Live loop + event detection</strong> — continuous updates on pick/ban changes. <span class="ac"><b>AC:</b> each new pick detected within ~1s.</span></span></div>
+      <span class="track-label track-x">Both tracks · Integration</span>
+      <div class="ticket"><span class="id">INT-1</span><span><strong>State → engine → overlay</strong> — each new state runs a search and renders top pick + 2 alts + win%. <span class="ac"><b>AC:</b> recommendation updates live on recorded footage.</span></span></div>
+      <div class="ticket"><span class="id">INT-2</span><span><strong>End-to-end on footage</strong> — full recorded draft → correct live recs. <span class="ac"><b>AC:</b> demo passes on ≥2 recordings.</span></span></div>
+    </div>
+
+    <!-- Sprint 4 -->
+    <div class="sprint">
+      <div class="sprint-head"><span class="sn">Sprint 4</span><span class="wk">Weeks 7–8</span><span class="goal">Harden on live drafts and ship the beta.</span></div>
+      <span class="track-label track-x">QA &amp; Release</span>
+      <div class="ticket"><span class="id">QA-1</span><span><strong>Live SL testing</strong> with the spec battletags (Django, AzmoDonTrump, SirWatsonII, notoriusPIG, Mestupidum) — expect their known-strong heroes to surface. <span class="ac"><b>AC:</b> manual test log across ≥5 live drafts.</span></span></div>
+      <div class="ticket"><span class="id">VIS-8</span><span><strong>Threshold tuning</strong> from live misses. <span class="ac"><b>AC:</b> corrections needed &lt; target per draft.</span></span></div>
+      <div class="ticket"><span class="id">REL-1</span><span><strong>MSIX packaging + installer</strong>. <span class="ac"><b>AC:</b> installs and launches on a clean Windows machine.</span></span></div>
+      <div class="ticket"><span class="id">REL-2</span><span><strong>Crash handling + opt-in error logging</strong>. <span class="ac"><b>AC:</b> no unhandled crashes in test; logging is opt-in.</span></span></div>
+      <div class="ticket"><span class="id">REL-3</span><span><strong>First-run onboarding</strong> — borderless-mode setup. <span class="ac"><b>AC:</b> a new user reaches a working overlay unaided.</span></span></div>
+      <div class="ticket"><span class="id">REL-4</span><span><strong>Ship beta</strong> (limited distribution). <span class="ac"><b>AC:</b> beta build available to testers.</span></span></div>
+    </div>
+
+    <h3>Fast-follow sprints (post-beta)</h3>
+    <div class="sprint">
+      <div class="sprint-head"><span class="sn">Sprint 5–6</span><span class="wk">Personalization</span><span class="goal">The headline fast-follow.</span></div>
+      <div class="ticket"><span class="id b">RPL-1</span><span><strong>Replay discovery</strong> — scan the local Accounts folder. <span class="ac"><b>AC:</b> lists all <code>.StormReplay</code> files on first run.</span></span></div>
+      <div class="ticket"><span class="id b">RPL-2</span><span><strong>Parse replays</strong> with <code>Heroes.ReplayParser</code>. <span class="ac"><b>AC:</b> structured match summaries extracted client-side.</span></span></div>
+      <div class="ticket"><span class="id b">RPL-3</span><span><strong>Ingest API</strong> — upload summaries (never raw replays) to Neon. <span class="ac"><b>AC:</b> summaries persisted via a new route.</span></span></div>
+      <div class="ticket"><span class="id b">RPL-4</span><span><strong>Blend personal stats</strong> — momentum-adjusted win % into the recommendation. <span class="ac"><b>AC:</b> personalized ranking visible for a known player.</span></span></div>
+    </div>
+    <div class="sprint">
+      <div class="sprint-head"><span class="sn">Sprint 7+</span><span class="wk">Explanations · Robustness · Polish</span><span class="goal">Rounding out the product.</span></div>
+      <div class="ticket"><span class="id">EXP-1</span><span><strong>LLM "why this pick"</strong> — stream via the existing <code>/api/gameplan</code>; never blocks the rec.</span></div>
+      <div class="ticket"><span class="id">RBS-1</span><span><strong>Robustness</strong> — ultrawide/more resolutions, localized clients, patch-resilient ROI config with an updater.</span></div>
+      <div class="ticket"><span class="id">PLH-1</span><span><strong>Overlay polish</strong> — collapse-to-pill between picks, multi-anchor layouts, per-user placement.</span></div>
+    </div>
   </section>
 
   <!-- MOCKUPS -->
