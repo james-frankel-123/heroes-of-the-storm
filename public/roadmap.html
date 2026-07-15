@@ -114,6 +114,80 @@
   .phase .p { flex: none; width: 66px; font-weight: 800; color: var(--cyan); font-size: 13px; padding-top: 2px; }
 
   .note { font-size: 14px; color: var(--muted); }
+
+  /* ---- Mockups ---- */
+  .mock-caption { font-size: 13px; color: var(--muted); margin: 6px 2px 22px; text-align: center; }
+  .mock-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 820px) { .mock-grid { grid-template-columns: 1fr; } }
+
+  /* Fake game window */
+  .screen {
+    position: relative; border-radius: 14px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.12);
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgba(74,158,255,0.18), transparent 60%),
+      linear-gradient(160deg, #0a1526 0%, #0d1e33 55%, #0a1220 100%);
+    aspect-ratio: 16 / 10; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+  .screen .titlebar { height: 26px; background: rgba(0,0,0,0.35); display: flex; align-items: center; gap: 6px; padding: 0 12px; }
+  .screen .titlebar i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .screen .titlebar .r { background: #ff6b6b; } .screen .titlebar .y { background: #ffeb3b; } .screen .titlebar .g { background: #4fffb0; }
+  .screen .titlebar span { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .screen-body { padding: 16px 18px; height: calc(100% - 26px); }
+  .map-chip { display: inline-block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--cyan); border: 1px solid rgba(74,255,255,0.3); border-radius: 6px; padding: 3px 9px; margin-bottom: 12px; }
+
+  .teamrow { display: flex; align-items: center; gap: 8px; margin: 7px 0; }
+  .teamrow .tag { width: 62px; font-size: 10px; font-weight: 700; letter-spacing: .5px; }
+  .teamrow.us .tag { color: var(--cyan); } .teamrow.them .tag { color: var(--danger); }
+  .portrait { width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg,#20344f,#152640); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 9px; color: #9fb3d1; text-align: center; line-height: 1.05; padding: 2px; }
+  .portrait.empty { border-style: dashed; opacity: .5; }
+  .portrait.us { box-shadow: inset 0 0 0 1px rgba(74,255,255,0.35); }
+  .portrait.them { box-shadow: inset 0 0 0 1px rgba(255,107,107,0.3); }
+  .portrait.rec { box-shadow: inset 0 0 0 2px var(--success); background: linear-gradient(135deg,#123a2c,#0f2a22); color: var(--success); }
+  .onclock { font-size: 10px; color: var(--warning); margin-left: 4px; }
+
+  /* The overlay panel floating over the game */
+  .overlay-panel {
+    position: absolute; top: 46px; right: 16px; width: 236px;
+    background: rgba(6,14,28,0.82); backdrop-filter: blur(10px);
+    border: 1px solid rgba(74,158,255,0.5); border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(74,255,255,0.08);
+    padding: 13px 14px; font-size: 12px;
+  }
+  .overlay-panel .oh { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+  .overlay-panel .oh .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .overlay-panel .oh b { font-size: 11px; letter-spacing: .5px; }
+  .overlay-panel .oh .live { margin-left: auto; font-size: 9px; color: var(--success); border: 1px solid rgba(79,255,176,0.4); border-radius: 999px; padding: 1px 7px; }
+  .rec-hero { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 9px; background: rgba(79,255,176,0.10); border: 1px solid rgba(79,255,176,0.28); }
+  .rec-hero .name { font-weight: 700; font-size: 14px; color: #eaf1fb; }
+  .rec-hero .role { font-size: 10px; color: var(--muted); }
+  .rec-hero .delta { margin-left: auto; text-align: right; }
+  .rec-hero .delta b { color: var(--success); font-size: 15px; }
+  .rec-hero .delta span { display: block; font-size: 9px; color: var(--muted); }
+  .barwrap { height: 6px; border-radius: 4px; background: rgba(255,255,255,0.1); margin: 11px 0 4px; overflow: hidden; }
+  .barwrap i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--primary), var(--success)); }
+  .winline { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+  .alt { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 11px; color: #cfe4ff; }
+  .alt .k { width: 15px; color: var(--muted); }
+  .alt .v { margin-left: auto; color: var(--muted); }
+  .why { margin-top: 11px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .why b { color: var(--cyan); font-weight: 600; }
+
+  /* Right-column supporting mocks */
+  .mini { background: rgba(6,14,28,0.5); border: 1px solid var(--card-border); border-radius: 12px; padding: 15px 16px; margin-bottom: 18px; }
+  .mini h4 { margin: 0 0 4px; font-size: 13px; color: var(--primary); }
+  .mini p { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+  .import-bar { height: 9px; border-radius: 5px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  .import-bar i { display: block; height: 100%; width: 67%; background: linear-gradient(90deg, var(--primary), var(--cyan)); }
+  .import-stat { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 7px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 12px;
+    background: rgba(6,14,28,0.82); border: 1px solid rgba(74,158,255,0.5);
+    border-radius: 999px; padding: 7px 13px; color: #eaf1fb;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .pill b { color: var(--success); }
+
   footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
   .flag { border-left: 3px solid var(--warning); background: rgba(255,235,59,0.07); border-radius: 8px; padding: 12px 16px; font-size: 14px; }
 </style>
@@ -134,6 +208,7 @@
     <a href="#piece-3">3 · On-Device Engine</a>
     <a href="#backend">Backend &amp; Data</a>
     <a href="#phasing">Phasing</a>
+    <a href="#mockups">Mockups</a>
   </nav>
 
   <!-- OVERVIEW -->
@@ -301,6 +376,88 @@
     <div class="phase"><div class="p">Slice 3</div><div>The transparent WinUI overlay: render the recommendation in-game, with borderless-mode detection and manual correction.</div></div>
     <div class="phase"><div class="p">Slice 4</div><div>Full first-run replay import + personal insights; optional LLM explanations via <code>/api/gameplan</code>.</div></div>
     <div class="flag" style="margin-top:16px;"><strong>Before shipping:</strong> a formal review of Blizzard's ToS / anti-cheat stance on passive screen-reading overlays. Our design stays read-only and injection-free specifically to stay on the safe side, but this must be confirmed, not assumed.</div>
+  </section>
+
+  <!-- MOCKUPS -->
+  <section id="mockups" class="glass">
+    <h2>Mockups</h2>
+    <p class="sub">Early visual targets — not final art. These show intent: an unobtrusive overlay that reads the live draft and surfaces one clear recommendation, with the detail on demand.</p>
+
+    <div class="mock-grid">
+      <!-- Live draft overlay -->
+      <div>
+        <div class="screen">
+          <div class="titlebar"><i class="r"></i><i class="y"></i><i class="g"></i><span>Heroes of the Storm — borderless windowed</span></div>
+          <div class="screen-body">
+            <span class="map-chip">Draft · Braxis Holdout</span>
+
+            <div class="teamrow them">
+              <span class="tag">ENEMY</span>
+              <div class="portrait them">Garrosh</div>
+              <div class="portrait them">Kael'thas</div>
+              <div class="portrait them">Zeratul</div>
+              <div class="portrait them">Malfurion</div>
+              <div class="portrait empty">?</div>
+            </div>
+            <div class="teamrow us">
+              <span class="tag">YOUR TEAM</span>
+              <div class="portrait us">E.T.C.</div>
+              <div class="portrait us">Valla</div>
+              <div class="portrait us">Lúcio</div>
+              <div class="portrait rec">Nazeebo</div>
+              <div class="portrait empty">?</div>
+            </div>
+            <div class="teamrow">
+              <span class="tag" style="color:var(--muted)">ON CLOCK</span>
+              <span class="onclock">▲ Your pick — 0:24</span>
+            </div>
+
+            <!-- Floating overlay panel -->
+            <div class="overlay-panel">
+              <div class="oh"><span class="dot"></span><b>HOTS FEVER</b><span class="live">● LIVE</span></div>
+              <div class="rec-hero">
+                <div class="portrait rec" style="width:38px;height:38px;">Naz</div>
+                <div>
+                  <div class="name">Nazeebo</div>
+                  <div class="role">Ranged Assassin · your best</div>
+                </div>
+                <div class="delta"><b>+6.2%</b><span>win vs base</span></div>
+              </div>
+              <div class="barwrap"><i style="width:58%"></i></div>
+              <div class="winline"><span>Team win probability</span><span>58%</span></div>
+
+              <div class="alt"><span class="k">2</span><span>Xul</span><span class="v">+4.1%</span></div>
+              <div class="alt"><span class="k">3</span><span>Zagara</span><span class="v">+3.3%</span></div>
+
+              <div class="why"><b>Why ▾</b> Answers Kael'thas dive with wave clear + Ravenous Spirit zoning; your Nazeebo win rate (68%, last 40 games) and Braxis synergy both spike the estimate.</div>
+            </div>
+          </div>
+        </div>
+        <p class="mock-caption">Slice 3 — live draft overlay pinned top-right; one recommendation, alternatives, and an expandable "why".</p>
+      </div>
+
+      <!-- Supporting states -->
+      <div>
+        <div class="mini">
+          <h4>First-run replay import</h4>
+          <p>On launch we scan the local Accounts folder and parse existing replays — no manual setup.</p>
+          <div class="import-bar"><i></i></div>
+          <div class="import-stat"><span>Importing replays…</span><span>342 / 512</span></div>
+        </div>
+
+        <div class="mini">
+          <h4>Collapsed state</h4>
+          <p>Between picks the overlay shrinks to a pill so it never blocks the draft board.</p>
+          <span class="pill"><span class="dot"></span>Reading draft · next rec in <b>&nbsp;3s</b></span>
+        </div>
+
+        <div class="mini">
+          <h4>Detection confidence</h4>
+          <p>When a portrait or battletag is ambiguous, the overlay flags it for a one-click correction rather than guessing.</p>
+          <span class="pill" style="border-color:rgba(255,235,59,0.5);"><span class="dot" style="background:var(--warning);box-shadow:0 0 8px var(--warning);"></span>Confirm enemy #4: <b style="color:var(--warning)">&nbsp;Malfurion?</b></span>
+        </div>
+      </div>
+    </div>
   </section>
 
   <footer>
