@@ -79,9 +79,39 @@ FEATURE_GROUP_DIMS = {
 
 # ── Stats cache ──
 
+# WP_STATS_PATH overrides the stats snapshot (production_refresh points this
+# at the decayed-aggregate stats file; default preserves the rerun2026 pin).
+FROZEN_STATS_PATH = os.environ.get(
+    "WP_STATS_PATH",
+    os.path.join(os.path.dirname(__file__), "frozen_stats_2026-05-19.json"))
+
+
 class StatsCache:
-    """Preloaded stats from the database."""
+    """Preloaded stats. Uses frozen snapshot if available, else database."""
     def __init__(self):
+        if os.path.exists(FROZEN_STATS_PATH):
+            self._load_frozen(FROZEN_STATS_PATH)
+        else:
+            self._load_db()
+        self._load_compositions()
+
+    def _load_frozen(self, path):
+        import json as _json
+        raw = _json.load(open(path))
+        print(f"StatsCache: loaded frozen snapshot ({raw['_meta']['snapshot_date']}, patch {raw['_meta']['patch']})")
+        self.hero_wr = {}
+        self.hero_meta = {}
+        for r in raw['hero_stats']:
+            self.hero_wr.setdefault(r['tier'], {})[r['hero']] = r['win_rate']
+            self.hero_meta.setdefault(r['tier'], {})[r['hero']] = (r['pick_rate'], r['ban_rate'])
+        self.hero_map_wr = {}
+        for r in raw['hero_map_stats']:
+            self.hero_map_wr.setdefault(r['tier'], {}).setdefault(r['map'], {})[r['hero']] = (r['win_rate'], r['games'])
+        self.pairwise = {}
+        for r in raw['pairwise_stats']:
+            self.pairwise.setdefault(r['tier'], {}).setdefault(r['relationship'], {}).setdefault(r['hero_a'], {})[r['hero_b']] = (r['win_rate'], r['games'])
+
+    def _load_db(self):
         import psycopg2
         db_url = os.environ.get("DATABASE_URL")
         if not db_url:
@@ -93,34 +123,25 @@ class StatsCache:
                         break
         conn = psycopg2.connect(db_url)
         cur = conn.cursor()
-
-        # Hero WR by tier: {tier: {hero: wr}}
         self.hero_wr = {}
-        # Hero pick/ban rates: {tier: {hero: (pick_rate, ban_rate)}}
         self.hero_meta = {}
         cur.execute("SELECT hero, win_rate, pick_rate, ban_rate, games, skill_tier FROM hero_stats_aggregate")
         for hero, wr, pr, br, games, tier in cur.fetchall():
             self.hero_wr.setdefault(tier, {})[hero] = wr
             self.hero_meta.setdefault(tier, {})[hero] = (pr or 0, br or 0)
-
-        # Hero-map WR: {tier: {map: {hero: (wr, games)}}}
         self.hero_map_wr = {}
         cur.execute("SELECT hero, map, win_rate, games, skill_tier FROM hero_map_stats_aggregate")
         for hero, map_name, wr, games, tier in cur.fetchall():
             self.hero_map_wr.setdefault(tier, {}).setdefault(map_name, {})[hero] = (wr, games)
-
-        # Pairwise: {tier: {rel: {heroA: {heroB: (wr, games)}}}}
         self.pairwise = {}
         cur.execute("SELECT hero_a, hero_b, relationship, win_rate, games, skill_tier FROM hero_pairwise_stats")
         for ha, hb, rel, wr, games, tier in cur.fetchall():
             self.pairwise.setdefault(tier, {}).setdefault(rel, {}).setdefault(ha, {})[hb] = (wr, games)
-
         cur.close()
         conn.close()
 
-        # Load composition data from JSON file
-        # {tier: [{roles: [...], winRate: float, games: int}, ...]}
-        self.comp_data = {}  # {tier: {role_key: (wr, games)}}
+    def _load_compositions(self):
+        self.comp_data = {}
         comp_path = os.path.join(os.path.dirname(__file__), "..", "src", "lib", "data", "compositions.json")
         if os.path.exists(comp_path):
             import json as _json
@@ -393,33 +414,90 @@ def _avg_synergy_delta(heroes, wrs, stats, tier):
 
 # ── Dataset ──
 
-def precompute_all_features(data, stats):
-    """Precompute all feature groups for all samples (both teams + augmented swap).
-    Returns: base_tensor, enriched_tensor, labels_tensor
-    All features for all groups are computed; specific groups are selected at training time
-    by indexing into the enriched tensor.
-    """
-    all_groups_mask = [True] * len(FEATURE_GROUPS)
+def _extract_chunk(args):
+    """Worker function for parallel feature extraction."""
+    chunk, stats_data, all_groups_mask = args
+    # Reconstruct StatsCache from serialized data (avoid DB connection in workers)
+    stats = object.__new__(StatsCache)
+    stats.hero_wr = stats_data['hero_wr']
+    stats.hero_meta = stats_data['hero_meta']
+    stats.hero_map_wr = stats_data['hero_map_wr']
+    stats.pairwise = stats_data['pairwise']
+    stats.comp_data = stats_data['comp_data']
+
     bases = []
     enricheds = []
     labels = []
-
-    for d in data:
-        base, enriched = extract_features(d, stats, all_groups_mask)
+    for d in chunk:
+        try:
+            base, enriched = extract_features(d, stats, all_groups_mask)
+        except Exception:
+            continue
         y = float(d["winner"] == 0)
-        # Original
         bases.append(base)
         enricheds.append(enriched)
         labels.append(y)
-        # Augmented: swap teams
         base_swap, enriched_swap = _swap_features(base, enriched)
         bases.append(base_swap)
         enricheds.append(enriched_swap)
         labels.append(1.0 - y)
 
-    return (torch.tensor(np.array(bases, dtype=np.float32)),
-            torch.tensor(np.array(enricheds, dtype=np.float32)),
-            torch.tensor(np.array(labels, dtype=np.float32)))
+    return (np.array(bases, dtype=np.float32),
+            np.array(enricheds, dtype=np.float32),
+            np.array(labels, dtype=np.float32))
+
+
+def precompute_all_features(data, stats, cache_path=None, num_workers=None):
+    """Precompute all feature groups for all samples (both teams + augmented swap).
+    Returns: base_tensor, enriched_tensor, labels_tensor
+    Uses multiprocessing for ~10-15x speedup on multi-core machines.
+    Optionally caches to disk at cache_path (.npz).
+    """
+    import multiprocessing as _mp
+
+    # Check disk cache
+    if cache_path and os.path.exists(cache_path):
+        print(f"  Loading cached features from {cache_path}")
+        cached = np.load(cache_path)
+        return (torch.tensor(cached['bases']),
+                torch.tensor(cached['enricheds']),
+                torch.tensor(cached['labels']))
+
+    all_groups_mask = [True] * len(FEATURE_GROUPS)
+    if num_workers is None:
+        num_workers = min(_mp.cpu_count(), 32)
+
+    # Serialize stats data for workers (avoid pickling DB connections)
+    stats_data = {
+        'hero_wr': stats.hero_wr,
+        'hero_meta': stats.hero_meta,
+        'hero_map_wr': stats.hero_map_wr,
+        'pairwise': stats.pairwise,
+        'comp_data': stats.comp_data,
+    }
+
+    # Split data into chunks
+    chunk_size = max(1, len(data) // num_workers)
+    chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+    print(f"  Parallel extraction: {len(data)} samples, {len(chunks)} chunks, {num_workers} workers")
+
+    with _mp.Pool(num_workers) as pool:
+        results = pool.map(_extract_chunk,
+                          [(chunk, stats_data, all_groups_mask) for chunk in chunks])
+
+    # Concatenate results
+    all_bases = np.concatenate([r[0] for r in results if len(r[0]) > 0])
+    all_enricheds = np.concatenate([r[1] for r in results if len(r[1]) > 0])
+    all_labels = np.concatenate([r[2] for r in results if len(r[2]) > 0])
+
+    # Save to disk cache
+    if cache_path:
+        print(f"  Caching features to {cache_path}")
+        np.savez_compressed(cache_path, bases=all_bases, enricheds=all_enricheds, labels=all_labels)
+
+    return (torch.tensor(all_bases),
+            torch.tensor(all_enricheds),
+            torch.tensor(all_labels))
 
 
 def _swap_features(base, enriched):
@@ -644,11 +722,15 @@ def main():
     stats = StatsCache()
     print(f"  Hero WR tiers: {list(stats.hero_wr.keys())}")
 
-    # Precompute all features
+    # Precompute all features (parallel + disk cache)
+    cache_dir = os.path.join(os.path.dirname(__file__), "feature_cache")
+    os.makedirs(cache_dir, exist_ok=True)
     print("Precomputing features (all groups, with augmentation)...")
     t0 = time.time()
-    train_base, train_enriched, train_labels = precompute_all_features(train_data, stats)
-    test_base, test_enriched, test_labels = precompute_all_features(test_data, stats)
+    train_base, train_enriched, train_labels = precompute_all_features(
+        train_data, stats, cache_path=os.path.join(cache_dir, "train_features.npz"))
+    test_base, test_enriched, test_labels = precompute_all_features(
+        test_data, stats, cache_path=os.path.join(cache_dir, "test_features.npz"))
     print(f"  Done in {time.time()-t0:.1f}s")
     print(f"  Train: {train_base.shape} base + {train_enriched.shape} enriched")
     print(f"  Test: {test_base.shape} base + {test_enriched.shape} enriched")

@@ -38,11 +38,17 @@ TRAINING_DIR = os.path.dirname(os.path.abspath(__file__))
 RERUN = os.path.join(TRAINING_DIR, "rerun2026")
 SITE_MODELS = os.path.join(os.path.dirname(TRAINING_DIR), "public", "models")
 
-POLICY_PT = os.path.join(RERUN, "mcts_runs", "J_800sim_s9", "draft_policy.pt")
-GD_PT = os.path.join(RERUN, "models", "generic_draft_0.pt")
-GD_ONNX_SRC = os.path.join(RERUN, "models", "generic_draft_0.onnx")
-GD_INT8_SRC = os.path.join(RERUN, "models", "generic_draft_0_int8.onnx")
-WP_PT = os.path.join(RERUN, "models", "wp_enriched_256.pt")
+# SITE_*_PT env vars override the checkpoint sources (used by
+# production_refresh/refresh.py; defaults preserve the rerun2026 pin).
+POLICY_PT = os.environ.get(
+    "SITE_POLICY_PT",
+    os.path.join(RERUN, "mcts_runs", "J_800sim_s9", "draft_policy.pt"))
+GD_PT = os.environ.get(
+    "SITE_GD_PT", os.path.join(RERUN, "models", "generic_draft_0.pt"))
+GD_ONNX_SRC = os.path.join(os.path.dirname(GD_PT), "generic_draft_0.onnx")
+GD_INT8_SRC = os.path.join(os.path.dirname(GD_PT), "generic_draft_0_int8.onnx")
+WP_PT = os.environ.get(
+    "SITE_WP_PT", os.path.join(RERUN, "models", "wp_enriched_256.pt"))
 WP_INPUT_DIM = 283
 
 
@@ -94,9 +100,24 @@ def export_gd():
     model.cpu().eval()
 
     dst = os.path.join(SITE_MODELS, "generic_draft_0.onnx")
-    dst_int8 = os.path.join(SITE_MODELS, "generic_draft_0_int8.onnx")
-    shutil.copyfile(GD_ONNX_SRC, dst)
-    shutil.copyfile(GD_INT8_SRC, dst_int8)
+    if os.path.exists(GD_ONNX_SRC):
+        shutil.copyfile(GD_ONNX_SRC, dst)
+        if os.path.exists(GD_INT8_SRC):  # site loads float only; int8 optional
+            shutil.copyfile(GD_INT8_SRC, os.path.join(SITE_MODELS, "generic_draft_0_int8.onnx"))
+    else:
+        # No pre-built ONNX next to the checkpoint (production_refresh case):
+        # export fresh with train_generic_draft's recipe.
+        dummy_x = torch.randn(1, GD_INPUT_DIM)
+        dummy_mask = torch.ones(1, NUM_HEROES)
+        torch.onnx.export(
+            model, (dummy_x, dummy_mask), dst,
+            input_names=["state", "valid_mask"],
+            output_names=["hero_logits"],
+            dynamic_axes={"state": {0: "batch"}, "valid_mask": {0: "batch"},
+                          "hero_logits": {0: "batch"}},
+        )
+        embed_onnx_weights(dst)
+        optimize_onnx(dst)
 
     x = torch.randn(8, GD_INPUT_DIM)
     mask = (torch.rand(8, NUM_HEROES) > 0.2).float()
@@ -109,11 +130,13 @@ def export_gd():
     print(f"gd parity (float): logits maxdiff={maxdiff:.2e}")
     assert maxdiff < 1e-2, "generic_draft_0.onnx does not match generic_draft_0.pt"
 
-    # int8: check argmax agreement on masked logits
-    sess8 = _ort_session(dst_int8)
-    o8 = sess8.run(None, {"state": x.numpy(), "valid_mask": mask.numpy()})[0]
-    agree = (o.argmax(1) == o8.argmax(1)).mean()
-    print(f"gd int8 argmax agreement: {agree:.2f}")
+    # int8 (when present): check argmax agreement on masked logits
+    dst_int8 = os.path.join(SITE_MODELS, "generic_draft_0_int8.onnx")
+    if os.path.exists(GD_INT8_SRC) and os.path.exists(dst_int8):
+        sess8 = _ort_session(dst_int8)
+        o8 = sess8.run(None, {"state": x.numpy(), "valid_mask": mask.numpy()})[0]
+        agree = (o.argmax(1) == o8.argmax(1)).mean()
+        print(f"gd int8 argmax agreement: {agree:.2f}")
     return dst
 
 

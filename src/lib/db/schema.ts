@@ -369,6 +369,68 @@ export const playerRefetchState = pgTable('player_refetch_state', {
 })
 
 /**
+ * Quick Match game-level rows (QM WP model / OOD sanity check; QM ingest
+ * worker sync/fetch-qm.ts). QM games have no replay_draft_data row, so the
+ * replay-level fields live here; per-player rows (hero, team, winner, MMRs,
+ * talents, scoreboard) go to replay_players exactly like ranked games, and
+ * remaining replay-level leftovers to replay_extras. avg_mmr/league_tier/rank
+ * come from the Replay/Min_id listing (Replay/Data does not carry them).
+ */
+export const qmGames = pgTable(
+  'qm_games',
+  {
+    replayId: integer('replay_id').primaryKey(),
+    region: integer('region'),
+    gameMap: varchar('game_map', { length: 80 }).notNull(),
+    gameDate: timestamp('game_date'),
+    gameLength: integer('game_length'), // seconds
+    gameVersion: varchar('game_version', { length: 40 }),
+    gameType: varchar('game_type', { length: 40 }).notNull(), // 'Quick Match'
+    avgMmr: real('avg_mmr'), // from the listing row
+    leagueTier: integer('league_tier'), // from the listing row
+    rank: varchar('rank', { length: 20 }), // from the listing row
+    fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
+  },
+  (t) => ({
+    mapIdx: index('qm_games_map_idx').on(t.gameMap),
+    dateIdx: index('qm_games_date_idx').on(t.gameDate),
+  })
+)
+
+/**
+ * Priority fetch queue for the personalization refetch worker: replay ids
+ * enumerated from target players' histories (Player/Replays endpoint, its
+ * own quota pool) that the Replay/Data worker should fetch BEFORE
+ * continuing its blind descending scan. Drained rows are deleted.
+ */
+export const playerFetchQueue = pgTable('player_fetch_queue', {
+  replayId: integer('replay_id').primaryKey(),
+  // Why it was queued, e.g. 'history:Battletag#1234' (first enqueuer wins)
+  source: varchar('source', { length: 120 }),
+  enqueuedAt: timestamp('enqueued_at').defaultNow().notNull(),
+})
+
+/**
+ * Resumable checkpoint for the QM ingest worker (sync/fetch-qm.ts). Cursor
+ * walks the Replay/Min_id listing ASCENDING (min_id semantics); one row per
+ * era bucket since 2026-07-14 (see QUOTA_ALLOCATION_PLAN.md).
+ */
+export const qmFetchState = pgTable('qm_fetch_state', {
+  id: serial('id').primaryKey(),
+  // Era-bucket priority mode (2026-07-14): one row per bucket; the row for
+  // the legacy ascending scan keeps bucket = 'legacy'.
+  bucket: varchar('bucket', { length: 32 }).notNull().default('legacy'),
+  // Next listing page starts at this replay id (ascending scan).
+  cursor: integer('cursor').notNull().default(0),
+  processedCount: integer('processed_count').notNull().default(0), // games stored
+  playerRowsUpserted: integer('player_rows_upserted').notNull().default(0),
+  skippedCount: integer('skipped_count').notNull().default(0), // off-patch/invalid/deleted
+  errorCount: integer('error_count').notNull().default(0),
+  startedAt: timestamp('started_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+/**
  * Tracks the replay sync cursor so the daemon can resume.
  * Stores the current scan position and high-water mark.
  */

@@ -32,7 +32,11 @@ import { storeReplayPlayers } from './player-store'
 import { playerRefetchState } from '../src/lib/db/schema'
 
 const BATCH_SIZE = 2000
-const KEY1_RATE = 180 // dev account
+// Quota plan 2026-07-14 (training/QUOTA_ALLOCATION_PLAN.md): personalization
+// gets most of key 1. Phase A (QM recent bucket filling at 80/min): 100/min
+// here. Phase B (QM fills at 40/min): bump this to 140. Phase C (QM done):
+// 180.
+const KEY1_RATE = 100
 const KEY2_RATE = 55  // Intermediate account
 const KEY1_WORKERS = 4
 const KEY2_WORKERS = 2
@@ -88,20 +92,52 @@ async function initState(db: SyncDb, cursor: number): Promise<RefetchState> {
 }
 
 async function saveState(db: SyncDb, state: RefetchState) {
-  await db.update(playerRefetchState).set({
-    cursor: state.cursor,
-    processedCount: state.processedCount,
-    playerRowsUpserted: state.playerRowsUpserted,
-    skippedCount: state.skippedCount,
-    errorCount: state.errorCount,
-    updatedAt: new Date(),
-  })
+  // Transient Neon connection blips must not kill the worker (a checkpoint
+  // write outside the retry path did exactly that on 2026-07-14). Retry a
+  // few times; a checkpoint that ultimately fails is skipped, not fatal —
+  // the cursor only moves forward, so a stale checkpoint just re-fetches a
+  // few already-upserted replays on restart.
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      await db.update(playerRefetchState).set({
+        cursor: state.cursor,
+        processedCount: state.processedCount,
+        playerRowsUpserted: state.playerRowsUpserted,
+        skippedCount: state.skippedCount,
+        errorCount: state.errorCount,
+        updatedAt: new Date(),
+      })
+      return
+    } catch (err) {
+      if (attempt === 3) {
+        log.warn(`saveState failed after retries (skipping checkpoint): ${String(err).slice(0, 200)}`)
+        return
+      }
+      await new Promise(r => setTimeout(r, 5_000 * (attempt + 1)))
+    }
+  }
 }
 
 // ── Batch selection ──────────────────────────────────────────────────
 
-/** Next batch of replay_ids below the cursor that have no player rows yet. */
-async function nextBatch(db: SyncDb, cursor: number): Promise<number[]> {
+/**
+ * Next batch: the player_fetch_queue is drained FIRST (targeted history ids
+ * from sync/enqueue-player-histories.ts — each contains at least one
+ * high-value panel player), then the blind descending scan continues.
+ * Queue rows already covered by replay_players are purged as encountered.
+ */
+async function nextBatch(db: SyncDb, cursor: number): Promise<{ ids: number[]; fromQueue: boolean }> {
+  // Purge already-covered queue rows, then take a batch.
+  await db.execute(
+    sql`DELETE FROM player_fetch_queue q
+        WHERE EXISTS (SELECT 1 FROM replay_players p WHERE p.replay_id = q.replay_id)`
+  )
+  const queued = await db.execute(
+    sql`SELECT replay_id FROM player_fetch_queue ORDER BY replay_id DESC LIMIT ${BATCH_SIZE}`
+  ).then(r => r.rows)
+  if (queued.length > 0) {
+    return { ids: queued.map(r => Number(r.replay_id)), fromQueue: true }
+  }
   const rows = await db.execute(
     sql`SELECT d.replay_id
         FROM replay_draft_data d
@@ -110,7 +146,7 @@ async function nextBatch(db: SyncDb, cursor: number): Promise<number[]> {
         ORDER BY d.replay_id DESC
         LIMIT ${BATCH_SIZE}`
   ).then(r => r.rows)
-  return rows.map(r => Number(r.replay_id))
+  return { ids: rows.map(r => Number(r.replay_id)), fromQueue: false }
 }
 
 // ── Worker pool ──────────────────────────────────────────────────────
@@ -290,7 +326,16 @@ async function main() {
   let processedThisRun = 0
 
   while (!stopping) {
-    const ids = await nextBatch(db, state.cursor)
+    let batch: { ids: number[]; fromQueue: boolean }
+    try {
+      batch = await nextBatch(db, state.cursor)
+    } catch (err) {
+      // Transient DB failure selecting a batch: wait and retry, don't die.
+      log.warn(`nextBatch failed, retrying in 30s: ${String(err).slice(0, 200)}`)
+      await new Promise(r => setTimeout(r, 30_000))
+      continue
+    }
+    const { ids, fromQueue } = batch
     if (ids.length === 0) {
       log.info('Refetch complete — no unfetched replays below cursor. Exiting.')
       break
@@ -299,10 +344,27 @@ async function main() {
     const counters: BatchCounters = { processed: 0, playerRows: 0, skipped: 0, errors: 0 }
     await processBatch(db, clients, ids, counters, () => stopping)
 
-    // Only advance the cursor past a FULLY attempted batch. On a mid-batch
-    // stop, leaving the cursor put means the unprocessed remainder is
-    // re-selected on resume (processed ids are excluded by NOT EXISTS).
-    if (!stopping) {
+    if (fromQueue) {
+      // Queue batch: remove attempted ids (fetched ones would be purged next
+      // pass anyway; explicit delete also clears permanent 404s), never
+      // touch the descending cursor.
+      try {
+        // ids are validated numbers; inline (drizzle does not serialize a JS
+        // array as a PG array for ANY()).
+        await db.execute(
+          sql`DELETE FROM player_fetch_queue
+              WHERE replay_id = ANY(${sql.raw(`ARRAY[${ids.join(',')}]::int[]`)})`
+        )
+      } catch (err) {
+        // Non-fatal: fetched ids are purged by the covered-row sweep on the
+        // next nextBatch pass anyway.
+        log.warn(`queue delete failed (will re-purge next pass): ${String(err).slice(0, 200)}`)
+      }
+    } else if (!stopping) {
+      // Only advance the cursor past a FULLY attempted scan batch. On a
+      // mid-batch stop, leaving the cursor put means the unprocessed
+      // remainder is re-selected on resume (processed ids are excluded by
+      // NOT EXISTS).
       state.cursor = ids[ids.length - 1] // batch is DESC; last id is the lowest
     }
     state.processedCount += counters.processed
