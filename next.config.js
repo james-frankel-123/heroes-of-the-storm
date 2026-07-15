@@ -21,6 +21,11 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_COMMIT_SHA: resolveCommitSha(),
   },
+  async rewrites() {
+    return [
+      { source: '/roadmap', destination: '/roadmap.html' },
+    ]
+  },
 }
 
 module.exports = nextConfig

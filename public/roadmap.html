@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roadmap — HotS Fever In-Game Draft Companion</title>
+<style>
+  :root {
+    --bg-0: #12233f;
+    --bg-1: #1e3c72;
+    --bg-2: #2a5298;
+    --primary: #4a9eff;
+    --primary-600: #0073e6;
+    --cyan: #4affff;
+    --success: #4fffb0;
+    --warning: #ffeb3b;
+    --danger: #ff6b6b;
+    --text: #eaf1fb;
+    --muted: #9fb3d1;
+    --card: rgba(6, 14, 28, 0.45);
+    --card-border: rgba(255, 255, 255, 0.10);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%) fixed;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { color: var(--cyan); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  /* Header */
+  header.hero { text-align: center; padding: 24px 0 40px; }
+  .kicker {
+    display: inline-block; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--cyan); border: 1px solid rgba(74, 255, 255, 0.35);
+    border-radius: 999px; padding: 5px 14px; margin-bottom: 18px;
+  }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 14px; font-weight: 800; }
+  h1 .accent { color: var(--primary); }
+  .lede { font-size: 18px; color: var(--muted); max-width: 720px; margin: 0 auto; }
+
+  /* Glass cards */
+  .glass {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 28px 30px;
+    margin: 22px 0;
+  }
+  section h2 {
+    font-size: 26px; margin: 0 0 4px; font-weight: 750;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 10px; flex: none;
+    background: linear-gradient(135deg, var(--primary), var(--primary-600));
+    color: #06101c; font-weight: 800; font-size: 16px;
+  }
+  section h3 { font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--cyan); margin: 26px 0 10px; }
+  .sub { color: var(--muted); margin: 0 0 8px; }
+
+  code { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 5px; padding: 1px 6px; font-size: 13px; color: #cfe4ff; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+
+  /* Decision callout */
+  .decision {
+    border-left: 3px solid var(--success);
+    background: rgba(79, 255, 176, 0.08);
+    border-radius: 8px; padding: 14px 18px; margin: 12px 0 6px;
+  }
+  .decision .label { color: var(--success); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Badges */
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .badge.chosen { color: #06101c; background: var(--success); }
+  .badge.rejected { color: #2a0d0d; background: var(--danger); }
+  .badge.fallback { color: #241f04; background: var(--warning); }
+
+  /* Alternatives table */
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 15px; }
+  th, td { text-align: left; padding: 11px 12px; vertical-align: top; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  td:first-child { white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin: 5px 0; }
+
+  /* TOC / nav */
+  nav.toc { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 8px 0 30px; }
+  nav.toc a {
+    font-size: 13px; padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--card-border); background: rgba(0,0,0,0.25); color: var(--text);
+  }
+  nav.toc a:hover { border-color: var(--primary); color: var(--cyan); }
+
+  /* Architecture split */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+  .split .col { background: rgba(0,0,0,0.22); border: 1px solid var(--card-border); border-radius: 12px; padding: 18px 20px; }
+  .split .col h4 { margin: 0 0 8px; font-size: 15px; color: var(--primary); }
+  @media (max-width: 720px) { .split { grid-template-columns: 1fr; } h1 { font-size: 30px; } }
+
+  /* Phase list */
+  .phase { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .phase:last-child { border-bottom: none; }
+  .phase .p { flex: none; width: 66px; font-weight: 800; color: var(--cyan); font-size: 13px; padding-top: 2px; }
+
+  .note { font-size: 14px; color: var(--muted); }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+  .flag { border-left: 3px solid var(--warning); background: rgba(255,235,59,0.07); border-radius: 8px; padding: 12px 16px; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">HotS Fever · Product Roadmap</span>
+    <h1>In-Game <span class="accent">Draft Companion</span><br />Native Windows Overlay</h1>
+    <p class="lede">A native Windows app that overlays a running Heroes of the Storm client, reads the live draft off the screen, and recommends the next pick using our on-device draft engine — with optional LLM explanations.</p>
+  </header>
+
+  <nav class="toc">
+    <a href="#overview">Overview</a>
+    <a href="#piece-1">1 · Overlay Window</a>
+    <a href="#piece-2">2 · Screen Vision</a>
+    <a href="#piece-3">3 · On-Device Engine</a>
+    <a href="#backend">Backend &amp; Data</a>
+    <a href="#phasing">Phasing</a>
+  </nav>
+
+  <!-- OVERVIEW -->
+  <section id="overview" class="glass">
+    <h2>Overview</h2>
+    <p class="sub">The companion runs entirely on the player's machine and stays <strong>passive</strong>: it only reads the screen and parses replay files Blizzard already writes to disk. It never injects into or interacts with the game process. Heavy work happens on the client; our existing Vercel + Neon backend keeps its current role.</p>
+
+    <div class="split">
+      <div class="col">
+        <h4>Client — native C# / WinUI 3</h4>
+        <ul>
+          <li>Transparent, click-through, always-on-top overlay</li>
+          <li>Screen capture → computer vision → live draft state</li>
+          <li>Draft search runs <strong>on-device</strong> via ONNX Runtime</li>
+          <li>Parses local <code>.StormReplay</code> files on first run</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Backend — existing Vercel + Neon</h4>
+        <ul>
+          <li>Neon Postgres: accounts, community stats, imported match summaries</li>
+          <li><code>/api/gameplan</code>: optional LLM "why this pick" explanations</li>
+          <li>Community / personal stat lookups</li>
+          <li>New ingest route for parsed replay summaries (raw replays never leave the machine)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Why this split</h3>
+    <p class="note">Today the draft search already runs client-side (ONNX Runtime Web in browser workers), so moving it to a serverless function would add cold starts, bundle-size friction, and a network round-trip inside a ~30–45s draft window. Running the models natively on the client keeps recommendations instant and offline; the backend stays lean and does only what it already does well.</p>
+  </section>
+
+  <!-- PIECE 1 -->
+  <section id="piece-1" class="glass">
+    <h2><span class="num">1</span> The Overlay Window</h2>
+    <p class="sub">A transparent surface layered over the game that draws recommendations without stealing focus or clicks.</p>
+
+    <div class="decision">
+      <span class="label">Decision</span>
+      <p style="margin:6px 0 0;">Build the overlay as a <strong>WinUI 3 (Windows App SDK)</strong> layered, always-on-top window, made click-through and non-activating via Win32 extended window styles (<code>WS_EX_LAYERED</code>, <code>WS_EX_TRANSPARENT</code>, <code>WS_EX_TOPMOST</code>, <code>WS_EX_NOACTIVATE</code>) applied through P/Invoke. HotS must run in <strong>borderless / windowed-fullscreen</strong> mode so a separate window can composite on top.</p>
+    </div>
+
+    <h3>Alternatives considered</h3>
+    <table>
+      <tr><th>Option</th><th></th><th>Why</th></tr>
+      <tr>
+        <td>WinUI 3 overlay window</td>
+        <td><span class="badge chosen">Chosen</span></td>
+        <td>Modern native Windows stack: DPI/HDR-aware composition, good performance, and full access to the Win32 ex-styles we need for click-through + topmost. Pairs cleanly with the native ONNX and capture work.</td>
+      </tr>
+      <tr>
+        <td>DirectX hook / DLL injection (Discord/Steam/RTSS style)</td>
+        <td><span class="badge rejected">Rejected</span></td>
+        <td>The only way to draw over <em>true exclusive-fullscreen</em> DirectX, but it injects into the game process — an anti-cheat / ToS risk that breaks our passive-only principle.</td>
+      </tr>
+      <tr>
+        <td>WPF / WinForms transparent window</td>
+        <td><span class="badge rejected">Rejected</span></td>
+        <td>Would work, but it's the legacy stack — weaker composition, DPI, and HDR story than WinUI 3, with no offsetting benefit for a new build.</td>
+      </tr>
+      <tr>
+        <td>Electron transparent BrowserWindow</td>
+        <td><span class="badge rejected">Rejected</span></td>
+        <td>Max web-code reuse, but a heavy runtime for a Windows-only app, and we chose native C# so overlay, capture, and inference share one process and toolchain.</td>
+      </tr>
+    </table>
+
+    <div class="flag" style="margin-top:16px;">
+      <strong>Constraint to surface to users:</strong> exclusive-fullscreen HotS cannot be overlaid by a separate window without injection. We require/recommend <em>borderless windowed</em> mode and detect+prompt if the user is in exclusive fullscreen.
+    </div>
+
+    <h3>Key risks</h3>
+    <ul>
+      <li>Correct z-ordering against a fullscreen DirectX app; keeping the overlay topmost without stealing focus.</li>
+      <li>Multi-monitor and mixed-DPI setups; positioning ROIs relative to the game window, not the desktop.</li>
+    </ul>
+  </section>
+
+  <!-- PIECE 2 -->
+  <section id="piece-2" class="glass">
+    <h2><span class="num">2</span> Screen Vision → Draft State</h2>
+    <p class="sub">Turn pixels into a structured draft: the 10 picks/bans, the map, and the 10 battletags.</p>
+
+    <div class="decision">
+      <span class="label">Decision</span>
+      <p style="margin:6px 0 0;">Capture the game window with the <strong>Windows Graphics Capture API</strong>, crop fixed <strong>regions of interest</strong> (the draft UI is a known, fixed layout — normalized to resolution/aspect), then identify content with <strong>OpenCV template matching</strong> (<code>OpenCvSharp</code>) for hero portraits and the map banner, and <strong>Tesseract OCR</strong> for battletags. Detected heroes/maps are validated against our canonical 90-hero / 14-map roster before use.</p>
+    </div>
+
+    <h3>Capture method</h3>
+    <table>
+      <tr><th>Option</th><th></th><th>Why</th></tr>
+      <tr><td>Windows Graphics Capture (WGC)</td><td><span class="badge chosen">Chosen</span></td><td>Modern, supported, GPU-friendly, and can target a specific window (the game) rather than the whole desktop. This is the same API OBS uses for game capture.</td></tr>
+      <tr><td>Desktop Duplication (DXGI)</td><td><span class="badge fallback">Fallback</span></td><td>Fast and reliable but monitor-level (not window-scoped) and more complex. A viable backup if WGC misbehaves on a given GPU/driver.</td></tr>
+      <tr><td>GDI BitBlt / PrintWindow</td><td><span class="badge rejected">Rejected</span></td><td>Simplest to write, but slow and frequently returns black frames from hardware-accelerated (DirectX) surfaces.</td></tr>
+    </table>
+
+    <h3>Recognition method</h3>
+    <table>
+      <tr><th>Option</th><th></th><th>Why</th></tr>
+      <tr><td>Template match + OCR over fixed ROIs</td><td><span class="badge chosen">Chosen</span></td><td>Offline, deterministic, zero per-frame cost, and low latency. The draft screen's fixed layout lets us crop exact slots instead of searching whole frames, which makes matching cheap and reliable.</td></tr>
+      <tr><td>Multimodal LLM vision (screenshots → model)</td><td><span class="badge fallback">Fallback</span></td><td>Flexible and quick to prototype, but per-frame cost + latency, needs connectivity every pick, and sends screenshots off-device. Reserved as a tie-breaker for low-confidence frames only.</td></tr>
+      <tr><td>Read game memory / log files</td><td><span class="badge rejected">Rejected</span></td><td>HotS exposes no supported live API; memory reading trips anti-cheat and violates our passive principle. There is no reliable live-state file during a match.</td></tr>
+    </table>
+
+    <h3>Why template match + OCR</h3>
+    <p class="note">The draft UI is fixed-layout, so we know where each portrait, the map banner, and each battletag render as ratios of the frame. Cropping those ROIs first makes recognition fast, cheap, and offline. Battletags follow a known <code>Name#1234</code> format we can validate, and heroes/maps are checked against the same encodings the models were trained on (90 heroes sorted alphabetically, 14 maps).</p>
+
+    <h3>Key risks</h3>
+    <ul>
+      <li><strong>Patch UI drift:</strong> Blizzard moves/restyles the draft UI. Mitigation: version the ROI coordinates + portrait assets as config, updatable without a client release.</li>
+      <li>Resolution / aspect-ratio and UI-scale variation; confidence thresholds and a manual-correction fallback in the overlay.</li>
+      <li>Localized clients change map/hero text — prefer portrait matching over text where possible.</li>
+    </ul>
+  </section>
+
+  <!-- PIECE 3 -->
+  <section id="piece-3" class="glass">
+    <h2><span class="num">3</span> On-Device Engine &amp; Search Port</h2>
+    <p class="sub">Run the recommendation models and search locally, with zero round-trips during the draft.</p>
+
+    <div class="decision">
+      <span class="label">Decision</span>
+      <p style="margin:6px 0 0;">Load the existing ONNX models (<code>draft_policy.onnx</code>, <code>generic_draft_0.onnx</code>, <code>win_probability.onnx</code>) with <strong>Microsoft.ML.OnnxRuntime</strong> in C#, and <strong>port the expectimax / MCTS orchestration</strong> from <code>src/lib/draft</code> (TypeScript) to C#. The hero/map/tier encodings are copied verbatim from <code>ai-inference.ts</code> — they are the contract with the trained models and must match training exactly.</p>
+    </div>
+
+    <h3>Alternatives considered</h3>
+    <table>
+      <tr><th>Option</th><th></th><th>Why</th></tr>
+      <tr><td>Native C# ONNX Runtime + ported search</td><td><span class="badge chosen">Chosen</span></td><td>Instant, offline, no per-pick network hop; the <code>.onnx</code> files are already portable and .NET has first-class ONNX Runtime support. Cost: reimplementing the search in C# and keeping encodings in sync.</td></tr>
+      <tr><td>New Vercel API endpoint (onnxruntime-node)</td><td><span class="badge rejected">Rejected</span></td><td>Max code reuse, but large native binaries fight serverless bundle limits, functions have execution-time caps, and cold starts + a network round-trip hurt inside a live draft.</td></tr>
+      <tr><td>Dedicated Node service (Fly / Railway / Render)</td><td><span class="badge fallback">Fallback</span></td><td>Reuses the TS engine on a persistent container with no Lambda limits, but adds infra + cost and still a network hop. The fallback if the C# port proves too costly.</td></tr>
+      <tr><td>Embed onnxruntime-web in a WebView2</td><td><span class="badge rejected">Rejected</span></td><td>Reuses the browser code path, but re-introduces a JS runtime and defeats the point of going native.</td></tr>
+    </table>
+
+    <h3>Why native C#</h3>
+    <p class="note">During a draft, latency is the product. A local engine returns a recommendation the instant a pick lands, works with no connectivity, and reuses the exact model artifacts we already ship. The tradeoff — porting the search — is bounded work we can verify directly against the current implementation.</p>
+
+    <h3>Key risks &amp; how we verify</h3>
+    <ul>
+      <li><strong>Encoding parity:</strong> generate the hero/map lists from one shared source so the C# client and training never drift.</li>
+      <li><strong>Numerical parity:</strong> golden test set — run N draft states through both the existing TS/browser path and the new C# path; assert policy/value agreement within tolerance and identical top recommendation.</li>
+      <li><strong>Responsiveness:</strong> run search off the UI thread so the overlay never stalls.</li>
+      <li><strong>Model versioning:</strong> pin model + encoding versions together so a model swap can't silently break inputs.</li>
+    </ul>
+  </section>
+
+  <!-- BACKEND -->
+  <section id="backend" class="glass">
+    <h2>Backend &amp; Replay Import</h2>
+    <p class="sub">The one place the client talks to the network for data, plus the first-run import that makes personal insights work without setup.</p>
+    <ul>
+      <li><strong>Replay parsing is client-side.</strong> On first run we scan <code>Documents\Heroes of the Storm\Accounts\…\Replays\Multiplayer\</code> and parse <code>.StormReplay</code> files with the mature <code>Heroes.ReplayParser</code> .NET library.</li>
+      <li><strong>Only structured summaries are uploaded</strong> to Neon via a new ingest API route — never the raw replays. This powers personal stats (e.g. the momentum-adjusted win % already specified for the site).</li>
+      <li><strong>LLM explanations</strong> reuse the existing streaming <code>/api/gameplan</code> route; the "why" text is optional and never blocks the recommendation.</li>
+    </ul>
+  </section>
+
+  <!-- PHASING -->
+  <section id="phasing" class="glass">
+    <h2>Phasing</h2>
+    <p class="sub">De-risk the two novel subsystems before building the live overlay. Ship one working slice at a time.</p>
+    <div class="phase"><div class="p">Slice 0</div><div>Vertical slice, no overlay: parse one local replay → upload a summary; and run the CV+OCR pipeline on a single captured screenshot → print the detected draft state. Proves replay import and vision independently.</div></div>
+    <div class="phase"><div class="p">Slice 1</div><div>Port the draft search to C# + native ONNX Runtime; validate against the TS engine with the golden test set.</div></div>
+    <div class="phase"><div class="p">Slice 2</div><div>Live capture loop → draft state → local recommendation, printed to a console (still no overlay).</div></div>
+    <div class="phase"><div class="p">Slice 3</div><div>The transparent WinUI overlay: render the recommendation in-game, with borderless-mode detection and manual correction.</div></div>
+    <div class="phase"><div class="p">Slice 4</div><div>Full first-run replay import + personal insights; optional LLM explanations via <code>/api/gameplan</code>.</div></div>
+    <div class="flag" style="margin-top:16px;"><strong>Before shipping:</strong> a formal review of Blizzard's ToS / anti-cheat stance on passive screen-reading overlays. Our design stays read-only and injection-free specifically to stay on the safe side, but this must be confirmed, not assumed.</div>
+  </section>
+
+  <footer>
+    HotS Fever · Draft Companion roadmap · living document — decisions here may be revised as slices are built and validated.
+  </footer>
+
+</div>
+</body>
+</html>
