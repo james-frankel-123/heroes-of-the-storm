@@ -120,15 +120,16 @@
   .mock-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; align-items: start; }
   @media (max-width: 820px) { .mock-grid { grid-template-columns: 1fr; } }
 
-  /* Fake game window */
+  /* Real game screen */
   .screen {
     position: relative; border-radius: 14px; overflow: hidden;
     border: 1px solid rgba(255,255,255,0.12);
-    background:
-      radial-gradient(120% 90% at 50% 0%, rgba(74,158,255,0.18), transparent 60%),
-      linear-gradient(160deg, #0a1526 0%, #0d1e33 55%, #0a1220 100%);
-    aspect-ratio: 16 / 10; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    aspect-ratio: 632 / 358; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    background: #0a1220;
   }
+  .screen-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* subtle dim so the overlay reads clearly on top of the busy screenshot */
+  .screen::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 55%, rgba(2,7,15,0.35) 100%); pointer-events: none; }
   .screen .titlebar { height: 26px; background: rgba(0,0,0,0.35); display: flex; align-items: center; gap: 6px; padding: 0 12px; }
   .screen .titlebar i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
   .screen .titlebar .r { background: #ff6b6b; } .screen .titlebar .y { background: #ffeb3b; } .screen .titlebar .g { background: #4fffb0; }
@@ -146,13 +147,14 @@
   .portrait.rec { box-shadow: inset 0 0 0 2px var(--success); background: linear-gradient(135deg,#123a2c,#0f2a22); color: var(--success); }
   .onclock { font-size: 10px; color: var(--warning); margin-left: 4px; }
 
-  /* The overlay panel floating over the game */
+  /* The overlay panel floating over the game — sits in the dark band
+     between the centre splash and the enemy hex column */
   .overlay-panel {
-    position: absolute; top: 46px; right: 16px; width: 236px;
-    background: rgba(6,14,28,0.82); backdrop-filter: blur(10px);
-    border: 1px solid rgba(74,158,255,0.5); border-radius: 12px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(74,255,255,0.08);
-    padding: 13px 14px; font-size: 12px;
+    position: absolute; top: 6%; right: 13%; width: 33%; max-width: 210px;
+    background: rgba(6,14,28,0.9); backdrop-filter: blur(6px);
+    border: 1px solid rgba(74,158,255,0.55); border-radius: 11px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 0 1px rgba(74,255,255,0.08);
+    padding: 10px 12px; font-size: 11px; line-height: 1.4;
   }
   .overlay-panel .oh { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
   .overlay-panel .oh .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); }
@@ -387,53 +389,27 @@
       <!-- Live draft overlay -->
       <div>
         <div class="screen">
-          <div class="titlebar"><i class="r"></i><i class="y"></i><i class="g"></i><span>Heroes of the Storm — borderless windowed</span></div>
-          <div class="screen-body">
-            <span class="map-chip">Draft · Braxis Holdout</span>
+          <img class="screen-bg" src="/mockup-draft-bg.jpg" alt="Heroes of the Storm draft screen — Infernal Shrines" />
 
-            <div class="teamrow them">
-              <span class="tag">ENEMY</span>
-              <div class="portrait them">Garrosh</div>
-              <div class="portrait them">Kael'thas</div>
-              <div class="portrait them">Zeratul</div>
-              <div class="portrait them">Malfurion</div>
-              <div class="portrait empty">?</div>
-            </div>
-            <div class="teamrow us">
-              <span class="tag">YOUR TEAM</span>
-              <div class="portrait us">E.T.C.</div>
-              <div class="portrait us">Valla</div>
-              <div class="portrait us">Lúcio</div>
-              <div class="portrait rec">Nazeebo</div>
-              <div class="portrait empty">?</div>
-            </div>
-            <div class="teamrow">
-              <span class="tag" style="color:var(--muted)">ON CLOCK</span>
-              <span class="onclock">▲ Your pick — 0:24</span>
-            </div>
-
-            <!-- Floating overlay panel -->
-            <div class="overlay-panel">
-              <div class="oh"><span class="dot"></span><b>HOTS FEVER</b><span class="live">● LIVE</span></div>
-              <div class="rec-hero">
-                <div class="portrait rec" style="width:38px;height:38px;">Naz</div>
-                <div>
-                  <div class="name">Nazeebo</div>
-                  <div class="role">Ranged Assassin · your best</div>
-                </div>
-                <div class="delta"><b>+6.2%</b><span>win vs base</span></div>
+          <!-- Floating overlay panel, placed in the dark band beside the splash -->
+          <div class="overlay-panel">
+            <div class="oh"><span class="dot"></span><b>HOTS FEVER</b><span class="live">● LIVE</span></div>
+            <div class="rec-hero">
+              <div class="portrait rec" style="width:38px;height:38px;">Naz</div>
+              <div>
+                <div class="name">Nazeebo</div>
+                <div class="role">Ranged Assassin · your best</div>
               </div>
-              <div class="barwrap"><i style="width:58%"></i></div>
-              <div class="winline"><span>Team win probability</span><span>58%</span></div>
-
-              <div class="alt"><span class="k">2</span><span>Xul</span><span class="v">+4.1%</span></div>
-              <div class="alt"><span class="k">3</span><span>Zagara</span><span class="v">+3.3%</span></div>
-
-              <div class="why"><b>Why ▾</b> Answers Kael'thas dive with wave clear + Ravenous Spirit zoning; your Nazeebo win rate (68%, last 40 games) and Braxis synergy both spike the estimate.</div>
+              <div class="delta"><b>+6.2%</b><span>win vs base</span></div>
             </div>
+            <div class="barwrap"><i style="width:58%"></i></div>
+            <div class="winline"><span>Team win probability</span><span>58%</span></div>
+
+            <div class="alt"><span class="k">2</span><span>Xul</span><span class="v">+4.1%</span></div>
+            <div class="why"><b>Why ▾</b> Wave-clear + zoning for the Infernal Shrines Punisher fights; your 68% Nazeebo win rate (last 40) lifts it.</div>
           </div>
         </div>
-        <p class="mock-caption">Slice 3 — live draft overlay pinned top-right; one recommendation, alternatives, and an expandable "why".</p>
+        <p class="mock-caption">Slice 3 — overlay floating in dead space beside the pick splash, over a real Infernal Shrines draft. Final anchor point is tunable per resolution.</p>
       </div>
 
       <!-- Supporting states -->
@@ -457,6 +433,18 @@
           <span class="pill" style="border-color:rgba(255,235,59,0.5);"><span class="dot" style="background:var(--warning);box-shadow:0 0 8px var(--warning);"></span>Confirm enemy #4: <b style="color:var(--warning)">&nbsp;Malfurion?</b></span>
         </div>
       </div>
+    </div>
+
+    <div class="mini" style="margin-top:22px;">
+      <h4>What a real draft screen tells us</h4>
+      <p style="margin-bottom:10px;">The live screen (above) directly shapes both the overlay and the vision pipeline:</p>
+      <ul style="margin:0;">
+        <li><strong>Teams are vertical hex columns</strong> — yours (blue) down the left edge, the enemy (red) down the right — not horizontal rows. So the overlay tucks into the dark band beside the centre pick-splash and must never cover either column or the bottom hero pool.</li>
+        <li><strong>Little empty space.</strong> The screen is dense, so the overlay stays compact and corner-anchored (collapsing to a pill between picks) rather than a large panel.</li>
+        <li><strong>Fixed OCR targets:</strong> the map name is top-centre text (<code>INFERNAL SHRINES</code>); the active pick shows the player's battletag above the hero name in the centre; per-player names sit beside each hex.</li>
+        <li><strong>Portrait ROIs</strong> are the hex slots (left/right columns) plus the bottom-centre strip of circular hero icons for the available pool.</li>
+        <li class="flag" style="list-style:none;margin-left:-20px;"><strong>Caveat:</strong> this is a Custom / vs-A.I. lobby (note "Elite A.I." and no ban phase). Ranked <strong>Storm League</strong> draft adds a ban row and pick-order/timer UI, so we calibrate the ROIs against a real Storm League draft — not this screen.</li>
+      </ul>
     </div>
   </section>
 
