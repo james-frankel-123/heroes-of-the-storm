@@ -115,6 +115,25 @@
 
   .note { font-size: 14px; color: var(--muted); }
 
+  /* MVP scope columns */
+  .scope { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 6px 0 4px; }
+  @media (max-width: 720px) { .scope { grid-template-columns: 1fr; } }
+  .scope .col { border-radius: 12px; padding: 16px 18px; border: 1px solid var(--card-border); }
+  .scope .in { background: rgba(79,255,176,0.07); border-color: rgba(79,255,176,0.28); }
+  .scope .out { background: rgba(255,235,59,0.05); border-color: rgba(255,235,59,0.22); }
+  .scope h4 { margin: 0 0 10px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .scope .in h4 { color: var(--success); }
+  .scope .out h4 { color: var(--warning); }
+  .scope ul { margin: 0; padding-left: 18px; font-size: 14px; }
+  .ff { counter-reset: ff; list-style: none; padding-left: 0; margin: 8px 0; }
+  .ff li { position: relative; padding: 8px 0 8px 40px; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 14px; }
+  .ff li:last-child { border-bottom: none; }
+  .ff li::before { counter-increment: ff; content: counter(ff); position: absolute; left: 0; top: 8px; width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--primary-600)); color: #06101c; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .critical { color: var(--warning); font-weight: 600; }
+  .headline { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; margin: 4px 0 14px; }
+  .headline .big { font-size: 30px; font-weight: 800; color: var(--cyan); }
+  .headline .sm { font-size: 14px; color: var(--muted); }
+
   /* ---- Mockups ---- */
   .mock-caption { font-size: 13px; color: var(--muted); margin: 6px 2px 22px; text-align: center; }
   .mock-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; align-items: start; }
@@ -210,6 +229,7 @@
     <a href="#piece-3">3 · On-Device Engine</a>
     <a href="#backend">Backend &amp; Data</a>
     <a href="#phasing">Phasing</a>
+    <a href="#mvp">MVP &amp; Timeline</a>
     <a href="#mockups">Mockups</a>
   </nav>
 
@@ -378,6 +398,59 @@
     <div class="phase"><div class="p">Slice 3</div><div>The transparent WinUI overlay: render the recommendation in-game, with borderless-mode detection and manual correction.</div></div>
     <div class="phase"><div class="p">Slice 4</div><div>Full first-run replay import + personal insights; optional LLM explanations via <code>/api/gameplan</code>.</div></div>
     <div class="flag" style="margin-top:16px;"><strong>Before shipping:</strong> a formal review of Blizzard's ToS / anti-cheat stance on passive screen-reading overlays. Our design stays read-only and injection-free specifically to stay on the safe side, but this must be confirmed, not assumed.</div>
+  </section>
+
+  <!-- MVP -->
+  <section id="mvp" class="glass">
+    <h2>MVP &amp; Timeline</h2>
+    <p class="sub">The fastest path to a differentiated product in players' hands — a native overlay that reads the live Storm League draft and recommends the strongest next pick, offline.</p>
+
+    <div class="headline">
+      <span class="big">≈ 7–8 weeks</span>
+      <span class="sm">focused build to a shippable beta · ~2.5 months with real-world buffer · rough internal alpha in ~3 weeks</span>
+    </div>
+
+    <div class="scope">
+      <div class="col in">
+        <h4>✓ In the MVP (v1)</h4>
+        <ul>
+          <li>Native WinUI overlay over <strong>Storm League draft</strong>, with borderless-mode detection</li>
+          <li>Screen vision: hero portraits, map, and bans — common resolutions (1080p/1440p, 16:9), English client</li>
+          <li><strong>One-click correction</strong> on any low-confidence detection</li>
+          <li><strong>Full on-device search</strong> (expectimax / MCTS + ONNX, ported to C#) — top pick + 2 alternatives + team win %</li>
+          <li>Community-tier stats (low / mid / high rank)</li>
+        </ul>
+      </div>
+      <div class="col out">
+        <h4>→ Deferred to fast-follows</h4>
+        <ul>
+          <li>Personalized recommendations (auto replay import + personal stats)</li>
+          <li>LLM "why this pick" explanations</li>
+          <li>Non-Storm-League screens, ultrawide / exotic resolutions, localized clients</li>
+          <li>Overlay polish (collapse-to-pill, multi-anchor layouts)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Why this scope ships fast</h3>
+    <p class="note">Two design choices keep the timeline tight without gutting the value: the <strong>one-click correction fallback</strong> means vision only has to be <em>good</em>, not perfect, to ship; and launching on <strong>community stats</strong> lets us defer the entire replay-import subsystem. Full search stays in v1 by choice — it's the recommendation quality that makes the product worth trusting.</p>
+
+    <h3>Build workstreams</h3>
+    <div class="phase"><div class="p">~1 wk</div><div>Overlay shell — transparent, click-through, topmost window + borderless-mode detection.</div></div>
+    <div class="phase"><div class="p">~1 wk</div><div>Screen capture (Windows Graphics Capture) + Storm League region-of-interest cropping.</div></div>
+    <div class="phase"><div class="p">~2.5–3 wk</div><div><span class="critical">Critical path.</span> Portrait template-matching + map/ban OCR + confidence scoring + the one-click correction UI — iterated on real draft footage.</div></div>
+    <div class="phase"><div class="p">~2–2.5 wk</div><div>Port expectimax / MCTS + ONNX inference to C#, verified against the existing TS engine with a golden test set. <em>Runs in parallel with vision.</em></div></div>
+    <div class="phase"><div class="p">~1.5 wk</div><div>Integration (state → engine → overlay), installer/packaging, and testing on live Storm League drafts.</div></div>
+
+    <h3>Fast-follows (post-MVP, in order)</h3>
+    <ol class="ff">
+      <li><strong>Personalized recommendations</strong> — auto-import local <code>.StormReplay</code> files on first run, compute personal stats (momentum-adjusted win %), and blend them into the recommendation. ~1.5–2 wks.</li>
+      <li><strong>LLM explanations</strong> — stream "why this pick" via the existing <code>/api/gameplan</code> route; never blocks the recommendation.</li>
+      <li><strong>Robustness</strong> — more resolutions/ultrawide, localized clients, and patch-resilient ROI config that updates without a client release.</li>
+      <li><strong>Overlay polish</strong> — collapse-to-pill between picks, multi-anchor layouts, and per-user placement.</li>
+    </ol>
+
+    <div class="flag" style="margin-top:16px;"><strong>Long pole:</strong> vision calibration needs a real <strong>Storm League</strong> draft capture (ban row + pick timer). The vs-A.I. screen we have lacks both. Earlier that capture arrives, earlier the critical path starts.</div>
   </section>
 
   <!-- MOCKUPS -->
