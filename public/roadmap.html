@@ -184,6 +184,12 @@
   footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
   .flag { border-left: 3px solid var(--warning); background: rgba(255,235,59,0.07); border-radius: 8px; padding: 12px 16px; font-size: 14px; }
   .flag.good { border-color: var(--success); background: rgba(79,255,176,0.07); }
+
+  /* Code block for setup scripts */
+  pre.cb { background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #cfe4ff; line-height: 1.55; margin: 10px 0; white-space: pre; }
+  pre.cb .cm { color: #7f93b0; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 7px; background: linear-gradient(135deg, var(--cyan), var(--primary)); color: #06101c; font-weight: 800; font-size: 12px; margin-right: 8px; flex: none; }
+  .pass { color: var(--success); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -204,6 +210,7 @@
     <a href="#backend">Backend &amp; Sync</a>
     <a href="#milestones">Milestones</a>
     <a href="#mockups">Mockups</a>
+    <a href="#getting-started">Getting Started</a>
   </nav>
 
   <!-- OVERVIEW -->
@@ -488,6 +495,50 @@
         <li class="flag" style="list-style:none;margin-left:-20px;"><strong>Caveat:</strong> this is a Custom / vs-A.I. lobby (note "Elite A.I." and no ban phase). Ranked <strong>Storm League</strong> draft adds a ban row and pick-order/timer UI, so we calibrate against a real Storm League draft — not this screen.</li>
       </ul>
     </div>
+  </section>
+
+  <!-- GETTING STARTED -->
+  <section id="getting-started" class="glass">
+    <h2>Getting Started — M0</h2>
+    <p class="sub">The first hands-on step, to run on a <strong>Windows PC that has Heroes of the Storm installed</strong>. It confirms the CV-free half of the design before we build on it. Plan to play (or spectate) <strong>one ranked Storm League draft</strong> — that's the exact surface we care about. No coding required.</p>
+
+    <h3><span class="step-num">1</span>One-time setup</h3>
+    <p class="note">Install the <a href="https://dotnet.microsoft.com/download" target="_blank" rel="noopener">.NET SDK</a>, then install <strong>HeroesDecode</strong> — the community CLI that reads the lobby file:</p>
+    <pre class="cb">dotnet tool install --global HeroesDecode
+HeroesDecode --help   <span class="cm"># confirm the exact "pregame" flag name</span></pre>
+
+    <h3><span class="step-num">2</span>Check 1 &amp; 3 — timing &amp; safe-to-read</h3>
+    <p class="note">Before you queue, open <strong>PowerShell</strong> and start this watcher. It prints a timestamped line whenever the lobby file exists and how big it is:</p>
+    <pre class="cb">$dir = "$env:LOCALAPPDATA\Temp\Heroes of the Storm"
+while ($true) {
+  Get-ChildItem $dir -Recurse -Filter replay.server.battlelobby -ErrorAction SilentlyContinue |
+    ForEach-Object { "{0:HH:mm:ss.fff}  {1} bytes" -f (Get-Date), $_.Length }
+  Start-Sleep -Milliseconds 500
+}</pre>
+    <p class="note">Now play. Watch the console: during the <strong>ban/pick draft</strong> you should see <strong>nothing</strong> (confirms no live file — Check&nbsp;1); at the <strong>loading screen</strong> note when it first appears and when the byte-size stops changing (the safe-to-read moment — Check&nbsp;3). Don't open the original with a write lock while the game holds it — that has crashed other tools.</p>
+
+    <h3><span class="step-num">3</span>Check 2 &amp; 4 — contents</h3>
+    <p class="note">When the file appears at loading, <strong>copy it first</strong> (never parse the live original), then decode the copy:</p>
+    <pre class="cb">$src = (Get-ChildItem "$env:LOCALAPPDATA\Temp\Heroes of the Storm" -Recurse -Filter replay.server.battlelobby | Select-Object -First 1).FullName
+Copy-Item $src "$env:TEMP\bl_copy.battlelobby"
+HeroesDecode "$env:TEMP\bl_copy.battlelobby"   <span class="cm"># use the pregame flag from --help</span></pre>
+
+    <h3><span class="step-num">4</span>What "pass" looks like</h3>
+    <ul>
+      <li><span class="pass">✓</span> Nothing written during the draft; the file appears at loading-screen start.</li>
+      <li><span class="pass">✓</span> Decode shows all 10 players with <strong>full <code>Name#1234</code> battletags</strong>.</li>
+      <li><span class="pass">✓</span> Decode shows the <strong>6 bans</strong>, <strong>10 picks</strong>, the <strong>map</strong>, and team assignments.</li>
+      <li><span class="pass">✓</span> The game was a <strong>ranked Storm League</strong> match (not QM / Custom).</li>
+    </ul>
+
+    <h3>What the results mean</h3>
+    <ul>
+      <li><strong>All pass</strong> → the architecture holds: CV is needed only for the live moment, the file is authoritative at load.</li>
+      <li><strong>File appears earlier / during draft</strong> → good news — it could shrink the CV role. Note when it appears and flag it.</li>
+      <li><strong>Missing discriminator or bans on this patch</strong> → the parser needs a per-build fix; note the game <strong>build number</strong>.</li>
+    </ul>
+
+    <div class="flag" style="margin-top:16px;"><strong>Moving to your other computer:</strong> everything you need is on this page — open <code>hotsfever.com/roadmap</code> there and follow steps 1–4. Record the timestamps, the decode output, and the game build number, and bring them back here.</div>
   </section>
 
   <footer>
