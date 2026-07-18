@@ -270,8 +270,8 @@
       <li><strong>ToS:</strong> reading these on-disk files is de-facto tolerated (Blizzard's Warden scans process memory, not disk); we never read memory. Note: there is no explicit Blizzard blessing — tolerance is inferred from years of tools operating openly.</li>
     </ul>
 
-    <div class="flag" style="margin-top:14px;">
-      <strong>Needs hands-on verification</strong> on a current-patch Windows + HotS box before we lock the file path in: (1) the file still appears at loading-screen start; (2) current-patch discriminator extraction still works; (3) safe read timing so we don't hit file-lock contention that can crash the client; (4) bans + picks + map are present for <strong>ranked Storm League</strong> specifically. The format is undocumented and shifts across game builds, so it carries a per-patch maintenance tail.
+    <div class="flag good" style="margin-top:14px;">
+      <strong>✓ Verified hands-on — 2026-07-17, game build 97039.</strong> A ranked Storm League draft on a current-patch Windows + HotS box confirmed all four points: (1) the file appears only at loading-screen start — nothing during the draft; (2) current-patch <code>#1234</code> discriminator extraction works; (3) it's written fully-formed and stable, so a copy is safe to read immediately; (4) bans + picks + map are all present for Storm League. Full results in <a href="#getting-started">Getting Started</a>. The format is still undocumented and shifts across game builds, so it keeps a per-patch maintenance tail.
     </div>
   </section>
 
@@ -413,9 +413,9 @@
     <h2>Milestones</h2>
     <p class="sub">Sequenced by dependency, not calendar. Each milestone ends on something demonstrable. No week estimates — the build runs on LLM coding agents, so we gate on <em>done and verified</em>, not elapsed time.</p>
 
-    <div class="parallel-note"><strong>M0 gates the file-based half.</strong> The engine (M1) and the manual-input overlay (M2) can proceed in parallel with M0. The file integration (M3) and CV auto-fill (M4) depend on M0 landing first.</div>
+    <div class="parallel-note"><strong>M0 is verified ✓ (build 97039)</strong> — the file-based half is proven, so <strong>M3</strong> (file integration) and <strong>M4</strong> (CV auto-fill) are now unblocked. The engine (M1) and the manual-input overlay (M2) proceed in parallel.</div>
 
-    <div class="phase"><div class="p gate">M0</div><div><strong>Verify game-state sources (hands-on).</strong> On a current-patch Windows + HotS box, confirm the battlelobby timing / format / safe-read, and that ranked Storm League drafts expose bans + picks + map. <em>Gate: the CV-free half is real before we build on it.</em></div></div>
+    <div class="phase"><div class="p" style="color:var(--success)">M0 ✓</div><div><strong>Verify game-state sources (hands-on). — DONE (2026-07-17).</strong> On a current-patch box (build 97039), a ranked Storm League draft confirmed the battlelobby timing / format / safe-read and that bans + picks + map are present. <em>Gate cleared: the CV-free half is real.</em></div></div>
     <div class="phase"><div class="p">M1</div><div><strong>On-device engine parity.</strong> ONNX + ported expectimax/MCTS in C#, recommending picks and bans, verified against the TS engine with a golden test set.</div></div>
     <div class="phase"><div class="p">M2</div><div><strong>Overlay + manual input.</strong> Transparent WinUI overlay, click-entry draft board, live recommendations. <em>This alone is a usable, fully CV-free product.</em></div></div>
     <div class="phase"><div class="p">M3</div><div><strong>File integration.</strong> Read the battlelobby at loading → real battletags + authoritative final draft; reconcile the draft and drive personalization. Begin <code>.StormReplay</code> sync.</div></div>
@@ -502,10 +502,38 @@
     <h2>Getting Started — M0</h2>
     <p class="sub">The first hands-on step, to run on a <strong>Windows PC that has Heroes of the Storm installed</strong>. It confirms the CV-free half of the design before we build on it. Plan to play (or spectate) <strong>one ranked Storm League draft</strong> — that's the exact surface we care about. No coding required.</p>
 
+    <div class="flag good" style="margin-top:4px;">
+      <strong>✓ Verified 2026-07-17 — all four checks passed (game build 97039).</strong>
+      A ranked Storm League draft on a current-patch box confirmed the file-based half end-to-end:
+      <ul style="margin:8px 0 0;">
+        <li><span class="pass">✓ Check&nbsp;1 (timing)</span> — nothing written during queue or the ban/pick draft; the battlelobby appeared only at the loading screen.</li>
+        <li><span class="pass">✓ Check&nbsp;3 (safe-to-read)</span> — written fully-formed (≈282&nbsp;KB) and never changed size after; safe to copy immediately.</li>
+        <li><span class="pass">✓ Check&nbsp;2 (battletags)</span> — all 10 players decoded with full <code>Name#1234</code> discriminators (incl. spec battletag <code>Mestupidum#1183</code>).</li>
+        <li><span class="pass">✓ Check&nbsp;4 (completeness)</span> — Game Mode <code>StormLeague</code>, 6 bans (ThreeBan), 10 picks, map, and team assignments all present.</li>
+      </ul>
+    </div>
+
+    <h3>New findings — carry into M3 (file integration)</h3>
+    <ul>
+      <li><strong>Stale temp file gotcha.</strong> The battlelobby <em>persists</em> in <code>…\TempWriteReplayP1\</code> after a match — a leftover from a prior game was already present before the test. <strong>"File exists" is not proof of the current draft</strong>; the client must detect a <em>fresh write</em> (a new <code>LastWriteTime</code>/size), or clear/baseline the path before the match, not just check for presence.</li>
+      <li><strong>Pregame pick format differs from post-match.</strong> In the battlelobby, picks come as 4-char <strong>attribute IDs</strong> (<code>Witc</code>, <code>Diab</code>, <code>Garr</code>…), <em>not</em> the <code>HeroWitchDoctor</code>-style names a finished <code>.StormReplay</code> gives. The client needs an <strong>AttId → canonical-roster map</strong> to line these up with the model's hero list.</li>
+      <li><strong>Tooling reality.</strong> HeroesDecode&nbsp;1.4.x requires <strong>.NET&nbsp;8</strong> (won't install on .NET&nbsp;5) and uses <code>HeroesDecode pregame -p &lt;file&gt;</code> (a subcommand, not a flag). The user-local .NET installer avoids an elevation hang seen with the winget MSI. The steps below are corrected accordingly.</li>
+    </ul>
+
+    <h3 style="color:var(--muted);">Reproducible procedure (re-run after future patches)</h3>
+
     <h3><span class="step-num">1</span>One-time setup</h3>
-    <p class="note">Install the <a href="https://dotnet.microsoft.com/download" target="_blank" rel="noopener">.NET SDK</a>, then install <strong>HeroesDecode</strong> — the community CLI that reads the lobby file:</p>
-    <pre class="cb">dotnet tool install --global HeroesDecode
-HeroesDecode --help   <span class="cm"># confirm the exact "pregame" flag name</span></pre>
+    <p class="note">HeroesDecode needs <strong>.NET&nbsp;8+</strong>. Install the SDK with the <strong>user-local installer</strong> (no admin — avoids the winget MSI elevation hang), then install <strong>HeroesDecode</strong> — the community CLI that reads the lobby file:</p>
+    <pre class="cb"><span class="cm"># .NET 8 SDK, user-local (no admin needed):</span>
+$s = "$env:TEMP\dotnet-install.ps1"
+irm https://dot.net/v1/dotnet-install.ps1 -OutFile $s
+&amp; $s -Channel 8.0 -InstallDir "$env:LOCALAPPDATA\Microsoft\dotnet"
+$env:DOTNET_ROOT = "$env:LOCALAPPDATA\Microsoft\dotnet"
+$env:Path = "$env:DOTNET_ROOT;$env:USERPROFILE\.dotnet\tools;$env:Path"
+
+<span class="cm"># HeroesDecode (needs .NET 8):</span>
+dotnet tool install --global HeroesDecode
+HeroesDecode --help   <span class="cm"># note: 'pregame' is a SUBCOMMAND, not a flag</span></pre>
 
     <h3><span class="step-num">2</span>Check 1 &amp; 3 — timing &amp; safe-to-read</h3>
     <p class="note">Before you queue, open <strong>PowerShell</strong> and start this watcher. It prints a timestamped line whenever the lobby file exists and how big it is:</p>
@@ -516,12 +544,13 @@ while ($true) {
   Start-Sleep -Milliseconds 500
 }</pre>
     <p class="note">Now play. Watch the console: during the <strong>ban/pick draft</strong> you should see <strong>nothing</strong> (confirms no live file — Check&nbsp;1); at the <strong>loading screen</strong> note when it first appears and when the byte-size stops changing (the safe-to-read moment — Check&nbsp;3). Don't open the original with a write lock while the game holds it — that has crashed other tools.</p>
+    <p class="note"><strong>Gotcha (confirmed on the 2026-07-17 run):</strong> a battlelobby from a <em>previous</em> match can still be sitting in that folder. Before you queue, delete or rename any existing <code>replay.server.battlelobby</code> so the fresh write at the loading screen is unambiguous — otherwise the stale file masks Check&nbsp;1.</p>
 
     <h3><span class="step-num">3</span>Check 2 &amp; 4 — contents</h3>
-    <p class="note">When the file appears at loading, <strong>copy it first</strong> (never parse the live original), then decode the copy:</p>
+    <p class="note">When the file appears at loading, <strong>copy it first</strong> (never parse the live original), then decode the copy. In HeroesDecode&nbsp;1.4.x, <code>pregame</code> is a <strong>subcommand</strong> with a required <code>-p</code> path:</p>
     <pre class="cb">$src = (Get-ChildItem "$env:LOCALAPPDATA\Temp\Heroes of the Storm" -Recurse -Filter replay.server.battlelobby | Select-Object -First 1).FullName
 Copy-Item $src "$env:TEMP\bl_copy.battlelobby"
-HeroesDecode "$env:TEMP\bl_copy.battlelobby"   <span class="cm"># use the pregame flag from --help</span></pre>
+HeroesDecode pregame -p "$env:TEMP\bl_copy.battlelobby"   <span class="cm"># or: get-pregame-json -p &lt;file&gt; for JSON</span></pre>
 
     <h3><span class="step-num">4</span>What "pass" looks like</h3>
     <ul>
@@ -538,7 +567,7 @@ HeroesDecode "$env:TEMP\bl_copy.battlelobby"   <span class="cm"># use the pregam
       <li><strong>Missing discriminator or bans on this patch</strong> → the parser needs a per-build fix; note the game <strong>build number</strong>.</li>
     </ul>
 
-    <div class="flag" style="margin-top:16px;"><strong>Moving to your other computer:</strong> everything you need is on this page — open <code>hotsfever.com/roadmap</code> there and follow steps 1–4. Record the timestamps, the decode output, and the game build number, and bring them back here.</div>
+    <div class="flag good" style="margin-top:16px;"><strong>Status:</strong> M0 has been run and <strong>passed on build 97039</strong> (2026-07-17). This section now stands as the reproducible procedure for re-verifying after future patches — the format shifts per build, so re-run steps 1–4 and record the new build number whenever the parser needs a per-patch fix.</div>
   </section>
 
   <footer>
