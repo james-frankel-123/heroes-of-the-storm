@@ -18,4 +18,21 @@ internal static class TestPaths
         throw new DirectoryNotFoundException(
             "Could not locate public/models (draft_policy.onnx) above " + AppContext.BaseDirectory);
     }
+
+    /// <summary>Walk up to the repo root and return src/lib/data, where the stat-table JSON lives.</summary>
+    public static string DataDir()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null)
+        {
+            var candidate = Path.Combine(dir.FullName, "src", "lib", "data");
+            if (File.Exists(Path.Combine(candidate, "draft-stats-decayed.json"))) return candidate;
+            dir = dir.Parent;
+        }
+        throw new DirectoryNotFoundException(
+            "Could not locate src/lib/data (draft-stats-decayed.json) above " + AppContext.BaseDirectory);
+    }
+
+    public static string StatsJson() => Path.Combine(DataDir(), "draft-stats-decayed.json");
+    public static string CompositionsJson() => Path.Combine(DataDir(), "compositions.json");
 }
