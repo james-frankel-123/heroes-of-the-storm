@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="HotsFever.Overlay.OverlayWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="Transparent">
+        <Border Margin="8"
+                CornerRadius="11"
+                Padding="12"
+                Background="#E6060E1C"
+                BorderBrush="#8C4A9EFF"
+                BorderThickness="1"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left">
+            <StackPanel Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                    <Ellipse Width="8" Height="8" Fill="#4FFFB0" VerticalAlignment="Center"/>
+                    <TextBlock Text="HOTS FEVER" FontWeight="Bold" FontSize="12"
+                               Foreground="#EAF1FB" VerticalAlignment="Center"/>
+                    <TextBlock Text="● LIVE" FontSize="9" Foreground="#4FFFB0"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock x:Name="StatusText" FontSize="11" Foreground="#9FB3D1"
+                           Text="overlay skeleton"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
