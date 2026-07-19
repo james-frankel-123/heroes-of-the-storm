@@ -366,7 +366,7 @@
 
     <div class="decision">
       <span class="label">Decision</span>
-      <p style="margin:6px 0 0;">Load the existing ONNX models (<code>draft_policy.onnx</code>, <code>generic_draft_0.onnx</code>, <code>win_probability.onnx</code>) with <strong>Microsoft.ML.OnnxRuntime</strong> in C#, and <strong>port the expectimax / MCTS orchestration</strong> from <code>src/lib/draft</code> to C#. It recommends across the full sequence — <strong>10 picks and 6 bans</strong>. Hero/map/tier encodings are copied verbatim from <code>ai-inference.ts</code> — the contract with the trained models.</p>
+      <p style="margin:6px 0 0;">Load the existing ONNX models (<code>draft_policy.onnx</code>, <code>generic_draft_0.onnx</code>, <code>win_probability.onnx</code>) with <strong>Microsoft.ML.OnnxRuntime</strong> in C#, and <strong>port the neural MCTS orchestration</strong> from <code>src/lib/draft</code> to C#. It recommends across the full sequence — <strong>10 picks and 6 bans</strong>. Hero/map/tier encodings are copied verbatim from <code>ai-inference.ts</code> — the contract with the trained models. <em>Scope note: the old greedy/statistical pipeline is retired on the web, so the port targets the neural MCTS path only.</em></p>
     </div>
 
     <h3>Alternatives considered</h3>
@@ -380,10 +380,11 @@
 
     <h3>Key risks &amp; how we verify</h3>
     <ul>
-      <li><strong>Encoding parity:</strong> generate the hero/map lists from one shared source so the C# client and training never drift.</li>
-      <li><strong>Numerical parity:</strong> golden test set — run N draft states through both the TS/browser path and the new C# path; assert policy/value agreement within tolerance and an identical top recommendation, for both picks and bans.</li>
-      <li><strong>Responsiveness:</strong> run search off the UI thread so the overlay never stalls.</li>
-      <li><strong>Model versioning:</strong> pin model + encoding versions together so a model swap can't silently break inputs.</li>
+      <li><strong>Encoding parity (Layer 1):</strong> generate the hero/map lists from one shared source so the C# client and training never drift; the input tensors must be byte-identical to the web engine.</li>
+      <li><strong>Numerical parity — within margin, not bit-exact:</strong> onnxruntime-web and Microsoft.ML.OnnxRuntime differ slightly in float32, and the search samples the opponent with <code>Math.random()</code> — so exact equality is neither achievable nor needed. We verify in layers: single-model forward passes must agree within a slim tolerance; the full MCTS is checked in a <strong>deterministic test mode</strong> (a shared mock RNG both sides step through, plus an uncapped time budget / fixed sim count), and in the wild by <strong>statistical</strong> agreement of recommendations.</li>
+      <li><strong>Parity oracle:</strong> a saved answer-key of input→output pairs for the model calculations, plus the <strong>live web engine</strong> (headless browser) as the source of truth for the random tree search — less brittle than hand-exported fixtures.</li>
+      <li><strong>Responsiveness:</strong> run search off the UI thread so the overlay never stalls; in production the search keeps the web engine's wall-clock budget (the uncapped mode is test-only).</li>
+      <li><strong>Model versioning &amp; updates:</strong> pin model + encoding versions together so a model swap can't silently break inputs; the client checks for and <strong>downloads new model versions on demand</strong> rather than bundling them permanently.</li>
     </ul>
   </section>
 
@@ -416,7 +417,7 @@
     <div class="parallel-note"><strong>M0 is verified ✓ (build 97039)</strong> — the file-based half is proven, so <strong>M3</strong> (file integration) and <strong>M4</strong> (CV auto-fill) are now unblocked. The engine (M1) and the manual-input overlay (M2) proceed in parallel.</div>
 
     <div class="phase"><div class="p" style="color:var(--success)">M0 ✓</div><div><strong>Verify game-state sources (hands-on). — DONE (2026-07-17).</strong> On a current-patch box (build 97039), a ranked Storm League draft confirmed the battlelobby timing / format / safe-read and that bans + picks + map are present. <em>Gate cleared: the CV-free half is real.</em></div></div>
-    <div class="phase"><div class="p">M1</div><div><strong>On-device engine parity.</strong> ONNX + ported expectimax/MCTS in C#, recommending picks and bans, verified against the TS engine with a golden test set.</div></div>
+    <div class="phase"><div class="p">M1</div><div><strong>On-device engine parity.</strong> ONNX + ported neural MCTS in C#, recommending picks and bans, verified <em>within margin</em> against the live web engine — exact in a shared mock-RNG / fixed-sim test mode, statistical in the wild.</div></div>
     <div class="phase"><div class="p">M2</div><div><strong>Overlay + manual input.</strong> Transparent WinUI overlay, click-entry draft board, live recommendations. <em>This alone is a usable, fully CV-free product.</em></div></div>
     <div class="phase"><div class="p">M3</div><div><strong>File integration.</strong> Read the battlelobby at loading → real battletags + authoritative final draft; reconcile the draft and drive personalization. Begin <code>.StormReplay</code> sync.</div></div>
     <div class="phase"><div class="p">M4</div><div><strong>Screen auto-fill.</strong> Optional CV layer for heroes + map over the manual baseline — confirm/correct, file-reconciled, degrades to manual on low confidence.</div></div>
