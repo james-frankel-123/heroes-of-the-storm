@@ -46,6 +46,10 @@ public sealed partial class OverlayWindow : Window
         // Stay topmost without stealing focus, and keep out of Alt-Tab.
         // (WS_EX_LAYERED | WS_EX_TRANSPARENT for click-through come with the
         //  per-region hit-testing work in the next increment.)
-        NativeMethods.AddExStyles(hWnd, NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_TOOLWINDOW);
+        NativeMethods.AddExStyles(hWnd,
+            NativeMethods.WS_EX_TOPMOST | NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_TOOLWINDOW);
+
+        // The presenter's IsAlwaysOnTop isn't reliable here — force true topmost.
+        NativeMethods.SetTopMost(hWnd);
     }
 }
