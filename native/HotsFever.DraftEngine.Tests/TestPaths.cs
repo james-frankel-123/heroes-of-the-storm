@@ -37,12 +37,17 @@ internal static class TestPaths
     public static string CompositionsJson() => Path.Combine(DataDir(), "compositions.json");
 
     /// <summary>Path to the parity oracle's golden file (tools/oracle/oracle-golden.json), or null if not generated.</summary>
-    public static string? OracleGolden()
+    public static string? OracleGolden() => FindUp(Path.Combine("tools", "oracle", "oracle-golden.json"));
+
+    /// <summary>Path to the MCTS behavioral golden file (tools/oracle/mcts-golden.json), or null if not generated.</summary>
+    public static string? MctsGolden() => FindUp(Path.Combine("tools", "oracle", "mcts-golden.json"));
+
+    private static string? FindUp(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir != null)
         {
-            var candidate = Path.Combine(dir.FullName, "tools", "oracle", "oracle-golden.json");
+            var candidate = Path.Combine(dir.FullName, relative);
             if (File.Exists(candidate)) return candidate;
             dir = dir.Parent;
         }

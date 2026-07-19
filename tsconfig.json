@@ -26,6 +26,7 @@
   "exclude": [
     "node_modules",
     "benchmark",
+    "tools",
     "src/lib/draft/mcts-worker.ts",
     "src/lib/draft/expectimax-worker.ts"
   ]

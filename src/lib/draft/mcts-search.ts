@@ -193,9 +193,19 @@ export async function runMCTSSearch(
   withLock: <T>(fn: () => Promise<T>) => Promise<T> = (fn) => fn(),
   /** Optional WP leaf evaluator for complete drafts: returns P(team0 wins). */
   evaluateTerminal?: (team0: string[], team1: string[]) => Promise<number>,
+  /**
+   * Test-mode overrides. Defaults reproduce production behavior exactly:
+   * rng = Math.random, and the standard MIN/MAX_SIMS + time budget. Used by the
+   * parity oracle to drive a deterministic (shared-RNG, fixed-sim) search.
+   */
+  options?: { rng?: () => number; maxSims?: number; minSims?: number; timeBudgetMs?: number },
 ): Promise<{ recommendations: MCTSRecommendation[]; valueEstimate: number; sims: number }> {
 
   const ourTeam = draftState.ourTeam
+  const rng = options?.rng ?? Math.random
+  const maxSims = options?.maxSims ?? MAX_SIMS
+  const minSims = options?.minSims ?? MIN_SIMS
+  const timeBudgetMs = options?.timeBudgetMs ?? TIME_BUDGET_MS
 
   async function runPolicy(state: Float32Array, mask: Float32Array) {
     const stateTensor = new ort.Tensor('float32', state, [1, STATE_DIM])
@@ -219,7 +229,7 @@ export async function runMCTSSearch(
     const result: any = await withLock(() => gdSession.run({ state: stateTensor, valid_mask: maskTensor }))
     const logits = result.hero_logits.data as Float32Array
     const probs = softmaxMasked(logits, mask)
-    const r = Math.random()
+    const r = rng()
     let cumSum = 0
     for (let i = 0; i < NUM_HEROES; i++) {
       cumSum += probs[i]
@@ -256,8 +266,8 @@ export async function runMCTSSearch(
   const startTime = performance.now()
   let simsRun = 0
 
-  for (let sim = 0; sim < MAX_SIMS; sim++) {
-    if (sim >= MIN_SIMS && performance.now() - startTime > TIME_BUDGET_MS) break
+  for (let sim = 0; sim < maxSims; sim++) {
+    if (sim >= minSims && performance.now() - startTime > timeBudgetMs) break
     simsRun++
 
     let node = root
