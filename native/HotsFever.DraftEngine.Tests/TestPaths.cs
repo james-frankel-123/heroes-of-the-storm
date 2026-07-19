@@ -35,4 +35,17 @@ internal static class TestPaths
 
     public static string StatsJson() => Path.Combine(DataDir(), "draft-stats-decayed.json");
     public static string CompositionsJson() => Path.Combine(DataDir(), "compositions.json");
+
+    /// <summary>Path to the parity oracle's golden file (tools/oracle/oracle-golden.json), or null if not generated.</summary>
+    public static string? OracleGolden()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null)
+        {
+            var candidate = Path.Combine(dir.FullName, "tools", "oracle", "oracle-golden.json");
+            if (File.Exists(candidate)) return candidate;
+            dir = dir.Parent;
+        }
+        return null;
+    }
 }

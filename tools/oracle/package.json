@@ -1,0 +1,13 @@
+{
+  "name": "hotsfever-parity-oracle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Generates model I/O golden vectors from onnxruntime-web (the production runtime) so the C# engine can be validated within-margin against it.",
+  "scripts": {
+    "gen": "node gen-golden.mjs"
+  },
+  "dependencies": {
+    "onnxruntime-web": "1.20.1"
+  }
+}
