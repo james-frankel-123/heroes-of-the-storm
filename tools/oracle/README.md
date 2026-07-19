@@ -34,10 +34,18 @@ npm run gen
 Deterministic: a seeded PRNG drives case generation and the model weights are
 fixed, so regeneration produces an identical file unless the models changed.
 
-## Note on the behavioral (MCTS) layer
+## Behavioral (MCTS) layer
 
-This oracle covers the **model math** (the CTO's "precompute pairs, validate within
-margin" approach). Validating the full **MCTS search** end-to-end against the live
-web engine additionally requires a mock-RNG / fixed-sim mode in the TypeScript
-engine (a small, behavior-neutral refactor of `src/lib/draft/mcts-search.ts`) so
-both sides step through the same random draws. That is the next oracle increment.
+`gen-mcts-golden.ts` (run: `npm run gen:mcts`, via tsx) runs the **real** TypeScript MCTS
+(`src/lib/draft/mcts-search.ts`) through onnxruntime-web, driven by a shared
+mock-RNG sequence + fixed sim count (uncapped time). It writes `mcts-golden.json`
+(the RNG sequence + per-case recommendations).
+
+The C# side (`MctsBehavioralParityTests.cs`) runs its search through the same RNG
+sequence and compares. Because the shared RNG makes the searches deterministic and
+the ~1e-6 model divergence rarely reaches a branch boundary, agreement is in
+practice **exact** (observed: top-1 20/20, exact top-5 20/20, value diff 0.00000),
+though the test only asserts statistical thresholds to stay robust.
+
+This relies on `runMCTSSearch` accepting an optional `options.rng` / sim overrides
+— a behavior-neutral addition; the defaults reproduce production exactly.
