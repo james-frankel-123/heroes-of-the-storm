@@ -4,6 +4,7 @@ using HotsFever.DraftEngine.Data;
 using HotsFever.DraftEngine.Encoding;
 using HotsFever.DraftEngine.Models;
 using HotsFever.DraftEngine.Rng;
+using HotsFever.DraftEngine.Scoring;
 using HotsFever.DraftEngine.Search;
 using HotsFever.Overlay.Interop;
 using Microsoft.UI;
@@ -70,8 +71,12 @@ public sealed partial class OverlayWindow : Window
 
     private OnnxSessions? _sessions;
     private DraftData? _data;
+    private PlayerMawpData? _playerData;
+    private ReplayScanResult? _scan;
+    private string _scanStatus = "scanning replays…";
 
     public ObservableCollection<RecItem> Recommendations { get; } = new();
+    public ObservableCollection<RecItem> YourBest { get; } = new();
     public ObservableCollection<HeroTile> HeroGrid { get; } = new();
     public ObservableCollection<SlotVM> BansMine { get; } = new();
     public ObservableCollection<SlotVM> BansEnemy { get; } = new();
@@ -90,6 +95,7 @@ public sealed partial class OverlayWindow : Window
         _topmostTimer.Start();
 
         RecList.ItemsSource = Recommendations;
+        YourBestList.ItemsSource = YourBest;
         HeroGridView.ItemsSource = HeroGrid;
         BansMineList.ItemsSource = BansMine;
         BansEnemyList.ItemsSource = BansEnemy;
@@ -116,6 +122,7 @@ public sealed partial class OverlayWindow : Window
             });
             PopulateHeroGrid();
             await RecomputeAsync();
+            _ = ScanReplaysAsync(); // personalizes (MAWP) once historic replays are parsed
         }
         catch (Exception ex)
         {
@@ -123,10 +130,71 @@ public sealed partial class OverlayWindow : Window
         }
     }
 
+    // Parse local .StormReplay history into personal stats → MAWP personalization.
+    private async System.Threading.Tasks.Task ScanReplaysAsync()
+    {
+        try
+        {
+            var replaysDir = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "Heroes of the Storm", "Accounts");
+            if (!System.IO.Directory.Exists(replaysDir)) { _scanStatus = "no Replays folder found"; await RecomputeAsync(); return; }
+
+            var scan = await System.Threading.Tasks.Task.Run(() => ReplayStats.Scan(replaysDir));
+            _scan = scan;
+            _scanStatus = scan.ReplaysParsed > 0
+                ? $"personalized from {scan.ReplaysParsed} replays · {scan.LocalBattletag}"
+                : "no replays parsed";
+            if (scan.LocalBattletag != null && scan.PlayerStats.Count > 0)
+            {
+                _playerData = new PlayerMawpData
+                {
+                    PlayerStats = scan.PlayerStats,
+                    AvailableBattletags = new[] { scan.LocalBattletag },
+                };
+            }
+            await RecomputeAsync(); // re-run with personalization + updated status
+        }
+        catch (Exception ex) { _scanStatus = "scan error: " + ex.Message; try { await RecomputeAsync(); } catch { } }
+    }
+
+    // Your top heroes by win rate from replay history (10+ games), still available.
+    private void UpdateYourBest()
+    {
+        YourBest.Clear();
+        var bt = _scan?.LocalBattletag;
+        if (bt == null || _scan == null || !_scan.PlayerStats.TryGetValue(bt, out var byHero))
+        {
+            YourBestSection.Visibility = Visibility.Collapsed;
+            return;
+        }
+        var taken = new HashSet<string>(_selections.Values, StringComparer.Ordinal);
+        var green = new SolidColorBrush(Color.FromArgb(0xFF, 0x4F, 0xFF, 0xB0));
+        var red = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0x6B, 0x6B));
+
+        foreach (var (hero, st) in byHero
+                     .Where(kv => kv.Value.Games >= 5 && !taken.Contains(kv.Key))
+                     .OrderByDescending(kv => kv.Value.WinRate)
+                     .ThenByDescending(kv => kv.Value.Games)
+                     .Take(6))
+        {
+            YourBest.Add(new RecItem
+            {
+                Portrait = Short(hero),
+                Hero = hero,
+                Subtitle = $"{(int)st.Games} games",
+                WinDelta = $"{st.WinRate:0}%",
+                WinDeltaBrush = st.WinRate >= 50 ? green : red,
+            });
+        }
+        YourBestSection.Visibility = YourBest.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     private async System.Threading.Tasks.Task RecomputeAsync()
     {
         UpdateContext();
         BuildDraftBoard();
+        UpdateYourBest();
         if (_sessions == null || _data == null || _currentStep >= 16)
         {
             Recommendations.Clear();
@@ -138,11 +206,12 @@ public sealed partial class OverlayWindow : Window
         bool isBan = !DraftOrder[_currentStep].IsPick;
         var sessions = _sessions;
         var data = _data;
+        var playerData = _playerData;
 
         var result = await System.Threading.Tasks.Task.Run(() =>
             AiInference.GetRecommendations(sessions, input, isBan, new SystemRng(RngSeed),
                 new MctsSearch.Options { MinSims = 40, MaxSims = 60, TimeBudgetMs = double.PositiveInfinity },
-                data, playerData: null, topK: 3));
+                data, playerData, topK: 3));
 
         ApplyRecs(result, isBan);
     }
@@ -203,11 +272,14 @@ public sealed partial class OverlayWindow : Window
         foreach (var rec in result.Recommendations)
         {
             double delta = (rec.WinProb - result.ValueEstimate) * 100.0;
+            string playerNote = rec.SuggestedPlayer == null ? ""
+                : rec.SuggestedPlayer == _scan?.LocalBattletag ? "  ·  your best"
+                : $"  ·  {rec.SuggestedPlayer} should play this";
             Recommendations.Add(new RecItem
             {
                 Portrait = Short(rec.Hero),
                 Hero = rec.Hero,
-                Subtitle = RoleName(rec.Hero),
+                Subtitle = RoleName(rec.Hero) + playerNote,
                 WinDelta = (delta >= 0 ? "+" : "") + delta.ToString("0.0") + "%",
                 WinDeltaBrush = delta >= 0 ? green : red,
                 IsAiPick = first,
@@ -216,7 +288,7 @@ public sealed partial class OverlayWindow : Window
         }
 
         RecSection.Visibility = Recommendations.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        StatusText.Text = $"on-device engine · {result.Sims} sims · tap the drafted hero to advance";
+        StatusText.Text = $"on-device engine · {result.Sims} sims · {_scanStatus}";
     }
 
     // ── Setup (map / tier / team) ────────────────────────────────────

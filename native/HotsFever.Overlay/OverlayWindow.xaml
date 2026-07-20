@@ -100,6 +100,32 @@
                     </ItemsControl>
                     </StackPanel>
 
+                    <!-- Your best (from replay history) — appears once stats load -->
+                    <StackPanel x:Name="YourBestSection" Spacing="12" Visibility="Collapsed">
+                        <Border Height="1" Background="#1AFFFFFF"/>
+                        <TextBlock Text="YOUR BEST  ·  from replays" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
+                        <ItemsControl x:Name="YourBestList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
+                                            <Border Width="34" Height="34" CornerRadius="8" Background="#3348719F">
+                                                <TextBlock Text="{Binding Portrait}" FontSize="9" Foreground="#FFCFE4FF"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                                <TextBlock Text="{Binding Hero}" FontSize="13" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
+                                                <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="#FF9FB3D1"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding WinDelta}" FontSize="14" FontWeight="Bold"
+                                                   Foreground="{Binding WinDeltaBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
                     <!-- Draft Picks (collapsible) — mirrors the real screen: bans top, ours left, enemy right -->
                     <Border Height="1" Background="#1AFFFFFF"/>
                     <Grid>
