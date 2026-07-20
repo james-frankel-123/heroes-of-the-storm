@@ -54,13 +54,16 @@ public sealed partial class OverlayWindow : Window
         (1, false), (0, false),
         (1, true),  (1, true),  (0, true),  (0, true),  (1, true),
     };
-    private const int OurTeam = 0;
-    private const string DemoMap = "Cursed Hollow";
-    private const string DemoTier = "mid";
+    private int _ourTeam = 0;
+    private string _map = "Cursed Hollow";
+    private string _tier = "mid";
     // Fixed seed so identical draft states give identical (stable) recommendations.
     private const int RngSeed = 1337;
 
     private bool _draftListCollapsed;
+    private bool _setupCollapsed;
+    private bool _settingUp = true; // guard combo SelectionChanged during initial population
+    private string _dataDir = "";
 
     private readonly Dictionary<int, string> _selections = new();
     private int _currentStep;
@@ -92,6 +95,7 @@ public sealed partial class OverlayWindow : Window
         BansEnemyList.ItemsSource = BansEnemy;
         PicksMineList.ItemsSource = PicksMine;
         PicksEnemyList.ItemsSource = PicksEnemy;
+        PopulateSetup();
         _ = InitEngineAsync();
     }
 
@@ -104,11 +108,11 @@ public sealed partial class OverlayWindow : Window
             await System.Threading.Tasks.Task.Run(() =>
             {
                 var modelsDir = LocateDir(System.IO.Path.Combine("public", "models"), "draft_policy.onnx");
-                var dataDir = LocateDir(System.IO.Path.Combine("src", "lib", "data"), "draft-stats-decayed.json");
+                _dataDir = LocateDir(System.IO.Path.Combine("src", "lib", "data"), "draft-stats-decayed.json");
                 _sessions = OnnxSessions.FromDirectory(modelsDir);
                 _data = DraftDataLoader.Load(
-                    System.IO.Path.Combine(dataDir, "draft-stats-decayed.json"),
-                    System.IO.Path.Combine(dataDir, "compositions.json"), DemoTier);
+                    System.IO.Path.Combine(_dataDir, "draft-stats-decayed.json"),
+                    System.IO.Path.Combine(_dataDir, "compositions.json"), _tier);
             });
             PopulateHeroGrid();
             await RecomputeAsync();
@@ -162,10 +166,10 @@ public sealed partial class OverlayWindow : Window
             Team1Picks = t1,
             Bans = bans,
             TakenHeroes = t0.Concat(t1).Concat(bans).ToArray(),
-            Map = DemoMap,
-            Tier = DemoTier,
+            Map = _map,
+            Tier = _tier,
             Step = Math.Min(_currentStep, 15),
-            OurTeam = OurTeam,
+            OurTeam = _ourTeam,
         };
     }
 
@@ -173,15 +177,15 @@ public sealed partial class OverlayWindow : Window
     {
         if (_currentStep >= 16)
         {
-            ContextText.Text = $"{DemoMap}  ·  {Cap(DemoTier)}";
+            ContextText.Text = $"{_map}  ·  {Cap(_tier)}";
             RecHeader.Text = "";
             return;
         }
         var (team, isPick) = DraftOrder[_currentStep];
-        string who = team == OurTeam ? "Your" : "Enemy";
+        string who = team == _ourTeam ? "Your" : "Enemy";
         string act = isPick ? "Pick" : "Ban";
-        ContextText.Text = $"{who} {act}  ·  {DemoMap}  ·  {Cap(DemoTier)}  ·  step {_currentStep + 1}/16";
-        RecHeader.Text = team == OurTeam
+        ContextText.Text = $"{who} {act}  ·  {_map}  ·  {Cap(_tier)}  ·  step {_currentStep + 1}/16";
+        RecHeader.Text = team == _ourTeam
             ? (isPick ? "RECOMMENDED PICKS" : "RECOMMENDED BANS")
             : (isPick ? "LIKELY ENEMY PICKS" : "LIKELY ENEMY BANS");
     }
@@ -213,6 +217,62 @@ public sealed partial class OverlayWindow : Window
 
         RecSection.Visibility = Recommendations.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         StatusText.Text = $"on-device engine · {result.Sims} sims · tap the drafted hero to advance";
+    }
+
+    // ── Setup (map / tier / team) ────────────────────────────────────
+
+    private void PopulateSetup()
+    {
+        MapCombo.ItemsSource = HeroCatalog.Maps;
+        MapCombo.SelectedItem = _map;
+        TierCombo.ItemsSource = new[] { "Low", "Mid", "High" };
+        TierCombo.SelectedItem = Cap(_tier);
+        TeamCombo.ItemsSource = new[] { "We ban first (A)", "We ban second (B)" };
+        TeamCombo.SelectedIndex = _ourTeam;
+        _settingUp = false;
+    }
+
+    private void OnMapChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_settingUp || MapCombo.SelectedItem is not string m) return;
+        _map = m;
+        _ = RecomputeAsync();
+    }
+
+    private async void OnTierChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_settingUp || TierCombo.SelectedItem is not string t) return;
+        _tier = t.ToLowerInvariant();
+        await ReloadDataAsync();
+        await RecomputeAsync();
+    }
+
+    private void OnTeamChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_settingUp) return;
+        _ourTeam = TeamCombo.SelectedIndex < 0 ? 0 : TeamCombo.SelectedIndex;
+        _selections.Clear();
+        _currentStep = 0;
+        if (SearchBox != null) SearchBox.Text = "";
+        PopulateHeroGrid();
+        _ = RecomputeAsync();
+    }
+
+    // Reload the tier-specific stat tables when the tier changes.
+    private async System.Threading.Tasks.Task ReloadDataAsync()
+    {
+        if (string.IsNullOrEmpty(_dataDir)) return;
+        var dir = _dataDir; var tier = _tier;
+        _data = await System.Threading.Tasks.Task.Run(() => DraftDataLoader.Load(
+            System.IO.Path.Combine(dir, "draft-stats-decayed.json"),
+            System.IO.Path.Combine(dir, "compositions.json"), tier));
+    }
+
+    private void OnToggleSetup(object sender, RoutedEventArgs e)
+    {
+        _setupCollapsed = !_setupCollapsed;
+        SetupBody.Visibility = _setupCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        SetupToggle.Content = _setupCollapsed ? "▸" : "▾";
     }
 
     // ── Hero grid input ──────────────────────────────────────────────
@@ -270,7 +330,7 @@ public sealed partial class OverlayWindow : Window
         {
             var (team, isPick) = DraftOrder[s];
             _selections.TryGetValue(s, out var hero);
-            bool mine = team == OurTeam;
+            bool mine = team == _ourTeam;
             var slot = MakeSlot(hero, s == _currentStep, mine);
             if (!isPick) (mine ? BansMine : BansEnemy).Add(slot);
             else (mine ? PicksMine : PicksEnemy).Add(slot);

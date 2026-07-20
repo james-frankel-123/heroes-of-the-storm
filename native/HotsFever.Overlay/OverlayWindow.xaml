@@ -39,6 +39,32 @@
 
                 <!-- Collapsible: the picks list + footer -->
                 <StackPanel x:Name="BodyContent" Spacing="12">
+                    <!-- Setup (collapsible): map / tier / team -->
+                    <Grid>
+                        <TextBlock Text="Setup" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <Button x:Name="SetupToggle" Click="OnToggleSetup" Content="▾" HorizontalAlignment="Right"
+                                Width="24" Height="22" Padding="0" FontSize="11" Background="#22FFFFFF"
+                                Foreground="#FFEAF1FB" BorderThickness="0" CornerRadius="7"/>
+                    </Grid>
+                    <StackPanel x:Name="SetupBody" Spacing="6">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Map" FontSize="11" Foreground="#FF9FB3D1" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" x:Name="MapCombo" SelectionChanged="OnMapChanged" HorizontalAlignment="Stretch"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Skill tier" FontSize="11" Foreground="#FF9FB3D1" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" x:Name="TierCombo" SelectionChanged="OnTierChanged" HorizontalAlignment="Stretch"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Our team" FontSize="11" Foreground="#FF9FB3D1" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" x:Name="TeamCombo" SelectionChanged="OnTeamChanged" HorizontalAlignment="Stretch"/>
+                        </Grid>
+                    </StackPanel>
+
                     <StackPanel x:Name="RecSection" Spacing="12">
                     <Border Height="1" Background="#1AFFFFFF"/>
                     <TextBlock x:Name="RecHeader" Text="RECOMMENDED PICKS" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
