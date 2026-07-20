@@ -10,6 +10,7 @@ using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -21,9 +22,9 @@ namespace HotsFever.Overlay;
 
 /// <summary>
 /// The overlay: a borderless, always-on-top, non-activating live-translucent
-/// panel that runs the on-device draft engine and shows real recommendations.
-/// (Demo draft state for now; the hero-grid input + game-file integration are
-/// the next M2/M3 increments.)
+/// panel. You tap heroes as they're drafted; each tap advances the draft and
+/// re-runs the on-device engine to update recommendations. (Map/tier/team are a
+/// fixed demo for now; the setup screen + game-file input are later increments.)
 /// </summary>
 public sealed partial class OverlayWindow : Window
 {
@@ -31,8 +32,8 @@ public sealed partial class OverlayWindow : Window
     private AppWindow _appWindow = null!;
 
     private const int PanelWidth = 380;
-    private const int ExpandedHeight = 500;
-    private const int CollapsedHeight = 112; // compressed header + context + win-probability
+    private const int ExpandedHeight = 648;
+    private const int CollapsedHeight = 112;
 
     private bool _collapsed;
     private bool _dragging;
@@ -40,11 +41,39 @@ public sealed partial class OverlayWindow : Window
     private PointInt32 _dragStartWin;
 
     private readonly SolidColorBrush _idleBrush = new(Color.FromArgb(0x99, 0x10, 0x1A, 0x2E));
-    private readonly SolidColorBrush _hoverBrush = new(Color.FromArgb(0xF7, 0x10, 0x1A, 0x2E)); // near-opaque on hover
+    private readonly SolidColorBrush _hoverBrush = new(Color.FromArgb(0xF7, 0x10, 0x1A, 0x2E));
 
     private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _topmostTimer;
 
+    // ── Draft state ──────────────────────────────────────────────────
+    // Fixed 16-step draft order: (team, isPick). Mirrors DRAFT_SEQUENCE.
+    private static readonly (int Team, bool IsPick)[] DraftOrder =
+    {
+        (0, false), (1, false), (0, false), (1, false),
+        (0, true),  (1, true),  (1, true),  (0, true),  (0, true),
+        (1, false), (0, false),
+        (1, true),  (1, true),  (0, true),  (0, true),  (1, true),
+    };
+    private const int OurTeam = 0;
+    private const string DemoMap = "Cursed Hollow";
+    private const string DemoTier = "mid";
+    // Fixed seed so identical draft states give identical (stable) recommendations.
+    private const int RngSeed = 1337;
+
+    private bool _draftListCollapsed;
+
+    private readonly Dictionary<int, string> _selections = new();
+    private int _currentStep;
+
+    private OnnxSessions? _sessions;
+    private DraftData? _data;
+
     public ObservableCollection<RecItem> Recommendations { get; } = new();
+    public ObservableCollection<HeroTile> HeroGrid { get; } = new();
+    public ObservableCollection<SlotVM> BansMine { get; } = new();
+    public ObservableCollection<SlotVM> BansEnemy { get; } = new();
+    public ObservableCollection<SlotVM> PicksMine { get; } = new();
+    public ObservableCollection<SlotVM> PicksEnemy { get; } = new();
 
     public OverlayWindow()
     {
@@ -52,67 +81,114 @@ public sealed partial class OverlayWindow : Window
         SystemBackdrop = new WinUIEx.TransparentTintBackdrop();
         ConfigureAsOverlay();
 
-        // Re-assert topmost on a timer so nothing can bury the overlay.
         _topmostTimer = DispatcherQueue.CreateTimer();
         _topmostTimer.Interval = TimeSpan.FromMilliseconds(1000);
         _topmostTimer.Tick += (s, e) => NativeMethods.SetTopMost(_hWnd);
         _topmostTimer.Start();
 
         RecList.ItemsSource = Recommendations;
-        _ = ComputeAsync();
+        HeroGridView.ItemsSource = HeroGrid;
+        BansMineList.ItemsSource = BansMine;
+        BansEnemyList.ItemsSource = BansEnemy;
+        PicksMineList.ItemsSource = PicksMine;
+        PicksEnemyList.ItemsSource = PicksEnemy;
+        _ = InitEngineAsync();
     }
 
-    // ── Engine ───────────────────────────────────────────────────────
+    // ── Engine + draft flow ──────────────────────────────────────────
 
-    private sealed record EngineResult(AiInference.Result Result, string Map, string Tier);
-
-    private async System.Threading.Tasks.Task ComputeAsync()
+    private async System.Threading.Tasks.Task InitEngineAsync()
     {
         try
         {
-            var r = await System.Threading.Tasks.Task.Run(RunEngine);
-            DispatcherQueue.TryEnqueue(() => ApplyResult(r));
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                var modelsDir = LocateDir(System.IO.Path.Combine("public", "models"), "draft_policy.onnx");
+                var dataDir = LocateDir(System.IO.Path.Combine("src", "lib", "data"), "draft-stats-decayed.json");
+                _sessions = OnnxSessions.FromDirectory(modelsDir);
+                _data = DraftDataLoader.Load(
+                    System.IO.Path.Combine(dataDir, "draft-stats-decayed.json"),
+                    System.IO.Path.Combine(dataDir, "compositions.json"), DemoTier);
+            });
+            PopulateHeroGrid();
+            await RecomputeAsync();
         }
         catch (Exception ex)
         {
-            DispatcherQueue.TryEnqueue(() => ContextText.Text = "engine error: " + ex.Message);
+            ContextText.Text = "engine error: " + ex.Message;
         }
     }
 
-    private EngineResult RunEngine()
+    private async System.Threading.Tasks.Task RecomputeAsync()
     {
-        var modelsDir = LocateDir(System.IO.Path.Combine("public", "models"), "draft_policy.onnx");
-        var dataDir = LocateDir(System.IO.Path.Combine("src", "lib", "data"), "draft-stats-decayed.json");
-
-        using var sessions = OnnxSessions.FromDirectory(modelsDir);
-        var data = DraftDataLoader.Load(
-            System.IO.Path.Combine(dataDir, "draft-stats-decayed.json"),
-            System.IO.Path.Combine(dataDir, "compositions.json"), "mid");
-
-        // Demo mid-draft state at our first pick (4 bans done).
-        var bans = new[] { "Alarak", "Diablo", "Malfurion", "Genji" };
-        var input = new MctsSearch.Input
+        UpdateContext();
+        BuildDraftBoard();
+        if (_sessions == null || _data == null || _currentStep >= 16)
         {
-            Bans = bans,
-            TakenHeroes = bans,
-            Map = "Cursed Hollow",
-            Tier = "mid",
-            Step = 4,
-            OurTeam = 0,
-        };
+            Recommendations.Clear();
+            RecSection.Visibility = Visibility.Collapsed;
+            return;
+        }
 
-        var result = AiInference.GetRecommendations(sessions, input, isBanStep: false, new SystemRng(),
-            new MctsSearch.Options { MinSims = 40, MaxSims = 60, TimeBudgetMs = double.PositiveInfinity },
-            data, playerData: null, topK: 5);
+        var input = BuildInput();
+        bool isBan = !DraftOrder[_currentStep].IsPick;
+        var sessions = _sessions;
+        var data = _data;
 
-        return new EngineResult(result, input.Map, input.Tier);
+        var result = await System.Threading.Tasks.Task.Run(() =>
+            AiInference.GetRecommendations(sessions, input, isBan, new SystemRng(RngSeed),
+                new MctsSearch.Options { MinSims = 40, MaxSims = 60, TimeBudgetMs = double.PositiveInfinity },
+                data, playerData: null, topK: 3));
+
+        ApplyRecs(result, isBan);
     }
 
-    private void ApplyResult(EngineResult r)
+    private MctsSearch.Input BuildInput()
     {
-        ContextText.Text = $"Your Pick  ·  {r.Map}  ·  {Cap(r.Tier)}";
+        var t0 = new List<string>();
+        var t1 = new List<string>();
+        var bans = new List<string>();
+        for (int s = 0; s < _currentStep && s < 16; s++)
+        {
+            if (!_selections.TryGetValue(s, out var hero)) continue;
+            var (team, isPick) = DraftOrder[s];
+            if (!isPick) bans.Add(hero);
+            else if (team == 0) t0.Add(hero);
+            else t1.Add(hero);
+        }
+        return new MctsSearch.Input
+        {
+            Team0Picks = t0,
+            Team1Picks = t1,
+            Bans = bans,
+            TakenHeroes = t0.Concat(t1).Concat(bans).ToArray(),
+            Map = DemoMap,
+            Tier = DemoTier,
+            Step = Math.Min(_currentStep, 15),
+            OurTeam = OurTeam,
+        };
+    }
 
-        int pct = (int)Math.Round(r.Result.ValueEstimate * 100);
+    private void UpdateContext()
+    {
+        if (_currentStep >= 16)
+        {
+            ContextText.Text = $"{DemoMap}  ·  {Cap(DemoTier)}";
+            RecHeader.Text = "";
+            return;
+        }
+        var (team, isPick) = DraftOrder[_currentStep];
+        string who = team == OurTeam ? "Your" : "Enemy";
+        string act = isPick ? "Pick" : "Ban";
+        ContextText.Text = $"{who} {act}  ·  {DemoMap}  ·  {Cap(DemoTier)}  ·  step {_currentStep + 1}/16";
+        RecHeader.Text = team == OurTeam
+            ? (isPick ? "RECOMMENDED PICKS" : "RECOMMENDED BANS")
+            : (isPick ? "LIKELY ENEMY PICKS" : "LIKELY ENEMY BANS");
+    }
+
+    private void ApplyRecs(AiInference.Result result, bool isBan)
+    {
+        int pct = (int)Math.Round(result.ValueEstimate * 100);
         WinProbText.Text = pct + "%";
 
         var green = new SolidColorBrush(Color.FromArgb(0xFF, 0x4F, 0xFF, 0xB0));
@@ -120,15 +196,14 @@ public sealed partial class OverlayWindow : Window
 
         Recommendations.Clear();
         bool first = true;
-        foreach (var rec in r.Result.Recommendations)
+        foreach (var rec in result.Recommendations)
         {
-            double delta = (rec.WinProb - r.Result.ValueEstimate) * 100.0;
-            string player = rec.SuggestedPlayer != null ? $" · {rec.SuggestedPlayer} should play this" : "";
+            double delta = (rec.WinProb - result.ValueEstimate) * 100.0;
             Recommendations.Add(new RecItem
             {
                 Portrait = Short(rec.Hero),
                 Hero = rec.Hero,
-                Subtitle = RoleName(rec.Hero) + player,
+                Subtitle = RoleName(rec.Hero),
                 WinDelta = (delta >= 0 ? "+" : "") + delta.ToString("0.0") + "%",
                 WinDeltaBrush = delta >= 0 ? green : red,
                 IsAiPick = first,
@@ -136,10 +211,114 @@ public sealed partial class OverlayWindow : Window
             first = false;
         }
 
-        StatusText.Text = $"on-device engine · {r.Result.Sims} sims · demo draft · hero-grid input next";
+        RecSection.Visibility = Recommendations.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        StatusText.Text = $"on-device engine · {result.Sims} sims · tap the drafted hero to advance";
     }
 
-    // 0-8 fine roles → display labels
+    // ── Hero grid input ──────────────────────────────────────────────
+
+    private void PopulateHeroGrid()
+    {
+        var taken = new HashSet<string>(_selections.Values, StringComparer.Ordinal);
+        string q = (SearchBox?.Text ?? "").Trim();
+        HeroGrid.Clear();
+        foreach (var h in HeroCatalog.Heroes)
+        {
+            if (taken.Contains(h)) continue;
+            if (q.Length > 0 && h.IndexOf(q, StringComparison.OrdinalIgnoreCase) < 0) continue;
+            HeroGrid.Add(new HeroTile { Hero = h, Portrait = Short(h) });
+        }
+    }
+
+    private void OnHeroClick(object sender, ItemClickEventArgs e)
+    {
+        if (_currentStep >= 16 || e.ClickedItem is not HeroTile tile) return;
+        _selections[_currentStep] = tile.Hero;
+        _currentStep++;
+        if (SearchBox != null) SearchBox.Text = "";
+        PopulateHeroGrid();
+        _ = RecomputeAsync();
+    }
+
+    private void OnSearchChanged(object sender, TextChangedEventArgs e) => PopulateHeroGrid();
+
+    private void OnResetDraft(object sender, RoutedEventArgs e)
+    {
+        _selections.Clear();
+        _currentStep = 0;
+        if (SearchBox != null) SearchBox.Text = "";
+        PopulateHeroGrid();
+        _ = RecomputeAsync();
+    }
+
+    private void OnBack(object sender, RoutedEventArgs e)
+    {
+        if (_currentStep == 0) return;
+        _currentStep--;
+        _selections.Remove(_currentStep);
+        if (SearchBox != null) SearchBox.Text = "";
+        PopulateHeroGrid();
+        _ = RecomputeAsync();
+    }
+
+    // Mini draft board mirroring the real screen: bans top, our picks left,
+    // enemy picks right — each in DRAFT_SEQUENCE order (see buildDraftView).
+    private void BuildDraftBoard()
+    {
+        BansMine.Clear(); BansEnemy.Clear(); PicksMine.Clear(); PicksEnemy.Clear();
+        for (int s = 0; s < 16; s++)
+        {
+            var (team, isPick) = DraftOrder[s];
+            _selections.TryGetValue(s, out var hero);
+            bool mine = team == OurTeam;
+            var slot = MakeSlot(hero, s == _currentStep, mine);
+            if (!isPick) (mine ? BansMine : BansEnemy).Add(slot);
+            else (mine ? PicksMine : PicksEnemy).Add(slot);
+        }
+    }
+
+    private static SlotVM MakeSlot(string? hero, bool isCurrent, bool mine)
+    {
+        bool filled = hero != null;
+        var mineFill = Color.FromArgb(0x40, 0x4A, 0x9E, 0xFF);   // blue
+        var enemyFill = Color.FromArgb(0x40, 0xFF, 0x6B, 0x6B);  // red
+        var emptyFill = Color.FromArgb(0x12, 0xFF, 0xFF, 0xFF);
+        var accent = Color.FromArgb(0xFF, 0x4F, 0xFF, 0xB0);     // current = green
+
+        return new SlotVM
+        {
+            Portrait = filled ? Short(hero!) : "",
+            Name = filled ? hero! : (isCurrent ? "…" : ""),
+            Background = new SolidColorBrush(filled ? (mine ? mineFill : enemyFill) : emptyFill),
+            BorderColor = new SolidColorBrush(isCurrent ? accent : Color.FromArgb(0, 0, 0, 0)),
+            BorderT = new Thickness(isCurrent ? 2 : 0),
+            NameForeground = new SolidColorBrush(filled
+                ? Color.FromArgb(0xFF, 0xEA, 0xF1, 0xFB)
+                : Color.FromArgb(0xFF, 0x7F, 0x93, 0xB0)),
+        };
+    }
+
+    private void OnToggleDraftList(object sender, RoutedEventArgs e)
+    {
+        _draftListCollapsed = !_draftListCollapsed;
+        DraftPicksBody.Visibility = _draftListCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        DraftListToggle.Content = _draftListCollapsed ? "▸" : "▾";
+    }
+
+    // Auto-size the window to the panel's content height (so collapsing any
+    // section shrinks the window instead of leaving a gap).
+    private void OnContentSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_appWindow == null || RootGrid.XamlRoot == null) return;
+        double scale = RootGrid.XamlRoot.RasterizationScale;
+        int target = (int)Math.Ceiling((ContentStack.ActualHeight + 36) * scale); // + Border padding (18*2)
+        if (target <= 0 || Math.Abs(target - _appWindow.Size.Height) <= 1) return;
+        _appWindow.Resize(new SizeInt32(PanelWidth, target));
+        NativeMethods.RoundWindow(_hWnd, _appWindow.Size.Width, _appWindow.Size.Height, 22);
+    }
+
+    // ── Labels ───────────────────────────────────────────────────────
+
     private static readonly string[] RoleNames =
         { "Tank", "Bruiser", "Healer", "Ranged Assassin", "Ranged Assassin", "Melee Assassin", "Support", "Bruiser", "Ranged Assassin" };
 
@@ -171,8 +350,6 @@ public sealed partial class OverlayWindow : Window
 
     private void OnContentLoaded(object sender, RoutedEventArgs e)
     {
-        // Enable implicit Offset animations so every row glides to its new
-        // position in sync (same duration) when the layout compresses/expands.
         foreach (var child in ContentStack.Children)
             if (child is UIElement el) EnableImplicitMove(el);
     }
@@ -200,8 +377,9 @@ public sealed partial class OverlayWindow : Window
 
     private void OnDragPressed(object sender, PointerRoutedEventArgs e)
     {
-        // Anywhere on the panel drags — except the collapse button.
+        // Anywhere on the panel drags — except interactive controls.
         if (IsDescendantOf(e.OriginalSource as DependencyObject, CollapseButton)) return;
+        if (IsDescendantOf(e.OriginalSource as DependencyObject, InputArea)) return;
         _dragging = true;
         _dragStartCursor = NativeMethods.CursorPos();
         _dragStartWin = _appWindow.Position;
@@ -236,13 +414,10 @@ public sealed partial class OverlayWindow : Window
     private void OnToggleCollapse(object sender, RoutedEventArgs e)
     {
         _collapsed = !_collapsed;
-        // Compress the remaining rows tighter when collapsed (RepositionThemeTransition
-        // on ContentStack glides them to their new Y positions).
         ContentStack.Spacing = _collapsed ? 7 : 12;
         BodyContent.Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
         CollapseButton.Content = _collapsed ? "+" : "–";
-        _appWindow.Resize(new SizeInt32(PanelWidth, _collapsed ? CollapsedHeight : ExpandedHeight));
-        NativeMethods.RoundWindow(_hWnd, _appWindow.Size.Width, _appWindow.Size.Height, 22);
+        // Window auto-sizes to content via OnContentSizeChanged.
         NativeMethods.SetTopMost(_hWnd);
     }
 
@@ -268,10 +443,7 @@ public sealed partial class OverlayWindow : Window
         appWindow.Resize(new SizeInt32(PanelWidth, ExpandedHeight));
         appWindow.Move(new PointInt32(48, 48));
 
-        // DWM blur freezes to a stale snapshot on a never-focused window (Win10),
-        // so we use a plain translucent fill instead; rounded corners via region.
         NativeMethods.RoundWindow(hWnd, appWindow.Size.Width, appWindow.Size.Height, 22);
-
         NativeMethods.AddExStyles(hWnd,
             NativeMethods.WS_EX_TOPMOST | NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_TOOLWINDOW);
         NativeMethods.RemoveBorder(hWnd);

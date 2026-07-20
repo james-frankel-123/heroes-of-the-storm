@@ -10,7 +10,8 @@
           PointerPressed="OnDragPressed" PointerMoved="OnDragMoved" PointerReleased="OnDragReleased">
         <Border x:Name="PanelBorder" CornerRadius="14" Padding="18" Background="#99101A2E"
                 BorderThickness="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-            <StackPanel x:Name="ContentStack" Spacing="12" Loaded="OnContentLoaded">
+            <StackPanel x:Name="ContentStack" Spacing="12" VerticalAlignment="Top"
+                        Loaded="OnContentLoaded" SizeChanged="OnContentSizeChanged">
 
                 <!-- Header -->
                 <Grid>
@@ -38,8 +39,9 @@
 
                 <!-- Collapsible: the picks list + footer -->
                 <StackPanel x:Name="BodyContent" Spacing="12">
+                    <StackPanel x:Name="RecSection" Spacing="12">
                     <Border Height="1" Background="#1AFFFFFF"/>
-                    <TextBlock Text="RECOMMENDED PICKS" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
+                    <TextBlock x:Name="RecHeader" Text="RECOMMENDED PICKS" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
 
                     <ItemsControl x:Name="RecList">
                         <ItemsControl.ItemTemplate>
@@ -70,6 +72,94 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Draft Picks (collapsible) — mirrors the real screen: bans top, ours left, enemy right -->
+                    <Border Height="1" Background="#1AFFFFFF"/>
+                    <Grid>
+                        <TextBlock Text="Draft Picks" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <Button x:Name="DraftListToggle" Click="OnToggleDraftList" Content="▾" HorizontalAlignment="Right"
+                                Width="24" Height="22" Padding="0" FontSize="11" Background="#22FFFFFF"
+                                Foreground="#FFEAF1FB" BorderThickness="0" CornerRadius="7"/>
+                    </Grid>
+                    <StackPanel x:Name="DraftPicksBody" Spacing="8">
+                        <!-- Bans: yours left, enemy right -->
+                        <Grid>
+                            <ItemsControl x:Name="BansMineList" HorizontalAlignment="Left">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Width="30" Height="30" CornerRadius="7" Background="{Binding Background}"
+                                            BorderBrush="{Binding BorderColor}" BorderThickness="{Binding BorderT}">
+                                        <TextBlock Text="{Binding Portrait}" FontSize="8" Foreground="{Binding NameForeground}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl x:Name="BansEnemyList" HorizontalAlignment="Right">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Width="30" Height="30" CornerRadius="7" Background="{Binding Background}"
+                                            BorderBrush="{Binding BorderColor}" BorderThickness="{Binding BorderT}">
+                                        <TextBlock Text="{Binding Portrait}" FontSize="8" Foreground="{Binding NameForeground}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                        <!-- Picks: your column left, enemy column right -->
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <ItemsControl x:Name="PicksMineList" Grid.Column="0" Margin="0,0,5,0">
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Height="28" CornerRadius="7" Background="{Binding Background}" BorderBrush="{Binding BorderColor}"
+                                            BorderThickness="{Binding BorderT}" Margin="0,0,0,4" Padding="9,0">
+                                        <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{Binding NameForeground}"
+                                                   VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl x:Name="PicksEnemyList" Grid.Column="1" Margin="5,0,0,0">
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Height="28" CornerRadius="7" Background="{Binding Background}" BorderBrush="{Binding BorderColor}"
+                                            BorderThickness="{Binding BorderT}" Margin="0,0,0,4" Padding="9,0">
+                                        <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{Binding NameForeground}"
+                                                   VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Height="1" Background="#1AFFFFFF"/>
+                    <Grid x:Name="InputArea">
+                        <StackPanel Spacing="8">
+                            <Grid>
+                                <TextBlock Text="TAP THE DRAFTED HERO" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="#FF7F93B0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                    <Button Content="Back" Click="OnBack" Padding="9,2" FontSize="10"
+                                            Background="#22FFFFFF" Foreground="#FFCFE4FF" BorderThickness="0" CornerRadius="7"/>
+                                    <Button Content="Reset" Click="OnResetDraft" Padding="9,2" FontSize="10"
+                                            Background="#22FFFFFF" Foreground="#FFCFE4FF" BorderThickness="0" CornerRadius="7"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBox x:Name="SearchBox" PlaceholderText="search hero…" TextChanged="OnSearchChanged"
+                                     Background="#1AFFFFFF" Foreground="#FFEAF1FB" BorderThickness="0" CornerRadius="8"/>
+                            <GridView x:Name="HeroGridView" IsItemClickEnabled="True" ItemClick="OnHeroClick"
+                                      SelectionMode="None" Height="176" Background="Transparent" Padding="0">
+                                <GridView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="42" Height="42" CornerRadius="9" Background="#3348719F" Margin="2"
+                                                ToolTipService.ToolTip="{Binding Hero}">
+                                            <TextBlock Text="{Binding Portrait}" FontSize="10" Foreground="#FFCFE4FF"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </GridView.ItemTemplate>
+                            </GridView>
+                        </StackPanel>
+                    </Grid>
 
                     <Border Height="1" Background="#1AFFFFFF"/>
                     <TextBlock x:Name="StatusText" FontSize="10" Foreground="#FF7F93B0" Text="" TextWrapping="Wrap"/>
