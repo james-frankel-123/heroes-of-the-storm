@@ -4,11 +4,13 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Grid Background="Transparent">
-        <!-- Live-translucent dark glass panel. Alpha (first byte of Background) is the opacity knob. -->
-        <Border CornerRadius="14" Padding="18" Background="#99101A2E" BorderThickness="0"
-                VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-            <StackPanel Spacing="12">
+    <!-- Drag from anywhere on the panel (handlers skip the collapse button). -->
+    <Grid x:Name="RootGrid" Background="Transparent"
+          PointerEntered="OnPanelPointerEntered" PointerExited="OnPanelPointerExited"
+          PointerPressed="OnDragPressed" PointerMoved="OnDragMoved" PointerReleased="OnDragReleased">
+        <Border x:Name="PanelBorder" CornerRadius="14" Padding="18" Background="#99101A2E"
+                BorderThickness="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <StackPanel x:Name="ContentStack" Spacing="12" Loaded="OnContentLoaded">
 
                 <!-- Header -->
                 <Grid>
@@ -16,111 +18,62 @@
                         <Ellipse Width="9" Height="9" Fill="#FF4FFFB0" VerticalAlignment="Center"/>
                         <TextBlock Text="HOTS FEVER" FontWeight="Bold" FontSize="15" Foreground="#FFEAF1FB" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#264FFFB0" CornerRadius="9" Padding="8,2">
-                        <TextBlock Text="● LIVE" FontSize="10" Foreground="#FF4FFFB0"/>
-                    </Border>
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Border Background="#264FFFB0" CornerRadius="9" Padding="8,2" VerticalAlignment="Center">
+                            <TextBlock Text="● LIVE" FontSize="10" Foreground="#FF4FFFB0"/>
+                        </Border>
+                        <Button x:Name="CollapseButton" Click="OnToggleCollapse" Content="–"
+                                Width="26" Height="24" Padding="0" FontSize="16" FontWeight="Bold"
+                                Background="#22FFFFFF" Foreground="#FFEAF1FB" BorderThickness="0" CornerRadius="7"/>
+                    </StackPanel>
                 </Grid>
 
-                <!-- Context -->
-                <TextBlock Text="Your Pick  ·  Cursed Hollow  ·  Mid" FontSize="12" Foreground="#FFAFC0D8"/>
+                <!-- Above-the-fold: stays visible when collapsed -->
+                <TextBlock x:Name="ContextText" Text="loading on-device engine…" FontSize="12" Foreground="#FFAFC0D8"/>
 
-                <!-- Team win probability -->
-                <StackPanel Spacing="5">
-                    <Grid>
-                        <TextBlock Text="Team win probability" FontSize="11" Foreground="#FF9FB3D1" HorizontalAlignment="Left"/>
-                        <TextBlock Text="58%" FontSize="13" FontWeight="SemiBold" Foreground="#FF4FFFB0" HorizontalAlignment="Right"/>
-                    </Grid>
-                    <Grid Height="7">
-                        <Border CornerRadius="4" Background="#22FFFFFF"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="58*"/>
-                                <ColumnDefinition Width="42*"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" CornerRadius="4" Background="#FF4A9EFF"/>
-                        </Grid>
-                    </Grid>
+                <Grid>
+                    <TextBlock Text="Team win probability" FontSize="11" Foreground="#FF9FB3D1" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="WinProbText" Text="—" FontSize="13" FontWeight="SemiBold" Foreground="#FF4FFFB0" HorizontalAlignment="Right"/>
+                </Grid>
+
+                <!-- Collapsible: the picks list + footer -->
+                <StackPanel x:Name="BodyContent" Spacing="12">
+                    <Border Height="1" Background="#1AFFFFFF"/>
+                    <TextBlock Text="RECOMMENDED PICKS" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
+
+                    <ItemsControl x:Name="RecList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,10">
+                                    <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
+                                        <Border Width="40" Height="40" CornerRadius="9" Background="#3348719F">
+                                            <TextBlock Text="{Binding Portrait}" FontSize="10" Foreground="#FFCFE4FF"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                                <TextBlock Text="{Binding Hero}" FontSize="14" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
+                                                <Border Background="#FF4FFFB0" CornerRadius="4" Padding="5,1" VerticalAlignment="Center"
+                                                        Visibility="{Binding AiPickVisibility}">
+                                                    <TextBlock Text="AI PICK" FontSize="8" FontWeight="Bold" Foreground="#FF06101C"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="#FF9FB3D1"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding WinDelta}" FontSize="15" FontWeight="Bold"
+                                                   Foreground="{Binding WinDeltaBrush}" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="win vs base" FontSize="9" Foreground="#FF7F93B0" HorizontalAlignment="Right"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Border Height="1" Background="#1AFFFFFF"/>
+                    <TextBlock x:Name="StatusText" FontSize="10" Foreground="#FF7F93B0" Text="" TextWrapping="Wrap"/>
                 </StackPanel>
-
-                <Border Height="1" Background="#1AFFFFFF"/>
-                <TextBlock Text="RECOMMENDED PICKS" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
-
-                <!-- Row 1 — top pick -->
-                <Grid>
-                    <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
-                        <Border Width="40" Height="40" CornerRadius="9" Background="#3348719F">
-                            <TextBlock Text="Naz" FontSize="10" Foreground="#FFCFE4FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="2">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <TextBlock Text="Nazeebo" FontSize="14" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
-                                <Border Background="#FF4FFFB0" CornerRadius="4" Padding="5,1" VerticalAlignment="Center">
-                                    <TextBlock Text="AI PICK" FontSize="8" FontWeight="Bold" Foreground="#FF06101C"/>
-                                </Border>
-                            </StackPanel>
-                            <TextBlock Text="Ranged Assassin · your best" FontSize="10" Foreground="#FF9FB3D1"/>
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBlock Text="+6.2%" FontSize="15" FontWeight="Bold" Foreground="#FF4FFFB0" HorizontalAlignment="Right"/>
-                        <TextBlock Text="win vs base" FontSize="9" Foreground="#FF7F93B0" HorizontalAlignment="Right"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Row 2 -->
-                <Grid>
-                    <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
-                        <Border Width="40" Height="40" CornerRadius="9" Background="#3348719F">
-                            <TextBlock Text="Xul" FontSize="10" Foreground="#FFCFE4FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="2">
-                            <TextBlock Text="Xul" FontSize="14" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
-                            <TextBlock Text="Bruiser" FontSize="10" Foreground="#FF9FB3D1"/>
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBlock Text="+4.1%" FontSize="15" FontWeight="Bold" Foreground="#FF4FFFB0" HorizontalAlignment="Right"/>
-                        <TextBlock Text="win vs base" FontSize="9" Foreground="#FF7F93B0" HorizontalAlignment="Right"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Row 3 — with suggested player -->
-                <Grid>
-                    <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
-                        <Border Width="40" Height="40" CornerRadius="9" Background="#3348719F">
-                            <TextBlock Text="Azm" FontSize="10" Foreground="#FFCFE4FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="2">
-                            <TextBlock Text="Azmodan" FontSize="14" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
-                            <TextBlock Text="Ranged Assassin · Django should play this" FontSize="10" Foreground="#FF9FB3D1"/>
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBlock Text="+3.5%" FontSize="15" FontWeight="Bold" Foreground="#FF4FFFB0" HorizontalAlignment="Right"/>
-                        <TextBlock Text="win vs base" FontSize="9" Foreground="#FF7F93B0" HorizontalAlignment="Right"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Row 4 -->
-                <Grid>
-                    <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
-                        <Border Width="40" Height="40" CornerRadius="9" Background="#3348719F">
-                            <TextBlock Text="Nova" FontSize="10" Foreground="#FFCFE4FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="2">
-                            <TextBlock Text="Nova" FontSize="14" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
-                            <TextBlock Text="Ranged Assassin" FontSize="10" Foreground="#FF9FB3D1"/>
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBlock Text="+2.1%" FontSize="15" FontWeight="Bold" Foreground="#FFB9E6C9" HorizontalAlignment="Right"/>
-                        <TextBlock Text="win vs base" FontSize="9" Foreground="#FF7F93B0" HorizontalAlignment="Right"/>
-                    </StackPanel>
-                </Grid>
-
-                <Border Height="1" Background="#1AFFFFFF"/>
-                <TextBlock x:Name="StatusText" FontSize="10" Foreground="#FF7F93B0"
-                           Text="on-device engine" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>
     </Grid>

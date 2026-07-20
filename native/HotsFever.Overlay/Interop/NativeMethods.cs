@@ -95,6 +95,15 @@ internal static class NativeMethods
         finally { Marshal.FreeHGlobal(ptr); }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT { public int X; public int Y; }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out POINT lpPoint);
+
+    /// <summary>Absolute cursor position in screen (physical) pixels — for window dragging.</summary>
+    public static POINT CursorPos() { GetCursorPos(out var p); return p; }
+
     [DllImport("gdi32.dll")]
     private static extern IntPtr CreateRoundRectRgn(int left, int top, int right, int bottom, int widthEllipse, int heightEllipse);
 
