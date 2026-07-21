@@ -200,17 +200,40 @@ public sealed partial class OverlayWindow : Window
 
     // Watch for the game's battlelobby at the loading screen; when a fresh one
     // appears, read the real teammates and personalize MAWP for the whole team.
+    private static readonly string LobbyLogPath = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "lobby-watch.log");
+
+    private static void LobbyLog(string msg)
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(LobbyLogPath)!);
+            System.IO.File.AppendAllText(LobbyLogPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {msg}{Environment.NewLine}");
+        }
+        catch { }
+    }
+
     private async System.Threading.Tasks.Task WatchLobbyAsync()
     {
+        // The game writes replay.server.battlelobby under a TempWriteReplayP1 subfolder
+        // at the loading screen (M0), then it's cleaned up shortly after the match — so
+        // only a live loading screen produces it. The log makes each detection auditable.
         var dir = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Temp", "Heroes of the Storm");
+        LobbyLog($"watcher started — watching {dir}");
+        var opts = new System.IO.EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true };
+        bool dirSeen = false;
         while (true)
         {
             try
             {
-                string? f = System.IO.Directory.Exists(dir)
-                    ? System.IO.Directory.EnumerateFiles(dir, "replay.server.battlelobby", System.IO.SearchOption.AllDirectories).FirstOrDefault()
+                bool exists = System.IO.Directory.Exists(dir);
+                if (exists && !dirSeen) { dirSeen = true; LobbyLog("lobby dir appeared (loading screen)"); }
+                else if (!exists && dirSeen) dirSeen = false;
+
+                string? f = exists
+                    ? System.IO.Directory.EnumerateFiles(dir, "replay.server.battlelobby", opts).FirstOrDefault()
                     : null;
                 if (f != null)
                 {
@@ -218,13 +241,19 @@ public sealed partial class OverlayWindow : Window
                     if (wt != _lastLobbyWrite)
                     {
                         _lastLobbyWrite = wt;
+                        LobbyLog($"fresh battlelobby found: {f}");
                         await System.Threading.Tasks.Task.Delay(1500); // let the write settle (M0 safe-read)
                         var lobby = await System.Threading.Tasks.Task.Run(() => BattlelobbyReader.Read(f));
-                        if (lobby != null) ApplyLobby(lobby);
+                        if (lobby != null)
+                        {
+                            LobbyLog($"decoded {lobby.Players.Count} players · map {lobby.Map} · mode {lobby.GameMode}");
+                            ApplyLobby(lobby);
+                        }
+                        else LobbyLog("decode returned null (HeroesDecode missing or parse failed)");
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { LobbyLog("watch error: " + ex.Message); }
             await System.Threading.Tasks.Task.Delay(2000);
         }
     }
@@ -239,7 +268,12 @@ public sealed partial class OverlayWindow : Window
             var me = lobby.Players.FirstOrDefault(p => string.Equals(p.Battletag, local, StringComparison.OrdinalIgnoreCase));
             if (me != null) ourTeam = me.Team;
         }
-        if (ourTeam < 0) { _lobbyStatus = $"lobby read ({lobby.Players.Count} players) — you not matched"; return; }
+        if (ourTeam < 0)
+        {
+            _lobbyStatus = $"lobby read ({lobby.Players.Count} players) — you not matched";
+            LobbyLog($"applied but local player '{local}' not found among lobby battletags: {string.Join(", ", lobby.Players.Select(p => p.Battletag))}");
+            return;
+        }
 
         var teammates = lobby.Players.Where(p => p.Team == ourTeam).Select(p => p.Battletag).ToArray();
         var stats = _playerData?.PlayerStats ?? _scan?.PlayerStats;
@@ -247,8 +281,10 @@ public sealed partial class OverlayWindow : Window
         {
             _playerData = new PlayerMawpData { PlayerStats = stats, AvailableBattletags = teammates };
             _lobbyStatus = $"lobby: {teammates.Length} teammates · {lobby.Map}";
+            LobbyLog($"applied — team {ourTeam}: {string.Join(", ", teammates)}");
             _ = RecomputeAsync(); // personalize for the whole team
         }
+        else LobbyLog("applied but no player stats loaded yet (replay scan incomplete)");
     }
 
     private async System.Threading.Tasks.Task RecomputeAsync()
