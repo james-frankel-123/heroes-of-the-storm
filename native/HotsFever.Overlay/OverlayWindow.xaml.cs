@@ -140,7 +140,10 @@ public sealed partial class OverlayWindow : Window
                 "Heroes of the Storm", "Accounts");
             if (!System.IO.Directory.Exists(replaysDir)) { _scanStatus = "no Replays folder found"; await RecomputeAsync(); return; }
 
-            var scan = await System.Threading.Tasks.Task.Run(() => ReplayStats.Scan(replaysDir));
+            var cachePath = ReplayStats.DefaultCachePath();
+            void Progress(int d, int t) => DispatcherQueue.TryEnqueue(() => StatusText.Text = $"on-device engine · parsing replays {d}/{t}…");
+
+            var scan = await System.Threading.Tasks.Task.Run(() => ReplayStats.ScanCached(replaysDir, cachePath, Progress));
             _scan = scan;
             _scanStatus = scan.ReplaysParsed > 0
                 ? $"personalized from {scan.ReplaysParsed} replays · {scan.LocalBattletag}"
@@ -174,17 +177,18 @@ public sealed partial class OverlayWindow : Window
 
         foreach (var (hero, st) in byHero
                      .Where(kv => kv.Value.Games >= 5 && !taken.Contains(kv.Key))
-                     .OrderByDescending(kv => kv.Value.WinRate)
+                     .OrderByDescending(kv => kv.Value.Mawp ?? kv.Value.WinRate)
                      .ThenByDescending(kv => kv.Value.Games)
                      .Take(6))
         {
+            double metric = st.Mawp ?? st.WinRate; // MAWP = the site's momentum-adjusted %
             YourBest.Add(new RecItem
             {
                 Portrait = Short(hero),
                 Hero = hero,
-                Subtitle = $"{(int)st.Games} games",
-                WinDelta = $"{st.WinRate:0}%",
-                WinDeltaBrush = st.WinRate >= 50 ? green : red,
+                Subtitle = $"win {st.WinRate:0}%  ·  {(int)st.Games} games",
+                WinDelta = $"{metric:0}%",
+                WinDeltaBrush = metric >= 50 ? green : red,
             });
         }
         YourBestSection.Visibility = YourBest.Count > 0 ? Visibility.Visible : Visibility.Collapsed;

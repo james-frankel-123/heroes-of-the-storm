@@ -103,7 +103,7 @@
                     <!-- Your best (from replay history) — appears once stats load -->
                     <StackPanel x:Name="YourBestSection" Spacing="12" Visibility="Collapsed">
                         <Border Height="1" Background="#1AFFFFFF"/>
-                        <TextBlock Text="YOUR BEST  ·  from replays" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
+                        <TextBlock Text="YOUR BEST  ·  MAWP, Storm League" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
                         <ItemsControl x:Name="YourBestList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
