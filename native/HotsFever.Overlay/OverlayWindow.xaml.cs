@@ -31,6 +31,7 @@ public sealed partial class OverlayWindow : Window
 {
     private IntPtr _hWnd;
     private AppWindow _appWindow = null!;
+    private OverlappedPresenter? _presenter;
 
     private const int PanelWidth = 380;
     private const int ExpandedHeight = 648;
@@ -74,6 +75,8 @@ public sealed partial class OverlayWindow : Window
     private PlayerMawpData? _playerData;
     private ReplayScanResult? _scan;
     private string _scanStatus = "scanning replays…";
+    private string _lobbyStatus = "";
+    private long _lastLobbyWrite;
 
     public ObservableCollection<RecItem> Recommendations { get; } = new();
     public ObservableCollection<RecItem> YourBest { get; } = new();
@@ -90,8 +93,8 @@ public sealed partial class OverlayWindow : Window
         ConfigureAsOverlay();
 
         _topmostTimer = DispatcherQueue.CreateTimer();
-        _topmostTimer.Interval = TimeSpan.FromMilliseconds(1000);
-        _topmostTimer.Tick += (s, e) => NativeMethods.SetTopMost(_hWnd);
+        _topmostTimer.Interval = TimeSpan.FromMilliseconds(400);
+        _topmostTimer.Tick += (s, e) => ReassertTopMost();
         _topmostTimer.Start();
 
         RecList.ItemsSource = Recommendations;
@@ -103,6 +106,7 @@ public sealed partial class OverlayWindow : Window
         PicksEnemyList.ItemsSource = PicksEnemy;
         PopulateSetup();
         _ = InitEngineAsync();
+        _ = WatchLobbyAsync();
     }
 
     // ── Engine + draft flow ──────────────────────────────────────────
@@ -192,6 +196,95 @@ public sealed partial class OverlayWindow : Window
             });
         }
         YourBestSection.Visibility = YourBest.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    // Watch for the game's battlelobby at the loading screen; when a fresh one
+    // appears, read the real teammates and personalize MAWP for the whole team.
+    private static readonly string LobbyLogPath = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "lobby-watch.log");
+
+    private static void LobbyLog(string msg)
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(LobbyLogPath)!);
+            System.IO.File.AppendAllText(LobbyLogPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {msg}{Environment.NewLine}");
+        }
+        catch { }
+    }
+
+    private async System.Threading.Tasks.Task WatchLobbyAsync()
+    {
+        // The game writes replay.server.battlelobby under a TempWriteReplayP1 subfolder
+        // at the loading screen (M0), then it's cleaned up shortly after the match — so
+        // only a live loading screen produces it. The log makes each detection auditable.
+        var dir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Temp", "Heroes of the Storm");
+        LobbyLog($"watcher started — watching {dir}");
+        var opts = new System.IO.EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true };
+        bool dirSeen = false;
+        while (true)
+        {
+            try
+            {
+                bool exists = System.IO.Directory.Exists(dir);
+                if (exists && !dirSeen) { dirSeen = true; LobbyLog("lobby dir appeared (loading screen)"); }
+                else if (!exists && dirSeen) dirSeen = false;
+
+                string? f = exists
+                    ? System.IO.Directory.EnumerateFiles(dir, "replay.server.battlelobby", opts).FirstOrDefault()
+                    : null;
+                if (f != null)
+                {
+                    long wt = System.IO.File.GetLastWriteTimeUtc(f).Ticks;
+                    if (wt != _lastLobbyWrite)
+                    {
+                        _lastLobbyWrite = wt;
+                        LobbyLog($"fresh battlelobby found: {f}");
+                        await System.Threading.Tasks.Task.Delay(1500); // let the write settle (M0 safe-read)
+                        var lobby = await System.Threading.Tasks.Task.Run(() => BattlelobbyReader.Read(f));
+                        if (lobby != null)
+                        {
+                            LobbyLog($"decoded {lobby.Players.Count} players · map {lobby.Map} · mode {lobby.GameMode}");
+                            ApplyLobby(lobby);
+                        }
+                        else LobbyLog("decode returned null (HeroesDecode missing or parse failed)");
+                    }
+                }
+            }
+            catch (Exception ex) { LobbyLog("watch error: " + ex.Message); }
+            await System.Threading.Tasks.Task.Delay(2000);
+        }
+    }
+
+    private void ApplyLobby(LobbyInfo lobby)
+    {
+        // Find our team by matching the local player (from replay history) in the lobby.
+        var local = _scan?.LocalBattletag;
+        int ourTeam = -1;
+        if (local != null)
+        {
+            var me = lobby.Players.FirstOrDefault(p => string.Equals(p.Battletag, local, StringComparison.OrdinalIgnoreCase));
+            if (me != null) ourTeam = me.Team;
+        }
+        if (ourTeam < 0)
+        {
+            _lobbyStatus = $"lobby read ({lobby.Players.Count} players) — you not matched";
+            LobbyLog($"applied but local player '{local}' not found among lobby battletags: {string.Join(", ", lobby.Players.Select(p => p.Battletag))}");
+            return;
+        }
+
+        var teammates = lobby.Players.Where(p => p.Team == ourTeam).Select(p => p.Battletag).ToArray();
+        var stats = _playerData?.PlayerStats ?? _scan?.PlayerStats;
+        if (stats != null)
+        {
+            _playerData = new PlayerMawpData { PlayerStats = stats, AvailableBattletags = teammates };
+            _lobbyStatus = $"lobby: {teammates.Length} teammates · {lobby.Map}";
+            LobbyLog($"applied — team {ourTeam}: {string.Join(", ", teammates)}");
+            _ = RecomputeAsync(); // personalize for the whole team
+        }
+        else LobbyLog("applied but no player stats loaded yet (replay scan incomplete)");
     }
 
     private async System.Threading.Tasks.Task RecomputeAsync()
@@ -292,7 +385,9 @@ public sealed partial class OverlayWindow : Window
         }
 
         RecSection.Visibility = Recommendations.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        StatusText.Text = $"on-device engine · {result.Sims} sims · {_scanStatus}";
+        StatusText.Text = string.IsNullOrEmpty(_lobbyStatus)
+            ? $"on-device engine · {result.Sims} sims · {_scanStatus}"
+            : $"on-device engine · {result.Sims} sims · {_lobbyStatus}";
     }
 
     // ── Setup (map / tier / team) ────────────────────────────────────
@@ -451,6 +546,7 @@ public sealed partial class OverlayWindow : Window
         if (target <= 0 || Math.Abs(target - _appWindow.Size.Height) <= 1) return;
         _appWindow.Resize(new SizeInt32(PanelWidth, target));
         NativeMethods.RoundWindow(_hWnd, _appWindow.Size.Width, _appWindow.Size.Height, 22);
+        ReassertTopMost(); // Resize resets z-order via the presenter — restore it immediately.
     }
 
     // ── Labels ───────────────────────────────────────────────────────
@@ -554,10 +650,19 @@ public sealed partial class OverlayWindow : Window
         BodyContent.Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
         CollapseButton.Content = _collapsed ? "+" : "–";
         // Window auto-sizes to content via OnContentSizeChanged.
-        NativeMethods.SetTopMost(_hWnd);
+        ReassertTopMost();
     }
 
     // ── Window styling ───────────────────────────────────────────────
+
+    // WinUI's OverlappedPresenter re-applies its window state on layout/resize
+    // passes and clears the raw WS_EX_TOPMOST bit, so we re-assert BOTH the
+    // presenter-native flag (which WinUI actually enforces) and the raw call.
+    private void ReassertTopMost()
+    {
+        if (_presenter != null && !_presenter.IsAlwaysOnTop) _presenter.IsAlwaysOnTop = true;
+        NativeMethods.SetTopMost(_hWnd);
+    }
 
     private void ConfigureAsOverlay()
     {
@@ -569,6 +674,7 @@ public sealed partial class OverlayWindow : Window
 
         if (appWindow.Presenter is OverlappedPresenter presenter)
         {
+            _presenter = presenter;
             presenter.SetBorderAndTitleBar(false, false);
             presenter.IsAlwaysOnTop = true;
             presenter.IsResizable = false;

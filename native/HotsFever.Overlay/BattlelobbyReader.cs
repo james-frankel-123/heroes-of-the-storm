@@ -1,0 +1,90 @@
+using System.Diagnostics;
+using System.Text.Json;
+
+namespace HotsFever.Overlay;
+
+public sealed class LobbyPlayer
+{
+    public string Battletag { get; set; } = "";
+    public string ToonId { get; set; } = "";
+    public int Team { get; set; } // 0 = blue, 1 = red (by roster index)
+}
+
+public sealed class LobbyInfo
+{
+    public string Map { get; set; } = "";
+    public string GameMode { get; set; } = "";
+    public List<LobbyPlayer> Players { get; set; } = new();
+}
+
+/// <summary>
+/// Reads the game's replay.server.battlelobby at the loading screen (M0-verified)
+/// into real battletags + teams by shelling HeroesDecode's get-pregame-json.
+/// Copies the file first (never parses the live original). Picks/bans (4-char
+/// attribute IDs) are ignored here — battletags + teams need no hero mapping.
+/// </summary>
+public static class BattlelobbyReader
+{
+    private static readonly JsonSerializerOptions Opts = new() { PropertyNameCaseInsensitive = true };
+
+    private sealed class Root
+    {
+        public MapInfoJson? MapInfo { get; set; }
+        public string? GameMode { get; set; }
+        public List<PlayerJson>? Players { get; set; }
+    }
+    private sealed class MapInfoJson { public string? MapTitle { get; set; } }
+    private sealed class PlayerJson { public string? BattleTagName { get; set; } public string? PlayerToonId { get; set; } }
+
+    public static LobbyInfo? Read(string battlelobbyPath)
+    {
+        try
+        {
+            var hd = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                ".dotnet", "tools", "dotnet-heroes-decode.exe");
+            if (!System.IO.File.Exists(hd)) return null;
+
+            var copy = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hf_bl.battlelobby");
+            System.IO.File.Copy(battlelobbyPath, copy, true);
+            var outDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hf_bljson");
+            if (System.IO.Directory.Exists(outDir)) System.IO.Directory.Delete(outDir, true);
+            System.IO.Directory.CreateDirectory(outDir);
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = hd,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            psi.ArgumentList.Add("get-pregame-json");
+            psi.ArgumentList.Add("-p"); psi.ArgumentList.Add(copy);
+            psi.ArgumentList.Add("-o"); psi.ArgumentList.Add(outDir);
+            psi.ArgumentList.Add("--no-json-display");
+            psi.Environment["DOTNET_ROOT"] = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "dotnet");
+
+            using var proc = Process.Start(psi);
+            if (proc == null) return null;
+            if (!proc.WaitForExit(20000)) { try { proc.Kill(); } catch { } return null; }
+
+            var jsonFile = System.IO.Directory.EnumerateFiles(outDir, "*.json").FirstOrDefault();
+            if (jsonFile == null) return null;
+
+            var root = JsonSerializer.Deserialize<Root>(System.IO.File.ReadAllText(jsonFile), Opts);
+            if (root?.Players == null || root.Players.Count < 10) return null;
+
+            var players = new List<LobbyPlayer>();
+            for (int i = 0; i < root.Players.Count; i++)
+            {
+                var bt = root.Players[i].BattleTagName;
+                if (string.IsNullOrEmpty(bt)) continue;
+                players.Add(new LobbyPlayer { Battletag = bt, ToonId = root.Players[i].PlayerToonId ?? "", Team = i < 5 ? 0 : 1 });
+            }
+            return new LobbyInfo { Map = root.MapInfo?.MapTitle ?? "", GameMode = root.GameMode ?? "", Players = players };
+        }
+        catch { return null; }
+    }
+}
