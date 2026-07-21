@@ -56,6 +56,9 @@ public static class EnrichedFeatures
         [7] = "Bruiser", [8] = "Ranged Assassin",
     };
 
+    /// <summary>Fine role index (0-8) for a hero, or -1 if unknown. Exposed for UI role labels.</summary>
+    public static int FineRoleOf(string hero) => FineRole.TryGetValue(hero, out var r) ? r : -1;
+
     public static float[] Compute(IReadOnlyList<string> t0, IReadOnlyList<string> t1, string map, DraftData d)
     {
         var f = new float[Dims];

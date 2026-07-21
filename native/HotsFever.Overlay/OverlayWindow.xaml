@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="HotsFever.Overlay.OverlayWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Drag from anywhere on the panel (handlers skip the collapse button). -->
+    <Grid x:Name="RootGrid" Background="Transparent"
+          PointerEntered="OnPanelPointerEntered" PointerExited="OnPanelPointerExited"
+          PointerPressed="OnDragPressed" PointerMoved="OnDragMoved" PointerReleased="OnDragReleased">
+        <Border x:Name="PanelBorder" CornerRadius="14" Padding="18" Background="#99101A2E"
+                BorderThickness="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <StackPanel x:Name="ContentStack" Spacing="12" VerticalAlignment="Top"
+                        Loaded="OnContentLoaded" SizeChanged="OnContentSizeChanged">
+
+                <!-- Header -->
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Ellipse Width="9" Height="9" Fill="#FF4FFFB0" VerticalAlignment="Center"/>
+                        <TextBlock Text="HOTS FEVER" FontWeight="Bold" FontSize="15" Foreground="#FFEAF1FB" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Border Background="#264FFFB0" CornerRadius="9" Padding="8,2" VerticalAlignment="Center">
+                            <TextBlock Text="● LIVE" FontSize="10" Foreground="#FF4FFFB0"/>
+                        </Border>
+                        <Button x:Name="CollapseButton" Click="OnToggleCollapse" Content="–"
+                                Width="26" Height="24" Padding="0" FontSize="16" FontWeight="Bold"
+                                Background="#22FFFFFF" Foreground="#FFEAF1FB" BorderThickness="0" CornerRadius="7"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Above-the-fold: stays visible when collapsed -->
+                <TextBlock x:Name="ContextText" Text="loading on-device engine…" FontSize="12" Foreground="#FFAFC0D8"/>
+
+                <Grid>
+                    <TextBlock Text="Team win probability" FontSize="11" Foreground="#FF9FB3D1" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="WinProbText" Text="—" FontSize="13" FontWeight="SemiBold" Foreground="#FF4FFFB0" HorizontalAlignment="Right"/>
+                </Grid>
+
+                <!-- Collapsible: the picks list + footer -->
+                <StackPanel x:Name="BodyContent" Spacing="12">
+                    <!-- Setup (collapsible): map / tier / team -->
+                    <Grid>
+                        <TextBlock Text="Setup" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <Button x:Name="SetupToggle" Click="OnToggleSetup" Content="▾" HorizontalAlignment="Right"
+                                Width="24" Height="22" Padding="0" FontSize="11" Background="#22FFFFFF"
+                                Foreground="#FFEAF1FB" BorderThickness="0" CornerRadius="7"/>
+                    </Grid>
+                    <StackPanel x:Name="SetupBody" Spacing="6">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Map" FontSize="11" Foreground="#FF9FB3D1" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" x:Name="MapCombo" SelectionChanged="OnMapChanged" HorizontalAlignment="Stretch"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Skill tier" FontSize="11" Foreground="#FF9FB3D1" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" x:Name="TierCombo" SelectionChanged="OnTierChanged" HorizontalAlignment="Stretch"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Our team" FontSize="11" Foreground="#FF9FB3D1" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" x:Name="TeamCombo" SelectionChanged="OnTeamChanged" HorizontalAlignment="Stretch"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel x:Name="RecSection" Spacing="12">
+                    <Border Height="1" Background="#1AFFFFFF"/>
+                    <TextBlock x:Name="RecHeader" Text="RECOMMENDED PICKS" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
+
+                    <ItemsControl x:Name="RecList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,10">
+                                    <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
+                                        <Border Width="40" Height="40" CornerRadius="9" Background="#3348719F">
+                                            <TextBlock Text="{Binding Portrait}" FontSize="10" Foreground="#FFCFE4FF"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                                <TextBlock Text="{Binding Hero}" FontSize="14" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
+                                                <Border Background="#FF4FFFB0" CornerRadius="4" Padding="5,1" VerticalAlignment="Center"
+                                                        Visibility="{Binding AiPickVisibility}">
+                                                    <TextBlock Text="AI PICK" FontSize="8" FontWeight="Bold" Foreground="#FF06101C"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="#FF9FB3D1"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding WinDelta}" FontSize="15" FontWeight="Bold"
+                                                   Foreground="{Binding WinDeltaBrush}" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="win vs base" FontSize="9" Foreground="#FF7F93B0" HorizontalAlignment="Right"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Your best (from replay history) — appears once stats load -->
+                    <StackPanel x:Name="YourBestSection" Spacing="12" Visibility="Collapsed">
+                        <Border Height="1" Background="#1AFFFFFF"/>
+                        <TextBlock Text="YOUR BEST  ·  MAWP, Storm League" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
+                        <ItemsControl x:Name="YourBestList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
+                                            <Border Width="34" Height="34" CornerRadius="8" Background="#3348719F">
+                                                <TextBlock Text="{Binding Portrait}" FontSize="9" Foreground="#FFCFE4FF"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                                <TextBlock Text="{Binding Hero}" FontSize="13" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
+                                                <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="#FF9FB3D1"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding WinDelta}" FontSize="14" FontWeight="Bold"
+                                                   Foreground="{Binding WinDeltaBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Draft Picks (collapsible) — mirrors the real screen: bans top, ours left, enemy right -->
+                    <Border Height="1" Background="#1AFFFFFF"/>
+                    <Grid>
+                        <TextBlock Text="Draft Picks" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <Button x:Name="DraftListToggle" Click="OnToggleDraftList" Content="▾" HorizontalAlignment="Right"
+                                Width="24" Height="22" Padding="0" FontSize="11" Background="#22FFFFFF"
+                                Foreground="#FFEAF1FB" BorderThickness="0" CornerRadius="7"/>
+                    </Grid>
+                    <StackPanel x:Name="DraftPicksBody" Spacing="8">
+                        <!-- Bans: yours left, enemy right -->
+                        <Grid>
+                            <ItemsControl x:Name="BansMineList" HorizontalAlignment="Left">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Width="30" Height="30" CornerRadius="7" Background="{Binding Background}"
+                                            BorderBrush="{Binding BorderColor}" BorderThickness="{Binding BorderT}">
+                                        <TextBlock Text="{Binding Portrait}" FontSize="8" Foreground="{Binding NameForeground}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl x:Name="BansEnemyList" HorizontalAlignment="Right">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Width="30" Height="30" CornerRadius="7" Background="{Binding Background}"
+                                            BorderBrush="{Binding BorderColor}" BorderThickness="{Binding BorderT}">
+                                        <TextBlock Text="{Binding Portrait}" FontSize="8" Foreground="{Binding NameForeground}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                        <!-- Picks: your column left, enemy column right -->
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <ItemsControl x:Name="PicksMineList" Grid.Column="0" Margin="0,0,5,0">
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Height="28" CornerRadius="7" Background="{Binding Background}" BorderBrush="{Binding BorderColor}"
+                                            BorderThickness="{Binding BorderT}" Margin="0,0,0,4" Padding="9,0">
+                                        <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{Binding NameForeground}"
+                                                   VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl x:Name="PicksEnemyList" Grid.Column="1" Margin="5,0,0,0">
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border Height="28" CornerRadius="7" Background="{Binding Background}" BorderBrush="{Binding BorderColor}"
+                                            BorderThickness="{Binding BorderT}" Margin="0,0,0,4" Padding="9,0">
+                                        <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{Binding NameForeground}"
+                                                   VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Height="1" Background="#1AFFFFFF"/>
+                    <Grid x:Name="InputArea">
+                        <StackPanel Spacing="8">
+                            <Grid>
+                                <TextBlock Text="TAP THE DRAFTED HERO" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="#FF7F93B0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                    <Button Content="Back" Click="OnBack" Padding="9,2" FontSize="10"
+                                            Background="#22FFFFFF" Foreground="#FFCFE4FF" BorderThickness="0" CornerRadius="7"/>
+                                    <Button Content="Reset" Click="OnResetDraft" Padding="9,2" FontSize="10"
+                                            Background="#22FFFFFF" Foreground="#FFCFE4FF" BorderThickness="0" CornerRadius="7"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBox x:Name="SearchBox" PlaceholderText="search hero…" TextChanged="OnSearchChanged"
+                                     Background="#1AFFFFFF" Foreground="#FFEAF1FB" BorderThickness="0" CornerRadius="8"/>
+                            <GridView x:Name="HeroGridView" IsItemClickEnabled="True" ItemClick="OnHeroClick"
+                                      SelectionMode="None" Height="176" Background="Transparent" Padding="0">
+                                <GridView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="42" Height="42" CornerRadius="9" Background="#3348719F" Margin="2"
+                                                ToolTipService.ToolTip="{Binding Hero}">
+                                            <TextBlock Text="{Binding Portrait}" FontSize="10" Foreground="#FFCFE4FF"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </GridView.ItemTemplate>
+                            </GridView>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Height="1" Background="#1AFFFFFF"/>
+                    <TextBlock x:Name="StatusText" FontSize="10" Foreground="#FF7F93B0" Text="" TextWrapping="Wrap"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
