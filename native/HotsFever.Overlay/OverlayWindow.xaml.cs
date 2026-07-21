@@ -74,6 +74,8 @@ public sealed partial class OverlayWindow : Window
     private PlayerMawpData? _playerData;
     private ReplayScanResult? _scan;
     private string _scanStatus = "scanning replays…";
+    private string _lobbyStatus = "";
+    private long _lastLobbyWrite;
 
     public ObservableCollection<RecItem> Recommendations { get; } = new();
     public ObservableCollection<RecItem> YourBest { get; } = new();
@@ -103,6 +105,7 @@ public sealed partial class OverlayWindow : Window
         PicksEnemyList.ItemsSource = PicksEnemy;
         PopulateSetup();
         _ = InitEngineAsync();
+        _ = WatchLobbyAsync();
     }
 
     // ── Engine + draft flow ──────────────────────────────────────────
@@ -192,6 +195,59 @@ public sealed partial class OverlayWindow : Window
             });
         }
         YourBestSection.Visibility = YourBest.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    // Watch for the game's battlelobby at the loading screen; when a fresh one
+    // appears, read the real teammates and personalize MAWP for the whole team.
+    private async System.Threading.Tasks.Task WatchLobbyAsync()
+    {
+        var dir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Temp", "Heroes of the Storm");
+        while (true)
+        {
+            try
+            {
+                string? f = System.IO.Directory.Exists(dir)
+                    ? System.IO.Directory.EnumerateFiles(dir, "replay.server.battlelobby", System.IO.SearchOption.AllDirectories).FirstOrDefault()
+                    : null;
+                if (f != null)
+                {
+                    long wt = System.IO.File.GetLastWriteTimeUtc(f).Ticks;
+                    if (wt != _lastLobbyWrite)
+                    {
+                        _lastLobbyWrite = wt;
+                        await System.Threading.Tasks.Task.Delay(1500); // let the write settle (M0 safe-read)
+                        var lobby = await System.Threading.Tasks.Task.Run(() => BattlelobbyReader.Read(f));
+                        if (lobby != null) ApplyLobby(lobby);
+                    }
+                }
+            }
+            catch { }
+            await System.Threading.Tasks.Task.Delay(2000);
+        }
+    }
+
+    private void ApplyLobby(LobbyInfo lobby)
+    {
+        // Find our team by matching the local player (from replay history) in the lobby.
+        var local = _scan?.LocalBattletag;
+        int ourTeam = -1;
+        if (local != null)
+        {
+            var me = lobby.Players.FirstOrDefault(p => string.Equals(p.Battletag, local, StringComparison.OrdinalIgnoreCase));
+            if (me != null) ourTeam = me.Team;
+        }
+        if (ourTeam < 0) { _lobbyStatus = $"lobby read ({lobby.Players.Count} players) — you not matched"; return; }
+
+        var teammates = lobby.Players.Where(p => p.Team == ourTeam).Select(p => p.Battletag).ToArray();
+        var stats = _playerData?.PlayerStats ?? _scan?.PlayerStats;
+        if (stats != null)
+        {
+            _playerData = new PlayerMawpData { PlayerStats = stats, AvailableBattletags = teammates };
+            _lobbyStatus = $"lobby: {teammates.Length} teammates · {lobby.Map}";
+            _ = RecomputeAsync(); // personalize for the whole team
+        }
     }
 
     private async System.Threading.Tasks.Task RecomputeAsync()
@@ -292,7 +348,9 @@ public sealed partial class OverlayWindow : Window
         }
 
         RecSection.Visibility = Recommendations.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        StatusText.Text = $"on-device engine · {result.Sims} sims · {_scanStatus}";
+        StatusText.Text = string.IsNullOrEmpty(_lobbyStatus)
+            ? $"on-device engine · {result.Sims} sims · {_scanStatus}"
+            : $"on-device engine · {result.Sims} sims · {_lobbyStatus}";
     }
 
     // ── Setup (map / tier / team) ────────────────────────────────────
