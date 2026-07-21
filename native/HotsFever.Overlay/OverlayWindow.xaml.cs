@@ -31,6 +31,7 @@ public sealed partial class OverlayWindow : Window
 {
     private IntPtr _hWnd;
     private AppWindow _appWindow = null!;
+    private OverlappedPresenter? _presenter;
 
     private const int PanelWidth = 380;
     private const int ExpandedHeight = 648;
@@ -92,8 +93,8 @@ public sealed partial class OverlayWindow : Window
         ConfigureAsOverlay();
 
         _topmostTimer = DispatcherQueue.CreateTimer();
-        _topmostTimer.Interval = TimeSpan.FromMilliseconds(1000);
-        _topmostTimer.Tick += (s, e) => NativeMethods.SetTopMost(_hWnd);
+        _topmostTimer.Interval = TimeSpan.FromMilliseconds(400);
+        _topmostTimer.Tick += (s, e) => ReassertTopMost();
         _topmostTimer.Start();
 
         RecList.ItemsSource = Recommendations;
@@ -509,6 +510,7 @@ public sealed partial class OverlayWindow : Window
         if (target <= 0 || Math.Abs(target - _appWindow.Size.Height) <= 1) return;
         _appWindow.Resize(new SizeInt32(PanelWidth, target));
         NativeMethods.RoundWindow(_hWnd, _appWindow.Size.Width, _appWindow.Size.Height, 22);
+        ReassertTopMost(); // Resize resets z-order via the presenter — restore it immediately.
     }
 
     // ── Labels ───────────────────────────────────────────────────────
@@ -612,10 +614,19 @@ public sealed partial class OverlayWindow : Window
         BodyContent.Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
         CollapseButton.Content = _collapsed ? "+" : "–";
         // Window auto-sizes to content via OnContentSizeChanged.
-        NativeMethods.SetTopMost(_hWnd);
+        ReassertTopMost();
     }
 
     // ── Window styling ───────────────────────────────────────────────
+
+    // WinUI's OverlappedPresenter re-applies its window state on layout/resize
+    // passes and clears the raw WS_EX_TOPMOST bit, so we re-assert BOTH the
+    // presenter-native flag (which WinUI actually enforces) and the raw call.
+    private void ReassertTopMost()
+    {
+        if (_presenter != null && !_presenter.IsAlwaysOnTop) _presenter.IsAlwaysOnTop = true;
+        NativeMethods.SetTopMost(_hWnd);
+    }
 
     private void ConfigureAsOverlay()
     {
@@ -627,6 +638,7 @@ public sealed partial class OverlayWindow : Window
 
         if (appWindow.Presenter is OverlappedPresenter presenter)
         {
+            _presenter = presenter;
             presenter.SetBorderAndTitleBar(false, false);
             presenter.IsAlwaysOnTop = true;
             presenter.IsResizable = false;
