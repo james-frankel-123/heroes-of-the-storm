@@ -260,31 +260,74 @@ public sealed partial class OverlayWindow : Window
 
     private void ApplyLobby(LobbyInfo lobby)
     {
-        // Find our team by matching the local player (from replay history) in the lobby.
-        var local = _scan?.LocalBattletag;
+        // Find our team. Primary: match a lobby player's toon id to a local account
+        // folder (definitive even with multiple accounts). Fallback: the scan's battletag.
         int ourTeam = -1;
-        if (local != null)
-        {
-            var me = lobby.Players.FirstOrDefault(p => string.Equals(p.Battletag, local, StringComparison.OrdinalIgnoreCase));
-            if (me != null) ourTeam = me.Team;
-        }
+        LobbyPlayer? me = null;
+        var localToons = BattlelobbyReader.GetLocalToonIds();
+        me = lobby.Players.FirstOrDefault(p => localToons.Contains(p.ToonId));
+        if (me == null && _scan?.LocalBattletag is string local)
+            me = lobby.Players.FirstOrDefault(p => string.Equals(p.Battletag, local, StringComparison.OrdinalIgnoreCase));
+        if (me != null) ourTeam = me.Team;
+
         if (ourTeam < 0)
         {
             _lobbyStatus = $"lobby read ({lobby.Players.Count} players) — you not matched";
-            LobbyLog($"applied but local player '{local}' not found among lobby battletags: {string.Join(", ", lobby.Players.Select(p => p.Battletag))}");
+            LobbyLog($"applied but no local account matched. lobby toons: {string.Join(", ", lobby.Players.Select(p => p.ToonId))} | local toons: {string.Join(", ", localToons)}");
             return;
         }
+
+        // Personalize "your best" to the account actually in this game.
+        if (_scan != null && me!.Battletag.Length > 0) _scan.LocalBattletag = me.Battletag;
+
+        // Auto-fill the board with the real final draft (picks + bans) from the lobby.
+        FillDraftFromLobby(lobby, ourTeam);
 
         var teammates = lobby.Players.Where(p => p.Team == ourTeam).Select(p => p.Battletag).ToArray();
         var stats = _playerData?.PlayerStats ?? _scan?.PlayerStats;
         if (stats != null)
-        {
             _playerData = new PlayerMawpData { PlayerStats = stats, AvailableBattletags = teammates };
-            _lobbyStatus = $"lobby: {teammates.Length} teammates · {lobby.Map}";
-            LobbyLog($"applied — team {ourTeam}: {string.Join(", ", teammates)}");
-            _ = RecomputeAsync(); // personalize for the whole team
+
+        _lobbyStatus = $"lobby: {teammates.Length} teammates · {lobby.Map}";
+        LobbyLog($"applied — you={me!.Battletag} ({me.ToonId}), team {ourTeam}: {string.Join(", ", teammates)}");
+        UpdateYourBest();     // reflect the current account
+        _ = RecomputeAsync(); // draw the auto-filled board + final win %, personalized for the team
+    }
+
+    // Populate the draft state from a completed lobby: our team → engine team 0
+    // (so the board's mine/enemy sides are correct), enemy → team 1. The lobby
+    // gives final rosters + bans by team, not pick order, so heroes are dropped
+    // into that team's pick/ban slots in roster order — which is all the board
+    // and the final-comp win probability need.
+    private void FillDraftFromLobby(LobbyInfo lobby, int ourTeam)
+    {
+        _ourTeam = 0;
+        if (HeroCatalog.MapIndex(lobby.Map) >= 0 && _map != lobby.Map)
+        {
+            _map = lobby.Map;
+            _settingUp = true;
+            MapCombo.SelectedItem = _map;
+            _settingUp = false;
         }
-        else LobbyLog("applied but no player stats loaded yet (replay scan incomplete)");
+
+        int[] StepsFor(int team, bool pick) =>
+            Enumerable.Range(0, 16).Where(i => DraftOrder[i].Team == team && DraftOrder[i].IsPick == pick).ToArray();
+        void Assign(int[] steps, IReadOnlyList<string> heroes)
+        {
+            for (int i = 0; i < steps.Length && i < heroes.Count; i++) _selections[steps[i]] = heroes[i];
+        }
+
+        _selections.Clear();
+        var ourPicks = lobby.Players.Where(p => p.Team == ourTeam && p.Hero.Length > 0).Select(p => p.Hero).ToList();
+        var enemyPicks = lobby.Players.Where(p => p.Team != ourTeam && p.Hero.Length > 0).Select(p => p.Hero).ToList();
+        var ourBans = ourTeam == 0 ? lobby.BansBlue : lobby.BansRed;
+        var enemyBans = ourTeam == 0 ? lobby.BansRed : lobby.BansBlue;
+
+        Assign(StepsFor(0, true), ourPicks);
+        Assign(StepsFor(1, true), enemyPicks);
+        Assign(StepsFor(0, false), ourBans);
+        Assign(StepsFor(1, false), enemyBans);
+        _currentStep = 16; // draft complete
     }
 
     private async System.Threading.Tasks.Task RecomputeAsync()
@@ -296,6 +339,20 @@ public sealed partial class OverlayWindow : Window
         {
             Recommendations.Clear();
             RecSection.Visibility = Visibility.Collapsed;
+            // Completed draft (e.g. auto-filled from the lobby): still show the final win %.
+            if (_sessions != null && _data != null && _currentStep >= 16)
+            {
+                var full = BuildInput();
+                if (full.Team0Picks.Count == 5 && full.Team1Picks.Count == 5)
+                {
+                    var wpSessions = _sessions; var wpData = _data; var wpMap = _map; var wpTier = _tier;
+                    var t0 = full.Team0Picks; var t1 = full.Team1Picks;
+                    float p0 = await System.Threading.Tasks.Task.Run(() =>
+                        HotsFever.DraftEngine.Models.WinProbability.Get(wpSessions, t0, t1, wpMap, wpTier, wpData));
+                    double ours = _ourTeam == 0 ? p0 : 1 - p0;
+                    WinProbText.Text = (int)Math.Round(ours * 100) + "%";
+                }
+            }
             return;
         }
 
