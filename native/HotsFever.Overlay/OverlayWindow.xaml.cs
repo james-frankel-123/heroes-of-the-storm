@@ -230,7 +230,15 @@ public sealed partial class OverlayWindow : Window
             {
                 bool exists = System.IO.Directory.Exists(dir);
                 if (exists && !dirSeen) { dirSeen = true; LobbyLog("lobby dir appeared (loading screen)"); }
-                else if (!exists && dirSeen) dirSeen = false;
+                else if (!exists && dirSeen)
+                {
+                    // Match ended and the game cleaned up its lobby file — clear the
+                    // auto-filled draft so we don't show a stale board into the next game.
+                    dirSeen = false;
+                    _lastLobbyWrite = 0; // next lobby always counts as fresh
+                    LobbyLog("lobby dir gone (match ended) — clearing stale draft");
+                    ResetForNewGame();
+                }
 
                 string? f = exists
                     ? System.IO.Directory.EnumerateFiles(dir, "replay.server.battlelobby", opts).FirstOrDefault()
@@ -328,6 +336,20 @@ public sealed partial class OverlayWindow : Window
         Assign(StepsFor(0, false), ourBans);
         Assign(StepsFor(1, false), enemyBans);
         _currentStep = 16; // draft complete
+    }
+
+    // Clear an auto-filled draft back to an empty, un-personalized state (called
+    // when a match ends, so the next game doesn't start on stale data).
+    private void ResetForNewGame()
+    {
+        _selections.Clear();
+        _currentStep = 0;
+        _lobbyStatus = "";
+        if (_scan?.LocalBattletag is string bt && _scan.PlayerStats.Count > 0)
+            _playerData = new PlayerMawpData { PlayerStats = _scan.PlayerStats, AvailableBattletags = new[] { bt } };
+        if (SearchBox != null) SearchBox.Text = "";
+        PopulateHeroGrid();
+        _ = RecomputeAsync();
     }
 
     private async System.Threading.Tasks.Task RecomputeAsync()
