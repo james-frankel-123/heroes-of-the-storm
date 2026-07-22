@@ -260,20 +260,25 @@ public sealed partial class OverlayWindow : Window
 
     private void ApplyLobby(LobbyInfo lobby)
     {
-        // Find our team by matching the local player (from replay history) in the lobby.
-        var local = _scan?.LocalBattletag;
+        // Find our team. Primary: match a lobby player's toon id to a local account
+        // folder (definitive even with multiple accounts). Fallback: the scan's battletag.
         int ourTeam = -1;
-        if (local != null)
-        {
-            var me = lobby.Players.FirstOrDefault(p => string.Equals(p.Battletag, local, StringComparison.OrdinalIgnoreCase));
-            if (me != null) ourTeam = me.Team;
-        }
+        LobbyPlayer? me = null;
+        var localToons = BattlelobbyReader.GetLocalToonIds();
+        me = lobby.Players.FirstOrDefault(p => localToons.Contains(p.ToonId));
+        if (me == null && _scan?.LocalBattletag is string local)
+            me = lobby.Players.FirstOrDefault(p => string.Equals(p.Battletag, local, StringComparison.OrdinalIgnoreCase));
+        if (me != null) ourTeam = me.Team;
+
         if (ourTeam < 0)
         {
             _lobbyStatus = $"lobby read ({lobby.Players.Count} players) — you not matched";
-            LobbyLog($"applied but local player '{local}' not found among lobby battletags: {string.Join(", ", lobby.Players.Select(p => p.Battletag))}");
+            LobbyLog($"applied but no local account matched. lobby toons: {string.Join(", ", lobby.Players.Select(p => p.ToonId))} | local toons: {string.Join(", ", localToons)}");
             return;
         }
+
+        // Personalize "your best" to the account actually in this game.
+        if (_scan != null && me.Battletag.Length > 0) _scan.LocalBattletag = me.Battletag;
 
         var teammates = lobby.Players.Where(p => p.Team == ourTeam).Select(p => p.Battletag).ToArray();
         var stats = _playerData?.PlayerStats ?? _scan?.PlayerStats;
@@ -281,8 +286,9 @@ public sealed partial class OverlayWindow : Window
         {
             _playerData = new PlayerMawpData { PlayerStats = stats, AvailableBattletags = teammates };
             _lobbyStatus = $"lobby: {teammates.Length} teammates · {lobby.Map}";
-            LobbyLog($"applied — team {ourTeam}: {string.Join(", ", teammates)}");
-            _ = RecomputeAsync(); // personalize for the whole team
+            LobbyLog($"applied — you={me!.Battletag} ({me.ToonId}), team {ourTeam}: {string.Join(", ", teammates)}");
+            UpdateYourBest();          // reflect the current account
+            _ = RecomputeAsync();      // personalize for the whole team
         }
         else LobbyLog("applied but no player stats loaded yet (replay scan incomplete)");
     }

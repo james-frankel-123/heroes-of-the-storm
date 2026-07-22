@@ -36,6 +36,33 @@ public static class BattlelobbyReader
     private sealed class MapInfoJson { public string? MapTitle { get; set; } }
     private sealed class PlayerJson { public string? BattleTagName { get; set; } public string? PlayerToonId { get; set; } }
 
+    /// <summary>
+    /// The local machine's HotS toon IDs (e.g. "1-Hero-1-11154214"), read from
+    /// Documents\Heroes of the Storm\Accounts\&lt;acct&gt;\&lt;toon&gt;\. A lobby player whose
+    /// PlayerToonId is in this set is definitively a local account — the reliable
+    /// way to find "our" team when the user has multiple accounts.
+    /// </summary>
+    public static HashSet<string> GetLocalToonIds()
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            var acct = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "Heroes of the Storm", "Accounts");
+            if (!System.IO.Directory.Exists(acct)) return set;
+            foreach (var accDir in System.IO.Directory.EnumerateDirectories(acct))
+                foreach (var toonDir in System.IO.Directory.EnumerateDirectories(accDir))
+                {
+                    var name = System.IO.Path.GetFileName(toonDir);
+                    if (System.Text.RegularExpressions.Regex.IsMatch(name, @"^\d+-Hero-\d+-\d+$"))
+                        set.Add(name);
+                }
+        }
+        catch { }
+        return set;
+    }
+
     public static LobbyInfo? Read(string battlelobbyPath)
     {
         try
