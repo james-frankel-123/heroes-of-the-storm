@@ -717,7 +717,17 @@ public sealed partial class OverlayWindow : Window
     // presenter-native flag (which WinUI actually enforces) and the raw call.
     private void ReassertTopMost()
     {
-        if (_presenter != null && !_presenter.IsAlwaysOnTop) _presenter.IsAlwaysOnTop = true;
+        // Check the REAL window bit, not the presenter's cached IsAlwaysOnTop —
+        // after a resize the cache can read true while the window is actually
+        // non-topmost (WinUI keeps re-applying the stale state, and a bare
+        // SetWindowPos gets overwritten each frame). When the bit is genuinely
+        // missing, force WinUI to re-apply by toggling the presenter off→on.
+        bool isTop = (NativeMethods.GetExStyle(_hWnd) & NativeMethods.WS_EX_TOPMOST) != 0;
+        if (!isTop && _presenter != null)
+        {
+            _presenter.IsAlwaysOnTop = false;
+            _presenter.IsAlwaysOnTop = true;
+        }
         NativeMethods.SetTopMost(_hWnd);
     }
 
