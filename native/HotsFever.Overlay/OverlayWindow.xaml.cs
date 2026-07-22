@@ -107,6 +107,7 @@ public sealed partial class OverlayWindow : Window
         PopulateSetup();
         _ = InitEngineAsync();
         _ = WatchLobbyAsync();
+        _ = CaptureSelfTestAsync();
     }
 
     // ── Engine + draft flow ──────────────────────────────────────────
@@ -200,6 +201,46 @@ public sealed partial class OverlayWindow : Window
 
     // Watch for the game's battlelobby at the loading screen; when a fresh one
     // appears, read the real teammates and personalize MAWP for the whole team.
+    // M4 increment 1: one-shot capture spike. Grabs a frame of the HotS window
+    // (or the current foreground window if HotS isn't up, as a pipeline check)
+    // via Windows Graphics Capture, saves a PNG, and logs size + brightness so
+    // we can confirm we get real pixels (not a black frame) off a DirectX surface.
+    private async System.Threading.Tasks.Task CaptureSelfTestAsync()
+    {
+        await System.Threading.Tasks.Task.Delay(4000);
+        try
+        {
+            var hots = System.Diagnostics.Process.GetProcessesByName("HeroesOfTheStorm_x64").FirstOrDefault();
+            IntPtr target = hots?.MainWindowHandle ?? IntPtr.Zero;
+            string src = hots != null ? "HotS window" : "foreground window";
+            if (target == IntPtr.Zero) target = NativeMethods.GetForeground();
+            if (target == IntPtr.Zero) { CaptureLog("no window to capture"); return; }
+
+            var path = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "HotsFever", "capture-test.png");
+            var info = await ScreenCapture.CaptureToPngAsync(target, path);
+            CaptureLog(info.Ok
+                ? $"captured {src}: {info.Width}x{info.Height}, meanBrightness={info.MeanBrightness:F1} " +
+                  $"({(info.MeanBrightness < 3 ? "BLACK FRAME — capture failed" : "real pixels")}) → {path}"
+                : $"capture FAILED ({src}) — WGC unsupported or window invalid");
+        }
+        catch (Exception ex) { CaptureLog("capture error: " + ex.Message); }
+    }
+
+    private static readonly string CaptureLogPath = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "capture-test.log");
+
+    private static void CaptureLog(string msg)
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(CaptureLogPath)!);
+            System.IO.File.AppendAllText(CaptureLogPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {msg}{Environment.NewLine}");
+        }
+        catch { }
+    }
+
     private static readonly string LobbyLogPath = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "lobby-watch.log");
 

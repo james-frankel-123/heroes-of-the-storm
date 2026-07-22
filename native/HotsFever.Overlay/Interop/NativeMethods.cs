@@ -99,6 +99,12 @@ internal static class NativeMethods
     public struct POINT { public int X; public int Y; }
 
     [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    /// <summary>The current foreground window handle (used as a capture fallback).</summary>
+    public static IntPtr GetForeground() => GetForegroundWindow();
+
+    [DllImport("user32.dll")]
     private static extern bool GetCursorPos(out POINT lpPoint);
 
     /// <summary>Absolute cursor position in screen (physical) pixels — for window dragging.</summary>
