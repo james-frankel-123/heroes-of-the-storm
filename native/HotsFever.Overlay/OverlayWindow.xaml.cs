@@ -107,7 +107,7 @@ public sealed partial class OverlayWindow : Window
         PopulateSetup();
         _ = InitEngineAsync();
         _ = WatchLobbyAsync();
-        _ = CaptureSelfTestAsync();
+        _ = DraftWatchAsync();
     }
 
     // ── Engine + draft flow ──────────────────────────────────────────
@@ -201,42 +201,88 @@ public sealed partial class OverlayWindow : Window
 
     // Watch for the game's battlelobby at the loading screen; when a fresh one
     // appears, read the real teammates and personalize MAWP for the whole team.
-    // M4 increment 1: one-shot capture spike. Grabs a frame of the HotS window
-    // (or the current foreground window if HotS isn't up, as a pipeline check)
-    // via Windows Graphics Capture, saves a PNG, and logs size + brightness so
-    // we can confirm we get real pixels (not a black frame) off a DirectX surface.
-    private async System.Threading.Tasks.Task CaptureSelfTestAsync()
+    private bool _inDraft;
+
+    // M4 increment 2a: continuously watch for the HotS draft screen and drive
+    // capture from there. Polls slowly when idle; when the draft screen is
+    // detected (template match on stable draft-only UI), it flips to an active
+    // faster cadence. Hero recognition per slot plugs into the _inDraft branch next.
+    private async System.Threading.Tasks.Task DraftWatchAsync()
     {
-        await System.Threading.Tasks.Task.Delay(4000);
+        await System.Threading.Tasks.Task.Delay(2500);
+        var dir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever");
+        DraftLog("draft watcher started");
+        // One-time self-check: score the real draft frames we captured earlier
+        // (known draft screens) so we can confirm the detector recognizes them.
         try
         {
-            var hots = System.Diagnostics.Process.GetProcessesByName("HeroesOfTheStorm_x64").FirstOrDefault();
-            IntPtr target = hots?.MainWindowHandle ?? IntPtr.Zero;
-            string src = hots != null ? "HotS window" : "foreground window";
-            if (target == IntPtr.Zero) target = NativeMethods.GetForeground();
-            if (target == IntPtr.Zero) { CaptureLog("no window to capture"); return; }
-
-            var path = System.IO.Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "HotsFever", "capture-test.png");
-            var info = await ScreenCapture.CaptureToPngAsync(target, path);
-            CaptureLog(info.Ok
-                ? $"captured {src}: {info.Width}x{info.Height}, meanBrightness={info.MeanBrightness:F1} " +
-                  $"({(info.MeanBrightness < 3 ? "BLACK FRAME — capture failed" : "real pixels")}) → {path}"
-                : $"capture FAILED ({src}) — WGC unsupported or window invalid");
+            foreach (var f in new[] { "capture-1.png", "capture-5.png" })
+            {
+                var p = System.IO.Path.Combine(dir, f);
+                if (System.IO.File.Exists(p))
+                    DraftLog($"self-check {f}: draft-match score {DraftDetector.ScoreFile(p):F2}");
+            }
         }
-        catch (Exception ex) { CaptureLog("capture error: " + ex.Message); }
+        catch (Exception ex) { DraftLog("self-check error: " + ex.Message); }
+
+        int tick = 0;
+        while (true)
+        {
+            int delay = 2500;
+            try
+            {
+                var hots = System.Diagnostics.Process.GetProcessesByName("HeroesOfTheStorm_x64").FirstOrDefault();
+                IntPtr hwnd = hots != null ? NativeMethods.FindWindowForProcess(hots.Id) : IntPtr.Zero;
+
+                if (hwnd == IntPtr.Zero)
+                {
+                    if (_inDraft) { _inDraft = false; DraftLog("HotS window gone — draft ended"); }
+                }
+                else
+                {
+                    var raw = await System.Threading.Tasks.Task.Run(() => ScreenCapture.CaptureRawAsync(hwnd));
+                    if (raw == null)
+                    {
+                        if (++tick % 6 == 0) DraftLog("capture returned null (WGC on this window failed)");
+                    }
+                    else
+                    {
+                        double score = await System.Threading.Tasks.Task.Run(
+                            () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
+                        bool draft = score >= 0.70;
+                        if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, {raw.Width}x{raw.Height}, inDraft={_inDraft}");
+
+                        if (draft && !_inDraft)
+                        {
+                            _inDraft = true;
+                            DraftLog($"draft STARTED (match {score:F2}, {raw.Width}x{raw.Height})");
+                            try { await ScreenCapture.CaptureToPngAsync(hwnd, System.IO.Path.Combine(dir, "draft-start.png")); } catch { }
+                        }
+                        else if (!draft && _inDraft)
+                        {
+                            _inDraft = false;
+                            DraftLog($"draft ended (match {score:F2})");
+                        }
+
+                        if (_inDraft) delay = 1500; // active cadence during a draft
+                    }
+                }
+            }
+            catch (Exception ex) { DraftLog("watch error: " + ex.Message); }
+            await System.Threading.Tasks.Task.Delay(delay);
+        }
     }
 
-    private static readonly string CaptureLogPath = System.IO.Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "capture-test.log");
+    private static readonly string DraftLogPath = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "draft-watch.log");
 
-    private static void CaptureLog(string msg)
+    private static void DraftLog(string msg)
     {
         try
         {
-            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(CaptureLogPath)!);
-            System.IO.File.AppendAllText(CaptureLogPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {msg}{Environment.NewLine}");
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DraftLogPath)!);
+            System.IO.File.AppendAllText(DraftLogPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {msg}{Environment.NewLine}");
         }
         catch { }
     }

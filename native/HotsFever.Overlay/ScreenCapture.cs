@@ -90,6 +90,16 @@ public static class ScreenCapture
         return result;
     }
 
+    public sealed record RawFrame(byte[] Bgra, int Width, int Height);
+
+    /// <summary>Capture one frame as raw BGRA pixels (for CV), or null on failure.</summary>
+    public static async System.Threading.Tasks.Task<RawFrame?> CaptureRawAsync(IntPtr hwnd)
+    {
+        using var bmp = await CaptureFrameAsync(hwnd);
+        if (bmp == null) return null;
+        return new RawFrame(bmp.GetPixelBytes(), (int)bmp.SizeInPixels.Width, (int)bmp.SizeInPixels.Height);
+    }
+
     public readonly record struct CaptureInfo(bool Ok, int Width, int Height, double MeanBrightness);
 
     /// <summary>

@@ -104,6 +104,40 @@ internal static class NativeMethods
     /// <summary>The current foreground window handle (used as a capture fallback).</summary>
     public static IntPtr GetForeground() => GetForegroundWindow();
 
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hWnd, out RECT r);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RECT { public int Left, Top, Right, Bottom; }
+
+    /// <summary>
+    /// Largest visible top-level window owned by the given process id — robust
+    /// for games (like HotS) whose main-window handle .NET can't detect.
+    /// </summary>
+    public static IntPtr FindWindowForProcess(int pid)
+    {
+        IntPtr best = IntPtr.Zero;
+        long bestArea = 0;
+        EnumWindows((hWnd, _) =>
+        {
+            if (!IsWindowVisible(hWnd)) return true;
+            GetWindowThreadProcessId(hWnd, out uint wpid);
+            if (wpid != (uint)pid) return true;
+            if (!GetWindowRect(hWnd, out var r)) return true;
+            long area = (long)(r.Right - r.Left) * (r.Bottom - r.Top);
+            if (area > bestArea) { bestArea = area; best = hWnd; }
+            return true;
+        }, IntPtr.Zero);
+        return best;
+    }
+
     [DllImport("user32.dll")]
     private static extern bool GetCursorPos(out POINT lpPoint);
 
