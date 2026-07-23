@@ -29,6 +29,19 @@
                     </StackPanel>
                 </Grid>
 
+                <!-- Onboarding / fullscreen warning banner (above the fold, dismissible) -->
+                <Border x:Name="NoticeBanner" Visibility="Collapsed" CornerRadius="9" Padding="10,8"
+                        Background="#33FFEB3B" BorderBrush="#66FFEB3B" BorderThickness="1">
+                    <Grid>
+                        <TextBlock x:Name="NoticeText" TextWrapping="Wrap" FontSize="11" Foreground="#FFFFF3C0"
+                                   Margin="0,0,24,0" Text=""/>
+                        <Button x:Name="NoticeDismiss" Click="OnDismissNotice" Content="✕"
+                                Width="20" Height="20" Padding="0" FontSize="10"
+                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Background="Transparent" Foreground="#FFFFF3C0" BorderThickness="0"/>
+                    </Grid>
+                </Border>
+
                 <!-- Above-the-fold: stays visible when collapsed -->
                 <TextBlock x:Name="ContextText" Text="loading on-device engine…" FontSize="12" Foreground="#FFAFC0D8"/>
 

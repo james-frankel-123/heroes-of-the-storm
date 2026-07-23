@@ -108,6 +108,9 @@ public sealed partial class OverlayWindow : Window
         _ = InitEngineAsync();
         _ = WatchLobbyAsync();
         _ = DraftWatchAsync();
+
+        _welcomePending = IsFirstRun();
+        UpdateNotice();
     }
 
     // ── Engine + draft flow ──────────────────────────────────────────
@@ -202,6 +205,51 @@ public sealed partial class OverlayWindow : Window
     // Watch for the game's battlelobby at the loading screen; when a fresh one
     // appears, read the real teammates and personalize MAWP for the whole team.
     private bool _inDraft;
+    private bool _isFullscreen;    // HotS in exclusive fullscreen (overlay can't show)
+    private bool _fsDismissed;     // fullscreen warning dismissed this episode
+    private bool _welcomePending;  // first-run onboarding not yet dismissed
+
+    private static readonly string FirstRunMarker = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "firstrun.done");
+
+    private static bool IsFirstRun() => !System.IO.File.Exists(FirstRunMarker);
+
+    private static void MarkFirstRunDone()
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(FirstRunMarker)!);
+            System.IO.File.WriteAllText(FirstRunMarker, DateTime.Now.ToString("o"));
+        }
+        catch { }
+    }
+
+    // The above-the-fold notice banner shows the fullscreen warning (top priority,
+    // actionable) or the first-run onboarding tip. Must be called on the UI thread.
+    private void UpdateNotice()
+    {
+        if (_isFullscreen && !_fsDismissed)
+        {
+            NoticeText.Text = "⚠ Heroes of the Storm is in EXCLUSIVE FULLSCREEN — the overlay can't draw over it. " +
+                              "Switch Options → Video → Display Mode to \"Borderless Windowed\".";
+            NoticeBanner.Visibility = Visibility.Visible;
+        }
+        else if (_welcomePending)
+        {
+            NoticeText.Text = "Welcome to HotS Fever! Set HotS → Options → Video → Display Mode to " +
+                              "\"Borderless Windowed\" so the overlay shows over the game. " +
+                              "Recommendations update live during your draft.";
+            NoticeBanner.Visibility = Visibility.Visible;
+        }
+        else NoticeBanner.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnDismissNotice(object sender, RoutedEventArgs e)
+    {
+        if (_isFullscreen && !_fsDismissed) _fsDismissed = true;
+        else if (_welcomePending) { _welcomePending = false; MarkFirstRunDone(); }
+        UpdateNotice();
+    }
 
     // M4 increment 2a: continuously watch for the HotS draft screen and drive
     // capture from there. Polls slowly when idle; when the draft screen is
@@ -238,9 +286,19 @@ public sealed partial class OverlayWindow : Window
                 if (hwnd == IntPtr.Zero)
                 {
                     if (_inDraft) { _inDraft = false; DraftLog("HotS window gone — draft ended"); }
+                    if (_isFullscreen) { _isFullscreen = false; _fsDismissed = false; UpdateNotice(); }
                 }
                 else
                 {
+                    // Warn if HotS is in exclusive fullscreen (overlay can't show over it).
+                    bool fs = NativeMethods.IsExclusiveFullscreen();
+                    if (fs != _isFullscreen)
+                    {
+                        _isFullscreen = fs;
+                        if (!fs) _fsDismissed = false; // re-warn on a new fullscreen episode
+                        UpdateNotice();
+                    }
+
                     var raw = await System.Threading.Tasks.Task.Run(() => ScreenCapture.CaptureRawAsync(hwnd));
                     if (raw == null)
                     {
