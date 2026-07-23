@@ -118,8 +118,8 @@ public sealed partial class OverlayWindow : Window
         {
             await System.Threading.Tasks.Task.Run(() =>
             {
-                var modelsDir = LocateDir(System.IO.Path.Combine("public", "models"), "draft_policy.onnx");
-                _dataDir = LocateDir(System.IO.Path.Combine("src", "lib", "data"), "draft-stats-decayed.json");
+                var modelsDir = ResolveAssetDir("models", "draft_policy.onnx", System.IO.Path.Combine("public", "models"));
+                _dataDir = ResolveAssetDir("data", "draft-stats-decayed.json", System.IO.Path.Combine("src", "lib", "data"));
                 _sessions = OnnxSessions.FromDirectory(modelsDir);
                 _data = DraftDataLoader.Load(
                     System.IO.Path.Combine(_dataDir, "draft-stats-decayed.json"),
@@ -731,6 +731,15 @@ public sealed partial class OverlayWindow : Window
 
     private static string Cap(string s)
         => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
+
+    // Prefer assets bundled next to the app (shipped build); fall back to the
+    // repo layout when running from a dev checkout.
+    private static string ResolveAssetDir(string bundledSubDir, string sentinelFile, string repoRelativeDir)
+    {
+        var bundled = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", bundledSubDir);
+        if (System.IO.File.Exists(System.IO.Path.Combine(bundled, sentinelFile))) return bundled;
+        return LocateDir(repoRelativeDir, sentinelFile);
+    }
 
     private static string LocateDir(string relativeDir, string sentinelFile)
     {

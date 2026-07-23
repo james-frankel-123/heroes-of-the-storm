@@ -36,6 +36,14 @@
     <Content Include="Assets\draft\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Bundle the engine models + stat data into the app so it runs without the
+         repo checkout (linked from their source locations, not duplicated). -->
+    <Content Include="..\..\public\models\*.onnx" Link="Assets\models\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\src\lib\data\draft-stats-decayed.json;..\..\src\lib\data\compositions.json" Link="Assets\data\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
