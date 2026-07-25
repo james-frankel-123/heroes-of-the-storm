@@ -251,28 +251,24 @@ public sealed partial class OverlayWindow : Window
         UpdateNotice();
     }
 
-    // M4 increment 2a: continuously watch for the HotS draft screen and drive
-    // capture from there. Polls slowly when idle; when the draft screen is
-    // detected (template match on stable draft-only UI), it flips to an active
-    // faster cadence. Hero recognition per slot plugs into the _inDraft branch next.
+    // Heavy CV screen-capture + draft detection is DISABLED for now: it captured
+    // the full screen every poll the entire time HotS was open (including during
+    // matches), which is expensive and provided no user-facing value yet — the
+    // draft auto-fill comes from the lightweight battlelobby file read, and live
+    // recs come from manual taps. Flip this on only once live hero recognition
+    // exists AND capture is gated to the draft window (e.g. paused once the
+    // battlelobby file appears). The detector/capture code stays in the branch.
+    private const bool EnableCvCapture = false;
+
+    // Lightweight HotS-state watcher: always runs the CHEAP fullscreen-exclusive
+    // check (process + SHQueryUserNotificationState) to drive the borderless
+    // warning. Screen capture only runs when EnableCvCapture is on.
     private async System.Threading.Tasks.Task DraftWatchAsync()
     {
         await System.Threading.Tasks.Task.Delay(2500);
         var dir = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever");
-        DraftLog("draft watcher started");
-        // One-time self-check: score the real draft frames we captured earlier
-        // (known draft screens) so we can confirm the detector recognizes them.
-        try
-        {
-            foreach (var f in new[] { "capture-1.png", "capture-5.png" })
-            {
-                var p = System.IO.Path.Combine(dir, f);
-                if (System.IO.File.Exists(p))
-                    DraftLog($"self-check {f}: draft-match score {DraftDetector.ScoreFile(p):F2}");
-            }
-        }
-        catch (Exception ex) { DraftLog("self-check error: " + ex.Message); }
+        DraftLog($"HotS watcher started (cv capture {(EnableCvCapture ? "ON" : "OFF")})");
 
         int tick = 0;
         while (true)
@@ -285,12 +281,12 @@ public sealed partial class OverlayWindow : Window
 
                 if (hwnd == IntPtr.Zero)
                 {
-                    if (_inDraft) { _inDraft = false; DraftLog("HotS window gone — draft ended"); }
+                    if (_inDraft) _inDraft = false;
                     if (_isFullscreen) { _isFullscreen = false; _fsDismissed = false; UpdateNotice(); }
                 }
                 else
                 {
-                    // Warn if HotS is in exclusive fullscreen (overlay can't show over it).
+                    // Cheap: warn if HotS is in exclusive fullscreen (overlay can't show over it).
                     bool fs = NativeMethods.IsExclusiveFullscreen();
                     if (fs != _isFullscreen)
                     {
@@ -299,31 +295,19 @@ public sealed partial class OverlayWindow : Window
                         UpdateNotice();
                     }
 
-                    var raw = await System.Threading.Tasks.Task.Run(() => ScreenCapture.CaptureRawAsync(hwnd));
-                    if (raw == null)
+                    if (EnableCvCapture)
                     {
-                        if (++tick % 6 == 0) DraftLog("capture returned null (WGC on this window failed)");
-                    }
-                    else
-                    {
-                        double score = await System.Threading.Tasks.Task.Run(
-                            () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
-                        bool draft = score >= 0.70;
-                        if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, {raw.Width}x{raw.Height}, inDraft={_inDraft}");
-
-                        if (draft && !_inDraft)
+                        var raw = await System.Threading.Tasks.Task.Run(() => ScreenCapture.CaptureRawAsync(hwnd));
+                        if (raw != null)
                         {
-                            _inDraft = true;
-                            DraftLog($"draft STARTED (match {score:F2}, {raw.Width}x{raw.Height})");
-                            try { await ScreenCapture.CaptureToPngAsync(hwnd, System.IO.Path.Combine(dir, "draft-start.png")); } catch { }
+                            double score = await System.Threading.Tasks.Task.Run(
+                                () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
+                            bool draft = score >= 0.70;
+                            if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
+                            if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
+                            else if (!draft && _inDraft) { _inDraft = false; DraftLog($"draft ended ({score:F2})"); }
+                            if (_inDraft) delay = 1500;
                         }
-                        else if (!draft && _inDraft)
-                        {
-                            _inDraft = false;
-                            DraftLog($"draft ended (match {score:F2})");
-                        }
-
-                        if (_inDraft) delay = 1500; // active cadence during a draft
                     }
                 }
             }
