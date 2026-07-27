@@ -107,6 +107,10 @@ public sealed partial class OverlayWindow : Window
         PopulateSetup();
         _ = InitEngineAsync();
         _ = WatchLobbyAsync();
+        _ = DraftWatchAsync();
+
+        _welcomePending = IsFirstRun();
+        UpdateNotice();
     }
 
     // ── Engine + draft flow ──────────────────────────────────────────
@@ -117,8 +121,8 @@ public sealed partial class OverlayWindow : Window
         {
             await System.Threading.Tasks.Task.Run(() =>
             {
-                var modelsDir = LocateDir(System.IO.Path.Combine("public", "models"), "draft_policy.onnx");
-                _dataDir = LocateDir(System.IO.Path.Combine("src", "lib", "data"), "draft-stats-decayed.json");
+                var modelsDir = ResolveAssetDir("models", "draft_policy.onnx", System.IO.Path.Combine("public", "models"));
+                _dataDir = ResolveAssetDir("data", "draft-stats-decayed.json", System.IO.Path.Combine("src", "lib", "data"));
                 _sessions = OnnxSessions.FromDirectory(modelsDir);
                 _data = DraftDataLoader.Load(
                     System.IO.Path.Combine(_dataDir, "draft-stats-decayed.json"),
@@ -200,6 +204,132 @@ public sealed partial class OverlayWindow : Window
 
     // Watch for the game's battlelobby at the loading screen; when a fresh one
     // appears, read the real teammates and personalize MAWP for the whole team.
+    private bool _inDraft;
+    private bool _isFullscreen;    // HotS in exclusive fullscreen (overlay can't show)
+    private bool _fsDismissed;     // fullscreen warning dismissed this episode
+    private bool _welcomePending;  // first-run onboarding not yet dismissed
+
+    private static readonly string FirstRunMarker = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "firstrun.done");
+
+    private static bool IsFirstRun() => !System.IO.File.Exists(FirstRunMarker);
+
+    private static void MarkFirstRunDone()
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(FirstRunMarker)!);
+            System.IO.File.WriteAllText(FirstRunMarker, DateTime.Now.ToString("o"));
+        }
+        catch { }
+    }
+
+    // The above-the-fold notice banner shows the fullscreen warning (top priority,
+    // actionable) or the first-run onboarding tip. Must be called on the UI thread.
+    private void UpdateNotice()
+    {
+        if (_isFullscreen && !_fsDismissed)
+        {
+            NoticeText.Text = "⚠ Heroes of the Storm is in EXCLUSIVE FULLSCREEN — the overlay can't draw over it. " +
+                              "Switch Options → Video → Display Mode to \"Borderless Windowed\".";
+            NoticeBanner.Visibility = Visibility.Visible;
+        }
+        else if (_welcomePending)
+        {
+            NoticeText.Text = "Welcome to HotS Fever! Set HotS → Options → Video → Display Mode to " +
+                              "\"Borderless Windowed\" so the overlay shows over the game. " +
+                              "Recommendations update live during your draft.";
+            NoticeBanner.Visibility = Visibility.Visible;
+        }
+        else NoticeBanner.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnDismissNotice(object sender, RoutedEventArgs e)
+    {
+        if (_isFullscreen && !_fsDismissed) _fsDismissed = true;
+        else if (_welcomePending) { _welcomePending = false; MarkFirstRunDone(); }
+        UpdateNotice();
+    }
+
+    // CV screen-capture is GATED to the draft window: it only runs at the menu /
+    // during the pick-ban draft, and is skipped entirely once the battlelobby dir
+    // appears (loading screen → match) — the heavy, GPU-contended phase that
+    // previously glitched the machine. Frames are downscaled for cheap matching.
+    private const bool EnableCvCapture = true;
+
+    private async System.Threading.Tasks.Task DraftWatchAsync()
+    {
+        await System.Threading.Tasks.Task.Delay(2500);
+        var dir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever");
+        // The game creates this dir at the loading screen and cleans it after the
+        // match — so its presence marks "loading/in-match", when we must NOT capture.
+        var battlelobbyDir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "Heroes of the Storm");
+        DraftLog($"HotS watcher started (cv capture {(EnableCvCapture ? "ON, draft-gated" : "OFF")})");
+
+        int tick = 0;
+        while (true)
+        {
+            int delay = 3000;
+            try
+            {
+                var hots = System.Diagnostics.Process.GetProcessesByName("HeroesOfTheStorm_x64").FirstOrDefault();
+                IntPtr hwnd = hots != null ? NativeMethods.FindWindowForProcess(hots.Id) : IntPtr.Zero;
+
+                if (hwnd == IntPtr.Zero)
+                {
+                    if (_inDraft) _inDraft = false;
+                    if (_isFullscreen) { _isFullscreen = false; _fsDismissed = false; UpdateNotice(); }
+                }
+                else
+                {
+                    // Cheap: warn if HotS is in exclusive fullscreen (overlay can't show over it).
+                    bool fs = NativeMethods.IsExclusiveFullscreen();
+                    if (fs != _isFullscreen)
+                    {
+                        _isFullscreen = fs;
+                        if (!fs) _fsDismissed = false; // re-warn on a new fullscreen episode
+                        UpdateNotice();
+                    }
+
+                    // Skip capture entirely during loading/match (battlelobby dir present).
+                    bool loadingOrMatch = System.IO.Directory.Exists(battlelobbyDir);
+                    if (EnableCvCapture && !loadingOrMatch)
+                    {
+                        var raw = await System.Threading.Tasks.Task.Run(() => ScreenCapture.CaptureRawAsync(hwnd));
+                        if (raw != null)
+                        {
+                            double score = await System.Threading.Tasks.Task.Run(
+                                () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
+                            bool draft = score >= 0.65;
+                            if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
+                            if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
+                            else if (!draft && _inDraft) { _inDraft = false; DraftLog($"draft ended ({score:F2})"); }
+                            if (_inDraft) delay = 2000; // modest active cadence during the draft
+                        }
+                    }
+                    else if (_inDraft) _inDraft = false; // left the draft (loading started)
+                }
+            }
+            catch (Exception ex) { DraftLog("watch error: " + ex.Message); }
+            await System.Threading.Tasks.Task.Delay(delay);
+        }
+    }
+
+    private static readonly string DraftLogPath = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "draft-watch.log");
+
+    private static void DraftLog(string msg)
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(DraftLogPath)!);
+            System.IO.File.AppendAllText(DraftLogPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {msg}{Environment.NewLine}");
+        }
+        catch { }
+    }
+
     private static readonly string LobbyLogPath = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever", "lobby-watch.log");
 
@@ -644,6 +774,15 @@ public sealed partial class OverlayWindow : Window
 
     private static string Cap(string s)
         => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
+
+    // Prefer assets bundled next to the app (shipped build); fall back to the
+    // repo layout when running from a dev checkout.
+    private static string ResolveAssetDir(string bundledSubDir, string sentinelFile, string repoRelativeDir)
+    {
+        var bundled = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", bundledSubDir);
+        if (System.IO.File.Exists(System.IO.Path.Combine(bundled, sentinelFile))) return bundled;
+        return LocateDir(repoRelativeDir, sentinelFile);
+    }
 
     private static string LocateDir(string relativeDir, string sentinelFile)
     {

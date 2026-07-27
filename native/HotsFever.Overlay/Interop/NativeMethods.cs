@@ -99,6 +99,61 @@ internal static class NativeMethods
     public struct POINT { public int X; public int Y; }
 
     [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    /// <summary>The current foreground window handle (used as a capture fallback).</summary>
+    public static IntPtr GetForeground() => GetForegroundWindow();
+
+    [DllImport("shell32.dll")]
+    private static extern int SHQueryUserNotificationState(out int state);
+
+    // QUNS_RUNNING_D3D_FULL_SCREEN — a DirectX app is running in exclusive
+    // fullscreen, so no topmost overlay (ours or any) can draw over it.
+    private const int QUNS_RUNNING_D3D_FULL_SCREEN = 3;
+
+    /// <summary>True if some app is in exclusive-fullscreen DirectX mode (overlays can't show).</summary>
+    public static bool IsExclusiveFullscreen()
+    {
+        try { if (SHQueryUserNotificationState(out int s) == 0) return s == QUNS_RUNNING_D3D_FULL_SCREEN; }
+        catch { }
+        return false;
+    }
+
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hWnd, out RECT r);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RECT { public int Left, Top, Right, Bottom; }
+
+    /// <summary>
+    /// Largest visible top-level window owned by the given process id — robust
+    /// for games (like HotS) whose main-window handle .NET can't detect.
+    /// </summary>
+    public static IntPtr FindWindowForProcess(int pid)
+    {
+        IntPtr best = IntPtr.Zero;
+        long bestArea = 0;
+        EnumWindows((hWnd, _) =>
+        {
+            if (!IsWindowVisible(hWnd)) return true;
+            GetWindowThreadProcessId(hWnd, out uint wpid);
+            if (wpid != (uint)pid) return true;
+            if (!GetWindowRect(hWnd, out var r)) return true;
+            long area = (long)(r.Right - r.Left) * (r.Bottom - r.Top);
+            if (area > bestArea) { bestArea = area; best = hWnd; }
+            return true;
+        }, IntPtr.Zero);
+        return best;
+    }
+
+    [DllImport("user32.dll")]
     private static extern bool GetCursorPos(out POINT lpPoint);
 
     /// <summary>Absolute cursor position in screen (physical) pixels — for window dragging.</summary>
