@@ -5,6 +5,8 @@
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>HotsFever.Overlay</RootNamespace>
+    <!-- Ship the launcher exe under a clear, user-facing name (code namespaces stay). -->
+    <AssemblyName>HotS Fever Draft Coach</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64</Platforms>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>

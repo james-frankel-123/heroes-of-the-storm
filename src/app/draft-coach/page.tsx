@@ -31,9 +31,9 @@ const FEATURES: { title: string; body: string }[] = [
 ]
 
 const STEPS: string[] = [
-  'Download and unzip anywhere (e.g. your Desktop). Nothing to install — the app is self-contained.',
+  'Download the zip and extract it (right-click → Extract All). You’ll get one folder named “HotS Fever Draft Coach”. Nothing to install — the app is self-contained.',
   'In Heroes of the Storm, open Options → Video and set Display Mode to “Borderless Windowed”, so the overlay can appear over the game.',
-  'Run HotsFever.Overlay.exe. The overlay appears in the top-left; drag it wherever you like.',
+  'Open the folder and run “HotS Fever Draft Coach.exe”. (The READ ME FIRST.txt has the same steps; everything else in the folder is app data.) The overlay appears top-left — drag it wherever you like.',
   'Queue for Storm League. During the draft, tap heroes as they’re picked for live recs; at the loading screen the overlay fills in the real draft and your team automatically.',
 ]
 
