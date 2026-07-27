@@ -14,8 +14,9 @@ namespace HotsFever.Overlay;
 /// </summary>
 public static class DraftDetector
 {
-    private const int RefHeight = 1440;      // template authored at 1440p
-    private const double MatchThreshold = 0.70;
+    private const int TemplateAuthoredHeight = 1440; // template cropped from a 1440p frame
+    private const int RefHeight = 720;               // downscale for cheap matching
+    private const double MatchThreshold = 0.65;
 
     private static Mat? _template;
 
@@ -24,7 +25,13 @@ public static class DraftDetector
         if (_template == null)
         {
             var path = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "draft", "browse-heroes.png");
-            _template = Cv2.ImRead(path, ImreadModes.Grayscale);
+            using var raw = Cv2.ImRead(path, ImreadModes.Grayscale);
+            // Scale the template to the reduced reference height so it matches the
+            // downscaled frame.
+            double s = (double)RefHeight / TemplateAuthoredHeight;
+            var scaled = new Mat();
+            Cv2.Resize(raw, scaled, new Size(Math.Max(1, (int)Math.Round(raw.Cols * s)), Math.Max(1, (int)Math.Round(raw.Rows * s))));
+            _template = scaled;
         }
         return _template;
     }

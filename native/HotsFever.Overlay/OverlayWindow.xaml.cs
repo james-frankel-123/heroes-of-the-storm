@@ -251,29 +251,27 @@ public sealed partial class OverlayWindow : Window
         UpdateNotice();
     }
 
-    // Heavy CV screen-capture + draft detection is DISABLED for now: it captured
-    // the full screen every poll the entire time HotS was open (including during
-    // matches), which is expensive and provided no user-facing value yet — the
-    // draft auto-fill comes from the lightweight battlelobby file read, and live
-    // recs come from manual taps. Flip this on only once live hero recognition
-    // exists AND capture is gated to the draft window (e.g. paused once the
-    // battlelobby file appears). The detector/capture code stays in the branch.
-    private const bool EnableCvCapture = false;
+    // CV screen-capture is GATED to the draft window: it only runs at the menu /
+    // during the pick-ban draft, and is skipped entirely once the battlelobby dir
+    // appears (loading screen → match) — the heavy, GPU-contended phase that
+    // previously glitched the machine. Frames are downscaled for cheap matching.
+    private const bool EnableCvCapture = true;
 
-    // Lightweight HotS-state watcher: always runs the CHEAP fullscreen-exclusive
-    // check (process + SHQueryUserNotificationState) to drive the borderless
-    // warning. Screen capture only runs when EnableCvCapture is on.
     private async System.Threading.Tasks.Task DraftWatchAsync()
     {
         await System.Threading.Tasks.Task.Delay(2500);
         var dir = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever");
-        DraftLog($"HotS watcher started (cv capture {(EnableCvCapture ? "ON" : "OFF")})");
+        // The game creates this dir at the loading screen and cleans it after the
+        // match — so its presence marks "loading/in-match", when we must NOT capture.
+        var battlelobbyDir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "Heroes of the Storm");
+        DraftLog($"HotS watcher started (cv capture {(EnableCvCapture ? "ON, draft-gated" : "OFF")})");
 
         int tick = 0;
         while (true)
         {
-            int delay = 2500;
+            int delay = 3000;
             try
             {
                 var hots = System.Diagnostics.Process.GetProcessesByName("HeroesOfTheStorm_x64").FirstOrDefault();
@@ -295,20 +293,23 @@ public sealed partial class OverlayWindow : Window
                         UpdateNotice();
                     }
 
-                    if (EnableCvCapture)
+                    // Skip capture entirely during loading/match (battlelobby dir present).
+                    bool loadingOrMatch = System.IO.Directory.Exists(battlelobbyDir);
+                    if (EnableCvCapture && !loadingOrMatch)
                     {
                         var raw = await System.Threading.Tasks.Task.Run(() => ScreenCapture.CaptureRawAsync(hwnd));
                         if (raw != null)
                         {
                             double score = await System.Threading.Tasks.Task.Run(
                                 () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
-                            bool draft = score >= 0.70;
+                            bool draft = score >= 0.65;
                             if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
                             if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
                             else if (!draft && _inDraft) { _inDraft = false; DraftLog($"draft ended ({score:F2})"); }
-                            if (_inDraft) delay = 1500;
+                            if (_inDraft) delay = 2000; // modest active cadence during the draft
                         }
                     }
+                    else if (_inDraft) _inDraft = false; // left the draft (loading started)
                 }
             }
             catch (Exception ex) { DraftLog("watch error: " + ex.Message); }
