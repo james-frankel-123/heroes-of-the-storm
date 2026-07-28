@@ -251,15 +251,16 @@ public sealed partial class OverlayWindow : Window
         UpdateNotice();
     }
 
-    // CV screen-capture is OFF. On Windows 10 the OS draws a mandatory yellow
-    // capture border around the game window whenever WGC captures it, so polling
-    // during the draft flashes that border every couple seconds — and there's no
-    // payoff yet (draft detection works, but per-hero recognition isn't built, so
-    // nothing auto-fills from the screen). The draft board fills from the
-    // battlelobby file at the loading screen, and live recs come from manual taps
-    // — neither needs capture. Re-enable only with live recognition AND a border
-    // story (Win11 can hide it via IsBorderRequired; Win10 cannot).
-    private const bool EnableCvCapture = false;
+    // CV screen-capture uses border-free PrintWindow (no Win10 yellow capture
+    // border, unlike WGC) and is scoped to the draft: it captures during the
+    // pick/ban phase and HARD-STOPS the moment the battlelobby file appears (draft
+    // complete → loading), staying stopped through the match. Per-hero recognition
+    // (auto-filling picks/bans) plugs into the marked spot below — until that
+    // lands, capture only detects the draft; the board still fills from the
+    // battlelobby file at loading and live recs come from manual taps.
+    private const bool EnableCvCapture = true;
+    private bool _draftDone;         // latched true when the draft completes (battlelobby appears)
+    private long _lobbyGoneSinceMs;  // for resetting the latch once back at the menu
 
     private async System.Threading.Tasks.Task DraftWatchAsync()
     {
@@ -297,11 +298,27 @@ public sealed partial class OverlayWindow : Window
                         UpdateNotice();
                     }
 
-                    // Skip capture entirely during loading/match (battlelobby dir present).
-                    bool loadingOrMatch = System.IO.Directory.Exists(battlelobbyDir);
-                    if (EnableCvCapture && !loadingOrMatch)
+                    // Hard-stop at draft completion: the battlelobby dir appears at the
+                    // loading screen (right when the draft ends). Latch capture off then,
+                    // and only reset once we've been out of loading/match a while (back at
+                    // the menu) so a mid-match file cleanup doesn't resume capture.
+                    bool battlelobbyExists = System.IO.Directory.Exists(battlelobbyDir);
+                    if (battlelobbyExists)
                     {
-                        var raw = await System.Threading.Tasks.Task.Run(() => ScreenCapture.CaptureRawAsync(hwnd));
+                        if (!_draftDone) DraftLog("draft complete (battlelobby appeared) — stopping capture");
+                        _draftDone = true;
+                        _inDraft = false;
+                        _lobbyGoneSinceMs = 0;
+                    }
+                    else if (_draftDone)
+                    {
+                        if (_lobbyGoneSinceMs == 0) _lobbyGoneSinceMs = Environment.TickCount64;
+                        else if (Environment.TickCount64 - _lobbyGoneSinceMs > 90_000) { _draftDone = false; DraftLog("back at menu — capture re-armed"); }
+                    }
+
+                    if (EnableCvCapture && !_draftDone)
+                    {
+                        var raw = await System.Threading.Tasks.Task.Run(() => PrintWindowCapture.Capture(hwnd));
                         if (raw != null)
                         {
                             double score = await System.Threading.Tasks.Task.Run(
@@ -310,10 +327,10 @@ public sealed partial class OverlayWindow : Window
                             if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
                             if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
                             else if (!draft && _inDraft) { _inDraft = false; DraftLog($"draft ended ({score:F2})"); }
-                            if (_inDraft) delay = 2000; // modest active cadence during the draft
+                            if (_inDraft) delay = 2000; // active cadence during the draft
+                            // TODO(recognition): read picks/bans from `raw` and auto-fill the board.
                         }
                     }
-                    else if (_inDraft) _inDraft = false; // left the draft (loading started)
                 }
             }
             catch (Exception ex) { DraftLog("watch error: " + ex.Message); }
