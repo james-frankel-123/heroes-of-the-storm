@@ -28,9 +28,12 @@ const FEATURES: { title: string; body: string }[] = [
   },
   {
     title: 'Stays out of the way',
-    body: 'A translucent, always-on-top overlay you can drag anywhere and collapse. It reads files and (optionally) the screen — it never touches the game process.',
+    body: 'A translucent, always-on-top overlay you can drag anywhere and collapse. It reads the game’s own files — it never captures your screen or touches the game process.',
   },
 ]
+
+const NOTE =
+  'How drafting works: during the pick/ban phase you tap heroes in the overlay to get live recommendations. At the loading screen, the overlay reads the match files and fills in the real draft, map, and your whole team automatically — so it doesn’t need to watch your screen. Live on-screen hero detection is planned for a future update.'
 
 const STEPS: string[] = [
   'Download and run HotSFeverDraftCoach-Setup.exe. It’s a quick installer — no admin rights needed. (Windows SmartScreen may warn on a new app; choose “More info → Run anyway”.)',
@@ -81,6 +84,11 @@ export default function DraftCoachPage() {
               <p className="text-sm text-[#8b9bc8] leading-relaxed">{f.body}</p>
             </div>
           ))}
+        </section>
+
+        {/* How it works note */}
+        <section className="rounded-sm border-l-2 border-[#d4b85a]/50 bg-[#d4b85a]/5 px-5 py-4">
+          <p className="text-sm text-[#cdd6ea] leading-relaxed">{NOTE}</p>
         </section>
 
         {/* Setup */}

@@ -251,11 +251,15 @@ public sealed partial class OverlayWindow : Window
         UpdateNotice();
     }
 
-    // CV screen-capture is GATED to the draft window: it only runs at the menu /
-    // during the pick-ban draft, and is skipped entirely once the battlelobby dir
-    // appears (loading screen → match) — the heavy, GPU-contended phase that
-    // previously glitched the machine. Frames are downscaled for cheap matching.
-    private const bool EnableCvCapture = true;
+    // CV screen-capture is OFF. On Windows 10 the OS draws a mandatory yellow
+    // capture border around the game window whenever WGC captures it, so polling
+    // during the draft flashes that border every couple seconds — and there's no
+    // payoff yet (draft detection works, but per-hero recognition isn't built, so
+    // nothing auto-fills from the screen). The draft board fills from the
+    // battlelobby file at the loading screen, and live recs come from manual taps
+    // — neither needs capture. Re-enable only with live recognition AND a border
+    // story (Win11 can hide it via IsBorderRequired; Win10 cannot).
+    private const bool EnableCvCapture = false;
 
     private async System.Threading.Tasks.Task DraftWatchAsync()
     {
