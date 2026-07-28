@@ -6,10 +6,12 @@ export const metadata: Metadata = {
     'Download the HotS Fever Draft Coach: a native Windows overlay for Heroes of the Storm with live, on-device pick & ban recommendations.',
 }
 
-const DOWNLOAD_URL =
-  'https://github.com/james-frankel-123/heroes-of-the-storm/releases/download/draft-coach-beta-v0.1/HotsFever-Overlay-beta.zip'
+const RELEASE_BASE =
+  'https://github.com/james-frankel-123/heroes-of-the-storm/releases/download/draft-coach-beta-v0.1'
+const DOWNLOAD_URL = `${RELEASE_BASE}/HotSFeverDraftCoach-Setup.exe`
+const PORTABLE_URL = `${RELEASE_BASE}/HotsFever-Overlay-beta.zip`
 const VERSION = 'Beta v0.1'
-const SIZE = '123 MB'
+const SIZE = '87 MB'
 
 const FEATURES: { title: string; body: string }[] = [
   {
@@ -31,9 +33,9 @@ const FEATURES: { title: string; body: string }[] = [
 ]
 
 const STEPS: string[] = [
-  'Download the zip and extract it (right-click → Extract All). You’ll get one folder named “HotS Fever Draft Coach”. Nothing to install — the app is self-contained.',
+  'Download and run HotSFeverDraftCoach-Setup.exe. It’s a quick installer — no admin rights needed. (Windows SmartScreen may warn on a new app; choose “More info → Run anyway”.)',
   'In Heroes of the Storm, open Options → Video and set Display Mode to “Borderless Windowed”, so the overlay can appear over the game.',
-  'Open the folder and run “HotS Fever Draft Coach.exe”. (The READ ME FIRST.txt has the same steps; everything else in the folder is app data.) The overlay appears top-left — drag it wherever you like.',
+  'Launch “HotS Fever Draft Coach” from the Start menu (or the desktop shortcut, if you chose one). The overlay appears top-left — drag it wherever you like.',
   'Queue for Storm League. During the draft, tap heroes as they’re picked for live recs; at the loading screen the overlay fills in the real draft and your team automatically.',
 ]
 
@@ -61,7 +63,13 @@ export default function DraftCoachPage() {
             <span aria-hidden>⬇</span> DOWNLOAD FOR WINDOWS
           </a>
           <p className="text-xs text-[#8b9bc8]">
-            {VERSION} · {SIZE} · Windows 10 / 11 (64-bit) · no install required
+            {VERSION} · {SIZE} · Windows 10 / 11 (64-bit) · installs without admin
+          </p>
+          <p className="text-xs text-[#8b9bc8]">
+            Prefer no install?{' '}
+            <a href={PORTABLE_URL} className="text-[#d4b85a] underline underline-offset-2 hover:text-[#e8d8a0]">
+              Download the portable version (zip)
+            </a>
           </p>
         </div>
 
