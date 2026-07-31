@@ -327,8 +327,17 @@ public sealed partial class OverlayWindow : Window
                             if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
                             if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
                             else if (!draft && _inDraft) { _inDraft = false; DraftLog($"draft ended ({score:F2})"); }
-                            if (_inDraft) delay = 2000; // active cadence during the draft
-                            // TODO(recognition): read picks/bans from `raw` and auto-fill the board.
+                            if (_inDraft)
+                            {
+                                delay = 6000; // vision-recognition cadence during the draft
+                                var vd = await VisionRecognizer.RecognizeAsync(raw);
+                                if (vd != null && !vd.IsEmpty)
+                                {
+                                    DraftLog($"vision: L[{string.Join(",", vd.LeftTeam)}] R[{string.Join(",", vd.RightTeam)}] " +
+                                             $"bans[{string.Join(",", vd.BansLeft.Concat(vd.BansRight))}] map={vd.Map}");
+                                    await ApplyVisionDraft(vd);
+                                }
+                            }
                         }
                     }
                 }
@@ -487,6 +496,61 @@ public sealed partial class OverlayWindow : Window
         Assign(StepsFor(0, false), ourBans);
         Assign(StepsFor(1, false), enemyBans);
         _currentStep = 16; // draft complete
+    }
+
+    // Fill the board + recs from a live vision read of the draft screen. Left team
+    // = ours (engine team 0), right = enemy. Recognized heroes are dropped into
+    // their team's slots; the engine then recommends our next pick + win %.
+    private async System.Threading.Tasks.Task ApplyVisionDraft(VisionDraft vd)
+    {
+        _ourTeam = 0;
+        if (vd.Map != null && HeroCatalog.MapIndex(vd.Map) >= 0 && _map != vd.Map)
+        {
+            _map = vd.Map; _settingUp = true; MapCombo.SelectedItem = _map; _settingUp = false;
+        }
+
+        int[] StepsFor(int team, bool pick) =>
+            Enumerable.Range(0, 16).Where(i => DraftOrder[i].Team == team && DraftOrder[i].IsPick == pick).ToArray();
+        void Assign(int[] steps, IReadOnlyList<string> heroes)
+        {
+            for (int i = 0; i < steps.Length && i < heroes.Count; i++) _selections[steps[i]] = heroes[i];
+        }
+
+        var ourPicks = vd.LeftTeam.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
+        var enemyPicks = vd.RightTeam.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
+        var ourBans = vd.BansLeft.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
+        var enemyBans = vd.BansRight.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
+
+        _selections.Clear();
+        Assign(StepsFor(0, true), ourPicks);
+        Assign(StepsFor(1, true), enemyPicks);
+        Assign(StepsFor(0, false), ourBans);
+        Assign(StepsFor(1, false), enemyBans);
+        _currentStep = 16; // snapshot: board shows all recognized picks/bans
+        BuildDraftBoard();
+        UpdateYourBest();
+        _lobbyStatus = $"live draft (vision) · {_map}";
+
+        if (_sessions == null || _data == null || ourPicks.Count >= 5) { StatusText.Text = $"on-device engine · {_lobbyStatus}"; return; }
+
+        // Recommend our next pick from the current recognized state (+ win %).
+        var input = new MctsSearch.Input
+        {
+            Team0Picks = ourPicks,
+            Team1Picks = enemyPicks,
+            Bans = ourBans.Concat(enemyBans).ToList(),
+            TakenHeroes = ourPicks.Concat(enemyPicks).Concat(ourBans).Concat(enemyBans).ToArray(),
+            Map = _map,
+            Tier = _tier,
+            Step = Math.Min(15, ourPicks.Count + enemyPicks.Count + ourBans.Count + enemyBans.Count),
+            OurTeam = 0,
+        };
+        var sessions = _sessions; var data = _data; var playerData = _playerData;
+        var result = await System.Threading.Tasks.Task.Run(() =>
+            AiInference.GetRecommendations(sessions, input, false, new SystemRng(RngSeed),
+                new MctsSearch.Options { MinSims = 40, MaxSims = 60, TimeBudgetMs = double.PositiveInfinity },
+                data, playerData, topK: 3));
+        ApplyRecs(result, false);
     }
 
     // Clear an auto-filled draft back to an empty, un-personalized state (called
