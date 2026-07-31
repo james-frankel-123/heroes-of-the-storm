@@ -323,13 +323,13 @@ public sealed partial class OverlayWindow : Window
                         {
                             double score = await System.Threading.Tasks.Task.Run(
                                 () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
-                            bool draft = score >= 0.65;
+                            bool draft = score >= 0.52; // vision arbitrates draft-vs-not; this is a coarse gate
                             if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
                             if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
                             else if (!draft && _inDraft) { _inDraft = false; DraftLog($"draft ended ({score:F2})"); }
                             if (_inDraft)
                             {
-                                delay = 6000; // vision-recognition cadence during the draft
+                                delay = 1500; // tight cadence during the draft (~3s between reads incl. API)
                                 var vd = await VisionRecognizer.RecognizeAsync(raw);
                                 if (vd != null && !vd.IsEmpty)
                                 {
@@ -531,26 +531,25 @@ public sealed partial class OverlayWindow : Window
         UpdateYourBest();
         _lobbyStatus = $"live draft (vision) · {_map}";
 
-        if (_sessions == null || _data == null || ourPicks.Count >= 5) { StatusText.Text = $"on-device engine · {_lobbyStatus}"; return; }
-
-        // Recommend our next pick from the current recognized state (+ win %).
-        var input = new MctsSearch.Input
+        // Win probability of the current comp — safe (needs only the two team
+        // lists, no draft-order/step reconstruction). MCTS next-pick recs need a
+        // consistent sequential state that a partial vision snapshot can't
+        // guarantee, so they're deferred; the board fill + win % are the payload.
+        Recommendations.Clear();
+        RecSection.Visibility = Visibility.Collapsed;
+        if (_sessions != null && _data != null && (ourPicks.Count > 0 || enemyPicks.Count > 0))
         {
-            Team0Picks = ourPicks,
-            Team1Picks = enemyPicks,
-            Bans = ourBans.Concat(enemyBans).ToList(),
-            TakenHeroes = ourPicks.Concat(enemyPicks).Concat(ourBans).Concat(enemyBans).ToArray(),
-            Map = _map,
-            Tier = _tier,
-            Step = Math.Min(15, ourPicks.Count + enemyPicks.Count + ourBans.Count + enemyBans.Count),
-            OurTeam = 0,
-        };
-        var sessions = _sessions; var data = _data; var playerData = _playerData;
-        var result = await System.Threading.Tasks.Task.Run(() =>
-            AiInference.GetRecommendations(sessions, input, false, new SystemRng(RngSeed),
-                new MctsSearch.Options { MinSims = 40, MaxSims = 60, TimeBudgetMs = double.PositiveInfinity },
-                data, playerData, topK: 3));
-        ApplyRecs(result, false);
+            var s = _sessions; var d = _data; var m = _map; var t = _tier;
+            var t0 = ourPicks; var t1 = enemyPicks;
+            try
+            {
+                float p0 = await System.Threading.Tasks.Task.Run(
+                    () => HotsFever.DraftEngine.Models.WinProbability.Get(s, t0, t1, m, t, d));
+                WinProbText.Text = (int)Math.Round(p0 * 100) + "%";
+            }
+            catch { }
+        }
+        StatusText.Text = $"on-device engine · {_lobbyStatus}";
     }
 
     // Clear an auto-filled draft back to an empty, un-personalized state (called
