@@ -49,8 +49,14 @@ const PROMPT = `You are reading a Heroes of the Storm ranked draft screen (a scr
 Identify every hero that has been PICKED or BANNED so far. The player's own team is
 the vertical column of hexagon portraits down the LEFT edge; the enemy team is the
 column down the RIGHT edge. Bans are the small hexagon slots in the TOP-LEFT and
-TOP-RIGHT corners. The large portrait in the centre is only the hero currently being
-hovered/selected — ignore it unless it is clearly locked into a slot.
+TOP-RIGHT corners.
+
+CRITICAL — locked vs. preview: The large portrait in the CENTRE of the screen is the
+hero the active player is currently PREVIEWING/selecting — it is NOT locked. Never count
+the centre hero. Moreover, if that same centre hero also appears in a team slot, that slot
+is just an unlocked preview of the current pick — do NOT include it. Only report heroes
+that are FULLY, FINALLY locked into their slots (a settled portrait, not the pulsing/
+highlighted "currently picking" slot).
 
 Return ONLY compact JSON with this exact shape:
 {"map": string|null, "leftTeam": string[], "rightTeam": string[], "bansLeft": string[], "bansRight": string[]}
