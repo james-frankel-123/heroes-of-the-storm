@@ -298,35 +298,25 @@ public sealed partial class OverlayWindow : Window
                         UpdateNotice();
                     }
 
-                    // Hard-stop at draft completion: the battlelobby dir appears at the
-                    // loading screen (right when the draft ends). Latch capture off then,
-                    // and only reset once we've been out of loading/match a while (back at
-                    // the menu) so a mid-match file cleanup doesn't resume capture.
-                    bool battlelobbyExists = System.IO.Directory.Exists(battlelobbyDir);
-                    if (battlelobbyExists)
-                    {
-                        if (!_draftDone) DraftLog("draft complete (battlelobby appeared) — stopping capture");
-                        _draftDone = true;
-                        _inDraft = false;
-                        _lobbyGoneSinceMs = 0;
-                    }
-                    else if (_draftDone)
-                    {
-                        if (_lobbyGoneSinceMs == 0) _lobbyGoneSinceMs = Environment.TickCount64;
-                        else if (Environment.TickCount64 - _lobbyGoneSinceMs > 90_000) { _draftDone = false; DraftLog("back at menu — capture re-armed"); }
-                    }
-
-                    if (EnableCvCapture && !_draftDone)
+                    // Gate purely on the draft-screen detector (score ~1.0 in draft, ~0.5
+                    // otherwise). The battlelobby-dir latch was unreliable — that folder
+                    // lingers into the next game and lingered-blocked the new draft.
+                    if (EnableCvCapture)
                     {
                         var raw = await System.Threading.Tasks.Task.Run(() => PrintWindowCapture.Capture(hwnd));
                         if (raw != null)
                         {
                             double score = await System.Threading.Tasks.Task.Run(
                                 () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
-                            bool draft = score >= 0.52; // vision arbitrates draft-vs-not; this is a coarse gate
+                            bool draft = score >= 0.60;
                             if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
                             if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
-                            else if (!draft && _inDraft) { _inDraft = false; DraftLog($"draft ended ({score:F2})"); }
+                            else if (!draft && _inDraft)
+                            {
+                                _inDraft = false;
+                                DraftLog($"draft ended ({score:F2})");
+                                ResetForNewGame(); // clear the board when we leave the draft screen
+                            }
                             if (_inDraft)
                             {
                                 delay = 1500; // tight cadence during the draft (~3s between reads incl. API)
@@ -526,30 +516,16 @@ public sealed partial class OverlayWindow : Window
         Assign(StepsFor(1, true), enemyPicks);
         Assign(StepsFor(0, false), ourBans);
         Assign(StepsFor(1, false), enemyBans);
-        _currentStep = 16; // snapshot: board shows all recognized picks/bans
-        BuildDraftBoard();
-        UpdateYourBest();
-        _lobbyStatus = $"live draft (vision) · {_map}";
+        // Current decision = first pick step not yet filled. Picks sit in their
+        // draft-order pick slots, so the pick counts before this step match
+        // exactly — the engine state stays consistent (no index crash), and
+        // RecomputeAsync yields live next-pick recs + win %.
+        _currentStep = 16;
+        for (int i = 0; i < 16; i++)
+            if (DraftOrder[i].IsPick && !_selections.ContainsKey(i)) { _currentStep = i; break; }
 
-        // Win probability of the current comp — safe (needs only the two team
-        // lists, no draft-order/step reconstruction). MCTS next-pick recs need a
-        // consistent sequential state that a partial vision snapshot can't
-        // guarantee, so they're deferred; the board fill + win % are the payload.
-        Recommendations.Clear();
-        RecSection.Visibility = Visibility.Collapsed;
-        if (_sessions != null && _data != null && (ourPicks.Count > 0 || enemyPicks.Count > 0))
-        {
-            var s = _sessions; var d = _data; var m = _map; var t = _tier;
-            var t0 = ourPicks; var t1 = enemyPicks;
-            try
-            {
-                float p0 = await System.Threading.Tasks.Task.Run(
-                    () => HotsFever.DraftEngine.Models.WinProbability.Get(s, t0, t1, m, t, d));
-                WinProbText.Text = (int)Math.Round(p0 * 100) + "%";
-            }
-            catch { }
-        }
-        StatusText.Text = $"on-device engine · {_lobbyStatus}";
+        _lobbyStatus = $"live draft (vision) · {_map}";
+        await RecomputeAsync();
     }
 
     // Clear an auto-filled draft back to an empty, un-personalized state (called
