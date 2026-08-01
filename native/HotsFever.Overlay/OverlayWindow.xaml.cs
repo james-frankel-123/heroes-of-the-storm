@@ -251,15 +251,16 @@ public sealed partial class OverlayWindow : Window
         UpdateNotice();
     }
 
-    // CV screen-capture is OFF. On Windows 10 the OS draws a mandatory yellow
-    // capture border around the game window whenever WGC captures it, so polling
-    // during the draft flashes that border every couple seconds — and there's no
-    // payoff yet (draft detection works, but per-hero recognition isn't built, so
-    // nothing auto-fills from the screen). The draft board fills from the
-    // battlelobby file at the loading screen, and live recs come from manual taps
-    // — neither needs capture. Re-enable only with live recognition AND a border
-    // story (Win11 can hide it via IsBorderRequired; Win10 cannot).
-    private const bool EnableCvCapture = false;
+    // CV screen-capture uses border-free PrintWindow (no Win10 yellow capture
+    // border, unlike WGC) and is scoped to the draft: it captures during the
+    // pick/ban phase and HARD-STOPS the moment the battlelobby file appears (draft
+    // complete → loading), staying stopped through the match. Per-hero recognition
+    // (auto-filling picks/bans) plugs into the marked spot below — until that
+    // lands, capture only detects the draft; the board still fills from the
+    // battlelobby file at loading and live recs come from manual taps.
+    private const bool EnableCvCapture = true;
+    private bool _draftDone;         // latched true when the draft completes (battlelobby appears)
+    private long _lobbyGoneSinceMs;  // for resetting the latch once back at the menu
 
     private async System.Threading.Tasks.Task DraftWatchAsync()
     {
@@ -297,23 +298,38 @@ public sealed partial class OverlayWindow : Window
                         UpdateNotice();
                     }
 
-                    // Skip capture entirely during loading/match (battlelobby dir present).
-                    bool loadingOrMatch = System.IO.Directory.Exists(battlelobbyDir);
-                    if (EnableCvCapture && !loadingOrMatch)
+                    // Gate purely on the draft-screen detector (score ~1.0 in draft, ~0.5
+                    // otherwise). The battlelobby-dir latch was unreliable — that folder
+                    // lingers into the next game and lingered-blocked the new draft.
+                    if (EnableCvCapture)
                     {
-                        var raw = await System.Threading.Tasks.Task.Run(() => ScreenCapture.CaptureRawAsync(hwnd));
+                        var raw = await System.Threading.Tasks.Task.Run(() => PrintWindowCapture.Capture(hwnd));
                         if (raw != null)
                         {
                             double score = await System.Threading.Tasks.Task.Run(
                                 () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
-                            bool draft = score >= 0.65;
+                            bool draft = score >= 0.60;
                             if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
                             if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
-                            else if (!draft && _inDraft) { _inDraft = false; DraftLog($"draft ended ({score:F2})"); }
-                            if (_inDraft) delay = 2000; // modest active cadence during the draft
+                            else if (!draft && _inDraft)
+                            {
+                                _inDraft = false;
+                                DraftLog($"draft ended ({score:F2})");
+                                ResetForNewGame(); // clear the board when we leave the draft screen
+                            }
+                            if (_inDraft)
+                            {
+                                delay = 1500; // tight cadence during the draft (~3s between reads incl. API)
+                                var vd = await VisionRecognizer.RecognizeAsync(raw);
+                                if (vd != null && !vd.IsEmpty)
+                                {
+                                    DraftLog($"vision: L[{string.Join(",", vd.LeftTeam)}] R[{string.Join(",", vd.RightTeam)}] " +
+                                             $"bans[{string.Join(",", vd.BansLeft.Concat(vd.BansRight))}] map={vd.Map}");
+                                    await ApplyVisionDraft(vd);
+                                }
+                            }
                         }
                     }
-                    else if (_inDraft) _inDraft = false; // left the draft (loading started)
                 }
             }
             catch (Exception ex) { DraftLog("watch error: " + ex.Message); }
@@ -470,6 +486,46 @@ public sealed partial class OverlayWindow : Window
         Assign(StepsFor(0, false), ourBans);
         Assign(StepsFor(1, false), enemyBans);
         _currentStep = 16; // draft complete
+    }
+
+    // Fill the board + recs from a live vision read of the draft screen. Left team
+    // = ours (engine team 0), right = enemy. Recognized heroes are dropped into
+    // their team's slots; the engine then recommends our next pick + win %.
+    private async System.Threading.Tasks.Task ApplyVisionDraft(VisionDraft vd)
+    {
+        _ourTeam = 0;
+        if (vd.Map != null && HeroCatalog.MapIndex(vd.Map) >= 0 && _map != vd.Map)
+        {
+            _map = vd.Map; _settingUp = true; MapCombo.SelectedItem = _map; _settingUp = false;
+        }
+
+        int[] StepsFor(int team, bool pick) =>
+            Enumerable.Range(0, 16).Where(i => DraftOrder[i].Team == team && DraftOrder[i].IsPick == pick).ToArray();
+        void Assign(int[] steps, IReadOnlyList<string> heroes)
+        {
+            for (int i = 0; i < steps.Length && i < heroes.Count; i++) _selections[steps[i]] = heroes[i];
+        }
+
+        var ourPicks = vd.LeftTeam.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
+        var enemyPicks = vd.RightTeam.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
+        var ourBans = vd.BansLeft.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
+        var enemyBans = vd.BansRight.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
+
+        _selections.Clear();
+        Assign(StepsFor(0, true), ourPicks);
+        Assign(StepsFor(1, true), enemyPicks);
+        Assign(StepsFor(0, false), ourBans);
+        Assign(StepsFor(1, false), enemyBans);
+        // Current decision = first pick step not yet filled. Picks sit in their
+        // draft-order pick slots, so the pick counts before this step match
+        // exactly — the engine state stays consistent (no index crash), and
+        // RecomputeAsync yields live next-pick recs + win %.
+        _currentStep = 16;
+        for (int i = 0; i < 16; i++)
+            if (DraftOrder[i].IsPick && !_selections.ContainsKey(i)) { _currentStep = i; break; }
+
+        _lobbyStatus = $"live draft (vision) · {_map}";
+        await RecomputeAsync();
     }
 
     // Clear an auto-filled draft back to an empty, un-personalized state (called
