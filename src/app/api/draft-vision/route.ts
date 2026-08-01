@@ -51,12 +51,14 @@ the vertical column of hexagon portraits down the LEFT edge; the enemy team is t
 column down the RIGHT edge. Bans are the small hexagon slots in the TOP-LEFT and
 TOP-RIGHT corners.
 
-CRITICAL — locked vs. preview: The large portrait in the CENTRE of the screen is the
-hero the active player is currently PREVIEWING/selecting — it is NOT locked. Never count
-the centre hero. Moreover, if that same centre hero also appears in a team slot, that slot
-is just an unlocked preview of the current pick — do NOT include it. Only report heroes
-that are FULLY, FINALLY locked into their slots (a settled portrait, not the pulsing/
-highlighted "currently picking" slot).
+CRITICAL — locked vs. preview (this is the most common mistake, be strict):
+- A LOCKED hero shows a BRIGHT, FULLY-COLORED, saturated portrait sitting solidly in its slot.
+- A hero that is only being SELECTED / shown / hovered (a player's tentative choice that is
+  NOT yet locked) appears DIMMED, darker, greyed-out, desaturated, or semi-transparent, and
+  its slot may be glowing/highlighted as the active pick. DO NOT count these — they are not locked.
+- The large portrait in the CENTRE of the screen is the active player's current preview — NEVER
+  count it; and if that same hero also appears dimmed in a slot, exclude that slot too.
+Only report heroes whose slot portrait is bright, fully colored, and settled (clearly locked).
 
 Return ONLY compact JSON with this exact shape:
 {"map": string|null, "leftTeam": string[], "rightTeam": string[], "bansLeft": string[], "bansRight": string[]}
