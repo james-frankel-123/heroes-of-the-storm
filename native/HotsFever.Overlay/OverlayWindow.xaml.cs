@@ -272,8 +272,13 @@ public sealed partial class OverlayWindow : Window
     // lands, capture only detects the draft; the board still fills from the
     // battlelobby file at loading and live recs come from manual taps.
     private const bool EnableCvCapture = true;
-    private bool _draftDone;         // latched true when the draft completes (battlelobby appears)
-    private long _lobbyGoneSinceMs;  // for resetting the latch once back at the menu
+    // Auto-fill life-cycle. The battlelobby file lingers after the match on
+    // machines without the HeroesProfile uploader cleaning it, so its existence
+    // is NOT a reliable match-end signal. Instead, once the board is auto-filled
+    // from a completed lobby, we treat the match as over when the game stops
+    // WRITING its in-progress replay (TempWriteReplayP1) for a sustained window.
+    private bool _autoFilled;                        // board came from a completed battlelobby fill
+    private const double MatchStaleSeconds = 120;    // temp replay writes older than this ⇒ no live match
 
     private async System.Threading.Tasks.Task DraftWatchAsync()
     {
@@ -428,18 +433,59 @@ public sealed partial class OverlayWindow : Window
                         LobbyLog($"fresh battlelobby found: {f}");
                         await System.Threading.Tasks.Task.Delay(1500); // let the write settle (M0 safe-read)
                         var lobby = await System.Threading.Tasks.Task.Run(() => BattlelobbyReader.Read(f));
-                        if (lobby != null)
+                        if (lobby == null)
+                            LobbyLog("decode returned null (HeroesDecode missing or parse failed)");
+                        else if (!MatchLikelyActive())
+                            // The battlelobby file lingers after a match on machines without the
+                            // HeroesProfile uploader; on startup we'd otherwise re-fill a finished
+                            // game. Only auto-fill when the game is actually writing its replay.
+                            LobbyLog($"battlelobby found but temp replay writes are stale — skipping stale auto-fill (map {lobby.Map})");
+                        else
                         {
                             LobbyLog($"decoded {lobby.Players.Count} players · map {lobby.Map} · mode {lobby.GameMode}");
                             ApplyLobby(lobby);
                         }
-                        else LobbyLog("decode returned null (HeroesDecode missing or parse failed)");
                     }
+                }
+
+                // Clear a stale auto-filled board once the match is over. The game
+                // writes its in-progress replay under TempWriteReplayP1 all through
+                // loading and gameplay; when the newest write is older than the stale
+                // window we're back at the menu, so the board should reset. (The lobby
+                // dir/file itself is an unreliable signal — it lingers after the game.)
+                if (_autoFilled && !_inDraft && !MatchLikelyActive())
+                {
+                    LobbyLog("match over (temp replay writes stale) — clearing stale auto-filled board");
+                    ResetForNewGame();
                 }
             }
             catch (Exception ex) { LobbyLog("watch error: " + ex.Message); }
             await System.Threading.Tasks.Task.Delay(2000);
         }
+    }
+
+    // True while the game is actively writing its in-progress replay (loading or
+    // in a match): the newest TempWriteReplayP1 write is recent. False at the menu,
+    // where those writes go stale — and false if the folder is absent. This is the
+    // signal for "a live match is happening", independent of the lingering lobby file.
+    private static bool MatchLikelyActive()
+    {
+        try
+        {
+            var dir = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Temp", "Heroes of the Storm", "TempWriteReplayP1");
+            if (!System.IO.Directory.Exists(dir)) return false;
+            long newest = 0;
+            foreach (var f in System.IO.Directory.EnumerateFiles(dir))
+            {
+                long t = System.IO.File.GetLastWriteTimeUtc(f).Ticks;
+                if (t > newest) newest = t;
+            }
+            if (newest == 0) return false;
+            return (DateTime.UtcNow - new DateTime(newest, DateTimeKind.Utc)).TotalSeconds < MatchStaleSeconds;
+        }
+        catch { return false; }
     }
 
     private void ApplyLobby(LobbyInfo lobby)
@@ -466,6 +512,7 @@ public sealed partial class OverlayWindow : Window
 
         // Auto-fill the board with the real final draft (picks + bans) from the lobby.
         FillDraftFromLobby(lobby, ourTeam);
+        _autoFilled = true; // watched for match-over so the board doesn't go stale (see below)
 
         var teammates = lobby.Players.Where(p => p.Team == ourTeam).Select(p => p.Battletag).ToArray();
         var stats = _playerData?.PlayerStats ?? _scan?.PlayerStats;
@@ -590,6 +637,7 @@ public sealed partial class OverlayWindow : Window
     // when a match ends, so the next game doesn't start on stale data).
     private void ResetForNewGame()
     {
+        _autoFilled = false;
         _selections.Clear();
         _vOurPicks.Clear(); _vEnemyPicks.Clear(); _vOurBans.Clear(); _vEnemyBans.Clear();
         _vCommitted.Clear(); _vPrevSeen = new(StringComparer.Ordinal);
