@@ -70,6 +70,19 @@ public sealed partial class OverlayWindow : Window
     private readonly Dictionary<int, string> _selections = new();
     private int _currentStep;
 
+    // Vision-draft accumulation. Committed heroes per side/kind are STICKY and
+    // monotonic, so a single mislabeled or L/R-swapped vision read can't corrupt
+    // the board. A hero is committed only after appearing in the SAME slot on two
+    // consecutive reads (temporal confirmation) — this both rejects transient
+    // side-swaps and drops hovered/previewed (not-yet-locked) picks that don't
+    // persist. Rebuilt into _selections each read; cleared by ResetForNewGame.
+    private readonly List<string> _vOurPicks = new();
+    private readonly List<string> _vEnemyPicks = new();
+    private readonly List<string> _vOurBans = new();
+    private readonly List<string> _vEnemyBans = new();
+    private readonly HashSet<string> _vCommitted = new(StringComparer.Ordinal);
+    private Dictionary<string, (int side, bool pick)> _vPrevSeen = new(StringComparer.Ordinal);
+
     private OnnxSessions? _sessions;
     private DraftData? _data;
     private PlayerMawpData? _playerData;
@@ -274,6 +287,7 @@ public sealed partial class OverlayWindow : Window
         DraftLog($"HotS watcher started (cv capture {(EnableCvCapture ? "ON, draft-gated" : "OFF")})");
 
         int tick = 0;
+        int lowStreak = 0;
         while (true)
         {
             int delay = 3000;
@@ -308,14 +322,26 @@ public sealed partial class OverlayWindow : Window
                         {
                             double score = await System.Threading.Tasks.Task.Run(
                                 () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
-                            bool draft = score >= 0.60;
-                            if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
-                            if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
-                            else if (!draft && _inDraft)
+                            // Hysteresis + confirmation. Real draft frames score ~1.0 while
+                            // in-game/loading noise peaks ~0.65, so START only on a clearly
+                            // high score, and END only after several CONSECUTIVE low frames.
+                            // A single weak/animation frame (e.g. a lock-in transition) no
+                            // longer flaps the board out and resets it.
+                            const double StartThreshold = 0.85;
+                            const double EndThreshold = 0.75;
+                            const int EndConfirmFrames = 3;
+                            if (score < EndThreshold) lowStreak++; else lowStreak = 0;
+                            if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}, low={lowStreak}");
+                            if (!_inDraft && score >= StartThreshold)
+                            {
+                                _inDraft = true; lowStreak = 0;
+                                DraftLog($"draft STARTED ({score:F2})");
+                            }
+                            else if (_inDraft && lowStreak >= EndConfirmFrames)
                             {
                                 _inDraft = false;
-                                DraftLog($"draft ended ({score:F2})");
-                                ResetForNewGame(); // clear the board when we leave the draft screen
+                                DraftLog($"draft ended (sustained low, last {score:F2})");
+                                ResetForNewGame(); // clear the board only after leaving the draft for good
                             }
                             if (_inDraft)
                             {
@@ -493,11 +519,47 @@ public sealed partial class OverlayWindow : Window
     // their team's slots; the engine then recommends our next pick + win %.
     private async System.Threading.Tasks.Task ApplyVisionDraft(VisionDraft vd)
     {
-        _ourTeam = 0;
+        _ourTeam = 0; // HotS UI invariant: your team is ALWAYS the left column.
         if (vd.Map != null && HeroCatalog.MapIndex(vd.Map) >= 0 && _map != vd.Map)
         {
             _map = vd.Map; _settingUp = true; MapCombo.SelectedItem = _map; _settingUp = false;
         }
+
+        // Collapse this read into a hero -> slot map (valid catalog heroes only;
+        // first side wins within a read so a hero never lands on both sides).
+        var seen = new Dictionary<string, (int side, bool pick)>(StringComparer.Ordinal);
+        void Note(IReadOnlyList<string> heroes, int side, bool pick)
+        {
+            foreach (var h in heroes)
+                if (HeroCatalog.HeroIndex(h) >= 0 && !seen.ContainsKey(h)) seen[h] = (side, pick);
+        }
+        Note(vd.LeftTeam, 0, true);
+        Note(vd.RightTeam, 1, true);
+        Note(vd.BansLeft, 0, false);
+        Note(vd.BansRight, 1, false);
+
+        // Commit a hero only when it appears in the SAME slot on two consecutive
+        // reads and isn't already committed. Committed heroes are sticky, so a
+        // one-off L/R swap or a hovered (not-locked) pick can never move or corrupt
+        // the board.
+        foreach (var kv in seen)
+        {
+            var h = kv.Key; var slot = kv.Value;
+            if (_vCommitted.Contains(h)) continue;
+            if (_vPrevSeen.TryGetValue(h, out var prev) && prev == slot)
+            {
+                _vCommitted.Add(h);
+                var list = slot switch
+                {
+                    (0, true) => _vOurPicks,
+                    (1, true) => _vEnemyPicks,
+                    (0, false) => _vOurBans,
+                    _ => _vEnemyBans,
+                };
+                if (!list.Contains(h)) list.Add(h);
+            }
+        }
+        _vPrevSeen = seen;
 
         int[] StepsFor(int team, bool pick) =>
             Enumerable.Range(0, 16).Where(i => DraftOrder[i].Team == team && DraftOrder[i].IsPick == pick).ToArray();
@@ -506,16 +568,12 @@ public sealed partial class OverlayWindow : Window
             for (int i = 0; i < steps.Length && i < heroes.Count; i++) _selections[steps[i]] = heroes[i];
         }
 
-        var ourPicks = vd.LeftTeam.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
-        var enemyPicks = vd.RightTeam.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
-        var ourBans = vd.BansLeft.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
-        var enemyBans = vd.BansRight.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
-
+        // Rebuild the board from the sticky committed rosters (stable across reads).
         _selections.Clear();
-        Assign(StepsFor(0, true), ourPicks);
-        Assign(StepsFor(1, true), enemyPicks);
-        Assign(StepsFor(0, false), ourBans);
-        Assign(StepsFor(1, false), enemyBans);
+        Assign(StepsFor(0, true), _vOurPicks);
+        Assign(StepsFor(1, true), _vEnemyPicks);
+        Assign(StepsFor(0, false), _vOurBans);
+        Assign(StepsFor(1, false), _vEnemyBans);
         // Current decision = first pick step not yet filled. Picks sit in their
         // draft-order pick slots, so the pick counts before this step match
         // exactly — the engine state stays consistent (no index crash), and
@@ -533,6 +591,8 @@ public sealed partial class OverlayWindow : Window
     private void ResetForNewGame()
     {
         _selections.Clear();
+        _vOurPicks.Clear(); _vEnemyPicks.Clear(); _vOurBans.Clear(); _vEnemyBans.Clear();
+        _vCommitted.Clear(); _vPrevSeen = new(StringComparer.Ordinal);
         _currentStep = 0;
         _lobbyStatus = "";
         if (_scan?.LocalBattletag is string bt && _scan.PlayerStats.Count > 0)
