@@ -78,6 +78,7 @@ def extract_partial_states(replays, stats):
     features_list = []
     steps_list = []
     labels_list = []
+    replay_id_list = []
 
     skipped = 0
     for ri, replay in enumerate(replays):
@@ -139,6 +140,7 @@ def extract_partial_states(replays, stats):
                 features_list.append(feat)
                 steps_list.append(pick_num)
                 labels_list.append(label)
+                replay_id_list.append(ri)
 
                 # Augmented: swap teams → flipped label
                 sample_swap = {
@@ -153,6 +155,7 @@ def extract_partial_states(replays, stats):
                 features_list.append(feat_swap)
                 steps_list.append(pick_num)
                 labels_list.append(1.0 - label)
+                replay_id_list.append(ri)
             except Exception:
                 # Some edge cases with partial data — skip silently
                 continue
@@ -162,8 +165,9 @@ def extract_partial_states(replays, stats):
     features_arr = np.array(features_list, dtype=np.float32)
     steps_arr = np.array(steps_list, dtype=np.int64)
     labels_arr = np.array(labels_list, dtype=np.float32)
+    replay_ids_arr = np.array(replay_id_list, dtype=np.int32)
 
-    return features_arr, steps_arr, labels_arr
+    return features_arr, steps_arr, labels_arr, replay_ids_arr
 
 
 # ── Training ──
@@ -177,6 +181,10 @@ def train():
     print("\n[1/4] Loading replay data...")
     replays = load_replay_data()
     print(f"  Loaded {len(replays)} replays")
+    max_replays = int(os.environ.get("PARTIAL_WP_MAX_REPLAYS", "0"))
+    if max_replays and len(replays) > max_replays:
+        replays = replays[-max_replays:]  # most recent (ids ascending)
+        print(f"  Capped to most recent {len(replays):,} replays")
 
     # Load stats cache
     print("\n[2/4] Loading stats cache...")
@@ -186,7 +194,7 @@ def train():
     # Extract partial states
     print(f"\n[3/4] Extracting partial draft states (feature dim = {TOTAL_FEATURE_DIM})...")
     t0 = time.time()
-    features, steps, labels = extract_partial_states(replays, stats)
+    features, steps, labels, replay_ids = extract_partial_states(replays, stats)
     print(f"  Extraction took {time.time() - t0:.1f}s")
     print(f"  Total samples: {len(labels):,}")
     print(f"  Features shape: {features.shape}")
@@ -197,14 +205,19 @@ def train():
     for s, c in zip(unique_steps, step_counts):
         print(f"    Step {s:2d}: {c:>8,} samples")
 
-    # Train/test split (85/15 by replay, not by sample, to avoid leakage)
+    # Train/test split by REPLAY to avoid leakage
+    # (samples from the same replay must not appear in both train and test)
     print("\n[4/4] Training...")
     rng = np.random.RandomState(42)
-    n = len(features)
-    indices = rng.permutation(n)
-    test_size = int(n * 0.15)
-    test_idx = indices[:test_size]
-    train_idx = indices[test_size:]
+    unique_replays = np.unique(replay_ids)
+    n_replays = len(unique_replays)
+    replay_perm = rng.permutation(unique_replays)
+    test_replay_count = int(n_replays * 0.15)
+    test_replays = set(replay_perm[:test_replay_count].tolist())
+
+    train_mask = np.array([rid not in test_replays for rid in replay_ids])
+    train_idx = np.where(train_mask)[0]
+    test_idx = np.where(~train_mask)[0]
 
     X_train = torch.tensor(features[train_idx])
     S_train = torch.tensor(steps[train_idx])
@@ -213,7 +226,8 @@ def train():
     S_test = torch.tensor(steps[test_idx])
     Y_test = torch.tensor(labels[test_idx])
 
-    print(f"  Train: {len(X_train):,} samples, Test: {len(X_test):,} samples")
+    print(f"  Train: {len(X_train):,} samples ({n_replays - test_replay_count} replays)")
+    print(f"  Test:  {len(X_test):,} samples ({test_replay_count} replays, no leakage)")
 
     train_ds = TensorDataset(X_train, S_train, Y_train)
     test_ds = TensorDataset(X_test, S_test, Y_test)
@@ -333,7 +347,9 @@ def train():
         print(f"  {int(step):6d} {count:8d} {acc:10.4f} {avg_pred:10.4f} {avg_confidence:16.4f}")
 
     # Save model
-    save_path = os.path.join(os.path.dirname(__file__), "partial_wp.pt")
+    save_path = os.environ.get(
+        "PARTIAL_WP_OUT",
+        os.path.join(os.path.dirname(__file__), "partial_wp.pt"))
     torch.save({
         "model_state_dict": model.cpu().state_dict(),
         "input_dim": TOTAL_FEATURE_DIM,

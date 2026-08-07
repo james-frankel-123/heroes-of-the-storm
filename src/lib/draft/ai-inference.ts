@@ -54,6 +54,7 @@ SKILL_TIERS.forEach((t, i) => { TIER_TO_IDX[t] = i })
 let ort: any = null
 let policySession: any = null
 let gdSession: any = null
+let partialWpSession: any = null
 let wpSession: any = null
 let loadPromise: Promise<void> | null = null
 
@@ -97,14 +98,16 @@ async function _loadModels(): Promise<void> {
   try {
     ort = await loadOrtFromCDN()
 
-    const [p, g, w] = await Promise.all([
+    const [p, g, w, pw] = await Promise.all([
       ort.InferenceSession.create('/models/draft_policy.onnx'),
       ort.InferenceSession.create('/models/generic_draft_0.onnx'),
       ort.InferenceSession.create('/models/win_probability.onnx'),
+      ort.InferenceSession.create('/models/partial_wp.onnx'),
     ])
     policySession = p
     gdSession = g
     wpSession = w
+    partialWpSession = pw
     console.log('[AI] ONNX models loaded')
   } catch (err) {
     console.error('[AI] Failed to load ONNX models:', err)
@@ -776,3 +779,51 @@ function recommendationSorter(a: AIRecommendation, b: AIRecommendation): number 
 }
 
 export { HEROES as AI_HEROES, HERO_TO_IDX as AI_HERO_TO_IDX }
+
+
+// ── Partial-draft projection (neutral judge) ────────────────────────
+/**
+ * Symmetrized partial-draft win estimate for team0, from the partial-state
+ * WP model (same 283 enriched features as the terminal judge + a step
+ * embedding). This is the projection engine for the suggestion rows: it is
+ * state-sensitive at every draft stage and converges to the terminal
+ * evaluator by construction (instrumented 2026-08-07: r=0.80 with the
+ * terminal judge at the last pick, +0.21 response to enemy-comp quality,
+ * where the policy value head measured as a state-insensitive constant).
+ */
+export async function getPartialProjection(
+  team0Heroes: string[],
+  team1Heroes: string[],
+  map: string,
+  tier: string,
+  step: number,
+  draftData: DraftData,
+): Promise<number> {
+  if (!partialWpSession || !ort) {
+    throw new Error('AI models not loaded. Call loadAIModels() first.')
+  }
+  const stepIdx = BigInt(Math.max(0, Math.min(15, Math.round(step))))
+  const runOne = async (t0h: string[], t1h: string[]): Promise<number> => {
+    const t0 = heroesToMultiHot(t0h)
+    const t1 = heroesToMultiHot(t1h)
+    const m = mapToOneHot(map)
+    const tv = tierToOneHot(tier)
+    const inp = new Float32Array(283)
+    let off = 0
+    inp.set(t0, off); off += NUM_HEROES
+    inp.set(t1, off); off += NUM_HEROES
+    inp.set(m, off); off += NUM_MAPS
+    inp.set(tv, off); off += NUM_TIERS
+    inp.set(computeEnrichedFeatures(t0h, t1h, map, draftData), 197)
+    const features = new ort.Tensor('float32', inp, [1, 283])
+    const stepT = new ort.Tensor('int64', BigInt64Array.from([stepIdx]), [1])
+    const result: any = await withInferLock(() =>
+      partialWpSession.run({ features, step: stepT }))
+    return (result.win_probability.data as Float32Array)[0]
+  }
+  const [pNormal, pSwapped] = await Promise.all([
+    runOne(team0Heroes, team1Heroes),
+    runOne(team1Heroes, team0Heroes),
+  ])
+  return (pNormal + (1 - pSwapped)) / 2
+}

@@ -11,16 +11,15 @@ import { scorePlayerStrength } from '@/lib/draft/engine'
 /**
  * A row shown on our turns.
  *
- * winPct is the PROJECTED FINAL win chance under an explicit prior: from
- * this state our side continues with the AI search policy and the enemy
- * drafts like a typical player (the behavioral opponent model). That is the
- * MCTS child Q for the action, identical semantics for picks and bans, so
- * ban rows differentiate meaningfully (a ban's value is how the rest of the
- * draft plays out, which the search estimates). The top banner shows a
- * different, clearly-labeled quantity (current-comps evaluator); the two
- * converge as the draft completes because the search evaluates finished
- * drafts with the same evaluator. Rows are sorted strictly descending by
- * winPct, which now agrees with the search's own preference order.
+ * winPct comes from the partial-draft win-probability model, the same
+ * neutral judge family that scores the finished draft, so row numbers and
+ * the final evaluation share one scale and converge by construction
+ * (2026-08-07: replaced the MCTS child-Q display, whose level measured as
+ * a state-insensitive constant). Pick rows project the state after WE take
+ * the hero. Ban rows project the state if THE ENEMY takes the hero (the
+ * threat a ban denies), so for bans LOWER is a stronger ban and the list
+ * sorts ascending. MCTS still selects the shortlist, contributes the
+ * personalization nudges, and flags its top choice.
  */
 export interface OurTurnRow {
   hero: string
@@ -84,8 +83,8 @@ export function SearchRecommendationPanel({
     : isOurTurn ? 'Search Recommendations' : 'Likely Enemy Picks'
   const subtitle = isOurTurn
     ? isBanPhase
-      ? 'Projected final win chance after each ban, if you follow the AI from here (enemy drafts like a typical player)'
-      : 'Projected final win chance after each pick, if you follow the AI from here (enemy drafts like a typical player)'
+      ? 'Your projected win chance if the enemy takes each hero (lower = more urgent ban); same model that scores the final draft'
+      : 'Projected win chance after each pick, judged by the same model that scores the final draft'
     : isBanPhase
       ? 'How likely the enemy is to ban each hero'
       : 'How likely the enemy is to pick each hero, and what it would do to your win chance'
@@ -199,7 +198,9 @@ export function SearchRecommendationPanel({
                 </div>
                 <div className="text-right shrink-0">
                   <div
-                    title={`Projected final win chance after ${isBanPhase ? 'banning' : 'picking'} ${rec.hero}, assuming you follow the AI's suggestions from here and the enemy drafts like a typical player. The banner above shows the current teams as drafted so far; the two converge as the draft completes.`}
+                    title={isBanPhase
+                      ? `Your projected win chance if the enemy takes ${rec.hero}. Lower means the hero is a bigger threat and a stronger ban. Judged by the same model that evaluates the finished draft.`
+                      : `Projected win chance after picking ${rec.hero}, judged by the same model that evaluates the finished draft, so this number and the final score converge as the draft completes.`}
                   >
                     <span className={cn(
                       'text-sm font-bold tabular-nums',
@@ -211,7 +212,7 @@ export function SearchRecommendationPanel({
                     )}>
                       {rec.winPct.toFixed(1)}%
                     </span>
-                    <span className="ml-1 text-[9px] text-[#8b9bc8]">proj. final</span>
+                    <span className="ml-1 text-[9px] text-[#8b9bc8]">{isBanPhase ? 'if enemy takes' : 'proj. final'}</span>
                   </div>
                   {!isBanPhase && (
                     <div

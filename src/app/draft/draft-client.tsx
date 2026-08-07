@@ -9,7 +9,7 @@ import { TeamColumn } from '@/components/draft/hex/TeamColumn'
 import { buildDraftView } from '@/components/draft/hex/draft-view-model'
 import { HeroPicker } from '@/components/draft/hero-picker'
 import { SearchRecommendationPanel, type OpponentPredictionRow, type OurTurnRow } from '@/components/draft/search-recommendation-panel'
-import { loadAIModels, getGenericDraftPredictions, getAIRecommendations } from '@/lib/draft/ai-inference'
+import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, getPartialProjection } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
@@ -328,45 +328,63 @@ export function DraftClient({
         const playerData = draftData.playerStats && availableBattletags.length > 0
           ? { playerStats: draftData.playerStats, availableBattletags }
           : undefined
-        const { recommendations: mctsRecs, sims, valueEstimate } = await getAIRecommendations(
+        const { recommendations: mctsRecs, sims } = await getAIRecommendations(
           buildAIState(), unavailableHeroes, step.team, playerData, 10, draftData,
         )
         if (cancelled) return
 
-        // Rows are anchored on an explicit prior (Max, 2026-07-13): from this
-        // state WE continue with the search policy and THEY draft like a
-        // typical player (the GD opponent model). Under that prior the
-        // projected final win chance after taking an action is exactly the
-        // MCTS child Q, for picks and bans alike, so both display it
-        // directly. The root value is the same projection for the current
-        // state; deltas are measured against it. Greedy-pad rows carry no
-        // search estimate and display the root projection (no claimed
-        // impact). The top banner remains the current-comps evaluator; the
-        // two are labeled distinctly in the panel.
-        const projNow = valueEstimate * 100
-        const mctsQ = new Map(mctsRecs.map(r => [r.hero, r.winProb]))
-        const toRow = (hero: string, isGreedyPad: boolean): OurTurnRow => {
-          const q = mctsQ.get(hero)
-          const winPct = q !== undefined ? q * 100 : projNow
+        // Projections come from the partial-draft WP model (the neutral
+        // judge, same scale and feature family as the final evaluation), NOT
+        // from search Q: instrumentation on 2,000 real drafts (2026-08-07)
+        // showed the policy value head's level is a state-insensitive
+        // constant, which made Q-based projections sit near 80% all draft
+        // and cliff at the end. MCTS still chooses WHICH candidates make the
+        // shortlist and carries the personalization (MAWP) nudges, applied
+        // as a delta (winProb - q) on top of the neutral projection. Pick
+        // rows project the state after WE take the hero; ban rows project
+        // the state if THE ENEMY gets the hero (a ban's greedy value is the
+        // threat it denies), so for bans LOWER means "ban this first" and
+        // the list sorts ascending.
+        const aiState = buildAIState()
+        const ourIs0 = aiState.ourTeam === 0
+        const [our, enemy] = ourIs0
+          ? [aiState.team0Picks, aiState.team1Picks]
+          : [aiState.team1Picks, aiState.team0Picks]
+        const projFor = async (t0: string[], t1: string[], stepIdx: number) => {
+          const p = await getPartialProjection(t0, t1, aiState.map, aiState.tier, stepIdx, draftData)
+          return (ourIs0 ? p : 1 - p) * 100
+        }
+        const nextStep = Math.min(aiState.step + 1, 15)
+        const projNow = await projFor(aiState.team0Picks, aiState.team1Picks, aiState.step)
+        const isBan = aiState.stepType === 'ban'
+        const mctsAdj = new Map(mctsRecs.map(r => [r.hero, r.mawpAdj * 100]))
+        // Candidate state in ABSOLUTE team order: on a pick the hero joins
+        // OUR team; on a ban the projection is the threat state where the
+        // ENEMY has taken the hero.
+        const candState = (hero: string): [string[], string[]] => {
+          const heroToTeam0 = isBan ? !ourIs0 : ourIs0
+          return heroToTeam0
+            ? [[...aiState.team0Picks, hero], aiState.team1Picks]
+            : [aiState.team0Picks, [...aiState.team1Picks, hero]]
+        }
+        const toRow = async (hero: string, isGreedyPad: boolean): Promise<OurTurnRow> => {
+          const [t0, t1] = candState(hero)
+          const winPct = (await projFor(t0, t1, nextStep)) + (mctsAdj.get(hero) ?? 0)
           return { hero, isGreedyPad, winPct, deltaPp: winPct - projNow }
         }
 
         const mctsHeroes = new Set(mctsRecs.map(r => r.hero))
         const aiTopHero = mctsRecs[0]?.hero ?? null
-        // MCTS chooses WHICH candidates make the shortlist (its ranking,
-        // padded with statistically strong options), and the VISIBLE ordering
-        // is strictly by the displayed number, which now IS the search's own
-        // projection, so display order and search preference agree. Stable
-        // sort keeps the search's order among tied pad rows. The search's
-        // top choice keeps an "AI pick" badge wherever it sorts.
-        const rows: OurTurnRow[] = [
-          ...mctsRecs.map(r => toRow(r.hero, false)),
+        const candidates = [
+          ...mctsRecs.map(r => ({ hero: r.hero, pad: false })),
           ...recommendations
             .filter(r => !mctsHeroes.has(r.hero) && !unavailableHeroes.has(r.hero))
-            .map(r => toRow(r.hero, true)),
-        ]
-          .slice(0, 10)
-          .sort((a, b) => b.winPct - a.winPct)
+            .map(r => ({ hero: r.hero, pad: true })),
+        ].slice(0, 10)
+        const rows: OurTurnRow[] = (
+          await Promise.all(candidates.map(c => toRow(c.hero, c.pad)))
+        )
+          .sort((a, b) => (isBan ? a.winPct - b.winPct : b.winPct - a.winPct))
           .map(r => (r.hero === aiTopHero ? { ...r, isAiTop: true } : r))
 
         if (!cancelled) {
