@@ -15,7 +15,9 @@ sys.path.insert(0, TRAINING)
 from shared import embed_onnx_weights, optimize_onnx  # noqa: E402
 from train_partial_wp import PartialStateWP  # noqa: E402
 
-CKPT = os.path.join(TRAINING, "production_refresh", "2026-07-14", "partial_wp_prod.pt")
+CKPT = os.environ.get(
+    "PARTIAL_WP_CKPT",
+    os.path.join(TRAINING, "production_refresh", "2026-07-14", "partial_wp_prod.pt"))
 OUT = os.path.join(os.path.dirname(TRAINING), "public", "models", "partial_wp.onnx")
 
 

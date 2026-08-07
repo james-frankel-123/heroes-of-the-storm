@@ -14,6 +14,7 @@ Phases (subcommands; `all` chains them):
   data    fresh corpus load (REPLAY_SNAPSHOT=0, 2.55 only), 98/2 split,
           WP feature cache (decayed-stats features)
   wp      WinProbEnrichedModel 283-d [256,128], seeds {42,123,777}, keep best
+  partial partial-draft WP (drafter projections; recent-500K cap, step embed)
   gd      generic_draft_0 (behavior cloning; benefits from fresh meta data)
   mcts    4x J_800sim seeds (800 sims, 300K episodes), one per GPU, pick the
           best final eval WP. Completion = process exit 0 + draft_policy.pt
@@ -24,6 +25,7 @@ Phases (subcommands; `all` chains them):
 
 Deploy gates (checked before export):
   - WP best test acc >= GATE_WP_MIN (drift-era models land ~57-58%)
+  - partial-WP overall test acc >= GATE_PARTIAL_MIN
   - MCTS best eval WP >= GATE_MCTS_MIN
   - export parity asserts (in export_site_models.py) must pass
 
@@ -54,6 +56,7 @@ EXCLUDE_IDS_JSON = os.path.join(RUN_DIR, "pre255_exclude_ids.json")
 FEATURE_CACHE_TRAIN = os.path.join(RUN_DIR, "wp_features_train.npz")
 FEATURE_CACHE_TEST = os.path.join(RUN_DIR, "wp_features_test.npz")
 WP_PT = os.path.join(RUN_DIR, "wp_enriched_256.pt")
+PARTIAL_PT = os.path.join(RUN_DIR, "partial_wp_prod.pt")
 GD_PT = os.path.join(RUN_DIR, "generic_draft_0.pt")
 META_JSON = os.path.join(RUN_DIR, "refresh_meta.json")
 
@@ -63,6 +66,7 @@ MCTS_SEEDS = [0, 1, 2, 3]
 MCTS_SIMS = 800
 MCTS_EPISODES = 300_000
 GATE_WP_MIN = 56.0    # % test accuracy floor
+GATE_PARTIAL_MIN = 0.525  # partial-WP overall test acc floor (all-step mix)
 GATE_MCTS_MIN = 0.70  # eval WP floor (J_800sim best seeds land ~0.77)
 
 # refresh.py lives under training/; make training modules importable and pin
@@ -353,6 +357,26 @@ def phase_wp():
                     "all_accs": accs})
 
 
+# ── Phase: partial ───────────────────────────────────────────────────
+
+def phase_partial():
+    """Partial-draft WP model (drafter projections; 4th site model since
+    2026-08-07). Trained on the same fresh corpus + decayed stats as the WP
+    model, capped to the most recent 500K replays for tractable per-step
+    feature extraction."""
+    import torch
+    env = dict(os.environ)
+    env.update({"PARTIAL_WP_MAX_REPLAYS": "500000", "PARTIAL_WP_OUT": PARTIAL_PT,
+                "WP_STATS_PATH": STATS_JSON, "REPLAY_SNAPSHOT": "0"})
+    subprocess.run([sys.executable, "-u",
+                    os.path.join(TRAINING_DIR, "train_partial_wp.py")],
+                   env=env, check=True, cwd=TRAINING_DIR)
+    ckpt = torch.load(PARTIAL_PT, weights_only=True, map_location="cpu")
+    acc = float(ckpt.get("best_test_acc", 0.0))
+    meta_update(partial={"best_acc": acc})
+    log(f"partial-WP done (overall test acc {acc:.4f}) -> {PARTIAL_PT}")
+
+
 # ── Phase: gd ────────────────────────────────────────────────────────
 
 def phase_gd():
@@ -446,6 +470,9 @@ def phase_export():
     best_seed = m.get("mcts", {}).get("best_seed")
     if wp_acc < GATE_WP_MIN:
         sys.exit(f"GATE FAIL: WP acc {wp_acc:.2f}% < {GATE_WP_MIN}% — not exporting")
+    partial_acc = m.get("partial", {}).get("best_acc", -1)
+    if partial_acc < GATE_PARTIAL_MIN:
+        sys.exit(f"GATE FAIL: partial-WP acc {partial_acc:.4f} < {GATE_PARTIAL_MIN} — not exporting")
     if best_seed is None or mcts_wp < GATE_MCTS_MIN:
         sys.exit(f"GATE FAIL: MCTS best_wp {mcts_wp} < {GATE_MCTS_MIN} — not exporting")
 
@@ -458,6 +485,11 @@ def phase_export():
     subprocess.run([sys.executable,
                     os.path.join(TRAINING_DIR, "export_site_models.py")],
                    env=env, check=True, cwd=TRAINING_DIR)
+    penv = dict(os.environ)
+    penv["PARTIAL_WP_CKPT"] = PARTIAL_PT
+    subprocess.run([sys.executable,
+                    os.path.join(TRAINING_DIR, "production_refresh", "export_partial_wp.py")],
+                   env=penv, check=True, cwd=TRAINING_DIR)
 
     import shutil
     dst = os.path.join(REPO_DIR, "src", "lib", "data", "draft-stats-decayed.json")
@@ -468,7 +500,8 @@ def phase_export():
 
 
 PHASES = {"stats": phase_stats, "data": phase_data, "wp": phase_wp,
-          "gd": phase_gd, "mcts": phase_mcts, "export": phase_export}
+          "partial": phase_partial, "gd": phase_gd, "mcts": phase_mcts,
+          "export": phase_export}
 
 
 def main():
@@ -477,7 +510,7 @@ def main():
     args = ap.parse_args()
     os.makedirs(RUN_DIR, exist_ok=True)
     if args.phase == "all":
-        for name in ("stats", "data", "wp", "gd", "mcts", "export"):
+        for name in ("stats", "data", "wp", "partial", "gd", "mcts", "export"):
             log(f"=== phase {name} ===")
             PHASES[name]()
     else:

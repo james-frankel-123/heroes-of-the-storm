@@ -24,6 +24,7 @@ python3 training/production_refresh/refresh.py all
 git add public/models/draft_policy.onnx \
         public/models/generic_draft_0.onnx \
         public/models/win_probability.onnx \
+        public/models/partial_wp.onnx \
         src/lib/data/draft-stats-decayed.json
 git commit -m "Production refresh $DATE: decayed-aggregate retrain (standing cadence)
 
