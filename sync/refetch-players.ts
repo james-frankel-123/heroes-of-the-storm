@@ -36,11 +36,15 @@ const BATCH_SIZE = 2000
 // gets most of key 1. Phase A (QM recent bucket filling at 80/min): 100/min
 // here. Phase B (QM fills at 40/min): bump this to 140. Phase C (QM done):
 // 180.
-const KEY1_RATE = 100
+const KEY1_RATE = 180  // phase C: QM buckets complete 2026-08-08, full key-1 rate
 const KEY2_RATE = 55  // Intermediate account
 const KEY1_WORKERS = 4
 const KEY2_WORKERS = 2
 const QUOTA_BACKOFF_MS = 60 * 60_000 // exhausted key re-probes hourly
+
+// --cron: one-shot mode — exit when all keys are quota-benched instead of
+// sleep-polling, so the Neon endpoint can suspend between scheduled runs.
+const CRON = process.argv.includes('--cron')
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -226,6 +230,7 @@ async function processBatch(
     while (!stop()) {
       if (client.exhaustedUntil > Date.now()) {
         const healthy = clients.some(c => c.exhaustedUntil <= Date.now())
+        if (!healthy && CRON) return // main loop notices the all-benched state and exits
         if (!healthy) log.warn('All API keys quota-benched — sleeping')
         await sleep(Math.min(client.exhaustedUntil - Date.now(), 60_000))
         continue
@@ -324,13 +329,19 @@ async function main() {
 
   const runStart = Date.now()
   let processedThisRun = 0
+  let nextBatchFailures = 0
 
   while (!stopping) {
     let batch: { ids: number[]; fromQueue: boolean }
     try {
       batch = await nextBatch(db, state.cursor)
+      nextBatchFailures = 0
     } catch (err) {
       // Transient DB failure selecting a batch: wait and retry, don't die.
+      if (CRON && ++nextBatchFailures >= 3) {
+        log.error(`nextBatch failed ${nextBatchFailures}x — exiting (cron mode)`)
+        break
+      }
       log.warn(`nextBatch failed, retrying in 30s: ${String(err).slice(0, 200)}`)
       await new Promise(r => setTimeout(r, 30_000))
       continue
@@ -344,7 +355,13 @@ async function main() {
     const counters: BatchCounters = { processed: 0, playerRows: 0, skipped: 0, errors: 0 }
     await processBatch(db, clients, ids, counters, () => stopping)
 
-    if (fromQueue) {
+    const allBenched = clients.every(c => c.exhaustedUntil > Date.now())
+    if (CRON && allBenched) {
+      // Batch was only partially attempted: don't purge queue ids or advance
+      // the cursor — unattempted ids get re-selected on the next cron run.
+      log.info('All API keys quota-benched — checkpointing and exiting (cron mode)')
+      stopping = true
+    } else if (fromQueue) {
       // Queue batch: remove attempted ids (fetched ones would be purged next
       // pass anyway; explicit delete also clears permanent 404s), never
       // touch the descending cursor.
