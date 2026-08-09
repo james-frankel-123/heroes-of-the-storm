@@ -1,11 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
 
 export function PraiseBanner() {
   const [dismissed, setDismissed] = useState(false)
+  const pathname = usePathname()
 
+  // Never show on the research-study instrument: raters should see the
+  // consent notice and items with no unrelated site chrome.
+  if (pathname?.startsWith('/rate')) return null
   if (dismissed) return null
 
   return (
