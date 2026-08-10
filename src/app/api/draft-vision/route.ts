@@ -46,29 +46,41 @@ function clean(arr: unknown): string[] {
 }
 
 const PROMPT = `You are reading a Heroes of the Storm ranked draft screen (a screenshot).
-Identify every hero that has been PICKED or BANNED so far. The player's own team is
-the vertical column of hexagon portraits down the LEFT edge; the enemy team is the
-column down the RIGHT edge. Bans are the small hexagon slots in the TOP-LEFT and
-TOP-RIGHT corners.
 
-CRITICAL — locked vs. preview (this is the most common mistake, be strict):
-- A LOCKED hero shows a BRIGHT, FULLY-COLORED, saturated portrait sitting solidly in its slot.
-- A hero that is only being SELECTED / shown / hovered (a player's tentative choice that is
-  NOT yet locked) appears DIMMED, darker, greyed-out, desaturated, or semi-transparent, and
-  its slot may be glowing/highlighted as the active pick. DO NOT count these — they are not locked.
-- The large portrait in the CENTRE of the screen is the active player's current preview — NEVER
-  count it; and if that same hero also appears dimmed in a slot, exclude that slot too.
-Only report heroes whose slot portrait is bright, fully colored, and settled (clearly locked).
+LAYOUT
+- The player's own team is the vertical column of hexagon portraits down the LEFT edge (5 pick slots).
+- The enemy team is the column down the RIGHT edge (5 pick slots).
+- Bans are the small hexagon slots along the TOP-LEFT and TOP-RIGHT.
+- The CENTRE of the screen shows one large portrait: the hero the player currently on the
+  clock is previewing. It is not a slot.
+
+SLOT STATE — classify every non-empty slot into exactly one of these:
+- LOCKED: bright, fully colored, saturated, opaque portrait, sitting settled in its slot.
+- PENDING: the team on the clock has highlighted a hero but has NOT confirmed it yet. The
+  portrait is dim / dark / greyed / desaturated / semi-transparent, and its slot is the
+  active one (glowing or animated border). The same hero is usually ALSO the large centre portrait.
+- EMPTY: no hero at all.
+
+Report LOCKED heroes in leftTeam / rightTeam / bansLeft / bansRight.
+Report PENDING heroes in pendingLeft / pendingRight. Never put a hero in both.
+Report the large centre portrait's hero in previewHero (null if there isn't one).
+
+At most ONE slot on the whole screen is PENDING at any moment — only one team is on the clock.
+If you are unsure whether a slot is locked or pending and that hero matches the centre
+portrait, call it PENDING.
+
+Early in a draft most slots are EMPTY. Do NOT fill a team out to 5 heroes unless you can
+clearly see 5 bright, fully-colored portraits in that column — omit every empty slot.
 
 Return ONLY compact JSON with this exact shape:
-{"map": string|null, "leftTeam": string[], "rightTeam": string[], "bansLeft": string[], "bansRight": string[]}
+{"map": string|null, "leftTeam": string[], "rightTeam": string[], "bansLeft": string[], "bansRight": string[], "pendingLeft": string[], "pendingRight": string[], "previewHero": string|null}
 
 Rules:
 - Use hero names EXACTLY from this list (no other spellings): ${HEROES.join(', ')}.
 - Use map names EXACTLY from this list, or null if unclear: ${MAPS.join(', ')}.
-- leftTeam/rightTeam: only heroes actually locked into that team's slots, top-to-bottom. Omit empty slots.
+- List each team's slots top-to-bottom.
 - If you cannot identify a slot's hero confidently, omit it rather than guess.
-- This is NOT the draft screen if you see gameplay/minimap/health bars — then return all empty arrays and null map.`
+- This is NOT the draft screen if you see gameplay/minimap/health bars — then return all empty arrays and nulls.`
 
 export async function POST(req: Request) {
   if (!authorized(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
@@ -87,9 +99,13 @@ export async function POST(req: Request) {
   }
 
   const openai = new OpenAI({ apiKey })
+  // gpt-4o by default: mini could not reliably tell a dim/previewed portrait from a
+  // bright locked one. Costs about the same per call here — mini's cheaper tokens are
+  // offset by its much heavier image tokenization. Override with VISION_MODEL.
+  const model = process.env.VISION_MODEL || 'gpt-4o'
   try {
     const resp = await openai.chat.completions.create({
-      model: process.env.VISION_MODEL || 'gpt-4o-mini',
+      model,
       messages: [
         {
           role: 'user',
@@ -114,6 +130,16 @@ export async function POST(req: Request) {
       rightTeam: clean(parsed.rightTeam),
       bansLeft: clean(parsed.bansLeft),
       bansRight: clean(parsed.bansRight),
+      pendingLeft: clean(parsed.pendingLeft),
+      pendingRight: clean(parsed.pendingRight),
+      previewHero: typeof parsed.previewHero === 'string' && HERO_SET.has(parsed.previewHero)
+        ? parsed.previewHero
+        : null,
+      // Echoed back so the overlay can log real per-call token usage — the vision
+      // models tokenize images very differently, so measuring beats estimating.
+      model,
+      promptTokens: resp.usage?.prompt_tokens ?? 0,
+      completionTokens: resp.usage?.completion_tokens ?? 0,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)

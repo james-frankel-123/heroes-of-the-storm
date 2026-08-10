@@ -70,18 +70,21 @@ public sealed partial class OverlayWindow : Window
     private readonly Dictionary<int, string> _selections = new();
     private int _currentStep;
 
-    // Vision-draft accumulation. Committed heroes per side/kind are STICKY and
-    // monotonic, so a single mislabeled or L/R-swapped vision read can't corrupt
-    // the board. A hero is committed only after appearing in the SAME slot on two
-    // consecutive reads (temporal confirmation) — this both rejects transient
-    // side-swaps and drops hovered/previewed (not-yet-locked) picks that don't
-    // persist. Rebuilt into _selections each read; cleared by ResetForNewGame.
+    // Vision-draft accumulation, rebuilt into _selections each read and cleared by
+    // ResetForNewGame. A hero reaches the board only after ConfirmReads consecutive
+    // reads in the SAME slot (rejects transient mislabels and L/R swaps), and comes
+    // back off after RevokeReads consecutive reads missing. Revocation is what stops
+    // a hovered/previewed pick from sticking: a locked portrait never disappears, so
+    // only an abandoned preview or a bad read ever ages out.
     private readonly List<string> _vOurPicks = new();
     private readonly List<string> _vEnemyPicks = new();
     private readonly List<string> _vOurBans = new();
     private readonly List<string> _vEnemyBans = new();
-    private readonly HashSet<string> _vCommitted = new(StringComparer.Ordinal);
-    private Dictionary<string, (int side, bool pick)> _vPrevSeen = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, (int side, bool pick)> _vCommitted = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ((int side, bool pick) slot, int hits)> _vCandidates = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _vMisses = new(StringComparer.Ordinal);
+    private const int ConfirmReads = 2; // reads (~3s apart) in one slot before it lands
+    private const int RevokeReads = 3;  // reads missing before it leaves again
 
     private OnnxSessions? _sessions;
     private DraftData? _data;
@@ -355,7 +358,10 @@ public sealed partial class OverlayWindow : Window
                                 if (vd != null && !vd.IsEmpty)
                                 {
                                     DraftLog($"vision: L[{string.Join(",", vd.LeftTeam)}] R[{string.Join(",", vd.RightTeam)}] " +
-                                             $"bans[{string.Join(",", vd.BansLeft.Concat(vd.BansRight))}] map={vd.Map}");
+                                             $"bans[{string.Join(",", vd.BansLeft.Concat(vd.BansRight))}] " +
+                                             $"pending[{string.Join(",", vd.PendingLeft.Concat(vd.PendingRight))}] " +
+                                             $"preview={vd.PreviewHero ?? "-"} map={vd.Map} " +
+                                             $"[{vd.Model ?? "?"} {vd.PromptTokens}+{vd.CompletionTokens} tok]");
                                     await ApplyVisionDraft(vd);
                                 }
                             }
@@ -572,41 +578,71 @@ public sealed partial class OverlayWindow : Window
             _map = vd.Map; _settingUp = true; MapCombo.SelectedItem = _map; _settingUp = false;
         }
 
-        // Collapse this read into a hero -> slot map (valid catalog heroes only;
-        // first side wins within a read so a hero never lands on both sides).
+        // Heroes this read says are highlighted but NOT confirmed: the slot the team
+        // on the clock is previewing, plus the big centre portrait. They look picked
+        // but aren't, so they're barred from the board (and evict an earlier commit —
+        // if the model now calls a hero pending, it was never locked).
+        var pending = new HashSet<string>(vd.PendingLeft.Concat(vd.PendingRight), StringComparer.Ordinal);
+        if (!string.IsNullOrEmpty(vd.PreviewHero)) pending.Add(vd.PreviewHero);
+
+        // Collapse this read's LOCKED heroes into a hero -> slot map (valid catalog
+        // heroes only; first side wins so a hero never lands on both sides).
         var seen = new Dictionary<string, (int side, bool pick)>(StringComparer.Ordinal);
         void Note(IReadOnlyList<string> heroes, int side, bool pick)
         {
             foreach (var h in heroes)
-                if (HeroCatalog.HeroIndex(h) >= 0 && !seen.ContainsKey(h)) seen[h] = (side, pick);
+                if (HeroCatalog.HeroIndex(h) >= 0 && !pending.Contains(h) && !seen.ContainsKey(h))
+                    seen[h] = (side, pick);
         }
         Note(vd.LeftTeam, 0, true);
         Note(vd.RightTeam, 1, true);
         Note(vd.BansLeft, 0, false);
         Note(vd.BansRight, 1, false);
 
-        // Commit a hero only when it appears in the SAME slot on two consecutive
-        // reads and isn't already committed. Committed heroes are sticky, so a
-        // one-off L/R swap or a hovered (not-locked) pick can never move or corrupt
-        // the board.
+        List<string> ListFor((int side, bool pick) slot) => slot switch
+        {
+            (0, true) => _vOurPicks,
+            (1, true) => _vEnemyPicks,
+            (0, false) => _vOurBans,
+            _ => _vEnemyBans,
+        };
+        void Uncommit(string h)
+        {
+            _vCandidates.Remove(h);
+            _vMisses.Remove(h);
+            if (_vCommitted.Remove(h, out var slot)) ListFor(slot).Remove(h);
+        }
+
+        foreach (var h in pending) Uncommit(h);
+
+        // Count consecutive reads in the same slot; promote at ConfirmReads.
         foreach (var kv in seen)
         {
             var h = kv.Key; var slot = kv.Value;
-            if (_vCommitted.Contains(h)) continue;
-            if (_vPrevSeen.TryGetValue(h, out var prev) && prev == slot)
+            _vMisses.Remove(h);
+            if (_vCommitted.ContainsKey(h)) continue;
+            int hits = _vCandidates.TryGetValue(h, out var c) && c.slot == slot ? c.hits + 1 : 1;
+            if (hits >= ConfirmReads)
             {
-                _vCommitted.Add(h);
-                var list = slot switch
-                {
-                    (0, true) => _vOurPicks,
-                    (1, true) => _vEnemyPicks,
-                    (0, false) => _vOurBans,
-                    _ => _vEnemyBans,
-                };
+                _vCandidates.Remove(h);
+                _vCommitted[h] = slot;
+                var list = ListFor(slot);
                 if (!list.Contains(h)) list.Add(h);
             }
+            else _vCandidates[h] = (slot, hits);
         }
-        _vPrevSeen = seen;
+
+        // A candidate that didn't survive this read starts over; a committed hero
+        // that stays missing for RevokeReads was a preview (or a bad read) and goes.
+        foreach (var h in _vCandidates.Keys.ToList())
+            if (!seen.ContainsKey(h)) _vCandidates.Remove(h);
+        foreach (var h in _vCommitted.Keys.ToList())
+        {
+            if (seen.ContainsKey(h)) continue;
+            int miss = _vMisses.TryGetValue(h, out var m) ? m + 1 : 1;
+            if (miss >= RevokeReads) Uncommit(h);
+            else _vMisses[h] = miss;
+        }
 
         int[] StepsFor(int team, bool pick) =>
             Enumerable.Range(0, 16).Where(i => DraftOrder[i].Team == team && DraftOrder[i].IsPick == pick).ToArray();
@@ -615,7 +651,7 @@ public sealed partial class OverlayWindow : Window
             for (int i = 0; i < steps.Length && i < heroes.Count; i++) _selections[steps[i]] = heroes[i];
         }
 
-        // Rebuild the board from the sticky committed rosters (stable across reads).
+        // Rebuild the board from the confirmed rosters.
         _selections.Clear();
         Assign(StepsFor(0, true), _vOurPicks);
         Assign(StepsFor(1, true), _vEnemyPicks);
@@ -640,7 +676,7 @@ public sealed partial class OverlayWindow : Window
         _autoFilled = false;
         _selections.Clear();
         _vOurPicks.Clear(); _vEnemyPicks.Clear(); _vOurBans.Clear(); _vEnemyBans.Clear();
-        _vCommitted.Clear(); _vPrevSeen = new(StringComparer.Ordinal);
+        _vCommitted.Clear(); _vCandidates.Clear(); _vMisses.Clear();
         _currentStep = 0;
         _lobbyStatus = "";
         if (_scan?.LocalBattletag is string bt && _scan.PlayerStats.Count > 0)
