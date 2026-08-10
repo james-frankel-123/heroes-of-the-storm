@@ -70,6 +70,22 @@ public sealed partial class OverlayWindow : Window
     private readonly Dictionary<int, string> _selections = new();
     private int _currentStep;
 
+    // Vision-draft accumulation, rebuilt into _selections each read and cleared by
+    // ResetForNewGame. A hero reaches the board only after ConfirmReads consecutive
+    // reads in the SAME slot (rejects transient mislabels and L/R swaps), and comes
+    // back off after RevokeReads consecutive reads missing. Revocation is what stops
+    // a hovered/previewed pick from sticking: a locked portrait never disappears, so
+    // only an abandoned preview or a bad read ever ages out.
+    private readonly List<string> _vOurPicks = new();
+    private readonly List<string> _vEnemyPicks = new();
+    private readonly List<string> _vOurBans = new();
+    private readonly List<string> _vEnemyBans = new();
+    private readonly Dictionary<string, (int side, bool pick)> _vCommitted = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ((int side, bool pick) slot, int hits)> _vCandidates = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _vMisses = new(StringComparer.Ordinal);
+    private const int ConfirmReads = 2; // reads (~3s apart) in one slot before it lands
+    private const int RevokeReads = 3;  // reads missing before it leaves again
+
     private OnnxSessions? _sessions;
     private DraftData? _data;
     private PlayerMawpData? _playerData;
@@ -259,8 +275,13 @@ public sealed partial class OverlayWindow : Window
     // lands, capture only detects the draft; the board still fills from the
     // battlelobby file at loading and live recs come from manual taps.
     private const bool EnableCvCapture = true;
-    private bool _draftDone;         // latched true when the draft completes (battlelobby appears)
-    private long _lobbyGoneSinceMs;  // for resetting the latch once back at the menu
+    // Auto-fill life-cycle. The battlelobby file lingers after the match on
+    // machines without the HeroesProfile uploader cleaning it, so its existence
+    // is NOT a reliable match-end signal. Instead, once the board is auto-filled
+    // from a completed lobby, we treat the match as over when the game stops
+    // WRITING its in-progress replay (TempWriteReplayP1) for a sustained window.
+    private bool _autoFilled;                        // board came from a completed battlelobby fill
+    private const double MatchStaleSeconds = 120;    // temp replay writes older than this ⇒ no live match
 
     private async System.Threading.Tasks.Task DraftWatchAsync()
     {
@@ -274,6 +295,7 @@ public sealed partial class OverlayWindow : Window
         DraftLog($"HotS watcher started (cv capture {(EnableCvCapture ? "ON, draft-gated" : "OFF")})");
 
         int tick = 0;
+        int lowStreak = 0;
         while (true)
         {
             int delay = 3000;
@@ -308,14 +330,26 @@ public sealed partial class OverlayWindow : Window
                         {
                             double score = await System.Threading.Tasks.Task.Run(
                                 () => DraftDetector.Score(raw.Bgra, raw.Width, raw.Height));
-                            bool draft = score >= 0.60;
-                            if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}");
-                            if (draft && !_inDraft) { _inDraft = true; DraftLog($"draft STARTED ({score:F2})"); }
-                            else if (!draft && _inDraft)
+                            // Hysteresis + confirmation. Real draft frames score ~1.0 while
+                            // in-game/loading noise peaks ~0.65, so START only on a clearly
+                            // high score, and END only after several CONSECUTIVE low frames.
+                            // A single weak/animation frame (e.g. a lock-in transition) no
+                            // longer flaps the board out and resets it.
+                            const double StartThreshold = 0.85;
+                            const double EndThreshold = 0.75;
+                            const int EndConfirmFrames = 3;
+                            if (score < EndThreshold) lowStreak++; else lowStreak = 0;
+                            if (++tick % 6 == 0) DraftLog($"poll: score {score:F2}, inDraft={_inDraft}, low={lowStreak}");
+                            if (!_inDraft && score >= StartThreshold)
+                            {
+                                _inDraft = true; lowStreak = 0;
+                                DraftLog($"draft STARTED ({score:F2})");
+                            }
+                            else if (_inDraft && lowStreak >= EndConfirmFrames)
                             {
                                 _inDraft = false;
-                                DraftLog($"draft ended ({score:F2})");
-                                ResetForNewGame(); // clear the board when we leave the draft screen
+                                DraftLog($"draft ended (sustained low, last {score:F2})");
+                                ResetForNewGame(); // clear the board only after leaving the draft for good
                             }
                             if (_inDraft)
                             {
@@ -324,7 +358,10 @@ public sealed partial class OverlayWindow : Window
                                 if (vd != null && !vd.IsEmpty)
                                 {
                                     DraftLog($"vision: L[{string.Join(",", vd.LeftTeam)}] R[{string.Join(",", vd.RightTeam)}] " +
-                                             $"bans[{string.Join(",", vd.BansLeft.Concat(vd.BansRight))}] map={vd.Map}");
+                                             $"bans[{string.Join(",", vd.BansLeft.Concat(vd.BansRight))}] " +
+                                             $"pending[{string.Join(",", vd.PendingLeft.Concat(vd.PendingRight))}] " +
+                                             $"preview={vd.PreviewHero ?? "-"} map={vd.Map} " +
+                                             $"[{vd.Model ?? "?"} {vd.PromptTokens}+{vd.CompletionTokens} tok]");
                                     await ApplyVisionDraft(vd);
                                 }
                             }
@@ -402,18 +439,59 @@ public sealed partial class OverlayWindow : Window
                         LobbyLog($"fresh battlelobby found: {f}");
                         await System.Threading.Tasks.Task.Delay(1500); // let the write settle (M0 safe-read)
                         var lobby = await System.Threading.Tasks.Task.Run(() => BattlelobbyReader.Read(f));
-                        if (lobby != null)
+                        if (lobby == null)
+                            LobbyLog("decode returned null (HeroesDecode missing or parse failed)");
+                        else if (!MatchLikelyActive())
+                            // The battlelobby file lingers after a match on machines without the
+                            // HeroesProfile uploader; on startup we'd otherwise re-fill a finished
+                            // game. Only auto-fill when the game is actually writing its replay.
+                            LobbyLog($"battlelobby found but temp replay writes are stale — skipping stale auto-fill (map {lobby.Map})");
+                        else
                         {
                             LobbyLog($"decoded {lobby.Players.Count} players · map {lobby.Map} · mode {lobby.GameMode}");
                             ApplyLobby(lobby);
                         }
-                        else LobbyLog("decode returned null (HeroesDecode missing or parse failed)");
                     }
+                }
+
+                // Clear a stale auto-filled board once the match is over. The game
+                // writes its in-progress replay under TempWriteReplayP1 all through
+                // loading and gameplay; when the newest write is older than the stale
+                // window we're back at the menu, so the board should reset. (The lobby
+                // dir/file itself is an unreliable signal — it lingers after the game.)
+                if (_autoFilled && !_inDraft && !MatchLikelyActive())
+                {
+                    LobbyLog("match over (temp replay writes stale) — clearing stale auto-filled board");
+                    ResetForNewGame();
                 }
             }
             catch (Exception ex) { LobbyLog("watch error: " + ex.Message); }
             await System.Threading.Tasks.Task.Delay(2000);
         }
+    }
+
+    // True while the game is actively writing its in-progress replay (loading or
+    // in a match): the newest TempWriteReplayP1 write is recent. False at the menu,
+    // where those writes go stale — and false if the folder is absent. This is the
+    // signal for "a live match is happening", independent of the lingering lobby file.
+    private static bool MatchLikelyActive()
+    {
+        try
+        {
+            var dir = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Temp", "Heroes of the Storm", "TempWriteReplayP1");
+            if (!System.IO.Directory.Exists(dir)) return false;
+            long newest = 0;
+            foreach (var f in System.IO.Directory.EnumerateFiles(dir))
+            {
+                long t = System.IO.File.GetLastWriteTimeUtc(f).Ticks;
+                if (t > newest) newest = t;
+            }
+            if (newest == 0) return false;
+            return (DateTime.UtcNow - new DateTime(newest, DateTimeKind.Utc)).TotalSeconds < MatchStaleSeconds;
+        }
+        catch { return false; }
     }
 
     private void ApplyLobby(LobbyInfo lobby)
@@ -440,6 +518,7 @@ public sealed partial class OverlayWindow : Window
 
         // Auto-fill the board with the real final draft (picks + bans) from the lobby.
         FillDraftFromLobby(lobby, ourTeam);
+        _autoFilled = true; // watched for match-over so the board doesn't go stale (see below)
 
         var teammates = lobby.Players.Where(p => p.Team == ourTeam).Select(p => p.Battletag).ToArray();
         var stats = _playerData?.PlayerStats ?? _scan?.PlayerStats;
@@ -493,10 +572,76 @@ public sealed partial class OverlayWindow : Window
     // their team's slots; the engine then recommends our next pick + win %.
     private async System.Threading.Tasks.Task ApplyVisionDraft(VisionDraft vd)
     {
-        _ourTeam = 0;
+        _ourTeam = 0; // HotS UI invariant: your team is ALWAYS the left column.
         if (vd.Map != null && HeroCatalog.MapIndex(vd.Map) >= 0 && _map != vd.Map)
         {
             _map = vd.Map; _settingUp = true; MapCombo.SelectedItem = _map; _settingUp = false;
+        }
+
+        // Heroes this read says are highlighted but NOT confirmed: the slot the team
+        // on the clock is previewing, plus the big centre portrait. They look picked
+        // but aren't, so they're barred from the board (and evict an earlier commit —
+        // if the model now calls a hero pending, it was never locked).
+        var pending = new HashSet<string>(vd.PendingLeft.Concat(vd.PendingRight), StringComparer.Ordinal);
+        if (!string.IsNullOrEmpty(vd.PreviewHero)) pending.Add(vd.PreviewHero);
+
+        // Collapse this read's LOCKED heroes into a hero -> slot map (valid catalog
+        // heroes only; first side wins so a hero never lands on both sides).
+        var seen = new Dictionary<string, (int side, bool pick)>(StringComparer.Ordinal);
+        void Note(IReadOnlyList<string> heroes, int side, bool pick)
+        {
+            foreach (var h in heroes)
+                if (HeroCatalog.HeroIndex(h) >= 0 && !pending.Contains(h) && !seen.ContainsKey(h))
+                    seen[h] = (side, pick);
+        }
+        Note(vd.LeftTeam, 0, true);
+        Note(vd.RightTeam, 1, true);
+        Note(vd.BansLeft, 0, false);
+        Note(vd.BansRight, 1, false);
+
+        List<string> ListFor((int side, bool pick) slot) => slot switch
+        {
+            (0, true) => _vOurPicks,
+            (1, true) => _vEnemyPicks,
+            (0, false) => _vOurBans,
+            _ => _vEnemyBans,
+        };
+        void Uncommit(string h)
+        {
+            _vCandidates.Remove(h);
+            _vMisses.Remove(h);
+            if (_vCommitted.Remove(h, out var slot)) ListFor(slot).Remove(h);
+        }
+
+        foreach (var h in pending) Uncommit(h);
+
+        // Count consecutive reads in the same slot; promote at ConfirmReads.
+        foreach (var kv in seen)
+        {
+            var h = kv.Key; var slot = kv.Value;
+            _vMisses.Remove(h);
+            if (_vCommitted.ContainsKey(h)) continue;
+            int hits = _vCandidates.TryGetValue(h, out var c) && c.slot == slot ? c.hits + 1 : 1;
+            if (hits >= ConfirmReads)
+            {
+                _vCandidates.Remove(h);
+                _vCommitted[h] = slot;
+                var list = ListFor(slot);
+                if (!list.Contains(h)) list.Add(h);
+            }
+            else _vCandidates[h] = (slot, hits);
+        }
+
+        // A candidate that didn't survive this read starts over; a committed hero
+        // that stays missing for RevokeReads was a preview (or a bad read) and goes.
+        foreach (var h in _vCandidates.Keys.ToList())
+            if (!seen.ContainsKey(h)) _vCandidates.Remove(h);
+        foreach (var h in _vCommitted.Keys.ToList())
+        {
+            if (seen.ContainsKey(h)) continue;
+            int miss = _vMisses.TryGetValue(h, out var m) ? m + 1 : 1;
+            if (miss >= RevokeReads) Uncommit(h);
+            else _vMisses[h] = miss;
         }
 
         int[] StepsFor(int team, bool pick) =>
@@ -506,16 +651,12 @@ public sealed partial class OverlayWindow : Window
             for (int i = 0; i < steps.Length && i < heroes.Count; i++) _selections[steps[i]] = heroes[i];
         }
 
-        var ourPicks = vd.LeftTeam.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
-        var enemyPicks = vd.RightTeam.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
-        var ourBans = vd.BansLeft.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
-        var enemyBans = vd.BansRight.Where(h => HeroCatalog.HeroIndex(h) >= 0).ToList();
-
+        // Rebuild the board from the confirmed rosters.
         _selections.Clear();
-        Assign(StepsFor(0, true), ourPicks);
-        Assign(StepsFor(1, true), enemyPicks);
-        Assign(StepsFor(0, false), ourBans);
-        Assign(StepsFor(1, false), enemyBans);
+        Assign(StepsFor(0, true), _vOurPicks);
+        Assign(StepsFor(1, true), _vEnemyPicks);
+        Assign(StepsFor(0, false), _vOurBans);
+        Assign(StepsFor(1, false), _vEnemyBans);
         // Current decision = first pick step not yet filled. Picks sit in their
         // draft-order pick slots, so the pick counts before this step match
         // exactly — the engine state stays consistent (no index crash), and
@@ -532,7 +673,10 @@ public sealed partial class OverlayWindow : Window
     // when a match ends, so the next game doesn't start on stale data).
     private void ResetForNewGame()
     {
+        _autoFilled = false;
         _selections.Clear();
+        _vOurPicks.Clear(); _vEnemyPicks.Clear(); _vOurBans.Clear(); _vEnemyBans.Clear();
+        _vCommitted.Clear(); _vCandidates.Clear(); _vMisses.Clear();
         _currentStep = 0;
         _lobbyStatus = "";
         if (_scan?.LocalBattletag is string bt && _scan.PlayerStats.Count > 0)

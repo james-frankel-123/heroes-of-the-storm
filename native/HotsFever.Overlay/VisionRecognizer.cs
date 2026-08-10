@@ -14,7 +14,20 @@ public sealed class VisionDraft
     public List<string> BansLeft { get; set; } = new();
     public List<string> BansRight { get; set; } = new();
 
-    public bool IsEmpty => LeftTeam.Count == 0 && RightTeam.Count == 0 && BansLeft.Count == 0 && BansRight.Count == 0;
+    // Slots the team on the clock has highlighted but NOT confirmed, plus the big
+    // centre portrait. These look picked but aren't — never put them on the board.
+    public List<string> PendingLeft { get; set; } = new();
+    public List<string> PendingRight { get; set; } = new();
+    public string? PreviewHero { get; set; }
+
+    // Echoed by the backend so the log shows which model answered and what it cost.
+    public string? Model { get; set; }
+    public int PromptTokens { get; set; }
+    public int CompletionTokens { get; set; }
+
+    public bool IsEmpty => LeftTeam.Count == 0 && RightTeam.Count == 0 && BansLeft.Count == 0
+        && BansRight.Count == 0 && PendingLeft.Count == 0 && PendingRight.Count == 0
+        && string.IsNullOrEmpty(PreviewHero);
 }
 
 /// <summary>
@@ -25,7 +38,12 @@ public sealed class VisionDraft
 /// </summary>
 public static class VisionRecognizer
 {
-    private const string Endpoint = "https://hotsfever.com/api/draft-vision";
+    // Overridable so a branch preview deploy or a local `npm run dev` can be tested
+    // against a live draft without touching production.
+    private static readonly string Endpoint =
+        Environment.GetEnvironmentVariable("HOTSFEVER_VISION_ENDPOINT") is { Length: > 0 } url
+            ? url
+            : "https://hotsfever.com/api/draft-vision";
     // Shared secret matching the Vercel DRAFT_VISION_TOKEN. Gates casual abuse of
     // our vision spend; acceptable to embed for the beta.
     private const string Token = "C6JTbssctxg7ipGxeh6jf83uRIm1Iji3";
