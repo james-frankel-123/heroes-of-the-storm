@@ -83,8 +83,29 @@ public sealed partial class OverlayWindow : Window
     private readonly Dictionary<string, (int side, bool pick)> _vCommitted = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ((int side, bool pick) slot, int hits)> _vCandidates = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _vMisses = new(StringComparer.Ordinal);
-    private const int ConfirmReads = 2; // reads (~3s apart) in one slot before it lands
+    private const int ConfirmReads = 3; // reads (~3s apart) in one slot before it lands
     private const int RevokeReads = 3;  // reads missing before it leaves again
+
+    // The 16-step order is fixed, so only a handful of (leftPicks, rightPicks) counts
+    // are ever reachable. The vision model has no such constraint and routinely reports
+    // impossible boards (e.g. 5 picks for us against 2 for them, sustained for 35s), so
+    // this rejects those reads outright. Which column drafts first varies by game, so
+    // both orientations are accepted.
+    private static readonly HashSet<(int Left, int Right)> ReachablePickCounts = BuildReachablePickCounts();
+
+    private static HashSet<(int, int)> BuildReachablePickCounts()
+    {
+        var set = new HashSet<(int, int)> { (0, 0) };
+        int a = 0, b = 0;
+        foreach (var (team, isPick) in DraftOrder)
+        {
+            if (!isPick) continue;
+            if (team == 0) a++; else b++;
+            set.Add((a, b));
+            set.Add((b, a));
+        }
+        return set;
+    }
 
     private OnnxSessions? _sessions;
     private DraftData? _data;
@@ -282,6 +303,8 @@ public sealed partial class OverlayWindow : Window
     // WRITING its in-progress replay (TempWriteReplayP1) for a sustained window.
     private bool _autoFilled;                        // board came from a completed battlelobby fill
     private const double MatchStaleSeconds = 120;    // temp replay writes older than this ⇒ no live match
+    private long _draftEndedAtMs;                    // TickCount64 when the detector last lost the draft
+    private const double ResumeGraceSeconds = 150;   // re-detect within this ⇒ same draft, keep the board
 
     private async System.Threading.Tasks.Task DraftWatchAsync()
     {
@@ -343,13 +366,23 @@ public sealed partial class OverlayWindow : Window
                             if (!_inDraft && score >= StartThreshold)
                             {
                                 _inDraft = true; lowStreak = 0;
-                                DraftLog($"draft STARTED ({score:F2})");
+                                // The template matches live frames weakly, so it can lose a draft
+                                // that's still running (seen: a 53s dropout mid-draft). Treat a
+                                // quick re-detect as the SAME draft and keep the board; only a
+                                // long gap means a genuinely new one.
+                                double gap = (Environment.TickCount64 - _draftEndedAtMs) / 1000.0;
+                                bool resumed = _draftEndedAtMs > 0 && gap < ResumeGraceSeconds;
+                                DraftLog($"draft STARTED ({score:F2}){(resumed ? $" — resumed after {gap:F0}s gap, keeping board" : "")}");
+                                if (!resumed) ResetForNewGame();
                             }
                             else if (_inDraft && lowStreak >= EndConfirmFrames)
                             {
                                 _inDraft = false;
+                                _draftEndedAtMs = Environment.TickCount64;
+                                // Don't wipe the board here — this fires on detector dropouts too.
+                                // A real new draft resets on start; a finished match clears via
+                                // the lobby watcher; stale heroes otherwise age out via RevokeReads.
                                 DraftLog($"draft ended (sustained low, last {score:F2})");
-                                ResetForNewGame(); // clear the board only after leaving the draft for good
                             }
                             if (_inDraft)
                             {
@@ -584,6 +617,17 @@ public sealed partial class OverlayWindow : Window
         // if the model now calls a hero pending, it was never locked).
         var pending = new HashSet<string>(vd.PendingLeft.Concat(vd.PendingRight), StringComparer.Ordinal);
         if (!string.IsNullOrEmpty(vd.PreviewHero)) pending.Add(vd.PreviewHero);
+
+        // Drop the whole read if it describes a board no draft can produce. Holding the
+        // last good state beats showing heroes that were never picked.
+        int LockedCount(IReadOnlyList<string> team) =>
+            team.Count(h => HeroCatalog.HeroIndex(h) >= 0 && !pending.Contains(h));
+        int left = LockedCount(vd.LeftTeam), right = LockedCount(vd.RightTeam);
+        if (!ReachablePickCounts.Contains((left, right)))
+        {
+            DraftLog($"vision read REJECTED — impossible pick counts L={left} R={right}");
+            return;
+        }
 
         // Collapse this read's LOCKED heroes into a hero -> slot map (valid catalog
         // heroes only; first side wins so a hero never lands on both sides).

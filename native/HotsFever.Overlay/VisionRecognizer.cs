@@ -58,6 +58,7 @@ public static class VisionRecognizer
         {
             var jpeg = await EncodeJpegAsync(frame);
             if (jpeg == null) return null;
+            SaveLastFrame(jpeg); // exactly what the model was shown, for diagnosing bad reads
             var b64 = Convert.ToBase64String(jpeg);
             var payload = JsonSerializer.Serialize(new { imageBase64 = "data:image/jpeg;base64," + b64 });
 
@@ -73,6 +74,20 @@ public static class VisionRecognizer
             return JsonSerializer.Deserialize<VisionDraft>(body, JsonOpts);
         }
         catch { return null; }
+    }
+
+    // Keep the most recent frame on disk so a misread can be inspected against the
+    // exact pixels the model saw, rather than guessed at from the log.
+    private static void SaveLastFrame(byte[] jpeg)
+    {
+        try
+        {
+            var dir = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HotsFever");
+            System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "last-vision.jpg"), jpeg);
+        }
+        catch { }
     }
 
     // Downscale the BGRA frame and JPEG-encode it (via Win2D).
