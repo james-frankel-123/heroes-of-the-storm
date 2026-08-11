@@ -11,6 +11,7 @@
  */
 import { DRAFT_SEQUENCE, type DraftData } from './types'
 import { HERO_ROLES } from '@/lib/data/hero-roles'
+import compositionsJson from '@/lib/data/compositions.json'
 
 // 90 heroes sorted alphabetically — must match training/shared.py exactly
 const HEROES = [
@@ -544,21 +545,26 @@ const NUM_FINE_ROLES = 9
  *   meta_strength(4) + draft_diversity(2) + comp_wr(4)
  */
 function computeEnrichedFeatures(
-  t0Heroes: string[],
-  t1Heroes: string[],
+  t0HeroesIn: string[],
+  t1HeroesIn: string[],
   map: string,
   draftData: DraftData,
 ): Float32Array {
   const features = new Float32Array(86)
   let off = 0
 
-  // Helper: get hero WR, prefer map-specific
-  const getWR = (hero: string): number => {
-    const mapData = draftData.heroMapWinRates[map]?.[hero]
-    if (mapData && mapData.games >= 50) return mapData.winRate
-    return draftData.heroStats[hero]?.winRate ?? 50
-  }
+  // PARITY CONTRACT (2026-08-10): this function must match the Python
+  // trainer's extract_features (sweep_enriched_wp.py) bit-for-bit on
+  // PARTIAL states as well as full drafts -- the partial-WP projection
+  // model is served these features. Verified against Python golden
+  // vectors by scripts/feature-parity-goldens; regenerate goldens if
+  // either side changes. Divergences fixed today: hero WRs are GLOBAL
+  // (not map-preferred) everywhere except map_delta; heroes iterate in
+  // hero-index order; counter_detail packs entries contiguously.
+  const t0Heroes = [...t0HeroesIn].sort((a, b) => (HERO_TO_IDX[a] ?? 0) - (HERO_TO_IDX[b] ?? 0))
+  const t1Heroes = [...t1HeroesIn].sort((a, b) => (HERO_TO_IDX[a] ?? 0) - (HERO_TO_IDX[b] ?? 0))
   const getOverallWR = (hero: string): number => draftData.heroStats[hero]?.winRate ?? 50
+  const getWR = getOverallWR // training uses global hero WR in all groups below except map_delta
 
   // 1. role_counts (18 = 9 per team)
   for (const h of t0Heroes) {
@@ -592,15 +598,17 @@ function computeEnrichedFeatures(
   features[off++] = t1mapDelta
 
   // 4. pairwise_counters (2) — avg normalized counter delta per team
+  // Trainer semantics: every pair contributes to the denominator; pairs
+  // without qualifying data contribute 0 to the numerator.
   const counterDelta = (ourH: string[], theirH: string[]): number => {
     let sum = 0, count = 0
     for (const a of ourH) {
       for (const b of theirH) {
+        count++
         const d = draftData.counters[a]?.[b]
         if (!d || d.games < 30) continue
         const expected = getWR(a) + (100 - getWR(b)) - 50
         sum += d.winRate - expected
-        count++
       }
     }
     return count > 0 ? sum / count : 0
@@ -613,11 +621,11 @@ function computeEnrichedFeatures(
     let sum = 0, count = 0
     for (let i = 0; i < heroes.length; i++) {
       for (let j = i + 1; j < heroes.length; j++) {
+        count++
         const d = draftData.synergies[heroes[i]]?.[heroes[j]]
         if (!d || d.games < 30) continue
         const expected = 50 + (getWR(heroes[i]) - 50) + (getWR(heroes[j]) - 50)
         sum += d.winRate - expected
-        count++
       }
     }
     return count > 0 ? sum / count : 0
@@ -625,29 +633,24 @@ function computeEnrichedFeatures(
   features[off++] = synergyDelta(t0Heroes)
   features[off++] = synergyDelta(t1Heroes)
 
-  // 6. counter_detail (50 = 5×5×2) — all cross-team pairs
+  // 6. counter_detail (50) — all cross-team pairs, packed CONTIGUOUSLY in
+  // hero-index order (t0-vs-t1 entries, then t1-vs-t0 entries, then zero
+  // padding at the END), exactly like the trainer. The old layout padded
+  // the first block to 25 slots, which only coincides at full 5v5.
+  const detailStart = off
   for (const a of t0Heroes) {
     for (const b of t1Heroes) {
       const d = draftData.counters[a]?.[b]
-      if (d && d.games >= 30) {
-        features[off] = d.winRate - (getWR(a) + (100 - getWR(b)) - 50)
-      }
-      off++
+      features[off++] = d && d.games >= 30 ? d.winRate - (getWR(a) + (100 - getWR(b)) - 50) : 0
     }
   }
-  // Pad to 25 if fewer than 5 heroes per team
-  while (off < 18 + 2 + 2 + 2 + 2 + 25) off++
   for (const b of t1Heroes) {
     for (const a of t0Heroes) {
       const d = draftData.counters[b]?.[a]
-      if (d && d.games >= 30) {
-        features[off] = d.winRate - (getWR(b) + (100 - getWR(a)) - 50)
-      }
-      off++
+      features[off++] = d && d.games >= 30 ? d.winRate - (getWR(b) + (100 - getWR(a)) - 50) : 0
     }
   }
-  // Pad to 50 total
-  while (off < 18 + 2 + 2 + 2 + 2 + 50) off++
+  off = detailStart + 50
 
   // 7. meta_strength (4) — avg pick_rate and ban_rate per team
   const t0pr = t0Heroes.reduce((s, h) => s + (draftData.heroStats[h]?.pickRate ?? 0), 0) / Math.max(t0Heroes.length, 1)
@@ -682,11 +685,23 @@ function computeEnrichedFeatures(
       return fineRole !== undefined ? (hpRoleMap[fineRole] ?? 'Ranged Assassin') : 'Ranged Assassin'
     }).sort()
     const key = hpRoles.join(',')
-    // Look up in compositions data
-    for (const c of draftData.compositions) {
-      if (c.roles.length === hpRoles.length && [...c.roles].sort().join(',') === key) {
-        return [c.winRate, c.games]
+    // Look up in the current tier's compositions, then fall back across
+    // tiers in the trainer's order (mid, high, low) before the 33% default.
+    const scan = (comps: { roles: string[]; winRate: number; games: number }[]) => {
+      for (const c of comps) {
+        if (c.roles.length === hpRoles.length && [...c.roles].sort().join(',') === key) {
+          return [c.winRate, c.games] as [number, number]
+        }
       }
+      return null
+    }
+    const hit = scan(draftData.compositions)
+    if (hit) return hit
+    for (const fallbackTier of ['mid', 'high', 'low']) {
+      const comps = (compositionsJson as any)[fallbackTier]
+      if (!comps) continue
+      const fhit = scan(comps)
+      if (fhit) return fhit
     }
     return [33.0, 0]  // unknown comp = bad
   }
@@ -827,3 +842,6 @@ export async function getPartialProjection(
   ])
   return (pNormal + (1 - pSwapped)) / 2
 }
+
+// Temporary test export (feature-parity harness; safe to keep, tree-shaken in prod)
+export { computeEnrichedFeatures as _testComputeEnrichedFeatures }

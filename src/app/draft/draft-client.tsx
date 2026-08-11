@@ -354,8 +354,12 @@ export function DraftClient({
           const p = await getPartialProjection(t0, t1, aiState.map, aiState.tier, stepIdx, draftData)
           return (ourIs0 ? p : 1 - p) * 100
         }
-        const nextStep = Math.min(aiState.step + 1, 15)
-        const projNow = await projFor(aiState.team0Picks, aiState.team1Picks, aiState.step)
+        // Training convention (train_partial_wp): a state's step index is the
+        // pick_number of the action just INCLUDED in it. A candidate state
+        // includes the action at aiState.step; the current state's last
+        // included action is aiState.step - 1.
+        const nextStep = Math.min(aiState.step, 15)
+        const projNow = await projFor(aiState.team0Picks, aiState.team1Picks, Math.max(aiState.step - 1, 0))
         const isBan = aiState.stepType === 'ban'
         const mctsAdj = new Map(mctsRecs.map(r => [r.hero, r.mawpAdj * 100]))
         // Candidate state in ABSOLUTE team order: on a pick the hero joins
