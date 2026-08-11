@@ -316,6 +316,7 @@ public sealed partial class OverlayWindow : Window
         var battlelobbyDir = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "Heroes of the Storm");
         DraftLog($"HotS watcher started (cv capture {(EnableCvCapture ? "ON, draft-gated" : "OFF")})");
+        VisionRecognizer.Log = DraftLog; // so ROI/fallback problems land in the same log
 
         int tick = 0;
         int lowStreak = 0;
@@ -373,7 +374,7 @@ public sealed partial class OverlayWindow : Window
                                 double gap = (Environment.TickCount64 - _draftEndedAtMs) / 1000.0;
                                 bool resumed = _draftEndedAtMs > 0 && gap < ResumeGraceSeconds;
                                 DraftLog($"draft STARTED ({score:F2}){(resumed ? $" — resumed after {gap:F0}s gap, keeping board" : "")}");
-                                if (!resumed) ResetForNewGame();
+                                if (!resumed) { ResetForNewGame(); VisionRecognizer.ResetForNewDraft(); }
                             }
                             else if (_inDraft && lowStreak >= EndConfirmFrames)
                             {
