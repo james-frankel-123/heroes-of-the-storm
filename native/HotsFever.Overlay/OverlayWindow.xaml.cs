@@ -619,16 +619,17 @@ public sealed partial class OverlayWindow : Window
         var pending = new HashSet<string>(vd.PendingLeft.Concat(vd.PendingRight), StringComparer.Ordinal);
         if (!string.IsNullOrEmpty(vd.PreviewHero)) pending.Add(vd.PreviewHero);
 
-        // Drop the whole read if it describes a board no draft can produce. Holding the
-        // last good state beats showing heroes that were never picked.
+        // Counts the fixed 16-step draft order can't produce used to mean a bad read, back
+        // when we sent the model the whole screen and it invented heroes from the centre
+        // splash. Now that it only ever sees the two column crops, a verified-correct read
+        // of a real screen came back L=5 R=3 — which this rule calls impossible. So it
+        // logs and no longer drops: with clean input it was rejecting good data more often
+        // than bad. RevokeReads still ages out anything genuinely wrong.
         int LockedCount(IReadOnlyList<string> team) =>
             team.Count(h => HeroCatalog.HeroIndex(h) >= 0 && !pending.Contains(h));
         int left = LockedCount(vd.LeftTeam), right = LockedCount(vd.RightTeam);
         if (!ReachablePickCounts.Contains((left, right)))
-        {
-            DraftLog($"vision read REJECTED — impossible pick counts L={left} R={right}");
-            return;
-        }
+            DraftLog($"vision read has off-order pick counts L={left} R={right} (accepted)");
 
         // Collapse this read's LOCKED heroes into a hero -> slot map (valid catalog
         // heroes only; first side wins so a hero never lands on both sides).
