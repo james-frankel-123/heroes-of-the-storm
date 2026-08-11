@@ -369,8 +369,15 @@ export function DraftClient({
         }
         const toRow = async (hero: string, isGreedyPad: boolean): Promise<OurTurnRow> => {
           const [t0, t1] = candState(hero)
-          const winPct = (await projFor(t0, t1, nextStep)) + (mctsAdj.get(hero) ?? 0)
-          return { hero, isGreedyPad, winPct, deltaPp: winPct - projNow }
+          const ourPct = (await projFor(t0, t1, nextStep)) + (mctsAdj.get(hero) ?? 0)
+          if (isBan) {
+            // Display the THREAT from the enemy's side: their win chance if
+            // they get the hero. Biggest number = biggest threat = ban first,
+            // so the list sorts descending like every other list on the page.
+            const enemyPct = 100 - ourPct
+            return { hero, isGreedyPad, winPct: enemyPct, deltaPp: enemyPct - (100 - projNow) }
+          }
+          return { hero, isGreedyPad, winPct: ourPct, deltaPp: ourPct - projNow }
         }
 
         const mctsHeroes = new Set(mctsRecs.map(r => r.hero))
@@ -384,7 +391,7 @@ export function DraftClient({
         const rows: OurTurnRow[] = (
           await Promise.all(candidates.map(c => toRow(c.hero, c.pad)))
         )
-          .sort((a, b) => (isBan ? a.winPct - b.winPct : b.winPct - a.winPct))
+          .sort((a, b) => b.winPct - a.winPct)
           .map(r => (r.hero === aiTopHero ? { ...r, isAiTop: true } : r))
 
         if (!cancelled) {

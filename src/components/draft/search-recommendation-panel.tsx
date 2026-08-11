@@ -15,10 +15,12 @@ import { scorePlayerStrength } from '@/lib/draft/engine'
  * neutral judge family that scores the finished draft, so row numbers and
  * the final evaluation share one scale and converge by construction
  * (2026-08-07: replaced the MCTS child-Q display, whose level measured as
- * a state-insensitive constant). Pick rows project the state after WE take
- * the hero. Ban rows project the state if THE ENEMY takes the hero (the
- * threat a ban denies), so for bans LOWER is a stronger ban and the list
- * sorts ascending. MCTS still selects the shortlist, contributes the
+ * a state-insensitive constant). Pick rows project OUR win chance
+ * after we take the hero. Ban rows project the THREAT from the enemy's
+ * side: the enemy's win chance if they get the hero (2026-08-10: flipped
+ * from our-side display, whose ascending sort read as inverted). Both row
+ * kinds therefore sort descending and the biggest number is the best
+ * action. MCTS still selects the shortlist, contributes the
  * personalization nudges, and flags its top choice.
  */
 export interface OurTurnRow {
@@ -83,7 +85,8 @@ export function SearchRecommendationPanel({
     : isOurTurn ? 'Search Recommendations' : 'Likely Enemy Picks'
   const subtitle = isOurTurn
     ? isBanPhase
-      ? 'Your projected win chance if the enemy takes each hero (lower = more urgent ban); same model that scores the final draft'
+      ? "The enemy's projected win chance if they get each hero (higher = bigger threat, ban first); same model that scores the final draft"
+
       : 'Projected win chance after each pick, judged by the same model that scores the final draft'
     : isBanPhase
       ? 'How likely the enemy is to ban each hero'
@@ -199,7 +202,7 @@ export function SearchRecommendationPanel({
                 <div className="text-right shrink-0">
                   <div
                     title={isBanPhase
-                      ? `Your projected win chance if the enemy takes ${rec.hero}. Lower means the hero is a bigger threat and a stronger ban. Judged by the same model that evaluates the finished draft.`
+                      ? `The enemy's projected win chance if they get ${rec.hero}. Higher means a bigger threat and a stronger ban. Judged by the same model that evaluates the finished draft.`
                       : `Projected win chance after picking ${rec.hero}, judged by the same model that evaluates the finished draft, so this number and the final score converge as the draft completes.`}
                   >
                     <span className={cn(
@@ -212,7 +215,7 @@ export function SearchRecommendationPanel({
                     )}>
                       {rec.winPct.toFixed(1)}%
                     </span>
-                    <span className="ml-1 text-[9px] text-[#8b9bc8]">{isBanPhase ? 'if enemy takes' : 'proj. final'}</span>
+                    <span className="ml-1 text-[9px] text-[#8b9bc8]">{isBanPhase ? 'enemy win if taken' : 'proj. final'}</span>
                   </div>
                   {!isBanPhase && (
                     <div
