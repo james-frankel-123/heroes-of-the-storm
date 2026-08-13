@@ -194,12 +194,32 @@ export async function runMCTSSearch(
   /** Optional WP leaf evaluator for complete drafts: returns P(team0 wins). */
   evaluateTerminal?: (team0: string[], team1: string[]) => Promise<number>,
   /**
+   * Optional partial-draft leaf evaluator for INCOMPLETE states: returns
+   * P(team0 wins) given current picks and the index of the last completed
+   * draft action. When provided it replaces the policy value head at
+   * non-terminal leaves (the head measured as state-insensitive,
+   * 2026-08-07), making backed-up Q state-sensitive; ban values then emerge
+   * from search dynamics (a banned hero is unavailable in every branch).
+   */
+  evaluatePartial?: (team0: string[], team1: string[], lastActionIdx: number) => Promise<number>,
+  /**
    * Test-mode overrides. Defaults reproduce production behavior exactly:
    * rng = Math.random, and the standard MIN/MAX_SIMS + time budget. Used by the
    * parity oracle to drive a deterministic (shared-RNG, fixed-sim) search.
    */
   options?: { rng?: () => number; maxSims?: number; minSims?: number; timeBudgetMs?: number },
 ): Promise<{ recommendations: MCTSRecommendation[]; valueEstimate: number; sims: number }> {
+
+  const evalPartialOur = evaluatePartial
+    ? async (s: DraftMCTSState): Promise<number> => {
+        const p = await evaluatePartial(
+          s.team0Picks.map(i => HEROES[i]),
+          s.team1Picks.map(i => HEROES[i]),
+          Math.max(0, Math.min(15, s.step - 1)),
+        )
+        return ourTeam === 0 ? p : 1 - p
+      }
+    : null
 
   const ourTeam = draftState.ourTeam
   const rng = options?.rng ?? Math.random
@@ -319,18 +339,23 @@ export async function runMCTSSearch(
         value = v
       }
     } else if (!node.isExpanded) {
-      // Expand at our decision point: policy priors + value estimate
+      // Expand at our decision point: policy priors for exploration, the
+      // partial-draft evaluator (when provided) for the backed-up value.
       const { state: s, mask: m } = stateToTensors(scratch)
       const { priors: leafPriors, value: v } = await runPolicy(s, m)
-      value = v
+      value = evalPartialOur ? await evalPartialOur(scratch) : v
       node.isExpanded = true
       for (let a = 0; a < NUM_HEROES; a++) {
         if (m[a] > 0) node.children.set(a, createNode(a, node, leafPriors[a]))
       }
     } else {
-      const { state: s, mask: m } = stateToTensors(scratch)
-      const { value: v } = await runPolicy(s, m)
-      value = v
+      if (evalPartialOur) {
+        value = await evalPartialOur(scratch)
+      } else {
+        const { state: s, mask: m } = stateToTensors(scratch)
+        const { value: v } = await runPolicy(s, m)
+        value = v
+      }
     }
 
     // Backpropagate

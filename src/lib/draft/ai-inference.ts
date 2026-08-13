@@ -362,6 +362,10 @@ async function mctsSearchMainThread(
   const evaluateTerminal = draftData
     ? (team0: string[], team1: string[]) => getWinProbability(team0, team1, map, tier, draftData)
     : undefined
+  const evaluatePartial = draftData
+    ? (team0: string[], team1: string[], lastActionIdx: number) =>
+        getPartialProjection(team0, team1, map, tier, lastActionIdx, draftData)
+    : undefined
   return runMCTSSearch(ort, policySession, gdSession, {
     team0Picks: draftState.team0Picks,
     team1Picks: draftState.team1Picks,
@@ -371,7 +375,7 @@ async function mctsSearchMainThread(
     step: draftState.step,
     ourTeam,
     stepType: draftState.stepType,
-  }, takenHeroes, withInferLock, evaluateTerminal)
+  }, takenHeroes, withInferLock, evaluateTerminal, evaluatePartial)
 }
 
 /**
@@ -411,14 +415,17 @@ export async function getAIRecommendations(
       return {
         hero: r.hero,
         prior: r.visits,
-        winProb: Math.max(0, Math.min(1, r.q + adjustment + teamMawpAdj)),
+        // Pure search value: MAWP is surfaced via mawpAdj/suggestedPlayer for
+        // labeling, never folded into the displayed number (Max, 2026-08-13;
+        // proper personalization integration lands separately).
+        winProb: Math.max(0, Math.min(1, r.q)),
         mawpAdj: adjustment,
         suggestedPlayer: player,
       }
     }).sort(recommendationSorter)
     return {
       recommendations: ranked.slice(0, topK),
-      valueEstimate: Math.max(0, Math.min(1, mctsResult.valueEstimate + teamMawpAdj)),
+      valueEstimate: Math.max(0, Math.min(1, mctsResult.valueEstimate)),
       sims: mctsResult.sims,
     }
   } catch (err) {

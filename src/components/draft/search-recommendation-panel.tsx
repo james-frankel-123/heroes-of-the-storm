@@ -15,13 +15,14 @@ import { scorePlayerStrength } from '@/lib/draft/engine'
  * neutral judge family that scores the finished draft, so row numbers and
  * the final evaluation share one scale and converge by construction
  * (2026-08-07: replaced the MCTS child-Q display, whose level measured as
- * a state-insensitive constant). Pick rows project OUR win chance
- * after we take the hero. Ban rows project the THREAT from the enemy's
- * side: the enemy's win chance if they get the hero (2026-08-10: flipped
- * from our-side display, whose ascending sort read as inverted). Both row
- * kinds therefore sort descending and the biggest number is the best
- * action. MCTS still selects the shortlist, contributes the
- * personalization nudges, and flags its top choice.
+ * a state-insensitive constant). winPct is the SEARCH's mean
+ * action value Q(s,a) (2026-08-13): the projected final win chance after
+ * taking the action, with the partial-draft WP model evaluating every
+ * search leaf. Picks and bans have identical semantics (a ban's value is
+ * how the draft plays out with that hero unavailable), both sort
+ * descending, and the header shows the same search's root value, so
+ * header and rows share one scale by construction. Personalization is
+ * not folded into displayed numbers.
  */
 export interface OurTurnRow {
   hero: string
@@ -85,7 +86,7 @@ export function SearchRecommendationPanel({
     : isOurTurn ? 'Search Recommendations' : 'Likely Enemy Picks'
   const subtitle = isOurTurn
     ? isBanPhase
-      ? "The enemy's projected win chance if they get each hero (higher = bigger threat, ban first); same model that scores the final draft"
+      ? 'Projected final win chance after each ban, from the same search and model as the picks and the banner above'
 
       : 'Projected win chance after each pick, judged by the same model that scores the final draft'
     : isBanPhase
@@ -201,9 +202,7 @@ export function SearchRecommendationPanel({
                 </div>
                 <div className="text-right shrink-0">
                   <div
-                    title={isBanPhase
-                      ? `The enemy's projected win chance if they get ${rec.hero}. Higher means a bigger threat and a stronger ban. Judged by the same model that evaluates the finished draft.`
-                      : `Projected win chance after picking ${rec.hero}, judged by the same model that evaluates the finished draft, so this number and the final score converge as the draft completes.`}
+                    title={`Projected final win chance after ${isBanPhase ? 'banning' : 'picking'} ${rec.hero}: the search's estimate with this action taken, evaluated by the same model that scores the finished draft. The banner shows the same search's estimate for the current state, so the two converge as the draft completes.`}
                   >
                     <span className={cn(
                       'text-sm font-bold tabular-nums',
@@ -215,7 +214,7 @@ export function SearchRecommendationPanel({
                     )}>
                       {rec.winPct.toFixed(1)}%
                     </span>
-                    <span className="ml-1 text-[9px] text-[#8b9bc8]">{isBanPhase ? 'enemy win if taken' : 'proj. final'}</span>
+                    <span className="ml-1 text-[9px] text-[#8b9bc8]">proj. final</span>
                   </div>
                   {!isBanPhase && (
                     <div

@@ -235,6 +235,9 @@ export function DraftClient({
   const [searchResults, setSearchResults] = useState<OurTurnRow[]>([])
   const [searchInfo, setSearchInfo] = useState<string | null>(null)
   const [searching, setSearching] = useState(false)
+  // Joint estimate from the latest search (root value, %, our perspective).
+  // Header and suggestion rows share this scale by construction.
+  const [searchProjNow, setSearchProjNow] = useState<number | null>(null)
   const [searchStatus, setSearchStatus] = useState<string>('')
   const [gdOpponentPreds, setGdOpponentPreds] = useState<OpponentPredictionRow[]>([])
   const [gdLoading, setGdLoading] = useState(false)
@@ -328,73 +331,37 @@ export function DraftClient({
         const playerData = draftData.playerStats && availableBattletags.length > 0
           ? { playerStats: draftData.playerStats, availableBattletags }
           : undefined
-        const { recommendations: mctsRecs, sims } = await getAIRecommendations(
+        const { recommendations: mctsRecs, sims, valueEstimate } = await getAIRecommendations(
           buildAIState(), unavailableHeroes, step.team, playerData, 10, draftData,
         )
         if (cancelled) return
 
-        // Projections come from the partial-draft WP model (the neutral
-        // judge, same scale and feature family as the final evaluation), NOT
-        // from search Q: instrumentation on 2,000 real drafts (2026-08-07)
-        // showed the policy value head's level is a state-insensitive
-        // constant, which made Q-based projections sit near 80% all draft
-        // and cliff at the end. MCTS still chooses WHICH candidates make the
-        // shortlist and carries the personalization (MAWP) nudges, applied
-        // as a delta (winProb - q) on top of the neutral projection. Pick
-        // rows project the state after WE take the hero; ban rows project
-        // the state if THE ENEMY gets the hero (a ban's greedy value is the
-        // threat it denies), so for bans LOWER means "ban this first" and
-        // the list sorts ascending.
-        const aiState = buildAIState()
-        const ourIs0 = aiState.ourTeam === 0
-        const [our, enemy] = ourIs0
-          ? [aiState.team0Picks, aiState.team1Picks]
-          : [aiState.team1Picks, aiState.team0Picks]
-        const projFor = async (t0: string[], t1: string[], stepIdx: number) => {
-          const p = await getPartialProjection(t0, t1, aiState.map, aiState.tier, stepIdx, draftData)
-          return (ourIs0 ? p : 1 - p) * 100
+        // One scale everywhere (Max, 2026-08-13): rows show the SEARCH's
+        // mean action value Q(s,a) — projected final win chance after the
+        // action, backed by the partial-draft WP model at every leaf (the
+        // flat policy value head is no longer used for values). Bans and
+        // picks have identical semantics: a ban's value emerges from search
+        // dynamics (the hero is unavailable in every branch). The header
+        // displays the same search's root value, so header and rows agree
+        // by construction. MAWP is not folded into any displayed number.
+        const projNow = valueEstimate * 100
+        const mctsQ = new Map(mctsRecs.map(r => [r.hero, r.winProb]))
+        const toRow = (hero: string, isGreedyPad: boolean): OurTurnRow => {
+          const q = mctsQ.get(hero)
+          const winPct = q !== undefined ? q * 100 : projNow
+          return { hero, isGreedyPad, winPct, deltaPp: winPct - projNow }
         }
-        // Training convention (train_partial_wp): a state's step index is the
-        // pick_number of the action just INCLUDED in it. A candidate state
-        // includes the action at aiState.step; the current state's last
-        // included action is aiState.step - 1.
-        const nextStep = Math.min(aiState.step, 15)
-        const projNow = await projFor(aiState.team0Picks, aiState.team1Picks, Math.max(aiState.step - 1, 0))
-        const isBan = aiState.stepType === 'ban'
-        const mctsAdj = new Map(mctsRecs.map(r => [r.hero, r.mawpAdj * 100]))
-        // Candidate state in ABSOLUTE team order: on a pick the hero joins
-        // OUR team; on a ban the projection is the threat state where the
-        // ENEMY has taken the hero.
-        const candState = (hero: string): [string[], string[]] => {
-          const heroToTeam0 = isBan ? !ourIs0 : ourIs0
-          return heroToTeam0
-            ? [[...aiState.team0Picks, hero], aiState.team1Picks]
-            : [aiState.team0Picks, [...aiState.team1Picks, hero]]
-        }
-        const toRow = async (hero: string, isGreedyPad: boolean): Promise<OurTurnRow> => {
-          const [t0, t1] = candState(hero)
-          const ourPct = (await projFor(t0, t1, nextStep)) + (mctsAdj.get(hero) ?? 0)
-          if (isBan) {
-            // Display the THREAT from the enemy's side: their win chance if
-            // they get the hero. Biggest number = biggest threat = ban first,
-            // so the list sorts descending like every other list on the page.
-            const enemyPct = 100 - ourPct
-            return { hero, isGreedyPad, winPct: enemyPct, deltaPp: enemyPct - (100 - projNow) }
-          }
-          return { hero, isGreedyPad, winPct: ourPct, deltaPp: ourPct - projNow }
-        }
+        setSearchProjNow(projNow)
 
         const mctsHeroes = new Set(mctsRecs.map(r => r.hero))
         const aiTopHero = mctsRecs[0]?.hero ?? null
-        const candidates = [
-          ...mctsRecs.map(r => ({ hero: r.hero, pad: false })),
+        const rows: OurTurnRow[] = [
+          ...mctsRecs.map(r => toRow(r.hero, false)),
           ...recommendations
             .filter(r => !mctsHeroes.has(r.hero) && !unavailableHeroes.has(r.hero))
-            .map(r => ({ hero: r.hero, pad: true })),
-        ].slice(0, 10)
-        const rows: OurTurnRow[] = (
-          await Promise.all(candidates.map(c => toRow(c.hero, c.pad)))
-        )
+            .map(r => toRow(r.hero, true)),
+        ]
+          .slice(0, 10)
           .sort((a, b) => b.winPct - a.winPct)
           .map(r => (r.hero === aiTopHero ? { ...r, isAiTop: true } : r))
 
@@ -442,33 +409,22 @@ export function DraftClient({
   const { ourWinPct, enemyWinPct } = useMemo(() => {
     if (!draftData) return { ourWinPct: null, enemyWinPct: null }
 
-    const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
+    const { ourPicks, enemyPicks } = pickArrays
 
     if (ourPicks.length === 0 && enemyPicks.length === 0) {
       return { ourWinPct: null, enemyWinPct: null }
     }
 
-    const ourRaw = ourPicks.length > 0
-      ? computeTeamWinEstimate(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
-      : null
-    const enemyRaw = enemyPicks.length > 0
-      ? computeTeamWinEstimate(enemyPicks, ourPicks, draftData, state.map)
-      : null
-
-    // Normalize so the two percentages sum to 100
-    if (ourRaw && enemyRaw) {
-      const sum = ourRaw.winPct + enemyRaw.winPct
-      return {
-        ourWinPct: Math.round(ourRaw.winPct / sum * 1000) / 10,
-        enemyWinPct: Math.round(enemyRaw.winPct / sum * 1000) / 10,
-      }
+    // JOINT estimate, one model: the search's root value (partial-WP-backed
+    // MCTS, bans included in state); enemy is its complement. The old
+    // per-team stats heuristics disagreed with the suggestion rows by
+    // construction (different model, different scale).
+    if (searchProjNow !== null) {
+      const our = Math.round(searchProjNow * 10) / 10
+      return { ourWinPct: our, enemyWinPct: Math.round((100 - our) * 10) / 10 }
     }
-
-    return {
-      ourWinPct: ourRaw?.winPct ?? null,
-      enemyWinPct: enemyRaw?.winPct ?? null,
-    }
-  }, [pickArrays, state.map, draftData])
+    return { ourWinPct: null, enemyWinPct: null }
+  }, [pickArrays, draftData, searchProjNow])
 
   // Raw win estimate (with breakdown) for AMA context enrichment and as the
   // baseline for search-recommendation deltas
