@@ -303,6 +303,19 @@
       </div>
     </div>
 
+    <h3>Voice input — planned third path</h3>
+    <div class="decision">
+      <span class="label">Planned</span>
+      <p style="margin:6px 0 0;">Let the player just <strong>say what's on screen</strong> — "they banned Muradin", "enemy picked Jaina", "map is Sky Temple" — and have the overlay update. Recognition runs against a <strong>closed vocabulary</strong> (the 90 heroes and 14 maps we already ship) rather than open dictation, which is what makes this tractable: the recognizer is choosing among known words, not transcribing English.</p>
+    </div>
+    <p class="note">Why it earns a place: during a draft your hands are on the hero pool and the clock is short, so the expensive interaction isn't <em>entering</em> a pick — it's <em>correcting</em> one the auto-fill got wrong. Speaking a correction costs no clicks and no alt-tab. It's also the natural fallback on any machine where screen capture is unavailable or mis-calibrated.</p>
+    <ul>
+      <li><strong>Push-to-talk, not hot mic.</strong> A hotkey gates the recognizer so we never capture team voice comms or ambient room audio, and so the feature can't fire on someone else's call.</li>
+      <li><strong>On-device recognition preferred</strong> — no per-utterance network hop inside the draft window, no audio leaving the machine, no added cost per draft. A cloud recognizer is the fallback if local accuracy on hero names proves poor.</li>
+      <li><strong>Intent, not transcript.</strong> Utterances map onto the same small set of actions the taps already produce: ban / our pick / enemy pick / map / undo.</li>
+      <li><strong>Known risk — homophones.</strong> Hero names collide with each other and with common speech ("Mei"/"May", "Chen"/"Zen", "Cho"/"Gall" as one pick). Ambiguous matches must ask for confirmation rather than silently choosing, on the same principle as a low-confidence auto-fill.</li>
+    </ul>
+
     <h3>Overlay technology — alternatives considered</h3>
     <table>
       <tr><th>Option</th><th></th><th>Why</th></tr>
@@ -347,6 +360,15 @@
       <tr><td>Multimodal LLM vision</td><td><span class="badge fallback">Fallback</span></td><td>Flexible tie-breaker for a genuinely ambiguous frame, but per-frame cost/latency and sends screenshots off-device. Not in the default path.</td></tr>
       <tr><td>Read game memory / logs for live state</td><td><span class="badge rejected">Rejected</span></td><td>The spike confirmed no disk/API/log source exposes live mid-draft state, and memory reading trips Warden. So live capture is taps + optional CV; the file supplies the rest at load.</td></tr>
     </table>
+
+    <div class="flag" style="margin:18px 0;">
+      <strong>What actually happened — both decisions above were reversed.</strong> Recorded here rather than quietly edited, because the reasons are the useful part.
+      <ul style="margin:8px 0 0;">
+        <li><strong>Capture: WGC lost to the "rejected" option.</strong> On Windows 10, Graphics Capture forces a yellow capture border that flashed through every draft, and it froze the game during play. Win10 has no API to suppress it. <code>PrintWindow(PW_RENDERFULLCONTENT)</code> — rejected above as slow and black-frame-prone — captures the DirectX draft screen at full fidelity with no border, and is what ships.</li>
+        <li><strong>Recognition: template matching is dead; vision LLM is the default path.</strong> Hero-name OCR failed outright (names render as light-blue italic text on a light-blue banner — same hue, and no threshold separates them). Portrait correlation ranked the wrong hero even on a clean crop, and hero <em>skins</em> would have broken it regardless. A vision model reads the screen instead — robust to skins, resolution, and UI drift.</li>
+        <li><strong>The real lesson was about framing, not models.</strong> The vision model kept reporting heroes nobody picked and putting enemy heroes on our team. The cause wasn't the model: we were sending the entire ultrawide frame, in which the two team columns are thin strips at the far edges (~12% of width each) while a hero splash dominates the middle and renders the previewing hero's name in the largest text on screen. Sending <strong>labelled crops of just the columns, bans, and map</strong> made team identity structural — decided by which region we cut, not by the model's judgement — and the errors stopped.</li>
+      </ul>
+    </div>
 
     <h3>Honest about the hard parts</h3>
     <p class="note">The draft screen is <strong>not</strong> a fixed layout — different aspect ratios reposition elements and Blizzard shifts the UI subtly between patches. That's exactly why auto-fill is an <em>assistive layer with a manual fallback</em>, not the source of truth. ROI coordinates + portrait assets ship as versioned config, updatable without a client release.</p>
@@ -414,18 +436,21 @@
     <h2>Milestones</h2>
     <p class="sub">Sequenced by dependency, not calendar. Each milestone ends on something demonstrable. No week estimates — the build runs on LLM coding agents, so we gate on <em>done and verified</em>, not elapsed time.</p>
 
-    <div class="parallel-note"><strong>M0, M1, and M2 are done ✓.</strong> The engine matches the website and the WinUI overlay is a working, usable product. <strong>M3</strong> is underway — replay-based personalization has landed; the battlelobby file-integration is next. <strong>M4</strong> (CV auto-fill) is unblocked.</div>
+    <div class="parallel-note"><strong>M0–M2 and M4 are done ✓, and the beta (M5) has shipped</strong> — it's downloadable now at <a href="/draft-coach">/draft-coach</a>. <strong>M3</strong> is all but complete: replay personalization and the battlelobby read have both landed and been verified live; only the backend sync remains. Note that M4 was <strong>built differently from the plan below</strong> — see the reversals recorded in its section.</div>
 
     <div class="phase"><div class="p" style="color:var(--success)">M0 ✓</div><div><strong>Verify game-state sources (hands-on). — DONE (2026-07-17).</strong> On a current-patch box (build 97039), a ranked Storm League draft confirmed the battlelobby timing / format / safe-read and that bans + picks + map are present. <em>Gate cleared: the CV-free half is real.</em></div></div>
     <div class="phase"><div class="p" style="color:var(--success)">M1 ✓</div><div><strong>On-device engine parity. — DONE.</strong> ONNX + ported neural MCTS in C# (<code>native/HotsFever.DraftEngine</code>), recommending picks and bans. A parity oracle verifies it against the live web engine: input encoding <strong>byte-identical</strong>, model outputs within <strong>~1e-6</strong> (top pick 100%), and the full MCTS <strong>identical</strong> in shared mock-RNG / fixed-sim mode. <em>Gate cleared: the engine matches the website.</em></div></div>
     <div class="phase"><div class="p" style="color:var(--success)">M2 ✓</div><div><strong>Overlay + manual input. — DONE.</strong> Native WinUI 3 overlay (<code>native/HotsFever.Overlay</code>): translucent, always-on-top, click-through-friendly; setup (map/tier/team), a tappable hero grid that drives a live draft, a mini draft board mirroring the real screen, and live on-device recommendations. <em>A usable, fully CV-free product.</em></div></div>
-    <div class="phase"><div class="p" style="color:var(--warning)">M3 ◐</div><div><strong>File integration — in progress.</strong> <strong>Done:</strong> local <code>.StormReplay</code> history is parsed into personal per-hero stats (Storm-League-only, momentum-adjusted MAWP matching the site) that personalize recommendations. <strong>Next:</strong> read the battlelobby at loading → real battletags + authoritative final draft, reconcile/auto-fill the draft. <strong>Then:</strong> sync replay data to the Neon backend.</div></div>
-    <div class="phase"><div class="p">M4</div><div><strong>Screen auto-fill.</strong> Optional CV layer for heroes + map over the manual baseline — confirm/correct, file-reconciled, degrades to manual on low confidence.</div></div>
-    <div class="phase"><div class="p">M5</div><div><strong>Beta hardening.</strong> Packaging/installer, first-run onboarding (borderless setup), and live Storm League testing with the spec battletags (Django, AzmoDonTrump, SirWatsonII, notoriusPIG, Mestupidum) — expecting their known-strong heroes to surface. Ship the beta.</div></div>
+    <div class="phase"><div class="p" style="color:var(--warning)">M3 ◐</div><div><strong>File integration — nearly done.</strong> <strong>Done:</strong> local <code>.StormReplay</code> history parsed into personal per-hero stats (Storm-League-only, momentum-adjusted MAWP matching the site); and the battlelobby read at loading → real battletags + authoritative final draft, auto-filling the board, <em>verified live</em>. Parsing is in-process via <code>Heroes.StormReplayParser</code> — no external CLI. <strong>Remaining:</strong> sync replay data to the Neon backend. The ingest route is built and unit-tested but is <strong>not merged and has never run against a database</strong>; it needs a Neon branch test before the write token is enabled.</div></div>
+    <div class="phase"><div class="p" style="color:var(--success)">M4 ✓</div><div><strong>Screen auto-fill — DONE, but not the way this page planned it.</strong> Live draft recognition works: map, bans, and both teams read off the screen and auto-filled, with on-device recs and win% updating through the draft. <strong>Two of the decisions in section 2 were overturned by evidence</strong> — WGC capture and portrait template-matching both failed and were replaced by the options this page had rejected. See that section for what happened and why.</div></div>
+    <div class="phase"><div class="p" style="color:var(--success)">M5 ✓</div><div><strong>Beta hardening — SHIPPED.</strong> Self-contained build with bundled models/data (no install prerequisites), an Inno Setup per-user installer needing no admin, a portable zip, first-run onboarding and an exclusive-fullscreen warning. Downloadable at <a href="/draft-coach">/draft-coach</a>, and validated across real Storm League drafts.</div></div>
+    <div class="phase"><div class="p">M6</div><div><strong>Voice input.</strong> Say what's on screen — "they banned Muradin" — and the board updates. Closed-vocabulary recognition over the 90 heroes and 14 maps, push-to-talk, on-device where accuracy allows. Primarily a fast <em>correction</em> path for auto-fill, and the fallback where screen capture isn't available. Designed in <a href="#piece-1">section 1</a>.</div></div>
 
     <h3>Fast-follows (post-beta)</h3>
     <ul>
-      <li><strong>Robustness</strong> — more resolutions/ultrawide, localized clients, patch-resilient ROI + battlelobby config that updates without a client release.</li>
+      <li><strong>Recognition robustness</strong> — the region crops that auto-fill depends on are calibrated against a 3440×1440 ultrawide and carry an automatic full-frame fallback, but <strong>16:9 is still unverified</strong>. Localized clients remain untested.</li>
+      <li><strong>Patch resilience</strong> — ROI + battlelobby config that updates without a client release. The lobby format shifts per game build, so this has a standing maintenance tail.</li>
+      <li><strong>Model updates on demand</strong> — models ship bundled today; the client should fetch new versions rather than requiring a reinstall.</li>
       <li><strong>Overlay polish</strong> — collapse-to-pill between picks, multi-anchor layouts, per-user placement.</li>
     </ul>
 
