@@ -159,19 +159,48 @@ async function main() {
 
   const key1 = process.env.HEROES_PROFILE_API_KEY
   if (!key1) { log.error('HEROES_PROFILE_API_KEY required'); process.exit(1) }
+  const key2 = process.env.HEROES_PROFILE_API_KEY2
   const limit = Number(args[args.indexOf('--limit') + 1]) || 500
   const minGames = Number(args[args.indexOf('--min-games') + 1]) || 40
-  // Player/Replays shares key 1's per-minute rate with the Replay/Data
-  // workers; keep this modest — the weekly 5K-call pool is the real limit.
-  const api = new HeroesProfileApi(key1, 20, 3)
+  // Player/Replays shares each key's per-minute rate with the other workers;
+  // keep this modest — the weekly pools (key1 ~5K, key2 ~500 calls) are the
+  // real limit. On key1 quota exhaustion we fall through to key2 and squeeze
+  // its pool too; the run stops only when EVERY key is spent.
+  const clients = [{ name: 'key1', api: new HeroesProfileApi(key1, 20, 3) }]
+  if (key2) clients.push({ name: 'key2', api: new HeroesProfileApi(key2, 15, 3) })
+  let ci = 0
 
   const stratified = args.includes('--stratified')
-  const targets = await selectTargets(db, limit, minGames, stratified)
+  // TRACKED battletags are unconditional priority targets (Max, 2026-08-17):
+  // they are the personalization paper's focal players, but their thin
+  // early coverage meant the game-count-based selection never drew them.
+  // Enumerate any not-yet-marked tracked player FIRST, every run.
+  const tracked = await db.execute(sql`
+    SELECT DISTINCT t.battletag, COALESCE(t.region, 1) AS region,
+           COALESCE(p.blizz_id, 0) AS blizz_id,
+           COALESCE(p.games, 0) AS games
+    FROM tracked_battletags t
+    LEFT JOIN (SELECT battletag, max(blizz_id) blizz_id, count(*) games
+               FROM replay_players GROUP BY battletag) p ON p.battletag = t.battletag
+    WHERE NOT EXISTS (SELECT 1 FROM player_history_marks m WHERE m.battletag = t.battletag)`)
+    .then(r => r.rows.map(x => ({
+      battletag: String(x.battletag), blizz_id: Number(x.blizz_id),
+      region: Number(x.region), games: Number(x.games),
+    })))
+  if (tracked.length > 0) {
+    log.info(`Priority: ${tracked.length} tracked battletags not yet enumerated: ` +
+      tracked.map(x => x.battletag).join(', '))
+  }
+  const selected = await selectTargets(db, limit, minGames, stratified)
+  const trackedTags = new Set(tracked.map(x => x.battletag))
+  const targets = [...tracked, ...selected.filter(s => !trackedTags.has(s.battletag))]
   log.info(`Enumerating histories for ${targets.length} players ` +
     `(>=${minGames} panel games, ${stratified ? 'stratified by activity quartile' : 'heaviest first'})`)
 
   let calls = 0
-  for (const t of targets) {
+  for (let ti = 0; ti < targets.length; ti++) {
+    const t = targets[ti]
+    const api = clients[ci].api
     let found = 0
     let enq = 0
     try {
@@ -211,10 +240,18 @@ async function main() {
     } catch (err) {
       const msg = String(err)
       if (msg.includes('Max calls') || msg.includes('non-JSON response')) {
-        log.warn(`Player/Replays weekly quota exhausted after ${calls} calls — stopping (resume next week)`)
-        break
+        if (ci + 1 < clients.length) {
+          ci++
+          log.warn(`${clients[ci - 1].name} quota exhausted after ${calls} calls — ` +
+            `switching to ${clients[ci].name}, retrying ${t.battletag}`)
+          ti-- // re-enumerate this player on the next key (unmarked, no loss)
+        } else {
+          log.warn(`All Player/Replays quotas exhausted after ${calls} calls — stopping (resume next week)`)
+          break
+        }
+      } else {
+        log.warn(`${t.battletag}: unexpected error, skipping: ${msg.slice(0, 200)}`)
       }
-      log.warn(`${t.battletag}: unexpected error, skipping: ${msg.slice(0, 200)}`)
     }
     await sleep(250)
   }
