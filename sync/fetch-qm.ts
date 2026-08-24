@@ -37,7 +37,7 @@
  *   nohup npx tsx sync/fetch-qm.ts >> sync/logs/fetch-qm.log 2>&1 &
  */
 import { sql, eq, inArray } from 'drizzle-orm'
-import { HeroesProfileApi } from './api-client'
+import { createHpApi } from './hp-api'
 import { createDb, SyncDb } from './db'
 import { log } from './logger'
 import { storeReplayPlayers } from './player-store'
@@ -219,6 +219,10 @@ async function main() {
   }
   if (!key1) { log.error('HEROES_PROFILE_API_KEY required'); process.exit(1) }
 
+  // --cron: one-shot mode — exit on quota exhaustion / caught-up instead of
+  // sleeping, so the Neon endpoint can suspend between scheduled runs.
+  const cron = process.argv.includes('--cron')
+
   const vmap = await versionDateMap(db)
   log.info(`version->date map: ${vmap.size} builds`)
 
@@ -248,7 +252,7 @@ async function main() {
       return range !== undefined && range[1] >= fromMs && range[0] < toMs
     }
 
-    const api = new HeroesProfileApi(key1, bucket.rate, 3)
+    const api = createHpApi('key1', Math.min(bucket.rate, 110), 3)
     let exhaustedUntil = 0
 
     // Per-stratum cursors (state rows keyed `${bucket}#${i}`), scanned
@@ -272,6 +276,11 @@ async function main() {
 
     while (!stopping && done < bucket.target) {
       if (exhaustedUntil > Date.now()) {
+        if (cron) {
+          log.info(`Quota benched until ${new Date(exhaustedUntil).toISOString()} — exiting (cron mode)`)
+          stopping = true
+          continue
+        }
         await sleep(Math.min(exhaustedUntil - Date.now(), 60_000))
         continue
       }
@@ -282,6 +291,10 @@ async function main() {
         // this normally only happens on the open-ended bucket: the head of
         // the listing was reached. Wait for new games, then re-open the
         // last stratum.
+        if (cron) {
+          log.info(`Bucket ${bucket.name}: all strata exhausted at ${done.toLocaleString()}/${bucket.target.toLocaleString()} — exiting (cron mode)`)
+          break
+        }
         log.info(`Bucket ${bucket.name}: all strata exhausted at ${done.toLocaleString()}/${bucket.target.toLocaleString()} — sleeping ${CAUGHT_UP_SLEEP_MS / 60000} min`)
         await sleep(CAUGHT_UP_SLEEP_MS)
         const last = strata[strata.length - 1]
@@ -343,7 +356,7 @@ async function main() {
             counters.skipped++
             return
           }
-          await storeReplayPlayers(db, row.replayID, replay)
+          const stored = await storeReplayPlayers(db, row.replayID, replay)
           const gameDate = replay.game_date ? new Date(replay.game_date) : null
           await db.insert(qmGames).values({
             replayId: row.replayID,
@@ -357,11 +370,8 @@ async function main() {
             leagueTier: Number.isFinite(Number(row.league_tier)) ? Number(row.league_tier) : null,
             rank: row.rank ? String(row.rank).slice(0, 20) : null,
           }).onConflictDoNothing()
-          const res = await db.execute(
-            sql`SELECT count(*) AS c FROM replay_players WHERE replay_id = ${row.replayID}`
-          ).then(r => r.rows)
           counters.processed++
-          counters.playerRows += Number(res[0].c)
+          counters.playerRows += stored.playerRows
         } catch (err) {
           const msg = String(err)
           const isQuota = msg.includes('non-JSON response') || msg.includes('Max calls')

@@ -33,6 +33,7 @@
  */
 import { sql } from 'drizzle-orm'
 import { HeroesProfileApi } from './api-client'
+import { createHpApi, isV2 } from './hp-api'
 import { createDb, SyncDb } from './db'
 import { log } from './logger'
 
@@ -102,17 +103,22 @@ async function selectTargets(
 
 /** Player/Replays for one battletag+window; returns replay ids or null on failure. */
 async function fetchWindow(
-  api: HeroesProfileApi, t: Target, from: string, to: string,
+  api: import('./hp-api').HpApi, t: Target, from: string, to: string,
 ): Promise<number[] | null> {
   try {
-    const raw: any = await api.fetch('Player/Replays', {
-      battletag: t.battletag,
-      region: String(t.region),
-      mode: 'json',
-      game_type: 'Storm League',
-      start_date: from,
-      end_date: to,
-    })
+    // v2 exposes the legacy shape via getPlayerReplays (with end-date
+    // support); the old client's method lacks end_date, so it keeps the
+    // raw query it always used.
+    const raw: any = api instanceof HeroesProfileApi
+      ? await api.fetch('Player/Replays', {
+          battletag: t.battletag,
+          region: String(t.region),
+          mode: 'json',
+          game_type: 'Storm League',
+          start_date: from,
+          end_date: to,
+        })
+      : await api.getPlayerReplays(t.battletag, t.region, from, to)
     // Response shape: { "Storm League": { "<replayId>": {...}, ... } } —
     // replay ids are the KEYS of the object nested under the game_type.
     const inner = raw?.['Storm League'] ?? Object.values(raw ?? {})[0] ?? {}
@@ -166,8 +172,10 @@ async function main() {
   // keep this modest — the weekly pools (key1 ~5K, key2 ~500 calls) are the
   // real limit. On key1 quota exhaustion we fall through to key2 and squeeze
   // its pool too; the run stops only when EVERY key is spent.
-  const clients = [{ name: 'key1', api: new HeroesProfileApi(key1, 20, 3) }]
-  if (key2) clients.push({ name: 'key2', api: new HeroesProfileApi(key2, 15, 3) })
+  const clients = isV2()
+    ? [{ name: 'v2', api: createHpApi('key1', 20, 3) }]
+    : [{ name: 'key1', api: new HeroesProfileApi(key1, 20, 3) as import('./hp-api').HpApi }] as { name: string; api: import('./hp-api').HpApi }[]
+  if (!isV2() && key2) clients.push({ name: 'key2', api: new HeroesProfileApi(key2, 15, 3) })
   let ci = 0
 
   const stratified = args.includes('--stratified')

@@ -26,6 +26,7 @@
  */
 import { sql, eq } from 'drizzle-orm'
 import { HeroesProfileApi } from './api-client'
+import { createHpApi, isV2, HpApi } from './hp-api'
 import { createDb, SyncDb } from './db'
 import { log } from './logger'
 import { storeReplayPlayers } from './player-store'
@@ -157,7 +158,7 @@ async function nextBatch(db: SyncDb, cursor: number): Promise<{ ids: number[]; f
 
 interface KeyedClient {
   name: string
-  api: HeroesProfileApi
+  api: HpApi
   exhaustedUntil: number // epoch ms; 0 = healthy
 }
 
@@ -300,10 +301,12 @@ async function main() {
   }
 
   if (!key1) { log.error('HEROES_PROFILE_API_KEY required'); process.exit(1) }
-  const clients: KeyedClient[] = [
-    { name: 'key1', api: new HeroesProfileApi(key1, KEY1_RATE, 3), exhaustedUntil: 0 },
-  ]
-  if (key2) clients.push({ name: 'key2', api: new HeroesProfileApi(key2, KEY2_RATE, 3), exhaustedUntil: 0 })
+  // HP_API=v2: one client, one key, v1's per-minute cap (fixture headers
+  // showed 120/min); the key1/key2 split only exists on the old API.
+  const clients: KeyedClient[] = isV2()
+    ? [{ name: 'v2', api: createHpApi('key1', 110, 3), exhaustedUntil: 0 }]
+    : [{ name: 'key1', api: new HeroesProfileApi(key1, KEY1_RATE, 3), exhaustedUntil: 0 }]
+  if (!isV2() && key2) clients.push({ name: 'key2', api: new HeroesProfileApi(key2, KEY2_RATE, 3), exhaustedUntil: 0 })
   log.info(`Player refetch: ${clients.length} key(s) at ${key2 ? `${KEY1_RATE}+${KEY2_RATE}` : KEY1_RATE}/min, ` +
     `${KEY1_WORKERS}+${key2 ? KEY2_WORKERS : 0} workers, batch=${BATCH_SIZE}`)
 
