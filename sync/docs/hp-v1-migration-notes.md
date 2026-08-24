@@ -23,11 +23,18 @@ Auth: `Authorization: Bearer $HEROES_PROFILE_V2_API_KEY` (never ?api_token=)
 
 ## Cross-cutting gotchas
 
-- **Per-endpoint allowances.** Quota is now per endpoint family (replay_data,
-  replay_index, heroes_stats, player_match_history, ...). Error example in
-  docs: "Weekly limit of 1,000 calls reached for this endpoint." ACTUAL
-  numbers are plan-dependent — read them off the Billing page BEFORE
-  activation and rewrite training/QUOTA_ALLOCATION_PLAN.md accordingly.
+- **Per-endpoint allowances (Developer plan, read 2026-08-24):**
+  Replay/Data 250K/wk (matches old realized usage), Replay/Download 25K,
+  Replay/Ban 100K; Player/Match/History 5K/wk at 100 rows/page (~100x the
+  old effective Player/Replays throughput); Player + Player/MMR families
+  50K/wk each incl. MMR HISTORY (at-game-time ratings for paper 3);
+  Player/FriendFoe 5K; Heroes/Stats 1K, Hero/Matchups 10K,
+  Heroes/Map/Stats 1K; reference endpoints 1M. Rolling 7-day windows per
+  endpoint, starting at first call; fixture calls uncounted.
+  **GAP: the Billing page lists NO allowance row for the /replays bulk
+  index ("replay_index") — email Zemill before activation to confirm its
+  limit** (at ~25 rows/page, tracking ~10K new games/wk needs ~400
+  listing calls/wk).
 - **202 + job pattern** (global stats only): 202 → follow `Location`, honor
   `Retry-After` (poll free), 200 body = the data; 404 job = restart call;
   500 job = query failed. Treat 202 as success-in-progress.
