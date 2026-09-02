@@ -87,14 +87,16 @@ the player's name in smaller text under it. READ THE PRINTED HERO NAME — trust
 the portrait art, because skins change the art but the name is always correct.
 
 SLOT STATE — classify each slot as exactly one of:
-- LOCKED: a portrait fills the hexagon, bright and fully coloured, and its NAME BANNER is a
-  saturated colour (vivid purple/blue on our side, red/pink on the enemy side). Report it in
-  leftTeam/rightTeam.
-- PENDING: the player has "shown" a hero to their team but has NOT locked it in. The single
-  most reliable cue is the NAME BANNER: a pending slot's banner is GREY / washed-out /
-  desaturated compared to the vivid banners of the locked slots above it, and its portrait is
-  dimmer. The hexagon may also have a glowing or animated border. Report it in
+- LOCKED: a portrait fills the hexagon, bright and fully coloured, sitting settled in its slot.
+  This is the normal state of a filled slot. Report it in leftTeam/rightTeam.
+- PENDING: the player has "shown" a hero to their team but has NOT locked it in. It looks
+  visibly less finished than the locked slots around it — the portrait is dimmed, greyed or
+  desaturated, or the hexagon carries a glowing / animated / highlighted border. Report it in
   pendingLeft/pendingRight instead — never in leftTeam/rightTeam.
+  Judge this by COMPARING slots within the same column: pending only means anything relative
+  to how the locked slots in that same image look. Note that every slot's name banner is a
+  pale grey plate whether or not the hero is locked — the banner colour is NOT the cue.
+  If you cannot see a clear difference between this slot and the others, call it LOCKED.
 - EMPTY: a dark, empty hexagon with NO portrait art in it. The player's name may still be shown
   beside it — that does NOT make it filled. Report nothing for it.
 
