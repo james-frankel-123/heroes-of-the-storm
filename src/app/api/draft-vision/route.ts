@@ -71,6 +71,15 @@ IMAGE 1 — the two pick columns, side by side under drawn labels.
 
 IMAGE 2 — bans and the map, stacked under drawn labels "MAP", "OUR BANS", "ENEMY BANS".
 - Report them in map, bansLeft and bansRight respectively.
+- These strips are cropped from fixed screen positions, so a strip can legitimately contain
+  NOTHING but background art — empty space, starfield, nebula, scenery. THIS IS NORMAL and it
+  is not your job to fill it in.
+- A ban is a small HEXAGON containing a hero portrait, usually with a small padlock on it.
+  If a strip contains no such hexagons, return an EMPTY array for it. Never infer a ban from
+  the background, from what heroes are common, or from what would make a plausible draft.
+  Returning [] is always better than guessing — a guessed ban corrupts the recommendations.
+- Read "map" ONLY from the map NAME printed as large text in the MAP strip. If no map name
+  text is legible there, return null. Do NOT identify the map from the background scenery.
 
 READING A PICK SLOT
 Each slot is one hexagon. A filled slot has the HERO NAME printed on a banner beside it, with
@@ -78,16 +87,24 @@ the player's name in smaller text under it. READ THE PRINTED HERO NAME — trust
 the portrait art, because skins change the art but the name is always correct.
 
 SLOT STATE — classify each slot as exactly one of:
-- LOCKED: a portrait fills the hexagon, bright and fully coloured. Report it in leftTeam/rightTeam.
-- PENDING: that team is mid-pick and has not confirmed. The portrait is dim / greyed /
-  desaturated, or the hexagon has a glowing or animated border. Report it in
+- LOCKED: a portrait fills the hexagon, bright and fully coloured, and its NAME BANNER is a
+  saturated colour (vivid purple/blue on our side, red/pink on the enemy side). Report it in
+  leftTeam/rightTeam.
+- PENDING: the player has "shown" a hero to their team but has NOT locked it in. The single
+  most reliable cue is the NAME BANNER: a pending slot's banner is GREY / washed-out /
+  desaturated compared to the vivid banners of the locked slots above it, and its portrait is
+  dimmer. The hexagon may also have a glowing or animated border. Report it in
   pendingLeft/pendingRight instead — never in leftTeam/rightTeam.
 - EMPTY: a dark, empty hexagon with NO portrait art in it. The player's name may still be shown
   beside it — that does NOT make it filled. Report nothing for it.
 
+Compare the slots in a column AGAINST EACH OTHER: locked and pending look obviously different
+side by side, and at most one slot per team is pending at a time. A hero can legitimately appear
+as LOCKED in one slot and PENDING in another — report each slot as what it is; do not suppress
+one because the same hero appears twice.
+
 Most slots are EMPTY early in a draft. Only report a hero you can actually see in a hexagon.
-Ban hexes carry no name text, so identify those from the portrait art alone and omit any you
-cannot name confidently. previewHero is always null here — these crops contain no centre splash.
+previewHero is always null here — these crops contain no centre splash.
 
 ${SHAPE}
 - If the images show no draft furniture at all (gameplay, a menu, blank panels), return all
