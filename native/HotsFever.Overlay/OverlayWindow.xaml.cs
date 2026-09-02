@@ -83,7 +83,15 @@ public sealed partial class OverlayWindow : Window
     private readonly Dictionary<string, (int side, bool pick)> _vCommitted = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ((int side, bool pick) slot, int hits)> _vCandidates = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _vMisses = new(StringComparer.Ordinal);
-    private const int ConfirmReads = 3; // reads (~3s apart) in one slot before it lands
+    // Display-only: step -> hero a player has SHOWN but not locked. Never in _selections.
+    private readonly Dictionary<int, string> _vShowing = new();
+    // 2, not 3. Confirmation is latency you pay on EVERY pick — at ~3s a read, a third
+    // confirming read pushed a hero onto the board ~9s after it was locked on screen,
+    // which is most of the delay you feel. 3 was set when the model was being handed the
+    // whole screen and inventing heroes from the centre splash; on the column crops a
+    // repeated same-slot misread is far rarer, and RevokeReads still ages out the ones
+    // that slip through.
+    private const int ConfirmReads = 2; // reads in one slot before it lands
     private const int RevokeReads = 3;  // reads missing before it leaves again
 
     // The 16-step order is fixed, so only a handful of (leftPicks, rightPicks) counts
@@ -387,7 +395,10 @@ public sealed partial class OverlayWindow : Window
                             }
                             if (_inDraft)
                             {
-                                delay = 1500; // tight cadence during the draft (~3s between reads incl. API)
+                                // The vision round-trip (~3s) already paces this loop; the
+                                // extra sleep was pure added latency on top of it. Keep a
+                                // small gap so a failed/instant call can't spin the CPU.
+                                delay = 250;
                                 var vd = await VisionRecognizer.RecognizeAsync(raw);
                                 if (vd != null && !vd.IsEmpty)
                                 {
@@ -711,6 +722,22 @@ public sealed partial class OverlayWindow : Window
         for (int i = 0; i < 16; i++)
             if (DraftOrder[i].IsPick && !_selections.ContainsKey(i)) { _currentStep = i; break; }
 
+        // Heroes a player has SHOWN their team but not locked in. These are display-only:
+        // they go on the board so you can see what's coming, but never into _selections,
+        // so _currentStep and the engine recs are exactly what they'd be without them.
+        // No confirmation counting either — a hover is transient and worth showing at once;
+        // if it's withdrawn it simply stops appearing on the next read.
+        _vShowing.Clear();
+        void Show(IReadOnlyList<string> heroes, int team)
+        {
+            var hero = heroes.FirstOrDefault(h => HeroCatalog.HeroIndex(h) >= 0 && !_vCommitted.ContainsKey(h));
+            if (hero == null) return;
+            foreach (int step in StepsFor(team, true))
+                if (!_selections.ContainsKey(step)) { _vShowing[step] = hero; return; }
+        }
+        Show(vd.PendingLeft, 0);
+        Show(vd.PendingRight, 1);
+
         _lobbyStatus = $"live draft (vision) · {_map}";
         await RecomputeAsync();
     }
@@ -722,7 +749,7 @@ public sealed partial class OverlayWindow : Window
         _autoFilled = false;
         _selections.Clear();
         _vOurPicks.Clear(); _vEnemyPicks.Clear(); _vOurBans.Clear(); _vEnemyBans.Clear();
-        _vCommitted.Clear(); _vCandidates.Clear(); _vMisses.Clear();
+        _vCommitted.Clear(); _vCandidates.Clear(); _vMisses.Clear(); _vShowing.Clear();
         _currentStep = 0;
         _lobbyStatus = "";
         if (_scan?.LocalBattletag is string bt && _scan.PlayerStats.Count > 0)
@@ -960,31 +987,42 @@ public sealed partial class OverlayWindow : Window
         {
             var (team, isPick) = DraftOrder[s];
             _selections.TryGetValue(s, out var hero);
+            bool showing = false;
+            if (hero == null && _vShowing.TryGetValue(s, out var shown)) { hero = shown; showing = true; }
             bool mine = team == _ourTeam;
-            var slot = MakeSlot(hero, s == _currentStep, mine);
+            var slot = MakeSlot(hero, s == _currentStep, mine, showing);
             if (!isPick) (mine ? BansMine : BansEnemy).Add(slot);
             else (mine ? PicksMine : PicksEnemy).Add(slot);
         }
     }
 
-    private static SlotVM MakeSlot(string? hero, bool isCurrent, bool mine)
+    // showing = the player has revealed this hero to their team but hasn't locked it in.
+    // Drawn in amber with a faded fill so it never reads as a settled pick.
+    private static SlotVM MakeSlot(string? hero, bool isCurrent, bool mine, bool showing = false)
     {
         bool filled = hero != null;
         var mineFill = Color.FromArgb(0x40, 0x4A, 0x9E, 0xFF);   // blue
         var enemyFill = Color.FromArgb(0x40, 0xFF, 0x6B, 0x6B);  // red
         var emptyFill = Color.FromArgb(0x12, 0xFF, 0xFF, 0xFF);
         var accent = Color.FromArgb(0xFF, 0x4F, 0xFF, 0xB0);     // current = green
+        var amber = Color.FromArgb(0xFF, 0xFF, 0xC1, 0x4F);      // showing = amber
+        var showFill = mine
+            ? Color.FromArgb(0x1E, 0x4A, 0x9E, 0xFF)
+            : Color.FromArgb(0x1E, 0xFF, 0x6B, 0x6B);
+
+        var border = showing ? amber : (isCurrent ? accent : Color.FromArgb(0, 0, 0, 0));
 
         return new SlotVM
         {
             Portrait = filled ? Short(hero!) : "",
-            Name = filled ? hero! : (isCurrent ? "…" : ""),
-            Background = new SolidColorBrush(filled ? (mine ? mineFill : enemyFill) : emptyFill),
-            BorderColor = new SolidColorBrush(isCurrent ? accent : Color.FromArgb(0, 0, 0, 0)),
-            BorderT = new Thickness(isCurrent ? 2 : 0),
-            NameForeground = new SolidColorBrush(filled
-                ? Color.FromArgb(0xFF, 0xEA, 0xF1, 0xFB)
-                : Color.FromArgb(0xFF, 0x7F, 0x93, 0xB0)),
+            Name = showing ? hero + " ?" : (filled ? hero! : (isCurrent ? "…" : "")),
+            Background = new SolidColorBrush(showing ? showFill : (filled ? (mine ? mineFill : enemyFill) : emptyFill)),
+            BorderColor = new SolidColorBrush(border),
+            BorderT = new Thickness(showing || isCurrent ? 2 : 0),
+            NameForeground = new SolidColorBrush(showing
+                ? amber
+                : (filled ? Color.FromArgb(0xFF, 0xEA, 0xF1, 0xFB)
+                          : Color.FromArgb(0xFF, 0x7F, 0x93, 0xB0))),
         };
     }
 

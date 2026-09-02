@@ -68,11 +68,17 @@ public static class VisionRecognizer
     private const double ColWidthH = 0.34;   // column strip width
     private const double ColTopH = 0.07;
     private const double ColHeightH = 0.84;  // through the 5th slot's name banner
-    private const double BanInsetH = 0.21;   // ban row starts just inboard of the column
-    private const double BanWidthH = 0.35;
-    private const double BanHeightH = 0.095;
-    private const double MapWidthH = 0.50;   // map banner, centred on the top edge
-    private const double MapHeightH = 0.075;
+    // Ban row and map banner. These were first calibrated tight against one archived
+    // 3440x1440 frame (bans at y 15-150, map text at y 15-50) and validated there — but a
+    // live draft put both LOWER than that, so the tight crops caught nothing but starfield
+    // and the model invented bans from empty space (a different set almost every read).
+    // The band is now deliberately generous: a bit of extra background costs a few image
+    // tokens, while missing the row entirely costs every ban in the draft.
+    private const double BanInsetH = 0.08;   // ban row starts just inboard of the column
+    private const double BanWidthH = 0.52;
+    private const double BanHeightH = 0.26;
+    private const double MapWidthH = 0.62;   // map banner, centred on the top edge
+    private const double MapHeightH = 0.20;
 
     private const int Gutter = 40;  // black gap so the two columns can't be read as one
     private const int Header = 64;  // room for the drawn region label
@@ -84,12 +90,14 @@ public static class VisionRecognizer
 
     private static int _emptyReads;
     private static bool _fullFrameFallback;
+    private static bool _savedFullFrame;
 
     /// <summary>Called when a new draft starts, so a latched fallback doesn't persist.</summary>
     public static void ResetForNewDraft()
     {
         _emptyReads = 0;
         _fullFrameFallback = false;
+        _savedFullFrame = false;
     }
 
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(30) };
@@ -110,6 +118,18 @@ public static class VisionRecognizer
             if (teams == null || meta == null) return null;
             SaveFrame("last-vision-teams.jpg", teams);
             SaveFrame("last-vision-meta.jpg", meta);
+
+            // Once per draft, keep the WHOLE frame too. The crops alone can't tell you
+            // whether a region missed because the ROI is wrong or because the furniture
+            // isn't there — only the full frame settles that, and it's what re-calibration
+            // needs. Not posted; local diagnostic only.
+            if (!_savedFullFrame)
+            {
+                _savedFullFrame = true;
+                Log?.Invoke($"vision: frame {frame.Width}x{frame.Height} — saved last-vision-frame.jpg for ROI calibration");
+                var whole = await EncodeFullFrameAsync(frame);
+                if (whole != null) SaveFrame("last-vision-frame.jpg", whole);
+            }
 
             var vd = await PostAsync(new (string, byte[])[] { ("teams", teams), ("meta", meta) });
 
