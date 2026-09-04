@@ -15,6 +15,24 @@ namespace HotsFever.DraftEngine.Encoding;
 /// </summary>
 public static class HeroCatalog
 {
+    /// <summary>
+    /// Cho and Gall are two catalog entries but a single draft action — taking either
+    /// consumes both. Mirrors expandChoGall in src/lib/draft/engine.ts, which the web
+    /// applies when computing unavailable heroes. Without it the search can recommend
+    /// a hero that is not actually available, and the board can hold a state the game
+    /// cannot produce.
+    /// </summary>
+    public static IReadOnlyList<string> ExpandChoGall(IEnumerable<string> heroes)
+    {
+        var set = new HashSet<string>(heroes, StringComparer.Ordinal);
+        if (set.Contains("Cho") || set.Contains("Gall"))
+        {
+            set.Add("Cho");
+            set.Add("Gall");
+        }
+        return set.ToArray();
+    }
+
     /// <summary>90 heroes, alphabetically sorted — must match training exactly.</summary>
     public static readonly string[] Heroes =
     {

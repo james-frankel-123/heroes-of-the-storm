@@ -817,7 +817,8 @@ public sealed partial class OverlayWindow : Window
             Team0Picks = t0,
             Team1Picks = t1,
             Bans = bans,
-            TakenHeroes = t0.Concat(t1).Concat(bans).ToArray(),
+            // Cho and Gall go together: taking either makes both unavailable.
+            TakenHeroes = HeroCatalog.ExpandChoGall(t0.Concat(t1).Concat(bans)),
             Map = _map,
             Tier = _tier,
             Step = Math.Min(_currentStep, 15),

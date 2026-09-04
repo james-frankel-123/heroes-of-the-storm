@@ -47,7 +47,16 @@ public static class AiInference
             ? (t0, t1) => WinProbability.Get(sessions, t0, t1, input.Map, input.Tier, draftData)
             : null;
 
-        var mcts = MctsSearch.Run(sessions, input, rng, options, evaluateTerminal);
+        // Non-terminal leaves use the partial-draft judge, so every leaf in the search
+        // is scored on ONE scale that converges to the terminal judge by the last pick.
+        // Without it the policy value head answers here, and it barely responds to the
+        // board — which made backed-up Q, and therefore the displayed deltas, mushy.
+        MctsSearch.PartialEvaluator? evaluatePartial = draftData != null && sessions.HasPartialWinProbability
+            ? (t0, t1, lastActionIdx) =>
+                PartialWinProbability.Get(sessions, t0, t1, input.Map, input.Tier, lastActionIdx, draftData)
+            : null;
+
+        var mcts = MctsSearch.Run(sessions, input, rng, options, evaluateTerminal, evaluatePartial);
 
         var recs = mcts.Recommendations
             .Select(r =>

@@ -59,6 +59,15 @@ public static class MctsSearch
     /// <summary>Optional terminal evaluator: (team0Heroes, team1Heroes) → P(team0 wins).</summary>
     public delegate float TerminalEvaluator(IReadOnlyList<string> team0, IReadOnlyList<string> team1);
 
+    /// <summary>
+    /// Optional partial-draft leaf evaluator for INCOMPLETE states:
+    /// (team0Heroes, team1Heroes, lastActionIdx) → P(team0 wins). When supplied it
+    /// replaces the policy value head at non-terminal leaves — the head measured as
+    /// state-insensitive, so backed-up Q barely moved with the board. Ban values then
+    /// emerge from search dynamics, since a banned hero is unavailable in every branch.
+    /// </summary>
+    public delegate float PartialEvaluator(IReadOnlyList<string> team0, IReadOnlyList<string> team1, int lastActionIdx);
+
     private sealed class State
     {
         public List<int> Team0Picks = new();
@@ -116,10 +125,17 @@ public static class MctsSearch
     }
 
     public static Result Run(OnnxSessions sessions, Input input, ISeedableRng rng, Options? options = null,
-        TerminalEvaluator? evaluateTerminal = null)
+        TerminalEvaluator? evaluateTerminal = null, PartialEvaluator? evaluatePartial = null)
     {
         options ??= new Options();
         int ourTeam = input.OurTeam;
+
+        // Partial-draft leaf value, already oriented to OUR team.
+        Func<State, double>? evalPartialOur = evaluatePartial == null ? null : s =>
+        {
+            float p = evaluatePartial(Names(s.Team0Picks), Names(s.Team1Picks), Math.Clamp(s.Step - 1, 0, 15));
+            return ourTeam == 0 ? p : 1 - p;
+        };
 
         var root = new State
         {
@@ -193,12 +209,18 @@ public static class MctsSearch
             }
             else if (!node.IsExpanded)
             {
+                // Expand at our decision point: policy priors for exploration, the
+                // partial-draft evaluator (when provided) for the backed-up value.
                 var (s, m) = Encode(scratch);
                 var (leafPriors, v) = RunPolicy(sessions, s, m);
-                value = v;
+                value = evalPartialOur != null ? evalPartialOur(scratch) : v;
                 node.IsExpanded = true;
                 for (int a = 0; a < NumHeroes; a++)
                     if (m[a] > 0) AddChild(node, new Node(a, node, leafPriors[a]));
+            }
+            else if (evalPartialOur != null)
+            {
+                value = evalPartialOur(scratch);
             }
             else
             {
