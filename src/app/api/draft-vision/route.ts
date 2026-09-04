@@ -87,21 +87,33 @@ the player's name in smaller text under it. READ THE PRINTED HERO NAME — trust
 the portrait art, because skins change the art but the name is always correct.
 
 SLOT STATE — classify each slot as exactly one of:
-- LOCKED: a portrait fills the hexagon, bright and fully coloured, sitting settled in its slot.
-  This is the normal state of a filled slot. Report it in leftTeam/rightTeam.
-- PENDING: the player has "shown" a hero to their team but has NOT locked it in. It looks
-  visibly less finished than the locked slots around it — the portrait is dimmed, greyed or
-  desaturated, or the hexagon carries a glowing / animated / highlighted border. Report it in
-  pendingLeft/pendingRight instead — never in leftTeam/rightTeam.
-  Judge this by COMPARING slots within the same column: pending only means anything relative
-  to how the locked slots in that same image look. Note that every slot's name banner is a
-  pale grey plate whether or not the hero is locked — the banner colour is NOT the cue.
-  If you cannot see a clear difference between this slot and the others, call it LOCKED.
+- LOCKED: a portrait fills the hexagon, bright and fully coloured, and the slot's banner shows
+  the HERO'S NAME as text. This is the normal state of a filled slot. Report it in
+  leftTeam/rightTeam.
+- PENDING: the player has "shown" a teammate-visible hero but has NOT locked it in. TWO cues
+  appear together, and the text one is decisive:
+    1. Where a locked slot prints the hero's name, this slot instead reads "PICKING" followed
+       by animated dots ("PICKING...", sometimes on a red or highlighted plate). The hero's
+       name is NOT printed anywhere on the slot.
+    2. The portrait itself is heavily faded — roughly a quarter opacity, washed into the
+       background — next to the solid, fully-lit locked portraits above and below it.
+  If you see a "PICKING" label, the slot is PENDING no matter how clear the portrait looks.
+  Because the hero's name is not printed on a PENDING slot, identify that hero from the
+  PORTRAIT ART alone, and omit it if the art is too faded to name confidently.
+  Report it in pendingLeft/pendingRight — never in leftTeam/rightTeam.
 - EMPTY: a dark, empty hexagon with NO portrait art in it. The player's name may still be shown
   beside it — that does NOT make it filled. Report nothing for it.
 
+Every slot's name banner is a pale plate whether or not the hero is locked, so banner colour on
+its own is NOT a cue. Absent a "PICKING" label and obvious fading, call a slot LOCKED.
+
+You normally only see your OWN team's un-locked choices. An enemy player who is mid-pick shows a
+placeholder — a "?" or a PICKING label with no identifiable portrait — because their choice is
+hidden from you until they lock it. So pendingRight is almost always empty: never put a hero
+there unless you can actually see a faded portrait in an enemy slot.
+
 Compare the slots in a column AGAINST EACH OTHER: locked and pending look obviously different
-side by side, and at most one slot per team is pending at a time. A hero can legitimately appear
+side by side, and at most one slot per team is PENDING at a time. A hero can legitimately appear
 as LOCKED in one slot and PENDING in another — report each slot as what it is; do not suppress
 one because the same hero appears twice.
 
