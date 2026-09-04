@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roadmap — HotS Fever Post-Game Analysis</title>
+<style>
+  :root {
+    --bg-0: #12233f;
+    --bg-1: #1e3c72;
+    --bg-2: #2a5298;
+    --primary: #4a9eff;
+    --primary-600: #0073e6;
+    --cyan: #4affff;
+    --success: #4fffb0;
+    --warning: #ffeb3b;
+    --danger: #ff6b6b;
+    --text: #eaf1fb;
+    --muted: #9fb3d1;
+    --card: rgba(6, 14, 28, 0.45);
+    --card-border: rgba(255, 255, 255, 0.10);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%) fixed;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { color: var(--cyan); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  header.hero { text-align: center; padding: 24px 0 40px; }
+  .kicker {
+    display: inline-block; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--cyan); border: 1px solid rgba(74, 255, 255, 0.35);
+    border-radius: 999px; padding: 5px 14px; margin-bottom: 18px;
+  }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 14px; font-weight: 800; }
+  h1 .accent { color: var(--primary); }
+  .lede { font-size: 18px; color: var(--muted); max-width: 760px; margin: 0 auto; }
+
+  .glass {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 28px 30px;
+    margin: 22px 0;
+  }
+  section h2 {
+    font-size: 26px; margin: 0 0 4px; font-weight: 750;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 10px; flex: none;
+    background: linear-gradient(135deg, var(--primary), var(--primary-600));
+    color: #06101c; font-weight: 800; font-size: 16px;
+  }
+  section h3 { font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--cyan); margin: 26px 0 10px; }
+  .sub { color: var(--muted); margin: 0 0 8px; }
+
+  code { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 5px; padding: 1px 6px; font-size: 13px; color: #cfe4ff; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+
+  .decision {
+    border-left: 3px solid var(--success);
+    background: rgba(79, 255, 176, 0.08);
+    border-radius: 8px; padding: 14px 18px; margin: 12px 0 6px;
+  }
+  .decision .label { color: var(--success); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .5px; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .badge.chosen { color: #06101c; background: var(--success); }
+  .badge.rejected { color: #2a0d0d; background: var(--danger); }
+  .badge.fallback { color: #241f04; background: var(--warning); }
+
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 15px; }
+  th, td { text-align: left; padding: 11px 12px; vertical-align: top; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  td:first-child { white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  .yes { color: var(--success); font-weight: 600; }
+  .no { color: var(--danger); font-weight: 600; }
+  .opt { color: var(--warning); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 13px; }
+
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin: 5px 0; }
+
+  nav.toc { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 8px 0 30px; }
+  nav.toc a {
+    font-size: 13px; padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--card-border); background: rgba(0,0,0,0.25); color: var(--text);
+  }
+  nav.toc a:hover { border-color: var(--primary); color: var(--cyan); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+  .split .col { background: rgba(0,0,0,0.22); border: 1px solid var(--card-border); border-radius: 12px; padding: 18px 20px; }
+  .split .col h4 { margin: 0 0 8px; font-size: 15px; color: var(--primary); }
+  @media (max-width: 720px) { .split { grid-template-columns: 1fr; } h1 { font-size: 30px; } }
+
+  .phase { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .phase:last-child { border-bottom: none; }
+  .phase .p { flex: none; width: 66px; font-weight: 800; color: var(--cyan); font-size: 13px; padding-top: 2px; }
+  .phase .p.gate { color: var(--warning); }
+
+  .note { font-size: 14px; color: var(--muted); }
+  .parallel-note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--primary); padding: 8px 14px; background: rgba(74,158,255,0.06); border-radius: 8px; margin: 6px 0 18px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+  .flag { border-left: 3px solid var(--warning); background: rgba(255,235,59,0.07); border-radius: 8px; padding: 12px 16px; font-size: 14px; }
+  .flag.good { border-color: var(--success); background: rgba(79,255,176,0.07); }
+  .flag.bad { border-color: var(--danger); background: rgba(255,107,107,0.07); }
+
+  pre.cb { background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #cfe4ff; line-height: 1.55; margin: 10px 0; white-space: pre; }
+  pre.cb .cm { color: #7f93b0; }
+  .pass { color: var(--success); font-weight: 600; }
+
+  /* Fidelity meter — how well the data supports a given question */
+  .fid { display: inline-flex; gap: 3px; vertical-align: middle; }
+  .fid i { width: 9px; height: 9px; border-radius: 2px; background: rgba(255,255,255,0.14); display: block; }
+  .fid i.on { background: var(--success); }
+  .fid.warn i.on { background: var(--warning); }
+  .fid.bad i.on { background: var(--danger); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">HotS Fever · Product Roadmap</span>
+    <h1>Post-Game <span class="accent">Analysis</span><br />Replay Intelligence</h1>
+    <p class="lede">A companion to the draft coach that works on the other end of the match: parse the <code>.StormReplay</code> files already sitting on a player's disk and explain what actually happened — where the fights were, who was out of position, where the map went quiet, and which decisions moved the win probability.</p>
+  </header>
+
+  <nav class="toc">
+    <a href="#why">Why This</a>
+    <a href="#data">What the Data Actually Is</a>
+    <a href="#fidelity">Fidelity Budget</a>
+    <a href="#pieces">The Pieces</a>
+    <a href="#milestones">Milestones</a>
+    <a href="#risks">Risks</a>
+    <a href="/roadmap">← Draft Companion roadmap</a>
+  </nav>
+
+  <!-- WHY -->
+  <section id="why" class="glass">
+    <h2><span class="num">0</span> Why this, and why now</h2>
+    <p class="sub">The draft coach answers a question that lasts ninety seconds. This answers the one players actually argue about afterwards.</p>
+
+    <p>Every Storm League game a player finishes writes a full replay to their own disk. On the development machine there are already <strong>3,379 of them</strong> — a private, per-player corpus that needs no API, no scraping, no rate limit and no permission. The draft engine already knows what a good <em>composition</em> looks like; nothing in the product yet knows what a good <em>game</em> looks like.</p>
+
+    <div class="decision">
+      <div class="label">Framing decision</div>
+      This is an <strong>explanation</strong> tool, not a scoring tool. "You were 3rd in hero damage" is a stat sheet, and players already have one. "Your team lost the 14:20 fight because two of you were still walking back from the top camp" is an explanation. Everything below is chosen to support the second kind of sentence.
+    </div>
+  </section>
+
+  <!-- DATA -->
+  <section id="data" class="glass">
+    <h2><span class="num">1</span> What the data actually is</h2>
+    <p class="sub">Measured, not assumed. Numbers below come from parsing a real 20:49 Storm League game (Volskaya Foundry) with <code>Heroes.ReplayParser</code>, the library the overlay already ships.</p>
+
+    <table>
+      <thead><tr><th>Signal</th><th>Volume in one game</th><th>Resolution</th></tr></thead>
+      <tbody>
+        <tr><td>Hero positions <span class="mono">(tracker)</span></td><td>~60 real fixes per player</td><td class="opt">one every ~15s (p90 30s)</td></tr>
+        <tr><td>Move / attack-move targets</td><td class="mono">37,431</td><td class="yes">sub-second, with x/y</td></tr>
+        <tr><td>Camera updates</td><td class="mono">13,484</td><td class="yes">sub-second, with x/y</td></tr>
+        <tr><td>Commands &amp; casts</td><td class="mono">25,217</td><td class="yes">sub-second</td></tr>
+        <tr><td>Hero deaths</td><td class="mono">43</td><td class="yes">exact time, x/y, killer + killing unit</td></tr>
+        <tr><td>Team XP curve</td><td>20 samples</td><td class="opt">once per minute</td></tr>
+        <tr><td>Objectives, levels, bans, talents</td><td>full</td><td class="yes">exact</td></tr>
+      </tbody>
+    </table>
+
+    <div class="flag" style="margin-top:16px;">
+      <strong>The one number that shapes this whole product:</strong> the parser hands you a position for every hero every second, but <strong>roughly 93% of those are interpolated</strong>. Real recorded fixes land a median of <strong>15 seconds apart</strong>. Any feature that needs to know where someone stood at a particular instant is building on an estimate, and must say so.
+    </div>
+
+    <h3>Reconstructing the gap</h3>
+    <p>A 15-second position anchor is coarse, but the command stream is not. Between two anchors there are typically dozens of <code>CCmdUpdateTargetPointEvent</code> destinations, and heroes move at known speeds. Paths can therefore be reconstructed to far better than 15s fidelity — as an <em>inference</em>, clearly labelled, never as a recorded fact. The camera stream is a second, independent trace: it says where a player was <em>looking</em>, which is often the more interesting question.</p>
+  </section>
+
+  <!-- FIDELITY -->
+  <section id="fidelity" class="glass">
+    <h2><span class="num">2</span> Fidelity budget — what we can and can't honestly claim</h2>
+    <p class="sub">Deciding this up front is what stops the tool making confident claims it cannot support. Each question is rated by how well the recorded data backs it.</p>
+
+    <table>
+      <thead><tr><th>Question</th><th>Support</th><th>Basis</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Where did people die, and to whom?</td>
+          <td><span class="fid"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+          <td>Exact. Time, coordinates and full kill attribution are recorded.</td>
+        </tr>
+        <tr>
+          <td>When were the teamfights?</td>
+          <td><span class="fid"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+          <td>Death clustering in time and space; deaths are exact.</td>
+        </tr>
+        <tr>
+          <td>Who rotated, and when?</td>
+          <td><span class="fid"><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+          <td>A rotation takes 20–40s, comfortably above the 15s anchor rate.</td>
+        </tr>
+        <tr>
+          <td>Who soaked, who wasted XP?</td>
+          <td><span class="fid"><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+          <td>Lane presence from anchors, cross-checked against the per-minute XP curve.</td>
+        </tr>
+        <tr>
+          <td>Was the player watching the fight before it started?</td>
+          <td><span class="fid"><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+          <td>Camera stream is dense; a genuinely novel angle no HotS tool surfaces well.</td>
+        </tr>
+        <tr>
+          <td>Was that a good engage?</td>
+          <td><span class="fid warn"><i class="on"></i><i class="on"></i><i></i><i></i></span></td>
+          <td>Inferable from positions + cooldowns + outcome, but a judgement, not a measurement.</td>
+        </tr>
+        <tr>
+          <td>Did you dodge that skillshot? Was your spacing right?</td>
+          <td><span class="fid bad"><i class="on"></i><i></i><i></i><i></i></span></td>
+          <td class="no">Out of scope. Needs sub-second true positions the replay does not record.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="decision">
+      <div class="label">Scope decision</div>
+      <strong>Macro only.</strong> The tool analyses rotations, soak, fight timing, objective contests and map attention. It will not claim to analyse mechanical micro. This is a data limit, not a temporary one — no amount of engineering recovers positions the replay never wrote.
+    </div>
+  </section>
+
+  <!-- PIECES -->
+  <section id="pieces" class="glass">
+    <h2><span class="num">3</span> The pieces</h2>
+
+    <h3>Piece 1 · Replay ingest &amp; the event spine</h3>
+    <p>One pass over a <code>.StormReplay</code> that produces a normalised timeline: hero life-segments stitched per player (the parser emits one unit instance <em>per life</em>, so Murky alone produced eleven), positions tagged recorded-vs-interpolated, deaths, objectives, XP and the command stream reduced to what later stages need. Everything downstream reads this spine, never the raw parser.</p>
+
+    <h3>Piece 2 · Teamfight detection</h3>
+    <p>The keystone. Cluster hero deaths in time and space, then widen each cluster backwards to the commitment point using command density and converging movement. Output: a list of fights with participants, duration, location, and a result. Almost every later feature is phrased in terms of "the fight at 14:20", so this ships before anything cosmetic.</p>
+
+    <h3>Piece 3 · Map timeline &amp; heatmaps</h3>
+    <p>Death and kill heatmaps per team and per player; lane-presence bands over time; a scrubbable map view. Coordinates are already normalised — the probe game reports a 248 × 208 grid alongside the map name, so overlaying game space on a map image is a fixed transform per battleground.</p>
+
+    <h3>Piece 4 · Attention &amp; awareness</h3>
+    <p>Built on the camera stream. Where was each player looking in the ten seconds before a fight started? How much of the game did they spend with the camera on their own hero versus elsewhere? This is the piece with no real equivalent in existing HotS tooling, and it is cheap once Piece 2 defines the fights.</p>
+
+    <h3>Piece 5 · Draft engine tie-in</h3>
+    <p>The one thing this product can do that a generic replay site cannot: run the existing on-device model over the actual draft, then compare its projected win probability against what happened. "The model gave you 54% out of draft; you were behind on XP from 6:00" turns two separate products into one story.</p>
+
+    <h3>Piece 6 · Where it lives</h3>
+    <p>Deliberately undecided. Three plausible homes: a tab in the existing overlay app (parsing already happens there), a local report the app writes after a match, or a web view backed by the ingest endpoint from the draft companion's M3. The first is cheapest and needs no backend; the third is the only one that lets a player share a game. Decide after Piece 2, when the shape of the output is known.</p>
+  </section>
+
+  <!-- MILESTONES -->
+  <section id="milestones" class="glass">
+    <h2>Milestones</h2>
+    <p class="sub">Same rule as the draft companion: sequenced by dependency, gated on <em>done and verified</em>, no calendar estimates. Each one ends on something you can look at.</p>
+
+    <div class="parallel-note"><strong>A0 is already done</strong> — the data question was settled by measurement before any of this was planned, using a throwaway probe now kept in <code>tools/replay-probe</code>. Everything from A1 on is unstarted.</div>
+
+    <div class="phase"><div class="p" style="color:var(--success)">A0 ✓</div><div><strong>Prove the data supports the product. — DONE (2026-09-02).</strong> Parsed a real Storm League replay and measured what is actually recorded: ~60 true position fixes per player at a 15s median, 37k targeted move commands, 13k camera updates, 43 fully attributed deaths, per-minute XP. <em>Gate cleared: macro analysis is supportable, micro analysis is not.</em></div></div>
+
+    <div class="phase"><div class="p">A1</div><div><strong>Ingest &amp; event spine.</strong> One replay in, normalised timeline out, with recorded and interpolated positions kept distinct. Verified against a game whose events are known by hand.</div></div>
+
+    <div class="phase"><div class="p gate">A2</div><div><strong>Teamfight detection.</strong> Fights identified with participants, timing and outcome. <em>Gate: a human watching the replay agrees with the fight list.</em> If detection is unreliable, everything above it is unreliable, so this is the real go/no-go.</div></div>
+
+    <div class="phase"><div class="p">A3</div><div><strong>Map timeline &amp; heatmaps.</strong> The first thing a player would actually open — deaths, presence, and a scrubbable map.</div></div>
+
+    <div class="phase"><div class="p">A4</div><div><strong>Attention analysis.</strong> Camera-derived awareness around the fights A2 found.</div></div>
+
+    <div class="phase"><div class="p">A5</div><div><strong>Draft tie-in &amp; batch mode.</strong> Model projection versus outcome, then run it over the whole local replay folder for trends across hundreds of games rather than one.</div></div>
+
+    <h3>Deliberately not on this roadmap</h3>
+    <ul>
+      <li><strong>Live in-match coaching.</strong> Replays only exist after the game; anything live is a different product with a different risk profile.</li>
+      <li><strong>Mechanical / micro feedback.</strong> Ruled out by the fidelity budget above, not by effort.</li>
+      <li><strong>Other players' replays.</strong> The corpus is what the player has on disk. Anything wider needs a source and a conversation about consent.</li>
+    </ul>
+  </section>
+
+  <!-- RISKS -->
+  <section id="risks" class="glass">
+    <h2>Risks &amp; open questions</h2>
+
+    <div class="flag bad" style="margin-bottom:14px;"><strong>Patch fragility.</strong> The replay format shifts per game build — the same standing maintenance tail the battlelobby reader already carries. A parser bump can silently change field meanings rather than failing loudly, so ingest needs assertions that shout when a replay parses but yields nonsense.</div>
+
+    <div class="flag" style="margin-bottom:14px;"><strong>Interpolation honesty.</strong> The single biggest way this product could mislead is by drawing a smooth confident path between two fixes 30 seconds apart. Interpolated segments must be visually distinct from recorded ones, everywhere they appear.</div>
+
+    <div class="flag" style="margin-bottom:14px;"><strong>Teamfight detection is a judgement call.</strong> Clustering deaths finds skirmishes with kills, but a fight that ends with everyone retreating leaves no deaths and no obvious signature. Expect the first pass to miss those, and decide whether missing them matters.</div>
+
+    <div class="flag good"><strong>Not an anti-cheat concern.</strong> This reads files the game has already written, after the match, on the player's own machine. It touches no running process — a strictly weaker footprint than the overlay, which is itself passive.</div>
+
+    <h3>Open questions</h3>
+    <ul>
+      <li>Does the camera stream cover all ten players, or only the replay's own observer perspective? Determines whether Piece 4 is a personal tool or a team one.</li>
+      <li>Is <code>TeamObjectives</code> rich enough per battleground? The probe game reported only 2 entries for a full Volskaya match, which looks thin.</li>
+      <li>Do the 3,379 local replays span enough patches to support trend analysis, or does format drift fragment the corpus?</li>
+    </ul>
+  </section>
+
+  <footer>
+    HotS Fever · Post-game analysis roadmap · living document — decisions here may be revised as milestones are built and validated.<br />
+    Companion document: <a href="/roadmap">In-Game Draft Companion roadmap</a>.
+  </footer>
+
+</div>
+</body>
+</html>

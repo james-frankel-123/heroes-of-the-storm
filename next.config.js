@@ -24,6 +24,7 @@ const nextConfig = {
   async rewrites() {
     return [
       { source: '/roadmap', destination: '/roadmap.html' },
+      { source: '/roadmap/analysis', destination: '/analysis-roadmap.html' },
     ]
   },
 }
