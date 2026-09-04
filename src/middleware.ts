@@ -28,6 +28,15 @@ export function middleware(req: NextRequest) {
   })
 }
 
+// Every roadmap URL, including the static files the rewrites point at — those are
+// reachable directly, so gating only the pretty URL would leave the document open.
+// /roadmap/:path* is a catch-all so a future roadmap page is gated by default
+// rather than by remembering to add it here.
 export const config = {
-  matcher: ['/roadmap', '/roadmap.html'],
+  matcher: [
+    '/roadmap',
+    '/roadmap.html',
+    '/roadmap/:path*',
+    '/analysis-roadmap.html',
+  ],
 }
