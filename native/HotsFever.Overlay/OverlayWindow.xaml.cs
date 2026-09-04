@@ -125,6 +125,15 @@ public sealed partial class OverlayWindow : Window
 
     public ObservableCollection<RecItem> Recommendations { get; } = new();
     public ObservableCollection<ThreatItem> Threats { get; } = new();
+
+    // Distribution/health notices. _visionDown is set after a run of failed reads so a
+    // dead endpoint degrades to manual mode with an explanation instead of silence.
+    private string? _updateNotice;
+    private bool _updateDismissed;
+    private bool _visionDown;
+    private bool _visionDownDismissed;
+    private int _visionFailures;
+    private const int VisionFailuresBeforeNotice = 4;
     public ObservableCollection<RecItem> YourBest { get; } = new();
     public ObservableCollection<HeroTile> HeroGrid { get; } = new();
     public ObservableCollection<SlotVM> BansMine { get; } = new();
@@ -152,9 +161,12 @@ public sealed partial class OverlayWindow : Window
         PicksMineList.ItemsSource = PicksMine;
         PicksEnemyList.ItemsSource = PicksEnemy;
         PopulateSetup();
+        VersionText.Text = "v" + AppVersion.Current;
+        DraftLog($"HotS Fever Draft Coach v{AppVersion.Current} starting");
         _ = InitEngineAsync();
         _ = WatchLobbyAsync();
         _ = DraftWatchAsync();
+        _ = CheckForUpdateAsync();
 
         _welcomePending = IsFirstRun();
         UpdateNotice();
@@ -288,13 +300,42 @@ public sealed partial class OverlayWindow : Window
                               "Recommendations update live during your draft.";
             NoticeBanner.Visibility = Visibility.Visible;
         }
+        else if (_visionDown && !_visionDownDismissed)
+        {
+            // Recognition needs our endpoint; without it the overlay still works, but
+            // only from your taps. Say so rather than looking silently broken.
+            NoticeText.Text = "⚠ Can't reach the draft-reading service, so the board won't fill in " +
+                              "automatically. Everything else still works — tap heroes in the grid " +
+                              "to drive the draft by hand.";
+            NoticeBanner.Visibility = Visibility.Visible;
+        }
+        else if (_updateNotice != null && !_updateDismissed)
+        {
+            NoticeText.Text = "⬆ " + _updateNotice;
+            NoticeBanner.Visibility = Visibility.Visible;
+        }
         else NoticeBanner.Visibility = Visibility.Collapsed;
+    }
+
+    // There is no auto-updater: installs are per-user and unattended replacement would
+    // be a bigger promise than this app should make. Telling you a new build exists is
+    // the useful 90% — the banner links to the download and the installer upgrades in
+    // place over the same AppId.
+    private async System.Threading.Tasks.Task CheckForUpdateAsync()
+    {
+        await System.Threading.Tasks.Task.Delay(4000); // let startup settle first
+        string? notice = await AppVersion.CheckForUpdateAsync();
+        if (notice == null) return;
+        DraftLog("update available: " + notice);
+        DispatcherQueue.TryEnqueue(() => { _updateNotice = notice; UpdateNotice(); });
     }
 
     private void OnDismissNotice(object sender, RoutedEventArgs e)
     {
         if (_isFullscreen && !_fsDismissed) _fsDismissed = true;
         else if (_welcomePending) { _welcomePending = false; MarkFirstRunDone(); }
+        else if (_visionDown && !_visionDownDismissed) _visionDownDismissed = true;
+        else if (_updateNotice != null) _updateDismissed = true;
         UpdateNotice();
     }
 
@@ -402,6 +443,22 @@ public sealed partial class OverlayWindow : Window
                                 // small gap so a failed/instant call can't spin the CPU.
                                 delay = 250;
                                 var vd = await VisionRecognizer.RecognizeAsync(raw);
+                                // A null read means the request itself failed (offline, endpoint
+                                // down, token rejected) — not that the screen was empty.
+                                if (vd == null)
+                                {
+                                    if (++_visionFailures >= VisionFailuresBeforeNotice && !_visionDown)
+                                    {
+                                        _visionDown = true;
+                                        DraftLog($"vision unreachable after {_visionFailures} attempts — falling back to manual entry");
+                                        UpdateNotice();
+                                    }
+                                }
+                                else if (_visionFailures > 0)
+                                {
+                                    _visionFailures = 0;
+                                    if (_visionDown) { _visionDown = false; _visionDownDismissed = false; UpdateNotice(); }
+                                }
                                 if (vd != null && !vd.IsEmpty)
                                 {
                                     DraftLog($"vision: L[{string.Join(",", vd.LeftTeam)}] R[{string.Join(",", vd.RightTeam)}] " +

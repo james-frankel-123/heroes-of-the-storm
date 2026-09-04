@@ -18,6 +18,8 @@
                     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Center">
                         <Ellipse Width="9" Height="9" Fill="#FF4FFFB0" VerticalAlignment="Center"/>
                         <TextBlock Text="HOTS FEVER" FontWeight="Bold" FontSize="15" Foreground="#FFEAF1FB" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="VersionText" Text="" FontSize="9" Foreground="#FF7F93B0"
+                                   VerticalAlignment="Center" Margin="1,3,0,0"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Border Background="#264FFFB0" CornerRadius="9" Padding="8,2" VerticalAlignment="Center">

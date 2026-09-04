@@ -118,6 +118,15 @@ export default function DraftCoachPage() {
             over a game in exclusive fullscreen — use Borderless Windowed. The app will warn you if it
             detects exclusive fullscreen.
           </p>
+          <p>
+            <span className="text-[#d4b85a]">What leaves your machine.</span> To read the draft, the app
+            sends small cropped images of the draft screen — the two team columns, the ban row and the map
+            banner — to hotsfever.com, which passes them to a vision model and returns the hero names. That
+            happens only while a draft is on screen, never during a match or at the menu. Nothing is stored
+            on our side, and your replay history is parsed entirely on your own machine and never uploaded.
+            You can see exactly what was sent in{' '}
+            <code className="text-[#cdd6ea]">%LOCALAPPDATA%\HotsFever\last-vision-teams.jpg</code>.
+          </p>
         </section>
       </div>
     </div>

@@ -7,7 +7,12 @@
 ;  output first: dotnet build -c Release -r win-x64.)
 
 #define AppName "HotS Fever Draft Coach"
-#define AppVersion "0.1.0"
+; Keep in step with <Version> in native/HotsFever.Overlay/HotsFever.Overlay.csproj and
+; with public/draft-coach-version.json, which is what the app's update check reads.
+; Override at build time with:  ISCC /DAppVersion=0.3.0 ...
+#ifndef AppVersion
+  #define AppVersion "0.2.0"
+#endif
 #define AppExe "HotS Fever Draft Coach.exe"
 #define SrcDir "..\HotsFever.Overlay\bin\Release\net8.0-windows10.0.19041.0\win-x64"
 

@@ -21,6 +21,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <!-- SINGLE SOURCE OF TRUTH for the shipped version. The installer reads it
+         (ISCC /DAppVersion), the app shows it in the header and stamps it into
+         draft-watch.log, and the update check compares it against
+         public/draft-coach-version.json. Bump it whenever you publish assets —
+         a build in the wild that can't name itself can't be supported. -->
+    <Version>0.2.0</Version>
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
