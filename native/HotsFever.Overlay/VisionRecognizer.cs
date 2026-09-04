@@ -68,22 +68,37 @@ public static class VisionRecognizer
     private const double ColWidthH = 0.34;   // column strip width
     private const double ColTopH = 0.07;
     private const double ColHeightH = 0.84;  // through the 5th slot's name banner
-    // Ban row and map banner. These were first calibrated tight against one archived
-    // 3440x1440 frame (bans at y 15-150, map text at y 15-50) and validated there — but a
-    // live draft put both LOWER than that, so the tight crops caught nothing but starfield
-    // and the model invented bans from empty space (a different set almost every read).
-    // The band is now deliberately generous: a bit of extra background costs a few image
-    // tokens, while missing the row entirely costs every ban in the draft.
-    private const double BanInsetH = 0.08;   // ban row starts just inboard of the column
-    private const double BanWidthH = 0.52;
-    private const double BanHeightH = 0.26;
-    private const double MapWidthH = 0.62;   // map banner, centred on the top edge
-    private const double MapHeightH = 0.20;
+    // Ban row and map banner, in two sizes.
+    //
+    // TIGHT is the calibrated crop, checked against a live 3440x1440 draft frame: it lands
+    // squarely on the three ban hexes, padlocks included, with the team column clear of its
+    // left edge. Use it by default — a crop that contains ONLY ban hexes is the whole reason
+    // the region approach beats sending the screen.
+    //
+    // WIDE is the self-heal. It is deliberately too big and WILL pull in the first team-column
+    // slot, the mic control and a role icon; that cross-contamination is the price of finding
+    // the row at all on a layout the tight crop misses. Only reached after the map banner has
+    // gone unread several times running, which is the signal that calibration is off here.
+    private const double BanInsetH = 0.225;  // ban row starts just inboard of the column
+    private const double BanWidthH = 0.33;
+    private const double BanHeightH = 0.115;
+    // Wide enough for the longest battleground name, not just the one it was measured on:
+    // "Volskaya Foundry" leaves generous margin at 0.50, but "Tomb of the Spider Queen" is
+    // half as long again and would sit right on the crop edge.
+    private const double MapWidthH = 0.58;   // map banner, centred on the top edge
+    private const double MapHeightH = 0.09;
+
+    private const double BanInsetWideH = 0.08;
+    private const double BanWidthWideH = 0.52;
+    private const double BanHeightWideH = 0.26;
+    private const double MapWidthWideH = 0.62;
+    private const double MapHeightWideH = 0.20;
 
     private const int Gutter = 40;  // black gap so the two columns can't be read as one
     private const int Header = 64;  // room for the drawn region label
 
     private const int EmptyReadsBeforeFallback = 3;
+    private const int MapMissesBeforeWideMeta = 3;
 
     /// <summary>Set by the overlay so ROI problems surface in draft-watch.log.</summary>
     public static Action<string>? Log;
@@ -91,6 +106,11 @@ public static class VisionRecognizer
     private static int _emptyReads;
     private static bool _fullFrameFallback;
     private static bool _savedFullFrame;
+    // The map banner is on screen for the whole draft, so a null map is a direct signal
+    // that the meta crop is looking in the wrong place — the one check that doesn't need
+    // to wait for a ban to be cast.
+    private static int _mapMissReads;
+    private static bool _metaWide;
 
     /// <summary>Called when a new draft starts, so a latched fallback doesn't persist.</summary>
     public static void ResetForNewDraft()
@@ -98,6 +118,8 @@ public static class VisionRecognizer
         _emptyReads = 0;
         _fullFrameFallback = false;
         _savedFullFrame = false;
+        _mapMissReads = 0;
+        _metaWide = false;
     }
 
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(30) };
@@ -132,6 +154,23 @@ public static class VisionRecognizer
             }
 
             var vd = await PostAsync(new (string, byte[])[] { ("teams", teams), ("meta", meta) });
+
+            // The map banner is up for the whole draft, so a run of null maps means the meta
+            // crop is looking somewhere the furniture isn't — the teams crop can be reading
+            // perfectly while this is wrong, which the whole-frame check below would never
+            // catch. Widen the band and carry on; only the meta regions change.
+            if (vd != null && !_metaWide)
+            {
+                if (vd.Map == null)
+                {
+                    if (++_mapMissReads >= MapMissesBeforeWideMeta)
+                    {
+                        _metaWide = true;
+                        Log?.Invoke($"vision: map unread {_mapMissReads}x — widening the ban/map crops (ROI calibration looks off at {frame.Width}x{frame.Height})");
+                    }
+                }
+                else _mapMissReads = 0;
+            }
 
             // If the crops keep coming back with nothing — not even a map — our ROIs are
             // probably wrong for this resolution. Prove it with one full-frame read and
@@ -217,8 +256,11 @@ public static class VisionRecognizer
     private static async System.Threading.Tasks.Task<byte[]?> RenderMetaAsync(
         CanvasDevice device, CanvasBitmap src, int fw, int fh)
     {
-        var banL = Roi(fw, fh, BanInsetH, BanWidthH, 0, BanHeightH, fromRight: false);
-        var banR = Roi(fw, fh, BanInsetH, BanWidthH, 0, BanHeightH, fromRight: true);
+        double inset = _metaWide ? BanInsetWideH : BanInsetH;
+        double width = _metaWide ? BanWidthWideH : BanWidthH;
+        double height = _metaWide ? BanHeightWideH : BanHeightH;
+        var banL = Roi(fw, fh, inset, width, 0, height, fromRight: false);
+        var banR = Roi(fw, fh, inset, width, 0, height, fromRight: true);
         var map = MapRoi(fw, fh);
 
         int w = (int)Math.Max(Math.Max(banL.Width, banR.Width), map.Width);
@@ -262,8 +304,8 @@ public static class VisionRecognizer
 
     private static Windows.Foundation.Rect MapRoi(int fw, int fh)
     {
-        double w = Math.Min(MapWidthH * fh, fw);
-        double h = Math.Min(MapHeightH * fh, fh);
+        double w = Math.Min((_metaWide ? MapWidthWideH : MapWidthH) * fh, fw);
+        double h = Math.Min((_metaWide ? MapHeightWideH : MapHeightH) * fh, fh);
         return new Windows.Foundation.Rect(Math.Max(0, fw / 2.0 - w / 2.0), 0, w, h);
     }
 
