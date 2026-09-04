@@ -113,6 +113,36 @@
                     </ItemsControl>
                     </StackPanel>
 
+                    <!-- Enemy threats — what the opponent model expects them to take next,
+                         and what it would cost us. Shown on the enemy's turn. -->
+                    <StackPanel x:Name="ThreatSection" Spacing="12" Visibility="Collapsed">
+                        <Border Height="1" Background="#1AFFFFFF"/>
+                        <TextBlock x:Name="ThreatHeader" Text="ENEMY THREATS" FontSize="10" FontWeight="SemiBold" Foreground="#FF7F93B0"/>
+                        <ItemsControl x:Name="ThreatList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,9">
+                                        <StackPanel Orientation="Horizontal" Spacing="11" HorizontalAlignment="Left">
+                                            <Border Width="34" Height="34" CornerRadius="8" Background="#33FF6B6B">
+                                                <TextBlock Text="{Binding Portrait}" FontSize="9" Foreground="#FFFFD9D9"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{Binding Hero}" FontSize="13" FontWeight="SemiBold" Foreground="#FFEAF1FB"/>
+                                                <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="#FF9FB3D1"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Impact}" FontSize="14" FontWeight="Bold"
+                                                       Foreground="{Binding ImpactBrush}" HorizontalAlignment="Right"/>
+                                            <TextBlock Text="for us" FontSize="9" Foreground="#FF7F93B0" HorizontalAlignment="Right"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
                     <!-- Your best (from replay history) — appears once stats load -->
                     <StackPanel x:Name="YourBestSection" Spacing="12" Visibility="Collapsed">
                         <Border Height="1" Background="#1AFFFFFF"/>

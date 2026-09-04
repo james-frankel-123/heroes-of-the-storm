@@ -14,3 +14,16 @@ public sealed class RecItem
     public bool IsAiPick { get; set; }
     public Visibility AiPickVisibility => IsAiPick ? Visibility.Visible : Visibility.Collapsed;
 }
+
+/// <summary>
+/// A hero the opponent model expects the ENEMY to take next, with what it would cost us.
+/// Subtitle carries the likelihood; Impact is in percentage points of our win chance.
+/// </summary>
+public sealed class ThreatItem
+{
+    public string Portrait { get; set; } = "";
+    public string Hero { get; set; } = "";
+    public string Subtitle { get; set; } = "";
+    public string Impact { get; set; } = "";
+    public Brush ImpactBrush { get; set; } = new SolidColorBrush();
+}

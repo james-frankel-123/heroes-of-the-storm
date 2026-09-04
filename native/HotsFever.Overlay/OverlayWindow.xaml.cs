@@ -124,6 +124,7 @@ public sealed partial class OverlayWindow : Window
     private long _lastLobbyWrite;
 
     public ObservableCollection<RecItem> Recommendations { get; } = new();
+    public ObservableCollection<ThreatItem> Threats { get; } = new();
     public ObservableCollection<RecItem> YourBest { get; } = new();
     public ObservableCollection<HeroTile> HeroGrid { get; } = new();
     public ObservableCollection<SlotVM> BansMine { get; } = new();
@@ -143,6 +144,7 @@ public sealed partial class OverlayWindow : Window
         _topmostTimer.Start();
 
         RecList.ItemsSource = Recommendations;
+        ThreatList.ItemsSource = Threats;
         YourBestList.ItemsSource = YourBest;
         HeroGridView.ItemsSource = HeroGrid;
         BansMineList.ItemsSource = BansMine;
@@ -768,6 +770,8 @@ public sealed partial class OverlayWindow : Window
         {
             Recommendations.Clear();
             RecSection.Visibility = Visibility.Collapsed;
+            Threats.Clear();
+            ThreatSection.Visibility = Visibility.Collapsed;
             // Completed draft (e.g. auto-filled from the lobby): still show the final win %.
             if (_sessions != null && _data != null && _currentStep >= 16)
             {
@@ -797,6 +801,60 @@ public sealed partial class OverlayWindow : Window
                 data, playerData, topK: 3));
 
         ApplyRecs(result, isBan);
+
+        // On the ENEMY's turn, also price what they're likely to take. The pick they
+        // make is the thing you're about to have to play against, and on a ban step
+        // it's the list you'd want to pre-empt.
+        bool enemyTurn = DraftOrder[_currentStep].Team != _ourTeam;
+        await UpdateThreatsAsync(enemyTurn ? input : null, isBan, sessions, data);
+    }
+
+    private async System.Threading.Tasks.Task UpdateThreatsAsync(
+        MctsSearch.Input? input, bool isBan, OnnxSessions sessions, DraftData? data)
+    {
+        Threats.Clear();
+        if (input == null)
+        {
+            ThreatSection.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        IReadOnlyList<AiInference.OpponentPrediction> preds;
+        try
+        {
+            var inp = input;
+            preds = await System.Threading.Tasks.Task.Run(() =>
+                AiInference.GetOpponentPredictions(sessions, inp, isBan, data, topK: 4));
+        }
+        catch (Exception ex)
+        {
+            DraftLog("threats failed: " + ex.Message);
+            ThreatSection.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var red = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0x6B, 0x6B));
+        var green = new SolidColorBrush(Color.FromArgb(0xFF, 0x4F, 0xFF, 0xB0));
+        var grey = new SolidColorBrush(Color.FromArgb(0xFF, 0x8B, 0x9B, 0xC8));
+
+        foreach (var p in preds)
+        {
+            string impact = p.ImpactPp is double pp
+                ? (pp >= 0 ? "+" : "") + pp.ToString("0.0") + "pp"
+                : "—";
+            Threats.Add(new ThreatItem
+            {
+                Portrait = Short(p.Hero),
+                Hero = p.Hero,
+                Subtitle = $"{Math.Round(p.Probability * 100)}% likely  ·  {RoleName(p.Hero)}",
+                Impact = impact,
+                // Colour by what it does to US: their gain is our loss.
+                ImpactBrush = p.ImpactPp is double v ? (v <= -1 ? red : v >= 1 ? green : grey) : grey,
+            });
+        }
+
+        ThreatHeader.Text = isBan ? "ENEMY LIKELY BANS" : "ENEMY THREATS";
+        ThreatSection.Visibility = Threats.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private MctsSearch.Input BuildInput()
