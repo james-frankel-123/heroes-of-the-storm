@@ -45,6 +45,79 @@ const RATER_STORAGE_KEY = 'draft-rating-rater'
 const SLOT_STORAGE_KEY = 'draft-rating-slot'
 const CONSENT_STORAGE_KEY = 'draft-rating-consented'
 
+/**
+ * IRB consent form (RASCAL CF-ACYY8963, protocol IRB-ACYY3193), shown verbatim
+ * before a rater's first item. Text must match the approved form exactly; edit
+ * it only alongside a RASCAL modification.
+ */
+const CONSENT_SECTIONS: { heading: string; paragraphs: string[] }[] = [
+  {
+    heading: 'Research purpose',
+    paragraphs: [
+      'This study is about how expert players judge team drafts in the video game Heroes of the Storm. We built computer programs that pick teams for this game, and the programs\' picks are usually judged by other computer programs. We want to know how expert human judgment compares. Your ratings will help us learn when computer judgments of drafts can be trusted and when they cannot.',
+    ],
+  },
+  {
+    heading: 'Information on research',
+    paragraphs: [
+      'This project is research. If you agree to take part, you will use a private web page to look at 240 pairs of five-hero drafts. Each pair shows two teams, the game map, and the skill level of the match. For each pair you will answer three questions: (1) you will move a slider to show how likely you think each team is to win; (2) you will pick which team you think drafted better; and (3) you will rate how confident you are in your answer. Some of the drafts you rate come from real past games, and some were created by computer programs. You will not be told which is which, because knowing could change how you judge them.',
+      'You are being asked to take part because you have substantial experience playing ranked Heroes of the Storm. We are enrolling about 14 to 20 expert players. There are no experimental drugs, devices, or medical procedures of any kind in this study; the whole study is the rating task described above.',
+      'Your participation is a single online survey. Rating all 240 pairs takes most people about 1.5 to 2.5 hours in total, and most pairs take 15 to 60 seconds each. You do not have to do it all at once: you can stop at any point and pick up where you left off later, on any device, and your progress saves after every answer. We ask that you finish within about two weeks of receiving your link. There are no follow-up sessions, and we will not contact you again for further study tasks.',
+      'The investigators have no financial relationships or outside interests related to this study, and no company sponsors or funds it.',
+    ],
+  },
+  {
+    heading: 'Risks',
+    paragraphs: [
+      'The risks of this study are minimal. The main cost to you is your time: about 1.5 to 2.5 hours of rating, which can be tiring. You can take breaks whenever you like, and there is no time limit. Some pairs are genuinely hard to judge, which some people may find mildly frustrating. There are no physical risks; this study involves no drugs, devices, or medical procedures.',
+      'As with any study that keeps records, there is a small risk that someone outside the study could gain access to them. We keep this risk low in the ways described in the Confidentiality section. Even if a breach happened, the records contain only your draft ratings and a code name, not sensitive personal information.',
+    ],
+  },
+  {
+    heading: 'Benefits',
+    paragraphs: [
+      'There is no direct benefit to you from taking part. The benefit is to research: your ratings help show when computer judgments of game decisions agree with expert human judgment and when they do not. This matters beyond games, because many computer systems today are graded mainly by other computer systems.',
+    ],
+  },
+  {
+    heading: 'Alternative procedures',
+    paragraphs: [
+      'This is not a treatment study, and no procedures or treatments are being withheld from you. The alternative is not to participate.',
+    ],
+  },
+  {
+    heading: 'Confidentiality',
+    paragraphs: [
+      'Your study records are kept under a code name (the rater name on your invitation link), not your real name. Your agreement to take part is recorded electronically when you click "I agree" on the study page; no signed form is collected. The list connecting code names to real names, and the postal address we use to mail your prepaid card, is kept separately by the investigator, used only for paying you, and destroyed after your payment is delivered. Your answers travel over encrypted connections and are stored in a password-protected database that only the study team can access. When we publish results, we report them in combined form or under code names; your name will never be published without your permission.',
+      'We will do our best to keep your information confidential, but we cannot guarantee absolute confidentiality. People who make sure the study is run correctly may be allowed to look at study records: these include the Columbia University Institutional Review Board, the federal Office for Human Research Protections, and authorized Columbia University officials.',
+    ],
+  },
+  {
+    heading: 'Compensation',
+    paragraphs: [
+      'You will be paid $100 when you finish all 240 pairs. Payment is made as a one-time prepaid Visa card through Columbia University\'s PayCard program, mailed to you at a postal address you provide after finishing; you activate the card directly with the bank. If you cannot receive a mailed card where you live, we will arrange payment by check through the University\'s payment system, which will ask you for your name and address. Payment does not depend on what your answers are, only on finishing the full set. If you stop before finishing, you will not be paid for the part you completed, so please only accept a study slot if you expect to finish. There is no partial or pro-rated payment, and there are no other forms of compensation.',
+    ],
+  },
+  {
+    heading: 'Voluntary participation',
+    paragraphs: [
+      'Taking part in this study is completely voluntary. You can decline to take part, and you can stop at any time, without penalty and without losing anything you are otherwise entitled to. If you stop early, your completed ratings are kept unless you ask us to delete them, and no payment is made for a partial set (see Compensation). To stop, simply close the page; you can also ask any questions or ask to withdraw by contacting the study team. The investigators may end your participation without your consent if the study closes before you finish (the study has a fixed data-collection period) or if your study slot needs to be reassigned because the set was not completed; in either case you would be notified through the contact information you provided.',
+    ],
+  },
+  {
+    heading: 'Additional information',
+    paragraphs: [
+      'If you have questions about this research at any time, contact the study team: Max Segan, max@segan.com. If you have questions about your rights as a research participant, or concerns you would rather not raise with the study team, contact the Columbia University Human Research Protection Office at 212-305-5883 or askirb@columbia.edu. This study involves no treatments, so there are no new findings about treatments to report to you; if anything changed about the study that could affect your willingness to continue, we would tell you before you continue rating.',
+    ],
+  },
+  {
+    heading: 'Statement of consent',
+    paragraphs: [
+      'I have read the information above. I understand that this is a research study about judging video-game drafts, that my part is a single online survey in which I rate 240 pairs of drafts over about 1.5 to 2.5 hours in one or more sittings, and that I will be paid $100 by prepaid card only when I complete the full set. I understand that my participation is entirely voluntary and that I can stop at any time. I understand that my ratings will be kept under a code name and reported without my name. I am 18 or older. By clicking "I agree — start rating" on the study page, I agree to take part in this study. I am not giving up any of my legal rights by agreeing to participate.',
+    ],
+  },
+]
+
 const TIER_META: Record<string, { label: string; ranks: string; className: string }> = {
   low: {
     label: 'LOW TIER',
@@ -330,28 +403,21 @@ export function RateClient() {
       <div className="mx-auto max-w-2xl pt-12" data-testid="rate-consent">
         <div className="rounded-xl border bg-card p-6 shadow-lg sm:p-8">
           <h1 className="text-2xl font-bold">Before you begin</h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Columbia University consent form · Protocol IRB-ACYY3193 · Principal Investigator: Hod
+            Lipson · Expert Rating Study of Machine and Human MOBA Drafts
+          </p>
           <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
-            <p>
-              This is a <span className="font-medium text-foreground">research study</span> on
-              how experts judge Heroes of the Storm drafts. You will rate{' '}
-              <span className="font-medium text-foreground">{totalItems} pairs of drafts</span>{' '}
-              (most raters take 1.5–2.5 hours in total). You can stop and resume anytime, on any
-              device — your progress saves after every item.
-            </p>
-            <p>
-              <span className="font-medium text-foreground">What we collect:</span> your ratings,
-              response times, and the rater name on your invite. Results will be reported in
-              academic publications in aggregate or pseudonymous form; your name will never be
-              published without your permission.
-            </p>
-            <p>
-              <span className="font-medium text-foreground">Compensation:</span> $100 via Venmo on
-              completion of all {totalItems} items. Partial completion is not compensated.
-            </p>
-            <p>
-              <span className="font-medium text-foreground">Voluntary:</span> you may stop at any
-              time. Questions or concerns: max@segan.com.
-            </p>
+            {CONSENT_SECTIONS.map((s) => (
+              <section key={s.heading}>
+                <p className="font-semibold text-foreground">{s.heading}</p>
+                {s.paragraphs.map((para, i) => (
+                  <p key={i} className="mt-1">
+                    {para}
+                  </p>
+                ))}
+              </section>
+            ))}
             <div className="rounded-lg border bg-background/60 p-4" data-testid="rate-instructions">
               <p className="font-semibold text-foreground">How to rate</p>
               <p className="mt-2">
