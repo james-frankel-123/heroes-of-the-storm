@@ -172,9 +172,30 @@ def tier_to_one_hot(tier: str) -> np.ndarray:
 _REPLAY_CACHE_PATH = os.path.join(os.path.dirname(__file__), ".replay_cache.json")
 
 
+# REPLAY_SNAPSHOT_PATH points a run at a different pinned snapshot (the
+# rerun2026 namespaces use it for the 2026-09-01 tournament refresh); the
+# default stays the paper's dataset of record.
+_REPLAY_SNAPSHOT_PATH = os.environ.get("REPLAY_SNAPSHOT_PATH") or os.path.join(
+    os.path.dirname(__file__), "snapshots", "replay_snapshot_2026-05-22_1956753.json"
+)
+
+
 def load_replay_data(limit: int | None = None, force_refresh: bool = False) -> list[dict]:
     """Load replay draft data. Uses local file cache to avoid repeated DB hits.
-    Call with force_refresh=True to update the cache from DB."""
+    Call with force_refresh=True to update the cache from DB.
+
+    If REPLAY_SNAPSHOT=1 (default), loads the pinned 2026-05-22 snapshot
+    (1,956,753 replays) — the paper's dataset of record. Set REPLAY_SNAPSHOT=0
+    to use the live cache/DB path."""
+
+    if os.environ.get("REPLAY_SNAPSHOT", "1") != "0" and not force_refresh:
+        if os.path.exists(_REPLAY_SNAPSHOT_PATH):
+            with open(_REPLAY_SNAPSHOT_PATH) as f:
+                rows = json.load(f)
+            if limit:
+                rows = rows[:limit]
+            print(f"Loaded {len(rows)} replays from pinned snapshot {os.path.basename(_REPLAY_SNAPSHOT_PATH)}")
+            return rows
 
     # Try local cache first
     if not force_refresh and os.path.exists(_REPLAY_CACHE_PATH) and not limit:

@@ -71,20 +71,23 @@ import { HERO_ROLES } from '../src/lib/data/hero-roles'
 // 20260712 is the v4 paid-rater redesign: core/extended merged into PAIRS
 // (280) + ANCHORS (570), new 3-item CATCH block, GLOBAL id shuffle so ids
 // carry no block information (required now that the screener is interleaved).
-const SEED = 20260712
-// The machine-pair sample is pinned to the v3 seed: v3 drew each stratum's
-// core+ext records in a single sampleStratum pass, so sampling the same
-// totals with the same seed reproduces the IDENTICAL 280 records — their
-// frozen wpTeam0Sym and OOD provenances (and the prereg's near-tie counts)
-// carry over unchanged across the v4 re-freeze.
-const PAIR_SAMPLE_SEED = 20260711
-// Last replay id in the 2026-05-22 model-training snapshot. Every real ladder
-// draft in the study must be strictly newer, so no anchor is train-set data.
-const TRAINING_SNAPSHOT_MAX_REPLAY_ID = 63653039
+// 20260918 is the v5 patch-refresh pool: every strategy retrained on the
+// 2026-09-01 snapshot (patch 2.55.17 era) in rerun2026 namespace sept2026,
+// the tournament replayed, and all real-game blocks redrawn from games played
+// on or after the snapshot cutoff. The v4 pool (seed 20260712) was never
+// rated by a non-test rater.
+const SEED = 20260918
+// v5: the tournament records are new, so the pair sample is drawn fresh.
+const PAIR_SAMPLE_SEED = 20260918
+// Model-training snapshot cutoff (game_date, exclusive). Every real ladder
+// draft in the study is played on or after this date, so no anchor is
+// train-set data. (Date, not replay id: HP replay ids are assigned at upload
+// and are not monotone in game date.)
+const TRAINING_SNAPSHOT_CUTOFF = '2026-09-01'
 const REPO = path.resolve(__dirname, '..')
 const RESULT_DIRS = [
-  path.join(REPO, 'training/rerun2026/results/roundrobin'),
-  path.join(REPO, 'training/rerun2026/results/constrained/roundrobin'),
+  path.join(REPO, 'training/rerun2026/ns/sept2026/results/roundrobin'),
+  path.join(REPO, 'training/rerun2026/ns/sept2026/results/constrained/roundrobin'),
 ]
 const OUT_PATH = path.join(REPO, 'data/rating-items.json')
 
@@ -403,19 +406,19 @@ interface LadderDraft {
 
 /**
  * Ladder drafts for one tier: `count` distinct valid drafts, map-spread, ALL
- * strictly newer than the training snapshot (replay_id > 63653039).
+ * played on/after the training snapshot cutoff (game_date >= TRAINING_SNAPSHOT_CUTOFF).
  */
 async function loadLadderTier(tier: string, count: number): Promise<LadderDraft[]> {
   const sql = neon(process.env.DATABASE_URL!)
   // Deterministic recent window; the committed JSON freezes the sample. Pull a
-  // generous window so enough valid drafts survive filtering. The snapshot
-  // floor guarantees no anchor was ever seen by any trained model.
+  // generous window so enough valid drafts survive filtering. The date floor
+  // guarantees no anchor was ever seen by any trained model.
   const rows = (await sql`
     select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner, game_date
     from replay_draft_data
     where skill_tier = ${tier}
-      and replay_id > ${TRAINING_SNAPSHOT_MAX_REPLAY_ID}
-    order by replay_id desc
+      and game_date >= ${TRAINING_SNAPSHOT_CUTOFF}
+    order by game_date desc, replay_id desc
     limit 6000
   `) as LadderDraft[]
   const valid = rows.filter((r) => validTeams(r.team0_heroes, r.team1_heroes))
@@ -576,6 +579,10 @@ async function main() {
   const replayIds = allCandidates
     .map(({ c }) => c.provenance.replayId)
     .filter((x) => x !== undefined) as number[]
+  const gameDates = allCandidates
+    .map(({ c }) => c.provenance.gameDate)
+    .filter((x) => x !== undefined)
+    .map((x) => String(x)) as string[]
   if (new Set(replayIds).size !== replayIds.length) {
     throw new Error('duplicate ladder replay usage across blocks')
   }
@@ -610,7 +617,8 @@ async function main() {
       {
         seed: SEED,
         generatedAt: new Date().toISOString(),
-        trainingSnapshotMaxReplayId: TRAINING_SNAPSHOT_MAX_REPLAY_ID,
+        trainingSnapshotCutoff: TRAINING_SNAPSHOT_CUTOFF,
+        tournamentNamespace: 'sept2026',
         items,
       },
       null,
@@ -640,10 +648,11 @@ async function main() {
   }
   // Post-snapshot verification line for the prereg.
   const minReplay = Math.min(...replayIds)
+  const minDate = gameDates.reduce((a, b) => (a < b ? a : b))
   console.log(
-    `min anchor replay_id = ${minReplay} (> snapshot ${TRAINING_SNAPSHOT_MAX_REPLAY_ID}: ${
-      minReplay > TRAINING_SNAPSHOT_MAX_REPLAY_ID
-    })`
+    `min anchor game_date = ${minDate} (>= snapshot cutoff ${TRAINING_SNAPSHOT_CUTOFF}: ${
+      minDate.slice(0, 10) >= TRAINING_SNAPSHOT_CUTOFF
+    }); min anchor replay_id = ${minReplay}`
   )
 }
 
