@@ -42,7 +42,8 @@ registration date ("new builds"), up to the analysis date.
 
 **C1: detector fire/no-fire.** For each boundary between consecutive new builds
 (and between 2.55.17.98025 and the first new build), once the later build has
-at least 12,000 games:
+at least 20,000 games (the frozen sizable-build rule; smaller builds fold into the next):
+- Runner: `w14_prospective_detect.py` (counts via frozen `w3_recovery.walk_build`, notes via frozen `fetch_patch_notes.py`, separate output paths); validated on retrospective boundaries 2.55.13 to 2.55.16: 4/4 fire decisions reproduced.
 - Detector: `w3_changepoints.py` unchanged. Two-proportion test on each hero's
   win rate, at least 200 games per side, Benjamini-Hochberg FDR at q = 0.05
   within the boundary. The boundary **fires** if at least one hero survives.
@@ -108,6 +109,8 @@ matched against C1's fires.
 | training/drift2026/results/w6_head2head_w10_degen.json | 9dbc5df | ce500a1036fc7e4ff7a4a728397110518f89c0fb988b40b932e25ed1c1d4fe1d |
 | training/shared.py | 9dbc5df | 5e7bc527acd513fc5f2f777d000f5ee027dfb98bb802f1c7fdedd95f207d94ef |
 | training/sweep_enriched_wp.py | 9dbc5df | 4435316e4e4495e5c53a3f5d34abb98a7caae49ce2a425de104be2a04dc7caff |
+| training/drift2026/w14_prospective_detect.py | 38dd73e | 2074f2ef494f2e18054e3e0eac6ca8b26b944bda7e70c38d11126f6c1096132e |
+| training/drift2026/w3_recovery.py | 9dbc5df | d9a0f1bfd42125c23cb3abdff856ced7e7de96fbc602d1d8baaa5c4dbfaa8233 |
 
 Command: `sha256sum <files>` at the registered commit.
 

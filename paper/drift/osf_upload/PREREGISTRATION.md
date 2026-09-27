@@ -10,7 +10,7 @@ Forward pre-registration accompanying a paper under review on meta drift and dra
 
 ## Hypotheses
 
-- **H1 (C1).** Take each boundary between consecutive new builds, and between the last excluded build (2.55.17.98025) and the first new build, once the later build has at least 12,000 ranked games. The detector fires on change boundaries and stays silent on no-change boundaries.
+- **H1 (C1).** Take each boundary between consecutive new builds, and between the last excluded build (2.55.17.98025) and the first new build, once the later build has at least 20,000 ranked games (the detector's frozen "sizable build" rule; smaller hotfix builds are folded into the next sizable build). The detector fires on change boundaries and stays silent on no-change boundaries.
 - **H2 (C2).** The existing 4,500 maintained-versus-unmaintained head-to-head drafts (created before registration) are rescored against the new builds' realized statistics. The maintained side's mean future-meta hero win rate exceeds the unmaintained side's.
 - **RQ3 (C3)** is descriptive and has no hypothesis.
 
@@ -24,7 +24,7 @@ The outcome data for every claim (ranked games and patch notes from builds relea
 2. **The earlier side of C1's first boundary** (build 2.55.17.98025). We used its games, pooled with four other builds, as a scoring set in the paper. We have not run the detector on it or on any 2.55.17 boundary.
 
 **Steps taken to limit influence:**
-- All thresholds were fixed by the retrospective analysis on builds up to February 2026: q = 0.05, 200 games per side, the 12,000 and 20,000 game gates, and the one-sided z = 1.645 criterion.
+- All thresholds were fixed by the retrospective analysis on builds up to February 2026: q = 0.05, 200 games per side, the 20,000-game gates, and the one-sided z = 1.645 criterion.
 - All builds already used are excluded from confirmation.
 - The code is frozen by commit hash and SHA-256.
 - Every outcome will be reported.
@@ -45,11 +45,11 @@ The outcome data for every claim (ranked games and patch notes from builds relea
 **Excluded builds:** everything up to and including 2.55.17.98025 (released 2026-09-12). This includes 2.55.16.97039 and 2.55.17.97605, 97650, 97771 and 98025, which the paper uses retrospectively as its out-of-sample scoring set.
 
 **Expected sample:**
-- New ranked games arrive at about 14,000 to 16,000 per week, so a new build reaches the C1 gate in about a week.
+- New ranked games arrive at about 14,000 to 16,000 per week, so a new build reaches the C1 gate in about ten days to two weeks.
 - Sizable builds have shipped every 6 to 9 weeks, so a six-month window should contain three or four new builds.
 
 **Stopping rule:** the analysis date is fixed at paper submission.
-- C1 is evaluated for each boundary whose later build reaches 12,000 games by that date.
+- C1 is evaluated for each boundary whose later build reaches 20,000 games by that date.
 - C2 is evaluated once the new builds pool at least 20,000 games.
 - A build that never reaches its gate is reported as not decidable.
 
@@ -69,7 +69,8 @@ The outcome data for every claim (ranked games and patch notes from builds relea
 ## Analysis plan
 
 **C1:**
-- Test: `w3_changepoints.py` unchanged. A two-proportion test on each hero's win rate across the boundary, with at least 200 games per side and Benjamini-Hochberg correction at q = 0.05 within the boundary.
+- Test: `w3_changepoints.py` unchanged. A two-sided two-proportion z-test on each hero's win rate, comparing the full earlier build with the full later build, with at least 200 games per side and Benjamini-Hochberg correction at q = 0.05 within the boundary. Boundaries run between consecutive builds with at least 20,000 games; smaller builds in between are folded in.
+- Runner: `w14_prospective_detect.py` feeds the frozen detector the new builds from the database. It builds per-day counts with the frozen `w3_recovery.walk_build`, refreshes patch notes with the frozen `fetch_patch_notes.py`, and writes to separate output paths. It changes no decision logic. Validation before registration: on the retrospective builds 2.55.13 to 2.55.16 (never the 2.55.17 builds), it reproduced the fire decision on all 4 boundaries, with near-identical flagged heroes (the database now holds 10 to 35% more games for those builds from late uploads).
 - Decision: a boundary fires if at least one hero survives.
 - Ground truth: the notes are extracted by `fetch_patch_notes.py` unchanged. Bug-fix-only and ARAM-only hero mentions are excluded.
 - Retrospective reference rates: fired on 16 of 21 change boundaries; silent on 5 of 6 no-change boundaries.
@@ -100,7 +101,7 @@ The outcome data for every claim (ranked games and patch notes from builds relea
 
 ## Frozen code
 
-Attached in `frozen/`, with `SHA256SUMS`. Git commit `9dbc5df3b70517da7818d7998e4332da5509c8e1`.
+Attached in `frozen/`, with `SHA256SUMS`. Git commit `9dbc5df3b70517da7818d7998e4332da5509c8e1` (the C1 runner is in `38dd73e`).
 
 | file | SHA-256 |
 |---|---|
@@ -113,6 +114,8 @@ Attached in `frozen/`, with `SHA256SUMS`. Git commit `9dbc5df3b70517da7818d7998e
 | w6_head2head_w10_degen.json | ce500a1036fc7e4ff7a4a728397110518f89c0fb988b40b932e25ed1c1d4fe1d |
 | shared.py (degeneracy rule) | 5e7bc527acd513fc5f2f777d000f5ee027dfb98bb802f1c7fdedd95f207d94ef |
 | sweep_enriched_wp.py (statistics getters) | 4435316e4e4495e5c53a3f5d34abb98a7caae49ce2a425de104be2a04dc7caff |
+| w14_prospective_detect.py (C1 runner, commit 38dd73e) | 2074f2ef494f2e18054e3e0eac6ca8b26b944bda7e70c38d11126f6c1096132e |
+| w3_recovery.py (daily counting) | d9a0f1bfd42125c23cb3abdff856ced7e7de96fbc602d1d8baaa5c4dbfaa8233 |
 
 ## Other
 
