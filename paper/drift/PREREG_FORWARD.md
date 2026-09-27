@@ -106,6 +106,8 @@ matched against C1's fires.
 | training/drift2026/build_patch_stats.py | 9dbc5df | eb6314ff44d75295ab8ee12fb345aa24de32797bc07f30c0f5015bdee325fb30 |
 | training/drift2026/common.py | 9dbc5df | fb01c5297a03006d09dceebd9cc48a2a1e0501befe7651801410061c5be1d37f |
 | training/drift2026/results/w6_head2head_w10_degen.json | 9dbc5df | ce500a1036fc7e4ff7a4a728397110518f89c0fb988b40b932e25ed1c1d4fe1d |
+| training/shared.py | 9dbc5df | 5e7bc527acd513fc5f2f777d000f5ee027dfb98bb802f1c7fdedd95f207d94ef |
+| training/sweep_enriched_wp.py | 9dbc5df | 4435316e4e4495e5c53a3f5d34abb98a7caae49ce2a425de104be2a04dc7caff |
 
 Command: `sha256sum <files>` at the registered commit.
 

@@ -111,6 +111,8 @@ Attached in `frozen/`, with `SHA256SUMS`. Git commit `9dbc5df3b70517da7818d7998e
 | build_patch_stats.py | eb6314ff44d75295ab8ee12fb345aa24de32797bc07f30c0f5015bdee325fb30 |
 | common.py | fb01c5297a03006d09dceebd9cc48a2a1e0501befe7651801410061c5be1d37f |
 | w6_head2head_w10_degen.json | ce500a1036fc7e4ff7a4a728397110518f89c0fb988b40b932e25ed1c1d4fe1d |
+| shared.py (degeneracy rule) | 5e7bc527acd513fc5f2f777d000f5ee027dfb98bb802f1c7fdedd95f207d94ef |
+| sweep_enriched_wp.py (statistics getters) | 4435316e4e4495e5c53a3f5d34abb98a7caae49ce2a425de104be2a04dc7caff |
 
 ## Other
 
