@@ -1,0 +1,1068 @@
+{
+  "_meta": {
+    "phase": "Q11 detector operating curves",
+    "detector": "W3b wr_bh family: two-proportion WR z-test per hero (>= 200 games/side), BH FDR within boundary at level q (swept); latency = z_naive sequential test at day boundaries (fixed across the sweep)",
+    "replay": "W2c detector-triggered arm, fixed C0 model w2c_cut08_s42, first-detection latency, refresh = stats cumulative through fired build's predecessor",
+    "ground_truth": "source: Official Blizzard patch notes via news.blizzard.com (index: https://news.blizzard.com/en-us/api/feed/heroes-of...; fetch: Plain HTTP GET, stdlib urllib. Blizzard: JSON feed API paginated with ?offset=N, then each article's HTML pars...; 59 patches; 45 corpus builds with known truth (19 with zero balance changes); bugfix-only/ARAM-only hero mentions excluded from truth",
+    "paper_operating_point": {
+      "alpha": 0.05,
+      "tp": 46,
+      "fp": 12,
+      "fn": 687,
+      "precision": 0.793,
+      "recall": 0.063,
+      "f1": 0.116,
+      "refreshes": 14,
+      "weighted_acc": 56.068,
+      "regret_pp": 0.743
+    }
+  },
+  "operating_points": [
+    {
+      "alpha": 0.001,
+      "tp": 17,
+      "fp": 2,
+      "fn": 716,
+      "precision": 0.895,
+      "recall": 0.023,
+      "f1": 0.045,
+      "n_fires": 9,
+      "refreshes": 9,
+      "weighted_acc": 56.048,
+      "regret_pp": 0.763
+    },
+    {
+      "alpha": 0.005,
+      "tp": 22,
+      "fp": 3,
+      "fn": 711,
+      "precision": 0.88,
+      "recall": 0.03,
+      "f1": 0.058,
+      "n_fires": 11,
+      "refreshes": 11,
+      "weighted_acc": 56.06,
+      "regret_pp": 0.751
+    },
+    {
+      "alpha": 0.01,
+      "tp": 22,
+      "fp": 5,
+      "fn": 711,
+      "precision": 0.815,
+      "recall": 0.03,
+      "f1": 0.058,
+      "n_fires": 11,
+      "refreshes": 11,
+      "weighted_acc": 56.06,
+      "regret_pp": 0.751
+    },
+    {
+      "alpha": 0.02,
+      "tp": 29,
+      "fp": 6,
+      "fn": 704,
+      "precision": 0.829,
+      "recall": 0.04,
+      "f1": 0.076,
+      "n_fires": 12,
+      "refreshes": 12,
+      "weighted_acc": 56.057,
+      "regret_pp": 0.754
+    },
+    {
+      "alpha": 0.05,
+      "tp": 46,
+      "fp": 12,
+      "fn": 687,
+      "precision": 0.793,
+      "recall": 0.063,
+      "f1": 0.116,
+      "n_fires": 14,
+      "refreshes": 14,
+      "weighted_acc": 56.068,
+      "regret_pp": 0.743
+    },
+    {
+      "alpha": 0.1,
+      "tp": 54,
+      "fp": 23,
+      "fn": 679,
+      "precision": 0.701,
+      "recall": 0.074,
+      "f1": 0.133,
+      "n_fires": 16,
+      "refreshes": 16,
+      "weighted_acc": 56.068,
+      "regret_pp": 0.743
+    },
+    {
+      "alpha": 0.2,
+      "tp": 63,
+      "fp": 32,
+      "fn": 670,
+      "precision": 0.663,
+      "recall": 0.086,
+      "f1": 0.152,
+      "n_fires": 18,
+      "refreshes": 18,
+      "weighted_acc": 56.069,
+      "regret_pp": 0.742
+    },
+    {
+      "alpha": 0.35,
+      "tp": 78,
+      "fp": 70,
+      "fn": 655,
+      "precision": 0.527,
+      "recall": 0.106,
+      "f1": 0.177,
+      "n_fires": 18,
+      "refreshes": 18,
+      "weighted_acc": 56.071,
+      "regret_pp": 0.74
+    },
+    {
+      "alpha": 0.5,
+      "tp": 116,
+      "fp": 140,
+      "fn": 617,
+      "precision": 0.453,
+      "recall": 0.158,
+      "f1": 0.235,
+      "n_fires": 19,
+      "refreshes": 19,
+      "weighted_acc": 56.074,
+      "regret_pp": 0.737
+    }
+  ],
+  "reference_rows": {
+    "oracle_weighted_acc": 56.811,
+    "never_refresh": {
+      "refreshes": 0,
+      "weighted_acc": 55.748,
+      "regret_pp": 1.063
+    },
+    "every_build_refresh": {
+      "refreshes": 35,
+      "weighted_acc": 56.08,
+      "regret_pp": 0.73
+    }
+  },
+  "fire_schedules": {
+    "0.001": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 1,
+        "lat_first": 8752,
+        "lat_median": 8752.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 1,
+        "lat_first": 3027,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 1,
+        "lat_first": 960,
+        "lat_median": 960.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 1,
+        "lat_first": 1975,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 4,
+        "lat_first": 1647,
+        "lat_median": 5693.5
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 1,
+        "lat_first": 2529,
+        "lat_median": 2529.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 4,
+        "lat_first": 3509,
+        "lat_median": 11973.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 2,
+        "lat_first": 1886,
+        "lat_median": 3540.5
+      }
+    ],
+    "0.005": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 1,
+        "lat_first": 8752,
+        "lat_median": 8752.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 1,
+        "lat_first": 3027,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 2,
+        "lat_first": 960,
+        "lat_median": 1865.5
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 2,
+        "lat_first": 1975,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2286,
+        "lat_median": 2286.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 4,
+        "lat_first": 1647,
+        "lat_median": 5693.5
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 1,
+        "lat_first": 2529,
+        "lat_median": 2529.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 1,
+        "lat_first": 10214,
+        "lat_median": 10214.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 5,
+        "lat_first": 3509,
+        "lat_median": 15139.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 2,
+        "lat_first": 1886,
+        "lat_median": 3540.5
+      }
+    ],
+    "0.01": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 1,
+        "lat_first": 8752,
+        "lat_median": 8752.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 1,
+        "lat_first": 3027,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 2,
+        "lat_first": 960,
+        "lat_median": 1865.5
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 2,
+        "lat_first": 1975,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2286,
+        "lat_median": 2286.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 4,
+        "lat_first": 1647,
+        "lat_median": 5693.5
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 1,
+        "lat_first": 2529,
+        "lat_median": 2529.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 1,
+        "lat_first": 10214,
+        "lat_median": 10214.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 7,
+        "lat_first": 3509,
+        "lat_median": 15139.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 2,
+        "lat_first": 1886,
+        "lat_median": 3540.5
+      }
+    ],
+    "0.02": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 3,
+        "lat_first": 2655,
+        "lat_median": 2655.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 1,
+        "lat_first": 3027,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 2,
+        "lat_first": 960,
+        "lat_median": 1865.5
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 3,
+        "lat_first": 572,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2286,
+        "lat_median": 2286.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 4,
+        "lat_first": 1647,
+        "lat_median": 5693.5
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 1,
+        "lat_first": 2529,
+        "lat_median": 2529.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 1,
+        "lat_first": 4777,
+        "lat_median": 4777.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 1,
+        "lat_first": 10214,
+        "lat_median": 10214.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 11,
+        "lat_first": 3509,
+        "lat_median": 21482.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 2,
+        "lat_first": 1886,
+        "lat_median": 3540.5
+      }
+    ],
+    "0.05": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 4,
+        "lat_first": 2655,
+        "lat_median": 4095.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 2,
+        "lat_first": 2055,
+        "lat_median": 2541.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 3,
+        "lat_first": 960,
+        "lat_median": 2771.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 1,
+        "lat_first": 3250,
+        "lat_median": 3250.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 1,
+        "lat_first": 6947,
+        "lat_median": 6947.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 5,
+        "lat_first": 572,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2286,
+        "lat_median": 2286.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 5,
+        "lat_first": 1647,
+        "lat_median": 8167.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 3,
+        "lat_first": 2529,
+        "lat_median": 8645.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 3,
+        "lat_first": 4777,
+        "lat_median": 7500.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 3,
+        "lat_first": 10214,
+        "lat_median": 12436.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 11,
+        "lat_first": 3509,
+        "lat_median": 21482.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 3,
+        "lat_first": 1886,
+        "lat_median": 5195.0
+      }
+    ],
+    "0.1": [
+      {
+        "build": "2.55.3.90670",
+        "pos": 9,
+        "n_detections": 1,
+        "lat_first": 1776,
+        "lat_median": 1776.0
+      },
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 6,
+        "lat_first": 981,
+        "lat_median": 4095.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 2,
+        "lat_first": 2055,
+        "lat_median": 2541.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 3,
+        "lat_first": 960,
+        "lat_median": 2771.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 1,
+        "lat_first": 3250,
+        "lat_median": 3250.0
+      },
+      {
+        "build": "2.55.9.93640",
+        "pos": 25,
+        "n_detections": 5,
+        "lat_first": 2722,
+        "lat_median": 9022.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 1,
+        "lat_first": 6947,
+        "lat_median": 6947.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 5,
+        "lat_first": 572,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2286,
+        "lat_median": 2286.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 9,
+        "lat_first": 1647,
+        "lat_median": 4823.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 4,
+        "lat_first": 2529,
+        "lat_median": 12426.5
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 5,
+        "lat_first": 4777,
+        "lat_median": 7500.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 3,
+        "lat_first": 10214,
+        "lat_median": 12436.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 12,
+        "lat_first": 3509,
+        "lat_median": 22143.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 4,
+        "lat_first": 1886,
+        "lat_median": 4349.5
+      }
+    ],
+    "0.2": [
+      {
+        "build": "2.55.3.90670",
+        "pos": 9,
+        "n_detections": 1,
+        "lat_first": 1776,
+        "lat_median": 1776.0
+      },
+      {
+        "build": "2.55.3.91093",
+        "pos": 12,
+        "n_detections": 2,
+        "lat_first": 5301,
+        "lat_median": 6140.0
+      },
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 8,
+        "lat_first": 981,
+        "lat_median": 7143.5
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 2,
+        "lat_first": 2055,
+        "lat_median": 2541.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 3,
+        "lat_first": 960,
+        "lat_median": 2771.0
+      },
+      {
+        "build": "2.55.7.93151",
+        "pos": 20,
+        "n_detections": 1,
+        "lat_first": 4801,
+        "lat_median": 4801.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 2,
+        "lat_first": 2082,
+        "lat_median": 2666.0
+      },
+      {
+        "build": "2.55.9.93640",
+        "pos": 25,
+        "n_detections": 5,
+        "lat_first": 2722,
+        "lat_median": 9022.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 1,
+        "lat_first": 6947,
+        "lat_median": 6947.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 5,
+        "lat_first": 572,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2286,
+        "lat_median": 2286.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 10,
+        "lat_first": 1647,
+        "lat_median": 6495.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 5,
+        "lat_first": 2529,
+        "lat_median": 16208.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 6,
+        "lat_first": 4777,
+        "lat_median": 9593.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 3,
+        "lat_first": 10214,
+        "lat_median": 12436.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 15,
+        "lat_first": 3509,
+        "lat_median": 21482.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 6,
+        "lat_first": 1886,
+        "lat_median": 4349.5
+      }
+    ],
+    "0.35": [
+      {
+        "build": "2.55.3.90670",
+        "pos": 9,
+        "n_detections": 1,
+        "lat_first": 1776,
+        "lat_median": 1776.0
+      },
+      {
+        "build": "2.55.3.91093",
+        "pos": 12,
+        "n_detections": 2,
+        "lat_first": 5301,
+        "lat_median": 6140.0
+      },
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 11,
+        "lat_first": 981,
+        "lat_median": 8752.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 3,
+        "lat_first": 2055,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 4,
+        "lat_first": 960,
+        "lat_median": 5412.0
+      },
+      {
+        "build": "2.55.7.93151",
+        "pos": 20,
+        "n_detections": 3,
+        "lat_first": 2548,
+        "lat_median": 4801.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 4,
+        "lat_first": 2082,
+        "lat_median": 4209.0
+      },
+      {
+        "build": "2.55.9.93640",
+        "pos": 25,
+        "n_detections": 11,
+        "lat_first": 2722,
+        "lat_median": 14980.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 3,
+        "lat_first": 1647,
+        "lat_median": 4217.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 6,
+        "lat_first": 572,
+        "lat_median": 5591.5
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2286,
+        "lat_median": 2286.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 4,
+        "lat_first": 448,
+        "lat_median": 4269.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 16,
+        "lat_first": 1647,
+        "lat_median": 8167.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 5,
+        "lat_first": 2529,
+        "lat_median": 16208.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 6,
+        "lat_first": 4777,
+        "lat_median": 9593.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 5,
+        "lat_first": 1925,
+        "lat_median": 12436.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 20,
+        "lat_first": 1577,
+        "lat_median": 15139.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 11,
+        "lat_first": 1886,
+        "lat_median": 5195.0
+      }
+    ],
+    "0.5": [
+      {
+        "build": "2.55.3.90670",
+        "pos": 9,
+        "n_detections": 8,
+        "lat_first": 975,
+        "lat_median": 25193.0
+      },
+      {
+        "build": "2.55.3.91093",
+        "pos": 12,
+        "n_detections": 2,
+        "lat_first": 5301,
+        "lat_median": 6140.0
+      },
+      {
+        "build": "2.55.4.91418",
+        "pos": 14,
+        "n_detections": 4,
+        "lat_first": 8496,
+        "lat_median": 21015.5
+      },
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 14,
+        "lat_first": 981,
+        "lat_median": 23033.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 5,
+        "lat_first": 263,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 4,
+        "lat_first": 960,
+        "lat_median": 5412.0
+      },
+      {
+        "build": "2.55.7.93151",
+        "pos": 20,
+        "n_detections": 3,
+        "lat_first": 2548,
+        "lat_median": 4801.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 6,
+        "lat_first": 2082,
+        "lat_median": 6095.5
+      },
+      {
+        "build": "2.55.9.93640",
+        "pos": 25,
+        "n_detections": 17,
+        "lat_first": 439,
+        "lat_median": 7942.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 14,
+        "lat_first": 1647,
+        "lat_median": 37034.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 7,
+        "lat_first": 572,
+        "lat_median": 9208.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 2,
+        "lat_first": 2286,
+        "lat_median": 8341.5
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 5,
+        "lat_first": 448,
+        "lat_median": 4971.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 34,
+        "lat_first": 1647,
+        "lat_median": 9166.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 8,
+        "lat_first": 738,
+        "lat_median": 18607.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 10,
+        "lat_first": 4777,
+        "lat_median": 15707.5
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 5,
+        "lat_first": 1925,
+        "lat_median": 12436.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 28,
+        "lat_first": 1577,
+        "lat_median": 15139.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 23,
+        "lat_first": 1886,
+        "lat_median": 5195.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "behavior_gap_pp": 0.63,
+  "recency_effect_pp": 0.56,
+  "within_build_effect_pp": 0.75,
+  "d2c_cumprev_delta_healer_pp": 2.93,
+  "d2c_cumprev_delta_degen_pp": -2.67,
+  "material_a_accuracy": false,
+  "material_b_policy": false,
+  "mcts_arm_fires": false,
+  "criteria": "a: frozen-cutoff future top1 >= 1.0pp; b: |d healer| or |d degen| >= 3pp (d2c_cumprev)"
+}

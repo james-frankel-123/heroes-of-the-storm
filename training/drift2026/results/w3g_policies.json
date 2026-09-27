@@ -1,0 +1,54 @@
+{
+  "oracle_weighted_acc": 56.811,
+  "policies": [
+    {
+      "policy": "oracle cumprev (retrain every build)",
+      "retrains": 35,
+      "weighted_acc": 56.811,
+      "regret_pp": 0.0
+    },
+    {
+      "policy": "never retrain + frozen stats",
+      "retrains": 0,
+      "weighted_acc": 55.128,
+      "regret_pp": 1.682
+    },
+    {
+      "policy": "never retrain + cumprev refresh",
+      "retrains": 0,
+      "weighted_acc": 56.08,
+      "regret_pp": 0.73
+    },
+    {
+      "policy": "retrain every K=3 + cumprev refresh",
+      "retrains": 11,
+      "weighted_acc": 56.782,
+      "regret_pp": 0.029
+    },
+    {
+      "policy": "retrain every K=6 + cumprev refresh",
+      "retrains": 5,
+      "weighted_acc": 56.743,
+      "regret_pp": 0.067
+    },
+    {
+      "policy": "never retrain + hybrid per-signal refresh",
+      "retrains": 0,
+      "weighted_acc": 55.778,
+      "regret_pp": 1.033
+    },
+    {
+      "policy": "never retrain + embed + cumprev refresh",
+      "retrains": 0,
+      "weighted_acc": 56.096,
+      "regret_pp": 0.714
+    },
+    {
+      "policy": "retrain every K=6 + embed + cumprev refresh",
+      "retrains": 5,
+      "weighted_acc": 56.732,
+      "regret_pp": 0.078
+    }
+  ],
+  "recommended": "retrain every K=3 + cumprev refresh"
+}

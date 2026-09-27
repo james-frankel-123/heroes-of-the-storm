@@ -1,0 +1,33 @@
+{
+  "cell": "d2b_allhist",
+  "label": "d2b_allhist greedy",
+  "seed": 42,
+  "drafts": 500,
+  "gd_pool": "cutoff",
+  "healer_rate": 68.2,
+  "degen_rate": 40.6,
+  "counter_future": 0.099,
+  "synergy_future": 0.427,
+  "distinct_heroes": 89,
+  "entropy": 6.04,
+  "top10_concentration": 33.6,
+  "map_adapt": {
+    "Braxis Holdout": {
+      "map_rate": 37.5,
+      "other_rate": 23.7,
+      "delta": 13.8
+    },
+    "Battlefield of Eternity": {
+      "map_rate": 18.2,
+      "other_rate": 13.1,
+      "delta": 5.1
+    },
+    "Cursed Hollow": {
+      "map_rate": 17.2,
+      "other_rate": 8.1,
+      "delta": 9.2
+    }
+  },
+  "truth": "merged per-build counts of all post-cutoff builds",
+  "minutes": 5.6
+}

@@ -1,0 +1,674 @@
+{
+  "arms": {
+    "champion vs stale-4mo (15x15, 10/cell, staggered)": {
+      "jf": {
+        "maintained": {
+          "counter_future": -0.17841229747898327,
+          "counter_se": 0.010419411133312493,
+          "synergy_future": 1.054613536214604,
+          "synergy_se": 0.020393544561843602,
+          "degen_pct": 22.666666666666664,
+          "healer_pct": 87.1111111111111,
+          "future_hero_wr_mean": 52.20780827322351
+        },
+        "frozen": {
+          "counter_future": 0.17841229747898324,
+          "counter_se": 0.010419411133312495,
+          "synergy_future": 0.30024296099787384,
+          "synergy_se": 0.01964078076657448,
+          "degen_pct": 31.133333333333336,
+          "healer_pct": 71.02222222222223,
+          "future_hero_wr_mean": 51.29146184187313
+        },
+        "paired_deltas": {
+          "counter": {
+            "mean": -0.35682459495796653,
+            "se": 0.02083882226662499
+          },
+          "synergy": {
+            "mean": 0.7543705752167302,
+            "se": 0.03136334259305331
+          },
+          "future_hero_wr": {
+            "mean": 0.9163464313503868,
+            "se": 0.01808411968576778
+          }
+        }
+      },
+      "inf": {
+        "in": "w6_head2head_w8_champ4mo.json",
+        "arms": {
+          "maintained": "champion",
+          "frozen": "d2b_allhist"
+        },
+        "n_drafts": 4500,
+        "continuous": {
+          "est": 0.4986429898253539,
+          "se": 0.0066550707096507304,
+          "components": {
+            "seed_maintained": 0.00039659399631983825,
+            "seed_frozen": 0.00022617449257669741,
+            "interaction": 0.00027445843531621915,
+            "within_pairing_sampling": 0.0003492566150872377
+          },
+          "disjoint_diag": {
+            "est": 0.49923148962358627,
+            "se": 0.010505704620259819
+          },
+          "shape": [
+            15,
+            15,
+            20
+          ],
+          "z_vs_half": -0.2039061993253173
+        },
+        "binary": {
+          "est": 0.4835555555555556,
+          "se": 0.030032299736497656,
+          "components": {
+            "seed_maintained": 0.00820294784580499,
+            "seed_frozen": 0.004150566893424038,
+            "interaction": 0.0060206945936269254,
+            "within_pairing_sampling": 0.011612865497076023
+          },
+          "disjoint_diag": {
+            "est": 0.4866666666666667,
+            "se": 0.053998824208245644
+          },
+          "shape": [
+            15,
+            15,
+            20
+          ],
+          "z_vs_half": -0.5475586148489243
+        },
+        "judge_free_crossed": {
+          "counter": {
+            "est": -0.3568245949579665,
+            "se": 0.11081121341307042,
+            "components": {
+              "seed_maintained": 0.08908165648568364,
+              "seed_frozen": 0.0813958707233867,
+              "interaction": 0.12196225088210981,
+              "within_pairing_sampling": 0.08367797004916856
+            },
+            "disjoint_diag": {
+              "est": -0.22973641963816266,
+              "se": 0.11421916978159184
+            },
+            "shape": [
+              15,
+              15,
+              20
+            ],
+            "z": -3.2201126940811773
+          },
+          "synergy": {
+            "est": 0.7543705752167302,
+            "se": 0.1421169799427029,
+            "components": {
+              "seed_maintained": 0.14475841812831788,
+              "seed_frozen": 0.10016334562015951,
+              "interaction": 0.6952775970994765,
+              "within_pairing_sampling": 0.1752740439811507
+            },
+            "disjoint_diag": {
+              "est": 0.5443869795391315,
+              "se": 0.25035741026566155
+            },
+            "shape": [
+              15,
+              15,
+              20
+            ],
+            "z": 5.3080960172448695
+          },
+          "future_hero_wr": {
+            "est": 0.916346431350387,
+            "se": 0.09404256949976172,
+            "components": {
+              "seed_maintained": 0.05680784448696167,
+              "seed_frozen": 0.06617198131035228,
+              "interaction": 0.08141462299986112,
+              "within_pairing_sampling": 0.0637890876168707
+            },
+            "disjoint_diag": {
+              "est": 0.8830676415163712,
+              "se": 0.16063444775766952
+            },
+            "shape": [
+              15,
+              15,
+              20
+            ],
+            "z": 9.743953575754952
+          },
+          "degen": {
+            "est": -0.08466666666666668,
+            "se": 0.0527085857459472,
+            "components": {
+              "seed_maintained": 0.019109750566893433,
+              "seed_frozen": 0.020346258503401358,
+              "interaction": 0.01671514500537057,
+              "within_pairing_sampling": 0.01653859649122807
+            },
+            "disjoint_diag": {
+              "est": -0.05,
+              "se": 0.0914174100330066
+            },
+            "shape": [
+              15,
+              15,
+              20
+            ],
+            "z": -1.6063164182540557
+          }
+        }
+      },
+      "consensus": 0.4986429898253539,
+      "side_rates": {
+        "champion": {
+          "healer": 87.1111111111111,
+          "degen": 22.666666666666664
+        },
+        "d2b_allhist": {
+          "healer": 71.02222222222223,
+          "degen": 31.133333333333336
+        }
+      },
+      "vintage": {
+        "2022-07": {
+          "maintained_wp": 0.45014722592963113,
+          "se": 0.0012786089721485239,
+          "win_share": 0.2782222222222222
+        },
+        "2022Q1-ranked": {
+          "maintained_wp": 0.4624364153212971,
+          "se": 0.0013514539291504671,
+          "win_share": 0.32133333333333336
+        },
+        "2023-07": {
+          "maintained_wp": 0.4902995263867908,
+          "se": 0.0008626589930686903,
+          "win_share": 0.4242222222222222
+        },
+        "2024-07": {
+          "maintained_wp": 0.506247236089574,
+          "se": 0.0011336891046747,
+          "win_share": 0.5348888888888889
+        },
+        "2025-07": {
+          "maintained_wp": 0.4883064809607135,
+          "se": 0.0011824079506948606,
+          "win_share": 0.4128888888888889
+        },
+        "2026-build": {
+          "maintained_wp": 0.5017368016474777,
+          "se": 0.0013938216671951153,
+          "win_share": 0.5086666666666667
+        },
+        "QM-2021": {
+          "maintained_wp": 0.4097640677789847,
+          "se": 0.0021689221733792305,
+          "win_share": 0.2608888888888889
+        }
+      }
+    },
+    "champion vs stale-1yr (5x5, 40/cell)": {
+      "jf": {
+        "maintained": {
+          "counter_future": -0.04893432646826841,
+          "counter_se": 0.015391414786658173,
+          "synergy_future": 0.9405820727665075,
+          "synergy_se": 0.029711988166498917,
+          "degen_pct": 23.5,
+          "healer_pct": 85.15,
+          "future_hero_wr_mean": 52.282148432649436
+        },
+        "frozen": {
+          "counter_future": 0.048934326468268396,
+          "counter_se": 0.015391414786658173,
+          "synergy_future": 0.3023704503395351,
+          "synergy_se": 0.03091365259042691,
+          "degen_pct": 30.15,
+          "healer_pct": 74.75,
+          "future_hero_wr_mean": 51.41144285327686
+        },
+        "paired_deltas": {
+          "counter": {
+            "mean": -0.09786865293653682,
+            "se": 0.030782829573316347
+          },
+          "synergy": {
+            "mean": 0.6382116224269724,
+            "se": 0.04810820858251431
+          },
+          "future_hero_wr": {
+            "mean": 0.8707055793725768,
+            "se": 0.025536375556743016
+          }
+        }
+      },
+      "inf": {
+        "in": "w6_head2head_w8_champ1yr.json",
+        "arms": {
+          "maintained": "champion",
+          "frozen": "stale1yr"
+        },
+        "n_drafts": 2000,
+        "continuous": {
+          "est": 0.5069802708351053,
+          "se": 0.008565779678670973,
+          "components": {
+            "seed_maintained": 0.00026315339660230354,
+            "seed_frozen": 5.83448736848309e-05,
+            "interaction": 0.00014923439920605524,
+            "within_pairing_sampling": 7.758878694658746e-05
+          },
+          "disjoint_diag": {
+            "est": 0.5043255886388942,
+            "se": 0.014243003059232172
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z_vs_half": 0.8149019817176008
+        },
+        "binary": {
+          "est": 0.5305000000000001,
+          "se": 0.04186772324834491,
+          "components": {
+            "seed_maintained": 0.006091406250000002,
+            "seed_frozen": 0.0011539062500000015,
+            "interaction": 0.004608989319620253,
+            "within_pairing_sampling": 0.002987104430379747
+          },
+          "disjoint_diag": {
+            "est": 0.5175,
+            "se": 0.07506247398001215
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z_vs_half": 0.7284848000710378
+        },
+        "judge_free_crossed": {
+          "counter": {
+            "est": -0.09786865293653679,
+            "se": 0.1831924043329415,
+            "components": {
+              "seed_maintained": 0.05068003540664464,
+              "seed_frozen": 0.10735027594547061,
+              "interaction": 0.0270511735896893,
+              "within_pairing_sampling": 0.021783694781832733
+            },
+            "disjoint_diag": {
+              "est": -0.17332484249582616,
+              "se": 0.1355811026793229
+            },
+            "shape": [
+              5,
+              5,
+              80
+            ],
+            "z": -0.5342396880094779
+          },
+          "synergy": {
+            "est": 0.6382116224269724,
+            "se": 0.2744539476953858,
+            "components": {
+              "seed_maintained": 0.2704381662077281,
+              "seed_frozen": 0.08443118233141514,
+              "interaction": 0.055129857067531304,
+              "within_pairing_sampling": 0.05364763537629118
+            },
+            "disjoint_diag": {
+              "est": 0.559263989265337,
+              "se": 0.25080220544265336
+            },
+            "shape": [
+              5,
+              5,
+              80
+            ],
+            "z": 2.325386928430406
+          },
+          "future_hero_wr": {
+            "est": 0.8707055793725769,
+            "se": 0.12427744366321446,
+            "components": {
+              "seed_maintained": 0.021907527061514814,
+              "seed_frozen": 0.04567109142570596,
+              "interaction": 0.03299862659302361,
+              "within_pairing_sampling": 0.015230356057458608
+            },
+            "disjoint_diag": {
+              "est": 0.8904654321220725,
+              "se": 0.16894176102585684
+            },
+            "shape": [
+              5,
+              5,
+              80
+            ],
+            "z": 7.006143300888492
+          },
+          "degen": {
+            "est": -0.06649999999999999,
+            "se": 0.0989336899140025,
+            "components": {
+              "seed_maintained": 0.034056249999999996,
+              "seed_frozen": 0.010971874999999997,
+              "interaction": 0.015109651898734176,
+              "within_pairing_sampling": 0.0044465981012658225
+            },
+            "disjoint_diag": {
+              "est": 0.0375,
+              "se": 0.06033759193073585
+            },
+            "shape": [
+              5,
+              5,
+              80
+            ],
+            "z": -0.6721673886600682
+          }
+        }
+      },
+      "consensus": 0.5069802708351053,
+      "side_rates": {
+        "champion": {
+          "healer": 85.15,
+          "degen": 23.5
+        },
+        "stale1yr": {
+          "healer": 74.75,
+          "degen": 30.15
+        }
+      },
+      "vintage": {
+        "2022-07": {
+          "maintained_wp": 0.4444974846169353,
+          "se": 0.0018760995049546215,
+          "win_share": 0.2505
+        },
+        "2022Q1-ranked": {
+          "maintained_wp": 0.4611203315854073,
+          "se": 0.0019382737126130106,
+          "win_share": 0.3045
+        },
+        "2023-07": {
+          "maintained_wp": 0.4866162958443165,
+          "se": 0.0012731053715578126,
+          "win_share": 0.393
+        },
+        "2024-07": {
+          "maintained_wp": 0.5013363638222218,
+          "se": 0.0017348483136474348,
+          "win_share": 0.512
+        },
+        "2025-07": {
+          "maintained_wp": 0.5135546159446239,
+          "se": 0.001799648256387788,
+          "win_share": 0.54
+        },
+        "2026-build": {
+          "maintained_wp": 0.5375746282190085,
+          "se": 0.0019472808135873238,
+          "win_share": 0.68
+        },
+        "QM-2021": {
+          "maintained_wp": 0.4286863343864679,
+          "se": 0.0031132355422986203,
+          "win_share": 0.291
+        }
+      }
+    },
+    "champion vs stale-2yr (5x5, 40/cell)": {
+      "jf": {
+        "maintained": {
+          "counter_future": -0.3332133233727603,
+          "counter_se": 0.017057327370528143,
+          "synergy_future": 0.8009930290139596,
+          "synergy_se": 0.028413004053113155,
+          "degen_pct": 27.700000000000003,
+          "healer_pct": 82.85,
+          "future_hero_wr_mean": 52.26184488766606
+        },
+        "frozen": {
+          "counter_future": 0.3332133233727602,
+          "counter_se": 0.017057327370528143,
+          "synergy_future": 0.9494732960004878,
+          "synergy_se": 0.03646082857697676,
+          "degen_pct": 32.2,
+          "healer_pct": 70.35,
+          "future_hero_wr_mean": 51.28891512803964
+        },
+        "paired_deltas": {
+          "counter": {
+            "mean": -0.6664266467455204,
+            "se": 0.03411465474105629
+          },
+          "synergy": {
+            "mean": -0.14848026698652825,
+            "se": 0.05163477017187186
+          },
+          "future_hero_wr": {
+            "mean": 0.9729297596264151,
+            "se": 0.025617611677546642
+          }
+        }
+      },
+      "inf": {
+        "in": "w6_head2head_w8_champ2yr.json",
+        "arms": {
+          "maintained": "champion",
+          "frozen": "stale2yr"
+        },
+        "n_drafts": 2000,
+        "continuous": {
+          "est": 0.5056020531631075,
+          "se": 0.014004538722500128,
+          "components": {
+            "seed_maintained": 0.00032127679019372166,
+            "seed_frozen": 0.0006232261458474074,
+            "interaction": 0.00010351998538275952,
+            "within_pairing_sampling": 7.714295516173238e-05
+          },
+          "disjoint_diag": {
+            "est": 0.5055969790474046,
+            "se": 0.02080033926231896
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z_vs_half": 0.40001697121998275
+        },
+        "binary": {
+          "est": 0.5419999999999999,
+          "se": 0.06268048938864469,
+          "components": {
+            "seed_maintained": 0.00624609375,
+            "seed_frozen": 0.012689843749999995,
+            "interaction": 0.0006339695411392396,
+            "within_pairing_sampling": 0.00290743670886076
+          },
+          "disjoint_diag": {
+            "est": 0.52,
+            "se": 0.0875535550391873
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z_vs_half": 0.6700649661425382
+        },
+        "judge_free_crossed": {
+          "counter": {
+            "est": -0.6664266467455205,
+            "se": 0.17889832621957005,
+            "components": {
+              "seed_maintained": 0.026003103258255257,
+              "seed_frozen": 0.12543600711954733,
+              "interaction": 0.015526038859812283,
+              "within_pairing_sampling": 0.027393687355267454
+            },
+            "disjoint_diag": {
+              "est": -0.5920996761788303,
+              "se": 0.1853001488638397
+            },
+            "shape": [
+              5,
+              5,
+              80
+            ],
+            "z": -3.7251698259467494
+          },
+          "synergy": {
+            "est": -0.14848026698652833,
+            "se": 0.2931998171209727,
+            "components": {
+              "seed_maintained": 0.22927359965878083,
+              "seed_frozen": 0.18743539698441594,
+              "interaction": 0.003161732838417794,
+              "within_pairing_sampling": 0.06244660293989389
+            },
+            "disjoint_diag": {
+              "est": -0.22318588784370164,
+              "se": 0.3124143949734877
+            },
+            "shape": [
+              5,
+              5,
+              80
+            ],
+            "z": -0.5064132319198076
+          },
+          "future_hero_wr": {
+            "est": 0.972929759626415,
+            "se": 0.09470527224705487,
+            "components": {
+              "seed_maintained": 0.017541574518725882,
+              "seed_frozen": 0.020703487374333102,
+              "interaction": 0.01718431145266524,
+              "within_pairing_sampling": 0.01581759386675939
+            },
+            "disjoint_diag": {
+              "est": 0.9485171139370848,
+              "se": 0.06766100710958738
+            },
+            "shape": [
+              5,
+              5,
+              80
+            ],
+            "z": 10.273237556282629
+          },
+          "degen": {
+            "est": -0.045,
+            "se": 0.12358891030347342,
+            "components": {
+              "seed_maintained": 0.059246093750000006,
+              "seed_frozen": 0.01152109375,
+              "interaction": 0.023735195806962026,
+              "within_pairing_sampling": 0.004284335443037976
+            },
+            "disjoint_diag": {
+              "est": -0.0875,
+              "se": 0.12765921431686786
+            },
+            "shape": [
+              5,
+              5,
+              80
+            ],
+            "z": -0.36411033877960564
+          }
+        }
+      },
+      "consensus": 0.5056020531631075,
+      "side_rates": {
+        "champion": {
+          "healer": 82.85,
+          "degen": 27.700000000000003
+        },
+        "stale2yr": {
+          "healer": 70.35,
+          "degen": 32.2
+        }
+      },
+      "vintage": {
+        "2022-07": {
+          "maintained_wp": 0.43670948410034177,
+          "se": 0.0018385834205369306,
+          "win_share": 0.223
+        },
+        "2022Q1-ranked": {
+          "maintained_wp": 0.46796119505912065,
+          "se": 0.0019891596982969523,
+          "win_share": 0.344
+        },
+        "2023-07": {
+          "maintained_wp": 0.48571078100800513,
+          "se": 0.001196540263192395,
+          "win_share": 0.3905
+        },
+        "2024-07": {
+          "maintained_wp": 0.5035606130510568,
+          "se": 0.0015980563595324316,
+          "win_share": 0.5405
+        },
+        "2025-07": {
+          "maintained_wp": 0.505926773019135,
+          "se": 0.0017530566931430688,
+          "win_share": 0.5325
+        },
+        "2026-build": {
+          "maintained_wp": 0.5169633339494467,
+          "se": 0.0018834787720140376,
+          "win_share": 0.5605
+        },
+        "QM-2021": {
+          "maintained_wp": 0.44233645270764826,
+          "se": 0.0033830983048268176,
+          "win_share": 0.332
+        }
+      }
+    }
+  },
+  "degen_trend_stale_side": {
+    "slope_per_year": 0.005078125000000004,
+    "se": 0.03195517349746273,
+    "z": 0.15891401748775397,
+    "n_seeds": 25,
+    "arm_rates": [
+      [
+        "champion vs stale-4mo (15x15, 10/cell, staggered)",
+        0.3333333333333333,
+        0.31133333333333335,
+        15
+      ],
+      [
+        "champion vs stale-1yr (5x5, 40/cell)",
+        1.0,
+        0.3015,
+        5
+      ],
+      [
+        "champion vs stale-2yr (5x5, 40/cell)",
+        2.0,
+        0.322,
+        5
+      ]
+    ]
+  },
+  "champ4mo_degen_delta_z": -1.6063164182540557,
+  "w6_reference_degen_z": -1.8226974611931792
+}

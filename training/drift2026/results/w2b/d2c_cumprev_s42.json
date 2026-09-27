@@ -1,0 +1,32 @@
+{
+  "cell": "d2c_cumprev",
+  "label": "d2c_cumprev greedy",
+  "seed": 42,
+  "drafts": 500,
+  "healer_rate": 85.8,
+  "degen_rate": 17.8,
+  "counter_future": 0.122,
+  "synergy_future": 0.306,
+  "distinct_heroes": 88,
+  "entropy": 5.98,
+  "top10_concentration": 33.1,
+  "map_adapt": {
+    "Braxis Holdout": {
+      "map_rate": 22.9,
+      "other_rate": 20.1,
+      "delta": 2.8
+    },
+    "Battlefield of Eternity": {
+      "map_rate": 18.2,
+      "other_rate": 16.1,
+      "delta": 2.1
+    },
+    "Cursed Hollow": {
+      "map_rate": 17.2,
+      "other_rate": 10.2,
+      "delta": 7.1
+    }
+  },
+  "truth": "merged per-build counts of all post-cutoff builds",
+  "minutes": 5.8
+}

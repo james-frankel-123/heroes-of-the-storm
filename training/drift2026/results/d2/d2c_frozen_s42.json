@@ -1,0 +1,66 @@
+{
+  "name": "d2c_frozen_s42",
+  "features": "frozen",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.14.95918",
+  "n_train": 3538596,
+  "n_val": 72216,
+  "n_test": 287362,
+  "epochs": 39,
+  "val_acc": 57.414,
+  "test_acc_future": 57.052,
+  "test_acc_sizable": 57.041,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30830,
+      "acc": 56.643
+    },
+    "2.55.15.96443": {
+      "n_rows": 1712,
+      "acc": 56.425
+    },
+    "2.55.15.96477": {
+      "n_rows": 161908,
+      "acc": 57.081
+    },
+    "2.55.16.96846": {
+      "n_rows": 1946,
+      "acc": 56.783
+    },
+    "2.55.16.96870": {
+      "n_rows": 2818,
+      "acc": 58.694
+    },
+    "2.55.16.96881": {
+      "n_rows": 63500,
+      "acc": 57.102
+    },
+    "2.55.16.97039": {
+      "n_rows": 24648,
+      "acc": 57.124
+    }
+  },
+  "sanity": {
+    "passed_28": 25,
+    "passed_21": 18,
+    "by_category": {
+      "absurd": "8/8",
+      "trap": "5/5",
+      "normal": "2/5",
+      "symmetry": "10/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.12507450580596924,
+      "5 healers": 0.1276697963476181,
+      "5 ranged assassins": 0.29353681206703186,
+      "5 melee assassins": 0.3294669985771179,
+      "3T 2H no damage": 0.23759637773036957,
+      "No healer high WR": 0.3903942108154297
+    }
+  },
+  "minutes": 0.7,
+  "out": "/home/max/heroes-of-the-storm/training/drift2026/models/d2c_frozen_s42.pt"
+}

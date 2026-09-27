@@ -1,0 +1,33 @@
+{
+  "cell": "d2b_win3",
+  "label": "d2b_win3 greedy",
+  "seed": 777,
+  "drafts": 500,
+  "gd_pool": "frozen",
+  "healer_rate": 62.2,
+  "degen_rate": 45.4,
+  "counter_future": 0.174,
+  "synergy_future": 0.416,
+  "distinct_heroes": 90,
+  "entropy": 6.08,
+  "top10_concentration": 31.1,
+  "map_adapt": {
+    "Braxis Holdout": {
+      "map_rate": 36.4,
+      "other_rate": 24.4,
+      "delta": 12.0
+    },
+    "Battlefield of Eternity": {
+      "map_rate": 35.0,
+      "other_rate": 16.3,
+      "delta": 18.7
+    },
+    "Cursed Hollow": {
+      "map_rate": 2.9,
+      "other_rate": 8.2,
+      "delta": -5.3
+    }
+  },
+  "truth": "merged per-build counts of all post-cutoff builds",
+  "minutes": 5.6
+}

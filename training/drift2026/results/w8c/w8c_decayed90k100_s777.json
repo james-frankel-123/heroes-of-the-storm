@@ -1,0 +1,69 @@
+{
+  "name": "w8c_decayed90k100_s777",
+  "features": "decayed90k100_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 777,
+  "cutoff_build": "2.55.13.95301",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 3248900,
+  "n_val": 66304,
+  "n_test": 582970,
+  "epochs": 59,
+  "val_acc": 57.502,
+  "test_acc_future": 57.076,
+  "test_acc_sizable": 57.125,
+  "test_acc_per_build": {
+    "2.55.14.95774": {
+      "n_rows": 14692,
+      "acc": 57.787
+    },
+    "2.55.14.95817": {
+      "n_rows": 49454,
+      "acc": 56.802
+    },
+    "2.55.14.95883": {
+      "n_rows": 334,
+      "acc": 59.281
+    },
+    "2.55.14.95918": {
+      "n_rows": 231128,
+      "acc": 57.044
+    },
+    "2.55.15.96370": {
+      "n_rows": 30830,
+      "acc": 56.672
+    },
+    "2.55.15.96443": {
+      "n_rows": 1712,
+      "acc": 55.199
+    },
+    "2.55.15.96477": {
+      "n_rows": 161908,
+      "acc": 57.307
+    },
+    "2.55.16.96846": {
+      "n_rows": 1946,
+      "acc": 57.04
+    },
+    "2.55.16.96870": {
+      "n_rows": 2818,
+      "acc": 56.742
+    },
+    "2.55.16.96881": {
+      "n_rows": 63500,
+      "acc": 57.09
+    },
+    "2.55.16.97039": {
+      "n_rows": 24648,
+      "acc": 56.593
+    }
+  },
+  "sanity": null,
+  "minutes": 0.9,
+  "out": "/home/max/heroes-of-the-storm/training/drift2026/models/w8c_decayed90k100_s777.pt"
+}

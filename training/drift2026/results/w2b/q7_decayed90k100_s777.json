@@ -1,0 +1,33 @@
+{
+  "cell": "q7_decayed90k100",
+  "label": "q7_decayed90k100 greedy",
+  "seed": 777,
+  "drafts": 500,
+  "gd_pool": "frozen",
+  "healer_rate": 83.6,
+  "degen_rate": 20.4,
+  "counter_future": 0.234,
+  "synergy_future": 0.335,
+  "distinct_heroes": 90,
+  "entropy": 5.94,
+  "top10_concentration": 36.3,
+  "map_adapt": {
+    "Braxis Holdout": {
+      "map_rate": 27.3,
+      "other_rate": 22.5,
+      "delta": 4.8
+    },
+    "Battlefield of Eternity": {
+      "map_rate": 20.0,
+      "other_rate": 19.8,
+      "delta": 0.2
+    },
+    "Cursed Hollow": {
+      "map_rate": 11.4,
+      "other_rate": 9.0,
+      "delta": 2.4
+    }
+  },
+  "truth": "merged per-build counts of all post-cutoff builds",
+  "minutes": 5.6
+}

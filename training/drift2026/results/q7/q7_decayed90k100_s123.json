@@ -1,0 +1,69 @@
+{
+  "name": "q7_decayed90k100_s123",
+  "features": "decayed90k100_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 123,
+  "cutoff_build": "2.55.14.95918",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "n_train": 3538596,
+  "n_val": 72216,
+  "n_test": 287362,
+  "epochs": 70,
+  "val_acc": 57.302,
+  "test_acc_future": 57.16,
+  "test_acc_sizable": 57.176,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30830,
+      "acc": 56.416
+    },
+    "2.55.15.96443": {
+      "n_rows": 1712,
+      "acc": 55.666
+    },
+    "2.55.15.96477": {
+      "n_rows": 161908,
+      "acc": 57.357
+    },
+    "2.55.16.96846": {
+      "n_rows": 1946,
+      "acc": 56.475
+    },
+    "2.55.16.96870": {
+      "n_rows": 2818,
+      "acc": 56.991
+    },
+    "2.55.16.96881": {
+      "n_rows": 63500,
+      "acc": 57.211
+    },
+    "2.55.16.97039": {
+      "n_rows": 24648,
+      "acc": 56.848
+    }
+  },
+  "sanity": {
+    "passed_28": 25,
+    "passed_21": 19,
+    "by_category": {
+      "absurd": "8/8",
+      "trap": "5/5",
+      "normal": "3/5",
+      "symmetry": "9/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.3508263826370239,
+      "5 healers": 0.2622603178024292,
+      "5 ranged assassins": 0.40471792221069336,
+      "5 melee assassins": 0.46201902627944946,
+      "3T 2H no damage": 0.3314885199069977,
+      "No healer high WR": 0.4826699495315552
+    }
+  },
+  "minutes": 1.0,
+  "out": "/home/max/heroes-of-the-storm/training/drift2026/models/q7_decayed90k100_s123.pt"
+}

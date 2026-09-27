@@ -1,0 +1,646 @@
+{
+  "config": {
+    "min_map_games": 100,
+    "lags": [
+      1,
+      3,
+      8
+    ],
+    "recovery_threshold_pp": 1.0
+  },
+  "by_tier": {
+    "low": {
+      "games_per_build_median": 14013,
+      "hero_wr": {
+        "1": {
+          "r": 0.675,
+          "r_adj": 0.923,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.654,
+          "r_adj": 0.897,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.593,
+          "r_adj": 0.827,
+          "n_pairs": 20
+        }
+      },
+      "hero_pickrate": {
+        "1": {
+          "r": 0.986,
+          "r_adj": 0.997,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.974,
+          "r_adj": 0.988,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.958,
+          "r_adj": 0.974,
+          "n_pairs": 20
+        }
+      },
+      "comp_wr": {
+        "1": {
+          "r": 0.849,
+          "r_adj": 0.968,
+          "n_pairs": 16
+        },
+        "3": {
+          "r": 0.836,
+          "r_adj": 0.959,
+          "n_pairs": 13
+        },
+        "8": {
+          "r": 0.836,
+          "r_adj": 0.98,
+          "n_pairs": 12
+        }
+      },
+      "pair_with_raw": {
+        "1": {
+          "r": 0.387,
+          "r_adj": 0.906,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.375,
+          "r_adj": 0.87,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.311,
+          "r_adj": 0.741,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 6460,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "mid": {
+      "games_per_build_median": 33738,
+      "hero_wr": {
+        "1": {
+          "r": 0.776,
+          "r_adj": 0.94,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.716,
+          "r_adj": 0.871,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.65,
+          "r_adj": 0.795,
+          "n_pairs": 20
+        }
+      },
+      "hero_pickrate": {
+        "1": {
+          "r": 0.981,
+          "r_adj": 0.986,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.962,
+          "r_adj": 0.967,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.936,
+          "r_adj": 0.942,
+          "n_pairs": 20
+        }
+      },
+      "comp_wr": {
+        "1": {
+          "r": 0.814,
+          "r_adj": 0.979,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.798,
+          "r_adj": 0.963,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.787,
+          "r_adj": 0.969,
+          "n_pairs": 20
+        }
+      },
+      "pair_with_raw": {
+        "1": {
+          "r": 0.473,
+          "r_adj": 0.946,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.429,
+          "r_adj": 0.87,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.382,
+          "r_adj": 0.795,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 8668,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "high": {
+      "games_per_build_median": 22219,
+      "hero_wr": {
+        "1": {
+          "r": 0.733,
+          "r_adj": 0.93,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.678,
+          "r_adj": 0.867,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.587,
+          "r_adj": 0.763,
+          "n_pairs": 20
+        }
+      },
+      "hero_pickrate": {
+        "1": {
+          "r": 0.975,
+          "r_adj": 0.981,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.951,
+          "r_adj": 0.959,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.917,
+          "r_adj": 0.924,
+          "n_pairs": 20
+        }
+      },
+      "comp_wr": {
+        "1": {
+          "r": 0.731,
+          "r_adj": 0.957,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.637,
+          "r_adj": 0.886,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.657,
+          "r_adj": 0.904,
+          "n_pairs": 20
+        }
+      },
+      "pair_with_raw": {
+        "1": {
+          "r": 0.454,
+          "r_adj": 0.919,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.416,
+          "r_adj": 0.853,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.342,
+          "r_adj": 0.738,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 7753,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    }
+  },
+  "pooled_reference": {
+    "hero_wr": {
+      "1": {
+        "r": 0.846,
+        "r_adj": 0.941,
+        "n_pairs": 27
+      },
+      "3": {
+        "r": 0.788,
+        "r_adj": 0.878,
+        "n_pairs": 25
+      },
+      "8": {
+        "r": 0.7,
+        "r_adj": 0.783,
+        "n_pairs": 20
+      }
+    },
+    "hero_pickrate": {
+      "1": {
+        "r": 0.982,
+        "r_adj": 0.984,
+        "n_pairs": 27
+      },
+      "3": {
+        "r": 0.963,
+        "r_adj": 0.965,
+        "n_pairs": 25
+      },
+      "8": {
+        "r": 0.936,
+        "r_adj": 0.939,
+        "n_pairs": 20
+      }
+    },
+    "comp_wr": {
+      "1": {
+        "r": 0.871,
+        "r_adj": 0.983,
+        "n_pairs": 27
+      },
+      "3": {
+        "r": 0.836,
+        "r_adj": 0.944,
+        "n_pairs": 25
+      },
+      "8": {
+        "r": 0.824,
+        "r_adj": 0.952,
+        "n_pairs": 20
+      }
+    }
+  },
+  "by_map": {
+    "Alterac Pass": {
+      "games_per_build_median": 6153,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.458,
+          "r_adj": 0.871,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.421,
+          "r_adj": 0.813,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.426,
+          "r_adj": 0.83,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 4249,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Battlefield of Eternity": {
+      "games_per_build_median": 6161,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.524,
+          "r_adj": 0.908,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.455,
+          "r_adj": 0.817,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.41,
+          "r_adj": 0.749,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 3938,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Blackheart's Bay": {
+      "games_per_build_median": 6378,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.579,
+          "r_adj": 1.0,
+          "n_pairs": 1
+        },
+        "3": {
+          "r": null,
+          "r_adj": null,
+          "n_pairs": 0
+        },
+        "8": {
+          "r": null,
+          "r_adj": null,
+          "n_pairs": 0
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 3465,
+        "n_reached": 2,
+        "n_builds": 2
+      }
+    },
+    "Braxis Holdout": {
+      "games_per_build_median": 6126,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.551,
+          "r_adj": 0.908,
+          "n_pairs": 23
+        },
+        "3": {
+          "r": 0.536,
+          "r_adj": 0.897,
+          "n_pairs": 21
+        },
+        "8": {
+          "r": 0.504,
+          "r_adj": 0.855,
+          "n_pairs": 17
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 4127,
+        "n_reached": 25,
+        "n_builds": 25
+      }
+    },
+    "Cursed Hollow": {
+      "games_per_build_median": 6231,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.522,
+          "r_adj": 0.931,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.471,
+          "r_adj": 0.883,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.443,
+          "r_adj": 0.846,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 3821,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Dragon Shire": {
+      "games_per_build_median": 6185,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.568,
+          "r_adj": 0.934,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.539,
+          "r_adj": 0.902,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.507,
+          "r_adj": 0.887,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 4102,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Garden of Terror": {
+      "games_per_build_median": 6131,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.471,
+          "r_adj": 0.855,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.441,
+          "r_adj": 0.824,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.377,
+          "r_adj": 0.73,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 3885,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Hanamura Temple": {
+      "games_per_build_median": 6347,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.613,
+          "r_adj": 0.933,
+          "n_pairs": 7
+        },
+        "3": {
+          "r": 0.566,
+          "r_adj": 0.849,
+          "n_pairs": 4
+        },
+        "8": {
+          "r": null,
+          "r_adj": null,
+          "n_pairs": 0
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 4182,
+        "n_reached": 9,
+        "n_builds": 9
+      }
+    },
+    "Infernal Shrines": {
+      "games_per_build_median": 6170,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.555,
+          "r_adj": 0.912,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.511,
+          "r_adj": 0.848,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.472,
+          "r_adj": 0.805,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 4091,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Sky Temple": {
+      "games_per_build_median": 6201,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.548,
+          "r_adj": 0.946,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.518,
+          "r_adj": 0.905,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.454,
+          "r_adj": 0.863,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 4037,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Tomb of the Spider Queen": {
+      "games_per_build_median": 6168,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.547,
+          "r_adj": 0.924,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.517,
+          "r_adj": 0.875,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.508,
+          "r_adj": 0.882,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 3872,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Towers of Doom": {
+      "games_per_build_median": 6113,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.467,
+          "r_adj": 0.887,
+          "n_pairs": 27
+        },
+        "3": {
+          "r": 0.462,
+          "r_adj": 0.882,
+          "n_pairs": 25
+        },
+        "8": {
+          "r": 0.404,
+          "r_adj": 0.799,
+          "n_pairs": 20
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 4022,
+        "n_reached": 28,
+        "n_builds": 28
+      }
+    },
+    "Volskaya Foundry": {
+      "games_per_build_median": 5157,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.538,
+          "r_adj": 0.919,
+          "n_pairs": 17
+        },
+        "3": {
+          "r": 0.495,
+          "r_adj": 0.883,
+          "n_pairs": 15
+        },
+        "8": {
+          "r": 0.404,
+          "r_adj": 0.754,
+          "n_pairs": 11
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 3376,
+        "n_reached": 19,
+        "n_builds": 19
+      }
+    },
+    "Warhead Junction": {
+      "games_per_build_median": 6324,
+      "map_hero_wr": {
+        "1": {
+          "r": 0.678,
+          "r_adj": 0.978,
+          "n_pairs": 7
+        },
+        "3": {
+          "r": 0.636,
+          "r_adj": 0.971,
+          "n_pairs": 5
+        },
+        "8": {
+          "r": null,
+          "r_adj": null,
+          "n_pairs": 0
+        }
+      },
+      "recovery_1pp": {
+        "median_games": 4150,
+        "n_reached": 10,
+        "n_builds": 10
+      }
+    }
+  }
+}

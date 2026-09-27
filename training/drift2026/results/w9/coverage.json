@@ -1,0 +1,185 @@
+{
+  "overall": {
+    "n": 1949087,
+    "covered": 1943338,
+    "coverage": 0.99705
+  },
+  "per_tier": {
+    "low": {
+      "n": 380100,
+      "covered": 380100,
+      "coverage": 1.0
+    },
+    "mid": {
+      "n": 943322,
+      "covered": 937573,
+      "coverage": 0.99391
+    },
+    "high": {
+      "n": 625665,
+      "covered": 625665,
+      "coverage": 1.0
+    }
+  },
+  "per_era_year": {
+    "2021": {
+      "n": 33762,
+      "covered": 33762,
+      "coverage": 1.0
+    },
+    "2022": {
+      "n": 424390,
+      "covered": 424331,
+      "coverage": 0.99986
+    },
+    "2023": {
+      "n": 320643,
+      "covered": 320364,
+      "coverage": 0.99913
+    },
+    "2024": {
+      "n": 342711,
+      "covered": 342361,
+      "coverage": 0.99898
+    },
+    "2025": {
+      "n": 600869,
+      "covered": 599820,
+      "coverage": 0.99825
+    },
+    "2026": {
+      "n": 226712,
+      "covered": 222700,
+      "coverage": 0.9823
+    }
+  },
+  "per_tier_era": {
+    "low": {
+      "2021": {
+        "n": 7038,
+        "covered": 7038,
+        "coverage": 1.0
+      },
+      "2022": {
+        "n": 90699,
+        "covered": 90699,
+        "coverage": 1.0
+      },
+      "2023": {
+        "n": 64686,
+        "covered": 64686,
+        "coverage": 1.0
+      },
+      "2024": {
+        "n": 66678,
+        "covered": 66678,
+        "coverage": 1.0
+      },
+      "2025": {
+        "n": 108785,
+        "covered": 108785,
+        "coverage": 1.0
+      },
+      "2026": {
+        "n": 42214,
+        "covered": 42214,
+        "coverage": 1.0
+      }
+    },
+    "mid": {
+      "2021": {
+        "n": 16119,
+        "covered": 16119,
+        "coverage": 1.0
+      },
+      "2022": {
+        "n": 197237,
+        "covered": 197178,
+        "coverage": 0.9997
+      },
+      "2023": {
+        "n": 151922,
+        "covered": 151643,
+        "coverage": 0.99816
+      },
+      "2024": {
+        "n": 168867,
+        "covered": 168517,
+        "coverage": 0.99793
+      },
+      "2025": {
+        "n": 296772,
+        "covered": 295723,
+        "coverage": 0.99647
+      },
+      "2026": {
+        "n": 112405,
+        "covered": 108393,
+        "coverage": 0.96431
+      }
+    },
+    "high": {
+      "2021": {
+        "n": 10605,
+        "covered": 10605,
+        "coverage": 1.0
+      },
+      "2022": {
+        "n": 136454,
+        "covered": 136454,
+        "coverage": 1.0
+      },
+      "2023": {
+        "n": 104035,
+        "covered": 104035,
+        "coverage": 1.0
+      },
+      "2024": {
+        "n": 107166,
+        "covered": 107166,
+        "coverage": 1.0
+      },
+      "2025": {
+        "n": 195312,
+        "covered": 195312,
+        "coverage": 1.0
+      },
+      "2026": {
+        "n": 72093,
+        "covered": 72093,
+        "coverage": 1.0
+      }
+    }
+  },
+  "train_test": {
+    "train_pre_cutoff": {
+      "n": 1805406,
+      "covered": 1803321,
+      "coverage": 0.99885
+    },
+    "test_post_cutoff": {
+      "n": 143681,
+      "covered": 140017,
+      "coverage": 0.9745
+    }
+  },
+  "train_mmr_quantiles": {
+    "min": 1785.1,
+    "p1": 2204.4,
+    "p5": 2308.8,
+    "p25": 2485.6,
+    "p50": 2633.6,
+    "p75": 2775.9,
+    "p95": 2966.9,
+    "p99": 3108.1,
+    "max": 3318.2
+  },
+  "train_mmr_mean": 2633.49,
+  "train_mmr_std": 202.52,
+  "tier_median_mmr_train": {
+    "low": 2366.3,
+    "mid": 2599.5,
+    "high": 2800.7
+  },
+  "zero_mmr_rows": 0
+}

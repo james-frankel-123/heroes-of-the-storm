@@ -1,0 +1,70 @@
+{
+  "name": "w8_volmatch_s123",
+  "features": "cumulative_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 123,
+  "cutoff_build": "2.55.14.95918",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": 1594630,
+  "n_train": 1594630,
+  "n_val": 72216,
+  "n_test": 287362,
+  "epochs": 50,
+  "val_acc": 56.583,
+  "test_acc_future": 56.678,
+  "test_acc_sizable": 56.686,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30830,
+      "acc": 56.306
+    },
+    "2.55.15.96443": {
+      "n_rows": 1712,
+      "acc": 54.965
+    },
+    "2.55.15.96477": {
+      "n_rows": 161908,
+      "acc": 56.779
+    },
+    "2.55.16.96846": {
+      "n_rows": 1946,
+      "acc": 55.858
+    },
+    "2.55.16.96870": {
+      "n_rows": 2818,
+      "acc": 57.488
+    },
+    "2.55.16.96881": {
+      "n_rows": 63500,
+      "acc": 56.643
+    },
+    "2.55.16.97039": {
+      "n_rows": 24648,
+      "acc": 56.658
+    }
+  },
+  "sanity": {
+    "passed_28": 22,
+    "passed_21": 17,
+    "by_category": {
+      "absurd": "7/8",
+      "trap": "5/5",
+      "normal": "2/5",
+      "symmetry": "8/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.34329459071159363,
+      "5 healers": 0.23480327427387238,
+      "5 ranged assassins": 0.2735571563243866,
+      "5 melee assassins": 0.440231055021286,
+      "3T 2H no damage": 0.31203100085258484,
+      "No healer high WR": 0.39564865827560425
+    }
+  },
+  "minutes": 0.5,
+  "out": "/home/max/heroes-of-the-storm/training/drift2026/models/w8_volmatch_s123.pt"
+}

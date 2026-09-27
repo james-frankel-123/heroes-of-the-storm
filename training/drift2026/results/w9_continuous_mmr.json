@@ -1,0 +1,758 @@
+{
+  "item": "W9 continuous-MMR input ablation",
+  "features": "decayed90k100_prev",
+  "protocol": "D2 (train_drift_wp recipe)",
+  "coverage": {
+    "overall": {
+      "n": 1949087,
+      "covered": 1943338,
+      "coverage": 0.99705
+    },
+    "per_tier": {
+      "low": {
+        "n": 380100,
+        "covered": 380100,
+        "coverage": 1.0
+      },
+      "mid": {
+        "n": 943322,
+        "covered": 937573,
+        "coverage": 0.99391
+      },
+      "high": {
+        "n": 625665,
+        "covered": 625665,
+        "coverage": 1.0
+      }
+    },
+    "per_era_year": {
+      "2021": {
+        "n": 33762,
+        "covered": 33762,
+        "coverage": 1.0
+      },
+      "2022": {
+        "n": 424390,
+        "covered": 424331,
+        "coverage": 0.99986
+      },
+      "2023": {
+        "n": 320643,
+        "covered": 320364,
+        "coverage": 0.99913
+      },
+      "2024": {
+        "n": 342711,
+        "covered": 342361,
+        "coverage": 0.99898
+      },
+      "2025": {
+        "n": 600869,
+        "covered": 599820,
+        "coverage": 0.99825
+      },
+      "2026": {
+        "n": 226712,
+        "covered": 222700,
+        "coverage": 0.9823
+      }
+    },
+    "per_tier_era": {
+      "low": {
+        "2021": {
+          "n": 7038,
+          "covered": 7038,
+          "coverage": 1.0
+        },
+        "2022": {
+          "n": 90699,
+          "covered": 90699,
+          "coverage": 1.0
+        },
+        "2023": {
+          "n": 64686,
+          "covered": 64686,
+          "coverage": 1.0
+        },
+        "2024": {
+          "n": 66678,
+          "covered": 66678,
+          "coverage": 1.0
+        },
+        "2025": {
+          "n": 108785,
+          "covered": 108785,
+          "coverage": 1.0
+        },
+        "2026": {
+          "n": 42214,
+          "covered": 42214,
+          "coverage": 1.0
+        }
+      },
+      "mid": {
+        "2021": {
+          "n": 16119,
+          "covered": 16119,
+          "coverage": 1.0
+        },
+        "2022": {
+          "n": 197237,
+          "covered": 197178,
+          "coverage": 0.9997
+        },
+        "2023": {
+          "n": 151922,
+          "covered": 151643,
+          "coverage": 0.99816
+        },
+        "2024": {
+          "n": 168867,
+          "covered": 168517,
+          "coverage": 0.99793
+        },
+        "2025": {
+          "n": 296772,
+          "covered": 295723,
+          "coverage": 0.99647
+        },
+        "2026": {
+          "n": 112405,
+          "covered": 108393,
+          "coverage": 0.96431
+        }
+      },
+      "high": {
+        "2021": {
+          "n": 10605,
+          "covered": 10605,
+          "coverage": 1.0
+        },
+        "2022": {
+          "n": 136454,
+          "covered": 136454,
+          "coverage": 1.0
+        },
+        "2023": {
+          "n": 104035,
+          "covered": 104035,
+          "coverage": 1.0
+        },
+        "2024": {
+          "n": 107166,
+          "covered": 107166,
+          "coverage": 1.0
+        },
+        "2025": {
+          "n": 195312,
+          "covered": 195312,
+          "coverage": 1.0
+        },
+        "2026": {
+          "n": 72093,
+          "covered": 72093,
+          "coverage": 1.0
+        }
+      }
+    },
+    "train_test": {
+      "train_pre_cutoff": {
+        "n": 1805406,
+        "covered": 1803321,
+        "coverage": 0.99885
+      },
+      "test_post_cutoff": {
+        "n": 143681,
+        "covered": 140017,
+        "coverage": 0.9745
+      }
+    },
+    "train_mmr_quantiles": {
+      "min": 1785.1,
+      "p1": 2204.4,
+      "p5": 2308.8,
+      "p25": 2485.6,
+      "p50": 2633.6,
+      "p75": 2775.9,
+      "p95": 2966.9,
+      "p99": 3108.1,
+      "max": 3318.2
+    },
+    "train_mmr_mean": 2633.49,
+    "train_mmr_std": 202.52,
+    "tier_median_mmr_train": {
+      "low": 2366.3,
+      "mid": 2599.5,
+      "high": 2800.7
+    },
+    "zero_mmr_rows": 0
+  },
+  "table": {
+    "a": {
+      "desc": "tier one-hot (283d, champion, quoted)",
+      "input_dim": 283,
+      "val_acc": {
+        "mean": 57.241,
+        "std": 0.046,
+        "per_seed": {
+          "s42": 57.192,
+          "s123": 57.302,
+          "s777": 57.228
+        }
+      },
+      "test_acc_future": {
+        "mean": 57.22,
+        "std": 0.06,
+        "per_seed": {
+          "s42": 57.198,
+          "s123": 57.16,
+          "s777": 57.303
+        }
+      },
+      "test_acc_sizable": {
+        "mean": 57.235,
+        "std": 0.062,
+        "per_seed": {
+          "s42": 57.208,
+          "s123": 57.176,
+          "s777": 57.32
+        }
+      },
+      "sanity_28": {
+        "s42": 26,
+        "s123": 25,
+        "s777": 25
+      }
+    },
+    "b": {
+      "desc": "tier one-hot + avg_mmr",
+      "input_dim": 284,
+      "val_acc": {
+        "mean": 57.342,
+        "std": 0.061,
+        "per_seed": {
+          "s42": 57.426,
+          "s123": 57.282,
+          "s777": 57.318
+        }
+      },
+      "test_acc_future": {
+        "mean": 57.227,
+        "std": 0.028,
+        "per_seed": {
+          "s42": 57.191,
+          "s123": 57.232,
+          "s777": 57.259
+        }
+      },
+      "test_acc_sizable": {
+        "mean": 57.232,
+        "std": 0.024,
+        "per_seed": {
+          "s42": 57.202,
+          "s123": 57.231,
+          "s777": 57.262
+        }
+      },
+      "sanity_28": {
+        "s42": 24,
+        "s123": 23,
+        "s777": 25
+      },
+      "paired_delta_vs_a": {
+        "val_acc": {
+          "mean": 0.101,
+          "per_seed": {
+            "s42": 0.234,
+            "s123": -0.02,
+            "s777": 0.09
+          }
+        },
+        "test_acc_future": {
+          "mean": 0.007,
+          "per_seed": {
+            "s42": -0.007,
+            "s123": 0.072,
+            "s777": -0.044
+          }
+        },
+        "test_acc_sizable": {
+          "mean": -0.003,
+          "per_seed": {
+            "s42": -0.006,
+            "s123": 0.055,
+            "s777": -0.058
+          }
+        }
+      }
+    },
+    "c": {
+      "desc": "avg_mmr replaces tier one-hot",
+      "input_dim": 281,
+      "val_acc": {
+        "mean": 57.276,
+        "std": 0.077,
+        "per_seed": {
+          "s42": 57.321,
+          "s123": 57.34,
+          "s777": 57.167
+        }
+      },
+      "test_acc_future": {
+        "mean": 57.204,
+        "std": 0.027,
+        "per_seed": {
+          "s42": 57.237,
+          "s123": 57.172,
+          "s777": 57.202
+        }
+      },
+      "test_acc_sizable": {
+        "mean": 57.207,
+        "std": 0.035,
+        "per_seed": {
+          "s42": 57.25,
+          "s123": 57.165,
+          "s777": 57.206
+        }
+      },
+      "sanity_28": {
+        "s42": 25,
+        "s123": 26,
+        "s777": 26
+      },
+      "paired_delta_vs_a": {
+        "val_acc": {
+          "mean": 0.035,
+          "per_seed": {
+            "s42": 0.129,
+            "s123": 0.038,
+            "s777": -0.061
+          }
+        },
+        "test_acc_future": {
+          "mean": -0.017,
+          "per_seed": {
+            "s42": 0.039,
+            "s123": 0.012,
+            "s777": -0.101
+          }
+        },
+        "test_acc_sizable": {
+          "mean": -0.028,
+          "per_seed": {
+            "s42": 0.042,
+            "s123": -0.011,
+            "s777": -0.114
+          }
+        }
+      }
+    }
+  },
+  "probes": {
+    "grid": [
+      [
+        "p5",
+        2308.8
+      ],
+      [
+        "p25",
+        2485.6
+      ],
+      [
+        "p50",
+        2633.6
+      ],
+      [
+        "p75",
+        2775.9
+      ],
+      [
+        "p95",
+        2966.9
+      ]
+    ],
+    "map": "Cursed Hollow",
+    "stats_tier_for_lookups": "mid",
+    "comps": {
+      "Murky": {
+        "team0": [
+          "Murky",
+          "Muradin",
+          "Brightwing",
+          "Sonya",
+          "Jaina"
+        ],
+        "team1": [
+          "Diablo",
+          "Malfurion",
+          "Falstad",
+          "Zeratul",
+          "Li-Ming"
+        ]
+      },
+      "Abathur": {
+        "team0": [
+          "Abathur",
+          "Muradin",
+          "Brightwing",
+          "Sonya",
+          "Jaina"
+        ],
+        "team1": [
+          "Diablo",
+          "Malfurion",
+          "Falstad",
+          "Zeratul",
+          "Li-Ming"
+        ]
+      },
+      "The Lost Vikings": {
+        "team0": [
+          "The Lost Vikings",
+          "Muradin",
+          "Brightwing",
+          "Sonya",
+          "Jaina"
+        ],
+        "team1": [
+          "Diablo",
+          "Malfurion",
+          "Falstad",
+          "Zeratul",
+          "Li-Ming"
+        ]
+      },
+      "Raynor": {
+        "team0": [
+          "Raynor",
+          "Muradin",
+          "Brightwing",
+          "Sonya",
+          "Jaina"
+        ],
+        "team1": [
+          "Diablo",
+          "Malfurion",
+          "Falstad",
+          "Zeratul",
+          "Li-Ming"
+        ]
+      }
+    },
+    "cells": {
+      "a": {
+        "desc": "tier one-hot toggled (stats fixed mid)",
+        "wp": {
+          "Murky": {
+            "s42": {
+              "low": 0.5182,
+              "mid": 0.5132,
+              "high": 0.5202
+            },
+            "s123": {
+              "low": 0.5003,
+              "mid": 0.4961,
+              "high": 0.4975
+            },
+            "s777": {
+              "low": 0.5246,
+              "mid": 0.5259,
+              "high": 0.5428
+            }
+          },
+          "Abathur": {
+            "s42": {
+              "low": 0.5173,
+              "mid": 0.515,
+              "high": 0.5164
+            },
+            "s123": {
+              "low": 0.509,
+              "mid": 0.512,
+              "high": 0.515
+            },
+            "s777": {
+              "low": 0.513,
+              "mid": 0.5231,
+              "high": 0.5268
+            }
+          },
+          "The Lost Vikings": {
+            "s42": {
+              "low": 0.5185,
+              "mid": 0.5196,
+              "high": 0.5345
+            },
+            "s123": {
+              "low": 0.5117,
+              "mid": 0.5177,
+              "high": 0.5205
+            },
+            "s777": {
+              "low": 0.5495,
+              "mid": 0.5484,
+              "high": 0.5782
+            }
+          },
+          "Raynor": {
+            "s42": {
+              "low": 0.5675,
+              "mid": 0.5583,
+              "high": 0.5645
+            },
+            "s123": {
+              "low": 0.5523,
+              "mid": 0.558,
+              "high": 0.5529
+            },
+            "s777": {
+              "low": 0.5468,
+              "mid": 0.5635,
+              "high": 0.5734
+            }
+          }
+        }
+      },
+      "b": {
+        "desc": "tier_plus_mmr: MMR input swept p5..p95 (tier one-hot fixed mid)",
+        "wp": {
+          "Murky": {
+            "s42": {
+              "p5": 0.526,
+              "p25": 0.5197,
+              "p50": 0.5116,
+              "p75": 0.4983,
+              "p95": 0.4752
+            },
+            "s123": {
+              "p5": 0.5591,
+              "p25": 0.5516,
+              "p50": 0.5322,
+              "p75": 0.5075,
+              "p95": 0.4834
+            },
+            "s777": {
+              "p5": 0.5607,
+              "p25": 0.5482,
+              "p50": 0.5346,
+              "p75": 0.517,
+              "p95": 0.4841
+            }
+          },
+          "Abathur": {
+            "s42": {
+              "p5": 0.549,
+              "p25": 0.5409,
+              "p50": 0.5289,
+              "p75": 0.5094,
+              "p95": 0.4859
+            },
+            "s123": {
+              "p5": 0.5469,
+              "p25": 0.54,
+              "p50": 0.5246,
+              "p75": 0.5085,
+              "p95": 0.4837
+            },
+            "s777": {
+              "p5": 0.5398,
+              "p25": 0.5389,
+              "p50": 0.5353,
+              "p75": 0.5317,
+              "p95": 0.5227
+            }
+          },
+          "The Lost Vikings": {
+            "s42": {
+              "p5": 0.5251,
+              "p25": 0.5365,
+              "p50": 0.5403,
+              "p75": 0.5356,
+              "p95": 0.5239
+            },
+            "s123": {
+              "p5": 0.594,
+              "p25": 0.6019,
+              "p50": 0.594,
+              "p75": 0.5661,
+              "p95": 0.5231
+            },
+            "s777": {
+              "p5": 0.5792,
+              "p25": 0.5854,
+              "p50": 0.5725,
+              "p75": 0.5567,
+              "p95": 0.5251
+            }
+          },
+          "Raynor": {
+            "s42": {
+              "p5": 0.5868,
+              "p25": 0.5734,
+              "p50": 0.5457,
+              "p75": 0.5184,
+              "p95": 0.4896
+            },
+            "s123": {
+              "p5": 0.5591,
+              "p25": 0.5637,
+              "p50": 0.5532,
+              "p75": 0.5362,
+              "p95": 0.4996
+            },
+            "s777": {
+              "p5": 0.579,
+              "p25": 0.5801,
+              "p50": 0.5702,
+              "p75": 0.5483,
+              "p95": 0.5178
+            }
+          }
+        }
+      },
+      "c": {
+        "desc": "mmr_only: MMR input swept p5..p95 (no tier one-hot)",
+        "wp": {
+          "Murky": {
+            "s42": {
+              "p5": 0.5306,
+              "p25": 0.5287,
+              "p50": 0.523,
+              "p75": 0.5128,
+              "p95": 0.4934
+            },
+            "s123": {
+              "p5": 0.5301,
+              "p25": 0.5352,
+              "p50": 0.5403,
+              "p75": 0.5323,
+              "p95": 0.5036
+            },
+            "s777": {
+              "p5": 0.5233,
+              "p25": 0.5101,
+              "p50": 0.4907,
+              "p75": 0.4624,
+              "p95": 0.4227
+            }
+          },
+          "Abathur": {
+            "s42": {
+              "p5": 0.5349,
+              "p25": 0.5319,
+              "p50": 0.5272,
+              "p75": 0.5168,
+              "p95": 0.5004
+            },
+            "s123": {
+              "p5": 0.5373,
+              "p25": 0.5394,
+              "p50": 0.5383,
+              "p75": 0.5298,
+              "p95": 0.513
+            },
+            "s777": {
+              "p5": 0.5267,
+              "p25": 0.5291,
+              "p50": 0.5242,
+              "p75": 0.5114,
+              "p95": 0.4958
+            }
+          },
+          "The Lost Vikings": {
+            "s42": {
+              "p5": 0.5482,
+              "p25": 0.5515,
+              "p50": 0.5478,
+              "p75": 0.545,
+              "p95": 0.5328
+            },
+            "s123": {
+              "p5": 0.5345,
+              "p25": 0.5425,
+              "p50": 0.5519,
+              "p75": 0.5552,
+              "p95": 0.5281
+            },
+            "s777": {
+              "p5": 0.5253,
+              "p25": 0.527,
+              "p50": 0.5258,
+              "p75": 0.5122,
+              "p95": 0.5001
+            }
+          },
+          "Raynor": {
+            "s42": {
+              "p5": 0.5812,
+              "p25": 0.5842,
+              "p50": 0.5833,
+              "p75": 0.5718,
+              "p95": 0.5454
+            },
+            "s123": {
+              "p5": 0.5456,
+              "p25": 0.5465,
+              "p50": 0.5495,
+              "p75": 0.5482,
+              "p95": 0.5333
+            },
+            "s777": {
+              "p5": 0.564,
+              "p25": 0.5674,
+              "p50": 0.5576,
+              "p75": 0.5301,
+              "p95": 0.4784
+            }
+          }
+        }
+      }
+    }
+  },
+  "probe_slopes": {
+    "a": {
+      "axis": "low -> high",
+      "slope": {
+        "Murky": 0.0058,
+        "Abathur": 0.0063,
+        "The Lost Vikings": 0.0178,
+        "Raynor": 0.0081
+      },
+      "slope_rel_raynor": {
+        "Murky": -0.0023,
+        "Abathur": -0.0018,
+        "The Lost Vikings": 0.0097
+      }
+    },
+    "b": {
+      "axis": "p5 -> p95",
+      "slope": {
+        "Murky": -0.0677,
+        "Abathur": -0.0478,
+        "The Lost Vikings": -0.0421,
+        "Raynor": -0.0726
+      },
+      "slope_rel_raynor": {
+        "Murky": 0.0049,
+        "Abathur": 0.0248,
+        "The Lost Vikings": 0.0305
+      }
+    },
+    "c": {
+      "axis": "p5 -> p95",
+      "slope": {
+        "Murky": -0.0548,
+        "Abathur": -0.0299,
+        "The Lost Vikings": -0.0157,
+        "Raynor": -0.0446
+      },
+      "slope_rel_raynor": {
+        "Murky": -0.0102,
+        "Abathur": 0.0147,
+        "The Lost Vikings": 0.0289
+      }
+    }
+  },
+  "verdict": "Continuous avg_mmr adds nothing measurable over the 3-tier one-hot: appending it (b) moves future-window accuracy by +0.007pp and substituting it for the tier one-hot (c) by -0.017pp, both well inside the +/-0.06pp seed noise of cell (a). The tier grouping is a sufficient skill input for the WP model (and, conversely, a single continuous dim loses nothing vs the 3 tier dims). Robustness row only; the per-tier stats machinery stands."
+}

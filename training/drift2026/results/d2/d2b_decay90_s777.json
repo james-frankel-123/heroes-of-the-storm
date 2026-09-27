@@ -1,0 +1,66 @@
+{
+  "name": "d2b_decay90_s777",
+  "features": "cutoff",
+  "regime": "decay",
+  "window": null,
+  "half_life": 90.0,
+  "seed": 777,
+  "cutoff_build": "2.55.14.95918",
+  "n_train": 3538596,
+  "n_val": 72216,
+  "n_test": 287362,
+  "epochs": 27,
+  "val_acc": 58.904,
+  "test_acc_future": 56.491,
+  "test_acc_sizable": 56.49,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30830,
+      "acc": 55.981
+    },
+    "2.55.15.96443": {
+      "n_rows": 1712,
+      "acc": 54.322
+    },
+    "2.55.15.96477": {
+      "n_rows": 161908,
+      "acc": 56.675
+    },
+    "2.55.16.96846": {
+      "n_rows": 1946,
+      "acc": 56.886
+    },
+    "2.55.16.96870": {
+      "n_rows": 2818,
+      "acc": 57.7
+    },
+    "2.55.16.96881": {
+      "n_rows": 63500,
+      "acc": 56.425
+    },
+    "2.55.16.97039": {
+      "n_rows": 24648,
+      "acc": 56.074
+    }
+  },
+  "sanity": {
+    "passed_28": 25,
+    "passed_21": 19,
+    "by_category": {
+      "absurd": "7/8",
+      "trap": "5/5",
+      "normal": "4/5",
+      "symmetry": "9/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.11509373784065247,
+      "5 healers": 0.11493732780218124,
+      "5 ranged assassins": 0.40272024273872375,
+      "5 melee assassins": 0.3485015630722046,
+      "3T 2H no damage": 0.2502247393131256,
+      "No healer high WR": 0.4918391704559326
+    }
+  },
+  "minutes": 0.6,
+  "out": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_decay90_s777.pt"
+}

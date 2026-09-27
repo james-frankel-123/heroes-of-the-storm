@@ -1,0 +1,34 @@
+{
+  "maintained": {
+    "counter_future": -0.3363284021823456,
+    "counter_se": 0.016193168469905168,
+    "synergy_future": 0.9852823553617053,
+    "synergy_se": 0.028119843119442742,
+    "degen_pct": 19.7,
+    "healer_pct": 84.39999999999999,
+    "future_hero_wr_mean": 52.17417095073255
+  },
+  "frozen": {
+    "counter_future": 0.3363284021823456,
+    "counter_se": 0.016193168469905168,
+    "synergy_future": 0.9101275127261952,
+    "synergy_se": 0.03768725020987321,
+    "degen_pct": 27.6,
+    "healer_pct": 75.25,
+    "future_hero_wr_mean": 51.21718711171913
+  },
+  "paired_deltas": {
+    "counter": {
+      "mean": -0.6726568043646912,
+      "se": 0.032386336939810335
+    },
+    "synergy": {
+      "mean": 0.07515484263550999,
+      "se": 0.05244583432102699
+    },
+    "future_hero_wr": {
+      "mean": 0.9569838390134293,
+      "se": 0.025380946624043683
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "name": "w3d_hybrid_s42",
+  "features": "hybrid",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.14.95918",
+  "n_train": 3538596,
+  "n_val": 72216,
+  "n_test": 287362,
+  "epochs": 69,
+  "val_acc": 57.26,
+  "test_acc_future": 56.851,
+  "test_acc_sizable": 56.849,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30830,
+      "acc": 56.49
+    },
+    "2.55.15.96443": {
+      "n_rows": 1712,
+      "acc": 56.133
+    },
+    "2.55.15.96477": {
+      "n_rows": 161908,
+      "acc": 56.95
+    },
+    "2.55.16.96846": {
+      "n_rows": 1946,
+      "acc": 56.989
+    },
+    "2.55.16.96870": {
+      "n_rows": 2818,
+      "acc": 57.381
+    },
+    "2.55.16.96881": {
+      "n_rows": 63500,
+      "acc": 56.902
+    },
+    "2.55.16.97039": {
+      "n_rows": 24648,
+      "acc": 56.491
+    }
+  },
+  "sanity": {
+    "passed_28": 26,
+    "passed_21": 19,
+    "by_category": {
+      "absurd": "8/8",
+      "trap": "5/5",
+      "normal": "3/5",
+      "symmetry": "10/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.25505274534225464,
+      "5 healers": 0.23001015186309814,
+      "5 ranged assassins": 0.33128824830055237,
+      "5 melee assassins": 0.45386338233947754,
+      "3T 2H no damage": 0.18398550152778625,
+      "No healer high WR": 0.472146600484848
+    }
+  },
+  "minutes": 1.1,
+  "out": "/home/max/heroes-of-the-storm/training/drift2026/models/w3d_hybrid_s42.pt"
+}

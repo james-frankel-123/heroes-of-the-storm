@@ -1,0 +1,32 @@
+{
+  "cell": "gd",
+  "label": "GD baseline",
+  "seed": 42,
+  "drafts": 1500,
+  "healer_rate": 99.4,
+  "degen_rate": 1.13,
+  "counter_future": 0.046,
+  "synergy_future": -0.129,
+  "distinct_heroes": 55,
+  "entropy": 4.34,
+  "top10_concentration": 74.6,
+  "map_adapt": {
+    "Braxis Holdout": {
+      "map_rate": 18.8,
+      "other_rate": 27.4,
+      "delta": -8.7
+    },
+    "Battlefield of Eternity": {
+      "map_rate": 69.9,
+      "other_rate": 83.3,
+      "delta": -13.4
+    },
+    "Cursed Hollow": {
+      "map_rate": 25.0,
+      "other_rate": 13.7,
+      "delta": 11.3
+    }
+  },
+  "truth": "merged per-build counts of all post-cutoff builds",
+  "minutes": 0.1
+}

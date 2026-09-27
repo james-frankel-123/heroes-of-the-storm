@@ -1,0 +1,33 @@
+{
+  "name": "w2c_cut41_s42",
+  "features": "cumulative_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.16.96846",
+  "n_train": 3731064,
+  "n_val": 76144,
+  "n_test": 90966,
+  "epochs": 55,
+  "val_acc": 57.077,
+  "test_acc_future": 57.248,
+  "test_acc_sizable": 57.228,
+  "test_acc_per_build": {
+    "2.55.16.96870": {
+      "n_rows": 2818,
+      "acc": 57.878
+    },
+    "2.55.16.96881": {
+      "n_rows": 63500,
+      "acc": 57.359
+    },
+    "2.55.16.97039": {
+      "n_rows": 24648,
+      "acc": 56.889
+    }
+  },
+  "sanity": null,
+  "minutes": 0.9,
+  "out": "/home/max/heroes-of-the-storm/training/drift2026/models/w2c_cut41_s42.pt"
+}

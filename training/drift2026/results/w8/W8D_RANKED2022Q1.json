@@ -1,0 +1,22 @@
+{
+  "skipped": false,
+  "q2_volume_cap": 314761,
+  "window_games": 158709,
+  "vintage": "2022Q1-ranked",
+  "n_games": 158709,
+  "n_train_aug": 285678,
+  "n_test": 15870,
+  "window_min_date": "2021-12-07",
+  "window_max_date": "2022-03-31",
+  "holdout_acc": 0.5716446124763706,
+  "auc": 0.5985130994264196,
+  "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+  "seed": 20260713,
+  "w6_scores": {
+    "maintained_wp_mean": 0.46881948348879815,
+    "se": 0.0020517729548796444,
+    "win_share": 0.3675,
+    "n": 2000
+  },
+  "date": "2026-07-13"
+}

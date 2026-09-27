@@ -1,0 +1,66 @@
+{
+  "name": "d2c_causal_k1000_s777",
+  "features": "causal_k1000",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 777,
+  "cutoff_build": "2.55.14.95918",
+  "n_train": 3538596,
+  "n_val": 72216,
+  "n_test": 287362,
+  "epochs": 47,
+  "val_acc": 58.433,
+  "test_acc_future": 56.753,
+  "test_acc_sizable": 56.755,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30830,
+      "acc": 55.871
+    },
+    "2.55.15.96443": {
+      "n_rows": 1712,
+      "acc": 54.439
+    },
+    "2.55.15.96477": {
+      "n_rows": 161908,
+      "acc": 57.114
+    },
+    "2.55.16.96846": {
+      "n_rows": 1946,
+      "acc": 57.194
+    },
+    "2.55.16.96870": {
+      "n_rows": 2818,
+      "acc": 57.7
+    },
+    "2.55.16.96881": {
+      "n_rows": 63500,
+      "acc": 56.43
+    },
+    "2.55.16.97039": {
+      "n_rows": 24648,
+      "acc": 56.341
+    }
+  },
+  "sanity": {
+    "passed_28": 26,
+    "passed_21": 19,
+    "by_category": {
+      "absurd": "8/8",
+      "trap": "5/5",
+      "normal": "3/5",
+      "symmetry": "10/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.12642274796962738,
+      "5 healers": 0.16358526051044464,
+      "5 ranged assassins": 0.32539987564086914,
+      "5 melee assassins": 0.26340246200561523,
+      "3T 2H no damage": 0.25344839692115784,
+      "No healer high WR": 0.4315522611141205
+    }
+  },
+  "minutes": 0.8,
+  "out": "/home/max/heroes-of-the-storm/training/drift2026/models/d2c_causal_k1000_s777.pt"
+}

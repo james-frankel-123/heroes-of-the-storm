@@ -1,0 +1,359 @@
+{
+  "training_volumes_rows": {
+    "maintained (cutoff 2.55.14.95918, 2026-02)": 3538596,
+    "stale-1yr (cutoff 2.55.9.93613, 2025-02)": 2270654,
+    "stale-2yr (cutoff 2.55.4.91418, 2024-02)": 1594630,
+    "volume-matched maintained (subsample)": 1594630
+  },
+  "vf_future_acc": {
+    "volmatch": [
+      56.762,
+      56.678,
+      56.736
+    ],
+    "full_maintained": [
+      57.086,
+      57.114,
+      57.044
+    ],
+    "stale2yr": [
+      55.279,
+      55.256,
+      55.284
+    ]
+  },
+  "h2h_volmatch_vs_stale2yr": {
+    "jf": {
+      "maintained": {
+        "counter_future": -0.35694263017965217,
+        "counter_se": 0.01617972179927059,
+        "synergy_future": 0.7203564486703363,
+        "synergy_se": 0.025863081767911314,
+        "degen_pct": 22.5,
+        "healer_pct": 83.05,
+        "future_hero_wr_mean": 52.1492498115023
+      },
+      "frozen": {
+        "counter_future": 0.35694263017965217,
+        "counter_se": 0.01617972179927059,
+        "synergy_future": 1.3512388437418816,
+        "synergy_se": 0.04169718605628223,
+        "degen_pct": 36.95,
+        "healer_pct": 64.60000000000001,
+        "future_hero_wr_mean": 51.32781271280946
+      },
+      "paired_deltas": {
+        "counter": {
+          "mean": -0.7138852603593043,
+          "se": 0.03235944359854118
+        },
+        "synergy": {
+          "mean": -0.6308823950715452,
+          "se": 0.053781907639627126
+        },
+        "future_hero_wr": {
+          "mean": 0.821437098692843,
+          "se": 0.02501626617380765
+        }
+      }
+    },
+    "inf": {
+      "in": "w6_head2head_w8_volmatch.json",
+      "arms": {
+        "maintained": "volmatch",
+        "frozen": "stale2yr"
+      },
+      "n_drafts": 2000,
+      "continuous": {
+        "est": 0.5128831154499203,
+        "se": 0.018202561775190453,
+        "components": {
+          "seed_maintained": 0.0012935372405870568,
+          "seed_frozen": 0.0003288909841679792,
+          "interaction": 8.68775567303331e-05,
+          "within_pairing_sampling": 8.431269898510104e-05
+        },
+        "disjoint_diag": {
+          "est": 0.5050147028651555,
+          "se": 0.02549871337687829
+        },
+        "shape": [
+          5,
+          5,
+          80
+        ],
+        "z_vs_half": 0.707763863627128
+      },
+      "binary": {
+        "est": 0.565,
+        "se": 0.08773183572683295,
+        "components": {
+          "seed_maintained": 0.030728125000000005,
+          "seed_frozen": 0.0069656250000000005,
+          "interaction": 0.0012717958860759514,
+          "within_pairing_sampling": 0.0026813291139240504
+        },
+        "disjoint_diag": {
+          "est": 0.5225,
+          "se": 0.11926860441876562
+        },
+        "shape": [
+          5,
+          5,
+          80
+        ],
+        "z_vs_half": 0.7408941060162905
+      },
+      "judge_free_crossed": {
+        "counter": {
+          "est": -0.7138852603593042,
+          "se": 0.12085962886610815,
+          "components": {
+            "seed_maintained": 0.014817257612236536,
+            "seed_frozen": 0.0510118917644262,
+            "interaction": 0.01063850736334674,
+            "within_pairing_sampling": 0.025391992994674643
+          },
+          "disjoint_diag": {
+            "est": -0.7838627525258772,
+            "se": 0.12050003093317767
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z": -5.9067305357206354
+        },
+        "synergy": {
+          "est": -0.6308823950715451,
+          "se": 0.39789545430295753,
+          "components": {
+            "seed_maintained": 0.7083403162868287,
+            "seed_frozen": 0.06977576016613243,
+            "interaction": 0.0029475332595200326,
+            "within_pairing_sampling": 0.06449189834959855
+          },
+          "disjoint_diag": {
+            "est": -0.8768924241052204,
+            "se": 0.4121632939887656
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z": -1.585548133935683
+        },
+        "future_hero_wr": {
+          "est": 0.8214370986928428,
+          "se": 0.22909032598499118,
+          "components": {
+            "seed_maintained": 0.24607887499227474,
+            "seed_frozen": 0.01328509492813062,
+            "interaction": 0.002215787482697313,
+            "within_pairing_sampling": 0.013023799413013928
+          },
+          "disjoint_diag": {
+            "est": 0.8988413092150317,
+            "se": 0.20443920380766908
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z": 3.5856472557756938
+        },
+        "degen": {
+          "est": -0.1445,
+          "se": 0.13451219740231737,
+          "components": {
+            "seed_maintained": 0.06939453125,
+            "seed_frozen": 0.018278906249999997,
+            "interaction": 0.009223388053797466,
+            "within_pairing_sampling": 0.004747705696202532
+          },
+          "disjoint_diag": {
+            "est": -0.07749999999999999,
+            "se": 0.14611639196202456
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z": -1.0742520216795637
+        }
+      }
+    }
+  },
+  "reference_maintained_vs_stale2yr": {
+    "jf": {
+      "maintained": {
+        "counter_future": -0.3363284021823456,
+        "counter_se": 0.016193168469905168,
+        "synergy_future": 0.9852823553617053,
+        "synergy_se": 0.028119843119442742,
+        "degen_pct": 19.7,
+        "healer_pct": 84.39999999999999,
+        "future_hero_wr_mean": 52.17417095073255
+      },
+      "frozen": {
+        "counter_future": 0.3363284021823456,
+        "counter_se": 0.016193168469905168,
+        "synergy_future": 0.9101275127261952,
+        "synergy_se": 0.03768725020987321,
+        "degen_pct": 27.6,
+        "healer_pct": 75.25,
+        "future_hero_wr_mean": 51.21718711171913
+      },
+      "paired_deltas": {
+        "counter": {
+          "mean": -0.6726568043646912,
+          "se": 0.032386336939810335
+        },
+        "synergy": {
+          "mean": 0.07515484263550999,
+          "se": 0.05244583432102699
+        },
+        "future_hero_wr": {
+          "mean": 0.9569838390134293,
+          "se": 0.025380946624043683
+        }
+      }
+    },
+    "inf": {
+      "in": "w6_head2head_stale2yr.json",
+      "arms": {
+        "maintained": "d2c_cumprev",
+        "frozen": "stale2yr"
+      },
+      "n_drafts": 2000,
+      "continuous": {
+        "est": 0.5164418987154495,
+        "se": 0.01330019148389669,
+        "components": {
+          "seed_maintained": 0.0004560065950094636,
+          "seed_frozen": 0.0003736551484218108,
+          "interaction": 0.00018713927836953994,
+          "within_pairing_sampling": 8.692934218203907e-05
+        },
+        "disjoint_diag": {
+          "est": 0.5138356615486555,
+          "se": 0.010112013412718291
+        },
+        "shape": [
+          5,
+          5,
+          80
+        ],
+        "z_vs_half": 1.2362151879810679
+      },
+      "binary": {
+        "est": 0.581,
+        "se": 0.059220720613650066,
+        "components": {
+          "seed_maintained": 0.008752343749999997,
+          "seed_frozen": 0.007764843749999991,
+          "interaction": 0.0022390328322784837,
+          "within_pairing_sampling": 0.0028523734177215193
+        },
+        "disjoint_diag": {
+          "est": 0.5575,
+          "se": 0.05667892024377317
+        },
+        "shape": [
+          5,
+          5,
+          80
+        ],
+        "z_vs_half": 1.3677645114863712
+      },
+      "judge_free_crossed": {
+        "counter": {
+          "est": -0.6726568043646912,
+          "se": 0.20996813154639157,
+          "components": {
+            "seed_maintained": 0.14905099444538697,
+            "seed_frozen": 0.060117121238099404,
+            "interaction": 0.03258692392724002,
+            "within_pairing_sampling": 0.02373790428239781
+          },
+          "disjoint_diag": {
+            "est": -0.6308345910040316,
+            "se": 0.11751892775485083
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z": -3.20361380277402
+        },
+        "synergy": {
+          "est": 0.07515484263551002,
+          "se": 0.3889514214683896,
+          "components": {
+            "seed_maintained": 0.598086729499277,
+            "seed_frozen": 0.14293851829438936,
+            "interaction": 0.01579340426464579,
+            "within_pairing_sampling": 0.061160563324044584
+          },
+          "disjoint_diag": {
+            "est": 0.04656209543836944,
+            "se": 0.5265430686621411
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z": 0.19322423955099985
+        },
+        "future_hero_wr": {
+          "est": 0.9569838390134293,
+          "se": 0.14276838987008558,
+          "components": {
+            "seed_maintained": 0.08731747301748317,
+            "seed_frozen": 0.006437511336519758,
+            "interaction": 0.0259400507745148,
+            "within_pairing_sampling": 0.014855356107889442
+          },
+          "disjoint_diag": {
+            "est": 0.8968430917450452,
+            "se": 0.1415330145481132
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z": 6.703051283860891
+        },
+        "degen": {
+          "est": -0.079,
+          "se": 0.07376842990060178,
+          "components": {
+            "seed_maintained": 0.009457031249999998,
+            "seed_frozen": 0.01358828125,
+            "interaction": 0.016421291534810124,
+            "within_pairing_sampling": 0.004396677215189873
+          },
+          "disjoint_diag": {
+            "est": -0.004999999999999999,
+            "se": 0.07485402460789933
+          },
+          "shape": [
+            5,
+            5,
+            80
+          ],
+          "z": -1.070918821322989
+        }
+      }
+    }
+  },
+  "volmatch_consensus": 0.5128831154499203,
+  "edge_retained_hero_wr_frac": 0.8583604708932975
+}
