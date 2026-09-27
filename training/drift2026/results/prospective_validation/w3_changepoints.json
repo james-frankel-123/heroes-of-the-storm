@@ -1,0 +1,5046 @@
+{
+  "config": {
+    "min_g_wr": 200,
+    "sprt_delta": 0.03,
+    "effect_floors_pp": {
+      "wr": 1.5,
+      "rate": 0.5
+    }
+  },
+  "ground_truth": "source: Official Blizzard patch notes via news.blizzard.com (index: https://news.blizzard.com/en-us/api/feed/heroes-of...; fetch: Plain HTTP GET, stdlib urllib. Blizzard: JSON feed API paginated with ?offset=N, then each article's HTML pars...; 59 patches; 11 corpus builds with known truth (5 with zero balance changes); bugfix-only/ARAM-only hero mentions excluded from truth",
+  "boundaries": [
+    {
+      "prev_build": "2.55.13.95301",
+      "new_build": "2.55.14.95817",
+      "intermediate_builds": [
+        "2.55.14.95774",
+        "2.55.14.95817"
+      ],
+      "prev_games": 144467,
+      "new_games": 27178,
+      "n_wr_testable": 90,
+      "detected": {
+        "wr_p05": [
+          "Alarak",
+          "Anub'arak",
+          "Auriel",
+          "Azmodan",
+          "Gul'dan",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Uther",
+          "Valeera",
+          "Varian",
+          "Zul'jin"
+        ],
+        "wr_p05_eff": [
+          "Alarak",
+          "Anub'arak",
+          "Auriel",
+          "Azmodan",
+          "Gul'dan",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Uther",
+          "Valeera",
+          "Varian",
+          "Zul'jin"
+        ],
+        "wr_bh": [
+          "Thrall",
+          "Tyrael",
+          "Zul'jin"
+        ],
+        "pickban_bh": [
+          "Abathur",
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Cassia",
+          "Chen",
+          "Cho",
+          "Chromie",
+          "D.Va",
+          "Deathwing",
+          "Deckard",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Fenix",
+          "Gall",
+          "Garrosh",
+          "Gazlowe",
+          "Genji",
+          "Greymane",
+          "Gul'dan",
+          "Hanzo",
+          "Hogger",
+          "Illidan",
+          "Imperius",
+          "Jaina",
+          "Johanna",
+          "Junkrat",
+          "Kael'thas",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li Li",
+          "Li-Ming",
+          "Lt. Morales",
+          "Lunara",
+          "L\u00facio",
+          "Maiev",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mei",
+          "Mephisto",
+          "Muradin",
+          "Murky",
+          "Nazeebo",
+          "Nova",
+          "Orphea",
+          "Probius",
+          "Qhira",
+          "Ragnaros",
+          "Raynor",
+          "Rehgar",
+          "Rexxar",
+          "Samuro",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Tyrande",
+          "Valla",
+          "Varian",
+          "Whitemane",
+          "Xul",
+          "Zagara",
+          "Zarya",
+          "Zeratul",
+          "Zul'jin"
+        ],
+        "pickban_eff2": [
+          "Anub'arak",
+          "Auriel",
+          "Dehaka",
+          "Falstad",
+          "Garrosh",
+          "Imperius",
+          "Johanna",
+          "Junkrat",
+          "Kael'thas",
+          "Kerrigan",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "Thrall",
+          "Tyrael",
+          "Valla",
+          "Zul'jin"
+        ],
+        "any_bh": [
+          "Abathur",
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Cassia",
+          "Chen",
+          "Cho",
+          "Chromie",
+          "D.Va",
+          "Deathwing",
+          "Deckard",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Fenix",
+          "Gall",
+          "Garrosh",
+          "Gazlowe",
+          "Genji",
+          "Greymane",
+          "Gul'dan",
+          "Hanzo",
+          "Hogger",
+          "Illidan",
+          "Imperius",
+          "Jaina",
+          "Johanna",
+          "Junkrat",
+          "Kael'thas",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li Li",
+          "Li-Ming",
+          "Lt. Morales",
+          "Lunara",
+          "L\u00facio",
+          "Maiev",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mei",
+          "Mephisto",
+          "Muradin",
+          "Murky",
+          "Nazeebo",
+          "Nova",
+          "Orphea",
+          "Probius",
+          "Qhira",
+          "Ragnaros",
+          "Raynor",
+          "Rehgar",
+          "Rexxar",
+          "Samuro",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Tyrande",
+          "Valla",
+          "Varian",
+          "Whitemane",
+          "Xul",
+          "Zagara",
+          "Zarya",
+          "Zeratul",
+          "Zul'jin"
+        ],
+        "any_bh_eff": [
+          "Abathur",
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Cassia",
+          "Cho",
+          "Chromie",
+          "D.Va",
+          "Deckard",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Fenix",
+          "Garrosh",
+          "Gazlowe",
+          "Genji",
+          "Greymane",
+          "Gul'dan",
+          "Hanzo",
+          "Hogger",
+          "Illidan",
+          "Imperius",
+          "Jaina",
+          "Johanna",
+          "Junkrat",
+          "Kael'thas",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li Li",
+          "Li-Ming",
+          "Lt. Morales",
+          "L\u00facio",
+          "Maiev",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mephisto",
+          "Muradin",
+          "Nazeebo",
+          "Nova",
+          "Qhira",
+          "Ragnaros",
+          "Raynor",
+          "Rehgar",
+          "Rexxar",
+          "Samuro",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Valla",
+          "Varian",
+          "Whitemane",
+          "Xul",
+          "Zagara",
+          "Zarya",
+          "Zeratul",
+          "Zul'jin"
+        ]
+      },
+      "latency_wr": {
+        "Alarak": {
+          "z_naive": {
+            "build_games": 22124,
+            "hero_games": 1862
+          },
+          "sprt": {
+            "build_games": 27111,
+            "hero_games": 2331
+          }
+        },
+        "Anub'arak": {
+          "z_naive": {
+            "build_games": 17414,
+            "hero_games": 2910
+          }
+        },
+        "Auriel": {
+          "z_naive": {
+            "build_games": 10595,
+            "hero_games": 1750
+          },
+          "sprt": {
+            "build_games": 17414,
+            "hero_games": 2944
+          },
+          "z_bonf": {
+            "build_games": 27111,
+            "hero_games": 4542
+          }
+        },
+        "Azmodan": {
+          "z_naive": {
+            "build_games": 27178,
+            "hero_games": 4973
+          }
+        },
+        "Gul'dan": {
+          "z_naive": {
+            "build_games": 24955,
+            "hero_games": 3224
+          }
+        },
+        "Thrall": {
+          "z_naive": {
+            "build_games": 10595,
+            "hero_games": 3806
+          },
+          "sprt": {
+            "build_games": 12847,
+            "hero_games": 4578
+          },
+          "z_bonf": {
+            "build_games": 15157,
+            "hero_games": 5349
+          }
+        },
+        "Tychus": {
+          "z_naive": {
+            "build_games": 8176,
+            "hero_games": 1226
+          },
+          "sprt": {
+            "build_games": 10595,
+            "hero_games": 1564
+          },
+          "z_bonf": {
+            "build_games": 17414,
+            "hero_games": 2641
+          }
+        },
+        "Tyrael": {
+          "z_naive": {
+            "build_games": 8176,
+            "hero_games": 1407
+          },
+          "z_bonf": {
+            "build_games": 10595,
+            "hero_games": 1833
+          },
+          "sprt": {
+            "build_games": 10595,
+            "hero_games": 1833
+          }
+        },
+        "Uther": {
+          "z_naive": {
+            "build_games": 22124,
+            "hero_games": 1712
+          }
+        },
+        "Valeera": {
+          "z_naive": {
+            "build_games": 2294,
+            "hero_games": 72
+          }
+        },
+        "Varian": {
+          "z_naive": {
+            "build_games": 27111,
+            "hero_games": 4798
+          }
+        },
+        "Zul'jin": {
+          "z_naive": {
+            "build_games": 5163,
+            "hero_games": 504
+          },
+          "z_bonf": {
+            "build_games": 5163,
+            "hero_games": 504
+          },
+          "sprt": {
+            "build_games": 5163,
+            "hero_games": 504
+          }
+        }
+      },
+      "effects_flagged": {
+        "Abathur": {
+          "prev_games": 12590,
+          "new_games": 2605,
+          "d_wr_pp": 1.62,
+          "p_wr": 0.12929,
+          "d_pick_pp": 0.87,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.93,
+          "p_ban": 0.0
+        },
+        "Alarak": {
+          "prev_games": 14632,
+          "new_games": 2338,
+          "d_wr_pp": -2.68,
+          "p_wr": 0.01604,
+          "d_pick_pp": -1.53,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.33,
+          "p_ban": 0.0
+        },
+        "Alexstrasza": {
+          "prev_games": 6954,
+          "new_games": 1164,
+          "d_wr_pp": 1.18,
+          "p_wr": 0.45403,
+          "d_pick_pp": -0.53,
+          "p_pick": 0.00016,
+          "d_ban_pp": -0.2,
+          "p_ban": 0.00011
+        },
+        "Ana": {
+          "prev_games": 9664,
+          "new_games": 1621,
+          "d_wr_pp": 0.12,
+          "p_wr": 0.92966,
+          "d_pick_pp": -0.73,
+          "p_pick": 1e-05,
+          "d_ban_pp": -0.28,
+          "p_ban": 9e-05
+        },
+        "Anduin": {
+          "prev_games": 42497,
+          "new_games": 8149,
+          "d_wr_pp": -0.66,
+          "p_wr": 0.2768,
+          "d_pick_pp": 0.57,
+          "p_pick": 0.05988,
+          "d_ban_pp": -1.17,
+          "p_ban": 5e-05
+        },
+        "Anub'arak": {
+          "prev_games": 24056,
+          "new_games": 4518,
+          "d_wr_pp": 1.84,
+          "p_wr": 0.023,
+          "d_pick_pp": -0.03,
+          "p_pick": 0.91009,
+          "d_ban_pp": -2.23,
+          "p_ban": 0.0
+        },
+        "Artanis": {
+          "prev_games": 23508,
+          "new_games": 4104,
+          "d_wr_pp": 0.52,
+          "p_wr": 0.5383,
+          "d_pick_pp": -1.17,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.31,
+          "p_ban": 0.0
+        },
+        "Auriel": {
+          "prev_games": 26937,
+          "new_games": 4553,
+          "d_wr_pp": -2.37,
+          "p_wr": 0.003,
+          "d_pick_pp": -1.89,
+          "p_pick": 0.0,
+          "d_ban_pp": -2.28,
+          "p_ban": 0.0
+        },
+        "Azmodan": {
+          "prev_games": 28377,
+          "new_games": 4973,
+          "d_wr_pp": 1.53,
+          "p_wr": 0.047,
+          "d_pick_pp": -1.34,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.97,
+          "p_ban": 0.0
+        },
+        "Blaze": {
+          "prev_games": 15531,
+          "new_games": 2503,
+          "d_wr_pp": 1.22,
+          "p_wr": 0.25629,
+          "d_pick_pp": -1.54,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.85,
+          "p_ban": 0.0
+        },
+        "Brightwing": {
+          "prev_games": 31160,
+          "new_games": 6314,
+          "d_wr_pp": -0.05,
+          "p_wr": 0.93806,
+          "d_pick_pp": 1.66,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.07,
+          "p_ban": 0.00117
+        },
+        "Cassia": {
+          "prev_games": 10457,
+          "new_games": 1461,
+          "d_wr_pp": 0.59,
+          "p_wr": 0.67277,
+          "d_pick_pp": -1.86,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.11,
+          "p_ban": 0.02039
+        },
+        "Chen": {
+          "prev_games": 6702,
+          "new_games": 1176,
+          "d_wr_pp": -0.09,
+          "p_wr": 0.95265,
+          "d_pick_pp": -0.31,
+          "p_pick": 0.02409,
+          "d_ban_pp": -0.14,
+          "p_ban": 0.00984
+        },
+        "Cho": {
+          "prev_games": 2791,
+          "new_games": 392,
+          "d_wr_pp": -0.06,
+          "p_wr": 0.98239,
+          "d_pick_pp": -0.49,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.98,
+          "p_ban": 0.0
+        },
+        "Chromie": {
+          "prev_games": 12914,
+          "new_games": 2104,
+          "d_wr_pp": 0.49,
+          "p_wr": 0.67685,
+          "d_pick_pp": -1.2,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.8,
+          "p_ban": 0.0
+        },
+        "D.Va": {
+          "prev_games": 12345,
+          "new_games": 2133,
+          "d_wr_pp": -1.52,
+          "p_wr": 0.19414,
+          "d_pick_pp": -0.7,
+          "p_pick": 0.00015,
+          "d_ban_pp": -0.1,
+          "p_ban": 0.10719
+        },
+        "Deathwing": {
+          "prev_games": 6496,
+          "new_games": 1226,
+          "d_wr_pp": 0.47,
+          "p_wr": 0.76079,
+          "d_pick_pp": 0.01,
+          "p_pick": 0.9159,
+          "d_ban_pp": -0.32,
+          "p_ban": 7e-05
+        },
+        "Deckard": {
+          "prev_games": 16311,
+          "new_games": 2583,
+          "d_wr_pp": -1.12,
+          "p_wr": 0.28799,
+          "d_pick_pp": -1.79,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.13,
+          "p_ban": 0.12099
+        },
+        "Dehaka": {
+          "prev_games": 14927,
+          "new_games": 2987,
+          "d_wr_pp": 0.24,
+          "p_wr": 0.81404,
+          "d_pick_pp": 0.66,
+          "p_pick": 0.00113,
+          "d_ban_pp": -2.7,
+          "p_ban": 0.0
+        },
+        "Diablo": {
+          "prev_games": 24735,
+          "new_games": 4807,
+          "d_wr_pp": 0.34,
+          "p_wr": 0.66859,
+          "d_pick_pp": 0.57,
+          "p_pick": 0.02345,
+          "d_ban_pp": -1.94,
+          "p_ban": 0.0
+        },
+        "E.T.C.": {
+          "prev_games": 22785,
+          "new_games": 4536,
+          "d_wr_pp": -1.06,
+          "p_wr": 0.19374,
+          "d_pick_pp": 0.92,
+          "p_pick": 0.00015,
+          "d_ban_pp": 0.14,
+          "p_ban": 0.37859
+        },
+        "Falstad": {
+          "prev_games": 27096,
+          "new_games": 7330,
+          "d_wr_pp": 1.14,
+          "p_wr": 0.08265,
+          "d_pick_pp": 8.21,
+          "p_pick": 0.0,
+          "d_ban_pp": 17.23,
+          "p_ban": 0.0
+        },
+        "Fenix": {
+          "prev_games": 5683,
+          "new_games": 873,
+          "d_wr_pp": 1.92,
+          "p_wr": 0.2916,
+          "d_pick_pp": -0.72,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.02,
+          "p_ban": 0.58188
+        },
+        "Gall": {
+          "prev_games": 2791,
+          "new_games": 392,
+          "d_wr_pp": -0.06,
+          "p_wr": 0.98239,
+          "d_pick_pp": -0.49,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.22,
+          "p_ban": 0.00501
+        },
+        "Garrosh": {
+          "prev_games": 18210,
+          "new_games": 3327,
+          "d_wr_pp": -1.03,
+          "p_wr": 0.27633,
+          "d_pick_pp": -0.36,
+          "p_pick": 0.09704,
+          "d_ban_pp": -4.65,
+          "p_ban": 0.0
+        },
+        "Gazlowe": {
+          "prev_games": 11799,
+          "new_games": 1959,
+          "d_wr_pp": 0.27,
+          "p_wr": 0.82304,
+          "d_pick_pp": -0.96,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.14,
+          "p_ban": 0.03362
+        },
+        "Genji": {
+          "prev_games": 9030,
+          "new_games": 1681,
+          "d_wr_pp": 0.35,
+          "p_wr": 0.79431,
+          "d_pick_pp": -0.07,
+          "p_pick": 0.68253,
+          "d_ban_pp": -1.68,
+          "p_ban": 0.0
+        },
+        "Greymane": {
+          "prev_games": 14913,
+          "new_games": 2491,
+          "d_wr_pp": -0.98,
+          "p_wr": 0.36606,
+          "d_pick_pp": -1.16,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.36,
+          "p_ban": 0.0
+        },
+        "Gul'dan": {
+          "prev_games": 16141,
+          "new_games": 3469,
+          "d_wr_pp": -1.95,
+          "p_wr": 0.03726,
+          "d_pick_pp": 1.59,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.48,
+          "p_ban": 0.0
+        },
+        "Hanzo": {
+          "prev_games": 21532,
+          "new_games": 3985,
+          "d_wr_pp": 1.22,
+          "p_wr": 0.15569,
+          "d_pick_pp": -0.24,
+          "p_pick": 0.30387,
+          "d_ban_pp": -1.24,
+          "p_ban": 0.0
+        },
+        "Hogger": {
+          "prev_games": 15519,
+          "new_games": 2874,
+          "d_wr_pp": -1.09,
+          "p_wr": 0.27946,
+          "d_pick_pp": -0.17,
+          "p_pick": 0.41273,
+          "d_ban_pp": -1.97,
+          "p_ban": 0.0
+        },
+        "Illidan": {
+          "prev_games": 15174,
+          "new_games": 3016,
+          "d_wr_pp": -1.43,
+          "p_wr": 0.15183,
+          "d_pick_pp": 0.59,
+          "p_pick": 0.00353,
+          "d_ban_pp": 0.94,
+          "p_ban": 0.0
+        },
+        "Imperius": {
+          "prev_games": 17514,
+          "new_games": 2733,
+          "d_wr_pp": 0.02,
+          "p_wr": 0.98211,
+          "d_pick_pp": -2.07,
+          "p_pick": 0.0,
+          "d_ban_pp": -2.42,
+          "p_ban": 0.0
+        },
+        "Jaina": {
+          "prev_games": 17626,
+          "new_games": 2972,
+          "d_wr_pp": -0.1,
+          "p_wr": 0.92174,
+          "d_pick_pp": -1.27,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.06,
+          "p_ban": 0.3284
+        },
+        "Johanna": {
+          "prev_games": 35137,
+          "new_games": 6694,
+          "d_wr_pp": 0.2,
+          "p_wr": 0.76209,
+          "d_pick_pp": 0.31,
+          "p_pick": 0.27728,
+          "d_ban_pp": -2.13,
+          "p_ban": 0.0
+        },
+        "Junkrat": {
+          "prev_games": 14456,
+          "new_games": 2131,
+          "d_wr_pp": -0.31,
+          "p_wr": 0.79263,
+          "d_pick_pp": -2.17,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.47,
+          "p_ban": 0.0
+        },
+        "Kael'thas": {
+          "prev_games": 23949,
+          "new_games": 5096,
+          "d_wr_pp": -0.55,
+          "p_wr": 0.47335,
+          "d_pick_pp": 2.17,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.23,
+          "p_ban": 0.0
+        },
+        "Kel'Thuzad": {
+          "prev_games": 11605,
+          "new_games": 1677,
+          "d_wr_pp": -1.64,
+          "p_wr": 0.2084,
+          "d_pick_pp": -1.86,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.03,
+          "p_ban": 0.0
+        },
+        "Kerrigan": {
+          "prev_games": 5732,
+          "new_games": 3168,
+          "d_wr_pp": 0.45,
+          "p_wr": 0.68363,
+          "d_pick_pp": 7.69,
+          "p_pick": 0.0,
+          "d_ban_pp": 17.05,
+          "p_ban": 0.0
+        },
+        "Kharazim": {
+          "prev_games": 10324,
+          "new_games": 2308,
+          "d_wr_pp": 0.9,
+          "p_wr": 0.43452,
+          "d_pick_pp": 1.35,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.04,
+          "p_ban": 0.37975
+        },
+        "Leoric": {
+          "prev_games": 24563,
+          "new_games": 4236,
+          "d_wr_pp": -1.59,
+          "p_wr": 0.05596,
+          "d_pick_pp": -1.42,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.2,
+          "p_ban": 0.0
+        },
+        "Li Li": {
+          "prev_games": 23838,
+          "new_games": 4998,
+          "d_wr_pp": -0.25,
+          "p_wr": 0.74909,
+          "d_pick_pp": 1.89,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.57,
+          "p_ban": 1e-05
+        },
+        "Li-Ming": {
+          "prev_games": 30711,
+          "new_games": 5547,
+          "d_wr_pp": 0.87,
+          "p_wr": 0.23346,
+          "d_pick_pp": -0.85,
+          "p_pick": 0.00167,
+          "d_ban_pp": -0.76,
+          "p_ban": 8e-05
+        },
+        "Lt. Morales": {
+          "prev_games": 10869,
+          "new_games": 1730,
+          "d_wr_pp": 0.52,
+          "p_wr": 0.68745,
+          "d_pick_pp": -1.16,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.22,
+          "p_ban": 0.01465
+        },
+        "Lunara": {
+          "prev_games": 11439,
+          "new_games": 2257,
+          "d_wr_pp": -1.19,
+          "p_wr": 0.30091,
+          "d_pick_pp": 0.39,
+          "p_pick": 0.03101,
+          "d_ban_pp": 0.14,
+          "p_ban": 0.01999
+        },
+        "L\u00facio": {
+          "prev_games": 12872,
+          "new_games": 2438,
+          "d_wr_pp": 0.69,
+          "p_wr": 0.53015,
+          "d_pick_pp": 0.06,
+          "p_pick": 0.7482,
+          "d_ban_pp": -0.61,
+          "p_ban": 0.0
+        },
+        "Maiev": {
+          "prev_games": 9562,
+          "new_games": 1531,
+          "d_wr_pp": 1.73,
+          "p_wr": 0.20737,
+          "d_pick_pp": -0.99,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.94,
+          "p_ban": 0.0
+        },
+        "Mal'Ganis": {
+          "prev_games": 7668,
+          "new_games": 1283,
+          "d_wr_pp": 0.33,
+          "p_wr": 0.82748,
+          "d_pick_pp": -0.59,
+          "p_pick": 7e-05,
+          "d_ban_pp": -0.14,
+          "p_ban": 0.05112
+        },
+        "Malfurion": {
+          "prev_games": 18339,
+          "new_games": 3117,
+          "d_wr_pp": 0.66,
+          "p_wr": 0.49672,
+          "d_pick_pp": -1.23,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.19,
+          "p_ban": 0.04456
+        },
+        "Malthael": {
+          "prev_games": 10055,
+          "new_games": 1587,
+          "d_wr_pp": 0.67,
+          "p_wr": 0.62139,
+          "d_pick_pp": -1.12,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.48,
+          "p_ban": 0.0
+        },
+        "Medivh": {
+          "prev_games": 6229,
+          "new_games": 997,
+          "d_wr_pp": -0.91,
+          "p_wr": 0.58945,
+          "d_pick_pp": -0.64,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.44,
+          "p_ban": 0.0
+        },
+        "Mei": {
+          "prev_games": 11380,
+          "new_games": 2065,
+          "d_wr_pp": 0.4,
+          "p_wr": 0.73672,
+          "d_pick_pp": -0.28,
+          "p_pick": 0.11608,
+          "d_ban_pp": -0.21,
+          "p_ban": 0.01298
+        },
+        "Mephisto": {
+          "prev_games": 6485,
+          "new_games": 826,
+          "d_wr_pp": -1.09,
+          "p_wr": 0.55414,
+          "d_pick_pp": -1.45,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.94,
+          "p_ban": 0.0
+        },
+        "Muradin": {
+          "prev_games": 33823,
+          "new_games": 6451,
+          "d_wr_pp": 0.99,
+          "p_wr": 0.14394,
+          "d_pick_pp": 0.32,
+          "p_pick": 0.24776,
+          "d_ban_pp": -0.63,
+          "p_ban": 5e-05
+        },
+        "Murky": {
+          "prev_games": 5941,
+          "new_games": 1000,
+          "d_wr_pp": 0.58,
+          "p_wr": 0.7319,
+          "d_pick_pp": -0.43,
+          "p_pick": 0.00089,
+          "d_ban_pp": 0.16,
+          "p_ban": 0.00802
+        },
+        "Nazeebo": {
+          "prev_games": 41488,
+          "new_games": 7290,
+          "d_wr_pp": -0.07,
+          "p_wr": 0.91795,
+          "d_pick_pp": -1.89,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.59,
+          "p_ban": 0.0
+        },
+        "Nova": {
+          "prev_games": 7437,
+          "new_games": 1564,
+          "d_wr_pp": -0.2,
+          "p_wr": 0.88395,
+          "d_pick_pp": 0.61,
+          "p_pick": 4e-05,
+          "d_ban_pp": 0.22,
+          "p_ban": 0.0
+        },
+        "Orphea": {
+          "prev_games": 12794,
+          "new_games": 2302,
+          "d_wr_pp": -0.7,
+          "p_wr": 0.53434,
+          "d_pick_pp": -0.39,
+          "p_pick": 0.03932,
+          "d_ban_pp": -0.04,
+          "p_ban": 0.54251
+        },
+        "Probius": {
+          "prev_games": 2312,
+          "new_games": 345,
+          "d_wr_pp": -0.59,
+          "p_wr": 0.83767,
+          "d_pick_pp": -0.33,
+          "p_pick": 5e-05,
+          "d_ban_pp": 0.01,
+          "p_ban": 0.80702
+        },
+        "Qhira": {
+          "prev_games": 8921,
+          "new_games": 1489,
+          "d_wr_pp": -1.08,
+          "p_wr": 0.44063,
+          "d_pick_pp": -0.7,
+          "p_pick": 1e-05,
+          "d_ban_pp": -0.28,
+          "p_ban": 0.0
+        },
+        "Ragnaros": {
+          "prev_games": 13907,
+          "new_games": 2585,
+          "d_wr_pp": -1.59,
+          "p_wr": 0.13757,
+          "d_pick_pp": -0.12,
+          "p_pick": 0.55489,
+          "d_ban_pp": -0.78,
+          "p_ban": 0.0
+        },
+        "Raynor": {
+          "prev_games": 25109,
+          "new_games": 4218,
+          "d_wr_pp": 0.26,
+          "p_wr": 0.75093,
+          "d_pick_pp": -1.86,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.41,
+          "p_ban": 0.00017
+        },
+        "Rehgar": {
+          "prev_games": 29848,
+          "new_games": 5892,
+          "d_wr_pp": 0.12,
+          "p_wr": 0.86397,
+          "d_pick_pp": 1.02,
+          "p_pick": 0.00015,
+          "d_ban_pp": -0.03,
+          "p_ban": 0.8383
+        },
+        "Rexxar": {
+          "prev_games": 5037,
+          "new_games": 714,
+          "d_wr_pp": 0.65,
+          "p_wr": 0.74554,
+          "d_pick_pp": -0.86,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.17,
+          "p_ban": 0.0
+        },
+        "Samuro": {
+          "prev_games": 8698,
+          "new_games": 1576,
+          "d_wr_pp": 0.08,
+          "p_wr": 0.9517,
+          "d_pick_pp": -0.22,
+          "p_pick": 0.15706,
+          "d_ban_pp": -0.78,
+          "p_ban": 0.0
+        },
+        "Sgt. Hammer": {
+          "prev_games": 8122,
+          "new_games": 1325,
+          "d_wr_pp": 1.29,
+          "p_wr": 0.38255,
+          "d_pick_pp": -0.75,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.9,
+          "p_ban": 0.0
+        },
+        "Sonya": {
+          "prev_games": 16190,
+          "new_games": 2567,
+          "d_wr_pp": -0.89,
+          "p_wr": 0.40145,
+          "d_pick_pp": -1.76,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.58,
+          "p_ban": 0.0
+        },
+        "Stitches": {
+          "prev_games": 27028,
+          "new_games": 5490,
+          "d_wr_pp": 0.51,
+          "p_wr": 0.49186,
+          "d_pick_pp": 1.49,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.23,
+          "p_ban": 0.0
+        },
+        "Stukov": {
+          "prev_games": 17621,
+          "new_games": 2888,
+          "d_wr_pp": -0.71,
+          "p_wr": 0.47808,
+          "d_pick_pp": -1.57,
+          "p_pick": 0.0,
+          "d_ban_pp": -3.18,
+          "p_ban": 0.0
+        },
+        "Sylvanas": {
+          "prev_games": 18871,
+          "new_games": 6675,
+          "d_wr_pp": -0.88,
+          "p_wr": 0.21721,
+          "d_pick_pp": 11.5,
+          "p_pick": 0.0,
+          "d_ban_pp": 13.24,
+          "p_ban": 0.0
+        },
+        "Tassadar": {
+          "prev_games": 21599,
+          "new_games": 3144,
+          "d_wr_pp": 0.25,
+          "p_wr": 0.78938,
+          "d_pick_pp": -3.38,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.35,
+          "p_ban": 0.0
+        },
+        "The Butcher": {
+          "prev_games": 9672,
+          "new_games": 2183,
+          "d_wr_pp": 0.19,
+          "p_wr": 0.87255,
+          "d_pick_pp": 1.34,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.24,
+          "p_ban": 0.01228
+        },
+        "Thrall": {
+          "prev_games": 25177,
+          "new_games": 9124,
+          "d_wr_pp": 2.23,
+          "p_wr": 0.00026,
+          "d_pick_pp": 16.14,
+          "p_pick": 0.0,
+          "d_ban_pp": 22.54,
+          "p_ban": 0.0
+        },
+        "Tychus": {
+          "prev_games": 24162,
+          "new_games": 4194,
+          "d_wr_pp": 2.27,
+          "p_wr": 0.00676,
+          "d_pick_pp": -1.29,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.28,
+          "p_ban": 0.0
+        },
+        "Tyrael": {
+          "prev_games": 28316,
+          "new_games": 4786,
+          "d_wr_pp": -2.64,
+          "p_wr": 0.00068,
+          "d_pick_pp": -1.99,
+          "p_pick": 0.0,
+          "d_ban_pp": -5.33,
+          "p_ban": 0.0
+        },
+        "Tyrande": {
+          "prev_games": 13440,
+          "new_games": 2638,
+          "d_wr_pp": 0.95,
+          "p_wr": 0.37396,
+          "d_pick_pp": 0.4,
+          "p_pick": 0.03635,
+          "d_ban_pp": -0.01,
+          "p_ban": 0.84683
+        },
+        "Valla": {
+          "prev_games": 46114,
+          "new_games": 7349,
+          "d_wr_pp": -1.01,
+          "p_wr": 0.10723,
+          "d_pick_pp": -4.88,
+          "p_pick": 0.0,
+          "d_ban_pp": -5.59,
+          "p_ban": 0.0
+        },
+        "Varian": {
+          "prev_games": 28033,
+          "new_games": 4809,
+          "d_wr_pp": -1.67,
+          "p_wr": 0.0321,
+          "d_pick_pp": -1.71,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.79,
+          "p_ban": 0.0
+        },
+        "Whitemane": {
+          "prev_games": 9296,
+          "new_games": 2213,
+          "d_wr_pp": 1.21,
+          "p_wr": 0.3077,
+          "d_pick_pp": 1.71,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.02,
+          "p_ban": 0.8205
+        },
+        "Xul": {
+          "prev_games": 13388,
+          "new_games": 2377,
+          "d_wr_pp": 1.34,
+          "p_wr": 0.22885,
+          "d_pick_pp": -0.52,
+          "p_pick": 0.00635,
+          "d_ban_pp": -0.09,
+          "p_ban": 0.35637
+        },
+        "Zagara": {
+          "prev_games": 14521,
+          "new_games": 2981,
+          "d_wr_pp": 0.01,
+          "p_wr": 0.99489,
+          "d_pick_pp": 0.92,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.24,
+          "p_ban": 0.05517
+        },
+        "Zarya": {
+          "prev_games": 6062,
+          "new_games": 828,
+          "d_wr_pp": -1.36,
+          "p_wr": 0.46367,
+          "d_pick_pp": -1.15,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.23,
+          "p_ban": 1e-05
+        },
+        "Zeratul": {
+          "prev_games": 8725,
+          "new_games": 1785,
+          "d_wr_pp": -1.8,
+          "p_wr": 0.16526,
+          "d_pick_pp": 0.53,
+          "p_pick": 0.00086,
+          "d_ban_pp": 0.06,
+          "p_ban": 0.58353
+        },
+        "Zul'jin": {
+          "prev_games": 18278,
+          "new_games": 2638,
+          "d_wr_pp": -4.42,
+          "p_wr": 2e-05,
+          "d_pick_pp": -2.95,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.22,
+          "p_ban": 0.0
+        }
+      },
+      "truth": {
+        "heroes": [
+          "Cho",
+          "D.Va",
+          "Falstad",
+          "Gall",
+          "Gazlowe",
+          "Gul'dan",
+          "Johanna",
+          "Kael'thas",
+          "Kerrigan",
+          "Raynor",
+          "Stukov",
+          "Sylvanas",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Valla",
+          "Zagara",
+          "Zul'jin"
+        ],
+        "known_builds": [
+          "2.55.14.95774",
+          "2.55.14.95817"
+        ],
+        "validatable": true
+      },
+      "pr": {
+        "wr_p05": {
+          "tp": 5,
+          "fp": 7,
+          "fn": 13,
+          "precision": 0.417,
+          "recall": 0.278
+        },
+        "wr_p05_eff": {
+          "tp": 5,
+          "fp": 7,
+          "fn": 13,
+          "precision": 0.417,
+          "recall": 0.278
+        },
+        "wr_bh": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 15,
+          "precision": 1.0,
+          "recall": 0.167
+        },
+        "pickban_bh": {
+          "tp": 18,
+          "fp": 66,
+          "fn": 0,
+          "precision": 0.214,
+          "recall": 1.0
+        },
+        "pickban_eff2": {
+          "tp": 10,
+          "fp": 7,
+          "fn": 8,
+          "precision": 0.588,
+          "recall": 0.556
+        },
+        "any_bh": {
+          "tp": 18,
+          "fp": 66,
+          "fn": 0,
+          "precision": 0.214,
+          "recall": 1.0
+        },
+        "any_bh_eff": {
+          "tp": 17,
+          "fp": 58,
+          "fn": 1,
+          "precision": 0.227,
+          "recall": 0.944
+        }
+      }
+    },
+    {
+      "prev_build": "2.55.14.95817",
+      "new_build": "2.55.14.95918",
+      "intermediate_builds": [
+        "2.55.14.95883",
+        "2.55.14.95918"
+      ],
+      "prev_games": 27178,
+      "new_games": 129647,
+      "n_wr_testable": 90,
+      "detected": {
+        "wr_p05": [
+          "Alarak",
+          "Falstad",
+          "Ragnaros",
+          "Sylvanas",
+          "Thrall",
+          "Uther"
+        ],
+        "wr_p05_eff": [
+          "Alarak",
+          "Falstad",
+          "Ragnaros",
+          "Sylvanas",
+          "Thrall",
+          "Uther"
+        ],
+        "wr_bh": [
+          "Sylvanas",
+          "Thrall"
+        ],
+        "pickban_bh": [
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Cassia",
+          "Chromie",
+          "D.Va",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Garrosh",
+          "Genji",
+          "Hanzo",
+          "Hogger",
+          "Imperius",
+          "Jaina",
+          "Johanna",
+          "Kael'thas",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li Li",
+          "Li-Ming",
+          "Lt. Morales",
+          "Lunara",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mephisto",
+          "Muradin",
+          "Nazeebo",
+          "Nova",
+          "Orphea",
+          "Ragnaros",
+          "Raynor",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "The Lost Vikings",
+          "Thrall",
+          "Tracer",
+          "Tychus",
+          "Tyrael",
+          "Uther",
+          "Valeera",
+          "Valla",
+          "Whitemane",
+          "Xul",
+          "Yrel",
+          "Zagara",
+          "Zarya",
+          "Zeratul",
+          "Zul'jin"
+        ],
+        "pickban_eff2": [
+          "Falstad",
+          "Kerrigan",
+          "Sonya",
+          "Sylvanas",
+          "Tassadar",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Valla",
+          "Whitemane"
+        ],
+        "any_bh": [
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Cassia",
+          "Chromie",
+          "D.Va",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Garrosh",
+          "Genji",
+          "Hanzo",
+          "Hogger",
+          "Imperius",
+          "Jaina",
+          "Johanna",
+          "Kael'thas",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li Li",
+          "Li-Ming",
+          "Lt. Morales",
+          "Lunara",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mephisto",
+          "Muradin",
+          "Nazeebo",
+          "Nova",
+          "Orphea",
+          "Ragnaros",
+          "Raynor",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "The Lost Vikings",
+          "Thrall",
+          "Tracer",
+          "Tychus",
+          "Tyrael",
+          "Uther",
+          "Valeera",
+          "Valla",
+          "Whitemane",
+          "Xul",
+          "Yrel",
+          "Zagara",
+          "Zarya",
+          "Zeratul",
+          "Zul'jin"
+        ],
+        "any_bh_eff": [
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Cassia",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Garrosh",
+          "Genji",
+          "Hanzo",
+          "Hogger",
+          "Jaina",
+          "Johanna",
+          "Kael'thas",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li Li",
+          "Li-Ming",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Nazeebo",
+          "Nova",
+          "Orphea",
+          "Ragnaros",
+          "Raynor",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "The Lost Vikings",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Uther",
+          "Valeera",
+          "Valla",
+          "Whitemane",
+          "Xul",
+          "Yrel",
+          "Zagara",
+          "Zeratul",
+          "Zul'jin"
+        ]
+      },
+      "latency_wr": {
+        "Alarak": {
+          "sprt": {
+            "build_games": 26260,
+            "hero_games": 2488
+          },
+          "z_naive": {
+            "build_games": 28865,
+            "hero_games": 2722
+          }
+        },
+        "Falstad": {
+          "z_naive": {
+            "build_games": 13625,
+            "hero_games": 4102
+          },
+          "sprt": {
+            "build_games": 17854,
+            "hero_games": 5427
+          }
+        },
+        "Ragnaros": {
+          "sprt": {
+            "build_games": 26260,
+            "hero_games": 2740
+          },
+          "z_naive": {
+            "build_games": 33872,
+            "hero_games": 3540
+          }
+        },
+        "Sylvanas": {
+          "z_naive": {
+            "build_games": 31403,
+            "hero_games": 7035
+          },
+          "sprt": {
+            "build_games": 35848,
+            "hero_games": 8042
+          },
+          "z_bonf": {
+            "build_games": 117831,
+            "hero_games": 26482
+          }
+        },
+        "Thrall": {
+          "z_naive": {
+            "build_games": 11144,
+            "hero_games": 3068
+          },
+          "sprt": {
+            "build_games": 11144,
+            "hero_games": 3068
+          },
+          "z_bonf": {
+            "build_games": 21663,
+            "hero_games": 6043
+          }
+        },
+        "Uther": {
+          "sprt": {
+            "build_games": 19806,
+            "hero_games": 1732
+          },
+          "z_naive": {
+            "build_games": 21663,
+            "hero_games": 1875
+          }
+        }
+      },
+      "effects_flagged": {
+        "Alarak": {
+          "prev_games": 2338,
+          "new_games": 12301,
+          "d_wr_pp": 2.99,
+          "p_wr": 0.00785,
+          "d_pick_pp": 0.89,
+          "p_pick": 1e-05,
+          "d_ban_pp": 0.08,
+          "p_ban": 0.51555
+        },
+        "Alexstrasza": {
+          "prev_games": 1164,
+          "new_games": 6208,
+          "d_wr_pp": -0.5,
+          "p_wr": 0.75184,
+          "d_pick_pp": 0.51,
+          "p_pick": 0.00034,
+          "d_ban_pp": 0.11,
+          "p_ban": 0.03099
+        },
+        "Ana": {
+          "prev_games": 1621,
+          "new_games": 9305,
+          "d_wr_pp": -0.67,
+          "p_wr": 0.61857,
+          "d_pick_pp": 1.21,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.17,
+          "p_ban": 0.01225
+        },
+        "Anduin": {
+          "prev_games": 8149,
+          "new_games": 36812,
+          "d_wr_pp": -0.28,
+          "p_wr": 0.64936,
+          "d_pick_pp": -1.59,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.18,
+          "p_ban": 0.53544
+        },
+        "Anub'arak": {
+          "prev_games": 4518,
+          "new_games": 23018,
+          "d_wr_pp": -1.3,
+          "p_wr": 0.11082,
+          "d_pick_pp": 1.13,
+          "p_pick": 1e-05,
+          "d_ban_pp": 1.18,
+          "p_ban": 0.0
+        },
+        "Artanis": {
+          "prev_games": 4104,
+          "new_games": 18691,
+          "d_wr_pp": -0.61,
+          "p_wr": 0.47634,
+          "d_pick_pp": -0.68,
+          "p_pick": 0.00365,
+          "d_ban_pp": -0.35,
+          "p_ban": 0.01129
+        },
+        "Auriel": {
+          "prev_games": 4553,
+          "new_games": 22698,
+          "d_wr_pp": 1.53,
+          "p_wr": 0.06005,
+          "d_pick_pp": 0.76,
+          "p_pick": 0.00282,
+          "d_ban_pp": -0.96,
+          "p_ban": 0.0
+        },
+        "Azmodan": {
+          "prev_games": 4973,
+          "new_games": 25187,
+          "d_wr_pp": -0.81,
+          "p_wr": 0.29643,
+          "d_pick_pp": 1.13,
+          "p_pick": 2e-05,
+          "d_ban_pp": 0.72,
+          "p_ban": 0.0012
+        },
+        "Blaze": {
+          "prev_games": 2503,
+          "new_games": 13805,
+          "d_wr_pp": 0.07,
+          "p_wr": 0.95175,
+          "d_pick_pp": 1.44,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.3,
+          "p_ban": 0.0008
+        },
+        "Brightwing": {
+          "prev_games": 6314,
+          "new_games": 30952,
+          "d_wr_pp": 0.41,
+          "p_wr": 0.55376,
+          "d_pick_pp": 0.64,
+          "p_pick": 0.02376,
+          "d_ban_pp": 0.3,
+          "p_ban": 0.36355
+        },
+        "Cassia": {
+          "prev_games": 1461,
+          "new_games": 8317,
+          "d_wr_pp": -0.83,
+          "p_wr": 0.55783,
+          "d_pick_pp": 1.04,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.01,
+          "p_ban": 0.90249
+        },
+        "Chromie": {
+          "prev_games": 2104,
+          "new_games": 9456,
+          "d_wr_pp": -0.46,
+          "p_wr": 0.70511,
+          "d_pick_pp": -0.45,
+          "p_pick": 0.01019,
+          "d_ban_pp": -0.23,
+          "p_ban": 0.03186
+        },
+        "D.Va": {
+          "prev_games": 2133,
+          "new_games": 10805,
+          "d_wr_pp": 1.16,
+          "p_wr": 0.32685,
+          "d_pick_pp": 0.49,
+          "p_pick": 0.00811,
+          "d_ban_pp": -0.06,
+          "p_ban": 0.28653
+        },
+        "Dehaka": {
+          "prev_games": 2987,
+          "new_games": 14984,
+          "d_wr_pp": 1.12,
+          "p_wr": 0.26455,
+          "d_pick_pp": 0.57,
+          "p_pick": 0.00762,
+          "d_ban_pp": -0.79,
+          "p_ban": 0.00627
+        },
+        "Diablo": {
+          "prev_games": 4807,
+          "new_games": 22042,
+          "d_wr_pp": 0.48,
+          "p_wr": 0.54812,
+          "d_pick_pp": -0.69,
+          "p_pick": 0.00637,
+          "d_ban_pp": -0.86,
+          "p_ban": 8e-05
+        },
+        "E.T.C.": {
+          "prev_games": 4536,
+          "new_games": 20882,
+          "d_wr_pp": 1.21,
+          "p_wr": 0.14035,
+          "d_pick_pp": -0.58,
+          "p_pick": 0.0177,
+          "d_ban_pp": -0.49,
+          "p_ban": 0.00155
+        },
+        "Falstad": {
+          "prev_games": 7330,
+          "new_games": 33787,
+          "d_wr_pp": 1.92,
+          "p_wr": 0.00275,
+          "d_pick_pp": -0.91,
+          "p_pick": 0.00194,
+          "d_ban_pp": 28.27,
+          "p_ban": 0.0
+        },
+        "Garrosh": {
+          "prev_games": 3327,
+          "new_games": 17242,
+          "d_wr_pp": 0.28,
+          "p_wr": 0.7647,
+          "d_pick_pp": 1.06,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.59,
+          "p_ban": 0.0
+        },
+        "Genji": {
+          "prev_games": 1681,
+          "new_games": 7366,
+          "d_wr_pp": -1.84,
+          "p_wr": 0.17274,
+          "d_pick_pp": -0.5,
+          "p_pick": 0.00121,
+          "d_ban_pp": -0.03,
+          "p_ban": 0.78785
+        },
+        "Hanzo": {
+          "prev_games": 3985,
+          "new_games": 16777,
+          "d_wr_pp": -1.59,
+          "p_wr": 0.07071,
+          "d_pick_pp": -1.72,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.01,
+          "p_ban": 0.96096
+        },
+        "Hogger": {
+          "prev_games": 2874,
+          "new_games": 13539,
+          "d_wr_pp": 0.46,
+          "p_wr": 0.65604,
+          "d_pick_pp": -0.13,
+          "p_pick": 0.51881,
+          "d_ban_pp": 0.61,
+          "p_ban": 0.00271
+        },
+        "Imperius": {
+          "prev_games": 2733,
+          "new_games": 13085,
+          "d_wr_pp": -0.55,
+          "p_wr": 0.59999,
+          "d_pick_pp": 0.04,
+          "p_pick": 0.85442,
+          "d_ban_pp": -0.49,
+          "p_ban": 0.0
+        },
+        "Jaina": {
+          "prev_games": 2972,
+          "new_games": 15614,
+          "d_wr_pp": 0.74,
+          "p_wr": 0.45764,
+          "d_pick_pp": 1.11,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.02,
+          "p_ban": 0.70788
+        },
+        "Johanna": {
+          "prev_games": 6694,
+          "new_games": 32342,
+          "d_wr_pp": -0.75,
+          "p_wr": 0.26581,
+          "d_pick_pp": 0.32,
+          "p_pick": 0.27334,
+          "d_ban_pp": -1.17,
+          "p_ban": 0.00046
+        },
+        "Kael'thas": {
+          "prev_games": 5096,
+          "new_games": 22977,
+          "d_wr_pp": 0.05,
+          "p_wr": 0.94593,
+          "d_pick_pp": -1.03,
+          "p_pick": 6e-05,
+          "d_ban_pp": -0.29,
+          "p_ban": 0.15353
+        },
+        "Kel'Thuzad": {
+          "prev_games": 1677,
+          "new_games": 8678,
+          "d_wr_pp": 0.97,
+          "p_wr": 0.46596,
+          "d_pick_pp": 0.52,
+          "p_pick": 0.00159,
+          "d_ban_pp": -0.3,
+          "p_ban": 0.00556
+        },
+        "Kerrigan": {
+          "prev_games": 3168,
+          "new_games": 9547,
+          "d_wr_pp": -0.54,
+          "p_wr": 0.59548,
+          "d_pick_pp": -4.29,
+          "p_pick": 0.0,
+          "d_ban_pp": -9.45,
+          "p_ban": 0.0
+        },
+        "Kharazim": {
+          "prev_games": 2308,
+          "new_games": 9766,
+          "d_wr_pp": -0.89,
+          "p_wr": 0.44327,
+          "d_pick_pp": -0.96,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.04,
+          "p_ban": 0.28078
+        },
+        "Leoric": {
+          "prev_games": 4236,
+          "new_games": 19435,
+          "d_wr_pp": 1.46,
+          "p_wr": 0.08447,
+          "d_pick_pp": -0.6,
+          "p_pick": 0.01266,
+          "d_ban_pp": 0.04,
+          "p_ban": 0.72264
+        },
+        "Li Li": {
+          "prev_games": 4998,
+          "new_games": 22259,
+          "d_wr_pp": -0.25,
+          "p_wr": 0.75295,
+          "d_pick_pp": -1.22,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.18,
+          "p_ban": 0.18392
+        },
+        "Li-Ming": {
+          "prev_games": 5547,
+          "new_games": 27332,
+          "d_wr_pp": -0.35,
+          "p_wr": 0.63161,
+          "d_pick_pp": 0.67,
+          "p_pick": 0.01335,
+          "d_ban_pp": -0.37,
+          "p_ban": 0.04948
+        },
+        "Lt. Morales": {
+          "prev_games": 1730,
+          "new_games": 8722,
+          "d_wr_pp": -0.41,
+          "p_wr": 0.75284,
+          "d_pick_pp": 0.36,
+          "p_pick": 0.02956,
+          "d_ban_pp": -0.1,
+          "p_ban": 0.22886
+        },
+        "Lunara": {
+          "prev_games": 2257,
+          "new_games": 10628,
+          "d_wr_pp": 0.43,
+          "p_wr": 0.71059,
+          "d_pick_pp": -0.11,
+          "p_pick": 0.55968,
+          "d_ban_pp": -0.15,
+          "p_ban": 0.01465
+        },
+        "Mal'Ganis": {
+          "prev_games": 1283,
+          "new_games": 7163,
+          "d_wr_pp": -0.57,
+          "p_wr": 0.70534,
+          "d_pick_pp": 0.8,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.09,
+          "p_ban": 0.20969
+        },
+        "Malfurion": {
+          "prev_games": 3117,
+          "new_games": 15778,
+          "d_wr_pp": 0.22,
+          "p_wr": 0.82018,
+          "d_pick_pp": 0.7,
+          "p_pick": 0.00124,
+          "d_ban_pp": 0.12,
+          "p_ban": 0.197
+        },
+        "Malthael": {
+          "prev_games": 1587,
+          "new_games": 8443,
+          "d_wr_pp": -0.88,
+          "p_wr": 0.52055,
+          "d_pick_pp": 0.67,
+          "p_pick": 4e-05,
+          "d_ban_pp": -0.16,
+          "p_ban": 0.03825
+        },
+        "Medivh": {
+          "prev_games": 997,
+          "new_games": 5732,
+          "d_wr_pp": -0.38,
+          "p_wr": 0.82407,
+          "d_pick_pp": 0.75,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.18,
+          "p_ban": 0.02896
+        },
+        "Mephisto": {
+          "prev_games": 826,
+          "new_games": 4373,
+          "d_wr_pp": 0.82,
+          "p_wr": 0.66659,
+          "d_pick_pp": 0.33,
+          "p_pick": 0.0052,
+          "d_ban_pp": -0.21,
+          "p_ban": 0.00042
+        },
+        "Muradin": {
+          "prev_games": 6451,
+          "new_games": 31256,
+          "d_wr_pp": -0.71,
+          "p_wr": 0.29714,
+          "d_pick_pp": 0.37,
+          "p_pick": 0.19145,
+          "d_ban_pp": 0.44,
+          "p_ban": 0.00426
+        },
+        "Nazeebo": {
+          "prev_games": 7290,
+          "new_games": 36111,
+          "d_wr_pp": -0.54,
+          "p_wr": 0.40343,
+          "d_pick_pp": 1.03,
+          "p_pick": 0.00056,
+          "d_ban_pp": 0.12,
+          "p_ban": 0.58134
+        },
+        "Nova": {
+          "prev_games": 1564,
+          "new_games": 8484,
+          "d_wr_pp": -0.1,
+          "p_wr": 0.94326,
+          "d_pick_pp": 0.79,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.0,
+          "p_ban": 0.97311
+        },
+        "Orphea": {
+          "prev_games": 2302,
+          "new_games": 9748,
+          "d_wr_pp": -0.26,
+          "p_wr": 0.82328,
+          "d_pick_pp": -0.95,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.21,
+          "p_ban": 0.00011
+        },
+        "Ragnaros": {
+          "prev_games": 2585,
+          "new_games": 14434,
+          "d_wr_pp": 2.5,
+          "p_wr": 0.01907,
+          "d_pick_pp": 1.62,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.31,
+          "p_ban": 0.02154
+        },
+        "Raynor": {
+          "prev_games": 4218,
+          "new_games": 21381,
+          "d_wr_pp": 0.65,
+          "p_wr": 0.44279,
+          "d_pick_pp": 0.97,
+          "p_pick": 8e-05,
+          "d_ban_pp": 0.16,
+          "p_ban": 0.14446
+        },
+        "Sgt. Hammer": {
+          "prev_games": 1325,
+          "new_games": 6364,
+          "d_wr_pp": -1.57,
+          "p_wr": 0.29816,
+          "d_pick_pp": 0.03,
+          "p_pick": 0.8164,
+          "d_ban_pp": 0.36,
+          "p_ban": 0.00064
+        },
+        "Sonya": {
+          "prev_games": 2567,
+          "new_games": 14919,
+          "d_wr_pp": 1.46,
+          "p_wr": 0.173,
+          "d_pick_pp": 2.06,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.07,
+          "p_ban": 0.34661
+        },
+        "Stitches": {
+          "prev_games": 5490,
+          "new_games": 24868,
+          "d_wr_pp": -0.33,
+          "p_wr": 0.65356,
+          "d_pick_pp": -1.02,
+          "p_pick": 0.00011,
+          "d_ban_pp": -0.76,
+          "p_ban": 0.00056
+        },
+        "Stukov": {
+          "prev_games": 2888,
+          "new_games": 14927,
+          "d_wr_pp": 0.52,
+          "p_wr": 0.60592,
+          "d_pick_pp": 0.89,
+          "p_pick": 3e-05,
+          "d_ban_pp": -1.02,
+          "p_ban": 3e-05
+        },
+        "Sylvanas": {
+          "prev_games": 6675,
+          "new_games": 29210,
+          "d_wr_pp": 2.4,
+          "p_wr": 0.0004,
+          "d_pick_pp": -2.03,
+          "p_pick": 0.0,
+          "d_ban_pp": 1.33,
+          "p_ban": 0.0
+        },
+        "Tassadar": {
+          "prev_games": 3144,
+          "new_games": 17608,
+          "d_wr_pp": -0.61,
+          "p_wr": 0.53091,
+          "d_pick_pp": 2.01,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.03,
+          "p_ban": 0.66014
+        },
+        "The Butcher": {
+          "prev_games": 2183,
+          "new_games": 9146,
+          "d_wr_pp": -0.9,
+          "p_wr": 0.44955,
+          "d_pick_pp": -0.98,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.02,
+          "p_ban": 0.87992
+        },
+        "The Lost Vikings": {
+          "prev_games": 623,
+          "new_games": 3125,
+          "d_wr_pp": -1.61,
+          "p_wr": 0.46398,
+          "d_pick_pp": 0.12,
+          "p_pick": 0.24646,
+          "d_ban_pp": -0.47,
+          "p_ban": 4e-05
+        },
+        "Thrall": {
+          "prev_games": 9124,
+          "new_games": 32602,
+          "d_wr_pp": -2.38,
+          "p_wr": 6e-05,
+          "d_pick_pp": -8.42,
+          "p_pick": 0.0,
+          "d_ban_pp": -7.64,
+          "p_ban": 0.0
+        },
+        "Tracer": {
+          "prev_games": 1246,
+          "new_games": 6426,
+          "d_wr_pp": -0.46,
+          "p_wr": 0.76538,
+          "d_pick_pp": 0.37,
+          "p_pick": 0.00975,
+          "d_ban_pp": 0.12,
+          "p_ban": 0.07858
+        },
+        "Tychus": {
+          "prev_games": 4194,
+          "new_games": 24563,
+          "d_wr_pp": -0.59,
+          "p_wr": 0.47971,
+          "d_pick_pp": 3.51,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.41,
+          "p_ban": 0.00605
+        },
+        "Tyrael": {
+          "prev_games": 4786,
+          "new_games": 19983,
+          "d_wr_pp": 0.9,
+          "p_wr": 0.26409,
+          "d_pick_pp": -2.2,
+          "p_pick": 0.0,
+          "d_ban_pp": -3.37,
+          "p_ban": 0.0
+        },
+        "Uther": {
+          "prev_games": 2087,
+          "new_games": 10885,
+          "d_wr_pp": -2.72,
+          "p_wr": 0.0228,
+          "d_pick_pp": 0.72,
+          "p_pick": 0.0001,
+          "d_ban_pp": -0.12,
+          "p_ban": 0.10685
+        },
+        "Valeera": {
+          "prev_games": 1140,
+          "new_games": 5648,
+          "d_wr_pp": -2.27,
+          "p_wr": 0.16243,
+          "d_pick_pp": 0.16,
+          "p_pick": 0.23312,
+          "d_ban_pp": 0.24,
+          "p_ban": 0.0017
+        },
+        "Valla": {
+          "prev_games": 7349,
+          "new_games": 37240,
+          "d_wr_pp": 0.04,
+          "p_wr": 0.94458,
+          "d_pick_pp": 1.68,
+          "p_pick": 0.0,
+          "d_ban_pp": -2.63,
+          "p_ban": 0.0
+        },
+        "Whitemane": {
+          "prev_games": 2213,
+          "new_games": 7801,
+          "d_wr_pp": 0.23,
+          "p_wr": 0.85015,
+          "d_pick_pp": -2.13,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.18,
+          "p_ban": 0.00651
+        },
+        "Xul": {
+          "prev_games": 2377,
+          "new_games": 13199,
+          "d_wr_pp": 0.38,
+          "p_wr": 0.7298,
+          "d_pick_pp": 1.43,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.09,
+          "p_ban": 0.34358
+        },
+        "Yrel": {
+          "prev_games": 927,
+          "new_games": 3722,
+          "d_wr_pp": -3.09,
+          "p_wr": 0.09181,
+          "d_pick_pp": -0.54,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.09,
+          "p_ban": 0.01463
+        },
+        "Zagara": {
+          "prev_games": 2981,
+          "new_games": 12081,
+          "d_wr_pp": -0.2,
+          "p_wr": 0.84262,
+          "d_pick_pp": -1.65,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.13,
+          "p_ban": 0.29189
+        },
+        "Zarya": {
+          "prev_games": 828,
+          "new_games": 4525,
+          "d_wr_pp": -0.48,
+          "p_wr": 0.8002,
+          "d_pick_pp": 0.44,
+          "p_pick": 0.00025,
+          "d_ban_pp": 0.04,
+          "p_ban": 0.36923
+        },
+        "Zeratul": {
+          "prev_games": 1785,
+          "new_games": 9183,
+          "d_wr_pp": 1.49,
+          "p_wr": 0.24922,
+          "d_pick_pp": 0.52,
+          "p_pick": 0.00246,
+          "d_ban_pp": 0.46,
+          "p_ban": 0.00014
+        },
+        "Zul'jin": {
+          "prev_games": 2638,
+          "new_games": 11000,
+          "d_wr_pp": 0.01,
+          "p_wr": 0.9948,
+          "d_pick_pp": -1.22,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.0,
+          "p_ban": 0.0
+        }
+      },
+      "truth": {
+        "heroes": [
+          "Falstad",
+          "Gul'dan",
+          "Kerrigan",
+          "Sylvanas",
+          "Thrall"
+        ],
+        "known_builds": [
+          "2.55.14.95883",
+          "2.55.14.95918"
+        ],
+        "validatable": true
+      },
+      "pr": {
+        "wr_p05": {
+          "tp": 3,
+          "fp": 3,
+          "fn": 2,
+          "precision": 0.5,
+          "recall": 0.6
+        },
+        "wr_p05_eff": {
+          "tp": 3,
+          "fp": 3,
+          "fn": 2,
+          "precision": 0.5,
+          "recall": 0.6
+        },
+        "wr_bh": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 3,
+          "precision": 1.0,
+          "recall": 0.4
+        },
+        "pickban_bh": {
+          "tp": 4,
+          "fp": 62,
+          "fn": 1,
+          "precision": 0.061,
+          "recall": 0.8
+        },
+        "pickban_eff2": {
+          "tp": 4,
+          "fp": 6,
+          "fn": 1,
+          "precision": 0.4,
+          "recall": 0.8
+        },
+        "any_bh": {
+          "tp": 4,
+          "fp": 62,
+          "fn": 1,
+          "precision": 0.061,
+          "recall": 0.8
+        },
+        "any_bh_eff": {
+          "tp": 4,
+          "fp": 53,
+          "fn": 1,
+          "precision": 0.07,
+          "recall": 0.8
+        }
+      }
+    },
+    {
+      "prev_build": "2.55.14.95918",
+      "new_build": "2.55.15.96477",
+      "intermediate_builds": [
+        "2.55.15.96370",
+        "2.55.15.96443",
+        "2.55.15.96477"
+      ],
+      "prev_games": 129647,
+      "new_games": 102708,
+      "n_wr_testable": 90,
+      "detected": {
+        "wr_p05": [
+          "Anub'arak",
+          "Arthas",
+          "Azmodan",
+          "Deathwing",
+          "Falstad",
+          "Garrosh",
+          "Jaina",
+          "Kael'thas",
+          "Li Li",
+          "Li-Ming",
+          "L\u00facio",
+          "Malfurion",
+          "Mephisto",
+          "Muradin",
+          "Sonya",
+          "Stitches",
+          "Thrall",
+          "Tyrande",
+          "Valla",
+          "Varian",
+          "Zagara",
+          "Zul'jin"
+        ],
+        "wr_p05_eff": [
+          "Anub'arak",
+          "Azmodan",
+          "Deathwing",
+          "Falstad",
+          "Garrosh",
+          "L\u00facio",
+          "Malfurion",
+          "Mephisto",
+          "Thrall",
+          "Tyrande",
+          "Zagara",
+          "Zul'jin"
+        ],
+        "wr_bh": [
+          "Anub'arak",
+          "Azmodan",
+          "Deathwing",
+          "Falstad",
+          "Garrosh",
+          "L\u00facio",
+          "Malfurion",
+          "Muradin",
+          "Thrall",
+          "Varian",
+          "Zagara"
+        ],
+        "pickban_bh": [
+          "Abathur",
+          "Alarak",
+          "Ana",
+          "Anub'arak",
+          "Artanis",
+          "Arthas",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Chen",
+          "Cho",
+          "Chromie",
+          "D.Va",
+          "Deathwing",
+          "Deckard",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Fenix",
+          "Gall",
+          "Garrosh",
+          "Gazlowe",
+          "Genji",
+          "Greymane",
+          "Gul'dan",
+          "Hogger",
+          "Illidan",
+          "Imperius",
+          "Johanna",
+          "Junkrat",
+          "Kael'thas",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li Li",
+          "Li-Ming",
+          "Lt. Morales",
+          "L\u00facio",
+          "Maiev",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mephisto",
+          "Muradin",
+          "Murky",
+          "Nazeebo",
+          "Nova",
+          "Orphea",
+          "Probius",
+          "Qhira",
+          "Ragnaros",
+          "Raynor",
+          "Rehgar",
+          "Samuro",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "The Butcher",
+          "The Lost Vikings",
+          "Thrall",
+          "Tracer",
+          "Tychus",
+          "Tyrael",
+          "Tyrande",
+          "Uther",
+          "Valeera",
+          "Valla",
+          "Varian",
+          "Whitemane",
+          "Xul",
+          "Zagara",
+          "Zeratul",
+          "Zul'jin"
+        ],
+        "pickban_eff2": [
+          "Abathur",
+          "Anub'arak",
+          "Azmodan",
+          "Brightwing",
+          "Deathwing",
+          "Dehaka",
+          "Falstad",
+          "Johanna",
+          "Kael'thas",
+          "Kerrigan",
+          "Muradin",
+          "Rehgar",
+          "Sylvanas",
+          "Thrall",
+          "Tychus",
+          "Tyrande",
+          "Zagara"
+        ],
+        "any_bh": [
+          "Abathur",
+          "Alarak",
+          "Ana",
+          "Anub'arak",
+          "Artanis",
+          "Arthas",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Chen",
+          "Cho",
+          "Chromie",
+          "D.Va",
+          "Deathwing",
+          "Deckard",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Fenix",
+          "Gall",
+          "Garrosh",
+          "Gazlowe",
+          "Genji",
+          "Greymane",
+          "Gul'dan",
+          "Hogger",
+          "Illidan",
+          "Imperius",
+          "Johanna",
+          "Junkrat",
+          "Kael'thas",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li Li",
+          "Li-Ming",
+          "Lt. Morales",
+          "L\u00facio",
+          "Maiev",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mephisto",
+          "Muradin",
+          "Murky",
+          "Nazeebo",
+          "Nova",
+          "Orphea",
+          "Probius",
+          "Qhira",
+          "Ragnaros",
+          "Raynor",
+          "Rehgar",
+          "Samuro",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "The Butcher",
+          "The Lost Vikings",
+          "Thrall",
+          "Tracer",
+          "Tychus",
+          "Tyrael",
+          "Tyrande",
+          "Uther",
+          "Valeera",
+          "Valla",
+          "Varian",
+          "Whitemane",
+          "Xul",
+          "Zagara",
+          "Zeratul",
+          "Zul'jin"
+        ],
+        "any_bh_eff": [
+          "Abathur",
+          "Anub'arak",
+          "Artanis",
+          "Auriel",
+          "Azmodan",
+          "Brightwing",
+          "Cho",
+          "Deathwing",
+          "Deckard",
+          "Dehaka",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Gall",
+          "Garrosh",
+          "Gazlowe",
+          "Hogger",
+          "Illidan",
+          "Johanna",
+          "Kael'thas",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li-Ming",
+          "Lt. Morales",
+          "L\u00facio",
+          "Maiev",
+          "Malfurion",
+          "Mephisto",
+          "Muradin",
+          "Murky",
+          "Nazeebo",
+          "Nova",
+          "Ragnaros",
+          "Rehgar",
+          "Samuro",
+          "Sgt. Hammer",
+          "Sonya",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "The Butcher",
+          "The Lost Vikings",
+          "Thrall",
+          "Tychus",
+          "Tyrael",
+          "Tyrande",
+          "Valeera",
+          "Valla",
+          "Varian",
+          "Whitemane",
+          "Xul",
+          "Zagara",
+          "Zeratul",
+          "Zul'jin"
+        ]
+      },
+      "latency_wr": {
+        "Anub'arak": {
+          "z_naive": {
+            "build_games": 10347,
+            "hero_games": 1561
+          },
+          "sprt": {
+            "build_games": 12121,
+            "hero_games": 1807
+          },
+          "z_bonf": {
+            "build_games": 15631,
+            "hero_games": 2289
+          }
+        },
+        "Arthas": {
+          "z_naive": {
+            "build_games": 8525,
+            "hero_games": 1129
+          },
+          "sprt": {
+            "build_games": 21985,
+            "hero_games": 2829
+          }
+        },
+        "Azmodan": {
+          "z_naive": {
+            "build_games": 4063,
+            "hero_games": 681
+          },
+          "sprt": {
+            "build_games": 4063,
+            "hero_games": 681
+          },
+          "z_bonf": {
+            "build_games": 8525,
+            "hero_games": 1491
+          }
+        },
+        "Deathwing": {
+          "z_naive": {
+            "build_games": 30656,
+            "hero_games": 4088
+          },
+          "sprt": {
+            "build_games": 30656,
+            "hero_games": 4088
+          },
+          "z_bonf": {
+            "build_games": 59272,
+            "hero_games": 7661
+          }
+        },
+        "Falstad": {
+          "z_naive": {
+            "build_games": 17744,
+            "hero_games": 3891
+          },
+          "sprt": {
+            "build_games": 32827,
+            "hero_games": 7189
+          },
+          "z_bonf": {
+            "build_games": 36320,
+            "hero_games": 7954
+          }
+        },
+        "Garrosh": {
+          "z_naive": {
+            "build_games": 37962,
+            "hero_games": 5139
+          },
+          "sprt": {
+            "build_games": 89910,
+            "hero_games": 12271
+          }
+        },
+        "Jaina": {
+          "z_naive": {
+            "build_games": 48482,
+            "hero_games": 6143
+          }
+        },
+        "Kael'thas": {
+          "z_naive": {
+            "build_games": 4063,
+            "hero_games": 735
+          }
+        },
+        "Li Li": {
+          "z_naive": {
+            "build_games": 43577,
+            "hero_games": 7513
+          }
+        },
+        "Li-Ming": {
+          "z_naive": {
+            "build_games": 50890,
+            "hero_games": 11502
+          }
+        },
+        "L\u00facio": {
+          "z_naive": {
+            "build_games": 6476,
+            "hero_games": 549
+          },
+          "sprt": {
+            "build_games": 8525,
+            "hero_games": 701
+          },
+          "z_bonf": {
+            "build_games": 10347,
+            "hero_games": 852
+          }
+        },
+        "Malfurion": {
+          "z_naive": {
+            "build_games": 47235,
+            "hero_games": 5142
+          },
+          "sprt": {
+            "build_games": 55480,
+            "hero_games": 6008
+          },
+          "z_bonf": {
+            "build_games": 70856,
+            "hero_games": 7712
+          }
+        },
+        "Mephisto": {
+          "z_naive": {
+            "build_games": 1805,
+            "hero_games": 71
+          },
+          "sprt": {
+            "build_games": 43577,
+            "hero_games": 1853
+          }
+        },
+        "Muradin": {
+          "z_naive": {
+            "build_games": 36320,
+            "hero_games": 10232
+          },
+          "z_bonf": {
+            "build_games": 88125,
+            "hero_games": 23454
+          }
+        },
+        "Sonya": {
+          "z_naive": {
+            "build_games": 23692,
+            "hero_games": 2197
+          },
+          "sprt": {
+            "build_games": 26946,
+            "hero_games": 2509
+          }
+        },
+        "Stitches": {
+          "z_naive": {
+            "build_games": 4063,
+            "hero_games": 801
+          }
+        },
+        "Thrall": {
+          "z_naive": {
+            "build_games": 17744,
+            "hero_games": 5166
+          },
+          "sprt": {
+            "build_games": 32827,
+            "hero_games": 9193
+          },
+          "z_bonf": {
+            "build_games": 36320,
+            "hero_games": 10155
+          }
+        },
+        "Tyrande": {
+          "z_naive": {
+            "build_games": 26946,
+            "hero_games": 4944
+          },
+          "sprt": {
+            "build_games": 37962,
+            "hero_games": 6984
+          }
+        },
+        "Valla": {
+          "z_naive": {
+            "build_games": 59272,
+            "hero_games": 17202
+          }
+        },
+        "Varian": {
+          "z_naive": {
+            "build_games": 75290,
+            "hero_games": 14221
+          }
+        },
+        "Zagara": {
+          "z_naive": {
+            "build_games": 6476,
+            "hero_games": 443
+          },
+          "sprt": {
+            "build_games": 17744,
+            "hero_games": 1193
+          }
+        },
+        "Zul'jin": {
+          "z_naive": {
+            "build_games": 10347,
+            "hero_games": 938
+          },
+          "sprt": {
+            "build_games": 37962,
+            "hero_games": 3580
+          }
+        }
+      },
+      "effects_flagged": {
+        "Abathur": {
+          "prev_games": 12531,
+          "new_games": 8742,
+          "d_wr_pp": 0.7,
+          "p_wr": 0.31221,
+          "d_pick_pp": -1.15,
+          "p_pick": 0.0,
+          "d_ban_pp": -2.75,
+          "p_ban": 0.0
+        },
+        "Alarak": {
+          "prev_games": 12301,
+          "new_games": 10138,
+          "d_wr_pp": -0.5,
+          "p_wr": 0.45769,
+          "d_pick_pp": 0.38,
+          "p_pick": 0.00193,
+          "d_ban_pp": 0.02,
+          "p_ban": 0.79357
+        },
+        "Ana": {
+          "prev_games": 9305,
+          "new_games": 6992,
+          "d_wr_pp": 1.07,
+          "p_wr": 0.17749,
+          "d_pick_pp": -0.37,
+          "p_pick": 0.00053,
+          "d_ban_pp": 0.0,
+          "p_ban": 0.92011
+        },
+        "Anub'arak": {
+          "prev_games": 23018,
+          "new_games": 14796,
+          "d_wr_pp": -3.59,
+          "p_wr": 0.0,
+          "d_pick_pp": -3.35,
+          "p_pick": 0.0,
+          "d_ban_pp": -2.0,
+          "p_ban": 0.0
+        },
+        "Artanis": {
+          "prev_games": 18691,
+          "new_games": 16119,
+          "d_wr_pp": -0.24,
+          "p_wr": 0.66154,
+          "d_pick_pp": 1.28,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.29,
+          "p_ban": 0.00083
+        },
+        "Arthas": {
+          "prev_games": 15599,
+          "new_games": 12448,
+          "d_wr_pp": -1.21,
+          "p_wr": 0.04482,
+          "d_pick_pp": 0.09,
+          "p_pick": 0.51838,
+          "d_ban_pp": -0.3,
+          "p_ban": 4e-05
+        },
+        "Auriel": {
+          "prev_games": 22698,
+          "new_games": 16941,
+          "d_wr_pp": 0.67,
+          "p_wr": 0.18777,
+          "d_pick_pp": -1.01,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.6,
+          "p_ban": 0.0
+        },
+        "Azmodan": {
+          "prev_games": 25187,
+          "new_games": 16461,
+          "d_wr_pp": -3.01,
+          "p_wr": 0.0,
+          "d_pick_pp": -3.4,
+          "p_pick": 0.0,
+          "d_ban_pp": -2.8,
+          "p_ban": 0.0
+        },
+        "Blaze": {
+          "prev_games": 13805,
+          "new_games": 10999,
+          "d_wr_pp": 0.12,
+          "p_wr": 0.8562,
+          "d_pick_pp": 0.06,
+          "p_pick": 0.63709,
+          "d_ban_pp": -0.21,
+          "p_ban": 0.00018
+        },
+        "Brightwing": {
+          "prev_games": 30952,
+          "new_games": 22084,
+          "d_wr_pp": -0.01,
+          "p_wr": 0.98366,
+          "d_pick_pp": -2.37,
+          "p_pick": 0.0,
+          "d_ban_pp": -5.55,
+          "p_ban": 0.0
+        },
+        "Chen": {
+          "prev_games": 5476,
+          "new_games": 4789,
+          "d_wr_pp": -1.01,
+          "p_wr": 0.30587,
+          "d_pick_pp": 0.44,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.16,
+          "p_ban": 1e-05
+        },
+        "Cho": {
+          "prev_games": 2037,
+          "new_games": 1798,
+          "d_wr_pp": 1.69,
+          "p_wr": 0.29718,
+          "d_pick_pp": 0.18,
+          "p_pick": 0.00075,
+          "d_ban_pp": 0.24,
+          "p_ban": 0.00076
+        },
+        "Chromie": {
+          "prev_games": 9456,
+          "new_games": 7722,
+          "d_wr_pp": -0.64,
+          "p_wr": 0.40402,
+          "d_pick_pp": 0.22,
+          "p_pick": 0.03976,
+          "d_ban_pp": -0.16,
+          "p_ban": 0.01149
+        },
+        "D.Va": {
+          "prev_games": 10805,
+          "new_games": 8293,
+          "d_wr_pp": 0.27,
+          "p_wr": 0.71591,
+          "d_pick_pp": -0.26,
+          "p_pick": 0.02354,
+          "d_ban_pp": 0.13,
+          "p_ban": 0.00087
+        },
+        "Deathwing": {
+          "prev_games": 5546,
+          "new_games": 12691,
+          "d_wr_pp": 3.4,
+          "p_wr": 2e-05,
+          "d_pick_pp": 8.08,
+          "p_pick": 0.0,
+          "d_ban_pp": 33.05,
+          "p_ban": 0.0
+        },
+        "Deckard": {
+          "prev_games": 12367,
+          "new_games": 10345,
+          "d_wr_pp": -0.36,
+          "p_wr": 0.58453,
+          "d_pick_pp": 0.53,
+          "p_pick": 2e-05,
+          "d_ban_pp": 0.06,
+          "p_ban": 0.21899
+        },
+        "Dehaka": {
+          "prev_games": 14984,
+          "new_games": 9959,
+          "d_wr_pp": 0.27,
+          "p_wr": 0.67212,
+          "d_pick_pp": -1.86,
+          "p_pick": 0.0,
+          "d_ban_pp": -9.54,
+          "p_ban": 0.0
+        },
+        "Diablo": {
+          "prev_games": 22042,
+          "new_games": 16548,
+          "d_wr_pp": 0.66,
+          "p_wr": 0.19742,
+          "d_pick_pp": -0.89,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.9,
+          "p_ban": 0.0
+        },
+        "E.T.C.": {
+          "prev_games": 20882,
+          "new_games": 15471,
+          "d_wr_pp": 0.34,
+          "p_wr": 0.51914,
+          "d_pick_pp": -1.04,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.41,
+          "p_ban": 1e-05
+        },
+        "Falstad": {
+          "prev_games": 33787,
+          "new_games": 22977,
+          "d_wr_pp": -2.14,
+          "p_wr": 0.0,
+          "d_pick_pp": -3.69,
+          "p_pick": 0.0,
+          "d_ban_pp": -3.49,
+          "p_ban": 0.0
+        },
+        "Fenix": {
+          "prev_games": 4284,
+          "new_games": 3709,
+          "d_wr_pp": 1.03,
+          "p_wr": 0.35948,
+          "d_pick_pp": 0.31,
+          "p_pick": 6e-05,
+          "d_ban_pp": -0.04,
+          "p_ban": 0.03372
+        },
+        "Gall": {
+          "prev_games": 2037,
+          "new_games": 1798,
+          "d_wr_pp": 1.69,
+          "p_wr": 0.29718,
+          "d_pick_pp": 0.18,
+          "p_pick": 0.00075,
+          "d_ban_pp": 0.19,
+          "p_ban": 5e-05
+        },
+        "Garrosh": {
+          "prev_games": 17242,
+          "new_games": 13877,
+          "d_wr_pp": 1.77,
+          "p_wr": 0.00191,
+          "d_pick_pp": 0.21,
+          "p_pick": 0.13632,
+          "d_ban_pp": -0.77,
+          "p_ban": 0.0002
+        },
+        "Gazlowe": {
+          "prev_games": 9576,
+          "new_games": 6550,
+          "d_wr_pp": -1.47,
+          "p_wr": 0.06637,
+          "d_pick_pp": -1.01,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.06,
+          "p_ban": 0.12754
+        },
+        "Genji": {
+          "prev_games": 7366,
+          "new_games": 6170,
+          "d_wr_pp": -1.26,
+          "p_wr": 0.14054,
+          "d_pick_pp": 0.33,
+          "p_pick": 0.00087,
+          "d_ban_pp": -0.22,
+          "p_ban": 0.00131
+        },
+        "Greymane": {
+          "prev_games": 12277,
+          "new_games": 9974,
+          "d_wr_pp": 0.06,
+          "p_wr": 0.92564,
+          "d_pick_pp": 0.24,
+          "p_pick": 0.04949,
+          "d_ban_pp": 0.16,
+          "p_ban": 0.00033
+        },
+        "Gul'dan": {
+          "prev_games": 15980,
+          "new_games": 13091,
+          "d_wr_pp": -0.31,
+          "p_wr": 0.59927,
+          "d_pick_pp": 0.42,
+          "p_pick": 0.00237,
+          "d_ban_pp": 0.08,
+          "p_ban": 0.13808
+        },
+        "Hogger": {
+          "prev_games": 13539,
+          "new_games": 10531,
+          "d_wr_pp": -0.33,
+          "p_wr": 0.61481,
+          "d_pick_pp": -0.19,
+          "p_pick": 0.1363,
+          "d_ban_pp": -1.03,
+          "p_ban": 0.0
+        },
+        "Illidan": {
+          "prev_games": 13924,
+          "new_games": 9394,
+          "d_wr_pp": 0.48,
+          "p_wr": 0.47417,
+          "d_pick_pp": -1.59,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.66,
+          "p_ban": 0.0
+        },
+        "Imperius": {
+          "prev_games": 13085,
+          "new_games": 10574,
+          "d_wr_pp": -0.11,
+          "p_wr": 0.87059,
+          "d_pick_pp": 0.2,
+          "p_pick": 0.10909,
+          "d_ban_pp": -0.38,
+          "p_ban": 0.0
+        },
+        "Johanna": {
+          "prev_games": 32342,
+          "new_games": 27151,
+          "d_wr_pp": 0.18,
+          "p_wr": 0.66613,
+          "d_pick_pp": 1.49,
+          "p_pick": 0.0,
+          "d_ban_pp": 2.21,
+          "p_ban": 0.0
+        },
+        "Junkrat": {
+          "prev_games": 9784,
+          "new_games": 8218,
+          "d_wr_pp": -1.14,
+          "p_wr": 0.1264,
+          "d_pick_pp": 0.45,
+          "p_pick": 5e-05,
+          "d_ban_pp": -0.17,
+          "p_ban": 0.00428
+        },
+        "Kael'thas": {
+          "prev_games": 22977,
+          "new_games": 20890,
+          "d_wr_pp": 1.2,
+          "p_wr": 0.01204,
+          "d_pick_pp": 2.62,
+          "p_pick": 0.0,
+          "d_ban_pp": 1.93,
+          "p_ban": 0.0
+        },
+        "Kel'Thuzad": {
+          "prev_games": 8678,
+          "new_games": 6896,
+          "d_wr_pp": 0.48,
+          "p_wr": 0.55547,
+          "d_pick_pp": 0.02,
+          "p_pick": 0.84352,
+          "d_ban_pp": -0.2,
+          "p_ban": 0.00268
+        },
+        "Kerrigan": {
+          "prev_games": 9547,
+          "new_games": 5322,
+          "d_wr_pp": 0.49,
+          "p_wr": 0.56121,
+          "d_pick_pp": -2.18,
+          "p_pick": 0.0,
+          "d_ban_pp": -7.13,
+          "p_ban": 0.0
+        },
+        "Kharazim": {
+          "prev_games": 9766,
+          "new_games": 6946,
+          "d_wr_pp": -0.46,
+          "p_wr": 0.55668,
+          "d_pick_pp": -0.77,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.01,
+          "p_ban": 0.84804
+        },
+        "Leoric": {
+          "prev_games": 19435,
+          "new_games": 16254,
+          "d_wr_pp": 0.22,
+          "p_wr": 0.68522,
+          "d_pick_pp": 0.83,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.55,
+          "p_ban": 0.0
+        },
+        "Li Li": {
+          "prev_games": 22259,
+          "new_games": 17476,
+          "d_wr_pp": 1.01,
+          "p_wr": 0.0448,
+          "d_pick_pp": -0.15,
+          "p_pick": 0.32846,
+          "d_ban_pp": 0.18,
+          "p_ban": 0.02683
+        },
+        "Li-Ming": {
+          "prev_games": 27332,
+          "new_games": 23104,
+          "d_wr_pp": 1.05,
+          "p_wr": 0.01929,
+          "d_pick_pp": 1.41,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.89,
+          "p_ban": 0.0
+        },
+        "Lt. Morales": {
+          "prev_games": 8722,
+          "new_games": 7730,
+          "d_wr_pp": 1.11,
+          "p_wr": 0.15495,
+          "d_pick_pp": 0.8,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.1,
+          "p_ban": 0.06611
+        },
+        "L\u00facio": {
+          "prev_games": 11731,
+          "new_games": 8502,
+          "d_wr_pp": -2.25,
+          "p_wr": 0.00157,
+          "d_pick_pp": -0.77,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.81,
+          "p_ban": 0.0
+        },
+        "Maiev": {
+          "prev_games": 7029,
+          "new_games": 6109,
+          "d_wr_pp": -0.21,
+          "p_wr": 0.81224,
+          "d_pick_pp": 0.53,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.26,
+          "p_ban": 0.0001
+        },
+        "Malfurion": {
+          "prev_games": 15778,
+          "new_games": 10980,
+          "d_wr_pp": -2.34,
+          "p_wr": 0.00016,
+          "d_pick_pp": -1.48,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.2,
+          "p_ban": 0.00056
+        },
+        "Malthael": {
+          "prev_games": 8443,
+          "new_games": 7162,
+          "d_wr_pp": 0.97,
+          "p_wr": 0.22755,
+          "d_pick_pp": 0.46,
+          "p_pick": 1e-05,
+          "d_ban_pp": 0.48,
+          "p_ban": 0.0
+        },
+        "Medivh": {
+          "prev_games": 5732,
+          "new_games": 4465,
+          "d_wr_pp": 0.95,
+          "p_wr": 0.3389,
+          "d_pick_pp": -0.07,
+          "p_pick": 0.38739,
+          "d_ban_pp": 0.24,
+          "p_ban": 0.0
+        },
+        "Mephisto": {
+          "prev_games": 4373,
+          "new_games": 3996,
+          "d_wr_pp": 2.22,
+          "p_wr": 0.04281,
+          "d_pick_pp": 0.52,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.11,
+          "p_ban": 0.00266
+        },
+        "Muradin": {
+          "prev_games": 31256,
+          "new_games": 27093,
+          "d_wr_pp": -1.43,
+          "p_wr": 0.00058,
+          "d_pick_pp": 2.27,
+          "p_pick": 0.0,
+          "d_ban_pp": 1.45,
+          "p_ban": 0.0
+        },
+        "Murky": {
+          "prev_games": 4965,
+          "new_games": 5000,
+          "d_wr_pp": -1.23,
+          "p_wr": 0.21748,
+          "d_pick_pp": 1.04,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.1,
+          "p_ban": 0.02028
+        },
+        "Nazeebo": {
+          "prev_games": 36111,
+          "new_games": 27533,
+          "d_wr_pp": -0.52,
+          "p_wr": 0.19218,
+          "d_pick_pp": -1.05,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.27,
+          "p_ban": 0.0
+        },
+        "Nova": {
+          "prev_games": 8484,
+          "new_games": 5961,
+          "d_wr_pp": -0.11,
+          "p_wr": 0.89151,
+          "d_pick_pp": -0.74,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.23,
+          "p_ban": 0.0
+        },
+        "Orphea": {
+          "prev_games": 9748,
+          "new_games": 8096,
+          "d_wr_pp": 0.59,
+          "p_wr": 0.43374,
+          "d_pick_pp": 0.36,
+          "p_pick": 0.00108,
+          "d_ban_pp": 0.02,
+          "p_ban": 0.53848
+        },
+        "Probius": {
+          "prev_games": 1835,
+          "new_games": 1597,
+          "d_wr_pp": 0.31,
+          "p_wr": 0.85711,
+          "d_pick_pp": 0.14,
+          "p_pick": 0.00563,
+          "d_ban_pp": 0.0,
+          "p_ban": 0.99598
+        },
+        "Qhira": {
+          "prev_games": 7096,
+          "new_games": 5800,
+          "d_wr_pp": 1.38,
+          "p_wr": 0.11946,
+          "d_pick_pp": 0.17,
+          "p_pick": 0.06926,
+          "d_ban_pp": -0.07,
+          "p_ban": 0.01395
+        },
+        "Ragnaros": {
+          "prev_games": 14434,
+          "new_games": 9584,
+          "d_wr_pp": -1.28,
+          "p_wr": 0.05268,
+          "d_pick_pp": -1.8,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.33,
+          "p_ban": 0.0
+        },
+        "Raynor": {
+          "prev_games": 21381,
+          "new_games": 17369,
+          "d_wr_pp": -0.02,
+          "p_wr": 0.9707,
+          "d_pick_pp": 0.42,
+          "p_pick": 0.00708,
+          "d_ban_pp": -0.12,
+          "p_ban": 0.06256
+        },
+        "Rehgar": {
+          "prev_games": 28178,
+          "new_games": 20178,
+          "d_wr_pp": -0.45,
+          "p_wr": 0.3271,
+          "d_pick_pp": -2.09,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.07,
+          "p_ban": 0.0
+        },
+        "Samuro": {
+          "prev_games": 7853,
+          "new_games": 5249,
+          "d_wr_pp": 0.31,
+          "p_wr": 0.72956,
+          "d_pick_pp": -0.95,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.33,
+          "p_ban": 0.0
+        },
+        "Sgt. Hammer": {
+          "prev_games": 6364,
+          "new_games": 5568,
+          "d_wr_pp": -0.78,
+          "p_wr": 0.39584,
+          "d_pick_pp": 0.51,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.12,
+          "p_ban": 0.07451
+        },
+        "Sonya": {
+          "prev_games": 14919,
+          "new_games": 10040,
+          "d_wr_pp": -1.42,
+          "p_wr": 0.02826,
+          "d_pick_pp": -1.73,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.32,
+          "p_ban": 0.0
+        },
+        "Stitches": {
+          "prev_games": 24868,
+          "new_games": 19925,
+          "d_wr_pp": 1.03,
+          "p_wr": 0.02993,
+          "d_pick_pp": 0.22,
+          "p_pick": 0.18517,
+          "d_ban_pp": 0.88,
+          "p_ban": 0.0
+        },
+        "Stukov": {
+          "prev_games": 14927,
+          "new_games": 11237,
+          "d_wr_pp": -0.35,
+          "p_wr": 0.5697,
+          "d_pick_pp": -0.57,
+          "p_pick": 1e-05,
+          "d_ban_pp": -1.33,
+          "p_ban": 0.0
+        },
+        "Sylvanas": {
+          "prev_games": 29210,
+          "new_games": 24376,
+          "d_wr_pp": 0.5,
+          "p_wr": 0.2536,
+          "d_pick_pp": 1.2,
+          "p_pick": 0.0,
+          "d_ban_pp": 3.86,
+          "p_ban": 0.0
+        },
+        "The Butcher": {
+          "prev_games": 9146,
+          "new_games": 6607,
+          "d_wr_pp": -0.56,
+          "p_wr": 0.48987,
+          "d_pick_pp": -0.62,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.0,
+          "p_ban": 0.9672
+        },
+        "The Lost Vikings": {
+          "prev_games": 3125,
+          "new_games": 2089,
+          "d_wr_pp": -0.33,
+          "p_wr": 0.81633,
+          "d_pick_pp": -0.38,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.72,
+          "p_ban": 0.0
+        },
+        "Thrall": {
+          "prev_games": 32602,
+          "new_games": 28332,
+          "d_wr_pp": 2.28,
+          "p_wr": 0.0,
+          "d_pick_pp": 2.44,
+          "p_pick": 0.0,
+          "d_ban_pp": 6.64,
+          "p_ban": 0.0
+        },
+        "Tracer": {
+          "prev_games": 6426,
+          "new_games": 4928,
+          "d_wr_pp": 1.43,
+          "p_wr": 0.13048,
+          "d_pick_pp": -0.16,
+          "p_pick": 0.07847,
+          "d_ban_pp": -0.13,
+          "p_ban": 0.00132
+        },
+        "Tychus": {
+          "prev_games": 24563,
+          "new_games": 22042,
+          "d_wr_pp": 0.69,
+          "p_wr": 0.13573,
+          "d_pick_pp": 2.51,
+          "p_pick": 0.0,
+          "d_ban_pp": 2.69,
+          "p_ban": 0.0
+        },
+        "Tyrael": {
+          "prev_games": 19983,
+          "new_games": 15233,
+          "d_wr_pp": 0.2,
+          "p_wr": 0.70944,
+          "d_pick_pp": -0.58,
+          "p_pick": 0.0001,
+          "d_ban_pp": -1.28,
+          "p_ban": 0.0
+        },
+        "Tyrande": {
+          "prev_games": 12595,
+          "new_games": 18089,
+          "d_wr_pp": 1.51,
+          "p_wr": 0.00922,
+          "d_pick_pp": 7.9,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.9,
+          "p_ban": 0.0
+        },
+        "Uther": {
+          "prev_games": 10885,
+          "new_games": 8128,
+          "d_wr_pp": 1.02,
+          "p_wr": 0.16594,
+          "d_pick_pp": -0.48,
+          "p_pick": 3e-05,
+          "d_ban_pp": 0.0,
+          "p_ban": 0.96843
+        },
+        "Valeera": {
+          "prev_games": 5648,
+          "new_games": 3688,
+          "d_wr_pp": -1.2,
+          "p_wr": 0.25448,
+          "d_pick_pp": -0.77,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.39,
+          "p_ban": 0.0
+        },
+        "Valla": {
+          "prev_games": 37240,
+          "new_games": 30082,
+          "d_wr_pp": 0.81,
+          "p_wr": 0.03667,
+          "d_pick_pp": 0.56,
+          "p_pick": 0.00288,
+          "d_ban_pp": -1.29,
+          "p_ban": 0.0
+        },
+        "Varian": {
+          "prev_games": 23609,
+          "new_games": 19516,
+          "d_wr_pp": 1.44,
+          "p_wr": 0.00284,
+          "d_pick_pp": 0.79,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.29,
+          "p_ban": 0.00205
+        },
+        "Whitemane": {
+          "prev_games": 7801,
+          "new_games": 7183,
+          "d_wr_pp": -0.52,
+          "p_wr": 0.52525,
+          "d_pick_pp": 0.98,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.01,
+          "p_ban": 0.81935
+        },
+        "Xul": {
+          "prev_games": 13199,
+          "new_games": 8650,
+          "d_wr_pp": -0.7,
+          "p_wr": 0.30827,
+          "d_pick_pp": -1.76,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.79,
+          "p_ban": 0.0
+        },
+        "Zagara": {
+          "prev_games": 12081,
+          "new_games": 6879,
+          "d_wr_pp": -2.28,
+          "p_wr": 0.00256,
+          "d_pick_pp": -2.62,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.72,
+          "p_ban": 0.0
+        },
+        "Zeratul": {
+          "prev_games": 9183,
+          "new_games": 6342,
+          "d_wr_pp": 1.0,
+          "p_wr": 0.21989,
+          "d_pick_pp": -0.91,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.84,
+          "p_ban": 0.0
+        },
+        "Zul'jin": {
+          "prev_games": 11000,
+          "new_games": 9676,
+          "d_wr_pp": 1.53,
+          "p_wr": 0.02751,
+          "d_pick_pp": 0.94,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.16,
+          "p_ban": 0.013
+        }
+      },
+      "truth": {
+        "heroes": [
+          "Alarak",
+          "Ana",
+          "Azmodan",
+          "Deathwing",
+          "Falstad",
+          "Gul'dan",
+          "Jaina",
+          "Kael'thas",
+          "Kerrigan",
+          "Muradin",
+          "Murky",
+          "Orphea",
+          "Rehgar",
+          "Sylvanas",
+          "Thrall",
+          "Tychus",
+          "Tyrande",
+          "Zagara"
+        ],
+        "known_builds": [
+          "2.55.15.96370",
+          "2.55.15.96443",
+          "2.55.15.96477"
+        ],
+        "validatable": true
+      },
+      "pr": {
+        "wr_p05": {
+          "tp": 9,
+          "fp": 13,
+          "fn": 9,
+          "precision": 0.409,
+          "recall": 0.5
+        },
+        "wr_p05_eff": {
+          "tp": 6,
+          "fp": 6,
+          "fn": 12,
+          "precision": 0.5,
+          "recall": 0.333
+        },
+        "wr_bh": {
+          "tp": 6,
+          "fp": 5,
+          "fn": 12,
+          "precision": 0.545,
+          "recall": 0.333
+        },
+        "pickban_bh": {
+          "tp": 17,
+          "fp": 61,
+          "fn": 1,
+          "precision": 0.218,
+          "recall": 0.944
+        },
+        "pickban_eff2": {
+          "tp": 12,
+          "fp": 5,
+          "fn": 6,
+          "precision": 0.706,
+          "recall": 0.667
+        },
+        "any_bh": {
+          "tp": 17,
+          "fp": 61,
+          "fn": 1,
+          "precision": 0.218,
+          "recall": 0.944
+        },
+        "any_bh_eff": {
+          "tp": 13,
+          "fp": 42,
+          "fn": 5,
+          "precision": 0.236,
+          "recall": 0.722
+        }
+      }
+    },
+    {
+      "prev_build": "2.55.15.96477",
+      "new_build": "2.55.16.96881",
+      "intermediate_builds": [
+        "2.55.16.96846",
+        "2.55.16.96870",
+        "2.55.16.96881"
+      ],
+      "prev_games": 102708,
+      "new_games": 43492,
+      "n_wr_testable": 90,
+      "detected": {
+        "wr_p05": [
+          "Artanis",
+          "Arthas",
+          "Chen",
+          "E.T.C.",
+          "Genji",
+          "Hogger",
+          "Mal'Ganis",
+          "Thrall",
+          "Zarya",
+          "Zeratul"
+        ],
+        "wr_p05_eff": [
+          "Artanis",
+          "Arthas",
+          "Chen",
+          "Genji",
+          "Hogger",
+          "Mal'Ganis",
+          "Thrall",
+          "Zarya",
+          "Zeratul"
+        ],
+        "wr_bh": [
+          "Chen",
+          "Genji",
+          "Mal'Ganis",
+          "Thrall"
+        ],
+        "pickban_bh": [
+          "Abathur",
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Arthas",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Chen",
+          "Cho",
+          "D.Va",
+          "Deathwing",
+          "Deckard",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Fenix",
+          "Gall",
+          "Garrosh",
+          "Genji",
+          "Greymane",
+          "Gul'dan",
+          "Hogger",
+          "Illidan",
+          "Jaina",
+          "Johanna",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li-Ming",
+          "Lt. Morales",
+          "L\u00facio",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mei",
+          "Mephisto",
+          "Muradin",
+          "Nazeebo",
+          "Nova",
+          "Probius",
+          "Qhira",
+          "Ragnaros",
+          "Rehgar",
+          "Rexxar",
+          "Sgt. Hammer",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "Thrall",
+          "Tracer",
+          "Tychus",
+          "Tyrael",
+          "Tyrande",
+          "Uther",
+          "Valeera",
+          "Valla",
+          "Varian",
+          "Whitemane",
+          "Xul",
+          "Zeratul"
+        ],
+        "pickban_eff2": [
+          "Arthas",
+          "Chen",
+          "Deathwing",
+          "Falstad",
+          "Garrosh",
+          "Johanna",
+          "Mal'Ganis",
+          "Muradin",
+          "Thrall",
+          "Tyrael"
+        ],
+        "any_bh": [
+          "Abathur",
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Arthas",
+          "Auriel",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Chen",
+          "Cho",
+          "D.Va",
+          "Deathwing",
+          "Deckard",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Fenix",
+          "Gall",
+          "Garrosh",
+          "Genji",
+          "Greymane",
+          "Gul'dan",
+          "Hogger",
+          "Illidan",
+          "Jaina",
+          "Johanna",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Kharazim",
+          "Leoric",
+          "Li-Ming",
+          "Lt. Morales",
+          "L\u00facio",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Mei",
+          "Mephisto",
+          "Muradin",
+          "Nazeebo",
+          "Nova",
+          "Probius",
+          "Qhira",
+          "Ragnaros",
+          "Rehgar",
+          "Rexxar",
+          "Sgt. Hammer",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "Thrall",
+          "Tracer",
+          "Tychus",
+          "Tyrael",
+          "Tyrande",
+          "Uther",
+          "Valeera",
+          "Valla",
+          "Varian",
+          "Whitemane",
+          "Xul",
+          "Zeratul"
+        ],
+        "any_bh_eff": [
+          "Abathur",
+          "Alarak",
+          "Alexstrasza",
+          "Ana",
+          "Anduin",
+          "Anub'arak",
+          "Artanis",
+          "Arthas",
+          "Azmodan",
+          "Blaze",
+          "Brightwing",
+          "Chen",
+          "Cho",
+          "Deathwing",
+          "Deckard",
+          "Diablo",
+          "E.T.C.",
+          "Falstad",
+          "Fenix",
+          "Gall",
+          "Garrosh",
+          "Genji",
+          "Gul'dan",
+          "Hogger",
+          "Jaina",
+          "Johanna",
+          "Kel'Thuzad",
+          "Kerrigan",
+          "Leoric",
+          "Li-Ming",
+          "Lt. Morales",
+          "L\u00facio",
+          "Mal'Ganis",
+          "Malfurion",
+          "Malthael",
+          "Medivh",
+          "Muradin",
+          "Nazeebo",
+          "Nova",
+          "Probius",
+          "Ragnaros",
+          "Rehgar",
+          "Rexxar",
+          "Stitches",
+          "Stukov",
+          "Sylvanas",
+          "Tassadar",
+          "The Butcher",
+          "Thrall",
+          "Tracer",
+          "Tychus",
+          "Tyrael",
+          "Tyrande",
+          "Valla",
+          "Varian",
+          "Xul",
+          "Zeratul"
+        ]
+      },
+      "latency_wr": {
+        "Artanis": {
+          "z_naive": {
+            "build_games": 4402,
+            "hero_games": 767
+          },
+          "sprt": {
+            "build_games": 6637,
+            "hero_games": 1146
+          },
+          "z_bonf": {
+            "build_games": 9095,
+            "hero_games": 1522
+          }
+        },
+        "Arthas": {
+          "z_naive": {
+            "build_games": 17558,
+            "hero_games": 4041
+          },
+          "sprt": {
+            "build_games": 21645,
+            "hero_games": 4785
+          }
+        },
+        "Chen": {
+          "z_naive": {
+            "build_games": 2302,
+            "hero_games": 380
+          },
+          "sprt": {
+            "build_games": 4402,
+            "hero_games": 755
+          },
+          "z_bonf": {
+            "build_games": 9095,
+            "hero_games": 1476
+          }
+        },
+        "E.T.C.": {
+          "z_naive": {
+            "build_games": 15692,
+            "hero_games": 2589
+          },
+          "sprt": {
+            "build_games": 19501,
+            "hero_games": 3240
+          }
+        },
+        "Genji": {
+          "z_naive": {
+            "build_games": 4402,
+            "hero_games": 295
+          },
+          "sprt": {
+            "build_games": 19501,
+            "hero_games": 1233
+          },
+          "z_bonf": {
+            "build_games": 23948,
+            "hero_games": 1612
+          }
+        },
+        "Hogger": {
+          "z_naive": {
+            "build_games": 4402,
+            "hero_games": 372
+          },
+          "sprt": {
+            "build_games": 11659,
+            "hero_games": 1037
+          }
+        },
+        "Mal'Ganis": {
+          "z_naive": {
+            "build_games": 6637,
+            "hero_games": 818
+          },
+          "sprt": {
+            "build_games": 9095,
+            "hero_games": 1116
+          },
+          "z_bonf": {
+            "build_games": 11659,
+            "hero_games": 1447
+          }
+        },
+        "Thrall": {
+          "z_naive": {
+            "build_games": 6637,
+            "hero_games": 1572
+          },
+          "sprt": {
+            "build_games": 9095,
+            "hero_games": 2082
+          },
+          "z_bonf": {
+            "build_games": 19501,
+            "hero_games": 4439
+          }
+        },
+        "Zarya": {
+          "z_naive": {
+            "build_games": 42090,
+            "hero_games": 1405
+          },
+          "sprt": {
+            "build_games": 42090,
+            "hero_games": 1405
+          }
+        },
+        "Zeratul": {
+          "z_naive": {
+            "build_games": 4402,
+            "hero_games": 286
+          },
+          "sprt": {
+            "build_games": 21645,
+            "hero_games": 1192
+          },
+          "z_bonf": {
+            "build_games": 34780,
+            "hero_games": 1949
+          }
+        }
+      },
+      "effects_flagged": {
+        "Abathur": {
+          "prev_games": 8742,
+          "new_games": 4248,
+          "d_wr_pp": -1.12,
+          "p_wr": 0.23064,
+          "d_pick_pp": 1.26,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.42,
+          "p_ban": 0.00599
+        },
+        "Alarak": {
+          "prev_games": 10138,
+          "new_games": 4341,
+          "d_wr_pp": 0.12,
+          "p_wr": 0.89463,
+          "d_pick_pp": 0.11,
+          "p_pick": 0.51809,
+          "d_ban_pp": 0.56,
+          "p_ban": 0.0
+        },
+        "Alexstrasza": {
+          "prev_games": 5009,
+          "new_games": 1826,
+          "d_wr_pp": 1.36,
+          "p_wr": 0.31962,
+          "d_pick_pp": -0.68,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.08,
+          "p_ban": 0.05587
+        },
+        "Ana": {
+          "prev_games": 6992,
+          "new_games": 2709,
+          "d_wr_pp": -0.1,
+          "p_wr": 0.9328,
+          "d_pick_pp": -0.58,
+          "p_pick": 5e-05,
+          "d_ban_pp": 0.18,
+          "p_ban": 0.00306
+        },
+        "Anduin": {
+          "prev_games": 29260,
+          "new_games": 12746,
+          "d_wr_pp": -0.37,
+          "p_wr": 0.49057,
+          "d_pick_pp": 0.82,
+          "p_pick": 0.00158,
+          "d_ban_pp": -0.06,
+          "p_ban": 0.81896
+        },
+        "Anub'arak": {
+          "prev_games": 14796,
+          "new_games": 5609,
+          "d_wr_pp": -0.05,
+          "p_wr": 0.95393,
+          "d_pick_pp": -1.51,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.2,
+          "p_ban": 0.0
+        },
+        "Artanis": {
+          "prev_games": 16119,
+          "new_games": 6837,
+          "d_wr_pp": 1.91,
+          "p_wr": 0.00798,
+          "d_pick_pp": 0.03,
+          "p_pick": 0.90011,
+          "d_ban_pp": 0.3,
+          "p_ban": 0.01364
+        },
+        "Arthas": {
+          "prev_games": 12448,
+          "new_games": 8242,
+          "d_wr_pp": -1.94,
+          "p_wr": 0.00619,
+          "d_pick_pp": 6.83,
+          "p_pick": 0.0,
+          "d_ban_pp": 4.12,
+          "p_ban": 0.0
+        },
+        "Auriel": {
+          "prev_games": 16941,
+          "new_games": 7215,
+          "d_wr_pp": -0.7,
+          "p_wr": 0.31947,
+          "d_pick_pp": 0.09,
+          "p_pick": 0.65504,
+          "d_ban_pp": 0.37,
+          "p_ban": 0.0052
+        },
+        "Azmodan": {
+          "prev_games": 16461,
+          "new_games": 6402,
+          "d_wr_pp": 1.3,
+          "p_wr": 0.07762,
+          "d_pick_pp": -1.31,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.45,
+          "p_ban": 0.0
+        },
+        "Blaze": {
+          "prev_games": 10999,
+          "new_games": 3898,
+          "d_wr_pp": -1.44,
+          "p_wr": 0.12331,
+          "d_pick_pp": -1.75,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.09,
+          "p_ban": 0.20674
+        },
+        "Brightwing": {
+          "prev_games": 22084,
+          "new_games": 9550,
+          "d_wr_pp": 0.5,
+          "p_wr": 0.41615,
+          "d_pick_pp": 0.46,
+          "p_pick": 0.05273,
+          "d_ban_pp": 0.68,
+          "p_ban": 0.01451
+        },
+        "Chen": {
+          "prev_games": 4789,
+          "new_games": 5984,
+          "d_wr_pp": -4.34,
+          "p_wr": 1e-05,
+          "d_pick_pp": 9.1,
+          "p_pick": 0.0,
+          "d_ban_pp": 14.4,
+          "p_ban": 0.0
+        },
+        "Cho": {
+          "prev_games": 1798,
+          "new_games": 684,
+          "d_wr_pp": -3.22,
+          "p_wr": 0.15152,
+          "d_pick_pp": -0.18,
+          "p_pick": 0.01608,
+          "d_ban_pp": -0.27,
+          "p_ban": 0.00518
+        },
+        "D.Va": {
+          "prev_games": 8293,
+          "new_games": 3643,
+          "d_wr_pp": -0.25,
+          "p_wr": 0.7973,
+          "d_pick_pp": 0.3,
+          "p_pick": 0.05395,
+          "d_ban_pp": -0.13,
+          "p_ban": 0.01113
+        },
+        "Deathwing": {
+          "prev_games": 12691,
+          "new_games": 4208,
+          "d_wr_pp": -1.38,
+          "p_wr": 0.12021,
+          "d_pick_pp": -2.68,
+          "p_pick": 0.0,
+          "d_ban_pp": -9.61,
+          "p_ban": 0.0
+        },
+        "Deckard": {
+          "prev_games": 10345,
+          "new_games": 4792,
+          "d_wr_pp": -0.24,
+          "p_wr": 0.78156,
+          "d_pick_pp": 0.95,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.13,
+          "p_ban": 0.0653
+        },
+        "Diablo": {
+          "prev_games": 16548,
+          "new_games": 6638,
+          "d_wr_pp": -1.21,
+          "p_wr": 0.09318,
+          "d_pick_pp": -0.85,
+          "p_pick": 5e-05,
+          "d_ban_pp": -1.24,
+          "p_ban": 0.0
+        },
+        "E.T.C.": {
+          "prev_games": 15471,
+          "new_games": 7041,
+          "d_wr_pp": 1.49,
+          "p_wr": 0.03844,
+          "d_pick_pp": 1.13,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.11,
+          "p_ban": 0.36301
+        },
+        "Falstad": {
+          "prev_games": 22977,
+          "new_games": 9774,
+          "d_wr_pp": 0.18,
+          "p_wr": 0.76645,
+          "d_pick_pp": 0.1,
+          "p_pick": 0.66919,
+          "d_ban_pp": -9.98,
+          "p_ban": 0.0
+        },
+        "Fenix": {
+          "prev_games": 3709,
+          "new_games": 1852,
+          "d_wr_pp": 2.04,
+          "p_wr": 0.15124,
+          "d_pick_pp": 0.65,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.14,
+          "p_ban": 0.0
+        },
+        "Gall": {
+          "prev_games": 1798,
+          "new_games": 684,
+          "d_wr_pp": -3.22,
+          "p_wr": 0.15152,
+          "d_pick_pp": -0.18,
+          "p_pick": 0.01608,
+          "d_ban_pp": -0.19,
+          "p_ban": 0.00423
+        },
+        "Garrosh": {
+          "prev_games": 13877,
+          "new_games": 4784,
+          "d_wr_pp": 0.22,
+          "p_wr": 0.78847,
+          "d_pick_pp": -2.51,
+          "p_pick": 0.0,
+          "d_ban_pp": -2.12,
+          "p_ban": 0.0
+        },
+        "Genji": {
+          "prev_games": 6170,
+          "new_games": 3220,
+          "d_wr_pp": 3.88,
+          "p_wr": 0.00034,
+          "d_pick_pp": 1.4,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.48,
+          "p_ban": 0.0
+        },
+        "Greymane": {
+          "prev_games": 9974,
+          "new_games": 4124,
+          "d_wr_pp": -1.15,
+          "p_wr": 0.21294,
+          "d_pick_pp": -0.23,
+          "p_pick": 0.17541,
+          "d_ban_pp": -0.14,
+          "p_ban": 0.0214
+        },
+        "Gul'dan": {
+          "prev_games": 13091,
+          "new_games": 6209,
+          "d_wr_pp": 0.91,
+          "p_wr": 0.23915,
+          "d_pick_pp": 1.53,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.5,
+          "p_ban": 0.0
+        },
+        "Hogger": {
+          "prev_games": 10531,
+          "new_games": 4238,
+          "d_wr_pp": 1.88,
+          "p_wr": 0.03837,
+          "d_pick_pp": -0.51,
+          "p_pick": 0.00315,
+          "d_ban_pp": 0.88,
+          "p_ban": 0.0
+        },
+        "Illidan": {
+          "prev_games": 9394,
+          "new_games": 4050,
+          "d_wr_pp": 0.95,
+          "p_wr": 0.30929,
+          "d_pick_pp": 0.17,
+          "p_pick": 0.31607,
+          "d_ban_pp": 0.36,
+          "p_ban": 0.00154
+        },
+        "Jaina": {
+          "prev_games": 12288,
+          "new_games": 4828,
+          "d_wr_pp": 0.22,
+          "p_wr": 0.79504,
+          "d_pick_pp": -0.86,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.2,
+          "p_ban": 0.0005
+        },
+        "Johanna": {
+          "prev_games": 27151,
+          "new_games": 10362,
+          "d_wr_pp": -0.72,
+          "p_wr": 0.20866,
+          "d_pick_pp": -2.61,
+          "p_pick": 0.0,
+          "d_ban_pp": 2.22,
+          "p_ban": 0.0
+        },
+        "Kel'Thuzad": {
+          "prev_games": 6896,
+          "new_games": 3214,
+          "d_wr_pp": -0.15,
+          "p_wr": 0.88615,
+          "d_pick_pp": 0.68,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.27,
+          "p_ban": 0.00274
+        },
+        "Kerrigan": {
+          "prev_games": 5322,
+          "new_games": 2025,
+          "d_wr_pp": -1.65,
+          "p_wr": 0.20478,
+          "d_pick_pp": -0.53,
+          "p_pick": 3e-05,
+          "d_ban_pp": -0.23,
+          "p_ban": 1e-05
+        },
+        "Kharazim": {
+          "prev_games": 6946,
+          "new_games": 3135,
+          "d_wr_pp": -0.7,
+          "p_wr": 0.51738,
+          "d_pick_pp": 0.45,
+          "p_pick": 0.00212,
+          "d_ban_pp": -0.03,
+          "p_ban": 0.40258
+        },
+        "Leoric": {
+          "prev_games": 16254,
+          "new_games": 6524,
+          "d_wr_pp": 1.15,
+          "p_wr": 0.11493,
+          "d_pick_pp": -0.82,
+          "p_pick": 7e-05,
+          "d_ban_pp": -0.47,
+          "p_ban": 0.0
+        },
+        "Li-Ming": {
+          "prev_games": 23104,
+          "new_games": 9209,
+          "d_wr_pp": -0.81,
+          "p_wr": 0.18745,
+          "d_pick_pp": -1.32,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.21,
+          "p_ban": 0.19791
+        },
+        "Lt. Morales": {
+          "prev_games": 7730,
+          "new_games": 3745,
+          "d_wr_pp": -0.06,
+          "p_wr": 0.95463,
+          "d_pick_pp": 1.08,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.29,
+          "p_ban": 9e-05
+        },
+        "L\u00facio": {
+          "prev_games": 8502,
+          "new_games": 3191,
+          "d_wr_pp": 1.73,
+          "p_wr": 0.09527,
+          "d_pick_pp": -0.94,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.44,
+          "p_ban": 0.0
+        },
+        "Mal'Ganis": {
+          "prev_games": 5656,
+          "new_games": 6342,
+          "d_wr_pp": 7.34,
+          "p_wr": 0.0,
+          "d_pick_pp": 9.08,
+          "p_pick": 0.0,
+          "d_ban_pp": 10.66,
+          "p_ban": 0.0
+        },
+        "Malfurion": {
+          "prev_games": 10980,
+          "new_games": 4401,
+          "d_wr_pp": -0.51,
+          "p_wr": 0.56986,
+          "d_pick_pp": -0.57,
+          "p_pick": 0.00113,
+          "d_ban_pp": -0.08,
+          "p_ban": 0.31957
+        },
+        "Malthael": {
+          "prev_games": 7162,
+          "new_games": 2808,
+          "d_wr_pp": -0.26,
+          "p_wr": 0.8142,
+          "d_pick_pp": -0.52,
+          "p_pick": 0.00034,
+          "d_ban_pp": 0.03,
+          "p_ban": 0.73389
+        },
+        "Medivh": {
+          "prev_games": 4465,
+          "new_games": 2549,
+          "d_wr_pp": 0.5,
+          "p_wr": 0.6842,
+          "d_pick_pp": 1.51,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.19,
+          "p_ban": 0.01134
+        },
+        "Mei": {
+          "prev_games": 7851,
+          "new_games": 3114,
+          "d_wr_pp": -0.28,
+          "p_wr": 0.78874,
+          "d_pick_pp": -0.48,
+          "p_pick": 0.00132,
+          "d_ban_pp": -0.11,
+          "p_ban": 0.11834
+        },
+        "Mephisto": {
+          "prev_games": 3996,
+          "new_games": 1547,
+          "d_wr_pp": -1.22,
+          "p_wr": 0.41618,
+          "d_pick_pp": -0.33,
+          "p_pick": 0.00226,
+          "d_ban_pp": -0.08,
+          "p_ban": 0.12763
+        },
+        "Muradin": {
+          "prev_games": 27093,
+          "new_games": 10054,
+          "d_wr_pp": -0.17,
+          "p_wr": 0.76937,
+          "d_pick_pp": -3.26,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.95,
+          "p_ban": 0.0
+        },
+        "Nazeebo": {
+          "prev_games": 27533,
+          "new_games": 11043,
+          "d_wr_pp": -0.22,
+          "p_wr": 0.69707,
+          "d_pick_pp": -1.42,
+          "p_pick": 0.0,
+          "d_ban_pp": -1.16,
+          "p_ban": 0.0
+        },
+        "Nova": {
+          "prev_games": 5961,
+          "new_games": 2192,
+          "d_wr_pp": 0.74,
+          "p_wr": 0.55141,
+          "d_pick_pp": -0.76,
+          "p_pick": 0.0,
+          "d_ban_pp": 0.14,
+          "p_ban": 0.00064
+        },
+        "Probius": {
+          "prev_games": 1597,
+          "new_games": 581,
+          "d_wr_pp": 4.4,
+          "p_wr": 0.06867,
+          "d_pick_pp": -0.22,
+          "p_pick": 0.00158,
+          "d_ban_pp": -0.07,
+          "p_ban": 0.02433
+        },
+        "Qhira": {
+          "prev_games": 5800,
+          "new_games": 2364,
+          "d_wr_pp": 0.23,
+          "p_wr": 0.85128,
+          "d_pick_pp": -0.21,
+          "p_pick": 0.10723,
+          "d_ban_pp": 0.11,
+          "p_ban": 0.00578
+        },
+        "Ragnaros": {
+          "prev_games": 9584,
+          "new_games": 3913,
+          "d_wr_pp": 0.84,
+          "p_wr": 0.3764,
+          "d_pick_pp": -0.33,
+          "p_pick": 0.04356,
+          "d_ban_pp": 0.75,
+          "p_ban": 0.0
+        },
+        "Rehgar": {
+          "prev_games": 20178,
+          "new_games": 8322,
+          "d_wr_pp": 0.11,
+          "p_wr": 0.86886,
+          "d_pick_pp": -0.51,
+          "p_pick": 0.02403,
+          "d_ban_pp": 0.11,
+          "p_ban": 0.33327
+        },
+        "Rexxar": {
+          "prev_games": 2911,
+          "new_games": 1401,
+          "d_wr_pp": 2.31,
+          "p_wr": 0.15489,
+          "d_pick_pp": 0.39,
+          "p_pick": 6e-05,
+          "d_ban_pp": 0.41,
+          "p_ban": 0.0
+        },
+        "Sgt. Hammer": {
+          "prev_games": 5568,
+          "new_games": 2334,
+          "d_wr_pp": 0.77,
+          "p_wr": 0.53146,
+          "d_pick_pp": -0.05,
+          "p_pick": 0.67246,
+          "d_ban_pp": 0.28,
+          "p_ban": 0.00306
+        },
+        "Stitches": {
+          "prev_games": 19925,
+          "new_games": 8496,
+          "d_wr_pp": -0.42,
+          "p_wr": 0.51685,
+          "d_pick_pp": 0.13,
+          "p_pick": 0.55107,
+          "d_ban_pp": -0.8,
+          "p_ban": 4e-05
+        },
+        "Stukov": {
+          "prev_games": 11237,
+          "new_games": 4449,
+          "d_wr_pp": -0.07,
+          "p_wr": 0.93917,
+          "d_pick_pp": -0.71,
+          "p_pick": 6e-05,
+          "d_ban_pp": 0.03,
+          "p_ban": 0.87574
+        },
+        "Sylvanas": {
+          "prev_games": 24376,
+          "new_games": 10760,
+          "d_wr_pp": 0.76,
+          "p_wr": 0.18726,
+          "d_pick_pp": 1.01,
+          "p_pick": 4e-05,
+          "d_ban_pp": 0.73,
+          "p_ban": 0.00222
+        },
+        "Tassadar": {
+          "prev_games": 14003,
+          "new_games": 5551,
+          "d_wr_pp": -0.8,
+          "p_wr": 0.31273,
+          "d_pick_pp": -0.87,
+          "p_pick": 1e-05,
+          "d_ban_pp": 0.1,
+          "p_ban": 0.05492
+        },
+        "The Butcher": {
+          "prev_games": 6607,
+          "new_games": 2901,
+          "d_wr_pp": 1.73,
+          "p_wr": 0.12031,
+          "d_pick_pp": 0.24,
+          "p_pick": 0.09241,
+          "d_ban_pp": -0.25,
+          "p_ban": 0.00332
+        },
+        "Thrall": {
+          "prev_games": 28332,
+          "new_games": 9824,
+          "d_wr_pp": -2.05,
+          "p_wr": 0.00046,
+          "d_pick_pp": -5.0,
+          "p_pick": 0.0,
+          "d_ban_pp": -5.5,
+          "p_ban": 0.0
+        },
+        "Tracer": {
+          "prev_games": 4928,
+          "new_games": 1808,
+          "d_wr_pp": -2.11,
+          "p_wr": 0.12418,
+          "d_pick_pp": -0.64,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.12,
+          "p_ban": 0.02474
+        },
+        "Tychus": {
+          "prev_games": 22042,
+          "new_games": 9500,
+          "d_wr_pp": 0.05,
+          "p_wr": 0.93685,
+          "d_pick_pp": 0.38,
+          "p_pick": 0.10429,
+          "d_ban_pp": -0.6,
+          "p_ban": 8e-05
+        },
+        "Tyrael": {
+          "prev_games": 15233,
+          "new_games": 5516,
+          "d_wr_pp": -1.11,
+          "p_wr": 0.15483,
+          "d_pick_pp": -2.15,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.63,
+          "p_ban": 0.0
+        },
+        "Tyrande": {
+          "prev_games": 18089,
+          "new_games": 7209,
+          "d_wr_pp": -0.57,
+          "p_wr": 0.41153,
+          "d_pick_pp": -1.04,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.05,
+          "p_ban": 0.41923
+        },
+        "Uther": {
+          "prev_games": 8128,
+          "new_games": 3622,
+          "d_wr_pp": 1.39,
+          "p_wr": 0.16373,
+          "d_pick_pp": 0.41,
+          "p_pick": 0.00773,
+          "d_ban_pp": -0.09,
+          "p_ban": 0.14834
+        },
+        "Valeera": {
+          "prev_games": 3688,
+          "new_games": 1597,
+          "d_wr_pp": 1.06,
+          "p_wr": 0.47827,
+          "d_pick_pp": 0.08,
+          "p_pick": 0.44715,
+          "d_ban_pp": -0.13,
+          "p_ban": 0.02686
+        },
+        "Valla": {
+          "prev_games": 30082,
+          "new_games": 12832,
+          "d_wr_pp": -0.07,
+          "p_wr": 0.89972,
+          "d_pick_pp": 0.22,
+          "p_pick": 0.4083,
+          "d_ban_pp": -1.13,
+          "p_ban": 0.0
+        },
+        "Varian": {
+          "prev_games": 19516,
+          "new_games": 7845,
+          "d_wr_pp": -0.6,
+          "p_wr": 0.36788,
+          "d_pick_pp": -0.96,
+          "p_pick": 2e-05,
+          "d_ban_pp": -0.81,
+          "p_ban": 0.0
+        },
+        "Whitemane": {
+          "prev_games": 7183,
+          "new_games": 3192,
+          "d_wr_pp": 0.62,
+          "p_wr": 0.55762,
+          "d_pick_pp": 0.35,
+          "p_pick": 0.01861,
+          "d_ban_pp": 0.17,
+          "p_ban": 0.00338
+        },
+        "Xul": {
+          "prev_games": 8650,
+          "new_games": 3133,
+          "d_wr_pp": -0.21,
+          "p_wr": 0.84306,
+          "d_pick_pp": -1.22,
+          "p_pick": 0.0,
+          "d_ban_pp": -0.16,
+          "p_ban": 0.01588
+        },
+        "Zeratul": {
+          "prev_games": 6342,
+          "new_games": 2422,
+          "d_wr_pp": -3.34,
+          "p_wr": 0.00516,
+          "d_pick_pp": -0.61,
+          "p_pick": 1e-05,
+          "d_ban_pp": -0.19,
+          "p_ban": 0.0323
+        }
+      },
+      "truth": {
+        "heroes": [
+          "Arthas",
+          "Chen",
+          "D.Va",
+          "Deathwing",
+          "Falstad",
+          "Garrosh",
+          "Gazlowe",
+          "Gul'dan",
+          "Jaina",
+          "Kael'thas",
+          "Li Li",
+          "Mal'Ganis",
+          "Medivh",
+          "Muradin",
+          "Nazeebo",
+          "Samuro",
+          "Sgt. Hammer",
+          "Stukov",
+          "Thrall",
+          "Tyrande"
+        ],
+        "known_builds": [
+          "2.55.16.96846",
+          "2.55.16.96870",
+          "2.55.16.96881"
+        ],
+        "validatable": true
+      },
+      "pr": {
+        "wr_p05": {
+          "tp": 4,
+          "fp": 6,
+          "fn": 16,
+          "precision": 0.4,
+          "recall": 0.2
+        },
+        "wr_p05_eff": {
+          "tp": 4,
+          "fp": 5,
+          "fn": 16,
+          "precision": 0.444,
+          "recall": 0.2
+        },
+        "wr_bh": {
+          "tp": 3,
+          "fp": 1,
+          "fn": 17,
+          "precision": 0.75,
+          "recall": 0.15
+        },
+        "pickban_bh": {
+          "tp": 16,
+          "fp": 53,
+          "fn": 4,
+          "precision": 0.232,
+          "recall": 0.8
+        },
+        "pickban_eff2": {
+          "tp": 8,
+          "fp": 2,
+          "fn": 12,
+          "precision": 0.8,
+          "recall": 0.4
+        },
+        "any_bh": {
+          "tp": 16,
+          "fp": 53,
+          "fn": 4,
+          "precision": 0.232,
+          "recall": 0.8
+        },
+        "any_bh_eff": {
+          "tp": 14,
+          "fp": 43,
+          "fn": 6,
+          "precision": 0.246,
+          "recall": 0.7
+        }
+      }
+    }
+  ],
+  "detected_totals": {
+    "wr_p05": {
+      "detected": 50
+    },
+    "wr_p05_eff": {
+      "detected": 39
+    },
+    "wr_bh": {
+      "detected": 20
+    },
+    "pickban_bh": {
+      "detected": 297
+    },
+    "pickban_eff2": {
+      "detected": 54
+    },
+    "any_bh": {
+      "detected": 297
+    },
+    "any_bh_eff": {
+      "detected": 244
+    }
+  },
+  "latency_summary": {
+    "z_naive": {
+      "median_build_games": 16553,
+      "p75_build_games": 28443,
+      "n": 50
+    },
+    "sprt": {
+      "median_build_games": 19653,
+      "p75_build_games": 31198,
+      "n": 36
+    },
+    "z_bonf": {
+      "median_build_games": 19501,
+      "p75_build_games": 36320,
+      "n": 21
+    }
+  },
+  "validation": {
+    "n_boundaries": 4,
+    "variants": {
+      "wr_p05": {
+        "tp": 21,
+        "fp": 29,
+        "fn": 40,
+        "precision": 0.42,
+        "recall": 0.344,
+        "f1": 0.378
+      },
+      "wr_p05_eff": {
+        "tp": 18,
+        "fp": 21,
+        "fn": 43,
+        "precision": 0.462,
+        "recall": 0.295,
+        "f1": 0.36
+      },
+      "wr_bh": {
+        "tp": 14,
+        "fp": 6,
+        "fn": 47,
+        "precision": 0.7,
+        "recall": 0.23,
+        "f1": 0.346
+      },
+      "pickban_bh": {
+        "tp": 55,
+        "fp": 242,
+        "fn": 6,
+        "precision": 0.185,
+        "recall": 0.902,
+        "f1": 0.307
+      },
+      "pickban_eff2": {
+        "tp": 34,
+        "fp": 20,
+        "fn": 27,
+        "precision": 0.63,
+        "recall": 0.557,
+        "f1": 0.591
+      },
+      "any_bh": {
+        "tp": 55,
+        "fp": 242,
+        "fn": 6,
+        "precision": 0.185,
+        "recall": 0.902,
+        "f1": 0.307
+      },
+      "any_bh_eff": {
+        "tp": 48,
+        "fp": 196,
+        "fn": 13,
+        "precision": 0.197,
+        "recall": 0.787,
+        "f1": 0.315
+      }
+    },
+    "tp_latency_z_naive": {
+      "median_build_games": 11144,
+      "n": 21
+    }
+  }
+}
