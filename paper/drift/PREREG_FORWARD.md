@@ -1,6 +1,6 @@
 # Pre-registered prospective forward test (paper 2, drift)
 
-**Status: DRAFT v2 (2026-09-27), not yet registered.** It becomes binding when
+**Status: REGISTERED on OSF 2026-09-27 (https://osf.io/3cxvd, embargoed; anonymized view-only link https://osf.io/3cxvd/overview?view_only=dbe817f56afe4507865e44bf24510748).** It becomes binding when
 it is submitted as an OSF registration. The OSF submission timestamp is the
 registration date. The frozen code is identified by git commit hash and by
 SHA-256 (the table at the bottom is filled at registration). Results are
@@ -118,5 +118,5 @@ Command: `sha256sum <files>` at the registered commit.
 
 - [x] Max approves text (2026-09-27)
 - [x] Code committed and pushed (9dbc5df, branch drift-prereg-freeze); hashes filled in above
-- [ ] Submitted on OSF (Max; embargo on, anonymized view-only link generated for review)
-- [ ] Paper macros `\preregdate` / `\prereglink` filled in
+- [x] Submitted on OSF 2026-09-27 (osf.io/3cxvd; embargo approved; anonymized view-only link verified)
+- [x] Paper macros `\preregdate` / `\prereglink` filled in
