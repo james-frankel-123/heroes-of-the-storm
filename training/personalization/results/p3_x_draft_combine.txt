@@ -1,0 +1,176 @@
+{
+ "picks": 57240,
+ "lambda_grid_tuning_half": {
+  "0.0": {
+   "slope_pp": 16.890974635861923,
+   "top1_match": 0.12513540902260895,
+   "residual_when_top1_matched_pp": 1.7641463274064926
+  },
+  "0.002": {
+   "slope_pp": 19.686879087701957,
+   "top1_match": 0.1356885767201314,
+   "residual_when_top1_matched_pp": 2.2164336314313102
+  },
+  "0.005": {
+   "slope_pp": 21.265584424743153,
+   "top1_match": 0.1527413775028829,
+   "residual_when_top1_matched_pp": 2.0830616262896715
+  },
+  "0.01": {
+   "slope_pp": 23.861805490374756,
+   "top1_match": 0.18031240171925778,
+   "residual_when_top1_matched_pp": 2.189943797944128
+  },
+  "0.02": {
+   "slope_pp": 28.30815975927371,
+   "top1_match": 0.228745151483384,
+   "residual_when_top1_matched_pp": 2.0863437913005374
+  },
+  "0.05": {
+   "slope_pp": 32.13174592332059,
+   "top1_match": 0.2979347940035643,
+   "residual_when_top1_matched_pp": 1.9194404936063298
+  },
+  "0.1": {
+   "slope_pp": 35.086156672681376,
+   "top1_match": 0.32735786420659047,
+   "residual_when_top1_matched_pp": 1.973034478055932
+  },
+  "0.2": {
+   "slope_pp": 35.9364638464631,
+   "top1_match": 0.33623370723695706,
+   "residual_when_top1_matched_pp": 1.7499074819949778
+  },
+  "1.0": {
+   "slope_pp": 35.74416642039567,
+   "top1_match": 0.33703742530663594,
+   "residual_when_top1_matched_pp": 1.5597916910103282
+  },
+  "1000.0": {
+   "slope_pp": 36.34816806609939,
+   "top1_match": 0.3357444875423699,
+   "residual_when_top1_matched_pp": 1.62507724559724
+  }
+ },
+ "chosen_lambda": 1000.0,
+ "chosen_lambda_by_matched_residual": 0.002,
+ "team_level_joint_regression": {
+  "V and imitation": {
+   "coef_pp_per_unit": [
+    7.43632933367433,
+    36.614016209682674
+   ],
+   "ci_first": [
+    0.46381548912185055,
+    14.535598516902509
+   ],
+   "ci_second": [
+    28.868311240832018,
+    43.55868839010054
+   ],
+   "corr_between_agreements": 0.3422707566670282
+  },
+  "personal component (V - WP) and imitation": {
+   "coef_pp_per_unit": [
+    12.79070654597543,
+    31.74000941285293
+   ],
+   "ci_first": [
+    5.785386118602729,
+    18.874438695890085
+   ],
+   "ci_second": [
+    23.78383702623984,
+    40.96238369966754
+   ],
+   "corr_between_agreements": 0.500542053907919
+  }
+ },
+ "test_half": {
+  "0.0": {
+   "agreement": {
+    "quintile_residual_pp": [
+     -3.2465034898972407,
+     -3.0697878895888686,
+     0.1196553657104919,
+     0.807537562722202,
+     5.389202999756326
+    ],
+    "top_minus_bottom_pp": [
+     8.635706489653566,
+     4.6410843706710105,
+     12.301471445530519
+    ]
+   },
+   "slope_pp": 20.910222075759698,
+   "top1_match_rate": 0.1217415612551541,
+   "residual_when_real_pick_is_top1_pp": [
+    3.397830281445134,
+    1.8032271837137734,
+    5.000077075935498
+   ],
+   "residual_otherwise_pp": [
+    -0.4716971969620144,
+    -1.1195878205097471,
+    0.14796101381604862
+   ]
+  },
+  "0.002": {
+   "agreement": {
+    "quintile_residual_pp": [
+     -4.368966146978229,
+     -2.2499036229333504,
+     0.08038757434049687,
+     1.1954044645009603,
+     5.343147984758735
+    ],
+    "top_minus_bottom_pp": [
+     9.712114131736964,
+     5.858843557471531,
+     13.64800640940666
+    ]
+   },
+   "slope_pp": 22.098722424507837,
+   "top1_match_rate": 0.13508980362009923,
+   "residual_when_real_pick_is_top1_pp": [
+    3.193841803678255,
+    1.6327197072508108,
+    4.953350261146702
+   ],
+   "residual_otherwise_pp": [
+    -0.4995551495195764,
+    -1.1528493944494114,
+    0.13578112435520512
+   ]
+  },
+  "1000.0": {
+   "agreement": {
+    "quintile_residual_pp": [
+     -8.132745498002357,
+     -0.8500135660692073,
+     -0.4153683573215991,
+     3.4672616506768104,
+     5.9305030497921605
+    ],
+    "top_minus_bottom_pp": [
+     14.063248547794519,
+     10.131378725594049,
+     18.11346244577757
+    ]
+   },
+   "slope_pp": 42.517925536565,
+   "top1_match_rate": 0.332587881752743,
+   "residual_when_real_pick_is_top1_pp": [
+    2.3013525461826188,
+    1.272751693804632,
+    3.3051632938878757
+   ],
+   "residual_otherwise_pp": [
+    -1.14774189436935,
+    -1.8720705137924532,
+    -0.41377201835522487
+   ]
+  }
+ },
+ "note": "lambda 0 = outcome (personalized V) ranking; 1e3 = imitation ranking; V is a probability, logp a natural-log imitation probability within the candidate set"
+}

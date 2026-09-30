@@ -1,0 +1,46 @@
+{
+ "all post-cutoff teams": {
+  "teams": 230132,
+  "real_is_best_mapping": 0.41670867154502633,
+  "mean_rank_of_real_mapping_of_120": 6.081818260824223,
+  "predicted_gain_best_vs_real_pp": 1.9773991527322998,
+  "predicted_gain_real_vs_random_mapping_pp": 12.809681091817184,
+  "share_gap_over_2pp": 0.3527323449150922,
+  "realized_slope_of_assignment_component": [
+   0.7479223921554479,
+   0.7148640821115929,
+   0.7824617308307316
+  ],
+  "model_slope_prob_units": 0.9273438077033318,
+  "residual_by_assignment_component_quintile_pp": [
+   -4.990739368246585,
+   -1.8713192333002029,
+   -0.38541954871752226,
+   2.04264983021337,
+   5.204823659559935
+  ],
+  "assignment_component_sd_pp": 6.267025445604749
+ },
+ "V2 teams, all ten 50+ games": {
+  "teams": 28486,
+  "real_is_best_mapping": 0.48932809099206626,
+  "mean_rank_of_real_mapping_of_120": 4.228814154321421,
+  "predicted_gain_best_vs_real_pp": 2.0216051633934304,
+  "predicted_gain_real_vs_random_mapping_pp": 16.886451204495938,
+  "share_gap_over_2pp": 0.33637576353296356,
+  "realized_slope_of_assignment_component": [
+   0.8460734705440736,
+   0.7550148417109551,
+   0.929349827836157
+  ],
+  "model_slope_prob_units": 0.9273438077033318,
+  "residual_by_assignment_component_quintile_pp": [
+   -7.0981752360157895,
+   -3.7259563055606773,
+   -1.308177352966458,
+   0.5451279521846386,
+   5.936409444877594
+  ],
+  "assignment_component_sd_pp": 6.523737039957177
+ }
+}

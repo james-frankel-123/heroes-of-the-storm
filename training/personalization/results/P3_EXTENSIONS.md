@@ -388,3 +388,149 @@ For comparison, status 0 at 20 to 49 games seen runs from −2.8 (hero not playe
 - Ship the status-split experience table: +0.002 overall and +0.011 to +0.013 in games with a new account.
 - Show new accounts in a lobby as "new account: expect +8 to +13pp over their first 50 games", with the detector score as a secondary flag.
 - Do not purify residuals for the skill model.
+
+## 5. Alternatives in personalized drafting (`p3_x_draft.py`)
+
+**Harness.** The one-step drafter of P3_DRAFTER (imported, unmodified), with the same value model V = sigmoid(b0 + b1 logit WP_pop + b2 ΔS + b3 ΔO) and the same held-out V2 lobbies:
+
+- 1,000 full lobbies for simulation;
+- 4,000 lobbies (8,000 teams) for realized checks at the real states.
+
+`cuda_personal/` was not touched. The simulations use separate random streams for decisions and for the rest of the draft, so the compared drafters face the same behavioral opponent. They ran on 4 CPU processes in 31 minutes.
+
+### (a) Personalized bans
+
+**Setup.**
+
+- The controlled team's three bans are chosen by V (which knows the opponents' personal strengths), by WP_pop, or kept as the real bans.
+- Ban candidates: the top 10 by the GD model's ban probability plus the top 10 by the strongest opponent's personal term.
+- 8 rollouts per candidate.
+- All picks on both sides come from the pool-restricted behavioral policy, so only the bans differ.
+- 4 trajectories per lobby and mode.
+
+| comparison (whole draft, controlled team) | change in V (pp) | change in WP_pop (pp) |
+|---|---|---|
+| personalized bans − population bans | +0.29 (−0.09, +0.65) | +0.14 (−0.18, +0.47) |
+| personalized bans − real bans | +0.12 (−0.30, +0.57) | +0.22 (−0.15, +0.59) |
+| population bans − real bans | −0.17 (−0.62, +0.26) | +0.08 (−0.29, +0.43) |
+
+- At the decision itself, the personalized ban differs from the population ban 53% of the time. When it differs, it claims +2.5pp of V for −2.1pp of WP_pop.
+- The whole-draft difference is only +0.3pp and not significant. The decision-level claim is inflated by choosing the best of about 20 noisy 8-rollout means.
+- More fundamentally, one ban removes one hero from a pool of about 34, and the opponent simply picks his next-best hero.
+- **Realized check** (8,000 teams, real ban states; each real ban placed in the personalized and population ban rankings; team residual y − WP_pop by agreement quintile): top minus bottom quintile is −0.4pp (−4.1, +3.1) for personalized-ban agreement, +1.4pp (−2.2, +4.6) for population-ban agreement, and −2.3pp (−5.7, +1.2) for the personal-minus-population difference. None is distinguishable from zero.
+
+**Verdict.** Personalized bans are worth at most a few tenths of a point per draft. Not worth a product feature beyond showing "their strongest heroes" as information.
+
+### (b) Teammates-only mode (opponents unknown)
+
+**Setup.**
+
+- The controlled team drafts with three levels of information:
+  - full information (all ten identities);
+  - teammates only: in its rollouts the opponents pick from unrestricted GD, and its value sets their S and O to 0;
+  - population WP.
+- The opponent really is the identified team, drafting from its own pools.
+- Final drafts are scored with the full-information V.
+
+| controlled team drafts with | gain in V over the population drafter (pp) | change in WP_pop (pp) |
+|---|---|---|
+| full information | +5.93 (5.28, 6.60) | −2.90 |
+| teammates only | +5.75 (4.99, 6.48) | −2.96 |
+| full − teammates only | +0.18 (−0.43, +0.86) | +0.06 |
+
+The teammates-only drafter keeps **97% (86%, 107%)** of the full-information value.
+
+**Realized check** (8,000 teams, same states and teams). Top minus bottom quintile of team residual by agreement:
+
+- teammates-only ranking: +6.4pp (3.1, 9.9);
+- full-information ranking: +5.7pp (2.4, 9.2).
+
+**Verdict.** The realistic lobby, where only teammates are known, loses essentially nothing. The personal value of a pick is the picking player's own term. The opponents' terms are fixed by their picks and hardly change which hero is best for us. The degraded mode is the product.
+
+### (c) Role assignment within a team, given the picks
+
+**Setup.** For each real team, all 120 mappings of its five players to its five heroes are scored with b2 S + b3 O, and compared with the real mapping. Lane assignments are not in the data, so this is hero-to-player assignment only.
+
+| | all post-cutoff teams (230,132) | V2 teams with all ten players 50+ games (28,486) |
+|---|---|---|
+| real mapping is the best of 120 | 41.7% | 48.9% |
+| mean rank of the real mapping | 6.1 | 4.2 |
+| predicted gain, best mapping − real | +2.0pp | +2.0pp |
+| share of teams leaving 2pp or more | 35% | 34% |
+| real mapping − random mapping | +12.8pp | +16.9pp |
+| realized slope of the assignment component (model: 0.93) | 0.75 (0.71, 0.78) | 0.85 (0.76, 0.93) |
+| team residual by assignment-component quintile | −5.0, −1.9, −0.4, +2.0, +5.2pp | −7.1, −3.7, −1.3, +0.5, +5.9pp |
+
+The assignment component is the real team's S minus its mean over all 120 mappings. It isolates who-plays-what from which heroes were picked.
+
+- Teams already assign heroes far better than chance (+13 to +17pp over a random mapping), and half pick the model's best mapping.
+- The model says the rest leave +2.0pp on average, and a third of teams leave 2pp or more.
+- Realized outcomes track the assignment component at 80 to 90% of the model's slope. So the advice "swap heroes with a teammate" is backed by realized outcomes as well as by the model. Applied at the realized slope, it would be worth about +1.7pp per team.
+- In practice this is the pick-order / trade question: who should take the hero the team needs.
+
+### (d) Combining imitation and outcome
+
+**Setup.** At the 57,240 real picks of the realized lobbies, each candidate gets the outcome value V and the DraftRec-style imitation log-probability (within the same candidate set). The combined score is V + λ log p_imit.
+
+**Team-level joint regression.** Team residual (y − WP_pop) on the mean agreement of the team's real picks with each ranking, both in the model:
+
+| signals in the regression | first signal (pp per unit agreement) | imitation (pp per unit) | correlation of the two agreements |
+|---|---|---|---|
+| V and imitation | +7.4 (0.5, 14.5) | +36.6 (28.9, 43.6) | 0.34 |
+| personal component (V − WP) and imitation | +12.8 (5.8, 18.9) | +31.7 (23.8, 41.0) | 0.50 |
+
+**Choosing λ.** λ was chosen on half of the lobbies and scored on the other half.
+
+- The agreement-slope criterion picks pure imitation.
+- The criterion "residual when the real pick equals the recommender's top-1" picks λ = 0.002.
+
+| ranking (test half) | top minus bottom agreement quintile | real pick = top-1 | residual when it is | residual otherwise |
+|---|---|---|---|---|
+| outcome V (λ = 0) | +8.6pp (4.6, 12.3) | 12.2% | +3.4 (1.8, 5.0) | −0.5 |
+| combined, λ = 0.002 | +9.7pp (5.9, 13.6) | 13.5% | +3.2 (1.6, 5.0) | −0.5 |
+| imitation | +14.1pp (10.1, 18.1) | 33.3% | +2.3 (1.3, 3.3) | −1.1 |
+
+Findings:
+
+- **Both signals carry independent outcome information.** The imitation signal is the larger one.
+  - Teams whose picks look like what the players usually pick beat the population expectation by far more than the outcome model's personal term implies. This holds even after the model's comfort offset.
+  - The imitation features that the value model lacks are recency and share of recent play: EWMA pick shares over 20 and 100 games, and days since the hero was last played. Section 3's hero rust points the same way: a hero played recently is worth more than its lifetime count says.
+- **As a recommender,** a small imitation weight (λ = 0.002) keeps the outcome drafter's matched-pick residual (+3.2 vs +3.4pp) and slightly raises agreement. Pure imitation recommends what players already do (33% match), and its matches win less (+2.3pp).
+- **Recommendation.** Put the recency and share features into the value function (the outcome side), and keep the outcome drafter as the recommender. Do not blend rankings at a large weight. P3_DRAFTER's finding that "picks matching both do best (+3.3pp)" is confirmed, and the joint regression explains why: the outcome model is missing a recency/comfort term.
+
+### (e) Premade chemistry in the value function
+
+**Setup.** There are 4.24M premade pair-games (801K distinct pairs). The outcome is the team residual after the skill model (y − WP − own team's S + opponents' S).
+
+**Duos, by number of earlier joint games:**
+
+| earlier joint games | 0 | 1-4 | 5-19 | 20-49 | 50-199 | 200+ |
+|---|---|---|---|---|---|---|
+| residual (pp) | +0.9 (0.6, 1.1) | +0.8 | −0.4 | −0.4 | −0.3 | −0.6 |
+
+New duos over-perform and established duos slightly under-perform. That fits new accounts duoing with friends (section 4), and does not fit chemistry that grows with practice.
+
+**Pair-specific spread.** For 51,903 pairs with 10+ joint games, the spread was measured net of each member's own level away from the partner:
+
+- 4.9pp sd when splitting alternating games;
+- 3.7pp sd when splitting first vs second half in time.
+
+The forward test says this is not stable chemistry (below).
+
+**Joint comfort** (a hero pair the premade has played together before; pairs with 10+ joint games): −0.6pp for a first time on that hero pair, and −0.0 to −0.3pp after that.
+
+**Game level** (V2, on top of the skill model):
+
+| added term | gain |
+|---|---|
+| 3+ stack count | −0.000001 (−0.00013, +0.00013) |
+| pair chemistry (causal, shrunk) | +0.00009 (−0.00005, +0.00022) |
+| pair familiarity (log joint games) | +0.00006 (0.00002, 0.00010) |
+| joint comfort | +0.0000 |
+| all chemistry terms together | +0.00042 (0.00012, 0.00068) |
+
+Findings:
+
+- The split-half spread is large, yet a causal, shrunk pair term predicts almost nothing forward. Most of the spread is temporary: premades play in bursts, and the two members share their form within a burst.
+- All terms together add +0.0004 to the value function. They are hero-independent (joint comfort adds nothing), so they shift the team's win probability without changing which hero to pick.
+- **Verdict.** Add a small party term to the displayed win probability. Chemistry does not belong in the pick search.
