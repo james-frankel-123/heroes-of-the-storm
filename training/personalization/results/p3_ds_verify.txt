@@ -1,0 +1,21 @@
+{
+ "prior_off_vs_personal_kernel": {
+  "full draft": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_actions": true,
+   "identical_root_visits": true
+  },
+  "decide-only": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_actions": true,
+   "identical_root_visits": true
+  }
+ },
+ "root_prior_vs_python": {
+  "BC prior (alpha 1, zero term) max |diff|": 2.2351741790771484e-07,
+  "distilled prior max |diff|": 3.2782554626464844e-07,
+  "states": 64
+ }
+}

@@ -1,0 +1,60 @@
+{
+ "n_train": 51180,
+ "n_val": 5680,
+ "n_test": 57240,
+ "features": [
+  "b2_s",
+  "off_role",
+  "log1p_n",
+  "never_n",
+  "ewma20",
+  "ewma100",
+  "log1p_days_since",
+  "never_played",
+  "log_fine_share"
+ ],
+ "models": {
+  "BC prior alone": {
+   "test": {
+    "cross_entropy": 2.5671486854553223,
+    "kl_to_mcts": 0.24144268035888672,
+    "top1_equals_mcts_argmax": 0.5016072676450035,
+    "top1_equals_real_pick": 0.14423480083857443,
+    "loglik_real_pick": -2.9209182262420654
+   }
+  },
+  "alpha only": {
+   "val_ce": 2.553079843521118,
+   "alpha": 1.2607680559158325,
+   "test": {
+    "cross_entropy": 2.5433480739593506,
+    "kl_to_mcts": 0.21764206886291504,
+    "top1_equals_mcts_argmax": 0.5016072676450035,
+    "top1_equals_real_pick": 0.14423480083857443,
+    "loglik_real_pick": -2.9893696308135986
+   }
+  },
+  "g only": {
+   "val_ce": 3.213646173477173,
+   "alpha": 0.0,
+   "test": {
+    "cross_entropy": 3.201894521713257,
+    "kl_to_mcts": 0.8761885166168213,
+    "top1_equals_mcts_argmax": 0.17115653389238294,
+    "top1_equals_real_pick": 0.24456673654786862,
+    "loglik_real_pick": -2.8991029262542725
+   }
+  },
+  "distilled (alpha BC + g)": {
+   "val_ce": 2.507848024368286,
+   "alpha": 1.2302528619766235,
+   "test": {
+    "cross_entropy": 2.499587297439575,
+    "kl_to_mcts": 0.17388129234313965,
+    "top1_equals_mcts_argmax": 0.5704053109713487,
+    "top1_equals_real_pick": 0.19283717679944096,
+    "loglik_real_pick": -2.7748048305511475
+   }
+  }
+ }
+}
