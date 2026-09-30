@@ -512,21 +512,22 @@ export async function backfillTalents(
 }
 
 export async function getReplayStats(db: SyncDb) {
-  const [draftCount] = await db.execute(
-    sql`SELECT count(*) as c FROM replay_draft_data`
+  // Planner estimates from pg_class: exact count(*) is a full scan on
+  // multi-GB tables and these numbers only feed log lines.
+  const [est] = await db.execute(
+    sql`SELECT
+          (SELECT reltuples::bigint FROM pg_class WHERE relname = 'replay_draft_data') AS drafts,
+          (SELECT reltuples::bigint FROM pg_class WHERE relname = 'replay_fetch_queue') AS queued`
   ).then(r => r.rows)
   const [queueCount] = await db.execute(
     sql`SELECT count(*) as c FROM replay_fetch_queue WHERE fetched = false`
   ).then(r => r.rows)
-  const [totalQueued] = await db.execute(
-    sql`SELECT count(*) as c FROM replay_fetch_queue`
-  ).then(r => r.rows)
   const state = await loadState(db)
 
   return {
-    draftDataRows: Number(draftCount.c),
+    draftDataRows: Number(est.drafts),
     pendingInQueue: Number(queueCount.c),
-    totalQueued: Number(totalQueued.c),
+    totalQueued: Number(est.queued),
     discoveryCursor: state.discoveryCursor,
     maxKnownId: state.maxKnownId,
     gapRemaining: state.maxKnownId - state.discoveryCursor,

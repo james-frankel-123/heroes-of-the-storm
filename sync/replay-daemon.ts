@@ -35,6 +35,10 @@ async function main() {
   const api = new MultiKeyApi(keys, rates, 3)
   log.info(`Using ${keys.length} API key(s) (rates: ${rates.join('/')} /min)`)
 
+  // --cron: one-shot mode — exit when caught up (or quota-blocked) instead
+  // of sleeping, so the Neon endpoint can suspend between scheduled runs.
+  const cron = process.argv.includes('--cron')
+
   // --fresh flag: reset cursor to near max, clear old unfetched queue
   const fresh = process.argv.includes('--fresh')
   if (fresh) {
@@ -63,6 +67,7 @@ async function main() {
   const CYCLE_PAUSE_MS = 10_000 // 10s pause between cycles
 
   let cycle = 0
+  let consecutiveErrors = 0
   while (true) {
     cycle++
     log.info(`\n=== Cycle ${cycle} ===`)
@@ -80,20 +85,35 @@ async function main() {
       // Phase 3: Backfill talent data for older replays (only when queue is empty)
       const talentBackfilled = await backfillTalents(db, 2000)
 
-      // Report stats
-      const stats = await getReplayStats(db)
-      log.info(`Stats: ${stats.draftDataRows} drafts stored, ${stats.pendingInQueue} pending, ` +
-        `cursor gap: ${stats.gapRemaining}, total API calls: ${api.getTotalCallCount()}`)
+      const caughtUp = discovered === 0 && backfilled === 0 && fetched === 0 && talentBackfilled === 0
+
+      // Report stats every 15th cycle (count(*) on multi-GB tables is a full
+      // scan — too expensive to run every 10s) and whenever we're caught up.
+      if (cycle % 15 === 1 || caughtUp) {
+        const stats = await getReplayStats(db)
+        log.info(`Stats: ${stats.draftDataRows} drafts stored, ${stats.pendingInQueue} pending, ` +
+          `cursor gap: ${stats.gapRemaining}, total API calls: ${api.getTotalCallCount()}`)
+      }
 
       // If we're caught up on everything (including talent backfill), slow down
-      if (discovered === 0 && backfilled === 0 && fetched === 0 && talentBackfilled === 0) {
+      if (caughtUp) {
+        if (cron) {
+          log.info('Caught up (or quota-blocked) — exiting (cron mode)')
+          break
+        }
         log.info('Caught up — waiting 5 minutes before next cycle')
         await sleep(300_000)
       } else {
         await sleep(CYCLE_PAUSE_MS)
       }
+      consecutiveErrors = 0
     } catch (err) {
       log.error(`Cycle ${cycle} error:`, err)
+      consecutiveErrors++
+      if (cron && consecutiveErrors >= 3) {
+        log.error('3 consecutive cycle errors — exiting (cron mode)')
+        process.exit(1)
+      }
       await sleep(60_000) // Wait 1 min on error
     }
   }
