@@ -32,7 +32,14 @@ function leagueTierToSkillTier(tier: number | null): string {
 
 // ── Phase 1: Discovery ──────────────────────────────────────────────
 
-const MAJOR_PATCH = '2.55'
+/** Oldest major patch collected; every newer one (2.57, ...) is kept too. */
+const MIN_MAJOR_PATCH = [2, 55] as const
+
+function isTrackedPatch(version: string | null | undefined): boolean {
+  const [maj, min] = String(version ?? '').split('.').map(Number)
+  if (!Number.isFinite(maj) || !Number.isFinite(min)) return false
+  return maj > MIN_MAJOR_PATCH[0] || (maj === MIN_MAJOR_PATCH[0] && min >= MIN_MAJOR_PATCH[1])
+}
 
 function isQuotaError(err: unknown): boolean {
   const msg = String(err)
@@ -126,7 +133,7 @@ export async function discoverReplays(
   const calls0 = api.getTotalCallCount()
   while (state.discoveryCursor < maxId && api.getTotalCallCount() - calls0 < maxCalls) {
     try {
-      const batch = await api.next().getReplayMinId(state.discoveryCursor, 'Storm League', 200, undefined, MAJOR_PATCH)
+      const batch = await api.next().getReplayMinId(state.discoveryCursor, 'Storm League', 200)
       callsMade++
 
       if (!Array.isArray(batch) || batch.length === 0) {
@@ -136,13 +143,13 @@ export async function discoverReplays(
         continue
       }
 
-      // Filter for valid Storm League replays on current major patch
+      // Filter for valid Storm League replays on patch 2.55 or newer
       const valid = batch.filter((r: any) =>
         r.game_type === 'Storm League' &&
         r.valid === 1 &&
         !r.deleted &&
         r.replayID &&
-        (r.game_version || '').startsWith(MAJOR_PATCH)
+        isTrackedPatch(r.game_version)
       )
 
       if (valid.length > 0) {
@@ -235,7 +242,7 @@ export async function discoverBackfill(
     const queryStart = Math.max(BACKFILL_FLOOR, state.backfillCursor - 1000)
     try {
       // Whole window [queryStart, cursor): v1 pages ~25 rows, so bound by id, not row count.
-      const batch = await api.next().getReplayMinId(queryStart, 'Storm League', Infinity, state.backfillCursor, MAJOR_PATCH)
+      const batch = await api.next().getReplayMinId(queryStart, 'Storm League', Infinity, state.backfillCursor)
       callsMade++
 
       if (!Array.isArray(batch) || batch.length === 0) {
@@ -243,14 +250,14 @@ export async function discoverBackfill(
         continue
       }
 
-      // Filter for valid SL replays on current major patch
+      // Filter for valid SL replays on patch 2.55 or newer
       const valid = batch.filter((r: any) =>
         r.game_type === 'Storm League' &&
         r.valid === 1 &&
         !r.deleted &&
         r.replayID &&
         r.replayID < state.backfillCursor &&
-        (r.game_version || '').startsWith(MAJOR_PATCH)
+        isTrackedPatch(r.game_version)
       )
 
       if (valid.length > 0) {
