@@ -3,9 +3,10 @@
  *
  * Polls /players/privacy/changes and, within 24h of a player going private:
  *  - site data: deletes their player_match_history / player_hero_stats /
- *    player_hero_map_stats rows, player_history_marks, and blanks sync_log;
+ *    player_hero_map_stats rows and blanks sync_log;
  *  - research data (replay_players), per PRIVACY_RESEARCH_MODE:
- *      retain (default): rows untouched. Research store is never displayed;
+ *      retain (default): replay_players and player_history_marks untouched.
+ *        Research store is never displayed;
  *        pending Heroes Profile's written approval (asked 2026-09-30).
  *      pseudonymize: every row of each matching (region, blizz_id) gets a
  *        fresh random negative blizz_id and battletag 'private'. No mapping
@@ -118,13 +119,14 @@ async function purge(db: SyncDb, battletag: string, region: number, mode: Mode) 
     db.execute(sql`DELETE FROM player_match_history WHERE battletag = ${battletag}`),
     db.execute(sql`DELETE FROM player_hero_stats WHERE battletag = ${battletag}`),
     db.execute(sql`DELETE FROM player_hero_map_stats WHERE battletag = ${battletag}`),
-    db.execute(sql`DELETE FROM player_history_marks WHERE battletag = ${battletag}`),
     db.execute(sql`UPDATE sync_log SET battletag = NULL WHERE battletag = ${battletag}`),
   ] as any)
 
   let researchIds = 0
   let researchRows = 0
   if (mode === 'pseudonymize') {
+    // Research panel bookkeeping (enqueue-player-histories) goes with the rows.
+    await db.execute(sql`DELETE FROM player_history_marks WHERE battletag = ${battletag}`)
     const ids = (await db.execute(sql`
       SELECT DISTINCT blizz_id FROM replay_players
       WHERE battletag = ${battletag} AND region = ${region}`)).rows.map((r: any) => Number(r.blizz_id))
