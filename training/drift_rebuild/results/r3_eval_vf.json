@@ -1,0 +1,1118 @@
+{
+ "maintained/cumprev/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2c_cumprev_s42.pt",
+  "features": "cumulative_prev",
+  "val": {
+   "n_rows": 72216,
+   "acc": 57.165,
+   "logloss": 0.67682,
+   "calib_slope": 0.994,
+   "calib_intercept": 0.0111
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 57.086,
+   "logloss": 0.67775,
+   "calib_slope": 0.915,
+   "calib_intercept": 0.0099
+  }
+ },
+ "maintained/cumprev/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2c_cumprev_s123.pt",
+  "features": "cumulative_prev",
+  "val": {
+   "n_rows": 72216,
+   "acc": 57.133,
+   "logloss": 0.67696,
+   "calib_slope": 0.991,
+   "calib_intercept": 0.0129
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 57.114,
+   "logloss": 0.67771,
+   "calib_slope": 0.92,
+   "calib_intercept": 0.015
+  }
+ },
+ "maintained/cumprev/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2c_cumprev_s777.pt",
+  "features": "cumulative_prev",
+  "val": {
+   "n_rows": 72216,
+   "acc": 57.18,
+   "logloss": 0.6767,
+   "calib_slope": 1.045,
+   "calib_intercept": -0.0074
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 57.044,
+   "logloss": 0.67769,
+   "calib_slope": 0.952,
+   "calib_intercept": -0.0091
+  }
+ },
+ "leaky/allhist/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_allhist_s42.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 59.067,
+   "logloss": 0.6666,
+   "calib_slope": 1.019,
+   "calib_intercept": -0.0092
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.178,
+   "logloss": 0.68355,
+   "calib_slope": 0.68,
+   "calib_intercept": -0.004
+  }
+ },
+ "leaky/win3/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win3_s42.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.656,
+   "logloss": 0.66994,
+   "calib_slope": 0.933,
+   "calib_intercept": -0.0096
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.321,
+   "logloss": 0.68268,
+   "calib_slope": 0.695,
+   "calib_intercept": -0.0069
+  }
+ },
+ "leaky/win6/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win6_s42.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.627,
+   "logloss": 0.6691,
+   "calib_slope": 0.95,
+   "calib_intercept": -0.0052
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.53,
+   "logloss": 0.6818,
+   "calib_slope": 0.708,
+   "calib_intercept": -0.0038
+  }
+ },
+ "leaky/win12/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win12_s42.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.891,
+   "logloss": 0.66759,
+   "calib_slope": 0.991,
+   "calib_intercept": -0.0336
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.436,
+   "logloss": 0.68221,
+   "calib_slope": 0.708,
+   "calib_intercept": -0.0238
+  }
+ },
+ "leaky/decay90/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_decay90_s42.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.778,
+   "logloss": 0.66847,
+   "calib_slope": 1.01,
+   "calib_intercept": -0.0089
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.463,
+   "logloss": 0.68165,
+   "calib_slope": 0.733,
+   "calib_intercept": -0.0064
+  }
+ },
+ "leaky/decay365/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_decay365_s42.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 59.096,
+   "logloss": 0.66716,
+   "calib_slope": 1.018,
+   "calib_intercept": -0.0028
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.345,
+   "logloss": 0.68244,
+   "calib_slope": 0.705,
+   "calib_intercept": -0.0003
+  }
+ },
+ "leaky/embed/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_embed_s42.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.894,
+   "logloss": 0.66802,
+   "calib_slope": 1.025,
+   "calib_intercept": 0.0179
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.576,
+   "logloss": 0.68084,
+   "calib_slope": 0.751,
+   "calib_intercept": 0.0132
+  }
+ },
+ "leaky/allhist/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_allhist_s123.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 59.139,
+   "logloss": 0.66662,
+   "calib_slope": 1.034,
+   "calib_intercept": 0.0141
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.173,
+   "logloss": 0.68336,
+   "calib_slope": 0.691,
+   "calib_intercept": 0.0094
+  }
+ },
+ "leaky/win3/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win3_s123.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.563,
+   "logloss": 0.66968,
+   "calib_slope": 0.953,
+   "calib_intercept": 0.0364
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.432,
+   "logloss": 0.68201,
+   "calib_slope": 0.716,
+   "calib_intercept": 0.0281
+  }
+ },
+ "leaky/win6/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win6_s123.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.649,
+   "logloss": 0.66927,
+   "calib_slope": 0.903,
+   "calib_intercept": -0.0064
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.52,
+   "logloss": 0.68261,
+   "calib_slope": 0.674,
+   "calib_intercept": -0.0037
+  }
+ },
+ "leaky/win12/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win12_s123.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 59.027,
+   "logloss": 0.66732,
+   "calib_slope": 1.021,
+   "calib_intercept": -0.0012
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.52,
+   "logloss": 0.68171,
+   "calib_slope": 0.726,
+   "calib_intercept": -0.0018
+  }
+ },
+ "leaky/decay90/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_decay90_s123.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.884,
+   "logloss": 0.66826,
+   "calib_slope": 0.991,
+   "calib_intercept": -0.0264
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.494,
+   "logloss": 0.68176,
+   "calib_slope": 0.722,
+   "calib_intercept": -0.021
+  }
+ },
+ "leaky/decay365/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_decay365_s123.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 59.138,
+   "logloss": 0.6671,
+   "calib_slope": 1.044,
+   "calib_intercept": -0.0311
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.326,
+   "logloss": 0.68218,
+   "calib_slope": 0.725,
+   "calib_intercept": -0.0228
+  }
+ },
+ "leaky/embed/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_embed_s123.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.749,
+   "logloss": 0.66835,
+   "calib_slope": 0.951,
+   "calib_intercept": -0.015
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.534,
+   "logloss": 0.68173,
+   "calib_slope": 0.702,
+   "calib_intercept": -0.0104
+  }
+ },
+ "leaky/allhist/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_allhist_s777.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 59.123,
+   "logloss": 0.66666,
+   "calib_slope": 1.015,
+   "calib_intercept": 0.0065
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.274,
+   "logloss": 0.68321,
+   "calib_slope": 0.686,
+   "calib_intercept": 0.0033
+  }
+ },
+ "leaky/win3/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win3_s777.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.509,
+   "logloss": 0.67079,
+   "calib_slope": 0.867,
+   "calib_intercept": 0.0202
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.365,
+   "logloss": 0.68367,
+   "calib_slope": 0.654,
+   "calib_intercept": 0.0156
+  }
+ },
+ "leaky/win6/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win6_s777.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.79,
+   "logloss": 0.66897,
+   "calib_slope": 1.033,
+   "calib_intercept": 0.0111
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.552,
+   "logloss": 0.68074,
+   "calib_slope": 0.769,
+   "calib_intercept": 0.0089
+  }
+ },
+ "leaky/win12/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_win12_s777.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.889,
+   "logloss": 0.66756,
+   "calib_slope": 1.004,
+   "calib_intercept": 0.0331
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.442,
+   "logloss": 0.68198,
+   "calib_slope": 0.716,
+   "calib_intercept": 0.0226
+  }
+ },
+ "leaky/decay90/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_decay90_s777.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.904,
+   "logloss": 0.66842,
+   "calib_slope": 0.97,
+   "calib_intercept": 0.0201
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.491,
+   "logloss": 0.68218,
+   "calib_slope": 0.705,
+   "calib_intercept": 0.0165
+  }
+ },
+ "leaky/decay365/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_decay365_s777.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 59.099,
+   "logloss": 0.66723,
+   "calib_slope": 1.064,
+   "calib_intercept": -0.0074
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.419,
+   "logloss": 0.68172,
+   "calib_slope": 0.744,
+   "calib_intercept": -0.0053
+  }
+ },
+ "leaky/embed/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_embed_s777.pt",
+  "features": "cutoff",
+  "val": {
+   "n_rows": 72216,
+   "acc": 58.918,
+   "logloss": 0.66774,
+   "calib_slope": 1.024,
+   "calib_intercept": 0.0021
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.552,
+   "logloss": 0.68119,
+   "calib_slope": 0.74,
+   "calib_intercept": -0.0003
+  }
+ },
+ "leaky/c0frozen/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/w2c_frozenstats_cut08_s42.pt",
+  "features": "cutoff_2.55.3.89754",
+  "val": {
+   "n_rows": 25564,
+   "acc": 61.489,
+   "logloss": 0.65215,
+   "calib_slope": 1.035,
+   "calib_intercept": 0.0028
+  },
+  "future": {
+   "n_rows": 2619922,
+   "acc": 55.128,
+   "logloss": 0.69725,
+   "calib_slope": 0.44,
+   "calib_intercept": 0.0009
+  }
+ },
+ "leaky/stale2yr/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/w7_stale_2.55.4.91418_s42.pt",
+  "features": "cutoff_2.55.4.91418",
+  "val": {
+   "n_rows": 32542,
+   "acc": 60.116,
+   "logloss": 0.66106,
+   "calib_slope": 1.01,
+   "calib_intercept": 0.0115
+  },
+  "future": {
+   "n_rows": 2271002,
+   "acc": 55.279,
+   "logloss": 0.69142,
+   "calib_slope": 0.519,
+   "calib_intercept": 0.0057
+  }
+ },
+ "leaky/stale2yr/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/w7_stale_2.55.4.91418_s123.pt",
+  "features": "cutoff_2.55.4.91418",
+  "val": {
+   "n_rows": 32542,
+   "acc": 60.064,
+   "logloss": 0.66105,
+   "calib_slope": 0.986,
+   "calib_intercept": -0.011
+  },
+  "future": {
+   "n_rows": 2271002,
+   "acc": 55.256,
+   "logloss": 0.69228,
+   "calib_slope": 0.504,
+   "calib_intercept": -0.0057
+  }
+ },
+ "leaky/stale2yr/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/w7_stale_2.55.4.91418_s777.pt",
+  "features": "cutoff_2.55.4.91418",
+  "val": {
+   "n_rows": 32542,
+   "acc": 60.141,
+   "logloss": 0.66099,
+   "calib_slope": 0.987,
+   "calib_intercept": -0.0291
+  },
+  "future": {
+   "n_rows": 2271002,
+   "acc": 55.284,
+   "logloss": 0.69223,
+   "calib_slope": 0.506,
+   "calib_intercept": -0.0155
+  }
+ },
+ "leaky/stale1yr/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/w7_stale_2.55.9.93613_s42.pt",
+  "features": "cutoff_2.55.9.93613",
+  "val": {
+   "n_rows": 46338,
+   "acc": 59.457,
+   "logloss": 0.66382,
+   "calib_slope": 0.95,
+   "calib_intercept": -0.011
+  },
+  "future": {
+   "n_rows": 1581182,
+   "acc": 55.489,
+   "logloss": 0.69048,
+   "calib_slope": 0.532,
+   "calib_intercept": -0.0062
+  }
+ },
+ "leaky/stale1yr/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/w7_stale_2.55.9.93613_s123.pt",
+  "features": "cutoff_2.55.9.93613",
+  "val": {
+   "n_rows": 46338,
+   "acc": 59.441,
+   "logloss": 0.66405,
+   "calib_slope": 0.997,
+   "calib_intercept": 0.0006
+  },
+  "future": {
+   "n_rows": 1581182,
+   "acc": 55.454,
+   "logloss": 0.68926,
+   "calib_slope": 0.557,
+   "calib_intercept": -0.0006
+  }
+ },
+ "leaky/stale1yr/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/w7_stale_2.55.9.93613_s777.pt",
+  "features": "cutoff_2.55.9.93613",
+  "val": {
+   "n_rows": 46338,
+   "acc": 59.664,
+   "logloss": 0.66393,
+   "calib_slope": 1.008,
+   "calib_intercept": -0.0154
+  },
+  "future": {
+   "n_rows": 1581182,
+   "acc": 55.501,
+   "logloss": 0.68884,
+   "calib_slope": 0.566,
+   "calib_intercept": -0.0088
+  }
+ },
+ "oof/allhist/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_allhist_oof_s42.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 57.124,
+   "logloss": 0.67606,
+   "calib_slope": 0.984,
+   "calib_intercept": -0.0221
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.521,
+   "logloss": 0.67936,
+   "calib_slope": 0.905,
+   "calib_intercept": -0.0216
+  }
+ },
+ "oof/win3/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win3_oof_s42.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.08,
+   "logloss": 0.68205,
+   "calib_slope": 0.83,
+   "calib_intercept": -0.0578
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.4,
+   "logloss": 0.68068,
+   "calib_slope": 0.885,
+   "calib_intercept": -0.0605
+  }
+ },
+ "oof/win6/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win6_oof_s42.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.348,
+   "logloss": 0.68009,
+   "calib_slope": 0.924,
+   "calib_intercept": -0.0072
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.662,
+   "logloss": 0.67906,
+   "calib_slope": 0.972,
+   "calib_intercept": -0.0078
+  }
+ },
+ "oof/win12/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win12_oof_s42.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.727,
+   "logloss": 0.67831,
+   "calib_slope": 0.969,
+   "calib_intercept": -0.0077
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.72,
+   "logloss": 0.67888,
+   "calib_slope": 0.973,
+   "calib_intercept": -0.0079
+  }
+ },
+ "oof/decay90/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_decay90_oof_s42.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.469,
+   "logloss": 0.67941,
+   "calib_slope": 1.02,
+   "calib_intercept": -0.0105
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.661,
+   "logloss": 0.67906,
+   "calib_slope": 1.056,
+   "calib_intercept": -0.0125
+  }
+ },
+ "oof/decay365/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_decay365_oof_s42.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.856,
+   "logloss": 0.67714,
+   "calib_slope": 0.979,
+   "calib_intercept": 0.0031
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.804,
+   "logloss": 0.67864,
+   "calib_slope": 0.94,
+   "calib_intercept": 0.0048
+  }
+ },
+ "oof/embed/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_embed_oof_s42.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.856,
+   "logloss": 0.67809,
+   "calib_slope": 0.908,
+   "calib_intercept": -0.0091
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 57.085,
+   "logloss": 0.67754,
+   "calib_slope": 0.935,
+   "calib_intercept": -0.0107
+  }
+ },
+ "leaky_on_oof/allhist/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_allhist_s42.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.558,
+   "logloss": 0.68061,
+   "calib_slope": 0.726,
+   "calib_intercept": -0.006
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.178,
+   "logloss": 0.68355,
+   "calib_slope": 0.68,
+   "calib_intercept": -0.004
+  }
+ },
+ "oof/allhist/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_allhist_oof_s123.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 57.163,
+   "logloss": 0.67611,
+   "calib_slope": 1.029,
+   "calib_intercept": 0.0225
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.686,
+   "logloss": 0.6791,
+   "calib_slope": 0.946,
+   "calib_intercept": 0.0216
+  }
+ },
+ "oof/win3/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win3_oof_s123.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.145,
+   "logloss": 0.68069,
+   "calib_slope": 0.901,
+   "calib_intercept": 0.014
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.49,
+   "logloss": 0.67967,
+   "calib_slope": 0.956,
+   "calib_intercept": 0.0169
+  }
+ },
+ "oof/win6/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win6_oof_s123.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.445,
+   "logloss": 0.68029,
+   "calib_slope": 0.856,
+   "calib_intercept": -0.0087
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.615,
+   "logloss": 0.67921,
+   "calib_slope": 0.903,
+   "calib_intercept": -0.0083
+  }
+ },
+ "oof/win12/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win12_oof_s123.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.717,
+   "logloss": 0.67831,
+   "calib_slope": 1.014,
+   "calib_intercept": 0.0022
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.695,
+   "logloss": 0.67898,
+   "calib_slope": 1.016,
+   "calib_intercept": 0.0015
+  }
+ },
+ "oof/decay90/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_decay90_oof_s123.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.569,
+   "logloss": 0.67908,
+   "calib_slope": 1.043,
+   "calib_intercept": -0.001
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.653,
+   "logloss": 0.67917,
+   "calib_slope": 1.063,
+   "calib_intercept": 0.0009
+  }
+ },
+ "oof/decay365/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_decay365_oof_s123.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.906,
+   "logloss": 0.67702,
+   "calib_slope": 1.006,
+   "calib_intercept": 0.0078
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.853,
+   "logloss": 0.67871,
+   "calib_slope": 0.954,
+   "calib_intercept": 0.0082
+  }
+ },
+ "oof/embed/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_embed_oof_s123.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.875,
+   "logloss": 0.67779,
+   "calib_slope": 0.955,
+   "calib_intercept": 0.0268
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 57.02,
+   "logloss": 0.67739,
+   "calib_slope": 0.984,
+   "calib_intercept": 0.026
+  }
+ },
+ "leaky_on_oof/allhist/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_allhist_s123.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.629,
+   "logloss": 0.68057,
+   "calib_slope": 0.734,
+   "calib_intercept": 0.0099
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.173,
+   "logloss": 0.68336,
+   "calib_slope": 0.691,
+   "calib_intercept": 0.0094
+  }
+ },
+ "oof/allhist/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_allhist_oof_s777.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 57.061,
+   "logloss": 0.67607,
+   "calib_slope": 1.036,
+   "calib_intercept": 0.0042
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.548,
+   "logloss": 0.67923,
+   "calib_slope": 0.951,
+   "calib_intercept": 0.0011
+  }
+ },
+ "oof/win3/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win3_oof_s777.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.26,
+   "logloss": 0.6808,
+   "calib_slope": 0.901,
+   "calib_intercept": 0.0013
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.548,
+   "logloss": 0.67963,
+   "calib_slope": 0.959,
+   "calib_intercept": 0.0017
+  }
+ },
+ "oof/win6/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win6_oof_s777.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.301,
+   "logloss": 0.68005,
+   "calib_slope": 0.913,
+   "calib_intercept": 0.028
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.612,
+   "logloss": 0.67917,
+   "calib_slope": 0.958,
+   "calib_intercept": 0.0308
+  }
+ },
+ "oof/win12/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_win12_oof_s777.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 57.275,
+   "logloss": 0.6762,
+   "calib_slope": 1.013,
+   "calib_intercept": 0.0143
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.756,
+   "logloss": 0.67915,
+   "calib_slope": 0.929,
+   "calib_intercept": 0.0151
+  }
+ },
+ "oof/decay90/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_decay90_oof_s777.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.554,
+   "logloss": 0.67928,
+   "calib_slope": 0.952,
+   "calib_intercept": 0.0205
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.66,
+   "logloss": 0.67912,
+   "calib_slope": 0.982,
+   "calib_intercept": 0.0218
+  }
+ },
+ "oof/decay365/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_decay365_oof_s777.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.866,
+   "logloss": 0.67722,
+   "calib_slope": 1.024,
+   "calib_intercept": 0.0294
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.763,
+   "logloss": 0.67866,
+   "calib_slope": 0.979,
+   "calib_intercept": 0.0272
+  }
+ },
+ "oof/embed/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_embed_oof_s777.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.854,
+   "logloss": 0.67815,
+   "calib_slope": 0.968,
+   "calib_intercept": -0.0068
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 57.041,
+   "logloss": 0.67771,
+   "calib_slope": 1.0,
+   "calib_intercept": -0.0066
+  }
+ },
+ "leaky_on_oof/allhist/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift2026/models/d2b_allhist_s777.pt",
+  "features": "oof_2.55.14.95918",
+  "val": {
+   "n_rows": 72216,
+   "acc": 56.692,
+   "logloss": 0.68075,
+   "calib_slope": 0.721,
+   "calib_intercept": 0.0049
+  },
+  "future": {
+   "n_rows": 287362,
+   "acc": 56.274,
+   "logloss": 0.68321,
+   "calib_slope": 0.686,
+   "calib_intercept": 0.0033
+  }
+ },
+ "oof/c0frozen/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_c0frozen_oof_s42.pt",
+  "features": "oof_2.55.3.89754",
+  "val": {
+   "n_rows": 25564,
+   "acc": 57.041,
+   "logloss": 0.67702,
+   "calib_slope": 0.963,
+   "calib_intercept": 0.0246
+  },
+  "future": {
+   "n_rows": 2619922,
+   "acc": 55.692,
+   "logloss": 0.68368,
+   "calib_slope": 0.767,
+   "calib_intercept": 0.0216
+  }
+ },
+ "oof/stale2yr/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_stale2yr_oof_s42.pt",
+  "features": "oof_2.55.4.91418",
+  "val": {
+   "n_rows": 32542,
+   "acc": 56.979,
+   "logloss": 0.6769,
+   "calib_slope": 1.048,
+   "calib_intercept": -0.0224
+  },
+  "future": {
+   "n_rows": 2271002,
+   "acc": 55.74,
+   "logloss": 0.68298,
+   "calib_slope": 0.841,
+   "calib_intercept": -0.0177
+  }
+ },
+ "oof/stale2yr/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_stale2yr_oof_s123.pt",
+  "features": "oof_2.55.4.91418",
+  "val": {
+   "n_rows": 32542,
+   "acc": 57.08,
+   "logloss": 0.6767,
+   "calib_slope": 0.993,
+   "calib_intercept": -0.019
+  },
+  "future": {
+   "n_rows": 2271002,
+   "acc": 55.82,
+   "logloss": 0.68286,
+   "calib_slope": 0.812,
+   "calib_intercept": -0.015
+  }
+ },
+ "oof/stale2yr/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_stale2yr_oof_s777.pt",
+  "features": "oof_2.55.4.91418",
+  "val": {
+   "n_rows": 32542,
+   "acc": 57.019,
+   "logloss": 0.67684,
+   "calib_slope": 0.913,
+   "calib_intercept": 0.0145
+  },
+  "future": {
+   "n_rows": 2271002,
+   "acc": 55.89,
+   "logloss": 0.68333,
+   "calib_slope": 0.747,
+   "calib_intercept": 0.0112
+  }
+ },
+ "oof/stale1yr/s42": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_stale1yr_oof_s42.pt",
+  "features": "oof_2.55.9.93613",
+  "val": {
+   "n_rows": 46338,
+   "acc": 56.487,
+   "logloss": 0.67836,
+   "calib_slope": 0.953,
+   "calib_intercept": 0.0002
+  },
+  "future": {
+   "n_rows": 1581182,
+   "acc": 55.965,
+   "logloss": 0.68221,
+   "calib_slope": 0.837,
+   "calib_intercept": 0.0014
+  }
+ },
+ "oof/stale1yr/s123": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_stale1yr_oof_s123.pt",
+  "features": "oof_2.55.9.93613",
+  "val": {
+   "n_rows": 46338,
+   "acc": 56.487,
+   "logloss": 0.67835,
+   "calib_slope": 0.991,
+   "calib_intercept": 0.0262
+  },
+  "future": {
+   "n_rows": 1581182,
+   "acc": 55.911,
+   "logloss": 0.68225,
+   "calib_slope": 0.863,
+   "calib_intercept": 0.0194
+  }
+ },
+ "oof/stale1yr/s777": {
+  "model": "/home/max/heroes-of-the-storm/training/drift_rebuild/models/r2_stale1yr_oof_s777.pt",
+  "features": "oof_2.55.9.93613",
+  "val": {
+   "n_rows": 46338,
+   "acc": 56.606,
+   "logloss": 0.67851,
+   "calib_slope": 0.953,
+   "calib_intercept": -0.0045
+  },
+  "future": {
+   "n_rows": 1581182,
+   "acc": 55.788,
+   "logloss": 0.68301,
+   "calib_slope": 0.816,
+   "calib_intercept": -0.0037
+  }
+ }
+}

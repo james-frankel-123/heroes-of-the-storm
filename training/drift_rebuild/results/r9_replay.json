@@ -1,0 +1,125 @@
+{
+  "checks": {
+    "8->11@10": [
+      56.693,
+      56.693
+    ],
+    "20->25@24": [
+      56.467,
+      56.467
+    ]
+  },
+  "oracle_acc": 56.8105028852004,
+  "rows": {
+    "oracle (retrain every build)": {
+      "weighted_acc": 56.811,
+      "regret_pp": 0.0,
+      "retrains": 35,
+      "refreshes": 35
+    },
+    "never retrain, never refresh (same C0 model)": {
+      "weighted_acc": 55.748,
+      "regret_pp": 1.062,
+      "retrains": 0,
+      "refreshes": 0
+    },
+    "never retrain, refresh every build": {
+      "weighted_acc": 56.08,
+      "regret_pp": 0.73,
+      "retrains": 0,
+      "refreshes": 35
+    },
+    "never retrain, blind_every3 refresh": {
+      "weighted_acc": 56.073,
+      "regret_pp": 0.738,
+      "retrains": 0,
+      "refreshes": 11
+    },
+    "never retrain, blind_even14 refresh": {
+      "weighted_acc": 56.077,
+      "regret_pp": 0.733,
+      "retrains": 0,
+      "refreshes": 14
+    },
+    "retrain every 3, refresh every build": {
+      "weighted_acc": 56.782,
+      "regret_pp": 0.029,
+      "retrains": 11,
+      "refreshes": 35
+    },
+    "retrain every 3, no refresh between retrains": {
+      "weighted_acc": 56.76,
+      "regret_pp": 0.05,
+      "retrains": 11,
+      "refreshes": 11
+    },
+    "retrain every 6, refresh every build": {
+      "weighted_acc": 56.743,
+      "regret_pp": 0.067,
+      "retrains": 5,
+      "refreshes": 35
+    },
+    "retrain every 6, no refresh between retrains": {
+      "weighted_acc": 56.705,
+      "regret_pp": 0.106,
+      "retrains": 5,
+      "refreshes": 5
+    },
+    "frozen recipe, leak-free (OOF) s42": {
+      "weighted_acc": 55.692,
+      "regret_pp": 1.118,
+      "retrains": 0,
+      "refreshes": 0
+    },
+    "frozen recipe, leak-free (OOF) s123": {
+      "weighted_acc": 55.763,
+      "regret_pp": 1.048,
+      "retrains": 0,
+      "refreshes": 0
+    },
+    "frozen recipe, leak-free (OOF) s777": {
+      "weighted_acc": 55.732,
+      "regret_pp": 1.079,
+      "retrains": 0,
+      "refreshes": 0
+    },
+    "frozen recipe, leaky (paper) s42": {
+      "weighted_acc": 55.128,
+      "regret_pp": 1.682,
+      "retrains": 0,
+      "refreshes": 0
+    }
+  },
+  "schedules": {
+    "blind_every3": [
+      11,
+      14,
+      17,
+      20,
+      23,
+      26,
+      29,
+      32,
+      35,
+      38,
+      41,
+      44
+    ],
+    "blind_even14": [
+      11,
+      14,
+      16,
+      18,
+      21,
+      23,
+      25,
+      28,
+      30,
+      32,
+      35,
+      37,
+      39,
+      42
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "cell": "r2_allhist_oof",
+  "seed": 42,
+  "stats": "cutoff",
+  "gd_pool": "frozen",
+  "drafts": 500,
+  "healer_rate": 80.2,
+  "degen_rate": 25.6,
+  "synergy_future": 0.38245507917737825,
+  "counter_future": 0.06811861502873517,
+  "minutes": 11.9
+}

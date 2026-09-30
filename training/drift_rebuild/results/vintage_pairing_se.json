@@ -1,0 +1,11 @@
+{"_note": "Scores for the maintained side of the 2,000 W6 drafts by each judge; se_pairing = SE clustered by the 25 seed pairings (audit scratch vintage_se.py, rerun 2026-09-30).",
+ "2022Q1-ranked": {"mean": 0.4688, "se_draft": 0.0021, "se_pairing": 0.0078},
+ "2022-07": {"mean": 0.4611, "se_draft": 0.0020, "se_pairing": 0.0071},
+ "2023-07": {"mean": 0.4927, "se_draft": 0.0014, "se_pairing": 0.0046},
+ "2024-07": {"mean": 0.5040, "se_draft": 0.0019, "se_pairing": 0.0074},
+ "2025-07": {"mean": 0.4948, "se_draft": 0.0017, "se_pairing": 0.0048},
+ "2026-build": {"mean": 0.4996, "se_draft": 0.0019, "se_pairing": 0.0056},
+ "QM-2021": {"mean": 0.4338, "se_draft": 0.0033, "se_pairing": 0.0129},
+ "QM-2022": {"mean": 0.4155, "se_draft": 0.0035, "se_pairing": 0.0119},
+ "QM-2024": {"mean": 0.4940, "se_draft": 0.0025, "se_pairing": 0.0097},
+ "QM-2026": {"mean": 0.5079, "se_draft": 0.0022, "se_pairing": 0.0054}}

@@ -1,0 +1,12 @@
+{
+  "cell": "r2_win6_oof",
+  "seed": 123,
+  "stats": "cutoff",
+  "gd_pool": "frozen",
+  "drafts": 500,
+  "healer_rate": 61.6,
+  "degen_rate": 43.2,
+  "synergy_future": 0.0732583817823136,
+  "counter_future": 0.11743716959630376,
+  "minutes": 28.2
+}
