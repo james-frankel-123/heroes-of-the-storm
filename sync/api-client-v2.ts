@@ -220,6 +220,14 @@ export class HeroesProfileApiV2 {
         legacy[p.battletag] = {
           ...p,
           hero: p.hero?.name ?? p.hero,
+          // v1: winner is 1/0 (old: boolean); talents are {level_one: {title,..}}
+          // (old: {"1": title}); hero_level is a band like "25-50" (old: a
+          // number) — keep the band under a non-extracted key so it lands in
+          // replay_players.raw_extras instead of being nulled.
+          winner: p.winner === true || p.winner === 1 || p.winner === '1',
+          talents: legacyTalents(p.talents),
+          hero_level: typeof p.hero_level === 'number' ? p.hero_level : null,
+          ...(typeof p.hero_level === 'string' ? { hero_level_band: p.hero_level } : {}),
           scores: p.score ?? p.scores ?? null,
         }
       }
@@ -453,6 +461,20 @@ const TALENT_LEVEL_KEYS = [
   'level_one', 'level_four', 'level_seven', 'level_ten',
   'level_thirteen', 'level_sixteen', 'level_twenty',
 ] as const
+
+const TALENT_TIER_OF: Record<(typeof TALENT_LEVEL_KEYS)[number], string> = {
+  level_one: '1', level_four: '4', level_seven: '7', level_ten: '10',
+  level_thirteen: '13', level_sixteen: '16', level_twenty: '20',
+}
+
+/** v1 {level_one: {title, ...} | null, ...} -> old {"1": title | "", ...}. */
+function legacyTalents(t: any): Record<string, string> | null {
+  if (!t || typeof t !== 'object') return null
+  if (!TALENT_LEVEL_KEYS.some(k => k in t)) return t // already old-shaped
+  const out: Record<string, string> = {}
+  for (const k of TALENT_LEVEL_KEYS) out[TALENT_TIER_OF[k]] = t[k]?.title ?? ''
+  return out
+}
 
 /**
  * Whose wins do v1 heroes/matchups `enemy` rows count? The opponent's, as in
