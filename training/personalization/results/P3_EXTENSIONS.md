@@ -260,11 +260,131 @@ After a 30+ day break:
 
 Findings:
 
-- **Hero rust is real and grows with time.** A hero untouched for 3 to 12 months costs 1.5 to 2.2pp beyond the skill model, even for an active player. The static skill model ignores this. The state-space model in P3_SKILL_DRIFT found no drift in hero-specific skill, and this is a different effect: a temporary loss that practice restores, not a change in the level.
+- **Hero rust is real and grows with time.** A hero untouched for 3 to 12 months costs 1.5 to 2.2pp beyond the skill model, even for an active player. The static skill model ignores this. The state-space model in P3_SKILL_DRIFT found no drift in hero-specific skill, and the two fit together: this looks like a temporary loss that a few games restore, with the underlying level unchanged.
 - **Overall "rust" runs the other way.** Players returning after 1 to 6 months win 1.4 to 1.9pp more than the skill model expects for their first few games. The effect fades within about 10 games. Two likely causes, neither tested here:
-  - Matchmaking: returning accounts may be placed against weaker lobbies (the residual is relative to the draft, not to the opponents' skill).
+  - Matchmaking: returning accounts may be placed against weaker lobbies (the residual adjusts for the draft only, so weaker opponents show up as a positive residual).
   - Players stopping after a bad run of form.
 - **Product.**
   - Add "days since this hero was last played" to the combiner (+0.0004).
   - In the per-hero display, flag heroes unplayed for 90+ days as "rusty: about −2pp for the first games back".
   - Do not penalize a returning player overall.
+
+## 4. Smurfs: purification loop, new-account prior, detector (`p3_x_smurf.py`, `p3_x_newacct.py`)
+
+**New accounts.** As in P3_VALIDITY: first seen on or after 2024-07-01, with median hero level ≤ 5 over the first 10 games. There are 51,446 such accounts, and 13,048 have 20+ games.
+
+### A. The purification loop (proposal #7)
+
+Each round:
+
+1. For every candidate, compute x = mean over its first 20 games of the residual net of the other nine players' skill estimates.
+2. Fit a two-component Gaussian mixture to x by EM, with known per-account noise.
+3. Flag accounts with P(smurf) > 0.5.
+4. For each flagged account, estimate its excess per block of games (1-20, 21-50, 51-100), shrunk toward 0 by 30 games.
+5. Correct every other player's residual in those games for the flagged teammates and opponents.
+6. Rebuild everyone's skill estimates from the corrected residuals, and repeat.
+
+The flag set converged in 4 rounds (changes 247, 60, 7).
+
+| round | flagged | smurf share of new accounts | normal new account: mean / sd | smurf: mean | excess in games 1-20 / 21-50 / 51-100 |
+|---|---|---|---|---|---|
+| 1 | 1,641 | 19.6% | +3.7 / 5.6pp | +21.7pp | +30.8 / +10.4 / +2.4pp |
+| 4 (final) | **1,327** | 16.8% | +4.1 / 5.8pp | +23.0pp | **+32.6 / +11.9 / +2.8pp** |
+
+**Census.** 1,327 accounts are flagged, 10.2% of new accounts with 20+ games.
+
+- **Games touched.** A flagged account in its first 100 games appears in 6.3% of all games. The share rises over time: 3.7% in 2024 H2, 6.2% in 2025 H1, 8.0% in 2025 H2 and 8.1% in 2026 H1.
+- **Flag rate by the tier of the account's first game:** high 14.3%, mid 10.3%, low 9.6%.
+- **Flag rate by region:** Americas 8.6%, Europe 11.7%, Asia 1.8% (560 candidates).
+- **Raw residual of flagged accounts by game index:**
+
+| games | 1-5 | 6-10 | 11-20 | 21-50 | 51-100 | 101-300 | 301+ |
+|---|---|---|---|---|---|---|---|
+| flagged accounts | +35.2pp | +33.8 | +30.8 | +12.0 | +6.3 | +3.0 | +2.2 |
+| other new accounts | +6.4 | +5.0 | +3.4 | +3.3 | +2.0 | +1.1 | +0.7 |
+
+- Flagged accounts stay above expectation for hundreds of games: +2.2pp even after 300 games.
+- The unflagged new accounts are also above expectation: +3 to +6pp over their first 50 games.
+
+### B. What purification changes
+
+**Skill estimates of everyone else** (V2 slots, unflagged players):
+
+- correlation with the unpurified estimates: 0.9988;
+- mean change: +0.03pp; mean absolute change: 0.07pp; 1.1% of slots move by more than 0.5pp.
+- For players whose histories are most exposed (top 10%, where 8 to 15% of their games had a flagged opponent), the mean change is +0.07pp.
+
+**Headline lift** (V2, combiner fit on V1):
+
+| skill state built from | gain (95% CI) | vs raw (95% CI) |
+|---|---|---|
+| raw residuals | +0.01418 (0.01311, 0.01516) | |
+| retroactive purification (uses smurfs' later games) | +0.01392 | −0.00026 (−0.00038, −0.00015) |
+| boundary purification (flags and excess from games before the V1/V2 split only) | +0.01416 | −0.00001 (−0.00010, +0.00008) |
+
+Purification does not change the headline. The causal version is neutral; the retroactive one is slightly worse. Two reasons:
+
+- Smurf games are a small share of any regular player's history.
+- The skill model shrinks each cell hard, so a −30pp shock in 1 to 2% of games moves an estimate by well under 0.1pp.
+
+This agrees with P3_VALIDITY's exclusion test, and settles proposal #7's worry for the headline numbers: raw and purified labels give the same result.
+
+### C. A new-account prior
+
+Account status at each game (causal):
+
+- 0: first seen before 2024-07-01;
+- 1: first seen later, first day only;
+- 2: first seen later, every hero level on earlier days ≤ 5 (a genuinely new account);
+- 3: first seen later, some earlier hero level > 5 (an old account new to our corpus).
+
+The experience table is split by status and fit on E, and the skill state is rebuilt on the matching residuals.
+
+**Offset for status 2** (pp, by games seen × games on hero):
+
+- 1 to 4 games seen: +3.4 (hero not played) to +8.8;
+- 10 to 19 games: +8.2 to +13.2;
+- 20 to 49 games: +9.4 (hero not played), up to +13.7;
+- 50 to 99 games: +3.1 to +7.0.
+
+For comparison, status 0 at 20 to 49 games seen runs from −2.8 (hero not played) to +2.4.
+
+| gain over the phase-1 table | V2 (combiner fit on V1) | OOT (frozen, 286K games) |
+|---|---|---|
+| 4 statuses | **+0.0024 (0.0020, 0.0029)** | **+0.0021 (0.0019, 0.0023)** |
+| new low-level accounts (status 2) split out alone | +0.0024 (0.0019, 0.0028) | +0.0018 (0.0016, 0.0020) |
+| old accounts new to the corpus (status 3) split out alone | +0.0006 | +0.0007 |
+| in games with a new low-level account (18% of V2 games) | +0.0128 (0.0100, 0.0151) | +0.0112 (0.0098, 0.0125) |
+| in games without one | +0.0002 (−0.0001, +0.0004) | +0.0003 (0.0002, 0.0004) |
+
+- The headline moves from +0.0142 to +0.0166 on V2, and from +0.0149 to +0.0169 out of time.
+- The whole gain sits in the 18% of games that contain a genuinely new account. In those games the prior adds +0.013, about as much as the whole phase-1 model adds on an average game (+0.014).
+- The experience offset alone could not do this, because it treats a new account and a veteran new to our corpus alike: both have few games in the window.
+
+### D. A causal smurf detector
+
+**Setup.**
+
+- At game k (10 or 20) of a new account, predict from its first k games only whether its next 80 games run hot: mean net residual > +8pp.
+- Logistic regression, trained on accounts that started before 2025-07-01 and tested on later accounts.
+- Accounts: 3,322 at k = 10 and 2,896 at k = 20 (test sets of 1,268 and 1,104).
+- Label rates: 22% train and 36% test at k = 10; 19% and 32% at k = 20. The label rate drifts up over time.
+
+| features | AUC, k = 10 | AUC, k = 20 | future-excess latent R², k = 20 | next-80-game excess, flagged vs not (k = 20) |
+|---|---|---|---|---|
+| residual z of the first k games | 0.67 | 0.70 | 0.04 | +8.9 vs +3.5pp |
+| + net residual + hero level | 0.68 | 0.71 | 0.13 | +8.9 vs +3.0 |
+| scoreboard style only | 0.72 | 0.74 | 0.22 | +9.8 vs +3.1 |
+| side information without outcomes (hero level, talents, party, variety, pace) | 0.65 | 0.66 | 0.03 | +7.9 vs +3.3 |
+| **all** | **0.73** | **0.74** | **0.29** | **+9.6 vs +2.7** |
+
+- Precision at the training flag rate is 0.57 to 0.60 and recall is 0.49 to 0.57.
+- Scoreboard style (per-minute numbers relative to other players of the same hero) beats the win record as a smurf signal. It sees how the account plays, while ten games of results are mostly noise.
+- The detector is useful and honest, and not strong enough to act on alone.
+- The new-account prior in C already captures most of the average effect. The detector's extra value is ranking which new accounts will stay hot: 29% of the latent spread at game 20.
+
+**Product.**
+
+- Ship the status-split experience table: +0.002 overall and +0.011 to +0.013 in games with a new account.
+- Show new accounts in a lobby as "new account: expect +8 to +13pp over their first 50 games", with the detector score as a secondary flag.
+- Do not purify residuals for the skill model.
