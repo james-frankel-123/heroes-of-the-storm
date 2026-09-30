@@ -25,11 +25,17 @@ import { storeReplayPlayers } from './player-store'
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-function leagueTierToSkillTier(tier: number | null): string {
-  if (tier === null || tier === undefined) return 'mid'
-  if (tier <= 2) return 'low'    // Bronze, Silver
-  if (tier <= 4) return 'mid'    // Gold, Platinum
-  return 'high'                   // Diamond, Master
+/**
+ * Listing league_tier ids run one above the tier names (2 = Bronze ... 6 =
+ * Diamond); Master games have a NULL tier but an avg_mmr (above ~2962).
+ * Until 2026-09-30 a NULL tier fell through to 'mid', mislabelling every
+ * Master game; a NULL tier with no MMR at all is genuinely unknown.
+ */
+export function leagueTierToSkillTier(tier: number | null, avgMmr: number | null): string {
+  if (tier === null || tier === undefined) return avgMmr === null || avgMmr === undefined ? 'unknown' : 'high'
+  if (tier <= 2) return 'low'
+  if (tier <= 4) return 'mid'
+  return 'high'
 }
 
 // ── Phase 1: Discovery ──────────────────────────────────────────────
@@ -412,7 +418,7 @@ export async function fetchReplayData(
       let avgMmr = queueItem.avgMmr
       const derived = client instanceof HeroesProfileApiV2 && leagueTier === null && avgMmr === null
       if (derived) ({ leagueTier, avgMmr } = await deriveListingFields(client, replay, 'sl'))
-      const skillTier = leagueTierToSkillTier(leagueTier)
+      const skillTier = leagueTierToSkillTier(leagueTier, avgMmr)
 
       const talents = { team0: team0Talents, team1: team1Talents }
 
