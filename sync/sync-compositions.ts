@@ -15,7 +15,6 @@ import { resolve } from 'path'
 import { HeroesProfileApiV2 } from './api-client-v2'
 import { HpApi } from './hp-api'
 import { log } from './logger'
-import { getCurrentPatch } from './sync-global'
 
 const HP_BASE = 'https://www.heroesprofile.com'
 
@@ -148,6 +147,8 @@ function normalizeComposition(raw: RawComposition): NormalizedComposition {
 }
 
 const MINIMUM_GAMES = 100
+/** Below this, a fetch is too thin to replace the draft engine's data. */
+const MIN_COMPOSITIONS_PER_TIER = 20
 
 export async function syncCompositions(api: HpApi): Promise<void> {
   log.info('── Syncing composition data ──')
@@ -155,18 +156,38 @@ export async function syncCompositions(api: HpApi): Promise<void> {
   const result: Record<string, NormalizedComposition[]> = {}
 
   if (api instanceof HeroesProfileApiV2) {
-    const patch = await getCurrentPatch(api)
+    // Early in a major patch few compositions reach MINIMUM_GAMES; v1 lets a
+    // new major be combined with the previous one for two months.
+    const majors = Object.keys(await api.getPatches())
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    const current = majors[majors.length - 1]
+    const previous = majors[majors.length - 2]
+    let timeframe = previous ? `${previous},${current}` : current
     for (const [tier, codes] of Object.entries(TIER_CODES)) {
-      log.info(`Fetching ${tier} tier compositions (${patch.version}, league_tier=${codes.join(',')})...`)
-      const raw: RawComposition[] = await api.getCompositions({
-        timeframeType: patch.type,
-        timeframe: patch.version,
+      log.info(`Fetching ${tier} tier compositions (${timeframe}, league_tier=${codes.join(',')})...`)
+      const fetchTier = (tf: string) => api.getCompositions({
+        timeframeType: 'major',
+        timeframe: tf,
         gameType: 'Storm League',
         leagueTier: codes.join(','),
         minimumGames: MINIMUM_GAMES,
       })
+      let raw: RawComposition[]
+      try {
+        raw = await fetchTier(timeframe)
+      } catch (err) {
+        if (timeframe === current || !String(err).includes('timeframe_too_wide')) throw err
+        log.info(`  ${previous}+${current} no longer combinable; using ${current} alone`)
+        timeframe = current
+        raw = await fetchTier(timeframe)
+      }
       result[tier] = raw.filter(c => c.games_played >= MINIMUM_GAMES).map(normalizeComposition)
       log.info(`  ${tier}: ${result[tier].length} compositions`)
+    }
+    const thin = Object.entries(result).filter(([, v]) => v.length < MIN_COMPOSITIONS_PER_TIER)
+    if (thin.length > 0) {
+      log.warn(`Too few compositions (${thin.map(([t, v]) => `${t}=${v.length}`).join(', ')}); keeping the existing compositions.json`)
+      return
     }
   } else {
     const { cookie, csrfToken } = await getSession()

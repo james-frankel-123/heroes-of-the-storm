@@ -170,6 +170,11 @@ export class HeroesProfileApiV2 {
         signal: AbortSignal.timeout(60_000),
       })
       if (response.status === 202) continue
+      if (response.status === 429) {
+        // Per-minute limit on /jobs under concurrent polling: back off, keep the job.
+        retryAfter = Math.max(Number(response.headers.get('retry-after')) || 0, retryAfter * 2, 10)
+        continue
+      }
       if (response.status === 401 || response.status === 403) {
         const b: any = await response.json().catch(() => null)
         throw new HpAccessPausedError(response.status, b?.error?.code ?? `http_${response.status}`, `${jobPath}: ${b?.error?.message ?? ''}`)
