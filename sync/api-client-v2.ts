@@ -21,6 +21,7 @@
  *  - fixture mode surfaced via lastDataSource ("fixture" until the
  *    account activates live data — never store fixture data)
  */
+import { HpAccessPausedError } from './hp-errors'
 import { log } from './logger'
 
 const BASE_URL = 'https://www.heroesprofile.com/api/external/v1'
@@ -138,7 +139,13 @@ export class HeroesProfileApiV2 {
         continue
       }
 
-      // 4xx (401 bad key / 403 not in plan / 404 / 422): don't retry.
+      // 401 bad key / 403 not in plan, terms_not_accepted,
+      // project_details_required: account-level, never item-level.
+      if (response.status === 401 || response.status === 403) {
+        throw new HpAccessPausedError(response.status, code, `${path}: ${message}`)
+      }
+
+      // 4xx (404 / 422 incl. timeframe_too_wide, timeframe_unavailable): don't retry.
       throw new Error(`API error ${response.status} (${code}) for ${path}: ${message}`)
     }
     throw new Error(`unreachable retry loop for ${path}`)
@@ -154,6 +161,10 @@ export class HeroesProfileApiV2 {
         signal: AbortSignal.timeout(60_000),
       })
       if (response.status === 202) continue
+      if (response.status === 401 || response.status === 403) {
+        const b: any = await response.json().catch(() => null)
+        throw new HpAccessPausedError(response.status, b?.error?.code ?? `http_${response.status}`, `${jobPath}: ${b?.error?.message ?? ''}`)
+      }
       if (response.status === 404) throw new Error(`Job ${jobPath} expired; restart the original call`)
       if (response.status === 500) {
         const b: any = await response.json().catch(() => null)

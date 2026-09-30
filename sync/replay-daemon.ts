@@ -12,6 +12,7 @@
  */
 import { MultiKeyApi } from './api-client'
 import { createDb } from './db'
+import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
 import { discoverReplays, discoverBackfill, fetchReplayData, backfillTalents, getReplayStats } from './sync-replays'
 import { replaySyncState, replayFetchQueue } from '../src/lib/db/schema'
@@ -108,6 +109,12 @@ async function main() {
       }
       consecutiveErrors = 0
     } catch (err) {
+      if (isHpAccessPaused(err)) {
+        log.error(`${err.message} — stopping; accept the terms / fill in project details on the HP account page`)
+        if (cron) process.exit(1)
+        await sleep(30 * 60_000)
+        continue
+      }
       log.error(`Cycle ${cycle} error:`, err)
       consecutiveErrors++
       if (cron && consecutiveErrors >= 3) {

@@ -17,6 +17,7 @@ import {
 } from '../src/lib/db/schema'
 import { MultiKeyApi } from './api-client'
 import { createDb, SyncDb } from './db'
+import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
 import { storeReplayPlayers } from './player-store'
 
@@ -155,6 +156,8 @@ export async function discoverReplays(
         await saveState(db, state)
       }
     } catch (err) {
+      // Don't skip cursor ranges over an account-level refusal.
+      if (isHpAccessPaused(err)) { await saveState(db, state); throw err }
       log.warn(`Discovery error at cursor=${state.discoveryCursor}: ${err}`)
       state.discoveryCursor += 100 // skip past problem area
     }
@@ -253,6 +256,8 @@ export async function discoverBackfill(
         await saveState(db, state)
       }
     } catch (err) {
+      // Don't skip cursor ranges over an account-level refusal.
+      if (isHpAccessPaused(err)) { await saveState(db, state); throw err }
       log.warn(`Backfill error at cursor=${state.backfillCursor}: ${err}`)
       state.backfillCursor -= 1000
     }
@@ -416,6 +421,8 @@ export async function fetchReplayData(
         log.info(`  Fetch progress: ${fetched} succeeded, ${failed} skipped`)
       }
     } catch (err) {
+      // Account-level refusal: leave the queue row unfetched.
+      if (isHpAccessPaused(err)) throw err
       failed++
       const errMsg = String(err)
       const isQuota = errMsg.includes('non-JSON response') || errMsg.includes('Max calls')

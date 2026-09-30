@@ -28,6 +28,7 @@ import { sql, eq } from 'drizzle-orm'
 import { HeroesProfileApi } from './api-client'
 import { createHpApi, isV2, HpApi } from './hp-api'
 import { createDb, SyncDb } from './db'
+import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
 import { storeReplayPlayers } from './player-store'
 import { playerRefetchState } from '../src/lib/db/schema'
@@ -202,7 +203,7 @@ async function processBatch(
       }
     } catch (err) {
       const msg = String(err)
-      const isQuota = msg.includes('non-JSON response') || msg.includes('Max calls')
+      const isQuota = msg.includes('non-JSON response') || msg.includes('Max calls') || isHpAccessPaused(err)
       const isPermanent = /API error 4\d\d/.test(msg) || msg.includes('returned error')
       if (isQuota) {
         // Weekly quota on this key — bench it, give the id back to the pool.

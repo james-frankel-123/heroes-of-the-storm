@@ -1,3 +1,4 @@
+import { HpAccessPausedError } from './hp-errors'
 import { log } from './logger'
 
 function sleep(ms: number): Promise<void> {
@@ -138,6 +139,10 @@ export class HeroesProfileApi {
 
       // 4xx client error (not 429) — don't retry
       const body = await response.text().catch(() => '(could not read body)')
+      if (response.status === 401 || response.status === 403) {
+        const code = body.match(/terms_not_accepted|project_details_required/)?.[0] ?? `http_${response.status}`
+        throw new HpAccessPausedError(response.status, code, `${logUrl}: ${body.slice(0, 300)}`)
+      }
       throw new Error(`API error ${response.status} for ${logUrl}: ${body.slice(0, 500)}`)
     }
 
@@ -230,6 +235,10 @@ export class HeroesProfileApi {
     this.callCount++
     const resp = await fetch(url, { signal: AbortSignal.timeout(30_000) })
     const text = await resp.text()
+    if (resp.status === 401 || resp.status === 403) {
+      const code = text.match(/terms_not_accepted|project_details_required/)?.[0] ?? `http_${resp.status}`
+      throw new HpAccessPausedError(resp.status, code, `Replay/Max: ${text.slice(0, 300)}`)
+    }
     const id = parseInt(text.trim(), 10)
     if (isNaN(id)) throw new Error(`Replay/Max returned non-numeric: ${text.slice(0, 100)}`)
     return id

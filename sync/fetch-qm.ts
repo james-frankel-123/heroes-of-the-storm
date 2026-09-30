@@ -39,6 +39,7 @@
 import { sql, eq, inArray } from 'drizzle-orm'
 import { createHpApi } from './hp-api'
 import { createDb, SyncDb } from './db'
+import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
 import { storeReplayPlayers } from './player-store'
 import { qmGames, qmFetchState } from '../src/lib/db/schema'
@@ -310,7 +311,7 @@ async function main() {
         listing = (Array.isArray(raw) ? raw : Object.values(raw)) as ListingRow[]
       } catch (err) {
         const msg = String(err)
-        if (msg.includes('non-JSON response') || msg.includes('Max calls')) {
+        if (msg.includes('non-JSON response') || msg.includes('Max calls') || isHpAccessPaused(err)) {
           exhaustedUntil = Date.now() + QUOTA_BACKOFF_MS
           log.warn(`Min_id quota/parse issue — sleeping 60 min: ${msg.slice(0, 200)}`)
         } else {
@@ -374,7 +375,7 @@ async function main() {
           counters.playerRows += stored.playerRows
         } catch (err) {
           const msg = String(err)
-          const isQuota = msg.includes('non-JSON response') || msg.includes('Max calls')
+          const isQuota = msg.includes('non-JSON response') || msg.includes('Max calls') || isHpAccessPaused(err)
           const isPermanent = /API error 4\d\d/.test(msg) || msg.includes('returned error')
           if (isQuota) {
             exhaustedUntil = Date.now() + QUOTA_BACKOFF_MS
