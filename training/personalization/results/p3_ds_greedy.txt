@@ -1,0 +1,13 @@
+full pers: 40s
+full pop: 67s
+real step 4: 77s
+real step 5: 78s
+real step 6: 79s
+real step 7: 81s
+real step 8: 82s
+real step 11: 83s
+real step 12: 85s
+real step 13: 86s
+real step 14: 87s
+real step 15: 88s
+done 121s

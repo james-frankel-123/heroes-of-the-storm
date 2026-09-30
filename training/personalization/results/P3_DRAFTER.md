@@ -291,3 +291,90 @@ Under MCTS, the picks where the outcome-based drafter departs from the imitation
 - `p3_mcts_verify.py`: verification (`results/p3_mcts_verify.json`).
 - `p3_mcts_drafter.py`: stages full, curve, real and collapse (`cache/mcts_*_s*.pkl.gz`, logs `results/p3_mcts_*_s*.txt`).
 - `p3_mcts_analyze.py`: all MCTS tables (`results/p3_mcts_analyze.json`, `fig_mcts_sims_curve.png`, `fig_mcts_meta.png`).
+
+# Distilled player-conditioned prior (2026-09-30)
+
+## What was built
+
+- **Prior.** For the acting player p at draft state x, the prior logit of hero h is α·log p_BC(h | x) + g(f(p, h)):
+  - p_BC is the kernel's behavioral-cloning prior, softmaxed over the valid mask (free heroes in p's pool).
+  - f(p, h) is 9 per-hero player features: the personal skill term b2·s(p, h), off-role, log(1 + games on h), never played, EWMA pick shares at half-lives of 20 and 100 games, log(1 + days since last played), never played recently, and log fine-role share.
+  - g is an MLP (9 → 32 → 32 → 1) shared across heroes.
+- **Why this form.** g depends only on the player, so for a lobby it is a 10×90 per-slot term that the kernel can add to its PUCT priors. The draft state enters through p_BC.
+- **Targets.** Personalized MCTS root visit distributions (400 sims, BC prior) at all 56,860 real pick states of 5,686 V1 lobbies (2026-02-10 to 04-01), all ten players with 50+ games. V1 is disjoint from every V2 evaluation lobby. Split: 90% of lobbies for training and 10% for validation.
+- **Test.** The 57,240 personalized MCTS searches at real states of the 5,724 V2 lobbies.
+- **Compute.** 9 GPU-minutes for targets and 4 CPU-minutes for training (`p3_ds_targets.py`, `p3_ds_train.py`, `cache/ds_prior.pt`).
+- **Kernel.** `cuda_prior/prior_kernel.cu` is a new copy of the personal kernel. When cfg[56] = 1 the acting slot's priors become softmax(α·log p + term) over the same valid heroes, and root priors are reported. `personal_kernel.cu` is untouched.
+- **Kernel verification** (`p3_ds_verify.json`):
+  - With the term off, it is identical to the personal kernel: 64 full drafts and 64 decide-only searches, with identical win probabilities, actions and root visits.
+  - Root priors vs Python: max |Δ| is 2.2e-7 for the BC prior (α = 1, zero term) and 3.3e-7 for the distilled prior.
+
+**Fit** (held-out V2 searches):
+
+| prior | α | KL to the MCTS visit distribution | top-1 = MCTS argmax | top-1 = real pick | log-lik of the real pick |
+|---|---|---|---|---|---|
+| BC prior | 1 | 0.241 | 50.2% | 14.4% | −2.92 |
+| α·BC (fitted α) | 1.26 | 0.218 | 50.2% | 14.4% | −2.99 |
+| g only (no draft state) | | 0.876 | 17.1% | 24.5% | −2.90 |
+| **distilled (α·BC + g)** | 1.23 | **0.174** | **57.0%** | 19.3% | −2.77 |
+
+The distilled prior cuts the KL to personalized MCTS by 28% and agrees with its top pick 7 points more often than the BC prior.
+
+## Evaluation
+
+Setup:
+
+- **Same data and seeds.** Same held-out lobbies, controlled teams, opponent seeds and GD cycling as the earlier runs. The realized check uses the same 2,000-lobby subset (4,000 teams) for every drafter.
+- **Greedy drafters.** They pick the prior's argmax with no search.
+- **Pairing.** Each personalized drafter is paired with its non-personal counterpart: greedy BC for greedy distilled, population MCTS for the MCTS drafters.
+
+| metric | greedy BC (non-personal) | greedy distilled | MCTS personalized, BC prior | MCTS personalized, distilled prior | MCTS population |
+|---|---|---|---|---|---|
+| vs GD: gain in V over the non-personal counterpart | | +6.1 (5.3, 6.9) | +5.5 (4.7, 6.3) | +6.5 (5.7, 7.2) | |
+| vs GD: change in WP_pop | | −0.2 (−0.8, 0.4) | −1.9 (−2.6, −1.2) | −4.1 (−4.8, −3.3) | |
+| vs GD: mean V of the controlled team | 0.529 | 0.590 | 0.698 | 0.708 | 0.643 |
+| vs imitation opponent: gain in V / change in WP_pop | | +5.9 / −0.1 | +7.3 / −0.5 | +8.3 / −2.5 | |
+| realized: own agreement, Q5 − Q1 (pp) | +1.0 (−4.1, 5.8) | +3.8 (−1.0, 8.4) | +2.9 (−2.0, 7.9) | **+5.1 (0.0, 9.8)** | +0.2 (−4.6, 5.0) |
+| realized: personal component, Q5 − Q1 | | **+14.2 (9.5, 18.9)** | +3.7 (−1.0, 8.3) | +6.3 (1.7, 11.0) | |
+| collapse: effective pool (median) | 8.4 | 7.9 | 8.9 | 7.9 | 9.9 |
+| collapse: share of picks on the player's top-3 heroes | 13% | 24% | 26% | 33% | 13% |
+| self-play: effective number of heroes (real 73.5) | 31.6 | 33.8 | 42.6 | **43.4** | 41.0 |
+| self-play: share of the 10 most-picked heroes (real 25.7%) | 58.4% | 56.4% | 47.9% | 48.2% | 49.2% |
+| self-play: correlation of hero shares with real | 0.81 | 0.83 | 0.82 | **0.84** | 0.79 |
+| self-play: off-role picks (real 15.8%) | 30.2% | 21.0% | 18.3% | **13.6%** | 32.0% |
+| vs GD: effective heroes (controlled team) | | 48.9 | 52.4 | 53.7 | |
+
+Additional comparisons:
+
+- **All 5,724 lobbies (11,448 teams), greedy drafters.** Greedy distilled agreement gives +6.4pp (3.5, 9.3) Q5 − Q1; its personal component (distilled minus BC ranking) gives +12.8pp (9.8, 15.6); greedy BC agreement gives +1.2pp (−1.5, 4.0). For reference, one-step search on these teams gave +7.6pp and BC-prior MCTS +4.7pp.
+- **At 100 sims** the distilled-prior MCTS realized agreement is +3.1pp (−2.2, 7.8), against +0.1pp with the BC prior at 100 sims.
+- **Distilled vs BC-prior MCTS, both personalized, paired.** The distilled prior adds +1.0pp V (0.3, 1.7) vs GD and +1.0pp (0.2, 1.8) vs the imitation opponent. It costs −2.2pp of WP_pop (−2.9, −1.4).
+
+## Reading
+
+- **Greedy.** A greedy drafter with the distilled prior gets as much predicted personal value as full MCTS with the behavioral prior (+6.1pp vs +5.5pp), at almost no population-WP cost (−0.2pp) and with no search.
+  - On real games, agreement with it separates winners from losers (+6.4pp over all teams).
+  - Its personal component separates them most sharply of any drafter tested: +12.8 to +14.2pp. It is the cheapest usable personalized drafter so far.
+- **The distilled prior improves MCTS on every personal metric.**
+  - Predicted V: +1.0pp over the BC prior.
+  - Realized agreement on the common subset: +5.1 vs +2.9pp.
+  - Realized agreement at 100 sims: +3.1 vs +0.1pp. A personal prior is most useful when search is cheap.
+  - Off-role picks in self-play: 13.6%, below real drafts' 15.8% and the BC-prior MCTS's 18.3%.
+- **It does not widen the meta much.**
+  - Self-play breadth is 43.4 effective heroes (BC prior 42.6; population 41.0; real 73.5).
+  - The prior is personal, but the population WP at the leaf still pulls every team toward the same high-WP core: Valla, Johanna, Rehgar, Anduin, Muradin, Leoric, Thrall, Falstad, Li-Ming and Brightwing take 48% of picks.
+  - What changes is who gets those heroes and the tail. Risers: Yrel (0.10% vs 0.02%), Uther, Ana, Lunara, Hanzo (2.19% vs 1.48%, real 2.41%), Deckard, Lost Vikings, Mei, Butcher, Diablo. Fallers: Sgt. Hammer, Xul, Rexxar, Orphea, Tyrael (1.84% vs 2.49%), Whitemane, Deathwing, Tracer, Lt. Morales, Illidan.
+  - Hero shares move toward real play (correlation 0.84 vs 0.82).
+- **Cost of concentration.** The personal prior concentrates each player a little more: 33% of picks on the player's top-3 heroes (BC-prior MCTS 26%, real 43%) and an effective pool of 7.9 (8.9). It also gives up more population WP than the BC-prior MCTS (−4.1 vs −1.9pp vs GD), because it steers search toward comfort picks earlier.
+- **Uncertainty.** Every realized difference between drafters is within the confidence intervals (about ±5pp per estimate on 4,000 teams). Only the greedy distilled personal-component signal, and the gap between personalized and non-personal agreement, are clearly separated.
+
+Figure: `fig_ds_meta.png`. Panels: distilled-prior vs BC-prior MCTS self-play hero shares; distilled-prior self-play vs real; meta breadth of all drafters.
+
+## Files (training/personalization/)
+
+- `cuda_prior/`: `prior_kernel.cu`, `prior_bindings.cpp`, `setup.py`.
+- `p3_ds_common.py`: prior model, features, kernel-format state.
+- `p3_ds_targets.py`, `p3_ds_train.py`: targets and fit (`results/p3_ds_train.json`).
+- `p3_ds_mcts.py`: verification and MCTS runs with the distilled prior (`results/p3_ds_verify.json`, `cache/dsmcts_*.pkl.gz`).
+- `p3_ds_greedy.py`: greedy drafters (`cache/dsgreedy_*.pkl.gz`).
+- `p3_ds_analyze.py`: the tables above (`results/p3_ds_analyze.json`, `fig_ds_meta.png`).
