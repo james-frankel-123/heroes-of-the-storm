@@ -16,6 +16,8 @@ import { HeroesProfileApiV2 } from './api-client-v2'
 
 export type HpApi = HeroesProfileApi | HeroesProfileApiV2
 
+const V2_MAX_PER_MINUTE = 110
+
 export function isV2(): boolean {
   return process.env.HP_API === 'v2'
 }
@@ -29,7 +31,10 @@ export function createHpApi(
     const key = process.env.HEROES_PROFILE_V2_API_KEY
     if (!key) throw new Error('HP_API=v2 but HEROES_PROFILE_V2_API_KEY is not set')
     // v1 meters per endpoint with one key; key1/key2 distinction collapses.
-    return new HeroesProfileApiV2(key, maxCallsPerMinute, maxRetries)
+    // x-ratelimit-limit is 120/min per key; stay under it.
+    const api = new HeroesProfileApiV2(key, Math.min(maxCallsPerMinute, V2_MAX_PER_MINUTE), maxRetries)
+    api.refuseFixture = true
+    return api
   }
   const key = which === 'key1'
     ? process.env.HEROES_PROFILE_API_KEY

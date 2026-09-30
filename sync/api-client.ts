@@ -1,3 +1,4 @@
+import type { HpApi } from './hp-api'
 import { HpAccessPausedError } from './hp-errors'
 import { log } from './logger'
 
@@ -249,7 +250,7 @@ export class HeroesProfileApi {
    * Returns up to 1000 replay metadata entries.
    * Dataset: 1,000,000 calls/week per key.
    */
-  async getReplayMinId(minId: number, gameType = 'Storm League'): Promise<any[]> {
+  async getReplayMinId(minId: number, gameType = 'Storm League', _maxRows?: number, _beforeId?: number): Promise<any[]> {
     return this.fetch('Replay/Min_id', {
       min_id: String(minId),
       game_type: gameType,
@@ -267,11 +268,26 @@ export class HeroesProfileApi {
   }
 }
 
+/** What the replay workers need from a key pool (legacy multi-key or v1). */
+export interface ReplayApiPool {
+  next(): HpApi
+  keyCount(): number
+  getTotalCallCount(): number
+}
+
+/** v1 meters per endpoint on one key: a pool of one. */
+export class SingleKeyPool implements ReplayApiPool {
+  constructor(private api: HpApi) {}
+  next(): HpApi { return this.api }
+  keyCount(): number { return 1 }
+  getTotalCallCount(): number { return this.api.getCallCount() }
+}
+
 /**
  * Round-robin wrapper over multiple API keys.
  * Distributes calls evenly across keys to maximize throughput.
  */
-export class MultiKeyApi {
+export class MultiKeyApi implements ReplayApiPool {
   private clients: HeroesProfileApi[]
   private index = 0
 

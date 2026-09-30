@@ -7,7 +7,7 @@ import {
   mapStatsAggregate,
 } from '../src/lib/db/schema'
 import { HERO_ROLES } from '../src/lib/data/hero-roles'
-import { HeroesProfileApi } from './api-client'
+import { HpApi } from './hp-api'
 import { SyncDb } from './db'
 import { log } from './logger'
 
@@ -103,7 +103,7 @@ interface PatchInfo {
   version: string
 }
 
-export async function getCurrentPatch(api: HeroesProfileApi): Promise<PatchInfo> {
+export async function getCurrentPatch(api: HpApi): Promise<PatchInfo> {
   const data = await api.getPatches()
 
   // The Patches endpoint might return various formats.
@@ -160,7 +160,7 @@ export async function getCurrentPatch(api: HeroesProfileApi): Promise<PatchInfo>
 // ── Hero stats sync ──────────────────────────────────────────────────
 
 async function syncHeroStatsForTier(
-  api: HeroesProfileApi,
+  api: HpApi,
   db: SyncDb,
   tier: SkillTier,
   leagueTier: string,
@@ -230,7 +230,7 @@ async function syncHeroStatsForTier(
  * so we fetch all of them and aggregate to maximize sample size.
  */
 export async function getMinorPatchesForMajor(
-  api: HeroesProfileApi,
+  api: HpApi,
   majorVersion: string,
 ): Promise<string[]> {
   const data = await api.getPatches()
@@ -286,7 +286,7 @@ function accumulatePatchData(
 }
 
 async function syncHeroMapStatsForTier(
-  api: HeroesProfileApi,
+  api: HpApi,
   db: SyncDb,
   tier: SkillTier,
   leagueTier: string,
@@ -375,7 +375,7 @@ async function syncHeroMapStatsForTier(
   log.info(`  Upserted ${mapRows.length} map aggregate stats for tier=${tier}`)
 }
 
-export async function syncHeroMapStats(api: HeroesProfileApi, db: SyncDb) {
+export async function syncHeroMapStats(api: HpApi, db: SyncDb) {
   // Resolve the current major patch, then get all its minor patches
   const majorPatch = await getCurrentPatch(api)
   const minorPatches = await getMinorPatchesForMajor(api, majorPatch.version)
@@ -399,7 +399,7 @@ export async function syncHeroMapStats(api: HeroesProfileApi, db: SyncDb) {
 // ── Talent stats sync ────────────────────────────────────────────────
 
 async function syncTalentStatsForTier(
-  api: HeroesProfileApi,
+  api: HpApi,
   db: SyncDb,
   tier: SkillTier,
   leagueTier: string,
@@ -569,7 +569,7 @@ async function upsertTalentRows(db: SyncDb, rows: TalentRow[], tier: SkillTier) 
 const MATCHUP_CONCURRENCY = 20
 
 async function syncMatchupForHero(
-  api: HeroesProfileApi,
+  api: HpApi,
   db: SyncDb,
   hero: string,
   tier: SkillTier,
@@ -608,7 +608,7 @@ async function syncMatchupForHero(
 }
 
 async function syncMatchups(
-  api: HeroesProfileApi,
+  api: HpApi,
   db: SyncDb,
   tier: SkillTier,
   leagueTier: string,
@@ -706,7 +706,7 @@ function parseMatchupData(hero: string, data: any): MatchupRow[] {
 
 // ── Main export ──────────────────────────────────────────────────────
 
-export async function syncGlobalStats(api: HeroesProfileApi, db: SyncDb) {
+export async function syncGlobalStats(api: HpApi, db: SyncDb) {
   log.info('=== Starting global stats sync ===')
 
   const patch = await getCurrentPatch(api)

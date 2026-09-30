@@ -1,6 +1,6 @@
 import { sql, eq, desc } from 'drizzle-orm'
 import { playerMatchHistory, trackedBattletags } from '../src/lib/db/schema'
-import { HeroesProfileApi } from './api-client'
+import { HpApi } from './hp-api'
 import { SyncDb } from './db'
 import { log } from './logger'
 
@@ -143,7 +143,7 @@ function parseReplays(data: any, battletag: string): Array<{
  * Uses incremental sync — only fetches games since last known game date.
  */
 async function syncBattletag(
-  api: HeroesProfileApi,
+  api: HpApi,
   db: SyncDb,
   config: BattletagConfig,
 ): Promise<number> {
@@ -204,7 +204,7 @@ async function syncBattletag(
  * Continues even if individual battletags fail.
  */
 export async function syncPlayerData(
-  api: HeroesProfileApi,
+  api: HpApi,
   db: SyncDb,
   battletags: BattletagConfig[],
 ): Promise<void> {

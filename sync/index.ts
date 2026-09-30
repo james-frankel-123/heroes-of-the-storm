@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { syncLog } from '../src/lib/db/schema'
-import { HeroesProfileApi } from './api-client'
+import { createHpApi, isV2 } from './hp-api'
 import { createDb } from './db'
 import { syncGlobalStats } from './sync-global'
 import { syncPlayerData, BattletagConfig } from './sync-players'
@@ -64,23 +64,18 @@ async function main() {
   log.info('║     HotS Fever — Data Sync Starting         ║')
   log.info('╚══════════════════════════════════════════════╝')
 
-  // Validate environment
-  const apiKey = process.env.HEROES_PROFILE_API_KEY
-  if (!apiKey) {
-    log.error('HEROES_PROFILE_API_KEY environment variable is required')
-    process.exit(1)
-  }
   if (!process.env.DATABASE_URL) {
     log.error('DATABASE_URL environment variable is required')
     process.exit(1)
   }
 
   const db = createDb()
-  const api = new HeroesProfileApi(apiKey, 180)
+  const api = createHpApi('key1', 180)
+  log.info(`Heroes Profile API: ${isV2() ? 'v1 (HP_API=v2)' : 'legacy'}`)
 
-  // ── Phase 0: Composition data (scraped, no API key needed) ──
+  // ── Phase 0: Composition data ──
   try {
-    await syncCompositions()
+    await syncCompositions(api)
   } catch (err) {
     log.error('Composition sync failed (non-fatal)', err)
   }

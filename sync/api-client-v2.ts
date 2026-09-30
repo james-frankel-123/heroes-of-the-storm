@@ -52,6 +52,12 @@ export class HeroesProfileApiV2 {
   private callCount = 0
   /** "fixture" until live data is activated on the account; "live" after. */
   lastDataSource: string | null = null
+  /**
+   * Production workers set this: a fixture response then throws
+   * HpAccessPausedError, which every worker already treats as "stop, don't
+   * store, don't advance cursors".
+   */
+  refuseFixture = false
 
   constructor(
     private apiKey: string,
@@ -101,6 +107,9 @@ export class HeroesProfileApiV2 {
       }
 
       this.lastDataSource = response.headers.get('x-hp-data-source')
+      if (this.refuseFixture && this.lastDataSource === 'fixture') {
+        throw new HpAccessPausedError(response.status, 'fixture_data', `${path}: live data not activated on the account`)
+      }
 
       if (response.status === 202) {
         // Global-statistics job: poll Location until 200. Polls cost no quota.
@@ -214,15 +223,16 @@ export class HeroesProfileApiV2 {
   }
 
   /**
-   * Old Replay/Min_id contract: up to ~maxRows listing rows from an
-   * INCLUSIVE min id. v1 /replays pages ~25 rows with an EXCLUSIVE
-   * `after` cursor, so this aggregates pages (each page = one metered
-   * call against the replay index allowance).
+   * Old Replay/Min_id contract: listing rows from an INCLUSIVE min id. v1
+   * /replays pages ~25 rows with an EXCLUSIVE `after` cursor, so this
+   * aggregates pages (each page = one metered replay_index call). Stops at
+   * maxRows, or before the first row with id >= beforeId (range scans).
    */
   async getReplayMinId(
     minId: number,
-    gameType?: string,
+    gameType = 'Storm League',
     maxRows = 200,
+    beforeId?: number,
   ): Promise<any[]> {
     const rows: any[] = []
     let after = minId - 1 // inclusive -> exclusive
@@ -234,6 +244,7 @@ export class HeroesProfileApiV2 {
       const page: any[] = d.replays ?? []
       if (page.length === 0) break
       for (const r of page) {
+        if (beforeId !== undefined && r.replayID >= beforeId) return rows
         // Old rows had `valid`; v1 dropped it. Synthesize so existing
         // `valid === 1` filters keep their meaning (parsed and present).
         rows.push({ ...r, valid: r.parsed && !r.deleted ? 1 : 0 })
@@ -253,10 +264,9 @@ export class HeroesProfileApiV2 {
   }
 
   /**
-   * Old Player/Replays contract: { "Storm League": { "<id>": {...} } }.
-   * Built from v1 /players/matches (paginated, 100/page). Date-window
-   * params are honored by filtering rows, so the enumerator's chunking
-   * keeps working — though with pagination it no longer needs chunks.
+   * Old Player/Replays contract: { "Storm League": { "<id>": {...} } } with
+   * hero/map/game_type as names and level_* as talent titles. Built from v1
+   * /players/matches (paginated, 100/page; may answer 202 + job).
    */
   async getPlayerReplays(
     battletag: string,
@@ -278,7 +288,16 @@ export class HeroesProfileApiV2 {
         const when = String(row.game_date ?? '')
         if (startDate && when && when.slice(0, 10) < startDate) continue
         if (endDate && when && when.slice(0, 10) >= endDate) continue
-        inner[String(row.replayID)] = row
+        const flat: Record<string, any> = {
+          ...row,
+          hero: row.hero?.name ?? row.hero,
+          game_map: row.game_map?.name ?? row.game_map,
+          game_type: row.game_type?.name ?? row.game_type,
+        }
+        for (const lvl of TALENT_LEVEL_KEYS) {
+          if (row[lvl] && typeof row[lvl] === 'object') flat[lvl] = row[lvl].title ?? null
+        }
+        inner[String(row.replayID)] = flat
       }
       if (!d.next_page_url || page >= Number(d.last_page ?? page)) break
       page++
@@ -286,8 +305,7 @@ export class HeroesProfileApiV2 {
     return { [gameType]: inner }
   }
 
-  /** Old Heroes/Stats contract: v1 returns averages + data rows; legacy
-   * callers consumed the rows. */
+  /** Old Heroes/Stats contract: an array of rows with `name` = hero name. */
   async getHeroStats(timeframeType: string, timeframe: string, leagueTier?: string, hero?: string) {
     const d: any = await this.fetch('heroes/stats', {
       timeframe_type: timeframeType,
@@ -296,31 +314,132 @@ export class HeroesProfileApiV2 {
       league_tier: leagueTier,
       hero,
     })
-    return d.data ?? d
+    const rows: any[] = d.data ?? []
+    // TODO(max): confirm v1 heroes/stats row fields against the docs; the
+    // fixture rows carry only name/role/wins. Refuse rather than let
+    // sync-global store zeros for games/ban_rate/popularity.
+    if (rows.length > 0 && rows.every(r => r.games_played === undefined && r.games === undefined)) {
+      throw new Error('heroes/stats rows have no games_played field; v1 row schema unconfirmed')
+    }
+    return rows.map(r => ({ ...r, name: r.name ?? r.hero?.name ?? r.hero }))
   }
 
+  /**
+   * Old Heroes/Matchups contract: { "<HeroB>": { ally: {wins, losses,
+   * win_rate}, enemy: {wins, losses, win_rate} } }, where enemy stats are
+   * the OPPONENT's (sync-global inverts them).
+   */
   async getHeroMatchups(hero: string, timeframeType: string, timeframe: string, leagueTier?: string) {
-    return this.fetch('heroes/matchups', {
+    if (V1_ENEMY_ROWS_ARE_OPPONENT_PERSPECTIVE === null) {
+      // TODO(max): confirm in the v1 docs whose wins `enemy` rows count.
+      // Guessing wrong silently inverts every counter-pick stat.
+      throw new Error('heroes/matchups enemy-row perspective unconfirmed; not syncing matchups')
+    }
+    const d: any = await this.fetch('heroes/matchups', {
       timeframe_type: timeframeType,
       timeframe,
       game_type: 'Storm League',
       hero,
       league_tier: leagueTier,
     })
+    const out: Record<string, { ally?: any; enemy?: any }> = {}
+    const conv = (r: any) => {
+      const wins = Number(r.wins ?? 0)
+      const losses = Number(r.losses ?? 0)
+      const games = wins + losses
+      return { wins, losses, win_rate: r.win_rate ?? (games > 0 ? (100 * wins) / games : 0) }
+    }
+    for (const r of d.ally ?? []) {
+      const name = r.hero?.name ?? r.hero
+      if (name) (out[name] ??= {}).ally = conv(r)
+    }
+    for (const r of d.enemy ?? []) {
+      const name = r.hero?.name ?? r.hero
+      if (!name) continue
+      const c = conv(r)
+      ;(out[name] ??= {}).enemy = V1_ENEMY_ROWS_ARE_OPPONENT_PERSPECTIVE
+        ? c
+        : { wins: c.losses, losses: c.wins, win_rate: 100 - c.win_rate }
+    }
+    return out
   }
 
-  async getPatches() {
+  /** Old Patches contract: { "2.55": ["2.55.17.97771", ...], ... }. */
+  async getPatches(): Promise<Record<string, string[]>> {
     const d: any = await this.fetch('patches')
-    return d.patches ?? d
+    const out: Record<string, string[]> = {}
+    for (const p of d.patches ?? []) {
+      if (p.valid_globals === false || !p.game_version) continue
+      ;(out[`${p.major}.${p.minor}`] ??= []).push(p.game_version)
+    }
+    return out
   }
 
-  async getTalentDetails(hero: string, timeframeType: string, timeframe: string, leagueTier?: string) {
-    return this.fetch('heroes/talents/details', {
+  /**
+   * Old Heroes/Talents/Details contract (same argument order as the old
+   * client): { "<tier>": [{ title, games_played, wins, win_rate, popularity }] }.
+   * v1 requires a hero; rows carry the HERO name in `name` and the talent
+   * under talentInfo.
+   */
+  async getTalentDetails(timeframeType: string, timeframe: string, leagueTier?: string, hero?: string) {
+    if (!hero) throw new Error('v1 heroes/talents/details needs a hero')
+    const d: any = await this.fetch('heroes/talents/details', {
       timeframe_type: timeframeType,
       timeframe,
       game_type: 'Storm League',
       hero,
       league_tier: leagueTier,
     })
+    const out: Record<string, any[]> = {}
+    for (const [tier, rows] of Object.entries(d ?? {})) {
+      if (!Array.isArray(rows)) continue
+      out[tier] = rows.map((r: any) => ({
+        title: r.talentInfo?.title ?? r.title,
+        games_played: r.games_played,
+        wins: r.wins,
+        losses: r.losses,
+        win_rate: r.win_rate,
+        popularity: r.popularity,
+      }))
+    }
+    return out
+  }
+
+  /**
+   * Old Heroes/Stats group_by_map contract. Only sync/run-once.ts uses it; v1
+   * serves it as heroes/maps, one hero per call (Heroes/Map/Stats allowance
+   * is 1K/wk), so it is deliberately not ported yet.
+   */
+  async getHeroMapStats(_timeframeType: string, _timeframe: string, _leagueTier?: string): Promise<never> {
+    throw new Error('hero-map stats are not ported to v1 (heroes/maps needs one call per hero)')
+  }
+
+  /** Composition win rates: same row shape the internal site endpoint returned. */
+  async getCompositions(params: {
+    timeframeType: string
+    timeframe: string
+    gameType: string
+    leagueTier?: string
+    minimumGames?: number
+  }): Promise<any[]> {
+    const d: any = await this.fetch('compositions', {
+      timeframe_type: params.timeframeType,
+      timeframe: params.timeframe,
+      game_type: params.gameType,
+      league_tier: params.leagueTier,
+      minimum_games: params.minimumGames === undefined ? undefined : String(params.minimumGames),
+    })
+    return Array.isArray(d) ? d : d.data ?? []
   }
 }
+
+const TALENT_LEVEL_KEYS = [
+  'level_one', 'level_four', 'level_seven', 'level_ten',
+  'level_thirteen', 'level_sixteen', 'level_twenty',
+] as const
+
+/**
+ * Whose wins do v1 heroes/matchups `enemy` rows count? The old API counted
+ * the opponent's. null = unconfirmed: matchup sync refuses to run.
+ */
+const V1_ENEMY_ROWS_ARE_OPPONENT_PERSPECTIVE: boolean | null = null

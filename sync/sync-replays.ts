@@ -15,7 +15,7 @@ import {
   replaySyncState,
   replayFetchQueue,
 } from '../src/lib/db/schema'
-import { MultiKeyApi } from './api-client'
+import { ReplayApiPool } from './api-client'
 import { createDb, SyncDb } from './db'
 import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
@@ -81,7 +81,7 @@ async function saveState(db: SyncDb, state: DiscoveryState) {
  * @returns Number of new replays enqueued
  */
 export async function discoverReplays(
-  api: MultiKeyApi,
+  api: ReplayApiPool,
   db: SyncDb,
   maxCalls = 500,
 ): Promise<number> {
@@ -178,7 +178,7 @@ export async function discoverReplays(
  * @returns Number of new replays enqueued
  */
 export async function discoverBackfill(
-  api: MultiKeyApi,
+  api: ReplayApiPool,
   db: SyncDb,
   maxCalls = 500,
 ): Promise<number> {
@@ -209,7 +209,8 @@ export async function discoverBackfill(
     // Scan backwards: query a range ending at our cursor
     const queryStart = Math.max(BACKFILL_FLOOR, state.backfillCursor - 1000)
     try {
-      const batch = await api.next().getReplayMinId(queryStart)
+      // Whole window [queryStart, cursor): v1 pages ~25 rows, so bound by id, not row count.
+      const batch = await api.next().getReplayMinId(queryStart, 'Storm League', Infinity, state.backfillCursor)
       callsMade++
 
       if (!Array.isArray(batch) || batch.length === 0) {
@@ -277,7 +278,7 @@ export async function discoverBackfill(
  * @returns Number of replays successfully fetched
  */
 export async function fetchReplayData(
-  api: MultiKeyApi,
+  api: ReplayApiPool,
   db: SyncDb,
   maxCalls = 500,
 ): Promise<number> {
@@ -287,6 +288,7 @@ export async function fetchReplayData(
       replayId: replayFetchQueue.replayId,
       leagueTier: replayFetchQueue.leagueTier,
       avgMmr: replayFetchQueue.avgMmr,
+      gameVersion: replayFetchQueue.gameVersion,
     })
     .from(replayFetchQueue)
     .where(eq(replayFetchQueue.fetched, false))
@@ -392,7 +394,8 @@ export async function fetchReplayData(
           gameMap: replay.game_map,
           gameDate: new Date(replay.game_date),
           gameLength: replay.game_length || null,
-          gameVersion: replay.game_version || '',
+          // v1 replay detail has no game_version; the listing row does.
+          gameVersion: replay.game_version || queueItem.gameVersion || '',
           avgMmr: avgMmr || null,
           leagueTier: leagueTier || null,
           draftOrder: replay.draft_order,

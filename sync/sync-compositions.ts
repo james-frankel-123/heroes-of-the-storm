@@ -1,16 +1,21 @@
 /**
- * Scrape composition win-rate data from Heroes Profile internal API.
+ * Composition win-rate data from Heroes Profile.
  *
- * Unlike the public API (api.heroesprofile.com), this uses the internal
- * Laravel endpoint at heroesprofile.com/api/v1/global/compositions which
- * requires a CSRF token from a session cookie.
+ * HP_API=v2: the licensed v1 /compositions endpoint (current major patch).
+ * Legacy (until the account migrates): the internal Laravel endpoint at
+ * heroesprofile.com/api/v1/global/compositions, which needs a CSRF token
+ * from a session cookie. That path is outside the API licence; delete it
+ * once v2 is live.
  *
  * Writes normalized data to src/lib/data/compositions.json.
  */
 
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
+import { HeroesProfileApiV2 } from './api-client-v2'
+import { HpApi } from './hp-api'
 import { log } from './logger'
+import { getCurrentPatch } from './sync-global'
 
 const HP_BASE = 'https://www.heroesprofile.com'
 
@@ -97,7 +102,7 @@ async function fetchTierCompositions(
   const body = JSON.stringify({
     league_tier: tierCodes,
     game_type: ['sl'],
-    minimum_games: 100,
+    minimum_games: MINIMUM_GAMES,
   })
 
   const resp = await fetch(`${HP_BASE}/api/v1/global/compositions`, {
@@ -142,18 +147,35 @@ function normalizeComposition(raw: RawComposition): NormalizedComposition {
   }
 }
 
-export async function syncCompositions(): Promise<void> {
-  log.info('── Syncing composition data ──')
+const MINIMUM_GAMES = 100
 
-  const { cookie, csrfToken } = await getSession()
+export async function syncCompositions(api: HpApi): Promise<void> {
+  log.info('── Syncing composition data ──')
 
   const result: Record<string, NormalizedComposition[]> = {}
 
-  for (const [tier, codes] of Object.entries(TIER_CODES)) {
-    log.info(`Fetching ${tier} tier compositions (league_tier=${JSON.stringify(codes)})...`)
-    const raw = await fetchTierCompositions(codes, cookie, csrfToken)
-    result[tier] = raw.map(normalizeComposition)
-    log.info(`  ${tier}: ${result[tier].length} compositions`)
+  if (api instanceof HeroesProfileApiV2) {
+    const patch = await getCurrentPatch(api)
+    for (const [tier, codes] of Object.entries(TIER_CODES)) {
+      log.info(`Fetching ${tier} tier compositions (${patch.version}, league_tier=${codes.join(',')})...`)
+      const raw: RawComposition[] = await api.getCompositions({
+        timeframeType: patch.type,
+        timeframe: patch.version,
+        gameType: 'Storm League',
+        leagueTier: codes.join(','),
+        minimumGames: MINIMUM_GAMES,
+      })
+      result[tier] = raw.filter(c => c.games_played >= MINIMUM_GAMES).map(normalizeComposition)
+      log.info(`  ${tier}: ${result[tier].length} compositions`)
+    }
+  } else {
+    const { cookie, csrfToken } = await getSession()
+    for (const [tier, codes] of Object.entries(TIER_CODES)) {
+      log.info(`Fetching ${tier} tier compositions (league_tier=${JSON.stringify(codes)})...`)
+      const raw = await fetchTierCompositions(codes, cookie, csrfToken)
+      result[tier] = raw.map(normalizeComposition)
+      log.info(`  ${tier}: ${result[tier].length} compositions`)
+    }
   }
 
   const outPath = resolve(__dirname, '../src/lib/data/compositions.json')

@@ -10,7 +10,8 @@
  * Usage: set -a && source .env && set +a && npx tsx sync/replay-daemon.ts
  *        --fresh    Reset cursor to most recent replays (skip old queue)
  */
-import { MultiKeyApi } from './api-client'
+import { MultiKeyApi, ReplayApiPool, SingleKeyPool } from './api-client'
+import { createHpApi, isV2 } from './hp-api'
 import { createDb } from './db'
 import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
@@ -23,18 +24,24 @@ function sleep(ms: number): Promise<void> {
 }
 
 async function main() {
-  const key1 = process.env.HEROES_PROFILE_API_KEY
-  const key2 = process.env.HEROES_PROFILE_API_KEY2
-  if (!key1) { log.error('HEROES_PROFILE_API_KEY required'); process.exit(1) }
   if (!process.env.DATABASE_URL) { log.error('DATABASE_URL required'); process.exit(1) }
-
   const db = createDb()
-  // Key 1 = dev account (180/min). Key 2 = standard account (55/min), used
-  // as fallback when key 1's weekly Replay/Data quota exhausts.
-  const keys = [key1, ...(key2 ? [key2] : [])]
-  const rates = key2 ? [180, 55] : [180]
-  const api = new MultiKeyApi(keys, rates, 3)
-  log.info(`Using ${keys.length} API key(s) (rates: ${rates.join('/')} /min)`)
+
+  let api: ReplayApiPool
+  if (isV2()) {
+    api = new SingleKeyPool(createHpApi('key1', 110, 3))
+    log.info('Using Heroes Profile v1 API (HP_API=v2), one key')
+  } else {
+    const key1 = process.env.HEROES_PROFILE_API_KEY
+    const key2 = process.env.HEROES_PROFILE_API_KEY2
+    if (!key1) { log.error('HEROES_PROFILE_API_KEY required'); process.exit(1) }
+    // Key 1 = dev account (180/min). Key 2 = standard account (55/min), used
+    // as fallback when key 1's weekly Replay/Data quota exhausts.
+    const keys = [key1, ...(key2 ? [key2] : [])]
+    const rates = key2 ? [180, 55] : [180]
+    api = new MultiKeyApi(keys, rates, 3)
+    log.info(`Using ${keys.length} API key(s) (rates: ${rates.join('/')} /min)`)
+  }
 
   // --cron: one-shot mode — exit when caught up (or quota-blocked) instead
   // of sleeping, so the Neon endpoint can suspend between scheduled runs.
