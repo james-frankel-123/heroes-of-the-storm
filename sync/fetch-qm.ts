@@ -5,7 +5,7 @@
  * Enumerates Quick Match replays via Replay/Min_id (game_type filter, 1000
  * per call, effectively unmetered) walking ASCENDING from the oldest known
  * patch-2.55 upload (min replay_id in replay_draft_data — same upload
- * timeline as our ranked corpus). For every listed QM game on patch 2.55
+ * timeline as our ranked corpus). For every listed QM game on patch 2.55 or newer (per-bucket floor)
  * that is parsed+valid, fetches Replay/Data and stores:
  *   - qm_games: replay-level row (map, date, version, region) + the listing
  *     row's avg_mmr / league_tier / rank (Replay/Data does not carry them)
@@ -46,7 +46,7 @@ import { qmGames, qmFetchState } from '../src/lib/db/schema'
 
 const WORKERS = 3
 const STRATA = 12 // per-bucket round-robin strata (era-uniform partial fills)
-const PATCH_PREFIX = '2.55'
+const MIN_PATCH = [2, 55] as const // oldest patch any bucket collects
 const QUOTA_BACKOFF_MS = 60 * 60_000
 const CAUGHT_UP_SLEEP_MS = 60 * 60_000
 
@@ -64,15 +64,30 @@ interface EraBucket {
   name: string
   from: string // inclusive game-date window
   to: string   // exclusive
-  target: number // qm_games rows with game_date in window
+  target: number // qm_games rows with game_date in window (and >= minPatch)
   rate: number
+  /** Only games on this major patch or newer, e.g. [2, 57]. */
+  minPatch?: readonly [number, number]
 }
 const BUCKETS: EraBucket[] = [
   { name: 'recent', from: '2025-07-01', to: '2027-01-01', target: 120_000, rate: 80 },
   { name: 'y2024', from: '2024-01-01', to: '2025-01-01', target: 90_000, rate: 40 },
   { name: 'y2023', from: '2023-01-01', to: '2024-01-01', target: 90_000, rate: 40 },
   { name: 'y2025h1', from: '2025-01-01', to: '2025-07-01', target: 60_000, rate: 40 },
+  // Patches after 2.55 (added 2026-09-30); open-ended so new QM keeps flowing.
+  { name: 'p257plus', from: '2026-09-01', to: '2028-01-01', target: 200_000, rate: 80, minPatch: [2, 57] },
 ]
+
+/** major.minor of a build string, e.g. '2.57.0.98304' -> [2, 57]. */
+function majorMinor(version: string | null | undefined): [number, number] | null {
+  const [maj, min] = String(version ?? '').split('.').map(Number)
+  return Number.isFinite(maj) && Number.isFinite(min) ? [maj, min] : null
+}
+
+function atLeast(version: string | null | undefined, floor: readonly [number, number]): boolean {
+  const mm = majorMinor(version)
+  return mm !== null && (mm[0] > floor[0] || (mm[0] === floor[0] && mm[1] >= floor[1]))
+}
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -160,8 +175,12 @@ async function versionDateMap(db: SyncDb): Promise<Map<string, [number, number]>
 /** Fetched-so-far count for a bucket (resume-safe: derived from qm_games). */
 async function bucketProgress(db: SyncDb, b: EraBucket): Promise<number> {
   const [row] = await db.execute(
-    sql`SELECT count(*) AS n FROM qm_games
-        WHERE game_date >= ${b.from} AND game_date < ${b.to}`
+    b.minPatch
+      ? sql`SELECT count(*) AS n FROM qm_games
+          WHERE game_date >= ${b.from} AND game_date < ${b.to}
+            AND (string_to_array(game_version, '.'))[1:2]::int[] >= ARRAY[${b.minPatch[0]}, ${b.minPatch[1]}]::int[]`
+      : sql`SELECT count(*) AS n FROM qm_games
+          WHERE game_date >= ${b.from} AND game_date < ${b.to}`
   ).then(r => r.rows)
   return Number(row.n)
 }
@@ -327,7 +346,7 @@ async function main() {
 
       // Eligible = valid QM game whose build falls in this bucket's window.
       const eligible = listing.filter(r =>
-        (r.game_version ?? '').startsWith(PATCH_PREFIX) &&
+        atLeast(r.game_version, bucket.minPatch ?? MIN_PATCH) &&
         inWindow(r.game_version) &&
         r.valid === 1 && r.parsed === 1 && !r.deleted
       )
