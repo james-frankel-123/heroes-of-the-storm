@@ -74,3 +74,104 @@ Findings:
   - The calibration fitted in the spring holds in the autumn.
 
 **Verdict for the product and the paper.** The phase-1 model can ship with its May hyperparameters as long as the state is updated nightly. A monthly refresh of the kernels is not needed for accuracy. What matters is running the state update and keeping counts current. The pre-registration for builds after 2026-09-27 can use +0.0149 (online) as the expected gain, with a per-build range of +0.013 to +0.016.
+
+## 2. Heroes a player has not played: a natural experiment (`p3_x_predall.py`, `p3_x_fetch_side.py`, `p3_x_side.py`, `p3_x_adopt.py`)
+
+**Events.** An adoption event is a (player, hero) cell whose first game in the snapshot window comes after the player already has 50+ games and 90+ days in the window. There are 386,826 such events. The prediction is the causal posterior at the first game (lag 1 day, `cache/x_predall.npz`, which reproduces phase 1's V2 per-slot gain of 1.45 per 1000).
+
+**Many "new" heroes are not new.** The corpus holds only replays uploaded to Heroes Profile. The hero level recorded on the first game tells the cases apart:
+
+- level ≤ 3 (truly new): 55,511 events (14%);
+- level 4 to 9: 138,594;
+- level ≥ 10 (a hero the player already knew): 192,721 (50%).
+
+**Survivorship.** Only 7.8% of adoptions reach 10 games. The detrended first-game residual of those that do was +6.6pp; for those that stop before 10 it was −0.8pp. Players keep a new hero when the first games go well. Any sample restricted to "10+ games on the new hero" is selected on its own early outcomes. This is why phase 1 needed a +7pp band for never-played heroes that players go on to play.
+
+### A. First game on the new hero, every event (no survivorship)
+
+Realized raw residual −4.54pp; the experience offset predicts −4.32pp. The offset is right on average. Per-slot log-loss gain over the population WP (×1000), with the prediction used as shown (offset at 0 games + posterior mean):
+
+| group | events | offset only | player-only | player+hero | role pooling | co-play | similarity (CF rank 2) |
+|---|---|---|---|---|---|---|---|
+| all | 386,826 | 4.51 | 4.61 | 4.68 | 4.69 | 4.72 | **4.80** |
+| truly new (level ≤ 3) | 55,511 | 6.52 | 7.19 | 7.28 | 7.27 | 7.31 | **7.51** |
+| known hero (level ≥ 10) | 192,721 | **3.89** | 3.75 | 3.83 | 3.83 | 3.86 | 3.85 |
+| tanks | | 3.51 | 3.63 | 3.69 | 3.72 | 3.76 | **3.91** |
+| bruisers | | 3.01 | 3.16 | **3.21** | **3.21** | 3.20 | 3.15 |
+| healers | | 2.50 | 2.66 | 2.71 | 2.70 | 2.70 | **2.78** |
+| ranged assassins | | 5.74 | 5.84 | 5.92 | 5.92 | 5.96 | **6.08** |
+
+Paired differences (×1000 per slot, player-clustered bootstrap):
+
+- similarity − role pooling: +0.105 (0.033, 0.171);
+- similarity − player-only: +0.185 (0.117, 0.246);
+- role − player-only: +0.080 (0.058, 0.102);
+- similarity − offset only: +0.281 (0.165, 0.388).
+
+### B. The first 10 or 20 games of players who stay
+
+Target: the mean detrended residual over the first N games. N = 10 gives 30,252 events (latent sd 3.7pp); N = 20 gives 10,134 (latent sd 3.9pp).
+
+**Uncorrected, the displayed number is badly biased for this group.** The display (offset at 0 games plus posterior mean) says −4.4pp. The realized mean over the first 10 games is +1.4pp raw. The offset path over those games (which falls as the player gains games) predicts −1.7pp. The as-is posterior means are also over-dispersed for this group: their slopes are 0.4 to 0.5. Both are selection effects.
+
+Latent R² after a cross-fitted recalibration (intercept and slope, 2 folds split by player):
+
+| predictor | N = 10 | N = 20 |
+|---|---|---|
+| player-only | 0.021 | 0.011 |
+| player+hero (no hero pooling) | 0.024 | 0.013 |
+| role pooling | 0.025 | 0.014 |
+| co-play pooling | 0.029 | 0.016 |
+| **similarity pooling (CF rank 2)** | **0.047** | **0.029** |
+| similarity − role, paired (95% CI) | +0.022 (0.005, 0.038) | +0.016 (0.002, 0.028) |
+| similarity − player-only, paired | +0.026 (0.011, 0.041) | +0.019 (0.005, 0.032) |
+
+**Side information** (cross-fitted ridge, penalty chosen inside the training fold):
+
+| model | N = 10 | N = 20 |
+|---|---|---|
+| recalibrated GP means (CF, player, role) | 0.046 | 0.025 |
+| + hero attributes (role, melee, hand-labeled high mechanics, CF loadings, and their products with the player's level) | 0.094 | 0.057 |
+| + scoreboard style, raw | 0.113 | 0.042 |
+| + scoreboard style, outcome-neutral | 0.124 | 0.046 |
+| + style + talent conformity | 0.113 | 0.042 |
+| + hero level on the first game | 0.115 | 0.045 |
+
+Paired, at N = 10:
+
+- attributes add +0.048 (0.024, 0.070);
+- outcome-neutral style adds +0.030 (−0.002, 0.059);
+- raw style adds +0.019 (−0.004, 0.047);
+- talents and hero level add nothing (+0.001).
+
+At N = 20, attributes add +0.032 (0.014, 0.049) and style adds −0.010 to −0.015.
+
+**Tanks** (5,561 events at N = 10):
+
+| model | tank R², N = 10 | tank R², N = 20 |
+|---|---|---|
+| similarity, recalibrated | 0.010 | 0.005 |
+| role pooling, recalibrated | −0.011 | −0.009 |
+| + attributes | 0.030 | −0.010 |
+| + outcome-neutral style | 0.116 | −0.013 |
+
+Style helps tanks over the first 10 games and not over 20, so I treat it as unconfirmed.
+
+**Interval coverage.** The calibrated display band (1.2 s² + (7pp)² for never-played heroes) covers the mean of the first 10 games for 81% of players who stay (raw posterior 77%), and 81% at N = 20.
+
+### Reading
+
+- **How good is the pre-adoption prediction?**
+  - On a single first game it is right on average, with the off-pool penalty of about −4.5pp.
+  - For players who stay with the hero, it explains about 5% of the latent spread of their first 10 games once its level is corrected. The best side-information model explains 9 to 12%.
+  - Most of what happens on a newly adopted hero cannot be predicted from other heroes.
+- **Similarity pooling beats role pooling and player-only.**
+  - It wins on the unbiased first-game test (+0.10 and +0.19 per 1000 slots).
+  - It wins on the adopters' first 10 and 20 games (+0.016 to +0.026 in R²).
+  - Role pooling barely beats player-only (+0.004 in R², +0.08 per 1000).
+- **Tanks.** The phase-1 Cassia test found pooling hurt on rarely played tank cells. On real first games of new tanks, the similarity kernel does better than every alternative (3.91 vs 3.51 for the offset alone). The Cassia failure was specific to heroes a veteran dabbles in, and does not carry over to real adoptions.
+- **Known heroes behave differently.** On heroes with level ≥ 10, pooling adds nothing over the offset (3.85 vs 3.89). The player has experience with the hero that our window does not see.
+  - A lifetime hero level from the player's profile would fix the offset for these heroes.
+  - As a side feature for the first 10 games it added nothing, because the offset's selection problem dominates.
+- **Side information.** Hero attributes help (+0.03 to +0.05 R²). They capture which kinds of heroes adopters do well on relative to the model, and how that depends on the player's overall level. Outcome-neutral scoreboard style adds a little at 10 games. Talent conformity adds nothing.
+- **Product.** Keep showing the off-pool penalty for a hero the player has not played; it is calibrated on first games. Label the band as "first games". Once a player has played 3 to 5 games, the phase-1 estimate takes over, and the +7pp band covers the survivors.

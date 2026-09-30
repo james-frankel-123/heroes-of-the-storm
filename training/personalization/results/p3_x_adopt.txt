@@ -1,0 +1,67 @@
+adoption events: 386,826 (cells 2,659,326)
+{'first_game_r_adj_pp_all_events': -0.1981363418628584, 'first_game_r_adj_pp_events_reaching_10': 6.606270347672741, 'first_game_r_adj_pp_events_stopping_before_10': -0.775427202026053, 'share_reaching_10': 0.07820570489057095, 'first_game_raw_r_pp_all_events': -4.543430504755828}
+N=1: 386,826 events, latent sd 0.00pp
+  zero (population)                             R2 +0.001 slope None tank +0.002
+  player-only                                   R2 -0.007 slope 0.64 tank -0.009
+  player+hero (no hero pooling)                 R2 -0.013 slope 0.79 tank -0.015
+  role pooling                                  R2 -0.014 slope 0.8 tank -0.018
+  co-play pooling                               R2 -0.016 slope 0.84 tank -0.021
+  similarity pooling (CF rank 2)                R2 -0.022 slope 0.78 tank -0.035
+  player-only, recalibrated                     R2 -0.013 slope 0.94 tank -0.007
+  player+hero (no hero pooling), recalibrated   R2 -0.015 slope 0.95 tank -0.009
+  role pooling, recalibrated                    R2 -0.015 slope 0.95 tank -0.011
+  co-play pooling, recalibrated                 R2 -0.018 slope 0.96 tank -0.015
+  similarity pooling (CF rank 2), recalibrated  R2 -0.025 slope 0.98 tank -0.027
+  ridge: GP means (recalibrated)                R2 -0.025 slope 0.99 tank -0.026
+  + hero attributes                             R2 -0.088 slope 0.96 tank -0.077
+  + attributes + style (raw)                    R2 -0.097 slope 1.09 tank -0.084
+  + attributes + style (outcome-neutral)        R2 -0.099 slope 1.09 tank -0.084
+  + attributes + style (raw) + talents          R2 -0.097 slope 1.08 tank -0.083
+  + all + hero level on first game              R2 -0.104 slope 0.96 tank -0.087
+  hero level only (+ attributes)                R2 -0.096 slope 0.96 tank -0.080
+  paired: {'similarity pooling (CF rank 2), recalibrated - role pooling, recalibrated': -0.0095, 'similarity pooling (CF rank 2), recalibrated - player-only, recalibrated': -0.0121, 'role pooling, recalibrated - player-only, recalibrated': -0.0026, 'co-play pooling, recalibrated - player-only, recalibrated': -0.0049, 'similarity pooling (CF rank 2), recalibrated - zero (population)': -0.0255, 'similarity pooling (CF rank 2) - role pooling': -0.0081, 'similarity pooling (CF rank 2) - player-only': -0.0146, 'role pooling - player-only': -0.0065, 'similarity pooling (CF rank 2) - player+hero (no hero pooling)': -0.0087, '+ attributes + style (raw) + talents - ridge: GP means (recalibrated)': -0.0712, '+ attributes + style (raw) - + hero attributes': -0.0088, '+ attributes + style (outcome-neutral) - + hero attributes': -0.0109, '+ hero attributes - ridge: GP means (recalibrated)': -0.0625, '+ all + hero level on first game - + attributes + style (raw) + talents': -0.0079}
+  full: {'mean_realized_pp': -4.543430504755828, 'zero': {'latent_r2': 0.3584079289527481, 'bias_pp': -4.543430504755828, 'mean_pred_pp': 0.0}, 'offset path only': {'latent_r2': -0.016721218491515977, 'bias_pp': -0.1981363418628584, 'mean_pred_pp': -4.345294162892969}, 'offset path + CF rank 2': {'latent_r2': -0.03983409562204865, 'bias_pp': -0.2939380697619664, 'mean_pred_pp': -4.249492434993862}, 'offset at n=0 + CF rank 2 (the displayed number)': {'latent_r2': -0.03929320711922979, 'bias_pp': -0.3218600313117461, 'mean_pred_pp': -4.221570473444083}} {'raw posterior': 0.9416455977623014, 'calibrated 1.2 s2 + 7pp^2': 0.9479326622305636, 'offset path, 1.2 s2 (no 7pp)': 0.941917037634492}
+N=10: 30,252 events, latent sd 3.67pp
+  zero (population)                             R2 -0.707 slope None tank -1.437
+  player-only                                   R2 -0.685 slope 0.4 tank -1.396
+  player+hero (no hero pooling)                 R2 -0.680 slope 0.48 tank -1.393
+  role pooling                                  R2 -0.678 slope 0.49 tank -1.400
+  co-play pooling                               R2 -0.670 slope 0.52 tank -1.380
+  similarity pooling (CF rank 2)                R2 -0.678 slope 0.5 tank -1.387
+  player-only, recalibrated                     R2 +0.021 slope 0.97 tank -0.010
+  player+hero (no hero pooling), recalibrated   R2 +0.024 slope 0.97 tank -0.005
+  role pooling, recalibrated                    R2 +0.025 slope 0.98 tank -0.011
+  co-play pooling, recalibrated                 R2 +0.029 slope 0.97 tank -0.005
+  similarity pooling (CF rank 2), recalibrated  R2 +0.047 slope 0.99 tank +0.010
+  ridge: GP means (recalibrated)                R2 +0.046 slope 1.05 tank +0.007
+  + hero attributes                             R2 +0.094 slope 1.01 tank +0.030
+  + attributes + style (raw)                    R2 +0.113 slope 0.91 tank +0.102
+  + attributes + style (outcome-neutral)        R2 +0.124 slope 0.92 tank +0.116
+  + attributes + style (raw) + talents          R2 +0.113 slope 0.89 tank +0.102
+  + all + hero level on first game              R2 +0.115 slope 0.88 tank +0.100
+  hero level only (+ attributes)                R2 +0.097 slope 1.18 tank +0.033
+  paired: {'similarity pooling (CF rank 2), recalibrated - role pooling, recalibrated': 0.0216, 'similarity pooling (CF rank 2), recalibrated - player-only, recalibrated': 0.0255, 'role pooling, recalibrated - player-only, recalibrated': 0.0039, 'co-play pooling, recalibrated - player-only, recalibrated': 0.0075, 'similarity pooling (CF rank 2), recalibrated - zero (population)': 0.7543, 'similarity pooling (CF rank 2) - role pooling': -0.0006, 'similarity pooling (CF rank 2) - player-only': 0.007, 'role pooling - player-only': 0.0076, 'similarity pooling (CF rank 2) - player+hero (no hero pooling)': 0.0014, '+ attributes + style (raw) + talents - ridge: GP means (recalibrated)': 0.0669, '+ attributes + style (raw) - + hero attributes': 0.0189, '+ attributes + style (outcome-neutral) - + hero attributes': 0.0297, '+ hero attributes - ridge: GP means (recalibrated)': 0.0477, '+ all + hero level on first game - + attributes + style (raw) + talents': 0.0014}
+  full: {'mean_realized_pp': 1.3773858225120605, 'zero': {'latent_r2': -0.1312952883862375, 'bias_pp': 1.3773858225120605, 'mean_pred_pp': 0.0}, 'offset path only': {'latent_r2': -0.5872551740814382, 'bias_pp': 3.082511919537914, 'mean_pred_pp': -1.7051260970258535}, 'offset path + CF rank 2': {'latent_r2': -0.5603244015545086, 'bias_pp': 3.020340630239386, 'mean_pred_pp': -1.642954807727326}, 'offset at n=0 + CF rank 2 (the displayed number)': {'latent_r2': -2.2947733088221445, 'bias_pp': 5.730164172307166, 'mean_pred_pp': -4.352778349795105}} {'raw posterior': 0.766825333862224, 'calibrated 1.2 s2 + 7pp^2': 0.8074176913923047, 'offset path, 1.2 s2 (no 7pp)': 0.791617083168055}
+N=20: 10,134 events, latent sd 3.92pp
+  zero (population)                             R2 -0.427 slope None tank -0.726
+  player-only                                   R2 -0.455 slope 0.32 tank -0.737
+  player+hero (no hero pooling)                 R2 -0.443 slope 0.39 tank -0.736
+  role pooling                                  R2 -0.441 slope 0.41 tank -0.745
+  co-play pooling                               R2 -0.439 slope 0.42 tank -0.741
+  similarity pooling (CF rank 2)                R2 -0.451 slope 0.43 tank -0.732
+  player-only, recalibrated                     R2 +0.011 slope 0.91 tank -0.007
+  player+hero (no hero pooling), recalibrated   R2 +0.013 slope 0.93 tank -0.006
+  role pooling, recalibrated                    R2 +0.014 slope 0.91 tank -0.009
+  co-play pooling, recalibrated                 R2 +0.016 slope 0.94 tank -0.008
+  similarity pooling (CF rank 2), recalibrated  R2 +0.029 slope 0.99 tank +0.005
+  ridge: GP means (recalibrated)                R2 +0.025 slope 1.39 tank -0.003
+  + hero attributes                             R2 +0.057 slope 1.67 tank -0.010
+  + attributes + style (raw)                    R2 +0.042 slope 1.04 tank -0.016
+  + attributes + style (outcome-neutral)        R2 +0.046 slope 1.07 tank -0.013
+  + attributes + style (raw) + talents          R2 +0.042 slope 1.01 tank -0.018
+  + all + hero level on first game              R2 +0.045 slope 1.03 tank -0.012
+  hero level only (+ attributes)                R2 +0.060 slope 1.63 tank -0.005
+  paired: {'similarity pooling (CF rank 2), recalibrated - role pooling, recalibrated': 0.0158, 'similarity pooling (CF rank 2), recalibrated - player-only, recalibrated': 0.0188, 'role pooling, recalibrated - player-only, recalibrated': 0.003, 'co-play pooling, recalibrated - player-only, recalibrated': 0.0051, 'similarity pooling (CF rank 2), recalibrated - zero (population)': 0.4569, 'similarity pooling (CF rank 2) - role pooling': -0.0093, 'similarity pooling (CF rank 2) - player-only': 0.0047, 'role pooling - player-only': 0.014, 'similarity pooling (CF rank 2) - player+hero (no hero pooling)': -0.0075, '+ attributes + style (raw) + talents - ridge: GP means (recalibrated)': 0.0173, '+ attributes + style (raw) - + hero attributes': -0.0147, '+ attributes + style (outcome-neutral) - + hero attributes': -0.0104, '+ hero attributes - ridge: GP means (recalibrated)': 0.0317, '+ all + hero level on first game - + attributes + style (raw) + talents': 0.0024}
+  full: {'mean_realized_pp': 1.6769298560952668, 'zero': {'latent_r2': -0.17283693983957327, 'bias_pp': 1.6769298560952668, 'mean_pred_pp': 0.0}, 'offset path only': {'latent_r2': -0.3493870012961273, 'bias_pp': 2.5639126726371226, 'mean_pred_pp': -0.8869828165418558}, 'offset path + CF rank 2': {'latent_r2': -0.371520014953443, 'bias_pp': 2.5616374351188327, 'mean_pred_pp': -0.8847075790235659}, 'offset at n=0 + CF rank 2 (the displayed number)': {'latent_r2': -2.368851538087951, 'bias_pp': 6.158762571236774, 'mean_pred_pp': -4.481832715141507}} {'raw posterior': 0.7383066903493192, 'calibrated 1.2 s2 + 7pp^2': 0.8117229129662522, 'offset path, 1.2 s2 (no 7pp)': 0.7958358002762976}
+first game: {"similarity pooling (CF rank 2) - role pooling": [0.10524305023402958, 0.03328086217212707, 0.1710764775932584], "similarity pooling (CF rank 2) - player-only": [0.18512237295023756, 0.11716383552034632, 0.24636402279498096], "role pooling - player-only": [0.07987932271620794, 0.05840032401462112, 0.10153116199510047], "similarity pooling (CF rank 2) - offset only": [0.28098946818062875, 0.16492331138153887, 0.3879338201783021], "player-only - offset only": [0.09586709523039119, 0.0038317061707628655, 0.18818456853771282]} {"offset only": 4.514672584829239, "player-only": 4.610539680059631, "player+hero (no hero pooling)": 4.683828804088738, "role pooling": 4.690419002775839, "co-play pooling": 4.720814797896271, "similarity pooling (CF rank 2)": 4.795662053009868}
+done in 68s
