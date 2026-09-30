@@ -1,0 +1,23 @@
+{'V1': 70974, 'V2': 72474, 'OOT': 286016}
+snapshot V1/V2 states: 37s
+OOT online: 90s
+OOT frozen: 134s
+  experience only                                  V2 +0.00816  OOT +0.00829 [+0.00784,+0.00878] acc 0.5858 slope 0.961
+  +CF rank 2                                       V2 +0.01418  OOT +0.01486 [+0.01421,+0.01543] acc 0.5970 slope 0.993
+  player                                           V2 +0.01079  OOT +0.01162 [+0.01096,+0.01203] acc 0.5923 slope 0.987
+  player+hero                                      V2 +0.01317  OOT +0.01419 [+0.01351,+0.01473] acc 0.5958 slope 0.984
+  experience only [frozen@May]                     V2 +nan  OOT +0.00150 [+0.00102,+0.00205] acc 0.5742 slope 0.805
+  +CF rank 2 [frozen@May]                          V2 +nan  OOT +0.00444 [+0.00380,+0.00499] acc 0.5806 slope 0.824
+  player [frozen@May]                              V2 +nan  OOT +0.00265 [+0.00204,+0.00315] acc 0.5771 slope 0.813
+  player+hero [frozen@May]                         V2 +nan  OOT +0.00386 [+0.00310,+0.00439] acc 0.5797 slope 0.811
+  +CF rank 2 (frozen@May, counts current)          V2 +nan  OOT +0.01067 [+0.01009,+0.01120] acc 0.5910 slope 0.953
+  slot online experience only             +0.812 slope 0.957
+  slot online player                      +1.184 slope 0.987
+  slot online player+hero                 +1.431 slope 0.972
+  slot online +CF rank 2                  +1.498 slope 0.931
+  slot frozen@May experience only         +0.008 slope 0.556
+  slot frozen@May player                  +0.084 slope 0.578
+  slot frozen@May player+hero             +0.222 slope 0.612
+  slot frozen@May +CF rank 2              +0.209 slope 0.598
+{"all": {"cells": 51890, "cover80_raw": 0.7878203892850261, "cover80_calibrated": 0.8074195413374446, "var_ratio_raw": 1.5195723587973782}, "never played": {"cells": 12664, "cover80_raw": 0.7575015792798484, "cover80_calibrated": 0.8228837650031585, "var_ratio_raw": 2.727845165701078}, "played before": {"cells": 39226, "cover80_raw": 0.7976087289042981, "cover80_calibrated": 0.8024269617090705, "var_ratio_raw": 0.9387516627166564}, "30+ future games": {"cells": 8393, "cover80_raw": 0.7862504468009055, "cover80_calibrated": 0.8157988800190635, "var_ratio_raw": 1.605047800343477}}
+done in 180s
