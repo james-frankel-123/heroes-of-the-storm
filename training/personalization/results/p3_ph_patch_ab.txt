@@ -1,0 +1,35 @@
+min20 unchanged {"cells": 3172, "var_pre_pp2": 16.177616502284497, "var_post_pp2": -0.12962985173033767, "cov_pp2": 6.938459390741742, "stability": NaN, "excess_change_var_pp2": 2.171067869070676, "spearman": {"groups": 7, "mean_rank_corr": -0.028052269945489594}}
+min20 notes {"cells": 2639, "var_pre_pp2": 10.676948068213202, "var_post_pp2": 7.642497809546629, "cov_pp2": 10.18310185317809, "stability": 1.1272983232751588, "excess_change_var_pp2": -2.0467578285963484, "spearman": {"groups": 8, "mean_rank_corr": 0.095512236653467}}
+min20 detector {"cells": 330, "var_pre_pp2": 6.20585390380839, "var_post_pp2": -0.5819160254731287, "cov_pp2": 10.709563514150018, "stability": NaN, "excess_change_var_pp2": -15.795189149964775, "spearman": null}
+min20 notes and detector {"cells": 279, "var_pre_pp2": 8.779352330974762, "var_post_pp2": 0.34534424232920585, "cov_pp2": 13.386775647356004, "stability": 7.688093137051499, "excess_change_var_pp2": -17.648854721408043, "spearman": null}
+min20 notes - unchanged {"stability": [NaN, -2.0787095316999533, 1.1512849969624592], "excess_change_var_pp2": [-4.217825697667024, -18.35623558992243, 9.898406276133686]}
+min20 detector - unchanged {"stability": [NaN, -1.9367604576757105, 33.569447397142895], "excess_change_var_pp2": [-17.966257019035453, -47.69725070186401, 12.043625983484764]}
+min20 notes and detector - unchanged {"stability": [NaN, -1.3028207073888987, 9.178889706427467], "excess_change_var_pp2": [-19.81992259047872, -51.3931021871105, 8.424065756397711]}
+unchanged {"cells": 14588, "var_pre_pp2": 23.841928700782578, "var_post_pp2": 10.648135886739714, "cov_pp2": 10.811850073024502, "stability": 0.6785666791595392, "excess_change_var_pp2": 12.86636444147329, "spearman": {"groups": 126, "mean_rank_corr": 0.05596060703390551}}
+notes {"cells": 11569, "var_pre_pp2": 16.433027462514, "var_post_pp2": 12.153201126026614, "cov_pp2": 9.398826273221657, "stability": 0.6650732633893123, "excess_change_var_pp2": 9.7885760420973, "spearman": {"groups": 127, "mean_rank_corr": 0.045944782339863946}}
+detector {"cells": 1522, "var_pre_pp2": 24.032268012510027, "var_post_pp2": 1.8080108086150377, "cov_pp2": 6.983138447836439, "stability": 1.059382420407411, "excess_change_var_pp2": 11.874001925452184, "spearman": {"groups": 22, "mean_rank_corr": 0.048098728119696815}}
+notes and detector {"cells": 1319, "var_pre_pp2": 31.3147313849542, "var_post_pp2": -4.117924923184461, "cov_pp2": 7.720878610566796, "stability": NaN, "excess_change_var_pp2": 11.755049240636147, "spearman": {"groups": 18, "mean_rank_corr": 0.048125539667863655}}
+notes - unchanged {"stability": [-0.013493415770226891, -0.4386631472458266, 0.3426541831200926], "excess_change_var_pp2": [-3.07778839937599, -12.425506482035775, 10.288183240120418]}
+detector - unchanged {"stability": [0.38081574124787176, -0.7777349581622086, 1.7598235665630306], "excess_change_var_pp2": [-0.9923625160211067, -23.953691551440052, 25.7788060480492]}
+notes and detector - unchanged {"stability": [NaN, -0.7625407071428286, 2.7162478113744135], "excess_change_var_pp2": [-1.1113152008371436, -26.731525672203613, 27.66603874942402]}
+magnitude all heroes |dWR| 0-1pp: cells 18991 stability 0.709 excess 9.63
+magnitude notes-changed |dWR| 0-1pp: cells 7771 stability 0.652 excess 9.71
+magnitude all heroes |dWR| 1-2pp: cells 5297 stability 0.733 excess 9.62
+magnitude notes-changed |dWR| 1-2pp: cells 2468 stability 1.047 excess -1.13
+magnitude all heroes |dWR| 2-4pp: cells 1937 stability 0.232 excess 32.44
+magnitude notes-changed |dWR| 2-4pp: cells 1247 stability 0.359 excess 27.59
+magnitude all heroes |dWR| 4-100pp: cells 135 stability 0.323 excess 51.12
+magnitude notes-changed |dWR| 4-100pp: cells 83 stability -0.267 excess 74.80
+magnitude slope [10.124951573447184, 1.810048700315959, 19.40157081840706]
+profile notes J sd 0.5pp: dLL -4.2
+profile notes J sd 1.0pp: dLL -22.1
+profile notes J sd 2.0pp: dLL -147.0
+profile notes J sd 3.0pp: dLL -456.6
+profile detector J sd 0.5pp: dLL -0.4
+profile detector J sd 1.0pp: dLL -1.5
+profile detector J sd 2.0pp: dLL -7.5
+profile detector J sd 3.0pp: dLL -21.3
+profile placebo (unchanged) J sd 0.5pp: dLL -5.7
+profile placebo (unchanged) J sd 1.0pp: dLL -31.4
+profile placebo (unchanged) J sd 2.0pp: dLL -217.4
+profile placebo (unchanged) J sd 3.0pp: dLL -680.1

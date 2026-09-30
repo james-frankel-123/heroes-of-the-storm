@@ -1,0 +1,45 @@
+empirical corr {'median_offdiag': 0.19751813189846734, 'iqr': [-0.15594267007395163, 0.5065357326368037], 'min_pair_players': 10} {'median_reliability_per_cell': 0.09994614855817786, 'diag_sd_pp_splithalf_median': 4.558757982817424, 'diag_sd_pp_moments_median': 4.05341440635109}
+  ml fit: -ll 423866.9, sd(pp) [2.69 3.4 ]
+  lowrank r=1: -ll 423469.7 (60 it), sd(pp) [2.19 2.95], factor sd(pp) [2.71]
+rank 1: held-out gain +177.8
+  lowrank r=2: -ll 423252.2 (71 it), sd(pp) [1.92 2.57], factor sd(pp) [2.33 2.59]
+rank 2: held-out gain +248.0
+  lowrank r=3: -ll 423133.6 (92 it), sd(pp) [1.79 2.24], factor sd(pp) [2.34 2.1  2.25]
+rank 3: held-out gain +227.8
+  lowrank r=4: -ll 423021.0 (136 it), sd(pp) [1.26 1.86], factor sd(pp) [2.12 2.16 2.48 1.78]
+rank 4: held-out gain +144.7
+  lowrank r=5: -ll 422933.4 (170 it), sd(pp) [1.21 1.42], factor sd(pp) [2.42 1.85 1.8  2.15 1.86]
+rank 5: held-out gain +123.4
+  lowrank r=6: -ll 422856.9 (83 it), sd(pp) [1.11 0.69], factor sd(pp) [2.19 1.94 1.85 1.97 1.74 1.94]
+rank 6: held-out gain +79.7
+  lowrank r=7: -ll 422792.6 (136 it), sd(pp) [0.48 0.13], factor sd(pp) [2.33 1.62 1.82 1.62 1.75 2.12 1.79]
+rank 7: held-out gain +74.3
+  lowrank r=8: -ll 422739.3 (143 it), sd(pp) [0.38 0.08], factor sd(pp) [2.15 2.05 1.59 1.74 1.7  1.73 1.73 1.56]
+rank 8: held-out gain +82.7
+axis 1 sd 2.62pp high [np.str_('Yrel'), np.str_('Medivh'), np.str_('Cho'), np.str_('Genji'), np.str_('Kerrigan'), np.str_('Hanzo')] low [np.str_('Leoric'), np.str_('Qhira'), np.str_('Malthael'), np.str_('Kharazim'), np.str_('Mei'), np.str_('Li Li')] | [('mean player MMR', 0.6098124016091666), ('high mechanics (hand label)', 0.295708159285169), ('log popularity', -0.20405502461404795)]
+axis 2 sd 2.30pp high [np.str_('Gall'), np.str_('The Lost Vikings'), np.str_('Valeera'), np.str_('Cho'), np.str_('Medivh'), np.str_('Abathur')] low [np.str_('Probius'), np.str_('Jaina'), np.str_('Thrall'), np.str_('Lunara'), np.str_('Imperius'), np.str_('Chen')] | [('log popularity', -0.5255809943613414), ('high mechanics (hand label)', 0.4324837423646342), ('tank', -0.15752718425494533)]
+k=4: ARI vs Blizzard role 0.007, vs fine role 0.005
+k=6: ARI vs Blizzard role 0.011, vs fine role 0.002
+k=8: ARI vs Blizzard role 0.016, vs fine role -0.002
+k=10: ARI vs Blizzard role 0.010, vs fine role -0.001
+cluster 1 (Bruiser 25%): Mei (Tank), Li Li (Healer), Azmodan (Ranged Assassin), Leoric (Bruiser), Qhira (Melee Assassin), Kharazim (Healer), The Butcher (Melee Assassin), Malthael (Bruiser)
+cluster 2 (Ranged Assassin 50%): Abathur (Support), Murky (Ranged Assassin), Fenix (Ranged Assassin), Hanzo (Ranged Assassin), Deathwing (Bruiser), Mephisto (Ranged Assassin), Sgt. Hammer (Ranged Assassin), Junkrat (Ranged Assassin), Ana (Healer), The Lost Vikings (Ranged Assassin), Kel'Thuzad (Ranged Assassin), Genji (Ranged Assassin), Alexstrasza (Healer), Cho (Tank), Gall (Ranged Assassin), Valeera (Melee Assassin), D.Va (Bruiser), Medivh (Support), Yrel (Bruiser), Maiev (Melee Assassin)
+cluster 3 (Bruiser 100%): Gazlowe (Bruiser)
+cluster 4 (Ranged Assassin 37%): Arthas (Tank), Auriel (Healer), Raynor (Ranged Assassin), Gul'dan (Ranged Assassin), Sylvanas (Ranged Assassin), Stitches (Tank), Kerrigan (Melee Assassin), Muradin (Tank), Malfurion (Healer), Thrall (Bruiser), Artanis (Bruiser), Hogger (Bruiser), Anduin (Healer), Nazeebo (Ranged Assassin), Valla (Ranged Assassin), Li-Ming (Ranged Assassin), Anub'arak (Tank), Varian (Bruiser), Diablo (Tank), E.T.C. (Tank), Jaina (Ranged Assassin), Nova (Ranged Assassin), Zagara (Ranged Assassin), Imperius (Bruiser), Lúcio (Healer), Tychus (Ranged Assassin), Probius (Ranged Assassin), Kael'thas (Ranged Assassin), Blaze (Tank), Johanna (Tank), Falstad (Ranged Assassin), Lt. Morales (Healer), Zeratul (Melee Assassin), Ragnaros (Bruiser), Uther (Healer), Sonya (Bruiser), Tassadar (Ranged Assassin), Orphea (Ranged Assassin), Chen (Bruiser), Alarak (Melee Assassin), Zarya (Support), Rexxar (Bruiser), Stukov (Healer), Tracer (Ranged Assassin), Tyrande (Healer), Chromie (Ranged Assassin), Tyrael (Tank), Greymane (Ranged Assassin), Illidan (Melee Assassin), Rehgar (Healer), Dehaka (Bruiser), Zul'jin (Ranged Assassin), Lunara (Ranged Assassin), Whitemane (Healer), Samuro (Melee Assassin), Garrosh (Tank), Cassia (Ranged Assassin)
+cluster 5 (Healer 100%): Deckard (Healer)
+cluster 6 (Bruiser 100%): Xul (Bruiser)
+cluster 7 (Healer 100%): Brightwing (Healer)
+cluster 8 (Tank 100%): Mal'Ganis (Tank)
+{'pair': 'Cho (Tank) + Medivh (Support)', 'model_corr_beyond_general': 0.8830043855103347, 'empirical_excess_corr': -0.1855510600220195, 'empirical_total_corr': -0.11814795782999266, 'players_both': 78}
+{'pair': 'Cho (Tank) + Maiev (Melee Assassin)', 'model_corr_beyond_general': 0.8539322482260405, 'empirical_excess_corr': 0.03228922049821577, 'empirical_total_corr': 0.10619860116364027, 'players_both': 72}
+{'pair': 'Hanzo (Ranged Assassin) + Yrel (Bruiser)', 'model_corr_beyond_general': 0.8520894719783764, 'empirical_excess_corr': 0.26200903801125447, 'empirical_total_corr': 0.3173295388350794, 'players_both': 309}
+{'pair': 'Genji (Ranged Assassin) + Medivh (Support)', 'model_corr_beyond_general': 0.8518021938357547, 'empirical_excess_corr': 0.2069568659306661, 'empirical_total_corr': 0.2715195014050289, 'players_both': 396}
+{'pair': 'Medivh (Support) + Maiev (Melee Assassin)', 'model_corr_beyond_general': 0.8504244882010535, 'empirical_excess_corr': 1.3057583122878882, 'empirical_total_corr': 1.2701537725275631, 'players_both': 298}
+{'pair': 'Genji (Ranged Assassin) + Yrel (Bruiser)', 'model_corr_beyond_general': 0.8500780542405524, 'empirical_excess_corr': 0.09057403083860179, 'empirical_total_corr': 0.15320827278541285, 'players_both': 213}
+{'pair': 'Genji (Ranged Assassin) + Cho (Tank)', 'model_corr_beyond_general': 0.8487452560652573, 'empirical_excess_corr': 0.979030914906773, 'empirical_total_corr': 0.9757297194870861, 'players_both': 97}
+{'pair': 'Zeratul (Melee Assassin) + Yrel (Bruiser)', 'model_corr_beyond_general': 0.8353975962007302, 'empirical_excess_corr': 0.36679152842196217, 'empirical_total_corr': 0.4132384679958964, 'players_both': 169}
+{'pair': 'Medivh (Support) + Yrel (Bruiser)', 'model_corr_beyond_general': 0.8192411036747136, 'empirical_excess_corr': -0.39263382957925813, 'empirical_total_corr': -0.3092004367865064, 'players_both': 114}
+{'pair': 'Hanzo (Ranged Assassin) + Medivh (Support)', 'model_corr_beyond_general': 0.8170028620327558, 'empirical_excess_corr': 0.6391623854694584, 'empirical_total_corr': 0.6699805487273534, 'players_both': 567}
+{'pair': 'Cho (Tank) + Yrel (Bruiser)', 'model_corr_beyond_general': 0.8111941578953802, 'empirical_excess_corr': -0.3750699708268196, 'empirical_total_corr': -0.30902260880448407, 'players_both': 37}
+{'pair': 'Hanzo (Ranged Assassin) + Cho (Tank)', 'model_corr_beyond_general': 0.811123143666105, 'empirical_excess_corr': 0.6244187516809606, 'empirical_total_corr': 0.6462101000235931, 'players_both': 128}
+wrote /home/max/heroes-of-the-storm/training/personalization/results/fig_hero_skill_corr.png

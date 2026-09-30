@@ -1,0 +1,16 @@
+|dWR|>=2pp big shift (178 pairs) J 1.0pp: dLL -2.6
+|dWR|>=2pp big shift (178 pairs) J 2.0pp: dLL -17.9
+|dWR|>=2pp big shift (178 pairs) J 3.0pp: dLL -61.1
+|dWR|>=2pp big shift (178 pairs) J 5.0pp: dLL -275.9
+|dWR|>=2pp placebo (<1pp, same count) (178 pairs) J 1.0pp: dLL -3.1
+|dWR|>=2pp placebo (<1pp, same count) (178 pairs) J 2.0pp: dLL -15.7
+|dWR|>=2pp placebo (<1pp, same count) (178 pairs) J 3.0pp: dLL -45.2
+|dWR|>=2pp placebo (<1pp, same count) (178 pairs) J 5.0pp: dLL -184.3
+|dWR|>=4pp big shift (31 pairs) J 1.0pp: dLL -0.4
+|dWR|>=4pp big shift (31 pairs) J 2.0pp: dLL -2.2
+|dWR|>=4pp big shift (31 pairs) J 3.0pp: dLL -7.1
+|dWR|>=4pp big shift (31 pairs) J 5.0pp: dLL -33.3
+|dWR|>=4pp placebo (<1pp, same count) (31 pairs) J 1.0pp: dLL -0.4
+|dWR|>=4pp placebo (<1pp, same count) (31 pairs) J 2.0pp: dLL -2.3
+|dWR|>=4pp placebo (<1pp, same count) (31 pairs) J 3.0pp: dLL -6.9
+|dWR|>=4pp placebo (<1pp, same count) (31 pairs) J 5.0pp: dLL -29.0

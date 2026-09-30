@@ -1,0 +1,75 @@
+DB stamps: 17,658,506 SL player rows; with parse stamp 99.8%; with player_mmr 99.8%
+stamps clamped to game end: 0.5898%
+own stamp parse - game end, by month (tz check; negative share must be ~0):
+  2019-03: n 190  parse<end 0.0000  p1 210950604s  median 211671879s
+  2019-06: n 910  parse<end 0.0000  p1 203012433s  median 205285364s
+  2019-09: n 800  parse<end 0.0000  p1 195241732s  median 197850470s
+  2019-12: n 1,850  parse<end 0.0000  p1 186961756s  median 191781354s
+  2020-03: n 3,210  parse<end 0.0000  p1 178108882s  median 182993994s
+  2020-06: n 2,290  parse<end 0.0000  p1 171616814s  median 174652121s
+  2020-09: n 2,130  parse<end 0.0000  p1 163237615s  median 167156923s
+  2020-12: n 3,010  parse<end 0.0000  p1 153963739s  median 158767532s
+  2021-03: n 2,070  parse<end 0.0000  p1 146898659s  median 150500765s
+  2021-06: n 5,390  parse<end 0.0000  p1 139810754s  median 141922762s
+  2021-09: n 2,999  parse<end 0.0000  p1 132074843s  median 136609491s
+  2021-12: n 74,479  parse<end 0.0000  p1 69427232s  median 71008046s
+  2022-03: n 104,226  parse<end 0.0000  p1 61686140s  median 64081691s
+  2022-06: n 114,727  parse<end 0.0000  p1 53870845s  median 56201405s
+  2022-09: n 102,200  parse<end 0.0000  p1 45962126s  median 48263897s
+  2022-12: n 103,750  parse<end 0.0000  p1 38070472s  median 42215343s
+  2023-03: n 128,753  parse<end 0.0000  p1 30300795s  median 32757194s
+  2023-06: n 120,801  parse<end 0.0000  p1 22473386s  median 29549749s
+  2023-09: n 149,562  parse<end 0.0000  p1 14544754s  median 17025465s
+  2023-12: n 287,007  parse<end 0.0000  p1 6635405s  median 8814301s
+  2024-03: n 313,304  parse<end 0.0001  p1 20s  median 2164462s
+  2024-06: n 297,333  parse<end 0.0031  p1 12s  median 2301800s
+  2024-09: n 279,438  parse<end 0.0052  p1 12s  median 1795274s
+  2024-12: n 324,166  parse<end 0.0017  p1 12s  median 2121710s
+  2025-03: n 425,178  parse<end 0.0021  p1 12s  median 1556582s
+  2025-06: n 525,851  parse<end 0.0025  p1 12s  median 1053478s
+  2025-09: n 544,842  parse<end 0.0078  p1 8s  median 782604s
+  2025-12: n 731,649  parse<end 0.0053  p1 10s  median 188462s
+  2026-03: n 526,902  parse<end 0.0087  p1 4s  median 427240s
+  2026-06: n 674,373  parse<end 0.0038  p1 10s  median 148626s
+player: causal coverage 73.7%, fresh-pre used 45.6%
+hero: causal coverage 56.7%, fresh-pre used 46.3%
+role: causal coverage 69.4%, fresh-pre used 48.8%
+wrote /home/max/heroes-of-the-storm/training/personalization/cache/mmr_at_game.npz: 17,658,506 player-games
+snapshot slots: 10,822,691; matched to stamp rows 100.00%
+coverage all slots: {"n": 10822691, "player_causal": 0.965, "player_fresh_pre_used": 0.4856, "hero_causal": 0.7385, "role_causal": 0.9087, "prev_stamp_exists": 0.9839, "prev_stamp_parsed_before_start": 0.3638}
+  days since causal point: {"p10": 0.02, "p25": 0.2, "p50": 1.2, "p75": 4.86, "p90": 15.9, "p99": 194.29}
+coverage panel (>=100 games): {"n": 6548077, "player_causal": 0.9953, "player_fresh_pre_used": 0.4732, "hero_causal": 0.8682, "role_causal": 0.9787, "prev_stamp_exists": 0.9978, "prev_stamp_parsed_before_start": 0.365}
+  days since causal point: {"p10": 0.01, "p25": 0.11, "p50": 0.9, "p75": 2.77, "p90": 6.95, "p99": 39.54}
+|fresh - causal| where fresh differs (pre used): {"p10": 0.0, "p25": 0.0, "p50": 0.0, "p75": 0.0, "p90": 5.3, "p99": 91.6}
+leak check: 8,155,250 slots in 815,525 full lobbies where causal, fresh, prev and own stamps exist for all 10 players; slope and ll gain of r on (own value - lobby mean of causal MMR)
+ stratum all: 8,155,250 slots
+  player_mmr_causal        slope/100 +0.0028 (se 0.0001)  ll gain x1000 +0.039
+  player_mmr_fresh         slope/100 +0.0030 (se 0.0001)  ll gain x1000 +0.046
+  prev_stamp_mmr           slope/100 +0.0127 (se 0.0001)  ll gain x1000 +0.676
+  own_stamp_mmr            slope/100 +0.0286 (se 0.0001)  ll gain x1000 +3.345
+  slot_player_mmr_stamp    slope/100 +0.0286 (se 0.0001)  ll gain x1000 +3.345
+ stratum prev game parsed BEFORE this start: 3,150,088 slots
+  player_mmr_causal        slope/100 +0.0044 (se 0.0002)  ll gain x1000 +0.099
+  player_mmr_fresh         slope/100 +0.0044 (se 0.0002)  ll gain x1000 +0.101
+  prev_stamp_mmr           slope/100 +0.0042 (se 0.0002)  ll gain x1000 +0.094
+  own_stamp_mmr            slope/100 +0.0286 (se 0.0002)  ll gain x1000 +3.540
+  slot_player_mmr_stamp    slope/100 +0.0286 (se 0.0002)  ll gain x1000 +3.540
+ stratum prev game parsed AFTER this start (leak-prone): 5,005,162 slots
+  player_mmr_causal        slope/100 +0.0018 (se 0.0001)  ll gain x1000 +0.016
+  player_mmr_fresh         slope/100 +0.0021 (se 0.0001)  ll gain x1000 +0.023
+  prev_stamp_mmr           slope/100 +0.0210 (se 0.0002)  ll gain x1000 +1.528
+  own_stamp_mmr            slope/100 +0.0286 (se 0.0002)  ll gain x1000 +3.227
+  slot_player_mmr_stamp    slope/100 +0.0286 (se 0.0002)  ll gain x1000 +3.227
+ lobbies with all 10 prev stamps clean: 7,784 lobbies
+  player_mmr_causal        slope/100 +0.0069 (se 0.0013)  ll gain x1000 +0.185
+  player_mmr_fresh         slope/100 +0.0070 (se 0.0013)  ll gain x1000 +0.189
+  prev_stamp_mmr           slope/100 +0.0069 (se 0.0013)  ll gain x1000 +0.187
+  own_stamp_mmr            slope/100 +0.0295 (se 0.0013)  ll gain x1000 +3.187
+  [all] joint: player_mmr_causal -0.0247 (0.0002)  prev_stamp_mmr +0.0360 (0.0002)
+  [all] joint: player_mmr_fresh -0.0245 (0.0002)  prev_stamp_mmr +0.0357 (0.0002)
+  [prev game parsed BEFORE this start] joint: player_mmr_causal +0.0175 (0.0021)  prev_stamp_mmr -0.0130 (0.0021)
+  [prev game parsed BEFORE this start] joint: player_mmr_fresh +0.0171 (0.0017)  prev_stamp_mmr -0.0126 (0.0017)
+  [prev game parsed AFTER this start (leak-prone)] joint: player_mmr_causal -0.0258 (0.0002)  prev_stamp_mmr +0.0448 (0.0003)
+  [prev game parsed AFTER this start (leak-prone)] joint: player_mmr_fresh -0.0258 (0.0002)  prev_stamp_mmr +0.0446 (0.0003)
+  hero_mmr_causal (1,289,750 slots, own full lobbies) slope/100 +0.0063 (se 0.0001)  ll gain x1000 +0.752
+  role_mmr_causal (5,386,040 slots, own full lobbies) slope/100 +0.0041 (se 0.0001)  ll gain x1000 +0.164

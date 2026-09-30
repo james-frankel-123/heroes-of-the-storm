@@ -1,0 +1,76 @@
+SS days: 32s
+SS days, hero rate by role: 41s
+SS games: 51s
+slot EB static kernel online      all +1.602 | by dsl never:+2.46 1-7d:+1.78 8-30d:+0.96 31-90d:+0.87 91-180d:+1.44 181-365d:+1.45 366d+:+0.64 | var ratio never:-0.66 1-7d:-0.73 8-30d:-0.03 31-90d:-0.25 91-180d:-0.14 181-365d:-0.84 366d+:0.07
+slot SS days                      all +1.619 | by dsl never:+2.54 1-7d:+1.80 8-30d:+0.94 31-90d:+0.87 91-180d:+1.39 181-365d:+1.40 366d+:+0.75 | var ratio never:-0.50 1-7d:-0.47 8-30d:-0.02 31-90d:-0.16 91-180d:-0.08 181-365d:-0.56 366d+:0.03
+slot SS days, hero rate by role   all +1.613 | by dsl never:+2.54 1-7d:+1.79 8-30d:+0.92 31-90d:+0.87 91-180d:+1.38 181-365d:+1.39 366d+:+0.76 | var ratio never:-0.50 1-7d:-0.47 8-30d:-0.01 31-90d:-0.16 91-180d:-0.08 181-365d:-0.55 366d+:0.03
+slot SS games                     all +1.604 | by dsl never:+2.53 1-7d:+1.79 8-30d:+0.92 31-90d:+0.84 91-180d:+1.39 181-365d:+1.43 366d+:+0.63 | var ratio never:-0.55 1-7d:-0.52 8-30d:-0.02 31-90d:-0.17 91-180d:-0.09 181-365d:-0.64 366d+:0.06
+slot EB decay hl=365              all +1.596 | by dsl never:+2.44 1-7d:+1.79 8-30d:+0.91 31-90d:+0.92 91-180d:+1.35 181-365d:+1.35 366d+:+0.90 | var ratio never:-0.65 1-7d:-0.68 8-30d:-0.02 31-90d:-0.25 91-180d:-0.10 181-365d:-0.76 366d+:-0.00
+MMR G=1: 196s
+MMR G=7: 214s
+MMR G=30: 233s
+  M0 population WP                                               acc 0.5719 ll 0.67647 gain +0.00000 [+0.00000,+0.00000] vs SS days -0.01556 [-0.01659,-0.01445]
+  EB static kernel online                                        acc 0.6022 ll 0.66090 gain +0.01557 [+0.01440,+0.01659] vs SS days +0.00001 [-0.00017,+0.00018]
+  SS days                                                        acc 0.6018 ll 0.66091 gain +0.01556 [+0.01445,+0.01659] vs SS days +0.00000 [+0.00000,+0.00000]
+  SS days, hero rate by role                                     acc 0.6020 ll 0.66097 gain +0.01550 [+0.01439,+0.01653] vs SS days -0.00006 [-0.00009,-0.00003]
+  SS games                                                       acc 0.6020 ll 0.66098 gain +0.01549 [+0.01435,+0.01658] vs SS days -0.00007 [-0.00020,+0.00005]
+  EB decay hl=365                                                acc 0.6010 ll 0.66100 gain +0.01546 [+0.01434,+0.01664] vs SS days -0.00009 [-0.00027,+0.00008]
+  experience only                                                acc 0.5930 ll 0.66667 gain +0.00980 [+0.00880,+0.01080] vs SS days -0.00576 [-0.00649,-0.00486]
+  vol365 all alone                                               acc 0.5722 ll 0.67645 gain +0.00002 [-0.00002,+0.00007] vs SS days -0.01554 [-0.01658,-0.01441]
+  SS days + vol365 all                                           acc 0.6018 ll 0.66091 gain +0.01556 [+0.01445,+0.01659] vs SS days +0.00000 [-0.00000,+0.00000]
+  vol365 hero alone                                              acc 0.5805 ll 0.67258 gain +0.00389 [+0.00330,+0.00452] vs SS days -0.01167 [-0.01263,-0.01055]
+  SS days + vol365 hero                                          acc 0.6019 ll 0.66089 gain +0.01558 [+0.01442,+0.01663] vs SS days +0.00002 [-0.00008,+0.00010]
+  EWMA WR hl10 alone                                             acc 0.5760 ll 0.67467 gain +0.00180 [+0.00143,+0.00220] vs SS days -0.01376 [-0.01467,-0.01272]
+  SS days + EWMA WR hl10                                         acc 0.6021 ll 0.66088 gain +0.01558 [+0.01445,+0.01661] vs SS days +0.00003 [-0.00003,+0.00009]
+  EWMA WR hl30 alone                                             acc 0.5773 ll 0.67382 gain +0.00265 [+0.00217,+0.00318] vs SS days -0.01291 [-0.01378,-0.01178]
+  SS days + EWMA WR hl30                                         acc 0.6020 ll 0.66069 gain +0.01578 [+0.01465,+0.01684] vs SS days +0.00022 [+0.00006,+0.00039]
+  EWMA WR hl100 alone                                            acc 0.5777 ll 0.67326 gain +0.00321 [+0.00267,+0.00381] vs SS days -0.01235 [-0.01326,-0.01117]
+  SS days + EWMA WR hl100                                        acc 0.6022 ll 0.66043 gain +0.01604 [+0.01485,+0.01713] vs SS days +0.00048 [+0.00027,+0.00074]
+  EWMA resid hl10 alone                                          acc 0.5758 ll 0.67433 gain +0.00214 [+0.00173,+0.00256] vs SS days -0.01342 [-0.01430,-0.01238]
+  SS days + EWMA resid hl10                                      acc 0.6021 ll 0.66084 gain +0.01563 [+0.01449,+0.01667] vs SS days +0.00007 [+0.00000,+0.00016]
+  EWMA resid hl30 alone                                          acc 0.5783 ll 0.67338 gain +0.00309 [+0.00259,+0.00369] vs SS days -0.01247 [-0.01337,-0.01135]
+  SS days + EWMA resid hl30                                      acc 0.6026 ll 0.66057 gain +0.01590 [+0.01476,+0.01697] vs SS days +0.00034 [+0.00017,+0.00053]
+  EWMA resid hl100 alone                                         acc 0.5790 ll 0.67279 gain +0.00368 [+0.00310,+0.00437] vs SS days -0.01188 [-0.01274,-0.01075]
+  SS days + EWMA resid hl100                                     acc 0.6030 ll 0.66026 gain +0.01621 [+0.01500,+0.01731] vs SS days +0.00065 [+0.00040,+0.00092]
+  EWMA hero WR hl10 alone                                        acc 0.5762 ll 0.67390 gain +0.00257 [+0.00209,+0.00307] vs SS days -0.01299 [-0.01411,-0.01196]
+  SS days + EWMA hero WR hl10                                    acc 0.6021 ll 0.66072 gain +0.01575 [+0.01462,+0.01683] vs SS days +0.00019 [+0.00006,+0.00033]
+  form10 alone                                                   acc 0.5735 ll 0.67523 gain +0.00124 [+0.00091,+0.00158] vs SS days -0.01432 [-0.01526,-0.01325]
+  SS days + form10                                               acc 0.6019 ll 0.66091 gain +0.01556 [+0.01445,+0.01660] vs SS days +0.00000 [-0.00000,+0.00001]
+  form20 alone                                                   acc 0.5756 ll 0.67468 gain +0.00179 [+0.00139,+0.00218] vs SS days -0.01377 [-0.01472,-0.01276]
+  SS days + form20                                               acc 0.6019 ll 0.66087 gain +0.01560 [+0.01446,+0.01663] vs SS days +0.00004 [-0.00002,+0.00010]
+  Max-style: vol365 all + EWMA WR hl30                           acc 0.5780 ll 0.67375 gain +0.00271 [+0.00222,+0.00326] vs SS days -0.01284 [-0.01370,-0.01172]
+  Max-style: vol365 all+hero + EWMA WR hl10/30/100               acc 0.5942 ll 0.66564 gain +0.01083 [+0.00978,+0.01192] vs SS days -0.00473 [-0.00566,-0.00374]
+  SS days + all momentum/volume arms                             acc 0.6054 ll 0.65860 gain +0.01786 [+0.01661,+0.01904] vs SS days +0.00231 [+0.00189,+0.00271]
+  EB static kernel online + all momentum/volume arms             acc 0.6060 ll 0.65894 gain +0.01753 [+0.01628,+0.01866] vs SS days +0.00197 [+0.00152,+0.00236]
+  EB static kernel online + sd sum                               acc 0.6021 ll 0.66091 gain +0.01556 [+0.01439,+0.01659] vs SS days +0.00000 [-0.00018,+0.00016]
+  EB static kernel online lower80 only                           acc 0.5997 ll 0.66261 gain +0.01386 [+0.01284,+0.01476] vs SS days -0.00170 [-0.00215,-0.00126]
+  EB static kernel online + lower80                              acc 0.6021 ll 0.66091 gain +0.01556 [+0.01439,+0.01659] vs SS days +0.00000 [-0.00018,+0.00016]
+  EB static kernel online m*rel only                             acc 0.5834 ll 0.67081 gain +0.00566 [+0.00489,+0.00624] vs SS days -0.00990 [-0.01075,-0.00893]
+  EB static kernel online + m*rel                                acc 0.6023 ll 0.66078 gain +0.01569 [+0.01455,+0.01673] vs SS days +0.00013 [-0.00006,+0.00031]
+  SS days + sd sum                                               acc 0.6018 ll 0.66092 gain +0.01555 [+0.01443,+0.01659] vs SS days -0.00001 [-0.00002,+0.00000]
+  SS days lower80 only                                           acc 0.5998 ll 0.66210 gain +0.01436 [+0.01332,+0.01531] vs SS days -0.00119 [-0.00154,-0.00084]
+  SS days + lower80                                              acc 0.6018 ll 0.66092 gain +0.01555 [+0.01443,+0.01659] vs SS days -0.00001 [-0.00002,+0.00000]
+  SS days m*rel only                                             acc 0.5833 ll 0.67110 gain +0.00537 [+0.00470,+0.00598] vs SS days -0.01019 [-0.01100,-0.00924]
+  SS days + m*rel                                                acc 0.6027 ll 0.66077 gain +0.01569 [+0.01455,+0.01680] vs SS days +0.00014 [+0.00005,+0.00022]
+  lag MMR naive G=1                                              acc 0.5891 ll 0.66782 gain +0.00864 [+0.00768,+0.00964] vs SS days -0.00691 [-0.00813,-0.00546]
+  SS days + lag MMR naive G=1                                    acc 0.6083 ll 0.65491 gain +0.02155 [+0.02027,+0.02293] vs SS days +0.00600 [+0.00509,+0.00690]
+  lag MMR safe G=1                                               acc 0.5757 ll 0.67459 gain +0.00188 [+0.00152,+0.00232] vs SS days -0.01368 [-0.01474,-0.01249]
+  SS days + lag MMR safe G=1                                     acc 0.6028 ll 0.66001 gain +0.01646 [+0.01535,+0.01754] vs SS days +0.00090 [+0.00065,+0.00119]
+  lag MMR naive G=7                                              acc 0.5810 ll 0.67164 gain +0.00483 [+0.00422,+0.00563] vs SS days -0.01073 [-0.01183,-0.00939]
+  SS days + lag MMR naive G=7                                    acc 0.6057 ll 0.65763 gain +0.01884 [+0.01758,+0.02004] vs SS days +0.00328 [+0.00270,+0.00389]
+  lag MMR safe G=7                                               acc 0.5762 ll 0.67478 gain +0.00169 [+0.00134,+0.00214] vs SS days -0.01387 [-0.01499,-0.01267]
+  SS days + lag MMR safe G=7                                     acc 0.6030 ll 0.66001 gain +0.01646 [+0.01535,+0.01757] vs SS days +0.00090 [+0.00066,+0.00117]
+  lag MMR naive G=30                                             acc 0.5766 ll 0.67426 gain +0.00220 [+0.00169,+0.00273] vs SS days -0.01335 [-0.01449,-0.01213]
+  SS days + lag MMR naive G=30                                   acc 0.6037 ll 0.65953 gain +0.01694 [+0.01580,+0.01809] vs SS days +0.00138 [+0.00099,+0.00180]
+  lag MMR safe G=30                                              acc 0.5755 ll 0.67514 gain +0.00133 [+0.00098,+0.00172] vs SS days -0.01423 [-0.01534,-0.01305]
+  SS days + lag MMR safe G=30                                    acc 0.6026 ll 0.66019 gain +0.01628 [+0.01517,+0.01736] vs SS days +0.00072 [+0.00048,+0.00100]
+  SS days + all arms + lag MMR safe G=7                          acc 0.6066 ll 0.65795 gain +0.01851 [+0.01726,+0.01967] vs SS days +0.00296 [+0.00246,+0.00338]
+  unc q1 sd 4.37pp: M0 acc 0.5671 ece 0.0032 slope 0.958 | SS days acc 0.5970 ece 0.0088 slope 0.991
+  unc q2 sd 4.55pp: M0 acc 0.5650 ece 0.0062 slope 0.891 | SS days acc 0.5934 ece 0.0036 slope 0.949
+  unc q3 sd 4.67pp: M0 acc 0.5722 ece 0.0047 slope 1.045 | SS days acc 0.6014 ece 0.0052 slope 1.035
+  unc q4 sd 4.80pp: M0 acc 0.5732 ece 0.0092 slope 1.016 | SS days acc 0.6022 ece 0.0119 slope 1.023
+  unc q5 sd 5.11pp: M0 acc 0.5818 ece 0.0076 slope 1.112 | SS days acc 0.6148 ece 0.0132 slope 1.114
+  coverage EB static kernel online      all:0.79/1.67/3.7/8678 never:0.73/3.95/4.5/1407 1-7d:0.80/1.06/3.4/3736 8-30d:0.81/0.56/3.5/1786 31-90d:0.79/1.07/3.6/929 91-180d:0.80/1.41/3.9/365 181-365d:0.77/1.61/4.0/321 366d+:0.83/-0.19/4.2/134
+  coverage SS days                      all:0.80/1.05/4.6/8678 never:0.73/2.94/5.2/1407 1-7d:0.82/0.61/4.4/3736 8-30d:0.83/0.35/4.5/1786 31-90d:0.80/0.65/4.6/929 91-180d:0.81/0.87/4.8/365 181-365d:0.78/1.08/4.9/321 366d+:0.84/-0.14/5.0/134
+  coverage SS days, hero rate by role   all:0.80/1.05/4.7/8678 never:0.73/2.94/5.2/1407 1-7d:0.82/0.61/4.4/3736 8-30d:0.83/0.35/4.6/1786 31-90d:0.80/0.65/4.6/929 91-180d:0.81/0.89/4.8/365 181-365d:0.78/1.08/4.9/321 366d+:0.84/-0.15/5.0/134
+done 275s

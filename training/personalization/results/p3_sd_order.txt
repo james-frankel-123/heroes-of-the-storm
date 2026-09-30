@@ -1,0 +1,32 @@
+  random 40k rid sweep 1: ll -890602.8 (99s) sd_player_f=0.02818, lam_player_f=0.1943, sd_hero_f=0.0001023, lam_hero_f=0.0002057
+[random 40k | rid] fast player sd 2.82pp, half-life 85.6h, ll gain from fast part +24.1; fast hero sd 0.01pp (113s)
+  random 40k time sweep 1: ll -890602.8 (138s) sd_player_f=0.02818, lam_player_f=0.1943, sd_hero_f=0.0001023, lam_hero_f=0.0002057
+[random 40k | time] fast player sd 2.82pp, half-life 85.6h, ll gain from fast part +24.1; fast hero sd 0.01pp (267s)
+  random 40k strict sweep 1: ll -890634.3 (113s) sd_player_f=0.02611, lam_player_f=0.182, sd_hero_f=0.0001029, lam_hero_f=0.0002036
+[random 40k | strict] fast player sd 2.61pp, half-life 91.4h, ll gain from fast part +16.7; fast hero sd 0.01pp (391s)
+  heavy 6k (>=300 games) rid sweep 1: ll -856283.4 (140s) sd_player_f=0.01039, lam_player_f=1.078, sd_hero_f=0.008997, lam_hero_f=0.0002037
+[heavy 6k (>=300 games) | rid] fast player sd 1.04pp, half-life 15.4h, ll gain from fast part +0.4; fast hero sd 0.90pp (543s)
+  heavy 6k (>=300 games) time sweep 1: ll -856283.4 (283s) sd_player_f=0.01039, lam_player_f=1.078, sd_hero_f=0.008997, lam_hero_f=0.0002037
+[heavy 6k (>=300 games) | time] fast player sd 1.04pp, half-life 15.4h, ll gain from fast part +0.4; fast hero sd 0.90pp (847s)
+  heavy 6k (>=300 games) strict sweep 1: ll -856292.1 (411s) sd_player_f=0.000103, lam_player_f=0.9429, sd_hero_f=0.009336, lam_hero_f=0.000204
+[heavy 6k (>=300 games) | strict] fast player sd 0.01pp, half-life 17.6h, ll gain from fast part -0.0; fast hero sd 0.93pp (1296s)
+predictions rid: 1553s
+predictions time: 1801s
+predictions strict: 2035s
+  drift vs static | rid                         +0.00039 [+0.00016, +0.00060]
+  static same-day vs lag 1 day | rid            +0.00084 [+0.00071, +0.00094]
+  drift same-day vs lag 1 day | rid             +0.00122 [+0.00093, +0.00149]
+  drift vs static | time                        +0.00038 [+0.00016, +0.00059]
+  static same-day vs lag 1 day | time           +0.00084 [+0.00073, +0.00096]
+  drift same-day vs lag 1 day | time            +0.00121 [+0.00093, +0.00148]
+  drift vs static | strict                      +0.00029 [+0.00011, +0.00050]
+  static same-day vs lag 1 day | strict         +0.00070 [+0.00060, +0.00079]
+  drift same-day vs lag 1 day | strict          +0.00099 [+0.00075, +0.00123]
+  static | rid           acc 0.6029 ll 0.66006 gain vs M0 +0.01641
+  drift | rid            acc 0.6042 ll 0.65968 gain vs M0 +0.01679
+  static | lag 1 day     acc 0.6022 ll 0.66090 gain vs M0 +0.01557
+  static | time          acc 0.6030 ll 0.66006 gain vs M0 +0.01641
+  drift | time           acc 0.6039 ll 0.65969 gain vs M0 +0.01678
+  static | strict        acc 0.6025 ll 0.66020 gain vs M0 +0.01627
+  drift | strict         acc 0.6037 ll 0.65991 gain vs M0 +0.01656
+done 2039s

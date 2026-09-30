@@ -1,0 +1,9 @@
+pick states: fit 250,000, test 250,000 (18s)
+weights {'gd_logp': 0.8013591170310974, 'log1p_n': 0.6674554347991943, 'never_n': 0.7004042267799377, 'ewma20': 8.393949508666992, 'ewma100': -6.762328624725342, 'log1p_days_since': -0.23800796270370483, 'never_played': -2.885762929916382, 'log_fine_share': 0.15383125841617584}
+  imitation (GD + personal history)          top1 0.3187 top3 0.5473 top5 0.6556 top10 0.7873 mean_loglik -2.6119 share_real_pick_marked_taken 0.0000
+  GD alone (non-personal)                    top1 0.0905 top3 0.2122 top5 0.3031 top10 0.4679 mean_loglik -3.7776 share_real_pick_marked_taken 0.0000
+  frequency alone (EWMA-20 share)            top1 0.2679 top3 0.4779 top5 0.5827 top10 0.7127 mean_loglik -3.4243 share_real_pick_marked_taken 0.0000
+  personal history alone (fitted, no GD)     top1 0.2702 top3 0.4780 top5 0.5819 top10 0.7147 mean_loglik -2.9301 share_real_pick_marked_taken 0.0000
+  uniform over player's pool                 top1 0.0716 top3 0.1934 top5 0.3051 top10 0.4928 mean_loglik -7.7232 share_real_pick_marked_taken 0.0000
+{'pick 1': {'imitation_top1': 0.40584, 'gd_top1': 0.11724}, 'pick 2': {'imitation_top1': 0.33368, 'gd_top1': 0.07608}, 'pick 3': {'imitation_top1': 0.29134, 'gd_top1': 0.0773}, 'pick 4': {'imitation_top1': 0.27574, 'gd_top1': 0.08082}, 'pick 5': {'imitation_top1': 0.2866857337146743, 'gd_top1': 0.1009420188403768}}
+done 79s

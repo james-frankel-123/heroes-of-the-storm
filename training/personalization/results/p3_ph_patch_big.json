@@ -1,0 +1,66 @@
+{
+ "|dWR|>=2pp | big shift | J sd 1.0pp": {
+  "pairs": 178,
+  "dLL": -2.55877777794376
+ },
+ "|dWR|>=2pp | big shift | J sd 2.0pp": {
+  "pairs": 178,
+  "dLL": -17.949566740659066
+ },
+ "|dWR|>=2pp | big shift | J sd 3.0pp": {
+  "pairs": 178,
+  "dLL": -61.06535378366243
+ },
+ "|dWR|>=2pp | big shift | J sd 5.0pp": {
+  "pairs": 178,
+  "dLL": -275.90945761068724
+ },
+ "|dWR|>=2pp | placebo (<1pp, same count) | J sd 1.0pp": {
+  "pairs": 178,
+  "dLL": -3.091439957381226
+ },
+ "|dWR|>=2pp | placebo (<1pp, same count) | J sd 2.0pp": {
+  "pairs": 178,
+  "dLL": -15.68047289934475
+ },
+ "|dWR|>=2pp | placebo (<1pp, same count) | J sd 3.0pp": {
+  "pairs": 178,
+  "dLL": -45.230785121791996
+ },
+ "|dWR|>=2pp | placebo (<1pp, same count) | J sd 5.0pp": {
+  "pairs": 178,
+  "dLL": -184.29175627953373
+ },
+ "|dWR|>=4pp | big shift | J sd 1.0pp": {
+  "pairs": 31,
+  "dLL": -0.36825589486397803
+ },
+ "|dWR|>=4pp | big shift | J sd 2.0pp": {
+  "pairs": 31,
+  "dLL": -2.1760555076180026
+ },
+ "|dWR|>=4pp | big shift | J sd 3.0pp": {
+  "pairs": 31,
+  "dLL": -7.096817151643336
+ },
+ "|dWR|>=4pp | big shift | J sd 5.0pp": {
+  "pairs": 31,
+  "dLL": -33.282961337594315
+ },
+ "|dWR|>=4pp | placebo (<1pp, same count) | J sd 1.0pp": {
+  "pairs": 31,
+  "dLL": -0.4284429952967912
+ },
+ "|dWR|>=4pp | placebo (<1pp, same count) | J sd 2.0pp": {
+  "pairs": 31,
+  "dLL": -2.3149505271576345
+ },
+ "|dWR|>=4pp | placebo (<1pp, same count) | J sd 3.0pp": {
+  "pairs": 31,
+  "dLL": -6.938665392342955
+ },
+ "|dWR|>=4pp | placebo (<1pp, same count) | J sd 5.0pp": {
+  "pairs": 31,
+  "dLL": -29.002170229214244
+ }
+}

@@ -1,0 +1,37 @@
+variance shares {'player': 0.132, 'role': 0.049, 'fine': 0.05, 'melee': 0.023, 'hero': 0.213, 'cf2': 0.533}
+k=4: ARI Blizzard 0.019 fine 0.032
+k=5: ARI Blizzard 0.011 fine 0.031
+k=6: ARI Blizzard 0.009 fine 0.029
+k=8: ARI Blizzard 0.008 fine 0.038
+cluster 1 n=24 centroid [-0.21 -0.84]: Leoric (B), Kharazim (H), Qhira (M), Mei (T), The Butcher (M), Li Li (H), Samuro (M), Malthael (B), Anduin (H), Stitches (T), Nazeebo (RA), Stukov (H), Kael'thas (RA), Ragnaros (B), Tassadar (RA), Lt. Morales (H), Azmodan (RA), Nova (RA), Artanis (B), Deckard (H), Gazlowe (B), Xul (B), Brightwing (H), Mal'Ganis (T)
+cluster 2 n=36 centroid [ 1.66 -1.99]: Probius (RA), Thrall (B), Jaina (RA), Falstad (RA), Imperius (B), Valla (RA), Muradin (T), Orphea (RA), Rexxar (B), Illidan (M), Lunara (RA), Chromie (RA), Gul'dan (RA), Garrosh (T), Diablo (T), Dehaka (B), Auriel (H), Johanna (T), Zagara (RA), Sonya (B), Tyrande (H), Blaze (T), Zul'jin (RA), Malfurion (H), E.T.C. (T), Cassia (RA), Rehgar (H), Raynor (RA), Uther (H), Lúcio (H), Anub'arak (T), Tychus (RA), Arthas (T), Tyrael (T), Whitemane (H), Varian (B)
+cluster 3 n=10 centroid [ 4.64 -0.9 ]: Kerrigan (M), Alarak (M), Zeratul (M), Zarya (S), Chen (B), Hogger (B), Li-Ming (RA), Sylvanas (RA), Tracer (RA), Greymane (RA)
+cluster 4 n=6 centroid [5.6  2.98]: Cho (T), Medivh (S), Yrel (B), Genji (RA), Hanzo (RA), Maiev (M)
+cluster 5 n=2 centroid [1.77 8.13]: Gall (RA), The Lost Vikings (RA)
+cluster 6 n=12 centroid [1.01 2.2 ]: Valeera (M), Mephisto (RA), Murky (RA), Kel'Thuzad (RA), Abathur (S), Ana (H), Sgt. Hammer (RA), Junkrat (RA), D.Va (B), Fenix (RA), Deathwing (B), Alexstrasza (H)
+{'decile': 1, 'pairs': 401, 'model_cov_beyond_general_pp2': -9.921200239037729, 'empirical_cov_pp2': 0.05417291967924984, 'empirical_minus_mean_pp2': -3.58418386116617}
+{'decile': 2, 'pairs': 400, 'model_cov_beyond_general_pp2': -3.6942610220691714, 'empirical_cov_pp2': 2.3611286456612413, 'empirical_minus_mean_pp2': -1.2772281351841788}
+{'decile': 3, 'pairs': 401, 'model_cov_beyond_general_pp2': -1.0367199672409335, 'empirical_cov_pp2': 1.2919983491085958, 'empirical_minus_mean_pp2': -2.346358431736824}
+{'decile': 4, 'pairs': 400, 'model_cov_beyond_general_pp2': 0.4540443632545544, 'empirical_cov_pp2': 2.8633861210884244, 'empirical_minus_mean_pp2': -0.7749706597569956}
+{'decile': 5, 'pairs': 401, 'model_cov_beyond_general_pp2': 1.6186550168366298, 'empirical_cov_pp2': 2.5484016921818053, 'empirical_minus_mean_pp2': -1.0899550886636145}
+{'decile': 6, 'pairs': 400, 'model_cov_beyond_general_pp2': 2.810994850695865, 'empirical_cov_pp2': 3.247356298845472, 'empirical_minus_mean_pp2': -0.3910004819999481}
+{'decile': 7, 'pairs': 400, 'model_cov_beyond_general_pp2': 4.224340637737816, 'empirical_cov_pp2': 3.6773709491063684, 'empirical_minus_mean_pp2': 0.039014168260948556}
+{'decile': 8, 'pairs': 401, 'model_cov_beyond_general_pp2': 6.187509861348669, 'empirical_cov_pp2': 4.52447256468042, 'empirical_minus_mean_pp2': 0.8861157838350006}
+{'decile': 9, 'pairs': 400, 'model_cov_beyond_general_pp2': 9.271545373006349, 'empirical_cov_pp2': 5.3150584426854275, 'empirical_minus_mean_pp2': 1.6767016618400072}
+{'decile': 10, 'pairs': 401, 'model_cov_beyond_general_pp2': 18.992321586870492, 'empirical_cov_pp2': 8.69702548206965, 'empirical_minus_mean_pp2': 5.0586687012242315}
+same vs cross role {'same_role': 5.167271869325089, 'cross_role': 3.0906935311814485, 'model_same_role': 3.2654676117941923, 'model_cross_role': 2.7873218737789034}
+{'pair': 'Cho (Tank) + Gall (Ranged Assassin)', 'shared_factor_cov_pp2': 54.913510358681414, 'factor_corr': 0.8067934016059843, 'heldout_emp_cov_pp2': 52.35790776206859, 'heldout_players_both': 30}
+{'pair': 'Gall (Ranged Assassin) + Medivh (Support)', 'shared_factor_cov_pp2': 52.63882580639792, 'factor_corr': 0.7890129369255036, 'heldout_emp_cov_pp2': 95.58814104704041, 'heldout_players_both': 22}
+{'pair': 'Cho (Tank) + Medivh (Support)', 'shared_factor_cov_pp2': 50.18933583953426, 'factor_corr': 0.9995647928005886, 'heldout_emp_cov_pp2': -2.3767713612227186, 'heldout_players_both': 38}
+{'pair': 'Cho (Tank) + Yrel (Bruiser)', 'shared_factor_cov_pp2': 46.089580995292984, 'factor_corr': 0.9183239094672171, 'heldout_emp_cov_pp2': -67.4255969998681, 'heldout_players_both': 25}
+{'pair': 'Medivh (Support) + Yrel (Bruiser)', 'shared_factor_cov_pp2': 45.7307872050161, 'factor_corr': 0.9296010583815948, 'heldout_emp_cov_pp2': -37.15176810201207, 'heldout_players_both': 48}
+{'pair': 'Gall (Ranged Assassin) + Maiev (Melee Assassin)', 'shared_factor_cov_pp2': 44.307638253220965, 'factor_corr': 0.8328681230433834, 'heldout_emp_cov_pp2': -5.4869888334452614, 'heldout_players_both': 13}
+{'pair': 'Genji (Ranged Assassin) + Cho (Tank)', 'shared_factor_cov_pp2': 43.14615660062483, 'factor_corr': 0.9773858569882224, 'heldout_emp_cov_pp2': 45.7124022948422, 'heldout_players_both': 52}
+{'pair': 'Genji (Ranged Assassin) + Medivh (Support)', 'shared_factor_cov_pp2': 42.542451022372525, 'factor_corr': 0.9831985804618879, 'heldout_emp_cov_pp2': 23.199531286613276, 'heldout_players_both': 213}
+{'pair': 'Genji (Ranged Assassin) + Yrel (Bruiser)', 'shared_factor_cov_pp2': 42.43966189201057, 'factor_corr': 0.9812604172128472, 'heldout_emp_cov_pp2': -11.700966544893458, 'heldout_players_both': 110}
+{'pair': 'Cho (Tank) + Maiev (Melee Assassin)', 'shared_factor_cov_pp2': 39.99721906437992, 'factor_corr': 0.9989620887670456, 'heldout_emp_cov_pp2': 18.159380174833807, 'heldout_players_both': 44}
+{'pair': 'Hanzo (Ranged Assassin) + Yrel (Bruiser)', 'shared_factor_cov_pp2': 39.63172335480782, 'factor_corr': 0.9968825041378224, 'heldout_emp_cov_pp2': 3.7679264074591283, 'heldout_players_both': 151}
+{'pair': 'Medivh (Support) + Maiev (Melee Assassin)', 'shared_factor_cov_pp2': 39.13462142462273, 'factor_corr': 0.997183646132812, 'heldout_emp_cov_pp2': 27.530657622439776, 'heldout_players_both': 158}
+{'pair': 'Hanzo (Ranged Assassin) + Cho (Tank)', 'shared_factor_cov_pp2': 38.41458946813228, 'factor_corr': 0.9466921642735534, 'heldout_emp_cov_pp2': 58.24086437951606, 'heldout_players_both': 77}
+{'pair': 'Hanzo (Ranged Assassin) + Medivh (Support)', 'shared_factor_cov_pp2': 38.0147359889659, 'factor_corr': 0.9557831398005483, 'heldout_emp_cov_pp2': 25.166599004173932, 'heldout_players_both': 282}
+{'pair': 'Zeratul (Melee Assassin) + Yrel (Bruiser)', 'shared_factor_cov_pp2': 36.37449321607805, 'factor_corr': 0.9918839117813724, 'heldout_emp_cov_pp2': 10.075082879540576, 'heldout_players_both': 81}

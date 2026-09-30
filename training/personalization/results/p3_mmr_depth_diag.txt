@@ -1,0 +1,24 @@
+player rows matched to scored games: 1.0000
+games with prev MMR for all 10: test 63072
+M0                   acc 0.5719 ll 0.67662 auc 0.6015
+this-game MMR        acc 0.6247 ll 0.64419 auc 0.6742
+previous-game MMR    acc 0.5801 ll 0.67310 auc 0.6116
+M4                   acc 0.5771 ll 0.67473 auc 0.6075
+M4+prev MMR          acc 0.5823 ll 0.67152 auc 0.6163
+V2 slots with any E history: 0.826; mean E games per slot 185
+quartile 1 mean E games/slot (-1,95]: n 18139 acc 0.5777->0.5785 ll gain -0.00001
+quartile 2 mean E games/slot (95,162]: n 18107 acc 0.5701->0.5749 ll gain +0.00095
+quartile 3 mean E games/slot (162,251]: n 18109 acc 0.5687->0.5751 ll gain +0.00221
+quartile 4 mean E games/slot (251,1000000000]: n 18119 acc 0.5710->0.5805 ll gain +0.00371
+lag>=1d n=58811 M0         acc 0.5712 ll 0.67718
+lag>=1d n=58811 lag MMR    acc 0.5824 ll 0.67229
+lag>=1d n=58811 M4         acc 0.5767 ll 0.67527
+lag>=1d n=58811 M4+lag     acc 0.5850 ll 0.67074
+lag>=7d n=46337 M0         acc 0.5708 ll 0.67703
+lag>=7d n=46337 lag MMR    acc 0.5765 ll 0.67452
+lag>=7d n=46337 M4         acc 0.5772 ll 0.67486
+lag>=7d n=46337 M4+lag     acc 0.5805 ll 0.67268
+lag>=30d n=29512 M0         acc 0.5701 ll 0.67708
+lag>=30d n=29512 lag MMR    acc 0.5751 ll 0.67569
+lag>=30d n=29512 M4         acc 0.5781 ll 0.67456
+lag>=30d n=29512 M4+lag     acc 0.5808 ll 0.67346

@@ -1,0 +1,487 @@
+{
+ "split_half": {
+  "median_reliability_per_cell": 0.09994614855817786,
+  "diag_sd_pp_splithalf_median": 4.558757982817424,
+  "diag_sd_pp_moments_median": 4.05341440635109
+ },
+ "empirical_corr": {
+  "median_offdiag": 0.19751813189846734,
+  "iqr": [
+   -0.15594267007395163,
+   0.5065357326368037
+  ],
+  "min_pair_players": 10
+ },
+ "embedding_selection": {
+  "player+hero": {
+   "heldout_ll": -422901.0443619183
+  },
+  "rank 1": {
+   "fit_ll": -423469.70288453455,
+   "heldout_ll": -422723.22066765884,
+   "gain_vs_player+hero": 177.82369425945217,
+   "sd_pp": {
+    "player": 2.1854175132874585,
+    "hero": 2.9490805495276566
+   }
+  },
+  "rank 2": {
+   "fit_ll": -423252.2322213566,
+   "heldout_ll": -422653.08303281874,
+   "gain_vs_player+hero": 247.96132909954758,
+   "sd_pp": {
+    "player": 1.9233687753053013,
+    "hero": 2.574280723715638
+   }
+  },
+  "rank 3": {
+   "fit_ll": -423133.56688630074,
+   "heldout_ll": -422673.2834838114,
+   "gain_vs_player+hero": 227.76087810687022,
+   "sd_pp": {
+    "player": 1.7928394330669777,
+    "hero": 2.242433823638103
+   }
+  },
+  "rank 4": {
+   "fit_ll": -423020.9599683026,
+   "heldout_ll": -422756.3542730466,
+   "gain_vs_player+hero": 144.69008887169184,
+   "sd_pp": {
+    "player": 1.2640385851202889,
+    "hero": 1.8614480536450286
+   }
+  },
+  "rank 5": {
+   "fit_ll": -422933.4091044256,
+   "heldout_ll": -422777.61879464955,
+   "gain_vs_player+hero": 123.42556726874318,
+   "sd_pp": {
+    "player": 1.2135156745470432,
+    "hero": 1.4187843891123026
+   }
+  },
+  "rank 6": {
+   "fit_ll": -422856.9454089004,
+   "heldout_ll": -422821.37584281235,
+   "gain_vs_player+hero": 79.66851910593687,
+   "sd_pp": {
+    "player": 1.1064934410332061,
+    "hero": 0.69062770548873
+   }
+  },
+  "rank 7": {
+   "fit_ll": -422792.55313471955,
+   "heldout_ll": -422826.758156109,
+   "gain_vs_player+hero": 74.28620580927236,
+   "sd_pp": {
+    "player": 0.48324814327830246,
+    "hero": 0.12855503895635145
+   }
+  },
+  "rank 8": {
+   "fit_ll": -422739.27264724637,
+   "heldout_ll": -422818.3260407594,
+   "gain_vs_player+hero": 82.71832115889993,
+   "sd_pp": {
+    "player": 0.38272668344922595,
+    "hero": 0.07795270698957177
+   }
+  }
+ },
+ "best_rank_pure": 2,
+ "axes": [
+  {
+   "sd_pp": 2.6180406352357593,
+   "low": [
+    "Leoric",
+    "Qhira",
+    "Malthael",
+    "Kharazim",
+    "Mei",
+    "Li Li",
+    "Valeera",
+    "The Butcher",
+    "D.Va",
+    "Deathwing"
+   ],
+   "high": [
+    "Yrel",
+    "Medivh",
+    "Cho",
+    "Genji",
+    "Kerrigan",
+    "Hanzo",
+    "Alarak",
+    "Zeratul",
+    "Zarya",
+    "Hogger"
+   ],
+   "corr_with_features": {
+    "mean player MMR": 0.6098124016091666,
+    "high mechanics (hand label)": 0.295708159285169,
+    "log popularity": -0.20405502461404795,
+    "games per player on hero": 0.19866922675251306,
+    "healer": -0.1732324938927682,
+    "ranged AA": 0.1410179342906957,
+    "mage": 0.1357518903792914,
+    "melee": -0.10510283927147587,
+    "bruiser": -0.08788517790819075,
+    "tank": -0.06903567335552653,
+    "melee assassin": 0.06726640900297692,
+    "global": 0.02278802403340514
+   }
+  },
+  {
+   "sd_pp": 2.2990066451186797,
+   "low": [
+    "Probius",
+    "Jaina",
+    "Thrall",
+    "Lunara",
+    "Imperius",
+    "Chen",
+    "Zagara",
+    "Johanna",
+    "Muradin",
+    "Garrosh"
+   ],
+   "high": [
+    "Gall",
+    "The Lost Vikings",
+    "Valeera",
+    "Cho",
+    "Medivh",
+    "Abathur",
+    "Maiev",
+    "Mephisto",
+    "Murky",
+    "Genji"
+   ],
+   "corr_with_features": {
+    "log popularity": -0.5255809943613414,
+    "high mechanics (hand label)": 0.4324837423646342,
+    "tank": -0.15752718425494533,
+    "melee": -0.14777848798297138,
+    "healer": -0.10919635801912492,
+    "mage": 0.09079859942975113,
+    "melee assassin": 0.08708429166643945,
+    "games per player on hero": -0.07515583216942594,
+    "mean player MMR": 0.07270747406039839,
+    "bruiser": -0.07182617398078611,
+    "global": 0.07101710968087674,
+    "ranged AA": -0.036330472892164116
+   }
+  }
+ ],
+ "model_vs_empirical_excess_corr": 0.20788039463430846,
+ "clusters": {
+  "k": 8,
+  "members": {
+   "1": {
+    "heroes": [
+     "Mei (Tank)",
+     "Li Li (Healer)",
+     "Azmodan (Ranged Assassin)",
+     "Leoric (Bruiser)",
+     "Qhira (Melee Assassin)",
+     "Kharazim (Healer)",
+     "The Butcher (Melee Assassin)",
+     "Malthael (Bruiser)"
+    ],
+    "majority_role": "Bruiser",
+    "share_majority": 0.25
+   },
+   "2": {
+    "heroes": [
+     "Abathur (Support)",
+     "Murky (Ranged Assassin)",
+     "Fenix (Ranged Assassin)",
+     "Hanzo (Ranged Assassin)",
+     "Deathwing (Bruiser)",
+     "Mephisto (Ranged Assassin)",
+     "Sgt. Hammer (Ranged Assassin)",
+     "Junkrat (Ranged Assassin)",
+     "Ana (Healer)",
+     "The Lost Vikings (Ranged Assassin)",
+     "Kel'Thuzad (Ranged Assassin)",
+     "Genji (Ranged Assassin)",
+     "Alexstrasza (Healer)",
+     "Cho (Tank)",
+     "Gall (Ranged Assassin)",
+     "Valeera (Melee Assassin)",
+     "D.Va (Bruiser)",
+     "Medivh (Support)",
+     "Yrel (Bruiser)",
+     "Maiev (Melee Assassin)"
+    ],
+    "majority_role": "Ranged Assassin",
+    "share_majority": 0.5
+   },
+   "3": {
+    "heroes": [
+     "Gazlowe (Bruiser)"
+    ],
+    "majority_role": "Bruiser",
+    "share_majority": 1.0
+   },
+   "4": {
+    "heroes": [
+     "Arthas (Tank)",
+     "Auriel (Healer)",
+     "Raynor (Ranged Assassin)",
+     "Gul'dan (Ranged Assassin)",
+     "Sylvanas (Ranged Assassin)",
+     "Stitches (Tank)",
+     "Kerrigan (Melee Assassin)",
+     "Muradin (Tank)",
+     "Malfurion (Healer)",
+     "Thrall (Bruiser)",
+     "Artanis (Bruiser)",
+     "Hogger (Bruiser)",
+     "Anduin (Healer)",
+     "Nazeebo (Ranged Assassin)",
+     "Valla (Ranged Assassin)",
+     "Li-Ming (Ranged Assassin)",
+     "Anub'arak (Tank)",
+     "Varian (Bruiser)",
+     "Diablo (Tank)",
+     "E.T.C. (Tank)",
+     "Jaina (Ranged Assassin)",
+     "Nova (Ranged Assassin)",
+     "Zagara (Ranged Assassin)",
+     "Imperius (Bruiser)",
+     "L\u00facio (Healer)",
+     "Tychus (Ranged Assassin)",
+     "Probius (Ranged Assassin)",
+     "Kael'thas (Ranged Assassin)",
+     "Blaze (Tank)",
+     "Johanna (Tank)",
+     "Falstad (Ranged Assassin)",
+     "Lt. Morales (Healer)",
+     "Zeratul (Melee Assassin)",
+     "Ragnaros (Bruiser)",
+     "Uther (Healer)",
+     "Sonya (Bruiser)",
+     "Tassadar (Ranged Assassin)",
+     "Orphea (Ranged Assassin)",
+     "Chen (Bruiser)",
+     "Alarak (Melee Assassin)",
+     "Zarya (Support)",
+     "Rexxar (Bruiser)",
+     "Stukov (Healer)",
+     "Tracer (Ranged Assassin)",
+     "Tyrande (Healer)",
+     "Chromie (Ranged Assassin)",
+     "Tyrael (Tank)",
+     "Greymane (Ranged Assassin)",
+     "Illidan (Melee Assassin)",
+     "Rehgar (Healer)",
+     "Dehaka (Bruiser)",
+     "Zul'jin (Ranged Assassin)",
+     "Lunara (Ranged Assassin)",
+     "Whitemane (Healer)",
+     "Samuro (Melee Assassin)",
+     "Garrosh (Tank)",
+     "Cassia (Ranged Assassin)"
+    ],
+    "majority_role": "Ranged Assassin",
+    "share_majority": 0.3684210526315789
+   },
+   "5": {
+    "heroes": [
+     "Deckard (Healer)"
+    ],
+    "majority_role": "Healer",
+    "share_majority": 1.0
+   },
+   "6": {
+    "heroes": [
+     "Xul (Bruiser)"
+    ],
+    "majority_role": "Bruiser",
+    "share_majority": 1.0
+   },
+   "7": {
+    "heroes": [
+     "Brightwing (Healer)"
+    ],
+    "majority_role": "Healer",
+    "share_majority": 1.0
+   },
+   "8": {
+    "heroes": [
+     "Mal'Ganis (Tank)"
+    ],
+    "majority_role": "Tank",
+    "share_majority": 1.0
+   }
+  },
+  "ari": {
+   "4": {
+    "blizz": 0.007286167250193329,
+    "fine": 0.005246794980279122
+   },
+   "6": {
+    "blizz": 0.010656292545332001,
+    "fine": 0.0018850815247787988
+   },
+   "8": {
+    "blizz": 0.016246957761834647,
+    "fine": -0.0019013968128636031
+   },
+   "10": {
+    "blizz": 0.00975212695215027,
+    "fine": -0.0014750706604435841
+   }
+  }
+ },
+ "top_cross_role_pairs": [
+  {
+   "pair": "Cho (Tank) + Medivh (Support)",
+   "model_corr_beyond_general": 0.8830043855103347,
+   "empirical_excess_corr": -0.1855510600220195,
+   "empirical_total_corr": -0.11814795782999266,
+   "players_both": 78
+  },
+  {
+   "pair": "Cho (Tank) + Maiev (Melee Assassin)",
+   "model_corr_beyond_general": 0.8539322482260405,
+   "empirical_excess_corr": 0.03228922049821577,
+   "empirical_total_corr": 0.10619860116364027,
+   "players_both": 72
+  },
+  {
+   "pair": "Hanzo (Ranged Assassin) + Yrel (Bruiser)",
+   "model_corr_beyond_general": 0.8520894719783764,
+   "empirical_excess_corr": 0.26200903801125447,
+   "empirical_total_corr": 0.3173295388350794,
+   "players_both": 309
+  },
+  {
+   "pair": "Genji (Ranged Assassin) + Medivh (Support)",
+   "model_corr_beyond_general": 0.8518021938357547,
+   "empirical_excess_corr": 0.2069568659306661,
+   "empirical_total_corr": 0.2715195014050289,
+   "players_both": 396
+  },
+  {
+   "pair": "Medivh (Support) + Maiev (Melee Assassin)",
+   "model_corr_beyond_general": 0.8504244882010535,
+   "empirical_excess_corr": 1.3057583122878882,
+   "empirical_total_corr": 1.2701537725275631,
+   "players_both": 298
+  },
+  {
+   "pair": "Genji (Ranged Assassin) + Yrel (Bruiser)",
+   "model_corr_beyond_general": 0.8500780542405524,
+   "empirical_excess_corr": 0.09057403083860179,
+   "empirical_total_corr": 0.15320827278541285,
+   "players_both": 213
+  },
+  {
+   "pair": "Genji (Ranged Assassin) + Cho (Tank)",
+   "model_corr_beyond_general": 0.8487452560652573,
+   "empirical_excess_corr": 0.979030914906773,
+   "empirical_total_corr": 0.9757297194870861,
+   "players_both": 97
+  },
+  {
+   "pair": "Zeratul (Melee Assassin) + Yrel (Bruiser)",
+   "model_corr_beyond_general": 0.8353975962007302,
+   "empirical_excess_corr": 0.36679152842196217,
+   "empirical_total_corr": 0.4132384679958964,
+   "players_both": 169
+  },
+  {
+   "pair": "Medivh (Support) + Yrel (Bruiser)",
+   "model_corr_beyond_general": 0.8192411036747136,
+   "empirical_excess_corr": -0.39263382957925813,
+   "empirical_total_corr": -0.3092004367865064,
+   "players_both": 114
+  },
+  {
+   "pair": "Hanzo (Ranged Assassin) + Medivh (Support)",
+   "model_corr_beyond_general": 0.8170028620327558,
+   "empirical_excess_corr": 0.6391623854694584,
+   "empirical_total_corr": 0.6699805487273534,
+   "players_both": 567
+  },
+  {
+   "pair": "Cho (Tank) + Yrel (Bruiser)",
+   "model_corr_beyond_general": 0.8111941578953802,
+   "empirical_excess_corr": -0.3750699708268196,
+   "empirical_total_corr": -0.30902260880448407,
+   "players_both": 37
+  },
+  {
+   "pair": "Hanzo (Ranged Assassin) + Cho (Tank)",
+   "model_corr_beyond_general": 0.811123143666105,
+   "empirical_excess_corr": 0.6244187516809606,
+   "empirical_total_corr": 0.6462101000235931,
+   "players_both": 128
+  },
+  {
+   "pair": "Genji (Ranged Assassin) + Maiev (Melee Assassin)",
+   "model_corr_beyond_general": 0.8104559581500248,
+   "empirical_excess_corr": 0.6338285799961356,
+   "empirical_total_corr": 0.6734100440755671,
+   "players_both": 708
+  },
+  {
+   "pair": "Alarak (Melee Assassin) + Zarya (Support)",
+   "model_corr_beyond_general": 0.8035969052609991,
+   "empirical_excess_corr": 0.39084625984909377,
+   "empirical_total_corr": 0.44657097976443555,
+   "players_both": 186
+  },
+  {
+   "pair": "Hanzo (Ranged Assassin) + Zeratul (Melee Assassin)",
+   "model_corr_beyond_general": 0.7995720059460969,
+   "empirical_excess_corr": 0.6291526496804948,
+   "empirical_total_corr": 0.67366705775371,
+   "players_both": 873
+  },
+  {
+   "pair": "Kerrigan (Melee Assassin) + Hogger (Bruiser)",
+   "model_corr_beyond_general": 0.7966498061455524,
+   "empirical_excess_corr": 1.136277136067427,
+   "empirical_total_corr": 1.1213313614161633,
+   "players_both": 284
+  },
+  {
+   "pair": "Zarya (Support) + Yrel (Bruiser)",
+   "model_corr_beyond_general": 0.7947629231117962,
+   "empirical_excess_corr": -0.24409395512182394,
+   "empirical_total_corr": -0.16656255118564747,
+   "players_both": 83
+  },
+  {
+   "pair": "Kerrigan (Melee Assassin) + Zarya (Support)",
+   "model_corr_beyond_general": 0.7941453896633811,
+   "empirical_excess_corr": 0.016830958893427516,
+   "empirical_total_corr": 0.10902670265148506,
+   "players_both": 118
+  },
+  {
+   "pair": "Kerrigan (Melee Assassin) + Li-Ming (Ranged Assassin)",
+   "model_corr_beyond_general": 0.7935483950644127,
+   "empirical_excess_corr": 0.933704030466254,
+   "empirical_total_corr": 0.9415881958739398,
+   "players_both": 561
+  },
+  {
+   "pair": "Hogger (Bruiser) + Alarak (Melee Assassin)",
+   "model_corr_beyond_general": 0.791863658773865,
+   "empirical_excess_corr": 0.731115893689126,
+   "empirical_total_corr": 0.7589367206003115,
+   "players_both": 496
+  }
+ ],
+ "mean_beyond_general_corr": {
+  "same_role": 0.1716310199121999,
+  "cross_role": 0.1381574857065282,
+  "same_fine_role": 0.16106406436446857
+ },
+ "figure": "/home/max/heroes-of-the-storm/training/personalization/results/fig_hero_skill_corr.png"
+}

@@ -1,0 +1,40 @@
+E slots 9,386,114; players fit 148,267, held-out 148,546
+  ml fit: -ll 423831.6, sd(pp) [2.51 1.16 1.14 0.75 3.07]
+co-strength residual eigenvalues (top 10, pp^2): [459.06 396.09 365.9  295.92 271.93 245.64 228.59 204.47 186.06 168.56]
+  lowrank r=1: -ll 423439.4 (51 it), sd(pp) [1.97 1.11 1.11 0.74 2.59], factor sd(pp) [2.71]
+  lowrank r=2: -ll 423229.4 (89 it), sd(pp) [1.73 1.05 1.07 0.72 2.2 ], factor sd(pp) [2.47 2.45]
+  lowrank r=3: -ll 423107.5 (87 it), sd(pp) [1.57 1.03 1.05 0.72 1.76], factor sd(pp) [2.15 2.08 2.49]
+  lowrank r=4: -ll 423000.7 (127 it), sd(pp) [0.92 1.08 1.1  0.68 1.23], factor sd(pp) [2.1  2.01 1.95 2.5 ]
+  lowrank r=8: -ll 422737.8 (127 it), sd(pp) [0.21 0.52 0.5  0.53 0.03], factor sd(pp) [1.64 2.64 1.99 1.53 1.55 1.67 1.38 1.51]
+  lowrank r=2: -ll 423229.8 (122 it), sd(pp) [1.76 0.91 0.99 0.68 2.14 0.83], factor sd(pp) [2.56 2.34]
+player
+  ml fit: -ll 424381.2, sd(pp) [2.89]
+  fit ll -424381.2; held-out ll -423336.7 (+0.0 vs player-only)
+player+hero
+  ml fit: -ll 423866.9, sd(pp) [2.69 3.4 ]
+  fit ll -423866.9; held-out ll -422901.0 (+435.7 vs player-only)
+player+role+hero
+  ml fit: -ll 423833.2, sd(pp) [2.55 1.29 1.11 3.08]
+  fit ll -423833.2; held-out ll -422874.6 (+462.1 vs player-only)
+player+role+melee+hero
+  ml fit: -ll 423831.6, sd(pp) [2.51 1.16 1.14 0.75 3.07]
+  fit ll -423831.6; held-out ll -422875.8 (+461.0 vs player-only)
++co-play
+  ml fit: -ll 423807.5, sd(pp) [2.53 1.06 0.64 0.58 2.71 1.87]
+  fit ll -423807.5; held-out ll -422848.0 (+488.7 vs player-only)
++co-strength moments
+  ml fit: -ll 423144.8, sd(pp) [2.4  1.12 0.92 0.49 0.17 4.38]
+  fit ll -423144.8; held-out ll -422868.5 (+468.2 vs player-only)
++CF rank 1
+  fit ll -423439.4; held-out ll -422704.3 (+632.4 vs player-only)
++CF rank 2
+  fit ll -423229.4; held-out ll -422642.8 (+693.9 vs player-only)
++CF rank 3
+  fit ll -423107.5; held-out ll -422717.2 (+619.6 vs player-only)
++CF rank 4
+  fit ll -423000.7; held-out ll -422770.6 (+566.1 vs player-only)
++CF rank 8
+  fit ll -422737.8; held-out ll -422802.0 (+534.8 vs player-only)
++CF rank 2 +co-play
+  fit ll -423229.8; held-out ll -422642.3 (+694.4 vs player-only)
+wrote /home/max/heroes-of-the-storm/training/personalization/cache/hs_kernels.npz

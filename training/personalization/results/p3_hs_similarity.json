@@ -1,0 +1,1554 @@
+{
+ "NPAIR_min_players": 100,
+ "weight_cap_games": 200,
+ "total 30+": {
+  "min_games_each_hero": 30,
+  "players_with_any_qualifying_cell": 19812,
+  "qualifying_cells": 44415,
+  "pairs_total": 4005,
+  "pairs_covered": 71,
+  "coverage_share": 0.01772784019975031,
+  "pairs_by_min_players": {
+   "30": 757,
+   "50": 349,
+   "100": 71,
+   "200": 7,
+   "500": 0,
+   "1000": 0
+  },
+  "median_players_per_covered_pair": 129.0,
+  "median_boot_sd_covered": 0.7460987707020496,
+  "rho_covered_median": 0.4251969223764327,
+  "rho_covered_iqr": [
+   0.02934705902495008,
+   0.7574152430395011
+  ],
+  "share_ci_excludes_zero": 0.09859154929577464,
+  "median_splithalf_var_pp2": 12.017551356291293,
+  "stability_split_players": {
+   "pairs": 56,
+   "r": -0.016575205942642435,
+   "r_weighted": 0.02693982243806313
+  }
+ },
+ "specific 30+": {
+  "min_games_each_hero": 30,
+  "players_with_any_qualifying_cell": 18232,
+  "qualifying_cells": 42835,
+  "pairs_total": 4005,
+  "pairs_covered": 71,
+  "coverage_share": 0.01772784019975031,
+  "pairs_by_min_players": {
+   "30": 757,
+   "50": 349,
+   "100": 71,
+   "200": 7,
+   "500": 0,
+   "1000": 0
+  },
+  "median_players_per_covered_pair": 129.0,
+  "median_boot_sd_covered": 0.5693577472551373,
+  "rho_covered_median": 0.1483145991932973,
+  "rho_covered_iqr": [
+   -0.23862163431830047,
+   0.3551937581174103
+  ],
+  "share_ci_excludes_zero": 0.014084507042253521,
+  "median_splithalf_var_pp2": 18.935207942252507,
+  "stability_split_players": {
+   "pairs": 47,
+   "r": 0.27736709527004083,
+   "r_weighted": 0.22239891340458998
+  }
+ },
+ "total": {
+  "min_games_each_hero": 4,
+  "players_with_any_qualifying_cell": 126170,
+  "qualifying_cells": 652726,
+  "pairs_total": 4005,
+  "pairs_covered": 3924,
+  "coverage_share": 0.9797752808988764,
+  "pairs_by_min_players": {
+   "30": 4004,
+   "50": 3996,
+   "100": 3924,
+   "200": 3651,
+   "500": 2632,
+   "1000": 1432
+  },
+  "median_players_per_covered_pair": 733.0,
+  "median_boot_sd_covered": 0.6465278846465068,
+  "rho_covered_median": 0.14354724632617055,
+  "rho_covered_iqr": [
+   -0.25882692267675245,
+   0.5478836010866142
+  ],
+  "share_ci_excludes_zero": 0.09607543323139653,
+  "median_splithalf_var_pp2": 14.583065803585384,
+  "stability_split_players": {
+   "pairs": 3909,
+   "r": 0.05511512562394275,
+   "r_weighted": 0.04695180932756294
+  }
+ },
+ "specific": {
+  "min_games_each_hero": 4,
+  "players_with_any_qualifying_cell": 67132,
+  "qualifying_cells": 559712,
+  "pairs_total": 4005,
+  "pairs_covered": 3656,
+  "coverage_share": 0.9128589263420724,
+  "pairs_by_min_players": {
+   "30": 4004,
+   "50": 3996,
+   "100": 3920,
+   "200": 3644,
+   "500": 2616,
+   "1000": 1408
+  },
+  "median_players_per_covered_pair": 724.0,
+  "median_boot_sd_covered": 0.6182158594970781,
+  "rho_covered_median": -0.13441237965740865,
+  "rho_covered_iqr": [
+   -0.47301125537821953,
+   0.20859885771760053
+  ],
+  "share_ci_excludes_zero": 0.0713894967177243,
+  "median_splithalf_var_pp2": 18.17282613834744,
+  "stability_split_players": {
+   "pairs": 3464,
+   "r": 0.017527593404892003,
+   "r_weighted": -0.016937144943752674
+  }
+ },
+ "embedding_validation": {
+  "total": {
+   "pairs": 3909,
+   "fit_half_empirical_rho (ceiling)": 0.02489314138195727,
+   "player+hero": {
+    "weighted_corr": NaN,
+    "slope": 0.054883044571085164
+   },
+   "player+role+melee+hero": {
+    "weighted_corr": 0.08151667324529463,
+    "slope": 0.8746250646766541
+   },
+   "+CF rank 1": {
+    "weighted_corr": 0.13881193857257115,
+    "slope": 0.3863196706118379
+   },
+   "+CF rank 2": {
+    "weighted_corr": 0.16755159296955655,
+    "slope": 0.4069248925182277
+   },
+   "+CF rank 3": {
+    "weighted_corr": 0.1598147273084605,
+    "slope": 0.3666163083159876
+   },
+   "+CF rank 4": {
+    "weighted_corr": 0.15423785633336892,
+    "slope": 0.3384003660526442
+   },
+   "+CF rank 8": {
+    "weighted_corr": 0.1548016947163201,
+    "slope": 0.3478714232709059
+   },
+   "pure factorization rank 2": {
+    "weighted_corr": 0.15008945840523397,
+    "slope": 0.25212750685607815
+   },
+   "preference correlation": {
+    "weighted_corr": 0.12182628979113815,
+    "slope": 0.9631754855811602
+   }
+  },
+  "specific": {
+   "pairs": 3340,
+   "fit_half_empirical_rho (ceiling)": -0.03667312765730006,
+   "player+hero": {
+    "weighted_corr": NaN,
+    "slope": 0.0
+   },
+   "player+role+melee+hero": {
+    "weighted_corr": 0.024075004635193412,
+    "slope": 0.15770845622765053
+   },
+   "+CF rank 1": {
+    "weighted_corr": 0.031159536451980004,
+    "slope": 0.05953333863896733
+   },
+   "+CF rank 2": {
+    "weighted_corr": 0.0533700099310851,
+    "slope": 0.09613179398806689
+   },
+   "+CF rank 3": {
+    "weighted_corr": 0.045282826558783046,
+    "slope": 0.07918486484430481
+   },
+   "+CF rank 4": {
+    "weighted_corr": 0.036355483245781056,
+    "slope": 0.06620297240295701
+   },
+   "+CF rank 8": {
+    "weighted_corr": 0.04397762278690524,
+    "slope": 0.08586982809725335
+   },
+   "pure factorization rank 2": {
+    "weighted_corr": 0.03294993973930181,
+    "slope": 0.029985643223496554
+   },
+   "preference correlation": {
+    "weighted_corr": 0.0746347796030897,
+    "slope": 0.5263046301632403
+   }
+  }
+ },
+ "preference": {
+  "players": 26101,
+  "split_half_r": 0.9828976361121617
+ },
+ "skill_vs_pref": {
+  "total": {
+   "pairs": 3924,
+   "corr_weighted": 0.16343074452464426,
+   "corr_unweighted": 0.08828814424422633,
+   "corr_disattenuated": 0.5480711543378068,
+   "skill_matrix_reliability_full": 0.08969239827326758,
+   "mean_skill_rho_same_role": 0.2472635217718236,
+   "mean_skill_rho_cross_role": 0.12392453214610981,
+   "mean_pref_r_same_role": 0.04088209353988718,
+   "mean_pref_r_cross_role": -0.02556750111066747,
+   "fit_skill_on_pref": [
+    0.14718772801154964,
+    0.9064971637762479
+   ],
+   "coplayed_no_transfer": [
+    {
+     "pair": "Diablo + Garrosh",
+     "roles": "Tank / Tank",
+     "pref_r": 0.23265924724623777,
+     "skill_rho": -0.12662605342424435,
+     "skill_ci": [
+      -0.5127972306737341,
+      0.2258514719149324
+     ],
+     "players": 3254,
+     "z_vs_pref_line": -2.636223759680892
+    },
+    {
+     "pair": "Murky + Azmodan",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": 0.09504434780997456,
+     "skill_rho": -0.7996570282999957,
+     "skill_ci": [
+      -1.657143162833504,
+      -0.0720126290458194
+     ],
+     "players": 829,
+     "z_vs_pref_line": -2.548236759188846
+    },
+    {
+     "pair": "Tyrael + Garrosh",
+     "roles": "Tank / Tank",
+     "pref_r": 0.08947465457086708,
+     "skill_rho": -0.6444002231671604,
+     "skill_ci": [
+      -1.3891248093430435,
+      0.005118677460829252
+     ],
+     "players": 1680,
+     "z_vs_pref_line": -2.4423155941382464
+    },
+    {
+     "pair": "Valeera + Yrel",
+     "roles": "Melee Assassin / Bruiser",
+     "pref_r": 0.10739934364330392,
+     "skill_rho": -1.1465625056937678,
+     "skill_ci": [
+      -2.372927916378123,
+      0.009958542065718235
+     ],
+     "players": 153,
+     "z_vs_pref_line": -2.294357274467627
+    },
+    {
+     "pair": "Tyrande + Ana",
+     "roles": "Healer / Healer",
+     "pref_r": 0.18148718624225169,
+     "skill_rho": -0.4116894996142098,
+     "skill_ci": [
+      -1.0899262812114983,
+      0.121880892033637
+     ],
+     "players": 1114,
+     "z_vs_pref_line": -2.189754826834445
+    },
+    {
+     "pair": "Tychus + Leoric",
+     "roles": "Ranged Assassin / Bruiser",
+     "pref_r": 0.08465412620806513,
+     "skill_rho": -0.2684777342903282,
+     "skill_ci": [
+      -0.7584057857618184,
+      0.17459222805058688
+     ],
+     "players": 3415,
+     "z_vs_pref_line": -2.187364939947103
+    },
+    {
+     "pair": "Orphea + Whitemane",
+     "roles": "Ranged Assassin / Healer",
+     "pref_r": 0.08916437032487032,
+     "skill_rho": -0.7066440671551653,
+     "skill_ci": [
+      -1.6293715544728542,
+      0.11225675156908493
+     ],
+     "players": 514,
+     "z_vs_pref_line": -2.1457175315114987
+    },
+    {
+     "pair": "Zeratul + Greymane",
+     "roles": "Melee Assassin / Ranged Assassin",
+     "pref_r": 0.130532670349582,
+     "skill_rho": -0.408732925257118,
+     "skill_ci": [
+      -1.1596403016767654,
+      0.16311741955594874
+     ],
+     "players": 953,
+     "z_vs_pref_line": -1.9957382282824043
+    },
+    {
+     "pair": "Mal'Ganis + Garrosh",
+     "roles": "Tank / Tank",
+     "pref_r": 0.14130513498075425,
+     "skill_rho": -0.36805329385498464,
+     "skill_ci": [
+      -0.9716719841826322,
+      0.2683136717836196
+     ],
+     "players": 1136,
+     "z_vs_pref_line": -1.9470987131961435
+    },
+    {
+     "pair": "Varian + Garrosh",
+     "roles": "Bruiser / Tank",
+     "pref_r": 0.13278067659341472,
+     "skill_rho": -0.2707145519875236,
+     "skill_ci": [
+      -0.804988087870023,
+      0.28715618891598194
+     ],
+     "players": 2966,
+     "z_vs_pref_line": -1.945265781802171
+    },
+    {
+     "pair": "Murky + The Butcher",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": 0.17552971922858895,
+     "skill_rho": -0.8211317219749095,
+     "skill_ci": [
+      -1.660657920792145,
+      0.5839467229315629
+     ],
+     "players": 376,
+     "z_vs_pref_line": -1.928268666969075
+    },
+    {
+     "pair": "Auriel + Brightwing",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2599999998288706,
+     "skill_rho": -0.06574957323350376,
+     "skill_ci": [
+      -0.5406040056259857,
+      0.3613379867078422
+     ],
+     "players": 3578,
+     "z_vs_pref_line": -1.9243607063820687
+    }
+   ],
+   "transfer_not_coplayed": [
+    {
+     "pair": "Li-Ming + Blaze",
+     "roles": "Ranged Assassin / Tank",
+     "pref_r": -0.08731936890108012,
+     "skill_rho": 2.0,
+     "skill_ci": [
+      0.9405849281393365,
+      3.2741865864817528
+     ],
+     "players": 1471,
+     "z_vs_pref_line": 3.185494097836315
+    },
+    {
+     "pair": "Johanna + The Lost Vikings",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.08897608003808456,
+     "skill_rho": 1.7015380930623718,
+     "skill_ci": [
+      0.7719479972599712,
+      2.8559673574330207
+     ],
+     "players": 319,
+     "z_vs_pref_line": 3.0036401873754026
+    },
+    {
+     "pair": "Johanna + Lunara",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.0954173291219171,
+     "skill_rho": 1.5071503872936411,
+     "skill_ci": [
+      0.6409012462952088,
+      3.0307688329363565
+     ],
+     "players": 1259,
+     "z_vs_pref_line": 2.3863199133159334
+    },
+    {
+     "pair": "Thrall + Tracer",
+     "roles": "Bruiser / Ranged Assassin",
+     "pref_r": -0.10625644128065678,
+     "skill_rho": 1.365620442813895,
+     "skill_ci": [
+      0.3872472342053133,
+      2.696812031570142
+     ],
+     "players": 528,
+     "z_vs_pref_line": 2.3276396516772153
+    },
+    {
+     "pair": "Hanzo + Mal'Ganis",
+     "roles": "Ranged Assassin / Tank",
+     "pref_r": -0.10158302870182882,
+     "skill_rho": 1.4189682039194649,
+     "skill_ci": [
+      0.2412102678441864,
+      2.527455977460683
+     ],
+     "players": 607,
+     "z_vs_pref_line": 2.2694707381274557
+    },
+    {
+     "pair": "Stitches + Alexstrasza",
+     "roles": "Tank / Healer",
+     "pref_r": -0.07756611750971648,
+     "skill_rho": 1.7173432629463985,
+     "skill_ci": [
+      0.3094849743017001,
+      2.9968410334695275
+     ],
+     "players": 842,
+     "z_vs_pref_line": 2.2668313648175586
+    },
+    {
+     "pair": "Li Li + Garrosh",
+     "roles": "Healer / Tank",
+     "pref_r": -0.14191203241073483,
+     "skill_rho": 1.3364768349166316,
+     "skill_ci": [
+      0.4333180390750206,
+      2.6209648331675863
+     ],
+     "players": 852,
+     "z_vs_pref_line": 2.222748745334015
+    },
+    {
+     "pair": "Jaina + Genji",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": -0.06192439588987591,
+     "skill_rho": 0.9705281956079842,
+     "skill_ci": [
+      0.301167693956053,
+      1.8477378400859634
+     ],
+     "players": 644,
+     "z_vs_pref_line": 2.215273234281825
+    },
+    {
+     "pair": "Johanna + Tyrande",
+     "roles": "Tank / Healer",
+     "pref_r": -0.06721211773587753,
+     "skill_rho": 0.977961454782087,
+     "skill_ci": [
+      0.3820588291556443,
+      2.0113575008967723
+     ],
+     "players": 1644,
+     "z_vs_pref_line": 2.191722965611866
+    },
+    {
+     "pair": "Jaina + Junkrat",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": -0.0684584320314369,
+     "skill_rho": 1.5845777430992187,
+     "skill_ci": [
+      0.4347905686751527,
+      3.313318195866095
+     ],
+     "players": 858,
+     "z_vs_pref_line": 2.1558293185409503
+    },
+    {
+     "pair": "Johanna + Medivh",
+     "roles": "Tank / Support",
+     "pref_r": -0.1533950266052039,
+     "skill_rho": 2.0,
+     "skill_ci": [
+      0.45757493575097735,
+      3.7013346573139656
+     ],
+     "players": 502,
+     "z_vs_pref_line": 2.109660197044451
+    },
+    {
+     "pair": "Sylvanas + Mei",
+     "roles": "Ranged Assassin / Tank",
+     "pref_r": -0.11414043104645015,
+     "skill_rho": 1.4097828836744861,
+     "skill_ci": [
+      0.35897546115623863,
+      2.950035294319969
+     ],
+     "players": 842,
+     "z_vs_pref_line": 2.069232950608634
+    }
+   ],
+   "top_skill_pairs": [
+    {
+     "pair": "Li-Ming + Blaze",
+     "roles": "Ranged Assassin / Tank",
+     "pref_r": -0.08731936890108012,
+     "skill_rho": 2.0,
+     "skill_ci": [
+      0.9405849281393365,
+      3.2741865864817528
+     ],
+     "players": 1471,
+     "z_vs_pref_line": 3.185494097836315
+    },
+    {
+     "pair": "Mal'Ganis + Dehaka",
+     "roles": "Tank / Bruiser",
+     "pref_r": -0.011520372388360322,
+     "skill_rho": 1.9811155221143115,
+     "skill_ci": [
+      1.086939750468802,
+      3.6365788608609644
+     ],
+     "players": 861,
+     "z_vs_pref_line": 2.546761576222636
+    },
+    {
+     "pair": "Zeratul + Tracer",
+     "roles": "Melee Assassin / Ranged Assassin",
+     "pref_r": 0.14529708433399763,
+     "skill_rho": 1.9845703391476446,
+     "skill_ci": [
+      0.8343006531998448,
+      3.794600371097318
+     ],
+     "players": 383,
+     "z_vs_pref_line": 2.286793373674348
+    },
+    {
+     "pair": "Johanna + The Lost Vikings",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.08897608003808456,
+     "skill_rho": 1.7015380930623718,
+     "skill_ci": [
+      0.7719479972599712,
+      2.8559673574330207
+     ],
+     "players": 319,
+     "z_vs_pref_line": 3.0036401873754026
+    },
+    {
+     "pair": "Johanna + Medivh",
+     "roles": "Tank / Support",
+     "pref_r": -0.1533950266052039,
+     "skill_rho": 2.0,
+     "skill_ci": [
+      0.45757493575097735,
+      3.7013346573139656
+     ],
+     "players": 502,
+     "z_vs_pref_line": 2.109660197044451
+    },
+    {
+     "pair": "Medivh + Maiev",
+     "roles": "Support / Melee Assassin",
+     "pref_r": 0.17474251839587715,
+     "skill_rho": 1.6704762061110328,
+     "skill_ci": [
+      0.5086051542413087,
+      2.937693578382879
+     ],
+     "players": 405,
+     "z_vs_pref_line": 2.1208687465000655
+    },
+    {
+     "pair": "Mei + Lunara",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.018319119491867757,
+     "skill_rho": 1.958850116465193,
+     "skill_ci": [
+      0.3846178111536289,
+      3.968647712128812
+     ],
+     "players": 649,
+     "z_vs_pref_line": 1.9454620745363682
+    },
+    {
+     "pair": "Genji + Cho",
+     "roles": "Ranged Assassin / Tank",
+     "pref_r": 0.018000369374581528,
+     "skill_rho": 1.6445501145139143,
+     "skill_ci": [
+      0.5949088960072547,
+      3.030839539336281
+     ],
+     "players": 136,
+     "z_vs_pref_line": 2.3610840707813754
+    },
+    {
+     "pair": "Stitches + Alexstrasza",
+     "roles": "Tank / Healer",
+     "pref_r": -0.07756611750971648,
+     "skill_rho": 1.7173432629463985,
+     "skill_ci": [
+      0.3094849743017001,
+      2.9968410334695275
+     ],
+     "players": 842,
+     "z_vs_pref_line": 2.2668313648175586
+    },
+    {
+     "pair": "Jaina + Tracer",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": -0.011715422806307055,
+     "skill_rho": 1.888482505681322,
+     "skill_ci": [
+      0.37686429095361,
+      3.997373832325119
+     ],
+     "players": 359,
+     "z_vs_pref_line": 1.9075614019738254
+    },
+    {
+     "pair": "Malfurion + Ana",
+     "roles": "Healer / Healer",
+     "pref_r": 0.11108019316425843,
+     "skill_rho": 1.6063625766593508,
+     "skill_ci": [
+      0.83152544680719,
+      3.23341614795107
+     ],
+     "players": 1126,
+     "z_vs_pref_line": 2.080033993776377
+    },
+    {
+     "pair": "Mei + Kael'thas",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.024235178586217137,
+     "skill_rho": 1.9228051990295507,
+     "skill_ci": [
+      0.8614058591558742,
+      4.32431737983802
+     ],
+     "players": 1257,
+     "z_vs_pref_line": 1.8358402755197618
+    },
+    {
+     "pair": "Raynor + Falstad",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": 0.0444299640019849,
+     "skill_rho": 1.3797057952410885,
+     "skill_ci": [
+      0.6995078157979383,
+      2.5981763272133938
+     ],
+     "players": 3246,
+     "z_vs_pref_line": 2.6854871389775026
+    },
+    {
+     "pair": "Jaina + The Butcher",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": -0.011997455617034344,
+     "skill_rho": 2.0,
+     "skill_ci": [
+      0.4331484566075861,
+      4.479564969640364
+     ],
+     "players": 582,
+     "z_vs_pref_line": 1.74176407130482
+    },
+    {
+     "pair": "Johanna + Lunara",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.0954173291219171,
+     "skill_rho": 1.5071503872936411,
+     "skill_ci": [
+      0.6409012462952088,
+      3.0307688329363565
+     ],
+     "players": 1259,
+     "z_vs_pref_line": 2.3863199133159334
+    }
+   ],
+   "top_pref_pairs_skill": [
+    {
+     "pair": "Anduin + Brightwing",
+     "roles": "Healer / Healer",
+     "pref_r": 0.3886069360525514,
+     "skill_rho": 0.24691772126209952,
+     "skill_ci": [
+      -0.1481626836695308,
+      0.7359911108937114
+     ],
+     "players": 6461,
+     "z_vs_pref_line": -1.1408540129113516
+    },
+    {
+     "pair": "Hanzo + Genji",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": 0.3301079844584617,
+     "skill_rho": 0.7081006162269842,
+     "skill_ci": [
+      0.447279455825026,
+      1.0122803601684456
+     ],
+     "players": 2023,
+     "z_vs_pref_line": 1.6620383900554327
+    },
+    {
+     "pair": "Brightwing + Rehgar",
+     "roles": "Healer / Healer",
+     "pref_r": 0.29729890412286997,
+     "skill_rho": 0.5218552323377793,
+     "skill_ci": [
+      0.09623115392629164,
+      1.1495585040494054
+     ],
+     "players": 4720,
+     "z_vs_pref_line": 0.3872616197757867
+    },
+    {
+     "pair": "Genji + Maiev",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": 0.28352293185603905,
+     "skill_rho": 0.7639363074994638,
+     "skill_ci": [
+      0.3001672050104324,
+      1.4447107620952866
+     ],
+     "players": 914,
+     "z_vs_pref_line": 1.1906939012726738
+    },
+    {
+     "pair": "Anub'arak + Johanna",
+     "roles": "Tank / Tank",
+     "pref_r": 0.2806728319204687,
+     "skill_rho": 0.3723956362302831,
+     "skill_ci": [
+      -0.19070255129187033,
+      0.9029495205540341
+     ],
+     "players": 4855,
+     "z_vs_pref_line": -0.10519454518642811
+    },
+    {
+     "pair": "Auriel + Anduin",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2794895316893662,
+     "skill_rho": 0.5690086242532993,
+     "skill_ci": [
+      0.1373943573830762,
+      1.066153090110371
+     ],
+     "players": 4133,
+     "z_vs_pref_line": 0.7401991607017703
+    },
+    {
+     "pair": "Zeratul + Genji",
+     "roles": "Melee Assassin / Ranged Assassin",
+     "pref_r": 0.27777975980512637,
+     "skill_rho": 0.124343475081317,
+     "skill_ci": [
+      -0.3150562024692294,
+      0.5223654879748406
+     ],
+     "players": 1023,
+     "z_vs_pref_line": -1.2502294931637605
+    },
+    {
+     "pair": "Anduin + Rehgar",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2715212551595929,
+     "skill_rho": 0.26368564913509096,
+     "skill_ci": [
+      -0.09651742796137246,
+      0.6639678413034328
+     ],
+     "players": 5206,
+     "z_vs_pref_line": -0.6588870339694277
+    },
+    {
+     "pair": "Auriel + Brightwing",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2599999998288706,
+     "skill_rho": -0.06574957323350376,
+     "skill_ci": [
+      -0.5406040056259857,
+      0.3613379867078422
+     ],
+     "players": 3578,
+     "z_vs_pref_line": -1.9243607063820687
+    },
+    {
+     "pair": "Zeratul + Maiev",
+     "roles": "Melee Assassin / Melee Assassin",
+     "pref_r": 0.2517606155922199,
+     "skill_rho": 0.5200002399021855,
+     "skill_ci": [
+      0.014811160958214163,
+      1.3219386219849654
+     ],
+     "players": 726,
+     "z_vs_pref_line": 0.4078543504900947
+    },
+    {
+     "pair": "Alexstrasza + Whitemane",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2517579469338428,
+     "skill_rho": -0.061431119754885403,
+     "skill_ci": [
+      -0.7454926263274764,
+      0.8375023545642996
+     ],
+     "players": 685,
+     "z_vs_pref_line": -1.146056484480348
+    },
+    {
+     "pair": "Nazeebo + Azmodan",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": 0.2455016527603566,
+     "skill_rho": 0.07491050573447906,
+     "skill_ci": [
+      -0.4299527492149342,
+      0.6004394228406585
+     ],
+     "players": 4800,
+     "z_vs_pref_line": -1.070946530040318
+    },
+    {
+     "pair": "Muradin + Johanna",
+     "roles": "Tank / Tank",
+     "pref_r": 0.23519131042041527,
+     "skill_rho": 0.542857074680527,
+     "skill_ci": [
+      0.051156178542924445,
+      1.2182581663510148
+     ],
+     "players": 6077,
+     "z_vs_pref_line": 0.6874524449644529
+    },
+    {
+     "pair": "Diablo + Garrosh",
+     "roles": "Tank / Tank",
+     "pref_r": 0.23265924724623777,
+     "skill_rho": -0.12662605342424435,
+     "skill_ci": [
+      -0.5127972306737341,
+      0.2258514719149324
+     ],
+     "players": 3254,
+     "z_vs_pref_line": -2.636223759680892
+    },
+    {
+     "pair": "Anub'arak + E.T.C.",
+     "roles": "Tank / Tank",
+     "pref_r": 0.23078335421902058,
+     "skill_rho": 0.6997418578603926,
+     "skill_ci": [
+      -0.2731364416315773,
+      2.440738680244458
+     ],
+     "players": 3718,
+     "z_vs_pref_line": 0.3562422287620677
+    }
+   ]
+  },
+  "specific": {
+   "pairs": 3656,
+   "corr_weighted": 0.12275880247453827,
+   "corr_unweighted": 0.07413492861085012,
+   "corr_disattenuated": NaN,
+   "skill_matrix_reliability_full": NaN,
+   "mean_skill_rho_same_role": -0.06508187275508986,
+   "mean_skill_rho_cross_role": -0.11311449494662215,
+   "mean_pref_r_same_role": 0.03861819128577726,
+   "mean_pref_r_cross_role": -0.02530869434383943,
+   "fit_skill_on_pref": [
+    -0.10626323058232388,
+    0.5441531957805138
+   ],
+   "coplayed_no_transfer": [
+    {
+     "pair": "Tyrael + Garrosh",
+     "roles": "Tank / Tank",
+     "pref_r": 0.08947465457086708,
+     "skill_rho": -1.7382920048422976,
+     "skill_ci": [
+      -3.502797502875316,
+      -0.4893236592989524
+     ],
+     "players": 1660,
+     "z_vs_pref_line": -2.0204410619508613
+    },
+    {
+     "pair": "Johanna + Dehaka",
+     "roles": "Tank / Bruiser",
+     "pref_r": 0.10395540910719962,
+     "skill_rho": -1.4517538583154184,
+     "skill_ci": [
+      -2.4013558190530064,
+      0.1698323341878576
+     ],
+     "players": 3062,
+     "z_vs_pref_line": -1.9466864594300763
+    },
+    {
+     "pair": "Mal'Ganis + Garrosh",
+     "roles": "Tank / Tank",
+     "pref_r": 0.14130513498075425,
+     "skill_rho": -0.7216351324787071,
+     "skill_ci": [
+      -1.7539074841271614,
+      -0.25925107771420375
+     ],
+     "players": 1123,
+     "z_vs_pref_line": -1.878619104866399
+    },
+    {
+     "pair": "Zagara + Sgt. Hammer",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": 0.08409283615359163,
+     "skill_rho": -1.5296282198282716,
+     "skill_ci": [
+      -2.984596697987968,
+      -0.018813719213221503
+     ],
+     "players": 520,
+     "z_vs_pref_line": -1.8588407084775143
+    },
+    {
+     "pair": "Auriel + Brightwing",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2599999998288706,
+     "skill_rho": -0.48281076661930633,
+     "skill_ci": [
+      -1.0003890595557048,
+      0.030944177378265384
+     ],
+     "players": 3455,
+     "z_vs_pref_line": -1.8439890209892968
+    },
+    {
+     "pair": "Samuro + Valeera",
+     "roles": "Melee Assassin / Melee Assassin",
+     "pref_r": 0.08921288008434886,
+     "skill_rho": -1.0543311150466883,
+     "skill_ci": [
+      -2.441607274123286,
+      -0.26325519962959987
+     ],
+     "players": 285,
+     "z_vs_pref_line": -1.8094314209455729
+    },
+    {
+     "pair": "Valeera + Yrel",
+     "roles": "Melee Assassin / Bruiser",
+     "pref_r": 0.10739934364330392,
+     "skill_rho": -0.9130818522342257,
+     "skill_ci": [
+      -1.9438477819896225,
+      -0.058850595327735504
+     ],
+     "players": 147,
+     "z_vs_pref_line": -1.7502862327028548
+    },
+    {
+     "pair": "Abathur + Sgt. Hammer",
+     "roles": "Support / Ranged Assassin",
+     "pref_r": 0.1158888266606871,
+     "skill_rho": -0.535078400533752,
+     "skill_ci": [
+      -1.0248640003089877,
+      0.014686638436843834
+     ],
+     "players": 558,
+     "z_vs_pref_line": -1.749193671545482
+    },
+    {
+     "pair": "Genji + Samuro",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": 0.09036531610431196,
+     "skill_rho": -0.5143103097175563,
+     "skill_ci": [
+      -1.0990931426409265,
+      -0.08200081080314395
+     ],
+     "players": 611,
+     "z_vs_pref_line": -1.7217106693584674
+    },
+    {
+     "pair": "Junkrat + Genji",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": 0.10500412311816872,
+     "skill_rho": -0.49343250569904634,
+     "skill_ci": [
+      -1.0859357856276255,
+      -0.06308317014719333
+     ],
+     "players": 895,
+     "z_vs_pref_line": -1.6792916050546667
+    },
+    {
+     "pair": "L\u00facio + Brightwing",
+     "roles": "Healer / Healer",
+     "pref_r": 0.1812004780466842,
+     "skill_rho": -1.0681701102797727,
+     "skill_ci": [
+      -2.9561126000865845,
+      -0.27265142860439634
+     ],
+     "players": 2033,
+     "z_vs_pref_line": -1.6466807589240984
+    },
+    {
+     "pair": "Murky + The Butcher",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": 0.17552971922858895,
+     "skill_rho": -0.7845975353845298,
+     "skill_ci": [
+      -1.4492556930622662,
+      0.2702931993693011
+     ],
+     "players": 368,
+     "z_vs_pref_line": -1.6075815591695761
+    }
+   ],
+   "transfer_not_coplayed": [
+    {
+     "pair": "Johanna + The Lost Vikings",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.08897608003808456,
+     "skill_rho": 1.2027058239745712,
+     "skill_ci": [
+      0.35655650251806015,
+      2.31142654359522
+     ],
+     "players": 319,
+     "z_vs_pref_line": 2.638956291563672
+    },
+    {
+     "pair": "Stitches + Alexstrasza",
+     "roles": "Tank / Healer",
+     "pref_r": -0.07756611750971648,
+     "skill_rho": 1.2967509774704025,
+     "skill_ci": [
+      0.3814660716123217,
+      2.6402574700102055
+     ],
+     "players": 834,
+     "z_vs_pref_line": 2.220144636234419
+    },
+    {
+     "pair": "Johanna + Tyrande",
+     "roles": "Tank / Healer",
+     "pref_r": -0.06721211773587753,
+     "skill_rho": 0.7469043327528744,
+     "skill_ci": [
+      0.2138559455933298,
+      1.7508637167610865
+     ],
+     "players": 1636,
+     "z_vs_pref_line": 2.142059367785374
+    },
+    {
+     "pair": "Tychus + Maiev",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": -0.13256028056113442,
+     "skill_rho": 0.5462711955804126,
+     "skill_ci": [
+      -0.08125162898450393,
+      1.2224530177212918
+     ],
+     "players": 568,
+     "z_vs_pref_line": 2.092851798560292
+    },
+    {
+     "pair": "Nazeebo + Maiev",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": -0.14104624974807323,
+     "skill_rho": 0.5670341037376385,
+     "skill_ci": [
+      -0.08424660290097112,
+      1.3787117892699243
+     ],
+     "players": 612,
+     "z_vs_pref_line": 2.042872658826488
+    },
+    {
+     "pair": "Hogger + Alexstrasza",
+     "roles": "Bruiser / Healer",
+     "pref_r": -0.08615947833342504,
+     "skill_rho": 1.590943173125737,
+     "skill_ci": [
+      0.13072820405069613,
+      3.7386148470917018
+     ],
+     "players": 315,
+     "z_vs_pref_line": 2.013617400907331
+    },
+    {
+     "pair": "Johanna + Orphea",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.08694151123570967,
+     "skill_rho": 0.6027868736146429,
+     "skill_ci": [
+      -0.14219305209255925,
+      1.4583743163018559
+     ],
+     "players": 1068,
+     "z_vs_pref_line": 1.8957903255942685
+    },
+    {
+     "pair": "Nazeebo + Alarak",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": -0.07803803754810497,
+     "skill_rho": 0.7458184696110209,
+     "skill_ci": [
+      -0.33441144535651535,
+      1.7278638480860282
+     ],
+     "players": 1159,
+     "z_vs_pref_line": 1.887554523070144
+    },
+    {
+     "pair": "Varian + Tracer",
+     "roles": "Bruiser / Ranged Assassin",
+     "pref_r": -0.09030207906267264,
+     "skill_rho": 1.1369073251166282,
+     "skill_ci": [
+      -0.14753510763474872,
+      2.5179063409766655
+     ],
+     "players": 497,
+     "z_vs_pref_line": 1.8763983765612702
+    },
+    {
+     "pair": "Jaina + Genji",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": -0.06192439588987591,
+     "skill_rho": 0.8891036116142896,
+     "skill_ci": [
+      0.0961460596877703,
+      2.324595339192982
+     ],
+     "players": 639,
+     "z_vs_pref_line": 1.7999396564259202
+    },
+    {
+     "pair": "Rehgar + Samuro",
+     "roles": "Healer / Melee Assassin",
+     "pref_r": -0.06795627144672209,
+     "skill_rho": 0.709479117330762,
+     "skill_ci": [
+      -0.14589024764223588,
+      1.8038708337173686
+     ],
+     "players": 830,
+     "z_vs_pref_line": 1.7906318559229633
+    },
+    {
+     "pair": "Leoric + Valeera",
+     "roles": "Bruiser / Melee Assassin",
+     "pref_r": -0.12736323979433725,
+     "skill_rho": 0.5926049032631691,
+     "skill_ci": [
+      -0.21849068114226117,
+      1.5412334246990669
+     ],
+     "players": 450,
+     "z_vs_pref_line": 1.7741894729256555
+    }
+   ],
+   "top_skill_pairs": [
+    {
+     "pair": "Hogger + Alexstrasza",
+     "roles": "Bruiser / Healer",
+     "pref_r": -0.08615947833342504,
+     "skill_rho": 1.590943173125737,
+     "skill_ci": [
+      0.13072820405069613,
+      3.7386148470917018
+     ],
+     "players": 315,
+     "z_vs_pref_line": 2.013617400907331
+    },
+    {
+     "pair": "Johanna + The Lost Vikings",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.08897608003808456,
+     "skill_rho": 1.2027058239745712,
+     "skill_ci": [
+      0.35655650251806015,
+      2.31142654359522
+     ],
+     "players": 319,
+     "z_vs_pref_line": 2.638956291563672
+    },
+    {
+     "pair": "Stitches + Alexstrasza",
+     "roles": "Tank / Healer",
+     "pref_r": -0.07756611750971648,
+     "skill_rho": 1.2967509774704025,
+     "skill_ci": [
+      0.3814660716123217,
+      2.6402574700102055
+     ],
+     "players": 834,
+     "z_vs_pref_line": 2.220144636234419
+    },
+    {
+     "pair": "Hanzo + Tyrael",
+     "roles": "Ranged Assassin / Tank",
+     "pref_r": -0.01615566116016777,
+     "skill_rho": 1.389972868444895,
+     "skill_ci": [
+      0.2215275035014516,
+      3.4066683295548326
+     ],
+     "players": 1316,
+     "z_vs_pref_line": 1.7709741956889569
+    },
+    {
+     "pair": "Tyrael + Rehgar",
+     "roles": "Tank / Healer",
+     "pref_r": 0.05194579812290938,
+     "skill_rho": 1.4803870779821389,
+     "skill_ci": [
+      0.04297399937251007,
+      3.836231360406936
+     ],
+     "players": 1978,
+     "z_vs_pref_line": 1.6496832919872224
+    },
+    {
+     "pair": "Hogger + Sgt. Hammer",
+     "roles": "Bruiser / Ranged Assassin",
+     "pref_r": -0.023534511251357592,
+     "skill_rho": 0.9521262016653959,
+     "skill_ci": [
+      0.1061710522403581,
+      1.9165182502272606
+     ],
+     "players": 329,
+     "z_vs_pref_line": 2.479378899014858
+    },
+    {
+     "pair": "Sonya + Brightwing",
+     "roles": "Bruiser / Healer",
+     "pref_r": -0.04875606318829342,
+     "skill_rho": 1.040354755676751,
+     "skill_ci": [
+      0.2422319138587541,
+      2.1237726765724716
+     ],
+     "players": 1749,
+     "z_vs_pref_line": 2.1553744128148424
+    },
+    {
+     "pair": "Genji + Cho",
+     "roles": "Ranged Assassin / Tank",
+     "pref_r": 0.018000369374581528,
+     "skill_rho": 0.9758360085605257,
+     "skill_ci": [
+      0.07693109840203254,
+      2.1850050922750426
+     ],
+     "players": 136,
+     "z_vs_pref_line": 2.183782160468244
+    },
+    {
+     "pair": "Mei + Varian",
+     "roles": "Tank / Bruiser",
+     "pref_r": 0.029768952993625322,
+     "skill_rho": 1.2254271432495143,
+     "skill_ci": [
+      0.38352443233500494,
+      3.344321583253905
+     ],
+     "players": 1723,
+     "z_vs_pref_line": 1.695592381364631
+    },
+    {
+     "pair": "Varian + Tracer",
+     "roles": "Bruiser / Ranged Assassin",
+     "pref_r": -0.09030207906267264,
+     "skill_rho": 1.1369073251166282,
+     "skill_ci": [
+      -0.14753510763474872,
+      2.5179063409766655
+     ],
+     "players": 497,
+     "z_vs_pref_line": 1.8763983765612702
+    },
+    {
+     "pair": "Mei + Kael'thas",
+     "roles": "Tank / Ranged Assassin",
+     "pref_r": -0.024235178586217137,
+     "skill_rho": 1.3063612434023268,
+     "skill_ci": [
+      0.33759664126004607,
+      3.654914772300125
+     ],
+     "players": 1245,
+     "z_vs_pref_line": 1.6519975514141052
+    },
+    {
+     "pair": "Malfurion + Nova",
+     "roles": "Healer / Ranged Assassin",
+     "pref_r": -0.04340108741197361,
+     "skill_rho": 1.0690187308884056,
+     "skill_ci": [
+      0.20243958667007364,
+      2.610454444698054
+     ],
+     "players": 527,
+     "z_vs_pref_line": 1.8286870447373689
+    },
+    {
+     "pair": "Varian + Nova",
+     "roles": "Bruiser / Ranged Assassin",
+     "pref_r": -0.03669128431413662,
+     "skill_rho": 0.8494623831717149,
+     "skill_ci": [
+      0.12760329093470477,
+      1.8996420898734319
+     ],
+     "players": 906,
+     "z_vs_pref_line": 2.1361342573821385
+    },
+    {
+     "pair": "Jaina + The Butcher",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": -0.011997455617034344,
+     "skill_rho": 1.128831832788212,
+     "skill_ci": [
+      0.02113217996579144,
+      2.9455382387655655
+     ],
+     "players": 572,
+     "z_vs_pref_line": 1.650619890749008
+    },
+    {
+     "pair": "Kerrigan + Zeratul",
+     "roles": "Melee Assassin / Melee Assassin",
+     "pref_r": 0.16828621043988606,
+     "skill_rho": 1.0239476765090094,
+     "skill_ci": [
+      0.3022554160873519,
+      2.744822315376496
+     ],
+     "players": 456,
+     "z_vs_pref_line": 1.5731457318923687
+    }
+   ],
+   "top_pref_pairs_skill": [
+    {
+     "pair": "Anduin + Brightwing",
+     "roles": "Healer / Healer",
+     "pref_r": 0.3886069360525514,
+     "skill_rho": -0.09587275539989078,
+     "skill_ci": [
+      -0.4557219297721811,
+      0.23857426625451023
+     ],
+     "players": 6079,
+     "z_vs_pref_line": -1.1360928170988511
+    },
+    {
+     "pair": "Hanzo + Genji",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": 0.3301079844584617,
+     "skill_rho": 0.2904238735077116,
+     "skill_ci": [
+      -0.004309330624179291,
+      0.6573041412528015
+     ],
+     "players": 1942,
+     "z_vs_pref_line": 1.2840724685371487
+    },
+    {
+     "pair": "Brightwing + Rehgar",
+     "roles": "Healer / Healer",
+     "pref_r": 0.29729890412286997,
+     "skill_rho": 0.2619836400133947,
+     "skill_ci": [
+      -0.1757554686631917,
+      0.7988812132020612
+     ],
+     "players": 4515,
+     "z_vs_pref_line": 0.8529462521725022
+    },
+    {
+     "pair": "Genji + Maiev",
+     "roles": "Ranged Assassin / Melee Assassin",
+     "pref_r": 0.28352293185603905,
+     "skill_rho": 0.021104646915447337,
+     "skill_ci": [
+      -0.3509804792144932,
+      0.46484217855935206
+     ],
+     "players": 898,
+     "z_vs_pref_line": -0.13387733696904489
+    },
+    {
+     "pair": "Anub'arak + Johanna",
+     "roles": "Tank / Tank",
+     "pref_r": 0.2806728319204687,
+     "skill_rho": -0.06625215398610335,
+     "skill_ci": [
+      -0.6422170060020688,
+      0.5769809547312321
+     ],
+     "players": 4748,
+     "z_vs_pref_line": -0.36545523219075404
+    },
+    {
+     "pair": "Auriel + Anduin",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2794895316893662,
+     "skill_rho": 0.1556276345103815,
+     "skill_ci": [
+      -0.20634717225157978,
+      0.7625746648220488
+     ],
+     "players": 3983,
+     "z_vs_pref_line": 0.3814481973520214
+    },
+    {
+     "pair": "Zeratul + Genji",
+     "roles": "Melee Assassin / Ranged Assassin",
+     "pref_r": 0.27777975980512637,
+     "skill_rho": -0.04587247995457615,
+     "skill_ci": [
+      -0.5979294288627439,
+      0.3515956468458517
+     ],
+     "players": 999,
+     "z_vs_pref_line": -0.34982931071546386
+    },
+    {
+     "pair": "Anduin + Rehgar",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2715212551595929,
+     "skill_rho": -0.08498680065512788,
+     "skill_ci": [
+      -0.5378386958466231,
+      0.3495591364531771
+     ],
+     "players": 4962,
+     "z_vs_pref_line": -0.5100234226306228
+    },
+    {
+     "pair": "Auriel + Brightwing",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2599999998288706,
+     "skill_rho": -0.48281076661930633,
+     "skill_ci": [
+      -1.0003890595557048,
+      0.030944177378265384
+     ],
+     "players": 3455,
+     "z_vs_pref_line": -1.8439890209892968
+    },
+    {
+     "pair": "Zeratul + Maiev",
+     "roles": "Melee Assassin / Melee Assassin",
+     "pref_r": 0.2517606155922199,
+     "skill_rho": -0.012416822152368024,
+     "skill_ci": [
+      -0.4777876316140241,
+      0.438182873220995
+     ],
+     "players": 714,
+     "z_vs_pref_line": -0.20302139568248082
+    },
+    {
+     "pair": "Alexstrasza + Whitemane",
+     "roles": "Healer / Healer",
+     "pref_r": 0.2517579469338428,
+     "skill_rho": 0.043331572134245114,
+     "skill_ci": [
+      -0.6772321244899068,
+      0.9355669588940817
+     ],
+     "players": 665,
+     "z_vs_pref_line": 0.03372724708313658
+    },
+    {
+     "pair": "Nazeebo + Azmodan",
+     "roles": "Ranged Assassin / Ranged Assassin",
+     "pref_r": 0.2455016527603566,
+     "skill_rho": -0.15579810752088147,
+     "skill_ci": [
+      -0.5710409901386247,
+      0.18216067574877057
+     ],
+     "players": 4624,
+     "z_vs_pref_line": -0.9447797263754721
+    },
+    {
+     "pair": "Muradin + Johanna",
+     "roles": "Tank / Tank",
+     "pref_r": 0.23519131042041527,
+     "skill_rho": 0.07796822994437257,
+     "skill_ci": [
+      -0.4044767597816168,
+      0.5973115244560593
+     ],
+     "players": 5899,
+     "z_vs_pref_line": 0.24176878399453788
+    },
+    {
+     "pair": "Diablo + Garrosh",
+     "roles": "Tank / Tank",
+     "pref_r": 0.23265924724623777,
+     "skill_rho": -0.2787445655970919,
+     "skill_ci": [
+      -0.7143001463580986,
+      0.2870674132567619
+     ],
+     "players": 3185,
+     "z_vs_pref_line": -0.6507394395630666
+    },
+    {
+     "pair": "Anub'arak + E.T.C.",
+     "roles": "Tank / Tank",
+     "pref_r": 0.23078335421902058,
+     "skill_rho": 0.29101066709617934,
+     "skill_ci": [
+      -0.8930264391012105,
+      3.1128876688308584
+     ],
+     "players": 3675,
+     "z_vs_pref_line": 0.29274048076871784
+    }
+   ]
+  }
+ }
+}

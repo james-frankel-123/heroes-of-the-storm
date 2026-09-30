@@ -1,0 +1,27 @@
+unchanged {"cells": 14744, "var_pre_pp2": 8.391079756471, "var_post_pp2": -1.5059390042809588, "cov_pp2": 9.980016805995183, "stability": 34452.62746049659, "excess_change_var_pp2": -13.074892859800299, "spearman": {"groups": 126, "mean_rank_corr": 0.05596060703390551}}
+notes {"cells": 11618, "var_pre_pp2": 6.216127532084961, "var_post_pp2": -1.3709049020932222, "cov_pp2": 8.937589910171921, "stability": 35847.63143280929, "excess_change_var_pp2": -13.02995719035218, "spearman": {"groups": 127, "mean_rank_corr": 0.045944782339863946}}
+detector {"cells": 1524, "var_pre_pp2": 13.939593473022427, "var_post_pp2": -6.36458576162657, "cov_pp2": 6.920554682540794, "stability": 18535.992726032364, "excess_change_var_pp2": -6.266101653685692, "spearman": {"groups": 22, "mean_rank_corr": 0.048098728119696815}}
+notes and detector {"cells": 1319, "var_pre_pp2": 19.114829313019133, "var_post_pp2": -9.597940235160051, "cov_pp2": 7.601474038090275, "stability": 17386.517595677287, "excess_change_var_pp2": -5.686058998321496, "spearman": {"groups": 18, "mean_rank_corr": 0.048125539667863655}}
+notes - unchanged {"stability": [1395.0039723127047, -40458.154163604086, 40478.303726173224], "excess_change_var_pp2": [0.04493566944811889, -8.85458537617577, 11.125922519775951]}
+detector - unchanged {"stability": [-15916.634734464224, -42647.75702061524, 36992.83253748238], "excess_change_var_pp2": [6.8087912061146065, -12.729810918743437, 27.5574169377934]}
+notes and detector - unchanged {"stability": [-17066.1098648193, -38817.75054370141, 28155.89370215783], "excess_change_var_pp2": [7.388833861478803, -12.613112419911573, 30.151080680721375]}
+magnitude all heroes |dWR| 0-1pp: cells 19090 stability 34740.326 excess -12.31
+magnitude notes-changed |dWR| 0-1pp: cells 7794 stability 37005.965 excess -12.46
+magnitude all heroes |dWR| 1-2pp: cells 5359 stability 46054.065 excess -18.99
+magnitude notes-changed |dWR| 1-2pp: cells 2483 stability 54833.689 excess -20.82
+magnitude all heroes |dWR| 2-4pp: cells 1967 stability 13777.074 excess -2.82
+magnitude notes-changed |dWR| 2-4pp: cells 1254 stability 16843.846 excess -2.99
+magnitude all heroes |dWR| 4-100pp: cells 151 stability 36104.560 excess -25.72
+magnitude notes-changed |dWR| 4-100pp: cells 87 stability 4711.401 excess 13.36
+magnitude slope [1.5918557059470555, -4.934892172342399, 7.790345989519454]
+jump random 40k | notes: J sd 0.03pp, ll gain -0.0 (112s)
+jump random 40k | detector: J sd 0.03pp, ll gain -0.0 (191s)
+jump random 40k | notes or detector: J sd 0.03pp, ll gain -0.0 (273s)
+jump random 40k | placebo (unchanged): J sd 0.03pp, ll gain -0.0 (358s)
+jump heavy 6k (>=300 games) | notes: J sd 0.03pp, ll gain -0.0 (423s)
+jump heavy 6k (>=300 games) | detector: J sd 0.03pp, ll gain -0.0 (484s)
+jump heavy 6k (>=300 games) | notes or detector: J sd 0.03pp, ll gain -0.0 (545s)
+jump heavy 6k (>=300 games) | placebo (unchanged): J sd 0.03pp, ll gain -0.0 (604s)
+no jump {'changed heroes': (1.359, 0.794044665012407, 1.41, 1209), 'unchanged heroes': (1.916, 0.7950765136393879, 1.11, 3006)}
+jump (notes) {'changed heroes': (1.359, 0.794044665012407, 1.41, 1209), 'unchanged heroes': (1.916, 0.7950765136393879, 1.11, 3006)}
+done 772s

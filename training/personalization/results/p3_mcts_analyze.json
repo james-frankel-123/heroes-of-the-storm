@@ -1,0 +1,538 @@
+{
+ "main_sims": 400,
+ "decisions": {
+  "decisions": 5000,
+  "share_differ": 0.377,
+  "share_both_picks_visited_in_both_trees": 0.9936339522546419,
+  "dV_pp_when_differ (personal tree Q)": [
+   3.912902078460514,
+   3.7144476667181796,
+   4.134915694969895
+  ],
+  "dWPpop_pp_when_differ (population tree Q)": [
+   -1.583859253871651,
+   -1.7709354542740767,
+   -1.413020224613871
+  ]
+ },
+ "final_drafts": {
+  "vs gd": {
+   "dV_pp": [
+    5.500009819494935,
+    4.692017886517498,
+    6.352072891763213
+   ],
+   "dWPpop_pp": [
+    -1.9112761944532395,
+    -2.5949713054299353,
+    -1.2060157669335605
+   ],
+   "mean_V_pers": 0.6979441546192352,
+   "mean_V_pop": 0.6429440564242856,
+   "lobbies": 1000
+  },
+  "vs imit": {
+   "dV_pp": [
+    7.260424428629678,
+    6.456144516618168,
+    8.129684469905603
+   ],
+   "dWPpop_pp": [
+    -0.5207470864057541,
+    -1.2444724449515343,
+    0.1802884817868471
+   ],
+   "mean_V_pers": 0.6179236244715023,
+   "mean_V_pop": 0.5453193801852056,
+   "lobbies": 1000
+  }
+ },
+ "meta": {
+  "effective_heroes": {
+   "MCTS personalized self-play": 42.62794693789136,
+   "MCTS population self-play": 40.95595511145925,
+   "one-step personalized self-play": 69.49908470187827,
+   "one-step population self-play": 63.74119331666825,
+   "real": 73.45442053973008
+  },
+  "top10_share": {
+   "MCTS personalized": 0.4790999999999999,
+   "MCTS population": 0.4919,
+   "real": 0.2572
+  },
+  "corr_with_real": {
+   "MCTS personalized": 0.8176059140148376,
+   "MCTS population": 0.7947203665993623,
+   "one-step personalized": 0.47478872568854164,
+   "one-step population": 0.38279303884541843
+  },
+  "corr_MCTS_pers_vs_pop": 0.9933944035928962,
+  "role_shares": {
+   "MCTS personalized": {
+    "Tank": 0.21120000000000005,
+    "Bruiser": 0.1841,
+    "Healer": 0.2114,
+    "Ranged Assassin": 0.3254,
+    "Melee Assassin": 0.0668,
+    "Support": 0.0011
+   },
+   "MCTS population": {
+    "Tank": 0.2105,
+    "Bruiser": 0.18130000000000002,
+    "Healer": 0.2152,
+    "Ranged Assassin": 0.32599999999999996,
+    "Melee Assassin": 0.066,
+    "Support": 0.001
+   },
+   "real": {
+    "Tank": 0.195,
+    "Bruiser": 0.1765,
+    "Healer": 0.2017,
+    "Ranged Assassin": 0.3517,
+    "Melee Assassin": 0.059899999999999995,
+    "Support": 0.015200000000000002
+   }
+  },
+  "risers": [
+   {
+    "hero": "Blaze",
+    "pers_pct": 0.44999999999999996,
+    "pop_pct": 0.16,
+    "real_pct": 1.31
+   },
+   {
+    "hero": "D.Va",
+    "pers_pct": 0.25,
+    "pop_pct": 0.06999999999999999,
+    "real_pct": 0.54
+   },
+   {
+    "hero": "Zagara",
+    "pers_pct": 0.35000000000000003,
+    "pop_pct": 0.16,
+    "real_pct": 0.62
+   },
+   {
+    "hero": "Orphea",
+    "pers_pct": 0.25,
+    "pop_pct": 0.11,
+    "real_pct": 0.5700000000000001
+   },
+   {
+    "hero": "Hanzo",
+    "pers_pct": 1.48,
+    "pop_pct": 0.89,
+    "real_pct": 2.41
+   },
+   {
+    "hero": "L\u00facio",
+    "pers_pct": 0.2,
+    "pop_pct": 0.09,
+    "real_pct": 0.74
+   },
+   {
+    "hero": "Gall",
+    "pers_pct": 0.06999999999999999,
+    "pop_pct": 0.01,
+    "real_pct": 0.08
+   },
+   {
+    "hero": "Cho",
+    "pers_pct": 0.06999999999999999,
+    "pop_pct": 0.01,
+    "real_pct": 0.08
+   },
+   {
+    "hero": "Chen",
+    "pers_pct": 0.22,
+    "pop_pct": 0.13999999999999999,
+    "real_pct": 1.43
+   },
+   {
+    "hero": "Junkrat",
+    "pers_pct": 0.31,
+    "pop_pct": 0.21,
+    "real_pct": 1.15
+   },
+   {
+    "hero": "Imperius",
+    "pers_pct": 0.27,
+    "pop_pct": 0.18,
+    "real_pct": 0.9900000000000001
+   },
+   {
+    "hero": "Fenix",
+    "pers_pct": 0.03,
+    "pop_pct": 0.0,
+    "real_pct": 0.47000000000000003
+   }
+  ],
+  "fallers": [
+   {
+    "hero": "Uther",
+    "pers_pct": 0.13,
+    "pop_pct": 0.25,
+    "real_pct": 0.72
+   },
+   {
+    "hero": "Mephisto",
+    "pers_pct": 0.29,
+    "pop_pct": 0.45999999999999996,
+    "real_pct": 0.33999999999999997
+   },
+   {
+    "hero": "Rexxar",
+    "pers_pct": 0.25,
+    "pop_pct": 0.36,
+    "real_pct": 0.38999999999999996
+   },
+   {
+    "hero": "Raynor",
+    "pers_pct": 0.73,
+    "pop_pct": 0.9900000000000001,
+    "real_pct": 1.37
+   },
+   {
+    "hero": "Tracer",
+    "pers_pct": 0.24,
+    "pop_pct": 0.33999999999999997,
+    "real_pct": 0.38
+   },
+   {
+    "hero": "Malfurion",
+    "pers_pct": 0.31,
+    "pop_pct": 0.41000000000000003,
+    "real_pct": 1.0999999999999999
+   },
+   {
+    "hero": "Illidan",
+    "pers_pct": 1.4200000000000002,
+    "pop_pct": 1.7500000000000002,
+    "real_pct": 0.89
+   },
+   {
+    "hero": "Samuro",
+    "pers_pct": 0.38,
+    "pop_pct": 0.48,
+    "real_pct": 0.61
+   },
+   {
+    "hero": "Deathwing",
+    "pers_pct": 0.43,
+    "pop_pct": 0.54,
+    "real_pct": 0.8999999999999999
+   },
+   {
+    "hero": "Ragnaros",
+    "pers_pct": 0.83,
+    "pop_pct": 1.02,
+    "real_pct": 0.77
+   },
+   {
+    "hero": "Stitches",
+    "pers_pct": 1.54,
+    "pop_pct": 1.83,
+    "real_pct": 1.72
+   },
+   {
+    "hero": "Jaina",
+    "pers_pct": 0.98,
+    "pop_pct": 1.17,
+    "real_pct": 0.95
+   }
+  ],
+  "top_pers": [
+   {
+    "hero": "Rehgar",
+    "pers_pct": 6.819999999999999,
+    "pop_pct": 7.4399999999999995,
+    "real_pct": 2.29
+   },
+   {
+    "hero": "Valla",
+    "pers_pct": 6.68,
+    "pop_pct": 6.97,
+    "real_pct": 2.91
+   },
+   {
+    "hero": "Johanna",
+    "pers_pct": 6.4399999999999995,
+    "pop_pct": 6.59,
+    "real_pct": 2.93
+   },
+   {
+    "hero": "Anduin",
+    "pers_pct": 5.24,
+    "pop_pct": 5.38,
+    "real_pct": 3.0700000000000003
+   },
+   {
+    "hero": "Muradin",
+    "pers_pct": 4.34,
+    "pop_pct": 4.32,
+    "real_pct": 2.32
+   },
+   {
+    "hero": "Leoric",
+    "pers_pct": 3.9,
+    "pop_pct": 3.9699999999999998,
+    "real_pct": 1.4500000000000002
+   },
+   {
+    "hero": "Falstad",
+    "pers_pct": 3.84,
+    "pop_pct": 3.91,
+    "real_pct": 2.27
+   },
+   {
+    "hero": "Thrall",
+    "pers_pct": 3.63,
+    "pop_pct": 3.4299999999999997,
+    "real_pct": 2.1999999999999997
+   },
+   {
+    "hero": "Auriel",
+    "pers_pct": 3.51,
+    "pop_pct": 2.71,
+    "real_pct": 2.22
+   },
+   {
+    "hero": "Li-Ming",
+    "pers_pct": 3.51,
+    "pop_pct": 3.7199999999999998,
+    "real_pct": 2.42
+   }
+  ],
+  "top_pop": [
+   {
+    "hero": "Rehgar",
+    "pers_pct": 6.819999999999999,
+    "pop_pct": 7.4399999999999995,
+    "real_pct": 2.29
+   },
+   {
+    "hero": "Valla",
+    "pers_pct": 6.68,
+    "pop_pct": 6.97,
+    "real_pct": 2.91
+   },
+   {
+    "hero": "Johanna",
+    "pers_pct": 6.4399999999999995,
+    "pop_pct": 6.59,
+    "real_pct": 2.93
+   },
+   {
+    "hero": "Anduin",
+    "pers_pct": 5.24,
+    "pop_pct": 5.38,
+    "real_pct": 3.0700000000000003
+   },
+   {
+    "hero": "Muradin",
+    "pers_pct": 4.34,
+    "pop_pct": 4.32,
+    "real_pct": 2.32
+   },
+   {
+    "hero": "Leoric",
+    "pers_pct": 3.9,
+    "pop_pct": 3.9699999999999998,
+    "real_pct": 1.4500000000000002
+   },
+   {
+    "hero": "Falstad",
+    "pers_pct": 3.84,
+    "pop_pct": 3.91,
+    "real_pct": 2.27
+   },
+   {
+    "hero": "Li-Ming",
+    "pers_pct": 3.51,
+    "pop_pct": 3.7199999999999998,
+    "real_pct": 2.42
+   },
+   {
+    "hero": "Brightwing",
+    "pers_pct": 2.97,
+    "pop_pct": 3.46,
+    "real_pct": 2.26
+   },
+   {
+    "hero": "Thrall",
+    "pers_pct": 3.63,
+    "pop_pct": 3.4299999999999997,
+    "real_pct": 2.1999999999999997
+   }
+  ]
+ },
+ "off_role": {
+  "b|pers": 0.183,
+  "b|pop": 0.3196,
+  "a-gd|pers": 0.2627,
+  "a-gd|pop": 0.3265,
+  "real": 0.1577
+ },
+ "realized_all": {
+  "teams": 11448,
+  "personalized agreement": {
+   "quintile_resid_pp": [
+    -1.7075988178560306,
+    -1.49206504154122,
+    0.6855985366100827,
+    -0.5140527724803093,
+    3.0272420674692593
+   ],
+   "top_minus_bottom_pp": [
+    4.73484088532529,
+    1.926995067763667,
+    7.65033409869762
+   ]
+  },
+  "population agreement": {
+   "quintile_resid_pp": [
+    -1.011563464999199,
+    -0.7051913862720022,
+    0.4314818965295517,
+    0.2126442274186954,
+    1.0724136474090893
+   ],
+   "top_minus_bottom_pp": [
+    2.0839771124082884,
+    -0.5756621917132207,
+    4.8735324518519185
+   ]
+  },
+  "personal component": {
+   "quintile_resid_pp": [
+    -3.706698805484189,
+    -0.12589799245927677,
+    -0.2225261734692811,
+    2.5936957626115706,
+    1.462504855930545
+   ],
+   "top_minus_bottom_pp": [
+    5.169203661414734,
+    2.2157620946718097,
+    7.8969100146477125
+   ]
+  },
+  "pers_slope_controlling_pop_pp": [
+   41.39494651911133,
+   23.813762280213034,
+   58.79303420933467
+  ]
+ },
+ "sims_curve": {
+  "one-step": {
+   "realized_top_minus_bottom_pp": [
+    7.138386551290751,
+    2.4184611216187477,
+    12.137275362666694
+   ],
+   "dV_pp": [
+    5.1208622008281015,
+    4.505555317125592,
+    5.79698994754676
+   ]
+  },
+  "MCTS 25": {
+   "dV_pp": [
+    2.2041706769709446,
+    1.4725149731769502,
+    2.9799896879763392
+   ],
+   "dWPpop_pp": [
+    -0.5982853144407272,
+    -1.210118415504694,
+    0.05528590343892569
+   ],
+   "mean_V_pers": 0.5707036393339576
+  },
+  "MCTS 100": {
+   "dV_pp": [
+    2.9138890920028526,
+    2.103909335716131,
+    3.7165632257918886
+   ],
+   "dWPpop_pp": [
+    -1.5939904794096946,
+    -2.243986712321639,
+    -0.8758250831067562
+   ],
+   "mean_V_pers": 0.6287201295173754
+  },
+  "MCTS 400": {
+   "dV_pp": [
+    5.500009819494935,
+    4.676494356915373,
+    6.321273000186109
+   ],
+   "dWPpop_pp": [
+    -1.9112761944532395,
+    -2.640761706531048,
+    -1.2402836865186695
+   ],
+   "mean_V_pers": 0.6979441546192352,
+   "realized_top_minus_bottom_pp": [
+    2.907343741506338,
+    -1.979827837040648,
+    7.338720006542281
+   ],
+   "realized_personal_component_pp": [
+    3.6515492741018534,
+    -1.0641980348620563,
+    8.43022910663858
+   ],
+   "realized_pop_agreement_pp": [
+    0.2210267577320337,
+    -4.330108412960544,
+    5.0628490308765315
+   ],
+   "teams": 4000
+  },
+  "MCTS 1500": {}
+ },
+ "imitation_vs_outcome": {
+  "picks": 57240,
+  "real_equals_imitation_top1": 0.33377009084556253,
+  "real_equals_MCTS_personalized_top1": 0.20190426275331935,
+  "real_equals_MCTS_population_top1": 0.14561495457721874,
+  "imitation_equals_MCTS_personalized": 0.3072851153039832,
+  "MCTS_personalized_equals_population": 0.6150244584206849,
+  "team_residual_pp": {
+   "matches imitation only": {
+    "picks": 11877,
+    "resid": [
+     1.681794878761907,
+     0.7778767138873878,
+     2.5757205937664027
+    ]
+   },
+   "matches personalized MCTS only": {
+    "picks": 4329,
+    "resid": [
+     -0.2513289582401645,
+     -1.7826579657802133,
+     1.211149123312075
+    ]
+   },
+   "matches both": {
+    "picks": 7228,
+    "resid": [
+     2.380743271897495,
+     1.275241436214121,
+     3.4956385354822226
+    ]
+   },
+   "matches neither": {
+    "picks": 33806,
+    "resid": [
+     -1.0677006156696467,
+     -1.5580506062515609,
+     -0.5299493844573444
+    ]
+   }
+  }
+ }
+}

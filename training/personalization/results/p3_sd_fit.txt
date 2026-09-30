@@ -1,0 +1,20 @@
+[random 40k] static ll -890633.4
+  random 40k drift days sweep 1: ll -890603.5 (82s) sd_player_s=0.01282, sd_hero_s=0.02012, sd_player_m=0.01227, lam_player_m=0.03428, sd_player_f=0.02531, lam_player_f=0.2111, sd_hero_f=0.0001029, lam_hero_f=0.0002057, lam_player_s=1.019e-05, lam_cf=0.0002878, lam_hero_s=1.025e-05
+  random 40k drift days sweep 2: ll -890602.9 (174s) sd_player_s=0.01317, sd_hero_s=0.01984, sd_player_m=0.01052, lam_player_m=0.02721, sd_player_f=0.02776, lam_player_f=0.2029, sd_hero_f=0.0001029, lam_hero_f=0.0002057, lam_player_s=1.019e-05, lam_cf=0.0002777, lam_hero_s=1.022e-05
+  random 40k hero rates by role sweep 1: ll -890601.4 (130s) lam_hero_s_Tank=1.017e-05, lam_hero_s_Bruiser=0.006121, lam_hero_s_Healer=1.018e-05, lam_hero_s_Ranged Assassin=1.022e-05, lam_hero_s_Melee Assassin=1.022e-05, lam_hero_s_Support=1.022e-05, lam_hero_f_Tank=0.0002045, lam_hero_f_Bruiser=0.006108, lam_hero_f_Healer=0.0002036, lam_hero_f_Ranged Assassin=0.0002042, lam_hero_f_Melee Assassin=0.0002036, lam_hero_f_Support=0.0002036
+  random 40k drift games sweep 1: ll -890612.3 (101s) sd_player_s=0.01234, sd_hero_s=0.01993, sd_player_m=0.00739, lam_player_m=0.04058, sd_player_f=0.02477, lam_player_f=0.08447, sd_hero_f=0.003159, lam_hero_f=0.0002057, lam_player_s=1.019e-05, lam_cf=8.778e-05, lam_hero_s=1.022e-05
+  random 40k drift games sweep 2: ll -890611.8 (198s) sd_player_s=0.01182, sd_hero_s=0.02002, sd_player_m=0.004346, lam_player_m=0.04555, sd_player_f=0.02553, lam_player_f=0.06907, sd_hero_f=0.001916, lam_hero_f=0.0002057, lam_player_s=1.019e-05, lam_cf=7.345e-05, lam_hero_s=1.022e-05
+[random 40k] static (phase-1 kernel): dLL +0.0
+[random 40k] drift days: dLL +30.5
+[random 40k] drift days, hero rates by role: dLL +32.0
+[random 40k] drift games: dLL +21.6
+[heavy 6k (>=300 games)] static ll -856362.6
+  heavy 6k (>=300 games) drift days sweep 1: ll -856283.8 (105s) sd_player_s=0.0001029, sd_hero_s=0.023, sd_player_m=0.0001028, lam_player_m=0.09794, sd_player_f=0.0001028, lam_player_f=1.94, sd_hero_f=0.01, lam_hero_f=0.0002047, lam_player_s=1.017e-05, lam_cf=0.0004418, lam_hero_s=1.028e-05
+  heavy 6k (>=300 games) drift days sweep 2: ll -856283.4 (186s) sd_player_s=0.0001029, sd_hero_s=0.02311, sd_player_m=0.0001028, lam_player_m=0.09794, sd_player_f=0.009798, lam_player_f=1.065, sd_hero_f=0.009336, lam_hero_f=0.0002047, lam_player_s=1.017e-05, lam_cf=0.0004281, lam_hero_s=1.028e-05
+  heavy 6k (>=300 games) hero rates by role sweep 1: ll -856282.8 (101s) lam_hero_s_Tank=0.001331, lam_hero_s_Bruiser=1.019e-05, lam_hero_s_Healer=1.028e-05, lam_hero_s_Ranged Assassin=1.019e-05, lam_hero_s_Melee Assassin=1.028e-05, lam_hero_s_Support=1.028e-05, lam_hero_f_Tank=0.0005287, lam_hero_f_Bruiser=0.0002036, lam_hero_f_Healer=0.0002036, lam_hero_f_Ranged Assassin=0.0002047, lam_hero_f_Melee Assassin=0.0002035, lam_hero_f_Support=0.0002047
+  heavy 6k (>=300 games) drift games sweep 1: ll -856285.4 (76s) sd_player_s=0.0001029, sd_hero_s=0.02348, sd_player_m=0.0001028, lam_player_m=0.09794, sd_player_f=0.007778, lam_player_f=1.941, sd_hero_f=0.008878, lam_hero_f=0.0002036, lam_player_s=1.017e-05, lam_cf=0.0002066, lam_hero_s=1.027e-05
+  heavy 6k (>=300 games) drift games sweep 2: ll -856285.3 (185s) sd_player_s=0.0001029, sd_hero_s=0.02348, sd_player_m=0.0001028, lam_player_m=0.09794, sd_player_f=0.009182, lam_player_f=1.916, sd_hero_f=0.007742, lam_hero_f=0.0002036, lam_player_s=1.017e-05, lam_cf=0.0002027, lam_hero_s=1.027e-05
+[heavy 6k (>=300 games)] static (phase-1 kernel): dLL +0.0
+[heavy 6k (>=300 games)] drift days: dLL +79.2
+[heavy 6k (>=300 games)] drift days, hero rates by role: dLL +79.8
+[heavy 6k (>=300 games)] drift games: dLL +77.3

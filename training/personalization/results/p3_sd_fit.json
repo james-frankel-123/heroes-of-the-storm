@@ -1,0 +1,706 @@
+{
+ "random 40k": {
+  "n_rows": 1273656,
+  "fits": {
+   "static (phase-1 kernel)": {
+    "params": {
+     "sd_player_s": 0.017329625207259027,
+     "sd_role": 0.010527834479846102,
+     "sd_fine": 0.010676867771900906,
+     "sd_melee": 0.007196714492114743,
+     "sd_hero_s": 0.021987851898241866,
+     "sd_cf": 1.0
+    },
+    "ll": -890633.4090608418,
+    "ll_gain_vs_static": 0.0,
+    "components": {
+     "player_s": {
+      "sd_pp": 1.7329625207259027,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "player_m": {
+      "sd_pp": 0.0,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "player_f": {
+      "sd_pp": 0.0,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "role": {
+      "sd_pp": 1.05278344798461,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "fine": {
+      "sd_pp": 1.0676867771900906,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "melee": {
+      "sd_pp": 0.7196714492114743,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "cf": {
+      "sd_pp": 100.0,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "hero_s": {
+      "sd_pp": 2.1987851898241866,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "hero_f": {
+      "sd_pp": 0.0,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     }
+    }
+   },
+   "drift days": {
+    "params": {
+     "sd_player_s": 0.013167186728336017,
+     "sd_role": 0.010527834479846102,
+     "sd_fine": 0.010676867771900906,
+     "sd_melee": 0.007196714492114743,
+     "sd_hero_s": 0.01983576903129339,
+     "sd_cf": 1.0,
+     "sd_player_m": 0.010523438623938853,
+     "lam_player_m": 0.027209343585869197,
+     "sd_player_f": 0.027755489461708926,
+     "lam_player_f": 0.20292612928933046,
+     "sd_hero_f": 0.0001028684933699184,
+     "lam_hero_f": 0.00020565308436482286,
+     "lam_player_s": 1.0190187648896896e-05,
+     "lam_cf": 0.000277746280296051,
+     "lam_hero_s": 1.0220045547595186e-05
+    },
+    "ll": -890602.8786286876,
+    "ll_gain_vs_static": 30.530432154191658,
+    "components": {
+     "player_s": {
+      "sd_pp": 1.3167186728336018,
+      "lam_per_days": 1.0190187648896896e-05,
+      "corr_halflife_days": 68021.04185343235,
+      "info_halflife_days": 34010.52092671618,
+      "rw_sd_pp_per_30d": 0.032558149304137904
+     },
+     "player_m": {
+      "sd_pp": 1.0523438623938852,
+      "lam_per_days": 0.027209343585869197,
+      "corr_halflife_days": 25.474601339516393,
+      "info_halflife_days": 12.737300669758197,
+      "rw_sd_pp_per_30d": 1.3445975946709943
+     },
+     "player_f": {
+      "sd_pp": 2.7755489461708924,
+      "lam_per_days": 0.20292612928933046,
+      "corr_halflife_days": 3.415761109658094,
+      "info_halflife_days": 1.707880554829047,
+      "rw_sd_pp_per_30d": 9.684863439369517
+     },
+     "role": {
+      "sd_pp": 1.05278344798461,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "fine": {
+      "sd_pp": 1.0676867771900906,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "melee": {
+      "sd_pp": 0.7196714492114743,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "cf": {
+      "sd_pp": 100.0,
+      "lam_per_days": 0.000277746280296051,
+      "corr_halflife_days": 2495.6128298860262,
+      "info_halflife_days": 1247.8064149430131,
+      "rw_sd_pp_per_30d": 12.909212531275122
+     },
+     "hero_s": {
+      "sd_pp": 1.983576903129339,
+      "lam_per_days": 1.0220045547595186e-05,
+      "corr_halflife_days": 67822.31814251016,
+      "info_halflife_days": 33911.15907125508,
+      "rw_sd_pp_per_30d": 0.04911917723021558
+     },
+     "hero_f": {
+      "sd_pp": 0.01028684933699184,
+      "lam_per_days": 0.00020565308436482286,
+      "corr_halflife_days": 3370.468197453929,
+      "info_halflife_days": 1685.2340987269645,
+      "rw_sd_pp_per_30d": 0.0011426826098195973
+     }
+    }
+   },
+   "drift days, hero rates by role": {
+    "params": {
+     "sd_player_s": 0.013167186728336017,
+     "sd_role": 0.010527834479846102,
+     "sd_fine": 0.010676867771900906,
+     "sd_melee": 0.007196714492114743,
+     "sd_hero_s": 0.01983576903129339,
+     "sd_cf": 1.0,
+     "sd_player_m": 0.010523438623938853,
+     "lam_player_m": 0.027209343585869197,
+     "sd_player_f": 0.027755489461708926,
+     "lam_player_f": 0.20292612928933046,
+     "sd_hero_f": 0.0001028684933699184,
+     "lam_hero_f": 0.00020565308436482286,
+     "lam_player_s": 1.0190187648896896e-05,
+     "lam_cf": 0.000277746280296051,
+     "lam_hero_s": 1.0220045547595186e-05,
+     "lam_hero_s_Tank": 1.017149168357318e-05,
+     "lam_hero_s_Bruiser": 0.006121049641234787,
+     "lam_hero_s_Healer": 1.0175600658017241e-05,
+     "lam_hero_s_Ranged Assassin": 1.0220045547595186e-05,
+     "lam_hero_s_Melee Assassin": 1.0220045547595186e-05,
+     "lam_hero_s_Support": 1.0220045547595186e-05,
+     "lam_hero_f_Tank": 0.00020448476652101545,
+     "lam_hero_f_Bruiser": 0.006108026220904357,
+     "lam_hero_f_Healer": 0.00020364169156493182,
+     "lam_hero_f_Ranged Assassin": 0.00020422220455215245,
+     "lam_hero_f_Melee Assassin": 0.00020364169156493182,
+     "lam_hero_f_Support": 0.00020364169156493182
+    },
+    "ll": -890601.429737259,
+    "ll_gain_vs_static": 31.979323582723737,
+    "components": {
+     "player_s": {
+      "sd_pp": 1.3167186728336018,
+      "lam_per_days": 1.0190187648896896e-05,
+      "corr_halflife_days": 68021.04185343235,
+      "info_halflife_days": 34010.52092671618,
+      "rw_sd_pp_per_30d": 0.032558149304137904
+     },
+     "player_m": {
+      "sd_pp": 1.0523438623938852,
+      "lam_per_days": 0.027209343585869197,
+      "corr_halflife_days": 25.474601339516393,
+      "info_halflife_days": 12.737300669758197,
+      "rw_sd_pp_per_30d": 1.3445975946709943
+     },
+     "player_f": {
+      "sd_pp": 2.7755489461708924,
+      "lam_per_days": 0.20292612928933046,
+      "corr_halflife_days": 3.415761109658094,
+      "info_halflife_days": 1.707880554829047,
+      "rw_sd_pp_per_30d": 9.684863439369517
+     },
+     "role": {
+      "sd_pp": 1.05278344798461,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "fine": {
+      "sd_pp": 1.0676867771900906,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "melee": {
+      "sd_pp": 0.7196714492114743,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "cf": {
+      "sd_pp": 100.0,
+      "lam_per_days": 0.000277746280296051,
+      "corr_halflife_days": 2495.6128298860262,
+      "info_halflife_days": 1247.8064149430131,
+      "rw_sd_pp_per_30d": 12.909212531275122
+     },
+     "hero_s": {
+      "sd_pp": 1.983576903129339,
+      "lam_per_days": 1.0220045547595186e-05,
+      "corr_halflife_days": 67822.31814251016,
+      "info_halflife_days": 33911.15907125508,
+      "rw_sd_pp_per_30d": 0.04911917723021558
+     },
+     "hero_f": {
+      "sd_pp": 0.01028684933699184,
+      "lam_per_days": 0.00020565308436482286,
+      "corr_halflife_days": 3370.468197453929,
+      "info_halflife_days": 1685.2340987269645,
+      "rw_sd_pp_per_30d": 0.0011426826098195973
+     }
+    }
+   },
+   "drift games": {
+    "params": {
+     "sd_player_s": 0.011821086913348556,
+     "sd_role": 0.010527834479846102,
+     "sd_fine": 0.010676867771900906,
+     "sd_melee": 0.007196714492114743,
+     "sd_hero_s": 0.020021656108088367,
+     "sd_cf": 1.0,
+     "sd_player_m": 0.004346346715186156,
+     "lam_player_m": 0.0455467447697642,
+     "sd_player_f": 0.025530412161302588,
+     "lam_player_f": 0.06907105929584831,
+     "sd_hero_f": 0.0019159145264606805,
+     "lam_hero_f": 0.00020565308436482286,
+     "lam_player_s": 1.0190187648896896e-05,
+     "lam_cf": 7.344632417203123e-05,
+     "lam_hero_s": 1.0220045547595186e-05
+    },
+    "ll": -890611.8019836617,
+    "ll_gain_vs_static": 21.607077180058695,
+    "components": {
+     "player_s": {
+      "sd_pp": 1.1821086913348555,
+      "lam_per_games": 1.0190187648896896e-05,
+      "corr_halflife_games": 68021.04185343235,
+      "info_halflife_games": 34010.52092671618,
+      "rw_sd_pp_per_30g": 0.029229684411913148
+     },
+     "player_m": {
+      "sd_pp": 0.4346346715186156,
+      "lam_per_games": 0.0455467447697642,
+      "corr_halflife_games": 15.218369261376608,
+      "info_halflife_games": 7.609184630688304,
+      "rw_sd_pp_per_30g": 0.7185031303837623
+     },
+     "player_f": {
+      "sd_pp": 2.553041216130259,
+      "lam_per_games": 0.06907105929584831,
+      "corr_halflife_games": 10.035276534431384,
+      "info_halflife_games": 5.017638267215692,
+      "rw_sd_pp_per_30g": 5.197344560500851
+     },
+     "role": {
+      "sd_pp": 1.05278344798461,
+      "lam_per_games": 0.0,
+      "corr_halflife_games": null,
+      "info_halflife_games": null,
+      "rw_sd_pp_per_30g": 0.0
+     },
+     "fine": {
+      "sd_pp": 1.0676867771900906,
+      "lam_per_games": 0.0,
+      "corr_halflife_games": null,
+      "info_halflife_games": null,
+      "rw_sd_pp_per_30g": 0.0
+     },
+     "melee": {
+      "sd_pp": 0.7196714492114743,
+      "lam_per_games": 0.0,
+      "corr_halflife_games": null,
+      "info_halflife_games": null,
+      "rw_sd_pp_per_30g": 0.0
+     },
+     "cf": {
+      "sd_pp": 100.0,
+      "lam_per_games": 7.344632417203123e-05,
+      "corr_halflife_games": 9437.465909613207,
+      "info_halflife_games": 4718.732954806604,
+      "rw_sd_pp_per_30g": 6.638357816750973
+     },
+     "hero_s": {
+      "sd_pp": 2.0021656108088366,
+      "lam_per_games": 1.0220045547595186e-05,
+      "corr_halflife_games": 67822.31814251016,
+      "info_halflife_games": 33911.15907125508,
+      "rw_sd_pp_per_30g": 0.049579488108785215
+     },
+     "hero_f": {
+      "sd_pp": 0.19159145264606806,
+      "lam_per_games": 0.00020565308436482286,
+      "corr_halflife_games": 3370.468197453929,
+      "info_halflife_games": 1685.2340987269645,
+      "rw_sd_pp_per_30g": 0.021282339612136048
+     }
+    }
+   }
+  }
+ },
+ "heavy 6k (>=300 games)": {
+  "n_rows": 1224128,
+  "fits": {
+   "static (phase-1 kernel)": {
+    "params": {
+     "sd_player_s": 0.017329625207259027,
+     "sd_role": 0.010527834479846102,
+     "sd_fine": 0.010676867771900906,
+     "sd_melee": 0.007196714492114743,
+     "sd_hero_s": 0.021987851898241866,
+     "sd_cf": 1.0
+    },
+    "ll": -856362.6405263265,
+    "ll_gain_vs_static": 0.0,
+    "components": {
+     "player_s": {
+      "sd_pp": 1.7329625207259027,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "player_m": {
+      "sd_pp": 0.0,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "player_f": {
+      "sd_pp": 0.0,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "role": {
+      "sd_pp": 1.05278344798461,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "fine": {
+      "sd_pp": 1.0676867771900906,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "melee": {
+      "sd_pp": 0.7196714492114743,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "cf": {
+      "sd_pp": 100.0,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "hero_s": {
+      "sd_pp": 2.1987851898241866,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "hero_f": {
+      "sd_pp": 0.0,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     }
+    }
+   },
+   "drift days": {
+    "params": {
+     "sd_player_s": 0.00010292528625635039,
+     "sd_role": 0.010527834479846102,
+     "sd_fine": 0.010676867771900906,
+     "sd_melee": 0.007196714492114743,
+     "sd_hero_s": 0.023111583237912264,
+     "sd_cf": 1.0,
+     "sd_player_m": 0.0001028344194978188,
+     "lam_player_m": 0.09794381562094602,
+     "sd_player_f": 0.009798425429510205,
+     "lam_player_f": 1.064703142929873,
+     "sd_hero_f": 0.009336210199610267,
+     "lam_hero_f": 0.00020472990965527072,
+     "lam_player_s": 1.0170012645343884e-05,
+     "lam_cf": 0.0004281404381095934,
+     "lam_hero_s": 1.0284093606688844e-05
+    },
+    "ll": -856283.426644592,
+    "ll_gain_vs_static": 79.21388173452578,
+    "components": {
+     "player_s": {
+      "sd_pp": 0.010292528625635039,
+      "lam_per_days": 1.0170012645343884e-05,
+      "corr_halflife_days": 68155.98020689654,
+      "info_halflife_days": 34077.99010344827,
+      "rw_sd_pp_per_30d": 0.00025424853267196345
+     },
+     "player_m": {
+      "sd_pp": 0.01028344194978188,
+      "lam_per_days": 0.09794381562094602,
+      "corr_halflife_days": 7.0769877216393695,
+      "info_halflife_days": 3.5384938608196848,
+      "rw_sd_pp_per_30d": 0.024928872447261767
+     },
+     "player_f": {
+      "sd_pp": 0.9798425429510205,
+      "lam_per_days": 1.064703142929873,
+      "corr_halflife_days": 0.6510238888302029,
+      "info_halflife_days": 0.32551194441510145,
+      "rw_sd_pp_per_30d": 7.831522229953075
+     },
+     "role": {
+      "sd_pp": 1.05278344798461,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "fine": {
+      "sd_pp": 1.0676867771900906,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "melee": {
+      "sd_pp": 0.7196714492114743,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "cf": {
+      "sd_pp": 100.0,
+      "lam_per_days": 0.0004281404381095934,
+      "corr_halflife_days": 1618.9715309781523,
+      "info_halflife_days": 809.4857654890761,
+      "rw_sd_pp_per_30d": 16.027609393348595
+     },
+     "hero_s": {
+      "sd_pp": 2.3111583237912265,
+      "lam_per_days": 1.0284093606688844e-05,
+      "corr_halflife_days": 67399.92915944655,
+      "info_halflife_days": 33699.96457972327,
+      "rw_sd_pp_per_30d": 0.057410103936431686
+     },
+     "hero_f": {
+      "sd_pp": 0.9336210199610266,
+      "lam_per_days": 0.00020472990965527072,
+      "corr_halflife_days": 3385.6664213210647,
+      "info_halflife_days": 1692.8332106605324,
+      "rw_sd_pp_per_30d": 0.10347534751677355
+     }
+    }
+   },
+   "drift days, hero rates by role": {
+    "params": {
+     "sd_player_s": 0.00010292528625635039,
+     "sd_role": 0.010527834479846102,
+     "sd_fine": 0.010676867771900906,
+     "sd_melee": 0.007196714492114743,
+     "sd_hero_s": 0.023111583237912264,
+     "sd_cf": 1.0,
+     "sd_player_m": 0.0001028344194978188,
+     "lam_player_m": 0.09794381562094602,
+     "sd_player_f": 0.009798425429510205,
+     "lam_player_f": 1.064703142929873,
+     "sd_hero_f": 0.009336210199610267,
+     "lam_hero_f": 0.00020472990965527072,
+     "lam_player_s": 1.0170012645343884e-05,
+     "lam_cf": 0.0004281404381095934,
+     "lam_hero_s": 1.0284093606688844e-05,
+     "lam_hero_s_Tank": 0.0013306583617588427,
+     "lam_hero_s_Bruiser": 1.0187939044222866e-05,
+     "lam_hero_s_Healer": 1.0284093606688844e-05,
+     "lam_hero_s_Ranged Assassin": 1.01853162303182e-05,
+     "lam_hero_s_Melee Assassin": 1.0284093606688844e-05,
+     "lam_hero_s_Support": 1.0284093606688844e-05,
+     "lam_hero_f_Tank": 0.0005286927105270721,
+     "lam_hero_f_Bruiser": 0.00020364169156493182,
+     "lam_hero_f_Healer": 0.00020364169156493182,
+     "lam_hero_f_Ranged Assassin": 0.00020472990965527072,
+     "lam_hero_f_Melee Assassin": 0.00020348793022245017,
+     "lam_hero_f_Support": 0.00020472990965527072
+    },
+    "ll": -856282.8332306031,
+    "ll_gain_vs_static": 79.80729572335258,
+    "components": {
+     "player_s": {
+      "sd_pp": 0.010292528625635039,
+      "lam_per_days": 1.0170012645343884e-05,
+      "corr_halflife_days": 68155.98020689654,
+      "info_halflife_days": 34077.99010344827,
+      "rw_sd_pp_per_30d": 0.00025424853267196345
+     },
+     "player_m": {
+      "sd_pp": 0.01028344194978188,
+      "lam_per_days": 0.09794381562094602,
+      "corr_halflife_days": 7.0769877216393695,
+      "info_halflife_days": 3.5384938608196848,
+      "rw_sd_pp_per_30d": 0.024928872447261767
+     },
+     "player_f": {
+      "sd_pp": 0.9798425429510205,
+      "lam_per_days": 1.064703142929873,
+      "corr_halflife_days": 0.6510238888302029,
+      "info_halflife_days": 0.32551194441510145,
+      "rw_sd_pp_per_30d": 7.831522229953075
+     },
+     "role": {
+      "sd_pp": 1.05278344798461,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "fine": {
+      "sd_pp": 1.0676867771900906,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "melee": {
+      "sd_pp": 0.7196714492114743,
+      "lam_per_days": 0.0,
+      "corr_halflife_days": null,
+      "info_halflife_days": null,
+      "rw_sd_pp_per_30d": 0.0
+     },
+     "cf": {
+      "sd_pp": 100.0,
+      "lam_per_days": 0.0004281404381095934,
+      "corr_halflife_days": 1618.9715309781523,
+      "info_halflife_days": 809.4857654890761,
+      "rw_sd_pp_per_30d": 16.027609393348595
+     },
+     "hero_s": {
+      "sd_pp": 2.3111583237912265,
+      "lam_per_days": 1.0284093606688844e-05,
+      "corr_halflife_days": 67399.92915944655,
+      "info_halflife_days": 33699.96457972327,
+      "rw_sd_pp_per_30d": 0.057410103936431686
+     },
+     "hero_f": {
+      "sd_pp": 0.9336210199610266,
+      "lam_per_days": 0.00020472990965527072,
+      "corr_halflife_days": 3385.6664213210647,
+      "info_halflife_days": 1692.8332106605324,
+      "rw_sd_pp_per_30d": 0.10347534751677355
+     }
+    }
+   },
+   "drift games": {
+    "params": {
+     "sd_player_s": 0.00010292528625635039,
+     "sd_role": 0.010527834479846102,
+     "sd_fine": 0.010676867771900906,
+     "sd_melee": 0.007196714492114743,
+     "sd_hero_s": 0.02347745970870695,
+     "sd_cf": 1.0,
+     "sd_player_m": 0.0001028344194978188,
+     "lam_player_m": 0.09794381562094602,
+     "sd_player_f": 0.009181895579395017,
+     "lam_player_f": 1.9157348476804839,
+     "sd_hero_f": 0.007742053732101743,
+     "lam_hero_f": 0.00020364169156493182,
+     "lam_player_s": 1.0170012645343884e-05,
+     "lam_cf": 0.0002026646058253826,
+     "lam_hero_s": 1.0267869132317445e-05
+    },
+    "ll": -856285.3090352083,
+    "ll_gain_vs_static": 77.33149111818057,
+    "components": {
+     "player_s": {
+      "sd_pp": 0.010292528625635039,
+      "lam_per_games": 1.0170012645343884e-05,
+      "corr_halflife_games": 68155.98020689654,
+      "info_halflife_games": 34077.99010344827,
+      "rw_sd_pp_per_30g": 0.00025424853267196345
+     },
+     "player_m": {
+      "sd_pp": 0.01028344194978188,
+      "lam_per_games": 0.09794381562094602,
+      "corr_halflife_games": 7.0769877216393695,
+      "info_halflife_games": 3.5384938608196848,
+      "rw_sd_pp_per_30g": 0.024928872447261767
+     },
+     "player_f": {
+      "sd_pp": 0.9181895579395017,
+      "lam_per_games": 1.9157348476804839,
+      "corr_halflife_games": 0.3618179109698755,
+      "info_halflife_games": 0.18090895548493774,
+      "rw_sd_pp_per_30g": 9.844092236573985
+     },
+     "role": {
+      "sd_pp": 1.05278344798461,
+      "lam_per_games": 0.0,
+      "corr_halflife_games": null,
+      "info_halflife_games": null,
+      "rw_sd_pp_per_30g": 0.0
+     },
+     "fine": {
+      "sd_pp": 1.0676867771900906,
+      "lam_per_games": 0.0,
+      "corr_halflife_games": null,
+      "info_halflife_games": null,
+      "rw_sd_pp_per_30g": 0.0
+     },
+     "melee": {
+      "sd_pp": 0.7196714492114743,
+      "lam_per_games": 0.0,
+      "corr_halflife_games": null,
+      "info_halflife_games": null,
+      "rw_sd_pp_per_30g": 0.0
+     },
+     "cf": {
+      "sd_pp": 100.0,
+      "lam_per_games": 0.0002026646058253826,
+      "corr_halflife_games": 3420.1688930190717,
+      "info_halflife_games": 1710.0844465095358,
+      "rw_sd_pp_per_30g": 11.027182935601893
+     },
+     "hero_s": {
+      "sd_pp": 2.347745970870695,
+      "lam_per_games": 1.0267869132317445e-05,
+      "corr_halflife_games": 67506.42919457455,
+      "info_halflife_games": 33753.214597287275,
+      "rw_sd_pp_per_30g": 0.0582729348632177
+     },
+     "hero_f": {
+      "sd_pp": 0.7742053732101744,
+      "lam_per_games": 0.00020364169156493182,
+      "corr_halflife_games": 3403.7587059569923,
+      "info_halflife_games": 1701.8793529784962,
+      "rw_sd_pp_per_30g": 0.08557859542293293
+     }
+    }
+   }
+  }
+ }
+}

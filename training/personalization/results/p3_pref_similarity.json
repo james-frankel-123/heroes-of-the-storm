@@ -1,0 +1,822 @@
+{
+ "players": 26122,
+ "split_half_r": 0.9832700252201463,
+ "svd_k": 12,
+ "svd_var_explained": 0.3456096947193146,
+ "clusters": {
+  "1": [
+   "Stitches",
+   "Diablo",
+   "Garrosh",
+   "Tyrael",
+   "Johanna",
+   "Muradin",
+   "Anub'arak",
+   "E.T.C.",
+   "Uther",
+   "Kharazim",
+   "Varian",
+   "Arthas",
+   "Mal'Ganis"
+  ],
+  "2": [
+   "Falstad",
+   "Hanzo",
+   "Greymane"
+  ],
+  "3": [
+   "Thrall",
+   "Sonya",
+   "Imperius",
+   "Malthael",
+   "Leoric",
+   "Dehaka",
+   "Hogger",
+   "Blaze"
+  ],
+  "4": [
+   "Deckard",
+   "Stukov",
+   "Malfurion",
+   "Tyrande",
+   "Auriel",
+   "Ana",
+   "Alexstrasza",
+   "Whitemane",
+   "Li Li",
+   "Lt. Morales",
+   "L\u00facio",
+   "Rehgar",
+   "Anduin",
+   "Brightwing"
+  ],
+  "5": [
+   "Illidan",
+   "Samuro",
+   "Alarak",
+   "Kel'Thuzad",
+   "Tracer",
+   "Medivh",
+   "Zeratul",
+   "Genji",
+   "Kerrigan",
+   "Maiev",
+   "Rexxar",
+   "Chen",
+   "Yrel",
+   "Sgt. Hammer",
+   "Fenix",
+   "Probius",
+   "Zarya",
+   "Gall",
+   "The Lost Vikings",
+   "Cho",
+   "Abathur",
+   "Murky",
+   "The Butcher",
+   "Nova",
+   "Valeera"
+  ],
+  "6": [
+   "Li-Ming",
+   "Junkrat",
+   "Mephisto",
+   "Chromie",
+   "Orphea",
+   "Qhira",
+   "Jaina",
+   "Lunara",
+   "Sylvanas",
+   "Cassia"
+  ],
+  "7": [
+   "Gul'dan",
+   "Kael'thas",
+   "Tassadar",
+   "Raynor",
+   "Tychus",
+   "Valla",
+   "Zul'jin"
+  ],
+  "8": [
+   "Mei",
+   "Deathwing",
+   "Gazlowe",
+   "D.Va",
+   "Nazeebo",
+   "Zagara",
+   "Azmodan",
+   "Artanis",
+   "Ragnaros",
+   "Xul"
+  ]
+ },
+ "top_pairs": [
+  [
+   "Anduin",
+   "Brightwing",
+   0.388
+  ],
+  [
+   "Hanzo",
+   "Genji",
+   0.33
+  ],
+  [
+   "Cho",
+   "Gall",
+   0.308
+  ],
+  [
+   "Brightwing",
+   "Rehgar",
+   0.297
+  ],
+  [
+   "Genji",
+   "Maiev",
+   0.284
+  ],
+  [
+   "Anub'arak",
+   "Johanna",
+   0.28
+  ],
+  [
+   "Auriel",
+   "Anduin",
+   0.279
+  ],
+  [
+   "Zeratul",
+   "Genji",
+   0.278
+  ],
+  [
+   "Anduin",
+   "Rehgar",
+   0.271
+  ],
+  [
+   "Auriel",
+   "Brightwing",
+   0.26
+  ],
+  [
+   "Zeratul",
+   "Maiev",
+   0.252
+  ],
+  [
+   "Alexstrasza",
+   "Whitemane",
+   0.251
+  ],
+  [
+   "Probius",
+   "Cho",
+   0.247
+  ],
+  [
+   "Nazeebo",
+   "Azmodan",
+   0.246
+  ],
+  [
+   "The Lost Vikings",
+   "Cho",
+   0.244
+  ],
+  [
+   "Probius",
+   "The Lost Vikings",
+   0.243
+  ],
+  [
+   "Muradin",
+   "Johanna",
+   0.235
+  ],
+  [
+   "Diablo",
+   "Garrosh",
+   0.233
+  ],
+  [
+   "Anub'arak",
+   "E.T.C.",
+   0.231
+  ],
+  [
+   "Anduin",
+   "Stukov",
+   0.23
+  ],
+  [
+   "Probius",
+   "Gall",
+   0.227
+  ],
+  [
+   "Abathur",
+   "Murky",
+   0.222
+  ],
+  [
+   "Alarak",
+   "Kel'Thuzad",
+   0.22
+  ],
+  [
+   "Nova",
+   "Valeera",
+   0.22
+  ],
+  [
+   "Zeratul",
+   "Alarak",
+   0.22
+  ]
+ ],
+ "top_cross_role_pairs": [
+  [
+   "Hanzo",
+   "Genji",
+   0.33
+  ],
+  [
+   "Cho",
+   "Gall",
+   0.308
+  ],
+  [
+   "Genji",
+   "Maiev",
+   0.284
+  ],
+  [
+   "Zeratul",
+   "Genji",
+   0.278
+  ],
+  [
+   "Probius",
+   "Cho",
+   0.247
+  ],
+  [
+   "The Lost Vikings",
+   "Cho",
+   0.244
+  ],
+  [
+   "Probius",
+   "The Lost Vikings",
+   0.243
+  ],
+  [
+   "Abathur",
+   "Murky",
+   0.222
+  ],
+  [
+   "Alarak",
+   "Kel'Thuzad",
+   0.22
+  ],
+  [
+   "Nova",
+   "Valeera",
+   0.22
+  ],
+  [
+   "Nova",
+   "The Butcher",
+   0.214
+  ],
+  [
+   "Rexxar",
+   "The Lost Vikings",
+   0.208
+  ],
+  [
+   "Fenix",
+   "Probius",
+   0.202
+  ],
+  [
+   "The Lost Vikings",
+   "Gall",
+   0.202
+  ],
+  [
+   "Murky",
+   "Nova",
+   0.195
+  ]
+ ],
+ "most_negative": [
+  [
+   "Hanzo",
+   "Lt. Morales",
+   -0.166
+  ],
+  [
+   "Thrall",
+   "Probius",
+   -0.167
+  ],
+  [
+   "Johanna",
+   "Kel'Thuzad",
+   -0.169
+  ],
+  [
+   "Nova",
+   "Johanna",
+   -0.175
+  ],
+  [
+   "Anduin",
+   "Illidan",
+   -0.177
+  ],
+  [
+   "Anduin",
+   "Zeratul",
+   -0.177
+  ],
+  [
+   "Li Li",
+   "Greymane",
+   -0.177
+  ],
+  [
+   "Brightwing",
+   "Alarak",
+   -0.181
+  ],
+  [
+   "Anduin",
+   "The Butcher",
+   -0.184
+  ],
+  [
+   "Li Li",
+   "Hanzo",
+   -0.206
+  ]
+ ],
+ "nearest": {
+  "Arthas": [
+   "Varian",
+   "Mal'Ganis",
+   "Anub'arak"
+  ],
+  "Auriel": [
+   "Anduin",
+   "Brightwing",
+   "Whitemane"
+  ],
+  "Raynor": [
+   "Valla",
+   "Tychus",
+   "Tassadar"
+  ],
+  "Gul'dan": [
+   "Kael'thas",
+   "Zul'jin",
+   "Tychus"
+  ],
+  "Sylvanas": [
+   "Valla",
+   "Hanzo",
+   "Maiev"
+  ],
+  "Stitches": [
+   "Garrosh",
+   "Diablo",
+   "E.T.C."
+  ],
+  "Kerrigan": [
+   "Maiev",
+   "Zeratul",
+   "Alarak"
+  ],
+  "Muradin": [
+   "Johanna",
+   "Diablo",
+   "Anub'arak"
+  ],
+  "Malfurion": [
+   "Tyrande",
+   "Brightwing",
+   "Rehgar"
+  ],
+  "Thrall": [
+   "Falstad",
+   "Muradin",
+   "Leoric"
+  ],
+  "Mei": [
+   "Deckard",
+   "D.Va",
+   "Gazlowe"
+  ],
+  "Artanis": [
+   "Varian",
+   "Stitches",
+   "Arthas"
+  ],
+  "Hogger": [
+   "Chen",
+   "Dehaka",
+   "Hanzo"
+  ],
+  "Anduin": [
+   "Brightwing",
+   "Auriel",
+   "Rehgar"
+  ],
+  "Deckard": [
+   "Anduin",
+   "Stukov",
+   "Brightwing"
+  ],
+  "Nazeebo": [
+   "Azmodan",
+   "Zagara",
+   "Kael'thas"
+  ],
+  "Valla": [
+   "Falstad",
+   "Zul'jin",
+   "Li-Ming"
+  ],
+  "Li-Ming": [
+   "Chromie",
+   "Valla",
+   "Sylvanas"
+  ],
+  "Li Li": [
+   "Lt. Morales",
+   "Brightwing",
+   "Deckard"
+  ],
+  "Anub'arak": [
+   "Johanna",
+   "E.T.C.",
+   "Muradin"
+  ],
+  "Varian": [
+   "Johanna",
+   "Arthas",
+   "Garrosh"
+  ],
+  "Abathur": [
+   "Murky",
+   "Medivh",
+   "The Lost Vikings"
+  ],
+  "Diablo": [
+   "Garrosh",
+   "Muradin",
+   "Stitches"
+  ],
+  "E.T.C.": [
+   "Anub'arak",
+   "Johanna",
+   "Muradin"
+  ],
+  "Jaina": [
+   "Kael'thas",
+   "Li-Ming",
+   "Lunara"
+  ],
+  "Murky": [
+   "Abathur",
+   "Nova",
+   "The Lost Vikings"
+  ],
+  "Nova": [
+   "Valeera",
+   "The Butcher",
+   "Murky"
+  ],
+  "Zagara": [
+   "Nazeebo",
+   "Azmodan",
+   "Abathur"
+  ],
+  "Imperius": [
+   "Blaze",
+   "Garrosh",
+   "Mal'Ganis"
+  ],
+  "Fenix": [
+   "Probius",
+   "Cho",
+   "The Lost Vikings"
+  ],
+  "L\u00facio": [
+   "Brightwing",
+   "Anduin",
+   "Li Li"
+  ],
+  "Hanzo": [
+   "Genji",
+   "Junkrat",
+   "Maiev"
+  ],
+  "Mal'Ganis": [
+   "Garrosh",
+   "Arthas",
+   "Mei"
+  ],
+  "Tychus": [
+   "Raynor",
+   "Zul'jin",
+   "Falstad"
+  ],
+  "Probius": [
+   "Cho",
+   "The Lost Vikings",
+   "Gall"
+  ],
+  "Azmodan": [
+   "Nazeebo",
+   "Zagara",
+   "Kael'thas"
+  ],
+  "Kael'thas": [
+   "Nazeebo",
+   "Azmodan",
+   "Gul'dan"
+  ],
+  "Blaze": [
+   "Dehaka",
+   "Hogger",
+   "Johanna"
+  ],
+  "Johanna": [
+   "Anub'arak",
+   "Muradin",
+   "E.T.C."
+  ],
+  "Falstad": [
+   "Valla",
+   "Thrall",
+   "Sylvanas"
+  ],
+  "Lt. Morales": [
+   "Li Li",
+   "Brightwing",
+   "Anduin"
+  ],
+  "Leoric": [
+   "Dehaka",
+   "Sonya",
+   "Thrall"
+  ],
+  "Zeratul": [
+   "Genji",
+   "Maiev",
+   "Alarak"
+  ],
+  "Deathwing": [
+   "D.Va",
+   "Sgt. Hammer",
+   "Fenix"
+  ],
+  "Ragnaros": [
+   "Azmodan",
+   "Xul",
+   "Artanis"
+  ],
+  "Uther": [
+   "Rehgar",
+   "Kharazim",
+   "Anduin"
+  ],
+  "Sonya": [
+   "Leoric",
+   "Muradin",
+   "Dehaka"
+  ],
+  "Tassadar": [
+   "Raynor",
+   "Tychus",
+   "Nazeebo"
+  ],
+  "Brightwing": [
+   "Anduin",
+   "Rehgar",
+   "Auriel"
+  ],
+  "Mephisto": [
+   "Maiev",
+   "Kel'Thuzad",
+   "Chromie"
+  ],
+  "Orphea": [
+   "Qhira",
+   "Cassia",
+   "Chromie"
+  ],
+  "Chen": [
+   "Yrel",
+   "Hogger",
+   "Rexxar"
+  ],
+  "Alarak": [
+   "Kel'Thuzad",
+   "Zeratul",
+   "Maiev"
+  ],
+  "Sgt. Hammer": [
+   "Probius",
+   "The Lost Vikings",
+   "Murky"
+  ],
+  "Zarya": [
+   "Probius",
+   "Medivh",
+   "The Lost Vikings"
+  ],
+  "Rexxar": [
+   "The Lost Vikings",
+   "Probius",
+   "Yrel"
+  ],
+  "Stukov": [
+   "Anduin",
+   "Brightwing",
+   "Deckard"
+  ],
+  "Tracer": [
+   "Genji",
+   "Probius",
+   "Zeratul"
+  ],
+  "Tyrande": [
+   "Whitemane",
+   "Ana",
+   "Auriel"
+  ],
+  "Junkrat": [
+   "Hanzo",
+   "Chromie",
+   "Hogger"
+  ],
+  "Chromie": [
+   "Li-Ming",
+   "Junkrat",
+   "Hanzo"
+  ],
+  "Tyrael": [
+   "Johanna",
+   "Arthas",
+   "Muradin"
+  ],
+  "Ana": [
+   "Whitemane",
+   "Auriel",
+   "Tyrande"
+  ],
+  "Qhira": [
+   "Orphea",
+   "Valeera",
+   "The Butcher"
+  ],
+  "Greymane": [
+   "Genji",
+   "Hanzo",
+   "Zeratul"
+  ],
+  "Illidan": [
+   "Zeratul",
+   "Samuro",
+   "Genji"
+  ],
+  "Kharazim": [
+   "Uther",
+   "Zarya",
+   "Tyrande"
+  ],
+  "Rehgar": [
+   "Brightwing",
+   "Anduin",
+   "Auriel"
+  ],
+  "The Lost Vikings": [
+   "Cho",
+   "Probius",
+   "Rexxar"
+  ],
+  "Kel'Thuzad": [
+   "Alarak",
+   "Medivh",
+   "Zeratul"
+  ],
+  "Xul": [
+   "Ragnaros",
+   "Zagara",
+   "Azmodan"
+  ],
+  "Genji": [
+   "Hanzo",
+   "Maiev",
+   "Zeratul"
+  ],
+  "Alexstrasza": [
+   "Whitemane",
+   "Auriel",
+   "Anduin"
+  ],
+  "Dehaka": [
+   "Leoric",
+   "Hogger",
+   "Blaze"
+  ],
+  "Zul'jin": [
+   "Valla",
+   "Tychus",
+   "Greymane"
+  ],
+  "Lunara": [
+   "Zagara",
+   "Jaina",
+   "Li Li"
+  ],
+  "The Butcher": [
+   "Nova",
+   "Murky",
+   "Valeera"
+  ],
+  "Whitemane": [
+   "Alexstrasza",
+   "Ana",
+   "Auriel"
+  ],
+  "Cho": [
+   "Gall",
+   "Probius",
+   "The Lost Vikings"
+  ],
+  "Gall": [
+   "Cho",
+   "Probius",
+   "The Lost Vikings"
+  ],
+  "Samuro": [
+   "Illidan",
+   "Zeratul",
+   "The Lost Vikings"
+  ],
+  "Gazlowe": [
+   "Azmodan",
+   "Deckard",
+   "Li Li"
+  ],
+  "Garrosh": [
+   "Diablo",
+   "Stitches",
+   "Muradin"
+  ],
+  "Cassia": [
+   "Orphea",
+   "Chromie",
+   "Sylvanas"
+  ],
+  "Malthael": [
+   "Yrel",
+   "Leoric",
+   "Dehaka"
+  ],
+  "Valeera": [
+   "Nova",
+   "Probius",
+   "Zeratul"
+  ],
+  "D.Va": [
+   "Mei",
+   "Probius",
+   "Deathwing"
+  ],
+  "Medivh": [
+   "The Lost Vikings",
+   "Maiev",
+   "Abathur"
+  ],
+  "Yrel": [
+   "Chen",
+   "Probius",
+   "Maiev"
+  ],
+  "Maiev": [
+   "Genji",
+   "Zeratul",
+   "Alarak"
+  ]
+ }
+}

@@ -1,0 +1,14 @@
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+leaf {"drafts": 300, "max_abs_diff_wp": 5.202115338498459e-07, "mean_abs_diff_wp": 1.1816347106656059e-07, "max_abs_diff_personal_value": 5.758629390006931e-07, "mean_abs_diff_personal_value": 1.1685247881800438e-07, "mean_logit_vs_mean_prob_ensemble_max_gap": 0.0017300734149796604, "mean_logit_vs_mean_prob_ensemble_mean_gap": 0.00011907937320352206}
+  LUT blob: 232436 bytes (227.0 KB)
+personal terms zeroed 100 {'episodes': 64, 'identical_win_prob': True, 'identical_drafts': True, 'identical_root_visit_distributions': True, 'max_nodes_used': 1218, 'capacity_hits': 0}
+personal valuation off 100 {'episodes': 64, 'identical_win_prob': True, 'identical_drafts': True, 'identical_root_visit_distributions': True, 'max_nodes_used': 1218, 'capacity_hits': 0}
+personal terms zeroed 400 {'episodes': 64, 'identical_win_prob': True, 'identical_drafts': True, 'identical_root_visit_distributions': True, 'max_nodes_used': 2662, 'capacity_hits': 0}
+personal valuation off 400 {'episodes': 64, 'identical_win_prob': True, 'identical_drafts': True, 'identical_root_visit_distributions': True, 'max_nodes_used': 2662, 'capacity_hits': 0}
+guard {'sims 1000': {'max_nodes_used': 3528, 'capacity_hits_total': 0, 'episodes_with_hits': 0}, 'sims 3000': {'max_nodes_used': 4034, 'capacity_hits_total': 798, 'episodes_with_hits': 11}}

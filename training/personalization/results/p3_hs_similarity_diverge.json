@@ -1,0 +1,216 @@
+{
+ "n_pairs": {
+  "skill-not-pref": 236,
+  "pref-not-skill": 254,
+  "both high": 321,
+  "neither": 1159
+ },
+ "total": {
+  "skill-not-pref": [
+   0.20821307998312763,
+   0.12344412508861949,
+   0.32305125856688693
+  ],
+  "pref-not-skill": [
+   0.0986872007566784,
+   0.005913054860117119,
+   0.19852013543636357
+  ],
+  "both high": [
+   0.42323297455324155,
+   0.35965172926162614,
+   0.5111715247328114
+  ],
+  "neither": [
+   0.04072636024958166,
+   -0.02680855790991747,
+   0.1045528697363767
+  ],
+  "skill-not-pref minus pref-not-skill": [
+   0.10952587922644923,
+   -0.004976125318165155,
+   0.27799059777062307
+  ]
+ },
+ "specific": {
+  "skill-not-pref": [
+   -0.14505474855905054,
+   -0.24674765656673375,
+   -0.05975951044023201
+  ],
+  "pref-not-skill": [
+   -0.12649520706904158,
+   -0.2071140110462139,
+   -0.05017090754717063
+  ],
+  "both high": [
+   0.0280378214803244,
+   -0.017182522961809697,
+   0.08786917866062063
+  ],
+  "neither": [
+   -0.2015755920380975,
+   -0.2392594982861953,
+   -0.15725705586523306
+  ],
+  "skill-not-pref minus pref-not-skill": [
+   -0.018559541490008963,
+   -0.15563139294511244,
+   0.08995430316595368
+  ]
+ },
+ "examples skill-not-pref": [
+  {
+   "pair": "Thrall (Bruiser) + Probius (Ranged Assassin)",
+   "pref_r": -0.1672459564481939,
+   "embedding_corr": 0.6825439945698198
+  },
+  {
+   "pair": "Valla (Ranged Assassin) + Chen (Bruiser)",
+   "pref_r": -0.12036146769345893,
+   "embedding_corr": 0.673548866561009
+  },
+  {
+   "pair": "Probius (Ranged Assassin) + Johanna (Tank)",
+   "pref_r": -0.13499597574167999,
+   "embedding_corr": 0.6172732939341335
+  },
+  {
+   "pair": "Li-Ming (Ranged Assassin) + Chen (Bruiser)",
+   "pref_r": -0.10117229718347319,
+   "embedding_corr": 0.7466116937976198
+  },
+  {
+   "pair": "Muradin (Tank) + Probius (Ranged Assassin)",
+   "pref_r": -0.15511025867050757,
+   "embedding_corr": 0.5836613105824662
+  },
+  {
+   "pair": "Li-Ming (Ranged Assassin) + Rexxar (Bruiser)",
+   "pref_r": -0.11200867289422148,
+   "embedding_corr": 0.6542376602076851
+  },
+  {
+   "pair": "Probius (Ranged Assassin) + Falstad (Ranged Assassin)",
+   "pref_r": -0.15924698801325315,
+   "embedding_corr": 0.5563908970232736
+  },
+  {
+   "pair": "Valla (Ranged Assassin) + Zarya (Support)",
+   "pref_r": -0.10797369025428151,
+   "embedding_corr": 0.5991974409863151
+  },
+  {
+   "pair": "Falstad (Ranged Assassin) + Zarya (Support)",
+   "pref_r": -0.09983695026527956,
+   "embedding_corr": 0.6331093258027154
+  },
+  {
+   "pair": "Muradin (Tank) + Orphea (Ranged Assassin)",
+   "pref_r": -0.11393494819903552,
+   "embedding_corr": 0.5822820177099185
+  },
+  {
+   "pair": "Tychus (Ranged Assassin) + Probius (Ranged Assassin)",
+   "pref_r": -0.10813604041309219,
+   "embedding_corr": 0.593228164686089
+  },
+  {
+   "pair": "Valla (Ranged Assassin) + Probius (Ranged Assassin)",
+   "pref_r": -0.11837090987794438,
+   "embedding_corr": 0.565830137839634
+  },
+  {
+   "pair": "Hanzo (Ranged Assassin) + Cho (Tank)",
+   "pref_r": -0.08245118936688933,
+   "embedding_corr": 0.7812659975961053
+  },
+  {
+   "pair": "Diablo (Tank) + Probius (Ranged Assassin)",
+   "pref_r": -0.1395575774848265,
+   "embedding_corr": 0.5215534584860104
+  },
+  {
+   "pair": "E.T.C. (Tank) + Probius (Ranged Assassin)",
+   "pref_r": -0.12335588148725647,
+   "embedding_corr": 0.5292167654399685
+  }
+ ],
+ "examples pref-not-skill": [
+  {
+   "pair": "Probius (Ranged Assassin) + The Lost Vikings (Ranged Assassin)",
+   "pref_r": 0.24384878996397177,
+   "embedding_corr": -0.7520004033342806
+  },
+  {
+   "pair": "Probius (Ranged Assassin) + Gall (Ranged Assassin)",
+   "pref_r": 0.22736597268882408,
+   "embedding_corr": -0.700729370865883
+  },
+  {
+   "pair": "Probius (Ranged Assassin) + Valeera (Melee Assassin)",
+   "pref_r": 0.1880394946525291,
+   "embedding_corr": -0.7550484140374083
+  },
+  {
+   "pair": "Probius (Ranged Assassin) + Sgt. Hammer (Ranged Assassin)",
+   "pref_r": 0.14463933146914662,
+   "embedding_corr": -0.5484710625517322
+  },
+  {
+   "pair": "Murky (Ranged Assassin) + The Butcher (Melee Assassin)",
+   "pref_r": 0.17552971922858895,
+   "embedding_corr": -0.4561285116782984
+  },
+  {
+   "pair": "The Lost Vikings (Ranged Assassin) + Samuro (Melee Assassin)",
+   "pref_r": 0.13546667544266228,
+   "embedding_corr": -0.5030551757386136
+  },
+  {
+   "pair": "The Butcher (Melee Assassin) + Cho (Tank)",
+   "pref_r": 0.12826299696055996,
+   "embedding_corr": -0.5257112281351162
+  },
+  {
+   "pair": "Probius (Ranged Assassin) + Cho (Tank)",
+   "pref_r": 0.24735529732331973,
+   "embedding_corr": -0.3974630694172007
+  },
+  {
+   "pair": "Abathur (Support) + Zagara (Ranged Assassin)",
+   "pref_r": 0.11407916879397614,
+   "embedding_corr": -0.5026166893300081
+  },
+  {
+   "pair": "Murky (Ranged Assassin) + Probius (Ranged Assassin)",
+   "pref_r": 0.18500932521822036,
+   "embedding_corr": -0.36553437749609524
+  },
+  {
+   "pair": "The Lost Vikings (Ranged Assassin) + The Butcher (Melee Assassin)",
+   "pref_r": 0.11391318586039607,
+   "embedding_corr": -0.4775453461368863
+  },
+  {
+   "pair": "Probius (Ranged Assassin) + D.Va (Bruiser)",
+   "pref_r": 0.10714814281879041,
+   "embedding_corr": -0.48602226800015214
+  },
+  {
+   "pair": "The Butcher (Melee Assassin) + Gall (Ranged Assassin)",
+   "pref_r": 0.09803526372919745,
+   "embedding_corr": -0.5349534333387997
+  },
+  {
+   "pair": "Rexxar (Bruiser) + The Lost Vikings (Ranged Assassin)",
+   "pref_r": 0.2071576317400286,
+   "embedding_corr": -0.2810121686471286
+  },
+  {
+   "pair": "Probius (Ranged Assassin) + Medivh (Support)",
+   "pref_r": 0.1591555053625231,
+   "embedding_corr": -0.29518322090391136
+  }
+ ]
+}

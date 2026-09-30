@@ -1,0 +1,36 @@
+{"n_slots_established": 5723712, "off_role_share_blizz": 0.09566571483680521, "off_role_share_fine": 0.1750629661310702, "off_role_share_blizz_by_role": {"Tank": 0.10266052765196125, "Bruiser": 0.11712891810465077, "Healer": 0.09988013328361589, "Ranged Assassin": 0.019441971624633004, "Melee Assassin": 0.32029455398162326, "Support": 0.6342466346361945}}
+  penalty raw | blizz | 2025-01+: [-1.675612278632185, 0.08773146803483557]
+  penalty raw | blizz | post-cutoff: [-1.4180810301761826, 0.20152786151348545]
+  penalty raw | fine | 2025-01+: [-1.6932039390478528, 0.09332343659272627]
+  penalty raw | fine | post-cutoff: [-1.7133389761349895, 0.2112371113578246]
+  penalty after model | blizz | 2025-01+: [-0.9417284519859062, 0.08765248763984472]
+  penalty after model | blizz | post-cutoff: [-0.5840165016388985, 0.20131608800102246]
+  penalty after model | fine | 2025-01+: [-0.8893633866086552, 0.09324210694933377]
+  penalty after model | fine | post-cutoff: [-0.7854879476176537, 0.2110113784147399]
+  penalty after model | blizz | 2025-01+ | playing Tank: [-0.9152711969523476, 0.23526122074253958]
+  penalty raw | blizz | 2025-01+ | playing Tank: [-1.7773994731368323, 0.23547455855767638]
+  penalty after model | blizz | 2025-01+ | playing Bruiser: [-0.5068369592302681, 0.24804881120300903]
+  penalty raw | blizz | 2025-01+ | playing Bruiser: [-1.317252918264202, 0.24821337247091319]
+  penalty after model | blizz | 2025-01+ | playing Healer: [-0.5338060083584238, 0.21097919753192906]
+  penalty raw | blizz | 2025-01+ | playing Healer: [-1.0518438914487072, 0.21114982586565392]
+  penalty after model | blizz | 2025-01+ | playing Ranged Assassin: [-2.5541817089146854, 0.2670202364476133]
+  penalty raw | blizz | 2025-01+ | playing Ranged Assassin: [-3.6676291473192877, 0.26731293722941646]
+  penalty after model | blizz | 2025-01+ | playing Melee Assassin: [-0.32859280489850057, 0.5903514582972319]
+  penalty raw | blizz | 2025-01+ | playing Melee Assassin: [-1.490711528974911, 0.592767030979363]
+  penalty after model | blizz | 2025-01+ | playing Support: [-1.7457825964852332, 0.8861814312816513]
+  penalty raw | blizz | 2025-01+ | playing Support: [-6.379576735877297, 0.8869228416274416]
+  pick 1: {'off_role_share': 0.05647119101867009, 'penalty_raw': [-1.792823424135596, 0.23878309735060307], 'penalty_after_model': [-1.0066266604945806, 0.23850911831199817], 'mean_after_model_resid_pp': -0.8246117297752211}
+  pick 2: {'off_role_share': 0.0744000964668998, 'penalty_raw': [-1.9513328685275355, 0.21510501837903714], 'penalty_after_model': [-1.191526163520938, 0.21491854857102113], 'mean_after_model_resid_pp': -0.4954988424246099}
+  pick 3: {'off_role_share': 0.09510932757726273, 'penalty_raw': [-1.4710792790789031, 0.19615334042216206], 'penalty_after_model': [-0.7692697715948648, 0.1959879158988591], 'mean_after_model_resid_pp': -0.1777533284706224}
+  pick 4: {'off_role_share': 0.11675194994259654, 'penalty_raw': [-1.5564959205167683, 0.1823519811408663], 'penalty_after_model': [-0.8700425848511069, 0.18215894741058022], 'mean_after_model_resid_pp': 0.04083976643723024}
+  pick 5: {'off_role_share': 0.13057569025950067, 'penalty_raw': [-1.9154245563225207, 0.17322274956597492], 'penalty_after_model': [-1.2458198823612412, 0.17309728758731596], 'mean_after_model_resid_pp': 0.20050528578715512}
+  M0                                   acc 0.5719 ll 0.67647 {'gain_vs_M0': [0.0, 0.0, 0.0]} coef 
+  skill                                acc 0.6022 ll 0.66090 {'gain_vs_M0': [0.01557, 0.0144, 0.01659], 'gain_vs_skill': [0.0, 0.0, 0.0]} coef [3.8441]
+  skill + off-role count (blizz)       acc 0.6017 ll 0.66066 {'gain_vs_M0': [0.01581, 0.01461, 0.01681], 'gain_vs_skill': [0.00024, 0.0001, 0.00038]} coef [ 3.7738 -0.0491]
+  skill + off-role count (fine)        acc 0.6026 ll 0.66045 {'gain_vs_M0': [0.01601, 0.01487, 0.01704], 'gain_vs_skill': [0.00044, 0.00026, 0.00062]} coef [ 3.7094 -0.0518]
+  skill + log role share (blizz)       acc 0.6021 ll 0.66062 {'gain_vs_M0': [0.01585, 0.01474, 0.01686], 'gain_vs_skill': [0.00028, 9e-05, 0.00049]} coef [3.629  0.0274]
+  skill + log role share (fine)        acc 0.6021 ll 0.66048 {'gain_vs_M0': [0.01599, 0.01483, 0.01707], 'gain_vs_skill': [0.00042, 0.00015, 0.00065]} coef [3.5059 0.0303]
+  skill + all role terms               acc 0.6021 ll 0.66038 {'gain_vs_M0': [0.01609, 0.01492, 0.01716], 'gain_vs_skill': [0.00052, 0.00024, 0.00078]} coef [ 3.5024  0.0075 -0.0213  0.0053  0.0229]
+  off-role count (blizz) alone         acc 0.5757 ll 0.67513 {'gain_vs_M0': [0.00134, 0.00097, 0.00174], 'gain_vs_skill': [-0.01423, -0.01522, -0.01306]} coef [-0.1231]
+  log role share (blizz) alone         acc 0.5787 ll 0.67348 {'gain_vs_M0': [0.00299, 0.00236, 0.00352], 'gain_vs_skill': [-0.01258, -0.01353, -0.01135]} coef [0.0719]
+done 77s

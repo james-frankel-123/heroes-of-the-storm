@@ -1,0 +1,13 @@
+static lag 1 day
+drift lag 1 day
+static lag 0 (same-day games used)
+drift lag 0 (same-day games used)
+static, lag 1 day {'all': 1.602, 'first game of day': 1.145, 'games 2-3 of day': 1.578, 'game 4+ of day': 2.892}
+drift, lag 1 day {'all': 1.619, 'first game of day': 1.16, 'games 2-3 of day': 1.59, 'game 4+ of day': 2.922}
+static, lag 0 (same-day games used) {'all': 1.701, 'first game of day': 1.145, 'games 2-3 of day': 1.672, 'game 4+ of day': 3.274}
+drift, lag 0 (same-day games used) {'all': 1.78, 'first game of day': 1.16, 'games 2-3 of day': 1.744, 'game 4+ of day': 3.537}
+static, lag 1 day                        acc 0.6022 ll 0.66090 gain +0.01557 vs static lag1 +0.00000 [+0.00000,+0.00000]
+drift, lag 1 day                         acc 0.6018 ll 0.66091 gain +0.01556 vs static lag1 -0.00001 [-0.00018,+0.00017]
+static, lag 0 (same-day games used)      acc 0.6029 ll 0.66006 gain +0.01641 vs static lag1 +0.00084 [+0.00071,+0.00094]
+drift, lag 0 (same-day games used)       acc 0.6040 ll 0.65967 gain +0.01679 vs static lag1 +0.00122 [+0.00094,+0.00148]
+drift vs static, both lag 0: [0.00038893168271291156, 0.00016923967592916364, 0.0005985685135789184]

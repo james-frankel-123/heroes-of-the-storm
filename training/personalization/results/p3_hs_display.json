@@ -1,0 +1,1102 @@
+{
+ "kernel": "+CF rank 2",
+ "sd_curve": {
+  "player+hero": {
+   "0": {
+    "no other games": 4.334595132680043,
+    "no other games (calibrated)": 8.493686619533017,
+    "300 games on other heroes": 3.9579744016715876,
+    "300 games on other heroes (calibrated)": 8.269528747940594
+   },
+   "1": {
+    "no other games": 4.317851976513624,
+    "no other games (calibrated)": 4.736164055594976,
+    "300 games on other heroes": 3.9452150491923668,
+    "300 games on other heroes (calibrated)": 4.327426185337712
+   },
+   "3": {
+    "no other games": 4.284939602687024,
+    "no other games (calibrated)": 4.700063141818932,
+    "300 games on other heroes": 3.920062214082829,
+    "300 games on other heroes (calibrated)": 4.299836551837056
+   },
+   "5": {
+    "no other games": 4.252768548028244,
+    "no other games (calibrated)": 4.664775365967818,
+    "300 games on other heroes": 3.895384412895344,
+    "300 games on other heroes (calibrated)": 4.272767973388552
+   },
+   "10": {
+    "no other games": 4.1754076744539095,
+    "no other games (calibrated)": 4.579919796410283,
+    "300 games on other heroes": 3.835672831137973,
+    "300 games on other heroes (calibrated)": 4.207271553233285
+   },
+   "20": {
+    "no other games": 4.0325617679484935,
+    "no other games (calibrated)": 4.423235025473302,
+    "300 games on other heroes": 3.7240502664760324,
+    "300 games on other heroes (calibrated)": 4.084835031226325
+   },
+   "50": {
+    "no other games": 3.67851754780872,
+    "no other games (calibrated)": 4.034891117752994,
+    "300 games on other heroes": 3.4398494041800993,
+    "300 games on other heroes (calibrated)": 3.773100882882056
+   },
+   "100": {
+    "no other games": 3.2516253775803112,
+    "no other games (calibrated)": 3.5666417745035734,
+    "300 games on other heroes": 3.083267140057559,
+    "300 games on other heroes (calibrated)": 3.3819730463128486
+   },
+   "200": {
+    "no other games": 2.71226475263403,
+    "no other games (calibrated)": 2.9750280696409055,
+    "300 games on other heroes": 2.6122282615505936,
+    "300 games on other heroes (calibrated)": 2.8653000762093725
+   },
+   "500": {
+    "no other games": 1.9611390905894717,
+    "no other games (calibrated)": 2.1511336005482375,
+    "300 games on other heroes": 1.9223066061692555,
+    "300 games on other heroes (calibrated)": 2.1085390378117492
+   }
+  },
+  "player+role+melee+hero": {
+   "0": {
+    "no other games": 4.350840759877722,
+    "no other games (calibrated)": 8.503674298649702,
+    "300 games on other heroes": 3.969361426573783,
+    "300 games on other heroes (calibrated)": 8.276092806030526
+   },
+   "1": {
+    "no other games": 4.333909378035642,
+    "no other games (calibrated)": 4.753777092894194,
+    "300 games on other heroes": 3.956491989846578,
+    "300 games on other heroes (calibrated)": 4.339795632292834
+   },
+   "3": {
+    "no other games": 4.300631277409315,
+    "no other games (calibrated)": 4.717275020826374,
+    "300 games on other heroes": 3.931124234127744,
+    "300 games on other heroes (calibrated)": 4.311970256744953
+   },
+   "5": {
+    "no other games": 4.268108171350985,
+    "no other games (calibrated)": 4.681601086951934,
+    "300 games on other heroes": 3.9062382533977655,
+    "300 games on other heroes (calibrated)": 4.284673330388362
+   },
+   "10": {
+    "no other games": 4.189922482863443,
+    "no other games (calibrated)": 4.595840794683732,
+    "300 games on other heroes": 3.8460338358170874,
+    "300 games on other heroes (calibrated)": 4.21863632863735
+   },
+   "20": {
+    "no other games": 4.045632662038743,
+    "no other games (calibrated)": 4.4375722234832065,
+    "300 games on other heroes": 3.7335305821712126,
+    "300 games on other heroes (calibrated)": 4.0952337967874035
+   },
+   "50": {
+    "no other games": 3.6884310248685805,
+    "no other games (calibrated)": 4.045765009209271,
+    "300 games on other heroes": 3.4473164858783636,
+    "300 games on other heroes (calibrated)": 3.7812913729988717
+   },
+   "100": {
+    "no other games": 3.258466463604116,
+    "no other games (calibrated)": 3.5741456226909163,
+    "300 games on other heroes": 3.0886410204865578,
+    "300 games on other heroes (calibrated)": 3.3878675465100128
+   },
+   "200": {
+    "no other games": 2.716231209703517,
+    "no other games (calibrated)": 2.9793787957664755,
+    "300 games on other heroes": 2.6154938950784676,
+    "300 games on other heroes (calibrated)": 2.868882083239162
+   },
+   "500": {
+    "no other games": 1.9626369711265306,
+    "no other games (calibrated)": 2.1527765952589832,
+    "300 games on other heroes": 1.9236068617263724,
+    "300 games on other heroes (calibrated)": 2.109965261699507
+   }
+  },
+  "+CF rank 2": {
+   "0": {
+    "no other games": 3.873006076216553,
+    "no other games (calibrated)": 8.220982344606075,
+    "300 games on other heroes": 3.423877747766445,
+    "300 games on other heroes (calibrated)": 7.977565986926033
+   },
+   "1": {
+    "no other games": 3.8610484949569437,
+    "no other games (calibrated)": 4.235105603015444,
+    "300 games on other heroes": 3.415607989864327,
+    "300 games on other heroes (calibrated)": 3.746510968321842
+   },
+   "3": {
+    "no other games": 3.8374618776354557,
+    "no other games (calibrated)": 4.209233921966918,
+    "300 games on other heroes": 3.3992466636789924,
+    "300 games on other heroes (calibrated)": 3.7285645622379042
+   },
+   "5": {
+    "no other games": 3.814302307650741,
+    "no other games (calibrated)": 4.183830660460671,
+    "300 games on other heroes": 3.383118227572965,
+    "300 games on other heroes (calibrated)": 3.7108736085475456
+   },
+   "10": {
+    "no other games": 3.7581894409694248,
+    "no other games (calibrated)": 4.122281597714193,
+    "300 games on other heroes": 3.343780551482397,
+    "300 games on other heroes (calibrated)": 3.66772491133787
+   },
+   "20": {
+    "no other games": 3.653013852336758,
+    "no other games (calibrated)": 4.006916632653422,
+    "300 games on other heroes": 3.269053861988785,
+    "300 games on other heroes (calibrated)": 3.585758724748255
+   },
+   "50": {
+    "no other games": 3.38363210259347,
+    "no other games (calibrated)": 3.7114372676109926,
+    "300 games on other heroes": 3.071749611297812,
+    "300 games on other heroes (calibrated)": 3.36933970315567
+   },
+   "100": {
+    "no other games": 3.042587908119719,
+    "no other games (calibrated)": 3.3373528237667363,
+    "300 games on other heroes": 2.8098387542025516,
+    "300 games on other heroes (calibrated)": 3.0820550083833806
+   },
+   "200": {
+    "no other games": 2.5873513923023466,
+    "no other games (calibrated)": 2.8380131440518657,
+    "300 games on other heroes": 2.439635260614235,
+    "300 games on other heroes (calibrated)": 2.6759863221186007
+   },
+   "500": {
+    "no other games": 1.9123278382047728,
+    "no other games (calibrated)": 2.097593530089489,
+    "300 games on other heroes": 1.8503127635255228,
+    "300 games on other heroes (calibrated)": 2.029570455375831
+   }
+  }
+ },
+ "calibration": {
+  "c": 1.2031450127394463,
+  "delta_sd_pp": 0.0,
+  "kappa0_sd_pp": 7.038264252343016,
+  "kappa1_sd_pp": 0.0
+ },
+ "example_player": {
+  "total_games": 533,
+  "heroes": [
+   {
+    "hero": "Whitemane",
+    "games": 86,
+    "raw_wr": 65.11627906976744,
+    "strength_pp": 4.526380433167214,
+    "lo80": 0.7742191111620769,
+    "hi80": 8.27854175517235,
+    "sd_pp": 2.927826957576376,
+    "label": "clear strength"
+   },
+   {
+    "hero": "Ana",
+    "games": 134,
+    "raw_wr": 52.23880597014925,
+    "strength_pp": 3.8308373149421175,
+    "lo80": -0.10417356907984177,
+    "hi80": 7.765848198964077,
+    "sd_pp": 3.0705052250896174,
+    "label": "unclear"
+   },
+   {
+    "hero": "Tyrande",
+    "games": 44,
+    "raw_wr": 52.27272727272727,
+    "strength_pp": 1.1918132760252194,
+    "lo80": -3.063042547084808,
+    "hi80": 5.446669099135247,
+    "sd_pp": 3.3200815504502725,
+    "label": "unclear"
+   },
+   {
+    "hero": "Auriel",
+    "games": 42,
+    "raw_wr": 47.61904761904762,
+    "strength_pp": 0.9496364212435437,
+    "lo80": -3.298065349787567,
+    "hi80": 5.197338192274655,
+    "sd_pp": 3.314499214101961,
+    "label": "unclear"
+   },
+   {
+    "hero": "Alexstrasza",
+    "games": 16,
+    "raw_wr": 62.5,
+    "strength_pp": 0.1161120767445397,
+    "lo80": -4.154837222418145,
+    "hi80": 4.387061375907225,
+    "sd_pp": 3.3326393562012524,
+    "label": "unclear"
+   },
+   {
+    "hero": "Stukov",
+    "games": 15,
+    "raw_wr": 53.333333333333336,
+    "strength_pp": 0.01882282418897655,
+    "lo80": -3.8769597533737232,
+    "hi80": 3.9146054017516767,
+    "sd_pp": 3.0398952157390307,
+    "label": "unclear"
+   },
+   {
+    "hero": "Anduin",
+    "games": 18,
+    "raw_wr": 50.0,
+    "strength_pp": -0.11562907712012876,
+    "lo80": -4.026979624209406,
+    "hi80": 3.7957214699691484,
+    "sd_pp": 3.0520429665799464,
+    "label": "unclear"
+   },
+   {
+    "hero": "Kel'Thuzad",
+    "games": 19,
+    "raw_wr": 57.89473684210526,
+    "strength_pp": -0.26030010836661893,
+    "lo80": -5.465024251878084,
+    "hi80": 4.944424035144847,
+    "sd_pp": 4.061267719155019,
+    "label": "unclear"
+   },
+   {
+    "hero": "Lt. Morales",
+    "games": 14,
+    "raw_wr": 50.0,
+    "strength_pp": -0.2754492233689499,
+    "lo80": -4.282912884756372,
+    "hi80": 3.7320144380184717,
+    "sd_pp": 3.1270404261423588,
+    "label": "unclear"
+   },
+   {
+    "hero": "Hanzo",
+    "games": 11,
+    "raw_wr": 27.272727272727273,
+    "strength_pp": -0.32324641754151207,
+    "lo80": -6.8431212171872895,
+    "hi80": 6.196628382104266,
+    "sd_pp": 5.087485201255866,
+    "label": "unclear"
+   },
+   {
+    "hero": "Malfurion",
+    "games": 9,
+    "raw_wr": 66.66666666666667,
+    "strength_pp": -0.7636968650939034,
+    "lo80": -4.910421606889027,
+    "hi80": 3.3830278767012203,
+    "sd_pp": 3.2357064216494473,
+    "label": "unclear"
+   },
+   {
+    "hero": "Maiev",
+    "games": 9,
+    "raw_wr": 66.66666666666667,
+    "strength_pp": -0.8219237677570546,
+    "lo80": -7.748611392503615,
+    "hi80": 6.104763856989506,
+    "sd_pp": 5.404922926822892,
+    "label": "unclear"
+   },
+   {
+    "hero": "Mei",
+    "games": 11,
+    "raw_wr": 45.45454545454545,
+    "strength_pp": -1.2590018879946447,
+    "lo80": -6.065680779484062,
+    "hi80": 3.5476770034947727,
+    "sd_pp": 3.7506713670283873,
+    "label": "unclear"
+   },
+   {
+    "hero": "Garrosh",
+    "games": 8,
+    "raw_wr": 62.5,
+    "strength_pp": -1.3732865231820113,
+    "lo80": -6.360240857593107,
+    "hi80": 3.613667811229084,
+    "sd_pp": 3.8913410387932057,
+    "label": "unclear"
+   },
+   {
+    "hero": "Li-Ming",
+    "games": 6,
+    "raw_wr": 50.0,
+    "strength_pp": -1.3963048552476975,
+    "lo80": -7.3436691258616404,
+    "hi80": 4.551059415366246,
+    "sd_pp": 4.640752873792942,
+    "label": "unclear"
+   },
+   {
+    "hero": "Brightwing",
+    "games": 9,
+    "raw_wr": 33.333333333333336,
+    "strength_pp": -1.6826560474802965,
+    "lo80": -5.616878673599204,
+    "hi80": 2.2515665786386103,
+    "sd_pp": 3.0698901441962283,
+    "label": "unclear"
+   },
+   {
+    "hero": "Deckard",
+    "games": 8,
+    "raw_wr": 25.0,
+    "strength_pp": -1.8721257795277015,
+    "lo80": -5.902514300620379,
+    "hi80": 2.158262741564976,
+    "sd_pp": 3.1449287887375568,
+    "label": "unclear"
+   },
+   {
+    "hero": "Gul'dan",
+    "games": 5,
+    "raw_wr": 20.0,
+    "strength_pp": -1.924213716084388,
+    "lo80": -6.717567471649536,
+    "hi80": 2.86914003948076,
+    "sd_pp": 3.7402737084992506,
+    "label": "unclear"
+   },
+   {
+    "hero": "Malthael",
+    "games": 5,
+    "raw_wr": 40.0,
+    "strength_pp": -2.438029247148309,
+    "lo80": -7.112796116882998,
+    "hi80": 2.2367376225863795,
+    "sd_pp": 3.647739872303767,
+    "label": "unclear"
+   },
+   {
+    "hero": "Varian",
+    "games": 4,
+    "raw_wr": 75.0,
+    "strength_pp": -2.8324383002383833,
+    "lo80": -7.4086071771715245,
+    "hi80": 1.743730576694758,
+    "sd_pp": 3.570803451794794,
+    "label": "unclear"
+   },
+   {
+    "hero": "Mal'Ganis",
+    "games": 4,
+    "raw_wr": 75.0,
+    "strength_pp": -2.912132038068148,
+    "lo80": -7.250626706803118,
+    "hi80": 1.4263626306668216,
+    "sd_pp": 3.3853452867094616,
+    "label": "unclear"
+   },
+   {
+    "hero": "Dehaka",
+    "games": 3,
+    "raw_wr": 0.0,
+    "strength_pp": -3.144780260970645,
+    "lo80": -8.213654968755762,
+    "hi80": 1.924094446814471,
+    "sd_pp": 3.955263844066143,
+    "label": "unclear"
+   },
+   {
+    "hero": "Kerrigan",
+    "games": 2,
+    "raw_wr": 50.0,
+    "strength_pp": -3.166131248706097,
+    "lo80": -10.218873530301424,
+    "hi80": 3.8866110328892307,
+    "sd_pp": 5.503283895549214,
+    "label": "unclear"
+   },
+   {
+    "hero": "Anub'arak",
+    "games": 4,
+    "raw_wr": 25.0,
+    "strength_pp": -3.1683830356064755,
+    "lo80": -7.82052935406476,
+    "hi80": 1.4837632828518093,
+    "sd_pp": 3.630088962830903,
+    "label": "unclear"
+   },
+   {
+    "hero": "Cho",
+    "games": 2,
+    "raw_wr": 50.0,
+    "strength_pp": -3.2208167566944113,
+    "lo80": -11.738403015718069,
+    "hi80": 5.296769502329246,
+    "sd_pp": 6.646307693754709,
+    "label": "unclear"
+   },
+   {
+    "hero": "Stitches",
+    "games": 3,
+    "raw_wr": 0.0,
+    "strength_pp": -3.376322051172808,
+    "lo80": -7.83815708737297,
+    "hi80": 1.085512985027354,
+    "sd_pp": 3.4815882842330828,
+    "label": "unclear"
+   },
+   {
+    "hero": "Ragnaros",
+    "games": 4,
+    "raw_wr": 25.0,
+    "strength_pp": -3.3781064359199116,
+    "lo80": -7.7618946943590075,
+    "hi80": 1.0056818225191844,
+    "sd_pp": 3.420688061595878,
+    "label": "unclear"
+   },
+   {
+    "hero": "Abathur",
+    "games": 3,
+    "raw_wr": 33.333333333333336,
+    "strength_pp": -3.4022503668354553,
+    "lo80": -9.661314211280233,
+    "hi80": 2.856813477609322,
+    "sd_pp": 4.883973337042986,
+    "label": "unclear"
+   },
+   {
+    "hero": "D.Va",
+    "games": 4,
+    "raw_wr": 50.0,
+    "strength_pp": -3.5535295243887606,
+    "lo80": -8.921131889595252,
+    "hi80": 1.814072840817731,
+    "sd_pp": 4.188362267431519,
+    "label": "unclear"
+   },
+   {
+    "hero": "Muradin",
+    "games": 2,
+    "raw_wr": 100.0,
+    "strength_pp": -3.7194004497582687,
+    "lo80": -9.171661377671168,
+    "hi80": 1.7328604781546297,
+    "sd_pp": 4.254421693135804,
+    "label": "unclear"
+   },
+   {
+    "hero": "Valla",
+    "games": 2,
+    "raw_wr": 100.0,
+    "strength_pp": -3.724904757224856,
+    "lo80": -8.967364400866689,
+    "hi80": 1.5175548864169772,
+    "sd_pp": 4.090712885569206,
+    "label": "unclear"
+   },
+   {
+    "hero": "Kael'thas",
+    "games": 4,
+    "raw_wr": 0.0,
+    "strength_pp": -3.7876885228473385,
+    "lo80": -8.362372221704229,
+    "hi80": 0.7869951760095524,
+    "sd_pp": 3.5696445612153975,
+    "label": "unclear"
+   },
+   {
+    "hero": "Leoric",
+    "games": 3,
+    "raw_wr": 33.333333333333336,
+    "strength_pp": -3.926287246181964,
+    "lo80": -9.202851328103971,
+    "hi80": 1.3502768357400443,
+    "sd_pp": 4.117324719443219,
+    "label": "unclear"
+   },
+   {
+    "hero": "Uther",
+    "games": 2,
+    "raw_wr": 0.0,
+    "strength_pp": -3.9860272268800068,
+    "lo80": -8.558977165233737,
+    "hi80": 0.5869227114737225,
+    "sd_pp": 3.5682917007428565,
+    "label": "unclear"
+   },
+   {
+    "hero": "Medivh",
+    "games": 1,
+    "raw_wr": 0.0,
+    "strength_pp": -4.046685861695809,
+    "lo80": -12.107033047099463,
+    "hi80": 4.013661323707846,
+    "sd_pp": 6.289522158455154,
+    "label": "unclear"
+   },
+   {
+    "hero": "Nazeebo",
+    "games": 2,
+    "raw_wr": 100.0,
+    "strength_pp": -4.084859673899381,
+    "lo80": -8.487052474648044,
+    "hi80": 0.31733312684928094,
+    "sd_pp": 3.4350492018804877,
+    "label": "unclear"
+   },
+   {
+    "hero": "Imperius",
+    "games": 2,
+    "raw_wr": 50.0,
+    "strength_pp": -4.122401877472982,
+    "lo80": -9.795073156598285,
+    "hi80": 1.5502694016523204,
+    "sd_pp": 4.42640879940012,
+    "label": "unclear"
+   },
+   {
+    "hero": "Artanis",
+    "games": 2,
+    "raw_wr": 100.0,
+    "strength_pp": -4.186045433272058,
+    "lo80": -8.519753896055825,
+    "hi80": 0.1476630295117083,
+    "sd_pp": 3.381610590462192,
+    "label": "unclear"
+   },
+   {
+    "hero": "Sylvanas",
+    "games": 1,
+    "raw_wr": 100.0,
+    "strength_pp": -4.290928212056544,
+    "lo80": -9.968465947144676,
+    "hi80": 1.3866095230315887,
+    "sd_pp": 4.430206115062501,
+    "label": "unclear"
+   },
+   {
+    "hero": "L\u00facio",
+    "games": 1,
+    "raw_wr": 0.0,
+    "strength_pp": -4.34475084076783,
+    "lo80": -8.498878651621622,
+    "hi80": -0.1906230299140379,
+    "sd_pp": 3.2414830669742773,
+    "label": "clear weakness"
+   },
+   {
+    "hero": "Rehgar",
+    "games": 1,
+    "raw_wr": 100.0,
+    "strength_pp": -4.417388213761342,
+    "lo80": -8.973093547642751,
+    "hi80": 0.13831712012006747,
+    "sd_pp": 3.5548356647375017,
+    "label": "unclear"
+   },
+   {
+    "hero": "Illidan",
+    "games": 1,
+    "raw_wr": 0.0,
+    "strength_pp": -4.538003423131057,
+    "lo80": -9.721454596475386,
+    "hi80": 0.6454477502132718,
+    "sd_pp": 4.044668332780614,
+    "label": "unclear"
+   },
+   {
+    "hero": "Tyrael",
+    "games": 1,
+    "raw_wr": 100.0,
+    "strength_pp": -4.658179042470814,
+    "lo80": -9.127356989037485,
+    "hi80": -0.1890010959041426,
+    "sd_pp": 3.487317987482261,
+    "label": "clear weakness"
+   },
+   {
+    "hero": "Chromie",
+    "games": 1,
+    "raw_wr": 100.0,
+    "strength_pp": -4.726984723885951,
+    "lo80": -9.809091258996533,
+    "hi80": 0.35512181122463105,
+    "sd_pp": 3.965588693510727,
+    "label": "unclear"
+   },
+   {
+    "hero": "Murky",
+    "games": 1,
+    "raw_wr": 0.0,
+    "strength_pp": -4.772691345235669,
+    "lo80": -10.652370206502423,
+    "hi80": 1.1069875160310847,
+    "sd_pp": 4.587937669670698,
+    "label": "unclear"
+   },
+   {
+    "hero": "Johanna",
+    "games": 1,
+    "raw_wr": 0.0,
+    "strength_pp": -5.068279443000854,
+    "lo80": -10.255897025240838,
+    "hi80": 0.11933813923913039,
+    "sd_pp": 4.0479193988287205,
+    "label": "unclear"
+   },
+   {
+    "hero": "Zagara",
+    "games": 1,
+    "raw_wr": 0.0,
+    "strength_pp": -5.329157861193449,
+    "lo80": -10.591901887099997,
+    "hi80": -0.06641383528690259,
+    "sd_pp": 4.106540872725333,
+    "label": "clear weakness"
+   },
+   {
+    "hero": "Tassadar",
+    "games": 1,
+    "raw_wr": 0.0,
+    "strength_pp": -5.372062487569474,
+    "lo80": -9.863850791857494,
+    "hi80": -0.8802741832814531,
+    "sd_pp": 3.5049609428820667,
+    "label": "clear weakness"
+   },
+   {
+    "hero": "Sgt. Hammer",
+    "games": 1,
+    "raw_wr": 0.0,
+    "strength_pp": -5.484602390579476,
+    "lo80": -11.119775941308014,
+    "hi80": 0.15057116014906136,
+    "sd_pp": 4.397149167250493,
+    "label": "unclear"
+   },
+   {
+    "hero": "Yrel",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -5.7190978223812845,
+    "lo80": -17.810209907285135,
+    "hi80": 6.372014262522564,
+    "sd_pp": 9.43474463681669,
+    "label": "unclear"
+   },
+   {
+    "hero": "Alarak",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -5.791360247343123,
+    "lo80": -17.04002860747132,
+    "hi80": 5.457308112785073,
+    "sd_pp": 8.77738232321523,
+    "label": "unclear"
+   },
+   {
+    "hero": "Zeratul",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -5.813289924245389,
+    "lo80": -16.899553608154726,
+    "hi80": 5.272973759663948,
+    "sd_pp": 8.650657284427202,
+    "label": "unclear"
+   },
+   {
+    "hero": "Zarya",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -5.930568683566461,
+    "lo80": -16.947919813287534,
+    "hi80": 5.08678244615461,
+    "sd_pp": 8.59688453412338,
+    "label": "unclear"
+   },
+   {
+    "hero": "Genji",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.015808164108616,
+    "lo80": -17.458492694089564,
+    "hi80": 5.42687636587233,
+    "sd_pp": 8.928773940886146,
+    "label": "unclear"
+   },
+   {
+    "hero": "Hogger",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.137033715954772,
+    "lo80": -17.091298943114477,
+    "hi80": 4.817231511204934,
+    "sd_pp": 8.547658344119508,
+    "label": "unclear"
+   },
+   {
+    "hero": "Chen",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.22625715095473,
+    "lo80": -17.438531310214323,
+    "hi80": 4.986017008304865,
+    "sd_pp": 8.748983778147984,
+    "label": "unclear"
+   },
+   {
+    "hero": "Tracer",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.236486458993965,
+    "lo80": -16.809159863380582,
+    "hi80": 4.336186945392652,
+    "sd_pp": 8.24990067070777,
+    "label": "unclear"
+   },
+   {
+    "hero": "Greymane",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.373285869310143,
+    "lo80": -16.7589369949361,
+    "hi80": 4.012365256315814,
+    "sd_pp": 8.103966415106466,
+    "label": "unclear"
+   },
+   {
+    "hero": "Falstad",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.459575556821644,
+    "lo80": -16.985641409668595,
+    "hi80": 4.066490296025307,
+    "sd_pp": 8.213532605980868,
+    "label": "unclear"
+   },
+   {
+    "hero": "Diablo",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.508229626243063,
+    "lo80": -16.885613148136645,
+    "hi80": 3.86915389565052,
+    "sd_pp": 8.097515169809459,
+    "label": "unclear"
+   },
+   {
+    "hero": "Rexxar",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.517202645027323,
+    "lo80": -16.878904180584357,
+    "hi80": 3.844498890529712,
+    "sd_pp": 8.085278451181392,
+    "label": "unclear"
+   },
+   {
+    "hero": "Mephisto",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.542764863947675,
+    "lo80": -17.513364163966173,
+    "hi80": 4.427834436070824,
+    "sd_pp": 8.5604038885508,
+    "label": "unclear"
+   },
+   {
+    "hero": "Gall",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.557000942777291,
+    "lo80": -21.41812636097545,
+    "hi80": 8.304124475420865,
+    "sd_pp": 11.596197467349857,
+    "label": "unclear"
+   },
+   {
+    "hero": "Blaze",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.60594854366953,
+    "lo80": -16.871334268563132,
+    "hi80": 3.659437181224069,
+    "sd_pp": 8.010122826809003,
+    "label": "unclear"
+   },
+   {
+    "hero": "Sonya",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.665771424444398,
+    "lo80": -16.98529076728958,
+    "hi80": 3.653747918400785,
+    "sd_pp": 8.05236351220285,
+    "label": "unclear"
+   },
+   {
+    "hero": "Zul'jin",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.681301014780231,
+    "lo80": -16.861647324714706,
+    "hi80": 3.499045295154244,
+    "sd_pp": 7.94376622052087,
+    "label": "unclear"
+   },
+   {
+    "hero": "Li Li",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.685812633661715,
+    "lo80": -16.83518581074526,
+    "hi80": 3.463560543421826,
+    "sd_pp": 7.919597757190222,
+    "label": "unclear"
+   },
+   {
+    "hero": "Cassia",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.696665431166913,
+    "lo80": -16.8087045499595,
+    "hi80": 3.4153736876256744,
+    "sd_pp": 7.890465837499315,
+    "label": "unclear"
+   },
+   {
+    "hero": "Orphea",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.723267299319414,
+    "lo80": -17.16250906171272,
+    "hi80": 3.715974463073893,
+    "sd_pp": 8.14578341004241,
+    "label": "unclear"
+   },
+   {
+    "hero": "E.T.C.",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.723619290618357,
+    "lo80": -16.95955867439606,
+    "hi80": 3.512320093159346,
+    "sd_pp": 7.987145725367362,
+    "label": "unclear"
+   },
+   {
+    "hero": "Kharazim",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.7390668473846835,
+    "lo80": -17.083079390644002,
+    "hi80": 3.604945695874636,
+    "sd_pp": 8.07147565752274,
+    "label": "unclear"
+   },
+   {
+    "hero": "Thrall",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.753727402204142,
+    "lo80": -17.534080952371625,
+    "hi80": 4.026626147963341,
+    "sd_pp": 8.411954345160572,
+    "label": "unclear"
+   },
+   {
+    "hero": "Arthas",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.771636288127262,
+    "lo80": -16.911482261121662,
+    "hi80": 3.3682096848671375,
+    "sd_pp": 7.912163640538859,
+    "label": "unclear"
+   },
+   {
+    "hero": "Junkrat",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.773878504124122,
+    "lo80": -16.94620056047131,
+    "hi80": 3.3984435522230694,
+    "sd_pp": 7.937504862345918,
+    "label": "unclear"
+   },
+   {
+    "hero": "Fenix",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.780064944996831,
+    "lo80": -16.885234734248833,
+    "hi80": 3.3251048442551694,
+    "sd_pp": 7.88510567132217,
+    "label": "unclear"
+   },
+   {
+    "hero": "Jaina",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.828228163024695,
+    "lo80": -17.536533761482012,
+    "hi80": 3.8800774354326197,
+    "sd_pp": 8.3557350312366,
+    "label": "unclear"
+   },
+   {
+    "hero": "Samuro",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.830124757667084,
+    "lo80": -17.046510551350966,
+    "hi80": 3.3862610360167977,
+    "sd_pp": 7.971887978356769,
+    "label": "unclear"
+   },
+   {
+    "hero": "Raynor",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.832895283079961,
+    "lo80": -17.027501290812705,
+    "hi80": 3.3617107246527818,
+    "sd_pp": 7.954893121535443,
+    "label": "unclear"
+   },
+   {
+    "hero": "The Lost Vikings",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.839199599252405,
+    "lo80": -20.123758108395926,
+    "hi80": 6.445358909891114,
+    "sd_pp": 10.36599580472883,
+    "label": "unclear"
+   },
+   {
+    "hero": "Probius",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.929101512222774,
+    "lo80": -18.555763624355812,
+    "hi80": 4.697560599910265,
+    "sd_pp": 9.072332407164128,
+    "label": "unclear"
+   },
+   {
+    "hero": "Tychus",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -6.984668699959727,
+    "lo80": -17.187499886382184,
+    "hi80": 3.218162486462729,
+    "sd_pp": 7.9613112623966575,
+    "label": "unclear"
+   },
+   {
+    "hero": "Nova",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.031514752387183,
+    "lo80": -17.013115269028113,
+    "hi80": 2.950085764253748,
+    "sd_pp": 7.788684058168966,
+    "label": "unclear"
+   },
+   {
+    "hero": "Valeera",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.082290978942811,
+    "lo80": -18.617273865516452,
+    "hi80": 4.452691907630832,
+    "sd_pp": 9.000794729274766,
+    "label": "unclear"
+   },
+   {
+    "hero": "Lunara",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.092665985790199,
+    "lo80": -17.691654739743083,
+    "hi80": 3.5063227681626854,
+    "sd_pp": 8.270434646527603,
+    "label": "unclear"
+   },
+   {
+    "hero": "Azmodan",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.107500851465448,
+    "lo80": -17.202603920862757,
+    "hi80": 2.987602217931859,
+    "sd_pp": 7.877250568293394,
+    "label": "unclear"
+   },
+   {
+    "hero": "Xul",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.107616619512548,
+    "lo80": -17.14427084828681,
+    "hi80": 2.9290376092617123,
+    "sd_pp": 7.831642696848305,
+    "label": "unclear"
+   },
+   {
+    "hero": "The Butcher",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.124430320679521,
+    "lo80": -17.46041343017283,
+    "hi80": 3.2115527888137896,
+    "sd_pp": 8.065210257232959,
+    "label": "unclear"
+   },
+   {
+    "hero": "Gazlowe",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.154334292679701,
+    "lo80": -17.253426989114704,
+    "hi80": 2.9447584037553014,
+    "sd_pp": 7.880363690728491,
+    "label": "unclear"
+   },
+   {
+    "hero": "Qhira",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.2961867537028064,
+    "lo80": -17.71579893543758,
+    "hi80": 3.1234254280319655,
+    "sd_pp": 8.130466367280702,
+    "label": "unclear"
+   },
+   {
+    "hero": "Deathwing",
+    "games": 0,
+    "raw_wr": null,
+    "strength_pp": -7.334722882178059,
+    "lo80": -17.714180529920178,
+    "hi80": 3.044734765564061,
+    "sd_pp": 8.099133618765034,
+    "label": "unclear"
+   }
+  ]
+ }
+}
