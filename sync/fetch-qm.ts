@@ -76,8 +76,8 @@ const BUCKETS: EraBucket[] = [
   { name: 'y2024', from: '2024-01-01', to: '2025-01-01', target: 90_000, rate: 40 },
   { name: 'y2023', from: '2023-01-01', to: '2024-01-01', target: 90_000, rate: 40 },
   { name: 'y2025h1', from: '2025-01-01', to: '2025-07-01', target: 60_000, rate: 40 },
-  // Patches after 2.55 (added 2026-09-30); open-ended so new QM keeps flowing.
-  { name: 'p257plus', from: '2026-09-01', to: '2028-01-01', target: 200_000, rate: 80, minPatch: [2, 57] },
+  // Patch 2.57 onward (first games 2026-09-28; added 2026-09-30); open-ended so new QM keeps flowing.
+  { name: 'p257plus', from: '2026-09-27', to: '2028-01-01', target: 200_000, rate: 80, minPatch: [2, 57] },
 ]
 
 /** major.minor of a build string, e.g. '2.57.0.98304' -> [2, 57]. */
