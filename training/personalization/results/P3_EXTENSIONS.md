@@ -534,3 +534,39 @@ Findings:
 - The split-half spread is large, yet a causal, shrunk pair term predicts almost nothing forward. Most of the spread is temporary: premades play in bursts, and the two members share their form within a burst.
 - All terms together add +0.0004 to the value function. They are hero-independent (joint comfort adds nothing), so they shift the team's win probability without changing which hero to pick.
 - **Verdict.** Add a small party term to the displayed win probability. Chemistry does not belong in the pick search.
+
+## 6. Does personal skill depend on the map? (`p3_x_map.py`, proposal #5)
+
+**Method.** Cells are (player, hero, map), over snapshot games 2024-04 to 2026-05. No game-noise model is needed, because covariances between different cells of the same player share no games:
+
+- inside a cell (odd vs even games): s²_p + s²_ph + s²_pm + s²_phm;
+- same hero, different map: s²_p + s²_ph;
+- same map, different hero: s²_p + s²_pm;
+- different hero and map: s²_p.
+
+Hero × map effects of the population are already in the WP (it has hero-map win rates). CIs are 200 player bootstraps.
+
+| residual | player | player × hero | player × map | player × hero × map |
+|---|---|---|---|---|
+| after the experience offset, all players (pp²) | 3.34 (3.07, 3.61) | 13.30 (12.59, 14.14) | **0.68 (0.27, 1.19)** | 5.24 (2.94, 7.46) |
+| share of personal variance | 15% | 59% | **3%** | 23% |
+| sd (pp) | 1.8 | 3.6 | 0.8 | 2.3 |
+| after the experience offset, players with 300+ games (pp²) | 1.23 (0.94, 1.54) | 11.50 (10.48, 12.39) | 0.78 (0.22, 1.44) | 0.67 (−2.45, 3.79) |
+| share (300+ games) | 9% | 81% | 5% | 5% |
+| after the skill model, all players (pp²) | −0.53 | 2.65 (2.14, 3.14) | 0.65 (0.14, 1.18) | 2.83 (0.53, 5.21) |
+
+**Predictive check.** A causal player × map (or player × hero × map) mean of the post-skill-model residual was computed over earlier days and added to the V1-fit combiner. Shrinkage comes from the components above: k = 3,741 and 856 games.
+
+| added to the skill model | V2 gain (95% CI) |
+|---|---|
+| player × map | +0.000005 (−0.000003, +0.000014) |
+| player × hero × map | +0.000017 (−0.000062, +0.000082) |
+| both | +0.000043 (−0.000045, +0.000113) |
+
+Findings:
+
+- **Map conditioning of personal skill does not matter.**
+  - Player × map is detectable but small: sd 0.8 to 0.9pp, 3 to 5% of the personal variance.
+  - Player × hero × map is large only in the all-player sample. For heavy players it is indistinguishable from zero. The all-player value most likely reflects games in the same cell clustering in time (a short session on one hero and map shares form), which inflates the within-cell covariance.
+  - Neither adds anything to prediction.
+- **Product.** MAWP personalization can drop the map axis. Player × hero is where the personal signal lives (59 to 81% of it).
