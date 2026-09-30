@@ -9,6 +9,39 @@ Conventions, as in the earlier write-ups:
 - **Latent R²** removes game noise: 1 − (MSE − noise) / (Var − noise).
 - Resources: 4 CPU cores (`taskset -c 48-63`, 4 threads), no GPU.
 
+## Summary
+
+1. **Out of time.** Four months past the snapshot (286,016 games, June to September 2026, including all of 2.55.17) the model with May hyperparameters and nightly state gains **+0.0149** (0.0142, 0.0154), against +0.0142 on V2.
+   - Every 2.55.17 build scores +0.013 to +0.016. The model stays calibrated (slope 0.99) while the population WP drifts to slope 0.89.
+   - Frozen state is what fails: a model never updated after May keeps +0.0044. Keeping game counts current restores it to +0.0107.
+   - The display bands still cover 81%.
+2. **Heroes a player has not played.** 386,826 adoption events.
+   - On every first game the off-pool offset is calibrated (−4.3pp predicted, −4.5pp realized).
+   - Similarity pooling beats role pooling (+0.10 per 1000 slots, CI 0.03 to 0.17) and player-only (+0.19).
+   - For players who keep the hero (7.8%, strongly selected: their first game was +6.6pp), a recalibrated prediction explains 5% of the latent spread of their first 10 games (role 2.5%, player-only 2.1%).
+   - Hero attributes add +0.05 R²; outcome-neutral scoreboard style adds +0.03 at 10 games and nothing at 20; talents and hero level add nothing.
+   - Tanks are no longer a failure case on real adoptions: similarity pooling is best on first tank games.
+3. **Learning curves and rust.**
+   - The first game on a new hero costs 10.5pp against the player's own established-hero level, free of selection.
+   - Players who stay are within about 1pp after roughly 10 games (time constant about 4 games); high-execution heroes start about 8pp down.
+   - Hero rust: a hero unplayed for 90 to 365 days costs 1.5 to 2.2pp beyond the skill model (+0.0004 as a combiner term).
+   - Players returning from a 1-to-6-month break run +1.4 to +1.9pp for a few games.
+4. **Smurfs.**
+   - The purification loop converges in 4 rounds and flags 1,327 accounts (10.2% of new accounts with 20+ games; +32.6pp in their first 20 games). They touch 6.3% of games, up to 8.1% in 2026.
+   - Purified labels leave the headline unchanged (causal: −0.00001; retroactive: −0.00026) and move other players' estimates by 0.07pp on average.
+   - A **new-account prior** is the real win: +0.0024 (0.0020, 0.0029) on V2 and +0.0021 out of time, almost all from the 18% of games with a genuinely new account, where it adds +0.011 to +0.013.
+   - A causal detector reaches AUC 0.74 at game 20 on a later cohort. Scoreboard style is its best signal.
+5. **Drafting alternatives.**
+   - Personalized bans: +0.3pp per draft (not significant).
+   - Teammates-only mode keeps 97% (86%, 107%) of the full-information value.
+   - Hero assignment within a team: teams leave +2.0pp on the table on average, and realized outcomes follow the model's assignment term at 80 to 90% of its slope.
+   - Imitation carries outcome information the value model lacks (+32pp per unit agreement next to +13pp for the personal term). Put recency and share features into the value function; do not blend rankings.
+   - Premade chemistry: +0.0004 as team terms, hero-independent, so it changes no picks.
+6. **Maps.** Player × map is 3 to 5% of personal variance (sd 0.8pp), and map terms add +0.00000 to +0.00004 to prediction. Personalization can drop the map axis.
+7. **Robustness.**
+   - The lift holds in every tier and in both large regions in V2 and OOT: high tier +0.019, mid +0.013, low +0.010 to +0.013; Americas and Europe +0.014 to +0.016; Asia +0.006 to +0.009 on few games.
+   - The low tier needs its own experience and party terms.
+
 ## 1. Out-of-time validation (`p3_x_fetch_post.py`, `p3_x_wp_post.py`, `p3_x_common.py`, `p3_x_oot.py`)
 
 **Data.** Every Storm League game of build 2.55.16.97039 after the snapshot and of 2.55.17.97605, 97650, 97771 and 98025, dated up to 2026-09-27. That is 297,342 new games, 297,119 of them with all ten player rows. 286,016 are dated after the snapshot's last day (2026-05-22) and form the out-of-time (OOT) set. 43,524 accounts are new since the snapshot, and 15% of OOT slots belong to them.
@@ -358,7 +391,7 @@ For comparison, status 0 at 20 to 49 games seen runs from −2.8 (hero not playe
 | in games without one | +0.0002 (−0.0001, +0.0004) | +0.0003 (0.0002, 0.0004) |
 
 - The headline moves from +0.0142 to +0.0166 on V2, and from +0.0149 to +0.0169 out of time.
-- The whole gain sits in the 18% of games that contain a genuinely new account. In those games the prior adds +0.013, about as much as the whole phase-1 model adds on an average game (+0.014).
+- Almost the whole gain sits in the 18% of games that contain a genuinely new account. In those games the prior adds +0.013, about as much as the whole phase-1 model adds on an average game (+0.014).
 - The experience offset alone could not do this, because it treats a new account and a veteran new to our corpus alike: both have few games in the window.
 
 ### D. A causal smurf detector
@@ -570,3 +603,63 @@ Findings:
   - Player × hero × map is large only in the all-player sample. For heavy players it is indistinguishable from zero. The all-player value most likely reflects games in the same cell clustering in time (a short session on one hero and map shares form), which inflates the within-cell covariance.
   - Neither adds anything to prediction.
 - **Product.** MAWP personalization can drop the map axis. Player × hero is where the personal signal lives (59 to 81% of it).
+
+## 7. Robustness by skill tier and region (`p3_x_robust.py`)
+
+**Setup.**
+
+- Game-level gain of the phase-1 model, with the combiner fit on all V1 games and scored within subsets of V2 and of the OOT games (task 1, everything frozen).
+- Tier is the game's Heroes Profile skill tier. Region codes: 1 Americas, 2 Europe, 3 Asia.
+- The last two columns are a per-subset refit of the skill coefficient and the spread of the team skill difference.
+
+| subset | V2 games | V2 gain (95% CI) | OOT games | OOT gain (95% CI) | skill coef, refit (V2) | sd of team skill difference (pp) |
+|---|---|---|---|---|---|---|
+| all | 72,474 | +0.0142 (0.0132, 0.0152) | 286,016 | +0.0149 (0.0142, 0.0155) | 3.79 | 9.3 |
+| tier low | 13,140 | +0.0099 (0.0079, 0.0123) | 52,738 | +0.0126 (0.0114, 0.0137) | 3.80 | 7.7 |
+| tier mid | 36,737 | +0.0127 (0.0112, 0.0146) | 148,951 | +0.0131 (0.0122, 0.0138) | 3.64 | 9.1 |
+| tier high | 22,597 | **+0.0191** (0.0171, 0.0215) | 84,327 | **+0.0194** (0.0183, 0.0207) | 3.98 | 10.4 |
+| Americas | 22,332 | +0.0146 (0.0127, 0.0166) | 91,555 | +0.0159 (0.0150, 0.0170) | 3.87 | 9.3 |
+| Europe | 46,820 | +0.0143 (0.0131, 0.0156) | 180,669 | +0.0150 (0.0145, 0.0157) | 3.78 | 9.4 |
+| Asia | 3,322 | +0.0090 (0.0038, 0.0130) | 13,792 | +0.0060 (0.0035, 0.0086) | 3.44 | 8.1 |
+
+Tier × region cells on V2 range from +0.0095 (low, Europe) to +0.0198 (high, Europe).
+
+**Key effects by subset** (V1 + V2 slots, player-clustered CIs):
+
+| subset | never-played hero, 300+ games: raw r | 50+ games on hero, 300+ games: raw r | never-played, after skill model | 3+ stack party member, after skill model | solo, after skill model |
+|---|---|---|---|---|---|
+| all | −7.8 (−8.7, −6.7) | +2.2 | −0.8 (−2.0, +0.3) | +1.0 (0.8, 1.2) | −0.6 |
+| tier low | −3.6 (−7.2, −0.2) | +5.5 (4.6, 6.3) | **+3.9 (0.2, 7.3)** | **+3.0 (2.5, 3.5)** | −0.0 |
+| tier mid | −8.6 | +2.1 | −1.6 | +0.7 | −0.5 |
+| tier high | −7.8 | +1.8 | −1.0 | +0.7 | −1.2 |
+| Americas | −8.8 | +2.1 | −1.8 (−3.4, −0.2) | +0.8 | −0.6 |
+| Europe | −7.4 | +2.3 | −0.4 | +1.1 | −0.6 |
+
+Findings:
+
+- **The lift holds in every tier and in both large regions, in both test periods.**
+  - It is largest in the high tier (+0.019) and smallest in the low tier (+0.010 to +0.013).
+  - The per-unit skill coefficient is about the same everywhere (3.6 to 4.0). The tier difference comes from how much the model knows: the team skill difference spreads 10.4pp in the high tier against 7.7pp in the low tier, where more players are new or light.
+  - Americas and Europe agree within 0.001.
+  - Asia is small (3% of games) and lower (+0.006 to +0.009). The corpus holds few Asian players with deep histories.
+- **The off-pool penalty and comfort bonus hold across tiers and regions**, with one exception: the low tier.
+  - Low-tier veterans lose only 3.6pp on a never-played hero and gain 5.5pp on comfort heroes.
+  - The shared experience table over-penalizes them (+3.9pp left after the skill model) and under-credits premade stacks (+3.0pp).
+  - A tier-specific experience table and party term would recover part of the low-tier gap. Section 4's new-account prior should help there too, since new accounts start low.
+- **Party effects are larger in the low tier** (+3.0pp for 3+ stacks against +0.7pp in mid and high). Solo players in the high tier sit 1.2pp below the model.
+
+## Rerunning (for the audit)
+
+Everything reads the shared caches through `p3_hs_core` and `p3_x_common`. If the audit changes `hs_slots.npz`, `wp_drift.npz`, `hs_kernels.npz` or the drafter tables, rerun in this order from `training/`, with `/usr/bin/python3` (numba, scipy) except the two DB fetches, which use `python3` with psycopg2. All steps use `nice -n 19 taskset -c 48-63` with 4 threads.
+
+1. `p3_x_fetch_post.py`, `p3_x_fetch_side.py`: DB pulls, read-only, no battletags. They only need rerunning if the DB changes.
+2. `p3_x_wp_post.py`: causal WP for post-snapshot games, about 1 minute. It checks itself against `wp_drift.npz`.
+3. `p3_x_common.py ext`: extended slot table.
+4. `p3_x_predall.py`: per-slot causal predictions, about 4 minutes.
+5. `p3_x_side.py`: scoreboard style and talent conformity.
+6. `p3_x_oot.py` (task 1), `p3_x_adopt.py` (2), `p3_x_learn.py` (3, needs 2), `p3_x_smurf.py` and `p3_x_newacct.py` (4), `p3_x_map.py` (6), `p3_x_robust.py` (7): about 3, 1, 0.5, 7, 4, 1 and 1 minutes.
+7. `p3_x_draft.py assign | combine | chem | sim --procs 4 | analyze` (5): `sim` takes about 31 minutes on 4 processes. It needs `cache/dr_runs.pkl.gz`, `dr_lobbies.npz` and `dr_personal_post.npz` from the P3_DRAFTER pipeline.
+
+No GPU was used.
+
+Results files are `results/p3_x_*.json` with matching `.txt` logs, and `fig_x_learning_curves.png`. Large intermediate caches (`cache/x_*.npz`, `cache/x_draft_sim.pkl.gz`) are not committed.
