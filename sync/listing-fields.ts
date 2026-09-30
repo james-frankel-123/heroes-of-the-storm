@@ -35,6 +35,8 @@ export function legacyListingTier(tierName: string, gameType: ListingGameType): 
 export function avgPlayerMmr(replay: Record<string, any>): number | null {
   const mmrs = Object.values(replay)
     .filter(isPlayerEntry)
+    // Private players have player_mmr null (Number(null) would be 0).
+    .filter(p => p.player_mmr !== null && p.player_mmr !== undefined && p.player_mmr !== '')
     .map(p => Number(p.player_mmr))
     .filter(Number.isFinite)
   return mmrs.length > 0 ? mmrs.reduce((a, b) => a + b, 0) / mmrs.length : null

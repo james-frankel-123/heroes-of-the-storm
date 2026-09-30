@@ -214,10 +214,14 @@ export class HeroesProfileApiV2 {
         (teamBans ?? []).map((b: any) => ({ ...b, hero: b.hero?.name ?? b.hero }))),
       experience_breakdown: m.experience_breakdown,
     }
-    for (const team of m.players ?? []) {
-      for (const p of team ?? []) {
-        if (!p?.battletag) continue
-        legacy[p.battletag] = {
+    for (const [t, team] of (m.players ?? []).entries()) {
+      for (const [i, p] of (team ?? []).entries()) {
+        if (!p) continue
+        // Private players come back with battletag/blizz_id/MMRs null but
+        // hero/team/talents intact. Keep them under a synthetic key so the
+        // draft stays 5v5; storeReplayPlayers skips them (no blizz_id).
+        const key = p.battletag ?? `private:${t}:${i}`
+        legacy[key] = {
           ...p,
           hero: p.hero?.name ?? p.hero,
           // v1: winner is 1/0 (old: boolean); talents are {level_one: {title,..}}
