@@ -186,15 +186,30 @@ def train():
         replays = replays[-max_replays:]  # most recent (ids ascending)
         print(f"  Capped to most recent {len(replays):,} replays")
 
-    # Load stats cache
-    print("\n[2/4] Loading stats cache...")
-    stats = StatsCache()
-    print("  Stats cache loaded")
-
-    # Extract partial states
+    # Load stats cache. With PARTIAL_WP_OOF_STATS (a path pattern with {k})
+    # and PARTIAL_WP_OOF_FOLDS set, each replay's features come from the
+    # stats that exclude its own fold (replay_id % folds), so no row's
+    # features contain its own outcome. Unset: one StatsCache for all rows.
+    oof_pattern = os.environ.get("PARTIAL_WP_OOF_STATS")
+    oof_folds = int(os.environ.get("PARTIAL_WP_OOF_FOLDS", "0"))
     print(f"\n[3/4] Extracting partial draft states (feature dim = {TOTAL_FEATURE_DIM})...")
     t0 = time.time()
-    features, steps, labels, replay_ids = extract_partial_states(replays, stats)
+    if oof_pattern and oof_folds:
+        print(f"  out-of-fold stats: {oof_folds} folds ({oof_pattern})")
+        parts = []
+        for k in range(oof_folds):
+            fold = [r for r in replays if r["replay_id"] % oof_folds == k]
+            stats = StatsCache.__new__(StatsCache)
+            stats._load_frozen(oof_pattern.format(k=k))
+            stats._load_compositions()
+            parts.append(extract_partial_states(fold, stats))
+        features, steps, labels, replay_ids = (
+            np.concatenate([p[i] for p in parts]) for i in range(4))
+    else:
+        print("\n[2/4] Loading stats cache...")
+        stats = StatsCache()
+        print("  Stats cache loaded")
+        features, steps, labels, replay_ids = extract_partial_states(replays, stats)
     print(f"  Extraction took {time.time() - t0:.1f}s")
     print(f"  Total samples: {len(labels):,}")
     print(f"  Features shape: {features.shape}")
