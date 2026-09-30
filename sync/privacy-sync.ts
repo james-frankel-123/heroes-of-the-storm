@@ -5,12 +5,12 @@
  *  - site data: deletes their player_match_history / player_hero_stats /
  *    player_hero_map_stats rows, player_history_marks, and blanks sync_log;
  *  - research data (replay_players), per PRIVACY_RESEARCH_MODE:
- *      pseudonymize (default): every row of each matching (region, blizz_id)
- *        gets a fresh random negative blizz_id and battletag 'private'. No
- *        mapping is kept, so games/heroes/MMRs/outcomes and per-player panel
- *        structure survive but the identity link does not.
- *      retain: rows untouched — only with Heroes Profile's written approval
- *        for a never-displayed research store.
+ *      retain (default): rows untouched. Research store is never displayed;
+ *        pending Heroes Profile's written approval (asked 2026-09-30).
+ *      pseudonymize: every row of each matching (region, blizz_id) gets a
+ *        fresh random negative blizz_id and battletag 'private'. No mapping
+ *        is kept, so games/heroes/MMRs/outcomes and per-player panel
+ *        structure survive but the identity link does not. Irreversible.
  *
  * Crash-safe order: each page is recorded in player_privacy BEFORE the feed
  * cursor advances; purges run from player_privacy rows with applied_at NULL.
@@ -54,7 +54,7 @@ const PAGE_LIMIT = 5000
 const MAX_PAGES = 200 // first sync returns every account that ever changed state
 
 function researchMode(): Mode {
-  const m = process.env.PRIVACY_RESEARCH_MODE ?? 'pseudonymize'
+  const m = process.env.PRIVACY_RESEARCH_MODE ?? 'retain'
   if (m !== 'pseudonymize' && m !== 'retain') {
     throw new Error(`PRIVACY_RESEARCH_MODE must be pseudonymize|retain, got ${m}`)
   }
