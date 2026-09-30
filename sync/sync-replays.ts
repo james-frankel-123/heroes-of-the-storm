@@ -16,8 +16,10 @@ import {
   replayFetchQueue,
 } from '../src/lib/db/schema'
 import { ReplayApiPool } from './api-client'
+import { HeroesProfileApiV2 } from './api-client-v2'
 import { createDb, SyncDb } from './db'
 import { isHpAccessPaused } from './hp-errors'
+import { deriveListingFields } from './listing-fields'
 import { log } from './logger'
 import { storeReplayPlayers } from './player-store'
 
@@ -44,18 +46,6 @@ function isTrackedPatch(version: string | null | undefined): boolean {
 function isQuotaError(err: unknown): boolean {
   const msg = String(err)
   return msg.includes('Max calls') || msg.includes('non-JSON response')
-}
-
-/** Listing rows lost a field the draft pipeline depends on: stop, don't enqueue. */
-class ListingSchemaError extends Error {}
-
-function assertListingHasTier(rows: any[]): void {
-  // leagueTierToSkillTier(null) is 'mid': a listing without league_tier would
-  // silently label every draft mid-tier. Legacy rows always carry the key
-  // (null for ~5% of games), so only a missing KEY trips this.
-  if (rows.length > 0 && rows.every(r => !('league_tier' in r))) {
-    throw new ListingSchemaError('replay listing rows carry no league_tier; refusing to enqueue (skill tiers would all become mid)')
-  }
 }
 
 interface DiscoveryState {
@@ -153,7 +143,6 @@ export async function discoverReplays(
       )
 
       if (valid.length > 0) {
-        assertListingHasTier(valid)
         // Batch insert into queue, ignore conflicts (already queued)
         const queueRows = valid.map((r: any) => ({
           replayId: r.replayID,
@@ -185,7 +174,7 @@ export async function discoverReplays(
       }
     } catch (err) {
       // Don't skip cursor ranges over an account-level refusal.
-      if (isHpAccessPaused(err) || err instanceof ListingSchemaError) { await saveState(db, state); throw err }
+      if (isHpAccessPaused(err)) { await saveState(db, state); throw err }
       if (isQuotaError(err)) {
         log.warn(`Discovery: replay listing quota exhausted at cursor=${state.discoveryCursor}; stopping`)
         break
@@ -261,7 +250,6 @@ export async function discoverBackfill(
       )
 
       if (valid.length > 0) {
-        assertListingHasTier(valid)
         const queueRows = valid.map((r: any) => ({
           replayId: r.replayID,
           gameMap: r.game_map || null,
@@ -291,7 +279,7 @@ export async function discoverBackfill(
       }
     } catch (err) {
       // Don't skip cursor ranges over an account-level refusal.
-      if (isHpAccessPaused(err) || err instanceof ListingSchemaError) { await saveState(db, state); throw err }
+      if (isHpAccessPaused(err)) { await saveState(db, state); throw err }
       if (isQuotaError(err)) {
         log.warn(`Backfill: replay listing quota exhausted at cursor=${state.backfillCursor}; stopping`)
         break
@@ -347,7 +335,8 @@ export async function fetchReplayData(
   for (const queueItem of queue) {
     const replayId = queueItem.replayId
     try {
-      const raw = await api.next().getReplayData(replayId)
+      const client = api.next()
+      const raw = await client.getReplayData(replayId)
       const replayKey = String(replayId)
       const replay = raw[replayKey] || raw
 
@@ -417,9 +406,12 @@ export async function fetchReplayData(
         }
       }
 
-      // Use queue metadata for tier/mmr (Replay/Data doesn't include these)
-      const leagueTier = queueItem.leagueTier
-      const avgMmr = queueItem.avgMmr
+      // Use queue metadata for tier/mmr (Replay/Data doesn't include these).
+      // v1 listings carry neither: rebuild them in the old encoding.
+      let leagueTier = queueItem.leagueTier
+      let avgMmr = queueItem.avgMmr
+      const derived = client instanceof HeroesProfileApiV2 && leagueTier === null && avgMmr === null
+      if (derived) ({ leagueTier, avgMmr } = await deriveListingFields(client, replay, 'sl'))
       const skillTier = leagueTierToSkillTier(leagueTier)
 
       const talents = { team0: team0Talents, team1: team1Talents }
@@ -451,7 +443,7 @@ export async function fetchReplayData(
         })
 
       await db.update(replayFetchQueue)
-        .set({ fetched: true })
+        .set(derived ? { fetched: true, leagueTier, avgMmr } : { fetched: true })
         .where(eq(replayFetchQueue.replayId, replayId))
 
       fetched++

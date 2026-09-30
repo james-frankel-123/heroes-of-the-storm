@@ -37,7 +37,9 @@
  *   nohup npx tsx sync/fetch-qm.ts >> sync/logs/fetch-qm.log 2>&1 &
  */
 import { sql, eq, inArray } from 'drizzle-orm'
+import { HeroesProfileApiV2 } from './api-client-v2'
 import { createHpApi } from './hp-api'
+import { deriveListingFields } from './listing-fields'
 import { createDb, SyncDb } from './db'
 import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
@@ -377,6 +379,10 @@ async function main() {
             return
           }
           const stored = await storeReplayPlayers(db, row.replayID, replay)
+          // v1 listings have no avg_mmr / league_tier: rebuild them in the old encoding.
+          const listing = api instanceof HeroesProfileApiV2 && row.avg_mmr == null && row.league_tier == null
+            ? await deriveListingFields(api, replay, 'qm')
+            : { avgMmr: row.avg_mmr, leagueTier: row.league_tier }
           const gameDate = replay.game_date ? new Date(replay.game_date) : null
           await db.insert(qmGames).values({
             replayId: row.replayID,
@@ -386,8 +392,8 @@ async function main() {
             gameLength: Number.isFinite(Number(replay.game_length)) ? Number(replay.game_length) : null,
             gameVersion: String(replay.game_version ?? row.game_version ?? '').slice(0, 40) || null,
             gameType: String(replay.game_type ?? 'Quick Match').slice(0, 40),
-            avgMmr: Number.isFinite(Number(row.avg_mmr)) ? Number(row.avg_mmr) : null,
-            leagueTier: Number.isFinite(Number(row.league_tier)) ? Number(row.league_tier) : null,
+            avgMmr: listing.avgMmr != null && Number.isFinite(Number(listing.avgMmr)) ? Number(listing.avgMmr) : null,
+            leagueTier: listing.leagueTier != null && Number.isFinite(Number(listing.leagueTier)) ? Number(listing.leagueTier) : null,
             rank: row.rank ? String(row.rank).slice(0, 20) : null,
           }).onConflictDoNothing()
           counters.processed++

@@ -325,7 +325,14 @@ export class HeroesProfileApiV2 {
     if (rows.length > 0 && rows.every(r => r.games_played === undefined && r.games === undefined)) {
       throw new Error('heroes/stats rows have no games_played field; v1 row schema unconfirmed')
     }
-    return rows.map(r => ({ ...r, name: r.name ?? r.hero?.name ?? r.hero }))
+    // v1 `popularity` is pick + ban rate (Rehgar 2.55: 24.78 + 20.21 = 45);
+    // the old API's `popularity`, which sync-global stores as pickRate, was
+    // the pick rate alone. Hand the legacy field the v1 pick_rate.
+    return rows.map(r => ({
+      ...r,
+      name: r.name ?? r.hero?.name ?? r.hero,
+      popularity: r.pick_rate ?? r.popularity,
+    }))
   }
 
   /**
@@ -443,7 +450,8 @@ const TALENT_LEVEL_KEYS = [
 ] as const
 
 /**
- * Whose wins do v1 heroes/matchups `enemy` rows count? The old API counted
- * the opponent's. null = unconfirmed: matchup sync refuses to run.
+ * Whose wins do v1 heroes/matchups `enemy` rows count? The opponent's, as in
+ * the old API: confirmed 2026-09-30 by sync/check-v1-live.ts (Jaina, patch
+ * 2.55: r = -0.966 against her win rate per opponent in replay_draft_data).
  */
-const V1_ENEMY_ROWS_ARE_OPPONENT_PERSPECTIVE: boolean | null = null
+const V1_ENEMY_ROWS_ARE_OPPONENT_PERSPECTIVE: boolean | null = true

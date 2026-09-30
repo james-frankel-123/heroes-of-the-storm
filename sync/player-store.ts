@@ -34,7 +34,7 @@ function toNum(v: unknown): number | null {
 }
 
 /** True for the battletag-keyed player entries in a Replay/Data payload. */
-function isPlayerEntry(val: unknown): val is Record<string, any> {
+export function isPlayerEntry(val: unknown): val is Record<string, any> {
   return (
     typeof val === 'object' && val !== null && !Array.isArray(val) &&
     (val as any).hero !== undefined && (val as any).team !== undefined
