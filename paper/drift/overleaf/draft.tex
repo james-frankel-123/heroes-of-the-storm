@@ -115,8 +115,9 @@ agent's picks average +0.34pp of realized future-meta hero win rate
 ($p = 0.07$; +0.43pp, $p = 0.008$, with a single value function and more
 agent seeds). That gap comes from training the value model on statistics
 aligned with each game's era, and three months of refreshed statistics
-add nothing measurable. An agent built with the same recipe two years
-earlier trails by 1.00pp, and the maintained agent leads it by 1.28pp. Fourth, the machinery a maintainer needs around these
+add nothing measurable. Agents built with the same recipe one and two years
+earlier trail by 1.12 and 1.00pp; most of the loss arrives within a
+year. Fourth, the machinery a maintainer needs around these
 decisions: a detector of balance changes from outcomes alone, measured
 against the developer's patch notes, and the observation that learned
 judges age like the models they judge.
@@ -455,11 +456,12 @@ value-function variance. \stalefour{} has 6 MCTS seeds, two on each of three lea
 value-function seeds, so its seed variance includes value-function
 variance. \mcut{} holds \maintained{}'s single value function and trains its
 policy on statistics frozen at the cutoff (5 seeds); it is the
-maintained recipe trained at the cutoff and then left alone. \staletwo{}
-uses the leak-free value functions trained to its
-own cutoff, statistics of that date, and an opponent model trained only
-on games up to that date, for both the policy's initialization and its
-self-play opponent (6 seeds). The 2026 agents are all initialized from,
+maintained recipe trained at the cutoff and then left alone. \staleone{}
+and \staletwo{} use the leak-free value functions trained to their own
+cutoffs, statistics of that date, and an opponent model trained only on
+games up to that date, for both the policy's initialization and its
+self-play opponent (3 and 6 seeds; the one-year arm was cut to one
+agent per value-function seed when compute was capped). The 2026 agents are all initialized from,
 and trained against, the earlier paper's opponent model, which saw the
 test period; both sides of every 2026 matchup share it.
 
@@ -484,7 +486,7 @@ random effects, $t$ reference). Net: team win-probability gap implied
 by hero, synergy, and counter scores together, with weights fitted on
 held-out real games (mean of two cross-fitting splits). M:
 \maintained{}; M-d90: \maintainedpred{}; M-cut: \mcut{}; U:
-\stalefour{}; S2: \staletwo{}; M-vol: \maintained{} trained on S2's row
+\stalefour{}; S1, S2: \staleone{}, \staletwo{}; M-vol: \maintained{} trained on S2's row
 count; U-leaky, S2-leaky: the leaky first versions.}
 \label{tab:dose}
 \centering
@@ -499,7 +501,9 @@ M vs U & 15$\times$6 & $+0.43 \pm 0.13$ & 3.3 (10) & +2.3 \\
 M-d90 vs U & 15$\times$6 & $+0.77 \pm 0.11$ & 7.0 (8) & +3.7 \\
 M vs M-cut & 15$\times$5 & $-0.05 \pm 0.11$ & $-0.5$ (9) & $-0.4$ \\
 M-cut vs U & 5$\times$6 & $+0.52 \pm 0.13$ & 3.9 (10) & +2.9 \\
+U vs S1 & 6$\times$3 & $+1.12 \pm 0.23$ & 4.8 (5) & +5.3 \\
 U vs S2 & 6$\times$6 & $+1.00 \pm 0.16$ & 6.3 (8) & +4.5 \\
+M vs S1 & 15$\times$3 & $+1.34 \pm 0.16$ & 8.6 (3) & +6.4 \\
 M (all VF seeds) vs S2 & 6$\times$6 & $+1.28 \pm 0.15$ & 8.7 (9) & +5.6 \\
 M vs S2 & 15$\times$6 & $+1.40 \pm 0.09$ & 15.9 (13) & +6.3 \\
 M-vol vs S2 & 5$\times$6 & $+1.28 \pm 0.16$ & 8.1 (7) & +5.9 \\
@@ -565,35 +569,38 @@ advantage. The cost of neglect proper is the gap between agents built
 with the same recipe at different cutoffs, which the staleness rows
 measure.
 
-Two years of staleness cost more. \stalefour{} and \staletwo{} share
-the leak-free recipe and differ in their cutoff, February 2026 against
-February 2024, and \stalefour{} leads by $+1.00 \pm 0.16$pp
-($t = 6.3$), about 4.5 points of team win probability. Against
-\maintained{} the two-year gap is $+1.40 \pm 0.09$pp ($t = 15.9$), and
-$+1.28 \pm 0.15$pp ($t = 8.7$) with value-function seeds varied.
+A year or two of staleness costs more, and most of it arrives in the
+first year. \stalefour{}, \staleone{}, and \staletwo{} share the
+leak-free recipe and differ in their cutoff (February 2026, 2025, and
+2024). \stalefour{} leads the one-year agent by $+1.12 \pm 0.23$pp
+($t = 4.8$, 5 df) and the two-year agent by $+1.00 \pm 0.16$pp
+($t = 6.3$), about 5 points of team win probability in both cases. Against
+\maintained{} the one-year gap is $+1.34 \pm 0.16$pp and the two-year
+gap $+1.40 \pm 0.09$pp ($t = 15.9$), or $+1.28 \pm 0.15$pp ($t = 8.7$)
+with value-function seeds varied.
 Because our corpus grows over time, the two-year agent also trained on
-fewer games; a maintained agent trained on exactly \staletwo{}'s row
+fewer games; a maintained agent trained on \staletwo{}'s row
 count keeps $+1.28$pp, 91\% of the gap. Unlike our first version, the
 two-year agent shows a synergy deficit ($+0.21 \pm 0.08$ against
-\maintained{}, $t = 2.8$; $+0.27 \pm 0.12$ against \stalefour{}) and no
-counter advantage ($-0.08 \pm 0.10$). The first version's ``synergy does
+\maintained{}, $t = 2.8$; $+0.27 \pm 0.12$ against \stalefour{}; the
+one-year agent's is similar, $+0.25 \pm 0.12$) and no counter advantage
+($-0.08 \pm 0.10$). The first version's ``synergy does
 not rot'' and ``the stale agent counters better'' were properties of the
 leaky stale agent. One asymmetry remains: the 2026 agents were trained
 against the earlier paper's opponent model, which saw the test period,
-while \staletwo{}'s opponent model stops in 2024 as a real two-year-old
-deployment's would. Some of the two-year gap may come from that
-difference; we did not run the 2026 agents with a cutoff-era opponent
-model. We cut the one-year arm of the first version from the leak-free
-rebuild for compute; its leaky estimate was $+0.56 \pm 0.21$pp.
+while the stale agents' opponent models stop at their own cutoffs, as a
+real stale deployment's would. Some of the staleness gap may come from
+that difference; we did not run the 2026 agents with a cutoff-era
+opponent model. The leaky first version put the one-year gap at only
+$+0.56 \pm 0.21$pp.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig_dose.pdf}
 \caption{Maintained agent's advantage over unmaintained agents with the
-same cutoff (0 months) and a cutoff two years earlier, scored on
+same cutoff (0 months) and cutoffs one and two years earlier, scored on
 out-of-sample builds (95\% intervals, crossed seed random effects).
-Filled: leak-free agents. Hollow: the leaky first version, including its
-one-year point.}
+Filled: leak-free agents. Hollow: the leaky first version.}
 \label{fig:dose}
 \end{figure}
 
@@ -970,7 +977,7 @@ selected on the future window from three seeds, and \mcut{} shares it,
 so the split between them conditions on one value-function draw; with
 value-function seeds varied, the same-cutoff advantage is not significant
 ($p = 0.07$). The leak-free staleness
-gradient has two points; the one-year arm was cut for compute. We tested about
+gradient's one-year point rests on three agent seeds. We tested about
 twenty accuracy cells on the same future window and many
 matchup-by-metric combinations; we name the primary contrasts in each
 section and treat the rest as secondary. Finally, our analysis went
@@ -989,8 +996,8 @@ over three years of balance changes. Retraining on a schedule of three
 to six builds recovers nearly all of it; refreshing statistics with the
 weights fixed recovers a third, and adds a few hundredths of a point
 once retraining happens. At the agent level, three months without
-refresh cost nothing measurable, and two years cost about a point of
-future-meta hero win rate. Accuracy
+refresh cost nothing measurable, and one or two years cost about a
+point of future-meta hero win rate. Accuracy
 understates the policy-level damage, and learned judges are as
 era-bound as the models they score.
 
