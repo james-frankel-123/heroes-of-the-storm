@@ -149,8 +149,10 @@ export class HeroesProfileApiV2 {
       }
 
       // 401 bad key / 403 not in plan, terms_not_accepted,
-      // project_details_required: account-level, never item-level.
-      if (response.status === 401 || response.status === 403) {
+      // project_details_required, ...: account-level. Some 403s are about the
+      // item asked for (a private player, a custom match) and fall through to
+      // the ordinary 4xx error below.
+      if (response.status === 401 || (response.status === 403 && !ITEM_LEVEL_403.has(code))) {
         throw new HpAccessPausedError(response.status, code, `${path}: ${message}`)
       }
 
@@ -460,6 +462,9 @@ export class HeroesProfileApiV2 {
     return Array.isArray(d) ? d : d.data ?? []
   }
 }
+
+/** 403 codes that concern the requested item, not the account. */
+const ITEM_LEVEL_403 = new Set(['player_unavailable', 'custom_match_unavailable'])
 
 const TALENT_LEVEL_KEYS = [
   'level_one', 'level_four', 'level_seven', 'level_ten',

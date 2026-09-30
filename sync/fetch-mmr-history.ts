@@ -292,7 +292,8 @@ async function main() {
       }
       const m = msg.match(/API error (\d{3})/)
       const code = m ? Number(m[1]) : 0
-      if (code === 404 || code === 422) {
+      // 403 player_unavailable = the player went private: nothing to fetch.
+      if (code === 404 || code === 422 || msg.includes('player_unavailable')) {
         rec = { region: p.region, blizz_id: p.blizzId, status: 'not_found', rows: 0, calls: 0, pages, at: new Date().toISOString(), err: msg.slice(0, 200) }
         fails = 0
       } else if (code >= 400 && code < 500) {
