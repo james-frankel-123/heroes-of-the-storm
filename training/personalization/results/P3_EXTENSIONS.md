@@ -175,3 +175,96 @@ Style helps tanks over the first 10 games and not over 20, so I treat it as unco
   - As a side feature for the first 10 games it added nothing, because the offset's selection problem dominates.
 - **Side information.** Hero attributes help (+0.03 to +0.05 R²). They capture which kinds of heroes adopters do well on relative to the model, and how that depends on the player's overall level. Outcome-neutral scoreboard style adds a little at 10 games. Talent conformity adds nothing.
 - **Product.** Keep showing the off-pool penalty for a hero the player has not played; it is calibrated on first games. Label the band as "first games". Once a player has played 3 to 5 games, the phase-1 estimate takes over, and the +7pp band covers the survivors.
+
+## 3. Learning curves and rust (`p3_x_learn.py`, figure `fig_x_learning_curves.png`)
+
+### A. Learning a new hero
+
+**Setup.** Adoption events come from section 2. "New" means hero level ≤ 5 on the first game; "returning" means level ≥ 10.
+
+- **Gap at game k:** the raw residual r on the new hero minus the player's own level, where the level is his mean r on established heroes (20+ earlier games) over the same calendar span, with 10+ such games required.
+- **Two designs bracket the truth:**
+  - The **balanced** panel keeps events with at least K games. Its mix of players is fixed, but players keep a hero after good early games, so its early games are selected upward.
+  - The **unbalanced** curve uses every event still playing at game k. Game k's own result does not decide whether it is seen. But the final games before a player quits are selected downward, and the mix shifts toward players who stayed.
+- **Game 1** of the unbalanced curve includes every event, so it has no selection at all.
+- CIs are player-clustered bootstraps.
+
+Gap to own established-hero level (pp), new heroes:
+
+| games on the new hero | 1 | 2 | 3-5 | 6-10 | 11-20 | 21-30 | 31-50 |
+|---|---|---|---|---|---|---|---|
+| unbalanced (39,185 events) | **−10.5** (−11.0, −9.9) | −8.6 | −7.0 | −5.2 | −4.1 | −2.7 (−4.0, −1.6) | |
+| balanced, 30+ games (931 events) | −1.2 (games 1-2) | | −3.0 (−4.9, −1.2) | −0.7 | −0.8 | −0.6 (−1.8, +0.5) | |
+| balanced, 50+ games (357 events) | −3.8 (games 1-2) | | −2.1 | −1.2 | +0.7 | +1.0 | +0.6 (−0.8, +1.8) |
+
+Returning heroes (level ≥ 10):
+
+- unbalanced: −8.6 (game 1), −7.0, −6.0, −4.5, −3.6, −3.1;
+- balanced 30+ games (2,698 events): +0.3, +0.5, +1.4, +0.9, −0.6.
+
+Findings:
+
+- **The first game on a new hero costs about 10pp** against the player's own established-hero level. This estimate is free of selection. About half of that is the off-pool penalty the experience offset already prices (section 2A: −4.5pp against the population expectation). The rest is the comfort bonus the player has on his usual heroes.
+- **Players who keep the hero reach their own level in roughly 10 games.** In the 50+ game panel the gap closes from −3.8pp (games 1-2) to −1.2pp (games 6-10) and is zero or positive from game 11 on. An exponential fit gives a time constant of 4 games and "within 1pp" by game 6. The 30+ game panel sits within 1pp from game 6 on.
+  - Early games in these panels are biased upward by survivorship, so the true early deficit is larger than shown and the time to baseline is if anything longer.
+  - The unbalanced curve is still −2.7pp at games 21-30, which is an upper bound on the remaining gap for a typical adopter.
+  - A fair summary: most of the deficit is gone after 5 to 10 games, and the last 1 to 3pp takes 20 or more.
+- **By hero type** (30+ game panel, games 3-5):
+  - high-execution heroes (top third of CF axis 1): −7.8pp (−11.4, −4.3), back within about 2pp by games 6-10;
+  - straightforward heroes (bottom third): −1.0pp (−4.3, +2.8).
+  - The 50+ game panel agrees: −7.8pp at games 1-2 on high-execution heroes.
+  - The hand-labeled "high mechanics" flag shows the same direction with wider CIs (−3.5 vs −2.9 at games 3-5).
+- **By role** (30+ game panel, games 3-5):
+  - bruisers −6.7pp (−10.6, −2.3), ranged assassins −4.4pp (−8.2, −0.5);
+  - healers +1.2pp, tanks +0.7pp, both with wide CIs.
+  - New tanks and healers cost little; new bruisers and ranged assassins cost the most. Each role group has 160 to 280 events, so these are directional.
+- **By player.**
+  - Players in the bottom third of overall level still trail by −2.8pp (−4.7, −1.1) at games 11-20. The top third is at −0.2pp.
+  - Volume does not separate cleanly.
+- **Heterogeneity.** The early-gap spread across events is about 10pp after removing noise (9 to 11pp in every group). That is two to three times the spread of settled hero skill. Early-late correlations are not estimable at these sample sizes (the latent variances are too small and noisy).
+- **Returning heroes** (level ≥ 10) show no learning curve for players who stay: +0.3 to +1.4pp over games 1-20. Their unbalanced game-1 gap (−8.6pp) is as large as for new heroes, which is mostly rust (see B).
+
+### B. Rust
+
+**Setup.** Established players only: 100+ earlier games at the time of the game. Outcome e = r − skill estimate (lag 1 day). Gaps are measured in play-time order.
+
+**Overall: days since the player's previous game (any hero)**
+
+| gap | 0-0.5 d | 0.5-1 | 1-3 | 3-7 | 7-14 | 14-30 | 30-90 | 90-180 | 180+ |
+|---|---|---|---|---|---|---|---|---|---|
+| e (pp) | −0.1 | −0.4 | −0.5 | −0.3 | −0.3 | −0.4 | **+1.4** (0.8, 2.1) | **+1.9** (0.6, 3.4) | +0.8 (−2.0, 4.1) |
+| slots | 2.45M | 546K | 533K | 236K | 83K | 38K | 19K | 3.9K | 1.1K |
+
+After a 30+ day break:
+
+- first game +1.5pp (1.0, 2.1);
+- games 2-3 +0.8;
+- games 4-10 +0.4;
+- games 11-30 −0.3;
+- games 31-100 −0.3.
+
+**Per hero: days since the player last played this hero** (player active, with another game in the last 3 days; 20+ earlier games on the hero)
+
+| gap | 0-1 d | 1-7 | 7-30 | 30-90 | 90-180 | 180-365 |
+|---|---|---|---|---|---|---|
+| e (pp) | +0.1 | −0.3 | −0.5 | −0.5 | **−1.5** (−2.4, −0.5) | **−2.2** (−4.0, −0.1) |
+| slots | 681K | 528K | 211K | 54K | 10K | 2.3K |
+
+**Game level (V2, on top of the skill model):**
+
+| added term | gain |
+|---|---|
+| log days since the player's last game | +0.00016 (0.00006, 0.00026) |
+| log days since this hero was last played | +0.00039 (0.00018, 0.00055) |
+| all rust terms | +0.00052 (0.00029, 0.00071) |
+
+Findings:
+
+- **Hero rust is real and grows with time.** A hero untouched for 3 to 12 months costs 1.5 to 2.2pp beyond the skill model, even for an active player. The static skill model ignores this. The state-space model in P3_SKILL_DRIFT found no drift in hero-specific skill, and this is a different effect: a temporary loss that practice restores, not a change in the level.
+- **Overall "rust" runs the other way.** Players returning after 1 to 6 months win 1.4 to 1.9pp more than the skill model expects for their first few games. The effect fades within about 10 games. Two likely causes, neither tested here:
+  - Matchmaking: returning accounts may be placed against weaker lobbies (the residual is relative to the draft, not to the opponents' skill).
+  - Players stopping after a bad run of form.
+- **Product.**
+  - Add "days since this hero was last played" to the combiner (+0.0004).
+  - In the per-hero display, flag heroes unplayed for 90+ days as "rusty: about −2pp for the first games back".
+  - Do not penalize a returning player overall.
