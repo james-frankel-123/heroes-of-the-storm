@@ -1,0 +1,112 @@
+{
+ "enriched_512": {
+  "test_acc": 0.5751306191905458,
+  "NODRIFT_acc": 0.5678026889439425,
+  "NODRIFT_slope": 0.9992762018068859,
+  "sanity": "22/28",
+  "degen_scores": {
+   "5 tanks": 0.267130970954895,
+   "5 healers": 0.200202077627182,
+   "5 ranged assassins": 0.2843802273273468,
+   "5 melee assassins": 0.42308107018470764,
+   "3T 2H no damage": 0.27907195687294006,
+   "No healer high WR": 0.4052649438381195
+  },
+  "healer": 81.75,
+  "ranged": 93.6,
+  "degen": 23.65,
+  "degen_per_seed": [
+   21.9,
+   25.4
+  ],
+  "n_drafts": 2000
+ },
+ "aug_wr0_512": {
+  "test_acc": 0.575122068016042,
+  "NODRIFT_acc": 0.567512572657568,
+  "NODRIFT_slope": 0.9487387431903076,
+  "sanity": "26/28",
+  "degen_scores": {
+   "5 tanks": 0.052044399082660675,
+   "5 healers": 0.13661356270313263,
+   "5 ranged assassins": 0.269172340631485,
+   "5 melee assassins": 0.0770864188671112,
+   "3T 2H no damage": 0.1136605441570282,
+   "No healer high WR": 0.3615803122520447
+  },
+  "healer": 92.05000000000001,
+  "ranged": 98.6,
+  "degen": 14.45,
+  "degen_per_seed": [
+   14.7,
+   14.2
+  ],
+  "n_drafts": 2000
+ },
+ "aug_wr5_512": {
+  "test_acc": 0.5750835877307748,
+  "NODRIFT_acc": 0.5674109177383265,
+  "NODRIFT_slope": 0.9667662350513271,
+  "sanity": "26/28",
+  "degen_scores": {
+   "5 tanks": 0.05507081001996994,
+   "5 healers": 0.15136078000068665,
+   "5 ranged assassins": 0.27587956190109253,
+   "5 melee assassins": 0.08597435802221298,
+   "3T 2H no damage": 0.11838249117136002,
+   "No healer high WR": 0.35635900497436523
+  },
+  "healer": 91.55,
+  "ranged": 98.1,
+  "degen": 14.549999999999999,
+  "degen_per_seed": [
+   14.499999999999998,
+   14.6
+  ],
+  "n_drafts": 2000
+ },
+ "aug_wr10_512": {
+  "test_acc": 0.5745021078645153,
+  "NODRIFT_acc": 0.5671824797175592,
+  "NODRIFT_slope": 0.9827927830765111,
+  "sanity": "26/28",
+  "degen_scores": {
+   "5 tanks": 0.08174559473991394,
+   "5 healers": 0.1276487410068512,
+   "5 ranged assassins": 0.2968560755252838,
+   "5 melee assassins": 0.125181183218956,
+   "3T 2H no damage": 0.1270683854818344,
+   "No healer high WR": 0.3856052756309509
+  },
+  "healer": 91.80000000000001,
+  "ranged": 97.5,
+  "degen": 13.55,
+  "degen_per_seed": [
+   13.200000000000001,
+   13.900000000000002
+  ],
+  "n_drafts": 2000
+ },
+ "aug_wr50_512": {
+  "test_acc": 0.5748954618916908,
+  "NODRIFT_acc": 0.5672909877774237,
+  "NODRIFT_slope": 0.992563861666112,
+  "sanity": "25/28",
+  "degen_scores": {
+   "5 tanks": 0.2900705635547638,
+   "5 healers": 0.2685304880142212,
+   "5 ranged assassins": 0.31195303797721863,
+   "5 melee assassins": 0.3269774317741394,
+   "3T 2H no damage": 0.29272034764289856,
+   "No healer high WR": 0.3982285261154175
+  },
+  "healer": 95.1,
+  "ranged": 95.75,
+  "degen": 8.850000000000001,
+  "degen_per_seed": [
+   7.6,
+   10.100000000000001
+  ],
+  "n_drafts": 2000
+ }
+}

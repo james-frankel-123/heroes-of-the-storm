@@ -1,0 +1,30 @@
+{
+ "n_states": 200000,
+ "mcq_t0.5": {
+  "params": 324314,
+  "layer1_dead": 8,
+  "layer1_units": 512,
+  "layer2_dead": 256,
+  "layer2_units": 256,
+  "layer3_dead": 128,
+  "layer3_units": 128
+ },
+ "mcq_t0.6": {
+  "params": 324314,
+  "layer1_dead": 77,
+  "layer1_units": 512,
+  "layer2_dead": 205,
+  "layer2_units": 256,
+  "layer3_dead": 128,
+  "layer3_units": 128
+ },
+ "cql_a1.0": {
+  "params": 324314,
+  "layer1_dead": 0,
+  "layer1_units": 512,
+  "layer2_dead": 22,
+  "layer2_units": 256,
+  "layer3_dead": 16,
+  "layer3_units": 128
+ }
+}
