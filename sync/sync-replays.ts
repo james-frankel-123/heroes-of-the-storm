@@ -32,6 +32,25 @@ function leagueTierToSkillTier(tier: number | null): string {
 
 // ── Phase 1: Discovery ──────────────────────────────────────────────
 
+const MAJOR_PATCH = '2.55'
+
+function isQuotaError(err: unknown): boolean {
+  const msg = String(err)
+  return msg.includes('Max calls') || msg.includes('non-JSON response')
+}
+
+/** Listing rows lost a field the draft pipeline depends on: stop, don't enqueue. */
+class ListingSchemaError extends Error {}
+
+function assertListingHasTier(rows: any[]): void {
+  // leagueTierToSkillTier(null) is 'mid': a listing without league_tier would
+  // silently label every draft mid-tier. Legacy rows always carry the key
+  // (null for ~5% of games), so only a missing KEY trips this.
+  if (rows.length > 0 && rows.every(r => !('league_tier' in r))) {
+    throw new ListingSchemaError('replay listing rows carry no league_tier; refusing to enqueue (skill tiers would all become mid)')
+  }
+}
+
 interface DiscoveryState {
   discoveryCursor: number
   maxKnownId: number
@@ -103,9 +122,11 @@ export async function discoverReplays(
 
   log.info(`Discovery: cursor=${state.discoveryCursor}, max=${maxId}, gap=${maxId - state.discoveryCursor}`)
 
-  while (state.discoveryCursor < maxId && callsMade < maxCalls) {
+  // Budget in metered calls: one v1 getReplayMinId spans several listing pages.
+  const calls0 = api.getTotalCallCount()
+  while (state.discoveryCursor < maxId && api.getTotalCallCount() - calls0 < maxCalls) {
     try {
-      const batch = await api.next().getReplayMinId(state.discoveryCursor)
+      const batch = await api.next().getReplayMinId(state.discoveryCursor, 'Storm League', 200, undefined, MAJOR_PATCH)
       callsMade++
 
       if (!Array.isArray(batch) || batch.length === 0) {
@@ -116,7 +137,6 @@ export async function discoverReplays(
       }
 
       // Filter for valid Storm League replays on current major patch
-      const MAJOR_PATCH = '2.55'
       const valid = batch.filter((r: any) =>
         r.game_type === 'Storm League' &&
         r.valid === 1 &&
@@ -126,6 +146,7 @@ export async function discoverReplays(
       )
 
       if (valid.length > 0) {
+        assertListingHasTier(valid)
         // Batch insert into queue, ignore conflicts (already queued)
         const queueRows = valid.map((r: any) => ({
           replayId: r.replayID,
@@ -157,7 +178,11 @@ export async function discoverReplays(
       }
     } catch (err) {
       // Don't skip cursor ranges over an account-level refusal.
-      if (isHpAccessPaused(err)) { await saveState(db, state); throw err }
+      if (isHpAccessPaused(err) || err instanceof ListingSchemaError) { await saveState(db, state); throw err }
+      if (isQuotaError(err)) {
+        log.warn(`Discovery: replay listing quota exhausted at cursor=${state.discoveryCursor}; stopping`)
+        break
+      }
       log.warn(`Discovery error at cursor=${state.discoveryCursor}: ${err}`)
       state.discoveryCursor += 100 // skip past problem area
     }
@@ -201,16 +226,16 @@ export async function discoverBackfill(
 
   let totalEnqueued = 0
   let callsMade = 0
-  const MAJOR_PATCH = '2.55'
 
   log.info(`Backfill: cursor=${state.backfillCursor}, floor=${BACKFILL_FLOOR}`)
 
-  while (state.backfillCursor > BACKFILL_FLOOR && callsMade < maxCalls) {
+  const calls0 = api.getTotalCallCount()
+  while (state.backfillCursor > BACKFILL_FLOOR && api.getTotalCallCount() - calls0 < maxCalls) {
     // Scan backwards: query a range ending at our cursor
     const queryStart = Math.max(BACKFILL_FLOOR, state.backfillCursor - 1000)
     try {
       // Whole window [queryStart, cursor): v1 pages ~25 rows, so bound by id, not row count.
-      const batch = await api.next().getReplayMinId(queryStart, 'Storm League', Infinity, state.backfillCursor)
+      const batch = await api.next().getReplayMinId(queryStart, 'Storm League', Infinity, state.backfillCursor, MAJOR_PATCH)
       callsMade++
 
       if (!Array.isArray(batch) || batch.length === 0) {
@@ -229,6 +254,7 @@ export async function discoverBackfill(
       )
 
       if (valid.length > 0) {
+        assertListingHasTier(valid)
         const queueRows = valid.map((r: any) => ({
           replayId: r.replayID,
           gameMap: r.game_map || null,
@@ -258,7 +284,11 @@ export async function discoverBackfill(
       }
     } catch (err) {
       // Don't skip cursor ranges over an account-level refusal.
-      if (isHpAccessPaused(err)) { await saveState(db, state); throw err }
+      if (isHpAccessPaused(err) || err instanceof ListingSchemaError) { await saveState(db, state); throw err }
+      if (isQuotaError(err)) {
+        log.warn(`Backfill: replay listing quota exhausted at cursor=${state.backfillCursor}; stopping`)
+        break
+      }
       log.warn(`Backfill error at cursor=${state.backfillCursor}: ${err}`)
       state.backfillCursor -= 1000
     }

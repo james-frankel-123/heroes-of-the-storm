@@ -69,8 +69,10 @@ async function main() {
   log.info('║  Replay Sync Daemon — Hyper Pro Max         ║')
   log.info('╚══════════════════════════════════════════════╝')
 
-  const DISCOVERY_BATCH = 2000
-  const BACKFILL_BATCH = 500    // Backfill discovery calls per cycle
+  // v1 meters /replays at 20K/wk shared with fetch-qm; run-backfills fires
+  // ~42x/wk, so ~350 listing pages per run leaves headroom.
+  const DISCOVERY_BATCH = isV2() ? 250 : 2000
+  const BACKFILL_BATCH = isV2() ? 100 : 500 // Backfill discovery calls per cycle
   const FETCH_BATCH = 5000      // Increased to use more of our 250K/wk Data quota
   const CYCLE_PAUSE_MS = 10_000 // 10s pause between cycles
 

@@ -233,6 +233,7 @@ export class HeroesProfileApiV2 {
     gameType = 'Storm League',
     maxRows = 200,
     beforeId?: number,
+    majorPatch?: string,
   ): Promise<any[]> {
     const rows: any[] = []
     let after = minId - 1 // inclusive -> exclusive
@@ -240,6 +241,9 @@ export class HeroesProfileApiV2 {
       const d: any = await this.fetch('replays', {
         after: String(after),
         game_type: gameType,
+        // Server-side patch filter: far fewer pages against the 20K/wk replay_index allowance.
+        timeframe_type: majorPatch ? 'major' : undefined,
+        timeframe: majorPatch,
       })
       const page: any[] = d.replays ?? []
       if (page.length === 0) break

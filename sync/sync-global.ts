@@ -7,6 +7,7 @@ import {
   mapStatsAggregate,
 } from '../src/lib/db/schema'
 import { HERO_ROLES } from '../src/lib/data/hero-roles'
+import { HeroesProfileApiV2 } from './api-client-v2'
 import { HpApi } from './hp-api'
 import { SyncDb } from './db'
 import { log } from './logger'
@@ -706,6 +707,20 @@ function parseMatchupData(hero: string, data: any): MatchupRow[] {
 
 // ── Main export ──────────────────────────────────────────────────────
 
+/**
+ * v1 heroes/talents/details allows 1K calls/wk and needs one call per hero
+ * (~273 per 3-tier refresh), so refresh every 60h (~760/wk), not nightly.
+ */
+const V1_TALENT_REFRESH_HOURS = 60
+
+async function talentsRefreshedWithin(db: SyncDb, hours: number): Promise<boolean> {
+  const [row] = await db
+    .select({ latest: sql<string | null>`max(${heroTalentStats.updatedAt})` })
+    .from(heroTalentStats)
+  if (!row?.latest) return false
+  return Date.now() - new Date(row.latest).getTime() < hours * 3_600_000
+}
+
 export async function syncGlobalStats(api: HpApi, db: SyncDb) {
   log.info('=== Starting global stats sync ===')
 
@@ -722,7 +737,9 @@ export async function syncGlobalStats(api: HpApi, db: SyncDb) {
 
   // 2. Talent stats — sequential (this endpoint is very slow and can't
   //    handle parallel requests without timing out)
-  for (const [tier, leagueTier] of TIER_MAPPING) {
+  const skipTalents = api instanceof HeroesProfileApiV2 && await talentsRefreshedWithin(db, V1_TALENT_REFRESH_HOURS)
+  if (skipTalents) log.info(`Talent stats refreshed within ${V1_TALENT_REFRESH_HOURS}h; skipping (v1 allowance)`)
+  for (const [tier, leagueTier] of skipTalents ? [] : TIER_MAPPING) {
     try {
       await syncTalentStatsForTier(api, db, tier, leagueTier, patch)
     } catch (err) {

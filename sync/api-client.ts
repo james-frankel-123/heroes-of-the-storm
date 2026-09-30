@@ -250,7 +250,7 @@ export class HeroesProfileApi {
    * Returns up to 1000 replay metadata entries.
    * Dataset: 1,000,000 calls/week per key.
    */
-  async getReplayMinId(minId: number, gameType = 'Storm League', _maxRows?: number, _beforeId?: number): Promise<any[]> {
+  async getReplayMinId(minId: number, gameType = 'Storm League', _maxRows?: number, _beforeId?: number, _majorPatch?: string): Promise<any[]> {
     return this.fetch('Replay/Min_id', {
       min_id: String(minId),
       game_type: gameType,
