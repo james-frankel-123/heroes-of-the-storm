@@ -169,3 +169,125 @@ The imitation model also serves as the personalized opponent model in version (a
 - `p3_dr_imitation.py`: imitation model (`results/p3_dr_imitation.json`).
 - `p3_dr_drafter.py`: drafter runs, versions (a) and (b), real-state rankings and collapse contexts (`cache/dr_runs.pkl.gz`).
 - `p3_dr_analyze.py`: all tables above (`results/p3_dr_analyze.json`, `fig_dr_meta.png`, `fig_dr_collapse.png`).
+
+# Personalized MCTS (2026-09-30)
+
+## Kernel (`cuda_personal/`)
+
+**Where it lives.** A copy of the guarded overfit2026 kernel (`cuda_ofit`); `training/cuda_mcts` is untouched. `cuda_personal/ref/` is an unmodified copy of `cuda_ofit`, built under another module name as the reference. Built with nvcc 12.9 for sm_120. Source: `personal_kernel.cu` and `personal_bindings.cpp`.
+
+**What changed** (all per episode, so one launch serves up to 256 lobbies):
+
+- **Leaf value.** The base is the population WP (the 3 d2c_cumprev seeds as a mean-logit net per orientation, then swap-symmetrized, from our side). On the logit scale it adds b2·(S_our − S_opp) + b3·(O_our − O_opp), with S and O summed over the ten slots' per-hero skill and off-role tensors (10×90 each). Coefficients b1 = 1.0015, b2 = 3.709 and b3 = −0.052 come from the V1 combiner; b0 is set to 0 (fitted value 0.0013).
+- **Pick step to player.** The kernel uses Storm League order: bans 0,1,0,1; picks 0,1,1,0,0; bans 1,0; picks 1,1,0,0,1, with kernel team 0 picking first. Real lobbies where team 1 picked first are relabeled. The player at a pick step is the player who made that pick in the real draft (`draft_order`, the order fetched by `p3_fetch_pickorder.py`). Slots 0 to 4 are kernel team 0's players in pick order, and 5 to 9 are team 1's.
+- **Pools and bans.** Every pick is restricted to the acting slot's pool, falling back to any free hero if the pool is exhausted. Real bans are forced wherever the hero is still free: in the main draft, in the tree and in rollouts.
+- **Decide-only mode.** Replays a prefix of actions, then runs one search for the acting team and reports root visits and Q. This is used for the real-state and collapse checks.
+- **Self-play.** Every non-forced step is searched from the acting team's side.
+- **Imitation opponent** (main draft only): softmax(w0·log p_GD + personal bias of the acting slot).
+- **Capacity guard.** The tree-capacity guard (4,096 nodes, with a bound check before every expansion) is kept. MAX_OUR_TURNS is raised to 16 for self-play.
+
+**Verification** (`p3_mcts_verify.py`, `results/p3_mcts_verify.json`):
+
+- **Leaf values.** 300 real held-out drafts with realistic personal tensors (rows of the personal tables), random slot assignments and random perspective. Kernel vs a float64 Python mirror: population WP max |Δ| 5.2e-7 (mean 1.2e-7); personal value max |Δ| 5.8e-7 (mean 1.2e-7).
+- **Population identity.** With personal terms zeroed (b = 0, 1, 0, 0, no pools, no forced bans), and separately with personal valuation switched off, the kernel reproduces the reference population kernel exactly: 64 episodes each at 100 and 400 sims, with identical win probabilities (bitwise), final drafts and root visit distributions.
+- **Guard.** Nodes used peak at 1,218 (100 sims), 2,662 (400 sims) and 3,528 (1,000 sims), with no capacity hits. At 3,000 sims without pools the tree fills (4,034 nodes) and the guard blocks 798 expansions in 11 of 16 episodes. The runs below use at most 1,500 sims with pools.
+- **Ensembling.** The kernel's mean-logit ensemble and the one-step drafter's mean-probability ensemble differ by at most 0.0017 WP (mean 0.0001).
+
+## Protocol
+
+- **Search.** Search-only: the prior is the outcome-free behavioral-cloning policy distilled from GD (`overfit2026/models/bc_prior.pt`). The in-tree opponent and all rollouts use GD, one of the five paper-1 models per launch, cycled; paired personalized and population runs share the model and seed. The root pick is the argmax of visits, with c_puct 2.0 and no Dirichlet noise.
+- **Data.** Same lobbies, controlled teams and players as the one-step run: 1,000 full lobbies, 5,724 realized lobbies and 300 collapse players (30 new contexts each).
+- **Main level.** 400 sims per decision. The sims curve uses 25, 100, 400 and 1,500 sims. The realized curve is scored on the same 2,000-lobby subset (4,000 teams) at every level, together with the one-step drafter on that subset.
+- **Compute.** GPU 3, at most 2 of my processes, about 1.5 GPU-hours in total, on 2 host threads per process.
+
+## MCTS vs one-step vs population
+
+| metric | one-step personalized | MCTS personalized (400 sims) | MCTS population (400 sims) |
+|---|---|---|---|
+| picks that differ from the population drafter at the same state | 52% | 38% | |
+| when they differ: personal gain / population WP cost (pp) | +3.6 / −3.0 | +3.9 (3.7, 4.1) / −1.6 (−1.8, −1.4) | |
+| whole draft vs GD: gain in V over the population drafter | +5.1 (4.5, 5.9) | +5.5 (4.7, 6.4) | |
+| whole draft vs GD: change in WP_pop | −3.1 | −1.9 (−2.6, −1.2) | |
+| whole draft vs GD: mean V of the controlled team | 0.733 | 0.698 | 0.643 |
+| whole draft vs imitation opponent: gain in V / change in WP_pop | +5.8 / −3.2 | +7.3 (6.5, 8.1) / −0.5 (−1.2, 0.2) | |
+| realized: residual top minus bottom agreement quintile, all 11,448 teams | +7.6 (4.9, 10.5) | +4.7 (1.9, 7.7) | +2.1 (−0.6, 4.9) |
+| realized: personal component, top minus bottom | +9.6 (6.7, 12.4) | +5.2 (2.2, 7.9) | |
+| collapse: effective pool per player (median) | 10.7 | 8.9 | 9.9 |
+| collapse: share of picks on the player's top-3 heroes (mean) | 28% | 26% | 13% |
+| self-play: effective number of heroes (real 73.5) | 69.5 | 42.6 | 41.0 |
+| self-play: share of the 10 most-picked heroes (real 25.7%) | 30.7% | 47.9% | 49.2% |
+| self-play: correlation of hero shares with real drafts | 0.47 | 0.82 | 0.79 |
+| off-role picks, self-play (real 15.8%) | 17.2% | 18.3% | 32.0% |
+| off-role picks, vs GD (controlled team) | 26.0% | 26.3% | 32.7% |
+| real picks equal to the drafter's top-1 | 12.4% | 20.2% | 14.6% |
+| imitation top-1 equal to the drafter's top-1 | 14.2% | 30.7% | |
+
+The population one-step drafter's off-role rates are 34.3% (self-play) and 35.0% (vs GD); its realized agreement is +0.1pp.
+
+**Reading:**
+
+- **Cheaper personal gains.** MCTS changes fewer picks than one-step (38% vs 52%). The picks it changes buy the same personal gain at about half the population-WP cost (−1.6pp vs −3.0pp per pick; −1.9 vs −3.1 per draft). Search finds personal picks that also hold up in the draft.
+- **Stronger opponent-model effect.** Against the imitation opponent, the personalized MCTS drafter's predicted edge is +7.3pp at almost no WP cost.
+- **Off-role handling.** The same as one-step: about 18% of personalized picks go to off-role players, against 32 to 34% for population drafters and 16% in real drafts.
+- **No collapse** onto comfort heroes. The effective pool is 8.9 heroes (population MCTS 9.9, real play 11.3 at the same sample size), and only 26% of picks go to the player's top-3 heroes (43% in real play).
+
+## Emergent meta under MCTS
+
+Figure: `fig_mcts_meta.png`.
+
+- **Concentration.** With the behavioral prior and argmax at the root, MCTS self-play concentrates on the prior's favorite heroes far more than one-step search or real drafts. The effective number of heroes is 42.6 (personalized) and 41.0 (population), against 73.5 in real drafts. The top 10 heroes take 48 to 49% of picks. The leaders are Rehgar (6.8% personalized, 7.4% population, real 2.3%), Valla (6.7%), Johanna (6.4%), Anduin (5.2%), Muradin, Leoric, Falstad, Thrall, Auriel and Li-Ming.
+- **Role mix.** It is close to real: tanks 21%, bruisers 18%, healers 21%, ranged 33%, melee assassins 7%. Hero shares correlate 0.82 with real (one-step 0.47), because the prior is behavioral.
+- **Personalization widens the pool slightly** (42.6 vs 41.0 heroes) and moves the meta toward real play (correlation 0.82 vs 0.79).
+- **Risers under personalized MCTS:** Blaze (0.45% vs 0.16%), D.Va, Zagara, Orphea, Hanzo (1.48% vs 0.89%), Lúcio, Gall, Cho, Chen, Junkrat.
+- **Fallers:** Uther (0.13% vs 0.25%), Mephisto, Rexxar, Raynor, Tracer, Malfurion, Illidan (1.42% vs 1.75%), Samuro, Deathwing, Ragnaros.
+- **The one-step conclusion holds.** Knowing who plays lifts specialist and high-execution heroes (Hanzo, Chen, Cho and Gall, D.Va, Blaze) and trims generic picks.
+
+## Sims curve: does deeper search buy realized value or only predicted value?
+
+Figure: `fig_mcts_sims_curve.png`. All rows use the same 1,000 lobbies (predicted) and the same 2,000-lobby subset of 4,000 teams (realized).
+
+| search | predicted whole-draft gain in V vs GD (pp) | change in WP_pop (pp) | realized: personalized agreement Q5 − Q1 (pp) | realized: personal component Q5 − Q1 | realized: population agreement Q5 − Q1 |
+|---|---|---|---|---|---|
+| MCTS 25 sims | +2.2 (1.5, 3.0) | −0.6 | −1.3 (−6.0, 3.7) | −2.9 (−7.6, 1.8) | −0.7 |
+| MCTS 100 sims | +2.9 (2.2, 3.7) | −1.6 | +0.1 (−4.6, 4.7) | +2.8 (−2.1, 7.8) | −0.1 |
+| MCTS 400 sims | +5.5 (4.7, 6.3) | −1.9 | +2.9 (−2.0, 7.6) | +3.7 (−0.7, 8.2) | +0.2 |
+| MCTS 1,500 sims | +7.2 (6.5, 7.9) | −3.3 | +5.3 (0.9, 10.2) | +7.3 (2.4, 11.9) | +1.5 |
+| one-step (≈86 rollouts per decision) | +5.1 (4.5, 5.8) | −3.1 | +7.1 (2.4, 12.1) | | |
+
+Reading:
+
+- **Predicted gains rise steadily with search:** +2.2pp at 25 sims to +7.2pp at 1,500. MCTS passes one-step between 100 and 400 sims.
+- **Realized value rises too, with no sign of overfitting yet** over this range. The personalized-agreement signal climbs from about 0 at 25 to 100 sims to +5.3pp at 1,500, and the personal component from −2.9 to +7.3.
+  - At low sims the root visit ranking is mostly the behavioral prior, so agreeing with it says little about outcomes.
+  - As search deepens, the ranking follows the personal value and its realized signal approaches the one-step drafter's (+7.1pp on the same teams).
+- **MCTS has not yet exceeded one-step on realized value**, even at 1,500 sims. The confidence intervals are wide (±5pp) and overlap fully.
+- **Paper 1's warning applies to the predicted column.** Predicted gains outrun realized ones: MCTS at 1,500 sims claims +7.2pp against one-step's +5.1pp, while its realized signal is if anything lower. More sims beyond 1,500 would need a larger tree (the 4,096-node guard starts to bind around 2,000 to 3,000 sims) and a larger realized sample to separate the curves.
+
+## Imitation vs outcome under MCTS
+
+At the real states (57,240 real picks), the personalized MCTS top-1 matches the real pick 20% of the time (one-step 12%) and matches the imitation model's top-1 31% of the time (one-step 14%). The behavioral prior pulls search toward what players usually pick.
+
+Team residual by which system the real pick matched:
+
+| the real pick matched | picks | residual (pp) |
+|---|---|---|
+| both | 7,228 | +2.4 (1.3, 3.5) |
+| imitation only | 11,877 | +1.7 (0.8, 2.5) |
+| personalized MCTS only | 4,329 | −0.3 (−1.7, 1.2) |
+| neither | 33,806 | −1.1 (−1.6, −0.5) |
+
+Under MCTS, the picks where the outcome-based drafter departs from the imitation model do not win more than expected. For one-step the same class was +1.8 (0.2, 3.4). The extra agreement MCTS gets from the behavioral prior shifts its distinct picks toward cases with little realized value.
+
+## Stretch: player-conditioned policy trained by self-play (not started; cost estimate)
+
+- **Kernel work.** The policy backbone takes a fixed 290-d state, and the acting slot's personal vector would have to enter it. Threading that input through the backbone and every expansion and re-verifying is a new kernel variant, about one working day.
+- **Self-play data.** Measured throughput is about 100 searched decisions per second at 400 sims on the shared GPU 3. That makes about 5.5 GPU-hours per 200K self-play drafts, and paper-1-style training needs many iterations: several GPU-days under the 2-process cap.
+- **Cheaper alternative.** Distill the root visit distributions already produced here into a player-conditioned policy by supervised learning, about one GPU-hour. It would serve as a better prior than the behavioral one (the low-sims curve shows the prior dominates below about 400 sims), but it would not test self-play training. Awaiting a decision before either is started.
+
+## Files (training/personalization/)
+
+- `cuda_personal/`: `personal_kernel.cu`, `personal_bindings.cpp`, `setup.py`, and `ref/` (the unmodified reference kernel).
+- `p3_mcts_core.py`: host side, draft-order and slot conventions, the Python leaf mirror.
+- `p3_mcts_verify.py`: verification (`results/p3_mcts_verify.json`).
+- `p3_mcts_drafter.py`: stages full, curve, real and collapse (`cache/mcts_*_s*.pkl.gz`, logs `results/p3_mcts_*_s*.txt`).
+- `p3_mcts_analyze.py`: all MCTS tables (`results/p3_mcts_analyze.json`, `fig_mcts_sims_curve.png`, `fig_mcts_meta.png`).

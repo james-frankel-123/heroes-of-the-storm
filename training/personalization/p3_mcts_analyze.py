@@ -406,7 +406,7 @@ def main():
     axs[0].set_xscale("log")
     axs[0].set_xlabel("simulations per decision")
     axs[0].set_ylabel("predicted whole-draft gain (pp of V), vs GD opponent")
-    axs[0].set_title("Predicted value keeps rising with search?", fontsize=10)
+    axs[0].set_title("Predicted whole-draft gain by search size (1,000 lobbies)", fontsize=10)
     axs[0].legend(fontsize=8)
     xs = [s for s in LEVELS if "realized_top_minus_bottom_pp" in curve.get(f"MCTS {s}", {})]
     for key, lab, col in (("realized_top_minus_bottom_pp", "personalized agreement", "#4e79a7"),
