@@ -145,3 +145,45 @@ Timescales (for matching against individual-skill timescales):
 | corrected tiers | 57.11 (57.12 / 57.04 / 57.17) | 0.93 (0.91 / 0.96 / 0.93) | 0.6776 |
 
 Nothing moves beyond seed noise, so no other experiment was rerun; the paper reports this in one sentence.
+
+## 7. Consolidated audit (2026-10-01), drift items
+
+Source: `audits/CONSOLIDATED_AUDIT_2026-10-01.md` §6 (4aff9b0). New scripts are in `training/drift_rebuild/audit_fixes/`, and their results are in `training/drift_rebuild/results/`.
+
+**Compute caveat.** At the coordinator's request, all MCTS training in this lane stopped on 2026-10-01 at about 15:20. The X2 bug: the CUDA kernel expands nodes only at our own turn, so the tree never searches past the current own-pick block. Max ruled it a must-fix. Every drift agent (drift2026 w4/w7/w8 and drift_rebuild r6_*) is old-kernel and must be retrained once the fixed kernel is ready; `mcts_runs/OLD_KERNEL.md` records this. The A1 control below uses the four U-era agents (`r6_uoof_gc_s0-3`) that finished before the stop. They are old-kernel, the same as every other agent in the paper.
+
+| Item | What changed | Numbers / artifact |
+|---|---|---|
+| A1 opponent-model confound | **Control run (partial).** U-era is the leak-free unmaintained VF trained against the cutoff-era opponent model (`drift2026/models/gd_cutoff`), 4 seeds. Results: U-era vs S1 +0.97 ± 0.15 (t 6.4, df 2.7); U-era vs S2 +0.64 ± 0.14 (t 4.8, df 8); U vs U-era +0.24 ± 0.21 (n.s.), i.e. the paper-1 opponent model's value to the 2026 agent. **Claims changed:** the staleness headline is now era-matched (0.97 / 0.64), with the mismatched rows shown separately. "Most of the loss arrives within a year" is dropped (the 1- and 2-year gaps cannot be told apart). "Two years do cost synergy" is retracted: with matched opponents, synergy is −0.06 ± 0.08 at 2 years and −0.17 ± 0.07 at 1 year, and counters favor the newer agent (+0.27 ± 0.12). Abstract, intro, Sec. 5, Fig. 2 (redrawn: era-matched vs mismatched), conclusion and limitations are all updated. Still pending: two more U-era seeds, and the M-ref/M-cut era-matched arms, all to be redone on the fixed kernel. | `results/h2h/{Ugc_vs_S1,Ugc_vs_S2,U_vs_Ugc,M_vs_Ugc}.json`, `results/r8_scores.json` |
+| A2 second degeneracy property | Softened to "History length accounts for most of the spread"; era-aligned statistics "may lower it further". The cutoff-opponent pair now leads (23.3 vs 14.1, t 7.0, df 2.6, p 0.01), followed by the original pair (25.8 vs 16.8, p 0.08). The paper states that the difference is not detected at the agent level. All Welch tests now give df and p. | `audit_fixes/a2_welch.py`, `results/a2_welch.json` |
+| A3 one VF draw | "Comes from" changed to "consistent with". M vs M-cut now carries a 95% CI (−0.30 to +0.19). Per-VF-seed means of the replication are +0.35 / +0.38 / +0.30. The split is stated as conditional on one VF draw. The planned `mcut_rg` (all VF seeds) arm was not run (kernel stop); queue it on the fixed kernel. | `results/r8_scores.json` |
+| B1 production | Dated: the first full run completed and deployed 2026-09-30 (slope 1.05); scheduled runs begin 2026-11-01. Sec. 11 logs it as the first C3 event. X4 (compositions not out of fold) is on hold and untouched. | |
+| B2 | 0.92 over 9 strategies → **0.90 over 11** for both QM judges (0.91 / 0.90 with tied ranks). The CONSENSUS_ORDER key bug lives in `qm2026/` and was not edited there. | `audit_fixes/b2_rank_corr.py`, `results/b2_rank_corr.json` |
+| B3 | 30-day per-build story rewritten from W3_GD_DRIFT (best on the three 2.55.15 builds, beats all-history on the first two 2.55.16 builds, worst on the last two); the window-size explanation is dropped. | |
+| B4 | Paired seed SEs are 1.2 (healer) and 0.9 (degeneracy); degeneracy missed its threshold by 0.3pp at about 2.9 SE. | |
+| B5, B6, I1 | The replay rows' seeds are described accurately. Noise is now 0.07pp (the frozen-recipe seed range). The recipe comparison gives the 3-seed mean and the same-seed 0.06pp. The Limitations example uses 0.050 vs 0.067. | `results/r9_replay.json` |
+| B7 | 10 drafts per ordering for the 15×15 first-version matchups. | |
+| B8 | "Touch" → "include". The 12,337-game overlap with the selection and opponent window is disclosed, and the 2.55.17-only result is cited (M vs U +0.46, p 0.007). Intro "builds no agent has seen" is fixed. | `results/r8_scores.json` T_255_17 |
+| B9, N3 | The Net column is recomputed with the structure-aware realized index (`overfit2026.gold.StructRealizedIndex`: hero, synergy, counter, composition + no-healer / no-frontline / stack). The caption states its game set: 308,375 games from the r10 cache fetched 2026-09-29, before the relabel, so snapshot-scheme tiers. Values move slightly: M vs U 2.3 → 2.7, M vs S2 6.3 → 6.1, U vs S2 4.5 → 3.4. | `r15_net_struct.py`, `results/r15_net_struct.json` |
+| B10 | "22 of the 40 mapped patches (458 mentions)". | recomputed from `patch_notes_ground_truth.json` |
+| B11 | The names table and text now say M-d90 uses the shrunk variant chosen on the future window, while the nested check prefers the unshrunk one. | |
+| B12 | The judge error is now defined as pairing-clustered SE combined in quadrature with judge-seed SD (up to 0.011; range up to 0.021). | |
+| B13 | The C2 rule is stated verbatim (z ≥ 1.645 one-sided; ≤ 0 falsified). The analysis date is a macro, `\analysisdate`, which must be set at submission. | |
+| B14 | Fig. 2 now uses t quantiles with each contrast's Satterthwaite df, and the caption covers both panels. | `paper/drift/scripts/gen_figs.py` |
+| B15a-e | 46-50%; "a third to a half"; 14 of 20 fires including the no-change 2.55.10.94470; 507 held-out days, chance 0.15; inflow is the snapshot's early-2026 rate of about 11,000/week (~1.5 weeks; from `patch_sidecar.npz`) plus the prereg's 14-16K/week (~8 days). | `results/c4_misc.json` |
+| C1 | The detector arm is labeled a hindsight upper bound and called a tie with the calendar; the 0.748 alternative placement is noted. | |
+| C2 | Calibration aging is rescored on a common window (the 7 post-2026-cutoff builds): **0.93 / 0.79 / 0.73** (was 0.93 / 0.84 / 0.80 on unequal windows). | `audit_fixes/c2_calib_common.py`, `results/c2_calib_common.json` |
+| C3 | W11 is rescored with t/Satterthwaite (t 3.6, df 31; 1.9; 4.1; degeneracy 0.7), "conditional on one VF per arm". The decayed-aggregate z values now have an artifact and reproduce exactly (future 2.47 / 1.74; nested 3.28 / 3.47; 365d nested 3.10). | `audit_fixes/c3_decayed_z.py`, `results/c3_decayed_z.json` |
+| C4 | Artifacts: K = 9/12 regrets (0.199 / 0.222); chance 0.152; capped QM-2026 retrain (0.515 / 0.537 / 0.524 → text "0.515 to 0.537", was 0.513); never-fielded 13 / 2 / 81 (already in `drift2026/results/w3_neverfielded.json` era_target_rows). | `audit_fixes/c4_misc.py`, `c4_qm2026_capped.py`, `results/c4_*.json` |
+| C5 | Sentence added: the rule's measure is a lower bound; the rolling window's 0.89pp also misses 1.0pp. | |
+| C6 | Limitations now discloses the interim looks at M-ref (3 and 5 seeds), the resumes without the replay buffer, the 1-yr cut, and the stopped U-era seeds. | |
+| C7 | Train/deploy lookup-rate mismatch measured on 60K fold-0 rows: availability differs by at most 0.005 percentage points (synergy 0.99998 vs 0.99999, comp 0.99992 vs 0.99997). One sentence added in Sec. 2. | `audit_fixes/c7_oof_missingness.py`, `results/c7_oof_missingness.json` |
+| C8 | **Vintage matrix rescored on the leak-free M vs U drafts** (7,200). Ranked 0.462 / 0.479 / 0.487 / 0.488 / 0.512 / 0.525 (2022Q1 → 2026); QM 0.428 / 0.432 / 0.487 / 0.522. Pre-2023 judges reverse the verdict by 1.9-5.4 combined SE; 2023-2024 lean the same way by about 1; 2025-2026 side with the realized outcome by 1.1-2.1. **Claim changed:** "from 2023 on, judges call it roughly even" → "2025-2026 judges agree with realized outcomes". The interpretive "current-meta knowledge" sentence is dropped. Fig. 4 is redrawn on the leak-free drafts; the first-version numbers reproduce exactly. | `audit_fixes/c8_vintage_leakfree.py`, `results/c8_vintage_leakfree.json` |
+| C9, C10 | All figures are referenced. Arm names: maintained definition, frozen-statistics recipe row, U-era row; "frozen-statistics recipe" is used consistently. | |
+| D1-D7 | Applied as suggested. | |
+| N1 | "So no result depends on the grouping" → "We did not rerun the policy-level experiments with the corrected tiers." | |
+| N2 | Third prereg deviation disclosed in Sec. 11: a rerun of the frozen truth scorer must reconstruct snapshot-scheme tiers from `league_tier` (or the 2026-09-30 backup table). **Not yet implemented in code**; the forward C2 analysis needs it. | |
+
+**Holds respected.** The X2 kernel wording ("AlphaZero-style", Sec. 2) is unchanged. Limitations does gain one factual sentence saying the agents were trained with the old kernel and will be rerun; remove it if Max prefers to handle X2 wording in one place. The X4 production-composition sentence (Sec. 10, "computed out of fold for training rows") is unchanged.
+
+**Page count:** 11 pages (was 10), no overfull boxes.

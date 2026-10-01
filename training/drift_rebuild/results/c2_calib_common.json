@@ -1,0 +1,130 @@
+{
+ "oof_allhist_2026": {
+  "n_rows": 287362,
+  "per_seed": [
+   {
+    "n_rows": 287362,
+    "acc": 56.521,
+    "logloss": 0.67936,
+    "calib_slope": 0.905,
+    "calib_intercept": -0.0216
+   },
+   {
+    "n_rows": 287362,
+    "acc": 56.686,
+    "logloss": 0.6791,
+    "calib_slope": 0.946,
+    "calib_intercept": 0.0216
+   },
+   {
+    "n_rows": 287362,
+    "acc": 56.548,
+    "logloss": 0.67923,
+    "calib_slope": 0.951,
+    "calib_intercept": 0.0011
+   }
+  ],
+  "acc_mean": 56.585,
+  "slope_mean": 0.934,
+  "slope_range": [
+   0.905,
+   0.951
+  ]
+ },
+ "oof_stale1yr": {
+  "n_rows": 287362,
+  "per_seed": [
+   {
+    "n_rows": 287362,
+    "acc": 55.671,
+    "logloss": 0.6836,
+    "calib_slope": 0.791,
+    "calib_intercept": 0.0013
+   },
+   {
+    "n_rows": 287362,
+    "acc": 55.624,
+    "logloss": 0.68351,
+    "calib_slope": 0.818,
+    "calib_intercept": 0.0177
+   },
+   {
+    "n_rows": 287362,
+    "acc": 55.398,
+    "logloss": 0.68448,
+    "calib_slope": 0.769,
+    "calib_intercept": -0.0033
+   }
+  ],
+  "acc_mean": 55.56433333333334,
+  "slope_mean": 0.7926666666666667,
+  "slope_range": [
+   0.769,
+   0.818
+  ]
+ },
+ "oof_stale2yr": {
+  "n_rows": 287362,
+  "per_seed": [
+   {
+    "n_rows": 287362,
+    "acc": 55.237,
+    "logloss": 0.68529,
+    "calib_slope": 0.761,
+    "calib_intercept": -0.016
+   },
+   {
+    "n_rows": 287362,
+    "acc": 55.382,
+    "logloss": 0.68497,
+    "calib_slope": 0.747,
+    "calib_intercept": -0.0148
+   },
+   {
+    "n_rows": 287362,
+    "acc": 55.349,
+    "logloss": 0.68598,
+    "calib_slope": 0.677,
+    "calib_intercept": 0.0104
+   }
+  ],
+  "acc_mean": 55.32266666666666,
+  "slope_mean": 0.7283333333333334,
+  "slope_range": [
+   0.677,
+   0.761
+  ]
+ },
+ "maintained": {
+  "n_rows": 287362,
+  "per_seed": [
+   {
+    "n_rows": 287362,
+    "acc": 57.086,
+    "logloss": 0.67775,
+    "calib_slope": 0.915,
+    "calib_intercept": 0.0099
+   },
+   {
+    "n_rows": 287362,
+    "acc": 57.114,
+    "logloss": 0.67771,
+    "calib_slope": 0.92,
+    "calib_intercept": 0.015
+   },
+   {
+    "n_rows": 287362,
+    "acc": 57.044,
+    "logloss": 0.67769,
+    "calib_slope": 0.952,
+    "calib_intercept": -0.0091
+   }
+  ],
+  "acc_mean": 57.081333333333326,
+  "slope_mean": 0.9289999999999999,
+  "slope_range": [
+   0.915,
+   0.952
+  ]
+ }
+}

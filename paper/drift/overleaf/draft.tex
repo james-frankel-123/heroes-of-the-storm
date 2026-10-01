@@ -34,6 +34,8 @@
 \newcommand{\staleone}{\textsc{stale-1yr}}
 \newcommand{\staletwo}{\textsc{stale-2yr}}
 \newcommand{\leakyfrozen}{\textsc{leaky-frozen}}
+\newcommand{\capqm}{0.515 to 0.537}
+\newcommand{\analysisdate}{to be stated here and on OSF at submission}
 % ==============================================================
 
 \begin{document}
@@ -60,13 +62,14 @@ between retrains adds only 0.02 to 0.04 points. Accuracy understates
 policy differences: two training regimes within 0.03 points of each
 other draft structurally broken teams at 17\% and 32\%. Head-to-head,
 scored on 298{,}000 games from five later builds that no agent's
-statistics touch, a maintained agent's picks average 0.34 percentage
+statistics include, a maintained agent's picks average 0.34 percentage
 points more realized future-meta hero win rate than those of an agent
 trained at the same cutoff ($p = 0.07$ with value-function seed variance
-charged), and 1.28 points more than those of an agent trained two years
-earlier ($p < 10^{-4}$). The same-cutoff gap comes from how the value
-model was trained; three months of refreshed statistics add nothing
-measurable at the agent level. An outcome-shift
+charged). The same-cutoff gap is consistent with how the value model
+was trained; three months of refreshed statistics add nothing
+measurable at the agent level. With opponent models matched by era, an
+agent trained at the 2026 cutoff leads agents trained one and two years
+earlier by 0.97 and 0.64 points. An outcome-shift
 detector fires on 16 of 21 build boundaries with documented changes and
 on 1 of 6 without (Fisher $p = 0.015$), yet as a refresh trigger it does
 no better than a calendar. Learned judges drift too: every judge trained
@@ -109,22 +112,23 @@ Among eight training regimes, the patch-embedding regime comes within
 0.03pp of our maintained model's future accuracy, yet drafting greedily
 it assembles structurally broken teams twice as often (32\% against
 17\%). Third, maintained and unmaintained MCTS agents draft against each
-other and are scored against realized outcomes from builds no agent has
-seen. Against an agent trained at the same cutoff, the maintained
+other and are scored against realized outcomes of games that no
+agent's statistics include. Against an agent trained at the same cutoff, the maintained
 agent's picks average +0.34pp of realized future-meta hero win rate
 ($p = 0.07$; +0.43pp, $p = 0.008$, with a single value function and more
-agent seeds). That gap comes from training the value model on statistics
-aligned with each game's era, and three months of refreshed statistics
-add nothing measurable. Agents built with the same recipe one and two years
-earlier trail by 1.12 and 1.00pp; most of the loss arrives within a
-year. Fourth, the machinery a maintainer needs around these
+agent seeds). That gap is consistent with training the value model on
+statistics aligned with each game's era, and three months of refreshed
+statistics add nothing measurable. Agents built with the same
+value-function recipe one and two years earlier, each with an opponent
+model of its own era, trail an agent trained at the 2026 cutoff by 0.97
+and 0.64pp when that agent's opponent model is also of its era. Fourth, the machinery a maintainer needs around these
 decisions: a detector of balance changes from outcomes alone, measured
 against the developer's patch notes, and the observation that learned
 judges age like the models they judge.
 
 Scoping notes. Each learned judge we tried scores this contest by
-its own era (Section~\ref{sec:vintage}), so the head-to-head results rest
-on realized future outcomes and never on a learned judge. And the
+its own era (Section~\ref{sec:vintage}), so the head-to-head results are
+scored on realized future outcomes. And the
 retrospective design can be tuned to the future it holds out, so we
 registered forward tests on OSF before submission
 (Section~\ref{sec:prospective}). Throughout, statistics used as training
@@ -155,8 +159,8 @@ the aggregate statistics are computed per label. Retraining the
 \maintained{} value function with contiguous tiers (Bronze--Silver,
 Gold--Platinum, Diamond--Master; 47\% of games change label) leaves
 future-window accuracy at 57.11\% against 57.08\% and the calibration
-slope at 0.93 against 0.93 (three seeds each), so no result depends on
-the grouping. Replacing the tier one-hot with continuous average match
+slope at 0.93 against 0.93 (three seeds each). We did not rerun the
+policy-level experiments with the corrected tiers. Replacing the tier one-hot with continuous average match
 rating changes future accuracy by $-$0.017pp, and appending it changes
 it by +0.007pp, both inside seed noise.
 
@@ -195,9 +199,12 @@ model's predictions; 1 is calibrated) rises from 0.69 to 0.93, level
 with \maintained{}'s 0.93, and the rate of structurally broken teams
 under greedy drafting falls from 43.5\% to 25.8\%. In-period validation
 cannot reveal the leak, because validation rows carry it too; the leaky
-models look calibrated there (slope 1.0). We report the leaky versions
-only as labeled controls, next to the leak-free results they
-replace.
+models look calibrated there (slope 1.0). Because training rows see
+statistics from four fifths of the games and deployment rows from all of
+them, cells near the count thresholds could go missing more often in
+training; on a 60{,}000-game sample the lookup rates differ by at most
+0.005 percentage points. We report the leaky versions only as labeled
+controls, next to the leak-free results they replace.
 
 The agent under maintenance has three learned parts. A win-probability
 model (the MLP above) scores completed drafts. An opponent model,
@@ -229,12 +236,14 @@ Because ``frozen'' can mean several things here, we name the arms once
 \toprule
 Name & Meaning \\
 \midrule
-\maintained{} & value function trained on causal per-build statistics; its MCTS policy trained with kernel statistics through the last completed build (May 2026) \\
-\maintainedpred{} & as \maintained{}, with statistics decayed on a 90-day half-life (Sec.~\ref{sec:replay}) \\
+\maintained{} & value function trained with each row's statistics cumulative through the build before its own; its MCTS policy trained with kernel statistics through the last completed build (May 2026) \\
+\maintainedpred{} & as \maintained{}, with statistics decayed on a 90-day half-life and counts shrunk toward the cumulative value (100 pseudo-games) (Sec.~\ref{sec:replay}) \\
 \mcut{} & the \maintained{} value function, with its MCTS policy trained on kernel statistics frozen at the cutoff \\
 \stalefour{} & value function trained on cutoff-frozen statistics with out-of-fold training rows; policy trained on cutoff statistics \\
+U-era & the \stalefour{} value functions, with the policy trained against an opponent model fit only to games before the cutoff \\
 \staleone{} / \staletwo{} & the \stalefour{} recipe with the cutoff one and two years earlier, and an opponent model of that era \\
 \leakyunm{} & our first version of \stalefour{}, whose training rows saw their own outcomes; a control \\
+frozen-statistics recipe & in the replay (Sec.~\ref{sec:replay}), a value function trained at the replay's first cutoff (July 2023) on out-of-fold cutoff statistics and deployed with those statistics frozen \\
 \leakyfrozen{} & the earlier paper's model, whose statistics saw the future; a control \\
 \bottomrule
 \end{tabular}
@@ -295,33 +304,35 @@ regime is which. Across the seven cutoff-frozen regimes, the correlation
 between future accuracy and degeneracy is $-0.46$ ($n = 7$, not
 significant), and the patch-embedding regime, within 0.03pp of
 \maintained{}'s accuracy, drafts broken teams at 31.9\% against 16.8\%
-(Welch $t = 10.9$, three seeds each). Selecting among these regimes by
-accuracy would call the best two interchangeable.
+(Welch $t = 11.0$, 2.6 df, $p = 0.003$, three seeds each). Selecting
+among these regimes by accuracy would call the best two
+interchangeable.
 
-Two properties set the rate. The first is how much history a regime
-learns from: regimes that see mostly recent builds, by window or by
-90-day sample decay, draft broken teams 40\% to 50\% of the time, and
-regimes that keep all history sit at 26\% to 32\%. The second is whether
-the training statistics match each game's own era. Trained on all history
-with each row's statistics cumulative through its previous build,
-\maintained{} reaches 16.8\%, against 25.8\% for all-history training on
-cutoff-frozen statistics (Welch $t = 3.3$). Seed spread is large in some
-cells (standard deviation 4.7 points for all-history and 7.9 for the
-12-build window), so we read only differences of this size. The opponent
-pool in this protocol is the earlier paper's opponent model, which saw
-the test period; with an opponent model trained only to the cutoff, the
-leak-free all-history rate is 23.3\% and \maintained{}'s 14.1\%.
+History length accounts for most of the spread: regimes that see
+mostly recent builds, by window or by 90-day sample decay, draft broken
+teams 40\% to 50\% of the time, and regimes that keep all history sit at
+26\% to 32\%. Training statistics aligned with each game's own era may
+lower the rate further. With the opponent pool restricted to an
+opponent model trained only to the cutoff, all-history training on
+cutoff-frozen statistics drafts broken teams 23.3\% of the time against
+14.1\% for \maintained{} (Welch $t = 7.0$, 2.6 df, $p = 0.01$); with the
+earlier paper's opponent model, which saw the test period, the rates
+are 25.8\% and 16.8\% ($t = 3.3$, 2.1 df, $p = 0.08$). Three seeds per
+arm make these tests weak, seed spread is large in some cells (standard
+deviation 4.7 points for all-history, 7.9 for the 12-build window), and
+we do not detect the difference at the agent level
+(Section~\ref{sec:neglect}).
 
 Our first version reported a 2.5-fold gap (43.5\% against 16.8\%) and a
 correlation of $+0.78$ between accuracy and degeneracy within the
 standard regimes, which we read as accuracy ranking policies backwards.
 The leak produced both (Figure~\ref{fig:scatter}). It raised the
 degeneracy of the all-history regimes most (from 25.8\% to 43.5\%, 31.7\%
-to 47.5\%, and 31.9\% to 47.0\%), left the short-history regimes near
-47\% to 50\%, and lowered every regime's future accuracy by 0.1 to
-0.5pp. The claim that survives is weaker and still useful: at equal
-accuracy, policies can differ twofold in how often they draft a broken
-team, so policy metrics have to be measured directly.
+to 47.5\%, and 31.9\% to 47.0\%; Welch $t = 5.8$, 2.9 df, $p = 0.01$
+for all history), moved the short-history regimes to 46\% to 50\%, and
+lowered every regime's future accuracy by 0.1 to 0.5pp. What remains is
+that at equal accuracy, policies can differ twofold in how often they
+draft a broken team, so policy metrics have to be measured directly.
 
 \section{What Retraining and Refresh Are Worth}
 \label{sec:replay}
@@ -330,9 +341,11 @@ We replay a 2.8-year deployment forward across 36 builds, starting from
 about 640{,}000 games of history at build 2.55.3.89754 (July 2023), and
 score every maintenance policy by games-weighted accuracy and by regret
 against retraining after every build (Table~\ref{tab:regret}). Every
-model in the replay trains on causal statistics with the same seed, so
-comparisons between rows use the same model family; differences under
-about 0.05pp are within the noise one training seed adds.
+maintenance-policy row trains on causal statistics with seed 42; the
+frozen-statistics rows are the out-of-fold recipe (three seeds) and the
+leaky control. The three frozen-recipe seeds span 0.07pp, so
+differences between rows under about 0.07pp are within the noise one
+training seed adds.
 
 \begin{table}[t]
 \caption{Deployment replay over 2.8 years: deployment-weighted regret
@@ -350,8 +363,8 @@ Policy & Retrain & Refresh & Regret (pp) \\
 reference: retrain every build & 35 & 35 & 0.000 \\
 \midrule
 never retrain, never refresh & 0 & 0 & +1.062 \\
-\quad frozen-stats recipe, leak-free$^{a}$ & 0 & 0 & +1.05 to 1.12 \\
-\quad frozen-stats recipe, leaky & 0 & 0 & +1.682 \\
+\quad frozen-statistics recipe, leak-free$^{a}$ & 0 & 0 & +1.05 to 1.12 \\
+\quad frozen-statistics recipe, leaky & 0 & 0 & +1.682 \\
 \midrule
 never retrain, refresh every build & 0 & 35 & +0.730 \\
 never retrain, refresh every 3rd & 0 & 11 & +0.738 \\
@@ -373,9 +386,9 @@ statistics every build, with the weights fixed, recovers 0.33pp of it,
 31\%. Retraining every three builds recovers 1.01pp even when the
 statistics are recomputed only at each retrain, and refreshing between
 retrains then adds 0.021pp; at a six-build cadence it adds 0.039pp.
-Retraining is the repair. Refresh is a cheap partial substitute when
-retraining is impossible, and nearly worthless once retraining happens on
-a schedule. Cadences from one to six builds land within 0.11pp of the
+Retraining does the repair. Refresh recovers a third of the loss when
+retraining is impossible, and adds 0.02 to 0.04pp once retraining is
+scheduled. Cadences from one to six builds land within 0.11pp of the
 reference; the regret grows past that (0.20pp at nine builds, 0.22pp at
 twelve). A warm-start finetune in place of a full retrain costs 0.06pp.
 In calendar terms the replay's builds average 29 days apart, so a
@@ -388,19 +401,23 @@ cutoff lowers future-window accuracy by only 0.030pp (57.08\% to
 56.59\%. So at the 2026 cutoff, 0.46 of the 0.49pp that separates the
 two training recipes comes from training against statistics aligned with
 each game's own era, and 0.03pp from refresh. In the replay the same
-recipe difference is worth about 0.02pp (1.08 against 1.06pp, mean of
-three seeds). The leaky construction had put the frozen-statistics recipe
-at 1.68pp, which our first version read as a large recipe effect. The recipe matters more at the later cutoff, where the
-model trains on four years of history instead of eighteen months, and
-cutoff-frozen statistics describe the early games worse.
+recipe difference is small: the frozen-statistics recipe's three seeds
+average 1.08pp against 1.06pp for the never-refreshed causal model (seed
+42 only); the same-seed difference is 0.06pp, inside the 0.07pp seed
+range. The leaky construction had put the frozen-statistics recipe at
+1.68pp, which our first version read as a large recipe effect. The
+recipe matters more at the later cutoff, where the model trains on four
+years of history instead of nineteen months, and cutoff-frozen
+statistics describe the early games worse.
 
 \textbf{Decayed aggregates.} If recomputing statistics helps a little,
 old games may deserve less weight inside them. Decaying the aggregates
 with a 90-day half-life, with counts shrunk toward the cumulative value
 (100 pseudo-games), reaches 57.22\% future-window accuracy against
-\maintained{}'s 57.08\%, and the unshrunk 90-day variant 57.19\%. With 3
-seeds per arm and the future games resampled, the gains are +0.14pp
-($z = 2.5$, game-clustered) and +0.11pp ($z = 1.7$). The stronger
+\maintained{}'s 57.08\%, and the unshrunk 90-day variant 57.19\%.
+Paired on the same rows, with each arm's three seeds averaged and the
+standard error clustered by game, the gains are +0.14pp ($z = 2.5$) and
++0.11pp ($z = 1.7$). The stronger
 evidence is a nested check that repeats the selection several builds
 earlier and scores a pseudo-future window: there the 90-day family wins
 by +0.19 and +0.21pp ($z = 3.3$ and 3.5). The variant chosen by that
@@ -410,18 +427,20 @@ and report both. The gain is window-dependent in one respect: a
 and beats them by 0.14pp ($z = 3.1$) on the nested window. Under greedy
 drafting the two 90-day variants produce 18.9\% and 19.1\% broken teams
 against 16.8\% for \maintained{}, about 2 points higher, which three
-seeds per arm cannot resolve (Welch $t = 1.8$ and 2.3). Our decay is
+seeds per arm cannot resolve (Welch $p = 0.17$ and 0.10). Our decay is
 applied per build using each build's last game date, so games within a
 build share one weight, and builds last up to 167 days.
 
-Agents trained on the decayed value function draft better-timed heroes.
-In a direct head-to-head (fifteen seeds per side, 4{,}500 drafts) the
-\maintainedpred{} agent's picks average +0.31pp of future-meta hero win
-rate over \maintained{}'s ($z = 3.6$) on the out-of-sample builds of
-Section~\ref{sec:neglect}, +0.15pp ($z = 1.9$) on 2.55.16.97039 and
-+0.44pp ($z = 4.1$) on the 2.55.17 builds, with no difference in broken
-teams ($z = 0.7$), synergy, or counters. Each of these two agents was
-trained on the single value-function seed with the best future-window
+Agents trained on a decayed value function draft better-timed heroes.
+The \maintainedpred{} agent uses the shrunk variant, the one with the
+best future-window accuracy; the nested check prefers the unshrunk one.
+In a direct head-to-head (fifteen seeds per side, 4{,}500 drafts) its
+picks average +0.31pp of future-meta hero win rate over \maintained{}'s
+($t = 3.6$, 31 df) on the out-of-sample builds of
+Section~\ref{sec:neglect}, +0.15pp ($t = 1.9$) on 2.55.16.97039 and
++0.44pp ($t = 4.1$) on the 2.55.17 builds, with no difference in broken
+teams ($t = 0.7$), synergy, or counters. These tests condition on one
+value function per arm: each was the seed with the best future-window
 accuracy of three, which favors the decayed agent by 0.19pp of accuracy
 at selection; the seeds within each arm differ by at most 0.14pp.
 
@@ -446,7 +465,8 @@ clock score 57.07\%, the reverse assignment 57.15\%, both below uniform
 Accuracy comparisons leave open whether any of this matters when
 policies play. We answer with direct competition. Two agents draft
 against each other in every pairing of their seeds, both first-pick
-orderings, 40 drafts per ordering over stratified maps and tiers, each
+orderings, 40 drafts per ordering (10 for the 15$\times$15 first-version
+matchups) over stratified maps and tiers, each
 agent acting greedily from its policy head. At play time no agent uses
 aggregate statistics; statistics enter only through the value function
 and the kernel's statistics table during MCTS training. ``Maintenance''
@@ -460,18 +480,22 @@ earlier agent, 15 MCTS seeds; its value function is the one of three
 \maintained{} seeds with the best future-window accuracy, a selection
 worth at most 0.07pp of accuracy. A replication of \maintained{} with
 6 MCTS seeds, two on each of the three value-function seeds, charges
-value-function variance. \stalefour{} has 6 MCTS seeds, two on each of three leak-free
-value-function seeds, so its seed variance includes value-function
-variance. \mcut{} holds \maintained{}'s single value function and trains its
-policy on statistics frozen at the cutoff (5 seeds); it is the
-maintained recipe trained at the cutoff and then left alone. \staleone{}
-and \staletwo{} use the leak-free value functions trained to their own
-cutoffs, statistics of that date, and an opponent model trained only on
-games up to that date, for both the policy's initialization and its
-self-play opponent (3 and 6 seeds; the one-year arm was cut to one
-agent per value-function seed when compute was capped). The 2026 agents are all initialized from,
-and trained against, the earlier paper's opponent model, which saw the
-test period; both sides of every 2026 matchup share it.
+value-function variance. \stalefour{} has 6 MCTS seeds, two on each of
+three leak-free value-function seeds. \mcut{} holds \maintained{}'s
+selected value function and trains its policy on statistics frozen at
+the cutoff (5 seeds); it is the maintained recipe trained at the cutoff
+and then left alone. \staleone{} and \staletwo{} use the leak-free value
+functions trained to their own cutoffs, statistics of that date, and an
+opponent model trained only on games up to that date, for both the
+policy's initialization and its self-play opponent (3 and 6 seeds; the
+one-year arm was cut to one agent per value-function seed when compute
+was capped). The 2026 agents are initialized from, and trained against,
+the earlier paper's opponent model, which saw the test period, so both
+sides of every 2026 matchup share it. To compare staleness with the
+opponent model matched by era on both sides, we also trained
+\stalefour{} against an opponent model fit only to games before the 2026
+cutoff (U-era below, 4 seeds; two further seeds were stopped
+when the search kernel was changed, Section~\ref{sec:limits}).
 
 Each terminal draft is scored against the realized outcomes of later
 games: the average win rate of the heroes each side picked, the synergy
@@ -479,7 +503,13 @@ of each side's pairs and its counters against the other side (pair and
 matchup win rates beyond what the heroes' own rates predict), and the
 rule-based degenerate-composition flag. The scoring games are the
 298{,}428 ranked games of build 2.55.16.97039 and the four 2.55.17
-builds (May through September 2026). No agent's statistics touch them.
+builds (May through September 2026). No agent's statistics include
+them. The first 12{,}337 games of 2.55.16.97039 fell inside the pinned
+future window, which we used to select value-function seeds and the
+decay half-life and which trained the earlier paper's opponent model;
+on the 150{,}131 games of the four 2.55.17 builds alone, which no part
+of any agent saw, every contrast below keeps its sign and size (for
+example $+0.46$pp for \maintained{} against \stalefour{}, $p = 0.007$).
 Our first version of this protocol scored against all seven post-cutoff
 builds, six of which also fed \maintained{}'s statistics; that overlap
 tripled the synergy gap. Inference uses crossed random effects for the
@@ -490,12 +520,16 @@ counters, degeneracy, and the other truth sets are secondary.
 \begin{table}[t]
 \caption{Head-to-head results on out-of-sample builds. $\Delta$: the
 first agent's advantage in future-meta hero win rate (pp, crossed seed
-random effects, $t$ reference). Net: team win-probability gap implied
-by hero, synergy, and counter scores together, with weights fitted on
-held-out real games (mean of two cross-fitting splits). M:
-\maintained{}; M-d90: \maintainedpred{}; M-cut: \mcut{}; U:
-\stalefour{}; S1, S2: \staleone{}, \staletwo{}; M-vol: \maintained{} trained on S2's row
-count; U-leaky, S2-leaky: the leaky first versions.}
+random effects, $t$ reference). Net: team win-probability gap from a
+realized-outcome index with hero, synergy, counter, and
+role-composition terms and three structure indicators (no healer, no
+frontline, stacked role), weights fitted on held-out real games (two
+cross-fitting folds); it uses the 308{,}375 games of the same five
+builds that our database held on September 29, 2026, dated no later
+than September 27. M: \maintained{}; M-d90: \maintainedpred{}; M-cut:
+\mcut{}; U: \stalefour{}; U-era: \stalefour{} with a cutoff-era opponent
+model; S1, S2: \staleone{}, \staletwo{}; M-vol: \maintained{} trained on
+S2's row count; U-leaky, S2-leaky: the leaky first versions.}
 \label{tab:dose}
 \centering
 \footnotesize
@@ -504,111 +538,126 @@ count; U-leaky, S2-leaky: the leaky first versions.}
 \toprule
 Matchup & Seeds & $\Delta$ (pp) & $t$ (df) & Net (pp) \\
 \midrule
-M (all VF seeds) vs U & 6$\times$6 & $+0.34 \pm 0.17$ & 2.0 (10) & +1.6 \\
-M vs U & 15$\times$6 & $+0.43 \pm 0.13$ & 3.3 (10) & +2.3 \\
-M-d90 vs U & 15$\times$6 & $+0.77 \pm 0.11$ & 7.0 (8) & +3.7 \\
-M vs M-cut & 15$\times$5 & $-0.05 \pm 0.11$ & $-0.5$ (9) & $-0.4$ \\
-M-cut vs U & 5$\times$6 & $+0.52 \pm 0.13$ & 3.9 (10) & +2.9 \\
-U vs S1 & 6$\times$3 & $+1.12 \pm 0.23$ & 4.8 (5) & +5.3 \\
-U vs S2 & 6$\times$6 & $+1.00 \pm 0.16$ & 6.3 (8) & +4.5 \\
-M vs S1 & 15$\times$3 & $+1.34 \pm 0.16$ & 8.6 (3) & +6.4 \\
-M (all VF seeds) vs S2 & 6$\times$6 & $+1.28 \pm 0.15$ & 8.7 (9) & +5.6 \\
-M vs S2 & 15$\times$6 & $+1.40 \pm 0.09$ & 15.9 (13) & +6.3 \\
-M-vol vs S2 & 5$\times$6 & $+1.28 \pm 0.16$ & 8.1 (7) & +5.9 \\
-\midrule
+\multicolumn{5}{l}{\emph{same cutoff}} \\
+M (all VF seeds) vs U & 6$\times$6 & $+0.34 \pm 0.17$ & 2.0 (10) & +1.5 \\
+M vs U & 15$\times$6 & $+0.43 \pm 0.13$ & 3.3 (10) & +2.7 \\
+M-d90 vs U & 15$\times$6 & $+0.77 \pm 0.11$ & 7.0 (8) & +3.4 \\
+M vs M-cut & 15$\times$5 & $-0.05 \pm 0.11$ & $-0.5$ (9) & $-0.6$ \\
+M-cut vs U & 5$\times$6 & $+0.52 \pm 0.13$ & 3.9 (10) & +3.3 \\
+U vs U-era & 6$\times$4 & $+0.24 \pm 0.21$ & 1.1 (8) & +0.6 \\
+\multicolumn{5}{l}{\emph{staleness, era-matched opponent models}} \\
+U-era vs S1 & 4$\times$3 & $+0.97 \pm 0.15$ & 6.4 (3) & +5.7 \\
+U-era vs S2 & 4$\times$6 & $+0.64 \pm 0.14$ & 4.8 (8) & +2.5 \\
+\multicolumn{5}{l}{\emph{staleness, 2026 side on the earlier paper's opponent model}} \\
+U vs S1 & 6$\times$3 & $+1.12 \pm 0.23$ & 4.8 (5) & +5.2 \\
+U vs S2 & 6$\times$6 & $+1.00 \pm 0.16$ & 6.3 (8) & +3.4 \\
+M vs S1 & 15$\times$3 & $+1.34 \pm 0.16$ & 8.6 (3) & +6.7 \\
+M (all VF seeds) vs S2 & 6$\times$6 & $+1.28 \pm 0.15$ & 8.7 (9) & +4.6 \\
+M vs S2 & 15$\times$6 & $+1.40 \pm 0.09$ & 15.9 (13) & +6.1 \\
+M-vol vs S2 & 5$\times$6 & $+1.28 \pm 0.16$ & 8.1 (7) & +6.2 \\
 \multicolumn{5}{l}{\emph{leaky controls (first version)}} \\
-M vs U-leaky & 15$\times$15 & $+0.69 \pm 0.10$ & 7.0 (32) & +2.6 \\
-M vs S2-leaky & 5$\times$5 & $+1.10 \pm 0.17$ & 6.5 (8) & +4.0 \\
-U vs U-leaky & 6$\times$15 & $+0.35 \pm 0.13$ & 2.8 (11) & +0.8 \\
+M vs U-leaky & 15$\times$15 & $+0.69 \pm 0.10$ & 7.0 (32) & +3.3 \\
+M vs S2-leaky & 5$\times$5 & $+1.10 \pm 0.17$ & 6.5 (8) & +4.5 \\
+U vs U-leaky & 6$\times$15 & $+0.35 \pm 0.13$ & 2.8 (11) & +1.9 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Against the leak-free unmaintained agent, the maintained agent's 15
 seeds average +0.43pp of future-meta hero win rate ($t = 3.3$, 10 df,
-$p = 0.008$; Table~\ref{tab:dose}), about 2.3 points of team win
-probability once synergy and counters are included, and the advantage
-holds on both halves of the scoring set (+0.41pp on 2.55.16.97039,
-+0.46pp on the 2.55.17 builds). Those 15 agents share one value
-function, so this estimate conditions on one value-function draw. The
-replication that varies the value-function seed gives $+0.34 \pm 0.17$pp
-($t = 2.0$, 10 df, $p = 0.07$). Its six agents range from $-0.12$ to
-$+0.82$pp, and the 15 single-value-function agents from $-0.01$ to
-$+0.93$pp, so agent-seed variance dominates at this effect size. We read
-the same-cutoff advantage as about a third of a point, positive in every
-estimate and significant only with the larger seed budget. Our first version measured +0.66pp against the leaky agent
-(+0.69pp at fifteen seeds per side), so about a third of the advantage
-we first reported came from the leak. The two unmaintained agents can be
-compared directly: the leak-free one beats the leaky one by +0.35pp
-($t = 2.8$) and drafts broken teams 28\% of the time against 50\%.
-The decayed-statistics agent leads the unmaintained agent by +0.77pp
-($t = 7.0$), consistent with its lead over \maintained{} in
-Section~\ref{sec:replay}.
+$p = 0.008$; Table~\ref{tab:dose}), about 2.7 points of team win
+probability by the realized-outcome index, and the advantage holds on
+both halves of the scoring set (+0.41pp on 2.55.16.97039, +0.46pp on
+the 2.55.17 builds). Those 15 agents share one value function, so this
+estimate conditions on one value-function draw. The replication that
+varies the value-function seed gives $+0.34 \pm 0.17$pp ($t = 2.0$,
+10 df, $p = 0.07$). Its six agents range from $-0.12$ to $+0.82$pp, and
+the 15 single-value-function agents from $-0.01$ to $+0.93$pp, so
+agent-seed variance dominates at this effect size; averaged by
+value-function seed the replication gives $+0.35$, $+0.38$, and
+$+0.30$pp, so no single value function carries it. We read the
+same-cutoff advantage as about a third of a point, positive in every
+estimate and significant only with the larger seed budget. Our first
+version measured +0.66pp against the leaky agent (+0.69pp at fifteen
+seeds per side), so between a third and a half of the advantage we
+first reported came from the leak; the two unmaintained agents compared
+directly differ by +0.35pp ($t = 2.8$), and the leak-free one drafts
+broken teams 28\% of the time against 50\%. The decayed-statistics
+agent leads the unmaintained agent by +0.77pp ($t = 7.0$), consistent
+with its lead over \maintained{} in Section~\ref{sec:replay}.
 
 The leak also produced two claims we retract. The first version found
 that unmaintained agents counter the maintained agent's picks slightly
 better ($-0.31 \pm 0.08$ in counter score at fifteen seeds). Against the
 leak-free agent the sign flips and the gap is small ($+0.12 \pm 0.07$ for
 \maintained{}, $t = 1.7$), and the leak-free agent counters worse than the
-leaky one ($-0.39 \pm 0.09$, $t = -4.3$). The leaky value function leaned
-on its matchup features, which is where the leak concentrated. The first
-version also found that maintenance cut broken teams from 36.9\% to
-22.0\% in head-to-head play. Against the leak-free agent the rates are
-24.1\% and 29.7\% ($-5.6 \pm 7.6$ points, not significant). At the agent
-level we cannot detect a degeneracy benefit from maintenance, although
-the greedy protocol of Table~\ref{tab:regimes} shows one (16.8\% against
-25.8\%). Synergy
-differences are small in every matchup ($+0.14 \pm 0.11$ here).
+leaky one ($-0.39 \pm 0.09$, $t = -4.3$). The first version also found
+that maintenance cut broken teams from 36.9\% to 22.0\% in head-to-head
+play. Against the leak-free agent the rates are 24.1\% and 29.7\%
+($-5.6 \pm 7.6$ points, not significant). At the agent level we cannot
+detect a degeneracy benefit from maintenance, although the greedy
+protocol of Table~\ref{tab:regimes} suggests one. Synergy differences
+are small in every same-cutoff matchup ($+0.14 \pm 0.11$ here).
 
 The \mcut{} agent locates the advantage. It keeps \maintained{}'s
 selected value function and trains its policy on statistics frozen at
-the cutoff.
-Against \maintained{}, whose policy trained on three more months of
-statistics, it is level ($-0.05 \pm 0.11$pp, $t = -0.5$). Against
-\stalefour{}, which differs from it only in how its value function's
-training statistics were built, it leads by $+0.52 \pm 0.13$pp
-($t = 3.9$). The advantage comes from training the value function on
-statistics aligned with each game's era, and three months of refreshed
-statistics add nothing we can detect, matching the 0.03pp that refresh
-adds on the accuracy side (Section~\ref{sec:replay}). The first row of
-Table~\ref{tab:dose} therefore compares training recipes: an agent
-trained once at the cutoff with the causal recipe already has the
-advantage. The cost of neglect proper is the gap between agents built
-with the same recipe at different cutoffs, which the staleness rows
-measure.
+the cutoff. Against \maintained{}, whose policy trained on three more
+months of statistics, it is level ($-0.05 \pm 0.11$pp, 95\% interval
+$-0.30$ to $+0.19$). Against \stalefour{}, which differs from it in how
+its value function's training statistics were built, it leads by
+$+0.52 \pm 0.13$pp ($t = 3.9$). This is consistent with the advantage
+coming from training the value function on statistics aligned with
+each game's era, with three months of refresh adding little: the
+interval excludes refresh effects larger than about 0.2pp, matching the
+0.03pp refresh adds on the accuracy side (Section~\ref{sec:replay}).
+Both \mcut{} and \maintained{} use one selected value function, so this
+split conditions on that draw. The first row of Table~\ref{tab:dose}
+therefore compares training recipes: an agent trained once at the
+cutoff with the causal recipe already has the advantage. The cost of
+neglect proper is the gap between agents built with the same recipe at
+different cutoffs.
 
-A year or two of staleness costs more, and most of it arrives in the
-first year. \stalefour{}, \staleone{}, and \staletwo{} share the
-leak-free recipe and differ in their cutoff (February 2026, 2025, and
-2024). \stalefour{} leads the one-year agent by $+1.12 \pm 0.23$pp
-($t = 4.8$, 5 df) and the two-year agent by $+1.00 \pm 0.16$pp
-($t = 6.3$), about 5 points of team win probability in both cases. Against
-\maintained{} the one-year gap is $+1.34 \pm 0.16$pp and the two-year
-gap $+1.40 \pm 0.09$pp ($t = 15.9$), or $+1.28 \pm 0.15$pp ($t = 8.7$)
-with value-function seeds varied.
-Because our corpus grows over time, the two-year agent also trained on
-fewer games; a maintained agent trained on \staletwo{}'s row
-count keeps $+1.28$pp, 91\% of the gap. Unlike our first version, the
-two-year agent shows a synergy deficit ($+0.21 \pm 0.08$ against
-\maintained{}, $t = 2.8$; $+0.27 \pm 0.12$ against \stalefour{}; the
-one-year agent's is similar, $+0.25 \pm 0.12$) and no counter advantage
-($-0.08 \pm 0.10$). The first version's ``synergy does
-not rot'' and ``the stale agent counters better'' were properties of the
-leaky stale agent. One asymmetry remains: the 2026 agents were trained
-against the earlier paper's opponent model, which saw the test period,
-while the stale agents' opponent models stop at their own cutoffs, as a
-real stale deployment's would. Some of the staleness gap may come from
-that difference; we did not run the 2026 agents with a cutoff-era
-opponent model. The leaky first version put the one-year gap at only
-$+0.56 \pm 0.21$pp.
+Staleness costs more than the same-cutoff gap, by an amount that depends
+on how the comparison treats the opponent model. With era-matched
+opponent models on both sides (U-era against \staleone{} and
+\staletwo{}), the agent trained at the 2026 cutoff leads the one-year
+agent by $+0.97 \pm 0.15$pp ($t = 6.4$, 3 df) and the two-year agent by
+$+0.64 \pm 0.14$pp ($t = 4.8$, 8 df), about 2.5 to 6 points of team win
+probability (Figure~\ref{fig:dose}). The one- and two-year gaps cannot be
+told apart, so we make no claim about when within the first two years
+the loss arrives. When the 2026 side keeps the earlier paper's opponent
+model, which saw the test period, the gaps grow to $+1.12$ and
+$+1.00$pp, and against \maintained{} to $+1.34$ and $+1.40$pp ($+1.28$
+with value-function seeds varied); the opponent model alone is worth
+$+0.24 \pm 0.21$pp to the 2026 agent (not significant). So part of the
+gap in those rows is the opponent model, and the era-matched rows are
+the cleaner estimate of staleness. Because our corpus grows over time,
+the two-year agent also trained on fewer games; a maintained agent
+trained on \staletwo{}'s row count keeps $+1.28$pp, 91\% of its gap.
+
+The interaction metrics also depend on the opponent model. With
+era-matched opponents, the stale agents show no synergy deficit
+($-0.06 \pm 0.08$ at two years, $-0.17 \pm 0.07$ at one) and counter
+worse than the 2026 agent ($+0.27 \pm 0.12$ for U-era at two years).
+With the 2026 side on the earlier paper's opponent model, the two-year
+agent shows a synergy deficit ($+0.21 \pm 0.08$ against \maintained{})
+and no counter difference. The first version's ``synergy does not rot''
+and ``the stale agent counters better'' came from agents that shared the
+earlier paper's opponent model and a leaky value function; with the
+leak removed and the opponent models matched, synergy shows no
+staleness cost and counters favor the newer agent. The leaky first
+version put the one-year gap at $+0.56 \pm 0.21$pp.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig_dose.pdf}
-\caption{Maintained agent's advantage over unmaintained agents with the
-same cutoff (0 months) and cutoffs one and two years earlier, scored on
-out-of-sample builds (95\% intervals, crossed seed random effects).
-Filled: leak-free agents. Hollow: the leaky first version.}
+\caption{Cost of staleness in future-meta hero win rate (left, pp) and
+synergy (right), scored on out-of-sample builds, with 95\% $t$ intervals
+from crossed seed random effects. The agent trained at the 2026 cutoff
+(0 months, the reference) against leak-free agents trained one and two
+years earlier. Filled: opponent models matched by era on both sides
+(U-era against S1, S2). Hollow: the 2026 agent on the earlier paper's
+opponent model, which saw the test period (U against S1, S2).}
 \label{fig:dose}
 \end{figure}
 
@@ -622,12 +671,14 @@ themselves over a lag of 16 builds. Hero pick rates are nearly as stable
 (0.89 at lag 16). Per-hero win rate is the fastest-decaying reliable
 signal, falling from 0.94 at lag 1 to 0.62 at lag 16 (raw correlations
 0.85 and 0.57). Raw pair win rates track their component hero win rates
-(0.61 at lag 16). The pairwise interaction beyond the two heroes'
-strengths is weak and mostly within-build sampling noise, a caution for
-pairwise features generally. The value model ages as well: its calibration slope on
-all games after its cutoff is 0.93 for the model trained at the 2026
-cutoff, and 0.84 and 0.80 for models trained one and two years earlier
-(three seeds each).
+(0.61 at lag 16; Figure~\ref{fig:decay}). The pairwise interaction
+beyond the two heroes' strengths is weak and mostly within-build
+sampling noise, a caution for pairwise features generally. The value
+model ages as well. Scored on the same rows, the seven builds after the
+2026 cutoff, each with its own frozen statistics, the leak-free
+all-history model trained at the 2026 cutoff has calibration slope 0.93,
+and models trained one and two years earlier have 0.79 and 0.73 (three
+seeds each; seed ranges 0.91 to 0.95, 0.77 to 0.82, and 0.68 to 0.76).
 
 \begin{figure}[t]
 \centering
@@ -647,8 +698,10 @@ a median of about 17{,}200 games into a build. (A popular alternative,
 distance to the build's final value, reaches the same threshold at
 10{,}700 games, but the early games are part of the final value, and its
 error matches pure sampling error at every checkpoint, so it measures
-accumulation more than settling.) At our live inflow of roughly fifteen
-thousand ranked games per week, that is a little over a week. Second,
+accumulation more than settling.) At the snapshot's early-2026 rate of
+about 11{,}000 ranked games per week that is about a week and a half,
+and at the 14{,}000 to 16{,}000 per week we measured for the
+pre-registration, about eight days. Second,
 does drift change which compositions never get played? The observed
 composition sets of consecutive builds have a mean Jaccard similarity of
 0.81, and the per-build never-fielded count follows build volume
@@ -672,8 +725,8 @@ the boundary. A boundary fires when at least one hero survives.
 The ground truth has two variants, and we report both. The scripted
 truth counts every hero the notes mention, including heroes mentioned
 only for bug fixes; this is what the frozen detection code uses. A
-balance-only variant drops bug-fix-only mentions, which appear in 37 of
-59 patches (848 mentions). At the hero level, 46 of the detector's 58
+balance-only variant drops bug-fix-only mentions, which appear in 22 of
+the 40 mapped patches (458 mentions). At the hero level, 46 of the detector's 58
 flags name a hero the notes mention (0.79), and 39 of 58 name a hero with
 a balance change (0.67). A randomly chosen hero at a random boundary is
 mentioned about 30\% of the time. At the boundary level, the detector
@@ -700,18 +753,24 @@ test never flags 7 of the 46 before the build ends, and flags the other
 39 after a median of 18{,}900 games. The detector's fire decisions themselves use the
 full build.
 
-As a refresh trigger the detector is unremarkable. In the replay of
-Table~\ref{tab:regret}, refreshing a fixed model only when the detector
-fires (14 refreshes, each lagged by its first-detection latency) gives
-+0.743pp regret, against +0.733 for 14 evenly spaced blind refreshes,
-+0.738 for a refresh every third build, and +0.730 for every build.
-Latency itself costs 0.004pp; the sparser schedule costs 0.012pp.
+As a refresh trigger the detector performs like a calendar. In the
+replay of Table~\ref{tab:regret}, refreshing a fixed model only when the
+detector fires gives +0.743pp regret, against +0.733 for 14 evenly
+spaced blind refreshes, +0.738 for a refresh every third build, and
++0.730 for every build; the differences are within the replay's noise,
+and the blind result depends on where the 14 refreshes fall (another
+even placement gives 0.748). The detector arm is a hindsight upper
+bound: which boundaries fire is decided with the full build and with the
+sizable-build list known in advance, and each refresh is then placed at
+the first-detection time of a hero the full-build test flags. Latency
+itself costs 0.004pp; the sparser schedule costs 0.012pp.
 Recomputing statistics is cheap, so saving refreshes has little value.
 Sweeping the false-discovery level across two orders of magnitude moves
 hero-level precision from 0.90 (17 of 19 flags) to 0.45, and every
 operating point lands within 0.03pp of every other on the replay. Of the
-replay's 36 builds, 20 are sizable; the detector fires on 14 of those 20
-boundaries.
+replay's 36 builds, 20 are sizable; the detector fires on 14 of the 20
+boundaries ending at them, one of which (2.55.10.94470) has no
+documented change.
 
 The detector's value is as an alarm, and it needs little. It uses
 version identifiers, which almost every deployed system logs, and the
@@ -721,7 +780,8 @@ without version identifiers: a multi-scale changepoint detector over
 daily hero pick, ban, and win rates, tuned on pre-2025 boundaries (its
 best family was pick and ban rates), reaches held-out precision 0.18 at
 recall 0.27. With a $\pm$3-day tolerance, the 11 held-out boundaries
-cover about 77 of 480 days, so chance precision is about 0.16. Without
+cover about 77 of the 507 held-out days, so chance precision is about
+0.15. Without
 version identifiers we could not reconstruct the change calendar.
 
 \section{Evaluators Drift Too}
@@ -736,10 +796,13 @@ agent's information advantage by construction. The fix produced a
 finding about judges.
 
 We trained naive-feature judges (hero identities, map, and tier; no
-aggregate statistics) in two corpus families and scored one fixed set of
-2{,}000 drafts, from our first head-to-head of \maintained{} against
-\leakyunm{}, with every judge. Here the drafts are only a test set; the
-question is how judges of different eras score the same drafts. Six
+aggregate statistics) in two corpus families and scored the 7{,}200
+drafts of the \maintained{} versus \stalefour{} head-to-head of
+Section~\ref{sec:neglect} with every judge, and also the 2{,}000 drafts
+of our first head-to-head against \leakyunm{}. Here the drafts are a
+test set; the question is how judges of different eras score the same
+drafts, against a realized-outcome verdict that favors the maintained
+side. Six
 ranked-play judges span early 2022 through the cutoff, each trained on
 the 314{,}761 most recent games before its cutoff (158{,}709 for the
 earliest, 2022Q1). These judges' training data are subsets of both
@@ -748,41 +811,49 @@ Four Quick-Match judges (2021, 2022, 2024, 2026, on pools of 29K to
 129K games) come from a mode with no draft phase: the matchmaker
 assembles teams, so these judges never saw a draft.
 
-The ranked verdict rises with judge era: 0.469 (2022Q1) and 0.461
-(2022-07), 0.493 (2023), 0.504 (2024), 0.495 (2025), and 0.500 (2026;
-0.513 averaged over three seeds). The Quick-Match family repeats the
-pattern: 0.434 (December 2021) and 0.416 (2022), then 0.494 (2024) and
-0.508 (2026). Clustering by the 25 seed pairings, standard errors are
-0.005 to 0.013; judge seeds move a score by up to 0.011. Every judge
-trained before 2023 declares the unmaintained agent the winner of a
-2026 contest, by 2.5 to 6 combined standard errors; from 2023 on, judges
-call it roughly even. The 2026 Quick-Match pool has no upper date bound,
-and 32\% of its games postdate the cutoff; retrained with the pool capped
-at the cutoff, it scores 0.513 to 0.537 over three seeds, so the verdict
-does not change. What separates these two agents is largely current-meta
-knowledge, which an old judge lacks and mis-scores. Because the
-Quick-Match family moves from 0.416 to 0.508 with the game mode fixed,
-the reversal tracks the judge's era within one corpus family.
+On the leak-free drafts the ranked verdict rises with judge era: 0.462
+(2022Q1) and 0.479 (2022-07), 0.487 (2023), 0.488 (2024), 0.512 (2025),
+and 0.525 (2026). The Quick-Match family repeats the pattern: 0.428
+(December 2021) and 0.432 (2022), then 0.487 (2024) and 0.522 (2026).
+Each score has two sources of error: draft sampling, which we estimate
+with standard errors clustered by seed pairing (0.002 to 0.008), and the
+judge's own training seed, whose standard deviation is up to 0.011 (range
+up to 0.021 across the three seeds of the 2026 ranked judge). Combining
+the two in quadrature, every judge trained before 2023 declares the
+unmaintained agent the winner of a 2026 contest, by 1.9 to 5.4 combined
+standard errors; the 2023 and 2024 judges lean the same way by about one;
+the 2025 and 2026 judges side with the realized outcome, by 1.1 to 2.1.
+The first-version drafts give the same picture (pre-2023 judges 0.416
+to 0.469, later judges 0.493 to 0.508). The 2026 Quick-Match pool has no
+upper date bound, and 32\% of its games postdate the cutoff; retrained
+with the pool capped at the cutoff, it scores the first-version drafts
+\capqm{} over three seeds, so the verdict does not change. Because the
+Quick-Match family moves from about 0.43 to 0.52 with the game mode
+fixed, the reversal tracks the judge's era within one corpus family
+(Figure~\ref{fig:vintage}).
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig_vintage.pdf}
 \caption{The vintage matrix. Score assigned to the maintained side of
-the same 2{,}000 drafts by win-probability judges trained at different
-times (95\% intervals clustered by seed pairing). Judges trained before
-2023 reverse the verdict; later judges score the contest roughly even.
-Diamonds: judges trained on Quick Match, a mode without a draft phase.}
+the 7{,}200 leak-free \maintained{} versus \stalefour{} drafts by
+win-probability judges trained at different times (95\% intervals,
+normal approximation, clustered by seed pairing; judge-seed variation is
+not included). Realized outcomes favor the maintained side. Judges
+trained before 2023 reverse the verdict, and judges from 2025 on agree
+with it. Diamonds: judges trained on Quick Match, a mode without a
+draft phase.}
 \label{fig:vintage}
 \end{figure}
 
 The oldest and newest Quick-Match judges (December 2021 and 2026) both
 reproduce our earlier tournament's ordering of 11 strategies at rank
-correlation 0.92. Contests decided by composition structure are stable
+correlation 0.90. Contests decided by composition structure are stable
 across eras, because structure barely drifts
 (Section~\ref{sec:signals}); contests decided by meta timing are where
-judge vintage matters. For anyone evaluating agents in a drifting
-domain: date your judges, report them as a matrix, and put the headline
-on realized outcomes.
+judge vintage matters. Anyone evaluating agents in a drifting domain
+should date each judge and report the judge-by-era matrix, with the
+headline on realized outcomes.
 
 \section{The Opponent Model Drifts on Its Own Clock}
 \label{sec:opponent}
@@ -823,16 +894,16 @@ the cutoff; that is a lower bound on behavioral drift, since only about
 recovers most of the gap: a model trained on the last six builds gains
 0.56pp, and one trained once on the 30 days before the cutoff gains
 0.75pp, finishing 0.08pp above the earlier paper's model. The 30-day
-model's lead is short-lived. It is the best model on the two 2.55.15
-builds (13.1\% and 12.6\% top-1) and the worst on the 2.55.16 builds,
-falling to 10.6\% by the last, below the all-history model there
-(11.2\%). It wins on bans (17.1\% against 16.2\%) and loses on picks.
-Rolled forward, retraining on the 30 days before each build, the window
-scores 11.97\% overall, 0.14pp above the once-trained model, and 11.5\%
-on the last build instead of 10.6\%. It still trails the all-history
-model on one 2.55.16 build (10.7\% against 11.0\%), whose window held
-fewer games. Behavior wants a rolling window, retrained often; the
-all-history model is the safer fallback when recent play is thin.
+model's lead fades. It is the best model on the three 2.55.15 builds
+(13.1\%, 12.6\%, and 12.2\% top-1) and beats the all-history model on the
+first two 2.55.16 builds, but it is the worst model on the last two,
+falling to 10.6\% against 11.2\% for the all-history model. It wins on
+bans (17.1\% against 16.2\%) and loses on picks. Rolled forward,
+retraining on the 30 days before each build, the window scores 11.97\%
+overall, 0.14pp above the once-trained model and 0.89pp above the
+all-history model, and 11.5\% on the last build instead of 10.6\%. It
+trails the all-history model on one build (2.55.16.96881, 10.7\% against
+11.0\%). Behavior favors a rolling window, retrained often.
 
 Before running this comparison we set a rule for escalating it: retrain
 the MCTS pipeline on refreshed opponents if behavioral drift cost at
@@ -840,7 +911,12 @@ least 1.0pp of top-1, or if swapping opponent pools moved the maintained
 value function's greedy healer or degeneracy rates by at least 3pp. The
 rule lives in our analysis code, dated by file timestamps, and was not
 publicly registered. Neither condition was met: 0.63pp of top-1, and
-movements of 2.9 and 2.7pp (standard error about 1.9pp). The all-history
+movements of 2.9pp in healer rate and 2.7pp in degeneracy (paired seed
+standard errors 1.2 and 0.9pp, so the degeneracy movement missed the
+threshold by 0.3pp at about 2.9 standard errors). The rule's accuracy
+measure is the lower bound above; the rolling window's 0.89pp gain over
+the all-history model, a less understated measure, also falls short of
+1.0pp. The all-history
 value function, which the rule did not cover, moved more (5.8pp of healer
 rate, 3.5pp of degeneracy). By rule, the escalation did not run. For the
 two stale agents we did train era-matched opponent models, because an
@@ -864,7 +940,9 @@ Our production deployment retrains all three models monthly on the full
 corpus, with 90-day decayed statistics computed out of fold for training
 rows, and serves the same decayed statistics to the browser; a
 calibration-slope gate blocks deployment when the value model's slope on
-held-out rows leaves [0.8, 1.25]. Builds have averaged about a month
+held-out rows leaves [0.8, 1.25]. The first full run of this pipeline
+completed and deployed on September 30, 2026 (slope 1.05); scheduled
+monthly runs begin November 1, 2026. Builds have averaged about a month
 apart, so a monthly retrain is close to retraining after every build,
 more often than the replay says is necessary.\footnote{\deployurl}
 
@@ -881,19 +959,25 @@ all individually minor are reported descriptively and adjudicate
 nothing); (2) the existing 4{,}500-draft head-to-head between \maintained{}
 and \leakyunm{}, rescored with the out-of-sample protocol of
 Section~\ref{sec:neglect} against the new builds' realized statistics,
-keeps a positive maintained advantage in future-meta hero win rate (both
-agents and all drafts predate those builds, so nothing in this claim can
-be tuned); (3) every production refresh event is logged and reported
+keeps a positive maintained advantage in future-meta hero win rate
+(both agents and all drafts predate those builds, so nothing in this
+claim can be tuned). The registered rule for C2 is a normal-reference
+test of the crossed-random-effects estimate: confirmed if
+$z \geq 1.645$ (one-sided $\alpha = 0.05$), falsified if the estimate is
+at most 0, otherwise inconclusive. (3) Every production refresh event is logged and reported
 against the detector's fires. The claims cover only builds that ship
 after the registration date. The builds between our snapshot and the
 registration (2.55.16.97039 and the four 2.55.17 builds) already serve as
-the scoring set of Section~\ref{sec:neglect} and are excluded. New
-ranked games arrive at about fifteen thousand per week, so a new build
-reaches the 20{,}000-game detector gate in under two weeks, and a
-six-month window should contain three or four sizable builds.
+the scoring set of Section~\ref{sec:neglect} and are excluded. The
+analysis date is fixed at submission: \analysisdate{}. New ranked games
+arrived at 14{,}000 to 16{,}000 per week when we registered, so a new
+build reaches the 20{,}000-game detector gate in under two weeks, and a
+six-month window should contain three or four sizable builds. The first
+logged production refresh under C3 is the September 30, 2026 deployment
+(Section~\ref{sec:operating}).
 
-Two disclosures bear on the registered claims and will be repeated when
-they are reported. The registration text says bug-fix-only and ARAM-only
+Three disclosures bear on the registered claims and will be repeated
+when they are reported. The registration text says bug-fix-only and ARAM-only
 hero mentions are excluded from the ground truth, as in the
 retrospective analysis. The frozen code does not exclude them: it counts
 every hero the notes mention. The registered test is the frozen code, so
@@ -904,7 +988,13 @@ head-to-head (C2) was drafted by \leakyunm{}, the leaky first version of
 the unmaintained agent, because it was registered before the leak was
 found. We will report it as registered and report the leak-free
 matchups of Section~\ref{sec:neglect} alongside it as descriptive
-results.
+results. Third, on September 30, 2026 our database relabeled skill tiers
+into a new scheme (Section~\ref{sec:setting}), while the registered
+drafts carry the snapshot's labels. The frozen truth-scoring code groups
+games by the database label, so a rerun would score drafts against
+statistics from a different tier grouping. We will reconstruct the
+snapshot-scheme label from each game's stored league tier before
+scoring, and report this as a deviation.
 % [PROSPECTIVE RESULTS: filled at the revision analysis date, per
 % paper/drift/PREREG_FORWARD.md. Submission does NOT wait for this
 % section's results.]
@@ -936,8 +1026,7 @@ keep learning as the environment changes~\cite{padakandla2021survey,
 khetarpal2022continual}, with catastrophic forgetting as a central
 obstacle~\cite{kirkpatrick2017ewc}. The deployed case we study fixes the
 policy between maintenance events and asks when and what to touch; a
-continual learner would still need the trigger, the evaluator hygiene,
-and the leak-free statistics this paper prices. OpenAI Five kept one
+continual learner would still need a trigger and leak-free statistics. OpenAI Five kept one
 Dota 2 agent current across game patches by ``surgery'' on its network
 and continued training~\cite{berner2019dota}, a retraining-side answer
 to the same problem at far larger scale. On the operations side, data
@@ -971,16 +1060,24 @@ is the subject of a companion study of personalization.
 Everything here is one game and one major patch, a scoping that buys 45
 builds with a fixed hero pool at the cost of external validity. The
 deployment replay uses one training seed per cell; orderings among
-regrets within about 0.05pp (for example 0.029, 0.050, and 0.067) are
-at noise level, although the paired comparisons on one model, such as
-the detector against blind schedules, are not. The judge-free protocol
+regrets from different models within about 0.07pp (for example 0.050
+and 0.067) are at noise level, although paired comparisons on the same
+models, such as refresh against no refresh at a fixed cadence, are
+not. The judge-free protocol
 rests on realized hero, pair, and matchup statistics, which are
 marginal quantities; we mitigate by triangulating the metrics and by
 combining them with weights fitted on held-out real games.
-Agent-level comparisons carry three caveats. The 2026 agents share the
-earlier paper's opponent model, which saw the test period, while the
-two-year agent's opponent model is era-matched, so part of the two-year
-gap may come from the opponent model. \maintained{}'s value function was
+Agent-level comparisons carry several caveats. Except for U-era, the
+2026 agents share the earlier paper's opponent model, which saw the test
+period; the era-matched staleness rows rest on 4 U-era seeds. All MCTS
+agents in this paper were trained with a search kernel that expands the
+tree only at the agent's own decisions, so its 200 simulations refine
+estimates within the current pick block; a corrected kernel exists and
+the agent-level results will be rerun with it. Seed budgets changed
+during the work: the maintained replication was scored at 3 and 5 seeds
+before reaching its planned 6, two of its seeds resumed from checkpoints
+without their replay buffer, the one-year arm was cut from 6 seeds to 3,
+and two U-era seeds were stopped when the kernel was replaced. \maintained{}'s value function was
 selected on the future window from three seeds, and \mcut{} shares it,
 so the split between them conditions on one value-function draw; with
 value-function seeds varied, the same-cutoff advantage is not significant
@@ -1004,24 +1101,24 @@ over three years of balance changes. Retraining on a schedule of three
 to six builds recovers nearly all of it; refreshing statistics with the
 weights fixed recovers a third, and adds a few hundredths of a point
 once retraining happens. At the agent level, three months without
-refresh cost nothing measurable, and one or two years cost about a
-point of future-meta hero win rate. Accuracy
+refresh cost nothing measurable, and one or two years cost two thirds
+of a point to a point of future-meta hero win rate. Accuracy
 understates the policy-level damage, and learned judges are as
 era-bound as the models they score.
 
 \ifanonymous
 \section*{AI Disclosure}
 Portions of this manuscript's text were drafted and edited with Claude
-(Anthropic)~\cite{claude}; all experiments, analyses, and claims were
-designed, verified, and approved by the authors.
+(Anthropic)~\cite{claude}; the authors designed and verified all
+experiments and approved the text.
 \else
 \section*{Acknowledgments}
 We thank Heroes Profile for API access to replay data (a paid service,
 and an open-source project we are glad to support), and the NGS
 community for organized-league data used in our earlier work. Portions
 of this manuscript's text were drafted and edited with Claude
-(Anthropic)~\cite{claude}; all experiments, analyses, and claims were
-designed, verified, and approved by the authors.
+(Anthropic)~\cite{claude}; the authors designed and verified all
+experiments and approved the text.
 \fi
 
 \begin{thebibliography}{99}

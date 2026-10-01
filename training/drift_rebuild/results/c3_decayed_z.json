@@ -1,0 +1,54 @@
+{
+ "future": {
+  "decayed90": {
+   "diff_pp": 0.1079,
+   "se_pp": 0.0619,
+   "z": 1.74,
+   "n_games": 143681
+  },
+  "decayed90k100": {
+   "diff_pp": 0.1393,
+   "se_pp": 0.0564,
+   "z": 2.47,
+   "n_games": 143681
+  },
+  "decayed365": {
+   "diff_pp": -0.0126,
+   "se_pp": 0.0463,
+   "z": -0.27,
+   "n_games": 143681
+  },
+  "acc_mean": {
+   "cumulative": 57.081,
+   "decayed90": 57.189,
+   "decayed90k100": 57.22,
+   "decayed365": 57.068
+  }
+ },
+ "nested": {
+  "decayed90": {
+   "diff_pp": 0.2126,
+   "se_pp": 0.0613,
+   "z": 3.47,
+   "n_games": 147804
+  },
+  "decayed90k100": {
+   "diff_pp": 0.1907,
+   "se_pp": 0.0581,
+   "z": 3.28,
+   "n_games": 147804
+  },
+  "decayed365": {
+   "diff_pp": 0.1387,
+   "se_pp": 0.0448,
+   "z": 3.1,
+   "n_games": 147804
+  },
+  "acc_mean": {
+   "cumulative": 56.904,
+   "decayed90": 57.116,
+   "decayed90k100": 57.094,
+   "decayed365": 57.042
+  }
+ }
+}

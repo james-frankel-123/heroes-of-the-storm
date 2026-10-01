@@ -1,0 +1,86 @@
+{
+ "leakfree_M_vs_U": {
+  "2022Q1-ranked": {
+   "mean": 0.4619,
+   "se_pairing": 0.0041
+  },
+  "2022-07": {
+   "mean": 0.4785,
+   "se_pairing": 0.0033
+  },
+  "2023-07": {
+   "mean": 0.487,
+   "se_pairing": 0.0024
+  },
+  "2024-07": {
+   "mean": 0.4884,
+   "se_pairing": 0.0035
+  },
+  "2025-07": {
+   "mean": 0.5124,
+   "se_pairing": 0.0027
+  },
+  "2026-build": {
+   "mean": 0.5245,
+   "se_pairing": 0.0035
+  },
+  "QM-2021": {
+   "mean": 0.4279,
+   "se_pairing": 0.0075
+  },
+  "QM-2022": {
+   "mean": 0.4315,
+   "se_pairing": 0.0065
+  },
+  "QM-2024": {
+   "mean": 0.487,
+   "se_pairing": 0.0058
+  },
+  "QM-2026": {
+   "mean": 0.5223,
+   "se_pairing": 0.0034
+  }
+ },
+ "first_version_M_vs_Uleaky": {
+  "2022Q1-ranked": {
+   "mean": 0.4688,
+   "se_pairing": 0.0078
+  },
+  "2022-07": {
+   "mean": 0.4611,
+   "se_pairing": 0.0071
+  },
+  "2023-07": {
+   "mean": 0.4927,
+   "se_pairing": 0.0046
+  },
+  "2024-07": {
+   "mean": 0.504,
+   "se_pairing": 0.0074
+  },
+  "2025-07": {
+   "mean": 0.4948,
+   "se_pairing": 0.0048
+  },
+  "2026-build": {
+   "mean": 0.4996,
+   "se_pairing": 0.0056
+  },
+  "QM-2021": {
+   "mean": 0.4338,
+   "se_pairing": 0.0129
+  },
+  "QM-2022": {
+   "mean": 0.4155,
+   "se_pairing": 0.0119
+  },
+  "QM-2024": {
+   "mean": 0.494,
+   "se_pairing": 0.0097
+  },
+  "QM-2026": {
+   "mean": 0.5079,
+   "se_pairing": 0.0054
+  }
+ }
+}

@@ -31,7 +31,8 @@ from drift2026.w8_inference import attach_labels, crossed_re  # noqa: E402
 PAPER_FILES = {"paper_M_vs_U": "w6_head2head.json",
                "paper_M_vs_S1": "w6_head2head_stale1yr.json",
                "paper_M_vs_S2": "w6_head2head_stale2yr.json",
-               "paper_M_vs_U_15x15": "w6_head2head_w10_degen.json"}
+               "paper_M_vs_U_15x15": "w6_head2head_w10_degen.json",
+               "paper_Md90_vs_M": "w6_head2head_champ_vs_cumprev.json"}
 
 
 def t_sf(x, df):

@@ -25,10 +25,29 @@ plt.rcParams.update({
 BLUE, ORANGE, GREEN, GRAY, RED = "#2166ac", "#e08214", "#1b7837", "#666666", "#b2182b"
 
 
+def _t_quantile(df, q=0.975):
+    """Student-t quantile by bisection on a numerically integrated tail."""
+    import math
+    import numpy as np
+
+    def sf(x):
+        xs = np.linspace(x, x + 400, 200001)
+        c = math.exp(math.lgamma((df + 1) / 2) - math.lgamma(df / 2)) / math.sqrt(df * math.pi)
+        return float(np.trapezoid(c * (1 + xs ** 2 / df) ** (-(df + 1) / 2), xs))
+    lo, hi = 0.0, 50.0
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if sf(mid) > 1 - q else (lo, mid)
+    return (lo + hi) / 2
+
+
 def fig_dose():
-    """Staleness gradient, leak-free agents (filled) vs the leaky first
-    version (hollow), scored on the W12 out-of-sample builds (T_clean,
-    crossed seed random effects). From drift_rebuild/results/r8_scores.json."""
+    """Staleness, scored on the W12 out-of-sample builds (T_clean, crossed
+    seed random effects), 95% t intervals with each contrast's Satterthwaite
+    df (consolidated audit B14). Filled: leak-free agents with era-matched
+    opponent models on both sides (U-gc vs S1/S2; 0 months = U-gc vs U-gc,
+    drawn at 0). Hollow: the first version (maintained vs leaky unmaintained
+    / stale agents, all sharing the paper-1 opponent model)."""
     sc = json.load(open(os.path.join(RB, "r8_scores.json")))
 
     def pts(keys):
@@ -36,32 +55,33 @@ def fig_dose():
         for x, k in keys:
             if k in sc:
                 t = sc[k]["by_truth"]["T_clean"]
-                out.append((x, t["future_hero_wr"]["est"], t["future_hero_wr"]["se"],
-                            t["synergy"]["est"], t["synergy"]["se"]))
+                h, y = t["future_hero_wr"], t["synergy"]
+                out.append((x, h["est"], _t_quantile(h["df"]) * h["se"],
+                            y["est"], _t_quantile(y["df"]) * y["se"]))
         return out
-    new = pts([(0, "M_vs_U"), (12, "M_vs_S1"), (24, "M_vs_S2")])
-    old = pts([(0, "paper_M_vs_U"), (12, "paper_M_vs_S1"), (24, "paper_M_vs_S2")])
-    fig, axes = plt.subplots(1, 2, figsize=(3.5, 2.1), sharex=True)
-    for ax, col, se_col, title, color in (
-            (axes[0], 1, 2, "hero timing (pp)", BLUE),
-            (axes[1], 3, 4, "synergy", GREEN)):
-        ax.errorbar([p[0] + 0.6 for p in old], [p[col] for p in old],
-                    yerr=[1.96 * p[se_col] for p in old], fmt="o--", mfc="white",
+    new = [(0, 0.0, 0.0, 0.0, 0.0)] + pts([(12, "Ugc_vs_S1"), (24, "Ugc_vs_S2")])
+    old = [(0.8, 0.0, 0.0, 0.0, 0.0)] + pts([(12, "U_vs_S1"), (24, "U_vs_S2")])
+    fig, axes = plt.subplots(1, 2, figsize=(3.5, 2.3), sharex=True)
+    for ax, col, ci, title, color in ((axes[0], 1, 2, "hero timing (pp)", BLUE),
+                                      (axes[1], 3, 4, "synergy", GREEN)):
+        ax.errorbar([p[0] + 0.8 for p in old], [p[col] for p in old],
+                    yerr=[p[ci] for p in old], fmt="o--", mfc="white",
                     color="#999999", lw=1.0, ms=4.5, capsize=2.5,
-                    label="leaky first version")
+                    label="2026 side on paper-1 opponent model")
         ax.errorbar([p[0] for p in new], [p[col] for p in new],
-                    yerr=[1.96 * p[se_col] for p in new], fmt="o", color=color,
-                    lw=1.8, ms=5.5, capsize=3, label="leak-free")
+                    yerr=[p[ci] for p in new], fmt="o-", color=color,
+                    lw=1.6, ms=5.5, capsize=3, label="era-matched opponent models")
         ax.axhline(0, color=GRAY, lw=0.8, ls=":")
         ax.set_title(title, fontsize=8.5)
         ax.set_xlabel("staleness (months)")
         ax.set_xticks([0, 12, 24])
-        ax.set_ylim(-0.75, 1.6)
-    axes[0].set_ylabel("maintained advantage")
-    axes[0].legend(frameon=False, loc="lower right", fontsize=6)
-    fig.tight_layout()
+        ax.set_ylim(-0.6, 2.0)
+    axes[0].set_ylabel("cost of staleness")
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, frameon=False, loc="upper center", ncol=2, fontsize=6)
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
     fig.savefig(os.path.join(OUT, "fig_dose.pdf"))
-    print("fig_dose.pdf (leak-free vs leaky)")
+    print("fig_dose.pdf (era-matched, t intervals)")
 
 
 def fig_detector_curves():
@@ -132,7 +152,8 @@ def fig_vintage():
     ]
     # Error bars: SE clustered by the 25 seed pairings (audit B18), single
     # judge seed everywhere (the 2026 ranked value is its seed-0 judge).
-    se = json.load(open(os.path.join(RB, "vintage_pairing_se.json")))
+    # Leak-free M vs U drafts (consolidated audit C8); pairing-clustered SE.
+    se = json.load(open(os.path.join(RB, "c8_vintage_leakfree.json")))["leakfree_M_vs_U"]
     key = {"ranked 2022Q1": "2022Q1-ranked", "2022-07": "2022-07",
            "2023-07": "2023-07", "2024-07": "2024-07", "2025-07": "2025-07",
            "2026": "2026-build", "QM 2021": "QM-2021", "QM 2022": "QM-2022",
@@ -152,7 +173,7 @@ def fig_vintage():
     ax.annotate("unmaintained\nagent ahead", xy=(2022.75, 0.386), color=GRAY, fontsize=7)
     ax.annotate("maintained agent ahead", xy=(2021.9, 0.512), color=GRAY, fontsize=7)
     ax.set_xlabel("judge training vintage")
-    ax.set_ylabel("score for the maintained side\n(same 2{,}000 drafts)".replace("{,}", ","))
+    ax.set_ylabel("score for the maintained side\n(same 7,200 drafts)")
     ax.set_ylim(0.38, 0.535)
     ax.set_xlim(2021.7, 2026.6)
     ax.legend(frameon=False, loc="lower right", fontsize=6.5)

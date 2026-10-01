@@ -1,0 +1,57 @@
+"""
+Capped GPU runner (owner rule, 2026-10-01): at most 2 rebuild GPU processes,
+launched only while fewer than 4 HotS GPU processes run machine-wide, on the
+freest GPU, under nice 19 / cores 48-63 / 3 BLAS threads.
+Usage: python3 drift_rebuild/run_capped.py drift_rebuild/jobs_mcts_oct1.txt
+"""
+import os
+import subprocess
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from run_queue import rebuild_gpu_load  # noqa: E402
+
+TRAIN = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def hots_gpu_procs():
+    out = subprocess.run(["nvidia-smi", "--query-compute-apps=pid", "--format=csv,noheader"],
+                         capture_output=True, text=True).stdout.split()
+    n = 0
+    for p in out:
+        try:
+            cmd = open(f"/proc/{p.strip()}/cmdline", "rb").read()
+        except Exception:
+            continue
+        n += b"heroes-of-the-storm" in cmd
+    return n
+
+
+def freest_gpu():
+    out = subprocess.run(["nvidia-smi", "--query-gpu=index,utilization.gpu,memory.used",
+                          "--format=csv,noheader,nounits"], capture_output=True, text=True).stdout
+    rows = [tuple(int(x) for x in l.split(",")) for l in out.strip().splitlines()]
+    rows = [r for r in rows if r[2] < 80000]
+    return min(rows, key=lambda r: (r[1], r[2]))[0]
+
+
+jobs = []
+for line in open(sys.argv[1]):
+    if not line.strip():
+        continue
+    out, log, cmd = line.rstrip("\n").split("\t", 2)
+    if os.path.exists(out) or os.path.exists(log):
+        continue
+    jobs.append((out, log, cmd))
+print(f"{len(jobs)} jobs", flush=True)
+for out, log, cmd in jobs:
+    while sum(rebuild_gpu_load().values()) >= 2 or hots_gpu_procs() >= 4:
+        time.sleep(60)
+    g = freest_gpu()
+    cmd = cmd.replace(" python3 -u ", f" OMP_NUM_THREADS=3 MKL_NUM_THREADS=3 CUDA_VISIBLE_DEVICES={g} "
+                      "RB_JOB=1 nice -n 19 taskset -c 48-63 python3 -u ")
+    subprocess.Popen(cmd, shell=True, cwd=TRAIN, stdout=open(log, "w"), stderr=subprocess.STDOUT)
+    print(f"[{time.strftime('%H:%M')}] start {os.path.basename(os.path.dirname(out))} gpu {g}", flush=True)
+    time.sleep(180)
+print("all launched", flush=True)

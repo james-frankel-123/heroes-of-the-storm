@@ -1,0 +1,12 @@
+{
+ "qm2026/results/qm_wp_v0.json": {
+  "n": 11,
+  "spearman_ordinal": 0.9,
+  "spearman_avg_ties": 0.9066
+ },
+ "qm2026/results/qm2026_judge.json": {
+  "n": 11,
+  "spearman_ordinal": 0.9,
+  "spearman_avg_ties": 0.8975
+ }
+}
