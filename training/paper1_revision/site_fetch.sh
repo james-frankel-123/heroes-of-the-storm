@@ -12,5 +12,10 @@ while true; do
       "$HOST:$SRC/$d/" "$DST/$d/" 2>/dev/null
   done
   nice -n 19 rsync -rlt --rsync-path="wsl rsync" "$HOST:/home/max/hots/logs/p1site_*.log" paper1_revision/site/logs/remote/ 2>/dev/null
+  # site-tier MCTS runs (policies, best checkpoints, meta; not the resume state) and their logs
+  nice -n 19 rsync -rlt --rsync-path="wsl rsync" --exclude "resume_state.*" \
+    "$HOST:/home/max/hots/repo/training/paper1_revision/site/mcts_runs/" paper1_revision/site/mcts_runs/ 2>/dev/null
+  nice -n 19 rsync -rlt --rsync-path="wsl rsync" --include "mcts_*" --exclude "*" \
+    "$HOST:/home/max/hots/repo/training/paper1_revision/site/logs/" paper1_revision/site/logs/remote/ 2>/dev/null
   sleep 900
 done

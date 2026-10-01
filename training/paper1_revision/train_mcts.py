@@ -28,6 +28,9 @@ CONFIGS = {"B": (200, 300000), "F": (400, 300000), "I": (600, 300000),
            "J": (800, 300000), "E": (200, 1000000)}
 
 
+GD_PATH = os.path.join(TRAINING_DIR, "rerun2026", "models", "generic_draft_0.pt")
+
+
 def exclude_path():
     sys.path.insert(0, TRAINING_DIR)
     from paper1_revision import core
@@ -36,6 +39,9 @@ def exclude_path():
         ids = set(json.load(open(os.path.join(TRAINING_DIR, "rerun2026", "pre255_exclude_ids.json"))))
         ids |= core.test_ids()
         ids |= {g[0] for g in core.split_games()["val"]}
+        from overfit2026 import data as odata
+        if odata.TIER_SCHEME == "site":   # unranked games are not in the site-tier corpus
+            ids |= {r for r, t in odata.site_tiers().items() if t == "unknown"}
         json.dump(sorted(ids), open(p, "w"))
     return p
 
@@ -75,6 +81,14 @@ def main():
     from paper1_revision import core
     import subprocess
     sims, episodes = CONFIGS[a.config]
+    from overfit2026 import data as odata
+    global GD_PATH
+    if odata.TIER_SCHEME == "site":
+        # site-tier rebuild: GD pool of rerun2026 namespace p1site; value
+        # pretraining reads the site-tier snapshot (same rows)
+        GD_PATH = os.path.join(TRAINING_DIR, "rerun2026", "ns", "p1site", "models", "generic_draft_0.pt")
+        os.environ["REPLAY_SNAPSHOT_PATH"] = os.path.join(
+            TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site.json")
     meta = json.load(open(os.path.join(core.MODEL_DIR, f"{a.wp}.json")))
     wp = os.path.join(core.MODEL_DIR, f"{a.wp}_s{meta['selected_seed']}.pt")
     name = f"{a.config}_oof_s{a.seed}"
@@ -88,7 +102,7 @@ def main():
         "MCTS_WP_PATH": wp,
         "WP_STATS_PATH": core.stats_path("deploy"),
         "P1R_COMP_PATH": core.comp_path("deploy"),
-        "MCTS_GD_PATH": os.path.join(TRAINING_DIR, "rerun2026", "models", "generic_draft_0.pt"),
+        "MCTS_GD_PATH": GD_PATH,
         "MCTS_NUM_EPISODES": str(episodes),
         "MCTS_NUM_SIMS": str(sims),
         "MCTS_BATCH_EPISODES": "128",
@@ -97,6 +111,7 @@ def main():
         "MCTS_NET_SIZE": "base",
         "MCTS_EXCLUDE_IDS": exclude_path(),
         "REPLAY_SNAPSHOT": "1",
+        "MCTS_SEARCH_MODE": os.environ.get("MCTS_SEARCH_MODE", "chance"),
         "WANDB_MODE": "disabled",
         "WANDB_RUN_NAME": f"paper1_revision_{name}",
         "PYTHONHASHSEED": str(a.seed),

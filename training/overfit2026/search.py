@@ -49,6 +49,15 @@ def load_kernel(which="ofit"):
 _GD = None
 
 
+def gd_dir():
+    """The GD opponent pool: the site-tier retrain (rerun2026 namespace
+    p1site) under P1_TIERS=site, else the paper's pool."""
+    from overfit2026 import data as _d
+    if _d.TIER_SCHEME == "site":
+        return os.path.join(RR, "ns", "p1site", "models")
+    return os.path.join(RR, "models")
+
+
 def gd_flats():
     global _GD
     if _GD is None:
@@ -57,7 +66,7 @@ def gd_flats():
         _GD = []
         for i in range(5):
             gd = GenericDraftModel()
-            gd.load_state_dict(torch.load(os.path.join(RR, "models", f"generic_draft_{i}.pt"),
+            gd.load_state_dict(torch.load(os.path.join(gd_dir(), f"generic_draft_{i}.pt"),
                                           weights_only=True, map_location="cpu"))
             gd.eval()
             _GD.append(extract_gd_weights(gd))

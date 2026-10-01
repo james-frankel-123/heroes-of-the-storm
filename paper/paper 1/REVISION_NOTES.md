@@ -1182,3 +1182,29 @@ The source is `backups/replay_draft_skill_tier_20260930.csv.gz` (league_tier and
   - submitted-checkpoint evaluation;
   - non-MCTS tournament pairs.
 - **MCTS configurations:** prepared for the fixed-kernel build. They depend on the new GD pool (opponents) and the site leak-free enriched WP.
+
+### 15.4 MCTS reruns on the fixed kernel (queued 2026-10-01)
+
+**Prepared.** `paper1_revision/train_mcts.py` under `P1_TIERS=site`:
+- uses the site-tier leak-free enriched WP and own deploy statistics;
+- uses the p1site GD pool, both as the kernel opponent and for the bootstrap;
+- does value pretraining on the site-tier snapshot, excluding the paper test set, the validation set and unranked games;
+- sets `MCTS_SEARCH_MODE=chance` explicitly.
+
+`overfit2026/search.py` (bench_mcts) takes its GD opponents from the p1site pool under site tiers.
+
+**3090.**
+- Fixed kernel built; `smoke.py --gpu` passes.
+- Pause/resume drill (B config, 200 sims):
+  - pause in 6 s, checkpoint at episode 1536;
+  - resume restored optimizer, scheduler and buffer, and continued from 1664 (one batch after the checkpoint);
+  - stopped after the drill.
+- Self-play runs at about 10 ep/s there at 200 sims while the four baseline queues share the GPU.
+
+**Queue.** `paper1_revision/site_mcts_queue.sh` waits for the GD pool (all five meta files) and the site enriched WP. Then:
+- **3090:** B_oof s0–s4, two at a time, as pause-aware hotsjob MCTS jobs.
+- **This box:** two streams, F_oof s0–s4 and J_oof s0–s4. Each starts a run only while this lane holds fewer than 2 GPU processes.
+
+`site_fetch.sh` also brings the remote MCTS runs and logs back.
+
+**After the runs:** bench_mcts (site namespace), comp_rescore (Table VI rows, sim scaling 200/400/800, operating point), and the tournament's MCTS strategies.
