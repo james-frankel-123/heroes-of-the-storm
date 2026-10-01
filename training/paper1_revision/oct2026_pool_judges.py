@@ -90,6 +90,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--judges", required=True)
     ap.add_argument("--consensus", default=None, help="judge names averaged for the consensus")
+    ap.add_argument("--consensus-judge", default=None,
+                    help="use this judge's output directly as the consensus (e.g. a separately "
+                         "corrected consensus) instead of averaging")
+    ap.add_argument("--field", default="wpTeam0Sym", help="provenance field to write")
+    ap.add_argument("--rename", default="", help="name map for stored keys, e.g. naive_sc:naive,...")
     ap.add_argument("--pool", default=os.path.join(REPO, "data", "rating-items.json"))
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
@@ -104,19 +109,27 @@ def main():
         fn = ns_judge(name) if spec.startswith("ns:") else py_judge(spec[3:])
         scores[name] = np.asarray(fn(rows), float)
         print(f"{name}: mean P(team0) {scores[name].mean():.4f}", flush=True)
-    cons_names = a.consensus.split(",") if a.consensus else list(scores)
-    cons = np.mean([scores[n] for n in cons_names], 0)
+    if a.consensus_judge:
+        cons_names = [a.consensus_judge]
+        cons = scores[a.consensus_judge]
+    else:
+        cons_names = a.consensus.split(",") if a.consensus else list(scores)
+        cons = np.mean([scores[n] for n in cons_names], 0)
     summary = {thr: int(np.sum(np.abs(cons - 0.5) <= thr)) for thr in (0.01, 0.02, 0.05)}
     print("near-ties (excluded) at 0.01/0.02/0.05:", summary)
     if a.dry_run:
         return
+    ren = dict(x.split(":") for x in a.rename.split(",") if x)
     for i, it in enumerate(machine):
         prov = it["provenance"]
         if "wpTeam0Sym_tournament" not in prov:
             prov["wpTeam0Sym_tournament"] = prov.get("wpTeam0Sym", {})
-        prov["wpTeam0Sym"] = {n: float(scores[n][i]) for n in scores}
-    pool["judges"] = {"specs": a.judges.split(","), "consensus": cons_names,
-                      "near_ties_excluded": {str(k): v for k, v in summary.items()}}
+        d = {ren.get(n, n): float(scores[n][i]) for n in scores}
+        d["consensus"] = float(cons[i])
+        prov[a.field] = d
+    pool.setdefault("judges", {})[a.field] = {
+        "specs": a.judges.split(","), "consensus": cons_names,
+        "near_ties_excluded": {str(k): v for k, v in summary.items()}}
     json.dump(pool, open(a.pool, "w"), indent=1)
     print(f"wrote {a.pool}")
 
