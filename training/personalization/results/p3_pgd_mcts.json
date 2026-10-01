@@ -1,0 +1,202 @@
+{
+ "decisions": 32000,
+ "real_states": {
+  "picks": {
+   "states": 20000,
+   "R2 vs R1 recommendation differs": 0.2378,
+   "R3 vs R1 recommendation differs": 0.6491,
+   "P2 vs P1 recommendation differs": 0.2232,
+   "recommendation equals the real action": {
+    "R1 pers-GD": 0.19615,
+    "R2 pers-PGD": 0.1963,
+    "R3 pers-PGD+P": 0.337,
+    "P1 pop-GD": 0.13485,
+    "P2 pop-PGD": 0.13715
+   },
+   "R1 pers-GD vs P1 pop-GD": {
+    "share_differ": 0.37715,
+    "share_pop_choice_visited": 0.99935,
+    "gain_pp_per_decision": [
+     1.7102734169213525,
+     1.6612711383406595,
+     1.768262039933581
+    ]
+   },
+   "R2 pers-PGD vs P2 pop-PGD": {
+    "share_differ": 0.379,
+    "share_pop_choice_visited": 0.9996,
+    "gain_pp_per_decision": [
+     1.688230694944308,
+     1.6350235904985462,
+     1.739317105740917
+    ]
+   },
+   "R3 pers-PGD+P vs P2 pop-PGD": {
+    "share_differ": 0.7834,
+    "share_pop_choice_visited": 0.83235,
+    "gain_pp_per_decision": [
+     2.002232777241322,
+     1.93126345661777,
+     2.0789519468745454
+    ]
+   },
+   "real_ban_is_a_remaining_opponents_main": null
+  },
+  "bans": {
+   "states": 12000,
+   "R2 vs R1 recommendation differs": 0.30233333333333334,
+   "R3 vs R1 recommendation differs": 0.583,
+   "P2 vs P1 recommendation differs": 0.24141666666666667,
+   "recommendation equals the real action": {
+    "R1 pers-GD": 0.15075,
+    "R2 pers-PGD": 0.15316666666666667,
+    "R3 pers-PGD+P": 0.15333333333333332,
+    "P1 pop-GD": 0.15,
+    "P2 pop-PGD": 0.15158333333333332
+   },
+   "R1 pers-GD vs P1 pop-GD": {
+    "share_differ": 0.246,
+    "share_pop_choice_visited": 1.0,
+    "gain_pp_per_decision": [
+     0.5299531554182371,
+     0.5067071122955531,
+     0.5532144694930563
+    ],
+    "gain_pp_one_trick_opponent_with_main_free": [
+     0.615526461611093,
+     0.5575636053525477,
+     0.6704656756098809
+    ],
+    "gain_pp_otherwise": [
+     0.5082917420711732,
+     0.4823191847446792,
+     0.535079820039577
+    ],
+    "share_decisions_with_one_trick_opponent": 0.202,
+    "recommended_ban_is_a_remaining_opponents_main": 0.10608333333333334,
+    "population_ban_is_a_remaining_opponents_main": 0.09975
+   },
+   "R2 pers-PGD vs P2 pop-PGD": {
+    "share_differ": 0.25116666666666665,
+    "share_pop_choice_visited": 1.0,
+    "gain_pp_per_decision": [
+     0.6325878880918026,
+     0.6056883382548889,
+     0.6623726703381786
+    ],
+    "gain_pp_one_trick_opponent_with_main_free": [
+     0.831379466644018,
+     0.7484612014704067,
+     0.9090053644984124
+    ],
+    "gain_pp_otherwise": [
+     0.5822672128191867,
+     0.5519016625775132,
+     0.6142102100838943
+    ],
+    "share_decisions_with_one_trick_opponent": 0.202,
+    "recommended_ban_is_a_remaining_opponents_main": 0.12841666666666668,
+    "population_ban_is_a_remaining_opponents_main": 0.104
+   },
+   "R3 pers-PGD+P vs P2 pop-PGD": {
+    "share_differ": 0.5696666666666667,
+    "share_pop_choice_visited": 0.991,
+    "gain_pp_per_decision": [
+     0.8348859149901264,
+     0.7891519438992877,
+     0.8805357800684481
+    ],
+    "gain_pp_one_trick_opponent_with_main_free": [
+     1.5253671309685268,
+     1.3851261761300702,
+     1.666349534735158
+    ],
+    "gain_pp_otherwise": [
+     0.6606659283131838,
+     0.6169804025060092,
+     0.7018890246559051
+    ],
+    "share_decisions_with_one_trick_opponent": 0.202,
+    "recommended_ban_is_a_remaining_opponents_main": 0.20016666666666666,
+    "population_ban_is_a_remaining_opponents_main": 0.104
+   },
+   "real_ban_is_a_remaining_opponents_main": 0.13325
+  }
+ },
+ "full_drafts": {
+  "R1 pers-GD vs P1 pop-GD": {
+   "dV_pp": [
+    6.585861158459787,
+    5.8514507753882326,
+    7.2983829687045105
+   ],
+   "dWPpop_pp": [
+    -0.8100255727767944,
+    -1.467521056085825,
+    -0.20899801537394538
+   ],
+   "mean_V_pers": 0.6912799093673925
+  },
+  "R2 pers-PGD vs P2 pop-PGD": {
+   "dV_pp": [
+    8.23353382492836,
+    7.3814245410191734,
+    9.051009650439862
+   ],
+   "dWPpop_pp": [
+    -0.42169010639190674,
+    -1.1342637994885445,
+    0.22068322457373085
+   ],
+   "mean_V_pers": 0.6156582879184341
+  },
+  "R3 pers-PGD+P vs P2 pop-PGD": {
+   "dV_pp": [
+    12.568268672620864,
+    11.640454767761401,
+    13.491306040682202
+   ],
+   "dWPpop_pp": [
+    -3.9854497492313383,
+    -4.741996712312103,
+    -3.233538732007146
+   ],
+   "mean_V_pers": 0.6590056363953591
+  }
+ },
+ "self_play_meta": {
+  "real": {
+   "effective_heroes": 73.45442053973008
+  },
+  "R1 pers-GD": {
+   "effective_heroes": 41.543683852269815,
+   "top10_share": 0.4959,
+   "corr_with_real": 0.6535725953345526,
+   "off_role": 0.2002
+  },
+  "R2 pers-PGD": {
+   "effective_heroes": 41.88377057339707,
+   "top10_share": 0.49029999999999996,
+   "corr_with_real": 0.6696324533082987,
+   "off_role": 0.1963
+  },
+  "R3 pers-PGD+P": {
+   "effective_heroes": 60.864238152946896,
+   "top10_share": 0.3714,
+   "corr_with_real": 0.7722141220148588,
+   "off_role": 0.0749
+  },
+  "P1 pop-GD": {
+   "effective_heroes": 38.59521905519679,
+   "top10_share": 0.5204,
+   "corr_with_real": 0.6172282542733365,
+   "off_role": 0.3361
+  },
+  "P2 pop-PGD": {
+   "effective_heroes": 38.670596645817845,
+   "top10_share": 0.5146999999999999,
+   "corr_with_real": 0.6202439031608843,
+   "off_role": 0.3359
+  }
+ }
+}
