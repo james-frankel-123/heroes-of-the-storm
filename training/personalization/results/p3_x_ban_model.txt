@@ -1,0 +1,251 @@
+strength arms (V1 fit, V2 test):
+  s (skill model)              slot +1.446 game +0.01418 [+0.01317,+0.01524]
+  MAWP                         slot +0.572 game +0.00555 [+0.00492,+0.00636]
+  EWMA residual                slot +0.342 game +0.00343 [+0.00290,+0.00391]
+  combo                        slot +1.588 game +0.01586 [+0.01469,+0.01688]
+  combo without MAWP           slot +1.585 game +0.01588 [+0.01468,+0.01688]
+  combo without s              slot +1.164 game +0.01173 [+0.01056,+0.01272]
+  s + concentration terms      slot +1.506 game +0.01510 [+0.01398,+0.01614]
+  combo + forced off main      slot +1.607 game +0.01606 [+0.01482,+0.01704]
+lobbies 5,724, slots 57,240 (24s)
+forced off main: -2.48pp x main share
+  lobbies 500/5724 (29s)
+  lobbies 1000/5724 (33s)
+  lobbies 1500/5724 (38s)
+  lobbies 2000/5724 (42s)
+  lobbies 2500/5724 (46s)
+  lobbies 3000/5724 (51s)
+  lobbies 3500/5724 (56s)
+  lobbies 4000/5724 (60s)
+  lobbies 4500/5724 (65s)
+  lobbies 5000/5724 (70s)
+  lobbies 5500/5724 (75s)
+{
+ "ban_decisions": 34344,
+ "share_with_a_one_trick_opponent_to_pick_and_main_available": 0.1987829023992546,
+ "value_of_personalized_ban": {
+  "mean_pp": 3.4702394291441987,
+  "p10": 1.0694770739666233,
+  "p50": 2.637072077388137,
+  "p90": 7.40071653285378,
+  "p99": 11.850869957419121,
+  "n": 34344
+ },
+ "value_of_population_ban (scored with the personalized model)": {
+  "mean_pp": 0.08264850648879205,
+  "p10": -1.019331516831167,
+  "p50": 0.031855792197001076,
+  "p90": 1.2231177794521522,
+  "p99": 5.655682931679968,
+  "n": 34344
+ },
+ "value_of_real_ban": {
+  "mean_pp": 0.22792078150424522,
+  "p10": -0.4856032459636955,
+  "p50": 0.007295277133397043,
+  "p90": 1.1529319701401943,
+  "p99": 5.79410180284918,
+  "n": 34344
+ },
+ "gain_over_population_ban": {
+  "mean_pp": 3.3875909226554075,
+  "p10": 0.4395782644708715,
+  "p50": 2.566533919611483,
+  "p90": 7.635034888308864,
+  "p99": 12.822063474735113,
+  "n": 34344
+ },
+ "gain_over_population_ban_ci": [
+  3.3875909226554075,
+  3.3571508336434666,
+  3.420613988182563
+ ],
+ "gain_over_real_ban_ci": [
+  3.2423186476399537,
+  3.2118214732484267,
+  3.268799493328077
+ ],
+ "share_personalized_differs_from_population": 0.9366410435592826,
+ "personal_part_of_personalized_ban": {
+  "mean_pp": 2.295538763814809,
+  "p10": 0.42370394196555533,
+  "p50": 1.6976183789696035,
+  "p90": 5.205283436821471,
+  "p99": 8.455495892687278,
+  "n": 34344
+ },
+ "share_personalized_ban_is_an_opponents_one_trick_main": 0.1603482413230841,
+ "with a one-trick opponent: gain over population ban": [
+  6.3069292560062244,
+  6.228743058917692,
+  6.385893184585664
+ ],
+ "with a one-trick opponent: share differ": 0.9731946682290904,
+ "without: gain over population ban": [
+  2.663299655373872,
+  2.6344559820788658,
+  2.6890125169032295
+ ],
+ "first phase: gain over population ban": [
+  3.9295801839379187,
+  3.8917723654455845,
+  3.9679176818333746
+ ],
+ "second phase: gain over population ban": [
+  2.3036124000903833,
+  2.2597687652258505,
+  2.344358000775945
+ ],
+ "gain_per_draft_sum_of_3_bans": [
+  10.16277276796622,
+  10.025002326566005,
+  10.290008102134264
+ ],
+ "arms: mean value of the best ban (each arm's own value)": {
+  "combo + forced off main": 3.4702394291441987,
+  "combo": 2.8980999282731097,
+  "s (skill model)": 2.349951209953955,
+  "MAWP": 2.121499175903158,
+  "combo without MAWP": 2.8261368925801498
+ },
+ "arms: mean combo value of each arm's chosen ban": {
+  "combo + forced off main": 3.4702394291441987,
+  "combo": 3.415837573291943,
+  "s (skill model)": 3.28293557716992,
+  "MAWP": 2.4845472310867973,
+  "combo without MAWP": 3.418748473036749
+ },
+ "one_trick_main_ban: predicted": {
+  "cases": 7992,
+  "pick_probability_of_main (imitation)": 0.6182603779553512,
+  "expected personal drop, combo + forced off main (pp)": 5.545147191599208,
+  "expected personal drop, combo (pp)": 4.07250492644307,
+  "expected personal drop, s (skill model) (pp)": 2.7992457486925546,
+  "expected personal drop, MAWP (pp)": 1.13477151368885,
+  "expected personal drop, combo without MAWP (pp)": 4.047734337831735,
+  "drop given he would have picked the main, combo + forced off main (pp)": 11.802702528794951,
+  "drop given he would have picked the main, combo (pp)": 6.361348842991034,
+  "drop given he would have picked the main, s (skill model) (pp)": 4.377147483478028,
+  "drop given he would have picked the main, MAWP (pp)": 1.8639927336915785,
+  "drop given he would have picked the main, combo without MAWP (pp)": 6.309269729104912
+ },
+ "main_ban_drop_predicted_vs_realized": {
+  "one-trick (main share >= 50%)": {
+   "opponents": 1817,
+   "pick_probability_of_main": 0.6079073010327845,
+   "predicted drop, combo + forced off main (pp)": 5.446478643830422,
+   "predicted drop, combo (pp)": 3.9718442835782173,
+   "predicted drop, s (skill model) (pp)": 2.720821896437914,
+   "predicted drop, MAWP (pp)": 1.0956630073334188,
+   "predicted drop, combo without MAWP (pp)": 3.950386757863247,
+   "realized drop (natural experiment, r_self, pp)": 8.106191834190483,
+   "realized CI": [
+    7.398336913923785,
+    8.770682504819314
+   ],
+   "realized: played main when available": 0.7027371552760049
+  },
+  "specialist (25-50%)": {
+   "opponents": 6599,
+   "pick_probability_of_main": 0.3206067674794079,
+   "predicted drop, combo + forced off main (pp)": 2.2181137606801524,
+   "predicted drop, combo (pp)": 1.4274769909788516,
+   "predicted drop, s (skill model) (pp)": 0.9845848437207786,
+   "predicted drop, MAWP (pp)": 0.4934859337368838,
+   "predicted drop, combo without MAWP (pp)": 1.4053457028637517,
+   "realized drop (natural experiment, r_self, pp)": 2.946709008540743,
+   "realized CI": [
+    2.6470084634125945,
+    3.324620626680127
+   ],
+   "realized: played main when available": 0.3813267540114509
+  },
+  "flexible (< 25%)": {
+   "opponents": 20204,
+   "pick_probability_of_main": 0.1425591364496805,
+   "predicted drop, combo + forced off main (pp)": 0.8634200392287539,
+   "predicted drop, combo (pp)": 0.511922626400468,
+   "predicted drop, s (skill model) (pp)": 0.340198061122162,
+   "predicted drop, MAWP (pp)": 0.13583977129749095,
+   "predicted drop, combo without MAWP (pp)": 0.5087376548310301,
+   "realized drop (natural experiment, r_self, pp)": 1.248315268475731,
+   "realized CI": [
+    0.9698557918800504,
+    1.424955463695074
+   ],
+   "realized: played main when available": 0.16899342390676741
+  }
+ },
+ "one_trick_main_ban: realized, one-trick (main share >= 50%) (r_self)": {
+  "effect_pp": -8.106191834190483,
+  "ci_pp": [
+   -8.770682504819314,
+   -7.398336913923785
+  ],
+  "raw_diff_pp": -6.714334882217081
+ },
+ "one_trick_main_ban: realized, one-trick (main share >= 50%): played main when available": 0.7027371552760049,
+ "one_trick_main_ban: realized, one-trick, V2 window (2026-04-01 on) (r_self)": {
+  "effect_pp": -8.639139094945824,
+  "ci_pp": [
+   -10.87635560591375,
+   -6.230772805644151
+  ],
+  "raw_diff_pp": -6.470720316441994
+ },
+ "one_trick_main_ban: realized, one-trick, V2 window (2026-04-01 on): played main when available": 0.6876038913262664,
+ "realized_check_real_bans (team residual on own - opponent personal ban value)": {
+  "combo + forced off main": {
+   "slope (1 = calibrated)": 0.924625620329287,
+   "ci": [
+    0.4817421276554316,
+    1.3894209022027066
+   ],
+   "sd_of_ban_difference_pp": 2.843008725417261,
+   "residual_pp_bottom_decile": -4.474194906977043,
+   "residual_pp_top_decile": 5.2127961218877195
+  },
+  "combo": {
+   "slope (1 = calibrated)": 1.0344079432203048,
+   "ci": [
+    0.46896160644627266,
+    1.5839733165569094
+   ],
+   "sd_of_ban_difference_pp": 2.3514893725105295,
+   "residual_pp_bottom_decile": -4.3520597783266775,
+   "residual_pp_top_decile": 6.076516694735482
+  },
+  "s (skill model)": {
+   "slope (1 = calibrated)": 1.1328017586488088,
+   "ci": [
+    0.4102313955741295,
+    1.864380148296639
+   ],
+   "sd_of_ban_difference_pp": 1.8588733907988886,
+   "residual_pp_bottom_decile": -4.171971106872509,
+   "residual_pp_top_decile": 5.1357048214210055
+  },
+  "MAWP": {
+   "slope (1 = calibrated)": 0.6983249677186758,
+   "ci": [
+    -0.12808024646316404,
+    1.514378628862845
+   ],
+   "sd_of_ban_difference_pp": 1.504110204776692,
+   "residual_pp_bottom_decile": -2.446514680123454,
+   "residual_pp_top_decile": 2.7160063932079295
+  },
+  "combo without MAWP": {
+   "slope (1 = calibrated)": 1.081964646307933,
+   "ci": [
+    0.499964131450438,
+    1.6320696902185297
+   ],
+   "sd_of_ban_difference_pp": 2.284302267683207,
+   "residual_pp_bottom_decile": -4.828722876403969,
+   "residual_pp_top_decile": 5.87454727650937
+  }
+ },
+ "lobbies": 5724
+}
+done in 79s

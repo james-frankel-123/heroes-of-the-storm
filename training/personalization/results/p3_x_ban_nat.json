@@ -1,0 +1,1201 @@
+{
+ "slots_eligible": 6776526,
+ "treated": 430912,
+ "control": 5162384,
+ "taken_by_pick": 831595,
+ "treated_second_phase": 78265,
+ "mawp_V1_slope_on_r": 0.3361380916484403,
+ "s_V1_slope_on_r": 0.8900105006921935,
+ "effects": {
+  "all": {
+   "treated": 430912,
+   "control": 5162384,
+   "played_main_when_available": 0.27850504728048125,
+   "mean_share": 0.2529048932147052,
+   "y (win)": {
+    "effect_pp": -2.4242001910627122,
+    "ci_pp": [
+     -2.6138623582587446,
+     -2.2270674076629517
+    ],
+    "raw_diff_pp": -1.8153145254060588
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.21169751863000613,
+    "ci_pp": [
+     -0.24212228304743652,
+     -0.1813869269291024
+    ],
+    "raw_diff_pp": -0.11893921558144283
+   },
+   "r = y - WP": {
+    "effect_pp": -2.212502672432653,
+    "ci_pp": [
+     -2.380389749232718,
+     -2.0102325965851016
+    ],
+    "raw_diff_pp": -1.6963753098246146
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -2.355680462649181,
+    "ci_pp": [
+     -2.5219402616143403,
+     -2.1702627776615224
+    ],
+    "raw_diff_pp": -1.634008960336158
+   },
+   "model: s on the hero played": {
+    "effect_pp": -1.1033399424695798,
+    "ci_pp": [
+     -1.1307733339403356,
+     -1.0729374382978845
+    ],
+    "raw_diff_pp": -0.7261201374257638
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -0.4626627784106426,
+    "ci_pp": [
+     -0.48407230387572403,
+     -0.43951669919585123
+    ],
+    "raw_diff_pp": -0.3049561688633783
+   }
+  },
+  "one-trick (main share >= 50%)": {
+   "treated": 34990,
+   "control": 465191,
+   "played_main_when_available": 0.7027371552760049,
+   "mean_share": 0.6487631289353823,
+   "y (win)": {
+    "effect_pp": -8.585980003621309,
+    "ci_pp": [
+     -9.26556970907787,
+     -7.761367641367191
+    ],
+    "raw_diff_pp": -7.3738636173037335
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.6092077989913117,
+    "ci_pp": [
+     -0.7451445667945868,
+     -0.44906566590915575
+    ],
+    "raw_diff_pp": -0.45746870496472525
+   },
+   "r = y - WP": {
+    "effect_pp": -7.976772204630034,
+    "ci_pp": [
+     -8.73290802977739,
+     -7.32745007494136
+    ],
+    "raw_diff_pp": -6.9163949123390065
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -8.106191834190483,
+    "ci_pp": [
+     -8.770682504819314,
+     -7.398336913923785
+    ],
+    "raw_diff_pp": -6.714334882217081
+   },
+   "model: s on the hero played": {
+    "effect_pp": -2.848793082135566,
+    "ci_pp": [
+     -3.0347568119958175,
+     -2.708992722925094
+    ],
+    "raw_diff_pp": -2.4294229796281845
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -1.3908538002609792,
+    "ci_pp": [
+     -1.4961045668847301,
+     -1.2697025764188157
+    ],
+    "raw_diff_pp": -1.100442167211036
+   }
+  },
+  "specialist (25-50%)": {
+   "treated": 133053,
+   "control": 1493163,
+   "played_main_when_available": 0.3813267540114509,
+   "mean_share": 0.3411663227337389,
+   "y (win)": {
+    "effect_pp": -3.0569497738417906,
+    "ci_pp": [
+     -3.4316822350891063,
+     -2.726066362474746
+    ],
+    "raw_diff_pp": -2.3120577296079747
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.25820194296736365,
+    "ci_pp": [
+     -0.3129979031325113,
+     -0.19559362563332316
+    ],
+    "raw_diff_pp": -0.16572905255085035
+   },
+   "r = y - WP": {
+    "effect_pp": -2.7987478308744387,
+    "ci_pp": [
+     -3.109867949233432,
+     -2.5145448902988274
+    ],
+    "raw_diff_pp": -2.146328677057131
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -2.946709008540743,
+    "ci_pp": [
+     -3.324620626680127,
+     -2.6470084634125945
+    ],
+    "raw_diff_pp": -2.037155013053562
+   },
+   "model: s on the hero played": {
+    "effect_pp": -1.5337960224578973,
+    "ci_pp": [
+     -1.5779738193532407,
+     -1.4930441720591734
+    ],
+    "raw_diff_pp": -1.097141540815864
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -0.6646652354721782,
+    "ci_pp": [
+     -0.6991072508214433,
+     -0.6261058072420477
+    ],
+    "raw_diff_pp": -0.46445519622958403
+   }
+  },
+  "flexible (< 25%)": {
+   "treated": 262869,
+   "control": 3204030,
+   "played_main_when_available": 0.16899342390676741,
+   "mean_share": 0.15439238475462946,
+   "y (win)": {
+    "effect_pp": -1.241337156161464,
+    "ci_pp": [
+     -1.433885199270069,
+     -0.9960640200837078
+    ],
+    "raw_diff_pp": -0.8227910838362551
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.13339268991150188,
+    "ci_pp": [
+     -0.16877214601541446,
+     -0.0963968203608079
+    ],
+    "raw_diff_pp": -0.051289628619199945
+   },
+   "r = y - WP": {
+    "effect_pp": -1.1079444662499631,
+    "ci_pp": [
+     -1.3029768381020568,
+     -0.8519471908089717
+    ],
+    "raw_diff_pp": -0.7715014552170527
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -1.248315268475731,
+    "ci_pp": [
+     -1.424955463695074,
+     -0.9698557918800504
+    ],
+    "raw_diff_pp": -0.749456846928608
+   },
+   "model: s on the hero played": {
+    "effect_pp": -0.6463838446566196,
+    "ci_pp": [
+     -0.6647375564772292,
+     -0.6247006495350266
+    ],
+    "raw_diff_pp": -0.3183405010865671
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -0.23365566124177364,
+    "ci_pp": [
+     -0.2510711233321649,
+     -0.21817167926942638
+    ],
+    "raw_diff_pp": -0.1196735132773942
+   }
+  },
+  "one-trick, 200+ games on main": {
+   "treated": 6212,
+   "control": 73035,
+   "played_main_when_available": 0.7587321147395084,
+   "mean_share": 0.6719036385537994,
+   "y (win)": {
+    "effect_pp": -9.935593034884695,
+    "ci_pp": [
+     -11.831954184981214,
+     -8.089324976032112
+    ],
+    "raw_diff_pp": -9.476878461230498
+   },
+   "WP of the realized draft": {
+    "effect_pp": -1.0341958606411668,
+    "ci_pp": [
+     -1.3748075932171664,
+     -0.654287544345481
+    ],
+    "raw_diff_pp": -0.8290395208506551
+   },
+   "r = y - WP": {
+    "effect_pp": -8.901397174243526,
+    "ci_pp": [
+     -10.434336876772035,
+     -7.413315420279449
+    ],
+    "raw_diff_pp": -8.647838940379845
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -9.08326885570885,
+    "ci_pp": [
+     -11.020181789847351,
+     -7.254077476395376
+    ],
+    "raw_diff_pp": -8.231307437122219
+   },
+   "model: s on the hero played": {
+    "effect_pp": -3.4583523944664227,
+    "ci_pp": [
+     -4.1976408389059,
+     -2.80241766254845
+    ],
+    "raw_diff_pp": -3.1845571522609735
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -1.9150481157552195,
+    "ci_pp": [
+     -2.3349538028042804,
+     -1.446421836659372
+    ],
+    "raw_diff_pp": -1.7089634960175042
+   }
+  },
+  "one-trick, main MAWP >= 0.55": {
+   "treated": 15485,
+   "control": 179314,
+   "played_main_when_available": 0.7019920363161828,
+   "mean_share": 0.6382546493630338,
+   "y (win)": {
+    "effect_pp": -10.282036398417528,
+    "ci_pp": [
+     -11.315203417755376,
+     -9.15780687939485
+    ],
+    "raw_diff_pp": -8.548347186575656
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.9080741723825907,
+    "ci_pp": [
+     -1.084797782210017,
+     -0.7043966125329348
+    ],
+    "raw_diff_pp": -0.6825315735038584
+   },
+   "r = y - WP": {
+    "effect_pp": -9.373962226034916,
+    "ci_pp": [
+     -10.364476229517129,
+     -8.468175176612878
+    ],
+    "raw_diff_pp": -7.865815613071793
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -9.550500972808273,
+    "ci_pp": [
+     -10.443216709464666,
+     -8.427592285944725
+    ],
+    "raw_diff_pp": -7.585658779068551
+   },
+   "model: s on the hero played": {
+    "effect_pp": -3.841588171706186,
+    "ci_pp": [
+     -4.132839493391024,
+     -3.6352555493560623
+    ],
+    "raw_diff_pp": -3.3742715439618145
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -3.132083752533854,
+    "ci_pp": [
+     -3.2962299858030835,
+     -2.9936051819460325
+    ],
+    "raw_diff_pp": -2.7511270041432954
+   }
+  },
+  "one-trick, main MAWP < 0.50": {
+   "treated": 9353,
+   "control": 142977,
+   "played_main_when_available": 0.6979514187596606,
+   "mean_share": 0.658463365187264,
+   "y (win)": {
+    "effect_pp": -5.69131729722466,
+    "ci_pp": [
+     -6.816297460597552,
+     -4.577454376508383
+    ],
+    "raw_diff_pp": -5.253630640757578
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.05729159532945701,
+    "ci_pp": [
+     -0.28035034864371006,
+     0.1837751789030573
+    ],
+    "raw_diff_pp": 0.005629276724095078
+   },
+   "r = y - WP": {
+    "effect_pp": -5.634025701895199,
+    "ci_pp": [
+     -6.721617933750778,
+     -4.6617900382110005
+    ],
+    "raw_diff_pp": -5.259259917481675
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -5.674082791697888,
+    "ci_pp": [
+     -6.540607649032558,
+     -4.431973551883718
+    ],
+    "raw_diff_pp": -5.1378204543828065
+   },
+   "model: s on the hero played": {
+    "effect_pp": -1.538744749203839,
+    "ci_pp": [
+     -1.6631715559916174,
+     -1.4132900648484523
+    ],
+    "raw_diff_pp": -1.39533561746009
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": 0.8840828799544793,
+    "ci_pp": [
+     0.730725101440181,
+     0.9799802107001798
+    ],
+    "raw_diff_pp": 0.809877126475727
+   }
+  },
+  "specialist or one-trick, main MAWP >= 0.55": {
+   "treated": 74038,
+   "control": 775964,
+   "played_main_when_available": 0.4714819244191741,
+   "mean_share": 0.41110632464693414,
+   "y (win)": {
+    "effect_pp": -5.631681075015835,
+    "ci_pp": [
+     -6.170923724049801,
+     -5.161283556528624
+    ],
+    "raw_diff_pp": -4.24921053200073
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.5499337389910507,
+    "ci_pp": [
+     -0.6253085981395617,
+     -0.47528281078940215
+    ],
+    "raw_diff_pp": -0.40364462919447175
+   },
+   "r = y - WP": {
+    "effect_pp": -5.081747336024741,
+    "ci_pp": [
+     -5.573028044743528,
+     -4.580766625196356
+    ],
+    "raw_diff_pp": -3.845565902806257
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -5.236964032726115,
+    "ci_pp": [
+     -5.64199819586767,
+     -4.682177290978565
+    ],
+    "raw_diff_pp": -3.6126005512383763
+   },
+   "model: s on the hero played": {
+    "effect_pp": -2.5254311439684214,
+    "ci_pp": [
+     -2.6279527951538784,
+     -2.423770820987618
+    ],
+    "raw_diff_pp": -1.9689806182885006
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -2.093835080424707,
+    "ci_pp": [
+     -2.176616745256432,
+     -2.0265153362609754
+    ],
+    "raw_diff_pp": -1.6837391021903063
+   }
+  },
+  "one-trick, main 90-day share >= 50%": {
+   "treated": 31684,
+   "control": 419002,
+   "played_main_when_available": 0.7334189335611763,
+   "mean_share": 0.6612543987684283,
+   "y (win)": {
+    "effect_pp": -9.05607487720403,
+    "ci_pp": [
+     -9.723018808601328,
+     -8.28560871587469
+    ],
+    "raw_diff_pp": -7.750641105482154
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.62158690521558,
+    "ci_pp": [
+     -0.8147712214228238,
+     -0.4239152296777574
+    ],
+    "raw_diff_pp": -0.47726498639878434
+   },
+   "r = y - WP": {
+    "effect_pp": -8.43448797198845,
+    "ci_pp": [
+     -9.186800436675343,
+     -7.776027910723893
+    ],
+    "raw_diff_pp": -7.273376119083368
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -8.558945030613037,
+    "ci_pp": [
+     -9.212875950937512,
+     -7.852933071767019
+    ],
+    "raw_diff_pp": -7.072018087818564
+   },
+   "model: s on the hero played": {
+    "effect_pp": -2.951000851080655,
+    "ci_pp": [
+     -3.154173737169822,
+     -2.7893080099448984
+    ],
+    "raw_diff_pp": -2.5421324054740047
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -1.458864539145264,
+    "ci_pp": [
+     -1.5827682879819327,
+     -1.3397236664317658
+    ],
+    "raw_diff_pp": -1.1628136124022868
+   }
+  },
+  "one-trick or specialist, Bronze": {
+   "treated": 18257,
+   "control": 278373,
+   "played_main_when_available": 0.4453772456380468,
+   "mean_share": 0.42287351697358294,
+   "y (win)": {
+    "effect_pp": -2.5839174733676677,
+    "ci_pp": [
+     -3.338441128506301,
+     -1.7375652044949428
+    ],
+    "raw_diff_pp": -2.1130440091394753
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.41109230524387824,
+    "ci_pp": [
+     -0.5495389438194639,
+     -0.2646874171680874
+    ],
+    "raw_diff_pp": -0.17681811174784512
+   },
+   "r = y - WP": {
+    "effect_pp": -2.172825168123781,
+    "ci_pp": [
+     -2.9024753422605305,
+     -1.4090371425231736
+    ],
+    "raw_diff_pp": -1.9362258973916215
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -2.2202158867387545,
+    "ci_pp": [
+     -3.1715271516039913,
+     -1.4000543001470718
+    ],
+    "raw_diff_pp": -1.9300306118300927
+   },
+   "model: s on the hero played": {
+    "effect_pp": -1.4691206107193786,
+    "ci_pp": [
+     -1.52895320705155,
+     -1.41378434677562
+    ],
+    "raw_diff_pp": -1.2011078072607138
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -0.3645380498745417,
+    "ci_pp": [
+     -0.43814111558516877,
+     -0.2921598294652611
+    ],
+    "raw_diff_pp": -0.2999527685998166
+   }
+  },
+  "one-trick or specialist, Silver": {
+   "treated": 27636,
+   "control": 403724,
+   "played_main_when_available": 0.4518408615787023,
+   "mean_share": 0.41665476350192354,
+   "y (win)": {
+    "effect_pp": -3.579657432051591,
+    "ci_pp": [
+     -4.202261565896437,
+     -2.976683184585599
+    ],
+    "raw_diff_pp": -2.8629751341254006
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.2232349852632413,
+    "ci_pp": [
+     -0.32541446941794105,
+     -0.0744910728038222
+    ],
+    "raw_diff_pp": -0.19922110805076776
+   },
+   "r = y - WP": {
+    "effect_pp": -3.356422446788343,
+    "ci_pp": [
+     -4.088362073862313,
+     -2.7349013962121296
+    ],
+    "raw_diff_pp": -2.663754026074636
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -3.4297234315913276,
+    "ci_pp": [
+     -4.016300751785106,
+     -2.7637353246375347
+    ],
+    "raw_diff_pp": -2.7547517627738523
+   },
+   "model: s on the hero played": {
+    "effect_pp": -1.6104284996623692,
+    "ci_pp": [
+     -1.6864898729962046,
+     -1.5430207196197991
+    ],
+    "raw_diff_pp": -1.2796344269203488
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -0.569080348940025,
+    "ci_pp": [
+     -0.623140922115927,
+     -0.5067193371401211
+    ],
+    "raw_diff_pp": -0.44915492428956777
+   }
+  },
+  "one-trick or specialist, Gold": {
+   "treated": 33306,
+   "control": 463444,
+   "played_main_when_available": 0.4527170488775343,
+   "mean_share": 0.4120333153747808,
+   "y (win)": {
+    "effect_pp": -3.673476931004739,
+    "ci_pp": [
+     -4.367602662262762,
+     -3.115584587326037
+    ],
+    "raw_diff_pp": -2.752325985773046
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.15413065456743844,
+    "ci_pp": [
+     -0.2680166384015171,
+     -0.046095670132223036
+    ],
+    "raw_diff_pp": -0.08077004416642275
+   },
+   "r = y - WP": {
+    "effect_pp": -3.519346276437294,
+    "ci_pp": [
+     -4.040484183508393,
+     -2.8776651667785558
+    ],
+    "raw_diff_pp": -2.6715559416066235
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -3.6306139788049356,
+    "ci_pp": [
+     -4.1436078330014,
+     -2.940329002438264
+    ],
+    "raw_diff_pp": -2.80822077880495
+   },
+   "model: s on the hero played": {
+    "effect_pp": -1.7540457340679625,
+    "ci_pp": [
+     -1.810395967450417,
+     -1.6939675815412165
+    ],
+    "raw_diff_pp": -1.3751591921589974
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -0.7087523171870709,
+    "ci_pp": [
+     -0.7721699685878389,
+     -0.6399354531016737
+    ],
+    "raw_diff_pp": -0.5625426480398323
+   }
+  },
+  "one-trick or specialist, Platinum": {
+   "treated": 36954,
+   "control": 441572,
+   "played_main_when_available": 0.46342838766950806,
+   "mean_share": 0.4165235491723499,
+   "y (win)": {
+    "effect_pp": -4.905839058763635,
+    "ci_pp": [
+     -5.506614533726867,
+     -4.23928240504175
+    ],
+    "raw_diff_pp": -3.7498548442500166
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.36332135746169875,
+    "ci_pp": [
+     -0.47460872765751416,
+     -0.25252704361479644
+    ],
+    "raw_diff_pp": -0.2531188559576347
+   },
+   "r = y - WP": {
+    "effect_pp": -4.5425177013019535,
+    "ci_pp": [
+     -5.07323453823807,
+     -3.9957191842744955
+    ],
+    "raw_diff_pp": -3.4967359882923756
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -4.654891884262616,
+    "ci_pp": [
+     -5.276992990897234,
+     -4.037090474146725
+    ],
+    "raw_diff_pp": -3.4942372199846874
+   },
+   "model: s on the hero played": {
+    "effect_pp": -1.8849315960334208,
+    "ci_pp": [
+     -1.972042287316257,
+     -1.8222485987689405
+    ],
+    "raw_diff_pp": -1.5695616735573812
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -0.9168112132488073,
+    "ci_pp": [
+     -1.0042476834976155,
+     -0.8457672462724419
+    ],
+    "raw_diff_pp": -0.7600827659713013
+   }
+  },
+  "one-trick or specialist, Diamond": {
+   "treated": 31443,
+   "control": 276370,
+   "played_main_when_available": 0.47682816514093423,
+   "mean_share": 0.4130173292496768,
+   "y (win)": {
+    "effect_pp": -5.454555829056798,
+    "ci_pp": [
+     -6.107020108395541,
+     -4.786074961023384
+    ],
+    "raw_diff_pp": -4.365304348987759
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.600344499191112,
+    "ci_pp": [
+     -0.7560712936786884,
+     -0.48725128545826213
+    ],
+    "raw_diff_pp": -0.4413234285650658
+   },
+   "r = y - WP": {
+    "effect_pp": -4.854211329865681,
+    "ci_pp": [
+     -5.5961424330059435,
+     -4.294619909394322
+    ],
+    "raw_diff_pp": -3.923980920422687
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -4.988434816925405,
+    "ci_pp": [
+     -5.731917291761682,
+     -4.311631159094177
+    ],
+    "raw_diff_pp": -3.7530847347633824
+   },
+   "model: s on the hero played": {
+    "effect_pp": -2.1740583237934232,
+    "ci_pp": [
+     -2.3103254813000422,
+     -2.032530989806189
+    ],
+    "raw_diff_pp": -1.8197428873566994
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -1.1465473623775009,
+    "ci_pp": [
+     -1.2414792767677185,
+     -1.0556557535959663
+    ],
+    "raw_diff_pp": -0.9326358302064921
+   }
+  },
+  "one-trick or specialist, Master": {
+   "treated": 20447,
+   "control": 94871,
+   "played_main_when_available": 0.4602354776485965,
+   "mean_share": 0.37302895201732417,
+   "y (win)": {
+    "effect_pp": -4.9695033887275875,
+    "ci_pp": [
+     -6.108188612439337,
+     -4.006692507634791
+    ],
+    "raw_diff_pp": -3.537432878233532
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.3629583809516921,
+    "ci_pp": [
+     -0.5091359302176824,
+     -0.18599385137714697
+    ],
+    "raw_diff_pp": -0.1244770779045945
+   },
+   "r = y - WP": {
+    "effect_pp": -4.606545007775894,
+    "ci_pp": [
+     -5.711244960903833,
+     -3.5216557520535026
+    ],
+    "raw_diff_pp": -3.412955800328943
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -4.917925529625023,
+    "ci_pp": [
+     -5.899480675547094,
+     -3.9421661267509704
+    ],
+    "raw_diff_pp": -3.267868714276019
+   },
+   "model: s on the hero played": {
+    "effect_pp": -2.097297528137794,
+    "ci_pp": [
+     -2.286452682672573,
+     -1.9302480816825303
+    ],
+    "raw_diff_pp": -1.8183455986183483
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -1.2815865498172165,
+    "ci_pp": [
+     -1.4585956933666924,
+     -1.1237471733693316
+    ],
+    "raw_diff_pp": -1.0396887605477543
+   }
+  },
+  "one-trick, V2 window (2026-04-01 on)": {
+   "treated": 2695,
+   "control": 36697,
+   "played_main_when_available": 0.6876038913262664,
+   "mean_share": 0.6496521987847497,
+   "y (win)": {
+    "effect_pp": -8.920581487922677,
+    "ci_pp": [
+     -10.978914545158835,
+     -7.1338954457061705
+    ],
+    "raw_diff_pp": -6.954238852058442
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.41372371755496157,
+    "ci_pp": [
+     -0.8336085921836587,
+     -0.03264908072064378
+    ],
+    "raw_diff_pp": -0.20649494841974425
+   },
+   "r = y - WP": {
+    "effect_pp": -8.506857770367727,
+    "ci_pp": [
+     -11.031059785238018,
+     -6.059968160533082
+    ],
+    "raw_diff_pp": -6.747743903638708
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -8.639139094945824,
+    "ci_pp": [
+     -10.87635560591375,
+     -6.230772805644151
+    ],
+    "raw_diff_pp": -6.470720316441994
+   },
+   "model: s on the hero played": {
+    "effect_pp": -3.122165361774886,
+    "ci_pp": [
+     -3.508288389863117,
+     -2.7522356155775625
+    ],
+    "raw_diff_pp": -2.5970538324398653
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -1.4777775412373628,
+    "ci_pp": [
+     -1.6982305318029813,
+     -1.2741537365310882
+    ],
+    "raw_diff_pp": -1.0704060583738495
+   }
+  },
+  "specialist, V2 window": {
+   "treated": 9781,
+   "control": 115454,
+   "played_main_when_available": 0.37366397006600033,
+   "mean_share": 0.34062098488722053,
+   "y (win)": {
+    "effect_pp": -3.2418762039865783,
+    "ci_pp": [
+     -4.136346845363369,
+     -2.1132631410609113
+    ],
+    "raw_diff_pp": -2.005040534783309
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.19825232639727117,
+    "ci_pp": [
+     -0.392584199116054,
+     0.038816900986577516
+    ],
+    "raw_diff_pp": -0.1172443425046743
+   },
+   "r = y - WP": {
+    "effect_pp": -3.0436238775893165,
+    "ci_pp": [
+     -4.314861241459552,
+     -1.7808753900813525
+    ],
+    "raw_diff_pp": -1.8877961922786415
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -3.1758288381494437,
+    "ci_pp": [
+     -4.15297702220187,
+     -2.1654621026528713
+    ],
+    "raw_diff_pp": -1.63119929709047
+   },
+   "model: s on the hero played": {
+    "effect_pp": -1.6445917461386281,
+    "ci_pp": [
+     -1.7438556097901705,
+     -1.5184192991010064
+    ],
+    "raw_diff_pp": -1.0073182465285129
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -0.712321586610721,
+    "ci_pp": [
+     -0.8069621445871082,
+     -0.6393266498079431
+    ],
+    "raw_diff_pp": -0.419653057582149
+   }
+  },
+  "one-trick, before V1 (to 2026-02-10)": {
+   "treated": 29873,
+   "control": 392397,
+   "played_main_when_available": 0.704753094442618,
+   "mean_share": 0.6486157946623264,
+   "y (win)": {
+    "effect_pp": -8.769420824466307,
+    "ci_pp": [
+     -9.403672161727945,
+     -7.8612187279544266
+    ],
+    "raw_diff_pp": -7.561045327472538
+   },
+   "WP of the realized draft": {
+    "effect_pp": -0.6567268958294691,
+    "ci_pp": [
+     -0.7969569453252683,
+     -0.4692870171080042
+    ],
+    "raw_diff_pp": -0.49664841863188425
+   },
+   "r = y - WP": {
+    "effect_pp": -8.112693928636833,
+    "ci_pp": [
+     -8.967467529491472,
+     -7.347177632960676
+    ],
+    "raw_diff_pp": -7.064396908840656
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -8.222003624611286,
+    "ci_pp": [
+     -8.844695062261376,
+     -7.575496563114697
+    ],
+    "raw_diff_pp": -6.857948439958037
+   },
+   "model: s on the hero played": {
+    "effect_pp": -2.834410900539634,
+    "ci_pp": [
+     -3.0790020364479003,
+     -2.675328013180724
+    ],
+    "raw_diff_pp": -2.4218038768848817
+   },
+   "model: MAWP on the hero played x V1 slope": {
+    "effect_pp": -1.3979559205098375,
+    "ci_pp": [
+     -1.536744708369826,
+     -1.2657930683813394
+    ],
+    "raw_diff_pp": -1.108346126340048
+   }
+  }
+ },
+ "main_taken_by_another_pick": {
+  "all": {
+   "r = y - WP": {
+    "effect_pp": -1.0318199059933695,
+    "ci_pp": [
+     -1.142939456187008,
+     -0.9184695268705436
+    ]
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -1.2142864689013626,
+    "ci_pp": [
+     -1.349965168033125,
+     -1.1022680115957777
+    ]
+   },
+   "model: s on the hero played": {
+    "effect_pp": -0.7907878181410384,
+    "ci_pp": [
+     -0.8023995107927353,
+     -0.7777818629982861
+    ]
+   }
+  },
+  "one-trick (main share >= 50%)": {
+   "r = y - WP": {
+    "effect_pp": -4.918866304741009,
+    "ci_pp": [
+     -5.4032888691872065,
+     -4.443586525337587
+    ]
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -5.171646930485227,
+    "ci_pp": [
+     -5.726546079404128,
+     -4.576955760094522
+    ]
+   },
+   "model: s on the hero played": {
+    "effect_pp": -2.4053420208071663,
+    "ci_pp": [
+     -2.467690599146532,
+     -2.33942898011846
+    ]
+   }
+  }
+ },
+ "placebo_ban_after_player_picked": {
+  "all": {
+   "placebo_treated": 39092,
+   "y (win)": {
+    "effect_pp": -0.010959014221230018,
+    "ci_pp": [
+     -0.503510653356436,
+     0.4993871418550921
+    ]
+   },
+   "r = y - WP": {
+    "effect_pp": -0.007949763907866048,
+    "ci_pp": [
+     -0.3598352824470436,
+     0.4737065535870111
+    ]
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -0.04208122487762359,
+    "ci_pp": [
+     -0.502951263365988,
+     0.4964350233521324
+    ]
+   }
+  },
+  "one-trick (main share >= 50%)": {
+   "placebo_treated": 1004,
+   "y (win)": {
+    "effect_pp": 2.6122777435401727,
+    "ci_pp": [
+     -0.8755802633168146,
+     5.9601645648221915
+    ]
+   },
+   "r = y - WP": {
+    "effect_pp": 2.2034306219024264,
+    "ci_pp": [
+     -1.4827244012752936,
+     5.24965748618357
+    ]
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": 2.225461051784614,
+    "ci_pp": [
+     -0.9394918611022152,
+     4.622189018162709
+    ]
+   }
+  },
+  "specialist (25-50%)": {
+   "placebo_treated": 8900,
+   "y (win)": {
+    "effect_pp": 0.01856552683928647,
+    "ci_pp": [
+     -1.0975906320282613,
+     0.9338884313405781
+    ]
+   },
+   "r = y - WP": {
+    "effect_pp": -0.05242527752850061,
+    "ci_pp": [
+     -1.1309313114357975,
+     1.0733204356304265
+    ]
+   },
+   "r_self (net of the other nine players' skill)": {
+    "effect_pp": -0.12800287021301707,
+    "ci_pp": [
+     -1.1471924519085237,
+     0.8770414083256295
+    ]
+   }
+  }
+ },
+ "by_ban_phase": {
+  "all | first phase": {
+   "treated": 352647,
+   "r_self_effect_pp": -2.526416113589265,
+   "ci_pp": [
+    -2.7176752674013303,
+    -2.3209003105323234
+   ]
+  },
+  "all | second phase, before his pick": {
+   "treated": 78265,
+   "r_self_effect_pp": -1.6803150301603245,
+   "ci_pp": [
+    -2.1474581298608504,
+    -1.3994145225064079
+   ]
+  },
+  "one-trick (main share >= 50%) | first phase": {
+   "treated": 30075,
+   "r_self_effect_pp": -8.507511835622026,
+   "ci_pp": [
+    -9.320314474068745,
+    -7.829578582732931
+   ]
+  },
+  "one-trick (main share >= 50%) | second phase, before his pick": {
+   "treated": 4915,
+   "r_self_effect_pp": -5.7600859861527605,
+   "ci_pp": [
+    -7.256579020060312,
+    -4.510784128857745
+   ]
+  }
+ },
+ "targeting": {
+  "all": {
+   "slots": 6463983,
+   "opponents_ban_main": 0.07271120607835757,
+   "expected_from_hero_ban_rate": 0.051303760715119454,
+   "ratio": 1.4172685406457786
+  },
+  "one-trick (main share >= 50%)": {
+   "slots": 536654,
+   "opponents_ban_main": 0.06707114826312671,
+   "expected_from_hero_ban_rate": 0.04022084474389034,
+   "ratio": 1.667571844654382
+  },
+  "specialist (25-50%)": {
+   "slots": 1840312,
+   "opponents_ban_main": 0.07713529010298253,
+   "expected_from_hero_ban_rate": 0.05074358955938103,
+   "ratio": 1.5200992041116341
+  },
+  "flexible (< 25%)": {
+   "slots": 4087017,
+   "opponents_ban_main": 0.0714596978676624,
+   "expected_from_hero_ban_rate": 0.05301126055854654,
+   "ratio": 1.348009783482532
+  },
+  "one-trick, 200+ games on main": {
+   "slots": 83937,
+   "opponents_ban_main": 0.07516351549376318,
+   "expected_from_hero_ban_rate": 0.03316425822903659,
+   "ratio": 2.266401225520389
+  },
+  "one-trick, Bronze": {
+   "slots": 81812,
+   "opponents_ban_main": 0.05000488925829952,
+   "expected_from_hero_ban_rate": 0.03794534643764654
+  },
+  "one-trick, Silver": {
+   "slots": 113124,
+   "opponents_ban_main": 0.051845762172483295,
+   "expected_from_hero_ban_rate": 0.0402243597568717
+  },
+  "one-trick, Gold": {
+   "slots": 124799,
+   "opponents_ban_main": 0.05842194248351349,
+   "expected_from_hero_ban_rate": 0.04224208185691082
+  },
+  "one-trick, Platinum": {
+   "slots": 124164,
+   "opponents_ban_main": 0.07142166811636223,
+   "expected_from_hero_ban_rate": 0.04092865103868845
+  },
+  "one-trick, Diamond": {
+   "slots": 75671,
+   "opponents_ban_main": 0.0984657266323955,
+   "expected_from_hero_ban_rate": 0.03813515627056036
+  },
+  "one-trick, Master": {
+   "slots": 17084,
+   "opponents_ban_main": 0.14212128307188013,
+   "expected_from_hero_ban_rate": 0.04042332287033095
+  }
+ }
+}

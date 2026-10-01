@@ -95,7 +95,17 @@ def main():
     for ti, tn in enumerate(tier_names):
         for rv, rn in REGION.items():
             sets[f"{tn} x {rn}"] = v2 & (gtier == ti) & (greg == rv)
-    out = {"tiers": tier_names, "V2_lift": lift_by(d, s, fit_m, sets, n_games, y, lo)}
+    # real league tiers (stored league_tier = real + 1, NULL = Master); the research
+    # labels are low = Bronze, mid = Silver + Gold + Master, high = Platinum + Diamond
+    import p3_x_ban_feat as BF
+    grid0 = np.zeros(n_games, np.int64)
+    grid0[d["g"]] = d["replay_id"]
+    rt = BF.real_tier(grid0)
+    for tn, tname in BF.TIER_NAMES.items():
+        sets[f"real tier {tname}"] = v2 & (rt == tn)
+    out = {"tiers": tier_names, "tier_label_note": "research low = Bronze; mid = Silver + Gold + Master; "
+                                                    "high = Platinum + Diamond",
+           "V2_lift": lift_by(d, s, fit_m, sets, n_games, y, lo)}
     print(json.dumps({k: round(v["gain"], 5) for k, v in out["V2_lift"].items()}), flush=True)
 
     # key effects by subset (V1+V2 slots)
@@ -166,6 +176,7 @@ def main():
         g_oot &= cnte == 10
         games = __import__("json").load(gzip.open(os.path.join(C.CACHE, "x_post_games.json.gz"), "rt"))
         tmap = {g["replay_id"]: (g["skill_tier"], g["region"]) for g in games}
+        lmap = {g["replay_id"]: (6 if g["league_tier"] is None else g["league_tier"] - 1) for g in games}
         grid = np.zeros(ng, np.int64)
         grid[de["g"]] = de["replay_id"]
         gt_e = np.full(ng, -1)
@@ -180,6 +191,11 @@ def main():
             sets_e[f"OOT tier {tn}"] = g_oot & (gt_e == ti)
         for rv, rn in REGION.items():
             sets_e[f"OOT region {rn}"] = g_oot & (gr_e == rv)
+        rt_e = np.full(ng, -2)
+        for i in np.flatnonzero(g_oot):
+            rt_e[i] = lmap.get(int(grid[i]), -2)
+        for tn, tname in BF.TIER_NAMES.items():
+            sets_e[f"OOT real tier {tname}"] = g_oot & (rt_e == tn)
         out["OOT_lift"] = lift_by(de, pr, g_fit, sets_e, ng, ye, loe)
         print(json.dumps({k: round(v["gain"], 5) for k, v in out["OOT_lift"].items()}), flush=True)
     with open(os.path.join(C.RESULTS, "p3_x_robust.json"), "w") as f:

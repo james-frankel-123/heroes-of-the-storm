@@ -32,15 +32,16 @@ Conventions, as in the earlier write-ups:
    - A **new-account prior** is the real win: +0.0024 (0.0020, 0.0029) on V2 and +0.0021 out of time, almost all from the 18% of games with a genuinely new account, where it adds +0.011 to +0.013.
    - A causal detector reaches AUC 0.74 at game 20 on a later cohort. Scoreboard style is its best signal.
 5. **Drafting alternatives.**
-   - Personalized bans: +0.3pp per draft (not significant).
+   - Personalized bans: the first estimate (+0.3pp per draft) was an execution error. The redo (section 8) finds that banning a one-trick's main costs that player 8.1pp in real games, and a calibrated opponent-aware ban model gains +3.4pp per ban decision over population bans.
    - Teammates-only mode keeps 97% (86%, 107%) of the full-information value.
    - Hero assignment within a team: teams leave +2.0pp on the table on average, and realized outcomes follow the model's assignment term at 80 to 90% of its slope.
    - Imitation carries outcome information the value model lacks (+32pp per unit agreement next to +13pp for the personal term). Put recency and share features into the value function; do not blend rankings.
    - Premade chemistry: +0.0004 as team terms, hero-independent, so it changes no picks.
 6. **Maps.** Player × map is 3 to 5% of personal variance (sd 0.8pp), and map terms add +0.00000 to +0.00004 to prediction. Personalization can drop the map axis.
 7. **Robustness.**
-   - The lift holds in every tier and in both large regions in V2 and OOT: high tier +0.019, mid +0.013, low +0.010 to +0.013; Americas and Europe +0.014 to +0.016; Asia +0.006 to +0.009 on few games.
-   - The low tier needs its own experience and party terms.
+   - The lift holds in every real tier and in both large regions in V2 and OOT. By tier: Bronze and Silver +0.009 to +0.013, Gold +0.014 to +0.015, Platinum +0.018, Diamond +0.021, Master +0.016 to +0.017. By region: Americas and Europe +0.014 to +0.016; Asia +0.006 to +0.009 on few games.
+   - Bronze needs its own experience and party terms.
+   - Tier labels: the DB's league_tier is the real tier + 1, so research "low / mid / high" are Bronze / Silver + Gold + Master / Platinum + Diamond.
 
 ## 1. Out-of-time validation (`p3_x_fetch_post.py`, `p3_x_wp_post.py`, `p3_x_common.py`, `p3_x_oot.py`)
 
@@ -327,7 +328,7 @@ The flag set converged in 4 rounds (changes 247, 60, 7).
 **Census.** 1,327 accounts are flagged, 10.2% of new accounts with 20+ games.
 
 - **Games touched.** A flagged account in its first 100 games appears in 6.3% of all games. The share rises over time: 3.7% in 2024 H2, 6.2% in 2025 H1, 8.0% in 2025 H2 and 8.1% in 2026 H1.
-- **Flag rate by the tier of the account's first game:** high 14.3%, mid 10.3%, low 9.6%.
+- **Flag rate by the tier of the account's first game** (research labels; real tiers in brackets): high [Platinum + Diamond] 14.3%, mid [Silver + Gold + Master] 10.3%, low [Bronze] 9.6%.
 - **Flag rate by region:** Americas 8.6%, Europe 11.7%, Asia 1.8% (560 candidates).
 - **Raw residual of flagged accounts by game index:**
 
@@ -433,6 +434,8 @@ For comparison, status 0 at 20 to 49 games seen runs from −2.8 (hero not playe
 
 ### (a) Personalized bans
 
+> **Superseded by section 8.** This first version modeled opponents as the generic GD policy restricted to their pools. It picked a one-trick's main only 13% of the time when available; the real rate is 65 to 70%. So it priced main bans at about a sixth of their value. The numbers below are kept for the record.
+
 **Setup.**
 
 - The controlled team's three bans are chosen by V (which knows the opponents' personal strengths), by WP_pop, or kept as the real bans.
@@ -452,7 +455,7 @@ For comparison, status 0 at 20 to 49 games seen runs from −2.8 (hero not playe
 - More fundamentally, one ban removes one hero from a pool of about 34, and the opponent simply picks his next-best hero.
 - **Realized check** (8,000 teams, real ban states; each real ban placed in the personalized and population ban rankings; team residual y − WP_pop by agreement quintile): top minus bottom quintile is −0.4pp (−4.1, +3.1) for personalized-ban agreement, +1.4pp (−2.2, +4.6) for population-ban agreement, and −2.3pp (−5.7, +1.2) for the personal-minus-population difference. None is distinguishable from zero.
 
-**Verdict.** Personalized bans are worth at most a few tenths of a point per draft. Not worth a product feature beyond showing "their strongest heroes" as information.
+**Verdict (withdrawn, see section 8).** This version said personalized bans were worth at most a few tenths of a point per draft. That was wrong.
 
 ### (b) Teammates-only mode (opponents unknown)
 
@@ -609,44 +612,242 @@ Findings:
 **Setup.**
 
 - Game-level gain of the phase-1 model, with the combiner fit on all V1 games and scored within subsets of V2 and of the OOT games (task 1, everything frozen).
-- Tier is the game's Heroes Profile skill tier. Region codes: 1 Americas, 2 Europe, 3 Asia.
+- **Tier labels.** The DB's league_tier is the real tier + 1, and NULL means Master. The research tiers are therefore:
+  - low = Bronze;
+  - mid = Silver + Gold + Master;
+  - high = Platinum + Diamond.
+  The first table now also reports real tiers. Earlier "low / mid / high" results stay valid; only their labels change.
+- Region codes: 1 Americas, 2 Europe, 3 Asia.
 - The last two columns are a per-subset refit of the skill coefficient and the spread of the team skill difference.
 
 | subset | V2 games | V2 gain (95% CI) | OOT games | OOT gain (95% CI) | skill coef, refit (V2) | sd of team skill difference (pp) |
 |---|---|---|---|---|---|---|
 | all | 72,474 | +0.0142 (0.0132, 0.0152) | 286,016 | +0.0149 (0.0142, 0.0155) | 3.79 | 9.3 |
-| tier low | 13,140 | +0.0099 (0.0079, 0.0123) | 52,738 | +0.0126 (0.0114, 0.0137) | 3.80 | 7.7 |
-| tier mid | 36,737 | +0.0127 (0.0112, 0.0146) | 148,951 | +0.0131 (0.0122, 0.0138) | 3.64 | 9.1 |
-| tier high | 22,597 | **+0.0191** (0.0171, 0.0215) | 84,327 | **+0.0194** (0.0183, 0.0207) | 3.98 | 10.4 |
+| research low (Bronze) | 13,140 | +0.0099 (0.0079, 0.0123) | 52,738 | +0.0126 (0.0114, 0.0137) | 3.80 | 7.7 |
+| research mid (Silver, Gold, Master) | 36,737 | +0.0127 (0.0112, 0.0146) | 148,951 | +0.0131 (0.0122, 0.0138) | 3.64 | 9.1 |
+| research high (Platinum, Diamond) | 22,597 | **+0.0191** (0.0171, 0.0215) | 84,327 | **+0.0194** (0.0183, 0.0207) | 3.98 | 10.4 |
+| Silver | 15,489 | +0.0091 (0.0070, 0.0115) | 59,442 | +0.0102 (0.0091, 0.0111) | | 8.4 |
+| Gold | 14,771 | +0.0150 (0.0128, 0.0173) | 59,666 | +0.0139 (0.0123, 0.0152) | | 9.2 |
+| Platinum | 13,409 | +0.0175 (0.0147, 0.0205) | 51,135 | +0.0185 (0.0169, 0.0199) | | 10.1 |
+| Diamond | 9,188 | **+0.0215** (0.0177, 0.0251) | 33,192 | **+0.0208** (0.0190, 0.0224) | | 10.8 |
+| Master | 6,477 | +0.0158 (0.0112, 0.0197) | 29,843 | +0.0172 (0.0154, 0.0192) | | 10.2 |
 | Americas | 22,332 | +0.0146 (0.0127, 0.0166) | 91,555 | +0.0159 (0.0150, 0.0170) | 3.87 | 9.3 |
 | Europe | 46,820 | +0.0143 (0.0131, 0.0156) | 180,669 | +0.0150 (0.0145, 0.0157) | 3.78 | 9.4 |
 | Asia | 3,322 | +0.0090 (0.0038, 0.0130) | 13,792 | +0.0060 (0.0035, 0.0086) | 3.44 | 8.1 |
 
-Tier × region cells on V2 range from +0.0095 (low, Europe) to +0.0198 (high, Europe).
+Tier × region cells on V2 range from +0.0095 (Bronze, Europe) to +0.0198 (Platinum + Diamond, Europe).
 
 **Key effects by subset** (V1 + V2 slots, player-clustered CIs):
 
 | subset | never-played hero, 300+ games: raw r | 50+ games on hero, 300+ games: raw r | never-played, after skill model | 3+ stack party member, after skill model | solo, after skill model |
 |---|---|---|---|---|---|
 | all | −7.8 (−8.7, −6.7) | +2.2 | −0.8 (−2.0, +0.3) | +1.0 (0.8, 1.2) | −0.6 |
-| tier low | −3.6 (−7.2, −0.2) | +5.5 (4.6, 6.3) | **+3.9 (0.2, 7.3)** | **+3.0 (2.5, 3.5)** | −0.0 |
-| tier mid | −8.6 | +2.1 | −1.6 | +0.7 | −0.5 |
-| tier high | −7.8 | +1.8 | −1.0 | +0.7 | −1.2 |
+| Bronze (research low) | −3.6 (−7.2, −0.2) | +5.5 (4.6, 6.3) | **+3.9 (0.2, 7.3)** | **+3.0 (2.5, 3.5)** | −0.0 |
+| Silver, Gold, Master (research mid) | −8.6 | +2.1 | −1.6 | +0.7 | −0.5 |
+| Platinum, Diamond (research high) | −7.8 | +1.8 | −1.0 | +0.7 | −1.2 |
 | Americas | −8.8 | +2.1 | −1.8 (−3.4, −0.2) | +0.8 | −0.6 |
 | Europe | −7.4 | +2.3 | −0.4 | +1.1 | −0.6 |
 
 Findings:
 
 - **The lift holds in every tier and in both large regions, in both test periods.**
-  - It is largest in the high tier (+0.019) and smallest in the low tier (+0.010 to +0.013).
-  - The per-unit skill coefficient is about the same everywhere (3.6 to 4.0). The tier difference comes from how much the model knows: the team skill difference spreads 10.4pp in the high tier against 7.7pp in the low tier, where more players are new or light.
+  - It rises with real tier from Bronze and Silver (+0.009 to +0.013) through Gold (+0.014 to +0.015) and Platinum (+0.018) to Diamond (+0.021). Master is +0.016 to +0.017.
+  - The per-unit skill coefficient is about the same everywhere (3.6 to 4.0). The tier difference comes from how much the model knows: the team skill difference spreads 10.1 to 10.8pp in Platinum and above, against 7.7pp in Bronze, where more players are new or light.
   - Americas and Europe agree within 0.001.
   - Asia is small (3% of games) and lower (+0.006 to +0.009). The corpus holds few Asian players with deep histories.
-- **The off-pool penalty and comfort bonus hold across tiers and regions**, with one exception: the low tier.
-  - Low-tier veterans lose only 3.6pp on a never-played hero and gain 5.5pp on comfort heroes.
+- **The off-pool penalty and comfort bonus hold across tiers and regions**, with one exception: Bronze (research "low").
+  - Bronze veterans lose only 3.6pp on a never-played hero and gain 5.5pp on comfort heroes.
   - The shared experience table over-penalizes them (+3.9pp left after the skill model) and under-credits premade stacks (+3.0pp).
   - A tier-specific experience table and party term would recover part of the low-tier gap. Section 4's new-account prior should help there too, since new accounts start low.
-- **Party effects are larger in the low tier** (+3.0pp for 3+ stacks against +0.7pp in mid and high). Solo players in the high tier sit 1.2pp below the model.
+- **Party effects are larger in Bronze** (+3.0pp for 3+ stacks against +0.7pp in the other tiers). Solo players in Platinum and Diamond sit 1.2pp below the model.
+
+## 8. Personalized bans (redo) (`p3_x_ban_fetch.py`, `p3_x_ban_diag.py`, `p3_x_ban_feat.py`, `p3_x_ban_nat.py`, `p3_x_ban_model.py`)
+
+Max's expectation was right. The first ban result (section 5a: +0.3pp per draft, not significant) came from an opponent model that ignored who the opponent is.
+
+### Summary
+
+1. **Diagnosis.** The ban itself worked: the main was removed, and the replacement was scored with the off-pool penalty. The error was in the opponent model. Opponents picked from the generic draft policy restricted to their pools, so a one-trick picked his main 13% of the time when it was available. Real one-tricks pick it 65 to 70% of the time. The harness therefore priced a main ban at 0.65pp instead of about 3.7pp. A second, smaller problem is in the skill model: it pools a one-trick's off-main heroes toward his main-dominated level, so it under-prices how bad his replacement is.
+2. **Natural experiment.** 430,912 real games (2024-07 to 2026-05) where opponents banned a player's main, compared within player with games where the main was available. The player's own residual drops by:
+   - one-tricks (main share ≥ 50%): **8.1pp** (7.4, 8.8);
+   - specialists (25 to 50%): **2.9pp** (2.6, 3.3);
+   - flexible players: **1.2pp** (1.0, 1.4).
+   - A placebo ban that cannot affect the player gives −0.04pp (−0.54, +0.37), so this is not selection.
+   - Real teams already ban opponents' mains 1.4 to 2.3 times as often as the hero's base rate, more in higher tiers.
+3. **Redone ban model.** On 5,724 held-out lobbies (34,344 real ban decisions):
+   - The opponent-aware ban beats the population ban by **+3.4pp per ban decision** (median +2.6, 90th percentile +7.6).
+   - It beats the real ban by +3.2pp.
+   - With a one-trick opponent still to pick: **+6.3pp**.
+   - The bans teams really made carry personal value that is realized at slope 0.92 (0.48, 1.39).
+   - For main bans the model is conservative: it predicts 5.4 / 2.2 / 0.9pp against realized 8.1 / 2.9 / 1.2pp.
+4. **MAWP vs residual skill.** MAWP alone predicts opponent strength at 39% of the skill model's value (+0.0056 vs +0.0142 game-level). It adds nothing on top (+0.00000). It predicts one-trick ban losses at about 1pp against 8pp realized.
+
+### A. Diagnosis of the first harness (`p3_x_ban_diag.py`)
+
+Traced on the 5,724 V2 lobbies of the drafter runs (57,240 slots).
+
+- **One-tricks are common.** 6.2% of slots have a main share of 50% or more, and 45.6% of lobbies contain at least one. One-tricks play their main in 61% of their games and specialists in 31%.
+- **Does a ban remove the main? Yes.** In 1,200 forced-ban rollouts through the harness's own functions, the one-trick never played the banned main.
+- **Opponent model: this was the error.** When his main is available at his real pick state, a one-trick picks it:
+  - 13.3% of the time under the harness (GD policy restricted to his pool; 10.7% in full rollouts);
+  - 67.4% under the imitation model;
+  - 65.4% in his own history.
+
+  The harness valued a main ban at 0.65pp of personal strength. Under realistic pick probabilities it is 3.7pp.
+- **Replacement scoring: correct in form.** The main's strength is +3.5pp (of which +2.6pp is the experience offset). The replacement is −1.8 to −2.1pp (offset −1.2pp). The gap, given that he would have picked the main, is 5.3pp.
+- **Shrinkage: no crushing of the main.**
+  - For one-tricks with 50 to 1,000 games on the main, the posterior moves with the raw cell mean at slope 0.35 to 0.68. That is more weight on the cell's own data than its noise alone requires (0.30 to 0.47).
+  - The opposite problem exists. Beyond the experience offset, one-tricks are 6.0 to 7.0pp worse on their other heroes (raw). The GP pools those heroes toward a player level dominated by the main, so the model puts the replacement only about 2pp down.
+  - This is why the skill model alone predicts only a third of the realized main-ban loss (see B).
+- **Pools.** 5.6% of slots (4.1% of one-trick slots) have the game's own hero in their pool only because it was added from the game itself. This is the audit's leak. It is small, and for bans it inflates rather than deflates value. The redone model does not use pools.
+- **Information timing: correct.** Identities are visible in both ban phases. At the second phase, opponents who had already picked stayed in the candidate generator, but they could not change the value. The redone model values only players still to pick.
+
+### B. Natural experiment (`p3_x_ban_nat.py`)
+
+**Setup.**
+
+- Every snapshot slot from 2024-07 to 2026-05 whose player has 30+ earlier games.
+- **Main** = the most-played hero before this game (play-time order).
+- **Treated:** the opposing team banned the main in the first ban phase, or in the second phase before this player picked.
+- **Control:** the main was neither banned nor picked by anyone else.
+- **Estimation:** within-player OLS (player fixed effects), controlling for the main's ban rate in that build and the opposing team's skill sum. CIs are player-clustered bootstraps.
+- **Outcomes:**
+  - y (win);
+  - WP of the realized draft (the population view of what the ban did);
+  - r = y − WP;
+  - r_self = r net of the other nine players' skill estimates (the player's own contribution);
+  - the skill model's s and Max's MAWP on the hero the player actually played (what the models predict).
+
+| stratum | treated slots | played main when available | win (pp) | WP of draft (pp) | r_self (pp) | skill model s predicts | MAWP predicts |
+|---|---|---|---|---|---|---|---|
+| all players | 430,912 | 28% | −2.4 (−2.6, −2.2) | −0.2 | **−2.4 (−2.5, −2.2)** | −1.1 | −0.5 |
+| **one-trick (≥ 50%)** | 34,990 | 70% | **−8.6 (−9.3, −7.8)** | −0.6 | **−8.1 (−8.8, −7.4)** | −2.8 | −1.4 |
+| specialist (25-50%) | 133,053 | 38% | −3.1 | −0.3 | −2.9 (−3.3, −2.6) | −1.5 | −0.7 |
+| flexible (< 25%) | 262,869 | 17% | −1.2 | −0.1 | −1.2 (−1.4, −1.0) | −0.6 | −0.2 |
+| one-trick, 200+ games on main | 6,212 | 76% | −9.9 | −1.0 | −9.1 (−11.0, −7.3) | −3.5 | −1.9 |
+| one-trick, main MAWP ≥ 0.55 (hot) | 15,485 | 70% | −10.3 | −0.9 | −9.6 (−10.4, −8.4) | −3.8 | −3.1 |
+| one-trick, main MAWP < 0.50 (cold) | 9,353 | 70% | −5.7 | −0.1 | −5.7 (−6.5, −4.4) | −1.5 | +0.9 |
+| one-trick, V2 window (2026-04 on) | 2,695 | 69% | −8.9 | −0.4 | −8.6 (−10.9, −6.2) | −3.1 | −1.5 |
+| one-trick or specialist, Bronze | 18,257 | 45% | −2.6 | −0.4 | −2.2 | −1.5 | −0.4 |
+| Silver | 27,636 | | −3.6 | −0.2 | −3.4 | −1.6 | −0.6 |
+| Gold | 33,306 | | −3.7 | −0.2 | −3.6 | −1.8 | −0.7 |
+| Platinum | 36,954 | | −4.9 | −0.4 | −4.7 | −1.9 | −0.9 |
+| Diamond | 31,443 | | −5.5 | −0.6 | −5.0 | −2.2 | −1.1 |
+| Master | 20,447 | | −5.0 | −0.4 | −4.9 | −2.1 | −1.3 |
+
+Checks:
+
+- **Placebo.** Opponents ban the main in the second phase after the player already picked another hero, so the ban cannot affect him:
+  - all players: −0.04pp (−0.54, +0.37), 39,092 slots;
+  - specialists: −0.13pp;
+  - one-tricks: +2.2pp (−1.2, +5.0), 1,004 slots.
+
+  Teams that target-ban are not otherwise stronger than the controls capture.
+- **By ban phase** (one-tricks): first phase −8.5pp (−9.3, −7.9); second phase before his pick −5.8pp (−6.9, −4.4).
+- **Main taken by a pick instead of a ban** (one-tricks): −5.2pp (−5.7, −4.6). The skill model predicts −2.4.
+- **The population model barely sees it.** The WP of the realized draft moves by only 0.6pp for one-tricks. Almost the whole cost of a main ban is personal.
+
+**Findings.**
+
+- Banning a one-trick's main costs his team 8 to 9pp of win probability: 10pp when he is 200+ games deep or on a hot streak, 6pp when he is cold.
+- Momentum matters: MAWP of the main separates hot (−9.6) from cold (−5.7) one-tricks.
+- The effect grows with tier: 2.2pp in Bronze to 5.0pp in Diamond for one-tricks and specialists combined.
+- The phase-1 skill model predicts about a third of the loss, and MAWP about a sixth.
+
+**Do real players already ban mains?** P(opponents ban the player's main) against the rate expected from that hero's per-team ban rate in that build:
+
+| stratum | opponents ban the main | expected | ratio |
+|---|---|---|---|
+| all players | 7.3% | 5.1% | 1.42 |
+| one-tricks | 6.7% | 4.0% | 1.67 |
+| one-tricks, 200+ games on main | 7.5% | 3.3% | 2.27 |
+| one-tricks, Bronze / Silver / Gold | 5.0 / 5.2 / 5.8% | 3.8 / 4.0 / 4.2% | 1.3 / 1.3 / 1.4 |
+| one-tricks, Platinum / Diamond / Master | 7.1 / 9.8 / 14.2% | 4.1 / 3.8 / 4.0% | 1.7 / 2.6 / 3.5 |
+
+Targeting is real and rises steeply with tier: Master teams ban a one-trick's main 3.5 times as often as its base rate. Still, even in Master only 14% of one-tricks lose their main to a ban. Most targetable bans are left on the table.
+
+### C. Opponent-aware ban model (`p3_x_ban_feat.py`, `p3_x_ban_model.py`)
+
+**Opponent per-hero features** (causal, games before the draft):
+
+- MAWP, Max's formula implemented exactly. It matches a direct implementation of `src/lib/mawp.ts` to 5 decimals; the ring buffer of the 400 most recent games per hero changes MAWP by under 1e-3.
+- EWMA residual (10 and 30 hero-games) and EWMA win rate.
+- Games, share and recency on each hero.
+- The skill model's s.
+
+**Strength model.** Linear model of r_self on these features at the hero played, fit on V1 slots and tested on V2:
+
+| strength arm | game-level gain V2 (95% CI) | slot gain ×1000 |
+|---|---|---|
+| skill model s | +0.0142 (0.0132, 0.0152) | 1.45 |
+| **MAWP (Max's formula)** | +0.0056 (0.0049, 0.0064) | 0.57 |
+| EWMA residual (10 games) | +0.0034 | 0.34 |
+| combo: s + MAWP + EWMA + games, share, main share, off-main × main share | +0.0159 (0.0147, 0.0169) | 1.59 |
+| combo without MAWP | +0.0159 | 1.59 |
+| combo without s | +0.0117 | 1.16 |
+| **combo + forced off main** (main share × main unavailable this game) | **+0.0161** (0.0148, 0.0170) | 1.61 |
+
+- MAWP carries about 40% of the residual skill's predictive value on its own. It adds nothing once s is in the model.
+- The concentration terms add +0.0017 over s. They fix the one-trick replacement problem from A.
+- The forced term (−2.5pp × main share when the main is unavailable) captures that a forced switch is worse than a chosen one.
+
+**Ban value.**
+
+- **Pick probabilities:** at every real ban step, each player still to pick gets pick probabilities from the imitation model (GD log-probability at the current draft state plus personal history), over available heroes.
+- **Strength** = population part (the hero's win rate in the build's causal cumulative stats, by tier) + the personal arm.
+- **value(c)** = Σ over opponents still to pick of [E strength − E strength with c removed] − the same over own players still to pick. A player whose main is removed gets the forced-off-main term.
+- **Population ban:** GD pick probabilities and population strength only.
+- Both bans are scored with the full model.
+
+| 34,344 ban decisions in 5,724 held-out lobbies | mean | p10 | p50 | p90 | p99 |
+|---|---|---|---|---|---|
+| value of the personalized ban (pp) | 3.47 | 1.07 | 2.64 | 7.40 | 11.85 |
+| value of the population ban (pp) | 0.08 | −1.02 | 0.03 | 1.22 | 5.66 |
+| value of the real ban (pp) | 0.23 | −0.49 | 0.01 | 1.15 | 5.79 |
+| **gain, personalized − population ban (pp)** | **3.39** (3.36, 3.42) | 0.44 | 2.57 | 7.64 | 12.82 |
+| personal part of the personalized ban (pp) | 2.30 | 0.42 | 1.70 | 5.21 | 8.46 |
+
+- The personalized ban differs from the population ban in 94% of decisions (97% with a one-trick opponent). In 16% of decisions it is an opponent one-trick's main.
+- **Gain over the population ban, by situation:**
+  - a one-trick opponent still to pick with his main available (20% of decisions): **+6.3pp** (6.2, 6.4);
+  - otherwise: +2.7pp;
+  - first phase: +3.9pp; second phase: +2.3pp.
+- Gain over the real ban: +3.2pp. Summed over a team's three bans: +10.2pp per draft. That assumes the three bans add up and opponents do not adapt beyond picking their next hero, so read it as an upper bound.
+- **Choosing bans by MAWP alone** is worth 2.48pp per decision under the full model, against 3.47pp for the full model and 3.28pp for the skill model alone.
+
+### D. Validation against the natural experiment
+
+**Realized check on real bans.** The team residual (y − WP) was regressed on the personal value of the bans both teams really made (own minus opponents'), over 5,724 lobbies.
+
+| arm | slope (1 = calibrated) | sd of the ban difference (pp) | residual, bottom vs top decile (pp) |
+|---|---|---|---|
+| combo + forced (primary) | **0.92 (0.48, 1.39)** | 2.8 | −4.5 vs +5.2 |
+| combo | 1.03 (0.47, 1.58) | 2.4 | −4.4 vs +6.1 |
+| skill model s | 1.13 (0.41, 1.86) | 1.9 | −4.2 vs +5.1 |
+| MAWP | 0.70 (−0.13, 1.51) | 1.5 | −2.4 vs +2.7 |
+
+**Main bans: predicted vs realized drop** (each held-out opponent once, at his lobby's first ban decision):
+
+| opponent | opponents | pick probability of main (model / real) | predicted drop, primary | skill model only | MAWP only | realized (natural experiment) |
+|---|---|---|---|---|---|---|
+| one-trick | 1,817 | 0.61 / 0.70 | 5.4 | 2.7 | 1.1 | **8.1 (7.4, 8.8)** |
+| specialist | 6,599 | 0.32 / 0.38 | 2.2 | 1.0 | 0.5 | 2.9 (2.6, 3.3) |
+| flexible | 20,204 | 0.14 / 0.17 | 0.9 | 0.3 | 0.1 | 1.2 (1.0, 1.4) |
+
+- The primary model recovers 67 to 75% of the realized loss in every stratum. About a third of the gap is the imitation model's lower pick probability for mains (0.61 vs 0.70).
+- The skill model alone recovers a third, and MAWP alone a seventh.
+- **Out-of-sample check.** On the held-out V2 window alone, the one-trick effect is 8.6pp (6.2, 10.9). The forced term was fit on V1, so the V2 natural experiment is an out-of-sample check, and the model stays below it.
+- The redone ban values are therefore conservative for main bans and calibrated on average for the bans real teams make.
+
+### What changes
+
+- **Product.**
+  - Personalized bans are worth showing. For each opponent still to pick, show his main, main share and momentum (MAWP), and the expected loss if banned (for example: "banning his main costs this player about 9pp; he plays it 70% of the time").
+  - Rank ban suggestions by the opponent-aware value, which beats population bans by about 3pp per ban.
+  - This needs opponent identity, which the drafting lobby shows through battletags.
+- **Teammates-only mode** (section 5b) is still right for picks. Bans are where opponent identity pays.
+- **Skill model.** Add main-share terms and a forced-off-main term to the value function. They add +0.0019 game-level and fix the under-pricing of one-tricks' replacements.
+- **MAWP.** As a strength signal it is dominated by the draft-adjusted residual skill. It is useful as a momentum flag for mains: hot one-tricks lose 9.6pp when banned, cold ones 5.7pp.
 
 ## Rerunning (for the audit)
 
@@ -658,7 +859,8 @@ Everything reads the shared caches through `p3_hs_core` and `p3_x_common`. If th
 4. `p3_x_predall.py`: per-slot causal predictions, about 4 minutes.
 5. `p3_x_side.py`: scoreboard style and talent conformity.
 6. `p3_x_oot.py` (task 1), `p3_x_adopt.py` (2), `p3_x_learn.py` (3, needs 2), `p3_x_smurf.py` and `p3_x_newacct.py` (4), `p3_x_map.py` (6), `p3_x_robust.py` (7): about 3, 1, 0.5, 7, 4, 1 and 1 minutes.
-7. `p3_x_draft.py assign | combine | chem | sim --procs 4 | analyze` (5): `sim` takes about 31 minutes on 4 processes. It needs `cache/dr_runs.pkl.gz`, `dr_lobbies.npz` and `dr_personal_post.npz` from the P3_DRAFTER pipeline.
+7. Ban redo (section 8): `p3_x_ban_fetch.py` and `p3_x_ban_fetch.py tiers` (DB) → `p3_x_ban_diag.py` → `p3_x_ban_nat.py` (about 2 minutes) → `p3_x_ban_model.py` (about 2 minutes). `p3_x_ban_feat.py` is the feature library (exact MAWP).
+8. `p3_x_draft.py assign | combine | chem | sim --procs 4 | analyze` (5): `sim` takes about 31 minutes on 4 processes. It needs `cache/dr_runs.pkl.gz`, `dr_lobbies.npz` and `dr_personal_post.npz` from the P3_DRAFTER pipeline.
 
 No GPU was used.
 
