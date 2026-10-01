@@ -189,3 +189,27 @@ Source: `audits/CONSOLIDATED_AUDIT_2026-10-01.md` §6 (4aff9b0). New scripts are
 **Page count:** 11 pages (was 10), no overfull boxes.
 
 **Policy (Max, 2026-10-01): implementation bugs are never disclosed as paper limitations; they are fixed, rerun, and the corrected results reported.** The coordinator removed the kernel caveats (c650374). Following the same rule, I also removed "two of its seeds resumed from checkpoints without their replay buffer" from Limitations; those agents are old-kernel and will be rerun anyway. Kept, because they are statistical disclosures rather than bugs: the interim looks at the maintained replication and the one-year seed cut (audit C6), the leak-free/out-of-fold paragraph, and the prereg deviations, which the registration requires us to disclose. For the owner to decide: the Sec. 2 tier sentence still says "Because of a labeling error in our replay collection". The text is written as the coordinator requested on 2026-09-30, but it is a bug disclosure under this policy.
+
+## 8. v2: full rebuild on site-tiered data (2026-10-01, in progress)
+
+**Decision (Max):** fix the tier labels properly and regenerate every number once. Implementation problems are fixed, not mentioned in the paper.
+
+**Data.** `training/drift_rebuild/v2/v2env.py` relabels the pinned snapshot with the site rule (`sync/relabel-skill-tier.ts`): league_tier NULL → high if avg_mmr is set, else unknown; ≤3 low; ≤5 mid; else high. Unknown rows (5,749) are dropped, leaving 1,943,338 games. The out-of-sample truth (2.55.16.97039 + four 2.55.17 builds, game_date ≤ 2026-09-27) was re-fetched read-only and relabeled the same way: 292,902 games, the same set for Δ and Net (`v2/r16_v2_truth.py`). Quick Match judges are relabeled from qm_games.league_tier, where Master = 0 (`v2/v2_judges.py`). All outputs go to `training/drift_v2/`; nothing in `drift2026/` or the frozen prereg files changed. Frozen scripts are run unmodified through `v2/run.py`, which applies v2env and redirects paths. `detector_curves.py` hard-codes v1 verification values, so a v2 copy (`v2/detector_curves_v2.py`) replaces that gate with a printed comparison.
+
+**Design change.** In the W2b greedy protocol and in every MCTS agent, the opponent model is now era-matched by construction: v2 `gd_cutoff` for 2026 agents, `gd_era_<b>` for stale agents. The future-inclusive paper-1 opponent model is no longer used anywhere, so the A1 asymmetry disappears rather than needing a control.
+
+**Done (non-MCTS):** patch stats, decayed and matched-clock stats; all feature caches (cumprev, cutoff, decayed×3, matched-clock×2, C0, OOF×4); all value functions (Table I 7 regimes × OOF/leaky × 3 seeds, cumprev, q7×3, stale OOF, C0 OOF/leaky, W2c replay 35, W8c nested 12, Q12 6, finetune chain 11, volmatch s42); r3 calibration; c2 common-window calibration; r9 replay; W2c summary and detector arm; detector curves; Q5 partial refresh; W8c nested; matched clock; c3 decayed z; c4 misc; c7 missingness; signal decay; recovery; changepoints + `detector_counts.json`; blind changepoint; never-fielded (+ volume r); v2 opponent models cutoff (v0, v1), full (v0), era 2.55.4.91418; v2 judges (10).
+
+**Running on the 3080:** W2b greedy degeneracy (51 cells, 4 CPU queues, about 2 h); then volmatch s123/s777, W9 MMR cells and report, and the opponent-model pools era 2.55.9.93613, win6, win30d, future and roll30 (gated to start after W2b to stay within 47 GB RAM). One MCTS agent, `v2_M_s0`, is finishing (fixed kernel, chance mode, about 4.5 h).
+
+**Manuscript status:** Secs. 4 (replay, decay, refresh), 6 and 7 and the Setting numbers are on v2. Still pending: Sec. 3 and the Setting degeneracy figure (waiting on W2b), Sec. 9 (waiting on the opponent pools), the MMR sentence (W9), and Secs. 5 and 8 plus the abstract/intro head-to-head numbers (waiting on MCTS).
+
+**Claims changed by v2 so far:**
+- Replay: never maintained 1.06 → 1.02; refresh recovers 0.36 (35%, was 31%); retrain every 3: 0.03 without refresh / 0.00 with; every 6: 0.15 / 0.08; refresh between retrains adds 0.03-0.07; the finetune now matches a full retrain (−0.005, was +0.089).
+- Decayed aggregates: all three half-lives beat cumulative on the future window (+0.19 / +0.24 / +0.20, z 3.0-4.2), but the nested check no longer prefers the 90-day family (−0.02 / +0.03 / +0.06, |z| ≤ 1.3). The paper now recommends decay without a best half-life.
+- Recipe gap at the 2026 cutoff: 0.30pp (was 0.49), of which refresh is 0.035.
+- **Patch-embedding regime is now above maintained in accuracy:** 57.10 vs 56.98. Whether the equal-accuracy degeneracy claim survives waits on W2b.
+- Calibration aging (common window): 0.96 / 0.79 / 0.75 (was 0.93 / 0.79 / 0.73).
+- Detector: 46/59 (0.78) and 39/59 (0.66); boundary tests unchanged; replay arm 0.677 vs blind 0.675 / 0.685 vs every-build 0.662; sweep within 0.05pp.
+
+**MCTS plan (priority 4, behind paper 1 on the 3080):** 29 queued agents in `drift_v2/mcts_remote_order.txt`, priority order M, U, S2, S1, Mcut, Md90, Mvol, two per VF seed. Specs are in `drift_v2/mcts_jobs.json` (local paths) and `mcts_jobs_remote.json` (3080 paths). Launch with `drift_rebuild/v2/launch_mcts_remote.sh <host> <name>`, which is pause-aware via hotsjob. `v2_M_s3` has a resume_state at episode 22,144 on the 3080 (copied from the local pause). On the 3080 one agent saturates the GPU at about 16-18 ep/s, roughly 4.5-5 h per agent, so 29 agents is about 5-6 GPU-days. The drift scheduler is stopped until capacity is allocated.
