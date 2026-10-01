@@ -1,4 +1,7 @@
 /**
+ * P3 population reference (pop_ref_kernel): same as overfit2026/cuda_ofit; overfit2026 copy of training/cuda_mcts/kernel_bindings.cpp: WP offsets with
+ * the two-output LCB net (n_out, lcb_lambda), legacy tree-capacity guard and
+ * (max_nodes, cap_hits) in run_episodes results, module ofit_kernel.
  * pybind11 bindings for the full MCTS kernel.
  * Host-side code: allocate GPU memory, launch kernel, read results.
  */
@@ -8,6 +11,7 @@
 #include <cuda_runtime.h>
 #include <vector>
 #include <cstring>
+#include <algorithm>
 
 namespace py = pybind11;
 
@@ -134,6 +138,23 @@ extern "C" void mcts_episodes_kernel(
     const WPLookupTables*,
     const int*, EpisodeMemory*, int, float, unsigned long long,
     float, float, float, int);
+
+// v2 search (X2 fix): see search_v2.cuh
+#include "tree_v2.h"
+extern "C" void mcts_episodes_kernel_v2(
+    const float*, const float*, const float*,
+    PolicyNetOffsets, GDNetOffsets, WPNetOffsets,
+    const WPLookupTables*,
+    const int*, EpisodeOutV2*, TreeNodeV2*, TreeSlotV2*, int, int,
+    int, float, unsigned long long,
+    float, float, float,
+    int, float, float, int);
+
+// Default search for every entry point. 0 = legacy (pre-fix, bit-for-bit),
+// 1 = opponent chance nodes (the fix), 2 = open-loop roll-forward.
+static const int DEFAULT_SEARCH_MODE = SEARCH_CHANCE;
+static const float DEFAULT_PW_K = 1.0f;
+static const float DEFAULT_PW_ALPHA = 0.5f;
 
 PolicyNetOffsets dict_to_policy_offsets(py::dict d);
 GDNetOffsets dict_to_gd_offsets(py::dict d);
@@ -305,136 +326,293 @@ public:
         cudaMalloc(&d_lut_, sizeof(WPLookupTables));
         cudaMemcpy(d_lut_, lb.data(0), sizeof(WPLookupTables), cudaMemcpyHostToDevice);
 
-        // Allocate episode memory on GPU
-        cudaMalloc(&d_episodes_, max_episodes_ * sizeof(EpisodeMemory));
         cudaMalloc(&d_configs_, max_episodes_ * 3 * sizeof(int));
+        // Legacy episode memory (~2 MB per episode) and the v2 arenas are
+        // allocated on first use.
+        d_episodes_ = nullptr;
+        h_episodes_ = nullptr;
+        cudaMalloc(&d_outs_, max_episodes_ * sizeof(EpisodeOutV2));
+        cudaMallocHost(&h_outs_, max_episodes_ * sizeof(EpisodeOutV2));
+        std::memset(h_outs_, 0, max_episodes_ * sizeof(EpisodeOutV2));
+        last_n_ = 0;
+        last_mode_ = -1;
+    }
 
-        // Pinned host memory for results
+    int shared_mem_bytes() const {
+        // state_buf = max(STATE_DIM=290, WP_INPUT_DIM=291) = 291
+        return (291 + NUM_HEROES + NUM_HEROES + policy_off_.edim
+                + policy_off_.hdim * 3 + policy_off_.cdim + ENRICHED_DIM) * sizeof(float);
+    }
+
+    static void check_cuda(const char* what) {
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess)
+            throw std::runtime_error(std::string(what) + ": CUDA error: " + cudaGetErrorString(err));
+    }
+
+    // Tree arena per episode for the v2 search. One simulation creates at
+    // most 3 nodes and 3 slots, so 3 * sims + 8 cannot overflow; the kernel
+    // guards every allocation anyway. set_tree_capacity() overrides (tests).
+    void ensure_arena(int num_sims) {
+        int need_n = 3 * std::max(num_sims, 1) + 8;
+        int need_s = need_n;
+        if (cap_override_nodes_ > 0) { need_n = cap_override_nodes_; need_s = cap_override_slots_; }
+        if (d_nodes_ != nullptr && need_n <= node_cap_ && need_s <= slot_cap_) return;
+        if (d_nodes_) cudaFree(d_nodes_);
+        if (d_slots_) cudaFree(d_slots_);
+        node_cap_ = need_n;
+        slot_cap_ = need_s;
+        cudaMalloc(&d_nodes_, (size_t)max_episodes_ * node_cap_ * sizeof(TreeNodeV2));
+        cudaMalloc(&d_slots_, (size_t)max_episodes_ * slot_cap_ * sizeof(TreeSlotV2));
+        check_cuda("arena alloc");
+    }
+
+    void set_tree_capacity(int node_cap, int slot_cap) {
+        cap_override_nodes_ = node_cap;
+        cap_override_slots_ = slot_cap;
+        if (d_nodes_) { cudaFree(d_nodes_); d_nodes_ = nullptr; }
+        if (d_slots_) { cudaFree(d_slots_); d_slots_ = nullptr; }
+        node_cap_ = slot_cap_ = 0;
+    }
+
+    void ensure_legacy() {
+        if (d_episodes_ != nullptr) return;
+        cudaMalloc(&d_episodes_, max_episodes_ * sizeof(EpisodeMemory));
         cudaMallocHost(&h_episodes_, max_episodes_ * sizeof(EpisodeMemory));
+        check_cuda("legacy alloc");
+    }
+
+    // Launch one batch. Results land in h_episodes_ (mode 0) or h_outs_ (v2).
+    void launch(py::array_t<int> configs, int num_sims, float c_puct,
+                unsigned long long seed, float root_temp, float dir_alpha,
+                float dir_eps, int search_mode, float pw_k, float pw_alpha,
+                int stop_after_turn, int guard = 1) {
+        auto cfg = configs.unchecked<2>();
+        int n = cfg.shape(0);
+        if (n > max_episodes_) throw std::runtime_error("Too many episodes");
+        if (search_mode < 0 || search_mode > 2) throw std::runtime_error("search_mode must be 0, 1 or 2");
+        cudaMemcpy(d_configs_, cfg.data(0, 0), n * 3 * sizeof(int), cudaMemcpyHostToDevice);
+        int shared_mem = shared_mem_bytes();
+        if (search_mode == SEARCH_LEGACY) {
+            if (stop_after_turn >= 0) throw std::runtime_error("stop_after_turn needs a v2 search mode");
+            ensure_legacy();
+            void* args[] = {&d_policy_weights_, &d_gd_weights_, &d_wp_weights_,
+                            &policy_off_, &gd_off_, &wp_off_, &d_lut_,
+                            &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed,
+                            &root_temp, &dir_alpha, &dir_eps, &guard};
+            cudaLaunchKernel((void*)mcts_episodes_kernel, dim3(n), dim3(256),
+                             args, shared_mem, 0);
+            cudaDeviceSynchronize();
+            check_cuda("legacy kernel");
+            cudaMemcpy(h_episodes_, d_episodes_, n * sizeof(EpisodeMemory), cudaMemcpyDeviceToHost);
+        } else {
+            ensure_arena(num_sims);
+            void* args[] = {&d_policy_weights_, &d_gd_weights_, &d_wp_weights_,
+                            &policy_off_, &gd_off_, &wp_off_, &d_lut_,
+                            &d_configs_, &d_outs_, &d_nodes_, &d_slots_, &node_cap_, &slot_cap_,
+                            &num_sims, &c_puct, &seed,
+                            &root_temp, &dir_alpha, &dir_eps,
+                            &search_mode, &pw_k, &pw_alpha, &stop_after_turn};
+            cudaLaunchKernel((void*)mcts_episodes_kernel_v2, dim3(n), dim3(256),
+                             args, shared_mem, 0);
+            cudaDeviceSynchronize();
+            check_cuda("v2 kernel");
+            cudaMemcpy(h_outs_, d_outs_, n * sizeof(EpisodeOutV2), cudaMemcpyDeviceToHost);
+        }
+        last_n_ = n;
+        last_mode_ = search_mode;
+    }
+
+    // Uniform view of one episode's outputs for both layouts.
+    struct EpView {
+        const float (*states)[STATE_DIM];
+        const float (*policies)[NUM_HEROES];
+        const float (*masks)[NUM_HEROES];
+        int num_our_turns;
+        float win_prob;
+        const float* terminal_state;
+        int our_team;
+    };
+    EpView view(int i) const {
+        if (last_mode_ == SEARCH_LEGACY) {
+            const EpisodeMemory& e = h_episodes_[i];
+            return {e.out_states, e.out_policies, e.out_masks, e.num_our_turns,
+                    e.win_prob, e.terminal_state, e.our_team};
+        }
+        const EpisodeOutV2& e = h_outs_[i];
+        return {e.out_states, e.out_policies, e.out_masks, e.num_our_turns,
+                e.win_prob, e.terminal_state, e.our_team};
     }
 
     py::list run_episodes(py::array_t<int> configs, int num_sims, float c_puct,
                           unsigned long long seed,
                           float root_temp = 1.0f, float dir_alpha = 0.3f,
-                          float dir_eps = 0.0f, int guard = 1) {
-        auto cfg = configs.unchecked<2>();
-        int n = cfg.shape(0);
-        if (n > max_episodes_) throw std::runtime_error("Too many episodes");
-
-        // Copy configs to GPU
-        cudaMemcpy(d_configs_, cfg.data(0, 0), n * 3 * sizeof(int), cudaMemcpyHostToDevice);
-
-        // Shared memory: dynamic based on policy net size
-        // state_buf = max(STATE_DIM=290, WP_INPUT_DIM=291) = 291
-        int shared_mem = (291 + NUM_HEROES + NUM_HEROES + policy_off_.edim
-                         + policy_off_.hdim * 3 + policy_off_.cdim + ENRICHED_DIM) * sizeof(float);
-
-        // Launch kernel: one block per episode
-        void* args[] = {&d_policy_weights_, &d_gd_weights_, &d_wp_weights_,
-                        &policy_off_, &gd_off_, &wp_off_, &d_lut_,
-                        &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed,
-                        &root_temp, &dir_alpha, &dir_eps, &guard};
-        cudaLaunchKernel((void*)mcts_episodes_kernel, dim3(n), dim3(256),
-                         args, shared_mem, 0);
-        cudaDeviceSynchronize();
-
-        // Check for errors
-        cudaError_t err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(err));
-        }
-
-        // Copy results back
-        cudaMemcpy(h_episodes_, d_episodes_, n * sizeof(EpisodeMemory), cudaMemcpyDeviceToHost);
-
-        // Package results
+                          float dir_eps = 0.0f, int guard = 1,
+                          int search_mode = DEFAULT_SEARCH_MODE,
+                          float pw_k = DEFAULT_PW_K, float pw_alpha = DEFAULT_PW_ALPHA) {
+        launch(configs, num_sims, c_puct, seed, root_temp, dir_alpha, dir_eps,
+               search_mode, pw_k, pw_alpha, -1, guard);
         py::list results;
-        for (int i = 0; i < n; i++) {
-            EpisodeMemory& ep = h_episodes_[i];
+        for (int i = 0; i < last_n_; i++) {
+            EpView ep = view(i);
             py::list examples;
             for (int t = 0; t < ep.num_our_turns; t++) {
                 auto s = py::array_t<float>(STATE_DIM);
                 auto p = py::array_t<float>(NUM_HEROES);
                 auto m = py::array_t<float>(NUM_HEROES);
-                std::memcpy(s.mutable_data(), ep.out_states[t], STATE_DIM * sizeof(float));
-                std::memcpy(p.mutable_data(), ep.out_policies[t], NUM_HEROES * sizeof(float));
-                std::memcpy(m.mutable_data(), ep.out_masks[t], NUM_HEROES * sizeof(float));
+                std::memcpy(s.mutable_data(), ep.states[t], STATE_DIM * sizeof(float));
+                std::memcpy(p.mutable_data(), ep.policies[t], NUM_HEROES * sizeof(float));
+                std::memcpy(m.mutable_data(), ep.masks[t], NUM_HEROES * sizeof(float));
                 examples.append(py::make_tuple(s, p, m));
             }
             auto ts = py::array_t<float>(STATE_DIM);
             std::memcpy(ts.mutable_data(), ep.terminal_state, STATE_DIM * sizeof(float));
-            results.append(py::make_tuple(ep.win_prob, examples, ts, ep.our_team,
-                                          ep.max_nodes_used, ep.n_capacity_hits));
+            // overfit2026 diagnostics: (max nodes used, capacity hits)
+            int mx, hits;
+            if (last_mode_ == SEARCH_LEGACY) {
+                mx = h_episodes_[i].max_nodes_used;
+                hits = h_episodes_[i].n_capacity_hits;
+            } else {
+                mx = h_outs_[i].stats[ST_MAX_NODES];
+                hits = h_outs_[i].stats[ST_CAP_HITS];
+            }
+            results.append(py::make_tuple(ep.win_prob, examples, ts, ep.our_team, mx, hits));
         }
         return results;
     }
 
-    // Run episodes and write results directly into pre-allocated numpy ring buffer.
-    // Returns number of training examples written.
-    // Run episodes, write training data into ring buffer, output terminal states for WP eval.
-    // Returns (n_written, terminal_states, our_teams)
+    // Run episodes, write training data into the ring buffer, return
+    // (n_written, wp_values). Training path: root_temp 1, no root noise.
     py::tuple run_episodes_into_buffer(
         py::array_t<int> configs, int num_sims, float c_puct, unsigned long long seed,
         py::array_t<float> buf_states,    // (BUFFER_SIZE, 290)
         py::array_t<float> buf_policies,  // (BUFFER_SIZE, 90)
         py::array_t<float> buf_masks,     // (BUFFER_SIZE, 90)
         py::array_t<float> buf_values,    // (BUFFER_SIZE,)
-        int write_offset, int buffer_size
+        int write_offset, int buffer_size,
+        int search_mode = DEFAULT_SEARCH_MODE,
+        float pw_k = DEFAULT_PW_K, float pw_alpha = DEFAULT_PW_ALPHA
     ) {
-        auto cfg = configs.unchecked<2>();
-        int n = cfg.shape(0);
-        if (n > max_episodes_) throw std::runtime_error("Too many episodes");
+        launch(configs, num_sims, c_puct, seed, 1.0f, 0.3f, 0.0f,
+               search_mode, pw_k, pw_alpha, -1);
+        int n = last_n_;
 
-        // Launch kernel (training path: historical selection behavior pinned)
-        float root_temp = 1.0f, dir_alpha = 0.3f, dir_eps = 0.0f;
-        cudaMemcpy(d_configs_, cfg.data(0, 0), n * 3 * sizeof(int), cudaMemcpyHostToDevice);
-        int shared_mem = (291 + NUM_HEROES + NUM_HEROES + policy_off_.edim
-                         + policy_off_.hdim * 3 + policy_off_.cdim + ENRICHED_DIM) * sizeof(float);
-        int guard_one = 1;
-        void* args[] = {&d_policy_weights_, &d_gd_weights_, &d_wp_weights_,
-                        &policy_off_, &gd_off_, &wp_off_, &d_lut_,
-                        &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed,
-                        &root_temp, &dir_alpha, &dir_eps, &guard_one};
-        cudaLaunchKernel((void*)mcts_episodes_kernel, dim3(n), dim3(256),
-                         args, shared_mem, 0);
-        cudaDeviceSynchronize();
-
-        cudaError_t err = cudaGetLastError();
-        if (err != cudaSuccess)
-            throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(err));
-
-        // Copy results from GPU
-        cudaMemcpy(h_episodes_, d_episodes_, n * sizeof(EpisodeMemory), cudaMemcpyDeviceToHost);
-
-        // Write directly into pre-allocated numpy buffers (zero allocation)
         auto s_ptr = buf_states.mutable_unchecked<2>();
         auto p_ptr = buf_policies.mutable_unchecked<2>();
         auto m_ptr = buf_masks.mutable_unchecked<2>();
         auto v_ptr = buf_values.mutable_unchecked<1>();
-
-        // WP values from kernel (for logging)
         auto wp_values = py::array_t<float>(n);
         auto wp_ptr = wp_values.mutable_unchecked<1>();
 
         int write_pos = write_offset;
         int total_written = 0;
-
-        for (int ep = 0; ep < n; ep++) {
-            EpisodeMemory& mem = h_episodes_[ep];
+        for (int e = 0; e < n; e++) {
+            EpView mem = view(e);
             float wp = mem.win_prob;  // kernel-computed symmetrized WP
-            wp_ptr(ep) = wp;
-
+            wp_ptr(e) = wp;
             for (int t = 0; t < mem.num_our_turns; t++) {
                 int idx = write_pos % buffer_size;
-                std::memcpy(s_ptr.mutable_data(idx, 0), mem.out_states[t], STATE_DIM * sizeof(float));
-                std::memcpy(p_ptr.mutable_data(idx, 0), mem.out_policies[t], NUM_HEROES * sizeof(float));
-                std::memcpy(m_ptr.mutable_data(idx, 0), mem.out_masks[t], NUM_HEROES * sizeof(float));
-                v_ptr(idx) = wp;  // WP from kernel's symmetrized enriched WP model
+                std::memcpy(s_ptr.mutable_data(idx, 0), mem.states[t], STATE_DIM * sizeof(float));
+                std::memcpy(p_ptr.mutable_data(idx, 0), mem.policies[t], NUM_HEROES * sizeof(float));
+                std::memcpy(m_ptr.mutable_data(idx, 0), mem.masks[t], NUM_HEROES * sizeof(float));
+                v_ptr(idx) = wp;
                 write_pos++;
                 total_written++;
             }
         }
         return py::make_tuple(total_written, wp_values);
+    }
+
+    // Per-episode search diagnostics of the last call, (n, NUM_STATS_V2)
+    // int32 (indices: tree_v2.h ST_*). Zeros after a legacy call except
+    // ST_MAX_NODES = node count of the legacy tree's final search.
+    py::array_t<int> last_stats() const {
+        auto out = py::array_t<int>({last_n_, NUM_STATS_V2});
+        auto o = out.mutable_unchecked<2>();
+        for (int i = 0; i < last_n_; i++)
+            for (int k = 0; k < NUM_STATS_V2; k++) {
+                if (last_mode_ == SEARCH_LEGACY)
+                    o(i, k) = (k == ST_MAX_NODES) ? h_episodes_[i].num_nodes : 0;
+                else
+                    o(i, k) = h_outs_[i].stats[k];
+            }
+        return out;
+    }
+
+    py::dict search_info() const {
+        py::dict d;
+        d["default_search_mode"] = DEFAULT_SEARCH_MODE;
+        d["default_pw_k"] = DEFAULT_PW_K;
+        d["default_pw_alpha"] = DEFAULT_PW_ALPHA;
+        d["node_cap"] = node_cap_;
+        d["slot_cap"] = slot_cap_;
+        d["stat_names"] = py::make_tuple(
+            "searches", "sims", "max_nodes", "max_slots", "cap_hits", "max_eager_nodes",
+            "sum_leaf_steps", "sum_own_ahead", "reached_mask", "gd_tree_fwd", "policy_fwd",
+            "max_depth", "hist0", "hist1", "hist2", "hist3", "hist4", "hist5", "hist6", "hist7");
+        return d;
+    }
+
+    // Run the draft only up to (and including) our turn `turn`, then return
+    // that search's tree for every episode: dict of numpy arrays.
+    py::list debug_tree(py::array_t<int> configs, int num_sims, float c_puct,
+                        unsigned long long seed, int turn,
+                        int search_mode = DEFAULT_SEARCH_MODE,
+                        float pw_k = DEFAULT_PW_K, float pw_alpha = DEFAULT_PW_ALPHA,
+                        float root_temp = 1.0f, float dir_alpha = 0.3f, float dir_eps = 0.0f) {
+        if (search_mode == SEARCH_LEGACY) throw std::runtime_error("debug_tree: v2 modes only");
+        launch(configs, num_sims, c_puct, seed, root_temp, dir_alpha, dir_eps,
+               search_mode, pw_k, pw_alpha, turn);
+        int n = last_n_;
+        std::vector<TreeNodeV2> hn((size_t)n * node_cap_);
+        std::vector<TreeSlotV2> hs((size_t)n * slot_cap_);
+        cudaMemcpy(hn.data(), d_nodes_, hn.size() * sizeof(TreeNodeV2), cudaMemcpyDeviceToHost);
+        cudaMemcpy(hs.data(), d_slots_, hs.size() * sizeof(TreeSlotV2), cudaMemcpyDeviceToHost);
+        check_cuda("debug_tree copy");
+        py::list out;
+        for (int e = 0; e < n; e++) {
+            const EpisodeOutV2& ep = h_outs_[e];
+            py::dict d;
+            int t = ep.num_our_turns - 1;
+            d["turn_reached"] = t;
+            d["root_step"] = ep.root_step;
+            int nn = ep.num_nodes, ns = ep.num_slots;
+            auto ints = [&](int field) {
+                auto a = py::array_t<int>(nn);
+                int* q = a.mutable_data();
+                for (int k = 0; k < nn; k++) {
+                    const TreeNodeV2& x = hn[(size_t)e * node_cap_ + k];
+                    const int vals[7] = {x.parent, x.action, x.visits, x.slot, x.n_kids, x.step, x.kind};
+                    q[k] = vals[field];
+                }
+                return a;
+            };
+            d["parent"] = ints(0); d["action"] = ints(1); d["visits"] = ints(2);
+            d["slot"] = ints(3); d["n_kids"] = ints(4); d["step"] = ints(5); d["kind"] = ints(6);
+            auto vs = py::array_t<float>(nn);
+            for (int k = 0; k < nn; k++) vs.mutable_data()[k] = hn[(size_t)e * node_cap_ + k].value_sum;
+            d["value_sum"] = vs;
+            auto sp = py::array_t<float>({ns, NUM_HEROES});
+            auto sc = py::array_t<int>({ns, NUM_HEROES});
+            for (int k = 0; k < ns; k++) {
+                const TreeSlotV2& x = hs[(size_t)e * slot_cap_ + k];
+                std::memcpy(sp.mutable_data(k, 0), x.p, NUM_HEROES * sizeof(float));
+                std::memcpy(sc.mutable_data(k, 0), x.child, NUM_HEROES * sizeof(int));
+            }
+            d["slot_p"] = sp;
+            d["slot_child"] = sc;
+            auto rs = py::array_t<float>(STATE_DIM);
+            std::memcpy(rs.mutable_data(), ep.out_states[t], STATE_DIM * sizeof(float));
+            d["root_state"] = rs;
+            auto rp = py::array_t<float>(NUM_HEROES);
+            std::memcpy(rp.mutable_data(), ep.out_policies[t], NUM_HEROES * sizeof(float));
+            d["root_policy"] = rp;
+            auto st = py::array_t<int>(NUM_STATS_V2);
+            std::memcpy(st.mutable_data(), ep.stats, NUM_STATS_V2 * sizeof(int));
+            d["stats"] = st;
+            out.append(d);
+        }
+        return out;
     }
 
     void update_weights(py::array_t<float> new_weights) {
@@ -447,9 +625,13 @@ public:
         cudaFree(d_gd_weights_);
         cudaFree(d_wp_weights_);
         cudaFree(d_lut_);
-        cudaFree(d_episodes_);
+        if (d_episodes_) cudaFree(d_episodes_);
+        if (h_episodes_) cudaFreeHost(h_episodes_);
         cudaFree(d_configs_);
-        cudaFreeHost(h_episodes_);
+        cudaFree(d_outs_);
+        cudaFreeHost(h_outs_);
+        if (d_nodes_) cudaFree(d_nodes_);
+        if (d_slots_) cudaFree(d_slots_);
     }
 
 private:
@@ -462,6 +644,12 @@ private:
     WPLookupTables *d_lut_;
     EpisodeMemory *d_episodes_, *h_episodes_;
     int *d_configs_;
+    EpisodeOutV2 *d_outs_, *h_outs_;
+    TreeNodeV2 *d_nodes_ = nullptr;
+    TreeSlotV2 *d_slots_ = nullptr;
+    int node_cap_ = 0, slot_cap_ = 0;
+    int cap_override_nodes_ = 0, cap_override_slots_ = 0;
+    int last_n_, last_mode_;
 };
 
 
@@ -480,7 +668,28 @@ PYBIND11_MODULE(pop_ref_kernel, m) {
              py::arg("configs"), py::arg("num_sims"), py::arg("c_puct"),
              py::arg("seed"), py::arg("root_temp") = 1.0f,
              py::arg("dir_alpha") = 0.3f, py::arg("dir_eps") = 0.0f,
-             py::arg("guard") = 1)
-        .def("run_episodes_into_buffer", &MCTSKernelEngine::run_episodes_into_buffer)
+             py::arg("guard") = 1,
+             py::arg("search_mode") = DEFAULT_SEARCH_MODE,
+             py::arg("pw_k") = DEFAULT_PW_K, py::arg("pw_alpha") = DEFAULT_PW_ALPHA)
+        .def("run_episodes_into_buffer", &MCTSKernelEngine::run_episodes_into_buffer,
+             py::arg("configs"), py::arg("num_sims"), py::arg("c_puct"), py::arg("seed"),
+             py::arg("buf_states"), py::arg("buf_policies"), py::arg("buf_masks"),
+             py::arg("buf_values"), py::arg("write_offset"), py::arg("buffer_size"),
+             py::arg("search_mode") = DEFAULT_SEARCH_MODE,
+             py::arg("pw_k") = DEFAULT_PW_K, py::arg("pw_alpha") = DEFAULT_PW_ALPHA)
+        .def("last_stats", &MCTSKernelEngine::last_stats)
+        .def("search_info", &MCTSKernelEngine::search_info)
+        .def("set_tree_capacity", &MCTSKernelEngine::set_tree_capacity,
+             py::arg("node_cap"), py::arg("slot_cap"))
+        .def("debug_tree", &MCTSKernelEngine::debug_tree,
+             py::arg("configs"), py::arg("num_sims"), py::arg("c_puct"), py::arg("seed"),
+             py::arg("turn"), py::arg("search_mode") = DEFAULT_SEARCH_MODE,
+             py::arg("pw_k") = DEFAULT_PW_K, py::arg("pw_alpha") = DEFAULT_PW_ALPHA,
+             py::arg("root_temp") = 1.0f, py::arg("dir_alpha") = 0.3f,
+             py::arg("dir_eps") = 0.0f)
         .def("update_weights", &MCTSKernelEngine::update_weights);
+    m.attr("DEFAULT_SEARCH_MODE") = DEFAULT_SEARCH_MODE;
+    m.attr("SEARCH_LEGACY") = SEARCH_LEGACY;
+    m.attr("SEARCH_CHANCE") = SEARCH_CHANCE;
+    m.attr("SEARCH_ROLLFWD") = SEARCH_ROLLFWD;
 }

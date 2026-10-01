@@ -1,0 +1,30 @@
+{
+ "so": "/tmp/claude-1000/-home-max-heroes-of-the-storm/a49813e0-7f18-4a49-90f1-0426c355d609/scratchpad/x2/old_so/cuda_mcts_kernel.cpython-314-x86_64-linux-gnu.so",
+ "sha256_outputs": "ab30c2f35f43030b40944e4f95b3be009cfe93756f194f71a47849d240680384",
+ "n": 64,
+ "cases": {
+  "A": {
+   "sims": 200,
+   "seed": 1234,
+   "T": 1.0,
+   "eps": 0.0
+  },
+  "B": {
+   "sims": 400,
+   "seed": 1235,
+   "T": 0.0,
+   "eps": 0.0
+  },
+  "C": {
+   "sims": 100,
+   "seed": 1236,
+   "T": 1.0,
+   "eps": 0.25
+  }
+ },
+ "policy": "new:F_oof_s0",
+ "gd": "rerun2026 generic_draft_0",
+ "wp": "paper1_revision leak-free enriched + own deploy stats",
+ "configs_seed": 20261001,
+ "so_sha256": "1b24d2acb8452706f81417cb6f2d071d73a12de4143b868861d7a63a1276dfe5"
+}

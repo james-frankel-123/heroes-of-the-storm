@@ -16,6 +16,7 @@ namespace py = pybind11;
 #define MAX_OUR_TURNS 16
 #define CFG_LEN 56
 #define NUM_SLOTS 10
+#include "tree_v2.h"   // X2 fix: v2 search arena and stats layout
 #define MAX_NODES 4096
 #define MAX_CHILD_INDICES 81920
 
@@ -134,6 +135,7 @@ struct EpisodeMemory {
     float wp_t0;
     float v_t0;
     int decided;
+    int v2_stats[NUM_STATS_V2];
 };
 
 struct PersonalArgs {
@@ -152,7 +154,7 @@ extern "C" void mcts_episodes_kernel(
     PolicyNetOffsets, GDNetOffsets, WPNetOffsets,
     const WPLookupTables*,
     const int*, EpisodeMemory*, int, float, unsigned long long,
-    float, float, float, int, PersonalArgs);
+    float, float, float, int, PersonalArgs, V2Args);
 extern "C" void leaf_eval_kernel(const float*, WPNetOffsets, const WPLookupTables*,
                                  PersonalArgs, float*);
 
@@ -325,6 +327,8 @@ public:
         cudaFree(d_pw_); cudaFree(d_gw_); cudaFree(d_ww_); cudaFree(d_lut_); cudaFree(d_ep_);
         cudaFree(d_cfg_); cudaFree(d_s_); cudaFree(d_off_); cudaFree(d_imit_); cudaFree(d_pool_);
         cudaFree(d_out_); free(h_tail_);
+        if (d_nodes_) cudaFree(d_nodes_);
+        if (d_slots_) cudaFree(d_slots_);
     }
 
     PersonalArgs upload(py::array_t<int> cfg, py::array_t<float> s, py::array_t<float> off,
@@ -349,15 +353,24 @@ public:
     py::tuple run(py::array_t<int> cfg, py::array_t<float> s, py::array_t<float> off,
                   py::array_t<float> imit, py::array_t<unsigned int> pool, py::array_t<float> coefs,
                   int num_sims, float c_puct, unsigned long long seed, float root_temp,
-                  float dir_alpha, float dir_eps, int guard) {
+                  float dir_alpha, float dir_eps, int guard,
+                  int search_mode = SEARCH_CHANCE, float pw_k = 1.0f, float pw_alpha = 0.5f) {
         int n;
         PersonalArgs pa = upload(cfg, s, off, imit, pool, coefs, n);
         int shared_mem = (291 + NUM_HEROES + NUM_HEROES + policy_off_.edim
                           + policy_off_.hdim * 3 + policy_off_.cdim + ENRICHED_DIM) * sizeof(float);
         const int* cptr = d_cfg_;
+        if (search_mode < 0 || search_mode > 2) throw std::runtime_error("search_mode must be 0, 1 or 2");
+        V2Args v2;
+        v2.mode = search_mode; v2.pw_k = pw_k; v2.pw_alpha = pw_alpha;
+        v2.nodes = nullptr; v2.slots = nullptr; v2.node_cap = 0; v2.slot_cap = 0;
+        if (search_mode != SEARCH_LEGACY) {
+            ensure_arena(num_sims);
+            v2.nodes = d_nodes_; v2.slots = d_slots_; v2.node_cap = node_cap_; v2.slot_cap = slot_cap_;
+        }
         void* args[] = {&d_pw_, &d_gw_, &d_ww_, &policy_off_, &gd_off_, &wp_off_, &d_lut_,
                         &cptr, &d_ep_, &num_sims, &c_puct, &seed, &root_temp, &dir_alpha,
-                        &dir_eps, &guard, &pa};
+                        &dir_eps, &guard, &pa, &v2};
         check(cudaLaunchKernel((void*)mcts_episodes_kernel, dim3(n), dim3(256), args, shared_mem, 0), "launch");
         check(cudaDeviceSynchronize(), "sync");
         check(cudaGetLastError(), "kernel");
@@ -367,6 +380,8 @@ public:
         py::array_t<int> turns({n}), maxn({n}), caps({n}), dec({n}), ours({n});
         py::array_t<int> term({n, 16}), ostep({n, MAX_OUR_TURNS}), oteam({n, MAX_OUR_TURNS});
         py::array_t<float> opol({n, MAX_OUR_TURNS, NUM_HEROES}), oq({n, MAX_OUR_TURNS, NUM_HEROES});
+        last_stats_.assign((size_t)n * NUM_STATS_V2, 0);
+        last_n_ = n;
         for (int i = 0; i < n; i++) {
             EpisodeMemory* e = (EpisodeMemory*)(h_tail_ + (size_t)i * tail_len_ - tail_off_);
             win.mutable_data()[i] = e->win_prob;
@@ -374,6 +389,7 @@ public:
             vt0.mutable_data()[i] = e->v_t0;
             turns.mutable_data()[i] = e->num_our_turns;
             maxn.mutable_data()[i] = e->max_nodes_used;
+            std::memcpy(last_stats_.data() + (size_t)i * NUM_STATS_V2, e->v2_stats, NUM_STATS_V2 * sizeof(int));
             caps.mutable_data()[i] = e->n_capacity_hits;
             dec.mutable_data()[i] = e->decided;
             ours.mutable_data()[i] = e->our_team;
@@ -410,6 +426,28 @@ private:
     float *d_pw_, *d_gw_, *d_ww_, *d_s_, *d_off_, *d_imit_, *d_out_;
     WPLookupTables* d_lut_;
     EpisodeMemory* d_ep_;
+    // X2 fix: v2 tree arena (3 * sims + 8 nodes and slots per episode, never overflows)
+    TreeNodeV2* d_nodes_ = nullptr;
+    TreeSlotV2* d_slots_ = nullptr;
+    int node_cap_ = 0, slot_cap_ = 0, last_n_ = 0;
+    std::vector<int> last_stats_;
+    void ensure_arena(int num_sims) {
+        int need = 3 * std::max(num_sims, 1) + 8;
+        if (d_nodes_ != nullptr && need <= node_cap_) return;
+        if (d_nodes_) cudaFree(d_nodes_);
+        if (d_slots_) cudaFree(d_slots_);
+        node_cap_ = slot_cap_ = need;
+        check(cudaMalloc(&d_nodes_, (size_t)max_ * node_cap_ * sizeof(TreeNodeV2)), "malloc v2 nodes");
+        check(cudaMalloc(&d_slots_, (size_t)max_ * slot_cap_ * sizeof(TreeSlotV2)), "malloc v2 slots");
+    }
+public:
+    // v2 search diagnostics of the last run, (n, NUM_STATS_V2) (tree_v2.h ST_*)
+    py::array_t<int> last_stats() const {
+        py::array_t<int> out({last_n_, NUM_STATS_V2});
+        if (last_n_) std::memcpy(out.mutable_data(), last_stats_.data(), (size_t)last_n_ * NUM_STATS_V2 * sizeof(int));
+        return out;
+    }
+private:
     int* d_cfg_;
     unsigned int* d_pool_;
     size_t tail_off_, tail_len_;
@@ -424,7 +462,11 @@ PYBIND11_MODULE(personal_kernel, m) {
              py::arg("policy_weights"), py::arg("gd_weights"), py::arg("wp_weights"),
              py::arg("policy_offsets"), py::arg("gd_offsets"), py::arg("wp_offsets"),
              py::arg("lut_blob"), py::arg("max_concurrent") = 128, py::arg("device_id") = 0)
-        .def("run", &PersonalEngine::run)
+        .def("run", &PersonalEngine::run, py::arg("cfg"), py::arg("s"), py::arg("off"), py::arg("imit"), py::arg("pool"), py::arg("coefs"),
+             py::arg("num_sims"), py::arg("c_puct"), py::arg("seed"), py::arg("root_temp"),
+             py::arg("dir_alpha"), py::arg("dir_eps"), py::arg("guard"),
+             py::arg("search_mode") = SEARCH_CHANCE, py::arg("pw_k") = 1.0f, py::arg("pw_alpha") = 0.5f)
+        .def("last_stats", &PersonalEngine::last_stats)
         .def("leaf_eval", &PersonalEngine::leaf_eval);
     m.attr("CFG_LEN") = CFG_LEN;
     m.attr("MAX_OUR_TURNS") = MAX_OUR_TURNS;

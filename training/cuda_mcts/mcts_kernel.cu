@@ -617,3 +617,9 @@ extern "C" __global__ void mcts_episodes_kernel(
         ep->win_prob = term_wp;
     }
 }
+
+
+// ── v2 search (X2 fix): opponent chance nodes / open-loop roll-forward ──
+// The legacy kernel above is unchanged and stays the bit-for-bit reference
+// (search_mode 0). See search_v2.cuh.
+#include "search_v2.cuh"

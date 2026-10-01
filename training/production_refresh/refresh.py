@@ -99,6 +99,11 @@ HALF_LIFE_DAYS = 90.0
 WP_SEEDS = [42, 123, 777]
 MCTS_SEEDS = [0, 1]   # 2 seeds: HotS work is capped to ~25% of this shared box
 MCTS_SIMS = 400       # operating point; 800 buys proxy WP, not judged quality
+# Kernel search (X2 fix, 2026-10-01): opponent chance nodes, so the tree plans
+# through the opponent's replies to our later picks and bans. Runs before
+# 2026-11-01 used the pre-fix search ("legacy"), whose tree stopped at the
+# current own-pick block.
+MCTS_SEARCH_MODE = os.environ.get("REFRESH_MCTS_SEARCH", "chance")
 MCTS_EPISODES = int(os.environ.get("REFRESH_MCTS_EPISODES", "300000"))
 GATE_WP_MIN = 56.0    # % test accuracy floor
 GATE_PARTIAL_MIN = 0.525  # partial-WP overall test acc floor (all-step mix)
@@ -571,6 +576,7 @@ def phase_mcts():
             "MCTS_EXCLUDE_IDS": EXCLUDE_IDS_JSON,
             "MCTS_FRESH": "1",
             "MCTS_BATCH_EPISODES": "128",
+            "MCTS_SEARCH_MODE": MCTS_SEARCH_MODE,
             "WANDB_RUN_NAME": f"prod_refresh_{RUN_DATE}_s{seed}",
             "WP_STATS_PATH": STATS_JSON,
             "REPLAY_SNAPSHOT": "0",
@@ -609,7 +615,7 @@ def phase_mcts():
     # best_wp here is the PROXY (worker's own eval under the value function it
     # searched against). It is logged, not used to choose: see phase select.
     meta_update(mcts={"results": results, "sims": MCTS_SIMS,
-                      "episodes": MCTS_EPISODES,
+                      "episodes": MCTS_EPISODES, "search_mode": MCTS_SEARCH_MODE,
                       "ok_seeds": sorted(ok_seeds)})
     if not ok_seeds:
         sys.exit("no MCTS seed completed successfully")

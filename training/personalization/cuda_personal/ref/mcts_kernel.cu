@@ -629,3 +629,10 @@ extern "C" __global__ void mcts_episodes_kernel(
         ep->win_prob = term_wp;
     }
 }
+
+
+// ── v2 search (X2 fix): opponent chance nodes / open-loop roll-forward ──
+// Same source as training/cuda_mcts/search_v2.cuh. The guarded legacy kernel
+// above is unchanged (search_mode 0). The v2 arenas are sized so they never
+// overflow, and every allocation is guarded (ST_CAP_HITS).
+#include "search_v2.cuh"

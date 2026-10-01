@@ -49,6 +49,7 @@
 #define NUM_SLOTS 10
 #define DRAFT_STEPS 16
 #define MAX_PATH_DEPTH 64
+#include "tree_v2.h"   // X2 fix: v2 search arena and stats layout
 
 __constant__ int c_draft_team[16] = {0,1,0,1, 0,1,1,0,0, 1,0, 1,1,0,0,1};
 __constant__ int c_draft_is_pick[16] = {0,0,0,0, 1,1,1,1,1, 0,0, 1,1,1,1,1};
@@ -167,6 +168,7 @@ struct EpisodeMemory {
     float v_t0;                         // personal value, team 0 side
     int decided;                        // decide-only mode finished
     float out_prior[MAX_OUR_TURNS][NUM_HEROES];  // root priors actually used
+    int v2_stats[NUM_STATS_V2];         // X2 fix: v2 search diagnostics (tree_v2.h ST_*)
 };
 
 struct PersonalArgs {
@@ -264,6 +266,23 @@ __device__ float personal_value(float p_our, const DraftStateGPU& s, int our,
 }
 
 
+#include "search_v2_util.cuh"
+
+// ── v2 search hooks (p3_search_v2.inc) ──
+#define P3_MASK(ST) ep_valid_mask(ST, mask_buf, ecfg, epool)
+#define P3_FORCED(ST) forced_action(ST, ecfg)
+#define P3_GD(ST) d_gd_forward(state_buf, mask_buf, W_gd, priors_buf, gd_off, workspace)
+#define P3_PRIORS(ST) do { \
+        d_policy_backbone(state_buf, W_policy, policy_off, buf_e, workspace); \
+        d_policy_head(buf_e, mask_buf, W_policy, policy_off, priors_buf, workspace, (ST).step); \
+        apply_prior_bias(priors_buf, mask_buf, (ST).step, ecfg, ebias, pa.prior_alpha); \
+    } while (0)
+#define P3_ROOT_HOOK() do { \
+        if (tid == 0) for (int i_ = 0; i_ < NUM_HEROES; i_++) \
+            ep->out_prior[ep->num_our_turns][i_] = mask_buf[i_] > 0.5f ? priors_buf[i_] : 0.0f; \
+    } while (0)
+#define P3_VALUE(V, ST) personal_value(V, ST, (ST).our_team, ecfg, epers, eoff, pa)
+
 // ── Gamma / Dirichlet sampling (root exploration noise) ────────────
 // Marsaglia-Tsang with the alpha<1 boost. Only thread 0 calls this.
 __device__ float d_sample_gamma(curandState* rng, float alpha) {
@@ -312,7 +331,8 @@ extern "C" __global__ void mcts_episodes_kernel(
     float dir_alpha,
     float dir_eps,
     int guard,
-    PersonalArgs pa
+    PersonalArgs pa,
+    V2Args v2               // X2 fix: v2.mode 0 = legacy tree (bit-identical), else p3_search_v2.inc
 ) {
     int ep_idx = blockIdx.x;
     const int* ecfg = pa.cfg + ep_idx * CFG_LEN;
@@ -355,6 +375,7 @@ extern "C" __global__ void mcts_episodes_kernel(
         ep->max_nodes_used = 0;
         ep->n_capacity_hits = 0;
         ep->decided = 0;
+        for (int i = 0; i < NUM_STATS_V2; i++) ep->v2_stats[i] = 0;
     }
     __syncthreads();
 
@@ -406,6 +427,7 @@ extern "C" __global__ void mcts_episodes_kernel(
             }
             __syncthreads();
 
+            if (v2.mode == SEARCH_LEGACY) {
             // Init fresh tree
             if (tid == 0) {
                 ep->num_nodes = 1;
@@ -700,7 +722,7 @@ extern "C" __global__ void mcts_episodes_kernel(
                 __syncthreads();
             }
 
-            // Extract visit distribution and choose action
+            // legacy root extraction (unchanged)
             if (tid == 0) {
                 if (ep->num_nodes > ep->max_nodes_used) ep->max_nodes_used = ep->num_nodes;
                 int t = ep->num_our_turns;
@@ -718,6 +740,14 @@ extern "C" __global__ void mcts_episodes_kernel(
                     int ci = ep->child_indices[ep->nodes[0].children_start + c];
                     ep->out_q[t][ep->nodes[ci].action] = ep->nodes[ci].q_value();
                 }
+            }
+            } else {
+#include "p3_search_v2.inc"
+            }
+
+            // Extract visit distribution and choose action
+            if (tid == 0) {
+                int t = ep->num_our_turns;
                 ep->out_step[t] = main_state.step;
                 ep->out_team[t] = s_team;
 

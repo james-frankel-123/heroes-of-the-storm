@@ -12,6 +12,11 @@ Priors
   bc            outcome-free behavioral-cloning prior (models/bc_prior.pt,
                 distilled from the GD opponent model; see train_bc_prior)
 Opponent and rollout policy: the paper's 5 GD models, cycled per batch.
+
+Search (X2 fix, 2026-10-01): search_mode 1 = opponent chance nodes (default),
+0 = the pre-fix kernel (bit-identical to every result produced before the
+fix), 2 = open-loop roll-forward. The default can be overridden with the
+OFIT_SEARCH_MODE environment variable to rerun old scripts unchanged.
 """
 import os
 import sys
@@ -194,10 +199,13 @@ def draft_configs(n, seed, tier_idx=1):
 
 
 def run(kernel, pflat, wcfg, n=200, sims=200, seed=1234, root_temp=1.0, dir_eps=0.0,
-        guard=1, device_id=0, batch=100, tier_idx=1, is_ofit=True):
+        guard=1, device_id=0, batch=100, tier_idx=1, is_ofit=True,
+        search_mode=None, pw_k=1.0, pw_alpha=0.5):
     from shared import HEROES, NUM_HEROES, MAPS, SKILL_TIERS
     pf, po = pflat
     wf, wo, lut = wcfg
+    if search_mode is None:
+        search_mode = int(os.environ.get("OFIT_SEARCH_MODE", "1"))
     cfgs = draft_configs(n, seed, tier_idx)
     out = []
     gds = gd_flats()
@@ -207,10 +215,16 @@ def run(kernel, pflat, wcfg, n=200, sims=200, seed=1234, root_temp=1.0, dir_eps=
         Eng = getattr(kernel, "OfitEngine", None) or kernel.MCTSKernelEngine
         eng = Eng(pf, gf, wf, po, go, wo, lut,
                                       max_concurrent=len(ca), device_id=device_id)
-        if is_ofit:
-            res = eng.run_episodes(ca, sims, 2.0, seed + bs, root_temp, 0.3, dir_eps, guard)
+        if not hasattr(kernel, "SEARCH_CHANCE"):   # build predates the X2 fix
+            if search_mode != 0:
+                raise RuntimeError("kernel build predates the X2 fix; rebuild it or pass search_mode=0")
+            extra = ()
         else:
-            res = eng.run_episodes(ca, sims, 2.0, seed + bs, root_temp, 0.3, dir_eps)
+            extra = (search_mode, pw_k, pw_alpha)
+        if is_ofit:
+            res = eng.run_episodes(ca, sims, 2.0, seed + bs, root_temp, 0.3, dir_eps, guard, *extra)
+        else:
+            res = eng.run_episodes(ca, sims, 2.0, seed + bs, root_temp, 0.3, dir_eps, *extra)
         del eng
         for k, r in enumerate(res):
             t = np.array(r[2])
@@ -219,7 +233,7 @@ def run(kernel, pflat, wcfg, n=200, sims=200, seed=1234, root_temp=1.0, dir_eps=
             t1 = [HEROES[j] for j in range(NUM_HEROES) if t[NUM_HEROES + j] > 0.5]
             d = {"our": t0 if ou == 0 else t1, "opp": t1 if ou == 0 else t0,
                  "map": MAPS[mi], "tier": SKILL_TIERS[ti], "side": ou,
-                 "kernel_wp": float(r[0])}
+                 "kernel_wp": float(r[0]), "search_mode": search_mode}
             if is_ofit:
                 d["max_nodes"] = int(r[4])
                 d["cap_hits"] = int(r[5])
