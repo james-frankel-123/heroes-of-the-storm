@@ -8,7 +8,9 @@ SRC=/home/max/hots/repo/training/rerun2026/ns/p1site
 DST=rerun2026/ns/p1site
 while true; do
   for d in models results; do
-    nice -n 19 rsync -rlt --rsync-path="wsl rsync" --exclude "*.resume.pt*" --exclude "feature_cache" \
+    # FETCH_EXCLUDE: space-separated patterns trained on another host (e.g. "generic_draft_0* gd_0.json")
+    EX=(); for e in ${FETCH_EXCLUDE:-}; do EX+=(--exclude "$e"); done
+    nice -n 19 rsync -rlt --rsync-path="wsl rsync" --exclude "*.resume.pt*" --exclude "feature_cache" "${EX[@]}" \
       "$HOST:$SRC/$d/" "$DST/$d/" 2>/dev/null
   done
   nice -n 19 rsync -rlt --rsync-path="wsl rsync" "$HOST:/home/max/hots/logs/p1site_*.log" paper1_revision/site/logs/remote/ 2>/dev/null

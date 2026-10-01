@@ -3,11 +3,11 @@ Remote-only scheduler for the paper-1 MCTS retrains (site tiers, chance-node
 kernel). Runs on the main box as a light polling loop (ssh + rsync only, no
 compute) and launches pause-aware hotsjob MCTS jobs on the workers.
 
-Runs, in priority order (5 seeds each):
+Runs, in priority order (5 seeds unless noted; coordinator option B):
   B_oof F_oof J_oof        200/400/800 sims, leak-free enriched leaf (core set)
   K_oof                    400 sims, naive leaf (no-features agent)
-  E_oof                    200 sims, 1M episodes
-  B_leak F_leak J_leak     in-sample-statistics control leaf
+  E_oof                    200 sims, 1M episodes (3 seeds)
+  B_leak F_leak J_leak     in-sample-statistics control leaf (3 seeds)
 Slots per host come from paper1_revision/site/mcts_slots.json (edited by hand
 to yield to other lanes; read every cycle), e.g. {"max-windows-3090": 2,
 "3080-gaming-desktop": 1}. A host gets its inputs pushed once (site WP models
@@ -33,8 +33,8 @@ LOG = os.path.join(SITE, "logs", "site_mcts_remote.log")
 RW = os.path.join(TRAINING_DIR, "remote_workers")
 RUNS = ([("B", "oof", s) for s in range(5)] + [("F", "oof", s) for s in range(5)]
         + [("J", "oof", s) for s in range(5)] + [("K", "oof", s) for s in range(5)]
-        + [("E", "oof", s) for s in range(5)] + [("B", "leak", s) for s in range(5)]
-        + [("F", "leak", s) for s in range(5)] + [("J", "leak", s) for s in range(5)])
+        + [("E", "oof", s) for s in range(3)] + [("B", "leak", s) for s in range(3)]
+        + [("F", "leak", s) for s in range(3)] + [("J", "leak", s) for s in range(3)])
 
 
 def log(msg):
@@ -58,6 +58,13 @@ def status(host):
         if m:
             out[m.group(1)] = m.group(3)
     return out
+
+
+def drift_mcts_running():
+    r = subprocess.run([os.path.join(RW, "jobs_remote.sh"), "3080-gaming-desktop"], capture_output=True,
+                       text=True, cwd=TRAINING_DIR)
+    return any(re.search(r"\bmcts\b", l) and "running" in l and not l.strip().startswith("p1site_")
+               for l in r.stdout.splitlines())
 
 
 def push(host):
@@ -105,6 +112,10 @@ def main():
         if not pending and all(v in ("done", "finished") for s in st.values() for v in s.values()):
             log("all runs finished")
             return
+        # 3080: a second slot once the drift lane's MCTS job there has finished
+        # (paper 1 outranks drift there; agreed via the coordinator 2026-10-01)
+        if slots.get("3080-gaming-desktop") == 1 and not drift_mcts_running():
+            slots["3080-gaming-desktop"] = 2
         for host, n in slots.items():
             running = sum(1 for v in st[host].values() if v in ("running", "starting"))
             while running < n and pending:

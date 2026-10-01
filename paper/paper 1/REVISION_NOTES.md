@@ -1280,3 +1280,26 @@ Slots per host are read from `paper1_revision/site/mcts_slots.json`. Current set
 - scope sweep, ensemble, NGS quartiles, MCQ dead units;
 - leak measure, submitted-checkpoint evaluation;
 - non-MCTS tournament pairs.
+
+### 15.7 Yield to the expert study on the 3090 (2026-10-01 18:45)
+
+**Paused on the 3090:**
+- GD seeds 0–4 (epoch checkpoints);
+- the discriminator queue (it had not started);
+- the feature sweep (finished specs are kept);
+- IQL/CQL-grid queues cqlB and cqlC (the job in progress restarts on resume).
+
+The MCQ/BC-CQL queue cqlA had already failed (connection reset during an out-of-memory episode) and will be relaunched. This lane now holds no GPU memory on the 3090; the 22–23 GB in use belong to the oct2026 lane.
+
+**Moved to the 3080** (slot 1, priority over drift):
+- p1site phase-0 caches (8 workers);
+- GD seeds 0 and 1. Seed 0 continues from its 3090 epoch checkpoint (epoch 9).
+
+The 3090 manifests for GD 0/1 were closed, so a 3090 resume does not duplicate them.
+
+**On the coordinator's signal, resume on the 3090:**
+- p1site_gd2, gd3, gd4;
+- p1site_disc, cqlB, cqlC, wp_sweep;
+- relaunch cqlA.
+
+The MCTS scheduler uses `mcts_slots.json`: 3090 2, 3080 1. The 3080 goes to 2 automatically when the drift lane's MCTS job ends. The fetch loops run per host, with GD 0/1 excluded from the 3090 fetch.
