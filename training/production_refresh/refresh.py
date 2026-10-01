@@ -23,8 +23,12 @@ Phases (subcommands; `all` chains them):
           own eval WP (a proxy: the policy's score under the value function
           it searched against). Each seed's policy argmax drafts a fixed
           benchmark against the fresh GD model; drafts are scored by a
-          realized-outcome index (overfit2026/gold.RealizedIndex) fitted on
-          the last JUDGE_DAYS of real games. Rule: highest judge score among
+          structure-aware realized-outcome index
+          (overfit2026/gold.StructRealizedIndex: the realized index plus
+          no-healer / no-frontline / stacked-role terms, all cross-fitted on
+          real outcomes) fitted on the last JUDGE_DAYS of real games. The
+          plain index under-penalized degenerate teams by ~5pp and ranked a
+          55%-degenerate hero-win-rate drafter above every policy. Rule: highest judge score among
           seeds whose degenerate-comp rate is within DEGEN_TOL of the best.
   gates   check every deploy gate, record them in refresh_meta.json, exit
           nonzero if any fails (export runs this first)
@@ -104,6 +108,7 @@ GATE_MCTS_PROXY_FLOOR = 0.70
 # Seed selection (phase select)
 JUDGE_DAYS = 90           # realized-index window, ending at the stats ref date
 JUDGE_SALT = 99           # gold.RealizedIndex fold-hash salt
+JUDGE_CLASS = "StructRealizedIndex"  # gold.<class>; v1 was RealizedIndex
 BENCH_DRAFTS = 1260       # 14 maps x 3 tiers x 2 sides x 15
 BENCH_SEED = 20261101     # GD opponent sampling; same for every policy
 DEGEN_TOL = 0.02          # eligible seeds: degen rate <= best seed's + 2pp
@@ -774,19 +779,28 @@ def phase_select():
     # folds (statistics from one, logistic weights from the other). It never
     # sees the WP's features, weights or predictions.
     dcommon._bind_statscache_methods()
-    judge_pkl = os.path.join(RUN_DIR, f"judge_realized_{JUDGE_DAYS}d_s{JUDGE_SALT}.pkl")
-    if os.path.exists(judge_pkl):
-        with open(judge_pkl, "rb") as f:
-            judge, ref = pickle.load(f)
-    else:
+    # v2 (2026-10-01): the index carries explicit structure terms. The plain
+    # v1 index is still built from the same games and reported per bench row
+    # ("judge_v1") for continuity; it does not enter the rule.
+    games = None
+    judges = {}
+    for cls, tag in ((JUDGE_CLASS, "struct_"), ("RealizedIndex", "")):
+        judge_pkl = os.path.join(RUN_DIR, f"judge_realized_{tag}{JUDGE_DAYS}d_s{JUDGE_SALT}.pkl")
+        if os.path.exists(judge_pkl):
+            with open(judge_pkl, "rb") as f:
+                judges[cls], ref = pickle.load(f)
+            continue
+        if games is None:
+            games, ref = _judge_games()
+            log(f"judge: {len(games):,} games in the {JUDGE_DAYS} days to {ref}")
         t0 = time.time()
-        games, ref = _judge_games()
-        log(f"judge: {len(games):,} games in the {JUDGE_DAYS} days to {ref}")
-        judge = gold.RealizedIndex(games, salt=JUDGE_SALT, name=f"recent{JUDGE_DAYS}d")
+        j = getattr(gold, cls)(games, salt=JUDGE_SALT, name=f"recent{JUDGE_DAYS}d_{cls}")
         with open(judge_pkl, "wb") as f:
-            pickle.dump((judge, ref), f, protocol=pickle.HIGHEST_PROTOCOL)
-        log(f"judge built in {time.time() - t0:.0f}s; held-out fold acc "
-            + ", ".join(f"{x['acc']:.4f}" for x in judge.fit))
+            pickle.dump((j, ref), f, protocol=pickle.HIGHEST_PROTOCOL)
+        judges[cls] = j
+        log(f"judge {cls} built in {time.time() - t0:.0f}s; held-out fold acc "
+            + ", ".join(f"{x['acc']:.4f}" for x in j.fit))
+    judge, judge_v1 = judges[JUDGE_CLASS], judges["RealizedIndex"]
 
     # Proxy on the same drafts: the fresh WP with the serving stats (what the
     # MCTS searched against), team-order symmetrized.
@@ -814,7 +828,8 @@ def phase_select():
         drafts = _run_bench(chooser, gd)
         per_draft[name], rows[name] = _summ(drafts, judge, proxy_fn)
         r = rows[name]
-        log(f"bench {name:15s} judge {r['judge']:.4f}±{r['judge_se']:.4f} "
+        r["judge_v1"] = float(np.mean([judge_v1.score(o, p, t) for o, p, m, t in drafts]))
+        log(f"bench {name:15s} judge {r['judge']:.4f}±{r['judge_se']:.4f} (v1 {r['judge_v1']:.4f}) "
             f"proxy_bench {r['proxy_bench']:.4f} degen {r['degen']:.3f} "
             f"distinct {r['distinct_heroes']} ({time.time() - t0:.0f}s)")
 
@@ -836,7 +851,7 @@ def phase_select():
         "rule": (f"max judge among seeds with degen <= min degen + {DEGEN_TOL}"),
         "eligible": eligible,
         "proxy_pick_would_have_been": proxy_pick,
-        "judge": {"kind": "overfit2026.gold.RealizedIndex", "days": JUDGE_DAYS,
+        "judge": {"kind": f"overfit2026.gold.{JUDGE_CLASS}", "days": JUDGE_DAYS,
                   "ref_date": str(ref), "salt": JUDGE_SALT, **judge.describe()},
         "bench": {"drafts": BENCH_DRAFTS, "seed": BENCH_SEED,
                   "policy_mode": "policy-head argmax",

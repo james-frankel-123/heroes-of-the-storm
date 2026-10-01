@@ -135,7 +135,7 @@ class RealizedIndex:
             tf = TeamFeatures(stats_for(folds[k]))
             X, y = [], []
             for rid, tier, gmap, t0, t1, bans, w in folds[1 - k]:
-                X.append(tf.diff(t0, t1, tier))
+                X.append(self._x(tf, t0, t1, tier))
                 y.append(1.0 if w == 0 else 0.0)
             X, y = np.array(X), np.array(y)
             coef, se = fit_logistic(X, y)
@@ -150,11 +150,14 @@ class RealizedIndex:
         # full-set truth for raw component reporting
         self.full = TeamFeatures(stats_for(games))
 
+    def _x(self, tf, a, b, tier):
+        return tf.diff(a, b, tier)
+
     def score(self, own, opp, tier):
         ps = []
         for tf, f in zip(self.folds, self.fit):
             c = np.array(f["coef"])
-            ps.append(1 / (1 + math.exp(-(tf.diff(own, opp, tier) @ c[1:]))))
+            ps.append(1 / (1 + math.exp(-(self._x(tf, own, opp, tier) @ c[1:]))))
         return float(np.mean(ps))
 
     def components(self, own, opp, tier):
@@ -163,6 +166,32 @@ class RealizedIndex:
     def describe(self):
         return {"name": self.name, "n_games": self.n_games, "folds": self.fit,
                 "features": NAMES}
+
+
+class StructRealizedIndex(RealizedIndex):
+    """RealizedIndex plus explicit team-structure terms (2026-10-01).
+
+    The role-composition cell term shrinks rare cells (median 2.5-10 games for
+    degenerate role multisets) to 50% with a 200-game prior, so the plain
+    index barely penalizes structurally broken teams (-5pp held-out
+    calibration gap on real degenerate teams; comp_judges.py). This variant
+    adds the differences of three indicators (no_healer, no_frontline,
+    3+ stacked role; overfit2026.structure) to the cross-fitted logistic, so
+    their weights are fitted on real outcomes of the outcome fold, exactly
+    like the other four terms. Indicators need no statistics, so nothing else
+    changes. What it cannot learn: the penalty of a structure no real team
+    shows (e.g. five tanks) beyond the additive indicator model.
+    """
+
+    def _x(self, tf, a, b, tier):
+        from overfit2026.structure import struct_vec
+        return np.concatenate([tf.diff(a, b, tier),
+                               np.subtract(struct_vec(a), struct_vec(b))])
+
+    def describe(self):
+        d = super().describe()
+        d["features"] = NAMES + ["no_healer", "no_frontline", "stack"]
+        return d
 
 
 # ── Named gold sets (cached) ──

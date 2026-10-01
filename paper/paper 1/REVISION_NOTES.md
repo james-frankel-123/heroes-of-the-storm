@@ -5,7 +5,7 @@ Paper: "Diagnosing and Repairing Out-of-Distribution Failure in MOBA Draft Polic
 **Revised manuscript files** (in `paper/paper 1/overleaf/`)
 
 - **`draft_revision.tex`**: the clean revision (no change markup), trimmed to fit the submission's format.
-  - Clean build is **8 pages** (the submitted `draft.pdf` is 10). Built with `pdflatex` twice, checked with `pdfinfo`.
+  - Clean build is **9 pages** after §11 (8 before; the submitted `draft.pdf` is 10). Built with `pdflatex` twice, checked with `pdfinfo`.
   - 0 errors, 0 overfull boxes.
 - **`supplementary_revision.tex`**: clean supplement, 7 pages, 0 overfull boxes.
 - **`draft_revision_markup.tex`** and **`supplementary_revision_markup.tex`**: the earlier marked-up versions (blue = new, red = removed claim with the reason; 13 pages clean).
@@ -18,6 +18,8 @@ Paper: "Diagnosing and Repairing Out-of-Distribution Failure in MOBA Draft Polic
 **Code and results:** `training/paper1_revision/` (file list in §7).
 
 This file is the change log for coauthors and the basis for the response to reviewers. Each change gives what changed, why, and the old vs new numbers.
+
+**Status (2026-10-01):** the independent references are now composition-corrected (§11); every judged number in the manuscript uses the corrected references.
 
 **Status (2026-09-30, late):**
 - **800-sim leak-free runs (J_oof):** finished and in the paper. No `\PENDING` markers remain.
@@ -693,3 +695,184 @@ This touches the OSF preregistration v2 (tier framing) and the IRB instrument te
 - `mcts_bench/` (per-draft scores for 55 submitted runs and the leak-free runs), `tournament/` (132-pair records via reuse), `greedy/`
 
 **Models:** `training/paper1_revision/models/` (all seeds, with metadata JSON). **MCTS runs:** `training/paper1_revision/mcts_runs/`.
+
+## 11. Composition blind spot of the independent references (2026-10-01)
+
+**The finding.** In the production seed-selection dry run, a drafter that picks the highest-win-rate available hero scored 0.677 under the realized index, above both trained policies (0.644, 0.650), with 55% degenerate teams. On real held-out games the references under-predict how often degenerate teams lose.
+
+**Code:** `training/overfit2026/`: `structure.py` (indicators), `comp_audit_data.py` (judge scores on held-out sets), `comp_causal_data.py` + `comp_causal.py` (skill and pick-position controls), `comp_gn_folds.py` (two-fold gN refits for held-out predictions on N), `comp_judges.py` (audit, fit, validation), `judges_v2.py` (the corrected judges), `comp_native_ri.py` (structure terms inside the realized index), `gold.StructRealizedIndex`. Rescoring: `training/paper1_revision/comp_rescore.py`.
+**Results:** `overfit2026/results/comp_audit.json`, `comp_causal.json`, `comp_judges.json` (and the superseded `comp_judges_t17fit.json`), `comp_native_ri.json`; `paper1_revision/results/comp_rescore.json`.
+
+### 11.1 Audit (task 1)
+
+Realized minus predicted win rate (pp) per team type, on the 1,949,087 snapshot games, which no reference trained on. Types are exclusive in the order shown and cover 1.37%, 0.57%, 0.06% of teams (2.01% in all). SE about 0.2 / 0.3 / 1.0 / 0.2pp.
+
+| Reference | No healer | No frontline | Stack | Any degenerate | Normal teams |
+|---|---|---|---|---|---|
+| gN | −2.0 | −0.7 | −0.3 | **−1.6** | +0.03 |
+| gN-naive | −5.6 | −3.3 | −9.4 | **−5.0** | +0.10 |
+| RN | −5.0 | −4.1 | −10.9 | **−4.9** | +0.10 |
+| R17 | −6.5 | −5.9 | −11.9 | **−6.5** | +0.13 |
+| QM2026 | −6.4 | −2.8 | −7.5 | **−5.4** | +0.11 |
+| QM2021 | −6.8 | −3.5 | −7.3 | **−5.9** | +0.12 |
+| Consensus | −4.8 | −2.7 | −7.0 | **−4.2** | +0.09 |
+
+- **Other held-out sets agree.** Post-snapshot no-drift games with held-out predictions (gN and gN-naive from two-fold refits of the judge recipe, RN cross-fitted): gN −1.1, gN-naive −5.3, RN −5.2, QM2026 −5.2, consensus −4.2pp. On the drifted 2.55.17 games the gaps are smaller (RN −3.1, consensus −2.4, gN +0.3).
+- **The gaps survive recalibration.** After a global slope/intercept refit of each judge the gaps barely move (QM2026 −5.4 → −6.5, others ±0.5), so this is blindness to structure, not overall miscalibration.
+- **Why each is blind.**
+  - RN, R17: the composition term is a per-role-multiset win rate shrunk to 50% with a 200-game prior; degenerate cells hold a median of 2.5–10 games and the term's weight is small.
+  - gN-naive: hero identities only; it must infer the penalty from 2% of teams.
+  - QM judges: trained on a mode with a different team-assembly process.
+  - gN is the least blind (−1.6pp): its features include role counts and the external composition table.
+
+### 11.2 Is the penalty causal? (task 2)
+
+918,922 games (snapshot games from 2025-06-01 plus post-snapshot games with all ten player rows) joined to the P3 causal per-player, per-hero skill estimates (+CF rank 2 GP, experience offsets, lag 1 day) and to pick order. Skill state built with degenerate-team games left out ("clean"), so it cannot absorb the penalty.
+
+| Controls (offset: held-out RN) | Penalty on degenerate teams (pp) |
+|---|---|
+| none | −4.80 |
+| team skill difference | −4.63 |
+| + skill by within-team pick position, first-pick side | −4.84 |
+| + partied players, never-played-hero slots | −4.66 |
+| same as row 3, skill state including degenerate games | −4.91 |
+
+- Bootstrap SE 0.27pp; SE of the change 0.05pp. Snapshot and post-snapshot samples agree (−5.02 → −5.03; −4.31 → −4.41).
+- **Why so little selection:** degenerate teams are weaker in absolute terms (summed skill −0.3pp vs +1.0pp for normal teams), but matchmaking gives them weaker opponents too; the within-game skill gap is only −0.24pp.
+- **Verdict:** at most about 0.2pp of the ~4.8pp is selection on these measures. The penalty is essentially a draft effect (unmeasured player differences remain possible). The corrected judges therefore use the plain realized fit; the skill-controlled fit is kept as a variant ("causal" in `comp_judges.json`), differs by ≤0.05 logit, and over-corrects the snapshot by 0.6pp.
+
+### 11.3 Corrected judges (task 3)
+
+**Form (v2):** p\* = σ(logit p_J + β_J·(s_own − s_opp)), s = [no_healer, no_frontline, stack] (non-exclusive, `shared.is_degenerate` conventions). J itself is unchanged; the correction is antisymmetric, so symmetrized scores stay symmetrized. Consensus v2 = mean of the corrected gN, gN-naive, RN, QM2026.
+
+**Fit:** on the 291,837 post-snapshot no-drift games (no agent saw them), always with the judge family's held-out prediction as the offset: gN/gN-naive from the two-fold refits, RN cross-fitted, QM and R17 as they are. β (logits; no healer, no frontline, stack):
+
+| Judge | β |
+|---|---|
+| gN | −0.04, −0.06, 0.00 |
+| gN-naive | −0.22, −0.20, −0.35 |
+| RN | −0.18, −0.24, −0.36 |
+| R17 | −0.22, −0.28, −0.37 |
+| QM2026 | −0.23, −0.17, −0.27 |
+| QM2021 | −0.28, −0.22, −0.25 |
+
+**Validation on the 1.95M snapshot games** (no judge, no correction saw them):
+
+| Reference | Any-degenerate gap v1 → v2 | Normal teams v2 | Log loss change (×1e−4) |
+|---|---|---|---|
+| gN | −1.6 → −0.5 | +0.01 | −0.2 |
+| gN-naive | −5.0 → +0.3 | −0.01 | −2.4 |
+| RN | −4.9 → +0.3 | −0.01 | −2.4 |
+| QM2026 | −5.4 → −0.1 | 0.00 | −2.9 |
+| Consensus | −4.2 → +0.0 | 0.00 | −1.7 |
+
+- Per type after correction (all six references): no-healer −1.0 to −0.1, no-frontline +0.8 to +1.8, stack −3.2 to −0.4 (stack SE 1.0).
+- With the skill controls added on the snapshot subset, the v2 gaps stay near zero (consensus −0.1).
+- **Native form (option 1):** the same three indicators inside the realized index's own cross-fitted logistic (`gold.StructRealizedIndex`) calibrate equally well: N half-split −5.2 → +0.1pp, 25% snapshot sample −4.8 → −0.1pp, log loss 0.68595 → 0.68572. Production uses this form.
+- **Drift:** after the 2.55.17 balance patch the penalty is smaller; the v2 references over-charge degenerate teams there by about 2pp. A first fit on 2.55.17 games under-corrected the snapshot by 1.6pp (kept in `comp_judges_t17fit.json`), which is why the fit moved to the no-drift games.
+- **What a judge can and cannot learn.** The terms are learned from human degenerate teams: 93% have exactly one defect, 68% are no-healer teams. The MCTS agents' degenerate teams have one defect in 95–100% of cases and are 72–98% no-healer, the best-covered type, so the correction is well supported for them. For structures nobody fields (five tanks, no healer and no frontline together, four of a role) the judge can only add the indicator penalties; it has no data on whether they are worse than that. Option 2 (shrinking composition cells toward a role-count model) and option 3 (retraining gN with out-of-fold composition features) were not needed: gN's structure gap was already small, and the offset form calibrated every judge.
+
+### 11.4 Rescoring: old vs new for every claim (task 4)
+
+Saved draft records only; nothing regenerated. MCTS benchmark: per-draft v1 scores stored, v2 = v1 + correction. Tournament: `tournament_scores.npz` + pair records. Contrasts at T=1; ± is the v2 seed SE.
+
+| Claim | v1 gN / RN / consensus | v2 gN / RN / consensus | Survives? |
+|---|---|---|---|
+| Sim scaling, submitted, 200 → 400 (F − B) | +.017 / +.016 / +.015 | +.018 / +.020 / +.019 (±.005) | yes |
+| Sim scaling, submitted, 400 → 800 (J − F) | −.004 / −.003 / −.001 | −.004 / −.004 / −.001 | yes (no gain past 400) |
+| Leak-free 200 → 400 (F_oof − B_oof) | +.009 / +.008 / +.008 | +.010 / +.011 / +.011 (±.003) | yes |
+| Leak-free 400 → 800 (J_oof − F_oof) | −.007 / −.006 / −.002 | −.007 / −.008 / −.004 (±.003) | yes, slightly stronger |
+| Feature gap, submitted (B_fullwp − K_truebase) | −.010 / −.016 / −.013 | −.009 / −.014 / −.011 (±.005) | yes, reversal holds |
+| Feature gap, leak-free matched (B_oof − K_truebase) | −.002 / −.005 / −.005 | −.002 / −.003 / −.003 (±.004) | yes, zero within error |
+| Training length (E_1M − B_fullwp) | +.017 / +.015 / +.016 | +.017 / +.019 / +.019 | yes |
+| Operating point (F_oof − E_1M) | +.001 / +.003 / .000 | .000 / +.003 / .000 | tie holds |
+| Argmax root, F_oof (T0 − T1) | +.003 / +.002 / +.002 | +.003 / +.003 / +.003 | yes |
+| Absolute-only vs full (N2 − B_fullwp) | +.012 / +.009 / +.008 | +.011 / +.006 / +.005 | smaller |
+
+- **"Features buy safety, not WP" survives.** The matched gaps move by at most 0.003 under any reference. The correction charges K_truebase's 18.5% broken teams, but it also charges the GD opponents sampled at T=1, 12–13% of whose teams are degenerate, so both sides of the benchmark pay.
+- **The 400-sim operating point holds.** F_oof ≥ J_oof under every v2 reference (consensus +.004), F_oof ties E_1M, and argmax root adds +.003.
+- **Table VI:** gN changes by ≤0.001 per configuration, RN by −0.004 to +0.004, QM2026 by −0.006 to +0.004.
+
+**Tournament (consensus; v1 → v2):**
+
+| Strategy | v1 | v2 | Won v1 → v2 |
+|---|---|---|---|
+| Constrained MCTS | .602 | **.611** | 21 → 21 |
+| MCTS | .605 | .610 | 21 → 21 |
+| MCTS, no features | .590 | .587 | 18 → 18 |
+| Constrained greedy | .531 | .538 | 15 → 16 |
+| Enriched greedy | .533 | .530 | 14 → 14 |
+| Enr.+aug greedy | .518 | .519 | 10 → 10 |
+| G&A estimator (46% degen) | .530 | **.513** | 13 → 12 |
+| CQL enriched / naive | .445 / .443 | .450 / .447 | 5 / 5 |
+| G&A discriminator | .439 | .446 | 5 |
+| GD | .435 | .440 | 5 |
+| MCQ | .330 | .310 | 0 |
+
+- **Spearman with consensus:** all 12 strategies 0.93–0.98 → 0.94–0.99; top 6 QM 0.66 → 0.83, gN/RN 0.89 → 1.00.
+- **Constrained vs unconstrained.**
+  - MCTS, same checkpoints: 0.499 → **0.509 ± 0.003**.
+  - Greedy: 0.500 → **0.511 ± 0.003**.
+  - The submitted J_800sim_s9 matched pair: 0.503 → ≈0.514. This one is approximate: its drafts were not stored, so the stored degenerate counts were charged with the no-healer β.
+  - **"The mask costs nothing" becomes "the mask costs nothing and gains about 0.01".** The v1 tie came from references that barely charged the broken teams the mask removes.
+- **MCTS vs K_truebase:** 0.543 → 0.558 ± 0.004.
+- **Table II "Ind." column:** .586/.579/.580 → .572/.571/.575 (naive/hero str./enriched). The three drafters are still not separated. The v1 column here was recomputed by `judges_v2.score_base`, which matches the stored RN/QM exactly and gN to within 0.002.
+- **Greedy/MCTS rich rows (gN):** unchanged within 0.001. The consensus moves −0.003 to +0.005.
+
+### 11.5 Manuscript changes (task 5)
+
+**`draft_revision.tex`** (clean build 9 pages, 0 errors, 0 overfull boxes):
+- abstract (0.61 vs 0.44–0.45; the mask adds a little; judges calibrated on broken teams);
+- intro tiers (0.61 / 0.51–0.54 / 0.44–0.45);
+- contribution 3 (the mask adds about 0.01);
+- new paragraph "Composition correction" in §III-D (blind spot, mechanism, selection test, correction, validation, limits);
+- Table II Ind. column and text;
+- Table VI gN/RN/QM26 columns now v2, with a caption note;
+- sim-scaling, training-length, root and feature-gap numbers, plus one sentence on why the benchmark gaps barely move;
+- Table VII now v2, reordered, with a caption note; tournament text (tiers, Spearman, the v1 differences named, MCTS vs K);
+- §VII-E constraint now gains a little (0.509 / 0.511), with the v1 tie explained;
+- conclusion numbers and one sentence on auditing judges;
+- limitations (the composition terms extrapolate; about 2pp over-charge after 2.55.17);
+- Fig. 1 regenerated from v2 standings (`gen_figs.py` reads `comp_rescore.json` when present), caption updated.
+
+**`supplementary_revision.tex`:** new section "Composition Blind Spot and Corrected References". It has the audit table (`tab:compaudit`), the selection test, the correction with its coefficients, the native-index check, drift, and the v1-vs-v2 claims table (`tab:compclaims`).
+
+**Not changed:**
+- the markup files;
+- the degenerate definition sentence in §III-C. It lists "no ranged damage", which `shared.is_degenerate` (used for every Deg% except Table II) does not require; Table II's Deg% uses a broader flag that does include it. Worth a one-line fix later.
+
+### 11.6 Production (task 6)
+
+- **Change.** `production_refresh/refresh.py` phase `select` now judges with `gold.StructRealizedIndex` (`JUDGE_CLASS`): the realized index plus the three structure terms inside its cross-fitted logistic.
+  - Fitted on the same 90-day window. The window is `game_version LIKE '2.55%'`, so the 2.57 builds released 2026-09-28 are excluded.
+  - The plain index is still built and logged per bench row (`judge_v1`) and does not enter the rule.
+  - Rule, `DEGEN_TOL` and gates are unchanged.
+
+**Backtest `validate-seedsel-backtest-0930`** (800-sim 2026-09-30 seeds; previous outputs kept as `*_v1judge.json`):
+
+| Bench row | v1 judge | v2 judge | Degen |
+|---|---|---|---|
+| pop_greedy (GD argmax) | .491 | .497 | 3.4% |
+| hero_wr_greedy | **.677** | **.637** | 54.7% |
+| s0 | .644 | .654 | 4.3% |
+| s1 | .650 | .655 | 6.7% |
+
+- Seed 0 is still selected (s1 is ineligible by the degeneracy tolerance). The gate (judge > pop_greedy) still passes.
+- The hero-WR drafter now ranks below both trained seeds.
+- Fold structure coefficients: no healer −0.22/−0.15, no frontline −0.26/−0.05, stack −0.41/−0.47.
+
+**Dry run `validate-seedsel-2026-10-01`** (400-sim, only 6K episodes):
+- s0 .612 → .614, s1 .615 → .613, hero_wr_greedy .677 → .637.
+- Seed 0 is still selected.
+- The hero-WR drafter still beats these undertrained seeds. That reflects the 6K-episode training, not the judge.
+
+### 11.7 Expert-study pool (coordination with the oct2026 lane)
+
+- **Today no judge from this audit touches the pool.**
+  - Item sampling uses no judge.
+  - `provenance.wpTeam0Sym`, and with it the preregistered near-tie exclusion (|consensus − 0.5| ≤ 0.02), comes from the four namespace evaluators (naive, herostrength, enriched, augmented). These are in-corpus WP models, not the independent references.
+- **If the lane switches the pool to the independent references** through `oct2026_pool_judges.py --judges py:training/overfit2026/judges_v2.py:gN_v2,...`, the composition correction matters. Measured on the current v5 pool (280 machine pairs, 63 with a degenerate team), v1 consensus vs v2 consensus:
+  - near-ties at 0.01 / 0.02 / 0.05: 25 / 40 / 93 → 29 / 46 / 95 (at 0.02: 10 leave, 16 enter);
+  - 10 pairs flip the favored side;
+  - the largest shift is 0.098.
+- **Tier caveat.** The independent references condition on the old (pre-2026-09-30) tier labels, while oct2026 items carry site-scheme tiers. Using them on that pool needs a tier mapping decision first.

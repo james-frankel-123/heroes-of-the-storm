@@ -230,6 +230,62 @@ Leak-free naive (in corpus) & 57.9 & 1.20 & 56.3 & 0.92 \\
 The post-snapshot judges and the realized index are close to calibrated on snapshot games. The Quick Match judges are strongly overconfident on ranked drafts (slopes near 0.4): their probabilities are too extreme by a factor of about 2.5, so the main paper uses them for ordering only. All references are well below the 57.7\% of an in-corpus model, the price of independence: smaller training sets, a different time window, or a different game mode.
 
 
+\section{Composition Blind Spot and Corrected References}
+\label{sec:compjudge}
+
+\paragraph{Audit} A drafter that picks the available hero with the highest win rate scored 0.677 under the production seed-selection judge (a realized index on 90 days of games), above both trained policies (0.644, 0.650), although 55\% of its teams were degenerate. Table~\ref{tab:compaudit} measures every reference on the 1,949,087 snapshot games, which none of them trained on, as realized minus predicted win rate per team type (no healer, no frontline, three or more of a stacking role; exclusive, in that order). Normal teams are calibrated to within 0.13pp. Degenerate teams lose 4--7pp more often than RN, gN-naive, R17, and both Quick Match judges predict; the gap survives a global slope and intercept recalibration of each judge. gN, which reads role-count features, misses 1.6pp. The post-snapshot no-drift games give the same picture with held-out predictions (gN from two-fold refits of its recipe: $-$1.1pp; RN cross-fitted: $-$5.2pp; consensus $-$4.2pp). RN is blind because its composition term is a per-role-multiset win rate shrunk toward 50\% with a 200-game prior, and degenerate multisets hold a median of 2.5 (stack) to 10 (no frontline) games; gN-naive must learn the penalty from hero identities alone; the QM judges learned from a mode with a different team-assembly process.
+
+\begin{table}[t]
+\centering
+\caption{Realized minus predicted win rate (pp) of real teams by type, on 1.95M snapshot games no reference trained on (SE 0.2, 0.3, 1.0, 0.2pp by column). Types cover 1.37\%, 0.57\%, and 0.06\% of teams. v2: after the structure correction. $\Delta$LL: v2 minus v1 log loss ($\times 10^{-4}$).}
+\label{tab:compaudit}
+\setlength{\tabcolsep}{3pt}
+\small
+\begin{tabular}{lrrrr|rr}
+\toprule
+Reference & No heal. & No front. & Stack & Any & Any, v2 & $\Delta$LL \\
+\midrule
+gN & $-$2.0 & $-$0.7 & $-$0.3 & $-$1.6 & $-$0.5 & $-$0.2 \\
+gN-naive & $-$5.6 & $-$3.3 & $-$9.4 & $-$5.0 & +0.3 & $-$2.4 \\
+RN & $-$5.0 & $-$4.1 & $-$10.9 & $-$4.9 & +0.3 & $-$2.4 \\
+R17 & $-$6.5 & $-$5.9 & $-$11.9 & $-$6.5 & $-$0.2 & $-$3.9 \\
+QM2026 & $-$6.4 & $-$2.8 & $-$7.5 & $-$5.4 & $-$0.1 & $-$2.9 \\
+QM2021 & $-$6.8 & $-$3.5 & $-$7.3 & $-$5.9 & +0.3 & $-$3.4 \\
+Consensus & $-$4.8 & $-$2.7 & $-$7.0 & $-$4.2 & +0.0 & $-$1.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Selection or cause} Weaker players might field broken teams. We joined 918,922 games (snapshot games from June 2025 and post-snapshot games with all ten player records) to causal per-player, per-hero skill estimates from the previous day (a Gaussian-process model over each player's heroes; skill is estimated with degenerate-team games left out, so it cannot absorb the penalty itself) and to pick order. Degenerate teams are weaker (summed skill $-$0.3pp vs.\ +1.0pp for normal teams), but matchmaking pairs them with weaker opponents too, and the within-game skill gap is only $-$0.24pp. Against RN, the penalty is $-$4.80pp with no controls, $-$4.63pp with the team skill difference, $-$4.84pp adding skill by pick position and first-pick side, and $-$4.66pp adding party and never-played-hero counts (bootstrap SE 0.27pp; SE of the change 0.05pp). At most about 0.2pp of the 4.8pp is selection on these measures. Unmeasured differences between players remain possible.
+
+\paragraph{Correction} For each reference $J$ we fit $p^\ast = \sigma(\mathrm{logit}\,p_J + \beta_J^\top(s_\text{own} - s_\text{opp}))$ with $s$ the three structure indicators (non-exclusive) and $p_J$ fixed, on the 291,837 post-snapshot no-drift games, using predictions $J$ makes for games it did not train on (above). The fitted no-healer, no-frontline, and stack coefficients (logits) are $-$0.04, $-$0.06, 0.00 (gN); $-$0.22, $-$0.20, $-$0.35 (gN-naive); $-$0.18, $-$0.24, $-$0.36 (RN); $-$0.23, $-$0.17, $-$0.27 (QM2026). The correction is antisymmetric in the two teams, so symmetrized scores stay symmetrized. A version with the skill controls gives coefficients within 0.05 and over-corrects the snapshot games by 0.6pp, consistent with little selection; we use the plain fit. Adding the same indicators inside RN's own cross-fitted logistic gives the same result (degenerate gap $-$0.1 $\pm$ 0.4pp on a 25\% snapshot sample, log loss 0.68595 $\to$ 0.68572). On games after the 2.55.17 balance patch the penalty is smaller and the corrected references over-charge degenerate teams by about 2pp; a first fit on those games under-corrected the snapshot by 1.6pp. The terms are learned from human degenerate teams, 93\% of which have exactly one defect (68\% no healer); the MCTS agents' degenerate teams have exactly one defect in 95--100\% of cases and are 72--98\% no-healer teams, the best-covered type. A structure nobody fields, such as five tanks, receives only the sum of its indicators.
+
+\paragraph{Effect on the results} Under the corrected references, the contrasts behind sim scaling, the feature gap, and the operating point change by at most 0.004 (Table~\ref{tab:compclaims}): GD opponents sampled at temperature 1 are themselves 12--13\% degenerate, so the correction charges both sides of the MCTS benchmark. In the tournament the constrained agents gain (constrained vs.\ unconstrained MCTS 0.499 $\to$ 0.509, masked vs.\ unmasked greedy 0.500 $\to$ 0.511, both $\pm$0.003), the Gourdeau estimator (46\% degenerate) drops from 0.530 to 0.513, MCQ from 0.330 to 0.310, and rank agreement within the top six rises (QM judges 0.66 $\to$ 0.83). The matched head to head of the submitted J\_800sim\_s9 checkpoint (drafts not stored) moves from 0.503 to about 0.514 when the stored degenerate counts are charged.
+
+\begin{table}[t]
+\centering
+\caption{Paper claims under the uncorrected (v1) and corrected (v2) references. MCTS benchmark contrasts, root temperature 1, 5 seeds; $\pm$: seed SE of v2.}
+\label{tab:compclaims}
+\setlength{\tabcolsep}{2.5pt}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+& \multicolumn{2}{c}{gN} & \multicolumn{2}{c}{RN} \\
+Contrast & v1 & v2 & v1 & v2 \\
+\midrule
+F\_400sim $-$ B\_fullwp & +.017 & +.018 & +.016 & +.020 $\pm$.005 \\
+J\_800sim $-$ F\_400sim & $-$.004 & $-$.004 & $-$.003 & $-$.004 $\pm$.002 \\
+F\_oof $-$ B\_oof & +.009 & +.010 & +.008 & +.011 $\pm$.002 \\
+J\_oof $-$ F\_oof & $-$.007 & $-$.007 & $-$.006 & $-$.008 $\pm$.003 \\
+B\_fullwp $-$ K\_truebase & $-$.010 & $-$.009 & $-$.016 & $-$.014 $\pm$.005 \\
+B\_oof $-$ K\_truebase & $-$.002 & $-$.002 & $-$.005 & $-$.003 $\pm$.003 \\
+E\_1M $-$ B\_fullwp & +.017 & +.017 & +.015 & +.019 $\pm$.005 \\
+F\_oof $-$ E\_1M & +.001 & +.000 & +.003 & +.003 $\pm$.002 \\
+F\_oof, argmax $-$ T=1 & +.003 & +.003 & +.002 & +.003 $\pm$.002 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Feature-Group Sweep (Fractional Factorial)}
 \label{sec:sweep}
 

@@ -1,0 +1,16 @@
+[09:07:51] judge: 191,253 games in the 90 days to 2026-10-01 01:21:54+00:00
+[09:08:23] judge built in 44s; held-out fold acc 0.5581, 0.5571
+StatsCache: loaded frozen snapshot (2026-09-30, patch 2.55)
+[09:08:27] bench pop_greedy      judge 0.4909±0.0017 proxy_bench 0.5101 degen 0.034 distinct 61 (3s)
+[09:08:29] bench hero_wr_greedy  judge 0.6768±0.0014 proxy_bench 0.6500 degen 0.547 distinct 21 (3s)
+[09:08:49] bench s0              judge 0.6435±0.0014 proxy_bench 0.7469 degen 0.043 distinct 32 (20s)
+[09:09:07] bench s1              judge 0.6500±0.0013 proxy_bench 0.7509 degen 0.067 distinct 31 (18s)
+[09:09:07] selected MCTS seed 0 (judge 0.6435, proxy 0.7541); proxy rule would have picked 1
+[11:16:35] judge: 191,292 games in the 90 days to 2026-10-01 01:21:54+00:00
+[11:17:17] judge StructRealizedIndex built in 43s; held-out fold acc 0.5593, 0.5578
+StatsCache: loaded frozen snapshot (2026-09-30, patch 2.55)
+[11:17:24] bench pop_greedy      judge 0.4970±0.0018 (v1 0.4909) proxy_bench 0.5101 degen 0.034 distinct 61 (5s)
+[11:17:28] bench hero_wr_greedy  judge 0.6365±0.0019 (v1 0.6768) proxy_bench 0.6500 degen 0.547 distinct 21 (4s)
+[11:17:56] bench s0              judge 0.6535±0.0015 (v1 0.6435) proxy_bench 0.7469 degen 0.043 distinct 32 (28s)
+[11:18:25] bench s1              judge 0.6550±0.0014 (v1 0.6500) proxy_bench 0.7509 degen 0.067 distinct 31 (28s)
+[11:18:25] selected MCTS seed 0 (judge 0.6535, proxy 0.7541); proxy rule would have picked 1

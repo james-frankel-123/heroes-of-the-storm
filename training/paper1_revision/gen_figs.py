@@ -6,7 +6,8 @@ files fig_glance_revision.{pdf,png} and fig_safety_context_revision.{pdf,png}
 into paper/paper 1/overleaf/ (the submitted figures are untouched).
 
 Glance columns: tournament consensus WP under the independent judges (mean
-of gN, gN_naive, RN, QM2026), synergy (external-statistics metric), and
+of gN, gN_naive, RN, QM2026; composition-corrected v2 judges from
+results/comp_rescore.json when present), synergy (external-statistics metric), and
 degenerate-team rate, all on the revised round-robin drafts.
 Scatter: rich-evaluation rows (unchanged baselines from the submission's
 rich_evaluation_results.json; leak-free greedy/MCTS rows from greedy_rich.json)
@@ -42,6 +43,10 @@ LABELS = {
 def glance():
     T = json.load(open(os.path.join(core.RESULTS, "tournament_standings.json")))
     st, dm = T["standings"], T["draft_metrics"]
+    # composition-corrected (v2) judges when the rescore exists (comp_rescore.py)
+    v2 = os.path.join(core.RESULTS, "comp_rescore.json")
+    if os.path.exists(v2):
+        st = json.load(open(v2))["tournament"]["v2"]["standings"]
     rows = []
     for s in st:
         rows.append((s, 100 * st[s]["consensus"]["mean"], dm[s]["synergy"], 100 * dm[s]["degen"]))
