@@ -41,6 +41,12 @@ DIFFERENCES = [
     "enriched CQL transitions: out-of-fold features",
     "ensemble members: trained on the out-of-fold caches",
     "MCTS policy: F_400sim (400 sims, 300K episodes), seed 0, instead of J_800sim seed 9",
+    "MCTS search kernel: trained with the X2-fixed CUDA kernel (commit 1db7df8, "
+    "MCTS_SEARCH_MODE=chance: opponent turns are chance nodes with progressive widening, "
+    "pw_k=1.0, pw_alpha=0.5), so the tree searches through opponent turns to later own "
+    "picks and bans. September (and every earlier MCTS agent) used the pre-fix kernel, which "
+    "expanded only the current own-pick block. Tournament play is unchanged: policy argmax, "
+    "no search at play time",
     "constrained-search pairs: the 'mcts' side uses the same F_400sim_s0 checkpoint as "
     "constrained_mcts (September: a stale July checkpoint, L_800sim_4M_s0, through a "
     "missing --mcts-run)",
@@ -205,6 +211,15 @@ def _find_running(job):
     return None
 
 
+HOLD_FILE = os.path.join(NS_DIR, "HOLD")   # one job name per line; held jobs never start
+
+
+def held():
+    if not os.path.exists(HOLD_FILE):
+        return set()
+    return {l.strip() for l in open(HOLD_FILE) if l.strip() and not l.startswith("#")}
+
+
 def run(gpu_id):
     jobs = build_jobs()
     byname = {j["name"]: j for j in jobs}
@@ -236,8 +251,9 @@ def run(gpu_id):
             else:
                 failed.add(name)
                 say(f"FAIL {name} rc={rc}")
+        hold = held()
         pending = [j for j in jobs if j["name"] not in running and j["name"] not in failed
-                   and not done(j)]
+                   and j["name"] not in hold and not done(j)]
         if not pending and not running:
             break
         ready = [j for j in pending if all(done(byname[d]) for d in j["deps"])]
@@ -287,16 +303,26 @@ def mcts_train():
     save = out("mcts_runs", MCTS_RUN)
     os.makedirs(save, exist_ok=True)
     env = dict(os.environ)
+    resume = os.path.exists(os.path.join(save, "resume_state.pt"))
     env.update({
+        "MCTS_SEARCH_MODE": "chance", "MCTS_PW_K": "1.0", "MCTS_PW_ALPHA": "0.5",
+        "MCTS_CKPT_EVERY_SEC": "1800", "MCTS_PAUSE_FILE": os.path.join(NS_DIR, "MCTS_PAUSE"),
         "MCTS_SAVE_DIR": save, "MCTS_WP_MODEL": "enriched_full",
         "MCTS_WP_PATH": out("models", "wp_enriched_256.pt"),
         "MCTS_GD_PATH": out("models", "generic_draft_0.pt"),
         "MCTS_NUM_EPISODES": str(eps), "MCTS_NUM_SIMS": str(sims), "MCTS_BATCH_EPISODES": "128",
-        "MCTS_FRESH": "1", "MCTS_POLICY_HEAD": "linear", "MCTS_NET_SIZE": "base",
+        "MCTS_FRESH": "0" if resume else "1", "MCTS_POLICY_HEAD": "linear", "MCTS_NET_SIZE": "base",
         "MCTS_EXCLUDE_IDS": out("feature_cache", "mcts_pretrain_exclude.json"),
         "WANDB_RUN_NAME": f"oct2026_{MCTS_RUN}"})
     rc = subprocess.call([sys.executable, "-u", os.path.join(TRAINING_DIR, "train_mcts_worker.py")],
                          cwd=TRAINING_DIR, env=env)
+    try:
+        ki = json.load(open(os.path.join(save, "kernel_info.json")))
+    except Exception:
+        ki = {}
+    if rc == 0 and ki.get("search_mode") != "chance":
+        print(f"refusing to mark done: kernel_info search_mode={ki.get('search_mode')!r}")
+        rc = 3
     if rc == 0 and os.path.exists(os.path.join(save, "draft_policy.pt")):
         open(out("logs", f"mcts_{MCTS_RUN}.done"), "w").write(time.strftime("%Y-%m-%d %H:%M:%S"))
     sys.exit(rc)
