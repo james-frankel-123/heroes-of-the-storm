@@ -12,8 +12,11 @@ worker (training/train_mcts_worker.py) with
   opponent         rerun2026/models/generic_draft_0.pt (behavior only), as in
                    the submission
 
-Usage: python3 paper1_revision/train_mcts.py <config> <seed> [--gpu 0]
-  configs: B (200 sims, 300K episodes), F (400), J (800), E (200 sims, 1M)
+Usage: python3 paper1_revision/train_mcts.py <config> <seed> [--gpu 0] [--wp spec]
+  configs: B (200 sims, 300K episodes), F (400), J (800), E (200 sims, 1M),
+           K (400 sims, 300K, naive leaf WP: the no-features agent)
+  --wp enriched_leak trains against the in-sample-statistics control WP
+  (run names <config>_leak_s<seed>)
 """
 import os
 import sys
@@ -25,6 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TRAINING_DIR = os.path.dirname(HERE)
 
 CONFIGS = {"B": (200, 300000), "F": (400, 300000), "I": (600, 300000),
+           "K": (400, 300000),       # no-features agent: naive (hero-identity) leaf WP
            "J": (800, 300000), "E": (200, 1000000)}
 
 
@@ -73,7 +77,9 @@ def main():
     ap.add_argument("config")
     ap.add_argument("seed", type=int)
     ap.add_argument("--gpu", default="0")
-    ap.add_argument("--wp", default="enriched")
+    ap.add_argument("--wp", default=None,
+                    help="leaf WP spec in paper1_revision/train_wp.py (default: enriched; "
+                         "naive for config K; enriched_leak = in-sample statistics control)")
     ap.add_argument("--resume", action="store_true",
                     help="continue from the run's saved checkpoint (the worker saves at each new best eval)")
     a = ap.parse_args()
@@ -89,16 +95,20 @@ def main():
         GD_PATH = os.path.join(TRAINING_DIR, "rerun2026", "ns", "p1site", "models", "generic_draft_0.pt")
         os.environ["REPLAY_SNAPSHOT_PATH"] = os.path.join(
             TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site.json")
+    if a.wp is None:
+        a.wp = "naive" if a.config == "K" else "enriched"
     meta = json.load(open(os.path.join(core.MODEL_DIR, f"{a.wp}.json")))
     wp = os.path.join(core.MODEL_DIR, f"{a.wp}_s{meta['selected_seed']}.pt")
-    name = f"{a.config}_oof_s{a.seed}"
+    wp_type = "true_base" if meta["input_dim"] == 197 else "enriched_full"
+    tag = {"enriched": "oof", "naive": "oof", "enriched_leak": "leak"}[a.wp]
+    name = f"{a.config}_{tag}_s{a.seed}"
     save = os.path.join(core.MCTS_RUNS, name)
     os.makedirs(save, exist_ok=True)
     env = os.environ.copy()
     env.update({
         "CUDA_VISIBLE_DEVICES": str(a.gpu),
         "MCTS_SAVE_DIR": save,
-        "MCTS_WP_MODEL": "enriched_full",
+        "MCTS_WP_MODEL": wp_type,
         "MCTS_WP_PATH": wp,
         "WP_STATS_PATH": core.stats_path("deploy"),
         "P1R_COMP_PATH": core.comp_path("deploy"),

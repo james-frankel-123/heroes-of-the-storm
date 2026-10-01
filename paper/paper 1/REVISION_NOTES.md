@@ -1208,3 +1208,44 @@ The source is `backups/replay_draft_skill_tier_20260930.csv.gz` (league_tier and
 `site_fetch.sh` also brings the remote MCTS runs and logs back.
 
 **After the runs:** bench_mcts (site namespace), comp_rescore (Table VI rows, sim scaling 200/400/800, operating point), and the tournament's MCTS strategies.
+
+### 15.5 Old-kernel / old-tier MCTS configurations: claim map and plan (2026-10-01)
+
+Rule: no old-kernel or old-tier agent stays in the paper.
+
+| Config | Claims resting on it | Decision |
+|---|---|---|
+| K_truebase | feature gap (Table VI, features paragraph, contribution 3); safety at matched search (A4); tournament row "MCTS, no feat." and MCTS vs no-features head to head; ensemble table rows | **Retrain as K_oof**: naive (hero-identity) leaf WP, site tiers, chance kernel, 5 seeds, 400 sims × 300K episodes, matched to F_oof (the operating point and the tournament's MCTS agent), so the feature comparison is at matched search everywhere |
+| E_1M | training length (Table VI, training-length paragraph); dual-snapshot table | **Retrain as E_oof**: 200 sims × 1M episodes, 5 seeds |
+| B_fullwp / F_400sim / J_800sim (and I_600sim) | the leak's effect on paper-scale search: own-score vs independent gains 200 → 800, leaky vs leak-free at matched sims, the 400 → 800 plateau "in both pipelines" | **Retrain as B/F/J_leak**: the in-sample-statistics control WP (Table I "Enr., in-sample") as leaf, 200/400/800 sims, 5 seeds each. **I_600sim dropped** (200/400/800 suffice) |
+| C_large, D_deep | capacity sentence | **Dropped** (removed from Table VI and text) |
+| H_augmented | supplement augmentation sentence | **Dropped** |
+| M2_relational, N2_absolute | relational/absolute decomposition | **Dropped** |
+| A_partial, G_base | Table VI rows only | **Dropped** |
+
+**Also old-kernel; to be redone with the retrained agents:**
+- the within-snapshot split experiment's search sweep and self-play replication (main §III-B "What the leak does to search"; supplement). This needs the split value functions retrained on site tiers, the search sweep rerun on the chance kernel, and the 8 self-play runs;
+- the supplement dual-snapshot stability table (scoring only, with the new agents);
+- the ensemble table's tournament rows (scoring only).
+
+**Launcher.** `train_mcts.py` adds config K (400 sims, 300K episodes, naive leaf via the worker's `true_base` path) and `--wp enriched_leak` (run names `<cfg>_leak_s<seed>`).
+
+**Queue.** `site_mcts_queue2.sh` runs behind `site_mcts_queue.sh`:
+- **3090:** B_leak s0–s4, then K_oof s0–s4, at most two p1site MCTS jobs at a time.
+- **This box:** F_leak s0–s4 then E_oof s0–s2, and J_leak s0–s4 then E_oof s3–s4. These start after B/F/J_oof finish locally.
+
+**GPU-hours** (this box: 400 sims about 3.7 h per 300K episodes, 200 sims about 2 h, 800 sims about 7.5 h; the 3090 is slower when shared):
+
+| Item | Runs | Estimate |
+|---|---|---|
+| B/F/J_oof (wave 1) | 15 | about 66 h |
+| K_oof | 5 | about 19–40 h (3090) |
+| E_oof | 5 | about 35 h |
+| B/F/J_leak | 15 | about 66 h |
+| Split experiment | value functions, sweep, 8 self-play runs | about 25 h |
+| **Total** | | **about 210–230 GPU-hours** |
+
+With two local streams plus two concurrent 3090 jobs, from the GD pool landing (late Oct 2):
+- wave 1 done about Oct 4;
+- wave 2 done about Oct 6;
+- split experiment done about Oct 6–7 (queued last).

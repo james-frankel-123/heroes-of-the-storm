@@ -75,7 +75,7 @@ None & 57.5 & 81.8 & 93.6 & 23.7 & .27 & 22/28 \\
 
 \paragraph{Assigned win rate} Synthetic rows get out-of-fold features like real rows, but their labels are adjusted with the deploy statistics (pairwise counter and synergy), so the realized mean label differs from the assigned rate: 4.9\%, 5.0\%, 9.5\%, and 29.9\% for assigned 0, 5, 10, and 50\%. Validation and test stay real. Augmentation leaves accuracy unchanged and improves every safety measure under greedy search (Table~\ref{tab:synth}). Assigned rates of 0--10\% behave alike; 50\% gives fewer degenerate greedy teams (8.9\%) but barely penalizes five tanks (0.29). Downstream models keep the submission's 10\%, so no downstream result is selected on this sweep.
 
-\paragraph{Interaction cost} Under the rich evaluation the augmented greedy agent trades interaction-awareness for safety: degenerate 21.1\% $\to$ 15.2\%, synergy +0.44 $\to$ +0.29, counter +0.16 $\to$ +0.09. Head to head in the tournament it scores 0.485 $\pm$ 0.004 against the unaugmented greedy agent, while masked greedy scores 0.511 $\pm$ 0.003 with 0\% degenerate teams and synergy +0.37. At 200 MCTS simulations the augmented value function (H\_augmented, submitted pipeline) gives 12.3\% degenerate teams vs.\ 15.0\% without augmentation (gN 0.663 vs.\ 0.654).
+\paragraph{Interaction cost} Under the rich evaluation the augmented greedy agent trades interaction-awareness for safety: degenerate 21.1\% $\to$ 15.2\%, synergy +0.44 $\to$ +0.29, counter +0.16 $\to$ +0.09. Head to head in the tournament it scores 0.485 $\pm$ 0.004 against the unaugmented greedy agent, while masked greedy scores 0.511 $\pm$ 0.003 with 0\% degenerate teams and synergy +0.37.
 
 \paragraph{Scope}
 

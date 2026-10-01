@@ -239,7 +239,7 @@ The penalty can only anchor toward the behavior distribution; the experiments me
 
 \begin{table}[t]
 \centering
-\caption{MCTS benchmark (5 seeds $\times$ 1,000 drafts, 200 simulations at inference, root temperature 1). Train WP: the enriched value function the configuration optimized ($^\ast$: scored by the submitted enriched model, which that configuration did not optimize). gN, RN, QM26: composition-corrected references (Section~\ref{sec:refs}); gN seed SE 0.001--0.005 (M2: 0.016). C\_large doubles the backbone width, D\_deep deepens the policy head, H uses the augmented WP model, M2/N2 use relational-only and absolute-only feature subsets, K none; A\_partial and G\_base use step-conditioned value functions with and without enriched features (synergy not recomputed).}
+\caption{MCTS benchmark (5 seeds $\times$ 1,000 drafts, 200 simulations at inference, root temperature 1). Train WP: the enriched value function the configuration optimized ($^\ast$: scored by the submitted enriched model, which that configuration did not optimize). gN, RN, QM26: composition-corrected references (Section~\ref{sec:refs}); gN seed SE 0.001--0.005. K\_truebase has no enriched features.}
 \label{tab:mcts}
 \setlength{\tabcolsep}{2.8pt}
 \small
@@ -250,17 +250,9 @@ Config & Sims & Train & gN & RN & QM26 & Deg\% & Syn. \\
 \multicolumn{8}{l}{\textit{Submitted (leaky) value function}} \\
 B\_fullwp & 200 & .721 & .639 & .610 & .635 & 15.0 & +1.14 \\
 F\_400sim & 400 & .758 & .664 & .630 & .648 & 6.6 & +1.35 \\
-I\_600sim & 600 & .766 & .656 & .625 & .650 & 7.8 & +1.44 \\
 J\_800sim & 800 & .769 & .658 & .626 & .650 & 7.2 & +1.40 \\
 E\_1M (1M ep.) & 200 & .753 & .661 & .629 & .653 & 7.3 & +1.34 \\
 K\_truebase & 200 & .709$^\ast$ & .654 & .624 & .646 & 18.5 & +1.09 \\
-C\_large & 200 & .738 & .653 & .619 & .641 & 6.6 & +1.27 \\
-D\_deep & 200 & .659 & .612 & .586 & .614 & 6.4 & +0.34 \\
-H\_augm. & 200 & .730$^\ast$ & .651 & .619 & .637 & 12.3 & +1.16 \\
-M2\_relat. & 200 & .717$^\ast$ & .638 & .612 & .632 & 12.2 & +1.15 \\
-N2\_abs. & 200 & .717$^\ast$ & .649 & .616 & .632 & 21.2 & +1.21 \\
-A\_partial & 200 & .721$^\ast$ & .651 & .618 & .633 & 16.7 & -- \\
-G\_base & 200 & .672$^\ast$ & .629 & .609 & .630 & 18.4 & -- \\
 \midrule
 \multicolumn{8}{l}{\textit{Leak-free value function}} \\
 B\_oof & 200 & .698 & .652 & .620 & .640 & 13.9 & +1.13 \\
@@ -274,7 +266,7 @@ J\_oof & 800 & .728 & .655 & .624 & .648 & 11.1 & +1.34 \\
 
 \paragraph{Training length and root selection} Training for 1M episodes (vs.\ 300K) at 200 simulations helps under every reference (gN +0.022, RN +0.019, QM2026 +0.019) and halves the degenerate rate. E\_1M and F tie as the best configurations. Taking the argmax of root visit counts at inference adds 0.000--0.006 gN over sampling at temperature 1 (mean +0.003) and never lowers gN. Our benchmark operating point is F\_oof with argmax root (the tournament plays the policy argmax without search). F\_oof beats J\_oof under gN and RN and ties it under the other references, at half the training compute.
 
-\paragraph{Features} The submission reported that enriched features add +0.023 WP over the identical featureless agent K\_truebase ($p < 0.001$), judged by the enriched agent's own value function. Under independent references the sign reverses: gN $-$0.015 ($\pm$0.005), RN $-$0.014, QM2026 $-$0.011. With leak-free features at matched search the difference is zero within error (gN $-$0.002 $\pm$ 0.003, RN $-$0.003 $\pm$ 0.003). The safety difference at matched search is not significant either: 13.9\% (B\_oof) vs.\ 18.5\% (K\_truebase) degenerate teams, $-$4.6 $\pm$ 3.5pp across seeds ($-$0.8 $\pm$ 4.6pp with argmax root). The drop to 6.6\% (4.6\% with argmax root) at the operating point comes mainly from doubling the simulations, which we did not run without features. The composition correction charges K\_truebase for its broken teams, but it also charges the sampled GD opponents, 12--13\% of whose teams are degenerate, so it moves the 200-simulation feature gaps by at most 0.003 under any reference. The submission's decomposition of the +0.023 gap into relational and absolute parts is withdrawn with it; under gN the absolute-only model (0.649) outscores the full model (0.639), and the relational-only model scores 0.638, with the widest seed spread of any configuration (0.574--0.663). A wider backbone (C\_large) is better than the base network under gN (+0.014) and safer; a deeper policy head (D\_deep) is worst under every reference.
+\paragraph{Features} The submission reported that enriched features add +0.023 WP over the identical featureless agent K\_truebase ($p < 0.001$), judged by the enriched agent's own value function. Under independent references the sign reverses: gN $-$0.015 ($\pm$0.005), RN $-$0.014, QM2026 $-$0.011. With leak-free features at matched search the difference is zero within error (gN $-$0.002 $\pm$ 0.003, RN $-$0.003 $\pm$ 0.003). The safety difference at matched search is not significant either: 13.9\% (B\_oof) vs.\ 18.5\% (K\_truebase) degenerate teams, $-$4.6 $\pm$ 3.5pp across seeds ($-$0.8 $\pm$ 4.6pp with argmax root). The drop to 6.6\% (4.6\% with argmax root) at the operating point comes mainly from doubling the simulations, which we did not run without features. The composition correction charges K\_truebase for its broken teams, but it also charges the sampled GD opponents, 12--13\% of whose teams are degenerate, so it moves the 200-simulation feature gaps by at most 0.003 under any reference.
 
 \subsection{Round-Robin Tournament}
 \label{sec:tournament}
