@@ -1,0 +1,17 @@
+{
+ "protocol": "single thread, K=32, 200 sims, c_puct 2.0, J_800sim_s9; original and fixed alternate in blocks, one process each",
+ "episodes": 120,
+ "original": {
+  "eps_per_s": 5.01662068730018,
+  "ms_per_episode": 199.33737516403198,
+  "mean_episode_wp": 0.4964042703310649,
+  "nan_episodes": 0
+ },
+ "fixed": {
+  "eps_per_s": 5.017070639437162,
+  "ms_per_episode": 199.31949774424234,
+  "mean_episode_wp": 0.49633628527323403,
+  "nan_episodes": 0
+ },
+ "fixed_over_original": 1.0000896922779354
+}

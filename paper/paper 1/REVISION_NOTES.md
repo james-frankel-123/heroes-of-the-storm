@@ -1094,3 +1094,29 @@ The manuscript reports corrected results and genuine design limitations only. Im
 2. **§VII, J_oof seeds s0/s1/s4.** They were resumed without replay buffers after a compute-cap pause, which is operational. They will be replaced when MCTS is rerun after the X2 kernel fix.
 3. **Supplement kernel section footnote** on the virtual-loss bookkeeping bug in the historical batched host implementation (Table throughput).
 4. **M2_relational seed s4** (gN 0.574, "one failed seed"). This is a submitted checkpoint, and the cause has not been diagnosed.
+
+## 14. Implementation problems: fixed and not mentioned in the manuscript (2026-10-01)
+
+Max's rule: implementation problems are fixed, the affected numbers are rerun, and the manuscript reports only the corrected results. This log keeps the record.
+
+**Removed from the manuscript:**
+- §III-A tier-label wording: the off-by-one, the submission's description, and the sensitivity sentence. The text now states the site scheme, which the rebuild in §15 makes true: low = Bronze + Silver, mid = Gold + Platinum, high = Diamond + Master; unranked games excluded. The share numbers come from the backup crosstab and will be confirmed by the rebuild.
+- The J_oof resumed-seeds sentence. Those seeds will be replaced by the fixed-kernel reruns.
+- The supplement virtual-loss footnote and the "two corrections to earlier versions of this table" passage.
+- "One failed seed" (M2_relational).
+- Earlier, under 13.8: the value-head pretraining sentence and the composition-sync sentences.
+
+**Virtual-loss baseline (historical batched engine, `training/cuda_mcts/mcts_engine.cpp`).**
+- The bug: the root received the virtual-loss undo although virtual loss is never applied to it, so the root visit count went negative and NaN poisoned UCB.
+- The fix: the root gets a plain update. `baseline_engine.cpp` and `apples_engine.cpp` already had this.
+- Re-measured with `paper1_revision/throughput_vl_fixed.py` → `results/throughput_vl_fixed.json`, same protocol as the original row: single thread, K = 32, 200 sims, J_800sim_s9. Fixed and original engines alternate in blocks of 40 episodes, 120 episodes each.
+  - Fixed: **5.02 ep/s (199 ms/episode)**; original: 5.02 ep/s.
+  - Throughput is unchanged. Table throughput row "C++ tree, batched virtual loss (K=32)" goes 5.1 → 5.0, the measured value.
+  - The 2.2× controlled comparison already used fixed engines, so it is unchanged.
+- The fixed module was built separately (`cuda_mcts_vlfix`) so the shared `cuda_mcts` build used by other lanes was not touched.
+
+**M2_relational seed s4 (gN 0.574): diagnosed as optimization variance, not a bug.**
+- Same config, data, value function and weights path as the other seeds. The training log is normal: no NaN or errors, eval WP rises steadily to 0.706.
+- It converged to a different hero set (favorites Cho, Rehgar, Falstad, against Samuro, Rehgar, Hogger for most seeds). It is weaker under its own training value function (0.664 against 0.68–0.75 for the 15 seeds; s12 0.681 and s6 0.694 are also low).
+- It is the low tail of the seed distribution. The manuscript reports all seeds with their spread (0.574–0.663) and no "failed" framing.
+- When the M2 configuration is rerun with the fixed kernel, all seeds are kept as they come.

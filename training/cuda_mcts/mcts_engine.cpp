@@ -507,10 +507,20 @@ void mcts_search(
                 }
             }
 
-            // Undo virtual loss and apply real update
-            for (int idx : leaves[i].path) {
-                tree.nodes[idx].visit_count += 1 - (int)VIRTUAL_LOSS;
-                tree.nodes[idx].value_sum += value + VIRTUAL_LOSS;
+            // Undo virtual loss and apply real update. Virtual loss is applied
+            // only to the nodes selected below the root (path[1:]), so the
+            // root gets a plain update; undoing it at the root drove the root
+            // visit count negative and sqrt() of it poisoned UCB with NaN.
+            const auto& path = leaves[i].path;
+            for (size_t pi = 0; pi < path.size(); pi++) {
+                int idx = path[pi];
+                if (pi == 0) {
+                    tree.nodes[idx].visit_count += 1;
+                    tree.nodes[idx].value_sum += value;
+                } else {
+                    tree.nodes[idx].visit_count += 1 - (int)VIRTUAL_LOSS;
+                    tree.nodes[idx].value_sum += value + VIRTUAL_LOSS;
+                }
             }
         }
 
