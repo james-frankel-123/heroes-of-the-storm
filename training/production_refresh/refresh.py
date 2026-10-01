@@ -57,6 +57,10 @@ STATS_JSON = os.path.join(RUN_DIR, "stats_decayed90.json")
 # serving, search and the site artifact. Leaky training stats made the WP
 # overconfident on unseen games (calibration slope 0.61 vs 1.0-1.1 out of
 # fold; training/overfit2026/REPORT.md).
+# skill_tier uses the site's scheme (low = Bronze+Silver, mid = Gold+Platinum,
+# high = Diamond+Master; relabelled 2026-09-30). Rows with no tier or MMR are
+# 'unknown' and carry no tier information, so they are left out of training.
+TRAIN_TIERS = ("low", "mid", "high")
 OOF_FOLDS = 5
 REFRESH_WORKERS = 16  # CPU pool size (cadence.sh also pins to 16 cores)
 OOF_STATS_JSON = os.path.join(RUN_DIR, "stats_decayed90_oof{k}.json")
@@ -245,6 +249,8 @@ def phase_stats():
                 bans.extend(b)
             if gdate is None or len(teams[0]) != 5 or len(teams[1]) != 5:
                 continue
+            if tier not in TRAIN_TIERS:   # 'unknown': no league tier or MMR
+                continue
             age = max(0.0, ref_ord - (gdate.toordinal() + gdate.hour / 24.0))
             w = 0.5 ** (age / HALF_LIFE_DAYS)
             cells = folds[rid % OOF_FOLDS]
@@ -328,15 +334,13 @@ def phase_stats():
 
 def _load_fresh_corpus():
     import shared
-    # force a fresh DB read (the 24h cache may hold yesterday's corpus)
-    if os.path.exists(shared._REPLAY_CACHE_PATH):
-        age_h = (time.time() - os.path.getmtime(shared._REPLAY_CACHE_PATH)) / 3600
-        force = age_h > 6
-    else:
-        force = True
+    # Always read the DB: a local cache can hold stale labels (skill_tier was
+    # relabelled in place on 2026-09-30).
+    force = True
     rows = shared.load_replay_data(force_refresh=force)
     exclude = set(json.load(open(EXCLUDE_IDS_JSON)))
-    rows = [r for r in rows if r["replay_id"] not in exclude]
+    rows = [r for r in rows if r["replay_id"] not in exclude
+            and r.get("skill_tier") in TRAIN_TIERS]
     log(f"corpus: {len(rows):,} 2.55 replays")
     return rows
 
