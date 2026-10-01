@@ -22,7 +22,7 @@ import rb_common as rb  # noqa: E402
 from drift2026 import common  # noqa: E402
 
 feat = sys.argv[sys.argv.index("--features") + 1]
-if feat.startswith("oof_"):
+if feat.startswith(("oof_", "tierfix_")):
     common.CACHE_DIR = rb.CACHE_DIR
 common.MODELS_DIR = rb.MODELS_DIR
 common.RESULTS_DIR = rb.RESULTS_DIR

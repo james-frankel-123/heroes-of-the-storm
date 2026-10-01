@@ -130,3 +130,18 @@ Timescales (for matching against individual-skill timescales):
 | opponent (behavior) model window | 30 days before each build, retrained per build: 11.97% top-1 vs 11.08% all-history | `r13_rolling_gd.json` |
 | value-model calibration slope vs staleness (leak-free) | 0.93 at cutoff, 0.84 one year stale, 0.80 two years stale | `r3_eval_vf.json` |
 | retraining cadence that keeps accuracy regret < 0.11pp | every 1-6 builds (replay builds average 29 days apart, so monthly to twice a year); 9-12 builds cost 0.20-0.22pp | `R9_REPLAY.md` |
+
+## 6. Tier-label correction (2026-09-30)
+
+**Bug.** The replay daemon stored `league_tier` one level too high and labeled Master games (`league_tier` NULL) as "mid". In the pinned snapshot the research tiers are therefore low = Bronze and below, mid = Silver + Gold + Master, high = Platinum + Diamond. The pre-rebuild and rebuilt drafts both said "Bronze-Gold, Platinum-Diamond, Master-Grandmaster", which was wrong. The live DB was relabeled on 2026-09-30; the snapshot keeps the old labels, and every model and statistic in the paper uses them.
+
+**Manuscript.** Sec. 2 now states the actual grouping and the sensitivity check below. No per-tier finding remains in the rebuilt draft: the tier ordering of settling and stability ("low 6,500, high 7,800, mid 8,700"; "meta stability is tier-ordered") was already dropped in this rebuild (audit B26), so nothing tier-ordered needed relabeling. The "within 13 compositions per tier" sentence uses the tiers only as bins. The underlying artifacts `training/drift2026/results/W3_HETEROGENEITY.md` and `W3_RECOVERY.md` (tier rows) still carry the old names and should be read with the mapping above; they are no longer cited per tier.
+
+**Sensitivity check** (`training/drift_rebuild/r14_tierfix_features.py`, results `results/r14_tierfix.json`). Corrected tiers in the site's scheme (real = league_tier - 1, NULL = Master; low = Bronze + Silver, mid = Gold + Platinum, high = Diamond + Master); 907,710 of 1,949,087 games (47%) change label. The maintained (cumulative_prev) feature cache was rebuilt with corrected tiers for both the per-tier statistics and the tier one-hot, and the value function retrained (3 seeds, same protocol):
+
+| | future acc | future calibration slope | future log loss |
+|---|---|---|---|
+| mislabeled (paper) | 57.08 (57.09 / 57.11 / 57.04) | 0.93 (0.92 / 0.92 / 0.95) | 0.6777 |
+| corrected tiers | 57.11 (57.12 / 57.04 / 57.17) | 0.93 (0.91 / 0.96 / 0.93) | 0.6776 |
+
+Nothing moves beyond seed noise, so no other experiment was rerun; the paper reports this in one sentence.

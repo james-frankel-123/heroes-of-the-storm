@@ -146,11 +146,19 @@ builds, 28 are sizable. Forty builds map to scripted patch notes, and
 five have no published notes and are treated as no-change builds
 (Section~\ref{sec:detect}). Consecutive sizable builds define 27
 boundaries that are detectable in principle; the notes for 21 of them
-mention at least one hero and the notes for 6 mention none. Skill is bucketed into three tiers
-(Bronze--Gold, Platinum--Diamond, Master--Grandmaster). Replacing the
-tier one-hot with continuous average match rating changes future
-accuracy by $-$0.017pp, and appending it changes it by +0.007pp, both
-inside seed noise.
+mention at least one hero and the notes for 6 mention none. Skill is
+bucketed into three tiers. Because of a labeling error in our replay
+collection, the snapshot's tiers group Bronze and below (low), Silver,
+Gold, and Master (mid), and Platinum and Diamond (high), so the mid tier
+is not contiguous in league order. Every model here conditions on these labels, and
+the aggregate statistics are computed per label. Retraining the
+\maintained{} value function with contiguous tiers (Bronze--Silver,
+Gold--Platinum, Diamond--Master; 47\% of games change label) leaves
+future-window accuracy at 57.11\% against 57.08\% and the calibration
+slope at 0.93 against 0.93 (three seeds each), so no result depends on
+the grouping. Replacing the tier one-hot with continuous average match
+rating changes future accuracy by $-$0.017pp, and appending it changes
+it by +0.007pp, both inside seed noise.
 
 All value functions share the architecture of our earlier work: a
 283-input MLP over hero identities, map, tier, and aggregate-statistic
