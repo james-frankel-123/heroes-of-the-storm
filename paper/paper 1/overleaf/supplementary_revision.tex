@@ -50,9 +50,36 @@ Table~\ref{tab:throughput} shows the progression; all stages measured at 200 sim
 
 \paragraph{Apples-to-apples baseline.} For a controlled speedup claim we built a tuned host-tree baseline in the style of KataGo's batched-evaluation pipelines: 64--256 CPU threads each running one episode's tree, leaf evaluations batched across threads onto the GPU via cuBLAS GEMM over multiple streams, reproducing the production kernel's exact per-simulation work (policy priors at expansion, Generic Draft rollout to terminal at every leaf, symmetrized enriched-WP scoring). At equal work \textit{and} equal search semantics (leaf batch 1; first-turn root-visit total-variation distance from the kernel 0.047, at the 0.044 kernel-vs-kernel seed-noise floor; win rate vs.\ GD 0.761 vs.\ the kernel's 0.757), the host pipeline sustains 68 ep/s against the fused kernel's 151 ep/s on the same GPU: the fused kernel is 2.2$\times$ faster, the figure quoted in the main paper, because per-simulation host-device round trips cannot be amortized without within-episode leaf batching. Virtual-loss leaf batching does push the host pipeline to 163 ep/s (1.07$\times$ the kernel), but only by degrading the search itself: at leaf batch 32 the win rate vs.\ GD falls from 0.757 to 0.531 and the visit-distribution TV rises to 0.62; softening virtual loss to 0.25 recovers only 0.712.\footnote{The equivalence check also uncovered a virtual-loss bookkeeping bug in the historical batched implementation of Table~\ref{tab:throughput}: the virtual-loss undo was applied to the root node as well as the descended path, driving the root visit count negative, at which point $\sqrt{\smash[b]{\text{negative}}}=\text{NaN}$ poisoned UCB selection from the second leaf batch onward.} Per-component profiling shows the GD rollout evaluation dominates ($\sim$75\% of the host pipeline's evaluator wait time; policy priors and WP scoring share the rest), and that the kernel's per-node cache of opponent GD distributions is dead code in practice: leaves expand only at our-team steps, so cached nodes are never re-traversed at opponent steps (measured cache-miss count 0), which is why it is not listed among the optimizations above. The remaining advantages of the fused kernel are operational: 0.12~s startup, a deterministic $\sim$270~MB footprint, and no host thread pool or Python runtime at inference.
 
-\section{Synthetic Augmentation Sweep: Unseen vs.\ Sparse Scope}
+\section{Synthetic Augmentation: Assigned Win Rate and Scope}
+\label{sec:synthsupp}
 
-We swept 27 configurations, re-run with leak-free models (256$\to$128, out-of-fold features, own composition table, seed 42): assigned win rate for unseen compositions (10/20/30\%), volume (50/100/200 records per composition and tier), and scope (unseen only; sparse only, which tops up observed compositions with fewer than 300 games and win rate below 48\% to 300 games at their own win rate; or both). Sparse-only augmentation does not depend on win rate or volume (19,107 records in every cell) and leaves the five-tank WP at 0.26, against 0.27 without augmentation. Unseen-only augmentation lowers it to 0.07--0.12 at 10\%, 0.16--0.18 at 20\%, and 0.23--0.28 at 30\%; adding the sparse records changes little (0.08--0.10 at 10\%). Held-out accuracy stays at 57.5--57.7\% and post-snapshot calibration slope at 0.93--1.02 in every cell, and 24--27 of 28 sanity tests pass. The active ingredient is the unseen compositions, and lower assigned win rates penalize five tanks more.
+The submission proposed synthetic records for unseen role compositions as the repair for unsafe value search. The revision reports augmentation as a tradeoff (main paper, Section~V) and recommends the structural mask. This section keeps the leak-free details.
+
+\begin{table}[t]
+\centering
+\caption{Synthetic augmentation by assigned win rate (leak-free 512$\to$256$\to$128 models, unseen compositions, 100 records per composition and tier). Acc.: 3-seed test mean. Composition rates: 2 opponent seeds $\times$ 1000 greedy drafts (GD-argmax rollouts) of the selected model. 5T: WP of five tanks against a standard team.}
+\label{tab:synth}
+\setlength{\tabcolsep}{3.6pt}
+\begin{tabular}{lcccccc}
+\toprule
+Assigned WR & Acc.\% & Heal\% & Rng\% & Deg\% & 5T & Sanity \\
+\midrule
+None & 57.5 & 81.8 & 93.6 & 23.7 & .27 & 22/28 \\
+0\% & 57.5 & 92.1 & 98.6 & 14.5 & .05 & 26/28 \\
+5\% & 57.5 & 91.6 & 98.1 & 14.6 & .06 & 26/28 \\
+10\% & 57.5 & 91.8 & 97.5 & 13.6 & .08 & 26/28 \\
+50\% & 57.5 & 95.1 & 95.8 & 8.9 & .29 & 25/28 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Assigned win rate} Synthetic rows get out-of-fold features like real rows; validation and test stay real. Augmentation leaves accuracy unchanged and improves every safety measure under greedy search (Table~\ref{tab:synth}). Assigned rates of 0--10\% behave alike; 50\% gives fewer degenerate greedy teams (8.9\%) but barely penalizes five tanks (0.29). Downstream models keep the submission's 10\%, so no downstream result is selected on this sweep.
+
+\paragraph{Interaction cost} Under the rich evaluation the augmented greedy agent trades interaction-awareness for safety: degenerate 21.1\% $\to$ 15.2\%, synergy +0.44 $\to$ +0.29, counter +0.16 $\to$ +0.09. Head to head in the tournament it scores 0.485 $\pm$ 0.004 against the unaugmented greedy agent, while masked greedy scores 0.511 $\pm$ 0.003 with 0\% degenerate teams and synergy +0.37. At 200 MCTS simulations the augmented value function (H\_augmented, submitted pipeline) gives 12.3\% degenerate teams vs.\ 15.0\% without augmentation (gN 0.663 vs.\ 0.654).
+
+\paragraph{Scope}
+
+We swept 27 configurations, re-run with leak-free models (256$\to$128, out-of-fold features, own composition table, seed 42): assigned win rate for unseen compositions (10/20/30\%), volume (50/100/200 records per composition and tier), and scope (unseen only; sparse only, which tops up observed compositions with fewer than 300 games and win rate below 48\% to 300 games at their own win rate; or both). Sparse-only augmentation does not depend on win rate or volume (19,107 records in every cell) and leaves the five-tank WP at 0.26, against 0.27 without augmentation. Unseen-only augmentation lowers it to 0.07--0.12 at 10\%, 0.16--0.18 at 20\%, and 0.23--0.28 at 30\%; adding the sparse records changes little (0.08--0.10 at 10\%). Held-out accuracy stays at 57.5--57.7\% and post-snapshot calibration slope at 0.93--1.02 in every cell, and 24--27 of 28 sanity tests pass. Within augmentation, the five-tank effect comes from the unseen compositions, and lower assigned win rates penalize five tanks more.
 
 \section{Validity of the Interaction Metrics}
 \label{sec:metricvalid}
