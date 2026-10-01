@@ -9,6 +9,13 @@ PYTHONPATH.
   P1R_MCTS_CKPT   rerun2026.constrained_search.load_mcts_policy defaults to
                   this checkpoint (its built-in default is the namespace's
                   J_800sim_s9, which the oct2026 run does not train).
+  P1R_DROP_AUG=1  rerun2026.phase3b_roundrobin drops the synthetic-augmentation
+                  strategy (enriched_aug) from STRATEGIES and the "augmented"
+                  evaluator from WP_EVALUATORS (expert study v6 roster, Max
+                  2026-10-01). constrained_search builds its roster from
+                  phase3b's list at import, so it inherits the change.
+Patches apply on import by module name, so the patched modules must be
+imported (not run as __main__); oct2026_tournament.py does that.
 """
 import os
 import sys
@@ -44,7 +51,14 @@ def _patch_cs(mod):
     mod.load_mcts_policy.__defaults__ = (_MCTS,)
 
 
+def _patch_p3b(mod):
+    mod.STRATEGIES[:] = [x for x in mod.STRATEGIES if x != "enriched_aug"]
+    mod.WP_EVALUATORS.pop("augmented", None)
+
+
 _TARGETS = {}
+if os.environ.get("P1R_DROP_AUG") == "1":
+    _TARGETS["rerun2026.phase3b_roundrobin"] = _patch_p3b
 if _COMP:
     _TARGETS["sweep_enriched_wp"] = _patch_swp
 if _MCTS:

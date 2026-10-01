@@ -44,6 +44,8 @@ DIFFERENCES = [
     "constrained-search pairs: the 'mcts' side uses the same F_400sim_s0 checkpoint as "
     "constrained_mcts (September: a stale July checkpoint, L_800sim_4M_s0, through a "
     "missing --mcts-run)",
+    "roster: synthetic augmentation removed (no enriched_aug strategy, no augmented "
+    "evaluator; Max 2026-10-01): 10 strategies, 3 evaluators",
 ]
 
 
@@ -65,7 +67,7 @@ def base_env(gpu=None):
         "PYTHONPATH": os.path.join(HERE, "oct2026_site"),
         "PYTHON_CPU_COUNT": "4", "P1R_NPROC": "4",
         "OMP_NUM_THREADS": "2", "MKL_NUM_THREADS": "2", "NUMBA_NUM_THREADS": "2",
-        "RERUN_SLOW_GPU": "-1", "WANDB_MODE": "disabled", "REPLAY_SNAPSHOT": "1",
+        "RERUN_SLOW_GPU": "-1", "P1R_DROP_AUG": "1", "WANDB_MODE": "disabled", "REPLAY_SNAPSHOT": "1",
         "CUDA_VISIBLE_DEVICES": str(gpu) if gpu is not None else "",
     })
     return env
@@ -140,16 +142,18 @@ def build_jobs():
     add("mcts", [os.path.join(HERE, "oct2026_refresh.py"), "--mcts-train"],
         [out("logs", f"mcts_{MCTS_RUN}.done")], deps=["wp", "gd_0", "mcts_prep"], gpu=True)
     gate = ["mcts", "wp", "disc_train"] + PHASE1
-    add("phase3b", [os.path.join(RERUN, "phase3b_roundrobin.py"), "--mcts-run", MCTS_RUN],
-        [out("results", "roundrobin_summary.json")], deps=gate,
-        extra_env={"RERUN_GPU_IDS": "9,9,9,9", "CUDA_VISIBLE_DEVICES": ""})
-    add("constrained", [os.path.join(HERE, "oct2026_refresh.py"), "--constrained-pairs"],
-        [out("results", "constrained", "pairs.done")], deps=gate)
+    gate = [g for g in gate if g != "wp"] + ["wp"]
+    tour = os.path.join(HERE, "oct2026_tournament.py")
+    add("phase3b", [tour, "roundrobin"], [out("results", "roundrobin.done")], deps=gate)
+    add("constrained", [tour, "constrained"], [out("results", "constrained", "pairs.done")],
+        deps=gate + ["phase3b"])
     return J
 
 
 def done(job):
-    return all(os.path.exists(p) for p in job["outputs"])
+    """Outputs exist AND no live process is still producing them (several
+    trainers save their best checkpoint while training continues)."""
+    return all(os.path.exists(p) for p in job["outputs"]) and _find_running(job) is None
 
 
 def my_gpu_procs(running):
@@ -173,10 +177,45 @@ def hots_gpu_procs():
         return 99
 
 
+class _Adopted:
+    """A job process started by an earlier driver instance."""
+    def __init__(self, pid):
+        self.pid = pid
+
+    def poll(self):
+        try:
+            os.kill(self.pid, 0)
+            st = open(f"/proc/{self.pid}/stat").read().split()[2]
+            return 0 if st == "Z" else None
+        except OSError:
+            return 0
+
+
+def _find_running(job):
+    want = " ".join(job["argv"])
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit() or int(pid) == os.getpid():
+            continue
+        try:
+            cmd = open(f"/proc/{pid}/cmdline", "rb").read().replace(b"\0", b" ").decode(errors="ignore")
+        except OSError:
+            continue
+        if want in cmd and "python" in cmd and "nice" not in cmd.split()[0]:
+            return int(pid)
+    return None
+
+
 def run(gpu_id):
     jobs = build_jobs()
     byname = {j["name"]: j for j in jobs}
     running = {}
+    for j in jobs:                      # adopt jobs a previous driver left running
+        if True:
+            pid = _find_running(j)
+            if pid:
+                j["proc"], j["logf"] = _Adopted(pid), open(os.devnull, "w")
+                running[j["name"]] = j
+                print(f"ADOPT {j['name']} pid {pid}", flush=True)
     log = open(os.path.join(NS_DIR, "refresh.log"), "a")
 
     def say(msg):

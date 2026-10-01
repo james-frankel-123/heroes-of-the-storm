@@ -76,18 +76,35 @@ import { HERO_ROLES } from '../src/lib/data/hero-roles'
 // the tournament replayed, and all real-game blocks redrawn from games played
 // on or after the snapshot cutoff. The v4 pool (seed 20260712) was never
 // rated by a non-test rater.
-const SEED = 20260918
-// v5: the tournament records are new, so the pair sample is drawn fresh.
-const PAIR_SAMPLE_SEED = 20260918
+// 20261001 is the v6 tier-corrected pool: snapshot re-pulled after the
+// 2026-09-30 skill-tier relabel (site scheme: low = Bronze+Silver, mid =
+// Gold+Platinum, high = Diamond+Master), every strategy retrained leak-free
+// (out-of-fold statistics) in rerun2026 namespace oct2026 with the MCTS
+// operating point F_400sim, the tournament replayed, and real-game blocks
+// redrawn with the corrected tiers. The v5 pool showed raters tier banners
+// that did not contain the game's rank for 38.5% of real-game items; it was
+// never rated by a non-test rater. v6 also removes synthetic augmentation
+// from the study (Max, 2026-10-01): no enriched_aug strategy, so 10
+// strategies (45 unordered pairings) feed the same four strata and counts.
+// The frozen model WPs are relabeled after generation by
+// training/paper1_revision/oct2026_pool_judges.py (three evaluators naive /
+// herostrength / enriched, structure-corrected; see that script).
+const SEED = 20261001
+// v6: the tournament records are new, so the pair sample is drawn fresh.
+const PAIR_SAMPLE_SEED = 20261001
 // Model-training snapshot cutoff (game_date, exclusive). Every real ladder
 // draft in the study is played on or after this date, so no anchor is
 // train-set data. (Date, not replay id: HP replay ids are assigned at upload
 // and are not monotone in game date.)
 const TRAINING_SNAPSHOT_CUTOFF = '2026-09-01'
+// Builds a real-game item may come from (v6). Builds released after
+// 2026-09-27 (2.57.x) are reserved for the drift pre-registration and must
+// not be read; the 2.55.17 builds are the meta the agents were trained on.
+const ANCHOR_BUILDS = ['2.55.17.97771', '2.55.17.98025']
 const REPO = path.resolve(__dirname, '..')
 const RESULT_DIRS = [
-  path.join(REPO, 'training/rerun2026/ns/sept2026/results/roundrobin'),
-  path.join(REPO, 'training/rerun2026/ns/sept2026/results/constrained/roundrobin'),
+  path.join(REPO, 'training/rerun2026/ns/oct2026/results/roundrobin'),
+  path.join(REPO, 'training/rerun2026/ns/oct2026/results/constrained/roundrobin'),
 ]
 const OUT_PATH = path.join(REPO, 'data/rating-items.json')
 
@@ -418,6 +435,7 @@ async function loadLadderTier(tier: string, count: number): Promise<LadderDraft[
     from replay_draft_data
     where skill_tier = ${tier}
       and game_date >= ${TRAINING_SNAPSHOT_CUTOFF}
+      and game_version = any(${ANCHOR_BUILDS})
     order by game_date desc, replay_id desc
     limit 6000
   `) as LadderDraft[]
@@ -618,7 +636,7 @@ async function main() {
         seed: SEED,
         generatedAt: new Date().toISOString(),
         trainingSnapshotCutoff: TRAINING_SNAPSHOT_CUTOFF,
-        tournamentNamespace: 'sept2026',
+        tournamentNamespace: 'oct2026',
         items,
       },
       null,

@@ -17,12 +17,13 @@ never trained on:
 Games are split by a salted replay-id hash: the FIT half estimates beta, the
 CHECK half reports calibration (predicted vs observed win rate of degenerate
 and normal teams; log-loss; slope) before and after correction.
-J in {naive, herostrength, enriched, augmented, consensus}; the consensus is
-the mean of the four uncorrected evaluators and gets its own beta.
+J in {naive, herostrength, enriched, consensus}; the consensus is the mean
+of the three uncorrected evaluators and gets its own beta. (The augmented
+evaluator was dropped with synthetic augmentation, Max 2026-10-01.)
 
   python3 paper1_revision/oct2026_struct_correction.py fit
 Hooks for oct2026_pool_judges.py (py:<this file>:<func>):
-  naive_sc, herostrength_sc, enriched_sc, augmented_sc, consensus_sc
+  naive_sc, herostrength_sc, enriched_sc, consensus_sc
 Env: as oct2026_refresh.base_env (RERUN_NS=oct2026, deploy stats, hook).
 """
 import os
@@ -37,7 +38,7 @@ sys.path.insert(0, TRAINING_DIR)
 import numpy as np
 
 OUT = os.path.join(HERE, "results", "expert_v6", "struct_correction.json")
-EVALS = ["naive", "herostrength", "enriched", "augmented"]
+EVALS = ["naive", "herostrength", "enriched"]   # v6 roster: no synthetic augmentation
 BUILDS = ("2.55.17.97771", "2.55.17.98025")
 _CACHE = {}
 
@@ -176,7 +177,6 @@ def _corrected(name):
 naive_sc = _corrected("naive")
 herostrength_sc = _corrected("herostrength")
 enriched_sc = _corrected("enriched")
-augmented_sc = _corrected("augmented")
 consensus_sc = _corrected("consensus")
 
 if __name__ == "__main__":
