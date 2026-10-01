@@ -1,0 +1,217 @@
+--- a/training/train_mcts_worker.py	2026-10-01 15:20:54.245916446 -0400
++++ b/training/train_mcts_worker.py	2026-10-01 15:21:07.829327195 -0400
+@@ -67,6 +67,18 @@
+ GD_PATH_OVERRIDE = os.environ.get("MCTS_GD_PATH", "")
+ WP_ZERO_GROUPS = [g for g in os.environ.get("MCTS_WP_ZERO_GROUPS", "").split(",") if g]
+ EXCLUDE_IDS_PATH = os.environ.get("MCTS_EXCLUDE_IDS", "")
++# Pause-safe checkpointing (opt-in; both unset = historical behavior):
++#   MCTS_CKPT_EVERY_SEC  >0: every N seconds (checked at batch boundaries) write
++#                        SAVE_DIR/resume_state.pt: network, optimizer, scheduler,
++#                        counters, ring buffer, produced-but-unconsumed batches,
++#                        engine weights and RNG states. With MCTS_FRESH=0 the run
++#                        continues from it instead of the best-eval checkpoint.
++#   MCTS_PAUSE_FILE      if this file exists at a batch boundary (or SIGTERM was
++#                        received), write resume_state.pt and exit with code 75.
++CKPT_EVERY_SEC = float(os.environ.get("MCTS_CKPT_EVERY_SEC", "0"))
++PAUSE_FILE = os.environ.get("MCTS_PAUSE_FILE", "")
++RESUMABLE = CKPT_EVERY_SEC > 0 or bool(PAUSE_FILE)
++PAUSE_EXIT_CODE = 75
+ WEIGHT_SYNC_INTERVAL = 512
+ EVAL_INTERVAL = 5000
+ EVAL_DRAFTS = 50
+@@ -200,8 +212,17 @@
+ 
+     start_episode = 0
+     best_eval_wp = 0.0
++    resume_path = os.path.join(SAVE_DIR, "resume_state.pt")
++    resume = None
+ 
+-    if not FRESH and os.path.exists(ckpt_path):
++    if RESUMABLE and not FRESH and os.path.exists(resume_path):
++        resume = torch.load(resume_path, weights_only=False, map_location="cpu")  # RNG states must stay on CPU
++        network.load_state_dict(resume['model_state_dict'])
++        start_episode = resume['episode']
++        best_eval_wp = resume['best_eval_wp']
++        print(f"Resumed from resume_state.pt: episode {start_episode}, best_wp={best_eval_wp:.4f}, "
++              f"{len(resume['pending'])} pending batches")
++    elif not FRESH and os.path.exists(ckpt_path):
+         ckpt = torch.load(ckpt_path, weights_only=False, map_location=device)
+         network.load_state_dict(ckpt['model_state_dict'])
+         start_episode = ckpt.get('episode', 0)
+@@ -230,7 +251,11 @@
+     optimizer = torch.optim.Adam(network.parameters(), lr=1e-3, weight_decay=1e-4)
+     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=150000, eta_min=1e-5)
+ 
+-    if not FRESH and os.path.exists(ckpt_path) and start_episode > 0:
++    if resume is not None:
++        optimizer.load_state_dict(resume['optimizer_state_dict'])
++        scheduler.load_state_dict(resume['scheduler_state_dict'])
++        print("Restored optimizer + scheduler (resume_state)")
++    elif not FRESH and os.path.exists(ckpt_path) and start_episode > 0:
+         try:
+             ckpt = torch.load(ckpt_path, weights_only=False, map_location=device)
+             optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+@@ -260,6 +285,13 @@
+     buf_values = np.zeros(BUFFER_SIZE, dtype=np.float32)
+     buf_write_idx = 0
+     buf_size = 0
++    if resume is not None:
++        buf_states[:] = resume['buf_states']
++        buf_policies[:] = resume['buf_policies']
++        buf_masks[:] = resume['buf_masks']
++        buf_values[:] = resume['buf_values']
++        buf_write_idx = resume['gen_write_idx']
++        buf_size = resume['buf_size']
+     print(f"Ring buffer: {BUFFER_SIZE} entries, "
+           f"{(buf_states.nbytes + buf_policies.nbytes + buf_masks.nbytes + buf_values.nbytes) / 1024/1024:.0f} MB")
+ 
+@@ -267,6 +299,9 @@
+     n_tiers = len(SKILL_TIERS)
+     episodes_since_weight_sync = 0
+     last_eval_episode = start_episode
++    if resume is not None:
++        episodes_since_weight_sync = resume['episodes_since_weight_sync']
++        last_eval_episode = resume['last_eval_episode']
+ 
+     train_start = time.time()
+     episode = start_episode
+@@ -279,16 +314,39 @@
+ 
+     # ── Initial weight sync ──
+     policy_flat, _ = extract_policy_weights(network)
+-    engine.update_weights(policy_flat)
++    engine_flat = [policy_flat]  # weights the engine currently holds (resume state)
++    if resume is not None:
++        engine_flat[0] = resume['engine_flat']
++    engine.update_weights(engine_flat[0])
+ 
+     # ── Generation thread for pipelining ──
+     gen_queue = queue.Queue(maxsize=2)
+     gen_running = True
+     gen_seed = [episode]  # mutable for thread access
+     gen_write_idx = [buf_write_idx]
++    # Resume support: batches produced but not yet consumed are carried over
++    # in `prefetched`; gen_hold parks the generator between batches.
++    prefetched = []
++    gen_hold = threading.Event()
++    gen_idle = threading.Event()
++    if resume is not None:
++        gen_seed[0] = resume['gen_seed']
++        prefetched = list(resume['pending'])
++        random.setstate(resume['rng_python'])
++        np.random.set_state(resume['rng_numpy'])
++        torch.set_rng_state(resume['rng_torch'])
++        if torch.cuda.is_available() and resume.get('rng_cuda') is not None:
++            torch.cuda.set_rng_state_all(resume['rng_cuda'])
++        del resume
+ 
+     def generation_thread():
+         while gen_running:
++            if gen_hold.is_set():
++                gen_idle.set()
++                while gen_hold.is_set() and gen_running:
++                    time.sleep(0.05)
++                gen_idle.clear()
++                continue
+             batch_count = min(BATCH_EPISODES, NUM_EPISODES - gen_seed[0])
+             if batch_count <= 0:
+                 gen_queue.put(None)
+@@ -307,6 +365,51 @@
+     gen_thread = threading.Thread(target=generation_thread, daemon=True)
+     gen_thread.start()
+ 
++    pause_requested = [False]
++    if RESUMABLE:
++        import signal
++        signal.signal(signal.SIGTERM, lambda *_: pause_requested.__setitem__(0, True))
++    last_ckpt_time = time.time()
++
++    def save_resume_state(reason):
++        # Park the generator after its in-flight batch; keep what it produced.
++        gen_hold.set()
++        while not gen_idle.is_set() and gen_thread.is_alive():
++            try:
++                prefetched.append(gen_queue.get(timeout=0.1))
++            except queue.Empty:
++                pass
++        while True:
++            try:
++                prefetched.append(gen_queue.get_nowait())
++            except queue.Empty:
++                break
++        state = {
++            'model_state_dict': network.state_dict(),
++            'optimizer_state_dict': optimizer.state_dict(),
++            'scheduler_state_dict': scheduler.state_dict(),
++            'episode': episode, 'best_eval_wp': best_eval_wp,
++            'last_eval_episode': last_eval_episode,
++            'episodes_since_weight_sync': episodes_since_weight_sync,
++            'buf_states': buf_states, 'buf_policies': buf_policies,
++            'buf_masks': buf_masks, 'buf_values': buf_values,
++            'buf_size': buf_size, 'gen_seed': gen_seed[0], 'gen_write_idx': gen_write_idx[0],
++            'pending': list(prefetched), 'engine_flat': engine_flat[0],
++            'rng_python': random.getstate(), 'rng_numpy': np.random.get_state(),
++            'rng_torch': torch.get_rng_state(),
++            'rng_cuda': torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
++        }
++        tmp = resume_path + ".tmp"
++        torch.save(state, tmp)
++        os.replace(tmp, resume_path)
++        import json as _json
++        with open(resume_path[:-3] + ".json.tmp", "w") as f:
++            _json.dump({"episode": episode, "reason": reason, "time": time.time(),
++                        "pending": len(prefetched)}, f)
++        os.replace(resume_path[:-3] + ".json.tmp", resume_path[:-3] + ".json")
++        print(f"  Resume checkpoint @ {episode} ({reason}, {len(prefetched)} pending batches)", flush=True)
++
++
+     # ══════════════════════════════════════════════════════
+     # MAIN LOOP: pipelined generate (GPU thread) + train (main thread)
+     # ══════════════════════════════════════════════════════
+@@ -314,7 +417,7 @@
+ 
+     while episode < NUM_EPISODES:
+         # Wait for next batch from generation thread
+-        item = gen_queue.get()
++        item = prefetched.pop(0) if prefetched else gen_queue.get()
+         if item is None:
+             break
+         batch_count, n_written, wp_values = item
+@@ -354,6 +457,7 @@
+             network.eval()
+             policy_flat, _ = extract_policy_weights(network)
+             engine.update_weights(policy_flat)
++            engine_flat[0] = policy_flat
+             episodes_since_weight_sync = 0
+ 
+         # Logging
+@@ -372,6 +476,7 @@
+             network.eval()
+             policy_flat, _ = extract_policy_weights(network)
+             engine.update_weights(policy_flat)
++            engine_flat[0] = policy_flat
+ 
+             # Eval uses a temporary buffer (not the training ring buffer)
+             eval_buf_s = np.zeros((EVAL_DRAFTS * 8, STATE_DIM), dtype=np.float32)
+@@ -403,6 +508,21 @@
+                 }, ckpt_path)
+                 print(f"  New best! Saved to {SAVE_DIR}\n")
+ 
++        # Pause / periodic resume checkpoint (opt-in, see MCTS_CKPT_EVERY_SEC)
++        if RESUMABLE:
++            pause = pause_requested[0] or (PAUSE_FILE and os.path.exists(PAUSE_FILE))
++            periodic = CKPT_EVERY_SEC > 0 and time.time() - last_ckpt_time >= CKPT_EVERY_SEC
++            if pause or periodic:
++                save_resume_state("pause" if pause else "periodic")
++                last_ckpt_time = time.time()
++                if pause:
++                    gen_running = False
++                    print(f"PAUSED at episode {episode} (exit {PAUSE_EXIT_CODE})", flush=True)
++                    sys.stdout.flush()
++                    os._exit(PAUSE_EXIT_CODE)
++                gen_hold.clear()
++
++
+     gen_running = False
+     gen_thread.join(timeout=10)
+ 
