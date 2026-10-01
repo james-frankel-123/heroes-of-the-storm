@@ -1303,3 +1303,17 @@ The 3090 manifests for GD 0/1 were closed, so a 3090 resume does not duplicate t
 - relaunch cqlA.
 
 The MCTS scheduler uses `mcts_slots.json`: 3090 2, 3080 1. The 3080 goes to 2 automatically when the drift lane's MCTS job ends. The fetch loops run per host, with GD 0/1 excluded from the 3090 fetch.
+
+### 15.8 3080 memory incident and the new host rules (2026-10-01 19:00)
+
+**What happened.** The restarted p1site cache build on the 3080 (4 workers) held about 38 GB: the full snapshot parses to about 13.6 GB in the parent, plus about 5–7 GB per worker. That took down the 48 GB WSL. The earlier crash had the same cause: a cache build plus a drill loading the snapshot at the same time.
+
+**Rules now:**
+- Heavy CPU/RAM work runs on the 3090 only: at most about 16 cores and 100 GB, CPU only while the expert study holds its GPU.
+- The 3080 runs at most one lean job of mine at a time, under about 15 GB.
+
+**Changes:**
+- **No rebuild needed on the 3090.** The 3090 already holds complete p1site caches (built 16:21).
+- **Lite snapshot.** `site_lite_snapshot.py` (run on the 3090) writes a lean site-tier snapshot: same rows and order, only the fields value pretraining reads (0.64 GB on disk). Loading and splitting it peaks at 3.9 GB RSS, against about 30 GB for the full file.
+- **MCTS pretraining.** `train_mcts.py` uses the lite file for value pretraining under site tiers. The pretraining inputs are identical, so the pretraining is unchanged, and a 3080 MCTS job fits the 15 GB budget. The scheduler pushes the lite file.
+- **GD caches.** gd_train/gd_test (28.6 GB) are being relayed 3090 → main box (rsync, nice 19, ionice idle) for a later push to the 3080, if GD has to run there before the 3090 GPU frees.

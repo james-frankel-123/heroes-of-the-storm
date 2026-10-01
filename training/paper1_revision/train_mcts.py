@@ -93,8 +93,12 @@ def main():
         # site-tier rebuild: GD pool of rerun2026 namespace p1site; value
         # pretraining reads the site-tier snapshot (same rows)
         GD_PATH = os.path.join(TRAINING_DIR, "rerun2026", "ns", "p1site", "models", "generic_draft_0.pt")
-        os.environ["REPLAY_SNAPSHOT_PATH"] = os.path.join(
-            TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site.json")
+        # value pretraining reads only teams, bans, map, tier and winner, so the
+        # lean copy (site_lite_snapshot.py; same rows, same order) gives the
+        # same pretraining at a fraction of the memory
+        snap = os.path.join(TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site.json")
+        lite = snap[:-5] + "_lite.json"
+        os.environ["REPLAY_SNAPSHOT_PATH"] = lite if os.path.exists(lite) else snap
     if a.wp is None:
         a.wp = "naive" if a.config == "K" else "enriched"
     meta = json.load(open(os.path.join(core.MODEL_DIR, f"{a.wp}.json")))

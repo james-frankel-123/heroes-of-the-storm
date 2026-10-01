@@ -74,7 +74,7 @@ def push(host):
         files += [os.path.join(d, f) for f in os.listdir(d) if re.match(pat, f)]
     files += [os.path.join(SITE, "cache", "paper_test_ids.json"),
               os.path.join(SITE, "cache", "mcts_pretrain_exclude.json"),
-              os.path.join(TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site.json")]
+              os.path.join(TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site_lite.json")]
     files += [os.path.join(NS, f"generic_draft_{i}.pt") for i in range(5)]
     lst = "\n".join(os.path.relpath(f, REPO) for f in files) + "\n"
     r = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", "--rsync-path=wsl rsync", "-z",
