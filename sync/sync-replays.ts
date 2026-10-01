@@ -26,16 +26,20 @@ import { storeReplayPlayers } from './player-store'
 // ── Helpers ──────────────────────────────────────────────────────────
 
 /**
- * Listing league_tier ids run one above the tier names (2 = Bronze ... 6 =
- * Diamond); Master games have a NULL tier but an avg_mmr (above ~2962).
- * Until 2026-09-30 a NULL tier fell through to 'mid', mislabelling every
- * Master game; a NULL tier with no MMR at all is genuinely unknown.
+ * Skill tier in the site's scheme (same as global stats' league_tier
+ * groups): low = Bronze+Silver, mid = Gold+Platinum, high = Diamond+Master.
+ *
+ * Listing league_tier ids run one above the tier names (1 = Wood, 2 =
+ * Bronze ... 6 = Diamond), and Master games have a NULL tier with an avg_mmr
+ * (above ~2962). A NULL tier with no MMR at all is unknown. Rows written
+ * before 2026-09-30 used a shifted scheme with NULL -> 'mid'; they were
+ * relabelled by sync/relabel-skill-tier.ts (old labels backed up).
  */
 export function leagueTierToSkillTier(tier: number | null, avgMmr: number | null): string {
   if (tier === null || tier === undefined) return avgMmr === null || avgMmr === undefined ? 'unknown' : 'high'
-  if (tier <= 2) return 'low'
-  if (tier <= 4) return 'mid'
-  return 'high'
+  if (tier <= 3) return 'low'  // Wood, Bronze, Silver
+  if (tier <= 5) return 'mid'  // Gold, Platinum
+  return 'high'                // Diamond
 }
 
 // ── Phase 1: Discovery ──────────────────────────────────────────────

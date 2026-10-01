@@ -3,11 +3,12 @@ import { avgPlayerMmr, legacyListingTier } from '../listing-fields'
 import { leagueTierToSkillTier } from '../sync-replays'
 
 describe('leagueTierToSkillTier', () => {
-  it('maps listing tier ids (one above the tier names) to skill tiers', () => {
+  it("maps listing tier ids (one above the tier names) to the site's scheme", () => {
+    expect(leagueTierToSkillTier(1, 1800)).toBe('low') // Wood
     expect(leagueTierToSkillTier(2, 2300)).toBe('low') // Bronze
-    expect(leagueTierToSkillTier(3, 2500)).toBe('mid') // Silver
+    expect(leagueTierToSkillTier(3, 2500)).toBe('low') // Silver
     expect(leagueTierToSkillTier(4, 2650)).toBe('mid') // Gold
-    expect(leagueTierToSkillTier(5, 2750)).toBe('high') // Platinum
+    expect(leagueTierToSkillTier(5, 2750)).toBe('mid') // Platinum
     expect(leagueTierToSkillTier(6, 2900)).toBe('high') // Diamond
   })
 
