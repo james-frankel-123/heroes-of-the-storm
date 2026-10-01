@@ -2,10 +2,13 @@
 
 This file extends P3_HERO_STRENGTH, P3_SKILL_DRIFT, P3_VALIDITY and P3_DRAFTER. All new code is in `training/personalization/p3_x_*.py`; no existing file was edited. An independent audit of the shared pipeline is running in parallel. Every number here comes from scripts that read the shared caches (`hs_slots.npz`, `wp_drift.npz`, `hs_kernels.npz`, `dr_*.npz`) and can be rerun end to end if the audit changes any of them (see "Rerunning" at the end).
 
+Revised 2026-10-01 after the consolidated audit; changes are logged in `P3_AUDIT_FIXES.md`.
+
 Conventions, as in the earlier write-ups:
 
 - **Residual** r = y − WP_drift for the player's team. **Skill estimate** s = experience offset + posterior mean of the phase-1 "+CF rank 2" kernel, with state from the player's games on earlier days (lag 1 day).
-- **Gain** is the held-out log-loss improvement over the population WP, with the combiner (logit WP + team difference of summed s) fit on V1. CIs are replay bootstraps unless stated.
+- **Gain** is the held-out log-loss improvement over the population WP, with the combiner (logit WP + team difference of summed s) fit on V1. CIs are replay bootstraps unless stated. Players recur across games, so replay-bootstrap CIs are too narrow by a design effect of about 1.7 in variance (audit P3-16); widen them by about 1.3x.
+- **State** comes from every game with an earlier date that was eventually uploaded, not only what had been uploaded by draft time (audit P3-04). These results are retrospective in that sense; the audit measured the difference at about 0.0004 on the headline.
 - **Latent R²** removes game noise: 1 − (MSE − noise) / (Var − noise).
 - Resources: 4 CPU cores (`taskset -c 48-63`, 4 threads), no GPU.
 
@@ -14,7 +17,7 @@ Conventions, as in the earlier write-ups:
 1. **Out of time.** Four months past the snapshot (286,016 games, June to September 2026, including all of 2.55.17) the model with May hyperparameters and nightly state gains **+0.0149** (0.0142, 0.0154), against +0.0142 on V2.
    - Every 2.55.17 build scores +0.013 to +0.016. The model stays calibrated (slope 0.99) while the population WP drifts to slope 0.89.
    - Frozen state is what fails: a model never updated after May keeps +0.0044. Keeping game counts current restores it to +0.0107.
-   - The display bands still cover 81%.
+   - The display bands still cover 80% of cells with history (10+ OOT games). For never-played heroes see P3_HERO_STRENGTH section 5b.
 2. **Heroes a player has not played.** 386,826 adoption events.
    - On every first game the off-pool offset is calibrated (−4.3pp predicted, −4.5pp realized).
    - Similarity pooling beats role pooling (+0.10 per 1000 slots, CI 0.03 to 0.17) and player-only (+0.19).
@@ -22,9 +25,9 @@ Conventions, as in the earlier write-ups:
    - Hero attributes add +0.05 R²; outcome-neutral scoreboard style adds +0.03 at 10 games and nothing at 20; talents and hero level add nothing.
    - Tanks are no longer a failure case on real adoptions: similarity pooling is best on first tank games.
 3. **Learning curves and rust.**
-   - The first game on a new hero costs 10.5pp against the player's own established-hero level, free of selection.
+   - On the first game on a new hero, players average 10.5pp below their own established-hero level. Game-1 outcomes do not decide who is in this sample. The choice of hero and its timing do, so this is an average for players who take up a hero; it does not measure what a forced switch would do.
    - Players who stay are within about 1pp after roughly 10 games (time constant about 4 games); high-execution heroes start about 8pp down.
-   - Hero rust: a hero unplayed for 90 to 365 days costs 1.5 to 2.2pp beyond the skill model (+0.0004 as a combiner term).
+   - Hero rust: games on a hero unplayed for 90 to 365 days average 1.5 to 2.2pp below the skill model (+0.0004 as a combiner term). Players choose when to return to a hero, so this is an association.
    - Players returning from a 1-to-6-month break run +1.4 to +1.9pp for a few games.
 4. **Smurfs.**
    - The purification loop converges in 4 rounds and flags 1,327 accounts (10.2% of new accounts with 20+ games; +32.6pp in their first 20 games). They touch 6.3% of games, up to 8.1% in 2026.
@@ -32,10 +35,10 @@ Conventions, as in the earlier write-ups:
    - A **new-account prior** is the real win: +0.0024 (0.0020, 0.0029) on V2 and +0.0021 out of time, almost all from the 18% of games with a genuinely new account, where it adds +0.011 to +0.013.
    - A causal detector reaches AUC 0.74 at game 20 on a later cohort. Scoreboard style is its best signal.
 5. **Drafting alternatives.**
-   - Personalized bans: the first estimate (+0.3pp per draft) was an execution error. The redo (section 8) finds that banning a one-trick's main costs that player 8.1pp in real games, and a calibrated opponent-aware ban model gains +3.4pp per ban decision over population bans.
-   - Teammates-only mode keeps 97% (86%, 107%) of the full-information value.
+   - Personalized bans (section 8): banning a one-trick's main costs that player 8.1pp in real games, and a calibrated opponent-aware ban model gains +3.4pp per ban decision over population bans.
+   - Teammates-only mode keeps 94% (84%, 105%) of the full-information value (model-internal; rerun under the fixed protocol).
    - Hero assignment within a team: teams leave +2.0pp on the table on average, and realized outcomes follow the model's assignment term at 80 to 90% of its slope.
-   - Imitation carries outcome information the value model lacks (+32pp per unit agreement next to +13pp for the personal term). Put recency and share features into the value function; do not blend rankings.
+   - Imitation carries outcome information the value model lacks: +11pp per unit agreement (3, 19) beyond the skill model's own predicted gap, while the outcome drafter's personal term adds nothing beyond it. Put recency and share features into the value function; do not blend rankings.
    - Premade chemistry: +0.0004 as team terms, hero-independent, so it changes no picks.
 6. **Maps.** Player × map is 3 to 5% of personal variance (sd 0.8pp), and map terms add +0.00000 to +0.00004 to prediction. Personalization can drop the map axis.
 7. **Robustness.**
@@ -104,8 +107,9 @@ Findings:
 - **New accounts carry a large share of the value.** Slots of accounts first seen after May gain 2.90 per 1000 (slope 1.30), against 1.25 for known players (slope 0.87). The slope above 1 means the model underpredicts how far new accounts depart from the population expectation (section 4).
 - **Interval coverage four months out.** Posteriors were frozen at the snapshot and compared with each cell's OOT mean residual (51,890 cells with 10+ OOT games):
   - Raw 80% coverage is 0.79 (realized/claimed variance 1.52).
-  - With the phase-1 display calibration (1.20 s² + (7pp)² for never-played heroes), coverage is 0.81 overall, 0.80 on heroes played before and 0.82 on never-played heroes.
-  - The calibration fitted in the spring holds in the autumn.
+  - With the phase-1 display calibration (1.20 s² + (7pp)² for never-played heroes), coverage is 0.81 overall and 0.80 on heroes played before.
+  - Never-played heroes are not tested here: a never-played cell enters only if the player went on to play the hero 10+ times, which depends on the first outcomes (section 2: survivors' first game was +6.6pp). The test on every adoption's first game is in P3_HERO_STRENGTH section 5b.
+  - For heroes already played, the calibration fitted in the spring holds in the autumn.
 
 **Verdict for the product and the paper.** The phase-1 model can ship with its May hyperparameters as long as the state is updated nightly. A monthly refresh of the kernels is not needed for accuracy. What matters is running the state update and keeping counts current. The pre-registration for builds after 2026-09-27 can use +0.0149 (online) as the expected gain, with a per-build range of +0.013 to +0.016.
 
@@ -238,7 +242,7 @@ Returning heroes (level ≥ 10):
 
 Findings:
 
-- **The first game on a new hero costs about 10pp** against the player's own established-hero level. This estimate is free of selection. About half of that is the off-pool penalty the experience offset already prices (section 2A: −4.5pp against the population expectation). The rest is the comfort bonus the player has on his usual heroes.
+- **On the first game on a new hero, players average about 10pp below their own established-hero level.** Game 1 includes every adoption, so the result of game 1 does not decide who is counted. The choice to take up a hero, and when, is still the player's, so this describes players who adopt a hero, not what forcing a switch would do. About half of the gap is the off-pool penalty the experience offset already prices (section 2A: −4.5pp against the population expectation). The rest is the comfort bonus the player has on his usual heroes.
 - **Players who keep the hero reach their own level in roughly 10 games.** In the 50+ game panel the gap closes from −3.8pp (games 1-2) to −1.2pp (games 6-10) and is zero or positive from game 11 on. An exponential fit gives a time constant of 4 games and "within 1pp" by game 6. The 30+ game panel sits within 1pp from game 6 on.
   - Early games in these panels are biased upward by survivorship, so the true early deficit is larger than shown and the time to baseline is if anything longer.
   - The unbalanced curve is still −2.7pp at games 21-30, which is an upper bound on the remaining gap for a typical adopter.
@@ -294,13 +298,13 @@ After a 30+ day break:
 
 Findings:
 
-- **Hero rust is real and grows with time.** A hero untouched for 3 to 12 months costs 1.5 to 2.2pp beyond the skill model, even for an active player. The static skill model ignores this. The state-space model in P3_SKILL_DRIFT found no drift in hero-specific skill, and the two fit together: this looks like a temporary loss that a few games restore, with the underlying level unchanged.
+- **Hero rust: the gap grows with time away.** Games on a hero untouched for 3 to 12 months average 1.5 to 2.2pp below the skill model, even for an active player. Players pick when to come back to a hero, so this is an association with time away. The static skill model ignores this. The state-space model in P3_SKILL_DRIFT found no drift in hero-specific skill, and the two fit together: this looks like a temporary loss that a few games restore, with the underlying level unchanged.
 - **Overall "rust" runs the other way.** Players returning after 1 to 6 months win 1.4 to 1.9pp more than the skill model expects for their first few games. The effect fades within about 10 games. Two likely causes, neither tested here:
   - Matchmaking: returning accounts may be placed against weaker lobbies (the residual adjusts for the draft only, so weaker opponents show up as a positive residual).
   - Players stopping after a bad run of form.
 - **Product.**
   - Add "days since this hero was last played" to the combiner (+0.0004).
-  - In the per-hero display, flag heroes unplayed for 90+ days as "rusty: about −2pp for the first games back".
+  - In the per-hero display, flag heroes unplayed for 90+ days as "rusty: players average about −2pp in their first games back".
   - Do not penalize a returning player overall.
 
 ## 4. Smurfs: purification loop, new-account prior, detector (`p3_x_smurf.py`, `p3_x_newacct.py`)
@@ -432,30 +436,11 @@ For comparison, status 0 at 20 to 49 games seen runs from −2.8 (hero not playe
 
 `cuda_personal/` was not touched. The simulations use separate random streams for decisions and for the rest of the draft, so the compared drafters face the same behavioral opponent. They ran on 4 CPU processes in 31 minutes.
 
+(b) and (d) use the drafter protocol of P3_DRAFTER (pools from earlier days, GD-sampled bans, counts from earlier days, the refit combiner, imitation features from earlier days) on all 5,724 lobbies (`p3_fix_ext5.py`, `results/fix/p3_fix_ext5.json`). (c) and (e) do not use the drafter harness.
+
 ### (a) Personalized bans
 
-> **Superseded by section 8.** This first version modeled opponents as the generic GD policy restricted to their pools. It picked a one-trick's main only 13% of the time when available; the real rate is 65 to 70%. So it priced main bans at about a sixth of their value. The numbers below are kept for the record.
-
-**Setup.**
-
-- The controlled team's three bans are chosen by V (which knows the opponents' personal strengths), by WP_pop, or kept as the real bans.
-- Ban candidates: the top 10 by the GD model's ban probability plus the top 10 by the strongest opponent's personal term.
-- 8 rollouts per candidate.
-- All picks on both sides come from the pool-restricted behavioral policy, so only the bans differ.
-- 4 trajectories per lobby and mode.
-
-| comparison (whole draft, controlled team) | change in V (pp) | change in WP_pop (pp) |
-|---|---|---|
-| personalized bans − population bans | +0.29 (−0.09, +0.65) | +0.14 (−0.18, +0.47) |
-| personalized bans − real bans | +0.12 (−0.30, +0.57) | +0.22 (−0.15, +0.59) |
-| population bans − real bans | −0.17 (−0.62, +0.26) | +0.08 (−0.29, +0.43) |
-
-- At the decision itself, the personalized ban differs from the population ban 53% of the time. When it differs, it claims +2.5pp of V for −2.1pp of WP_pop.
-- The whole-draft difference is only +0.3pp and not significant. The decision-level claim is inflated by choosing the best of about 20 noisy 8-rollout means.
-- More fundamentally, one ban removes one hero from a pool of about 34, and the opponent simply picks his next-best hero.
-- **Realized check** (8,000 teams, real ban states; each real ban placed in the personalized and population ban rankings; team residual y − WP_pop by agreement quintile): top minus bottom quintile is −0.4pp (−4.1, +3.1) for personalized-ban agreement, +1.4pp (−2.2, +4.6) for population-ban agreement, and −2.3pp (−5.7, +1.2) for the personal-minus-population difference. None is distinguishable from zero.
-
-**Verdict (withdrawn, see section 8).** This version said personalized bans were worth at most a few tenths of a point per draft. That was wrong.
+See section 8, which models opponents as themselves and checks the ban value against a natural experiment.
 
 ### (b) Teammates-only mode (opponents unknown)
 
@@ -465,23 +450,27 @@ For comparison, status 0 at 20 to 49 games seen runs from −2.8 (hero not playe
   - full information (all ten identities);
   - teammates only: in its rollouts the opponents pick from unrestricted GD, and its value sets their S and O to 0;
   - population WP.
-- The opponent really is the identified team, drafting from its own pools.
+- The opponent really is the identified team, drafting from its own pools. Bans on both sides are sampled from GD.
 - Final drafts are scored with the full-information V.
 
 | controlled team drafts with | gain in V over the population drafter (pp) | change in WP_pop (pp) |
 |---|---|---|
-| full information | +5.93 (5.28, 6.60) | −2.90 |
-| teammates only | +5.75 (4.99, 6.48) | −2.96 |
-| full − teammates only | +0.18 (−0.43, +0.86) | +0.06 |
+| full information | +5.79 (5.14, 6.46) | −2.22 |
+| teammates only | +5.45 (4.74, 6.14) | −2.84 |
+| full − teammates only | +0.35 (−0.28, +0.95) | +0.62 |
 
-The teammates-only drafter keeps **97% (86%, 107%)** of the full-information value.
+The teammates-only drafter keeps **94% (84%, 105%)** of the full-information value. Both numbers are the model's own valuations.
 
-**Realized check** (8,000 teams, same states and teams). Top minus bottom quintile of team residual by agreement:
+**Calibration at the real states** (11,448 teams of the 5,724 realized lobbies; Q5 − Q1 of agreement, pp; game bootstrap):
 
-- teammates-only ranking: +6.4pp (3.1, 9.9);
-- full-information ranking: +5.7pp (2.4, 9.2).
+| ranking | realized | predicted by the skill model | remainder |
+|---|---|---|---|
+| teammates-only drafter | +6.5 (3.6, 9.4) | +6.8 (6.3, 7.4) | −0.4 (−3.1, +2.3) |
+| full-information drafter | +8.5 (5.7, 11.1) | +7.1 (6.5, 7.6) | +1.5 (−1.2, +3.9) |
 
-**Verdict.** The realistic lobby, where only teammates are known, loses essentially nothing. The personal value of a pick is the picking player's own term. The opponents' terms are fixed by their picks and hardly change which hero is best for us. The degraded mode is the product.
+The realized spread matches what the skill model predicts for the same drafts (predicted-gap slope 1.01, CI 0.88 to 1.14). Agreement re-tests the skill model (P3_DRAFTER, team-level calibration), so this is not evidence about either drafter.
+
+**Verdict.** In the model, the realistic lobby, where only teammates are known, loses little: 94% of the full-information value is kept, and the difference is not distinguishable from zero. The personal value of a pick is mostly the picking player's own term; the opponents' terms are fixed by their picks and hardly change which hero is best for us. The degraded mode is the product.
 
 ### (c) Role assignment within a team, given the picks
 
@@ -506,33 +495,34 @@ The assignment component is the real team's S minus its mean over all 120 mappin
 
 ### (d) Combining imitation and outcome
 
-**Setup.** At the 57,240 real picks of the realized lobbies, each candidate gets the outcome value V and the DraftRec-style imitation log-probability (within the same candidate set). The combined score is V + λ log p_imit.
+**Setup.** At the 57,240 real picks of the realized lobbies, each candidate gets the outcome value V and the DraftRec-style imitation log-probability (within the same candidate set). The combined score is V + λ log p_imit. Teams: 11,448. CIs: game bootstrap.
 
-**Team-level joint regression.** Team residual (y − WP_pop) on the mean agreement of the team's real picks with each ranking, both in the model:
+**Team-level regression.** Realized team residual (y − WP_pop) on the mean agreement of the team's real picks with each ranking, and on the skill model's own predicted gap for the real draft:
 
-| signals in the regression | first signal (pp per unit agreement) | imitation (pp per unit) | correlation of the two agreements |
+| terms in the regression | personal component (per unit agreement) | imitation (per unit agreement) | predicted gap (slope) |
 |---|---|---|---|
-| V and imitation | +7.4 (0.5, 14.5) | +36.6 (28.9, 43.6) | 0.34 |
-| personal component (V − WP) and imitation | +12.8 (5.8, 18.9) | +31.7 (23.8, 41.0) | 0.50 |
+| personal component, imitation | +22.8pp (16.1, 30.6) | +24.4pp (16.1, 32.3) | |
+| personal component, imitation, predicted gap | +1.0pp (−5.6, +8.7) | **+11.4pp (3.1, 19.0)** | 0.95 (0.82, 1.08) |
+| imitation, predicted gap | | +11.9pp (5.5, 18.0) | 0.96 (0.83, 1.08) |
 
-**Choosing λ.** λ was chosen on half of the lobbies and scored on the other half.
+Correlation of the two agreements: 0.51; imitation agreement vs predicted gap: 0.36.
 
-- The agreement-slope criterion picks pure imitation.
-- The criterion "residual when the real pick equals the recommender's top-1" picks λ = 0.002.
+Q5 − Q1 of imitation agreement: realized +12.2pp (9.3, 15.2), predicted by the skill model +9.5pp, remainder +2.6pp (−0.2, +5.7).
 
-| ranking (test half) | top minus bottom agreement quintile | real pick = top-1 | residual when it is | residual otherwise |
+**Choosing λ.** λ was tuned on half of the lobbies by the remainder when the real pick equals the recommender's top-1 (realized minus predicted gap), and scored on the other half:
+
+| ranking (test half) | real pick = top-1 | residual when it is | predicted gap when it is | remainder when it is |
 |---|---|---|---|---|
-| outcome V (λ = 0) | +8.6pp (4.6, 12.3) | 12.2% | +3.4 (1.8, 5.0) | −0.5 |
-| combined, λ = 0.002 | +9.7pp (5.9, 13.6) | 13.5% | +3.2 (1.6, 5.0) | −0.5 |
-| imitation | +14.1pp (10.1, 18.1) | 33.3% | +2.3 (1.3, 3.3) | −1.1 |
+| outcome V (λ = 0) | 12.1% | +3.1 (1.5, 4.5) | +2.0 | +1.0 (−0.5, +2.5) |
+| combined, λ = 0.005 (tuned) | 15.1% | +2.7 (1.2, 4.1) | +1.9 | +0.8 (−0.7, +2.2) |
+| imitation | 32.9% | +2.1 (1.4, 2.8) | +1.5 | +0.6 (−0.2, +1.3) |
 
 Findings:
 
-- **Both signals carry independent outcome information.** The imitation signal is the larger one.
-  - Teams whose picks look like what the players usually pick beat the population expectation by far more than the outcome model's personal term implies. This holds even after the model's comfort offset.
-  - The imitation features that the value model lacks are recency and share of recent play: EWMA pick shares over 20 and 100 games, and days since the hero was last played. Section 3's hero rust points the same way: a hero played recently is worth more than its lifetime count says.
-- **As a recommender,** a small imitation weight (λ = 0.002) keeps the outcome drafter's matched-pick residual (+3.2 vs +3.4pp) and slightly raises agreement. Pure imitation recommends what players already do (33% match), and its matches win less (+2.3pp).
-- **Recommendation.** Put the recency and share features into the value function (the outcome side), and keep the outcome drafter as the recommender. Do not blend rankings at a large weight. P3_DRAFTER's finding that "picks matching both do best (+3.3pp)" is confirmed, and the joint regression explains why: the outcome model is missing a recency/comfort term.
+- **Once the skill model's predicted gap is in the regression, the personal component of the outcome drafter adds nothing** (+1.0pp per unit, CI −5.6 to +8.7). Its apparent outcome information was the skill model's own forecast.
+- **Imitation agreement still carries outcome information the value model lacks:** +11.4pp per unit (3.1, 19.0) beyond the predicted gap. Teams whose picks look like what the players usually pick do a little better than the skill model expects. The imitation features the value model lacks are recency and share of recent play (EWMA pick shares over 20 and 100 games, days since the hero was last played). Section 3's hero rust points the same way.
+- **As a recommender** no ranking separates from the others on the test half: the matched remainders are +0.6 to +1.0pp with overlapping CIs. Pure imitation recommends what players already do (33% match).
+- **Recommendation.** Put the recency and share features into the value function (the outcome side), and keep the outcome drafter as the recommender. The evidence for this is the +11pp-per-unit imitation term, measured against the skill model's own prediction.
 
 ### (e) Premade chemistry in the value function
 
@@ -663,7 +653,7 @@ Findings:
 
 ## 8. Personalized bans (redo) (`p3_x_ban_fetch.py`, `p3_x_ban_diag.py`, `p3_x_ban_feat.py`, `p3_x_ban_nat.py`, `p3_x_ban_model.py`)
 
-Max's expectation was right. The first ban result (section 5a: +0.3pp per draft, not significant) came from an opponent model that ignored who the opponent is.
+Max's expectation was right. An opponent model that ignores who the opponent is prices main bans far too low (A).
 
 ### Summary
 
@@ -699,7 +689,7 @@ Traced on the 5,724 V2 lobbies of the drafter runs (57,240 slots).
   - For one-tricks with 50 to 1,000 games on the main, the posterior moves with the raw cell mean at slope 0.35 to 0.68. That is more weight on the cell's own data than its noise alone requires (0.30 to 0.47).
   - The opposite problem exists. Beyond the experience offset, one-tricks are 6.0 to 7.0pp worse on their other heroes (raw). The GP pools those heroes toward a player level dominated by the main, so the model puts the replacement only about 2pp down.
   - This is why the skill model alone predicts only a third of the realized main-ban loss (see B).
-- **Pools.** 5.6% of slots (4.1% of one-trick slots) have the game's own hero in their pool only because it was added from the game itself. This is the audit's leak. It is small, and for bans it inflates rather than deflates value. The redone model does not use pools.
+- **Pools.** The redone model does not use pools.
 - **Information timing: correct.** Identities are visible in both ban phases. At the second phase, opponents who had already picked stayed in the candidate generator, but they could not change the value. The redone model values only players still to pick.
 
 ### B. Natural experiment (`p3_x_ban_nat.py`)
@@ -863,5 +853,7 @@ Everything reads the shared caches through `p3_hs_core` and `p3_x_common`. If th
 8. `p3_x_draft.py assign | combine | chem | sim --procs 4 | analyze` (5): `sim` takes about 31 minutes on 4 processes. It needs `cache/dr_runs.pkl.gz`, `dr_lobbies.npz` and `dr_personal_post.npz` from the P3_DRAFTER pipeline.
 
 No GPU was used.
+
+**Tier labels.** Do not re-fetch `x_post_games.json.gz` or `x_side_games.npz` (step 1) without checking them. On 2026-09-30 the DB's historical `skill_tier` was relabeled into the site's scheme (commit 4848ca5: Master mid→high, Platinum high→mid, Silver mid→low). The cached files predate that and carry the research scheme every result here uses. A refetch would mix schemes in `p3_pgd_data.py` and `p3_x_robust.py`, and `p3_x_ban_fetch.py`'s "stored league_tier is the real tier + 1" may no longer hold. `p3_fix_tier_guard.py` checks a games file against the old rule and exits 1 on any mismatch; run it after any refetch. On the current caches it passes.
 
 Results files are `results/p3_x_*.json` with matching `.txt` logs, and `fig_x_learning_curves.png`. Large intermediate caches (`cache/x_*.npz`, `cache/x_draft_sim.pkl.gz`) are not committed.

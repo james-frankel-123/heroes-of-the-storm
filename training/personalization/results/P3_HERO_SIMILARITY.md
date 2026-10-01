@@ -24,8 +24,7 @@
   - Where the two disagree, pairs the embedding calls similar but people do not co-play (0.21) share a little more held-out skill than pairs people co-play but the embedding calls dissimilar (0.10). The difference, 0.11 (−0.005, 0.28), is borderline.
 - **Most interesting divergences:**
   - **Probius.** Players co-play him with other niche kits (Lost Vikings, Gall, Cho, Sgt. Hammer, Murky), but the skill embedding places his skill next to mainstream ranged and frontline heroes (Thrall, Johanna, Muradin, Valla, Falstad).
-  - **The Butcher.** He is the one hero whose skill transfers significantly less to his preference neighbors than to other heroes (−0.64, CI −1.17 to −0.07).
-  - **Heroes whose skill transfers more to their preference neighbors** (17 of 90 with CIs above zero): Medivh, Tyrael, Zarya, Chen, Uther, Genji, Hanzo, Maiev, Alarak, Li-Ming and others.
+  - **Per-hero transfer tests do not survive a multiplicity correction**. Of 90 heroes, 17 have CIs above zero and one (The Butcher) below, against about 4.5 expected at the 5% level by chance. After Benjamini-Hochberg correction only Genji is significant at q < 0.05 (Sylvanas and Medivh at q < 0.10). The Butcher has q = 0.19. For skill beyond general level no hero survives (smallest q 0.43).
 
 ## 1. Pair-level skill correlation (`p3_hs_similarity.py`)
 
@@ -134,9 +133,9 @@ The two clusters that mix the most unusual kits share the least skill.
   - Held-out ρ for this group is 0.21, twice the co-played-only group. The difference, +0.11 (−0.005, 0.28), is suggestive, not established.
   - Read literally: a Probius player's skill looks more like a mainstream-hero skill set than a niche-kit one, even though Probius players rarely play mainstream heroes.
 - **Per hero** (pooled total skill, the hero's 5 nearest preference neighbors vs its other heroes):
-  - 17 of 90 heroes transfer significantly more skill to their preference neighbors: Medivh +0.63, Tyrael +0.59, Zarya +0.72, Chen +0.68, Uther +0.73, plus Genji, Hanzo, Maiev, Alarak, Li-Ming, Valla, Sylvanas, Gul'dan, Tychus, Falstad, Stitches and D.Va.
-  - One transfers significantly less: **The Butcher** (−0.64, CI −1.17 to −0.07). His preference neighbors (Nova, Murky, Valeera and other stealth or niche heroes) share little skill with him.
-  - Skill beyond general level shows the same pattern (13 positive; Qhira the only negative).
+  - Unadjusted, 17 of 90 heroes have CIs above zero (Medivh +0.63, Tyrael +0.59, Zarya +0.72, Chen +0.68, Uther +0.73, plus Genji, Hanzo, Maiev, Alarak, Li-Ming, Valla, Sylvanas, Gul'dan, Tychus, Falstad, Stitches and D.Va) and one below (The Butcher, −0.64, CI −1.17 to −0.07).
+  - With 90 tests about 4.5 such results are expected by chance. Benjamini-Hochberg q-values (`fix/p3_fix_misc.json`; two-sided normal p-values with the SE read from each bootstrap CI, so 15 of the 18 CI exclusions have p < 0.05) leave Genji at q = 0.036 and Sylvanas and Medivh at q = 0.054. Nothing else is below 0.10; The Butcher is at q = 0.19. The pooled pattern (more heroes above zero than below) is the finding, not any single hero.
+  - Skill beyond general level: 13 positive and one negative unadjusted (Qhira), none below q = 0.43 after correction.
 
 ## 4. Style similarity (talents, scoreboard)
 

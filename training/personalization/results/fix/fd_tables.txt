@@ -1,0 +1,1 @@
+fixed tables: 1,150,653 slots; slots whose old pool had the game's own hero added: 0.192; empty pools now: 0.0250

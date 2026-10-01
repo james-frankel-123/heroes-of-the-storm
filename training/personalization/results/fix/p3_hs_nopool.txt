@@ -1,0 +1,11 @@
+  ml fit: -ll 425570.8, sd(pp) [3.94]
+all {'n': 725856, 'll_gain_x1000': 1.17, 'mse_gain_pp2': 5.653, 'slope': 1.0, 'sd_median_pp': 3.865, 'sd_mean_pp': 3.72}
+0 {'n': 140984, 'll_gain_x1000': 1.357, 'mse_gain_pp2': 6.546, 'slope': 1.145, 'sd_median_pp': 3.938, 'sd_mean_pp': 3.938}
+1-2 {'n': 119218, 'll_gain_x1000': 0.772, 'mse_gain_pp2': 3.726, 'slope': 1.12, 'sd_median_pp': 3.925, 'sd_mean_pp': 3.92}
+3-5 {'n': 95564, 'll_gain_x1000': 1.051, 'mse_gain_pp2': 5.119, 'slope': 1.335, 'sd_median_pp': 3.889, 'sd_mean_pp': 3.89}
+6-10 {'n': 88352, 'll_gain_x1000': 0.893, 'mse_gain_pp2': 4.344, 'slope': 1.219, 'sd_median_pp': 3.843, 'sd_mean_pp': 3.844}
+11-20 {'n': 89430, 'll_gain_x1000': 1.256, 'mse_gain_pp2': 6.068, 'slope': 1.455, 'sd_median_pp': 3.764, 'sd_mean_pp': 3.763}
+21-50 {'n': 98115, 'll_gain_x1000': 1.092, 'mse_gain_pp2': 5.329, 'slope': 1.016, 'sd_median_pp': 3.597, 'sd_mean_pp': 3.586}
+51-100 {'n': 48359, 'll_gain_x1000': 1.31, 'mse_gain_pp2': 6.269, 'slope': 0.835, 'sd_median_pp': 3.28, 'sd_mean_pp': 3.269}
+101-200 {'n': 27648, 'll_gain_x1000': 2.408, 'mse_gain_pp2': 11.405, 'slope': 0.781, 'sd_median_pp': 2.884, 'sd_mean_pp': 2.867}
+201+ {'n': 18186, 'll_gain_x1000': 2.057, 'mse_gain_pp2': 9.874, 'slope': 0.812, 'sd_median_pp': 2.291, 'sd_mean_pp': 2.234}

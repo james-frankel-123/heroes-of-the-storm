@@ -1,0 +1,18 @@
+deep held-out players 2,432; target cells 19,927
+  player                     R2 +0.061 rmse 2.87pp claimed sd 1.69 cover80 0.789 var_ratio 2.88
+  player+hero                R2 +0.159 rmse 2.72pp claimed sd 3.82 cover80 0.808 var_ratio 0.51
+  player+role+hero           R2 +0.171 rmse 2.70pp claimed sd 3.81 cover80 0.808 var_ratio 0.50
+  player+role+melee+hero     R2 +0.168 rmse 2.70pp claimed sd 3.81 cover80 0.808 var_ratio 0.50
+  +co-play                   R2 +0.195 rmse 2.66pp claimed sd 3.82 cover80 0.809 var_ratio 0.48
+  +co-strength moments       R2 +0.156 rmse 2.72pp claimed sd 3.62 cover80 0.804 var_ratio 0.56
+  +CF rank 1                 R2 +0.176 rmse 2.69pp claimed sd 3.60 cover80 0.805 var_ratio 0.56
+  +CF rank 2                 R2 +0.211 rmse 2.63pp claimed sd 3.50 cover80 0.804 var_ratio 0.57
+  +CF rank 3                 R2 +0.169 rmse 2.70pp claimed sd 3.42 cover80 0.802 var_ratio 0.63
+  +CF rank 4                 R2 +0.134 rmse 2.76pp claimed sd 3.34 cover80 0.802 var_ratio 0.68
+  +CF rank 8                 R2 +0.141 rmse 2.75pp claimed sd 3.50 cover80 0.804 var_ratio 0.61
+  +CF rank 2 +co-play        R2 +0.214 rmse 2.63pp claimed sd 3.50 cover80 0.804 var_ratio 0.56
+  first 0: player R2 +0.061, player+hero R2 +0.159, player+role+melee+hero R2 +0.168, +co-play R2 +0.195, +CF rank 2 R2 +0.211
+  first 1: player R2 +0.023, player+hero R2 +0.159, player+role+melee+hero R2 +0.175, +co-play R2 +0.204, +CF rank 2 R2 +0.226, raw revealed mean R2 -315.628
+  first 3: player R2 -0.030, player+hero R2 +0.096, player+role+melee+hero R2 +0.110, +co-play R2 +0.138, +CF rank 2 R2 +0.181, raw revealed mean R2 -88.887
+  first 5: player R2 -0.139, player+hero R2 +0.099, player+role+melee+hero R2 +0.113, +co-play R2 +0.147, +CF rank 2 R2 +0.233, raw revealed mean R2 -82.409
+  first 10: player R2 -0.096, player+hero R2 +0.013, player+role+melee+hero R2 +0.005, +co-play R2 +0.005, +CF rank 2 R2 +0.035, raw revealed mean R2 -15.984

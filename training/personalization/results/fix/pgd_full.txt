@@ -1,0 +1,61 @@
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full R1 pers-GD 0
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full R1 pers-GD 1
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full R2 pers-PGD 0
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full R2 pers-PGD 1
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full R3 pers-PGD+P 0
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full R3 pers-PGD+P 1
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full P1 pop-GD 0
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full P1 pop-GD 1
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full P2 pop-PGD 0
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+full P2 pop-PGD 1
+done 547s

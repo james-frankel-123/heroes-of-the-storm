@@ -1,0 +1,88 @@
+{
+ "features": [
+  "gd_logp",
+  "log1p_n",
+  "never_n",
+  "ewma20",
+  "ewma100",
+  "log1p_days_since",
+  "never_played",
+  "log_fine_share"
+ ],
+ "n_fit_picks": 250000,
+ "n_test_picks": 250000,
+ "weights": {
+  "gd_logp": 0.8051374554634094,
+  "log1p_n": 0.6929756999015808,
+  "never_n": -1.0449354648590088,
+  "ewma20": 8.064840316772461,
+  "ewma100": -6.421805381774902,
+  "log1p_days_since": -0.2307690680027008,
+  "never_played": -1.0449354648590088,
+  "log_fine_share": 0.15984903275966644
+ },
+ "test": {
+  "imitation (GD + personal history)": {
+   "top1": 0.309632,
+   "top3": 0.533908,
+   "top5": 0.640944,
+   "top10": 0.774076,
+   "mean_loglik": -2.6656737327575684,
+   "share_real_pick_marked_taken": 8.000000000008e-06
+  },
+  "GD alone (non-personal)": {
+   "top1": 0.090476,
+   "top3": 0.212232,
+   "top5": 0.303124,
+   "top10": 0.467852,
+   "mean_loglik": -3.7775614261627197,
+   "share_real_pick_marked_taken": 8.000000000008e-06
+  },
+  "frequency alone (EWMA-20 share)": {
+   "top1": 0.258544,
+   "top3": 0.4625,
+   "top5": 0.56586,
+   "top10": 0.69526,
+   "mean_loglik": -3.524240493774414,
+   "share_real_pick_marked_taken": 8.000000000008e-06
+  },
+  "personal history alone (fitted, no GD)": {
+   "top1": 0.261268,
+   "top3": 0.462516,
+   "top5": 0.565688,
+   "top10": 0.697956,
+   "mean_loglik": -2.9900546073913574,
+   "share_real_pick_marked_taken": 8.000000000008e-06
+  },
+  "uniform over player's pool": {
+   "top1": 0.071624,
+   "top3": 0.193396,
+   "top5": 0.305132,
+   "top10": 0.492752,
+   "mean_loglik": -7.7232131481240085,
+   "share_real_pick_marked_taken": 8.000000000008e-06
+  }
+ },
+ "test_by_team_pick": {
+  "pick 1": {
+   "imitation_top1": 0.39138,
+   "gd_top1": 0.11724
+  },
+  "pick 2": {
+   "imitation_top1": 0.32116,
+   "gd_top1": 0.07608
+  },
+  "pick 3": {
+   "imitation_top1": 0.28366,
+   "gd_top1": 0.0773
+  },
+  "pick 4": {
+   "imitation_top1": 0.27046,
+   "gd_top1": 0.08082
+  },
+  "pick 5": {
+   "imitation_top1": 0.28150563011260227,
+   "gd_top1": 0.1009420188403768
+  }
+ }
+}

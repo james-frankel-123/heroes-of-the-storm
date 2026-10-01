@@ -1,0 +1,387 @@
+{
+ "n_pairs": {
+  "notes | real": 528,
+  "notes | matched placebo": 364,
+  "notes | time placebo": 215,
+  "detector | real": 46,
+  "detector | matched placebo": 46,
+  "detector | time placebo": 24,
+  "|dWR| >= 2pp | real": 178,
+  "|dWR| >= 2pp | matched placebo": 176,
+  "|dWR| >= 2pp | time placebo": 80
+ },
+ "noise_scale_profile": {
+  "0.94": 7.665753349778242,
+  "0.96": 265.45233753917273,
+  "0.98": 255.88863782247063,
+  "1.0": 0.0,
+  "1.02": -483.02500155579764
+ },
+ "noise_scale": 0.96,
+ "ll_gain_vs_no_jump": {
+  "notes | real": {
+   "pairs": 528,
+   "oot_scored_rows": 61504,
+   "J 0.5pp": {
+    "fit": 1.6696264191996306,
+    "held-out players": 2.702211096533574,
+    "out of time (2026 boundaries)": 0.0482274173748288
+   },
+   "J 1.0pp": {
+    "fit": 1.2574513708241284,
+    "held-out players": 4.715960665605962,
+    "out of time (2026 boundaries)": -0.6167268065167995
+   },
+   "J 1.5pp": {
+    "fit": -13.444565814221278,
+    "held-out players": -8.03078125580214,
+    "out of time (2026 boundaries)": -3.6738383013027702
+   },
+   "J 2.0pp": {
+    "fit": -55.43776833056472,
+    "held-out players": -50.62820615596138,
+    "out of time (2026 boundaries)": -10.650152573638174
+   },
+   "J 3.0pp": {
+    "fit": -262.2977491460042,
+    "held-out players": -271.627960073296,
+    "out of time (2026 boundaries)": -40.121360937115675
+   }
+  },
+  "notes | matched placebo": {
+   "pairs": 364,
+   "oot_scored_rows": 64061,
+   "J 0.5pp": {
+    "fit": 1.1734857270494103,
+    "held-out players": 1.8417422802885994,
+    "out of time (2026 boundaries)": 0.10729931585360819
+   },
+   "J 1.0pp": {
+    "fit": 1.5120278946124017,
+    "held-out players": 3.6317710989387706,
+    "out of time (2026 boundaries)": -0.25970783861812796
+   },
+   "J 1.5pp": {
+    "fit": -6.63834015163593,
+    "held-out players": -3.5743016662308946,
+    "out of time (2026 boundaries)": -2.559891768211385
+   },
+   "J 2.0pp": {
+    "fit": -32.0484266259009,
+    "held-out players": -29.875930579262786,
+    "out of time (2026 boundaries)": -8.136604398924634
+   },
+   "J 3.0pp": {
+    "fit": -164.33764847030398,
+    "held-out players": -172.74568027199712,
+    "out of time (2026 boundaries)": -32.333632255369096
+   }
+  },
+  "notes | time placebo": {
+   "pairs": 215,
+   "oot_scored_rows": 61504,
+   "J 0.5pp": {
+    "fit": 0.533672962221317,
+    "held-out players": 1.1900735675590113,
+    "out of time (2026 boundaries)": -0.02256564197679614
+   },
+   "J 1.0pp": {
+    "fit": 1.1503847528947517,
+    "held-out players": 3.5588899473659694,
+    "out of time (2026 boundaries)": -0.3582956602931809
+   },
+   "J 1.5pp": {
+    "fit": -0.7096605894621462,
+    "held-out players": 3.9928857418708503,
+    "out of time (2026 boundaries)": -1.6694598747181657
+   },
+   "J 2.0pp": {
+    "fit": -8.37270053406246,
+    "held-out players": -1.5120289153419435,
+    "out of time (2026 boundaries)": -4.737823786156712
+   },
+   "J 3.0pp": {
+    "fit": -54.517430858453736,
+    "held-out players": -46.07802705047652,
+    "out of time (2026 boundaries)": -18.811100605080576
+   }
+  },
+  "detector | real": {
+   "pairs": 46,
+   "oot_scored_rows": 30132,
+   "J 0.5pp": {
+    "fit": -0.07120048487558961,
+    "held-out players": -0.14654898550361395,
+    "out of time (2026 boundaries)": 0.018508792438473386
+   },
+   "J 1.0pp": {
+    "fit": -0.4091804487397894,
+    "held-out players": -0.6941814402816817,
+    "out of time (2026 boundaries)": 0.0452719146744444
+   },
+   "J 1.5pp": {
+    "fit": -1.3453799984417856,
+    "held-out players": -1.9355752996634692,
+    "out of time (2026 boundaries)": 0.0011581126041121381
+   },
+   "J 2.0pp": {
+    "fit": -3.3270832878770307,
+    "held-out players": -4.278930158820003,
+    "out of time (2026 boundaries)": -0.22605024611793173
+   },
+   "J 3.0pp": {
+    "fit": -12.329728588578291,
+    "held-out players": -14.105052893399261,
+    "out of time (2026 boundaries)": -1.7339640610320335
+   }
+  },
+  "detector | matched placebo": {
+   "pairs": 46,
+   "oot_scored_rows": 27430,
+   "J 0.5pp": {
+    "fit": 0.201872561709024,
+    "held-out players": -0.03030395391397178,
+    "out of time (2026 boundaries)": 0.015871853435640675
+   },
+   "J 1.0pp": {
+    "fit": 0.7185270197223872,
+    "held-out players": -0.1998532071011141,
+    "out of time (2026 boundaries)": 0.045417479174551495
+   },
+   "J 1.5pp": {
+    "fit": 1.3038729642285034,
+    "held-out players": -0.7292782814474776,
+    "out of time (2026 boundaries)": 0.038607842559978026
+   },
+   "J 2.0pp": {
+    "fit": 1.6049665142782032,
+    "held-out players": -1.942436552606523,
+    "out of time (2026 boundaries)": -0.07664342001062957
+   },
+   "J 3.0pp": {
+    "fit": -0.27158670814242214,
+    "held-out players": -7.956633592839353,
+    "out of time (2026 boundaries)": -0.9694972597922586
+   }
+  },
+  "detector | time placebo": {
+   "pairs": 24,
+   "oot_scored_rows": 30132,
+   "J 0.5pp": {
+    "fit": 0.03560270136222243,
+    "held-out players": -0.0575235866708681,
+    "out of time (2026 boundaries)": -0.0026497354438242623
+   },
+   "J 1.0pp": {
+    "fit": 0.10992149834055454,
+    "held-out players": -0.25545491266530007,
+    "out of time (2026 boundaries)": -0.03794568483325772
+   },
+   "J 1.5pp": {
+    "fit": 0.13106717448681593,
+    "held-out players": -0.6660587649093941,
+    "out of time (2026 boundaries)": -0.18166946234293682
+   },
+   "J 2.0pp": {
+    "fit": -0.03791365027427673,
+    "held-out players": -1.3986641768133268,
+    "out of time (2026 boundaries)": -0.5426024901969542
+   },
+   "J 3.0pp": {
+    "fit": -1.6138202250003815,
+    "held-out players": -4.379009970347397,
+    "out of time (2026 boundaries)": -2.412395082646819
+   }
+  },
+  "|dWR| >= 2pp | real": {
+   "pairs": 178,
+   "oot_scored_rows": 31866,
+   "J 0.5pp": {
+    "fit": 0.18647890514694154,
+    "held-out players": -0.12457641644869,
+    "out of time (2026 boundaries)": 0.12724900772997702
+   },
+   "J 1.0pp": {
+    "fit": 0.16113047720864415,
+    "held-out players": -1.114491748274304,
+    "out of time (2026 boundaries)": 0.38965530930821024
+   },
+   "J 1.5pp": {
+    "fit": -1.548070204909891,
+    "held-out players": -4.531265536672436,
+    "out of time (2026 boundaries)": 0.5218080106280734
+   },
+   "J 2.0pp": {
+    "fit": -6.768475927528925,
+    "held-out players": -12.33204895327799,
+    "out of time (2026 boundaries)": 0.24534478364627466
+   },
+   "J 3.0pp": {
+    "fit": -34.81814963219222,
+    "held-out players": -48.673499353346415,
+    "out of time (2026 boundaries)": -2.4539360680497495
+   }
+  },
+  "|dWR| >= 2pp | matched placebo": {
+   "pairs": 176,
+   "oot_scored_rows": 34163,
+   "J 0.5pp": {
+    "fit": 0.521195842884481,
+    "held-out players": 0.1543656059075147,
+    "out of time (2026 boundaries)": 0.386823986942086
+   },
+   "J 1.0pp": {
+    "fit": 1.3360744236269966,
+    "held-out players": -0.15427223779261112,
+    "out of time (2026 boundaries)": 1.3368235218849593
+   },
+   "J 1.5pp": {
+    "fit": 0.5755988613236696,
+    "held-out players": -2.88656971254386,
+    "out of time (2026 boundaries)": 2.3812008802898843
+   },
+   "J 2.0pp": {
+    "fit": -4.048019989160821,
+    "held-out players": -10.480487405438907,
+    "out of time (2026 boundaries)": 3.053703201096833
+   },
+   "J 3.0pp": {
+    "fit": -33.53604604897555,
+    "held-out players": -49.38606837508269,
+    "out of time (2026 boundaries)": 1.9915815665554728
+   }
+  },
+  "|dWR| >= 2pp | time placebo": {
+   "pairs": 80,
+   "oot_scored_rows": 31866,
+   "J 0.5pp": {
+    "fit": 0.15797394269611686,
+    "held-out players": 0.07703339389991015,
+    "out of time (2026 boundaries)": 0.0619136372636055
+   },
+   "J 1.0pp": {
+    "fit": 0.49077950906939805,
+    "held-out players": 0.12532416020985693,
+    "out of time (2026 boundaries)": 0.19055706380744913
+   },
+   "J 1.5pp": {
+    "fit": 0.6054134572623298,
+    "held-out players": -0.3512029384728521,
+    "out of time (2026 boundaries)": 0.2387253136400152
+   },
+   "J 2.0pp": {
+    "fit": -0.06782213435508311,
+    "held-out players": -2.0408510415581986,
+    "out of time (2026 boundaries)": 0.01898368401696171
+   },
+   "J 3.0pp": {
+    "fit": -6.434157654759474,
+    "held-out players": -12.071577569586225,
+    "out of time (2026 boundaries)": -1.9524135534805893
+   }
+  }
+ },
+ "mle_fit_sample": {
+  "notes": {
+   "J_hat_sd_pp": 0.7572246622421104,
+   "ll_gain_at_J_hat": 2.412636043038219,
+   "profile_95_upper_bound_sd_pp": 1.25
+  },
+  "detector": {
+   "J_hat_sd_pp": 0.010167031737899419,
+   "ll_gain_at_J_hat": -2.4930108338594437e-05,
+   "profile_95_upper_bound_sd_pp": 1.75
+  },
+  "|dWR| >= 2pp": {
+   "J_hat_sd_pp": 0.7713510242227104,
+   "ll_gain_at_J_hat": 0.27877780236303806,
+   "profile_95_upper_bound_sd_pp": 1.75
+  }
+ },
+ "did_2026_boundaries": {
+  "unchanged": {
+   "cells": 4186,
+   "var_pre_pp2": 27.522002304022656,
+   "var_post_pp2": 20.50000167674742,
+   "cov_pp2": 12.915744987881078,
+   "stability": 0.5437540439597822,
+   "excess_change_var_pp2": 22.19051400500792,
+   "spearman": {
+    "groups": 51,
+    "mean_rank_corr": 0.052031293622015376
+   }
+  },
+  "notes": {
+   "cells": 1659,
+   "var_pre_pp2": 20.200550927568102,
+   "var_post_pp2": 6.765114630871297,
+   "cov_pp2": 13.956756736609272,
+   "stability": 1.1938927692728902,
+   "excess_change_var_pp2": -0.9478479147791455,
+   "spearman": {
+    "groups": 21,
+    "mean_rank_corr": 0.0610290286263829
+   }
+  },
+  "detector": {
+   "cells": 727,
+   "var_pre_pp2": 23.09049350150965,
+   "var_post_pp2": 1.9562765033874985,
+   "cov_pp2": 6.414619075369275,
+   "stability": 0.9544191497699159,
+   "excess_change_var_pp2": 12.217531854158594,
+   "spearman": {
+    "groups": 11,
+    "mean_rank_corr": 0.047299855843493145
+   }
+  },
+  "|dWR| >= 2pp": {
+   "cells": 733,
+   "var_pre_pp2": 27.323661304862142,
+   "var_post_pp2": 12.701277445609847,
+   "cov_pp2": 3.1510027216459555,
+   "stability": 0.16914362355355203,
+   "excess_change_var_pp2": 33.72293330718008,
+   "spearman": {
+    "groups": 10,
+    "mean_rank_corr": 0.03360166089071292
+   }
+  },
+  "notes - unchanged": {
+   "stability": [
+    0.650138725313108,
+    -0.27742075286336154,
+    2.4529786730413314
+   ],
+   "excess_change_var_pp2": [
+    -23.138361919787066,
+    -49.84300969945896,
+    11.972977025648097
+   ]
+  },
+  "detector - unchanged": {
+   "stability": [
+    0.4106651058101337,
+    -1.1081934058865714,
+    6.136347585199323
+   ],
+   "excess_change_var_pp2": [
+    -9.972982150849326,
+    -48.34659188638774,
+    28.675260935730012
+   ]
+  },
+  "|dWR| >= 2pp - unchanged": {
+   "stability": [
+    -0.37461042040623016,
+    -1.0293565384651406,
+    0.6835433099516454
+   ],
+   "excess_change_var_pp2": [
+    11.532419302172158,
+    -26.773089070858475,
+    53.08748178591492
+   ]
+  }
+ }
+}

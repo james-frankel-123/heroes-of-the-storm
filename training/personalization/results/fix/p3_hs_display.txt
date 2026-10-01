@@ -1,0 +1,56 @@
+example player: 533 games; kernel +CF rank 2
+hero             games  raw WR  strength         80% band  label
+Whitemane           86     65%     +4.5pp [ +0.7,  +8.3]  clear strength
+Ana                134     52%     +3.9pp [ -0.1,  +7.9]  unclear
+Tyrande             44     52%     +1.2pp [ -3.2,  +5.5]  unclear
+Auriel              42     48%     +0.9pp [ -3.4,  +5.2]  unclear
+Alexstrasza         16     62%     +0.2pp [ -4.2,  +4.5]  unclear
+Stukov              15     53%     +0.0pp [ -3.9,  +4.0]  unclear
+Anduin              18     50%     -0.1pp [ -4.1,  +3.9]  unclear
+Kel'Thuzad          19     58%     -0.2pp [ -5.5,  +5.1]  unclear
+Lt. Morales         14     50%     -0.3pp [ -4.3,  +3.8]  unclear
+Hanzo               11     27%     -0.3pp [ -6.9,  +6.4]  unclear
+Malfurion            9     67%     -0.7pp [ -5.0,  +3.5]  unclear
+Maiev                9     67%     -0.8pp [ -7.8,  +6.3]  unclear
+Mei                 11     45%     -1.3pp [ -6.2,  +3.6]  unclear
+Garrosh              8     62%     -1.4pp [ -6.4,  +3.7]  unclear
+Li-Ming              6     50%     -1.4pp [ -7.4,  +4.7]  unclear
+Xul                  0             -6.8pp [-17.2,  +3.6]  unclear
+Azmodan              0             -6.8pp [-17.2,  +3.7]  unclear
+The Butcher          0             -6.8pp [-17.5,  +3.9]  unclear
+Gazlowe              0             -6.8pp [-17.3,  +3.6]  unclear
+Qhira                0             -7.0pp [-17.7,  +3.8]  unclear
+Deathwing            0             -7.0pp [-17.7,  +3.7]  unclear
+player+hero
+  n=   0  no other games: 4.33pp  no other games (calibrated): 8.77pp  300 games on other heroes: 3.96pp  300 games on other heroes (calibrated): 8.54pp
+  n=   1  no other games: 4.32pp  no other games (calibrated): 4.83pp  300 games on other heroes: 3.95pp  300 games on other heroes (calibrated): 4.41pp
+  n=   3  no other games: 4.28pp  no other games (calibrated): 4.79pp  300 games on other heroes: 3.92pp  300 games on other heroes (calibrated): 4.38pp
+  n=   5  no other games: 4.25pp  no other games (calibrated): 4.75pp  300 games on other heroes: 3.90pp  300 games on other heroes (calibrated): 4.35pp
+  n=  10  no other games: 4.18pp  no other games (calibrated): 4.67pp  300 games on other heroes: 3.84pp  300 games on other heroes (calibrated): 4.29pp
+  n=  20  no other games: 4.03pp  no other games (calibrated): 4.51pp  300 games on other heroes: 3.72pp  300 games on other heroes (calibrated): 4.16pp
+  n=  50  no other games: 3.68pp  no other games (calibrated): 4.11pp  300 games on other heroes: 3.44pp  300 games on other heroes (calibrated): 3.85pp
+  n= 100  no other games: 3.25pp  no other games (calibrated): 3.64pp  300 games on other heroes: 3.08pp  300 games on other heroes (calibrated): 3.45pp
+  n= 200  no other games: 2.71pp  no other games (calibrated): 3.03pp  300 games on other heroes: 2.61pp  300 games on other heroes (calibrated): 2.92pp
+  n= 500  no other games: 1.96pp  no other games (calibrated): 2.19pp  300 games on other heroes: 1.92pp  300 games on other heroes (calibrated): 2.15pp
+player+role+melee+hero
+  n=   0  no other games: 4.35pp  no other games (calibrated): 8.78pp  300 games on other heroes: 3.97pp  300 games on other heroes (calibrated): 8.55pp
+  n=   1  no other games: 4.33pp  no other games (calibrated): 4.85pp  300 games on other heroes: 3.96pp  300 games on other heroes (calibrated): 4.42pp
+  n=   3  no other games: 4.30pp  no other games (calibrated): 4.81pp  300 games on other heroes: 3.93pp  300 games on other heroes (calibrated): 4.39pp
+  n=   5  no other games: 4.27pp  no other games (calibrated): 4.77pp  300 games on other heroes: 3.91pp  300 games on other heroes (calibrated): 4.37pp
+  n=  10  no other games: 4.19pp  no other games (calibrated): 4.68pp  300 games on other heroes: 3.85pp  300 games on other heroes (calibrated): 4.30pp
+  n=  20  no other games: 4.05pp  no other games (calibrated): 4.52pp  300 games on other heroes: 3.73pp  300 games on other heroes (calibrated): 4.17pp
+  n=  50  no other games: 3.69pp  no other games (calibrated): 4.12pp  300 games on other heroes: 3.45pp  300 games on other heroes (calibrated): 3.85pp
+  n= 100  no other games: 3.26pp  no other games (calibrated): 3.64pp  300 games on other heroes: 3.09pp  300 games on other heroes (calibrated): 3.45pp
+  n= 200  no other games: 2.72pp  no other games (calibrated): 3.04pp  300 games on other heroes: 2.62pp  300 games on other heroes (calibrated): 2.92pp
+  n= 500  no other games: 1.96pp  no other games (calibrated): 2.19pp  300 games on other heroes: 1.92pp  300 games on other heroes (calibrated): 2.15pp
++CF rank 2
+  n=   0  no other games: 3.87pp  no other games (calibrated): 8.49pp  300 games on other heroes: 3.42pp  300 games on other heroes (calibrated): 8.25pp
+  n=   1  no other games: 3.86pp  no other games (calibrated): 4.32pp  300 games on other heroes: 3.42pp  300 games on other heroes (calibrated): 3.82pp
+  n=   3  no other games: 3.84pp  no other games (calibrated): 4.29pp  300 games on other heroes: 3.40pp  300 games on other heroes (calibrated): 3.80pp
+  n=   5  no other games: 3.81pp  no other games (calibrated): 4.26pp  300 games on other heroes: 3.38pp  300 games on other heroes (calibrated): 3.78pp
+  n=  10  no other games: 3.76pp  no other games (calibrated): 4.20pp  300 games on other heroes: 3.34pp  300 games on other heroes (calibrated): 3.74pp
+  n=  20  no other games: 3.65pp  no other games (calibrated): 4.08pp  300 games on other heroes: 3.27pp  300 games on other heroes (calibrated): 3.65pp
+  n=  50  no other games: 3.38pp  no other games (calibrated): 3.78pp  300 games on other heroes: 3.07pp  300 games on other heroes (calibrated): 3.43pp
+  n= 100  no other games: 3.04pp  no other games (calibrated): 3.40pp  300 games on other heroes: 2.81pp  300 games on other heroes (calibrated): 3.14pp
+  n= 200  no other games: 2.59pp  no other games (calibrated): 2.89pp  300 games on other heroes: 2.44pp  300 games on other heroes (calibrated): 2.73pp
+  n= 500  no other games: 1.91pp  no other games (calibrated): 2.14pp  300 games on other heroes: 1.85pp  300 games on other heroes (calibrated): 2.07pp

@@ -1,0 +1,6 @@
+2025-01+ (in-sample for the WP) Blizzard role {'penalty_pp': np.float64(-0.9290814008237722), 'se_player_cluster': 0.09065021074176458, 'se_game_cluster': 0.0848172698658963}
+2025-01+ (in-sample for the WP) fine role {'penalty_pp': np.float64(-0.8902011261596297), 'se_player_cluster': 0.09349189958688328, 'se_game_cluster': 0.08829662144138996}
+post-cutoff Blizzard role {'penalty_pp': np.float64(-0.5406768154776515), 'se_player_cluster': 0.20142849520883813, 'se_game_cluster': 0.18924582041155866}
+post-cutoff fine role {'penalty_pp': np.float64(-0.7733515575528532), 'se_player_cluster': 0.21554500315418337, 'se_game_cluster': 0.20921013450135834}
+V2 only Blizzard role {'penalty_pp': np.float64(-0.48222078832303916), 'se_player_cluster': 0.28143631567204974, 'se_game_cluster': 0.2910912366527751}
+V2 only fine role {'penalty_pp': np.float64(-0.5273509048437282), 'se_player_cluster': 0.32674036965117875, 'se_game_cluster': 0.31870728932144443}

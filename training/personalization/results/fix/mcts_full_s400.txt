@@ -1,0 +1,43 @@
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+a-gd|pers: 53s
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+a-gd|pop: 104s
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+a-imit|pers: 150s
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+a-imit|pop: 195s
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+b|pers: 283s
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+b|pop: 381s
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+  LUT blob: 232436 bytes (227.0 KB)
+paired: 433s
+done 439s

@@ -1,0 +1,44 @@
+pick states: fit 250,000, test 250,000 (17s)
+weights {'gd_logp': 0.8051374554634094, 'log1p_n': 0.6929756999015808, 'never_n': -1.0449354648590088, 'ewma20': 8.064840316772461, 'ewma100': -6.421805381774902, 'log1p_days_since': -0.2307690680027008, 'never_played': -1.0449354648590088, 'log_fine_share': 0.15984903275966644}
+  imitation (GD + personal history)          top1 0.3096 top3 0.5339 top5 0.6409 top10 0.7741 mean_loglik -2.6657 share_real_pick_marked_taken 0.0000
+  GD alone (non-personal)                    top1 0.0905 top3 0.2122 top5 0.3031 top10 0.4679 mean_loglik -3.7776 share_real_pick_marked_taken 0.0000
+  frequency alone (EWMA-20 share)            top1 0.2585 top3 0.4625 top5 0.5659 top10 0.6953 mean_loglik -3.5242 share_real_pick_marked_taken 0.0000
+  personal history alone (fitted, no GD)     top1 0.2613 top3 0.4625 top5 0.5657 top10 0.6980 mean_loglik -2.9901 share_real_pick_marked_taken 0.0000
+  uniform over player's pool                 top1 0.0716 top3 0.1934 top5 0.3051 top10 0.4928 mean_loglik -7.7232 share_real_pick_marked_taken 0.0000
+{'pick 1': {'imitation_top1': 0.39138, 'gd_top1': 0.11724}, 'pick 2': {'imitation_top1': 0.32116, 'gd_top1': 0.07608}, 'pick 3': {'imitation_top1': 0.28366, 'gd_top1': 0.0773}, 'pick 4': {'imitation_top1': 0.27046, 'gd_top1': 0.08082}, 'pick 5': {'imitation_top1': 0.28150563011260227, 'gd_top1': 0.1009420188403768}}
+done 130s
+eligible V2 lobbies (all ten players >= 50 games): 5,724; full 1000, realized-only 4724
+tasks: 5724 lobbies, 9000 collapse contexts (7s)
+  lobbies 200/5724 (133s)
+  lobbies 400/5724 (254s)
+  lobbies 600/5724 (369s)
+  lobbies 800/5724 (491s)
+  lobbies 1000/5724 (615s)
+  lobbies 1200/5724 (642s)
+  lobbies 1400/5724 (668s)
+  lobbies 1600/5724 (697s)
+  lobbies 1800/5724 (723s)
+  lobbies 2000/5724 (751s)
+  lobbies 2200/5724 (777s)
+  lobbies 2400/5724 (805s)
+  lobbies 2600/5724 (832s)
+  lobbies 2800/5724 (861s)
+  lobbies 3000/5724 (887s)
+  lobbies 3200/5724 (915s)
+  lobbies 3400/5724 (943s)
+  lobbies 3600/5724 (970s)
+  lobbies 3800/5724 (998s)
+  lobbies 4000/5724 (1026s)
+  lobbies 4200/5724 (1054s)
+  lobbies 4400/5724 (1082s)
+  lobbies 4600/5724 (1112s)
+  lobbies 4800/5724 (1141s)
+  lobbies 5000/5724 (1169s)
+  lobbies 5200/5724 (1197s)
+  lobbies 5400/5724 (1226s)
+  lobbies 5600/5724 (1254s)
+  collapse 2000/9000 (1307s)
+  collapse 4000/9000 (1340s)
+  collapse 6000/9000 (1373s)
+  collapse 8000/9000 (1404s)
+done 1435s

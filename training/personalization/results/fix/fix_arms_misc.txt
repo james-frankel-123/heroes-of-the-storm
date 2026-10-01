@@ -1,0 +1,54 @@
+{
+ "represented_games": 1082432,
+ "games_with_smurf_like_first20": 24211,
+ "share_of_represented_games": 0.022367224915745283,
+ "old_denominator_wp_index_space": 1949087,
+ "fdr_per_hero_transfer": {
+  "total": {
+   "tests": 90,
+   "raw_p_below_0.05": 15,
+   "BH_q_below_0.05": [
+    "Genji"
+   ],
+   "BH_q_below_0.10": [
+    "Sylvanas",
+    "Genji",
+    "Medivh"
+   ],
+   "q_values": {
+    "Genji": 0.035726835758941616,
+    "Sylvanas": 0.05375785269421479,
+    "Medivh": 0.05375785269421479,
+    "Valla": 0.11997424309398556,
+    "Hanzo": 0.11997424309398556,
+    "Tychus": 0.18717809557399764,
+    "Tyrael": 0.18717809557399764,
+    "Li-Ming": 0.18717809557399764,
+    "The Butcher": 0.18717809557399764,
+    "D.Va": 0.18717809557399764,
+    "Maiev": 0.18717809557399764,
+    "Alarak": 0.1875534598895862
+   }
+  },
+  "specific": {
+   "tests": 87,
+   "raw_p_below_0.05": 7,
+   "BH_q_below_0.05": [],
+   "BH_q_below_0.10": [],
+   "q_values": {
+    "Stitches": 0.42874445848879655,
+    "Valla": 0.42874445848879655,
+    "D.Va": 0.42874445848879655,
+    "Genji": 0.42874445848879655,
+    "Medivh": 0.42874445848879655,
+    "Tracer": 0.5085462754367874,
+    "Hanzo": 0.5202729075806187,
+    "Sylvanas": 0.5202729075806187,
+    "Tychus": 0.5202729075806187,
+    "Abathur": 0.5202729075806187,
+    "Qhira": 0.5322024378587862,
+    "Kerrigan": 0.5322024378587862
+   }
+  }
+ }
+}

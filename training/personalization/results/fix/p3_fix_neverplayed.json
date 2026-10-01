@@ -1,0 +1,83 @@
+{
+ "events": 55495,
+ "players": 20967,
+ "split_day": 20541.0,
+ "first_game": {
+  "realized_mean_resid_pp": -3.7463004838234557,
+  "predicted_mean_pp": -3.0013689730558335,
+  "offset_only_mean_pp": -3.198878168513841,
+  "bias_pp": -0.7449315107676225,
+  "bias_ci_pp": [
+   -1.1304512143265775,
+   -0.32914221609851596
+  ],
+  "excess_var_pp2": -19.561363011281752,
+  "display_var_pp2": 75.55242371728313,
+  "raw_posterior_var_pp2": 17.7156973879869,
+  "var_ratio_vs_display": -0.2589111248698029,
+  "var_ratio_vs_display_ci": [
+   -0.36033269818709096,
+   -0.1549215565999965
+  ],
+  "var_ratio_vs_raw_posterior": -1.1041824988807047,
+  "log_loss": {
+   "WP_pop": 0.6761707689754832,
+   "WP_pop + offset": 0.6727216269395989,
+   "WP_pop + offset + GP mean": 0.672004141250906
+  },
+  "players with 20-100 games": {
+   "events": 38036,
+   "bias_pp": -0.5851892064287216,
+   "var_ratio_vs_display": -0.11320440284816612
+  },
+  "players with 100-300 games": {
+   "events": 13580,
+   "bias_pp": -0.9442566834642125,
+   "var_ratio_vs_display": -0.40605000479841297
+  },
+  "players with 300- games": {
+   "events": 3879,
+   "bias_pp": -1.6134858914365442,
+   "var_ratio_vs_display": -1.245618761185048
+  },
+  "excess_var_minus_deep_reference_pp2": -13.806239193612791,
+  "excess_var_minus_deep_reference_se_pp2": 5.226901752895586,
+  "claimed_minus_deep_reference_claimed_pp2": 65.47033817091567,
+  "claimed_raw_minus_deep_reference_raw_pp2": 9.64929621872242
+ },
+ "reference_established_slots": {
+  "n_ph 1-5": {
+   "slots": 107641,
+   "excess_var_pp2": -5.216444615351312,
+   "display_var_pp2": 20.295369581461603,
+   "excess_se_pp2": 2.720009190072016
+  },
+  "n_ph 5-20": {
+   "slots": 142444,
+   "excess_var_pp2": -6.94732705174117,
+   "display_var_pp2": 18.10951450728676,
+   "excess_se_pp2": 2.3568130378665186
+  },
+  "n_ph 20-50": {
+   "slots": 77279,
+   "excess_var_pp2": -3.6569705762731775,
+   "display_var_pp2": 15.150663110099611,
+   "excess_se_pp2": 3.262395507230356
+  },
+  "n_ph 50-": {
+   "slots": 72395,
+   "excess_var_pp2": -5.755123817668961,
+   "display_var_pp2": 10.082085546367463,
+   "excess_se_pp2": 3.415658113903293
+  }
+ },
+ "first_3_games_selected": {
+  "events_reaching_3": 7189,
+  "share_of_events": 0.1295432020902784,
+  "first_game_resid_of_these_pp": 6.9823602693006945,
+  "first_game_resid_of_the_rest_pp": -5.342962226758279,
+  "bias_pp": 5.240442686985169,
+  "var_ratio_vs_display": 0.5834658463543418,
+  "cover80": 0.7437752121296425
+ }
+}

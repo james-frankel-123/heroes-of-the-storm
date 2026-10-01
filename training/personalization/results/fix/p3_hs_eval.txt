@@ -1,0 +1,149 @@
+{"E_slots": 9386114, "V1_slots": 710721, "V2_slots": 725856, "split_day": 20541.0}
+online hl=inf: 95s
+static@cutoff: 36s
+online hl=365: 37s
+online hl=180: 93s
+online hl=90: 35s
+online hl=inf lag=7: 18s
+online hl=inf lag=30: 17s
+slot-level (V2 all): ll_gain_x1000 / mse_gain_pp2 / slope / sd
+  experience only                                         +0.826 +3.99 1.045 nan | V1 +0.774
+  raw WR                                                  -276.199 -463.49 0.051 nan | V1 -278.491
+  raw mean residual                                       -247.842 -440.93 0.055 nan | V1 -250.318
+  player [online hl=inf]                                  +1.122 +5.43 1.028 2.44 | V1 +1.036
+  player+hero [online hl=inf]                             +1.362 +6.58 1.009 4.02 | V1 +1.280
+  player+role+hero [online hl=inf]                        +1.381 +6.67 1.009 4.03 | V1 +1.286
+  player+role+melee+hero [online hl=inf]                  +1.380 +6.67 1.009 4.03 | V1 +1.285
+  +co-play [online hl=inf]                                +1.387 +6.70 1.006 4.05 | V1 +1.288
+  +co-strength moments [online hl=inf]                    +1.400 +6.75 0.963 3.55 | V1 +1.194
+  +CF rank 1 [online hl=inf]                              +1.454 +7.01 0.985 3.69 | V1 +1.307
+  +CF rank 2 [online hl=inf]                              +1.461 +7.05 0.968 3.57 | V1 +1.279
+  +CF rank 3 [online hl=inf]                              +1.444 +6.97 0.954 3.49 | V1 +1.246
+  +CF rank 4 [online hl=inf]                              +1.433 +6.91 0.944 3.39 | V1 +1.216
+  +CF rank 8 [online hl=inf]                              +1.391 +6.71 0.911 3.60 | V1 +1.200
+  +CF rank 2 +co-play [online hl=inf]                     +1.460 +7.04 0.968 3.58 | V1 +1.279
+  player [static@cutoff]                                  +0.907 +4.39 0.964 2.57 | V1 +0.897
+  player+hero [static@cutoff]                             +1.039 +5.03 0.950 4.12 | V1 +1.085
+  player+role+melee+hero [static@cutoff]                  +1.048 +5.07 0.948 4.13 | V1 +1.089
+  +co-play [static@cutoff]                                +1.054 +5.10 0.947 4.16 | V1 +1.090
+  +CF rank 2 [static@cutoff]                              +1.067 +5.16 0.904 3.66 | V1 +1.055
+  player [online hl=365]                                  +1.138 +5.51 1.090 2.55 | V1 +1.058
+  player+hero [online hl=365]                             +1.351 +6.53 1.079 4.09 | V1 +1.272
+  player+role+melee+hero [online hl=365]                  +1.369 +6.61 1.080 4.10 | V1 +1.275
+  +co-play [online hl=365]                                +1.374 +6.64 1.079 4.12 | V1 +1.279
+  +CF rank 2 [online hl=365]                              +1.456 +7.02 1.038 3.66 | V1 +1.298
+  player [online hl=180]                                  +1.121 +5.42 1.110 2.63 | V1 +1.050
+  player+hero [online hl=180]                             +1.307 +6.31 1.103 4.14 | V1 +1.236
+  player+role+melee+hero [online hl=180]                  +1.323 +6.39 1.105 4.15 | V1 +1.237
+  +co-play [online hl=180]                                +1.327 +6.41 1.104 4.17 | V1 +1.240
+  +CF rank 2 [online hl=180]                              +1.409 +6.79 1.067 3.72 | V1 +1.273
+  player [online hl=90]                                   +1.082 +5.23 1.117 2.71 | V1 +1.022
+  player+hero [online hl=90]                              +1.232 +5.96 1.114 4.19 | V1 +1.173
+  player+role+melee+hero [online hl=90]                   +1.246 +6.02 1.116 4.21 | V1 +1.172
+  +co-play [online hl=90]                                 +1.249 +6.03 1.115 4.23 | V1 +1.175
+  +CF rank 2 [online hl=90]                               +1.327 +6.40 1.086 3.80 | V1 +1.220
+  player+hero [online hl=inf lag=7]                       +1.209 +5.85 0.968 4.03 | V1 +1.178
+  +CF rank 2 [online hl=inf lag=7]                        +1.278 +6.17 0.927 3.59 | V1 +1.154
+  player+hero [online hl=inf lag=30]                      +1.119 +5.41 0.957 4.07 | V1 +1.054
+  +CF rank 2 [online hl=inf lag=30]                       +1.164 +5.62 0.913 3.63 | V1 +1.014
+  lag player MMR (G=1d, V1 linear map)                    +0.497 +2.41 0.912 nan | V1 +0.564
+  lag hero MMR (G=1d, V1 linear map)                      +1.033 +5.00 0.917 nan | V1 +1.217
+  lag role MMR (G=1d, V1 linear map)                      +0.668 +3.22 0.946 nan | V1 +0.716
+  lag player MMR (G=7d, V1 linear map)                    +0.216 +1.05 0.927 nan | V1 +0.242
+  lag hero MMR (G=7d, V1 linear map)                      +0.614 +2.97 0.934 nan | V1 +0.697
+  lag role MMR (G=7d, V1 linear map)                      +0.350 +1.69 0.945 nan | V1 +0.380
+  lag player MMR (G=30d, V1 linear map)                   +0.053 +0.26 1.139 nan | V1 +0.041
+  lag hero MMR (G=30d, V1 linear map)                     +0.302 +1.47 0.960 nan | V1 +0.323
+  lag role MMR (G=30d, V1 linear map)                     +0.137 +0.66 0.987 nan | V1 +0.138
+game-level (V2):
+  M0 population WP                                               acc 0.5719 ll 0.67647 gain +0.00000 [+0.00000,+0.00000] ece 0.0032 slope 1.006
+  experience only                                                acc 0.5900 ll 0.66815 gain +0.00832 [+0.00739,+0.00917] ece 0.0036 slope 1.015
+  raw WR                                                         acc 0.5775 ll 0.67377 gain +0.00270 [+0.00218,+0.00318] ece 0.0032 slope 1.013
+  raw mean residual                                              acc 0.5778 ll 0.67355 gain +0.00292 [+0.00242,+0.00338] ece 0.0033 slope 1.018
+  player [online hl=inf]                                         acc 0.5950 ll 0.66565 gain +0.01082 [+0.00980,+0.01176] ece 0.0042 slope 1.016
+  player+hero [online hl=inf]                                    acc 0.5984 ll 0.66321 gain +0.01326 [+0.01216,+0.01415] ece 0.0037 slope 1.010
+  player+role+hero [online hl=inf]                               acc 0.5985 ll 0.66305 gain +0.01342 [+0.01235,+0.01429] ece 0.0033 slope 1.011
+  player+role+melee+hero [online hl=inf]                         acc 0.5983 ll 0.66306 gain +0.01341 [+0.01236,+0.01427] ece 0.0030 slope 1.011
+  +co-play [online hl=inf]                                       acc 0.5979 ll 0.66300 gain +0.01347 [+0.01238,+0.01432] ece 0.0031 slope 1.011
+  +co-strength moments [online hl=inf]                           acc 0.5981 ll 0.66292 gain +0.01355 [+0.01245,+0.01446] ece 0.0033 slope 1.029
+  +CF rank 1 [online hl=inf]                                     acc 0.5994 ll 0.66232 gain +0.01415 [+0.01303,+0.01499] ece 0.0037 slope 1.020
+  +CF rank 2 [online hl=inf]                                     acc 0.6002 ll 0.66224 gain +0.01423 [+0.01312,+0.01519] ece 0.0040 slope 1.026
+  +CF rank 3 [online hl=inf]                                     acc 0.5998 ll 0.66238 gain +0.01409 [+0.01303,+0.01508] ece 0.0040 slope 1.028
+  +CF rank 4 [online hl=inf]                                     acc 0.5996 ll 0.66245 gain +0.01401 [+0.01294,+0.01492] ece 0.0046 slope 1.032
+  +CF rank 8 [online hl=inf]                                     acc 0.5988 ll 0.66277 gain +0.01370 [+0.01262,+0.01471] ece 0.0034 slope 1.027
+  +CF rank 2 +co-play [online hl=inf]                            acc 0.5999 ll 0.66226 gain +0.01421 [+0.01309,+0.01518] ece 0.0036 slope 1.026
+  player [static@cutoff]                                         acc 0.5904 ll 0.66758 gain +0.00888 [+0.00797,+0.00967] ece 0.0035 slope 1.010
+  player+hero [static@cutoff]                                    acc 0.5931 ll 0.66623 gain +0.01024 [+0.00934,+0.01103] ece 0.0030 slope 1.002
+  player+role+melee+hero [static@cutoff]                         acc 0.5923 ll 0.66615 gain +0.01032 [+0.00944,+0.01115] ece 0.0034 slope 1.003
+  +co-play [static@cutoff]                                       acc 0.5931 ll 0.66609 gain +0.01038 [+0.00945,+0.01120] ece 0.0035 slope 1.004
+  +CF rank 2 [static@cutoff]                                     acc 0.5934 ll 0.66584 gain +0.01063 [+0.00971,+0.01157] ece 0.0039 slope 1.016
+  player [online hl=365]                                         acc 0.5951 ll 0.66543 gain +0.01104 [+0.01006,+0.01205] ece 0.0035 slope 1.016
+  player+hero [online hl=365]                                    acc 0.5978 ll 0.66331 gain +0.01315 [+0.01214,+0.01416] ece 0.0032 slope 1.011
+  player+role+melee+hero [online hl=365]                         acc 0.5983 ll 0.66317 gain +0.01330 [+0.01233,+0.01433] ece 0.0028 slope 1.014
+  +co-play [online hl=365]                                       acc 0.5983 ll 0.66312 gain +0.01334 [+0.01232,+0.01437] ece 0.0030 slope 1.014
+  +CF rank 2 [online hl=365]                                     acc 0.5985 ll 0.66237 gain +0.01410 [+0.01300,+0.01512] ece 0.0037 slope 1.025
+  player [online hl=180]                                         acc 0.5949 ll 0.66557 gain +0.01090 [+0.00993,+0.01196] ece 0.0033 slope 1.015
+  player+hero [online hl=180]                                    acc 0.5970 ll 0.66374 gain +0.01273 [+0.01171,+0.01387] ece 0.0035 slope 1.011
+  player+role+melee+hero [online hl=180]                         acc 0.5981 ll 0.66360 gain +0.01287 [+0.01185,+0.01401] ece 0.0033 slope 1.014
+  +co-play [online hl=180]                                       acc 0.5980 ll 0.66357 gain +0.01290 [+0.01191,+0.01401] ece 0.0033 slope 1.014
+  +CF rank 2 [online hl=180]                                     acc 0.5988 ll 0.66283 gain +0.01364 [+0.01258,+0.01468] ece 0.0036 slope 1.023
+  player [online hl=90]                                          acc 0.5943 ll 0.66592 gain +0.01054 [+0.00955,+0.01162] ece 0.0032 slope 1.012
+  player+hero [online hl=90]                                     acc 0.5969 ll 0.66446 gain +0.01201 [+0.01097,+0.01311] ece 0.0036 slope 1.011
+  player+role+melee+hero [online hl=90]                          acc 0.5965 ll 0.66434 gain +0.01213 [+0.01110,+0.01322] ece 0.0032 slope 1.013
+  +co-play [online hl=90]                                        acc 0.5972 ll 0.66432 gain +0.01214 [+0.01111,+0.01325] ece 0.0040 slope 1.013
+  +CF rank 2 [online hl=90]                                      acc 0.5979 ll 0.66363 gain +0.01284 [+0.01179,+0.01391] ece 0.0036 slope 1.020
+  player+hero [online hl=inf lag=7]                              acc 0.5961 ll 0.66461 gain +0.01185 [+0.01078,+0.01267] ece 0.0028 slope 1.001
+  +CF rank 2 [online hl=inf lag=7]                               acc 0.5982 ll 0.66383 gain +0.01263 [+0.01161,+0.01366] ece 0.0049 slope 1.019
+  player+hero [online hl=inf lag=30]                             acc 0.5938 ll 0.66544 gain +0.01103 [+0.01000,+0.01187] ece 0.0036 slope 1.005
+  +CF rank 2 [online hl=inf lag=30]                              acc 0.5950 ll 0.66489 gain +0.01158 [+0.01064,+0.01250] ece 0.0032 slope 1.022
+  lag player MMR G=1                                             acc 0.5832 ll 0.67214 gain +0.00433 [+0.00362,+0.00520] ece 0.0040 slope 0.974
+  lag hero MMR G=1                                               acc 0.5882 ll 0.66768 gain +0.00879 [+0.00792,+0.01002] ece 0.0048 slope 0.970
+  lag role MMR G=1                                               acc 0.5844 ll 0.67106 gain +0.00541 [+0.00476,+0.00630] ece 0.0033 slope 0.984
+  lag player+role+hero MMR G=1                                   acc 0.5901 ll 0.66691 gain +0.00956 [+0.00852,+0.01063] ece 0.0052 slope 0.960
+  lag player MMR G=7                                             acc 0.5758 ll 0.67460 gain +0.00187 [+0.00142,+0.00233] ece 0.0040 slope 0.992
+  lag hero MMR G=7                                               acc 0.5824 ll 0.67123 gain +0.00524 [+0.00458,+0.00610] ece 0.0036 slope 0.988
+  lag role MMR G=7                                               acc 0.5778 ll 0.67364 gain +0.00283 [+0.00236,+0.00346] ece 0.0035 slope 0.994
+  lag player+role+hero MMR G=7                                   acc 0.5819 ll 0.67105 gain +0.00542 [+0.00479,+0.00633] ece 0.0046 slope 0.984
+  lag player MMR G=30                                            acc 0.5745 ll 0.67602 gain +0.00045 [+0.00027,+0.00063] ece 0.0042 slope 1.007
+  lag hero MMR G=30                                              acc 0.5769 ll 0.67387 gain +0.00259 [+0.00203,+0.00322] ece 0.0029 slope 1.002
+  lag role MMR G=30                                              acc 0.5751 ll 0.67536 gain +0.00111 [+0.00079,+0.00147] ece 0.0035 slope 1.004
+  lag player+role+hero MMR G=30                                  acc 0.5771 ll 0.67389 gain +0.00258 [+0.00202,+0.00322] ece 0.0031 slope 1.001
+  +CF rank 2 [online hl=inf] + lag player MMR G=1                acc 0.6058 ll 0.65863 gain +0.01784 [+0.01662,+0.01897] ece 0.0036 slope 0.997
+  +CF rank 2 [online hl=inf] + lag all MMR G=1                   acc 0.6076 ll 0.65661 gain +0.01986 [+0.01855,+0.02127] ece 0.0032 slope 0.981
+  +CF rank 2 [online hl=180] + lag player MMR G=1                acc 0.6047 ll 0.65908 gain +0.01739 [+0.01608,+0.01868] ece 0.0040 slope 0.996
+  +CF rank 2 [online hl=180] + lag all MMR G=1                   acc 0.6064 ll 0.65710 gain +0.01937 [+0.01807,+0.02086] ece 0.0027 slope 0.980
+  player+hero [online hl=inf] + lag player MMR G=1               acc 0.6039 ll 0.65967 gain +0.01680 [+0.01566,+0.01799] ece 0.0038 slope 0.983
+  player+hero [online hl=inf] + lag all MMR G=1                  acc 0.6066 ll 0.65771 gain +0.01876 [+0.01739,+0.02011] ece 0.0026 slope 0.970
+  +CF rank 2 [online hl=inf] + lag player MMR G=7                acc 0.6026 ll 0.66049 gain +0.01598 [+0.01481,+0.01712] ece 0.0036 slope 1.011
+  +CF rank 2 [online hl=inf] + lag all MMR G=7                   acc 0.6041 ll 0.65937 gain +0.01710 [+0.01587,+0.01831] ece 0.0044 slope 1.002
+  +CF rank 2 [online hl=180] + lag player MMR G=7                acc 0.6014 ll 0.66093 gain +0.01554 [+0.01437,+0.01678] ece 0.0034 slope 1.010
+  +CF rank 2 [online hl=180] + lag all MMR G=7                   acc 0.6032 ll 0.65981 gain +0.01666 [+0.01541,+0.01784] ece 0.0042 slope 1.001
+  player+hero [online hl=inf] + lag player MMR G=7               acc 0.6004 ll 0.66155 gain +0.01492 [+0.01381,+0.01596] ece 0.0031 slope 0.995
+  player+hero [online hl=inf] + lag all MMR G=7                  acc 0.6015 ll 0.66047 gain +0.01600 [+0.01487,+0.01711] ece 0.0026 slope 0.988
+  +CF rank 2 [online hl=inf] + lag player MMR G=30               acc 0.6004 ll 0.66162 gain +0.01485 [+0.01375,+0.01586] ece 0.0038 slope 1.023
+  +CF rank 2 [online hl=inf] + lag all MMR G=30                  acc 0.6013 ll 0.66113 gain +0.01534 [+0.01427,+0.01645] ece 0.0051 slope 1.016
+  +CF rank 2 [online hl=180] + lag player MMR G=30               acc 0.6006 ll 0.66207 gain +0.01440 [+0.01332,+0.01559] ece 0.0042 slope 1.021
+  +CF rank 2 [online hl=180] + lag all MMR G=30                  acc 0.6009 ll 0.66156 gain +0.01490 [+0.01386,+0.01609] ece 0.0043 slope 1.015
+  player+hero [online hl=inf] + lag player MMR G=30              acc 0.5982 ll 0.66265 gain +0.01382 [+0.01273,+0.01476] ece 0.0043 slope 1.007
+  player+hero [online hl=inf] + lag all MMR G=30                 acc 0.5995 ll 0.66217 gain +0.01430 [+0.01313,+0.01525] ece 0.0028 slope 1.002
+  +CF rank 2 [online hl=inf] + raw WR                            acc 0.6000 ll 0.66202 gain +0.01445 [+0.01334,+0.01537] ece 0.0035 slope 1.027
+  +CF rank 2 [online hl=inf lag=7] + lag player MMR G=7          acc 0.6004 ll 0.66225 gain +0.01422 [+0.01309,+0.01540] ece 0.0027 slope 1.004
+  +CF rank 2 [online hl=inf lag=7] + lag all MMR G=7             acc 0.6012 ll 0.66102 gain +0.01545 [+0.01430,+0.01670] ece 0.0046 slope 0.996
+  +CF rank 2 [online hl=inf lag=30] + lag player MMR G=30        acc 0.5957 ll 0.66451 gain +0.01195 [+0.01098,+0.01294] ece 0.0040 slope 1.021
+  +CF rank 2 [online hl=inf lag=30] + lag all MMR G=30           acc 0.5964 ll 0.66394 gain +0.01253 [+0.01152,+0.01350] ece 0.0042 slope 1.014
+  cov static@cutoff -> all post games      player                     cells 21267 cover80 0.769 var_ratio 4.62
+  cov static@cutoff -> all post games      player+hero                cells 21267 cover80 0.786 var_ratio 1.63
+  cov static@cutoff -> all post games      player+role+melee+hero     cells 21267 cover80 0.786 var_ratio 1.63
+  cov static@cutoff -> all post games      +co-play                   cells 21267 cover80 0.786 var_ratio 1.61
+  cov static@cutoff -> all post games      +CF rank 2                 cells 21267 cover80 0.786 var_ratio 1.68
+  cov hl=inf @V2 start -> V2 games         player                     cells 8678 cover80 0.773 var_ratio 5.00
+  cov hl=inf @V2 start -> V2 games         player+hero                cells 8678 cover80 0.788 var_ratio 1.75
+  cov hl=inf @V2 start -> V2 games         player+role+melee+hero     cells 8678 cover80 0.788 var_ratio 1.74
+  cov hl=inf @V2 start -> V2 games         +co-play                   cells 8678 cover80 0.788 var_ratio 1.74
+  cov hl=inf @V2 start -> V2 games         +CF rank 2                 cells 8678 cover80 0.790 var_ratio 1.76
+  cov hl=180 @V2 start -> V2 games         player                     cells 8678 cover80 0.775 var_ratio 4.24
+  cov hl=180 @V2 start -> V2 games         player+hero                cells 8678 cover80 0.792 var_ratio 1.60
+  cov hl=180 @V2 start -> V2 games         player+role+melee+hero     cells 8678 cover80 0.792 var_ratio 1.59
+  cov hl=180 @V2 start -> V2 games         +co-play                   cells 8678 cover80 0.791 var_ratio 1.58
+  cov hl=180 @V2 start -> V2 games         +CF rank 2                 cells 8678 cover80 0.790 var_ratio 1.58
+done in 396s

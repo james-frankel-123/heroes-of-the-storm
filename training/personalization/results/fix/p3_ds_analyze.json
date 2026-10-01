@@ -1,0 +1,535 @@
+{
+ "drafters": {
+  "greedy BC (non-personal)": {
+   "realized_subset": {
+    "personalized agreement": [
+     8.74297002516687,
+     4.083366395765916,
+     13.393734023347498
+    ],
+    "population agreement": [
+     4.475735565647483,
+     -0.8544761115219444,
+     9.198580683069304
+    ],
+    "personal component": [
+     12.439757090061903,
+     7.378270606044679,
+     17.039789891568947
+    ],
+    "teams": 4000
+   },
+   "collapse": {
+    "effective_pool_median": 8.400910541683505,
+    "top3_share_mean": 0.1348888888888889,
+    "players": 300
+   },
+   "realized_all": [
+    4.769698021258329,
+    2.037092148972976,
+    7.50074098366577
+   ]
+  },
+  "greedy distilled": {
+   "vs gd": {
+    "dV_pp": [
+     4.613840845596598,
+     4.033247344365935,
+     5.166432958661989
+    ],
+    "dWPpop_pp": [
+     -0.49148665368556976,
+     -0.943635783046484,
+     -0.005463796071708203
+    ],
+    "mean_V_pers": 0.573762074344648,
+    "mean_V_pop": 0.5276236658886821,
+    "lobbies": 1000
+   },
+   "vs imit": {
+    "dV_pp": [
+     5.330379907498787,
+     4.811363572385028,
+     5.851831367679569
+    ],
+    "dWPpop_pp": [
+     0.12380892857909202,
+     -0.3189759396202862,
+     0.574555025473237
+    ],
+    "mean_V_pers": 0.48706067583663093,
+    "mean_V_pop": 0.43375687676164315,
+    "lobbies": 1000
+   },
+   "realized_subset": {
+    "personalized agreement": [
+     8.74297002516687,
+     4.0329569322988394,
+     13.511781860189512
+    ],
+    "population agreement": [
+     4.475735565647483,
+     -0.14956705374643203,
+     9.265401556529104
+    ],
+    "personal component": [
+     12.439757090061903,
+     7.903875409252942,
+     17.01903727259487
+    ],
+    "teams": 4000
+   },
+   "collapse": {
+    "effective_pool_median": 7.931437470663463,
+    "top3_share_mean": 0.23211111111111107,
+    "players": 300
+   },
+   "realized_all": [
+    9.38640051566097,
+    6.554993629528772,
+    12.061358423871049
+   ],
+   "realized_all_personal_component": [
+    11.209198730351103,
+    8.073510803444938,
+    14.047619825790282
+   ]
+  },
+  "MCTS population (BC prior)": {
+   "realized_subset": {
+    "personalized agreement": [
+     4.076506201177836,
+     -0.7348128200508652,
+     8.5356002766639
+    ],
+    "population agreement": [
+     4.094539616256952,
+     -0.5817168176174164,
+     8.950400497671215
+    ],
+    "personal component": [
+     -0.13900619745254514,
+     -4.886030799150467,
+     4.832107897894457
+    ],
+    "teams": 4000
+   },
+   "collapse": {
+    "effective_pool_median": 10.111385559131666,
+    "top3_share_mean": 0.1302222222222222,
+    "players": 300
+   }
+  },
+  "MCTS personalized, BC prior": {
+   "vs gd": {
+    "dV_pp": [
+     6.189715703228216,
+     5.441340425148958,
+     6.90520208468859
+    ],
+    "dWPpop_pp": [
+     -1.1378082811832428,
+     -1.7812755957990885,
+     -0.42671425588428974
+    ],
+    "mean_V_pers": 0.6872038886297098,
+    "mean_V_pop": 0.6253067315974278,
+    "lobbies": 1000
+   },
+   "vs imit": {
+    "dV_pp": [
+     7.666998063896967,
+     6.875645021630943,
+     8.445145212450914
+    ],
+    "dWPpop_pp": [
+     -0.42363353073596954,
+     -1.0570093185454608,
+     0.31008790552616117
+    ],
+    "mean_V_pers": 0.6013814393062744,
+    "mean_V_pop": 0.5247114586673046,
+    "lobbies": 1000
+   },
+   "realized_subset": {
+    "personalized agreement": [
+     4.076506201177836,
+     -0.5945524224545808,
+     8.758616780117153
+    ],
+    "population agreement": [
+     4.094539616256952,
+     -0.4645109742879866,
+     8.809886779636143
+    ],
+    "personal component": [
+     -0.13900619745254514,
+     -4.743327814107761,
+     4.783631279505788
+    ],
+    "teams": 4000
+   },
+   "collapse": {
+    "effective_pool_median": 8.883877174708907,
+    "top3_share_mean": 0.2528888888888889,
+    "players": 300
+   }
+  },
+  "MCTS personalized, distilled prior": {
+   "vs gd": {
+    "dV_pp": [
+     6.8582643379273955,
+     6.0869792693573475,
+     7.593133922568009
+    ],
+    "dWPpop_pp": [
+     -3.313646712899208,
+     -4.00070836789906,
+     -2.6291401169449093
+    ],
+    "mean_V_pers": 0.6938893749767017,
+    "mean_V_pop": 0.6253067315974278,
+    "lobbies": 1000
+   },
+   "vs imit": {
+    "dV_pp": [
+     8.342231483391835,
+     7.524345244600408,
+     9.09204212216377
+    ],
+    "dWPpop_pp": [
+     -2.71666656434536,
+     -3.369469532966614,
+     -2.0637683643400666
+    ],
+    "mean_V_pers": 0.608133773501223,
+    "mean_V_pop": 0.5247114586673046,
+    "lobbies": 1000
+   },
+   "realized_subset": {
+    "personalized agreement": [
+     7.875350220128893,
+     2.8265131250955164,
+     12.403748834738506
+    ],
+    "population agreement": [
+     4.094539616256952,
+     -0.44846308124251644,
+     8.788573207519947
+    ],
+    "personal component": [
+     11.842697350308299,
+     7.230791026027873,
+     16.653247160650793
+    ],
+    "teams": 4000
+   },
+   "collapse": {
+    "effective_pool_median": 7.939761562485829,
+    "top3_share_mean": 0.3237777777777778,
+    "players": 300
+   },
+   "realized_subset_100sims": [
+    6.925282994285226,
+    2.3459751078858977,
+    11.800787656474856
+   ]
+  },
+  "MCTS distilled prior minus MCTS BC prior (both personalized)": {
+   "vs gd": {
+    "dV_pp": [
+     0.6685486346991809,
+     0.08622998079337324,
+     1.2743197977206364
+    ],
+    "dWPpop_pp": [
+     -2.1758384317159654,
+     -2.7944657447189094,
+     -1.5667186657339334
+    ],
+    "mean_V_pers": 0.6938893749767017,
+    "mean_V_pop": 0.6872038886297098,
+    "lobbies": 1000
+   },
+   "vs imit": {
+    "dV_pp": [
+     0.6752334194948684,
+     -0.022136881572763143,
+     1.464839325274406
+    ],
+    "dWPpop_pp": [
+     -2.2930330336093903,
+     -2.9417520859092474,
+     -1.693698967024684
+    ],
+    "mean_V_pers": 0.608133773501223,
+    "mean_V_pop": 0.6013814393062744,
+    "lobbies": 1000
+   }
+  }
+ },
+ "meta": {
+  "real": {
+   "effective_heroes": 73.45442053973008,
+   "top10_share": 0.2572
+  },
+  "greedy BC self-play": {
+   "effective_heroes": 29.533596176634003,
+   "top10_share": 0.5937,
+   "corr_with_real": 0.7538515527928694,
+   "off_role": 0.33
+  },
+  "greedy distilled self-play": {
+   "effective_heroes": 31.291086657530503,
+   "top10_share": 0.5768,
+   "corr_with_real": 0.7789367005637238,
+   "off_role": 0.2308
+  },
+  "MCTS population self-play": {
+   "effective_heroes": 38.59521905519679,
+   "top10_share": 0.5204,
+   "corr_with_real": 0.6172282542733365,
+   "off_role": 0.3361
+  },
+  "MCTS personalized BC prior self-play": {
+   "effective_heroes": 41.291862757697075,
+   "top10_share": 0.5016,
+   "corr_with_real": 0.6533260989745324,
+   "off_role": 0.2051
+  },
+  "MCTS personalized distilled prior self-play": {
+   "effective_heroes": 42.75646454844681,
+   "top10_share": 0.4863,
+   "corr_with_real": 0.682798053198424,
+   "off_role": 0.157
+  },
+  "greedy distilled vs GD": {
+   "effective_heroes": 46.34547145327284,
+   "top10_share": 0.4668,
+   "corr_with_real": 0.8020391599353168,
+   "off_role": 0.2964
+  },
+  "MCTS distilled prior vs GD": {
+   "effective_heroes": 52.46498013377924,
+   "top10_share": 0.4207,
+   "corr_with_real": 0.7371752408596354,
+   "off_role": 0.2572
+  },
+  "MCTS BC prior vs GD": {
+   "effective_heroes": 52.471126250427865,
+   "top10_share": 0.4257,
+   "corr_with_real": 0.7199515961799561,
+   "off_role": 0.281
+  }
+ },
+ "risers_distilled_vs_bc_prior": [
+  {
+   "hero": "Ana",
+   "distilled_pct": 0.24,
+   "bc_prior_pct": 0.08,
+   "real_pct": 0.89
+  },
+  {
+   "hero": "Hanzo",
+   "distilled_pct": 1.18,
+   "bc_prior_pct": 0.67,
+   "real_pct": 2.41
+  },
+  {
+   "hero": "Li Li",
+   "distilled_pct": 0.5,
+   "bc_prior_pct": 0.27,
+   "real_pct": 0.69
+  },
+  {
+   "hero": "Genji",
+   "distilled_pct": 0.33,
+   "bc_prior_pct": 0.18,
+   "real_pct": 0.97
+  },
+  {
+   "hero": "Alexstrasza",
+   "distilled_pct": 0.22,
+   "bc_prior_pct": 0.11,
+   "real_pct": 0.4
+  },
+  {
+   "hero": "Sylvanas",
+   "distilled_pct": 1.22,
+   "bc_prior_pct": 0.7799999999999999,
+   "real_pct": 2.8400000000000003
+  },
+  {
+   "hero": "Deckard",
+   "distilled_pct": 0.19,
+   "bc_prior_pct": 0.1,
+   "real_pct": 0.7799999999999999
+  },
+  {
+   "hero": "Zarya",
+   "distilled_pct": 0.05,
+   "bc_prior_pct": 0.01,
+   "real_pct": 0.32
+  },
+  {
+   "hero": "Qhira",
+   "distilled_pct": 0.05,
+   "bc_prior_pct": 0.01,
+   "real_pct": 0.33999999999999997
+  },
+  {
+   "hero": "Medivh",
+   "distilled_pct": 0.03,
+   "bc_prior_pct": 0.0,
+   "real_pct": 0.61
+  },
+  {
+   "hero": "Chen",
+   "distilled_pct": 0.03,
+   "bc_prior_pct": 0.0,
+   "real_pct": 1.43
+  },
+  {
+   "hero": "Abathur",
+   "distilled_pct": 0.16,
+   "bc_prior_pct": 0.1,
+   "real_pct": 0.59
+  }
+ ],
+ "fallers_distilled_vs_bc_prior": [
+  {
+   "hero": "Tracer",
+   "distilled_pct": 0.18,
+   "bc_prior_pct": 0.37,
+   "real_pct": 0.38
+  },
+  {
+   "hero": "Arthas",
+   "distilled_pct": 0.18,
+   "bc_prior_pct": 0.3,
+   "real_pct": 1.6400000000000001
+  },
+  {
+   "hero": "Lt. Morales",
+   "distilled_pct": 0.35000000000000003,
+   "bc_prior_pct": 0.54,
+   "real_pct": 0.65
+  },
+  {
+   "hero": "Tyrael",
+   "distilled_pct": 0.42,
+   "bc_prior_pct": 0.58,
+   "real_pct": 1.53
+  },
+  {
+   "hero": "Illidan",
+   "distilled_pct": 0.83,
+   "bc_prior_pct": 1.08,
+   "real_pct": 0.89
+  },
+  {
+   "hero": "Deathwing",
+   "distilled_pct": 0.2,
+   "bc_prior_pct": 0.27999999999999997,
+   "real_pct": 0.8999999999999999
+  },
+  {
+   "hero": "The Butcher",
+   "distilled_pct": 0.06999999999999999,
+   "bc_prior_pct": 0.11,
+   "real_pct": 0.42
+  },
+  {
+   "hero": "Zul'jin",
+   "distilled_pct": 1.47,
+   "bc_prior_pct": 1.83,
+   "real_pct": 0.9400000000000001
+  },
+  {
+   "hero": "Xul",
+   "distilled_pct": 0.7100000000000001,
+   "bc_prior_pct": 0.89,
+   "real_pct": 0.6799999999999999
+  },
+  {
+   "hero": "Anub'arak",
+   "distilled_pct": 3.52,
+   "bc_prior_pct": 4.2700000000000005,
+   "real_pct": 1.23
+  },
+  {
+   "hero": "Kerrigan",
+   "distilled_pct": 0.51,
+   "bc_prior_pct": 0.63,
+   "real_pct": 0.67
+  },
+  {
+   "hero": "Ragnaros",
+   "distilled_pct": 0.8699999999999999,
+   "bc_prior_pct": 1.04,
+   "real_pct": 0.77
+  }
+ ],
+ "top_distilled_selfplay": [
+  {
+   "hero": "Valla",
+   "distilled_pct": 7.61,
+   "bc_prior_pct": 7.66,
+   "real_pct": 2.91
+  },
+  {
+   "hero": "Anduin",
+   "distilled_pct": 7.33,
+   "bc_prior_pct": 7.35,
+   "real_pct": 3.0700000000000003
+  },
+  {
+   "hero": "Muradin",
+   "distilled_pct": 7.180000000000001,
+   "bc_prior_pct": 7.23,
+   "real_pct": 2.32
+  },
+  {
+   "hero": "Rehgar",
+   "distilled_pct": 5.26,
+   "bc_prior_pct": 5.510000000000001,
+   "real_pct": 2.29
+  },
+  {
+   "hero": "Falstad",
+   "distilled_pct": 4.09,
+   "bc_prior_pct": 4.41,
+   "real_pct": 2.27
+  },
+  {
+   "hero": "Leoric",
+   "distilled_pct": 3.8699999999999997,
+   "bc_prior_pct": 4.24,
+   "real_pct": 1.4500000000000002
+  },
+  {
+   "hero": "Li-Ming",
+   "distilled_pct": 3.55,
+   "bc_prior_pct": 2.83,
+   "real_pct": 2.42
+  },
+  {
+   "hero": "Anub'arak",
+   "distilled_pct": 3.52,
+   "bc_prior_pct": 4.2700000000000005,
+   "real_pct": 1.23
+  },
+  {
+   "hero": "Nazeebo",
+   "distilled_pct": 3.1300000000000003,
+   "bc_prior_pct": 3.4099999999999997,
+   "real_pct": 1.82
+  },
+  {
+   "hero": "Thrall",
+   "distilled_pct": 3.09,
+   "bc_prior_pct": 2.71,
+   "real_pct": 2.1999999999999997
+  }
+ ]
+}

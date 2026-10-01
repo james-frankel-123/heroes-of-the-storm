@@ -10,17 +10,19 @@
 - **Clusters do not buy anything measurable.** At 1 to 20 games, the cluster version has log loss 2.996 against 3.004 without clusters (top-1 29.5% vs 29.7%). At 0 games there is no history to place a player in a cluster, so both fall back to the population. Overall the no-cluster variant is slightly better (2.556 vs 2.573).
 - **Bans: identity barely improves prediction.** V2 top-1 is 16.5% vs 16.4% for the meta GD (log loss 3.468 vs 3.482). With a one-trick opponent still to pick: 15.6% vs 15.4%. Real teams target mains, but such bans are a small share of all bans, and most bans follow the meta.
 - **In the drafter (MCTS, 400 sims, 2,000 held-out lobbies):**
-  - Modeling opponents as themselves changes 24% of personalized pick recommendations and 30% of ban recommendations.
-  - The predicted V of the controlled team falls from 0.691 to 0.616, because opponents get their comfort heroes. The predicted gain over the population drafter under the same opponent model rises from +6.6 to +8.2pp per draft.
+  - Modeling opponents as themselves changes 24% of personalized pick recommendations and 29% of ban recommendations.
+  - The predicted V of the controlled team falls from 0.687 to 0.610, because opponents get their comfort heroes. The predicted gain over the population drafter under the same opponent model rises from +6.2 to +7.2pp per draft.
 - **Redone ban value inside MCTS** (personalized vs population ban at the same real state, personalized tree's Q):
-  - with GD opponents: +0.53pp per ban decision (+0.62 with a one-trick opponent still to pick);
-  - with personal-GD opponents: +0.63pp (+0.83);
-  - adding the personal-GD prior: +0.83pp (+1.53).
+  - with GD opponents: +0.51pp per ban decision (+0.62 with a one-trick opponent still to pick);
+  - with personal-GD opponents: +0.62pp (+0.78);
+  - adding the personal-GD prior: +0.82pp (+1.49).
 
-  These are a fifth to a quarter of the +3.4pp from the closed-form ban model (P3_EXTENSIONS section 8). The search finds part of that value. The share of recommended bans that hit a remaining opponent's main rises from 10.6% to 20.0% (real teams: 13.3%).
-- **A personal-GD prior for our own picks makes self-play much broader.** It gives 60.9 effective heroes (BC prior 41.5, population 38.6, real 73.5), correlation with real hero shares 0.77 (vs 0.65), and off-role picks of 7.5% (vs 20.0%).
+  These are a fifth to a quarter of the +3.4pp from the closed-form ban model (P3_EXTENSIONS section 8). The search finds part of that value. The share of recommended bans that hit a remaining opponent's main rises from 10.7% to 20.0% (real teams: 13.3%).
+- **A personal-GD prior for our own picks makes self-play much broader.** It gives 61.1 effective heroes (BC prior 41.3, population 38.6, real 73.5), correlation with real hero shares 0.77 (vs 0.65), and off-role picks of 7.5% (vs 20.5%).
 
-Drafter values are model-based. Following AUDIT_P3 A1, the realized-agreement check is not used as evidence here. The non-circular evidence is the prediction accuracy of real opponent actions on held-out drafts in part 1.
+Revised 2026-10-01 after the consolidated audit (combiner and personal tables on counts from earlier days); changes are logged in `P3_AUDIT_FIXES.md`.
+
+Drafter values are model-based. The realized-agreement check re-tests the skill model (P3_DRAFTER, team-level calibration) and is not used as evidence here. The non-circular evidence is the prediction accuracy of real opponent actions on held-out drafts in part 1.
 
 ## 1. The model
 
@@ -152,7 +154,7 @@ Type definitions (players with 30+ games): one-trick = main ≥ 50% of games, sp
 - With both flags off, it is identical to the personal kernel (actions, WP and root visits on 64 episodes).
 - The kernel's personal-GD probabilities match Python to 3.3e-7 over 336 real pick and ban states.
 
-**Protocol.** Audit fixes: pools are the heroes played before the game day (the real hero is no longer added), and no real bans are forced (our bans are searched; the other team's come from the GD). 400 sims, argmax root, same lobbies and seeds as before.
+**Protocol.** The P3_DRAFTER protocol: pools are the heroes played before the game day, no real bans are forced (our bans are searched; the other team's come from the GD), and the value uses the combiner and personal tables on counts from earlier days (b2 = 3.61). 400 sims, argmax root, same lobbies and seeds as the other MCTS runs (`p3_fix_drafters.py pgd`, `results/fix/p3_pgd_mcts.json`).
 
 | configuration | value | prior | opponent, in-tree and rollout model |
 |---|---|---|---|
@@ -166,18 +168,18 @@ Type definitions (players with 30+ games): one-trick = main ≥ 50% of games, sp
 
 | | picks | bans |
 |---|---|---|
-| R2 vs R1: recommendation differs | 23.8% | 30.2% |
-| R3 vs R1: recommendation differs | 64.9% | 58.3% |
+| R2 vs R1: recommendation differs | 23.9% | 29.2% |
+| R3 vs R1: recommendation differs | 65.5% | 57.9% |
 | P2 vs P1 (population drafter) | 22.3% | 24.1% |
-| recommendation equals the real action: R1 / R2 / R3 | 19.6 / 19.6 / 33.7% | 15.1 / 15.3 / 15.3% |
+| recommendation equals the real action: R1 / R2 / R3 | 19.4 / 19.6 / 33.7% | 15.2 / 15.2 / 15.6% |
 
 **Personal gain per decision** (Q in the personalized tree, personalized choice minus the population choice under the same opponent model):
 
 | | picks | bans | bans, one-trick opponent with main free (20% of states) | bans, otherwise | recommended ban hits a remaining opponent's main |
 |---|---|---|---|---|---|
-| R1 vs P1 (GD opponents) | +1.71pp (1.66, 1.77) | +0.53 (0.51, 0.55) | +0.62 (0.56, 0.67) | +0.51 | 10.6% (population 10.0%) |
-| R2 vs P2 (personal-GD opponents) | +1.69 (1.64, 1.74) | **+0.63** (0.61, 0.66) | **+0.83** (0.75, 0.91) | +0.58 | 12.8% (population 10.4%) |
-| R3 vs P2 (+ personal-GD prior) | +2.00 (1.93, 2.08) | **+0.83** (0.79, 0.88) | **+1.53** (1.39, 1.67) | +0.66 | 20.0% |
+| R1 vs P1 (GD opponents) | +1.57pp (1.52, 1.62) | +0.51 (0.49, 0.54) | +0.62 (0.57, 0.68) | +0.49 | 10.7% (population 10.0%) |
+| R2 vs P2 (personal-GD opponents) | +1.60 (1.55, 1.65) | **+0.62** (0.59, 0.64) | **+0.78** (0.69, 0.86) | +0.57 | 12.7% (population 10.4%) |
+| R3 vs P2 (+ personal-GD prior) | +1.91 (1.83, 1.98) | **+0.82** (0.78, 0.87) | **+1.49** (1.35, 1.64) | +0.65 | 20.0% |
 
 Real bans hit a remaining opponent's main 13.3% of the time.
 
@@ -185,28 +187,28 @@ Real bans hit a remaining opponent's main 13.3% of the time.
 
 | | gain in V | change in WP_pop | mean V of the controlled team |
 |---|---|---|---|
-| R1 vs P1 | +6.6pp (5.9, 7.3) | −0.8 | 0.691 |
-| R2 vs P2 | +8.2pp (7.4, 9.1) | −0.4 | 0.616 |
-| R3 vs P2 | +12.6pp (11.6, 13.5) | −4.0 | 0.659 |
+| R1 vs P1 | +6.2pp (5.5, 6.9) | −1.1 | 0.687 |
+| R2 vs P2 | +7.2pp (6.3, 8.1) | −0.2 | 0.610 |
+| R3 vs P2 | +12.1pp (11.2, 13.0) | −3.8 | 0.658 |
 
 **Self-play meta:**
 
 | | R1 | R2 | R3 | P1 | P2 | real |
 |---|---|---|---|---|---|---|
-| effective heroes | 41.5 | 41.9 | **60.9** | 38.6 | 38.7 | 73.5 |
-| share of the 10 most-picked heroes | 49.6% | 49.0% | 37.1% | 52.0% | 51.5% | 25.7% |
-| correlation with real hero shares | 0.65 | 0.67 | **0.77** | 0.62 | 0.62 | |
-| off-role picks | 20.0% | 19.6% | **7.5%** | 33.6% | 33.6% | 15.8% |
+| effective heroes | 41.3 | 42.1 | **61.1** | 38.6 | 38.7 | 73.5 |
+| share of the 10 most-picked heroes | 50.2% | 48.7% | 37.0% | 52.0% | 51.5% | 25.7% |
+| correlation with real hero shares | 0.65 | 0.66 | **0.77** | 0.62 | 0.62 | |
+| off-role picks | 20.5% | 19.8% | **7.5%** | 33.6% | 33.6% | 15.8% |
 
 **Reading:**
 
-- **Opponents as themselves.** About a quarter of pick and a third of ban recommendations change. Predicted absolute value is more realistic: the controlled team's V drops 7.5pp because opponents now play their comfort heroes. Relative to a population drafter facing the same opponents, the personalized drafter's predicted edge grows (+8.2 vs +6.6pp per draft), because it can plan around who the opponents are.
-- **Ban value under MCTS is much smaller than the closed-form +3.4pp.** It is +0.63pp per ban with personal-GD opponents and +0.83 to +1.53pp (one-trick opponents) with the personal prior. Two reasons:
+- **Opponents as themselves.** About a quarter of pick and a third of ban recommendations change. Predicted absolute value is more realistic: the controlled team's V drops 7.7pp because opponents now play their comfort heroes. Relative to a population drafter facing the same opponents, the personalized drafter's predicted edge grows (+7.2 vs +6.2pp per draft), because it can plan around who the opponents are.
+- **Ban value under MCTS is much smaller than the closed-form +3.4pp.** It is +0.62pp per ban with personal-GD opponents and +0.82 to +1.49pp (one-trick opponents) with the personal prior. Two reasons:
   - The search compares two complete bans inside a model where the replacement pick is also searched and opponents re-optimize. The closed form assumed no adaptation beyond the next pick.
   - With the BC prior, main bans get little prior mass, so search rarely explores them. The personal-GD prior doubles the one-trick case.
   
   So the ban value is real but smaller once opponents adapt. A 400-sim search still under-explores it.
-- **A personal prior fixes the narrow meta.** With priors from the personal GD (R3), self-play uses 61 effective heroes, tracks real hero shares (0.77) and puts fewer players off role than real drafts do (7.5% vs 15.8%). R3's recommendations also match real picks 34% of the time (vs 20%), as expected from a behavioral prior. Its larger predicted gain (+12.6pp at −4.0pp WP_pop) leans more on the personal value model, so it inherits that model's calibration limits (AUDIT_P3 A1).
+- **A personal prior fixes the narrow meta.** With priors from the personal GD (R3), self-play uses 61 effective heroes, tracks real hero shares (0.77) and puts fewer players off role than real drafts do (7.5% vs 15.8%). R3's recommendations also match real picks 34% of the time (vs 20%), as expected from a behavioral prior. Its larger predicted gain (+12.1pp at −3.8pp WP_pop) leans more on the personal value model. At the real states, the team-level calibration of P3_DRAFTER for R2 gives realized +6.5pp, predicted +4.5pp, remainder +2.0pp (−2.6, +6.9) for personalized agreement: the realized spread is what the skill model predicts.
 
 ## Caveats
 

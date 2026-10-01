@@ -1,0 +1,9 @@
+examples: train+val 56,860, test 20,000 (20s)
+/home/max/heroes-of-the-storm/training/personalization/p3_ds_train.py:148: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  res[kind] = {"val_ce": bv, "alpha": float(m.alpha), "test": metrics(ut, Yt, At, Mt)}
+alpha only {"val_ce": 2.550884246826172, "alpha": 1.2630763053894043, "test": {"cross_entropy": 2.538365125656128, "kl_to_mcts": 0.2111198902130127, "top1_equals_mcts_argmax": 0.5088, "top1_equals_real_pick": 0.13525, "loglik_real_pick": -54850000.0}} (38s)
+g only {"val_ce": 3.2161664962768555, "alpha": 0.0, "test": {"cross_entropy": 3.202197313308716, "kl_to_mcts": 0.8749520778656006, "top1_equals_mcts_argmax": 0.1715, "top1_equals_real_pick": 0.233, "loglik_real_pick": -54850000.0}} (92s)
+distilled (alpha BC + g) {"val_ce": 2.509153127670288, "alpha": 1.2315125465393066, "test": {"cross_entropy": 2.497796058654785, "kl_to_mcts": 0.17055082321166992, "top1_equals_mcts_argmax": 0.5768, "top1_equals_real_pick": 0.1832, "loglik_real_pick": -54850000.0}} (145s)
+BC prior alone {"test": {"cross_entropy": 2.5625176429748535, "kl_to_mcts": 0.23527240753173828, "top1_equals_mcts_argmax": 0.5088, "top1_equals_real_pick": 0.13525, "loglik_real_pick": -54850000.0}}
+done 145s
