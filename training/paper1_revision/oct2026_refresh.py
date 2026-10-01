@@ -265,8 +265,12 @@ def run(gpu_id):
         log.flush()
         print(msg, flush=True)
     say(f"=== oct2026 refresh start; snapshot={snapshot()}")
-    failed = set()
+    failed, failed_at = set(), {}
     while True:
+        if OPTS.get("retry_failed"):   # e.g. CUDA OOM on a shared GPU: try again later
+            for n in [n for n in failed if time.time() - failed_at[n] > OPTS["retry_failed"]]:
+                failed.discard(n)
+                say(f"RETRY {n}")
         for name, j in list(running.items()):
             rc = j["proc"].poll()
             if rc is None:
@@ -277,6 +281,7 @@ def run(gpu_id):
                 say(f"DONE {name}")
             else:
                 failed.add(name)
+                failed_at[name] = time.time()
                 say(f"FAIL {name} rc={rc}")
         hold = held()
         pending = [j for j in jobs if j["name"] not in running and j["name"] not in failed
@@ -421,10 +426,11 @@ if __name__ == "__main__":
     ap.add_argument("--hots-cap", type=int, default=4, help="0 disables the nvidia-smi HotS count")
     ap.add_argument("--assume-done", default="", help="comma list of jobs finished elsewhere")
     ap.add_argument("--only", default="", help="comma list: run only these jobs")
+    ap.add_argument("--retry-failed", type=int, default=0, help="seconds before a failed job is retried")
     a = ap.parse_args()
     OPTS.update(nproc=a.nproc, gpu_slots=a.gpu_slots, cpu_set=a.cpu_set, hots_cap=a.hots_cap,
                 assume_done={x for x in a.assume_done.split(",") if x},
-                only={x for x in a.only.split(",") if x} or None)
+                only={x for x in a.only.split(",") if x} or None, retry_failed=a.retry_failed)
     if a.print_remote_mcts_cmd:
         print(remote_mcts_cmd(a.print_remote_mcts_cmd))
     elif a.mcts_prep:
