@@ -1,0 +1,8 @@
+id,rater,item_id,block,is_test,p_team_a,better_team,confidence,ms_taken,team_a_is_team0,created_at,item_tier_v5,item_source_v5
+1639,test-watson,894,screener,True,80,A,5,38472,True,2026-09-30 22:13:47.210333,low,screener
+1640,test-watson,767,screener,True,80,A,5,23813,False,2026-09-30 22:14:11.420650,low,screener
+1641,test-watson,208,calibration,True,37,B,4,48518,False,2026-09-30 22:15:00.329326,low,ladder
+1642,test-watson,108,calibration,True,65,A,4,117398,True,2026-09-30 22:16:58.286669,mid,ladder
+1643,test-watson,409,anchors,True,40,B,4,24521,True,2026-09-30 22:17:23.005717,high,ladder
+1644,test-watson,451,anchors,True,40,B,3,814927,False,2026-09-30 22:31:01.316434,low,ladder
+1645,test-watson,824,pairs,True,51,A,2,44079,False,2026-09-30 22:31:45.794775,low,tournament

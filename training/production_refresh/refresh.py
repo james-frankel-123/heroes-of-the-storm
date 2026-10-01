@@ -16,17 +16,35 @@ Phases (subcommands; `all` chains them):
   wp      WinProbEnrichedModel 283-d [256,128], seeds {42,123,777}, keep best
   partial partial-draft WP (drafter projections; recent-500K cap, step embed)
   gd      generic_draft_0 (behavior cloning; benefits from fresh meta data)
-  mcts    4x J_800sim seeds (800 sims, 300K episodes), one per GPU, pick the
-          best final eval WP. Completion = process exit 0 + draft_policy.pt
-          (NEVER file existence alone: the worker checkpoints DURING training)
+  mcts    2 seeds at 400 sims (300K episodes; F_400sim operating point).
+          Completion = process exit 0 + draft_policy.pt (NEVER file existence
+          alone: the worker checkpoints DURING training)
+  select  pick the deployed seed with an INDEPENDENT judge, not the worker's
+          own eval WP (a proxy: the policy's score under the value function
+          it searched against). Each seed's policy argmax drafts a fixed
+          benchmark against the fresh GD model; drafts are scored by a
+          realized-outcome index (overfit2026/gold.RealizedIndex) fitted on
+          the last JUDGE_DAYS of real games. Rule: highest judge score among
+          seeds whose degenerate-comp rate is within DEGEN_TOL of the best.
+  gates   check every deploy gate, record them in refresh_meta.json, exit
+          nonzero if any fails (export runs this first)
   export  ONNX -> public/models/ via export_site_models.py (env-overridden
           paths) + copy site stats artifact into src/lib/data/
   all     everything in order; refuses to export if gates fail
 
+Why 400 sims and judge-based selection (training/overfit2026/REPORT.md;
+paper/paper 1/REVISION_NOTES.md section 3.8): 400 -> 800 training sims raises
+the proxy but not independent judges, even with a leak-free value function,
+and picking the seed with the best proxy rewards exploiting the value
+function's errors.
+
 Deploy gates (checked before export):
   - WP best test acc >= GATE_WP_MIN (drift-era models land ~57-58%)
+  - WP calibration slope within GATE_CAL_SLOPE
   - partial-WP overall test acc >= GATE_PARTIAL_MIN
-  - MCTS best eval WP >= GATE_MCTS_MIN
+  - selected MCTS seed: judge score > population-greedy baseline (GD argmax
+    vs the same GD opponent) under the same judge on the same benchmark
+  - selected MCTS seed: proxy eval WP >= GATE_MCTS_PROXY_FLOOR (sanity only)
   - export parity asserts (in export_site_models.py) must pass
 
 Usage:
@@ -76,11 +94,20 @@ META_JSON = os.path.join(RUN_DIR, "refresh_meta.json")
 HALF_LIFE_DAYS = 90.0
 WP_SEEDS = [42, 123, 777]
 MCTS_SEEDS = [0, 1]   # 2 seeds: HotS work is capped to ~25% of this shared box
-MCTS_SIMS = 800
-MCTS_EPISODES = 300_000
+MCTS_SIMS = 400       # operating point; 800 buys proxy WP, not judged quality
+MCTS_EPISODES = int(os.environ.get("REFRESH_MCTS_EPISODES", "300000"))
 GATE_WP_MIN = 56.0    # % test accuracy floor
 GATE_PARTIAL_MIN = 0.525  # partial-WP overall test acc floor (all-step mix)
-GATE_MCTS_MIN = 0.70  # eval WP floor (J_800sim best seeds land ~0.77)
+# Proxy sanity floor only (catches broken training). Leak-free 400-sim runs
+# land ~0.73-0.74 on the paper stats; decayed-stats 800-sim runs 0.75-0.80.
+GATE_MCTS_PROXY_FLOOR = 0.70
+# Seed selection (phase select)
+JUDGE_DAYS = 90           # realized-index window, ending at the stats ref date
+JUDGE_SALT = 99           # gold.RealizedIndex fold-hash salt
+BENCH_DRAFTS = 1260       # 14 maps x 3 tiers x 2 sides x 15
+BENCH_SEED = 20261101     # GD opponent sampling; same for every policy
+DEGEN_TOL = 0.02          # eligible seeds: degen rate <= best seed's + 2pp
+SELECT_JSON = os.path.join(RUN_DIR, "seed_selection.json")
 GATE_CAL_SLOPE = (0.8, 1.25)  # WP calibration slope on out-of-fold test rows
 MCTS_MIN_FREE_MIB = 16000  # only launch MCTS seeds on GPUs with this much free
 
@@ -574,33 +601,308 @@ def phase_mcts():
         log(f"MCTS seed {seed}: rc={rc} ok={ok} best_wp={best_wp}")
 
     ok_seeds = {s: r for s, r in results.items() if r["ok"] and r["best_wp"]}
+    # best_wp here is the PROXY (worker's own eval under the value function it
+    # searched against). It is logged, not used to choose: see phase select.
+    meta_update(mcts={"results": results, "sims": MCTS_SIMS,
+                      "episodes": MCTS_EPISODES,
+                      "ok_seeds": sorted(ok_seeds)})
     if not ok_seeds:
-        meta_update(mcts={"results": results, "best_seed": None})
         sys.exit("no MCTS seed completed successfully")
-    best_seed = max(ok_seeds, key=lambda s: ok_seeds[s]["best_wp"])
-    meta_update(mcts={"results": results, "best_seed": best_seed,
-                      "best_wp": ok_seeds[best_seed]["best_wp"]})
-    log(f"best MCTS seed: {best_seed} (eval WP {ok_seeds[best_seed]['best_wp']:.4f})")
+    log(f"MCTS done: ok seeds {sorted(ok_seeds)}; proxy best_wp "
+        + ", ".join(f"s{s}={r['best_wp']:.4f}" for s, r in sorted(ok_seeds.items())))
+
+
+# ── Phase: select ────────────────────────────────────────────────────
+
+def _judge_games():
+    """Slim games (gold.py format) from the last JUDGE_DAYS of the corpus the
+    other phases train on: replay_draft_data, 2.55 only (pre-2.55 exclude
+    set), known tiers only, 5v5 with a recorded winner. The window ends at the
+    stats phase's decay reference date so a rerun sees the same games."""
+    exclude = set(json.load(open(EXCLUDE_IDS_JSON)))
+    ref = json.load(open(META_JSON)).get("stats", {}).get("ref_date")
+    conn = _db_conn()
+    conn.set_session(readonly=True)
+    cur = conn.cursor()
+    if ref is None:
+        cur.execute("SELECT max(game_date) FROM replay_draft_data")
+        ref = str(cur.fetchone()[0])
+    cur.execute("""
+        SELECT replay_id, skill_tier, game_map, team0_heroes, team1_heroes,
+               team0_bans, team1_bans, winner
+        FROM replay_draft_data
+        WHERE game_date > %s::timestamptz - make_interval(days => %s)
+          AND game_date <= %s::timestamptz
+          AND game_version LIKE '2.55%%'""", (ref, JUDGE_DAYS, ref))
+
+    def lst(x):
+        return json.loads(x) if isinstance(x, str) else (x or [])
+    games = []
+    for rid, tier, gmap, t0, t1, b0, b1, w in cur:
+        t0, t1 = tuple(lst(t0)), tuple(lst(t1))
+        if (rid in exclude or tier not in TRAIN_TIERS or w not in (0, 1)
+                or len(t0) != 5 or len(t1) != 5):
+            continue
+        games.append((int(rid), tier, gmap, t0, t1,
+                      tuple(lst(b0)) + tuple(lst(b1)), int(w)))
+    cur.close()
+    conn.close()
+    return games, ref
+
+
+def _bench_configs():
+    """Fixed benchmark: every (map, tier) cell, both sides, BENCH_DRAFTS total."""
+    from shared import MAPS
+    n_m, n_t = len(MAPS), len(TRAIN_TIERS)
+    return [(i, MAPS[i % n_m], TRAIN_TIERS[(i // n_m) % n_t],
+             (i // (n_m * n_t)) % 2) for i in range(BENCH_DRAFTS)]
+
+
+def _run_bench(choose, gd):
+    """Play the benchmark. Our side acts with choose(state, team, step_type);
+    the opponent samples the fresh GD model at T=1 (same RNG stream for every
+    policy, so drafts are paired by config). Returns [(our, opp, map, tier)]."""
+    import random
+    import torch
+    from shared import HEROES, NUM_HEROES
+    from train_draft_policy import DraftState, DRAFT_ORDER
+    random.seed(BENCH_SEED)
+    torch.manual_seed(BENCH_SEED)
+    cpu = torch.device("cpu")
+    out = []
+    for _, gmap, tier, our in _bench_configs():
+        s = DraftState(gmap, tier, our_team=our)
+        while not s.is_terminal():
+            team, typ = DRAFT_ORDER[s.step]
+            if team == our:
+                h = choose(s, team, typ)
+            else:
+                with torch.no_grad():
+                    p = torch.softmax(gd(s.to_tensor_gd(cpu), s.valid_mask(cpu)), 1)
+                h = torch.multinomial(p, 1).item()
+            s.apply_action(h, team, typ)
+        ov, pv = ((s.team0_picks, s.team1_picks) if our == 0
+                  else (s.team1_picks, s.team0_picks))
+        out.append((tuple(HEROES[i] for i in range(NUM_HEROES) if ov[i] > 0),
+                    tuple(HEROES[i] for i in range(NUM_HEROES) if pv[i] > 0),
+                    gmap, tier))
+    return out
+
+
+def _policy_chooser(path):
+    """Site inference mode for the exported policy: masked policy-head argmax
+    (same network config export_site_models.py exports)."""
+    import torch
+    from train_draft_policy import AlphaZeroDraftNet
+    net = AlphaZeroDraftNet(size="base", policy_head_type="linear")
+    net.load_state_dict(torch.load(path, weights_only=True, map_location="cpu"))
+    net.eval()
+    cpu = torch.device("cpu")
+
+    def choose(s, team, typ):
+        x = s.to_tensor(cpu)
+        x[0, -1] = float(team)
+        with torch.no_grad():
+            logits, _ = net(x, s.valid_mask(cpu))
+        return int(logits.argmax(1).item())
+    return choose
+
+
+def _gd_argmax_chooser(gd):
+    """Population-greedy baseline: the GD behavior-cloning model's most likely
+    pick/ban (what the population would most often do here)."""
+    import torch
+    cpu = torch.device("cpu")
+
+    def choose(s, team, typ):
+        with torch.no_grad():
+            return int(gd(s.to_tensor_gd(cpu), s.valid_mask(cpu)).argmax(1).item())
+    return choose
+
+
+def _hero_wr_chooser(stats):
+    """Context baseline (not gated): pick/ban the available hero with the
+    highest tier win rate in the serving stats."""
+    from shared import HEROES
+
+    def choose(s, team, typ):
+        wr = stats.hero_wr.get(s.skill_tier, {})
+        mask = s.valid_mask_np()
+        return max((i for i in range(len(HEROES)) if mask[i] > 0),
+                   key=lambda i: wr.get(HEROES[i], 0.0))
+    return choose
+
+
+def _summ(drafts, judge, proxy_fn):
+    import numpy as np
+    from shared import is_degenerate, HERO_ROLE_FINE
+    healers = {h for h, r in HERO_ROLE_FINE.items() if r == "healer"}
+    j = np.array([judge.score(o, p, t) for o, p, m, t in drafts])
+    px = np.array([0.5 * (proxy_fn(list(o), list(p), m, t)
+                          + 1 - proxy_fn(list(p), list(o), m, t))
+                   for o, p, m, t in drafts])
+    deg = np.array([float(is_degenerate(list(o))) for o, p, m, t in drafts])
+    return j, {
+        "judge": float(j.mean()), "judge_se": float(j.std(ddof=1) / np.sqrt(len(j))),
+        "judge_by_tier": {t: float(np.mean([x for x, d in zip(j, drafts) if d[3] == t]))
+                          for t in TRAIN_TIERS},
+        "proxy_bench": float(px.mean()),
+        "degen": float(deg.mean()),
+        "healer": float(np.mean([any(h in healers for h in o) for o, p, m, t in drafts])),
+        "distinct_heroes": len({h for o, p, m, t in drafts for h in o}),
+    }
+
+
+def phase_select():
+    import pickle
+    import numpy as np
+    import torch
+    from overfit2026 import gold
+    from drift2026 import common as dcommon
+    from sweep_enriched_wp import (StatsCache, WinProbEnrichedModel,
+                                   compute_group_indices)
+    from experiment_synthetic_augmentation import ENRICHED_GROUPS, make_eval_fn
+    from train_generic_draft import GenericDraftModel
+
+    m = json.load(open(META_JSON))
+    results = m.get("mcts", {}).get("results", {})
+    ok = sorted(int(s) for s, r in results.items() if r.get("ok") and r.get("best_wp"))
+    if not ok:
+        sys.exit("select: no completed MCTS seed in refresh_meta.json")
+
+    # Judge: realized outcomes of recent real games, cross-fitted on two hash
+    # folds (statistics from one, logistic weights from the other). It never
+    # sees the WP's features, weights or predictions.
+    dcommon._bind_statscache_methods()
+    judge_pkl = os.path.join(RUN_DIR, f"judge_realized_{JUDGE_DAYS}d_s{JUDGE_SALT}.pkl")
+    if os.path.exists(judge_pkl):
+        with open(judge_pkl, "rb") as f:
+            judge, ref = pickle.load(f)
+    else:
+        t0 = time.time()
+        games, ref = _judge_games()
+        log(f"judge: {len(games):,} games in the {JUDGE_DAYS} days to {ref}")
+        judge = gold.RealizedIndex(games, salt=JUDGE_SALT, name=f"recent{JUDGE_DAYS}d")
+        with open(judge_pkl, "wb") as f:
+            pickle.dump((judge, ref), f, protocol=pickle.HIGHEST_PROTOCOL)
+        log(f"judge built in {time.time() - t0:.0f}s; held-out fold acc "
+            + ", ".join(f"{x['acc']:.4f}" for x in judge.fit))
+
+    # Proxy on the same drafts: the fresh WP with the serving stats (what the
+    # MCTS searched against), team-order symmetrized.
+    st = StatsCache.__new__(StatsCache)
+    st._load_frozen(STATS_JSON)
+    st._load_compositions()
+    gi = compute_group_indices()
+    cols = [c for g in ENRICHED_GROUPS for c in range(*gi[g])]
+    wp = WinProbEnrichedModel(283, [256, 128], dropout=0.3)
+    wp.load_state_dict(torch.load(WP_PT, weights_only=True, map_location="cpu"))
+    wp.eval()
+    proxy_fn = make_eval_fn(wp, cols, st, torch.device("cpu"))
+
+    gd = GenericDraftModel()
+    gd.load_state_dict(torch.load(GD_PT, weights_only=True, map_location="cpu"))
+    gd.eval()
+
+    per_draft = {}
+    rows = {}
+    for name, chooser in ([("pop_greedy", _gd_argmax_chooser(gd)),
+                           ("hero_wr_greedy", _hero_wr_chooser(st))]
+                          + [(f"s{s}", _policy_chooser(os.path.join(
+                              RUN_DIR, f"mcts_s{s}", "draft_policy.pt"))) for s in ok]):
+        t0 = time.time()
+        drafts = _run_bench(chooser, gd)
+        per_draft[name], rows[name] = _summ(drafts, judge, proxy_fn)
+        r = rows[name]
+        log(f"bench {name:15s} judge {r['judge']:.4f}±{r['judge_se']:.4f} "
+            f"proxy_bench {r['proxy_bench']:.4f} degen {r['degen']:.3f} "
+            f"distinct {r['distinct_heroes']} ({time.time() - t0:.0f}s)")
+
+    base = per_draft["pop_greedy"]
+    seeds = {}
+    for s in ok:
+        r = rows[f"s{s}"]
+        d = per_draft[f"s{s}"] - base
+        r.update({"proxy_best_wp": results[str(s)]["best_wp"],
+                  "vs_pop_greedy": float(d.mean()),
+                  "vs_pop_greedy_se": float(d.std(ddof=1) / np.sqrt(len(d)))})
+        seeds[s] = r
+    min_degen = min(r["degen"] for r in seeds.values())
+    eligible = [s for s in ok if seeds[s]["degen"] <= min_degen + DEGEN_TOL + 1e-12]
+    chosen = max(eligible, key=lambda s: seeds[s]["judge"])
+    proxy_pick = max(ok, key=lambda s: seeds[s]["proxy_best_wp"])
+    sel = {
+        "seed": chosen,
+        "rule": (f"max judge among seeds with degen <= min degen + {DEGEN_TOL}"),
+        "eligible": eligible,
+        "proxy_pick_would_have_been": proxy_pick,
+        "judge": {"kind": "overfit2026.gold.RealizedIndex", "days": JUDGE_DAYS,
+                  "ref_date": str(ref), "salt": JUDGE_SALT, **judge.describe()},
+        "bench": {"drafts": BENCH_DRAFTS, "seed": BENCH_SEED,
+                  "policy_mode": "policy-head argmax",
+                  "opponent": "fresh GD (generic_draft_0.pt), sampled T=1"},
+        "seeds": {str(s): r for s, r in seeds.items()},
+        "baselines": {"pop_greedy": rows["pop_greedy"],
+                      "hero_wr_greedy": rows["hero_wr_greedy"]},
+    }
+    json.dump({**sel, "per_draft": {k: np.round(v, 5).tolist()
+                                    for k, v in per_draft.items()}},
+              open(SELECT_JSON, "w"), indent=1)
+    meta_update(select=sel)
+    log(f"selected MCTS seed {chosen} (judge {seeds[chosen]['judge']:.4f}, "
+        f"proxy {seeds[chosen]['proxy_best_wp']:.4f}); proxy rule would have "
+        f"picked {proxy_pick}")
+
+
+# ── Gates ────────────────────────────────────────────────────────────
+
+def check_gates():
+    """Evaluate every deploy gate, record all of them, return True iff all pass."""
+    m = json.load(open(META_JSON))
+    wp = m.get("wp", {})
+    sel = m.get("select", {})
+    seed = sel.get("seed")
+    srow = sel.get("seeds", {}).get(str(seed), {})
+    base = sel.get("baselines", {}).get("pop_greedy", {})
+    slope = wp.get("cal_slope")
+    g = {
+        "wp_acc": {"value": wp.get("best_acc"), "min": GATE_WP_MIN},
+        "wp_cal_slope": {"value": slope, "range": list(GATE_CAL_SLOPE)},
+        "partial_acc": {"value": m.get("partial", {}).get("best_acc"),
+                        "min": GATE_PARTIAL_MIN},
+        "mcts_judge_vs_pop_greedy": {"value": srow.get("judge"),
+                                     "must_exceed": base.get("judge"),
+                                     "seed": seed},
+        "mcts_proxy_floor": {"value": srow.get("proxy_best_wp"),
+                             "min": GATE_MCTS_PROXY_FLOOR, "seed": seed},
+    }
+    for k in ("wp_acc", "partial_acc", "mcts_proxy_floor"):
+        g[k]["pass"] = g[k]["value"] is not None and g[k]["value"] >= g[k]["min"]
+    g["wp_cal_slope"]["pass"] = (slope is not None
+                                 and GATE_CAL_SLOPE[0] <= slope <= GATE_CAL_SLOPE[1])
+    j = g["mcts_judge_vs_pop_greedy"]
+    j["pass"] = (j["value"] is not None and j["must_exceed"] is not None
+                 and j["value"] > j["must_exceed"])
+    ok = all(v["pass"] for v in g.values())
+    meta_update(gates={"pass": ok, "checked": datetime.datetime.now().isoformat(),
+                       **g})
+    for k, v in g.items():
+        log(f"gate {k:26s} {'PASS' if v['pass'] else 'FAIL'}  "
+            + json.dumps({kk: vv for kk, vv in v.items() if kk != 'pass'}))
+    return ok
+
+
+def phase_gates():
+    if not check_gates():
+        sys.exit("GATE FAIL — not exporting (see refresh_meta.json 'gates')")
+    log("all gates pass")
 
 
 # ── Phase: export ────────────────────────────────────────────────────
 
 def phase_export():
-    m = json.load(open(META_JSON))
-    wp_acc = m.get("wp", {}).get("best_acc", -1)
-    mcts_wp = m.get("mcts", {}).get("best_wp", -1)
-    best_seed = m.get("mcts", {}).get("best_seed")
-    if wp_acc < GATE_WP_MIN:
-        sys.exit(f"GATE FAIL: WP acc {wp_acc:.2f}% < {GATE_WP_MIN}% — not exporting")
-    slope = m.get("wp", {}).get("cal_slope")
-    if slope is None or not GATE_CAL_SLOPE[0] <= slope <= GATE_CAL_SLOPE[1]:
-        sys.exit(f"GATE FAIL: WP calibration slope {slope} outside "
-                 f"{GATE_CAL_SLOPE} — not exporting")
-    partial_acc = m.get("partial", {}).get("best_acc", -1)
-    if partial_acc < GATE_PARTIAL_MIN:
-        sys.exit(f"GATE FAIL: partial-WP acc {partial_acc:.4f} < {GATE_PARTIAL_MIN} — not exporting")
-    if best_seed is None or mcts_wp < GATE_MCTS_MIN:
-        sys.exit(f"GATE FAIL: MCTS best_wp {mcts_wp} < {GATE_MCTS_MIN} — not exporting")
+    phase_gates()
+    best_seed = json.load(open(META_JSON))["select"]["seed"]
 
     env = dict(os.environ)
     env.update({
@@ -627,6 +929,7 @@ def phase_export():
 
 PHASES = {"stats": phase_stats, "data": phase_data, "wp": phase_wp,
           "partial": phase_partial, "gd": phase_gd, "mcts": phase_mcts,
+          "select": phase_select, "gates": phase_gates,
           "export": phase_export}
 
 
@@ -636,7 +939,8 @@ def main():
     args = ap.parse_args()
     os.makedirs(RUN_DIR, exist_ok=True)
     if args.phase == "all":
-        for name in ("stats", "data", "wp", "partial", "gd", "mcts", "export"):
+        for name in ("stats", "data", "wp", "partial", "gd", "mcts", "select",
+                     "export"):
             log(f"=== phase {name} ===")
             PHASES[name]()
     else:
