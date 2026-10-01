@@ -37,7 +37,7 @@ from overfit2026.structure import struct_matrix
 
 R = core.RESULTS
 JUDGES = ["gN", "gN_naive", "RN", "R17", "QM2026", "QM2021"]
-GN_CACHE = os.path.join(HERE, "cache", "comp_rescore_gn.npz")
+GN_CACHE = os.path.join(core.CACHE, "comp_rescore_gn.npz")
 
 
 def regn(key, rows):

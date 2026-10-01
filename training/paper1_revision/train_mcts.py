@@ -78,7 +78,7 @@ def main():
     meta = json.load(open(os.path.join(core.MODEL_DIR, f"{a.wp}.json")))
     wp = os.path.join(core.MODEL_DIR, f"{a.wp}_s{meta['selected_seed']}.pt")
     name = f"{a.config}_oof_s{a.seed}"
-    save = os.path.join(HERE, "mcts_runs", name)
+    save = os.path.join(core.MCTS_RUNS, name)
     os.makedirs(save, exist_ok=True)
     env = os.environ.copy()
     env.update({

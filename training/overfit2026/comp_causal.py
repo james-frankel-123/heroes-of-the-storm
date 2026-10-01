@@ -40,8 +40,9 @@ import numpy as np
 from overfit2026.comp_common import fit_offset, logit, sig
 from overfit2026.structure import STRUCT_NAMES
 
-CACHE = os.path.join(HERE, "cache")
-OUT = os.path.join(HERE, "results", "comp_causal.json")
+from overfit2026 import data as _odata
+CACHE = _odata.art(HERE, "cache")
+OUT = _odata.art(HERE, "results", "comp_causal.json")
 
 
 def judge_by_rid():

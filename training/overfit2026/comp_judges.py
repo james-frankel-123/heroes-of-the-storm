@@ -50,8 +50,9 @@ from overfit2026.comp_common import (CONSENSUS, fit_offset, gap_table, logit, lo
 from overfit2026.comp_causal import controls
 from overfit2026.structure import STRUCT_NAMES
 
-CACHE = os.path.join(HERE, "cache")
-RES = os.path.join(HERE, "results")
+from overfit2026 import data as _odata
+CACHE = _odata.art(HERE, "cache")
+RES = _odata.art(HERE, "results")
 HELD = {"SNAP": ["gN", "gN_naive", "RN", "R17", "QM2026", "QM2021", "consensus"],
         "T17": ["gN", "gN_naive", "RN", "QM2026", "QM2021", "consensus", "R17_cf"],
         "N": ["gN_oof", "gN_naive_oof", "RN_cf", "R17", "QM2026", "QM2021", "consensus_oof"]}

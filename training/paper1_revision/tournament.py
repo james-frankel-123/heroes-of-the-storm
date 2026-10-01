@@ -95,7 +95,7 @@ def build(name, device, gd_models):
         act = p3b.build_actor(name, device, core.load_stats("hp"), gi, gd_models, None)
         return act
     if name in ("mcts", "constrained_mcts"):
-        paths = [os.path.join(HERE, "mcts_runs", f"{MCTS_CONFIG}_s{s}", "draft_policy.pt")
+        paths = [os.path.join(core.MCTS_RUNS, f"{MCTS_CONFIG}_s{s}", "draft_policy.pt")
                  for s in MCTS_SEEDS]
         inner = pooled_policy(paths)
         if name == "constrained_mcts":

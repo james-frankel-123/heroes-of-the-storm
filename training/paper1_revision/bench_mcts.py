@@ -63,7 +63,7 @@ SUB_WP_FILES = {"sub": "wp_enriched_256.pt", "aug": "wp_aug_v2_256.pt",
 def ckpt_of(run):
     kind, name = run.split(":", 1)
     if kind == "new":
-        return os.path.join(HERE, "mcts_runs", name, "draft_policy.pt")
+        return os.path.join(core.MCTS_RUNS, name, "draft_policy.pt")
     return os.path.join(RR, "mcts_runs", name, "draft_policy.pt")
 
 

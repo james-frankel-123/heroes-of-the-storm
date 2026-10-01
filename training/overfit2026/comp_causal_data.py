@@ -38,7 +38,8 @@ import p3_hs_core as C
 import p3_x_common as X
 from overfit2026.structure import struct_vec
 
-OUT = os.path.join(HERE, "cache", "comp_causal_games.npz")
+from overfit2026 import data as _odata
+OUT = _odata.art(HERE, "cache", "comp_causal_games.npz")
 Q_START = C.day_of("2025-06-01")
 BEST = "+CF rank 2"
 

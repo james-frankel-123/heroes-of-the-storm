@@ -10,7 +10,8 @@ no-drift games, with the composition table built from those games only:
 out of fold for training rows (2 folds, split.fold_of), and over all of them
 (stats "No8") for scoring. Cells are admitted at >= 50 games
 (paper1_revision.core convention); others get the 33% default.
-gN_naive (hero identity, 197 inputs) reads no statistics and is unchanged.
+gN_naive (hero identity, 197 inputs) reads no statistics; it is trained here
+too when absent (a tier-scheme rebuild needs it; the legacy one is kept).
 
 Usage (from training/): CUDA_VISIBLE_DEVICES=<gpu> nice -n 19 taskset -c 48-53 \
     python3 overfit2026/comp_gn_rebuild.py
@@ -71,12 +72,26 @@ def main():
     V = np.concatenate([val, val])
     print(f"features {time.time() - t0:.0f}s", flush=True)
     for name, seed in zip(NAMES, (200, 201, 202)):
+        if os.path.exists(split.model_path(name)):
+            continue
         m, ep, bl = train(X, Y, V, 283, seed, dev)
         torch.save(m.state_dict(), split.model_path(name))
         meta = dict(side="No", e=8, mode="oof", arch=SPEC["arch"], dropout=SPEC["dropout"],
                     wd=SPEC["wd"], epochs=SPEC["epochs"], es=True, seed=seed, inp="enriched",
                     name=name, input_dim=283, n_train_rows=int((~V).sum()), best_val_loss=bl,
                     epochs_run=ep, compositions="own (post-snapshot no-drift games, OOF)")
+        json.dump(meta, open(split.model_path(name)[:-3] + ".json", "w"))
+        print(f"{name}: {ep} epochs, val loss {bl:.5f} ({time.time() - t0:.0f}s)", flush=True)
+    # hero-identity judge (gN_naive): same games and split, the 197
+    # statistics-free inputs only (original recipe: seed 200)
+    name = "gN8_naive"
+    if not os.path.exists(split.model_path(name)):
+        m, ep, bl = train(X[:, :197], Y, V, 197, 200, dev)
+        torch.save(m.state_dict(), split.model_path(name))
+        meta = dict(side="No", e=8, mode="naive", arch=SPEC["arch"], dropout=SPEC["dropout"],
+                    wd=SPEC["wd"], epochs=SPEC["epochs"], es=True, seed=200, inp="naive",
+                    name=name, input_dim=197, n_train_rows=int((~V).sum()), best_val_loss=bl,
+                    epochs_run=ep)
         json.dump(meta, open(split.model_path(name)[:-3] + ".json", "w"))
         print(f"{name}: {ep} epochs, val loss {bl:.5f} ({time.time() - t0:.0f}s)", flush=True)
 

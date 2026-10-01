@@ -53,8 +53,11 @@ def load_pair(a, b):
 def qm2021():
     from qm2026.train_qm_wp import MLP
     m = MLP()
-    m.load_state_dict(torch.load(os.path.join(TRAINING_DIR, "qm2026", "results", "qm_wp_v0.pt"),
-                                 map_location="cpu", weights_only=True))
+    from overfit2026 import data as _odata
+    p = os.path.join(TRAINING_DIR, "qm2026", "results", "qm_wp_v0.pt")
+    if _odata.TIER_SCHEME == "site":              # site-tier retrain (overfit2026/site_qm.py)
+        p = _odata.art(os.path.join(TRAINING_DIR, "overfit2026"), "models", "qm_wp_v0.pt")
+    m.load_state_dict(torch.load(p, map_location="cpu", weights_only=True))
     m.eval()
     return m
 

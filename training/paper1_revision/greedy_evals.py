@@ -58,7 +58,7 @@ def task_rich(strategy, seed):
     st = core.load_stats("deploy")
     if strategy in ("mcts", "constrained_mcts"):
         # eval seed s plays MCTS checkpoint seed s (policy argmax, no search)
-        net = load_mcts_policy(os.path.join(HERE, "mcts_runs", f"{MCTS_CONFIG}_s{seed}",
+        net = load_mcts_policy(os.path.join(core.MCTS_RUNS, f"{MCTS_CONFIG}_s{seed}",
                                             "draft_policy.pt"))
         fn = make_mcts_policy_strategy(net)
         if strategy == "constrained_mcts":

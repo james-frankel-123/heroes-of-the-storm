@@ -215,7 +215,7 @@ def get_index(name, games=None, salt=99):
     from overfit2026 import data
     from drift2026 import common as dcommon
     dcommon._bind_statscache_methods()
-    path = os.path.join(HERE, "cache", f"realized_{name}_s{salt}.pkl")
+    path = data.art(HERE, "cache", f"realized_{name}_s{salt}.pkl")
     if os.path.exists(path):
         with open(path, "rb") as f:
             return pickle.load(f)

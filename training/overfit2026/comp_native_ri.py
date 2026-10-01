@@ -46,7 +46,7 @@ def main():
     full = gold.StructRealizedIndex(games, name="NODRIFT_struct")
     out["NODRIFT_struct_describe"] = full.describe()
     import pickle
-    with open(os.path.join(HERE, "cache", "realized_NODRIFT_struct_s99.pkl"), "wb") as f:
+    with open(data.art(HERE, "cache", "realized_NODRIFT_struct_s99.pkl"), "wb") as f:
         pickle.dump(full, f, protocol=pickle.HIGHEST_PROTOCOL)
     snap = [g for g in data.load_snapshot() if data.frac_bucket(g[0], 8) < 2]
     plain = gold.get_index("NODRIFT")
@@ -55,7 +55,7 @@ def main():
     ps = {"plain": np.array([plain.score(g[3], g[4], g[1]) for g in snap]),
           "struct": np.array([full.score(g[3], g[4], g[1]) for g in snap])}
     out["SNAP25"] = {n: gap_table(v, ys, t0, t1) for n, v in ps.items()}
-    json.dump(out, open(os.path.join(HERE, "results", "comp_native_ri.json"), "w"), indent=1)
+    json.dump(out, open(data.art(HERE, "results", "comp_native_ri.json"), "w"), indent=1)
     for sname in ("N_halfsplit", "SNAP25"):
         for n, t in out[sname].items():
             print(f"{sname:12s} {n:6s} ll={t['logloss']:.5f} acc={t['acc']:.4f} slope={t['slope']:.2f} "

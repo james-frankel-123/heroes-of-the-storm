@@ -43,12 +43,13 @@ import numpy as np
 
 from overfit2026 import data as odata
 
-CACHE = os.path.join(HERE, "cache")
+CACHE = odata.art(HERE, "cache")
 STATS_DIR = os.path.join(CACHE, "stats")
 FEAT_DIR = os.path.join(CACHE, "feats")
-MODEL_DIR = os.path.join(HERE, "models")
-RESULTS = os.path.join(HERE, "results")
-LOGS = os.path.join(HERE, "logs")
+MODEL_DIR = odata.art(HERE, "models")
+RESULTS = odata.art(HERE, "results")
+LOGS = odata.art(HERE, "logs")
+MCTS_RUNS = odata.art(HERE, "mcts_runs")
 TEST_IDS = os.path.join(CACHE, "paper_test_ids.json")
 
 N_FOLDS = 5

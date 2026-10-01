@@ -33,8 +33,8 @@ import numpy as np
 
 from overfit2026 import data, feats, split
 
-DIR = os.path.join(HERE, "cache", "comp_folds_owncomp")
-OUT = os.path.join(HERE, "cache", "comp_gn_oof_N.npz")
+DIR = data.art(HERE, "cache", "comp_folds_owncomp")
+OUT = data.art(HERE, "cache", "comp_gn_oof_N.npz")
 SPEC = dict(arch=[256, 128], dropout=0.3, wd=5e-3, epochs=200)
 
 

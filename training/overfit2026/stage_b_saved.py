@@ -36,8 +36,11 @@ GOLDS = ["NODRIFT", "BF", "T97", "T17", "FUT"]
 def load_qm():
     from qm2026.train_qm_wp import MLP
     out = {}
+    from overfit2026 import data as _odata
     for tag in ("2026", "2022"):
         p = os.path.join(TRAINING_DIR, "qm2026", "results", f"qm_wp_{tag}.pt")
+        if _odata.TIER_SCHEME == "site":          # site-tier retrain (site_qm.py)
+            p = _odata.art(HERE, "models", f"qm_wp_{tag}.pt")
         if os.path.exists(p):
             m = MLP()
             m.load_state_dict(torch.load(p, map_location="cpu", weights_only=True))

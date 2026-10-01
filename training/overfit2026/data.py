@@ -73,17 +73,79 @@ def _load(path):
         return pickle.load(f)
 
 
+# ── skill tiers ─────────────────────────────────────────────────────────
+# The slim caches carry the labels the collection pipeline wrote before
+# 2026-09-30. Paper 1 uses the site scheme (low = Bronze+Silver, mid =
+# Gold+Platinum, high = Diamond+Master; no rank and no MMR = unknown,
+# excluded), derived per replay from the stored league_tier / avg_mmr in the
+# pre-relabel backup with the sync's rule (sync/sync-replays.ts
+# leagueTierToSkillTier; listing ids run one above the tier names). It agrees
+# with the relabeled DB on every replay checked. P1_TIERS=legacy (default
+# until the paper-1 rebuild is complete) returns the caches' original labels.
+# Every derived artifact of a site-tier run lives under <module>/site/...
+# (art()), so the legacy artifacts other lanes still read stay untouched.
+TIER_SCHEME = os.environ.get("P1_TIERS", "legacy")
+TIER_BACKUP = os.path.join(TRAINING_DIR, "..", "backups", "replay_draft_skill_tier_20260930.csv.gz")
+_SITE = None
+
+
+def art(module_dir, *parts):
+    """Path of a derived artifact (cache, models, results, logs, mcts_runs)
+    of an overfit2026 / paper1_revision module, namespaced by tier scheme.
+    Raw slim game caches are not namespaced (they are relabeled on load)."""
+    base = os.path.join(module_dir, "site") if TIER_SCHEME == "site" else module_dir
+    p = os.path.join(base, *parts)
+    os.makedirs(os.path.dirname(p) if os.path.splitext(p)[1] else p, exist_ok=True)
+    return p
+
+
+def site_tier(league_tier, avg_mmr):
+    if league_tier is None:
+        return "unknown" if avg_mmr is None else "high"
+    if league_tier <= 3:
+        return "low"
+    if league_tier <= 5:
+        return "mid"
+    return "high"
+
+
+def site_tiers():
+    """replay_id -> site-scheme tier, for every replay in the backup."""
+    global _SITE
+    if _SITE is None:
+        _SITE = {}
+        with gzip.open(TIER_BACKUP, "rt") as f:
+            next(f)
+            for line in f:
+                rid, _, lt, mmr = line.rstrip("\n").split(",")
+                _SITE[int(rid)] = site_tier(int(lt) if lt else None, float(mmr) if mmr else None)
+    return _SITE
+
+
+def relabel(games):
+    """Site-scheme tiers; games with no rank (unknown) are dropped."""
+    if TIER_SCHEME == "legacy":
+        return games
+    S = site_tiers()
+    out = []
+    for g in games:
+        t = S[g[0]]          # KeyError = a replay outside the backup: refuse
+        if t != "unknown":
+            out.append((g[0], t) + tuple(g[2:]))
+    return out
+
+
 def load_snapshot():
-    return _load(SNAP_PKL)
+    return relabel(_load(SNAP_PKL))
 
 
 def load_future():
     """dict build -> list of games."""
-    return _load(FUT_PKL)
+    return {b: relabel(v) for b, v in _load(FUT_PKL).items()}
 
 
 def load_backfill():
-    return _load(BACKFILL_PKL)
+    return {b: relabel(v) for b, v in _load(BACKFILL_PKL).items()}
 
 
 def _slim(rid, tier, gmap, t0, t1, b0, b1, w):

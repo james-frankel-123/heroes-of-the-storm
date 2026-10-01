@@ -33,7 +33,8 @@ import numpy as np
 
 from overfit2026.structure import struct_matrix
 
-PARAMS = os.path.join(HERE, "results", "comp_judges.json")
+from overfit2026 import data as _odata
+PARAMS = _odata.art(HERE, "results", "comp_judges.json")
 CONSENSUS = ["gN", "gN_naive", "RN", "QM2026"]
 BASE_JUDGES = ["gN", "gN_naive", "RN", "R17", "QM2026", "QM2021"]
 from overfit2026.score import GN  # own-composition gN (comp_gn_rebuild.py)

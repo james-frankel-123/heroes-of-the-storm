@@ -37,9 +37,9 @@ import numpy as np
 
 from overfit2026 import data, feats
 
-STATS_DIR = os.path.join(HERE, "cache", "split_stats")
-FEAT_DIR = os.path.join(HERE, "cache", "split_feats")
-MODEL_DIR = os.path.join(HERE, "models")
+STATS_DIR = data.art(HERE, "cache", "split_stats")
+FEAT_DIR = data.art(HERE, "cache", "split_feats")
+MODEL_DIR = data.art(HERE, "models")
 
 
 # ── subsets ─────────────────────────────────────────────────────────────
@@ -366,7 +366,7 @@ def cmd_heldout(args):
                   "mean_abs_logit": float(np.abs(z).mean()), "n": len(y)}
         print(f"  {n:24s} acc={acc:.4f} ll={ll:.5f} slope={c[1]:.3f} |z|={np.abs(z).mean():.3f}",
               flush=True)
-    with open(os.path.join(HERE, "results", "split_heldout.json"), "w") as f:
+    with open(data.art(HERE, "results", "split_heldout.json"), "w") as f:
         json.dump(out, f, indent=1)
 
 

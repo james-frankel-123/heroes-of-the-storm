@@ -64,7 +64,7 @@ def update_gn(name):
     """Recompute only gN (own-composition rebuild) in an existing cache file;
     the previous gN (external table) is kept as gN_extcomp. RN, R17 and QM do
     not read a composition table and are left as they are."""
-    path = os.path.join(HERE, "cache", f"comp_audit_{name}.npz")
+    path = data.art(HERE, "cache", f"comp_audit_{name}.npz")
     z = dict(np.load(path))
     if "gN_extcomp" in z:
         print(f"{name}: gN already rebuilt", flush=True)
@@ -96,7 +96,7 @@ def main():
     dcommon._bind_statscache_methods()
     sets = sys.argv[1:] or ["T17", "N", "SNAP"]
     for name in sets:
-        path = os.path.join(HERE, "cache", f"comp_audit_{name}.npz")
+        path = data.art(HERE, "cache", f"comp_audit_{name}.npz")
         if os.path.exists(path):
             print(f"{name}: exists", flush=True)
             continue

@@ -135,9 +135,18 @@ def fetch_exclusions():
     return ids
 
 
-def load_data():
-    """Load the pinned snapshot, filtered to patch 2.55. Single source of
-    truth for every phase."""
+# RERUN_SPLIT=p1val (paper-1 site-tier rebuild, namespace p1site): the paper's
+# test replays (the permutation split below, unchanged) are never trained or
+# selected on. load_split() returns (train, val) with val = the paper-1
+# revision's 2% hash validation set, so every early stop and checkpoint choice
+# uses validation games; load_data() returns train + val only. Rows whose
+# skill tier is 'unknown' (no recorded rank) are dropped after the split, so
+# split membership of every other replay is unchanged. Unset = original
+# behaviour.
+SPLIT_MODE = os.environ.get("RERUN_SPLIT", "")
+
+
+def _load_all():
     from shared import load_replay_data
     rows = load_replay_data(limit=REPLAY_LIMIT)
     exclude = load_exclude_ids()
@@ -149,9 +158,35 @@ def load_data():
     return rows
 
 
+def _p1val_split(rows, test_frac=FULL_TEST_FRAC, seed=SEED):
+    from shared import split_data
+    from overfit2026.data import splitmix64
+    train, test = split_data(rows, test_frac=test_frac, seed=seed)
+    is_val = lambda rid: splitmix64(int(rid) * 998244353 + 23) % 50 == 0   # paper1_revision.core.is_val
+    known = lambda r: r.get("skill_tier") in ("low", "mid", "high")
+    tr = [r for r in train if known(r) and not is_val(r["replay_id"])]
+    va = [r for r in train if known(r) and is_val(r["replay_id"])]
+    print(f"p1val split: train={len(tr)}, val={len(va)} (paper test {len(test)} held out)")
+    return tr, va
+
+
+def load_data():
+    """Load the pinned snapshot, filtered to patch 2.55. Single source of
+    truth for every phase."""
+    rows = _load_all()
+    if SPLIT_MODE == "p1val":
+        tr, va = _p1val_split(rows)
+        return tr + va
+    return rows
+
+
 def load_split(test_frac=FULL_TEST_FRAC, seed=SEED):
     """Replay-level train/test split of the filtered snapshot."""
     from shared import split_data
+    if SPLIT_MODE == "p1val":
+        if test_frac != FULL_TEST_FRAC or seed != SEED:
+            raise RuntimeError("p1val supports only the paper's 2% split")
+        return _p1val_split(_load_all())
     data = load_data()
     train, test = split_data(data, test_frac=test_frac, seed=seed)
     print(f"Split (test_frac={test_frac}, seed={seed}): "

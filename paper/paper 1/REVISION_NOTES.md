@@ -1120,3 +1120,65 @@ Max's rule: implementation problems are fixed, the affected numbers are rerun, a
 - It converged to a different hero set (favorites Cho, Rehgar, Falstad, against Samuro, Rehgar, Hogger for most seeds). It is weaker under its own training value function (0.664 against 0.68–0.75 for the 15 seeds; s12 0.681 and s6 0.694 are also low).
 - It is the low tail of the seed distribution. The manuscript reports all seeds with their spread (0.574–0.663) and no "failed" framing.
 - When the M2 configuration is rerun with the fixed kernel, all seeds are kept as they come.
+
+## 15. Rebuild of paper 1 on site-scheme tiers (started 2026-10-01)
+
+Max's decision (b): every paper-1 number is regenerated once on correctly tiered data. The manuscript is updated in place as results land, with no caveats.
+
+### 15.1 Data
+
+**Tiers.** Each replay is relabeled from its stored league_tier and avg_mmr with the sync's rule (`sync/sync-replays.ts` leagueTierToSkillTier, reimplemented as `overfit2026.data.site_tier`):
+- low = Bronze + Silver;
+- mid = Gold + Platinum;
+- high = Diamond + Master;
+- unknown = no rank and no MMR, excluded.
+
+The source is `backups/replay_draft_skill_tier_20260930.csv.gz` (league_tier and avg_mmr per replay). A 20,000-replay sample agrees 100% with the relabeled DB.
+
+**Snapshot.** Same pinned replays and the same split, minus 5,749 unranked games:
+- 1,943,338 games: low 798,262 (41.1%), mid 800,594 (41.2%), high 344,482 (17.7%);
+- split: train 1,866,369, validation 38,100, test 38,869. The test set is the paper's test replays minus unranked ones.
+
+**Post-snapshot games** (unranked games are more common there, about 11%):
+- T97 124,022 + backfill 136,517 = 260,539 no-drift games (was 291,837);
+- 2.55.17: 154,387 (was 158,608).
+
+**Quick Match.** QM tiers are relabeled from `qm_games.league_tier` (read-only); QM has no unranked games. QM2026 keeps 116,589 games and QM2021 keeps 91,365, both retrained.
+
+### 15.2 Code
+
+- **Namespaces.** `P1_TIERS=site` relabels on load (`overfit2026/data.py`) and sends every derived artifact to `overfit2026/site/...` and `paper1_revision/site/...` (`data.art`). The legacy artifacts, which the kernel lane still reads, are untouched. The default stays `legacy` until the rebuild is complete.
+- **rerun2026 baselines** run in namespace `p1site`:
+  - snapshot `snapshots/replay_snapshot_2026-05-22_1956753_p1site.json` (same rows and order; site tiers);
+  - `RERUN_SPLIT=p1val` in `rerun2026/common.py` (env-gated; default behaviour unchanged).
+- **Selection on validation.** `p1val` drops unranked rows after the permutation split, so every other replay keeps its assignment, and it returns (train, validation). Every retrained baseline (GD, CQL, BC-CQL, MCQ, IQL, the discriminator, the Gourdeau estimator) therefore early-stops and selects on validation games, never on the paper test set. That closes the B13 issue for the rebuilt baselines.
+- **Driver:** `paper1_revision/site_rebuild.py`. It is dependency-aware and skips completed jobs. It runs at most 2 GPU processes for this lane and everything under nice 19 on cores 48-63. Log: `paper1_revision/site/logs/`.
+
+### 15.3 Status (2026-10-01 16:00)
+
+- **Done:**
+  - QM2026 and QM2021 retrained (own hold-out 0.576 / 0.612; legacy 0.575 / 0.611);
+  - gN and gN-naive rebuilt (own composition tables), with the two-fold refits;
+  - site stats.
+- **Running:**
+  - leak-free features (CPU), then Table I models (11 specs × 3 seeds) and the 128-run sweep (GPU);
+  - p1site phase-0 caches (CPU), then the Gourdeau estimator, then the baselines.
+- **Queued (B1, judges and analyses):** composition audit, causal test, structure fit, native index, judge calibration, attenuation, metric validity, NGS.
+- **Queued (B2, baselines):**
+  - GD × 5, about 4.6 GPU-h each;
+  - CQL naive α × 5, MCQ τ × 5, BC-CQL β × 4, IQL 6 cells, about 2 GPU-h each;
+  - the discriminator;
+  - CQL capacity × target grid × 15, about 2 GPU-h each.
+  - In total about 95 GPU-hours. With one local GPU slot for B2 that is about 4 days. The CQL grid (about 30 GPU-h) is the natural candidate for the remote workers.
+- **Next (B3, after GD):**
+  - rich evaluation (Table V);
+  - greedy, cross-evaluation and sanity;
+  - leak-free enriched CQL (`deferred.py` in the site namespace);
+  - scope sweep;
+  - ensemble;
+  - NGS quartiles;
+  - MCQ dead units;
+  - leak measure;
+  - submitted-checkpoint evaluation;
+  - non-MCTS tournament pairs.
+- **MCTS configurations:** prepared for the fixed-kernel build. They depend on the new GD pool (opponents) and the site leak-free enriched WP.
