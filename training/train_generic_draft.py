@@ -186,7 +186,28 @@ def train_single_model(
     patience = 10
     patience_counter = 0
 
-    for epoch in range(200):
+    # Opt-in epoch-level resume (GD_RESUME_PATH): after every epoch the model,
+    # optimizer, early-stopping state, data-order generator and RNG states are
+    # written atomically; a rerun of the same command continues from the last
+    # finished epoch. Unset = original behaviour.
+    resume_path = os.environ.get("GD_RESUME_PATH")
+    start_epoch = 0
+    if resume_path and os.path.exists(resume_path):
+        st = torch.load(resume_path, weights_only=False, map_location="cpu")
+        model.load_state_dict(st["model"])
+        optimizer.load_state_dict(st["optimizer"])
+        best_test_loss, patience_counter = st["best_test_loss"], st["patience_counter"]
+        start_epoch = st["epoch"] + 1
+        train_dl.generator.set_state(st["gen_state"])
+        torch.set_rng_state(st["torch_rng"])
+        if torch.cuda.is_available() and st.get("cuda_rng") is not None:
+            torch.cuda.set_rng_state_all(st["cuda_rng"])
+        np.random.set_state(st["np_rng"])
+        print(f"  resumed after epoch {start_epoch} (best test loss {best_test_loss:.4f})")
+        if st.get("stopped"):
+            start_epoch = 200
+
+    for epoch in range(start_epoch, 200):
         model.train()
         train_loss = 0
         train_correct = 0
@@ -228,6 +249,7 @@ def train_single_model(
                   f"test_acc={test_acc:.1f}% test_top5={test_top5_acc:.1f}% "
                   f"test_loss={avg_test_loss:.4f}")
 
+        stop = False
         if avg_test_loss < best_test_loss:
             best_test_loss = avg_test_loss
             patience_counter = 0
@@ -236,7 +258,18 @@ def train_single_model(
             patience_counter += 1
             if patience_counter >= patience:
                 print(f"  Early stopping at epoch {epoch+1}")
-                break
+                stop = True
+        if resume_path:
+            tmp = resume_path + ".tmp"
+            torch.save({"model": model.state_dict(), "optimizer": optimizer.state_dict(),
+                        "best_test_loss": best_test_loss, "patience_counter": patience_counter,
+                        "epoch": epoch, "gen_state": train_dl.generator.get_state(),
+                        "torch_rng": torch.get_rng_state(),
+                        "cuda_rng": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+                        "np_rng": np.random.get_state(), "stopped": stop}, tmp)
+            os.replace(tmp, resume_path)
+        if stop:
+            break
 
     # Export to ONNX (on CPU to avoid device mismatch)
     model.load_state_dict(torch.load(pt_path, weights_only=True, map_location="cpu"))

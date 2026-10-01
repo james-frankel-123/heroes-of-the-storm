@@ -20,7 +20,7 @@ def main():
     assert os.environ.get("RERUN_NS") == "p1site" and os.environ.get("RERUN_SPLIT") == "p1val"
     from rerun2026 import common, phase0_features as p0
     common.setup()
-    p0.NUM_WORKERS = 6
+    p0.NUM_WORKERS = int(os.environ.get("SITE_P0_WORKERS", "6"))
     train, val = common.load_split()
     fields_gd = [("actions", "int64")]
     fields_cql = [("actions", "int64"), ("outcomes", "float32")]
@@ -33,7 +33,7 @@ def main():
             print("exists", out_dir, flush=True)
             continue
         print(f"building {out_dir} ({len(data)} replays)", flush=True)
-        common.memmap_write(out_dir, p0._pool_stream(worker, p0._chunks(data, n_workers=6),
+        common.memmap_write(out_dir, p0._pool_stream(worker, p0._chunks(data, n_workers=p0.NUM_WORKERS),
                                                      os.path.basename(out_dir)), 289, fields)
 
 
