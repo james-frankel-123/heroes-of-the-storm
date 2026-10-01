@@ -1,0 +1,138 @@
+{
+ "members": [
+  "ens_full_a256_h0_s0",
+  "ens_full_a256_h0_s1",
+  "ens_full_a256_h1_s0",
+  "ens_full_a256_h1_s1",
+  "ens_full_a512_h0_s0",
+  "ens_full_a512_h0_s1",
+  "ens_full_a512_h1_s0",
+  "ens_full_a512_h1_s1",
+  "ens_minus_role_counts",
+  "ens_minus_team_avg_wr",
+  "ens_minus_map_delta",
+  "ens_minus_pairwise_counters",
+  "ens_minus_pairwise_synergies",
+  "ens_minus_counter_detail",
+  "ens_minus_meta_strength",
+  "ens_minus_draft_diversity",
+  "ens_minus_comp_wr",
+  "ens_naive_a256_h0",
+  "ens_naive_a256_h1",
+  "ens_naive_a512_h0"
+ ],
+ "sets": {
+  "held_out_human": {
+   "n": 2000,
+   "median_x1e3": 0.4254335071891546,
+   "p95_x1e3": 1.2674778699874878,
+   "ratio_to_human_median": 1.0,
+   "frac_above_human_p95": 0.05
+  },
+  "mcts_F_oof": {
+   "n": 2000,
+   "median_x1e3": 0.5161222070455551,
+   "p95_x1e3": 1.4459063531830907,
+   "ratio_to_human_median": 1.2131677414305753,
+   "frac_above_human_p95": 0.0715
+  },
+  "tournament_mcts": {
+   "n": 2000,
+   "median_x1e3": 0.7740376750007272,
+   "p95_x1e3": 2.334543038159609,
+   "ratio_to_human_median": 1.8194092893970797,
+   "frac_above_human_p95": 0.2285
+  },
+  "tournament_constrained_mcts": {
+   "n": 2000,
+   "median_x1e3": 0.7049445994198322,
+   "p95_x1e3": 2.2765917237848043,
+   "ratio_to_human_median": 1.6570030040120993,
+   "frac_above_human_p95": 0.202
+  },
+  "tournament_enriched": {
+   "n": 2000,
+   "median_x1e3": 0.7429439574480057,
+   "p95_x1e3": 2.6054836343973875,
+   "ratio_to_human_median": 1.7463221511550588,
+   "frac_above_human_p95": 0.2385
+  },
+  "tournament_enriched_aug": {
+   "n": 2000,
+   "median_x1e3": 0.7625754224136472,
+   "p95_x1e3": 2.525123069062829,
+   "ratio_to_human_median": 1.792466765140325,
+   "frac_above_human_p95": 0.242
+  },
+  "tournament_constrained_greedy": {
+   "n": 2000,
+   "median_x1e3": 0.7685587042942643,
+   "p95_x1e3": 2.6706205680966377,
+   "ratio_to_human_median": 1.8065307299656364,
+   "frac_above_human_p95": 0.2465
+  },
+  "tournament_k_truebase": {
+   "n": 2000,
+   "median_x1e3": 0.7654009386897087,
+   "p95_x1e3": 2.5702512357383966,
+   "ratio_to_human_median": 1.7991082642895804,
+   "frac_above_human_p95": 0.249
+  },
+  "tournament_gourdeau": {
+   "n": 2000,
+   "median_x1e3": 0.9410284692421556,
+   "p95_x1e3": 3.2334206625819206,
+   "ratio_to_human_median": 2.2119284290970507,
+   "frac_above_human_p95": 0.355
+  },
+  "tournament_gourdeau_disc": {
+   "n": 2000,
+   "median_x1e3": 0.4642169806174934,
+   "p95_x1e3": 1.8758432706817985,
+   "ratio_to_human_median": 1.0911622445645661,
+   "frac_above_human_p95": 0.112
+  },
+  "tournament_cql_naive_a1.0": {
+   "n": 2000,
+   "median_x1e3": 0.5414196057245135,
+   "p95_x1e3": 2.142986049875617,
+   "ratio_to_human_median": 1.2726303795431646,
+   "frac_above_human_p95": 0.157
+  },
+  "tournament_cql_enr_a2.0": {
+   "n": 2000,
+   "median_x1e3": 0.5604468751698732,
+   "p95_x1e3": 2.226192969828844,
+   "ratio_to_human_median": 1.3173548056258049,
+   "frac_above_human_p95": 0.156
+  },
+  "tournament_gd": {
+   "n": 2000,
+   "median_x1e3": 0.5454299971461296,
+   "p95_x1e3": 1.9823051989078522,
+   "ratio_to_human_median": 1.2820569793615777,
+   "frac_above_human_p95": 0.138
+  },
+  "tournament_mcq_t0.5": {
+   "n": 2000,
+   "median_x1e3": 0.630987633485347,
+   "p95_x1e3": 2.6347606908529997,
+   "ratio_to_human_median": 1.4831639323716919,
+   "frac_above_human_p95": 0.2095
+  },
+  "synthetic_degenerate": {
+   "n": 500,
+   "median_x1e3": 1.3630448374897242,
+   "p95_x1e3": 4.508624318987131,
+   "ratio_to_human_median": 3.2038962950882297,
+   "frac_above_human_p95": 0.54
+  },
+  "degenerate_probes": {
+   "n": 6,
+   "median_x1e3": 2.571874065324664,
+   "p95_x1e3": 3.3634176943451166,
+   "ratio_to_human_median": 6.045302078618756,
+   "frac_above_human_p95": 0.8333333333333334
+  }
+ }
+}

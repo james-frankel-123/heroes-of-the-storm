@@ -19,7 +19,10 @@ Paper: "Diagnosing and Repairing Out-of-Distribution Failure in MOBA Draft Polic
 
 This file is the change log for coauthors and the basis for the response to reviewers. Each change gives what changed, why, and the old vs new numbers.
 
-**Status:** complete except the 800-sim leak-free runs (J_oof). The clean manuscript keeps two short `\PENDING{}` markers (the J_oof row of Table VI and one sentence in "Simulation scaling"), plus the `\PENDING` macro definition. The deferred jobs are queued (§9).
+**Status (2026-09-30, late):**
+- **800-sim leak-free runs (J_oof):** finished and in the paper. No `\PENDING` markers remain.
+- **Deferred queue:** every job has finished except leak-free CQL with enriched features (training at the time of writing).
+- **Tier-label bug:** handled in §10.
 
 ---
 
@@ -44,7 +47,7 @@ The revision rebuilds the evidence without either problem.
 | Features change policy behavior | **Survives, smaller.** 5-tank WP: 0.31 (naive), 0.25 (enriched), 0.08 (augmented). Submitted: 0.365 / 0.147 / 0.062 |
 | Pessimistic offline RL collapses to anchoring (CQL, IQL, MCQ, BC-CQL, discriminator) | **Survives unchanged.** These policies read no aggregate statistics. They finish 0.44–0.45 in the new tournament under every judge |
 | MCQ "dead neurons" | **Survives, now reproducible and stronger.** All units of layers 2–3 are dead at τ=0.5 |
-| More training sims monotonically improve quality (+0.042) | **Removed.** Under independent references the gain is about a quarter as large and complete by 400 sims |
+| More training sims monotonically improve quality (+0.042) | **Removed.** Under independent references the gain is about a quarter as large and complete by 400 sims. With the leak-free value function, 400 → 800 lowers gN by 0.007 |
 | Enriched features add +0.023 WP to MCTS (p<0.001) | **Removed.** It reverses under independent references: −0.010 (gN), −0.016 (RN), −0.013 (QM2026). Leak-free at matched sims: −0.002 (gN). Features buy safety, not win probability |
 | Training length helps (E_1M) | **Survives** under every reference (+0.017 gN) |
 | Tournament: constrained MCTS wins 20/20 at 0.670; "not self-graded" | **Replaced.** Independent judges only. MCTS 0.605 (21/22) and constrained MCTS 0.602 (21/22) lead; anchored methods sit at 0.44–0.45. The coarse ordering survives |
@@ -57,7 +60,7 @@ The revision rebuilds the evidence without either problem.
 
 **Recommended operating point:** F (400 training sims, 300K episodes), leak-free value function, argmax root.
 - It ties E_1M as the best configuration under gN and RN at a fraction of E_1M's compute.
-- J_800sim buys no independent gain in the submitted pipeline. The leak-free J result is pending.
+- 800 sims buys no independent gain in the submitted pipeline, and loses a little in the leak-free one (gN −0.007 ± 0.003 vs F_oof).
 - Argmax root adds +0.000 to +0.006 gN (mean +0.003) and never hurts.
 
 ---
@@ -300,7 +303,7 @@ Source: `results/metric_validity.json`. The strength-adjusted decile curves use 
 | D_deep | 200 | .659 | .618 | .613 | .583 | .611 | .574 | 6.4 | +0.34 |
 | **B_oof (leak-free)** | 200 | .698 | .662 | .670 | .621 | .641 | .628 | 13.9 | +1.13 |
 | **F_oof (leak-free)** | 400 | .716 | .671 | .680 | .628 | .645 | .634 | 6.6 | +1.26 |
-| **J_oof (leak-free)** | 800 | PENDING | | | | | | | |
+| **J_oof (leak-free)** | 800 | .728 | .665 | .682 | .622 | .646 | .627 | 11.1 | +1.34 |
 
 **Contrasts** (difference ± seed SE, T=1):
 
@@ -323,7 +326,12 @@ Reading:
 - **Sim scaling, leak-free, 200 → 400:** the independent gain is smaller (+0.009 gN) and the own-proxy gain roughly doubles it (+0.019).
   - This is no better tracking than the leaky pipeline showed at this step. At paper scale, removing the leak did not by itself close the proxy–gold gap.
   - At matched sims, leak-free and leaky agents score the same under independent references. This fits the study's finding that the paper proxy was only mildly leaky (post slope 0.88).
-  - The key open test is J_oof (400 → 800), which the within-snapshot split predicts should keep gaining. PENDING.
+- **J_oof (400 → 800, leak-free): the split experiment's prediction fails at paper scale.**
+  - Under independent references the agents get worse: gN −0.007 ± 0.003, RN −0.006 ± 0.003, QM2026 +0.001 ± 0.004.
+  - The agents' own score rises by +0.012 ± 0.004, and the degenerate rate goes from 6.6% to 11.1%.
+  - Even a calibrated, leak-free value function is over-optimized by deeper search. It is calibrated on human games, not on the states that deep search reaches.
+  - F_oof is confirmed as the operating point: it is at least as good as J_oof under every reference, at half the training compute.
+  - Caveat: J_oof seeds s0, s1, and s4 were paused by the 2026-09-30 compute cap and resumed from their best-eval checkpoints (51K, 51K, and 107K episodes; optimizer state restored).
 - **The features-vs-no-features gap is gone under every independent reference, in both pipelines.**
   - What features buy is safety: 13.9–15.0% vs 18.5% degenerate at 200 sims. At the operating point, F_oof reaches 6.6%.
   - The M2/N2 decomposition is withdrawn. Under gN the ordering is absolute-only 0.666 > full 0.654 > relational 0.644.
@@ -451,13 +459,7 @@ The off-meta quartile breakdown was not re-run; it is marked as using the submit
 
 ## 6. Open items
 
-1. **J_oof (800 sims, leak-free).**
-   - s2 and s3 are training; ETA about 5–7 hours from 08:30 on 2026-09-30 under the resource cap.
-   - s0, s1, and s4 were stopped by the cap and will resume from their best-eval checkpoints (51K, 51K, and 107K episodes). The worker only checkpoints at a new best eval, so some episodes are redone.
-   - `training/paper1_revision/capped_queue.sh` benchmarks each run when it completes and resumes the deferred seeds, holding at most 2 GPU processes on GPU 3, nice 19, cores 48–63.
-   - Then: run `compile_results.py` and `make_tables.py`, replace the two `\PENDING{}` markers in `draft_revision.tex` (the J_oof row of Table VI and the last sentence of "Simulation scaling"), and fill the J_oof row in §3.8.
-   - If J_oof gains past F_oof under gN and RN, the "operating point" sentence may change. Otherwise F stands.
-   - Resumed seeds differ slightly from uninterrupted ones. State this if they are used.
+1. **J_oof:** done (§3.8).
 2. **Not re-run** (stated in the manuscript):
    - CQL with enriched features (62M transitions);
    - the 27-config augmentation scope sweep;
@@ -553,7 +555,113 @@ The clean manuscript went from 13 to 8 pages (7,525 words in the source, down fr
    - `cql_train_a2.0` and `cql_train_a0.5`. [GPU, ~4–8 h each]
    - `cql_eval`: 5 × 1,000 rich evaluation plus reference scores. Replaces the two CQL (enr.) rows of Table V.
 
+**Results so far** (2026-09-30, `results/deferred/`):
+
+1. **Scope sweep** (`scope_sweep.json`): the claim survives leak-free.
+   - Sparse-only augmentation leaves the 5-tank WP at 0.26 (baseline 0.27) in all 9 cells, which are identical because that generator ignores WR and volume.
+   - Unseen-only augmentation gives 0.07–0.12 at WR 10%, 0.16–0.18 at 20%, and 0.23–0.28 at 30%.
+   - Accuracy is 57.5–57.7% and post-snapshot slope 0.93–1.02 in every cell.
+   - Folded into the main text (Section V) and the supplement.
+2. **NGS quartiles:** done earlier (§8).
+3. **A_partial and G_base** (`rebench_ag.json`), T=1:
+   - A_partial: gN .662, RN .620, QM2026 .636, 16.5% degenerate.
+   - G_base: gN .636, RN .612, QM2026 .633, 18.4% degenerate.
+   - Added to main Table VI.
+4. **Concentration** (`concentration.json`). F_oof per seed: 24–27 heroes, 3.25–3.59 bits.
+   - Favorites: Samuro, Rehgar, Hogger, Deathwing, Falstad, Illidan, Ragnaros.
+   - Pair edge: +0.54pp in-sample (z 5.2), +0.21pp forward (z 1.0).
+   - Trio edge: +1.70pp in-sample (z 3.8), +1.68pp forward (z 1.9).
+   - None of the top-10 teams (38.8% of drafts) occurs in the corpus. 98.7% of drafts are on admitted role compositions, and 63.7% on compositions with ≥1,000 games.
+   - The supplement section is rewritten around these numbers.
+5. **Ensemble** (`ensemble_uncertainty.json`), variance relative to the human median:
+   - F_oof agent drafts: 1.21×, with 7.1% above the human p95.
+   - Tournament strategies: 1.09–2.21×.
+   - Synthetic degenerate: 3.20×. Probes: 6.05×.
+   - The supplement section is rewritten (Table `tab:ensvar`).
+6. **CQL enriched, leak-free:**
+   - `cql_build` is done.
+   - `cql_train_a2.0` was running at the time of writing, then `cql_train_a0.5` and `cql_eval`.
+   - When `cql_enriched_eval.json` lands, replace the two CQL (enr.) rows of main Table V and the supplement's CQL-enriched paragraph.
+
 **Folding results in:** `results/deferred/*.json`. For each finished job, update the corresponding supplement section. Table VI and Table V rows can be added in the main text; each row costs one line. The main text has 2 pages of headroom.
+
+## 10. Tier-label bug (found 2026-09-30)
+
+**The bug.** The replay daemon stored listing league_tier one above the rank: 2 = Bronze … 6 = Diamond, with NULL plus an MMR = Master. It mapped stored ≤2 → low, 3–4 → mid, else high, and NULL → mid.
+
+**What the snapshot labels actually contain.** Checked per replay against the pre-relabel backup `backups/replay_draft_skill_tier_20260930.csv.gz`; `results/tier_sensitivity.json` → `crosstab`.
+
+| Snapshot label | Real ranks | Games | Share |
+|---|---|---|---|
+| low | Bronze | 380,100 | 19.5% |
+| mid | Silver 418,162 + Gold 418,103 + Master 101,308 + no rank/MMR 5,749 | 943,322 | 48.4% |
+| high | Platinum 382,491 + Diamond 243,174 | 625,665 | 32.1% |
+
+- No Wood games are present.
+- The post-snapshot reference games use the same labels: 42,156 low; 165,152 mid, of which 31,298 have no rank; 84,529 high.
+- **The submission's description was wrong.** It said Bronze–Gold / Platinum–Diamond / Master–Grandmaster (`draft.tex` line 93).
+
+**Manuscript fixes**
+- `draft_revision.tex` §III-A now states what the labels contain and that they act as three fixed skill strata used consistently throughout. The sensitivity result is one sentence (see below).
+- The MCTS benchmark says "mid label".
+- The supplement's diagnostic protocol says "mid tier label".
+- No other passage names tier boundaries or reports per-tier results: the per-tier composition counts are counts per label.
+- `draft_revision_markup.tex` is patched the same way.
+
+**Sensitivity check** (`training/paper1_revision/tier_sensitivity.py`)
+- Correct ranks are re-derived per replay: real rank = stored league_tier − 1; NULL with an MMR = Master.
+- Two correct schemes:
+  - "stated": the submission's description, Bronze–Gold / Platinum–Diamond / Master;
+  - "site": Bronze+Silver / Gold+Platinum / Diamond+Master.
+- Rows with no rank stay in mid.
+- Statistics and out-of-fold features are rebuilt per scheme, and the leak-free enriched and naive models are retrained (seed 42, validation early stopping). They are compared with the mislabeled seed-42 models on the same test and post-snapshot games.
+- Results (seed 42; 3.7M training rows each; `results/tier_sensitivity.json` → `runs`):
+
+| Tiers | Model | Test acc | Test LL | Post acc | Post LL | Post slope |
+|---|---|---|---|---|---|---|
+| snapshot labels (as used) | enriched | 57.77 | .6745 | 56.81 | .6783 | 1.05 |
+| snapshot labels (as used) | naive | 57.63 | .6740 | 56.79 | .6778 | 1.05 |
+| stated (Bronze–Gold / Plat–Diamond / Master) | enriched | 57.54 | .6749 | 56.71 | .6786 | 0.98 |
+| stated | naive | 57.58 | .6740 | 56.72 | .6779 | 1.04 |
+| site (Bronze–Silver / Gold–Plat / Diamond–Master) | enriched | 57.64 | .6746 | 56.78 | .6783 | 0.99 |
+| site | naive | 57.54 | .6737 | 56.75 | .6777 | 1.06 |
+
+- **The headline numbers do not move.**
+  - Accuracy changes by at most 0.25pp. The 3-seed SD is about 0.1pp, and this is one seed.
+  - Post-snapshot slopes stay at 0.98–1.06.
+  - Enriched and naive stay within 0.1pp of each other under every scheme.
+- **Nothing downstream was rerun.** The paper carries one sentence saying so (§III-A).
+- **Remaining caveat:** the agents' tier input means the label population, not a clean rank bracket. Downstream results (MCTS, tournament) are conditioned on those labels and are described as label strata.
+
+**Expert study v2** (`results/expert_tier_audit.json`, script `expert_tier_audit.py`)
+
+`src/app/rate/rate-client.tsx` tells raters Low = Bronze–Silver, Mid = Gold–Platinum, High = Diamond–Master. The v2 item pool (`data/rating-items.json`, pool v5, seed 20260918) was generated on 2026-09-18, before the relabel. **Its tiers come from the old DB labels.**
+
+*Ladder-sourced items* (anchors, calibration, screener, catch; 621 items): **239 (38.5%) show a tier banner whose rank range does not contain the game's actual rank.** By displayed tier:
+- **Low** (displayed Bronze–Silver): every item is a Bronze game. These are consistent with the banner, but no Silver games appear.
+- **Mid** (displayed Gold–Platinum): every item is Silver, Gold, or Master. Every Silver and Master item is outside the displayed range.
+  - Anchors: 90 Silver + 22 Master + 4 unranked out of 190.
+  - Calibration: 4 Silver + 1 Master out of 13.
+  - Screener: 1 Silver.
+- **High** (displayed Diamond–Master): every item is Platinum or Diamond. Every Platinum item is outside the displayed range.
+  - Anchors: 106 of 190.
+  - Calibration: 9 of 13.
+  - Screener: 2.
+- **By block:** anchors 222/570 (39%), calibration 14/40 (35%), screener 3/8, catch 0/3.
+
+*Machine pairs* (280 items: 93 low, 93 mid, 94 high). Their tier label conditioned the agents and judges, which were trained on the 2026-09-01 snapshot's old labels. The share of each label's training population inside the displayed range is:
+- low: 100% (all Bronze);
+- mid: 43% (Gold only; Silver and Master are outside);
+- high: 39% (Diamond only; Platinum is outside).
+
+So for most mid and high machine items, raters are told a different skill bracket than the one the drafts were optimized for.
+
+**Data collected so far:** `draft_ratings` holds 7 ratings from 1 rater, all on 2026-09-30, probably a test session. There are no study data yet. Before invites go out, one of these needs to happen:
+1. Show raters the bracket the labels actually encode (Bronze / Silver–Gold–Master / Platinum–Diamond). This is awkward, because Master sits in mid.
+2. Regenerate the anchors from relabeled tiers and retrain the tournament on relabeled data.
+3. Drop tier from the rater display and the anchor stratification.
+
+This touches the OSF preregistration v2 (tier framing) and the IRB instrument text. Max decides; nothing was changed in the app or the pool.
 
 ## 7. Files
 
@@ -576,6 +684,7 @@ The clean manuscript went from 13 to 8 pages (7,525 words in the source, down fr
 | `tournament.py`, `run_tournament.py`, `score_tournament.py` | tournament |
 | `compile_results.py`, `make_tables.py`, `gen_figs.py` | aggregation, LaTeX rows, figures |
 | `deferred.py`, `capped_queue2.sh` | deferred jobs and their capped queue (§9) |
+| `tier_sensitivity.py`, `expert_tier_audit.py` | tier-label bug: crosstab, retraining under correct tiers, expert-pool audit (§10) |
 | `orchestrate.sh` | pre-cap launcher, stopped |
 
 **Results** (`training/paper1_revision/results/`):

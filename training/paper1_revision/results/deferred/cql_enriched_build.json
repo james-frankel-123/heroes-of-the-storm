@@ -1,0 +1,33 @@
+{
+ "dim": 375,
+ "train": {
+  "n": 49054400,
+  "state_dim": 375,
+  "state_dtype": "float32",
+  "fields": [
+   [
+    "actions",
+    "int64"
+   ],
+   [
+    "outcomes",
+    "float32"
+   ]
+  ]
+ },
+ "val": {
+  "n": 1003584,
+  "state_dim": 375,
+  "state_dtype": "float32",
+  "fields": [
+   [
+    "actions",
+    "int64"
+   ],
+   [
+    "outcomes",
+    "float32"
+   ]
+  ]
+ }
+}

@@ -52,15 +52,7 @@ Table~\ref{tab:throughput} shows the progression; all stages measured at 200 sim
 
 \section{Synthetic Augmentation Sweep: Unseen vs.\ Sparse Scope}
 
-This sweep was run with the submission's value functions (external statistics) and was not repeated in the revision; the win-rate sweep of the main paper's Table~IV was. The main paper's synthetic-data repair swept 27 configurations varying
-augmentation win rate (10/20/30\%), volume (50/100/200 per composition
-per tier), and scope (unseen only, sparse low-WR only, or both).
-Augmenting unseen compositions is the active ingredient. At the best
-volume (100) and WR (10\%), sparse-only augmentation (reinforcing
-compositions with $<$300 games and $<$48\% WR) leaves the 5-tank
-pathology unrepaired (WP 0.23, vs.\ 0.15 for the unaugmented baseline),
-while unseen-only augmentation drives it to 0.07; the ``both'' scope is
-intermediate (0.11).
+We swept 27 configurations, re-run with leak-free models (256$\to$128, out-of-fold features, own composition table, seed 42): assigned win rate for unseen compositions (10/20/30\%), volume (50/100/200 records per composition and tier), and scope (unseen only; sparse only, which tops up observed compositions with fewer than 300 games and win rate below 48\% to 300 games at their own win rate; or both). Sparse-only augmentation does not depend on win rate or volume (19,107 records in every cell) and leaves the five-tank WP at 0.26, against 0.27 without augmentation. Unseen-only augmentation lowers it to 0.07--0.12 at 10\%, 0.16--0.18 at 20\%, and 0.23--0.28 at 30\%; adding the sparse records changes little (0.08--0.10 at 10\%). Held-out accuracy stays at 57.5--57.7\% and post-snapshot calibration slope at 0.93--1.02 in every cell, and 24--27 of 28 sanity tests pass. The active ingredient is the unseen compositions, and lower assigned win rates penalize five tanks more.
 
 \section{Validity of the Interaction Metrics}
 \label{sec:metricvalid}
@@ -134,58 +126,52 @@ The main paper's behavior policy is uncoordinated ranked-ladder play, and its Li
 \section{Draft Concentration and Out-of-Distribution Extrapolation}
 \label{sec:concentration}
 
-This section describes the submission's MCTS agents (J\_800sim, trained against the leaky value function) and is kept for the record; the revision's agents are judged by independent references in the main paper. Its in-sample validation of the favorite heroes does not replicate forward (below). The submission's Limitations named its central vulnerability: every adjudication, including the tournament, was scored by value functions trained on the authors' own corpus, so a policy that drifted into states where those functions are systematically wrong could be graded a winner exactly where it deserves to lose. This section measures how far the winning agent actually drifts. The finding: the agent concentrates onto a small hero pool whose individual, pairwise, and trio advantages are directly verifiable in real game outcomes, and it leaves the data only at the level of exact five-hero compositions, while staying inside role structures the 9M-game aggregates validate. Its out-of-distribution exposure is narrow and characterizable. All measurements below use a fixed diagnostic protocol (200 drafts per seed, mid tier, 200 inference simulations, symmetrized enriched judge); per-configuration tables ship with the release repository.
+How far do the agents drift from human play? We measure the leak-free operating-point agent (F\_oof, 5 seeds $\times$ 1,000 benchmark drafts, mid label, 200 inference simulations, root temperature 1) and, for comparison, the submission's J\_800sim (5 seeds).
 
-\paragraph{Concentration is method-wide, search-aligned, and value-model-independent.} Under the headline J\_800sim configuration, all 15 seeds share the identical top-3 pick set \{Hogger, Samuro, Rehgar\}; a single seed uses 25.3$\pm$2.1 distinct heroes at 3.65$\pm$0.10 bits of pick entropy, and pooling all fifteen seeds adds only +0.09 bits (36 distinct heroes): the seeds converge on one head, not fifteen different ones. Deeper search does not concentrate further (per-seed entropy 3.62$\to$3.65 bits from 200$\to$800 training simulations, judge WP 0.726$\to$0.768), but longer training does: two diagnostic training lengths added to the main paper's grid (100K and 500K episodes, 200 simulations, 5 seeds each) complete the curve 100K$\to$300K$\to$500K$\to$1M episodes as entropy 3.84$\to$3.62$\to$3.37$\to$3.34 bits per seed against judge WP 0.688$\to$0.726$\to$0.744$\to$0.752 and degenerate rate 19.3$\to$11.0$\to$4.7$\to$5.4\%: the 100K policy is the most diverse and weakest (diversity here is partly unresolved error), and the 1M policy is the strongest and least diverse. What search increasingly aligns with is the value model's own preference: the Spearman correlation of pooled pick counts with the enriched model's marginal hero preference rises 0.40$\to$0.47$\to$0.50$\to$0.51 across the simulation grid while correlation with ladder pick rate falls 0.45$\to$0.41$\to$0.32$\to$0.28, the signature of exploitation rather than imitation (Hogger/Samuro/Deathwing rank 2/4/6 of 90 by marginal preference but only 22/53/62 by ladder popularity). The preference is not an artifact of the enriched features: the featureless baseline and the retrained relational/absolute ablations rank heroes nearly identically (cross-model Spearman 0.94--0.98), and the featureless K\_truebase agent concentrates onto the same four-hero head. The concentrated signal lives in the outcome data, not in any one representation of it.
+\paragraph{Concentration} Each F\_oof seed uses 24--27 distinct heroes at 3.25--3.59 bits of pick entropy; pooling the five seeds gives 3.58 bits, so the seeds converge on one head. Its seven favorite heroes are Samuro, Rehgar, Hogger, Deathwing, Falstad, Illidan, and Ragnaros; the submitted J\_800sim's head overlaps heavily (Hogger, Samuro, Rehgar, Deathwing, Auriel, Illidan, Leoric) and is slightly more diverse (29--32 heroes, 3.74 bits pooled).
 
-\paragraph{The concentrated pool, checked in sample.} Because the head is small, it can be validated directly against the 1,949,087-replay corpus, with no model in the loop (Wilson 95\% CIs). Individually: Rehgar 55.4\% WR ($n$=463{,}805), Samuro 53.5\% ($n$=121{,}974), Hogger 52.5\% ($n$=193{,}467), Deathwing 51.5\% ($n$=115{,}626), every interval above 50\%. The agent's characteristic pairings overperform the independence expectation formed from their individual win rates (the paper's synergy-delta convention): Hogger+Samuro wins 59.8\% against 56.0\% expected (+3.9pp, $n$=2{,}065, expectation outside the CI), Deathwing+Hogger +2.4pp ($n$=1{,}731, significant), the trio Falstad+Hogger+Rehgar 61.7\% vs.\ 59.2\% (+2.6pp, $n$=2{,}436, significant), Deathwing+Rehgar+Samuro +6.0pp ($n$=229, not significant). Pooled over all 21 pairs of the agent's seven favorite heroes, real games beat independence by +0.4pp ($n$=240{,}507); over all 35 trios, by +1.8pp ($n$=12{,}760); both significant. The validation is honest about its negatives: Illidan+Samuro underperforms independence ($-$3.4pp, $n$=1{,}516, significant), and thin-sample trios swing wildly (Auriel+Rehgar+Samuro $-$19.9pp at $n$=27). These checks use the same 1.95M games the agents' value functions and statistics were built from, so they select and validate on one sample. Forward, on 346,470 later replays that no paper model has seen, the edges mostly vanish: Hogger+Samuro +0.07pp ($n$=306, not significant), Deathwing+Hogger +2.8pp ($n$=506, n.s.), Falstad+Hogger+Rehgar +1.6pp ($n$=401, n.s.), the pooled 21 pairs $-$0.04pp ($n$=47{,}278) and the pooled 35 trios +0.8pp ($n$=2{,}701, n.s.). Patch drift may contribute (Rehgar's individual win rate fell from 55.4\% to 52.9\%). We therefore withdraw the claim that search exploits interactions the data certifies. 
+\paragraph{Are the favorites' interactions real?} For all 21 pairs and 35 trios of the seven favorites we compare the win rate of real teams containing them with the independence expectation from the heroes' own win rates (the paper's synergy convention). In our training split the favorite pairs beat independence by +0.54pp ($n$ = 228,342 team-games, $z$ = 5.2) and the trios by +1.70pp ($n$ = 12,767, $z$ = 3.8). On 450,445 post-snapshot games (including the drifted 2.55.17 builds), which no model saw, the pairs beat it by +0.21pp ($n$ = 56,029, $z$ = 1.0) and the trios by +1.68pp ($n$ = 3,169, $z$ = 1.9). The trio edge replicates in size but not yet in significance; the pair edge shrinks by more than half. For the submitted agent's favorites the forward edges are similar (+0.26pp pairs, +1.35pp trios, both not significant). The submission's statement that search ``exploits precisely the interactions the data certifies'', based on in-sample checks only, is withdrawn.
 
-\paragraph{The extrapolation boundary sits at the full composition.} None of the agent's ten most frequent five-hero teams, jointly 31\% of its drafts, occurs even once in the 1.95M-game corpus; the modal team (Deathwing/Hogger/Leoric/Rehgar/Samuro, 5.0\% of drafts) is matched at 4-of-5 heroes only 9 times, and every five-hero subset of the seven favorites has zero occurrences. At the exact-composition level the agent is fully out-of-distribution. One level up the structural hierarchy it is not: mapping each of the 3,000 pooled J\_800sim drafts to its sorted role composition under the composition-WR convention of the main paper, 99.6\% (2,989/3,000) land on role compositions observed in the 9.0M-game aggregate table, 82.4\% on compositions with at least 1,000 recorded games. The modal role composition (double bruiser / healer / melee assassin / ranged assassin, 21.6\% of drafts) carries a 53.2\% aggregate win rate over 93{,}151 real games, and the 44.6\% of drafts landing on role compositions with $\geq$10K recorded games sit at a draft-weighted 52.6\% aggregate win rate; the notable thin spot is the second most common structure (triple bruiser / healer / melee assassin, 15.5\% of drafts), attested in only 1{,}036 real games at 49.5\%.
-
- Where deployment prefers variety over the last fraction of predicted win probability, inference-time knobs recover tail diversity at $<$0.01 judge WP: the 15-seed ensemble lifts pick entropy 3.48$\to$3.72 bits (21$\to$31 distinct heroes) for $-$0.007, and Dirichlet root noise ($\epsilon$=0.25) reaches 34 distinct heroes for $-$0.005; neither dislodges the validated head.
+\paragraph{Where the agent leaves the data} None of F\_oof's ten most frequent five-hero teams (together 38.8\% of its drafts) occurs even once in the 1.95M-game corpus. One level up it stays in familiar territory: 98.7\% of its drafts land on role compositions admitted to our own composition table (at least 50 games in the tier label) and 63.7\% on compositions with at least 1,000 games.
 
 \section{Ensemble Epistemic Uncertainty of the Value Model}
 \label{sec:ensemble}
 
-This section describes the submission's ensemble, whose members read the external statistics (and hence the test games' outcomes) and whose drafts come from the submission's agents; it was not repeated in the revision. The submission's Limitations noted that all adjudication is scored by value functions trained on the authors' corpus. A complementary question is whether the value model \textit{family} itself signals where its judgment should not be trusted: if functionally distinct win-probability models agree on a draft, the corpus pins down its value; where they disagree, any single model's score is under-determined by the data. Seed-only deep ensembles are known to understate this epistemic component, so we train a \textbf{20-member ensemble} on the pinned snapshot in which every member has a distinct random seed and members additionally vary \textit{architecture} (eleven 256$\to$128, nine 512$\to$256$\to$128), \textit{feature subset} (eight with the full 283-dim enriched features; nine each dropping one of the nine enriched feature groups; three naive 197-dim), and \textit{training data half} (disjoint replay-level halves of the 1.91M-replay training split, team-swap pairs kept together). Members train under the paper's exact WP protocol and reach 57.4--58.0\% held-out accuracy, statistically indistinguishable from the paper's full-data models (57.6--58.1\%): the perturbations diversify the ensemble without degrading it. Uncertainty is measured as the per-draft ensemble variance of the symmetrized win probability, on four draft sets: 2{,}000 held-out real human drafts; 2{,}000 drafts by the headline J\_800sim agent (pooled over its 15 training seeds); 500 constrained-MCTS drafts regenerated under the rich-evaluation protocol; and a degenerate set, 500 synthetic degenerate drafts built like the augmentation generator's (never-observed role compositions, heroes sampled within role, real opposing teams) plus the six fixed degenerate probe compositions. We then score the tournament itself: for each of the eleven round-robin strategies, its side of every pairing it played (4{,}000 per-draft records from the main paper's tournament, subsampled to 2{,}000 per strategy).
+Do functionally different value models agree on the drafts the tournament judged? We train a 20-member leak-free ensemble on our out-of-fold features (validation early stopping): 8 full enriched models varying architecture (256$\to$128 or 512$\to$256$\to$128), training-data half, and seed; 9 models each dropping one enriched feature group; and 3 identity-only models. For each draft we compute the variance of the 20 symmetrized win probabilities.
 
 \begin{table}[t]
 \centering
-\caption{Per-draft ensemble variance of the symmetrized win probability under the 20-member ensemble (variance $\times 10^{3}$). ``Ratio'': median relative to the held-out human median. ``$>$p95'': fraction of the set's drafts whose variance exceeds the 95th percentile of the held-out human distribution. Bottom block: each tournament strategy's own round-robin drafts.}
+\caption{Per-draft variance of the 20-member leak-free ensemble. Ratio: median relative to held-out human drafts; $>$p95: share of drafts above the human 95th percentile.}
 \label{tab:ensvar}
 \small
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrr}
 \toprule
-Draft set & Median & p95 & Ratio & $>$p95 \\
+Draft set & Med.\,$\times10^{3}$ & Ratio & $>$p95 \\
 \midrule
-Held-out human ($n$=2000) & 0.52 & 1.62 & 1.00 & (5.0\%) \\
-MCTS agent ($n$=2000) & 0.71 & 2.01 & 1.38 & 9.7\% \\
-Constrained MCTS ($n$=500) & 0.70 & 2.51 & 1.35 & 15.0\% \\
-Synthetic degenerate ($n$=500) & 1.64 & 5.62 & 3.17 & 50.6\% \\
-Degenerate probes ($n$=6) & 1.92 & 4.83 & 3.71 & 3/6 \\
+Held-out human ($n$=2000) & 0.43 & 1.00 & (5.0\%) \\
+F\_oof agent ($n$=2000) & 0.52 & 1.21 & 7.1\% \\
+Synthetic degenerate ($n$=500) & 1.36 & 3.20 & 54.0\% \\
+Degenerate probes ($n$=6) & 2.57 & 6.05 & 5/6 \\
 \midrule
-\multicolumn{5}{l}{\textit{Tournament round-robin drafts per strategy ($n$=2000 each)}}\\
-G\&A estimator & 1.14 & 5.05 & 2.21 & 35.2\% \\
-Enriched greedy & 1.07 & 3.95 & 2.07 & 29.8\% \\
-Constrained greedy & 1.01 & 4.02 & 1.96 & 28.8\% \\
-Enriched+augmented & 0.99 & 3.96 & 1.92 & 27.0\% \\
-MCTS & 0.92 & 3.52 & 1.78 & 23.9\% \\
-Constrained MCTS & 0.90 & 3.29 & 1.73 & 22.1\% \\
-MCQ & 0.85 & 3.46 & 1.64 & 24.1\% \\
-CQL naive & 0.69 & 2.85 & 1.34 & 15.9\% \\
-GD & 0.69 & 2.82 & 1.33 & 16.2\% \\
-CQL enriched & 0.67 & 3.26 & 1.29 & 16.0\% \\
-G\&A discriminator & 0.60 & 2.76 & 1.16 & 11.8\% \\
+\multicolumn{4}{l}{\textit{Tournament drafts per strategy ($n$=2000 each)}}\\
+G\&A estimator & 0.94 & 2.21 & 35.5\% \\
+MCTS & 0.77 & 1.82 & 22.9\% \\
+Constrained greedy & 0.77 & 1.81 & 24.6\% \\
+MCTS, no features & 0.77 & 1.80 & 24.9\% \\
+Enr.+aug greedy & 0.76 & 1.79 & 24.2\% \\
+Enriched greedy & 0.74 & 1.75 & 23.8\% \\
+Constrained MCTS & 0.71 & 1.66 & 20.2\% \\
+MCQ & 0.63 & 1.48 & 20.9\% \\
+CQL enriched & 0.56 & 1.32 & 15.6\% \\
+GD & 0.55 & 1.28 & 13.8\% \\
+CQL naive & 0.54 & 1.27 & 15.7\% \\
+G\&A discriminator & 0.46 & 1.09 & 11.2\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:ensvar} gives the result. Agent drafts are near-human: median variance 1.38$\times$ the human median (the median agent draft sits at the 68th percentile of the human variance distribution), with 9.7\% of agent drafts beyond the human 95th percentile; constrained-MCTS drafts behave the same (1.35$\times$, 15.0\%). Degenerate drafts are sharply elevated: 3.2$\times$ the human median variance, with 50.6\% beyond the human 95th percentile, and the fixed probes at 3.7$\times$ (the five-tank probe draws ensemble mean WP 0.198 with a cross-member standard deviation of 0.071, three times the 0.024 typical of human drafts). The ensemble thus flags exactly the never-observed structural region as epistemically uncertain, while the tournament winner's drafts, out-of-distribution only at the exact-composition level (Section~\ref{sec:concentration}), draw human-like agreement from the model family.
-
-The per-strategy block extends this check to every strategy the tournament adjudicated: were the consensus-WP verdicts issued in regions where the model family agrees? They were. All eleven strategies' tournament drafts draw median variance 1.16--2.21$\times$ the human median, well below the degenerate regime (3.2--3.7$\times$), and no strategy has more than 35.2\% of its drafts beyond the human 95th percentile, against 50.6\% for degenerate compositions. The ordering tracks mechanism: the behavior-anchored cluster is priced most confidently (G\&A discriminator 1.16$\times$, CQL 1.29--1.34$\times$, GD 1.33$\times$), so the tournament's verdict that anchoring loses is issued exactly where the model family is most certain, while the strategies that search a value function off the human manifold sit highest (G\&A estimator 2.21$\times$, unconstrained enriched greedy 2.07$\times$), with the tournament winner in between (constrained MCTS 1.73$\times$). Tournament figures run above the same strategies' dedicated sets (constrained MCTS 1.73$\times$ here vs.\ 1.35$\times$ against behavioral-cloning opponents) because the variance is a property of the full matchup and every tournament schedule includes the high-variance strategies' teams on the opposing side; the round-robin is balanced (each strategy meets the same ten opponents over the same map/tier mixture), so cross-strategy differences are attributable to the strategies' own drafts.
-
-The design choice of varying data half and feature subset rather than seeds alone is what exposes this signal. Restricted to the eight full-enriched members (seed, architecture, and data half varying; features fixed), the median variance on the degenerate probes is 0.00023 against 0.00022 on human drafts: near-blind. Adding the nine minus-one-group members and the three naive members opens the gap to the 3--4$\times$ of Table~\ref{tab:ensvar}, because models denied role and interaction features price broken compositions differently, disagreement that is invisible within a single feature specification. Epistemic uncertainty in this domain lives across model specifications, not across initializations, and uncertainty-aware extensions (e.g., variance-penalized search) should build on specification-diverse ensembles.
+The operating-point agent's benchmark drafts draw near-human disagreement (1.21$\times$ the human median, 7.1\% beyond the human 95th percentile). Degenerate drafts are sharply elevated (3.2$\times$ for synthetic unseen compositions, 6.0$\times$ for the fixed probes). Every strategy's tournament drafts sit between 1.09$\times$ and 2.21$\times$, below the degenerate regime; the anchored strategies are priced most confidently and the strategies that search a value function off the human manifold highest. The tournament's verdicts were therefore issued where the model family mostly agrees, with the least agreement on the Gourdeau estimator's drafts (35.5\% beyond the human 95th percentile).
 
 \section{Leakage Mechanism: A Within-Snapshot Split Experiment}
 \label{sec:split}

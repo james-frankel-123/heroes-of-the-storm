@@ -1,0 +1,126 @@
+{
+ "pool_seed": 20260918,
+ "generated_at": "2026-09-19T17:50:49.190Z",
+ "shown_ranges": {
+  "low": [
+   "Bronze",
+   "Silver"
+  ],
+  "mid": [
+   "Gold",
+   "Platinum"
+  ],
+  "high": [
+   "Diamond",
+   "Master"
+  ]
+ },
+ "ladder": {
+  "anchors": {
+   "high": {
+    "Diamond": 84,
+    "Platinum": 106
+   },
+   "low": {
+    "Bronze": 190
+   },
+   "mid": {
+    "Gold": 74,
+    "Master": 22,
+    "Silver": 90,
+    "unknown": 4
+   }
+  },
+  "calibration": {
+   "high": {
+    "Diamond": 4,
+    "Platinum": 9
+   },
+   "low": {
+    "Bronze": 14
+   },
+   "mid": {
+    "Gold": 8,
+    "Master": 1,
+    "Silver": 4
+   }
+  },
+  "catch": {
+   "high": {
+    "Diamond": 1
+   },
+   "low": {
+    "Bronze": 1
+   },
+   "mid": {
+    "Gold": 1
+   }
+  },
+  "screener": {
+   "high": {
+    "Platinum": 2
+   },
+   "low": {
+    "Bronze": 3
+   },
+   "mid": {
+    "Gold": 2,
+    "Silver": 1
+   }
+  }
+ },
+ "machine": {
+  "pairs": {
+   "high": 94,
+   "low": 93,
+   "mid": 93
+  }
+ },
+ "ladder_mismatch": {
+  "anchors": {
+   "items": 570,
+   "outside_shown_range": 222,
+   "share_outside": 0.3894736842105263
+  },
+  "calibration": {
+   "items": 40,
+   "outside_shown_range": 14,
+   "share_outside": 0.35
+  },
+  "catch": {
+   "items": 3,
+   "outside_shown_range": 0,
+   "share_outside": 0.0
+  },
+  "screener": {
+   "items": 8,
+   "outside_shown_range": 3,
+   "share_outside": 0.375
+  },
+  "all_ladder": {
+   "items": 621,
+   "outside_shown_range": 239,
+   "share_outside": 0.38486312399355876
+  }
+ },
+ "sept_snapshot_label_population": {
+  "mid": {
+   "Gold": 494930,
+   "Master": 113275,
+   "Silver": 495040,
+   "unknown": 39023
+  },
+  "high": {
+   "Diamond": 280443,
+   "Platinum": 444249
+  },
+  "low": {
+   "Bronze": 436277
+  }
+ },
+ "machine_label_share_inside_shown_range": {
+  "mid": 0.4332871095049498,
+  "high": 0.38698233180440794,
+  "low": 1.0
+ }
+}
