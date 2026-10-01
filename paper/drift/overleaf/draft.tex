@@ -139,7 +139,7 @@ include a row's own outcome leak its label into its features
 \section{Setting, Corpus, and Names}
 \label{sec:setting}
 
-We use the pinned corpus of our earlier work: 1{,}949{,}087 ranked
+We use the pinned corpus of our earlier work: 1{,}943{,}338 ranked
 Heroes of the Storm drafts on major patch 2.55, December 2021 through May
 2026, a window over which the hero pool is fixed at 90. What is new is
 the time structure. The corpus spans \textbf{45 game builds}, of which 28
@@ -151,16 +151,9 @@ five have no published notes and are treated as no-change builds
 (Section~\ref{sec:detect}). Consecutive sizable builds define 27
 boundaries that are detectable in principle; the notes for 21 of them
 mention at least one hero and the notes for 6 mention none. Skill is
-bucketed into three tiers. Because of a labeling error in our replay
-collection, the snapshot's tiers group Bronze and below (low), Silver,
-Gold, and Master (mid), and Platinum and Diamond (high), so the mid tier
-is not contiguous in league order. Every model here conditions on these labels, and
-the aggregate statistics are computed per label. Retraining the
-\maintained{} value function with contiguous tiers (Bronze--Silver,
-Gold--Platinum, Diamond--Master; 47\% of games change label) leaves
-future-window accuracy at 57.11\% against 57.08\% and the calibration
-slope at 0.93 against 0.93 (three seeds each). We did not rerun the
-policy-level experiments with the corrected tiers. Replacing the tier one-hot with continuous average match
+bucketed into three tiers: low (Bronze and Silver), mid (Gold and
+Platinum), and high (Diamond and Master); the 5{,}749 games without a
+league tier are excluded. Replacing the tier one-hot with continuous average match
 rating changes future accuracy by $-$0.017pp, and appending it changes
 it by +0.007pp, both inside seed noise.
 

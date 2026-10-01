@@ -14,7 +14,7 @@ T = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, T)
 from drift2026 import common  # noqa: E402
 
-R = os.path.join(T, "drift2026", "results")
+R = common.RESULTS_DIR
 builds = [b for b in common.load_patch_index()["builds"] if b.startswith("2.55")]
 cut, last, C0 = builds.index(common.TRAIN_CUTOFF_BUILD), len(builds) - 1, 8
 acc, games = {}, {}
@@ -38,4 +38,4 @@ span = (dt.date(2026, 5, 22) - dt.date(2025, 1, 1)).days + 1
 out["blind_changepoint_chance"] = {"boundaries": 11, "tolerance_days": 3, "span_days": span,
                                    "covered_days": 11 * 7, "chance_precision": round(77 / span, 3)}
 print(json.dumps(out, indent=1))
-json.dump(out, open(os.path.join(T, "drift_rebuild/results/c4_misc.json"), "w"), indent=1)
+json.dump(out, open(os.path.join(common.RESULTS_DIR, "c4_misc.json"), "w"), indent=1)

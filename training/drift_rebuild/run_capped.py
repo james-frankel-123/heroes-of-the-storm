@@ -2,7 +2,7 @@
 Capped GPU runner (owner rule, 2026-10-01): at most 2 rebuild GPU processes,
 launched only while fewer than 4 HotS GPU processes run machine-wide, on the
 freest GPU, under nice 19 / cores 48-63 / 3 BLAS threads.
-Usage: python3 drift_rebuild/run_capped.py drift_rebuild/jobs_mcts_oct1.txt
+Usage: python3 drift_rebuild/run_capped.py <jobs.txt> [own_max]
 """
 import os
 import subprocess
@@ -36,6 +36,7 @@ def freest_gpu():
     return min(rows, key=lambda r: (r[1], r[2]))[0]
 
 
+OWN_MAX = int(sys.argv[2]) if len(sys.argv) > 2 else 2
 jobs = []
 for line in open(sys.argv[1]):
     if not line.strip():
@@ -45,13 +46,18 @@ for line in open(sys.argv[1]):
         continue
     jobs.append((out, log, cmd))
 print(f"{len(jobs)} jobs", flush=True)
+procs = []
 for out, log, cmd in jobs:
-    while sum(rebuild_gpu_load().values()) >= 2 or hots_gpu_procs() >= 4:
+    while (sum(rebuild_gpu_load().values()) >= 2 or hots_gpu_procs() >= 4
+           or sum(p.poll() is None for p in procs) >= OWN_MAX):
         time.sleep(60)
     g = freest_gpu()
-    cmd = cmd.replace(" python3 -u ", f" OMP_NUM_THREADS=3 MKL_NUM_THREADS=3 CUDA_VISIBLE_DEVICES={g} "
-                      "RB_JOB=1 nice -n 19 taskset -c 48-63 python3 -u ")
-    subprocess.Popen(cmd, shell=True, cwd=TRAIN, stdout=open(log, "w"), stderr=subprocess.STDOUT)
-    print(f"[{time.strftime('%H:%M')}] start {os.path.basename(os.path.dirname(out))} gpu {g}", flush=True)
+    pre = (f"OMP_NUM_THREADS=3 MKL_NUM_THREADS=3 CUDA_VISIBLE_DEVICES={g} "
+           "RB_JOB=1 nice -n 19 taskset -c 48-63 python3 -u ")
+    cmd = pre + cmd[len("python3 -u "):] if cmd.startswith("python3 -u ") \
+        else cmd.replace(" python3 -u ", " " + pre)
+    procs.append(subprocess.Popen(cmd, shell=True, cwd=TRAIN, stdout=open(log, "w"),
+                                  stderr=subprocess.STDOUT))
+    print(f"[{time.strftime('%H:%M')}] start {os.path.basename(log)} gpu {g}", flush=True)
     time.sleep(180)
 print("all launched", flush=True)

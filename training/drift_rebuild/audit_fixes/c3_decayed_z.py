@@ -76,4 +76,4 @@ for window, lo, hi, cells in (
     out[window] = {c: paired(acc[c], acc["cumulative"], rid0) for c in acc if c != "cumulative"}
     out[window]["acc_mean"] = {c: round(float(v.mean() * 100), 3) for c, v in acc.items()}
     print(window, json.dumps(out[window]), flush=True)
-json.dump(out, open(os.path.join(T, "drift_rebuild/results/c3_decayed_z.json"), "w"), indent=1)
+json.dump(out, open(os.path.join(common.RESULTS_DIR, "c3_decayed_z.json"), "w"), indent=1)
