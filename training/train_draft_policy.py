@@ -532,13 +532,16 @@ def load_pretrained_models(device):
     return wp_model, gd_models
 
 
-def bootstrap_from_generic_draft(network: AlphaZeroDraftNet, device):
-    """Bootstrap policy head weights from a trained Generic Draft model."""
+def bootstrap_from_generic_draft(network: AlphaZeroDraftNet, device, gd_path=None):
+    """Bootstrap policy head weights from a trained Generic Draft model.
+    gd_path: optional checkpoint override (rerun2026); defaults to the
+    historical training/generic_draft_0.pt lookup."""
     from train_generic_draft import GenericDraftModel, INPUT_DIM as GD_INPUT_DIM
 
-    gd_path = os.path.join(os.path.dirname(__file__), "generic_draft_0.pt")
-    if not os.path.exists(gd_path):
-        gd_path = os.path.join(os.path.dirname(__file__), "generic_draft.pt")
+    if gd_path is None:
+        gd_path = os.path.join(os.path.dirname(__file__), "generic_draft_0.pt")
+        if not os.path.exists(gd_path):
+            gd_path = os.path.join(os.path.dirname(__file__), "generic_draft.pt")
     if not os.path.exists(gd_path):
         print("No Generic Draft model to bootstrap from — starting from scratch")
         return
