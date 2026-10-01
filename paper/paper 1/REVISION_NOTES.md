@@ -1040,7 +1040,7 @@ Source: `audits/CONSOLIDATED_AUDIT_2026-10-01.md` §5 (55 open paper-1 items). T
 - **Closed:**
   - **C1:** MCTS checkpoint selection by the run's own value function is disclosed in the benchmark paragraph.
   - **C2:** J_oof resume wording fixed (best-evaluation checkpoints 51K/51K/107K, replay buffer not restored), and the uninterrupted-seed contrast is reported.
-  - **C3:** value-head pretraining stuck at 0.25 in 10/15 leak-free runs is disclosed. The head is not used by search; verified in `mcts_kernel.cu`.
+  - **C3:** value-head pretraining stuck at 0.25 in 10/15 leak-free runs. The head is not used by search (verified in `mcts_kernel.cu`), so no reported number depends on it. Per Max's policy (13.8) it is recorded here, not in the manuscript.
   - **C4:** F was chosen on the same references that score the tournament; stated.
   - **C6:** tournament SE excludes seed variation; stated in the caption.
   - **C7:** Table I caption gives slope SDs (0.02–0.08) and test slopes 1.12–1.22.
@@ -1079,3 +1079,18 @@ All listed D items are rewritten:
 - `draft_revision.tex`: 9 pages, 0 errors, 0 overfull boxes.
 - `supplementary_revision.tex`: 7 pages, 0 errors, 0 overfull boxes.
 - Fig. 1 regenerated.
+
+### 13.8 Policy: bugs are fixed and rerun, never disclosed as caveats (Max, 2026-10-01)
+
+The manuscript reports corrected results and genuine design limitations only. Implementation bugs and their fixes are recorded in this change log.
+
+**Applied in this pass:**
+- Removed the value-head sentence (C3) from the benchmark paragraph.
+- Removed the data-sync overwrite and the A_partial/G_base regeneration sentences from the supplement's gN paragraph. The paragraph now reports the own-table gN as a design choice for independence. The external-vs-own comparison stays, because that is a design change.
+- Nothing about the X2 kernel horizon was added anywhere in the manuscript.
+
+**Remaining manuscript passages that describe implementation problems.** These need a decision or a rerun under the policy:
+1. **§III-A, the tier-label off-by-one** ("Because of an off-by-one in that pipeline ..."). Following the policy fully means relabeling and rerunning everything downstream. The current text describes the labels as they are and reports a sensitivity check.
+2. **§VII, J_oof seeds s0/s1/s4.** They were resumed without replay buffers after a compute-cap pause, which is operational. They will be replaced when MCTS is rerun after the X2 kernel fix.
+3. **Supplement kernel section footnote** on the virtual-loss bookkeeping bug in the historical batched host implementation (Table throughput).
+4. **M2_relational seed s4** (gN 0.574, "one failed seed"). This is a submitted checkpoint, and the cause has not been diagnosed.
