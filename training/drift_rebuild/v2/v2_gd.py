@@ -37,12 +37,13 @@ from r5b_fast_gd import train_gd, _batch
 
 
 def samples(rows, dev, with_builds=False):
-    with mp.get_context("fork").Pool(8) as pool:
+    with mp.get_context("fork").Pool(4) as pool:
         parts = pool.map(_gd_rows_chunk, [rows[i:i + 4000] for i in range(0, len(rows), 4000)])
-    X = np.concatenate([p[0] for p in parts])
+    # quantize each part to uint8 before concatenating (values are k/15), so
+    # peak RAM is about a quarter of the float32 version
+    X = np.concatenate([np.rint(p[0] * 15).astype(np.uint8) for p in parts])
     y = np.concatenate([p[1] for p in parts])
-    out = (torch.from_numpy(np.rint(X * 15).astype(np.uint8)).to(dev),
-           torch.from_numpy(y.astype(np.int64)).to(dev))
+    out = (torch.from_numpy(X).to(dev), torch.from_numpy(y.astype(np.int64)).to(dev))
     if with_builds:
         out = out + (np.concatenate([p[2] for p in parts]),)
     return out
