@@ -1249,3 +1249,34 @@ With two local streams plus two concurrent 3090 jobs, from the GD pool landing (
 - wave 1 done about Oct 4;
 - wave 2 done about Oct 6;
 - split experiment done about Oct 6–7 (queued last).
+
+### 15.6 All HotS compute moved to the remotes (2026-10-01 18:30)
+
+**Stopped on the main box:** site_phase0 cache building, the local Gourdeau/naive-CQL waiter, both MCTS queue scripts (waiting, nothing launched). All local work is stopped.
+
+**Already finished locally before the stop:**
+- stats, features, Table I (11 specs × 3 seeds);
+- the Gourdeau estimator;
+- the judge analyses: composition audit, causal test, structure fit, native index, judge calibration, attenuation;
+- metric validity and the NGS evaluation.
+
+The 128-run sweep failed with a GPU out-of-memory error and moved to the 3090.
+
+**3090:**
+- **GD:** split into five concurrent seed jobs (`site_remote_queue.py gd0..gd4`). Seed 0 resumed after epoch 9 from its epoch checkpoint. The discriminator waits for all five.
+- **Also running:** the three CQL/MCQ/BC-CQL/IQL queues and the feature sweep (`train_wp.py sw_*`; skips finished specs).
+
+**MCTS scheduler.** `paper1_revision/site_mcts_remote.py` runs on the main box as a light ssh/rsync polling loop. When the GD pool and the site WPs exist, it pushes inputs to a host and launches pause-aware hotsjob MCTS jobs in priority order:
+1. B/F/J_oof;
+2. K_oof;
+3. E_oof;
+4. B/F/J_leak.
+
+Slots per host are read from `paper1_revision/site/mcts_slots.json`. Current setting: 3090 2, 3080 0 until a split with the drift lane is agreed. The 3080 already has the fixed kernel built (17:41); it needs a smoke test and a drill before the first job of this lane.
+
+**Remaining non-MCTS stage (B3)** runs on the 3090's CPUs and GPU once GD lands:
+- rich evaluation, greedy, cross-evaluation, sanity;
+- leak-free enriched CQL;
+- scope sweep, ensemble, NGS quartiles, MCQ dead units;
+- leak measure, submitted-checkpoint evaluation;
+- non-MCTS tournament pairs.

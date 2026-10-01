@@ -14,6 +14,8 @@ progress restarts.
 
 Queues (balanced for concurrent use of one 24 GB GPU):
   gd      generic_draft_0..4, then the discriminator (needs the GD pool)
+  gd0..gd4  one GD seed each (run concurrently); disc  the discriminator,
+          which waits for all five GD seeds
   cqlA    MCQ tau x5, BC-CQL beta x4
   cqlB    IQL 6 cells, CQL grid (alpha 1) taus at 512x256x128
   cqlC    CQL grid at 1024x512x256 and 256x128x64
@@ -67,6 +69,10 @@ def queues():
         for tau in (0.005, 0.001, 0.01, 0.05, 0.1):
             Q[q].append((f"cql_hp_t{tau}_{a_s}", [TJ, "cql_hp", "--alpha", "1.0", "--tau", str(tau), "--arch", arch],
                          m(f"cql_hp_a1.0_t{tau}_{a_s}"), {}))
+    # single-job queues, so the GD seeds can train concurrently
+    for i in range(5):
+        Q[f"gd{i}"] = [Q["gd"][i]]
+    Q["disc"] = Q["gd"][5:]
     return Q
 
 
@@ -76,9 +82,13 @@ def main():
     env = dict(os.environ)
     env.update(ENV)
     # phase-0 caches are built by a separate job (site_phase0.py); wait for them
-    need = os.path.join(NS, "feature_cache", "gd_test" if q == "gd" else "cql_naive_test", "meta.json")
+    need = os.path.join(NS, "feature_cache", "gd_test" if q.startswith("gd") or q == "disc"
+                        else "cql_naive_test", "meta.json")
     while not os.path.exists(need):
         time.sleep(30)
+    if q == "disc":     # the discriminator needs the whole GD pool
+        while not all(os.path.exists(m(f"gd_{i}")) for i in range(5)):
+            time.sleep(60)
     for name, argv, marker, extra in queues()[q]:
         if marker and os.path.exists(marker):
             print(f"skip {name} (done)", flush=True)
