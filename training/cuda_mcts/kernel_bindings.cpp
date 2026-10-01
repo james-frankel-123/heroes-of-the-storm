@@ -49,6 +49,7 @@ struct WPLookupTables {
 };
 
 struct WPNetOffsets {
+    int use_enriched;
     int num_layers;
     int layer_in[6];
     int layer_out[6];
@@ -127,7 +128,8 @@ extern "C" void mcts_episodes_kernel(
     const float*, const float*, const float*,
     PolicyNetOffsets, GDNetOffsets, WPNetOffsets,
     const WPLookupTables*,
-    const int*, EpisodeMemory*, int, float, unsigned long long);
+    const int*, EpisodeMemory*, int, float, unsigned long long,
+    float, float, float);
 
 PolicyNetOffsets dict_to_policy_offsets(py::dict d);
 GDNetOffsets dict_to_gd_offsets(py::dict d);
@@ -223,6 +225,7 @@ GDNetOffsets dict_to_gd_offsets(py::dict d) {
 WPNetOffsets dict_to_wp_offsets(py::dict d) {
     WPNetOffsets o;
     memset(&o, 0, sizeof(o));
+    o.use_enriched = d.contains("use_enriched") ? d["use_enriched"].cast<int>() : 1;
     o.num_layers = d["num_layers"].cast<int>();
     o.input_dim = d["input_dim"].cast<int>();
     o.use_sigmoid = d["use_sigmoid"].cast<int>();
@@ -305,7 +308,9 @@ public:
     }
 
     py::list run_episodes(py::array_t<int> configs, int num_sims, float c_puct,
-                          unsigned long long seed) {
+                          unsigned long long seed,
+                          float root_temp = 1.0f, float dir_alpha = 0.3f,
+                          float dir_eps = 0.0f) {
         auto cfg = configs.unchecked<2>();
         int n = cfg.shape(0);
         if (n > max_episodes_) throw std::runtime_error("Too many episodes");
@@ -321,7 +326,8 @@ public:
         // Launch kernel: one block per episode
         void* args[] = {&d_policy_weights_, &d_gd_weights_, &d_wp_weights_,
                         &policy_off_, &gd_off_, &wp_off_, &d_lut_,
-                        &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed};
+                        &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed,
+                        &root_temp, &dir_alpha, &dir_eps};
         cudaLaunchKernel((void*)mcts_episodes_kernel, dim3(n), dim3(256),
                          args, shared_mem, 0);
         cudaDeviceSynchronize();
@@ -372,12 +378,15 @@ public:
         int n = cfg.shape(0);
         if (n > max_episodes_) throw std::runtime_error("Too many episodes");
 
-        // Launch kernel
+        // Launch kernel (training path: historical selection behavior pinned)
+        float root_temp = 1.0f, dir_alpha = 0.3f, dir_eps = 0.0f;
         cudaMemcpy(d_configs_, cfg.data(0, 0), n * 3 * sizeof(int), cudaMemcpyHostToDevice);
-        int shared_mem = (STATE_DIM + NUM_HEROES + NUM_HEROES + 256 + 768*3 + 512 + ENRICHED_DIM) * sizeof(float);
+        int shared_mem = (291 + NUM_HEROES + NUM_HEROES + policy_off_.edim
+                         + policy_off_.hdim * 3 + policy_off_.cdim + ENRICHED_DIM) * sizeof(float);
         void* args[] = {&d_policy_weights_, &d_gd_weights_, &d_wp_weights_,
                         &policy_off_, &gd_off_, &wp_off_, &d_lut_,
-                        &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed};
+                        &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed,
+                        &root_temp, &dir_alpha, &dir_eps};
         cudaLaunchKernel((void*)mcts_episodes_kernel, dim3(n), dim3(256),
                          args, shared_mem, 0);
         cudaDeviceSynchronize();
@@ -459,7 +468,10 @@ PYBIND11_MODULE(cuda_mcts_kernel, m) {
              py::arg("policy_offsets"), py::arg("gd_offsets"), py::arg("wp_offsets"),
              py::arg("lut_blob"),
              py::arg("max_concurrent") = 128, py::arg("device_id") = 0)
-        .def("run_episodes", &MCTSKernelEngine::run_episodes)
+        .def("run_episodes", &MCTSKernelEngine::run_episodes,
+             py::arg("configs"), py::arg("num_sims"), py::arg("c_puct"),
+             py::arg("seed"), py::arg("root_temp") = 1.0f,
+             py::arg("dir_alpha") = 0.3f, py::arg("dir_eps") = 0.0f)
         .def("run_episodes_into_buffer", &MCTSKernelEngine::run_episodes_into_buffer)
         .def("update_weights", &MCTSKernelEngine::update_weights);
 }

@@ -333,6 +333,7 @@ __device__ void compute_enriched_features(
 //   augmented: 283→512→256→128→1
 
 struct WPNetOffsets {
+    int use_enriched;      // 1 = append 86 enriched features, 0 = base only (197+8)
     int num_layers;        // number of linear layers
     int layer_in[6];       // input dim per layer
     int layer_out[6];      // output dim per layer
@@ -425,15 +426,20 @@ __device__ float wp_eval_symmetrized(
         state_buf[180 + map_idx] = 1.0f;
         state_buf[194 + tier_idx] = 1.0f;
 
-        // Enriched features (86 dims)
-        compute_enriched_features(t0_heroes, n_t0, t1_heroes, n_t1,
-                                  map_idx, tier_idx, lut, enriched_buf);
-        for (int i = 0; i < ENRICHED_DIM; i++)
-            state_buf[WP_BASE_DIM + i] = enriched_buf[i];
-
-        // Step embedding (8 dims)
-        for (int i = 0; i < STEP_EMBED_DIM; i++)
-            state_buf[WP_FULL_DIM + i] = lut->step_embed[clamped_step][i];
+        if (wp_off.use_enriched) {
+            // Enriched features (86 dims)
+            compute_enriched_features(t0_heroes, n_t0, t1_heroes, n_t1,
+                                      map_idx, tier_idx, lut, enriched_buf);
+            for (int i = 0; i < ENRICHED_DIM; i++)
+                state_buf[WP_BASE_DIM + i] = enriched_buf[i];
+            // Step embedding after enriched (position 283)
+            for (int i = 0; i < STEP_EMBED_DIM; i++)
+                state_buf[WP_FULL_DIM + i] = lut->step_embed[clamped_step][i];
+        } else {
+            // Base only — step embedding right after base (position 197)
+            for (int i = 0; i < STEP_EMBED_DIM; i++)
+                state_buf[WP_BASE_DIM + i] = lut->step_embed[clamped_step][i];
+        }
     }
     __syncthreads();
 
@@ -450,13 +456,17 @@ __device__ float wp_eval_symmetrized(
         state_buf[180 + map_idx] = 1.0f;
         state_buf[194 + tier_idx] = 1.0f;
 
-        compute_enriched_features(t1_heroes, n_t1, t0_heroes, n_t0,
-                                  map_idx, tier_idx, lut, enriched_buf);
-        for (int i = 0; i < ENRICHED_DIM; i++)
-            state_buf[WP_BASE_DIM + i] = enriched_buf[i];
-
-        for (int i = 0; i < STEP_EMBED_DIM; i++)
-            state_buf[WP_FULL_DIM + i] = lut->step_embed[clamped_step][i];
+        if (wp_off.use_enriched) {
+            compute_enriched_features(t1_heroes, n_t1, t0_heroes, n_t0,
+                                      map_idx, tier_idx, lut, enriched_buf);
+            for (int i = 0; i < ENRICHED_DIM; i++)
+                state_buf[WP_BASE_DIM + i] = enriched_buf[i];
+            for (int i = 0; i < STEP_EMBED_DIM; i++)
+                state_buf[WP_FULL_DIM + i] = lut->step_embed[clamped_step][i];
+        } else {
+            for (int i = 0; i < STEP_EMBED_DIM; i++)
+                state_buf[WP_BASE_DIM + i] = lut->step_embed[clamped_step][i];
+        }
     }
     __syncthreads();
 

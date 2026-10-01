@@ -128,7 +128,36 @@ struct EpisodeMemory {
 };
 
 
+// ── Gamma / Dirichlet sampling (root exploration noise) ────────────
+// Marsaglia-Tsang with the alpha<1 boost. Only thread 0 calls this.
+__device__ float d_sample_gamma(curandState* rng, float alpha) {
+    float boost = 1.0f;
+    if (alpha < 1.0f) {
+        float u = curand_uniform(rng);
+        boost = powf(u, 1.0f / alpha);
+        alpha += 1.0f;
+    }
+    float d = alpha - 1.0f / 3.0f;
+    float c = rsqrtf(9.0f * d);
+    for (int it = 0; it < 100; it++) {
+        float x = curand_normal(rng);
+        float v = 1.0f + c * x;
+        if (v <= 0.0f) continue;
+        v = v * v * v;
+        float u = curand_uniform(rng);
+        if (u < 1.0f - 0.0331f * x * x * x * x) return boost * d * v;
+        if (logf(u) < 0.5f * x * x + d * (1.0f - v + logf(v))) return boost * d * v;
+    }
+    return boost * d;
+}
+
 // ── Main MCTS Episode Kernel ───────────────────────────────────────
+// root_temp: temperature over root visit counts for the executed action
+//   (1.0 = historical behavior: sample proportional to visits; <0.05 = argmax).
+// dir_alpha/dir_eps: AlphaZero-style Dirichlet noise mixed into ROOT priors
+//   at every our-turn search (dir_eps <= 0 disables; historical behavior).
+// out_policies (training targets / logged visit distribution) are NOT
+// affected by root_temp — only the executed action selection is.
 
 extern "C" __global__ void mcts_episodes_kernel(
     const float* __restrict__ W_policy,
@@ -142,7 +171,10 @@ extern "C" __global__ void mcts_episodes_kernel(
     EpisodeMemory* __restrict__ episodes,
     int num_simulations,
     float c_puct,
-    unsigned long long base_seed
+    unsigned long long base_seed,
+    float root_temp,
+    float dir_alpha,
+    float dir_eps
 ) {
     int ep_idx = blockIdx.x;
     int tid = threadIdx.x;
@@ -246,6 +278,24 @@ extern "C" __global__ void mcts_episodes_kernel(
                     ep->nodes[ch].num_children = 0;
                     ep->nodes[ch].has_cached_opp = 0;
                     ci++;
+                }
+                // Dirichlet root noise (inference-time exploration):
+                // prior <- (1-eps)*prior + eps*Dir(alpha) over valid root actions
+                if (dir_eps > 0.0f) {
+                    float g[NUM_HEROES];
+                    float gsum = 0.0f;
+                    int nc = ep->nodes[0].num_children;
+                    for (int c = 0; c < nc; c++) {
+                        g[c] = d_sample_gamma(&rng, dir_alpha);
+                        gsum += g[c];
+                    }
+                    if (gsum > 1e-12f) {
+                        for (int c = 0; c < nc; c++) {
+                            int chn = ep->child_indices[ep->nodes[0].children_start + c];
+                            ep->nodes[chn].prior = (1.0f - dir_eps) * ep->nodes[chn].prior
+                                                   + dir_eps * (g[c] / gsum);
+                        }
+                    }
                 }
             }
             __syncthreads();
@@ -466,12 +516,43 @@ extern "C" __global__ void mcts_episodes_kernel(
                 }
                 if (vsum > 0) for (int i = 0; i < NUM_HEROES; i++) ep->out_policies[t][i] /= vsum;
 
+                // Executed-action selection over the (normalized) visit
+                // distribution. The r draw stays unconditional so the RNG
+                // stream (and thus GD opponent behavior) is identical across
+                // root_temp settings for a given seed.
                 float r = curand_uniform(&rng);
-                float cum = 0;
                 int chosen = 0;
-                for (int i = 0; i < NUM_HEROES; i++) {
-                    cum += ep->out_policies[t][i];
-                    if (cum > r) { chosen = i; break; }
+                if (root_temp < 0.05f) {
+                    // argmax (T -> 0)
+                    float best = -1.0f;
+                    for (int i = 0; i < NUM_HEROES; i++) {
+                        if (ep->out_policies[t][i] > best) {
+                            best = ep->out_policies[t][i];
+                            chosen = i;
+                        }
+                    }
+                } else if (fabsf(root_temp - 1.0f) < 1e-6f) {
+                    // T=1: exact historical code path (bit-identical results)
+                    float cum = 0;
+                    for (int i = 0; i < NUM_HEROES; i++) {
+                        cum += ep->out_policies[t][i];
+                        if (cum > r) { chosen = i; break; }
+                    }
+                } else {
+                    // General T: p_i ∝ visits_i^(1/T)
+                    float w[NUM_HEROES];
+                    float wsum = 0.0f;
+                    float inv_t = 1.0f / root_temp;
+                    for (int i = 0; i < NUM_HEROES; i++) {
+                        w[i] = ep->out_policies[t][i] > 0.0f
+                                 ? powf(ep->out_policies[t][i], inv_t) : 0.0f;
+                        wsum += w[i];
+                    }
+                    float cum = 0;
+                    for (int i = 0; i < NUM_HEROES; i++) {
+                        cum += (wsum > 0.0f ? w[i] / wsum : 0.0f);
+                        if (cum > r) { chosen = i; break; }
+                    }
                 }
                 main_state.apply_action(chosen, s_team, s_is_pick);
                 ep->num_our_turns++;

@@ -113,9 +113,10 @@ def extract_wp_weights(model):
     return flat, offsets
 
 
-def build_wp_net_offsets(model, name_to_offset, input_dim):
+def build_wp_net_offsets(model, name_to_offset, input_dim, use_enriched=True):
     """Build WPNetOffsets config dict for WinProbEnrichedModel.
     The dict maps directly to the WPNetOffsets C struct fields.
+    use_enriched: if False, kernel skips enriched feature computation (base 197+8 only).
     """
     modules = list(model.net)
     layers = []
@@ -141,6 +142,7 @@ def build_wp_net_offsets(model, name_to_offset, input_dim):
     num_layers = len(layers)
     offsets = {
         'num_layers': num_layers,
+        'use_enriched': 1 if use_enriched else 0,
         'input_dim': input_dim,
         'use_sigmoid': 1,
         'layer_in': [0] * 6,
@@ -330,3 +332,117 @@ def extract_lookup_tables(stats_cache, step_embed_weights=None):
     ])
     print(f"  LUT blob: {len(blob)} bytes ({len(blob)/1024:.1f} KB)")
     return np.frombuffer(blob, dtype=np.uint8).copy()
+
+
+# ── Feature-group ablation helpers (rerun2026 phase 4: M_relational / N_absolute) ──
+
+# Output order + dims of compute_enriched_features() in enriched_features.cuh
+# (== ENRICHED_GROUPS order in experiment_synthetic_augmentation.py, 86 dims).
+KERNEL_ENRICHED_LAYOUT = [
+    ("role_counts", 18),
+    ("team_avg_wr", 2),
+    ("map_delta", 2),
+    ("pairwise_counters", 2),
+    ("pairwise_synergies", 2),
+    ("counter_detail", 50),
+    ("meta_strength", 4),
+    ("draft_diversity", 2),
+    ("comp_wr", 4),
+]
+
+# WPLookupTables C-struct field layout (order/shapes mirror extract_lookup_tables).
+LUT_LAYOUT = [
+    ("hero_wr", "float32", (3, 90)),
+    ("hero_map_wr", "float32", (3, 14, 90)),
+    ("pairwise_counter", "float32", (3, 90, 90)),
+    ("pairwise_synergy", "float32", (3, 90, 90)),
+    ("hero_meta", "float32", (3, 90, 2)),
+    ("hero_fine_role", "int32", (90,)),
+    ("hero_blizz_role", "int32", (90,)),
+    ("comp_keys", "int32", (3, 512)),
+    ("comp_wr", "float32", (3, 512)),
+    ("comp_games", "float32", (3, 512)),
+    ("comp_count", "int32", (3,)),
+    ("step_embed", "float32", (16, 8)),
+]
+
+# Which enriched feature groups read each LUT table in the kernel. A table may
+# only be zeroed when ALL of its readers are ablated (hero_wr, for instance,
+# feeds team_avg_wr AND the counter/synergy expected-value terms, map_delta
+# and draft_diversity — so it can never be zeroed for a subset ablation).
+LUT_TABLE_READERS = {
+    "hero_wr": {"team_avg_wr", "map_delta", "pairwise_counters",
+                "pairwise_synergies", "counter_detail", "draft_diversity"},
+    "hero_map_wr": {"map_delta"},
+    "pairwise_counter": {"pairwise_counters", "counter_detail"},
+    "pairwise_synergy": {"pairwise_synergies"},
+    "hero_meta": {"meta_strength"},
+    "comp_keys": {"comp_wr"},
+    "comp_wr": {"comp_wr"},
+    "comp_games": {"comp_wr"},
+    "comp_count": {"comp_wr"},
+    # hero_fine_role (role_counts) / hero_blizz_role (comp_wr key packing) are
+    # role indices, not stats — zeroing them would remap roles, never do it.
+}
+
+
+def kernel_enriched_group_cols(groups):
+    """Column indices within the kernel's 86-dim enriched vector for the given
+    feature groups (add 197 for positions in the WP input vector)."""
+    known = {g for g, _ in KERNEL_ENRICHED_LAYOUT}
+    unknown = set(groups) - known
+    if unknown:
+        raise ValueError(f"Unknown/unsupported enriched groups: {sorted(unknown)}")
+    cols, off = [], 0
+    for g, dim in KERNEL_ENRICHED_LAYOUT:
+        if g in groups:
+            cols.extend(range(off, off + dim))
+        off += dim
+    assert off == 86
+    return cols
+
+
+def zero_wp_input_columns(wp_flat, name_to_offset, model, input_cols):
+    """Return a copy of wp_flat with the first-layer weight columns for
+    input_cols zeroed. Zeroing W[:, c] of the first Linear is mathematically
+    identical to zeroing input feature c at extraction time (the exact
+    mechanism K_truebase uses for all 86 dims via use_enriched=0/197d net,
+    applied here to a subset)."""
+    first = model.net[0]
+    if not isinstance(first, nn.Linear):
+        raise TypeError("model.net[0] must be nn.Linear")
+    out_f, in_f = first.out_features, first.in_features
+    for c in input_cols:
+        if not 0 <= c < in_f:
+            raise ValueError(f"input col {c} out of range for in_features={in_f}")
+    off = name_to_offset["net.0.weight"]
+    flat = wp_flat.copy()
+    w = flat[off:off + out_f * in_f].reshape(out_f, in_f)
+    w[:, list(input_cols)] = 0.0
+    return flat
+
+
+def zero_lookup_table_groups(lut_blob, zero_groups):
+    """Return a copy of the LUT blob with every table whose kernel readers are
+    ALL in zero_groups zeroed. Feature-exactness is guaranteed separately by
+    zero_wp_input_columns; this removes the underlying stats as well (and makes
+    the ablated blob byte-distinguishable from the full one)."""
+    zg = set(zero_groups)
+    known = {g for g, _ in KERNEL_ENRICHED_LAYOUT}
+    unknown = zg - known
+    if unknown:
+        raise ValueError(f"Unknown/unsupported enriched groups: {sorted(unknown)}")
+    blob = lut_blob.copy()
+    off = 0
+    zeroed = []
+    for name, dtype, shape in LUT_LAYOUT:
+        nbytes = int(np.prod(shape)) * np.dtype(dtype).itemsize
+        readers = LUT_TABLE_READERS.get(name)
+        if readers and readers <= zg:
+            blob[off:off + nbytes] = 0
+            zeroed.append(name)
+        off += nbytes
+    if off != len(blob):
+        raise ValueError(f"LUT blob size mismatch: layout={off}, blob={len(blob)}")
+    print(f"  LUT ablation ({sorted(zg)}): zeroed tables {zeroed}")
+    return blob
