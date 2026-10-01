@@ -37,6 +37,7 @@ def freest_gpu():
 
 
 OWN_MAX = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+GAP = int(sys.argv[3]) if len(sys.argv) > 3 else 180   # seconds after each launch
 jobs = []
 for line in open(sys.argv[1]):
     if not line.strip():
@@ -59,5 +60,5 @@ for out, log, cmd in jobs:
     procs.append(subprocess.Popen(cmd, shell=True, cwd=TRAIN, stdout=open(log, "w"),
                                   stderr=subprocess.STDOUT))
     print(f"[{time.strftime('%H:%M')}] start {os.path.basename(log)} gpu {g}", flush=True)
-    time.sleep(180)
+    time.sleep(GAP)
 print("all launched", flush=True)

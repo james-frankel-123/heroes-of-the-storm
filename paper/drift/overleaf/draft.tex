@@ -186,17 +186,17 @@ deployment game. Built from the full counts, the same code reproduces
 the stored cutoff statistics to the last digit. The first version of
 this study used the leaky construction for every cutoff-frozen arm, and
 the correction changed results. For all-history training, in-period
-validation accuracy falls from 59.11\% to 57.12\%, the calibration slope
+validation accuracy falls from 59.04\% to 57.31\%, the calibration slope
 on the future window (the slope of a logistic recalibration of the
-model's predictions; 1 is calibrated) rises from 0.69 to 0.93, level
-with \maintained{}'s 0.93, and the rate of structurally broken teams
+model's predictions; 1 is calibrated) rises from 0.70 to 0.96
+(\maintained{}: 0.92), and the rate of structurally broken teams
 under greedy drafting falls from 43.5\% to 25.8\%. In-period validation
 cannot reveal the leak, because validation rows carry it too; the leaky
 models look calibrated there (slope 1.0). Because training rows see
 statistics from four fifths of the games and deployment rows from all of
 them, cells near the count thresholds could go missing more often in
 training; on a 60{,}000-game sample the lookup rates differ by at most
-0.005 percentage points. We report the leaky versions only as labeled
+0.007 percentage points. We report the leaky versions only as labeled
 controls, next to the leak-free results they replace.
 
 The agent under maintenance has three learned parts. A win-probability
@@ -336,9 +336,8 @@ score every maintenance policy by games-weighted accuracy and by regret
 against retraining after every build (Table~\ref{tab:regret}). Every
 maintenance-policy row trains on causal statistics with seed 42; the
 frozen-statistics rows are the out-of-fold recipe (three seeds) and the
-leaky control. The three frozen-recipe seeds span 0.07pp, so
-differences between rows under about 0.07pp are within the noise one
-training seed adds.
+leaky construction (one seed). Differences between rows of a few
+hundredths of a point are within the noise one training seed adds.
 
 \begin{table}[t]
 \caption{Deployment replay over 2.8 years: deployment-weighted regret
@@ -355,102 +354,79 @@ Policy & Retrain & Refresh & Regret (pp) \\
 \midrule
 reference: retrain every build & 35 & 35 & 0.000 \\
 \midrule
-never retrain, never refresh & 0 & 0 & +1.062 \\
-\quad frozen-statistics recipe, leak-free$^{a}$ & 0 & 0 & +1.05 to 1.12 \\
-\quad frozen-statistics recipe, leaky & 0 & 0 & +1.682 \\
+never retrain, never refresh & 0 & 0 & +1.021 \\
+\quad frozen-statistics recipe, leak-free$^{a}$ & 0 & 0 & +1.01 to 1.35 \\
+\quad frozen-statistics recipe, leaky & 0 & 0 & +1.698 \\
 \midrule
-never retrain, refresh every build & 0 & 35 & +0.730 \\
-never retrain, refresh every 3rd & 0 & 11 & +0.738 \\
-never retrain, 14 even refreshes & 0 & 14 & +0.733 \\
-never retrain, detector refreshes & 0 & 14 & +0.743 \\
+never retrain, refresh every build & 0 & 35 & +0.662 \\
+never retrain, refresh every 3rd & 0 & 11 & +0.685 \\
+never retrain, 14 even refreshes & 0 & 14 & +0.675 \\
+never retrain, detector refreshes & 0 & 14 & +0.677 \\
 \midrule
-retrain every 3, no refresh & 11 & 11 & +0.050 \\
-retrain every 3, refresh & 11 & 35 & +0.029 \\
-retrain every 6, no refresh & 5 & 5 & +0.106 \\
-retrain every 6, refresh & 5 & 35 & +0.067 \\
-finetune every 3, refresh & 11 & 35 & +0.089 \\
-retrain every 9 / 12, refresh & 3 / 2 & 35 & +0.20 / 0.22 \\
+retrain every 3, no refresh & 11 & 11 & +0.028 \\
+retrain every 3, refresh & 11 & 35 & $-$0.002 \\
+retrain every 6, no refresh & 5 & 5 & +0.146 \\
+retrain every 6, refresh & 5 & 35 & +0.081 \\
+finetune every 3, refresh & 11 & 35 & $-$0.005 \\
+retrain every 9 / 12, refresh & 3 / 2 & 35 & +0.17 / 0.20 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Doing nothing costs 1.06pp over the deployment. Refreshing the
-statistics every build, with the weights fixed, recovers 0.33pp of it,
-31\%. Retraining every three builds recovers 1.01pp even when the
+Doing nothing costs 1.02pp over the deployment. Refreshing the
+statistics every build, with the weights fixed, recovers 0.36pp of it,
+35\%. Retraining every three builds recovers 0.99pp even when the
 statistics are recomputed only at each retrain, and refreshing between
-retrains then adds 0.021pp; at a six-build cadence it adds 0.039pp.
+retrains then adds 0.03pp; at a six-build cadence it adds 0.07pp.
 Retraining does the repair. Refresh recovers a third of the loss when
-retraining is impossible, and adds 0.02 to 0.04pp once retraining is
-scheduled. Cadences from one to six builds land within 0.11pp of the
-reference; the regret grows past that (0.20pp at nine builds, 0.22pp at
-twelve). A warm-start finetune in place of a full retrain costs 0.06pp.
-In calendar terms the replay's builds average 29 days apart, so a
-three-to-six-build cadence is quarterly to twice a year.
+retraining is impossible, and adds a few hundredths of a point once
+retraining is scheduled. With refresh, cadences from one to six builds
+land within 0.08pp of the reference, and the regret grows past that
+(0.17pp at nine builds, 0.20pp at twelve). A warm-start finetune on the
+last six builds matches a full retrain. In calendar terms the replay's
+builds average 29 days apart, so a three-to-six-build cadence is
+quarterly to twice a year.
 
 Refresh does little on the future window of the main split too. Holding
 the \maintained{} checkpoints fixed and freezing their statistics at the
-cutoff lowers future-window accuracy by only 0.030pp (57.08\% to
-57.05\%), a three-month horizon. The leak-free all-history model scores
-56.59\%. So at the 2026 cutoff, 0.46 of the 0.49pp that separates the
+cutoff lowers future-window accuracy by only 0.035pp (56.98\% to
+56.95\%), a three-month horizon. The leak-free all-history model scores
+56.68\%. So at the 2026 cutoff, 0.27 of the 0.30pp that separates the
 two training recipes comes from training against statistics aligned with
-each game's own era, and 0.03pp from refresh. In the replay the same
-recipe difference is small: the frozen-statistics recipe's three seeds
-average 1.08pp against 1.06pp for the never-refreshed causal model (seed
-42 only); the same-seed difference is 0.06pp, inside the 0.07pp seed
-range. The leaky construction had put the frozen-statistics recipe at
-1.68pp, which our first version read as a large recipe effect. The
-recipe matters more at the later cutoff, where the model trains on four
-years of history instead of nineteen months, and cutoff-frozen
-statistics describe the early games worse.
+each game's own era, and 0.035pp from refresh. In the replay the recipe
+difference is within seed noise: the frozen-statistics recipe's three
+seeds lose 1.01 to 1.35pp, bracketing the never-refreshed causal model's
+1.02pp. The leaky construction puts the frozen-statistics recipe at
+1.70pp.
 
 \textbf{Decayed aggregates.} If recomputing statistics helps a little,
 old games may deserve less weight inside them. Decaying the aggregates
-with a 90-day half-life, with counts shrunk toward the cumulative value
-(100 pseudo-games), reaches 57.22\% future-window accuracy against
-\maintained{}'s 57.08\%, and the unshrunk 90-day variant 57.19\%.
-Paired on the same rows, with each arm's three seeds averaged and the
-standard error clustered by game, the gains are +0.14pp ($z = 2.5$) and
-+0.11pp ($z = 1.7$). The stronger
-evidence is a nested check that repeats the selection several builds
-earlier and scores a pseudo-future window: there the 90-day family wins
-by +0.19 and +0.21pp ($z = 3.3$ and 3.5). The variant chosen by that
-nested check is the unshrunk one (57.19\%), so we recommend the family
-and report both. The gain is window-dependent in one respect: a
-365-day half-life ties cumulative statistics on the future window (57.07\%)
-and beats them by 0.14pp ($z = 3.1$) on the nested window. Under greedy
-drafting the two 90-day variants produce 18.9\% and 19.1\% broken teams
-against 16.8\% for \maintained{}, about 2 points higher, which three
-seeds per arm cannot resolve (Welch $p = 0.17$ and 0.10). Our decay is
-applied per build using each build's last game date, so games within a
-build share one weight, and builds last up to 167 days.
-
-Agents trained on a decayed value function draft better-timed heroes.
-The \maintainedpred{} agent uses the shrunk variant, the one with the
-best future-window accuracy; the nested check prefers the unshrunk one.
-In a direct head-to-head (fifteen seeds per side, 4{,}500 drafts) its
-picks average +0.31pp of future-meta hero win rate over \maintained{}'s
-($t = 3.6$, 31 df) on the out-of-sample builds of
-Section~\ref{sec:neglect}, +0.15pp ($t = 1.9$) on 2.55.16.97039 and
-+0.44pp ($t = 4.1$) on the 2.55.17 builds, with no difference in broken
-teams ($t = 0.7$), synergy, or counters. These tests condition on one
-value function per arm: each was the seed with the best future-window
-accuracy of three, which favors the decayed agent by 0.19pp of accuracy
-at selection; the seeds within each arm differ by at most 0.14pp.
+exponentially, with the decay applied per build at each build's last
+game date, raises future-window accuracy from 56.98\% (cumulative) to
+57.17\% with a 90-day half-life, 57.23\% with a 90-day half-life and counts
+shrunk toward the cumulative value (100 pseudo-games), and 57.18\% with a
+365-day half-life. Paired on the same rows, with each arm's three seeds
+averaged and standard errors clustered by game, the gains are +0.19pp
+($z = 3.0$), +0.24pp ($z = 4.2$), and +0.20pp ($z = 4.2$). The half-life
+itself is not identified. A nested check that repeats the selection at
+an earlier cutoff and scores the four builds before the 2026 cutoff
+finds no reliable difference from cumulative statistics ($-$0.02,
++0.03, and +0.06pp; $|z| \le 1.3$). We therefore recommend decaying the
+aggregates without claiming a best half-life. Decaying each signal class
+at its own measured rate does no better: hero-family statistics on a
+90-day clock with pair and composition statistics on a 365-day clock
+score 57.07\%, the reverse assignment 57.14\%.
 
 \textbf{What refresh touches.} A partial-refresh ablation on the fixed
 \maintained{} checkpoints swaps statistics by signal class at test time.
 Every effect is within $\pm$0.07pp over the three-month horizon.
-Refreshing hero-level statistics alone lowers accuracy by 0.07pp;
+Refreshing hero-level statistics alone lowers accuracy by 0.02pp;
 refreshing pair and composition statistics alone raises it by 0.07pp,
-slightly more than refreshing everything (+0.03pp). We read this
-cautiously. Raw pair win rates drift as fast as hero win rates, and the
-pair features are normalized by hero win rates, so the pair-only cell
-also carries current hero strength, and the hero-only cell feeds the
-model mismatched numerators and denominators. Decaying each signal class
-at its own measured rate does not help either: hero-family statistics
-on a 90-day clock with pair and composition statistics on a 365-day
-clock score 57.07\%, the reverse assignment 57.15\%, both below uniform
-90-day decay.
+more than refreshing everything (+0.035pp). Raw pair win rates drift as
+fast as hero win rates, and the pair features are normalized by hero
+win rates, so the pair-only cell also carries current hero strength,
+and the hero-only cell feeds the model mismatched numerators and
+denominators; we draw no conclusion about which signal class matters.
 
 \section{The Cost of Neglect, Head-to-Head}
 \label{sec:neglect}
@@ -668,9 +644,9 @@ beyond the two heroes' strengths is weak and mostly within-build
 sampling noise, a caution for pairwise features generally. The value
 model ages as well. Scored on the same rows, the seven builds after the
 2026 cutoff, each with its own frozen statistics, the leak-free
-all-history model trained at the 2026 cutoff has calibration slope 0.93,
-and models trained one and two years earlier have 0.79 and 0.73 (three
-seeds each; seed ranges 0.91 to 0.95, 0.77 to 0.82, and 0.68 to 0.76).
+all-history model trained at the 2026 cutoff has calibration slope 0.96,
+and models trained one and two years earlier have 0.79 and 0.75 (three
+seeds each; seed ranges 0.93 to 0.99, 0.78 to 0.80, and 0.72 to 0.77).
 
 \begin{figure}[t]
 \centering
@@ -686,9 +662,9 @@ Two questions a maintainer asks after every patch have answers here.
 First, how soon can a new build's own statistics be trusted? Measured
 against the build's remaining games, which is what a deployed system can
 check, patch-local hero win rates come within a point of the truth after
-a median of about 17{,}200 games into a build. (A popular alternative,
+a median of about 17{,}100 games into a build. (A popular alternative,
 distance to the build's final value, reaches the same threshold at
-10{,}700 games, but the early games are part of the final value, and its
+10{,}800 games, but the early games are part of the final value, and its
 error matches pure sampling error at every checkpoint, so it measures
 accumulation more than settling.) At the snapshot's early-2026 rate of
 about 11{,}000 ranked games per week that is about a week and a half,
@@ -699,9 +675,9 @@ composition sets of consecutive builds have a mean Jaccard similarity of
 0.81, and the per-build never-fielded count follows build volume
 ($r = -0.98$ against log games). Built from each era's history, the
 never-fielded targets of our earlier paper's synthetic-augmentation
-method stay within 13 compositions per tier of the full-corpus target
+method stay within 24 compositions per tier of the full-corpus target
 from about three years of history on, and within 2 at the cutoff; the
-earliest eras differ by up to 81.
+earliest eras differ by up to 99.
 
 \section{Detecting Balance Changes from Outcomes}
 \label{sec:detect}
@@ -718,9 +694,9 @@ The ground truth has two variants, and we report both. The scripted
 truth counts every hero the notes mention, including heroes mentioned
 only for bug fixes; this is what the frozen detection code uses. A
 balance-only variant drops bug-fix-only mentions, which appear in 22 of
-the 40 mapped patches (458 mentions). At the hero level, 46 of the detector's 58
-flags name a hero the notes mention (0.79), and 39 of 58 name a hero with
-a balance change (0.67). A randomly chosen hero at a random boundary is
+the 40 mapped patches (458 mentions). At the hero level, 46 of the detector's 59
+flags name a hero the notes mention (0.78), and 39 of 59 name a hero with
+a balance change (0.66). A randomly chosen hero at a random boundary is
 mentioned about 30\% of the time. At the boundary level, the detector
 fires on 16 of the 21 boundaries whose notes mention a hero and on 1 of
 the 6 without (one-sided Fisher exact $p = 0.015$); under the
@@ -733,33 +709,32 @@ Two misses are roster-wide cleanup patches that mention 88 and 64 heroes;
 at 2.55.2.88122 all three flags fall outside the notes. Per-hero recall
 is low (0.06), because the notes list every individual change and most
 are too small to detect singly. The same test on pick and ban rates has
-hero-level recall 0.68 and precision 0.32; it picks up the community
+hero-level recall 0.69 and precision 0.32; it picks up the community
 reacting, which spills across build boundaries and fires on hype as
 readily as on tuning.
 
 How fast does it know? The first flagged hero at each firing boundary
 crosses an uncorrected $p < 0.05$ threshold a median of 2{,}500 games
 into the build. Over all 46 true-positive flags, the uncorrected first
-crossing has median 7{,}000 games. A Bonferroni-corrected sequential
+crossing has median 6{,}900 games. A Bonferroni-corrected sequential
 test never flags 7 of the 46 before the build ends, and flags the other
-39 after a median of 18{,}900 games. The detector's fire decisions themselves use the
+39 after a median of 18{,}800 games. The detector's fire decisions themselves use the
 full build.
 
 As a refresh trigger the detector performs like a calendar. In the
 replay of Table~\ref{tab:regret}, refreshing a fixed model only when the
-detector fires gives +0.743pp regret, against +0.733 for 14 evenly
-spaced blind refreshes, +0.738 for a refresh every third build, and
-+0.730 for every build; the differences are within the replay's noise,
-and the blind result depends on where the 14 refreshes fall (another
-even placement gives 0.748). The detector arm is a hindsight upper
+detector fires gives +0.677pp regret, against +0.675 for 14 evenly
+spaced blind refreshes, +0.685 for a refresh every third build, and
++0.662 for every build; the differences are within the replay's noise.
+The detector arm is a hindsight upper
 bound: which boundaries fire is decided with the full build and with the
 sizable-build list known in advance, and each refresh is then placed at
 the first-detection time of a hero the full-build test flags. Latency
-itself costs 0.004pp; the sparser schedule costs 0.012pp.
+itself costs 0.003pp; the sparser schedule costs 0.012pp.
 Recomputing statistics is cheap, so saving refreshes has little value.
 Sweeping the false-discovery level across two orders of magnitude moves
-hero-level precision from 0.90 (17 of 19 flags) to 0.45, and every
-operating point lands within 0.03pp of every other on the replay. Of the
+hero-level precision from 0.90 (17 of 19 flags) to 0.44, and every
+operating point lands within 0.05pp of every other on the replay. Of the
 replay's 36 builds, 20 are sizable; the detector fires on 14 of the 20
 boundaries ending at them, one of which (2.55.10.94470) has no
 documented change.

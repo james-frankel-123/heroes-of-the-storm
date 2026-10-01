@@ -28,4 +28,16 @@ T=training
   find $T/overfit2026/cache -maxdepth 1 -type f -size -100M
   find $T/overfit2026/results -type f -size -20M
   find $T/qm2026/results -type f -size -20M
+  # drift paper v2 rebuild (opt-in: DRIFT_V2_DATA=1): site-tiered stats and
+  # feature caches, patch index/sidecar
+  if [ "${DRIFT_V2_DATA:-}" = 1 ]; then
+    echo $T/drift2026/patch_index.json
+    echo $T/drift2026/patch_sidecar.npz
+    echo $T/drift_v2/w9_mmr_sidecar.npz
+    echo $T/drift2026/w4_exclude_ids.json
+    ls $T/drift_rebuild/models/exclude_after_*.json
+    find $T/drift_v2/patch_stats -type f
+    find $T/drift_v2/feature_cache -maxdepth 1 -name "features_*.npz"
+    find $T/drift_v2/models -name "*.pt" 2>/dev/null
+  fi
 } | grep -v "/__pycache__/" | sort -u

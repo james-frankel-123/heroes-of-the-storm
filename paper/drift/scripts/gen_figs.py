@@ -12,8 +12,17 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-RES = os.path.join(REPO, "training", "drift2026", "results")
-RB = os.path.join(REPO, "training", "drift_rebuild", "results")
+# v2 (site-tier) rebuild: every figure reads training/drift_v2/results.
+# Figures built on MCTS head-to-heads (dose, vintage) fall back to the
+# previous build's results until the v2 agents finish.
+RES = os.path.join(REPO, "training", "drift_v2", "results")
+RB = RES
+_RB_PREV = os.path.join(REPO, "training", "drift_rebuild", "results")
+
+
+def _rb(name):
+    p = os.path.join(RB, name)
+    return p if os.path.exists(p) else os.path.join(_RB_PREV, name)
 TRAINING = os.path.join(REPO, "training")
 OUT = os.path.join(REPO, "paper", "drift", "overleaf")
 
@@ -48,7 +57,7 @@ def fig_dose():
     opponent models on both sides (U-gc vs S1/S2; 0 months = U-gc vs U-gc,
     drawn at 0). Hollow: the first version (maintained vs leaky unmaintained
     / stale agents, all sharing the paper-1 opponent model)."""
-    sc = json.load(open(os.path.join(RB, "r8_scores.json")))
+    sc = json.load(open(_rb("r8_scores.json")))
 
     def pts(keys):
         out = []
@@ -130,7 +139,7 @@ def fig_detector_curves():
 
 
 def fig_vintage():
-    v = json.load(open(os.path.join(RES, "W6_VINTAGE_MATRIX.json")))["judges"]
+    v = json.load(open(os.path.join(REPO, "training", "drift2026", "results", "W6_VINTAGE_MATRIX.json")))["judges"]  # placeholders; values come from the c8 file
     qm26 = json.load(open(os.path.join(
         TRAINING, "qm2026", "results", "qm2026_judge.json")))["w6"]
     era = json.load(open(os.path.join(
@@ -153,7 +162,7 @@ def fig_vintage():
     # Error bars: SE clustered by the 25 seed pairings (audit B18), single
     # judge seed everywhere (the 2026 ranked value is its seed-0 judge).
     # Leak-free M vs U drafts (consolidated audit C8); pairing-clustered SE.
-    se = json.load(open(os.path.join(RB, "c8_vintage_leakfree.json")))["leakfree_M_vs_U"]
+    se = json.load(open(_rb("c8_vintage_leakfree.json")))["leakfree_M_vs_U"]
     key = {"ranked 2022Q1": "2022Q1-ranked", "2022-07": "2022-07",
            "2023-07": "2023-07", "2024-07": "2024-07", "2025-07": "2025-07",
            "2026": "2026-build", "QM 2021": "QM-2021", "QM 2022": "QM-2022",
