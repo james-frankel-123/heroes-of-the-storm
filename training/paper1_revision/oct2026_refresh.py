@@ -50,6 +50,12 @@ DIFFERENCES = [
     "constrained-search pairs: the 'mcts' side uses the same F_400sim_s0 checkpoint as "
     "constrained_mcts (September: a stale July checkpoint, L_800sim_4M_s0, through a "
     "missing --mcts-run)",
+    "compute: from 2026-10-01 18:20 (Max: no HotS compute on the main box) the remaining "
+    "stages ran on the remote RTX 3090 (WSL, kernel built from the same 1db7df8 sources for "
+    "sm_86): GD 2-4, naive CQL, MCQ, the discriminator, MCTS and both tournaments. GD 0 was "
+    "stopped on the main box after about 36 epochs, before early stopping fired; its "
+    "best-test-loss checkpoint (epoch ~31) is used, and its test loss had moved by under 1e-6 "
+    "relative since epoch 10",
     "roster: synthetic augmentation removed (no enriched_aug strategy, no augmented "
     "evaluator; Max 2026-10-01): 10 strategies, 3 evaluators",
 ]
@@ -71,7 +77,7 @@ def base_env(gpu=None):
         "P1R_COMP_PATH": os.path.join(sd, "deploy_compositions.json"),
         "P1R_MCTS_CKPT": os.path.join(NS_DIR, "mcts_runs", MCTS_RUN, "draft_policy.pt"),
         "PYTHONPATH": os.path.join(HERE, "oct2026_site"),
-        "PYTHON_CPU_COUNT": "4", "P1R_NPROC": "4",
+        "PYTHON_CPU_COUNT": str(OPTS["nproc"]), "P1R_NPROC": str(OPTS["nproc"]),
         "OMP_NUM_THREADS": "2", "MKL_NUM_THREADS": "2", "NUMBA_NUM_THREADS": "2",
         "RERUN_SLOW_GPU": "-1", "P1R_DROP_AUG": "1", "WANDB_MODE": "disabled", "REPLAY_SNAPSHOT": "1",
         "CUDA_VISIBLE_DEVICES": str(gpu) if gpu is not None else "",
@@ -134,7 +140,8 @@ def build_jobs():
     for name, (argv, outs) in phase1_jobs().items():
         dep = ["phase0_gd"] if name.startswith("gd_") else (
             ["phase0_cql"] if name in ("cql_naive_a1.0", "mcq_t0.5") else ["features"])
-        add(name, argv, outs, deps=dep, gpu=True)
+        extra = {"GD_RESUME_PATH": out("models", f"{name}_resume.pt")} if name.startswith("gd_") else None
+        add(name, argv, outs, deps=dep, gpu=True, extra_env=extra)
     disc = os.path.join(RERUN, "train_gourdeau_discriminator.py")
     add("disc_cache", [disc, "--stage", "cache"], [out("feature_cache", "gourdeau_disc_train.npz")],
         deps=["features"])
@@ -156,9 +163,24 @@ def build_jobs():
     return J
 
 
+OPTS = {"nproc": 4, "gpu_slots": 2, "cpu_set": "48-63", "hots_cap": 4,
+        "assume_done": set(), "only": None}
+
+
 def done(job):
     """Outputs exist AND no live process is still producing them (several
     trainers save their best checkpoint while training continues)."""
+    if job["name"] in OPTS["assume_done"]:
+        return True
+    if job["name"].startswith("gd_") and os.path.exists(out("models", f"{job['name']}_resume.pt")):
+        try:   # resumable GD: the .pt is a mid-training best checkpoint until the run stops
+            import torch
+            if not torch.load(out("models", f"{job['name']}_resume.pt"), weights_only=False,
+                              map_location="cpu").get("stopped"):
+                if not os.path.exists(out("models", "meta", f"{job['name']}.json")):
+                    return False
+        except Exception:
+            return False
     return all(os.path.exists(p) for p in job["outputs"]) and _find_running(job) is None
 
 
@@ -207,7 +229,12 @@ def _find_running(job):
         except OSError:
             continue
         if want in cmd and "python" in cmd and "nice" not in cmd.split()[0]:
-            return int(pid)
+            try:   # other lanes run the same scripts in their own namespaces
+                envb = open(f"/proc/{pid}/environ", "rb").read().split(b"\0")
+            except OSError:
+                continue
+            if f"RERUN_NS={NS}".encode() in envb:
+                return int(pid)
     return None
 
 
@@ -253,7 +280,8 @@ def run(gpu_id):
                 say(f"FAIL {name} rc={rc}")
         hold = held()
         pending = [j for j in jobs if j["name"] not in running and j["name"] not in failed
-                   and j["name"] not in hold and not done(j)]
+                   and j["name"] not in hold and not done(j)
+                   and (OPTS["only"] is None or j["name"] in OPTS["only"])]
         if not pending and not running:
             break
         ready = [j for j in pending if all(done(byname[d]) for d in j["deps"])]
@@ -267,7 +295,8 @@ def run(gpu_id):
             break
         for j in ready:
             if j["gpu"]:
-                if my_gpu_procs(running) >= 2 or hots_gpu_procs() >= 4:
+                if my_gpu_procs(running) >= OPTS["gpu_slots"] or (
+                        OPTS["hots_cap"] and hots_gpu_procs() >= OPTS["hots_cap"]):
                     continue
             else:
                 if sum(1 for r in running.values() if not r["gpu"]) >= 1:
@@ -276,7 +305,8 @@ def run(gpu_id):
             env.update(j["env"])
             os.makedirs(out("logs"), exist_ok=True)
             lf = open(out("logs", f"refresh_{j['name']}.log"), "a")
-            argv = ["nice", "-n", "19", "taskset", "-c", "48-63", sys.executable, "-u"] + j["argv"]
+            argv = (["nice", "-n", "19"] + (["taskset", "-c", OPTS["cpu_set"]] if OPTS["cpu_set"] != "none" else [])
+                    + [sys.executable, "-u"] + j["argv"])
             j["proc"] = subprocess.Popen(argv, cwd=TRAINING_DIR, env=env, stdout=lf,
                                          stderr=subprocess.STDOUT)
             j["logf"] = lf
@@ -298,22 +328,43 @@ def mcts_prep():
     print(f"exclude ids: {len(ids):,}")
 
 
-def mcts_train():
+def mcts_env():
+    """Worker env for the oct2026 MCTS run (on top of base_env)."""
     sims, eps = 400, 300000
     save = out("mcts_runs", MCTS_RUN)
-    os.makedirs(save, exist_ok=True)
-    env = dict(os.environ)
     resume = os.path.exists(os.path.join(save, "resume_state.pt"))
-    env.update({
+    return {
         "MCTS_SEARCH_MODE": "chance", "MCTS_PW_K": "1.0", "MCTS_PW_ALPHA": "0.5",
-        "MCTS_CKPT_EVERY_SEC": "1800", "MCTS_PAUSE_FILE": os.path.join(NS_DIR, "MCTS_PAUSE"),
         "MCTS_SAVE_DIR": save, "MCTS_WP_MODEL": "enriched_full",
         "MCTS_WP_PATH": out("models", "wp_enriched_256.pt"),
         "MCTS_GD_PATH": out("models", "generic_draft_0.pt"),
         "MCTS_NUM_EPISODES": str(eps), "MCTS_NUM_SIMS": str(sims), "MCTS_BATCH_EPISODES": "128",
         "MCTS_FRESH": "0" if resume else "1", "MCTS_POLICY_HEAD": "linear", "MCTS_NET_SIZE": "base",
         "MCTS_EXCLUDE_IDS": out("feature_cache", "mcts_pretrain_exclude.json"),
-        "WANDB_RUN_NAME": f"oct2026_{MCTS_RUN}"})
+        "WANDB_RUN_NAME": f"oct2026_{MCTS_RUN}"}
+
+
+def remote_mcts_cmd(remote_training):
+    """Shell command for a hotsjob 'mcts' job on a remote worker: the same env as
+    the local stage, with paths rebased onto the worker's repo. hotsjob adds
+    MCTS_PAUSE_FILE / MCTS_CKPT_EVERY_SEC and, on resume, MCTS_FRESH=0."""
+    import shlex
+    env = {k: v for k, v in base_env(0).items() if k not in os.environ or os.environ[k] != v}
+    env.update(mcts_env())
+    env.pop("CUDA_VISIBLE_DEVICES", None)
+    env["MCTS_FRESH"] = "1"
+    rb = lambda v: v.replace(TRAINING_DIR, remote_training)
+    keys = ["MCTS_FRESH", "MCTS_SAVE_DIR"] + sorted(k for k in env if k not in ("MCTS_FRESH", "MCTS_SAVE_DIR"))
+    return " ".join(f"{k}={shlex.quote(rb(env[k]))}" for k in keys) + " python -u train_mcts_worker.py"
+
+
+def mcts_train():
+    save = out("mcts_runs", MCTS_RUN)
+    os.makedirs(save, exist_ok=True)
+    env = dict(os.environ)
+    env.update(mcts_env())
+    env.setdefault("MCTS_CKPT_EVERY_SEC", "480")
+    env.setdefault("MCTS_PAUSE_FILE", os.path.join(NS_DIR, "MCTS_PAUSE"))
     rc = subprocess.call([sys.executable, "-u", os.path.join(TRAINING_DIR, "train_mcts_worker.py")],
                          cwd=TRAINING_DIR, env=env)
     try:
@@ -362,8 +413,21 @@ if __name__ == "__main__":
     ap.add_argument("--mcts-train", action="store_true")
     ap.add_argument("--constrained-pairs", action="store_true")
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--print-remote-mcts-cmd", metavar="REMOTE_TRAINING_DIR")
+    # remote mode (2026-10-01: no HotS compute on the main box)
+    ap.add_argument("--nproc", type=int, default=4)
+    ap.add_argument("--gpu-slots", type=int, default=2)
+    ap.add_argument("--cpu-set", default="48-63", help="taskset list, or 'none'")
+    ap.add_argument("--hots-cap", type=int, default=4, help="0 disables the nvidia-smi HotS count")
+    ap.add_argument("--assume-done", default="", help="comma list of jobs finished elsewhere")
+    ap.add_argument("--only", default="", help="comma list: run only these jobs")
     a = ap.parse_args()
-    if a.mcts_prep:
+    OPTS.update(nproc=a.nproc, gpu_slots=a.gpu_slots, cpu_set=a.cpu_set, hots_cap=a.hots_cap,
+                assume_done={x for x in a.assume_done.split(",") if x},
+                only={x for x in a.only.split(",") if x} or None)
+    if a.print_remote_mcts_cmd:
+        print(remote_mcts_cmd(a.print_remote_mcts_cmd))
+    elif a.mcts_prep:
         mcts_prep()
     elif a.mcts_train:
         mcts_train()
