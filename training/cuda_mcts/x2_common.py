@@ -62,7 +62,10 @@ def policy(spec):
     'uniform' / 'bc' (overfit2026 priors)."""
     key = ("pol", spec)
     if key not in _CACHE:
-        if ":" in spec:
+        if spec.startswith("path:"):
+            from overfit2026 import search
+            _CACHE[key] = search.policy_flat(spec)
+        elif ":" in spec:
             from paper1_revision import bench_mcts
             _CACHE[key] = bench_mcts.policy_flat(spec)
         else:

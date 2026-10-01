@@ -1,0 +1,9 @@
+{
+ "config": "F",
+ "sims": 400,
+ "episodes": 50000,
+ "seed": 0,
+ "search_mode": "chance",
+ "wp": "/home/max/heroes-of-the-storm/training/paper1_revision/models/enriched_s777.pt",
+ "stats": "/home/max/heroes-of-the-storm/training/paper1_revision/cache/stats/deploy.json"
+}

@@ -60,12 +60,21 @@ def grid(name):
             g.append((prior, "chance", 400, 0.0, 0.0))      # no widening
             g.append((prior, "legacy", 400, 1.0, 1.0))      # sampled root
             g.append((prior, "chance", 400, 1.0, 1.0))
+    elif name == "selfplay":
+        # short self-play checkpoints (x2_selfplay.py), each under both searches
+        sp = os.path.join(HERE, "x2_results", "selfplay")
+        for run in ("F50k_legacy_s0", "F50k_chance_s0"):
+            for mode in ("legacy", "chance"):
+                for s in (200, 400):
+                    g.append((f"path:{sp}/{run}/draft_policy.pt", mode, s, 0.0, 1.0))
     elif name == "smoke":
         g = [("new:F_oof_s0", "legacy", 100, 0.0, 1.0), ("new:F_oof_s0", "chance", 100, 0.0, 1.0)]
     return g
 
 
 def run_name(prior, mode, sims, T, pw_k):
+    if prior.startswith("path:"):   # .../selfplay/<run>/draft_policy.pt -> sp_<run>
+        prior = "sp_" + os.path.basename(os.path.dirname(prior))
     s = f"{prior.replace(':', '_')}__{mode}__s{sims}__T{T:g}"
     if mode == "chance" and pw_k != 1.0:
         s += f"__pw{pw_k:g}"
@@ -225,6 +234,8 @@ def report(a):
     cells = {}
     for (prior, mode, sims, T, pw), r in by.items():
         grp = "F_oof" if prior.startswith("new:F_oof") else prior
+        if prior.startswith("path:"):
+            grp = "sp_" + os.path.basename(os.path.dirname(prior))
         cells.setdefault((grp, mode, sims, T, pw), []).append(r)
     summary = {"cells": {}, "contrasts": {}, "sim_curve": {}}
     for key, rs in sorted(cells.items(), key=lambda kv: str(kv[0])):
@@ -240,6 +251,8 @@ def report(a):
     # paired contrasts (same drafts configs, same prior): chance - legacy at each sims
     for prior in sorted({k[0] for k in by}):
         grp = "F_oof" if prior.startswith("new:F_oof") else prior
+        if prior.startswith("path:"):
+            grp = "sp_" + os.path.basename(os.path.dirname(prior))
         for s in SIMS:
             for mode in ("chance", "rollfwd"):
                 a_, b_ = by.get((prior, mode, s, 0.0, 1.0)), by.get((prior, "legacy", s, 0.0, 1.0))
@@ -287,7 +300,7 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.cmd == "gen":
         gen(a)
-        if a.grid == "main":
+        if a.grid in ("main", "selfplay"):
             open(os.path.join(OUT, "GEN_DONE"), "w").write(time.strftime("%F %T"))
     elif a.cmd == "score":
         score(a)

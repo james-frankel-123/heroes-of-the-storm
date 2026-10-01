@@ -1,0 +1,9 @@
+{
+ "search_mode": "legacy",
+ "pw_k": 1.0,
+ "pw_alpha": 0.5,
+ "num_sims": 400,
+ "kernel_so": "/home/max/heroes-of-the-storm/training/cuda_mcts/cuda_mcts_kernel.cpython-314-x86_64-linux-gnu.so",
+ "git_head": "1db7df80dbacc14a06224f032e9b33ddde7abd50",
+ "time": "2026-10-01 16:47:58"
+}

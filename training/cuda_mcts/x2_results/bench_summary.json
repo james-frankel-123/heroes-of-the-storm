@@ -1,0 +1,4168 @@
+{
+ "cells": {
+  "F_oof|chance|100|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7228101466666667,
+   "consensus_v2": 0.6618842633333334,
+   "gN_v2": 0.6687642266666667,
+   "gN_naive_v2": 0.6867153633333334,
+   "RN_v2": 0.6376621033333333,
+   "R17_v2": 0.6439522799999999,
+   "QM2026_v2": 0.6543952266666667,
+   "QM2021_v2": 0.7656595700000001,
+   "RN_struct": 0.63541435,
+   "consensus_v1": 0.6571827933342353,
+   "degen": 0.025666666666666667,
+   "healer": 0.9796666666666667,
+   "diversity": {
+    "distinct_heroes": 25.0,
+    "entropy_bits": 3.3329412732585926,
+    "top10_share": 0.9224,
+    "distinct_teams": 197.66666666666666
+   },
+   "tree": {
+    "max_nodes": 196,
+    "mean_max_nodes": 177.136,
+    "max_slots": 196,
+    "cap_hits": 0,
+    "max_eager_nodes": 8815,
+    "mean_eager_nodes": 8725.345,
+    "leaf_depth_steps": 4.07044,
+    "own_ahead": 1.77584375,
+    "max_depth": 13,
+    "own_ahead_hist": [
+     0.125,
+     0.3033,
+     0.3124,
+     0.1957,
+     0.0574,
+     0.0061,
+     0.0001,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.71946,
+    "gd_tree_per_sim": 0.45915625
+   },
+   "secs_per_1000": 17.546494404474895
+  },
+  "F_oof|chance|1600|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7262704799999999,
+   "consensus_v2": 0.66294656,
+   "gN_v2": 0.6706874466666667,
+   "gN_naive_v2": 0.6889339633333332,
+   "RN_v2": 0.6386220733333333,
+   "R17_v2": 0.6440854333333333,
+   "QM2026_v2": 0.6535424433333332,
+   "QM2021_v2": 0.7637939799999999,
+   "RN_struct": 0.6363367433333333,
+   "consensus_v1": 0.6584401707210286,
+   "degen": 0.033,
+   "healer": 0.9736666666666667,
+   "diversity": {
+    "distinct_heroes": 25.0,
+    "entropy_bits": 3.358592823266669,
+    "top10_share": 0.9216000000000001,
+    "distinct_teams": 202.33333333333334
+   },
+   "tree": {
+    "max_nodes": 2972,
+    "mean_max_nodes": 2781.901,
+    "max_slots": 2972,
+    "cap_hits": 0,
+    "max_eager_nodes": 137383,
+    "mean_eager_nodes": 136021.54,
+    "leaf_depth_steps": 4.978149140625,
+    "own_ahead": 2.170750390625,
+    "max_depth": 15,
+    "own_ahead_hist": [
+     0.125,
+     0.1846,
+     0.2759,
+     0.2601,
+     0.1203,
+     0.0317,
+     0.0024,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.62465875,
+    "gd_tree_per_sim": 0.375306015625
+   },
+   "secs_per_1000": 174.50352160135904
+  },
+  "F_oof|chance|200|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7216618966666667,
+   "consensus_v2": 0.6600731599999999,
+   "gN_v2": 0.6672021033333334,
+   "gN_naive_v2": 0.6855853200000002,
+   "RN_v2": 0.6355625533333333,
+   "R17_v2": 0.6420161566666668,
+   "QM2026_v2": 0.6519426333333334,
+   "QM2021_v2": 0.76315081,
+   "RN_struct": 0.63339024,
+   "consensus_v1": 0.6557320856114188,
+   "degen": 0.03266666666666666,
+   "healer": 0.9753333333333334,
+   "diversity": {
+    "distinct_heroes": 25.333333333333332,
+    "entropy_bits": 3.3504432756898836,
+    "top10_share": 0.9208,
+    "distinct_teams": 204.0
+   },
+   "tree": {
+    "max_nodes": 384,
+    "mean_max_nodes": 355.869,
+    "max_slots": 384,
+    "cap_hits": 0,
+    "max_eager_nodes": 17457,
+    "mean_eager_nodes": 17285.162,
+    "leaf_depth_steps": 4.337446875,
+    "own_ahead": 1.892943125,
+    "max_depth": 14,
+    "own_ahead_hist": [
+     0.125,
+     0.2603,
+     0.308,
+     0.2219,
+     0.0736,
+     0.0111,
+     0.0002,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.691855625,
+    "gd_tree_per_sim": 0.429444375
+   },
+   "secs_per_1000": 29.0481375058492
+  },
+  "F_oof|chance|400|0.0|0.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7223200133333333,
+   "consensus_v2": 0.6613928033333333,
+   "gN_v2": 0.6682223633333333,
+   "gN_naive_v2": 0.6870616133333333,
+   "RN_v2": 0.63688146,
+   "R17_v2": 0.64324559,
+   "QM2026_v2": 0.65340616,
+   "QM2021_v2": 0.7635370833333333,
+   "RN_struct": 0.6346645566666667,
+   "consensus_v1": 0.6568830706596446,
+   "degen": 0.03,
+   "healer": 0.9756666666666667,
+   "diversity": {
+    "distinct_heroes": 24.666666666666668,
+    "entropy_bits": 3.3628743389444153,
+    "top10_share": 0.9184666666666667,
+    "distinct_teams": 210.0
+   },
+   "tree": {
+    "max_nodes": 814,
+    "mean_max_nodes": 696.655,
+    "max_slots": 814,
+    "cap_hits": 0,
+    "max_eager_nodes": 35343,
+    "mean_eager_nodes": 35026.219,
+    "leaf_depth_steps": 3.322955,
+    "own_ahead": 1.39796625,
+    "max_depth": 10,
+    "own_ahead_hist": [
+     0.125,
+     0.4502,
+     0.327,
+     0.0973,
+     0.0004,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.8067665625,
+    "gd_tree_per_sim": 0.3991834375
+   },
+   "secs_per_1000": 90.2370974222819
+  },
+  "F_oof|chance|400|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7226514399999999,
+   "consensus_v2": 0.6607829766666667,
+   "gN_v2": 0.6684098533333334,
+   "gN_naive_v2": 0.6856877466666668,
+   "RN_v2": 0.6366481066666667,
+   "R17_v2": 0.6422664299999999,
+   "QM2026_v2": 0.65238587,
+   "QM2021_v2": 0.7622624833333332,
+   "RN_struct": 0.6344191366666667,
+   "consensus_v1": 0.6559729507270924,
+   "degen": 0.03766666666666667,
+   "healer": 0.9713333333333334,
+   "diversity": {
+    "distinct_heroes": 24.666666666666668,
+    "entropy_bits": 3.3522766319270247,
+    "top10_share": 0.9195333333333334,
+    "distinct_teams": 209.33333333333334
+   },
+   "tree": {
+    "max_nodes": 769,
+    "mean_max_nodes": 711.769,
+    "max_slots": 769,
+    "cap_hits": 0,
+    "max_eager_nodes": 34644,
+    "mean_eager_nodes": 34342.549,
+    "leaf_depth_steps": 4.573829375,
+    "own_ahead": 1.9957440625,
+    "max_depth": 14,
+    "own_ahead_hist": [
+     0.125,
+     0.2276,
+     0.2995,
+     0.2407,
+     0.0897,
+     0.0169,
+     0.0006,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.667321875,
+    "gd_tree_per_sim": 0.407679375
+   },
+   "secs_per_1000": 53.297508796056114
+  },
+  "F_oof|chance|400|1.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7137411966666667,
+   "consensus_v2": 0.6559277633333332,
+   "gN_v2": 0.6640294566666667,
+   "gN_naive_v2": 0.68032392,
+   "RN_v2": 0.6323485966666667,
+   "R17_v2": 0.6382586733333333,
+   "QM2026_v2": 0.6470089866666666,
+   "QM2021_v2": 0.7600992866666667,
+   "RN_struct": 0.6302694333333333,
+   "consensus_v1": 0.6524398184230693,
+   "degen": 0.051,
+   "healer": 0.9583333333333334,
+   "diversity": {
+    "distinct_heroes": 26.0,
+    "entropy_bits": 3.4869989683810885,
+    "top10_share": 0.8969999999999999,
+    "distinct_teams": 282.0
+   },
+   "tree": {
+    "max_nodes": 769,
+    "mean_max_nodes": 712.782,
+    "max_slots": 769,
+    "cap_hits": 0,
+    "max_eager_nodes": 34644,
+    "mean_eager_nodes": 34342.549,
+    "leaf_depth_steps": 4.5816021875,
+    "own_ahead": 1.9979890625,
+    "max_depth": 14,
+    "own_ahead_hist": [
+     0.125,
+     0.2263,
+     0.3,
+     0.2411,
+     0.0902,
+     0.0168,
+     0.0006,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.6646746875,
+    "gd_tree_per_sim": 0.40647875
+   },
+   "secs_per_1000": 74.81831415494283
+  },
+  "F_oof|chance|800|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.72254799,
+   "consensus_v2": 0.6613658666666666,
+   "gN_v2": 0.6683326766666666,
+   "gN_naive_v2": 0.68682564,
+   "RN_v2": 0.6364784666666666,
+   "R17_v2": 0.6428462633333334,
+   "QM2026_v2": 0.65382664,
+   "QM2021_v2": 0.7636331166666666,
+   "RN_struct": 0.6342550233333333,
+   "consensus_v1": 0.6567569209245189,
+   "degen": 0.025333333333333333,
+   "healer": 0.979,
+   "diversity": {
+    "distinct_heroes": 26.0,
+    "entropy_bits": 3.3543465638675847,
+    "top10_share": 0.918,
+    "distinct_teams": 195.33333333333334
+   },
+   "tree": {
+    "max_nodes": 1513,
+    "mean_max_nodes": 1410.935,
+    "max_slots": 1513,
+    "cap_hits": 0,
+    "max_eager_nodes": 68978,
+    "mean_eager_nodes": 68328.51,
+    "leaf_depth_steps": 4.7859075,
+    "own_ahead": 2.087875625,
+    "max_depth": 15,
+    "own_ahead_hist": [
+     0.125,
+     0.2028,
+     0.2888,
+     0.2528,
+     0.1052,
+     0.024,
+     0.0013,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.64540328125,
+    "gd_tree_per_sim": 0.39039546875
+   },
+   "secs_per_1000": 88.88586537043254
+  },
+  "F_oof|legacy|100|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7220362233333334,
+   "consensus_v2": 0.6617740333333334,
+   "gN_v2": 0.6693239533333334,
+   "gN_naive_v2": 0.6870332966666665,
+   "RN_v2": 0.6374700166666667,
+   "R17_v2": 0.6431260566666667,
+   "QM2026_v2": 0.6532686033333334,
+   "QM2021_v2": 0.7645835466666667,
+   "RN_struct": 0.6352376633333333,
+   "consensus_v1": 0.6570570732537087,
+   "degen": 0.03266666666666666,
+   "healer": 0.976,
+   "diversity": {
+    "distinct_heroes": 25.0,
+    "entropy_bits": 3.354197335264318,
+    "top10_share": 0.9206,
+    "distinct_teams": 203.33333333333334
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 4.816792964935303
+  },
+  "F_oof|legacy|1600|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7229391533333334,
+   "consensus_v2": 0.6598742066666667,
+   "gN_v2": 0.6662960633333332,
+   "gN_naive_v2": 0.6870916166666667,
+   "RN_v2": 0.63490683,
+   "R17_v2": 0.6418604233333333,
+   "QM2026_v2": 0.6512025433333333,
+   "QM2021_v2": 0.7609693466666667,
+   "RN_struct": 0.6327600566666667,
+   "consensus_v1": 0.6554143699485279,
+   "degen": 0.035,
+   "healer": 0.9716666666666667,
+   "diversity": {
+    "distinct_heroes": 26.0,
+    "entropy_bits": 3.3835361545278917,
+    "top10_share": 0.9142666666666667,
+    "distinct_teams": 216.33333333333334
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 54.84404706954956
+  },
+  "F_oof|legacy|200|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7215425566666667,
+   "consensus_v2": 0.6595498266666667,
+   "gN_v2": 0.6680528866666667,
+   "gN_naive_v2": 0.6844694266666667,
+   "RN_v2": 0.63638524,
+   "R17_v2": 0.6427729966666667,
+   "QM2026_v2": 0.6492917699999999,
+   "QM2021_v2": 0.7618504500000001,
+   "RN_struct": 0.6341283600000001,
+   "consensus_v1": 0.6548831225585023,
+   "degen": 0.024333333333333332,
+   "healer": 0.98,
+   "diversity": {
+    "distinct_heroes": 25.333333333333332,
+    "entropy_bits": 3.35646631394215,
+    "top10_share": 0.9192,
+    "distinct_teams": 202.0
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 6.484909296035767
+  },
+  "F_oof|legacy|400|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.72193828,
+   "consensus_v2": 0.6604119266666667,
+   "gN_v2": 0.6680707166666667,
+   "gN_naive_v2": 0.6851014400000001,
+   "RN_v2": 0.63627554,
+   "R17_v2": 0.6417215533333334,
+   "QM2026_v2": 0.6521997533333334,
+   "QM2021_v2": 0.7653476933333334,
+   "RN_struct": 0.6341101666666666,
+   "consensus_v1": 0.6560719358739678,
+   "degen": 0.027333333333333334,
+   "healer": 0.9803333333333333,
+   "diversity": {
+    "distinct_heroes": 25.333333333333332,
+    "entropy_bits": 3.3490840206783257,
+    "top10_share": 0.9213999999999999,
+    "distinct_teams": 199.66666666666666
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 14.06081748008728
+  },
+  "F_oof|legacy|400|1.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7130687299999999,
+   "consensus_v2": 0.6556570866666667,
+   "gN_v2": 0.6632334333333333,
+   "gN_naive_v2": 0.68064279,
+   "RN_v2": 0.6314012200000001,
+   "R17_v2": 0.6377184233333333,
+   "QM2026_v2": 0.6473510033333334,
+   "QM2021_v2": 0.7591684266666667,
+   "RN_struct": 0.62937214,
+   "consensus_v1": 0.6523878091740021,
+   "degen": 0.05366666666666667,
+   "healer": 0.9573333333333334,
+   "diversity": {
+    "distinct_heroes": 26.333333333333332,
+    "entropy_bits": 3.497930635774976,
+    "top10_share": 0.8938666666666667,
+    "distinct_teams": 289.0
+   },
+   "tree": {
+    "max_nodes": 77,
+    "cap_hits": 0
+   },
+   "secs_per_1000": 21.31303310394287
+  },
+  "F_oof|legacy|800|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7215872333333333,
+   "consensus_v2": 0.65963273,
+   "gN_v2": 0.6664528966666666,
+   "gN_naive_v2": 0.6847835000000001,
+   "RN_v2": 0.6354353733333334,
+   "R17_v2": 0.6413068133333334,
+   "QM2026_v2": 0.65185943,
+   "QM2021_v2": 0.7602147666666667,
+   "RN_struct": 0.6332560666666667,
+   "consensus_v1": 0.6552342558571521,
+   "degen": 0.034333333333333334,
+   "healer": 0.975,
+   "diversity": {
+    "distinct_heroes": 25.333333333333332,
+    "entropy_bits": 3.377455301844888,
+    "top10_share": 0.9164,
+    "distinct_teams": 212.0
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 22.931369463602703
+  },
+  "F_oof|rollfwd|200|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7228384299999999,
+   "consensus_v2": 0.6614275066666666,
+   "gN_v2": 0.66867768,
+   "gN_naive_v2": 0.6873827266666667,
+   "RN_v2": 0.63691003,
+   "R17_v2": 0.6433902833333334,
+   "QM2026_v2": 0.6527392966666666,
+   "QM2021_v2": 0.7659434966666667,
+   "RN_struct": 0.6346750166666667,
+   "consensus_v1": 0.6569201383177408,
+   "degen": 0.028333333333333332,
+   "healer": 0.9766666666666667,
+   "diversity": {
+    "distinct_heroes": 25.0,
+    "entropy_bits": 3.332407187089393,
+    "top10_share": 0.9226666666666666,
+    "distinct_teams": 194.0
+   },
+   "tree": {
+    "max_nodes": 201,
+    "mean_max_nodes": 198.113,
+    "max_slots": 201,
+    "cap_hits": 0,
+    "max_eager_nodes": 16715,
+    "mean_eager_nodes": 15838.716,
+    "leaf_depth_steps": 6.656378125,
+    "own_ahead": 2.8414925,
+    "max_depth": 16,
+    "own_ahead_hist": [
+     0.125,
+     0.1471,
+     0.1711,
+     0.177,
+     0.1661,
+     0.1371,
+     0.0653,
+     0.0114
+    ],
+    "policy_fwd_per_sim": 0.350680625,
+    "gd_tree_per_sim": 3.16056625
+   },
+   "secs_per_1000": 20.446860869725544
+  },
+  "F_oof|rollfwd|400|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7212108133333333,
+   "consensus_v2": 0.6611860733333333,
+   "gN_v2": 0.66815811,
+   "gN_naive_v2": 0.6869593866666666,
+   "RN_v2": 0.6367983166666666,
+   "R17_v2": 0.6429252733333333,
+   "QM2026_v2": 0.6528287666666667,
+   "QM2021_v2": 0.7617606466666668,
+   "RN_struct": 0.63456593,
+   "consensus_v1": 0.6564684476259088,
+   "degen": 0.026,
+   "healer": 0.9816666666666667,
+   "diversity": {
+    "distinct_heroes": 24.666666666666668,
+    "entropy_bits": 3.3265759411514715,
+    "top10_share": 0.9266,
+    "distinct_teams": 188.33333333333334
+   },
+   "tree": {
+    "max_nodes": 401,
+    "mean_max_nodes": 384.323,
+    "max_slots": 396,
+    "cap_hits": 0,
+    "max_eager_nodes": 32361,
+    "mean_eager_nodes": 29452.521,
+    "leaf_depth_steps": 7.098295,
+    "own_ahead": 3.0135609375,
+    "max_depth": 16,
+    "own_ahead_hist": [
+     0.125,
+     0.1365,
+     0.1541,
+     0.1624,
+     0.1624,
+     0.1489,
+     0.0877,
+     0.0231
+    ],
+    "policy_fwd_per_sim": 0.2827265625,
+    "gd_tree_per_sim": 3.364960625
+   },
+   "secs_per_1000": 34.54716992378235
+  },
+  "F_oof|rollfwd|800|0.0|1.0": {
+   "n_runs": 3,
+   "priors": [
+    "new:F_oof_s0",
+    "new:F_oof_s1",
+    "new:F_oof_s2"
+   ],
+   "proxy": 0.7252274200000001,
+   "consensus_v2": 0.6622016166666668,
+   "gN_v2": 0.66955827,
+   "gN_naive_v2": 0.6873014033333332,
+   "RN_v2": 0.6379725166666667,
+   "R17_v2": 0.6440923333333334,
+   "QM2026_v2": 0.6539743733333333,
+   "QM2021_v2": 0.7638031399999999,
+   "RN_struct": 0.6357341466666667,
+   "consensus_v1": 0.6575022523229186,
+   "degen": 0.028333333333333332,
+   "healer": 0.977,
+   "diversity": {
+    "distinct_heroes": 25.666666666666668,
+    "entropy_bits": 3.3512655750104403,
+    "top10_share": 0.9208666666666666,
+    "distinct_teams": 198.0
+   },
+   "tree": {
+    "max_nodes": 789,
+    "mean_max_nodes": 721.037,
+    "max_slots": 760,
+    "cap_hits": 0,
+    "max_eager_nodes": 61068,
+    "mean_eager_nodes": 52153.406,
+    "leaf_depth_steps": 7.47303875,
+    "own_ahead": 3.15671859375,
+    "max_depth": 16,
+    "own_ahead_hist": [
+     0.125,
+     0.1309,
+     0.1421,
+     0.1499,
+     0.1542,
+     0.1519,
+     0.1064,
+     0.0395
+    ],
+    "policy_fwd_per_sim": 0.2221215625,
+    "gd_tree_per_sim": 3.53719171875
+   },
+   "secs_per_1000": 58.06916538874308
+  },
+  "bc|chance|100|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.58187364,
+   "consensus_v2": 0.53167588,
+   "gN_v2": 0.5368243,
+   "gN_naive_v2": 0.54095839,
+   "RN_v2": 0.5158867,
+   "R17_v2": 0.5368728,
+   "QM2026_v2": 0.53303368,
+   "QM2021_v2": 0.62575116,
+   "RN_struct": 0.51592065,
+   "consensus_v1": 0.5267676201751696,
+   "degen": 0.025,
+   "healer": 0.988,
+   "diversity": {
+    "distinct_heroes": 66.0,
+    "entropy_bits": 4.667568521346356,
+    "top10_share": 0.6686,
+    "distinct_teams": 706.0
+   },
+   "tree": {
+    "max_nodes": 190,
+    "mean_max_nodes": 175.883,
+    "max_slots": 190,
+    "cap_hits": 0,
+    "max_eager_nodes": 8789,
+    "mean_eager_nodes": 8702.727,
+    "leaf_depth_steps": 3.8999025,
+    "own_ahead": 1.70047875,
+    "max_depth": 13,
+    "own_ahead_hist": [
+     0.125,
+     0.3382,
+     0.3068,
+     0.1764,
+     0.0482,
+     0.0052,
+     0.0001,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.7380375,
+    "gd_tree_per_sim": 0.4882325
+   },
+   "secs_per_1000": 17.818448305130005
+  },
+  "bc|chance|1600|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.70438323,
+   "consensus_v2": 0.6060364400000001,
+   "gN_v2": 0.60656836,
+   "gN_naive_v2": 0.63626431,
+   "RN_v2": 0.5759350799999999,
+   "R17_v2": 0.55960743,
+   "QM2026_v2": 0.6053786,
+   "QM2021_v2": 0.71211391,
+   "RN_struct": 0.57445216,
+   "consensus_v1": 0.600210997224915,
+   "degen": 0.005,
+   "healer": 1.0,
+   "diversity": {
+    "distinct_heroes": 81.0,
+    "entropy_bits": 5.302935336609081,
+    "top10_share": 0.495,
+    "distinct_teams": 903.0
+   },
+   "tree": {
+    "max_nodes": 2838,
+    "mean_max_nodes": 2722.267,
+    "max_slots": 2838,
+    "cap_hits": 0,
+    "max_eager_nodes": 137288,
+    "mean_eager_nodes": 136099.434,
+    "leaf_depth_steps": 4.553416953125,
+    "own_ahead": 1.98303203125,
+    "max_depth": 15,
+    "own_ahead_hist": [
+     0.125,
+     0.2335,
+     0.304,
+     0.2298,
+     0.0875,
+     0.0192,
+     0.001,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.675367421875,
+    "gd_tree_per_sim": 0.422517109375
+   },
+   "secs_per_1000": 170.13224482536316
+  },
+  "bc|chance|200|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.62620619,
+   "consensus_v2": 0.55869618,
+   "gN_v2": 0.5625268,
+   "gN_naive_v2": 0.57625344,
+   "RN_v2": 0.5353035899999999,
+   "R17_v2": 0.5387149300000001,
+   "QM2026_v2": 0.56070072,
+   "QM2021_v2": 0.67352098,
+   "RN_struct": 0.5347573600000001,
+   "consensus_v1": 0.5521650074494219,
+   "degen": 0.01,
+   "healer": 0.993,
+   "diversity": {
+    "distinct_heroes": 72.0,
+    "entropy_bits": 4.8796946942124695,
+    "top10_share": 0.6132,
+    "distinct_teams": 790.0
+   },
+   "tree": {
+    "max_nodes": 375,
+    "mean_max_nodes": 346.952,
+    "max_slots": 375,
+    "cap_hits": 0,
+    "max_eager_nodes": 17405,
+    "mean_eager_nodes": 17256.167,
+    "leaf_depth_steps": 4.07164625,
+    "own_ahead": 1.775775625,
+    "max_depth": 14,
+    "own_ahead_hist": [
+     0.125,
+     0.3092,
+     0.3064,
+     0.1925,
+     0.0584,
+     0.0083,
+     0.0002,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.721260625,
+    "gd_tree_per_sim": 0.47087875
+   },
+   "secs_per_1000": 22.819142818450928
+  },
+  "bc|chance|400|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.6569154599999999,
+   "consensus_v2": 0.57689856,
+   "gN_v2": 0.57825572,
+   "gN_naive_v2": 0.59948346,
+   "RN_v2": 0.55058112,
+   "R17_v2": 0.5418561,
+   "QM2026_v2": 0.5792736199999999,
+   "QM2021_v2": 0.70186545,
+   "RN_struct": 0.5496222,
+   "consensus_v1": 0.5694694122360302,
+   "degen": 0.0,
+   "healer": 1.0,
+   "diversity": {
+    "distinct_heroes": 77.0,
+    "entropy_bits": 5.006751387091743,
+    "top10_share": 0.582,
+    "distinct_teams": 858.0
+   },
+   "tree": {
+    "max_nodes": 732,
+    "mean_max_nodes": 687.055,
+    "max_slots": 732,
+    "cap_hits": 0,
+    "max_eager_nodes": 34598,
+    "mean_eager_nodes": 34298.701,
+    "leaf_depth_steps": 4.2353953125,
+    "own_ahead": 1.8462440625,
+    "max_depth": 14,
+    "own_ahead_hist": [
+     0.125,
+     0.2824,
+     0.3063,
+     0.2065,
+     0.0678,
+     0.0117,
+     0.0004,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.7055390625,
+    "gd_tree_per_sim": 0.454696875
+   },
+   "secs_per_1000": 44.5013530254364
+  },
+  "bc|chance|800|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.6816984600000001,
+   "consensus_v2": 0.5930346200000001,
+   "gN_v2": 0.5942439199999999,
+   "gN_naive_v2": 0.62011236,
+   "RN_v2": 0.5636037799999999,
+   "R17_v2": 0.55056538,
+   "QM2026_v2": 0.59417828,
+   "QM2021_v2": 0.70662293,
+   "RN_struct": 0.5624041399999999,
+   "consensus_v1": 0.586391824932313,
+   "degen": 0.001,
+   "healer": 0.999,
+   "diversity": {
+    "distinct_heroes": 78.0,
+    "entropy_bits": 5.162826587350424,
+    "top10_share": 0.539,
+    "distinct_teams": 866.0
+   },
+   "tree": {
+    "max_nodes": 1438,
+    "mean_max_nodes": 1366.833,
+    "max_slots": 1438,
+    "cap_hits": 0,
+    "max_eager_nodes": 68879,
+    "mean_eager_nodes": 68287.754,
+    "leaf_depth_steps": 4.396163125,
+    "own_ahead": 1.91533359375,
+    "max_depth": 15,
+    "own_ahead_hist": [
+     0.125,
+     0.2569,
+     0.3057,
+     0.2191,
+     0.0775,
+     0.0152,
+     0.0007,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.690339375,
+    "gd_tree_per_sim": 0.43800203125
+   },
+   "secs_per_1000": 86.6906509399414
+  },
+  "bc|legacy|100|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.58211708,
+   "consensus_v2": 0.53243665,
+   "gN_v2": 0.53733293,
+   "gN_naive_v2": 0.54272497,
+   "RN_v2": 0.51673458,
+   "R17_v2": 0.53711229,
+   "QM2026_v2": 0.53295318,
+   "QM2021_v2": 0.6333900499999999,
+   "RN_struct": 0.51673931,
+   "consensus_v1": 0.5270044699456025,
+   "degen": 0.026,
+   "healer": 0.988,
+   "diversity": {
+    "distinct_heroes": 64.0,
+    "entropy_bits": 4.5770555356569735,
+    "top10_share": 0.686,
+    "distinct_teams": 696.0
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 6.953780174255371
+  },
+  "bc|legacy|1600|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.70732133,
+   "consensus_v2": 0.60245539,
+   "gN_v2": 0.6017472,
+   "gN_naive_v2": 0.63332195,
+   "RN_v2": 0.5721565700000001,
+   "R17_v2": 0.5553070800000001,
+   "QM2026_v2": 0.60259623,
+   "QM2021_v2": 0.7117295899999999,
+   "RN_struct": 0.57075854,
+   "consensus_v1": 0.5957319574350977,
+   "degen": 0.008,
+   "healer": 0.998,
+   "diversity": {
+    "distinct_heroes": 76.0,
+    "entropy_bits": 5.281073945572567,
+    "top10_share": 0.5056,
+    "distinct_teams": 893.0
+   },
+   "tree": {
+    "max_nodes": 4034,
+    "cap_hits": 213
+   },
+   "secs_per_1000": 101.63702893257141
+  },
+  "bc|legacy|200|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.62588234,
+   "consensus_v2": 0.5576999199999999,
+   "gN_v2": 0.56157399,
+   "gN_naive_v2": 0.57228441,
+   "RN_v2": 0.5342993199999999,
+   "R17_v2": 0.54237042,
+   "QM2026_v2": 0.5626427,
+   "QM2021_v2": 0.6734988,
+   "RN_struct": 0.5338294499999999,
+   "consensus_v1": 0.5505150200623012,
+   "degen": 0.006,
+   "healer": 0.997,
+   "diversity": {
+    "distinct_heroes": 69.0,
+    "entropy_bits": 4.787647452339189,
+    "top10_share": 0.6464,
+    "distinct_teams": 757.0
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 8.06295132637024
+  },
+  "bc|legacy|400|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.6575488700000001,
+   "consensus_v2": 0.57619915,
+   "gN_v2": 0.57796762,
+   "gN_naive_v2": 0.5992161600000001,
+   "RN_v2": 0.54797437,
+   "R17_v2": 0.5424528999999999,
+   "QM2026_v2": 0.57963809,
+   "QM2021_v2": 0.6980355100000001,
+   "RN_struct": 0.5471335300000001,
+   "consensus_v1": 0.5697525972138738,
+   "degen": 0.004,
+   "healer": 0.998,
+   "diversity": {
+    "distinct_heroes": 77.0,
+    "entropy_bits": 4.976877454772474,
+    "top10_share": 0.584,
+    "distinct_teams": 807.0
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 15.576473712921143
+  },
+  "bc|legacy|800|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "bc"
+   ],
+   "proxy": 0.6818460499999999,
+   "consensus_v2": 0.58890787,
+   "gN_v2": 0.5905018299999999,
+   "gN_naive_v2": 0.61491016,
+   "RN_v2": 0.5602559300000001,
+   "R17_v2": 0.5448267900000001,
+   "QM2026_v2": 0.58996377,
+   "QM2021_v2": 0.71186148,
+   "RN_struct": 0.5590028199999999,
+   "consensus_v1": 0.5821947573923422,
+   "degen": 0.004,
+   "healer": 0.998,
+   "diversity": {
+    "distinct_heroes": 76.0,
+    "entropy_bits": 5.098905341695457,
+    "top10_share": 0.5596,
+    "distinct_teams": 856.0
+   },
+   "tree": {
+    "max_nodes_last_search": 77
+   },
+   "secs_per_1000": 30.029637813568115
+  },
+  "sp_F50k_chance_s0|chance|200|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_chance_s0/draft_policy.pt"
+   ],
+   "proxy": 0.7204891999999999,
+   "consensus_v2": 0.65549828,
+   "gN_v2": 0.66770072,
+   "gN_naive_v2": 0.6816537100000001,
+   "RN_v2": 0.62806307,
+   "R17_v2": 0.6319046400000001,
+   "QM2026_v2": 0.64457538,
+   "QM2021_v2": 0.7847810399999999,
+   "RN_struct": 0.62608529,
+   "consensus_v1": 0.6512844246821616,
+   "degen": 0.039,
+   "healer": 0.961,
+   "diversity": {
+    "distinct_heroes": 35.0,
+    "entropy_bits": 3.4367051491396805,
+    "top10_share": 0.9098,
+    "distinct_teams": 237.0
+   },
+   "tree": {
+    "max_nodes": 379,
+    "mean_max_nodes": 357.645,
+    "max_slots": 379,
+    "cap_hits": 0,
+    "max_eager_nodes": 17409,
+    "mean_eager_nodes": 17210.715,
+    "leaf_depth_steps": 4.31686,
+    "own_ahead": 1.886375625,
+    "max_depth": 15,
+    "own_ahead_hist": [
+     0.125,
+     0.2615,
+     0.3115,
+     0.2182,
+     0.0721,
+     0.0113,
+     0.0004,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.70232375,
+    "gd_tree_per_sim": 0.461406875
+   },
+   "secs_per_1000": 22.388447046279907
+  },
+  "sp_F50k_chance_s0|chance|400|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_chance_s0/draft_policy.pt"
+   ],
+   "proxy": 0.72514234,
+   "consensus_v2": 0.65754743,
+   "gN_v2": 0.6690555300000001,
+   "gN_naive_v2": 0.68707447,
+   "RN_v2": 0.62885661,
+   "R17_v2": 0.63346061,
+   "QM2026_v2": 0.64520347,
+   "QM2021_v2": 0.78415562,
+   "RN_struct": 0.6269018,
+   "consensus_v1": 0.6540889778244139,
+   "degen": 0.049,
+   "healer": 0.951,
+   "diversity": {
+    "distinct_heroes": 36.0,
+    "entropy_bits": 3.4458324183894007,
+    "top10_share": 0.9066,
+    "distinct_teams": 245.0
+   },
+   "tree": {
+    "max_nodes": 760,
+    "mean_max_nodes": 713.033,
+    "max_slots": 760,
+    "cap_hits": 0,
+    "max_eager_nodes": 34559,
+    "mean_eager_nodes": 34185.958,
+    "leaf_depth_steps": 4.5495640625,
+    "own_ahead": 1.987856875,
+    "max_depth": 15,
+    "own_ahead_hist": [
+     0.125,
+     0.23,
+     0.3024,
+     0.2362,
+     0.0884,
+     0.0172,
+     0.0008,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.679109375,
+    "gd_tree_per_sim": 0.4367490625
+   },
+   "secs_per_1000": 43.39973735809326
+  },
+  "sp_F50k_chance_s0|legacy|200|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_chance_s0/draft_policy.pt"
+   ],
+   "proxy": 0.71835846,
+   "consensus_v2": 0.65596964,
+   "gN_v2": 0.66742811,
+   "gN_naive_v2": 0.68398022,
+   "RN_v2": 0.6270913100000001,
+   "R17_v2": 0.6299268600000001,
+   "QM2026_v2": 0.64537926,
+   "QM2021_v2": 0.7866262500000001,
+   "RN_struct": 0.62512848,
+   "consensus_v1": 0.652593959711566,
+   "degen": 0.058,
+   "healer": 0.945,
+   "diversity": {
+    "distinct_heroes": 36.0,
+    "entropy_bits": 3.418976282552422,
+    "top10_share": 0.9118,
+    "distinct_teams": 240.0
+   },
+   "tree": {
+    "max_nodes": 77,
+    "cap_hits": 0
+   },
+   "secs_per_1000": 7.291664361953735
+  },
+  "sp_F50k_chance_s0|legacy|400|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_chance_s0/draft_policy.pt"
+   ],
+   "proxy": 0.7186495100000001,
+   "consensus_v2": 0.6531495500000001,
+   "gN_v2": 0.66553991,
+   "gN_naive_v2": 0.67808549,
+   "RN_v2": 0.62629549,
+   "R17_v2": 0.6303327400000001,
+   "QM2026_v2": 0.64267739,
+   "QM2021_v2": 0.78243095,
+   "RN_struct": 0.62438497,
+   "consensus_v1": 0.6494949097971917,
+   "degen": 0.037,
+   "healer": 0.963,
+   "diversity": {
+    "distinct_heroes": 36.0,
+    "entropy_bits": 3.4535458566403037,
+    "top10_share": 0.9006,
+    "distinct_teams": 259.0
+   },
+   "tree": {
+    "max_nodes": 77,
+    "cap_hits": 0
+   },
+   "secs_per_1000": 11.752975702285767
+  },
+  "sp_F50k_legacy_s0|chance|200|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_legacy_s0/draft_policy.pt"
+   ],
+   "proxy": 0.71721005,
+   "consensus_v2": 0.66041732,
+   "gN_v2": 0.67114698,
+   "gN_naive_v2": 0.68928008,
+   "RN_v2": 0.6330474899999999,
+   "R17_v2": 0.64198903,
+   "QM2026_v2": 0.64819493,
+   "QM2021_v2": 0.7894563299999999,
+   "RN_struct": 0.63096755,
+   "consensus_v1": 0.6541147248345042,
+   "degen": 0.049,
+   "healer": 0.96,
+   "diversity": {
+    "distinct_heroes": 33.0,
+    "entropy_bits": 3.533955934425754,
+    "top10_share": 0.889,
+    "distinct_teams": 290.0
+   },
+   "tree": {
+    "max_nodes": 384,
+    "mean_max_nodes": 360.475,
+    "max_slots": 384,
+    "cap_hits": 0,
+    "max_eager_nodes": 17442,
+    "mean_eager_nodes": 17282.607,
+    "leaf_depth_steps": 4.184149375,
+    "own_ahead": 1.829178125,
+    "max_depth": 13,
+    "own_ahead_hist": [
+     0.125,
+     0.2766,
+     0.3211,
+     0.2073,
+     0.0618,
+     0.0081,
+     0.0001,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.713488125,
+    "gd_tree_per_sim": 0.47750375
+   },
+   "secs_per_1000": 22.54089117050171
+  },
+  "sp_F50k_legacy_s0|chance|400|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_legacy_s0/draft_policy.pt"
+   ],
+   "proxy": 0.71429731,
+   "consensus_v2": 0.6557073,
+   "gN_v2": 0.6658278299999999,
+   "gN_naive_v2": 0.68386643,
+   "RN_v2": 0.62815957,
+   "R17_v2": 0.6381962499999999,
+   "QM2026_v2": 0.6449756,
+   "QM2021_v2": 0.78538771,
+   "RN_struct": 0.6264272399999999,
+   "consensus_v1": 0.6530649724270224,
+   "degen": 0.073,
+   "healer": 0.939,
+   "diversity": {
+    "distinct_heroes": 34.0,
+    "entropy_bits": 3.531795661439629,
+    "top10_share": 0.8948,
+    "distinct_teams": 307.0
+   },
+   "tree": {
+    "max_nodes": 762,
+    "mean_max_nodes": 724.209,
+    "max_slots": 762,
+    "cap_hits": 0,
+    "max_eager_nodes": 34640,
+    "mean_eager_nodes": 34334.858,
+    "leaf_depth_steps": 4.4104296875,
+    "own_ahead": 1.928198125,
+    "max_depth": 14,
+    "own_ahead_hist": [
+     0.125,
+     0.242,
+     0.3158,
+     0.2274,
+     0.077,
+     0.0125,
+     0.0003,
+     0.0
+    ],
+    "policy_fwd_per_sim": 0.6917803125,
+    "gd_tree_per_sim": 0.4535796875
+   },
+   "secs_per_1000": 43.8724627494812
+  },
+  "sp_F50k_legacy_s0|legacy|200|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_legacy_s0/draft_policy.pt"
+   ],
+   "proxy": 0.7123324299999999,
+   "consensus_v2": 0.6552734400000001,
+   "gN_v2": 0.6652349,
+   "gN_naive_v2": 0.68310432,
+   "RN_v2": 0.62869656,
+   "R17_v2": 0.63915763,
+   "QM2026_v2": 0.6440578499999999,
+   "QM2021_v2": 0.78163081,
+   "RN_struct": 0.6268959,
+   "consensus_v1": 0.6520131621596075,
+   "degen": 0.076,
+   "healer": 0.941,
+   "diversity": {
+    "distinct_heroes": 35.0,
+    "entropy_bits": 3.5813994797220046,
+    "top10_share": 0.8862,
+    "distinct_teams": 317.0
+   },
+   "tree": {
+    "max_nodes": 77,
+    "cap_hits": 0
+   },
+   "secs_per_1000": 7.447864055633545
+  },
+  "sp_F50k_legacy_s0|legacy|400|0.0|1.0": {
+   "n_runs": 1,
+   "priors": [
+    "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_legacy_s0/draft_policy.pt"
+   ],
+   "proxy": 0.71191373,
+   "consensus_v2": 0.65347784,
+   "gN_v2": 0.6629359400000001,
+   "gN_naive_v2": 0.6829484199999999,
+   "RN_v2": 0.6251714800000001,
+   "R17_v2": 0.63582613,
+   "QM2026_v2": 0.6428555699999999,
+   "QM2021_v2": 0.77838263,
+   "RN_struct": 0.6234176600000001,
+   "consensus_v1": 0.6511286874885034,
+   "degen": 0.078,
+   "healer": 0.93,
+   "diversity": {
+    "distinct_heroes": 31.0,
+    "entropy_bits": 3.552548615843965,
+    "top10_share": 0.8908,
+    "distinct_teams": 309.0
+   },
+   "tree": {
+    "max_nodes": 77,
+    "cap_hits": 0
+   },
+   "secs_per_1000": 11.855116367340088
+  }
+ },
+ "contrasts": {
+  "bc|chance-legacy|s100": {
+   "proxy": [
+    -0.00024343999999999787,
+    0.003699223593020238,
+    1
+   ],
+   "consensus_v2": [
+    -0.0007607699999999986,
+    0.0028801149595263013,
+    1
+   ],
+   "gN_v2": [
+    -0.0005086299999999944,
+    0.003095349132986161,
+    1
+   ],
+   "gN_naive_v2": [
+    -0.0017665800000000002,
+    0.0037665593381163067,
+    1
+   ],
+   "RN_v2": [
+    -0.00084788,
+    0.002419003241127673,
+    1
+   ],
+   "R17_v2": [
+    -0.00023949000000000108,
+    0.002550708923505846,
+    1
+   ],
+   "QM2026_v2": [
+    8.049999999999935e-05,
+    0.003998913822916557,
+    1
+   ],
+   "QM2021_v2": [
+    -0.00763889,
+    0.005760963697124595,
+    1
+   ],
+   "RN_struct": [
+    -0.000818659999999999,
+    0.0023585447395147487,
+    1
+   ],
+   "consensus_v1": [
+    -0.00023684977043270816,
+    0.00277663790580033,
+    1
+   ],
+   "degen": [
+    -0.001,
+    0.007144931773645571,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.004901430813958718,
+    1
+   ]
+  },
+  "bc|chance-legacy|s200": {
+   "proxy": [
+    0.0003238500000000002,
+    0.003548825495777015,
+    1
+   ],
+   "consensus_v2": [
+    0.000996260000000002,
+    0.0027796806244218394,
+    1
+   ],
+   "gN_v2": [
+    0.0009528100000000017,
+    0.0029046174522211437,
+    1
+   ],
+   "gN_naive_v2": [
+    0.003969029999999999,
+    0.003625815661940562,
+    1
+   ],
+   "RN_v2": [
+    0.0010042699999999996,
+    0.0024047830940433063,
+    1
+   ],
+   "R17_v2": [
+    -0.0036554899999999987,
+    0.00257775366358192,
+    1
+   ],
+   "QM2026_v2": [
+    -0.0019419799999999985,
+    0.003944462463581851,
+    1
+   ],
+   "QM2021_v2": [
+    2.2180000000000533e-05,
+    0.005260607426613826,
+    1
+   ],
+   "RN_struct": [
+    0.00092791,
+    0.0023449923458369612,
+    1
+   ],
+   "consensus_v1": [
+    0.0016499873871207236,
+    0.0026559787469169704,
+    1
+   ],
+   "degen": [
+    0.004,
+    0.004000000000000001,
+    1
+   ],
+   "healer": [
+    -0.004,
+    0.003161327884607036,
+    1
+   ]
+  },
+  "bc|chance-legacy|s400": {
+   "proxy": [
+    -0.0006334099999999982,
+    0.0030559325005503346,
+    1
+   ],
+   "consensus_v2": [
+    0.0006994100000000019,
+    0.0026461818737684986,
+    1
+   ],
+   "gN_v2": [
+    0.0002880999999999998,
+    0.0028031382290784955,
+    1
+   ],
+   "gN_naive_v2": [
+    0.00026729999999999967,
+    0.0032752330725598125,
+    1
+   ],
+   "RN_v2": [
+    0.0026067500000000006,
+    0.002423336536700507,
+    1
+   ],
+   "R17_v2": [
+    -0.0005968000000000014,
+    0.0025937170427897597,
+    1
+   ],
+   "QM2026_v2": [
+    -0.00036447000000000074,
+    0.0036835453408906884,
+    1
+   ],
+   "QM2021_v2": [
+    0.003829939999999998,
+    0.00440368246023791,
+    1
+   ],
+   "RN_struct": [
+    0.00248867,
+    0.002362693570956958,
+    1
+   ],
+   "consensus_v1": [
+    -0.0002831849778437581,
+    0.0025115227831496167,
+    1
+   ],
+   "degen": [
+    -0.004,
+    0.001996994739098726,
+    1
+   ],
+   "healer": [
+    0.002,
+    0.0014135055705578234,
+    1
+   ]
+  },
+  "bc|chance-legacy|s800": {
+   "proxy": [
+    -0.00014759000000000167,
+    0.002922734035236979,
+    1
+   ],
+   "consensus_v2": [
+    0.0041267499999999985,
+    0.0025122456153747127,
+    1
+   ],
+   "gN_v2": [
+    0.003742089999999999,
+    0.0026700366496065445,
+    1
+   ],
+   "gN_naive_v2": [
+    0.005202200000000001,
+    0.003287278769722743,
+    1
+   ],
+   "RN_v2": [
+    0.003347850000000002,
+    0.0022789936859276285,
+    1
+   ],
+   "R17_v2": [
+    0.00573859,
+    0.0025605598411308243,
+    1
+   ],
+   "QM2026_v2": [
+    0.00421451,
+    0.0034811181649059167,
+    1
+   ],
+   "QM2021_v2": [
+    -0.005238549999999998,
+    0.004405194368972376,
+    1
+   ],
+   "RN_struct": [
+    0.003401320000000001,
+    0.0022266343334981413,
+    1
+   ],
+   "consensus_v1": [
+    0.004197067539970875,
+    0.0023758883109745443,
+    1
+   ],
+   "degen": [
+    -0.003,
+    0.0022351724756707247,
+    1
+   ],
+   "healer": [
+    0.001,
+    0.0017326286393806382,
+    1
+   ]
+  },
+  "bc|chance-legacy|s1600": {
+   "proxy": [
+    -0.0029381,
+    0.0026556155622387075,
+    1
+   ],
+   "consensus_v2": [
+    0.003581049999999997,
+    0.002470818768948157,
+    1
+   ],
+   "gN_v2": [
+    0.004821160000000002,
+    0.0026412892586769824,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0029423600000000006,
+    0.003141930914374328,
+    1
+   ],
+   "RN_v2": [
+    0.003778509999999998,
+    0.0022483958744598754,
+    1
+   ],
+   "R17_v2": [
+    0.004300349999999999,
+    0.002525563681495041,
+    1
+   ],
+   "QM2026_v2": [
+    0.0027823700000000036,
+    0.0034647584124350775,
+    1
+   ],
+   "QM2021_v2": [
+    0.0003843200000000033,
+    0.004552563678872355,
+    1
+   ],
+   "RN_struct": [
+    0.0036936200000000003,
+    0.002198180096496243,
+    1
+   ],
+   "consensus_v1": [
+    0.0044790397898173346,
+    0.0023527584246980687,
+    1
+   ],
+   "degen": [
+    -0.003,
+    0.0036061064881675363,
+    1
+   ],
+   "healer": [
+    0.002,
+    0.0014135055705578234,
+    1
+   ]
+  },
+  "F_oof|chance-legacy|s100": {
+   "proxy": [
+    0.0007739233333333333,
+    0.0017046702225577623,
+    3
+   ],
+   "consensus_v2": [
+    0.00011023000000000066,
+    0.001262155080101752,
+    3
+   ],
+   "gN_v2": [
+    -0.0005597266666666652,
+    0.001374396149098032,
+    3
+   ],
+   "gN_naive_v2": [
+    -0.00031793333333333154,
+    0.001604436993678612,
+    3
+   ],
+   "RN_v2": [
+    0.0001920866666666647,
+    0.0011991648532263016,
+    3
+   ],
+   "R17_v2": [
+    0.0008262233333333324,
+    0.0013268505574541478,
+    3
+   ],
+   "QM2026_v2": [
+    0.0011266233333333355,
+    0.001807784905600939,
+    3
+   ],
+   "QM2021_v2": [
+    0.0010760233333333346,
+    0.00242789229377817,
+    3
+   ],
+   "RN_struct": [
+    0.00017668666666666608,
+    0.0011693743998290131,
+    3
+   ],
+   "consensus_v1": [
+    0.00012572008052667114,
+    0.001175931650339057,
+    3
+   ],
+   "degen": [
+    -0.007,
+    0.0044564277888827514,
+    3
+   ],
+   "healer": [
+    0.003666666666666666,
+    0.0039863938315506,
+    3
+   ]
+  },
+  "F_oof|chance-legacy|s200": {
+   "proxy": [
+    0.00011933999999999978,
+    0.001823342966545011,
+    3
+   ],
+   "consensus_v2": [
+    0.0005233333333333345,
+    0.0012861032153812335,
+    3
+   ],
+   "gN_v2": [
+    -0.0008507833333333342,
+    0.0013699866262438186,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0011158933333333344,
+    0.0016698351002944099,
+    3
+   ],
+   "RN_v2": [
+    -0.0008226866666666661,
+    0.0012170754314744967,
+    3
+   ],
+   "R17_v2": [
+    -0.0007568399999999993,
+    0.0013411465124470614,
+    3
+   ],
+   "QM2026_v2": [
+    0.0026508633333333334,
+    0.0018229566464890278,
+    3
+   ],
+   "QM2021_v2": [
+    0.0013003599999999987,
+    0.0026634220394839018,
+    3
+   ],
+   "RN_struct": [
+    -0.0007381200000000003,
+    0.0011885092896647639,
+    3
+   ],
+   "consensus_v1": [
+    0.0008489630529165286,
+    0.0011935149089501282,
+    3
+   ],
+   "degen": [
+    0.008333333333333331,
+    0.004249673680773587,
+    3
+   ],
+   "healer": [
+    -0.004666666666666666,
+    0.003710764041241341,
+    3
+   ]
+  },
+  "F_oof|rollfwd-legacy|s200": {
+   "proxy": [
+    0.0012958733333333335,
+    0.0018046766093777183,
+    3
+   ],
+   "consensus_v2": [
+    0.0018776800000000003,
+    0.001265892148967314,
+    3
+   ],
+   "gN_v2": [
+    0.0006247933333333338,
+    0.0013630035205460683,
+    3
+   ],
+   "gN_naive_v2": [
+    0.002913300000000001,
+    0.001628932497220684,
+    3
+   ],
+   "RN_v2": [
+    0.00052479,
+    0.0012084218042331823,
+    3
+   ],
+   "R17_v2": [
+    0.0006172866666666664,
+    0.0013336660240402315,
+    3
+   ],
+   "QM2026_v2": [
+    0.003447526666666667,
+    0.0017854539314326582,
+    3
+   ],
+   "QM2021_v2": [
+    0.004093046666666666,
+    0.0025324558695385183,
+    3
+   ],
+   "RN_struct": [
+    0.0005466566666666654,
+    0.0011804105851046512,
+    3
+   ],
+   "consensus_v1": [
+    0.0020370157592384023,
+    0.0011890153785478093,
+    3
+   ],
+   "degen": [
+    0.004,
+    0.004136692318078002,
+    3
+   ],
+   "healer": [
+    -0.0033333333333333335,
+    0.0037420437972676855,
+    3
+   ]
+  },
+  "F_oof|chance-legacy|s400": {
+   "proxy": [
+    0.0007131599999999976,
+    0.0017325459974920157,
+    3
+   ],
+   "consensus_v2": [
+    0.00037104999999999934,
+    0.0012736431896706066,
+    3
+   ],
+   "gN_v2": [
+    0.0003391366666666663,
+    0.0013302276184357633,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0005863066666666674,
+    0.0016350243938496234,
+    3
+   ],
+   "RN_v2": [
+    0.0003725666666666669,
+    0.0012284193978923605,
+    3
+   ],
+   "R17_v2": [
+    0.0005448766666666657,
+    0.0013867820983669056,
+    3
+   ],
+   "QM2026_v2": [
+    0.0001861166666666667,
+    0.0017861671989966065,
+    3
+   ],
+   "QM2021_v2": [
+    -0.0030852099999999997,
+    0.002498236686773991,
+    3
+   ],
+   "RN_struct": [
+    0.00030897000000000053,
+    0.001198762961579533,
+    3
+   ],
+   "consensus_v1": [
+    -9.898514687538234e-05,
+    0.0011706901978137455,
+    3
+   ],
+   "degen": [
+    0.010333333333333332,
+    0.004323157375077814,
+    3
+   ],
+   "healer": [
+    -0.009,
+    0.0037475532372973014,
+    3
+   ]
+  },
+  "F_oof|rollfwd-legacy|s400": {
+   "proxy": [
+    -0.000727466666666668,
+    0.0016890392788409896,
+    3
+   ],
+   "consensus_v2": [
+    0.0007741466666666661,
+    0.0012300624582655011,
+    3
+   ],
+   "gN_v2": [
+    8.739333333333344e-05,
+    0.0012691054062973404,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0018579466666666675,
+    0.0015978628752864581,
+    3
+   ],
+   "RN_v2": [
+    0.0005227766666666673,
+    0.0011617345137257544,
+    3
+   ],
+   "R17_v2": [
+    0.0012037200000000001,
+    0.0013051941461836025,
+    3
+   ],
+   "QM2026_v2": [
+    0.0006290133333333328,
+    0.0017946046595837138,
+    3
+   ],
+   "QM2021_v2": [
+    -0.0035870466666666676,
+    0.002297663060022725,
+    3
+   ],
+   "RN_struct": [
+    0.0004557633333333336,
+    0.0011339830377393378,
+    3
+   ],
+   "consensus_v1": [
+    0.00039651175194104356,
+    0.0011462770368447562,
+    3
+   ],
+   "degen": [
+    -0.0013333333333333333,
+    0.0040843078311200084,
+    3
+   ],
+   "healer": [
+    0.0013333333333333335,
+    0.003367921978610782,
+    3
+   ]
+  },
+  "F_oof|chance-legacy|s800": {
+   "proxy": [
+    0.0009607566666666656,
+    0.0017552697542713876,
+    3
+   ],
+   "consensus_v2": [
+    0.0017331366666666667,
+    0.0012376913412504823,
+    3
+   ],
+   "gN_v2": [
+    0.0018797800000000004,
+    0.0013443665819644383,
+    3
+   ],
+   "gN_naive_v2": [
+    0.00204214,
+    0.0015555562107171365,
+    3
+   ],
+   "RN_v2": [
+    0.001043093333333335,
+    0.0012370852580743219,
+    3
+   ],
+   "R17_v2": [
+    0.00153945,
+    0.0013584296197146567,
+    3
+   ],
+   "QM2026_v2": [
+    0.00196721,
+    0.0018109609698583374,
+    3
+   ],
+   "QM2021_v2": [
+    0.0034183499999999993,
+    0.00254146281390829,
+    3
+   ],
+   "RN_struct": [
+    0.000998956666666666,
+    0.0012068535184261197,
+    3
+   ],
+   "consensus_v1": [
+    0.0015226650673667592,
+    0.0011432387902544222,
+    3
+   ],
+   "degen": [
+    -0.009,
+    0.004377257429581569,
+    3
+   ],
+   "healer": [
+    0.004,
+    0.0037710002207487483,
+    3
+   ]
+  },
+  "F_oof|rollfwd-legacy|s800": {
+   "proxy": [
+    0.0036401866666666664,
+    0.0017257093173506726,
+    3
+   ],
+   "consensus_v2": [
+    0.0025688866666666657,
+    0.0012369105578189912,
+    3
+   ],
+   "gN_v2": [
+    0.003105373333333333,
+    0.0013407280484309116,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0025179033333333324,
+    0.0015712169056504976,
+    3
+   ],
+   "RN_v2": [
+    0.002537143333333335,
+    0.001234251368780423,
+    3
+   ],
+   "R17_v2": [
+    0.0027855199999999997,
+    0.001363511112440972,
+    3
+   ],
+   "QM2026_v2": [
+    0.002114943333333334,
+    0.0017565134588392506,
+    3
+   ],
+   "QM2021_v2": [
+    0.0035883733333333333,
+    0.002504863528534813,
+    3
+   ],
+   "RN_struct": [
+    0.00247808,
+    0.001203701906977441,
+    3
+   ],
+   "consensus_v1": [
+    0.00226799646576643,
+    0.0011305556719346634,
+    3
+   ],
+   "degen": [
+    -0.006,
+    0.004470344951341449,
+    3
+   ],
+   "healer": [
+    0.0019999999999999996,
+    0.003888731585550174,
+    3
+   ]
+  },
+  "F_oof|chance-legacy|s1600": {
+   "proxy": [
+    0.003331326666666665,
+    0.001681149660738012,
+    3
+   ],
+   "consensus_v2": [
+    0.003072353333333334,
+    0.0012512761505492792,
+    3
+   ],
+   "gN_v2": [
+    0.004391383333333333,
+    0.0013546298254403612,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0018423466666666654,
+    0.0015487873242501055,
+    3
+   ],
+   "RN_v2": [
+    0.0037152433333333336,
+    0.0012357988184591123,
+    3
+   ],
+   "R17_v2": [
+    0.00222501,
+    0.0013343257490349841,
+    3
+   ],
+   "QM2026_v2": [
+    0.0023399000000000007,
+    0.0018335139402200365,
+    3
+   ],
+   "QM2021_v2": [
+    0.0028246333333333336,
+    0.002553199769281822,
+    3
+   ],
+   "RN_struct": [
+    0.0035766866666666667,
+    0.0012057695687205134,
+    3
+   ],
+   "consensus_v1": [
+    0.003025800772500833,
+    0.001150714135831656,
+    3
+   ],
+   "degen": [
+    -0.002,
+    0.004620680038408923,
+    3
+   ],
+   "healer": [
+    0.002,
+    0.0041111787457575304,
+    3
+   ]
+  },
+  "sp_F50k_chance_s0|chance-legacy|s200": {
+   "proxy": [
+    0.002130739999999999,
+    0.0028786746489290493,
+    1
+   ],
+   "consensus_v2": [
+    -0.00047136000000000156,
+    0.0021212978744208516,
+    1
+   ],
+   "gN_v2": [
+    0.0002726099999999989,
+    0.0022663608759656982,
+    1
+   ],
+   "gN_naive_v2": [
+    -0.0023265100000000026,
+    0.002693539675947954,
+    1
+   ],
+   "RN_v2": [
+    0.00097176,
+    0.0020573602544812415,
+    1
+   ],
+   "R17_v2": [
+    0.001977780000000001,
+    0.002297306562981074,
+    1
+   ],
+   "QM2026_v2": [
+    -0.0008038800000000004,
+    0.0028777045563537717,
+    1
+   ],
+   "QM2021_v2": [
+    -0.0018452099999999986,
+    0.0034018368227362733,
+    1
+   ],
+   "RN_struct": [
+    0.0009568100000000004,
+    0.0020034994825805673,
+    1
+   ],
+   "consensus_v1": [
+    -0.0013095350294041628,
+    0.0019162891498139922,
+    1
+   ],
+   "degen": [
+    -0.019,
+    0.009419539677061068,
+    1
+   ],
+   "healer": [
+    0.016,
+    0.009371863839804323,
+    1
+   ]
+  },
+  "sp_F50k_chance_s0|chance-legacy|s400": {
+   "proxy": [
+    0.006492829999999999,
+    0.003055765039669897,
+    1
+   ],
+   "consensus_v2": [
+    0.004397879999999998,
+    0.0021577078900176096,
+    1
+   ],
+   "gN_v2": [
+    0.003515620000000001,
+    0.0023069366925685493,
+    1
+   ],
+   "gN_naive_v2": [
+    0.008988980000000002,
+    0.002780103708027272,
+    1
+   ],
+   "RN_v2": [
+    0.002561119999999999,
+    0.0020669600698794534,
+    1
+   ],
+   "R17_v2": [
+    0.0031278699999999983,
+    0.0023162516260454647,
+    1
+   ],
+   "QM2026_v2": [
+    0.0025260799999999987,
+    0.0029781432103266653,
+    1
+   ],
+   "QM2021_v2": [
+    0.0017246699999999998,
+    0.0032876084245609823,
+    1
+   ],
+   "RN_struct": [
+    0.0025168299999999972,
+    0.002017626188392485,
+    1
+   ],
+   "consensus_v1": [
+    0.00459406802722216,
+    0.0019528684839133937,
+    1
+   ],
+   "degen": [
+    0.012,
+    0.009161874259120779,
+    1
+   ],
+   "healer": [
+    -0.012,
+    0.009161874259120779,
+    1
+   ]
+  },
+  "sp_F50k_legacy_s0|chance-legacy|s200": {
+   "proxy": [
+    0.004877619999999999,
+    0.0029744408314497355,
+    1
+   ],
+   "consensus_v2": [
+    0.00514388,
+    0.002284552421747707,
+    1
+   ],
+   "gN_v2": [
+    0.00591208,
+    0.002461726946115436,
+    1
+   ],
+   "gN_naive_v2": [
+    0.006175759999999999,
+    0.0028639497200232448,
+    1
+   ],
+   "RN_v2": [
+    0.0043509299999999985,
+    0.0022371624276665437,
+    1
+   ],
+   "R17_v2": [
+    0.0028313999999999982,
+    0.002407751344798374,
+    1
+   ],
+   "QM2026_v2": [
+    0.00413708,
+    0.0029625875263230156,
+    1
+   ],
+   "QM2021_v2": [
+    0.00782552,
+    0.00310801151199417,
+    1
+   ],
+   "RN_struct": [
+    0.004071650000000001,
+    0.002175431312538521,
+    1
+   ],
+   "consensus_v1": [
+    0.002101562674896715,
+    0.0020327894425069015,
+    1
+   ],
+   "degen": [
+    -0.027,
+    0.01078829863265693,
+    1
+   ],
+   "healer": [
+    0.019,
+    0.009733125589127764,
+    1
+   ]
+  },
+  "sp_F50k_legacy_s0|chance-legacy|s400": {
+   "proxy": [
+    0.002383580000000001,
+    0.0030025093569583127,
+    1
+   ],
+   "consensus_v2": [
+    0.0022294600000000012,
+    0.0022955402787317152,
+    1
+   ],
+   "gN_v2": [
+    0.0028918899999999994,
+    0.0024518313570331936,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0009180099999999986,
+    0.002903631109173143,
+    1
+   ],
+   "RN_v2": [
+    0.0029880900000000005,
+    0.0022264901941028924,
+    1
+   ],
+   "R17_v2": [
+    0.00237012,
+    0.0023495497983742845,
+    1
+   ],
+   "QM2026_v2": [
+    0.0021200300000000015,
+    0.0030738643697246246,
+    1
+   ],
+   "QM2021_v2": [
+    0.007005080000000001,
+    0.0034481578049505566,
+    1
+   ],
+   "RN_struct": [
+    0.0030095800000000013,
+    0.0021654034122910127,
+    1
+   ],
+   "consensus_v1": [
+    0.001936284938519001,
+    0.0020677517550456684,
+    1
+   ],
+   "degen": [
+    -0.005,
+    0.01145015747079952,
+    1
+   ],
+   "healer": [
+    0.009,
+    0.01053707881863043,
+    1
+   ]
+  }
+ },
+ "sim_curve": {
+  "bc|legacy|s100-s400": {
+   "proxy": [
+    -0.07543179,
+    0.0033826936907295053,
+    1
+   ],
+   "consensus_v2": [
+    -0.0437625,
+    0.0027649297650312126,
+    1
+   ],
+   "gN_v2": [
+    -0.04063469000000001,
+    0.002953702450971115,
+    1
+   ],
+   "gN_naive_v2": [
+    -0.056491190000000004,
+    0.0035137808959108943,
+    1
+   ],
+   "RN_v2": [
+    -0.03123979,
+    0.0024164391694631204,
+    1
+   ],
+   "R17_v2": [
+    -0.005340610000000001,
+    0.002531509363716928,
+    1
+   ],
+   "QM2026_v2": [
+    -0.04668491,
+    0.003897895254057439,
+    1
+   ],
+   "QM2021_v2": [
+    -0.06464546,
+    0.005248591108994662,
+    1
+   ],
+   "RN_struct": [
+    -0.030394219999999996,
+    0.0023561716962593906,
+    1
+   ],
+   "consensus_v1": [
+    -0.042748127268271444,
+    0.002626722199693969,
+    1
+   ],
+   "degen": [
+    0.022,
+    0.005435581435830536,
+    1
+   ],
+   "healer": [
+    -0.01,
+    0.0037301359109171766,
+    1
+   ]
+  },
+  "bc|legacy|s200-s400": {
+   "proxy": [
+    -0.03166653,
+    0.003382949068410365,
+    1
+   ],
+   "consensus_v2": [
+    -0.018499230000000002,
+    0.0028124806284119167,
+    1
+   ],
+   "gN_v2": [
+    -0.016393630000000003,
+    0.002948732911999561,
+    1
+   ],
+   "gN_naive_v2": [
+    -0.02693175,
+    0.003454003295134546,
+    1
+   ],
+   "RN_v2": [
+    -0.01367505,
+    0.0024701128920551377,
+    1
+   ],
+   "R17_v2": [
+    -8.248000000000256e-05,
+    0.002585952854097153,
+    1
+   ],
+   "QM2026_v2": [
+    -0.01699539,
+    0.003982301249640815,
+    1
+   ],
+   "QM2021_v2": [
+    -0.02453671,
+    0.004860052541504267,
+    1
+   ],
+   "RN_struct": [
+    -0.01330408,
+    0.0024074760593472016,
+    1
+   ],
+   "consensus_v1": [
+    -0.0192375771515727,
+    0.002643144628938359,
+    1
+   ],
+   "degen": [
+    0.002,
+    0.003163227150554636,
+    1
+   ],
+   "healer": [
+    -0.001,
+    0.00223696312084129,
+    1
+   ]
+  },
+  "bc|legacy|s400-s400": {
+   "proxy": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "R17_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2026_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2021_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_struct": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v1": [
+    0.0,
+    0.0,
+    1
+   ],
+   "degen": [
+    0.0,
+    0.0,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    1
+   ]
+  },
+  "bc|legacy|s800-s400": {
+   "proxy": [
+    0.024297180000000005,
+    0.003007345257622767,
+    1
+   ],
+   "consensus_v2": [
+    0.012708720000000003,
+    0.0025459008936960063,
+    1
+   ],
+   "gN_v2": [
+    0.012534210000000002,
+    0.002723132987689831,
+    1
+   ],
+   "gN_naive_v2": [
+    0.015693999999999996,
+    0.00320113497289863,
+    1
+   ],
+   "RN_v2": [
+    0.012281559999999999,
+    0.002317387847124516,
+    1
+   ],
+   "R17_v2": [
+    0.002373889999999997,
+    0.002467025895554653,
+    1
+   ],
+   "QM2026_v2": [
+    0.010325679999999999,
+    0.0035430102376484435,
+    1
+   ],
+   "QM2021_v2": [
+    0.01382597,
+    0.004338488640614821,
+    1
+   ],
+   "RN_struct": [
+    0.01186929,
+    0.0022634490319678544,
+    1
+   ],
+   "consensus_v1": [
+    0.012442160178468229,
+    0.0024353584961228853,
+    1
+   ],
+   "degen": [
+    0.0,
+    0.0028298423998533925,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0020010007506255476,
+    1
+   ]
+  },
+  "bc|legacy|s1600-s400": {
+   "proxy": [
+    0.04977246,
+    0.00288713459622601,
+    1
+   ],
+   "consensus_v2": [
+    0.02625624,
+    0.0024936517234731034,
+    1
+   ],
+   "gN_v2": [
+    0.023779579999999995,
+    0.0026113218007688694,
+    1
+   ],
+   "gN_naive_v2": [
+    0.03410579,
+    0.003139989866916809,
+    1
+   ],
+   "RN_v2": [
+    0.0241822,
+    0.0022920481311253906,
+    1
+   ],
+   "R17_v2": [
+    0.01285418,
+    0.002564923093350442,
+    1
+   ],
+   "QM2026_v2": [
+    0.022958139999999995,
+    0.0035864358313390625,
+    1
+   ],
+   "QM2021_v2": [
+    0.013694079999999999,
+    0.00423099516461986,
+    1
+   ],
+   "RN_struct": [
+    0.023625010000000002,
+    0.0022369967786269804,
+    1
+   ],
+   "consensus_v1": [
+    0.02597936022122383,
+    0.002331816607947951,
+    1
+   ],
+   "degen": [
+    0.004,
+    0.0034635236387234314,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0020010007506255476,
+    1
+   ]
+  },
+  "bc|chance|s100-s400": {
+   "proxy": [
+    -0.07504182,
+    0.0034782400978463045,
+    1
+   ],
+   "consensus_v2": [
+    -0.045222679999999994,
+    0.0027404674674876106,
+    1
+   ],
+   "gN_v2": [
+    -0.04143142,
+    0.0029473105985199028,
+    1
+   ],
+   "gN_naive_v2": [
+    -0.05852507,
+    0.003554015568403655,
+    1
+   ],
+   "RN_v2": [
+    -0.03469442000000001,
+    0.0023966460912596904,
+    1
+   ],
+   "R17_v2": [
+    -0.0049832999999999995,
+    0.0026385467415638896,
+    1
+   ],
+   "QM2026_v2": [
+    -0.04623994000000001,
+    0.0038568603974115426,
+    1
+   ],
+   "QM2021_v2": [
+    -0.07611429000000001,
+    0.005212864297666091,
+    1
+   ],
+   "RN_struct": [
+    -0.03370155,
+    0.00233732680502556,
+    1
+   ],
+   "consensus_v1": [
+    -0.042701792060860395,
+    0.002623690765385975,
+    1
+   ],
+   "degen": [
+    0.025,
+    0.004939574819698493,
+    1
+   ],
+   "healer": [
+    -0.012,
+    0.0034449771940998205,
+    1
+   ]
+  },
+  "bc|chance|s200-s400": {
+   "proxy": [
+    -0.03070927,
+    0.0033140849260790473,
+    1
+   ],
+   "consensus_v2": [
+    -0.01820238,
+    0.0026977971303439575,
+    1
+   ],
+   "gN_v2": [
+    -0.01572892,
+    0.0028151300139476736,
+    1
+   ],
+   "gN_naive_v2": [
+    -0.023230020000000004,
+    0.0033556683853014605,
+    1
+   ],
+   "RN_v2": [
+    -0.01527753,
+    0.002422388454319976,
+    1
+   ],
+   "R17_v2": [
+    -0.0031411699999999983,
+    0.0025686895925654493,
+    1
+   ],
+   "QM2026_v2": [
+    -0.018572900000000003,
+    0.0038416359917987394,
+    1
+   ],
+   "QM2021_v2": [
+    -0.028344469999999993,
+    0.004906644874804631,
+    1
+   ],
+   "RN_struct": [
+    -0.01486484,
+    0.0023585418332846574,
+    1
+   ],
+   "consensus_v1": [
+    -0.017304404786608225,
+    0.0025305992763923883,
+    1
+   ],
+   "degen": [
+    0.01,
+    0.0031480009386767836,
+    1
+   ],
+   "healer": [
+    -0.007,
+    0.0026377941462437807,
+    1
+   ]
+  },
+  "bc|chance|s400-s400": {
+   "proxy": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "R17_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2026_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2021_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_struct": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v1": [
+    0.0,
+    0.0,
+    1
+   ],
+   "degen": [
+    0.0,
+    0.0,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    1
+   ]
+  },
+  "bc|chance|s800-s400": {
+   "proxy": [
+    0.024783000000000003,
+    0.00305281011364775,
+    1
+   ],
+   "consensus_v2": [
+    0.016136059999999997,
+    0.002578292224646398,
+    1
+   ],
+   "gN_v2": [
+    0.015988199999999998,
+    0.002682342506780908,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0206289,
+    0.003243937545081037,
+    1
+   ],
+   "RN_v2": [
+    0.01302266,
+    0.002236757783423611,
+    1
+   ],
+   "R17_v2": [
+    0.00870928,
+    0.0024846786042158147,
+    1
+   ],
+   "QM2026_v2": [
+    0.01490466,
+    0.0036782471658246807,
+    1
+   ],
+   "QM2021_v2": [
+    0.004757480000000002,
+    0.004542489871874861,
+    1
+   ],
+   "RN_struct": [
+    0.012781940000000002,
+    0.002182669775523862,
+    1
+   ],
+   "consensus_v1": [
+    0.016922412696282862,
+    0.002454496631565442,
+    1
+   ],
+   "degen": [
+    0.001,
+    0.0010000000000000002,
+    1
+   ],
+   "healer": [
+    -0.001,
+    0.0010000000000000002,
+    1
+   ]
+  },
+  "bc|chance|s1600-s400": {
+   "proxy": [
+    0.04746777,
+    0.0028527078780633437,
+    1
+   ],
+   "consensus_v2": [
+    0.02913788,
+    0.0025316656797886687,
+    1
+   ],
+   "gN_v2": [
+    0.028312640000000003,
+    0.0026828521846488443,
+    1
+   ],
+   "gN_naive_v2": [
+    0.036780850000000004,
+    0.003216257466632479,
+    1
+   ],
+   "RN_v2": [
+    0.025353960000000002,
+    0.0022726845469550694,
+    1
+   ],
+   "R17_v2": [
+    0.01775133,
+    0.002528487739099772,
+    1
+   ],
+   "QM2026_v2": [
+    0.026104979999999996,
+    0.003586528037721853,
+    1
+   ],
+   "QM2021_v2": [
+    0.010248460000000003,
+    0.004399323008891819,
+    1
+   ],
+   "RN_struct": [
+    0.024829959999999998,
+    0.0022165106544024277,
+    1
+   ],
+   "consensus_v1": [
+    0.030741584988884924,
+    0.002412620134153069,
+    1
+   ],
+   "degen": [
+    0.005,
+    0.00223158687484489,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    1
+   ]
+  },
+  "F_oof|legacy|s100-s400": {
+   "proxy": [
+    9.794333333333182e-05,
+    0.0018253711705301329,
+    3
+   ],
+   "consensus_v2": [
+    0.0013621066666666653,
+    0.0013027259764810176,
+    3
+   ],
+   "gN_v2": [
+    0.0012532366666666668,
+    0.0013634242308212484,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0019318566666666674,
+    0.0016636708809963845,
+    3
+   ],
+   "RN_v2": [
+    0.0011944766666666681,
+    0.0012427089205837912,
+    3
+   ],
+   "R17_v2": [
+    0.0014045033333333337,
+    0.0014147766761880467,
+    3
+   ],
+   "QM2026_v2": [
+    0.0010688499999999999,
+    0.0018863562634399177,
+    3
+   ],
+   "QM2021_v2": [
+    -0.0007641466666666663,
+    0.0025355358260702996,
+    3
+   ],
+   "RN_struct": [
+    0.0011274966666666672,
+    0.0012128593893121645,
+    3
+   ],
+   "consensus_v1": [
+    0.0009851373797408738,
+    0.0012136334042903603,
+    3
+   ],
+   "degen": [
+    0.005333333333333333,
+    0.004471190792468849,
+    3
+   ],
+   "healer": [
+    -0.004333333333333334,
+    0.0038436667095071834,
+    3
+   ]
+  },
+  "F_oof|legacy|s200-s400": {
+   "proxy": [
+    -0.0003957233333333351,
+    0.001839570123777526,
+    3
+   ],
+   "consensus_v2": [
+    -0.0008621000000000014,
+    0.0012929197287420927,
+    3
+   ],
+   "gN_v2": [
+    -1.7830000000000458e-05,
+    0.0013585522964292664,
+    3
+   ],
+   "gN_naive_v2": [
+    -0.0006320133333333337,
+    0.001662853349660045,
+    3
+   ],
+   "RN_v2": [
+    0.00010970000000000002,
+    0.0012666727445014257,
+    3
+   ],
+   "R17_v2": [
+    0.0010514433333333327,
+    0.0013655229694952884,
+    3
+   ],
+   "QM2026_v2": [
+    -0.002907983333333333,
+    0.0018589073851203743,
+    3
+   ],
+   "QM2021_v2": [
+    -0.0034972433333333324,
+    0.0026779663221247452,
+    3
+   ],
+   "RN_struct": [
+    1.819333333333531e-05,
+    0.0012365643224198487,
+    3
+   ],
+   "consensus_v1": [
+    -0.0011888133154654517,
+    0.0012063722707329745,
+    3
+   ],
+   "degen": [
+    -0.003,
+    0.004177666494801402,
+    3
+   ],
+   "healer": [
+    -0.0003333333333333335,
+    0.0036073399882294945,
+    3
+   ]
+  },
+  "F_oof|legacy|s400-s400": {
+   "proxy": [
+    0.0,
+    0.0,
+    3
+   ],
+   "consensus_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "gN_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "RN_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "R17_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "QM2026_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "QM2021_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "RN_struct": [
+    0.0,
+    0.0,
+    3
+   ],
+   "consensus_v1": [
+    0.0,
+    0.0,
+    3
+   ],
+   "degen": [
+    0.0,
+    0.0,
+    3
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    3
+   ]
+  },
+  "F_oof|legacy|s800-s400": {
+   "proxy": [
+    -0.0003510466666666676,
+    0.0018483697510259314,
+    3
+   ],
+   "consensus_v2": [
+    -0.0007791966666666668,
+    0.0013108678020151867,
+    3
+   ],
+   "gN_v2": [
+    -0.0016178200000000003,
+    0.0013662047059856618,
+    3
+   ],
+   "gN_naive_v2": [
+    -0.00031793999999999903,
+    0.00168862536798783,
+    3
+   ],
+   "RN_v2": [
+    -0.0008401666666666674,
+    0.0012571151724909324,
+    3
+   ],
+   "R17_v2": [
+    -0.0004147400000000008,
+    0.0013826048386630639,
+    3
+   ],
+   "QM2026_v2": [
+    -0.00034032333333333263,
+    0.001894562906049364,
+    3
+   ],
+   "QM2021_v2": [
+    -0.005132926666666666,
+    0.002656678717266115,
+    3
+   ],
+   "RN_struct": [
+    -0.0008540999999999996,
+    0.0012256983011346197,
+    3
+   ],
+   "consensus_v1": [
+    -0.0008376800168156624,
+    0.0011932419363848144,
+    3
+   ],
+   "degen": [
+    0.006999999999999999,
+    0.004481316023716194,
+    3
+   ],
+   "healer": [
+    -0.005333333333333334,
+    0.00373972473541198,
+    3
+   ]
+  },
+  "F_oof|legacy|s1600-s400": {
+   "proxy": [
+    0.0010008733333333334,
+    0.0017769985845883895,
+    3
+   ],
+   "consensus_v2": [
+    -0.0005377200000000015,
+    0.0013252906525252589,
+    3
+   ],
+   "gN_v2": [
+    -0.0017746533333333331,
+    0.001415969222526106,
+    3
+   ],
+   "gN_naive_v2": [
+    0.001990176666666668,
+    0.0016533488435093756,
+    3
+   ],
+   "RN_v2": [
+    -0.0013687099999999995,
+    0.001263108342466947,
+    3
+   ],
+   "R17_v2": [
+    0.00013886999999999905,
+    0.0014068848968801617,
+    3
+   ],
+   "QM2026_v2": [
+    -0.0009972100000000005,
+    0.0019139312661368708,
+    3
+   ],
+   "QM2021_v2": [
+    -0.004378346666666667,
+    0.002700008551113685,
+    3
+   ],
+   "RN_struct": [
+    -0.0013501099999999996,
+    0.0012317721106503555,
+    3
+   ],
+   "consensus_v1": [
+    -0.0006575659254399939,
+    0.0012162104732120562,
+    3
+   ],
+   "degen": [
+    0.007666666666666666,
+    0.00452960208769497,
+    3
+   ],
+   "healer": [
+    -0.008666666666666666,
+    0.004020357494738075,
+    3
+   ]
+  },
+  "F_oof|chance|s100-s400": {
+   "proxy": [
+    0.0001587066666666676,
+    0.0016524367105408197,
+    3
+   ],
+   "consensus_v2": [
+    0.0011012866666666667,
+    0.0012165510662877326,
+    3
+   ],
+   "gN_v2": [
+    0.0003543733333333349,
+    0.0012988394393315592,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0010276166666666683,
+    0.0015622807216323247,
+    3
+   ],
+   "RN_v2": [
+    0.0010139966666666664,
+    0.0011686718367111921,
+    3
+   ],
+   "R17_v2": [
+    0.00168585,
+    0.0012917160918998053,
+    3
+   ],
+   "QM2026_v2": [
+    0.0020093566666666684,
+    0.0017151921406228124,
+    3
+   ],
+   "QM2021_v2": [
+    0.003397086666666667,
+    0.0023251925424179927,
+    3
+   ],
+   "RN_struct": [
+    0.0009952133333333325,
+    0.0011400669699653833,
+    3
+   ],
+   "consensus_v1": [
+    0.0012098426071429262,
+    0.0011278715955636933,
+    3
+   ],
+   "degen": [
+    -0.012,
+    0.004280042430590156,
+    3
+   ],
+   "healer": [
+    0.008333333333333331,
+    0.0037490962096291586,
+    3
+   ]
+  },
+  "F_oof|chance|s200-s400": {
+   "proxy": [
+    -0.0009895433333333324,
+    0.0017057892719398416,
+    3
+   ],
+   "consensus_v2": [
+    -0.0007098166666666654,
+    0.0012354054296724922,
+    3
+   ],
+   "gN_v2": [
+    -0.0012077499999999998,
+    0.0013090911477660937,
+    3
+   ],
+   "gN_naive_v2": [
+    -0.00010242666666666645,
+    0.0015839393593768828,
+    3
+   ],
+   "RN_v2": [
+    -0.001085553333333333,
+    0.0011612466419094855,
+    3
+   ],
+   "R17_v2": [
+    -0.0002502733333333327,
+    0.0013247338906217378,
+    3
+   ],
+   "QM2026_v2": [
+    -0.00044323666666666627,
+    0.0017378856232781602,
+    3
+   ],
+   "QM2021_v2": [
+    0.0008883266666666668,
+    0.00247361266121659,
+    3
+   ],
+   "RN_struct": [
+    -0.0010288966666666662,
+    0.001133111681113403,
+    3
+   ],
+   "consensus_v1": [
+    -0.0002408651156735403,
+    0.0011317931546536847,
+    3
+   ],
+   "degen": [
+    -0.005,
+    0.004459122409348103,
+    3
+   ],
+   "healer": [
+    0.004,
+    0.003887186814708492,
+    3
+   ]
+  },
+  "F_oof|chance|s400-s400": {
+   "proxy": [
+    0.0,
+    0.0,
+    3
+   ],
+   "consensus_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "gN_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "RN_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "R17_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "QM2026_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "QM2021_v2": [
+    0.0,
+    0.0,
+    3
+   ],
+   "RN_struct": [
+    0.0,
+    0.0,
+    3
+   ],
+   "consensus_v1": [
+    0.0,
+    0.0,
+    3
+   ],
+   "degen": [
+    0.0,
+    0.0,
+    3
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    3
+   ]
+  },
+  "F_oof|chance|s800-s400": {
+   "proxy": [
+    -0.00010344999999999974,
+    0.0016924939012011543,
+    3
+   ],
+   "consensus_v2": [
+    0.0005828900000000011,
+    0.0011705082597651855,
+    3
+   ],
+   "gN_v2": [
+    -7.717666666666634e-05,
+    0.0012646165615882543,
+    3
+   ],
+   "gN_naive_v2": [
+    0.0011378933333333343,
+    0.0015097422843557016,
+    3
+   ],
+   "RN_v2": [
+    -0.00016963999999999947,
+    0.0011260871290561666,
+    3
+   ],
+   "R17_v2": [
+    0.0005798333333333336,
+    0.0012950177452063305,
+    3
+   ],
+   "QM2026_v2": [
+    0.00144077,
+    0.0016848616980313362,
+    3
+   ],
+   "QM2021_v2": [
+    0.0013706333333333319,
+    0.0023293583928601334,
+    3
+   ],
+   "RN_struct": [
+    -0.00016411333333333377,
+    0.001098169306201621,
+    3
+   ],
+   "consensus_v1": [
+    0.0007839701974264787,
+    0.001077044239775257,
+    3
+   ],
+   "degen": [
+    -0.012333333333333333,
+    0.0042660780166173815,
+    3
+   ],
+   "healer": [
+    0.007666666666666666,
+    0.003690733043622659,
+    3
+   ]
+  },
+  "F_oof|chance|s1600-s400": {
+   "proxy": [
+    0.00361904,
+    0.0016116313750671506,
+    3
+   ],
+   "consensus_v2": [
+    0.0021635833333333333,
+    0.0011795171635032365,
+    3
+   ],
+   "gN_v2": [
+    0.002277593333333334,
+    0.0012770704196359375,
+    3
+   ],
+   "gN_naive_v2": [
+    0.003246216666666666,
+    0.0015404036208486835,
+    3
+   ],
+   "RN_v2": [
+    0.001973966666666667,
+    0.0011603699325556777,
+    3
+   ],
+   "R17_v2": [
+    0.0018190033333333338,
+    0.0013303702218515718,
+    3
+   ],
+   "QM2026_v2": [
+    0.0011565733333333335,
+    0.0016464830017612086,
+    3
+   ],
+   "QM2021_v2": [
+    0.0015314966666666676,
+    0.002247639760068307,
+    3
+   ],
+   "RN_struct": [
+    0.0019176066666666668,
+    0.001131617899856911,
+    3
+   ],
+   "consensus_v1": [
+    0.002467219993936222,
+    0.0010921232022901494,
+    3
+   ],
+   "degen": [
+    -0.004666666666666666,
+    0.004642772136438387,
+    3
+   ],
+   "healer": [
+    0.002333333333333333,
+    0.0040151946970379635,
+    3
+   ]
+  },
+  "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_chance_s0/draft_policy.pt|legacy|s200-s400": {
+   "proxy": [
+    -0.00029105000000000027,
+    0.0030748058788466776,
+    1
+   ],
+   "consensus_v2": [
+    0.002820089999999999,
+    0.0021946270109996615,
+    1
+   ],
+   "gN_v2": [
+    0.0018882000000000024,
+    0.002374786132883746,
+    1
+   ],
+   "gN_naive_v2": [
+    0.005894730000000001,
+    0.0027901707894251314,
+    1
+   ],
+   "RN_v2": [
+    0.0007958200000000009,
+    0.002094346289682943,
+    1
+   ],
+   "R17_v2": [
+    -0.000405880000000002,
+    0.002349161819475125,
+    1
+   ],
+   "QM2026_v2": [
+    0.0027018700000000007,
+    0.002959929900997982,
+    1
+   ],
+   "QM2021_v2": [
+    0.0041953,
+    0.0033038990131053947,
+    1
+   ],
+   "RN_struct": [
+    0.0007435100000000001,
+    0.002041145654274056,
+    1
+   ],
+   "consensus_v1": [
+    0.0030990499143743527,
+    0.00198741274133927,
+    1
+   ],
+   "degen": [
+    0.021,
+    0.009521010957332716,
+    1
+   ],
+   "healer": [
+    -0.018,
+    0.009474479709502034,
+    1
+   ]
+  },
+  "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_chance_s0/draft_policy.pt|legacy|s400-s400": {
+   "proxy": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "R17_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2026_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2021_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_struct": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v1": [
+    0.0,
+    0.0,
+    1
+   ],
+   "degen": [
+    0.0,
+    0.0,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    1
+   ]
+  },
+  "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_chance_s0/draft_policy.pt|chance|s200-s400": {
+   "proxy": [
+    -0.004653140000000001,
+    0.0029243186935356004,
+    1
+   ],
+   "consensus_v2": [
+    -0.00204915,
+    0.0021811234316291,
+    1
+   ],
+   "gN_v2": [
+    -0.0013548099999999997,
+    0.0023409897523877982,
+    1
+   ],
+   "gN_naive_v2": [
+    -0.005420760000000001,
+    0.00270721298308023,
+    1
+   ],
+   "RN_v2": [
+    -0.000793539999999999,
+    0.002091161680990842,
+    1
+   ],
+   "R17_v2": [
+    -0.0015559699999999992,
+    0.002351787683862867,
+    1
+   ],
+   "QM2026_v2": [
+    -0.000628089999999998,
+    0.002979270799398411,
+    1
+   ],
+   "QM2021_v2": [
+    0.0006254200000000017,
+    0.0033241953619828407,
+    1
+   ],
+   "RN_struct": [
+    -0.0008165099999999967,
+    0.0020383438305377707,
+    1
+   ],
+   "consensus_v1": [
+    -0.00280455314225197,
+    0.00196184652164355,
+    1
+   ],
+   "degen": [
+    -0.01,
+    0.009054390204866477,
+    1
+   ],
+   "healer": [
+    0.01,
+    0.009054390204866477,
+    1
+   ]
+  },
+  "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_chance_s0/draft_policy.pt|chance|s400-s400": {
+   "proxy": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "R17_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2026_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2021_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_struct": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v1": [
+    0.0,
+    0.0,
+    1
+   ],
+   "degen": [
+    0.0,
+    0.0,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    1
+   ]
+  },
+  "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_legacy_s0/draft_policy.pt|legacy|s200-s400": {
+   "proxy": [
+    0.0004187000000000024,
+    0.003125828280239903,
+    1
+   ],
+   "consensus_v2": [
+    0.0017956,
+    0.0023564145505776722,
+    1
+   ],
+   "gN_v2": [
+    0.0022989599999999983,
+    0.002517571116462223,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0001559000000000008,
+    0.002863660907646711,
+    1
+   ],
+   "RN_v2": [
+    0.003525080000000001,
+    0.0022191445643290103,
+    1
+   ],
+   "R17_v2": [
+    0.0033314999999999994,
+    0.0024355325931225314,
+    1
+   ],
+   "QM2026_v2": [
+    0.0012022800000000026,
+    0.003164766295306101,
+    1
+   ],
+   "QM2021_v2": [
+    0.00324818,
+    0.0034502204509056296,
+    1
+   ],
+   "RN_struct": [
+    0.0034782400000000005,
+    0.0021580098917742233,
+    1
+   ],
+   "consensus_v1": [
+    0.0008844746711039568,
+    0.002110355332967141,
+    1
+   ],
+   "degen": [
+    -0.002,
+    0.011230410594547385,
+    1
+   ],
+   "healer": [
+    0.011,
+    0.01034340301767199,
+    1
+   ]
+  },
+  "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_legacy_s0/draft_policy.pt|legacy|s400-s400": {
+   "proxy": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "R17_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2026_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2021_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_struct": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v1": [
+    0.0,
+    0.0,
+    1
+   ],
+   "degen": [
+    0.0,
+    0.0,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    1
+   ]
+  },
+  "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_legacy_s0/draft_policy.pt|chance|s200-s400": {
+   "proxy": [
+    0.002912740000000001,
+    0.002923604971010776,
+    1
+   ],
+   "consensus_v2": [
+    0.004710019999999998,
+    0.002240570045262439,
+    1
+   ],
+   "gN_v2": [
+    0.005319150000000001,
+    0.0024112159180340697,
+    1
+   ],
+   "gN_naive_v2": [
+    0.005413650000000001,
+    0.002781798622214062,
+    1
+   ],
+   "RN_v2": [
+    0.00488792,
+    0.002221907945075581,
+    1
+   ],
+   "R17_v2": [
+    0.0037927799999999978,
+    0.002316653307817167,
+    1
+   ],
+   "QM2026_v2": [
+    0.0032193300000000007,
+    0.002963130739712936,
+    1
+   ],
+   "QM2021_v2": [
+    0.0040686199999999985,
+    0.0031446387440413766,
+    1
+   ],
+   "RN_struct": [
+    0.004540309999999999,
+    0.0021612194641396497,
+    1
+   ],
+   "consensus_v1": [
+    0.0010497524074816714,
+    0.0020252425923132787,
+    1
+   ],
+   "degen": [
+    -0.024,
+    0.010561038563301223,
+    1
+   ],
+   "healer": [
+    0.021,
+    0.009521010957332716,
+    1
+   ]
+  },
+  "path:/home/max/heroes-of-the-storm/training/cuda_mcts/x2_results/selfplay/F50k_legacy_s0/draft_policy.pt|chance|s400-s400": {
+   "proxy": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "gN_naive_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "R17_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2026_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "QM2021_v2": [
+    0.0,
+    0.0,
+    1
+   ],
+   "RN_struct": [
+    0.0,
+    0.0,
+    1
+   ],
+   "consensus_v1": [
+    0.0,
+    0.0,
+    1
+   ],
+   "degen": [
+    0.0,
+    0.0,
+    1
+   ],
+   "healer": [
+    0.0,
+    0.0,
+    1
+   ]
+  }
+ }
+}
