@@ -114,11 +114,12 @@ def build_jobs():
     add("features", [me, "features"], [out("feature_cache", "full_train_features.npz"),
                                        out("feature_cache", "cql_enriched_train", "meta.json")],
         deps=["stats"])
-    p0 = os.path.join(RERUN, "phase0_features.py")
-    add("phase0_cql", [p0, "--only", "cql"], [out("feature_cache", "cql_naive_train", "meta.json")],
+    add("phase0_gd", [me, "phase0_gd"], [out("feature_cache", "gd_train", "meta.json"),
+                                         out("feature_cache", "gd_test", "meta.json")],
         deps=["features"])
-    add("phase0_gd", [p0, "--only", "gd"], [out("feature_cache", "gd_train", "meta.json")],
-        deps=["features"])
+    add("phase0_cql", [me, "phase0_cql"], [out("feature_cache", "cql_naive_train", "meta.json"),
+                                           out("feature_cache", "cql_naive_test", "meta.json")],
+        deps=["phase0_gd"])
     add("wp", [os.path.join(HERE, "oct2026_wp.py")],
         [out("models", f"{n}.pt") for n in ("wp_naive", "wp_herostrength", "wp_enriched_256",
                                              "wp_aug_v2_512")], deps=["features"], gpu=True)
@@ -203,7 +204,7 @@ def run(gpu_id):
         ready = [j for j in pending if all(done(byname[d]) for d in j["deps"])]
         # critical path first: MCTS (longest), then the WP models and GD
         # opponents it depends on, ensemble members last (needed only at pool time)
-        prio = lambda j: (0 if j["name"] == "mcts" else 1 if j["name"] in ("wp", "gd_0") else
+        prio = lambda j: (0 if j["name"] == "mcts" else 1 if j["name"] in ("wp", "gd_0", "phase0_gd") else
                           2 if j["name"].startswith("gd_") else 5 if j["name"].startswith("ens_") else 3)
         ready.sort(key=prio)
         if not ready and not running:

@@ -299,8 +299,38 @@ def cmd_features():
             common.memmap_write(d, stream(data, fn), dim, fields)
 
 
+def cmd_phase0(which):
+    """Statistic-free phase0 caches (gd, cql-naive) with phase0's own chunk
+    functions, but streamed in small chunks through a fork pool of NPROC
+    workers. Replaces phase0_features.py --only gd/cql, whose 4-worker pool of
+    giant chunks hung for 5 h on 2026-10-01 (a worker died; imap waited)."""
+    import multiprocessing as mp
+    from rerun2026.phase0_features import _cql_naive_chunk, _gd_chunk
+    common = _ns()
+    train, test = common.load_split()
+    if which == "gd":
+        plans = [(common.GD_TRAIN, train), (common.GD_TEST, test)]
+        fn, fields = _gd_chunk, [("actions", "int64")]
+    else:
+        plans = [(common.CQL_NAIVE_TRAIN, train), (common.CQL_NAIVE_TEST, test)]
+        fn, fields = _cql_naive_chunk, [("actions", "int64"), ("outcomes", "float32")]
+    for d, data in plans:
+        if os.path.exists(os.path.join(d, "meta.json")):
+            continue
+
+        def stream():
+            t0 = time.time()
+            with mp.get_context("fork").Pool(NPROC, maxtasksperchild=50) as pool:
+                for i, out in enumerate(pool.imap(fn, [data[k:k + 2000] for k in range(0, len(data), 2000)])):
+                    if (i + 1) % 100 == 0:
+                        print(f"  {os.path.basename(d)}: chunk {i + 1} ({time.time() - t0:.0f}s)", flush=True)
+                    yield out
+        common.memmap_write(d, stream(), 289, fields)
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["snapshot", "stats", "features"])
+    ap.add_argument("cmd", choices=["snapshot", "stats", "features", "phase0_gd", "phase0_cql"])
     a = ap.parse_args()
-    {"snapshot": cmd_snapshot, "stats": cmd_stats, "features": cmd_features}[a.cmd]()
+    {"snapshot": cmd_snapshot, "stats": cmd_stats, "features": cmd_features,
+     "phase0_gd": lambda: cmd_phase0("gd"), "phase0_cql": lambda: cmd_phase0("cql")}[a.cmd]()
