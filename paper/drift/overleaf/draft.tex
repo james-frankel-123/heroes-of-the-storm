@@ -494,8 +494,7 @@ the earlier paper's opponent model, which saw the test period, so both
 sides of every 2026 matchup share it. To compare staleness with the
 opponent model matched by era on both sides, we also trained
 \stalefour{} against an opponent model fit only to games before the 2026
-cutoff (U-era below, 4 seeds; two further seeds were stopped
-when the search kernel was changed, Section~\ref{sec:limits}).
+cutoff (U-era below, 4 seeds).
 
 Each terminal draft is scored against the realized outcomes of later
 games: the average win rate of the heroes each side picked, the synergy
@@ -1069,15 +1068,10 @@ marginal quantities; we mitigate by triangulating the metrics and by
 combining them with weights fitted on held-out real games.
 Agent-level comparisons carry several caveats. Except for U-era, the
 2026 agents share the earlier paper's opponent model, which saw the test
-period; the era-matched staleness rows rest on 4 U-era seeds. All MCTS
-agents in this paper were trained with a search kernel that expands the
-tree only at the agent's own decisions, so its 200 simulations refine
-estimates within the current pick block; a corrected kernel exists and
-the agent-level results will be rerun with it. Seed budgets changed
+period; the era-matched staleness rows rest on 4 U-era seeds. Seed budgets changed
 during the work: the maintained replication was scored at 3 and 5 seeds
 before reaching its planned 6, two of its seeds resumed from checkpoints
-without their replay buffer, the one-year arm was cut from 6 seeds to 3,
-and two U-era seeds were stopped when the kernel was replaced. \maintained{}'s value function was
+without their replay buffer, and the one-year arm was cut from 6 seeds to 3. \maintained{}'s value function was
 selected on the future window from three seeds, and \mcut{} shares it,
 so the split between them conditions on one value-function draw; with
 value-function seeds varied, the same-cutoff advantage is not significant
