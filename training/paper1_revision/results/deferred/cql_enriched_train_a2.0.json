@@ -1,0 +1,5 @@
+{
+ "alpha": 2.0,
+ "checkpoint": "/home/max/heroes-of-the-storm/training/paper1_revision/models/cql_enriched_oof/_cql_enriched_a2.0.pt",
+ "input_dim": 375
+}
