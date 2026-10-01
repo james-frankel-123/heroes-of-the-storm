@@ -921,3 +921,161 @@ Saved draft records only; nothing regenerated. MCTS benchmark: per-draft v1 scor
 - the markup files;
 - `REVISION_NOTES.md` §3.7, which still documents the leak-free augmentation numbers as evidence;
 - the response draft in §5. It does not mention augmentation as the repair, so it needs no edit beyond adding the paragraph above.
+
+## 13. Consolidated audit (2026-10-01): composition-table pin, rebuilt gN, A/B/C/D items
+
+Source: `audits/CONSOLIDATED_AUDIT_2026-10-01.md` §5 (55 open paper-1 items). This section supersedes the gN numbers in §11.
+
+### 13.1 Live composition table (§0, X1) and gN's external table (A5)
+
+**The problem.**
+- `StatsCache._load_compositions` read the live site file `src/lib/data/compositions.json`.
+- The nightly sync rewrote that file:
+  - on 09-30 16:52 with 10 rows of patch-2.57 games;
+  - on 10-01 00:02 with 364 rows of 2.55 + 2.57 games.
+- gN (4 of its 283 inputs), the submitted proxy (`proxy_sub`) and the "hp" stats read it.
+- So c159669's gN audit, gN refits and gN β used a table containing games from builds after 2026-09-27. Separately, the J_oof s0/s1 and A_partial/G_base benchmark scoring, and the A_partial/G_base benchmark *generation* (kernel lookup tables), used the 10-row table.
+
+**The fix.**
+- `overfit2026/feats.py` never reads the site file.
+  - Stats files with an own-corpus `<name>_compositions.json` use that table.
+  - Everything else reads `training/pins/compositions_hp_f2eb025.json`, a copy of the git version dated 2026-03-22, with a SHA-256 assert.
+- **gN rebuilt** (`overfit2026/comp_gn_rebuild.py`, models `gN8o_oof_s0..2`, deploy stats `No8`):
+  - The recipe is unchanged, but the composition table now comes from the post-snapshot games themselves (out of fold for training rows; cells admitted at ≥50 games).
+  - Validation loss 0.6815–0.6818 vs 0.6809–0.6812 for the original.
+  - gN-naive reads no statistics and is unchanged.
+  - `overfit2026.score.GN` names the judge everywhere (`bench_mcts`, `score_tournament`, `judges_v2`, `comp_audit_data`).
+- **Re-run:**
+  - A_partial and G_base benchmarks regenerated (all seeds, T0 and T1); old files are in `results/mcts_bench_livecomp_backup/`;
+  - gN for every stored draft (mcts_bench, tournament, cross-evaluation, greedy rows);
+  - two-fold gN refits with own tables (`comp_gn_folds.py`), the audit (`comp_audit_data.py --gn-only`), the β fit (`comp_judges.py`), `comp_rescore.py`, `judge_calibration.py`, and the CQL (enr.) eval.
+- **Previous outputs kept** as `*_livecomp.json` / `*_extcomp.json`.
+
+**Old → new** (v2 references unless noted):
+
+| Quantity | Before (c159669) | Now |
+|---|---|---|
+| gN test acc / slope | 55.3 / 0.97 | 55.2 / 1.01 |
+| gN blind spot on SNAP degenerate teams (v1) | −1.6pp | −3.0pp (the external table was carrying part of gN's structure signal) |
+| gN v2 gap | −0.5pp | −0.4pp |
+| consensus v1 / v2 gap | −4.2 / +0.0 | −4.6 / +0.0 |
+| gN β (no healer, no frontline, stack) | −0.04, −0.06, 0.00 | −0.10, −0.11, −0.10 |
+| Table VI gN (B_fullwp / F_400 / J_800 / E_1M / K) | .654/.671/.667/.671/.663 | .639/.664/.658/.661/.654 |
+| Table VI gN (B_oof / F_oof / J_oof) | .662/.672/.665 | .652/.666/.655 |
+| A_partial gN / deg / Train\* | .662 / 16.5 / .722 | .651 / 16.7 / .721 (regenerated) |
+| G_base gN / Train\* | .636 / .671 | .629 / .672 (regenerated) |
+| F_400sim − B_fullwp (gN) | +.018 | +.025 ± .005 |
+| J_800sim − F_400sim (gN) | −.004 | −.006 ± .002 |
+| F_oof − B_oof (gN) | +.010 | +.013 ± .003 |
+| J_oof − F_oof (gN) | −.007 | −.011 ± .003 (uninterrupted seeds s2, s3 only: −.016 ± .002) |
+| B_fullwp − K_truebase (gN) | −.009 | −.015 ± .005 |
+| B_oof − K_truebase (gN) | −.002 | −.002 ± .003 |
+| E_1M − B_fullwp (gN) | +.017 | +.022 |
+| C_large − B_fullwp (gN) | +.009 | +.014 |
+| N2 / full / M2 (gN) | .665 / .654 / .645 | .649 / .639 / .638 (M2 includes one failed seed at .574; the other four average .654) |
+| Table II Ind. (naive / hero str. / enriched) | .572 / .571 / .575 | .570 / .569 / .571 |
+| Tournament consensus | constrained MCTS .611, MCTS .610 | .610, .610 (other rows within .002; gN within .007) |
+| Mask head to head (MCTS / greedy) | .509 / .511 | .509 / .512 |
+| Augmented vs unaugmented greedy | .485 | .486 |
+| MCTS vs K_truebase | .558 | .559 (gN .565) |
+| CQL (enr.) eval refs | 0.50–0.53 | unchanged (drafts reproduce exactly) |
+
+**Effect on the claims.**
+- Every claim survives.
+- The rebuilt gN is harsher on agents trained against the external table: B_fullwp drops 0.015, against an average of 0.009.
+- So the feature-gap reversal is stronger (−0.015), and the submitted 200 → 400 gain is larger (+0.025).
+
+### 13.2 A items
+
+- **A1** (search-depth gap attributed to the leak), **closed.**
+  - The abstract, intro (L59), simulation-scaling paragraph and practical lessons now say: the leak inflated held-out accuracy and the value function's own measure of every gain; independent judges confirm neither the feature gain nor any gain past 400 simulations; removing the leak does not change that.
+  - The plateau appears in both pipelines. The leak does not explain it.
+  - "Search depth" wording is held for X2, per the coordinator.
+- **A2** (judge attenuation), **closed.**
+  - New benchmark `paper1_revision/judge_attenuation.py` → `results/judge_attenuation.json` and supplement §"Judge Attenuation" (Table `tab:atten`).
+  - On the test replays, slope of judge on value function:
+    - leak-free value function: gN 0.56, RN 0.46, consensus 0.58;
+    - submitted value function: gN 0.48, RN 0.39, consensus 0.50.
+  - 200 → 400 transmits fully: submitted predicted +0.018 vs observed +0.025; leak-free predicted +0.010 vs observed +0.013.
+  - 400 → 800 is over-optimization: predicted +0.005 / +0.007, observed −0.006 / −0.011.
+  - "A quarter as large" is removed.
+- **A4** ("features buy safety"), **closed.**
+  - The matched contrast is reported with its seed SE: B_oof 13.9% vs K_truebase 18.5%, −4.6 ± 3.5pp; with argmax root −0.8 ± 4.6pp.
+  - The drop to 6.6% (4.6% argmax) is attributed to doubling the simulations, which were not run without features.
+  - Changed in contribution 3, §VII "Features", and the tournament paragraph ("reliable difference" removed; 7.3 vs 23.4% now noted as confounded).
+- **A5** (gN reads the external table), **closed by rebuild** (13.1).
+  - L124 describes the rebuilt gN's own table and mentions the first version.
+  - L110 now names the one inherited exception: tournament CQL (enr.).
+
+### 13.3 B items
+
+- **Closed:**
+  - **B1:** L82 now says the games train only the references.
+  - **B2:** 4.6% at argmax root added.
+  - **B3:** "benchmark operating point"; the tournament plays the policy argmax.
+  - **B7:** .617/.612.
+  - **B8:** −0.15 to −0.20 (Table V).
+  - **B9:** 70–73%, 66–70 heroes, −0.15 to −0.19 synergy; intro 0.4–3.6% and 70–73%.
+  - **B10:** gN seed SE 0.001–0.005 (M2 0.016).
+  - **B11:** M2 failed seed disclosed.
+  - **B12:** Gourdeau checkpoint is reused, not retrained.
+  - **B13:** inherited baselines were selected on test; this is stated.
+  - **B14:** "every independent judge".
+  - **B15:** supplement no longer cites a main-text passage that does not exist.
+  - **B19:** 210 runs (195 + 15).
+  - **B20:** 57.9%.
+  - **B21:** 54.5%.
+  - **B22:** 1.5pp and 1.7pp (16% and 21%), with the game-set caveat.
+  - **B23:** "stop improving after 4,096" in main and supplement.
+  - **B24:** "never lowers gN".
+  - **B25:** L55 now cites the measured 8–9% pick agreement.
+  - **N1:** L275 and conclusion: gN and RN fall 0.008–0.011, the others stay within noise.
+  - **N3:** 0.005–0.007.
+- **C5** (consensus fixed before scoring, upgraded to B): L124 now says the composition correction was added after all agents were scored, and the supplement reports uncorrected values.
+- **C18** (upgraded to B): the tournament row is marked "CQL enr.†, submission's checkpoint with external statistics", and L110 and L282 say so.
+- **N2:** §III-A discloses that the external composition table is keyed by Heroes Profile's rank groups and read only by the submitted value functions.
+
+### 13.4 C items
+
+- **Closed:**
+  - **C1:** MCTS checkpoint selection by the run's own value function is disclosed in the benchmark paragraph.
+  - **C2:** J_oof resume wording fixed (best-evaluation checkpoints 51K/51K/107K, replay buffer not restored), and the uninterrupted-seed contrast is reported.
+  - **C3:** value-head pretraining stuck at 0.25 in 10/15 leak-free runs is disclosed. The head is not used by search; verified in `mcts_kernel.cu`.
+  - **C4:** F was chosen on the same references that score the tournament; stated.
+  - **C6:** tournament SE excludes seed variation; stated in the caption.
+  - **C7:** Table I caption gives slope SDs (0.02–0.08) and test slopes 1.12–1.22.
+  - **C8:** realized synthetic label means 4.9/5.0/9.5/29.9%, recomputed from `cache/feats/synth_wr*.npz`.
+  - **C9:** synthetic labels are adjusted with deploy statistics; stated.
+  - **C10:** Fig. 2 caption gives the protocol of each point. The figure itself is unchanged.
+  - **C12:** split-experiment caveats added to the supplement (30% of training, last-epoch accuracy, full-snapshot BC prior, the 40-epoch exception).
+  - **C14:** "Gourdeau estimator" used consistently ("Gourdeau est." in Table VII).
+  - **C15:** `paper1_revision/leak_measure.py` → `results/leak_results.json` reproduces the L108 figures: median overlap 38/51/67% (low/mid/high); 58.07% → 57.03% with test games removed; random-removal control 57.99–58.05%.
+- **Code fixes:**
+  - **C13:** `bench_mcts.py` stores the 2022-era QM judge as `QM2022`. The old "QM2021" key held that model, not the tournament's QM2021, and no table uses it.
+  - **C17:** `paper1_revision/train_mcts.py` seeds Python `random` for future runs. The reported runs were unseeded, which is now disclosed here.
+  - **N4:** `overfit2026/data.py build_db` reads tier labels from `replay_draft_skill_tier_backup_20260930` and asserts on them.
+- **Open:** **C11** is stale. **C16** (style) is fixed.
+
+### 13.5 D items
+
+All listed D items are rewritten:
+- L44 triad;
+- L71 ("structure through features and a rule-based mask");
+- L231 triad;
+- L277 cleft, now the "Features" paragraph;
+- L327 "Safety is easy";
+- L333a and L333b;
+- the L82/L124 formula;
+- S49, S149a, S149b, S151.
+
+### 13.6 Not done
+
+- **X2** (the kernel searches only the current own-pick block): wording held per coordinator.
+- **X4** (production `refresh.py` composition block): owned by production. Its select-phase proxy still reads the live site file. That is a production choice, outside the paper.
+- **Release:** `training/pins/` and the new result files must go into the public release with the other paper-1 code.
+
+### 13.7 Build
+
+- `draft_revision.tex`: 9 pages, 0 errors, 0 overfull boxes.
+- `supplementary_revision.tex`: 7 pages, 0 errors, 0 overfull boxes.
+- Fig. 1 regenerated.

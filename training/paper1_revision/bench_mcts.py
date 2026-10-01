@@ -213,16 +213,18 @@ def score_drafts(drafts):
         out[key] = sym_predict(m, cols, Xf, Xs)
     out["syn_own"], out["ctr_own"] = interaction(rows, core.load_stats("deploy"))
     # independent references (overfit2026)
-    GN = ["gN8_oof_s0", "gN8_oof_s1", "gN8_oof_s2"]
-    ms = oscore.model_scores(GN + ["gN8_naive"], rows, dev="cpu")
+    GN = oscore.GN
+    ms = oscore.model_scores(GN + [oscore.GN_NAIVE], rows, dev="cpu")
     out["gN"] = np.mean([ms[n] for n in GN], 0)
-    out["gN_naive"] = ms["gN8_naive"]
+    out["gN_naive"] = ms[oscore.GN_NAIVE]
     rn, r17 = oscore.realized("NODRIFT"), oscore.realized("T17")
     out["RN"] = np.array([rn.score(o, p, t) for o, p, m, t in rows])
     out["R17"] = np.array([r17.score(o, p, t) for o, p, m, t in rows])
     q = qm_scores(oscore.qm(), rows)
     out["QM2026"] = q["QM2026"]
-    out["QM2021"] = q.get("QM2022", np.full(len(rows), np.nan))
+    # qm_wp_2022.pt (2022-era QM judge). Before 2026-10-01 this column was
+    # stored under the wrong key "QM2021"; the tournament's QM2021 is qm_wp_v0.
+    out["QM2022"] = q.get("QM2022", np.full(len(rows), np.nan))
     healers = {h for h, r in HERO_ROLE_FINE.items() if r == "healer"}
     out["degen"] = np.array([float(is_degenerate(list(o))) for o, p, m, t in rows])
     out["healer"] = np.array([float(any(h in healers for h in o)) for o, p, m, t in rows])

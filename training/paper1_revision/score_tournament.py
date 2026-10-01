@@ -63,8 +63,8 @@ def score_rows(rows):
     from overfit2026 import score as oscore
     from overfit2026.stage_b_saved import qm_scores
     from paper1_revision import train_wp
-    GN = ["gN8_oof_s0", "gN8_oof_s1", "gN8_oof_s2"]
-    ms = oscore.model_scores(GN + ["gN8_naive"], rows, dev="cpu")
+    GN = oscore.GN
+    ms = oscore.model_scores(GN + [oscore.GN_NAIVE], rows, dev="cpu")
     out = {"gN": np.mean([ms[n] for n in GN], 0), "gN_naive": ms["gN8_naive"]}
     rn, r17 = oscore.realized("NODRIFT"), oscore.realized("T17")
     out["RN"] = np.array([rn.score(tuple(o), tuple(p), t) for o, p, m, t in rows])

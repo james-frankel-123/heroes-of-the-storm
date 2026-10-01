@@ -34,8 +34,36 @@ def wp_cols():
     return _WP_COLS
 
 
+# Role-composition tables. Research code never reads the live site file
+# src/lib/data/compositions.json: the nightly sync rewrites it (on 2026-09-30
+# and 2026-10-01 it was replaced by tables that include patch 2.57 games).
+# Stats JSONs that have an own-corpus table next to them (<name>_compositions
+# .json, paper1_revision.core convention) use it; everything else uses the
+# Heroes Profile table pinned from git (f2eb025, 2026-03-22), hash-checked.
+PIN_HP_COMPS = os.path.join(TRAINING_DIR, "pins", "compositions_hp_f2eb025.json")
+PIN_HP_SHA256 = "1b50918df7186f7a828991fcec01291278a0fec7c85ed95efb54ebb1c72ae556"
+
+
+def comps_from_file(path, sha256=None):
+    import hashlib
+    blob = open(path, "rb").read()
+    if sha256 is not None:
+        got = hashlib.sha256(blob).hexdigest()
+        assert got == sha256, f"composition table {path} hash {got} != pinned {sha256}"
+    out = {}
+    for tier, comps in json.loads(blob).items():
+        out[tier] = {",".join(sorted(c["roles"])): (c["winRate"], c["games"]) for c in comps}
+    return out
+
+
+def pinned_hp_comps():
+    return comps_from_file(PIN_HP_COMPS, PIN_HP_SHA256)
+
+
 def stats_from_json(path_or_raw, compositions=True):
-    """StatsCache from a frozen-schema stats JSON (path or dict)."""
+    """StatsCache from a frozen-schema stats JSON (path or dict). Composition
+    table: the own-corpus <name>_compositions.json beside the stats file if it
+    exists, else the pinned Heroes Profile table (never the live site file)."""
     from sweep_enriched_wp import StatsCache
     st = object.__new__(StatsCache)
     raw = json.load(open(path_or_raw)) if isinstance(path_or_raw, str) else path_or_raw
@@ -51,7 +79,10 @@ def stats_from_json(path_or_raw, compositions=True):
             r["hero_a"], {})[r["hero_b"]] = (r["win_rate"], r["games"])
     st.comp_data = {}
     if compositions:
-        st._load_compositions()
+        own = (path_or_raw[:-5] + "_compositions.json"
+               if isinstance(path_or_raw, str) and path_or_raw.endswith(".json") else None)
+        st.comp_data = (comps_from_file(own) if own and os.path.exists(own)
+                        else pinned_hp_comps())
     return st
 
 

@@ -19,6 +19,7 @@ stacking-bad role), non-exclusive, with shared.is_degenerate conventions.
 
 Usage (from training/):
   nice -n 19 taskset -c 48-53 python3 overfit2026/comp_audit_data.py [SNAP N T17]
+  ... comp_audit_data.py --gn-only [sets]   (recompute gN after comp_gn_rebuild.py)
 Output: overfit2026/cache/comp_audit_<set>.npz
 """
 import os
@@ -38,7 +39,7 @@ from overfit2026 import data, feats, score, gold
 from overfit2026.structure import struct_matrix
 
 NPROC = 6
-GN = ["gN8_oof_s0", "gN8_oof_s1", "gN8_oof_s2"]
+from overfit2026.score import GN  # own-composition gN
 
 
 def games_of(name):
@@ -59,8 +60,37 @@ def cross_fit(games, name):
     return out
 
 
+def update_gn(name):
+    """Recompute only gN (own-composition rebuild) in an existing cache file;
+    the previous gN (external table) is kept as gN_extcomp. RN, R17 and QM do
+    not read a composition table and are left as they are."""
+    path = os.path.join(HERE, "cache", f"comp_audit_{name}.npz")
+    z = dict(np.load(path))
+    if "gN_extcomp" in z:
+        print(f"{name}: gN already rebuilt", flush=True)
+        return
+    games = games_of(name)
+    assert np.array_equal(np.array([g[0] for g in games]), z["rid"])
+    rows = [(g[3], g[4], g[2], g[1]) for g in games]
+    Xf, Xs = feats.featurize(rows, score._stats(score.deploy_stats_name(GN[0])), nproc=NPROC)
+    ps = []
+    for n in GN:
+        m, meta = score.model(n)
+        ps.append(feats.predict_sym(m, Xf, Xs, "cpu"))
+    z["gN_extcomp"] = z["gN"]
+    z["gN"] = np.mean(ps, 0)
+    np.savez(path, **z)
+    print(f"{name}: gN rebuilt (mean |diff| {np.abs(z['gN'] - z['gN_extcomp']).mean():.4f})", flush=True)
+
+
 def main():
     torch.set_num_threads(4)
+    if sys.argv[1:2] == ["--gn-only"]:
+        from drift2026 import common as dcommon
+        dcommon._bind_statscache_methods()
+        for name in sys.argv[2:] or ["T17", "N", "SNAP"]:
+            update_gn(name)
+        return
     from drift2026 import common as dcommon
     from overfit2026.stage_b_saved import qm_scores
     dcommon._bind_statscache_methods()
@@ -79,7 +109,7 @@ def main():
                "s0": struct_matrix([g[3] for g in games]),
                "s1": struct_matrix([g[4] for g in games])}
         print(f"{name}: {len(games):,} games", flush=True)
-        Xf, Xs = feats.featurize(rows, score._stats("N8"), nproc=NPROC)
+        Xf, Xs = feats.featurize(rows, score._stats(score.deploy_stats_name(GN[0])), nproc=NPROC)
         print(f"  featurized {time.time() - t0:.0f}s", flush=True)
         for n in GN + ["gN8_naive"]:
             m, meta = score.model(n)

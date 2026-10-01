@@ -37,6 +37,17 @@ from overfit2026.structure import struct_matrix
 
 R = core.RESULTS
 JUDGES = ["gN", "gN_naive", "RN", "R17", "QM2026", "QM2021"]
+GN_CACHE = os.path.join(HERE, "cache", "comp_rescore_gn.npz")
+
+
+def regn(key, rows):
+    """gN (own-composition rebuild, comp_gn_rebuild.py) for stored drafts,
+    cached by key. Stored per-draft gN values predate the rebuild."""
+    z = dict(np.load(GN_CACHE)) if os.path.exists(GN_CACHE) else {}
+    if key not in z or len(z[key]) != len(rows):
+        z[key] = judges_v2.score_base(rows, judges=["gN"])["gN"]
+        np.savez(GN_CACHE, **z)
+    return z[key]
 CONS = judges_v2.CONSENSUS
 OUT = os.path.join(R, "comp_rescore.json")
 
@@ -60,17 +71,25 @@ PAIRS = [("new:F_oof", "new:B_oof"), ("new:J_oof", "new:F_oof"), ("new:J_oof", "
          ("new:J_oof", "old:J_800sim"), ("old:E_1M", "old:B_fullwp"),
          ("new:F_oof", "old:E_1M"), ("new:J_oof", "old:E_1M"), ("old:C_large", "old:B_fullwp"),
          ("old:N2_absolute", "old:B_fullwp"), ("old:M2_relational", "old:B_fullwp")]
-REFS = JUDGES + ["consensus"]
+REFS = [j for j in JUDGES if j != "QM2021"] + ["consensus"]   # benchmark has no QM2021
+TREFS = JUDGES + ["consensus"]
 
 
 def mcts():
     groups = {}
-    for p in sorted(glob.glob(os.path.join(R, "mcts_bench", "*.json"))):
-        d = json.load(open(p))
+    files = sorted(glob.glob(os.path.join(R, "mcts_bench", "*.json")))
+    data = [json.load(open(p)) for p in files]
+    rows_all = [(x["our"], x["opp"], x["map"], "mid") for d in data for x in d["drafts"]]
+    gn_all = regn("mcts_bench", rows_all)
+    off = 0
+    for p, d in zip(files, data):
         kind, name = d["run"].split(":", 1)
         cfg = f"{kind}:{name.rsplit('_s', 1)[0]}"
         rows = [(x["our"], x["opp"], x["map"], "mid") for x in d["drafts"]]
-        sc = v1_v2(d["per_draft"], rows)
+        base = {k: v for k, v in d["per_draft"].items() if k != "QM2021"}   # QM2021 key held QM2022
+        base["gN"] = gn_all[off:off + len(rows)]
+        off += len(rows)
+        sc = v1_v2(base, rows)
         groups.setdefault((cfg, d["temp"]), []).append(
             {"run": d["run"], "v1": {k: float(v.mean()) for k, v in sc["v1"].items()},
              "v2": {k: float(v.mean()) for k, v in sc["v2"].items()},
@@ -130,14 +149,15 @@ def tournament():
         rows_all += rows
         pairs[(a, b)] = recs
     assert len(sc["gN"]) == len(rows_all)
+    sc["gN"] = regn("tournament", rows_all)
     S = v1_v2(sc, rows_all)
     out = {}
     for v in ("v1", "v2"):
-        per = {s: {j: [] for j in REFS} for s in STRATEGIES}
+        per = {s: {j: [] for j in TREFS} for s in STRATEGIES}
         h2h = {}
         for (a, b), (i0, i1) in idx.items():
             cfg = [(r["game_map"], r["tier"]) for r in pairs[(a, b)]]
-            for j in REFS:
+            for j in TREFS:
                 mu, var = pair_stats(S[v][j][i0:i1], cfg)
                 per[a][j].append((mu, var))
                 per[b][j].append((1 - mu, var))
@@ -145,7 +165,7 @@ def tournament():
         stand = {}
         for s in STRATEGIES:
             stand[s] = {}
-            for j in REFS:
+            for j in TREFS:
                 mus = np.array([x[0] for x in per[s][j]])
                 vs = np.array([x[1] for x in per[s][j]])
                 stand[s][j] = {"mean": float(mus.mean()), "se": float(np.sqrt(vs.sum()) / len(vs)),
@@ -154,13 +174,13 @@ def tournament():
         top6 = sorted(STRATEGIES, key=lambda s: -stand[s]["consensus"]["mean"])[:6]
         rc = {j: {"all": spearman([stand[s][j]["mean"] for s in STRATEGIES], cons),
                   "top6": spearman([stand[s][j]["mean"] for s in top6],
-                                   [stand[s]["consensus"]["mean"] for s in top6])} for j in REFS}
+                                   [stand[s]["consensus"]["mean"] for s in top6])} for j in TREFS}
         hh = {}
         for a, b in (("constrained_mcts", "mcts"), ("constrained_greedy", "enriched"),
                      ("mcts", "k_truebase"), ("constrained_mcts", "k_truebase"),
                      ("enriched", "enriched_aug")):
             hh[f"{a} vs {b}"] = {}
-            for j in REFS:
+            for j in TREFS:
                 m1, v1_ = h2h[j][(a, b)]
                 m2, v2_ = h2h[j][(b, a)]
                 hh[f"{a} vs {b}"][j] = [0.5 * (m1 + 1 - m2), 0.5 * float(np.sqrt(v1_ + v2_))]

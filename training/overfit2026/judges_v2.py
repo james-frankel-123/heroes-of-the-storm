@@ -36,7 +36,7 @@ from overfit2026.structure import struct_matrix
 PARAMS = os.path.join(HERE, "results", "comp_judges.json")
 CONSENSUS = ["gN", "gN_naive", "RN", "QM2026"]
 BASE_JUDGES = ["gN", "gN_naive", "RN", "R17", "QM2026", "QM2021"]
-GN = ["gN8_oof_s0", "gN8_oof_s1", "gN8_oof_s2"]
+from overfit2026.score import GN  # own-composition gN (comp_gn_rebuild.py)
 _P = {}
 
 
@@ -80,7 +80,11 @@ def score_base(rows, judges=BASE_JUDGES, nproc=6):
     rows = [(tuple(a), tuple(b), m, t) for a, b, m, t in rows]
     out = {}
     if "gN" in judges or "gN_naive" in judges:
-        Xf, Xs = feats.featurize(rows, score._stats("N8"), nproc=nproc)
+        # all gN members share one deploy-stats set; the hero-identity judge
+        # reads only the first 197 (statistics-free) columns
+        snames = {score.deploy_stats_name(n) for n in GN}
+        assert len(snames) == 1, snames
+        Xf, Xs = feats.featurize(rows, score._stats(snames.pop()), nproc=nproc)
         ps = {}
         for n in GN + ["gN8_naive"]:
             m, meta = score.model(n)

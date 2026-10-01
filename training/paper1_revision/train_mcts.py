@@ -53,6 +53,11 @@ def worker():
                               for c in cs} for t, cs in raw.items()}
         print(f"compositions: own-corpus table {comp}")
     swp.StatsCache._load_compositions = _load_compositions
+    # Python's `random` (used by the worker for opponent and map sampling) was
+    # never seeded in the runs reported in the paper (audit P1-C17); seed it
+    # from the run seed for runs launched from 2026-10-01 on.
+    import random
+    random.seed(int(os.environ.get("P1R_RUN_SEED", "0")))
     sys.argv = [os.path.join(TRAINING_DIR, "train_mcts_worker.py")]
     runpy.run_path(sys.argv[0], run_name="__main__")
 
@@ -95,6 +100,7 @@ def main():
         "WANDB_MODE": "disabled",
         "WANDB_RUN_NAME": f"paper1_revision_{name}",
         "PYTHONHASHSEED": str(a.seed),
+        "P1R_RUN_SEED": str(a.seed),
     })
     json.dump({"config": a.config, "sims": sims, "episodes": episodes, "seed": a.seed,
                "wp": wp, "stats": core.stats_path("deploy")},

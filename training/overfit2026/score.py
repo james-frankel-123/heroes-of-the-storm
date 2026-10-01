@@ -83,7 +83,7 @@ def model_scores(names, rows, dev="cuda"):
         by_stats.setdefault(deploy_stats_name(n), []).append(n)
     out = {}
     for sname, ns in by_stats.items():
-        Xf, Xs = feats.featurize(rows, _stats(sname))
+        Xf, Xs = feats.featurize(rows, _stats(sname), nproc=int(os.environ.get("P1R_NPROC", "6")))
         for n in ns:
             m, meta = model(n)
             d = meta["input_dim"]
@@ -92,6 +92,13 @@ def model_scores(names, rows, dev="cuda"):
 
 
 GOLD_B = ["gB8_oof_s0", "gB8_oof_s1", "gB8_oof_s2"]
+# Post-snapshot judges for the paper-1 agents. gN = the 3 enriched judges
+# rebuilt with their OWN role-composition table (comp_gn_rebuild.py, audit
+# P1-A5); GN_EXTCOMP = the originals, which read the external Heroes Profile
+# table (pinned copy, feats.PIN_HP_COMPS), kept for comparison only.
+GN = ["gN8o_oof_s0", "gN8o_oof_s1", "gN8o_oof_s2"]
+GN_EXTCOMP = ["gN8_oof_s0", "gN8_oof_s1", "gN8_oof_s2"]
+GN_NAIVE = "gN8_naive"
 ENS_A = ["pA8_leak", "pA8_leak_s1", "pA8_leak_s2", "pA8_leak_s3"]
 
 

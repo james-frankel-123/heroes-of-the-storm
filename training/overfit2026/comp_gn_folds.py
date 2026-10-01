@@ -8,7 +8,9 @@ cross-fit). For half k: statistics and model training use only half k with
 the gN recipe unchanged (split.py: 2-fold out-of-fold statistics for training
 rows, deploy statistics over all of half k, 2% early-stopping subset,
 256x128 MLP, dropout 0.3, AdamW 5e-4, wd 5e-3, patience 25; enriched seeds
-200-202 and a hero-identity model, seed 200). The half-k models then score the
+200-202 and a hero-identity model, seed 200), except that the composition
+features use the half's own role-composition table (out of fold for training
+rows), as the rebuilt gN does (comp_gn_rebuild.py). The half-k models then score the
 other half with half-k deploy statistics. The deployed gN judges are NOT
 replaced; these fold models exist only to estimate how the judge family errs
 on real teams it has not seen.
@@ -31,16 +33,22 @@ import numpy as np
 
 from overfit2026 import data, feats, split
 
-DIR = os.path.join(HERE, "cache", "comp_folds")
+DIR = os.path.join(HERE, "cache", "comp_folds_owncomp")
 OUT = os.path.join(HERE, "cache", "comp_gn_oof_N.npz")
 SPEC = dict(arch=[256, 128], dropout=0.3, wd=5e-3, epochs=200)
 
 
 def stats(games, name):
+    """Statistics of `games` with their OWN role-composition table (cells
+    admitted at >= 50 games, paper1_revision.core convention), written beside
+    the stats JSON so feats.stats_from_json picks it up. No external table."""
+    from paper1_revision import core
     p = os.path.join(DIR, f"{name}.json")
     if not os.path.exists(p):
-        js = split.frozen_json(split.counts_for(games), {"subset": name, "games_used": len(games)})
+        js = core.stats_json(split.counts_for(games), {"subset": name, "games_used": len(games)})
+        comps = js.pop("compositions")
         json.dump(js, open(p, "w"))
+        json.dump(comps, open(p[:-5] + "_compositions.json", "w"))
     return feats.stats_from_json(p)
 
 

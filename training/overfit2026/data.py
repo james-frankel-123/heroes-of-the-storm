@@ -118,11 +118,16 @@ def build_db():
     conn.set_session(readonly=True)
     cur = conn.cursor()
     cur.execute("SET statement_timeout='30min'")
+    # Tier labels: the 2026-09-30 relabel rewrote replay_draft_data.skill_tier
+    # into the site scheme. The research caches use the OLD labels (the
+    # snapshot's), so read them from the pre-relabel backup table (audit
+    # P1-N4 / X3) and refuse to mix schemes.
     cur.execute("""
-        SELECT replay_id, skill_tier, game_map, team0_heroes, team1_heroes,
-               team0_bans, team1_bans, winner, game_version
-        FROM replay_draft_data
-        WHERE replay_id > %s AND game_version LIKE '2.55.%%'""", (SNAPSHOT_BOUND,))
+        SELECT d.replay_id, b.skill_tier, d.game_map, d.team0_heroes, d.team1_heroes,
+               d.team0_bans, d.team1_bans, d.winner, d.game_version
+        FROM replay_draft_data d
+        JOIN replay_draft_skill_tier_backup_20260930 b ON b.replay_id = d.replay_id
+        WHERE d.replay_id > %s AND d.game_version LIKE '2.55.%%'""", (SNAPSHOT_BOUND,))
     fut = {b: [] for b in FUTURE_BUILDS}
     back = {}
     skipped = {}
@@ -138,6 +143,8 @@ def build_db():
             back.setdefault(ver, []).append(g)
         else:
             skipped[ver] = skipped.get(ver, 0) + 1   # never analyzed
+    tiers = {g[1] for v in list(fut.values()) + list(back.values()) for g in v}
+    assert tiers <= {"low", "mid", "high"}, f"unexpected tier labels {tiers}"
     _dump(fut, FUT_PKL)
     _dump(back, BACKFILL_PKL)
     print("future:", {b: len(v) for b, v in fut.items()})
