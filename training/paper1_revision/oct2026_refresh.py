@@ -173,6 +173,10 @@ def done(job):
     trainers save their best checkpoint while training continues)."""
     if job["name"] in OPTS["assume_done"]:
         return True
+    if job["name"] in PHASE1:   # trainers save checkpoints mid-run; the meta file marks completion
+        meta = {"cql_enr_a2.0": "cql_enriched_a2.0"}.get(job["name"], job["name"])
+        if not os.path.exists(out("models", "meta", f"{meta}.json")):
+            return False
     if job["name"].startswith("gd_") and os.path.exists(out("models", f"{job['name']}_resume.pt")):
         try:   # resumable GD: the .pt is a mid-training best checkpoint until the run stops
             import torch
@@ -229,7 +233,7 @@ def _find_running(job):
             cmd = open(f"/proc/{pid}/cmdline", "rb").read().replace(b"\0", b" ").decode(errors="ignore")
         except OSError:
             continue
-        if want in cmd and "python" in cmd and "nice" not in cmd.split()[0]:
+        if want in cmd and "python" in cmd and "nice" not in cmd.split()[0] and "forkserver" not in cmd:
             try:   # other lanes run the same scripts in their own namespaces
                 envb = open(f"/proc/{pid}/environ", "rb").read().split(b"\0")
             except OSError:
