@@ -41,6 +41,8 @@ OUT = os.path.join(HERE, "results", "expert_v6", "struct_correction.json")
 EVALS = ["naive", "herostrength", "enriched"]   # v6 roster: no synthetic augmentation
 BUILDS = ("2.55.17.97771", "2.55.17.98025")
 _CACHE = {}
+# The pool whose real games are excluded from the fit (v6: the review copy).
+POOL_PATH = os.environ.get("RATING_ITEMS_PATH", os.path.join(REPO, "data", "rating-items.json"))
 
 
 def _logit(p):
@@ -86,7 +88,7 @@ def load_games():
         for line in open(os.path.join(REPO, ".env")):
             if line.startswith("DATABASE_URL="):
                 url = line.split("=", 1)[1].strip().strip('"')
-    pool = json.load(open(os.path.join(REPO, "data", "rating-items.json")))
+    pool = json.load(open(POOL_PATH))
     in_pool = {int(it["provenance"]["replayId"]) for it in pool["items"]
                if it["provenance"].get("replayId")}
     conn = psycopg2.connect(url)
@@ -143,7 +145,8 @@ def cmd_fit():
     S = (struct_matrix([r[0] for r in rows]), struct_matrix([r[1] for r in rows]))
     Sc = (S[0][~fit], S[1][~fit])
     out = {"games": len(games), "fit_games": int(fit.sum()), "check_games": int((~fit).sum()),
-           "excluded_pool_replays": n_pool, "pool_seed": seed, "builds": list(BUILDS),
+           "excluded_pool_replays": n_pool, "pool_seed": seed, "pool_path": os.path.relpath(POOL_PATH, REPO),
+           "pool_sha256": __import__("hashlib").sha256(open(POOL_PATH, "rb").read()).hexdigest(), "builds": list(BUILDS),
            "dates": ["2026-09-01", "2026-09-27"], "beta": {}, "beta_se": {}, "check": {}}
     for j, p in base.items():
         b, se = fit_offset_logistic(_logit(p[fit]), D[fit], y[fit])

@@ -1,0 +1,121 @@
+{
+ "pool": "training/paper1_revision/results/expert_v6/rating-items-v6.json",
+ "pool_seed": 20261001,
+ "shown_ranges": {
+  "low": [
+   "Bronze",
+   "Silver"
+  ],
+  "mid": [
+   "Gold",
+   "Platinum"
+  ],
+  "high": [
+   "Diamond",
+   "Master"
+  ]
+ },
+ "ladder_items": 621,
+ "ladder_missing_in_db": 0,
+ "ladder_outside_shown_range": {
+  "anchors": {
+   "items": 570,
+   "outside": 0
+  },
+  "calibration": {
+   "items": 40,
+   "outside": 0
+  },
+  "screener": {
+   "items": 8,
+   "outside": 0
+  },
+  "catch": {
+   "items": 3,
+   "outside": 0
+  }
+ },
+ "ladder_outside_total": 0,
+ "ladder_item_tier_ne_db_skill_tier": 0,
+ "ladder_rank_counts": {
+  "anchors": {
+   "high": {
+    "Diamond": 120,
+    "Master": 70
+   },
+   "low": {
+    "Bronze": 103,
+    "Silver": 87
+   },
+   "mid": {
+    "Gold": 103,
+    "Platinum": 87
+   }
+  },
+  "calibration": {
+   "high": {
+    "Diamond": 8,
+    "Master": 5
+   },
+   "low": {
+    "Bronze": 6,
+    "Silver": 8
+   },
+   "mid": {
+    "Gold": 9,
+    "Platinum": 4
+   }
+  },
+  "catch": {
+   "high": {
+    "Diamond": 1
+   },
+   "low": {
+    "Bronze": 1
+   },
+   "mid": {
+    "Gold": 1
+   }
+  },
+  "screener": {
+   "high": {
+    "Diamond": 2
+   },
+   "low": {
+    "Bronze": 1,
+    "Silver": 2
+   },
+   "mid": {
+    "Gold": 2,
+    "Platinum": 1
+   }
+  }
+ },
+ "training_window_label_population": {
+  "high": {
+   "Diamond": 286672,
+   "Master": 114602
+  },
+  "low": {
+   "Bronze": 440568,
+   "Silver": 502232
+  },
+  "mid": {
+   "Gold": 504539,
+   "Platinum": 456475
+  },
+  "unknown": {
+   "unknown": 40486
+  }
+ },
+ "machine_label_share_inside_shown_range": {
+  "high": 1.0,
+  "low": 1.0,
+  "mid": 1.0
+ },
+ "machine_items_by_block_tier": {
+  "pairs/high": 93,
+  "pairs/low": 93,
+  "pairs/mid": 94
+ }
+}

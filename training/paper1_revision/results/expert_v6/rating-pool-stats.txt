@@ -1,0 +1,43 @@
+pool seed 20261001, 901 items; evaluators naive, herostrength, enriched, consensus
+[screener] n=8 tiers { high: 2, low: 3, mid: 3 }
+[calibration] n=40 tiers { high: 13, low: 14, mid: 13 }
+[pairs] n=280 tiers { high: 93, low: 93, mid: 94 }
+[anchors] n=570 tiers { high: 190, low: 190, mid: 190 }
+[catch] n=3 tiers { high: 1, low: 1, mid: 1 }
+pairs by stratum {
+  constrained_mcts_vs_mcts: 42,
+  mcts_vs_enriched: 42,
+  other_pairs: 78,
+  vs_anchored: 118
+}
+all items by map {
+  'Alterac Pass': 72,
+  'Battlefield of Eternity': 71,
+  "Blackheart's Bay": 20,
+  'Braxis Holdout': 72,
+  'Cursed Hollow': 72,
+  'Dragon Shire': 70,
+  'Garden of Terror': 72,
+  'Hanamura Temple': 20,
+  'Haunted Mines': 51,
+  'Infernal Shrines': 72,
+  'Sky Temple': 72,
+  'Tomb of the Spider Queen': 75,
+  'Towers of Doom': 70,
+  'Volskaya Foundry': 72,
+  'Warhead Junction': 20
+}
+
+machine pairs: 280
+  near-tie threshold 0.01: exclude 10 -> 270 effective items, 810 planned judgments; item-level worst-case z at 0.60 = 3.29 (uncorrected: 268)
+  near-tie threshold 0.02: exclude 30 -> 250 effective items, 750 planned judgments; item-level worst-case z at 0.60 = 3.16 (uncorrected: 249)
+  near-tie threshold 0.05: exclude 85 -> 195 effective items, 585 planned judgments; item-level worst-case z at 0.60 = 2.79 (uncorrected: 194)
+  evaluator naive alone (0.02): 245 effective items
+  evaluator herostrength alone (0.02): 249 effective items
+  evaluator enriched alone (0.02): 244 effective items
+  evaluator consensus alone (0.02): 250 effective items
+  correction: favored-side flips 2 (of which outside the 0.02 band in both: 1); near-tie status changes at 0.02: 1
+  vs_anchored stratum: 118 items, 112 after 0.02 exclusion (336 judgments)
+
+Bradley-Terry: 10 strategies, 45 of 45 pairings present, 1 connected component(s)
+strategies constrained_greedy, constrained_mcts, cql_enr_a2.0, cql_naive_a1.0, enriched, gd, gourdeau, gourdeau_disc, mcq_t0.5, mcts

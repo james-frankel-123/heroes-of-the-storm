@@ -106,7 +106,8 @@ const RESULT_DIRS = [
   path.join(REPO, 'training/rerun2026/ns/oct2026/results/roundrobin'),
   path.join(REPO, 'training/rerun2026/ns/oct2026/results/constrained/roundrobin'),
 ]
-const OUT_PATH = path.join(REPO, 'data/rating-items.json')
+// RATING_ITEMS_OUT: write somewhere other than the live pool file (v6 review before seeding).
+const OUT_PATH = process.env.RATING_ITEMS_OUT ?? path.join(REPO, 'data/rating-items.json')
 
 const ANCHORED = new Set(['gd', 'cql_naive_a1.0', 'cql_enr_a2.0', 'gourdeau_disc'])
 // Machine-pair matchup strata (v4: single merged count per stratum = the v3
