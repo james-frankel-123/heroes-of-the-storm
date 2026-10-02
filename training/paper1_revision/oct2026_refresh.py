@@ -140,7 +140,8 @@ def build_jobs():
     for name, (argv, outs) in phase1_jobs().items():
         dep = ["phase0_gd"] if name.startswith("gd_") else (
             ["phase0_cql"] if name in ("cql_naive_a1.0", "mcq_t0.5") else ["features"])
-        extra = {"GD_RESUME_PATH": out("models", f"{name}_resume.pt")} if name.startswith("gd_") else None
+        extra = ({"GD_RESUME_PATH": out("models", f"{name}_resume.pt"),
+                  "P1R_GD_WORKERS": str(OPTS["gd_workers"])} if name.startswith("gd_") else None)
         add(name, argv, outs, deps=dep, gpu=True, extra_env=extra)
     disc = os.path.join(RERUN, "train_gourdeau_discriminator.py")
     add("disc_cache", [disc, "--stage", "cache"], [out("feature_cache", "gourdeau_disc_train.npz")],
@@ -164,7 +165,7 @@ def build_jobs():
 
 
 OPTS = {"nproc": 4, "gpu_slots": 2, "cpu_set": "48-63", "hots_cap": 4,
-        "assume_done": set(), "only": None}
+        "assume_done": set(), "only": None, "gd_workers": 0}
 
 
 def done(job):
@@ -426,11 +427,12 @@ if __name__ == "__main__":
     ap.add_argument("--hots-cap", type=int, default=4, help="0 disables the nvidia-smi HotS count")
     ap.add_argument("--assume-done", default="", help="comma list of jobs finished elsewhere")
     ap.add_argument("--only", default="", help="comma list: run only these jobs")
+    ap.add_argument("--gd-workers", type=int, default=0, help="DataLoader workers for GD jobs")
     ap.add_argument("--retry-failed", type=int, default=0, help="seconds before a failed job is retried")
     a = ap.parse_args()
     OPTS.update(nproc=a.nproc, gpu_slots=a.gpu_slots, cpu_set=a.cpu_set, hots_cap=a.hots_cap,
                 assume_done={x for x in a.assume_done.split(",") if x},
-                only={x for x in a.only.split(",") if x} or None, retry_failed=a.retry_failed)
+                only={x for x in a.only.split(",") if x} or None, retry_failed=a.retry_failed, gd_workers=a.gd_workers)
     if a.print_remote_mcts_cmd:
         print(remote_mcts_cmd(a.print_remote_mcts_cmd))
     elif a.mcts_prep:

@@ -14,6 +14,8 @@ PYTHONPATH.
                   evaluator from WP_EVALUATORS (expert study v6 roster, Max
                   2026-10-01). constrained_search builds its roster from
                   phase3b's list at import, so it inherits the change.
+  P1R_GD_WORKERS=N train_generic_draft's DataLoaders get N worker processes
+                  (the 3090 host is CPU-bound at num_workers=0: 49 min/epoch).
 Patches apply on import by module name, so the patched modules must be
 imported (not run as __main__); oct2026_tournament.py does that.
 """
@@ -56,7 +58,18 @@ def _patch_p3b(mod):
     mod.WP_EVALUATORS.pop("augmented", None)
 
 
+def _patch_gd(mod):
+    # Data-loader workers only: the shuffle order comes from the loader's own
+    # seeded generator in the main process, so batches are unchanged.
+    import functools
+    n = int(os.environ["P1R_GD_WORKERS"])
+    mod.DataLoader = functools.partial(mod.DataLoader, num_workers=n, persistent_workers=True,
+                                       prefetch_factor=8)
+
+
 _TARGETS = {}
+if int(os.environ.get("P1R_GD_WORKERS", "0") or 0) > 0:
+    _TARGETS["train_generic_draft"] = _patch_gd
 if os.environ.get("P1R_DROP_AUG") == "1":
     _TARGETS["rerun2026.phase3b_roundrobin"] = _patch_p3b
 if _COMP:
