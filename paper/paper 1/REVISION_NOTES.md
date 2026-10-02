@@ -1377,3 +1377,12 @@ The reported held-out loss (about 33,980) was almost entirely 17 × 1e9 / 500,33
 A toy test (30 + 5 illegal rows) gave the expected chance-level loss ln 90.
 
 **Decision.** The p1site GD pool was restarted from scratch with the fix (10:45 Oct 2). Seeds 1–4 had finished one or two epochs and seed 0 about 11. The saved best checkpoints had been chosen on the noisy metric, and no per-epoch checkpoints exist to reselect from. The old files are kept in `~/hots/gd_oldloss` on both remotes and `rerun2026/ns/p1site/models_gd_oldloss` here.
+
+### 15.13 3080 handed to the production retrain (2026-10-02)
+
+The 91-hero production retrain takes the 3080 from about Oct 3 morning to about Oct 4. The MCTS scheduler's slots are set to 3090: 2 and 3080: 0. The file is read every cycle, and the automatic raise to 2 applies only from 1, so nothing launches on the 3080 until the coordinator frees it.
+
+**Option-B ETA:** about 325 3090-hours of MCTS.
+- 3090 alone from GD landing (about Oct 3 02:00) to about Oct 4 midday: roughly 34 h done.
+- The remaining about 290 h at 1.4× (3090 plus the 3080 at about 0.4×) is about 8.7 days.
+- Finish around Oct 13–14, also allowing for the non-MCTS stage sharing the 3090.
