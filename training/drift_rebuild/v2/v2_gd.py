@@ -21,6 +21,7 @@ Usage: CUDA_VISIBLE_DEVICES=<g> nice -n 19 taskset -c 48-63 \
   python3 drift_rebuild/v2/run.py drift_rebuild/v2/v2_gd.py --pool cutoff --variants 0,1
 """
 import argparse
+import gc
 import json
 import multiprocessing as mp
 import os
@@ -37,15 +38,30 @@ from r5b_fast_gd import train_gd, _batch
 
 
 def samples(rows, dev, with_builds=False):
-    with mp.get_context("fork").Pool(4) as pool:
-        parts = pool.map(_gd_rows_chunk, [rows[i:i + 4000] for i in range(0, len(rows), 4000)])
-    # quantize each part to uint8 before concatenating (values are k/15), so
-    # peak RAM is about a quarter of the float32 version
-    X = np.concatenate([np.rint(p[0] * 15).astype(np.uint8) for p in parts])
-    y = np.concatenate([p[1] for p in parts])
-    out = (torch.from_numpy(X).to(dev), torch.from_numpy(y.astype(np.int64)).to(dev))
+    # Workers get their chunks by pickle; gc.freeze keeps their collector from
+    # touching (and copying) the parent's row dicts. Parts are quantized to
+    # uint8 (values are k/15) as they arrive and written into one buffer, so
+    # no float32 copy and no concatenate copy is ever held. Peak RAM is the
+    # loaded rows plus the uint8 samples.
+    gc.collect()
+    gc.freeze()
+    cap = 20 * len(rows)
+    X = np.empty((cap, 289), np.uint8)
+    y = np.empty(cap, np.int64)
+    b = np.empty(cap, np.int64)
+    n = 0
+    with mp.get_context("fork").Pool(4, maxtasksperchild=50) as pool:
+        for px, py, pb in pool.imap(_gd_rows_chunk, [rows[i:i + 4000] for i in range(0, len(rows), 4000)]):
+            k = len(py)
+            X[n:n + k] = np.rint(px * 15).astype(np.uint8)
+            y[n:n + k] = py
+            b[n:n + k] = pb
+            n += k
+    gc.unfreeze()
+    out = (torch.from_numpy(X[:n]).to(dev), torch.from_numpy(y[:n]).to(dev))
     if with_builds:
-        out = out + (np.concatenate([p[2] for p in parts]),)
+        out = out + (b[:n].copy(),)
+    del X, y, b
     return out
 
 
