@@ -1334,3 +1334,24 @@ The MCTS scheduler uses `mcts_slots.json`: 3090 2, 3080 1. The 3080 goes to 2 au
 **Plan.**
 - All five GD seeds run on the 3090 when it frees.
 - The 3080 takes this lane's MCTS runs (lean snapshot; drill passed) once the GD pool exists.
+
+### 15.11 3090 resumed (2026-10-02 09:57)
+
+**Dependency check.** The trainers' final steps were checked on the 3090:
+- GD writes an ONNX export, then optimize and dynamic quantization for variant 0. A test export plus `optimize_onnx` passed with onnx 1.23.1, onnxruntime 1.30.0 and onnxscript 0.6.2; `onnxruntime.quantization` imports.
+- The CQL, MCQ, IQL and discriminator stages and the sweep end in torch/json writes only.
+
+**Resumed or relaunched:**
+- GD 0 (from epoch 9), GD 1–4 (fresh: no epoch had finished before the pause);
+- the discriminator queue, cqlB, cqlC, the sweep (finished specs kept);
+- cqlA relaunched.
+
+The fetch loops were restarted: the 3090 fetches everything, and the 3080 fetch excludes GD files.
+
+**Measured speeds:**
+- GD with 5 seeds concurrent on the 3090, alongside three CQL-family queues and the sweep: first epoch 19 min. GPU 72%, 24 of 196 GB RAM used.
+- MCTS self-play at 200 sims, from the drills: 3090 about 10 ep/s while shared with the baseline queues; 3080 5–8 ep/s while shared with the drift MCTS.
+
+**ETA:**
+- GD pool: about 11 h for GD 0 (35 epochs left) and about 14 h for GD 1–4, so around Oct 3 01:00.
+- MCTS, option B: about 325 3090-equivalent GPU-hours, on 3090 (2 slots) and 3080 (1 slot, about 0.4 of a 3090 while shared). That is about 9–10 days of wall time from GD landing, so around Oct 12–13. This will be firmed up from the first 400/800-sim runs.
