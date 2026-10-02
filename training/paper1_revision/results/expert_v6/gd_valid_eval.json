@@ -1,0 +1,69 @@
+{
+ "note": "GD 0-4 (oct2026) held-out metrics on VALID rows only, and a count of invalid",
+ "train_rows": 29439680,
+ "train_invalid_rows": 822,
+ "test_rows": 600976,
+ "test_invalid_rows": 18,
+ "test_invalid_row_indices": [
+  58782,
+  199485,
+  203864,
+  221688,
+  222462,
+  257391,
+  312382,
+  330904,
+  344607,
+  365207,
+  370765,
+  391982,
+  420686,
+  471598,
+  494201,
+  512446,
+  549662,
+  600077
+ ],
+ "models": {
+  "gd_0": {
+   "file": "rerun2026/ns/oct2026/models/generic_draft_0.pt",
+   "test_ce_all_rows": 29954.82825270893,
+   "test_ce_valid_rows": 3.5475679040798194,
+   "test_top1_valid": 0.13028863913950725,
+   "test_top5_valid": 0.39121702348583426,
+   "valid_rows": 600958
+  },
+  "gd_1": {
+   "file": "rerun2026/ns/oct2026/models/generic_draft_1.pt",
+   "test_ce_all_rows": 29954.830169590798,
+   "test_ce_valid_rows": 3.5485528938794393,
+   "test_top1_valid": 0.1296846035829459,
+   "test_top5_valid": 0.3909208297418455,
+   "valid_rows": 600958
+  },
+  "gd_2": {
+   "file": "rerun2026/ns/oct2026/models/generic_draft_2.pt",
+   "test_ce_all_rows": 29954.826335827056,
+   "test_ce_valid_rows": 3.5460384190742116,
+   "test_top1_valid": 0.1301671664242759,
+   "test_top5_valid": 0.3920323882867022,
+   "valid_rows": 600958
+  },
+  "gd_3": {
+   "file": "rerun2026/ns/oct2026/models/generic_draft_3.pt",
+   "test_ce_all_rows": 29954.825909853305,
+   "test_ce_valid_rows": 3.546505381823688,
+   "test_top1_valid": 0.13046169615846698,
+   "test_top5_valid": 0.3914915851024531,
+   "valid_rows": 600958
+  },
+  "gd_4": {
+   "file": "rerun2026/ns/oct2026/models/generic_draft_4.pt",
+   "test_ce_all_rows": 29954.840818934532,
+   "test_ce_valid_rows": 3.5598026401179452,
+   "test_top1_valid": 0.12838001990155717,
+   "test_top5_valid": 0.38823345391857667,
+   "valid_rows": 600958
+  }
+ }
+}

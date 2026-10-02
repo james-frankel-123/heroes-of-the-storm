@@ -23,7 +23,7 @@ Paths are relative to the repo root unless they start with `ns/` (=
 | `check-rating-pool-v6.1.txt` | §6.1 output | `a0e0408d0dc09ec6c3c61c0ab9be1276e83456a066c4d374b5a0a886a3ebca4b` |
 | `rating-pool-stats-v6.1.txt` | §6.2 output | `8567d03dd1f44d8e543cf4d1d85ca5248cab43910a029c8a1f4eba99036c1054` |
 | `tier_audit_v6.1.json` | §6.3 output | `7977613be01a72a6b0b5610f09f7ad43e112528f47afb75d62148ac3f1c178bc` |
-| `gd_valid_eval.json` | §2.2 GD metrics on valid rows | see §2.2 |
+| `gd_valid_eval.json` | §2.2 GD metrics on valid rows | `e3ffe7df2feccb3cb470e77b3e608db65fbb1bdea23b0578b8d7bdb60650f418` |
 
 The v6 files (`rating-items-v6*.json`, `struct_correction_v6.json`, `tier_audit.json`,
 `check-rating-pool.txt`, `rating-pool-stats.txt`) are kept for the record and are not
@@ -111,7 +111,21 @@ picked or banned: the mask sets that logit to -1e9, so each such row adds about 
 summed loss. `paper1_revision/oct2026_gd_valid_eval.py` counts those rows and evaluates
 GD 0-4 on the rest (`gd_valid_eval.json`):
 
-GD_VALID_TABLE
+| model | test CE, all rows (as logged) | test CE, valid rows | top-1, valid | top-5, valid |
+|---|---|---|---|---|
+| GD 0 | 29954.83 | 3.5476 | 0.1303 | 0.3912 |
+| GD 1 | 29954.83 | 3.5486 | 0.1297 | 0.3909 |
+| GD 2 | 29954.83 | 3.5460 | 0.1302 | 0.3920 |
+| GD 3 | 29954.83 | 3.5465 | 0.1305 | 0.3915 |
+| GD 4 | 29954.84 | 3.5598 | 0.1284 | 0.3882 |
+
+Invalid rows: test 18 of 600,976 (indices in the json; the same 18 rows the codex
+verifier listed); train 822 of 29,439,680 (0.0028%). In
+the logged training loss each invalid row adds a 1e9-scale term; the paper-1 lane is handling
+GD retraining separately. GD 0, stopped by hand before early stopping, scores within the
+range of GD 1-3 on valid rows (CE 3.548 vs 3.546-3.549; top-1 0.130 vs 0.130-0.131); v6's
+argument that its logged loss "moved by under 1e-6" was not evidence of convergence,
+because that loss is dominated by the 18 invalid rows. `gd_valid_eval.json` sha256 is listed in §0.
 
 GD was not retrained for the pool; the tournament records show how each actor actually
 played.
@@ -279,6 +293,28 @@ an independent re-run gave the same file hash):
 (numpy percentiles; `rating-pool-stats.ts` uses a different percentile rule and prints
 p90/p95 0.00221/0.00255 and 0.00186/0.00243.) Spearman(`ood_var_max`, `ood_var_matchup`)
 = 0.384. Reference substitutions on 181 of 560 probe records.
+
+## 5b. Patch 2.57 heroes
+
+Patch 2.57 (first games 2026-09-28) added Xal'atath and changed six heroes (nerfed:
+Garrosh, Whitemane, Abathur, Qhira; buffed: Mal'Ganis, Yrel). The pool predates it:
+Xal'atath appears in no item. Items with any of the six on either team:
+
+| block | items | affected | low / mid / high affected |
+|---|---|---|---|
+| screener | 8 | 5 | 1 / 2 / 2 |
+| calibration | 40 | 18 | 4 / 6 / 8 |
+| pairs | 280 | 60 | 16 / 19 / 25 |
+| anchors | 570 | 316 | 93 / 106 / 117 |
+| catch | 3 | 1 | 1 / 0 / 0 |
+
+Pairs by stratum: constrained_mcts_vs_mcts 4 of 42, mcts_vs_enriched 12 of 42,
+vs_anchored 22 of 118, other_pairs 22 of 78. Hero appearances across all items:
+Whitemane 118, Garrosh 112, Abathur 85, Qhira 76, Yrel 75, Mal'Ganis 36.
+
+Effective n after the exclusion (prereg v3 §4 sensitivity, descriptive): H1 at 0.02
+255 -> 200 items (765 -> 600 judgments); at 0.01 272 -> 214; at 0.05 204 -> 160; S5
+114 -> 93 items; S1 anchors per tier 190 -> 97 / 84 / 73 (low / mid / high).
 
 ## 6. Automated checks
 
