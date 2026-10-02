@@ -39,7 +39,13 @@ them identical, and the generator's `wpTeam0Sym` equals the labeled file's
 Real-game items (anchors, calibration, screener and catch reals) come from the live DB,
 `replay_draft_data`, with `game_date >= 2026-09-01` and `game_version` in
 `2.55.17.97771`, `2.55.17.98025` only. Nothing from builds released after 2026-09-27 was
-read. The earliest real game in the pool is 2026-09-18 (min replay_id 65,184,997).
+read. In practice all 621 real games are on build 2.55.17.98025, with DB game_date
+from 2026-09-15 01:20 to 2026-09-28 20:26 (anchors 09-15 to 09-28, calibration 09-15 to
+09-28, screener 09-18 to 09-27, catch 09-19 to 09-26); min replay_id 65,184,997. (The
+generator's console line "min anchor game_date = Fri Sep 18" is wrong: it takes the
+minimum of date strings that start with the weekday, so "Fri" sorts before "Tue". The
+DB values above are correct, and `check-rating-pool` checks the >= 2026-09-01 floor
+separately.)
 
 ## 2. Roster and checkpoints
 
