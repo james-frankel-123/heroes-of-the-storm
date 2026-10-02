@@ -1439,11 +1439,12 @@ def phase_export():
     dst = os.path.join(data_dir, "draft-stats-decayed.json")
     shutil.copy(SITE_STATS_JSON, dst)
     log(f"site stats artifact -> {dst}")
-    if out_root != REPO_DIR:
-        # the comp_wr features were computed from this snapshot
-        shutil.copy(COMPOSITIONS_JSON, os.path.join(data_dir, "compositions.json"))
+    # the comp_wr features were computed from this snapshot; cadence.sh deploys
+    # it with the models so the site serves the same table
+    shutil.copy(COMPOSITIONS_JSON, os.path.join(data_dir, "compositions.json"))
     meta_update(exported=True, export_date=datetime.datetime.now().isoformat())
-    log("export complete — commit public/models/ + src/lib/data/draft-stats-decayed.json to deploy")
+    log("export complete — commit public/models/ + src/lib/data/draft-stats-decayed.json "
+        "+ src/lib/data/compositions.json to deploy")
 
 
 PHASES = {"dump": phase_dump, "stats": phase_stats, "data": phase_data, "wp": phase_wp, "lowdata": phase_lowdata,

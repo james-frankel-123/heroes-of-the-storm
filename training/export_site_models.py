@@ -8,8 +8,8 @@ Site models (see src/lib/draft/ai-inference.ts for the consuming code):
         Outputs: policy_logits [B,90], value [B].
   - generic_draft_0.onnx  <- rerun2026/models/generic_draft_0.pt
         Opponent model. Inputs: state [B,289], valid_mask [B,90].
-        Output: hero_logits [B,90]. (Plus the pre-quantized _int8 variant,
-        copied from rerun2026 after a parity check.)
+        Output: hero_logits [B,90]. (No int8 variant: it disagreed with the
+        float model and the site never loaded it.)
   - win_probability.onnx  <- rerun2026/models/wp_enriched_256.pt
         Enriched WP model (283 = 197 base + 86 enriched features; the site
         computes the same 9 enriched groups in computeEnrichedFeatures).
@@ -50,7 +50,6 @@ POLICY_PT = os.environ.get(
 GD_PT = os.environ.get(
     "SITE_GD_PT", os.path.join(RERUN, "models", "generic_draft_0.pt"))
 GD_ONNX_SRC = os.path.join(os.path.dirname(GD_PT), "generic_draft_0.onnx")
-GD_INT8_SRC = os.path.join(os.path.dirname(GD_PT), "generic_draft_0_int8.onnx")
 WP_PT = os.environ.get(
     "SITE_WP_PT", os.path.join(RERUN, "models", "wp_enriched_256.pt"))
 # v1: 197 base + 86 enriched = 283; v2 (HOTS_HERO_SET=v2): 200 + 86 = 286
@@ -107,8 +106,6 @@ def export_gd():
     dst = os.path.join(SITE_MODELS, "generic_draft_0.onnx")
     if os.path.exists(GD_ONNX_SRC):
         shutil.copyfile(GD_ONNX_SRC, dst)
-        if os.path.exists(GD_INT8_SRC):  # site loads float only; int8 optional
-            shutil.copyfile(GD_INT8_SRC, os.path.join(SITE_MODELS, "generic_draft_0_int8.onnx"))
     else:
         # No pre-built ONNX next to the checkpoint (production_refresh case):
         # export fresh with train_generic_draft's recipe.
@@ -135,13 +132,9 @@ def export_gd():
     print(f"gd parity (float): logits maxdiff={maxdiff:.2e}")
     assert maxdiff < 1e-2, "generic_draft_0.onnx does not match generic_draft_0.pt"
 
-    # int8 (when present): check argmax agreement on masked logits
-    dst_int8 = os.path.join(SITE_MODELS, "generic_draft_0_int8.onnx")
-    if os.path.exists(GD_INT8_SRC) and os.path.exists(dst_int8):
-        sess8 = _ort_session(dst_int8)
-        o8 = sess8.run(None, {"state": x.numpy(), "valid_mask": mask.numpy()})[0]
-        agree = (o.argmax(1) == o8.argmax(1)).mean()
-        print(f"gd int8 argmax agreement: {agree:.2f}")
+    # No int8 variant: the site loads the float model only, and the dynamic
+    # int8 quantization train_generic_draft produces disagrees with it (policy
+    # KL ~0.55, argmax agreement 0.00 on 2026-09-30), so it is not exported.
     return dst
 
 
@@ -178,7 +171,8 @@ if __name__ == "__main__":
     export_gd()
     export_wp()
     # Stale artifacts from the April-era multi-policy setup
-    for stale in ["draft_policy.onnx.data", "draft_policy_f400.onnx", "draft_policy_b200.onnx"]:
+    for stale in ["draft_policy.onnx.data", "draft_policy_f400.onnx", "draft_policy_b200.onnx",
+                  "generic_draft_0_int8.onnx"]:
         p = os.path.join(SITE_MODELS, stale)
         if os.path.exists(p):
             os.remove(p)

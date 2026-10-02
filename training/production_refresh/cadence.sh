@@ -32,7 +32,7 @@ nice -n 19 taskset -c 48-63 /home/linuxbrew/.linuxbrew/bin/python3 training/prod
 # to main), so never rebase or commit here.
 DEPLOY_FILES="public/models/draft_policy.onnx public/models/generic_draft_0.onnx
 public/models/win_probability.onnx public/models/partial_wp.onnx
-src/lib/data/draft-stats-decayed.json"
+src/lib/data/draft-stats-decayed.json src/lib/data/compositions.json"
 DEPLOY_DIR=$(mktemp -d /tmp/hots-deploy-XXXXXX)
 trap 'git -C "$REPO" worktree remove --force "$DEPLOY_DIR" 2>/dev/null || true' EXIT
 git fetch origin main
