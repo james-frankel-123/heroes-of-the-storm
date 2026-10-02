@@ -116,6 +116,26 @@ FINE_ROLE_NAMES = ["tank", "bruiser", "healer", "ranged_aa", "ranged_mage",
                    "melee_assassin", "support_utility", "varian", "pusher"]
 FINE_ROLE_TO_IDX = {r: i for i, r in enumerate(FINE_ROLE_NAMES)}
 
+def tie_hero_columns(weight, heroes):
+    """Tie the one-hot identity columns of `heroes` (both team blocks) in a
+    first-layer weight (out x in, inputs t0[NUM_HEROES] then t1[NUM_HEROES])
+    to the mean of their fine-role peers' columns. Called after every
+    optimizer step, it removes the hero's own identity effect: a hero with too
+    few games to learn one (a new release) is then valued through its
+    (shrunk) statistics and its role, like an average hero of that role."""
+    import torch
+    with torch.no_grad():
+        for h in heroes:
+            role = HERO_ROLE_FINE.get(h)
+            peers = [HERO_TO_IDX[p] for p, r in HERO_ROLE_FINE.items()
+                     if r == role and p != h and p in HERO_TO_IDX and p not in heroes]
+            if not peers:
+                continue
+            i = HERO_TO_IDX[h]
+            for off in (0, NUM_HEROES):
+                weight[:, off + i] = weight[:, [off + j for j in peers]].mean(1)
+
+
 # Blizzard 6-role mapping (for composition checks)
 FINE_TO_BLIZZ_ROLE = {
     "tank": "Tank", "bruiser": "Bruiser", "healer": "Healer",

@@ -116,6 +116,8 @@ SRC_COMPOSITIONS = os.path.join(REPO_DIR, "src", "lib", "data", "compositions.js
 # Corpus dump for machines without DB access (phase dump; HOTS_CORPUS_PATH).
 CORPUS_DUMP = os.path.join(RUN_DIR, "corpus.pkl.gz")
 LOW_DATA_JSON = os.path.join(RUN_DIR, "low_data_test_drafts.json")
+# test drafts of each low-data hero's most-played role peers (swing reference)
+PEER_DRAFTS_JSON = os.path.join(RUN_DIR, "peer_test_drafts.json")
 
 # Games from this major version on (2.57 shipped Xal'atath on 2026-09-28).
 MIN_VERSION = (2, 55)
@@ -137,9 +139,12 @@ LOW_DATA_TEST_SHARE = 0.2
 # max(LEVEL_TOL, 2 SE); a genuinely strong new hero is then allowed a large
 # edge over its role peers, but not one the outcomes do not support. Swing:
 # replacing the hero by any same-role peer in a real draft must move the WP
-# by at most SWING_WORST_MAX (catches broken or exploding inputs).
+# by at most SWING_REF_FACTOR times the worst swap measured the same way for
+# its most-played role peers (catches broken or exploding inputs; on
+# 2026-10-02 established ranged mages reached 0.17-0.26).
 LEVEL_TOL = 0.03
-SWING_WORST_MAX = 0.30
+SWING_REF_PEERS = 4          # most-played same-role heroes measured as reference
+SWING_REF_FACTOR = 1.5       # hero's worst swap <= 1.5 x the peers' worst
 
 HALF_LIFE_DAYS = 90.0
 WP_SEEDS = [42, 123, 777]
@@ -594,6 +599,29 @@ def wp_split(rows):
     return train_rows, test_rows, low
 
 
+def peer_test_drafts(rows, test_rows, low):
+    """{low-data hero: {peer: [<=200 test drafts containing that peer]}} for its
+    SWING_REF_PEERS most-played fine-role peers."""
+    import random
+    from collections import Counter
+    from shared import HERO_ROLE_FINE
+    picks = Counter(h for r in rows for h in (r["team0_heroes"] or []) + (r["team1_heroes"] or []))
+    keep = ("replay_id", "game_map", "skill_tier", "team0_heroes", "team1_heroes", "winner")
+    rng = random.Random(0)
+    out = {}
+    for h in low:
+        role = HERO_ROLE_FINE.get(h)
+        peers = sorted((p for p, r in HERO_ROLE_FINE.items() if r == role and p not in low),
+                       key=lambda p: -picks.get(p, 0))[:SWING_REF_PEERS]
+        out[h] = {}
+        for p in peers:
+            ds = [{k: r[k] for k in keep} for r in test_rows
+                  if p in (r["team0_heroes"] or []) + (r["team1_heroes"] or [])
+                  and len(r["team0_heroes"] or []) == 5 and len(r["team1_heroes"] or []) == 5]
+            out[h][p] = rng.sample(ds, min(200, len(ds)))
+    return out
+
+
 def phase_data():
     rows = _load_fresh_corpus()
     train_rows, test_rows, low = wp_split(rows)
@@ -604,6 +632,7 @@ def phase_data():
                for r in test_rows
                if any(h in low for h in (r["team0_heroes"] or []) + (r["team1_heroes"] or []))],
               open(LOW_DATA_JSON, "w"))
+    json.dump(peer_test_drafts(rows, test_rows, low), open(PEER_DRAFTS_JSON, "w"))
     log(f"building out-of-fold WP feature caches ({len(train_rows):,} train / "
         f"{len(test_rows):,} test, {OOF_FOLDS} folds)")
     oof_features(train_rows, FEATURE_CACHE_TRAIN)
@@ -643,6 +672,9 @@ def phase_wp():
     dim = train_X.shape[1]
     assert dim == wp_dim(), f"expected {wp_dim()}-d features, got {dim}"
 
+    from shared import tie_hero_columns
+    tied = tied_heroes()
+    log(f"WP identity columns tied to role mean: {tied or 'none'}")
     best = {"acc": -1.0}
     accs = []
     for seed in WP_SEEDS:
@@ -650,7 +682,9 @@ def phase_wp():
         np.random.seed(seed)
         model = WinProbEnrichedModel(dim, [256, 128], dropout=0.3)
         model, acc = train_wp_model(model, train_X, test_X, train_y, test_y,
-                                    f"prod_wp-s{seed}", device)
+                                    f"prod_wp-s{seed}", device,
+                                    after_step=(lambda m: tie_hero_columns(m.net[0].weight, tied))
+                                    if tied else None)
         accs.append(acc)
         if acc > best["acc"]:
             best = {"acc": acc, "seed": seed,
@@ -666,13 +700,57 @@ def phase_wp():
     slope = calibration_slope(p, y)
     log(f"WP best acc {best['acc']:.2f}% (seed {best['seed']}; all {accs}), "
         f"calibration slope {slope:.3f} on out-of-fold test rows -> {WP_PT}")
-    X = test_X.cpu().numpy()
-    low = json.load(open(META_JSON)).get("data", {}).get("low_data_heroes", {})
     meta_update(wp={"best_acc": best["acc"], "best_seed": best["seed"],
-                    "all_accs": accs, "cal_slope": slope,
-                    "finite": bool(np.isfinite(p).all()),
-                    "low_data": {h: {**hero_calibration(h, X, p, y),
-                                     **swap_check(h, model.cpu())} for h in low}})
+                    "all_accs": accs, "cal_slope": slope, "identity_tied": tied,
+                    "finite": bool(np.isfinite(p).all())})
+
+
+def phase_lowdata():
+    """Calibration and swap checks for low-data heroes on the trained WP
+    (held-out games; feature cache + raw drafts from the data phase)."""
+    import numpy as np
+    import torch
+    from sweep_enriched_wp import WinProbEnrichedModel, compute_group_indices
+    from experiment_synthetic_augmentation import ENRICHED_GROUPS
+    require_compositions()
+    gi = compute_group_indices()
+    cols = [c for g in ENRICHED_GROUPS for c in range(*gi[g])]
+    z = np.load(FEATURE_CACHE_TEST)
+    X = np.concatenate([z["bases"], z["enricheds"][:, cols]], axis=1).astype(np.float32)
+    y = z["labels"].astype(np.float32)
+    model = WinProbEnrichedModel(wp_dim(), [256, 128], dropout=0.3)
+    model.load_state_dict(torch.load(WP_PT, weights_only=True, map_location="cpu"))
+    model.eval()
+    with torch.no_grad():
+        p = torch.cat([model(torch.from_numpy(X[i:i + 65536]))
+                       for i in range(0, len(X), 65536)]).clamp(1e-6, 1 - 1e-6).numpy()
+    low = json.load(open(META_JSON)).get("data", {}).get("low_data_heroes", {})
+    peers = json.load(open(PEER_DRAFTS_JSON)) if os.path.exists(PEER_DRAFTS_JSON) else {}
+    res = {}
+    for h in low:
+        hero_drafts = [d for d in json.load(open(LOW_DATA_JSON))
+                       if h in d["team0_heroes"] + d["team1_heroes"]][:200]
+        r = {**hero_calibration(h, X, p, y), **swap_check(h, hero_drafts, model)}
+        ref = {pr: swap_check(pr, ds, model, quiet=True) for pr, ds in peers.get(h, {}).items()}
+        r["swap_ref"] = {pr: {k: v.get(k) for k in ("swap_mean_delta", "swap_worst_abs_delta")}
+                         for pr, v in ref.items()}
+        worst = [v["swap_worst_abs_delta"] for v in ref.values() if "swap_worst_abs_delta" in v]
+        r["swap_ref_worst"] = max(worst) if worst else None
+        log(f"low-data {h}: swap worst {r.get('swap_worst_abs_delta')} vs role peers' "
+            f"worst {r['swap_ref_worst']} ({r['swap_ref']})")
+        res[h] = r
+    meta_update(low_data=res)
+
+
+def tied_heroes():
+    """Low-data heroes (data phase): their one-hot identity columns in the WP
+    and partial-WP first layers are tied to their role peers' mean during
+    training (shared.tie_hero_columns). With ~1K games a free identity column
+    overfits (2026-10-02, Xal'atath: +0.12 of a +0.18 swap edge came from it,
+    and the WP predicted .66 for her team vs .61 realized); tied, her value
+    comes from her shrunk statistics. She gets her own column once she has
+    LOW_DATA_PICKS picks."""
+    return sorted(json.load(open(META_JSON)).get("data", {}).get("low_data_heroes", {}))
 
 
 def hero_calibration(hero, X, p, y):
@@ -705,9 +783,9 @@ def hero_calibration(hero, X, p, y):
     return out
 
 
-def swap_check(hero, model):
-    """Mean and worst WP change when the low-data hero is replaced, in real
-    test drafts, by each available hero of the same fine role (features from
+def swap_check(hero, drafts, model, quiet=False):
+    """Mean and worst WP change when `hero` is replaced, in real test drafts
+    containing it, by each available hero of the same fine role (features from
     the serving stats, team-order symmetrized)."""
     import numpy as np
     import torch
@@ -727,8 +805,6 @@ def swap_check(hero, model):
     role = HERO_ROLE_FINE[hero]
     peers = [h for h, r in HERO_ROLE_FINE.items() if r == role and h != hero]
     deltas, worst = [], 0.0
-    drafts = [d for d in json.load(open(LOW_DATA_JSON))
-              if hero in d["team0_heroes"] + d["team1_heroes"]][:200]
     for d in drafts:
         own, opp = ((d["team0_heroes"], d["team1_heroes"]) if hero in d["team0_heroes"]
                     else (d["team1_heroes"], d["team0_heroes"]))
@@ -743,7 +819,8 @@ def swap_check(hero, model):
         out.update({"swap_mean_delta": float(np.mean(deltas)),
                     "swap_worst_abs_delta": worst,
                     "swap_finite": bool(np.isfinite(deltas).all())})
-    log(f"WP swap check for {hero} vs {len(peers)} {role} peers: {out}")
+    if not quiet:
+        log(f"WP swap check for {hero} vs {len(peers)} {role} peers: {out}")
     return out
 
 
@@ -776,7 +853,8 @@ def phase_partial():
     env.update({"PARTIAL_WP_MAX_REPLAYS": "500000", "PARTIAL_WP_OUT": PARTIAL_PT,
                 "WP_STATS_PATH": STATS_JSON, "REPLAY_SNAPSHOT": "0",
                 "PARTIAL_WP_OOF_STATS": OOF_STATS_JSON,
-                "PARTIAL_WP_OOF_FOLDS": str(OOF_FOLDS)})
+                "PARTIAL_WP_OOF_FOLDS": str(OOF_FOLDS),
+                "PARTIAL_WP_TIE_HEROES": json.dumps(tied_heroes())})
     subprocess.run([sys.executable, "-u",
                     os.path.join(TRAINING_DIR, "train_partial_wp.py")],
                    env=env, check=True, cwd=TRAINING_DIR)
@@ -1253,7 +1331,10 @@ def check_gates():
     }
     # low-data heroes (e.g. a hero added by a new patch): finite WP and no
     # large swing against the same-role heroes it replaces
-    for h, r in wp.get("low_data", {}).items():
+    missing = sorted(set(m.get("data", {}).get("low_data_heroes", {})) - set(m.get("low_data", {})))
+    if missing:
+        g["low_data_checked"] = {"value": missing, "pass": False}   # lowdata phase not run
+    for h, r in m.get("low_data", {}).items():
         if "mean_pred" in r:
             tol = max(LEVEL_TOL, 2 * r["realized_se"])
             gap = r["mean_pred"] - r["realized"]
@@ -1263,11 +1344,12 @@ def check_gates():
         else:   # too few held-out games to measure: report, do not block
             g[f"low_data_level:{h}"] = {"value": None, "test_games": r.get("test_games"),
                                         "pass": True}
-        v = r.get("swap_worst_abs_delta")
-        g[f"low_data_swing:{h}"] = {"value": v, "max": SWING_WORST_MAX,
+        v, ref = r.get("swap_worst_abs_delta"), r.get("swap_ref_worst")
+        lim = SWING_REF_FACTOR * ref if ref is not None else None
+        g[f"low_data_swing:{h}"] = {"value": v, "max": lim, "peers_worst": ref,
                                     "mean_delta": r.get("swap_mean_delta"),
-                                    "pass": (v is not None and r.get("swap_finite", False)
-                                             and v <= SWING_WORST_MAX)}
+                                    "pass": (v is not None and lim is not None
+                                             and r.get("swap_finite", False) and v <= lim)}
     g["wp_finite"]["pass"] = g["wp_finite"]["value"] is True
     for k in ("wp_acc", "partial_acc", "mcts_proxy_floor"):
         g[k]["pass"] = g[k]["value"] is not None and g[k]["value"] >= g[k]["min"]
@@ -1364,14 +1446,15 @@ def phase_export():
     log("export complete — commit public/models/ + src/lib/data/draft-stats-decayed.json to deploy")
 
 
-PHASES = {"dump": phase_dump, "stats": phase_stats, "data": phase_data, "wp": phase_wp,
+PHASES = {"dump": phase_dump, "stats": phase_stats, "data": phase_data, "wp": phase_wp, "lowdata": phase_lowdata,
           "partial": phase_partial, "gd": phase_gd,
           "kparity": phase_kparity, "mcts": phase_mcts,
           "select": phase_select, "gates": phase_gates,
           "export": phase_export}
 
 
-ALL = ("stats", "data", "wp", "partial", "gd", "kparity", "mcts", "select", "export")
+ALL = ("stats", "data", "wp", "lowdata", "partial", "gd", "kparity", "mcts", "select",
+       "export")
 
 
 def main():

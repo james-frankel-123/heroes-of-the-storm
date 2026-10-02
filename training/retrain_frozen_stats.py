@@ -43,7 +43,9 @@ ALL_MASK = [True] * len(FEATURE_GROUPS)
 
 
 def train_wp_model(model, train_X, test_X, train_y, test_y, name, device,
-                   lr=5e-4, epochs=200, patience=25):
+                   lr=5e-4, epochs=200, patience=25, after_step=None):
+    """after_step(model): optional hook run after every optimizer step (and
+    once before training), e.g. shared.tie_hero_columns."""
     criterion = nn.BCELoss()
     model.to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=5e-3)
@@ -51,6 +53,8 @@ def train_wp_model(model, train_X, test_X, train_y, test_y, name, device,
     best_loss, best_acc, best_state = float('inf'), 0, None
     pat = 0
     n = len(train_X)
+    if after_step is not None:
+        after_step(model)
     for ep in range(epochs):
         model.train()
         pm = torch.randperm(n, device=device)
@@ -58,6 +62,8 @@ def train_wp_model(model, train_X, test_X, train_y, test_y, name, device,
             idx = pm[i:i + 4096]
             loss = criterion(model(train_X[idx]), train_y[idx])
             opt.zero_grad(); loss.backward(); opt.step()
+            if after_step is not None:
+                after_step(model)
         sch.step()
         model.eval()
         with torch.no_grad():

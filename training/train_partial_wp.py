@@ -11,6 +11,7 @@ Usage:
     set -a && source .env && set +a
     python training/train_partial_wp.py
 """
+import json
 import os
 import sys
 import time
@@ -256,6 +257,14 @@ def train():
     param_count = sum(p.numel() for p in model.parameters())
     print(f"  Model parameters: {param_count:,}")
 
+    # PARTIAL_WP_TIE_HEROES (JSON list): tie these heroes' one-hot identity
+    # columns to their role peers' mean after every step (shared.tie_hero_columns)
+    tie = json.loads(os.environ.get("PARTIAL_WP_TIE_HEROES") or "[]")
+    if tie:
+        from shared import tie_hero_columns
+        print(f"  identity tied to role mean: {tie}")
+        tie_hero_columns(model.net[0].weight, tie)
+
     criterion = nn.BCELoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-3)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50)
@@ -280,6 +289,8 @@ def train():
             loss = criterion(preds, Y_batch)
             loss.backward()
             optimizer.step()
+            if tie:
+                tie_hero_columns(model.net[0].weight, tie)
 
             train_loss += loss.item() * len(Y_batch)
             train_correct += ((preds > 0.5).float() == Y_batch).sum().item()
