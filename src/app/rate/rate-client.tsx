@@ -138,6 +138,11 @@ const TIER_META: Record<string, { label: string; ranks: string; className: strin
 
 const CONFIDENCE_LABELS = ['Guess', 'Low', 'Medium', 'High', 'Certain']
 
+// Every draft in the v6.1 pool is from patch 2.55.17 (raters play 2.57).
+const PATCH_INSTRUCTION =
+  "These drafts are from patch 2.55.17, before Xal'atath. Judge them as of that patch."
+const PATCH_NOTE = "Patch 2.55.17 (before Xal'atath)"
+
 export function RateClient() {
   const searchParams = useSearchParams()
 
@@ -426,6 +431,9 @@ export function RateClient() {
                 Judge the whole picture: the composition, the specific map, and what actually
                 works at that skill level.
               </p>
+              <p className="mt-2 font-medium text-foreground" data-testid="rate-patch-instruction">
+                {PATCH_INSTRUCTION}
+              </p>
               <p className="mt-2">
                 Treat every draft as a serious attempt to win: assume both teams picked
                 deliberately and will play their composition earnestly. Some compositions are
@@ -538,6 +546,9 @@ export function RateClient() {
             </div>
             <div className="text-2xl font-extrabold leading-tight sm:text-3xl" data-testid="rate-map">
               {current.map}
+            </div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground" data-testid="rate-patch">
+              {PATCH_NOTE}
             </div>
           </div>
           <div
