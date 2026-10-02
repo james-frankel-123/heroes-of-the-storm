@@ -81,6 +81,7 @@ export const HERO_ROLES: Record<string, HeroRole> = {
   'Valla': 'Ranged Assassin',
   'Zagara': 'Ranged Assassin',
   'Zul\'jin': 'Ranged Assassin',
+  'Xal\'atath': 'Ranged Assassin', // patch 2.57
 
   // Healers
   'Alexstrasza': 'Healer',

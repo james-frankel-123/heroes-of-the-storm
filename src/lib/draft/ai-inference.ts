@@ -13,42 +13,10 @@ import { DRAFT_SEQUENCE, type DraftData } from './types'
 import { HERO_ROLES } from '@/lib/data/hero-roles'
 import compositionsJson from '@/lib/data/compositions.json'
 
-// 90 heroes sorted alphabetically — must match training/shared.py exactly
-const HEROES = [
-  "Abathur","Alarak","Alexstrasza","Ana","Anduin","Anub'arak","Artanis",
-  "Arthas","Auriel","Azmodan","Blaze","Brightwing","Cassia","Chen","Cho",
-  "Chromie","D.Va","Deathwing","Deckard","Dehaka","Diablo","E.T.C.",
-  "Falstad","Fenix","Gall","Garrosh","Gazlowe","Genji","Greymane",
-  "Gul'dan","Hanzo","Hogger","Illidan","Imperius","Jaina","Johanna",
-  "Junkrat","Kael'thas","Kel'Thuzad","Kerrigan","Kharazim","Leoric",
-  "Li Li","Li-Ming","Lt. Morales","Lunara","Lúcio","Maiev","Mal'Ganis",
-  "Malfurion","Malthael","Medivh","Mei","Mephisto","Muradin","Murky",
-  "Nazeebo","Nova","Orphea","Probius","Qhira","Ragnaros","Raynor",
-  "Rehgar","Rexxar","Samuro","Sgt. Hammer","Sonya","Stitches","Stukov",
-  "Sylvanas","Tassadar","The Butcher","The Lost Vikings","Thrall","Tracer",
-  "Tychus","Tyrael","Tyrande","Uther","Valeera","Valla","Varian",
-  "Whitemane","Xul","Yrel","Zagara","Zarya","Zeratul","Zul'jin",
-]
-
-const NUM_HEROES = HEROES.length // 90
-const HERO_TO_IDX: Record<string, number> = {}
-HEROES.forEach((h, i) => { HERO_TO_IDX[h] = i })
-
-const MAPS = [
-  "Alterac Pass", "Battlefield of Eternity", "Blackheart's Bay",
-  "Braxis Holdout", "Cursed Hollow", "Dragon Shire",
-  "Garden of Terror", "Hanamura Temple", "Infernal Shrines",
-  "Sky Temple", "Tomb of the Spider Queen", "Towers of Doom",
-  "Volskaya Foundry", "Warhead Junction",
-]
-const NUM_MAPS = MAPS.length // 14
-const MAP_TO_IDX: Record<string, number> = {}
-MAPS.forEach((m, i) => { MAP_TO_IDX[m] = i })
-
-const SKILL_TIERS = ["low", "mid", "high"]
-const NUM_TIERS = SKILL_TIERS.length // 3
-const TIER_TO_IDX: Record<string, number> = {}
-SKILL_TIERS.forEach((t, i) => { TIER_TO_IDX[t] = i })
+import {
+  HEROES, MAPS, NUM_HEROES, NUM_MAPS, NUM_TIERS, HERO_TO_IDX, MAP_TO_IDX, TIER_TO_IDX,
+  WP_BASE_DIM, ENRICHED_DIM, WP_INPUT_DIM,
+} from './encoding'
 
 // ── ORT loading via CDN ─────────────────────────────────────────────
 
@@ -162,7 +130,7 @@ function encodeState(s: AIDraftState): Float32Array {
   const m = mapToOneHot(s.map)
   const t = tierToOneHot(s.tier)
 
-  // 90*3 + 14 + 3 + 2 + 1 = 290 (last = our_team indicator)
+  // STATE_DIM = heroes*3 + maps + tiers + 2 + 1 (last = our_team indicator)
   const input = new Float32Array(290)
   let offset = 0
   input.set(t0, offset); offset += NUM_HEROES
@@ -531,6 +499,7 @@ const FINE_ROLE_MAP: Record<string, number> = {
   // Ranged Mage
   "Chromie":4,"Gall":4,"Genji":4,"Gul'dan":4,"Jaina":4,"Junkrat":4,"Kael'thas":4,
   "Kel'Thuzad":4,"Li-Ming":4,"Mephisto":4,"Nova":4,"Orphea":4,"Probius":4,"Tassadar":4,
+  "Xal'atath":4,
   // Melee Assassin
   "Alarak":5,"Illidan":5,"Kerrigan":5,"Maiev":5,"Qhira":5,"Samuro":5,
   "The Butcher":5,"Valeera":5,"Zeratul":5,
@@ -557,7 +526,7 @@ function computeEnrichedFeatures(
   map: string,
   draftData: DraftData,
 ): Float32Array {
-  const features = new Float32Array(86)
+  const features = new Float32Array(ENRICHED_DIM)
   let off = 0
 
   // PARITY CONTRACT (2026-08-10): this function must match the Python
@@ -745,7 +714,7 @@ export async function getWinProbability(
     const t1 = heroesToMultiHot(t1h)
     const m = mapToOneHot(map)
     const t = tierToOneHot(tier)
-    const base = new Float32Array(197)
+    const base = new Float32Array(WP_BASE_DIM)
     let off = 0
     base.set(t0, off); off += NUM_HEROES
     base.set(t1, off); off += NUM_HEROES
@@ -754,14 +723,14 @@ export async function getWinProbability(
     let inp: Float32Array
     if (draftData) {
       const enriched = computeEnrichedFeatures(t0h, t1h, map, draftData)
-      inp = new Float32Array(283)
+      inp = new Float32Array(WP_INPUT_DIM)
       inp.set(base, 0)
-      inp.set(enriched, 197)
+      inp.set(enriched, WP_BASE_DIM)
     } else {
-      inp = new Float32Array(283)
+      inp = new Float32Array(WP_INPUT_DIM)
       inp.set(base, 0)
     }
-    const tensor = new ort.Tensor('float32', inp, [1, 283])
+    const tensor = new ort.Tensor('float32', inp, [1, WP_INPUT_DIM])
     const result: any = await withInferLock(() => wpSession.run({ input: tensor }))
     return (result.win_probability.data as Float32Array)[0]
   }
@@ -806,7 +775,7 @@ export { HEROES as AI_HEROES, HERO_TO_IDX as AI_HERO_TO_IDX }
 // ── Partial-draft projection (neutral judge) ────────────────────────
 /**
  * Symmetrized partial-draft win estimate for team0, from the partial-state
- * WP model (same 283 enriched features as the terminal judge + a step
+ * WP model (same WP_INPUT_DIM features as the terminal judge + a step
  * embedding). This is the projection engine for the suggestion rows: it is
  * state-sensitive at every draft stage and converges to the terminal
  * evaluator by construction (instrumented 2026-08-07: r=0.80 with the
@@ -830,14 +799,14 @@ export async function getPartialProjection(
     const t1 = heroesToMultiHot(t1h)
     const m = mapToOneHot(map)
     const tv = tierToOneHot(tier)
-    const inp = new Float32Array(283)
+    const inp = new Float32Array(WP_INPUT_DIM)
     let off = 0
     inp.set(t0, off); off += NUM_HEROES
     inp.set(t1, off); off += NUM_HEROES
     inp.set(m, off); off += NUM_MAPS
     inp.set(tv, off); off += NUM_TIERS
-    inp.set(computeEnrichedFeatures(t0h, t1h, map, draftData), 197)
-    const features = new ort.Tensor('float32', inp, [1, 283])
+    inp.set(computeEnrichedFeatures(t0h, t1h, map, draftData), WP_BASE_DIM)
+    const features = new ort.Tensor('float32', inp, [1, WP_INPUT_DIM])
     const stepT = new ort.Tensor('int64', BigInt64Array.from([stepIdx]), [1])
     const result: any = await withInferLock(() =>
       partialWpSession.run({ features, step: stepT }))
@@ -852,3 +821,4 @@ export async function getPartialProjection(
 
 // Temporary test export (feature-parity harness; safe to keep, tree-shaken in prod)
 export { computeEnrichedFeatures as _testComputeEnrichedFeatures }
+export { FINE_ROLE_MAP as _testFineRoleMap }

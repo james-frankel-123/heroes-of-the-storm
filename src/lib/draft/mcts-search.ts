@@ -10,42 +10,9 @@
  * the time budget is exhausted after the minimum simulation count.
  */
 
-const NUM_HEROES = 90
-const NUM_MAPS = 14
-const NUM_TIERS = 3
-const STATE_DIM = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS + 2 + 1 // 290
-
-const HEROES = [
-  "Abathur","Alarak","Alexstrasza","Ana","Anduin","Anub'arak","Artanis",
-  "Arthas","Auriel","Azmodan","Blaze","Brightwing","Cassia","Chen","Cho",
-  "Chromie","D.Va","Deathwing","Deckard","Dehaka","Diablo","E.T.C.",
-  "Falstad","Fenix","Gall","Garrosh","Gazlowe","Genji","Greymane",
-  "Gul'dan","Hanzo","Hogger","Illidan","Imperius","Jaina","Johanna",
-  "Junkrat","Kael'thas","Kel'Thuzad","Kerrigan","Kharazim","Leoric",
-  "Li Li","Li-Ming","Lt. Morales","Lunara","Lúcio","Maiev","Mal'Ganis",
-  "Malfurion","Malthael","Medivh","Mei","Mephisto","Muradin","Murky",
-  "Nazeebo","Nova","Orphea","Probius","Qhira","Ragnaros","Raynor",
-  "Rehgar","Rexxar","Samuro","Sgt. Hammer","Sonya","Stitches","Stukov",
-  "Sylvanas","Tassadar","The Butcher","The Lost Vikings","Thrall","Tracer",
-  "Tychus","Tyrael","Tyrande","Uther","Valeera","Valla","Varian",
-  "Whitemane","Xul","Yrel","Zagara","Zarya","Zeratul","Zul'jin",
-]
-const HERO_TO_IDX: Record<string, number> = {}
-HEROES.forEach((h, i) => { HERO_TO_IDX[h] = i })
-
-const MAPS = [
-  "Alterac Pass", "Battlefield of Eternity", "Blackheart's Bay",
-  "Braxis Holdout", "Cursed Hollow", "Dragon Shire",
-  "Garden of Terror", "Hanamura Temple", "Infernal Shrines",
-  "Sky Temple", "Tomb of the Spider Queen", "Towers of Doom",
-  "Volskaya Foundry", "Warhead Junction",
-]
-const MAP_TO_IDX: Record<string, number> = {}
-MAPS.forEach((m, i) => { MAP_TO_IDX[m] = i })
-
-const SKILL_TIERS = ["low", "mid", "high"]
-const TIER_TO_IDX: Record<string, number> = {}
-SKILL_TIERS.forEach((t, i) => { TIER_TO_IDX[t] = i })
+import {
+  HEROES, MAPS, NUM_HEROES, NUM_MAPS, NUM_TIERS, STATE_DIM, HERO_TO_IDX, MAP_TO_IDX, TIER_TO_IDX,
+} from './encoding'
 
 const DRAFT_ORDER: [number, 'ban' | 'pick'][] = [
   [0, 'ban'], [1, 'ban'], [0, 'ban'], [1, 'ban'],

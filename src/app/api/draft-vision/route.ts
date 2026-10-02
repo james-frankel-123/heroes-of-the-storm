@@ -20,12 +20,13 @@ const HEROES = [
   'Sylvanas', 'Tassadar', 'The Butcher', 'The Lost Vikings', 'Thrall', 'Tracer',
   'Tychus', 'Tyrael', 'Tyrande', 'Uther', 'Valeera', 'Valla', 'Varian',
   'Whitemane', 'Xul', 'Yrel', 'Zagara', 'Zarya', 'Zeratul', "Zul'jin",
+  "Xal'atath",
 ]
 const MAPS = [
   'Alterac Pass', 'Battlefield of Eternity', "Blackheart's Bay", 'Braxis Holdout',
   'Cursed Hollow', 'Dragon Shire', 'Garden of Terror', 'Hanamura Temple',
   'Infernal Shrines', 'Sky Temple', 'Tomb of the Spider Queen', 'Towers of Doom',
-  'Volskaya Foundry', 'Warhead Junction',
+  'Volskaya Foundry', 'Warhead Junction', 'Haunted Mines',
 ]
 
 const HERO_SET = new Set(HEROES)
