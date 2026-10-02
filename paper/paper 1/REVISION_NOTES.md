@@ -1317,3 +1317,10 @@ The MCTS scheduler uses `mcts_slots.json`: 3090 2, 3080 1. The 3080 goes to 2 au
 - **Lite snapshot.** `site_lite_snapshot.py` (run on the 3090) writes a lean site-tier snapshot: same rows and order, only the fields value pretraining reads (0.64 GB on disk). Loading and splitting it peaks at 3.9 GB RSS, against about 30 GB for the full file.
 - **MCTS pretraining.** `train_mcts.py` uses the lite file for value pretraining under site tiers. The pretraining inputs are identical, so the pretraining is unchanged, and a 3080 MCTS job fits the 15 GB budget. The scheduler pushes the lite file.
 - **GD caches.** gd_train/gd_test (28.6 GB) are being relayed 3090 → main box (rsync, nice 19, ionice idle) for a later push to the 3080, if GD has to run there before the 3090 GPU frees.
+
+### 15.9 3080 drill with the lean snapshot (2026-10-01 21:20)
+
+- **Memory.** Site config B, value pretraining on the lean snapshot. The job used about 13 GB of RAM at peak, the host stayed above 27 GB free, and nothing crashed. Pretraining selected exactly the site training set (1,866,369 replays).
+- **Speed.** Self-play ran at about 5–8 ep/s at 200 sims while the drift MCTS run shared the GPU.
+- **Pause/resume.** Pause checkpointed at episode 768. Resume restored the state and continued from 896, one batch later. The drill was then ended and its run directory removed.
+- **GD 0 on the 3080 is held** for the expert study's GD trainer, per the coordinator. The GD caches are being pushed to the 3080 (light; network and disk only). GD 0 resumes from its epoch-9 checkpoint when the slot frees.
