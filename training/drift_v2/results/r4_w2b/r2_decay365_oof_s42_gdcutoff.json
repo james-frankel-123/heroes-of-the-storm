@@ -1,0 +1,12 @@
+{
+  "cell": "r2_decay365_oof",
+  "seed": 42,
+  "stats": "cutoff",
+  "gd_pool": "cutoff",
+  "drafts": 500,
+  "healer_rate": 77.8,
+  "degen_rate": 27.8,
+  "synergy_future": 0.17638016236617587,
+  "counter_future": 0.10838113723353297,
+  "minutes": 13.2
+}

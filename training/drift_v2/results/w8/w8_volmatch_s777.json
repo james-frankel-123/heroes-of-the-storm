@@ -1,0 +1,53 @@
+{
+  "name": "w8_volmatch_s777",
+  "features": "cumulative_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 777,
+  "cutoff_build": "2.55.14.95918",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": 1593834,
+  "n_train": 1593834,
+  "n_val": 72132,
+  "n_test": 280034,
+  "epochs": 48,
+  "val_acc": 56.781,
+  "test_acc_future": 56.941,
+  "test_acc_sizable": 56.951,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.595
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 55.536
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 57.056
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 56.204
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.292
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 56.905
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.826
+    }
+  },
+  "sanity": null,
+  "minutes": 1.1,
+  "out": "/home/max/hots/repo/training/drift_v2/models/w8_volmatch_s777.pt"
+}

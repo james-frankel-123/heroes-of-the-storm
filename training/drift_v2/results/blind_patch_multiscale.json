@@ -1,0 +1,151 @@
+{
+ "config": {
+  "scales": [
+   2,
+   3,
+   5,
+   7,
+   10,
+   14
+  ],
+  "tol": 3,
+  "min_sep": 10,
+  "split": "2025-01-01",
+  "grid_size": 270
+ },
+ "tuned": {
+  "family": "pick+ban",
+  "top_k": 10,
+  "combiner": "mean",
+  "threshold": 1.4,
+  "f1_train": 0.5,
+  "p_train": 0.75,
+  "r_train": 0.375
+ },
+ "held_out": {
+  "n_detected": 17,
+  "tp": 3,
+  "fp": 14,
+  "fn": 8,
+  "precision": 0.176,
+  "recall": 0.273,
+  "timing_err_days": [
+   0,
+   -3,
+   0
+  ]
+ },
+ "held_out_curve": [
+  {
+   "threshold": 1.2,
+   "n": 23,
+   "precision": 0.13,
+   "recall": 0.273
+  },
+  {
+   "threshold": 1.4,
+   "n": 17,
+   "precision": 0.176,
+   "recall": 0.273
+  },
+  {
+   "threshold": 1.6,
+   "n": 11,
+   "precision": 0.273,
+   "recall": 0.273
+  },
+  {
+   "threshold": 1.8,
+   "n": 9,
+   "precision": 0.333,
+   "recall": 0.273
+  },
+  {
+   "threshold": 2.0,
+   "n": 8,
+   "precision": 0.25,
+   "recall": 0.182
+  },
+  {
+   "threshold": 2.4,
+   "n": 6,
+   "precision": 0.333,
+   "recall": 0.182
+  },
+  {
+   "threshold": 2.8,
+   "n": 4,
+   "precision": 0.5,
+   "recall": 0.182
+  },
+  {
+   "threshold": 3.2,
+   "n": 4,
+   "precision": 0.5,
+   "recall": 0.182
+  },
+  {
+   "threshold": 4.0,
+   "n": 3,
+   "precision": 0.667,
+   "recall": 0.182
+  }
+ ],
+ "per_test_boundary": [
+  {
+   "build": "2.55.9.93640",
+   "date": "2025-02-03",
+   "peak_score": 1.5
+  },
+  {
+   "build": "2.55.10.93810",
+   "date": "2025-03-12",
+   "peak_score": 1.01
+  },
+  {
+   "build": "2.55.10.94189",
+   "date": "2025-05-15",
+   "peak_score": 1.81
+  },
+  {
+   "build": "2.55.10.94387",
+   "date": "2025-06-02",
+   "peak_score": 2.36
+  },
+  {
+   "build": "2.55.10.94470",
+   "date": "2025-06-15",
+   "peak_score": 2.68
+  },
+  {
+   "build": "2.55.12.94786",
+   "date": "2025-08-04",
+   "peak_score": 1.72
+  },
+  {
+   "build": "2.55.13.95301",
+   "date": "2025-10-06",
+   "peak_score": 1.59
+  },
+  {
+   "build": "2.55.14.95817",
+   "date": "2025-12-05",
+   "peak_score": 9.4
+  },
+  {
+   "build": "2.55.14.95918",
+   "date": "2025-12-16",
+   "peak_score": 2.41
+  },
+  {
+   "build": "2.55.15.96477",
+   "date": "2026-02-20",
+   "peak_score": 3.07
+  },
+  {
+   "build": "2.55.16.96881",
+   "date": "2026-04-21",
+   "peak_score": 7.49
+  }
+ ]
+}

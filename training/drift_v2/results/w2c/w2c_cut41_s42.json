@@ -1,0 +1,37 @@
+{
+  "name": "w2c_cut41_s42",
+  "features": "cumulative_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.16.96846",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 3723490,
+  "n_val": 75988,
+  "n_test": 87198,
+  "epochs": 54,
+  "val_acc": 57.222,
+  "test_acc_future": 57.233,
+  "test_acc_sizable": 57.223,
+  "test_acc_per_build": {
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.545
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 57.241
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 57.178
+    }
+  },
+  "sanity": null,
+  "minutes": 1.6,
+  "out": "/home/max/hots/repo/training/drift_v2/models/w2c_cut41_s42.pt"
+}

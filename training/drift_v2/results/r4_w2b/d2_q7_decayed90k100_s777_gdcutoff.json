@@ -1,0 +1,12 @@
+{
+  "cell": "d2:q7_decayed90k100",
+  "seed": 777,
+  "stats": "cutoff",
+  "gd_pool": "cutoff",
+  "drafts": 500,
+  "healer_rate": 94.0,
+  "degen_rate": 11.6,
+  "synergy_future": 0.23973739150461235,
+  "counter_future": 0.15683013257863365,
+  "minutes": 11.9
+}

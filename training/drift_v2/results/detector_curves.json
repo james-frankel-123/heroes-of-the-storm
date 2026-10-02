@@ -1,0 +1,1068 @@
+{
+  "_meta": {
+    "phase": "Q11 detector operating curves",
+    "detector": "W3b wr_bh family: two-proportion WR z-test per hero (>= 200 games/side), BH FDR within boundary at level q (swept); latency = z_naive sequential test at day boundaries (fixed across the sweep)",
+    "replay": "W2c detector-triggered arm, fixed C0 model w2c_cut08_s42, first-detection latency, refresh = stats cumulative through fired build's predecessor",
+    "ground_truth": "source: Official Blizzard patch notes via news.blizzard.com (index: https://news.blizzard.com/en-us/api/feed/heroes-of...; fetch: Plain HTTP GET, stdlib urllib. Blizzard: JSON feed API paginated with ?offset=N, then each article's HTML pars...; 59 patches; 45 corpus builds with known truth (19 with zero balance changes); bugfix-only/ARAM-only hero mentions excluded from truth",
+    "paper_operating_point": {
+      "alpha": 0.05,
+      "tp": 46,
+      "fp": 13,
+      "fn": 687,
+      "precision": 0.78,
+      "recall": 0.063,
+      "f1": 0.116,
+      "refreshes": 14,
+      "weighted_acc": 56.189,
+      "regret_pp": 0.677
+    }
+  },
+  "operating_points": [
+    {
+      "alpha": 0.001,
+      "tp": 17,
+      "fp": 2,
+      "fn": 716,
+      "precision": 0.895,
+      "recall": 0.023,
+      "f1": 0.045,
+      "n_fires": 9,
+      "refreshes": 9,
+      "weighted_acc": 56.156,
+      "regret_pp": 0.71
+    },
+    {
+      "alpha": 0.005,
+      "tp": 21,
+      "fp": 3,
+      "fn": 712,
+      "precision": 0.875,
+      "recall": 0.029,
+      "f1": 0.055,
+      "n_fires": 11,
+      "refreshes": 11,
+      "weighted_acc": 56.172,
+      "regret_pp": 0.694
+    },
+    {
+      "alpha": 0.01,
+      "tp": 23,
+      "fp": 4,
+      "fn": 710,
+      "precision": 0.852,
+      "recall": 0.031,
+      "f1": 0.061,
+      "n_fires": 11,
+      "refreshes": 11,
+      "weighted_acc": 56.172,
+      "regret_pp": 0.694
+    },
+    {
+      "alpha": 0.02,
+      "tp": 28,
+      "fp": 6,
+      "fn": 705,
+      "precision": 0.824,
+      "recall": 0.038,
+      "f1": 0.073,
+      "n_fires": 12,
+      "refreshes": 12,
+      "weighted_acc": 56.176,
+      "regret_pp": 0.69
+    },
+    {
+      "alpha": 0.05,
+      "tp": 46,
+      "fp": 13,
+      "fn": 687,
+      "precision": 0.78,
+      "recall": 0.063,
+      "f1": 0.116,
+      "n_fires": 14,
+      "refreshes": 14,
+      "weighted_acc": 56.189,
+      "regret_pp": 0.677
+    },
+    {
+      "alpha": 0.1,
+      "tp": 54,
+      "fp": 23,
+      "fn": 679,
+      "precision": 0.701,
+      "recall": 0.074,
+      "f1": 0.133,
+      "n_fires": 16,
+      "refreshes": 16,
+      "weighted_acc": 56.193,
+      "regret_pp": 0.673
+    },
+    {
+      "alpha": 0.2,
+      "tp": 63,
+      "fp": 34,
+      "fn": 670,
+      "precision": 0.649,
+      "recall": 0.086,
+      "f1": 0.152,
+      "n_fires": 18,
+      "refreshes": 18,
+      "weighted_acc": 56.199,
+      "regret_pp": 0.667
+    },
+    {
+      "alpha": 0.35,
+      "tp": 84,
+      "fp": 73,
+      "fn": 649,
+      "precision": 0.535,
+      "recall": 0.115,
+      "f1": 0.189,
+      "n_fires": 18,
+      "refreshes": 18,
+      "weighted_acc": 56.199,
+      "regret_pp": 0.667
+    },
+    {
+      "alpha": 0.5,
+      "tp": 115,
+      "fp": 146,
+      "fn": 618,
+      "precision": 0.441,
+      "recall": 0.157,
+      "f1": 0.231,
+      "n_fires": 19,
+      "refreshes": 19,
+      "weighted_acc": 56.202,
+      "regret_pp": 0.664
+    }
+  ],
+  "reference_rows": {
+    "oracle_weighted_acc": 56.866,
+    "never_refresh": {
+      "refreshes": 0,
+      "weighted_acc": 55.845,
+      "regret_pp": 1.021
+    },
+    "every_build_refresh": {
+      "refreshes": 35,
+      "weighted_acc": 56.204,
+      "regret_pp": 0.662
+    }
+  },
+  "fire_schedules": {
+    "0.001": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 1,
+        "lat_first": 8748,
+        "lat_median": 8748.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 1,
+        "lat_first": 3027,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 1,
+        "lat_first": 958,
+        "lat_median": 958.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 1,
+        "lat_first": 1975,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 4,
+        "lat_first": 1642,
+        "lat_median": 5686.5
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 1,
+        "lat_first": 2518,
+        "lat_median": 2518.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 4,
+        "lat_first": 3483,
+        "lat_median": 13634.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 2,
+        "lat_first": 1840,
+        "lat_median": 3409.5
+      }
+    ],
+    "0.005": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 1,
+        "lat_first": 8748,
+        "lat_median": 8748.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 1,
+        "lat_first": 3027,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 2,
+        "lat_first": 958,
+        "lat_median": 1860.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 2,
+        "lat_first": 1975,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2281,
+        "lat_median": 2281.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 4,
+        "lat_first": 1642,
+        "lat_median": 5686.5
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 1,
+        "lat_first": 2518,
+        "lat_median": 2518.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 1,
+        "lat_first": 10198,
+        "lat_median": 10198.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 4,
+        "lat_first": 3483,
+        "lat_median": 13634.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 2,
+        "lat_first": 1840,
+        "lat_median": 3409.5
+      }
+    ],
+    "0.01": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 1,
+        "lat_first": 8748,
+        "lat_median": 8748.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 1,
+        "lat_first": 3027,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 2,
+        "lat_first": 958,
+        "lat_median": 1860.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 2,
+        "lat_first": 1975,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2281,
+        "lat_median": 2281.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 4,
+        "lat_first": 1642,
+        "lat_median": 5686.5
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 1,
+        "lat_first": 2518,
+        "lat_median": 2518.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 1,
+        "lat_first": 10198,
+        "lat_median": 10198.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 7,
+        "lat_first": 3483,
+        "lat_median": 17004.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 2,
+        "lat_first": 1840,
+        "lat_median": 3409.5
+      }
+    ],
+    "0.02": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 3,
+        "lat_first": 2655,
+        "lat_median": 2655.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 1,
+        "lat_first": 3027,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 2,
+        "lat_first": 958,
+        "lat_median": 1860.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 3,
+        "lat_first": 572,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2281,
+        "lat_median": 2281.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 4,
+        "lat_first": 1642,
+        "lat_median": 5686.5
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 1,
+        "lat_first": 2518,
+        "lat_median": 2518.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 1,
+        "lat_first": 4773,
+        "lat_median": 4773.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 1,
+        "lat_first": 10198,
+        "lat_median": 10198.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 10,
+        "lat_first": 3483,
+        "lat_median": 19832.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 2,
+        "lat_first": 1840,
+        "lat_median": 3409.5
+      }
+    ],
+    "0.05": [
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 4,
+        "lat_first": 2655,
+        "lat_median": 4093.5
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 2,
+        "lat_first": 2055,
+        "lat_median": 2541.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 3,
+        "lat_first": 958,
+        "lat_median": 2762.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 1,
+        "lat_first": 3245,
+        "lat_median": 3245.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 1,
+        "lat_first": 6947,
+        "lat_median": 6947.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 5,
+        "lat_first": 572,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2281,
+        "lat_median": 2281.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 5,
+        "lat_first": 1642,
+        "lat_median": 8159.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 3,
+        "lat_first": 2518,
+        "lat_median": 8611.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 3,
+        "lat_first": 4773,
+        "lat_median": 7495.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 3,
+        "lat_first": 10198,
+        "lat_median": 12410.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 11,
+        "lat_first": 3483,
+        "lat_median": 21345.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 4,
+        "lat_first": 1840,
+        "lat_median": 4193.5
+      }
+    ],
+    "0.1": [
+      {
+        "build": "2.55.3.90670",
+        "pos": 9,
+        "n_detections": 1,
+        "lat_first": 1776,
+        "lat_median": 1776.0
+      },
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 6,
+        "lat_first": 981,
+        "lat_median": 4093.5
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 2,
+        "lat_first": 2055,
+        "lat_median": 2541.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 3,
+        "lat_first": 958,
+        "lat_median": 2762.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 1,
+        "lat_first": 3245,
+        "lat_median": 3245.0
+      },
+      {
+        "build": "2.55.9.93640",
+        "pos": 25,
+        "n_detections": 5,
+        "lat_first": 2721,
+        "lat_median": 9018.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 1,
+        "lat_first": 6947,
+        "lat_median": 6947.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 5,
+        "lat_first": 572,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2281,
+        "lat_median": 2281.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 9,
+        "lat_first": 1642,
+        "lat_median": 4817.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 4,
+        "lat_first": 2518,
+        "lat_median": 12387.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 5,
+        "lat_first": 4773,
+        "lat_median": 7495.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 3,
+        "lat_first": 10198,
+        "lat_median": 12410.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 12,
+        "lat_first": 3483,
+        "lat_median": 22002.5
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 4,
+        "lat_first": 1840,
+        "lat_median": 4193.5
+      }
+    ],
+    "0.2": [
+      {
+        "build": "2.55.3.90670",
+        "pos": 9,
+        "n_detections": 1,
+        "lat_first": 1776,
+        "lat_median": 1776.0
+      },
+      {
+        "build": "2.55.3.91093",
+        "pos": 12,
+        "n_detections": 2,
+        "lat_first": 5300,
+        "lat_median": 6139.0
+      },
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 8,
+        "lat_first": 981,
+        "lat_median": 7140.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 2,
+        "lat_first": 2055,
+        "lat_median": 2541.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 3,
+        "lat_first": 958,
+        "lat_median": 2762.0
+      },
+      {
+        "build": "2.55.7.93151",
+        "pos": 20,
+        "n_detections": 1,
+        "lat_first": 4801,
+        "lat_median": 4801.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 2,
+        "lat_first": 2077,
+        "lat_median": 2661.0
+      },
+      {
+        "build": "2.55.9.93640",
+        "pos": 25,
+        "n_detections": 5,
+        "lat_first": 2721,
+        "lat_median": 9018.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 1,
+        "lat_first": 6947,
+        "lat_median": 6947.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 5,
+        "lat_first": 572,
+        "lat_median": 1975.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2281,
+        "lat_median": 2281.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 1,
+        "lat_first": 448,
+        "lat_median": 448.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 10,
+        "lat_first": 1642,
+        "lat_median": 6488.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 5,
+        "lat_first": 2518,
+        "lat_median": 16163.0
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 6,
+        "lat_first": 4773,
+        "lat_median": 9587.5
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 3,
+        "lat_first": 10198,
+        "lat_median": 12410.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 16,
+        "lat_first": 3483,
+        "lat_median": 19174.5
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 6,
+        "lat_first": 1840,
+        "lat_median": 4193.5
+      }
+    ],
+    "0.35": [
+      {
+        "build": "2.55.3.90670",
+        "pos": 9,
+        "n_detections": 1,
+        "lat_first": 1776,
+        "lat_median": 1776.0
+      },
+      {
+        "build": "2.55.3.91093",
+        "pos": 12,
+        "n_detections": 2,
+        "lat_first": 5300,
+        "lat_median": 6139.0
+      },
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 11,
+        "lat_first": 981,
+        "lat_median": 8748.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 3,
+        "lat_first": 2055,
+        "lat_median": 3027.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 4,
+        "lat_first": 958,
+        "lat_median": 5396.0
+      },
+      {
+        "build": "2.55.7.93151",
+        "pos": 20,
+        "n_detections": 3,
+        "lat_first": 2548,
+        "lat_median": 4801.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 2,
+        "lat_first": 2077,
+        "lat_median": 2661.0
+      },
+      {
+        "build": "2.55.9.93640",
+        "pos": 25,
+        "n_detections": 12,
+        "lat_first": 439,
+        "lat_median": 11973.5
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 8,
+        "lat_first": 1647,
+        "lat_median": 31808.5
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 6,
+        "lat_first": 572,
+        "lat_median": 5574.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 1,
+        "lat_first": 2281,
+        "lat_median": 2281.0
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 4,
+        "lat_first": 448,
+        "lat_median": 4266.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 16,
+        "lat_first": 1642,
+        "lat_median": 8159.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 8,
+        "lat_first": 734,
+        "lat_median": 18558.5
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 6,
+        "lat_first": 4773,
+        "lat_median": 9587.5
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 5,
+        "lat_first": 1920,
+        "lat_median": 12410.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 24,
+        "lat_first": 1571,
+        "lat_median": 16015.5
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 9,
+        "lat_first": 1840,
+        "lat_median": 3408.0
+      }
+    ],
+    "0.5": [
+      {
+        "build": "2.55.3.90670",
+        "pos": 9,
+        "n_detections": 8,
+        "lat_first": 975,
+        "lat_median": 22702.0
+      },
+      {
+        "build": "2.55.3.91093",
+        "pos": 12,
+        "n_detections": 2,
+        "lat_first": 5300,
+        "lat_median": 6139.0
+      },
+      {
+        "build": "2.55.4.91418",
+        "pos": 14,
+        "n_detections": 4,
+        "lat_first": 8469,
+        "lat_median": 20956.5
+      },
+      {
+        "build": "2.55.5.92264",
+        "pos": 16,
+        "n_detections": 14,
+        "lat_first": 981,
+        "lat_median": 23012.0
+      },
+      {
+        "build": "2.55.6.92665",
+        "pos": 17,
+        "n_detections": 6,
+        "lat_first": 263,
+        "lat_median": 4105.0
+      },
+      {
+        "build": "2.55.7.93054",
+        "pos": 19,
+        "n_detections": 4,
+        "lat_first": 958,
+        "lat_median": 5396.0
+      },
+      {
+        "build": "2.55.7.93151",
+        "pos": 20,
+        "n_detections": 3,
+        "lat_first": 2548,
+        "lat_median": 4801.0
+      },
+      {
+        "build": "2.55.8.93382",
+        "pos": 22,
+        "n_detections": 5,
+        "lat_first": 2077,
+        "lat_median": 5163.0
+      },
+      {
+        "build": "2.55.9.93640",
+        "pos": 25,
+        "n_detections": 16,
+        "lat_first": 439,
+        "lat_median": 7941.0
+      },
+      {
+        "build": "2.55.10.93810",
+        "pos": 26,
+        "n_detections": 14,
+        "lat_first": 1647,
+        "lat_median": 37034.0
+      },
+      {
+        "build": "2.55.10.94189",
+        "pos": 27,
+        "n_detections": 7,
+        "lat_first": 572,
+        "lat_median": 9173.0
+      },
+      {
+        "build": "2.55.10.94387",
+        "pos": 28,
+        "n_detections": 2,
+        "lat_first": 2281,
+        "lat_median": 9869.5
+      },
+      {
+        "build": "2.55.10.94470",
+        "pos": 29,
+        "n_detections": 10,
+        "lat_first": 448,
+        "lat_median": 8270.0
+      },
+      {
+        "build": "2.55.12.94786",
+        "pos": 31,
+        "n_detections": 35,
+        "lat_first": 1642,
+        "lat_median": 9158.0
+      },
+      {
+        "build": "2.55.13.95301",
+        "pos": 33,
+        "n_detections": 8,
+        "lat_first": 734,
+        "lat_median": 18558.5
+      },
+      {
+        "build": "2.55.14.95817",
+        "pos": 35,
+        "n_detections": 11,
+        "lat_first": 4773,
+        "lat_median": 15693.0
+      },
+      {
+        "build": "2.55.14.95918",
+        "pos": 37,
+        "n_detections": 5,
+        "lat_first": 1920,
+        "lat_median": 12410.0
+      },
+      {
+        "build": "2.55.15.96477",
+        "pos": 40,
+        "n_detections": 26,
+        "lat_first": 1571,
+        "lat_median": 17004.0
+      },
+      {
+        "build": "2.55.16.96881",
+        "pos": 43,
+        "n_detections": 23,
+        "lat_first": 1840,
+        "lat_median": 5885.5
+      }
+    ]
+  }
+}

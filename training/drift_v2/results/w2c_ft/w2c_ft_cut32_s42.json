@@ -1,0 +1,73 @@
+{
+  "name": "w2c_ft_cut32_s42",
+  "features": "cumulative_prev",
+  "regime": "window",
+  "window": 6,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.13.95213",
+  "init_from": "drift_v2/models/w2c_ft_cut29_s42.pt",
+  "lr": 5e-05,
+  "max_epochs": 5,
+  "max_train_rows": null,
+  "n_train": 458934,
+  "n_val": 9366,
+  "n_test": 842538,
+  "epochs": 5,
+  "val_acc": 57.25,
+  "test_acc_future": 56.929,
+  "test_acc_sizable": 56.934,
+  "test_acc_per_build": {
+    "2.55.13.95301": {
+      "n_rows": 267856,
+      "acc": 56.921
+    },
+    "2.55.14.95774": {
+      "n_rows": 14666,
+      "acc": 57.555
+    },
+    "2.55.14.95817": {
+      "n_rows": 49380,
+      "acc": 56.707
+    },
+    "2.55.14.95883": {
+      "n_rows": 334,
+      "acc": 59.581
+    },
+    "2.55.14.95918": {
+      "n_rows": 230268,
+      "acc": 56.941
+    },
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.477
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 56.243
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 57.048
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 55.938
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.581
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 56.897
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.855
+    }
+  },
+  "sanity": null,
+  "minutes": 1.9,
+  "out": "/home/max/heroes-of-the-storm/training/drift_v2/models/w2c_ft_cut32_s42.pt"
+}

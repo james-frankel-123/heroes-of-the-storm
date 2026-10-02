@@ -1,0 +1,69 @@
+{
+  "name": "w8c_cumulative_s777",
+  "features": "cumulative_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 777,
+  "cutoff_build": "2.55.13.95301",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 3245756,
+  "n_val": 66238,
+  "n_test": 574682,
+  "epochs": 52,
+  "val_acc": 57.379,
+  "test_acc_future": 57.047,
+  "test_acc_sizable": 56.965,
+  "test_acc_per_build": {
+    "2.55.14.95774": {
+      "n_rows": 14666,
+      "acc": 57.255
+    },
+    "2.55.14.95817": {
+      "n_rows": 49380,
+      "acc": 56.977
+    },
+    "2.55.14.95883": {
+      "n_rows": 334,
+      "acc": 59.581
+    },
+    "2.55.14.95918": {
+      "n_rows": 230268,
+      "acc": 57.172
+    },
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.621
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 55.241
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 57.089
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 55.249
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 56.968
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 56.887
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.78
+    }
+  },
+  "sanity": null,
+  "minutes": 1.4,
+  "out": "/home/max/hots/repo/training/drift_v2/models/w8c_cumulative_s777.pt"
+}

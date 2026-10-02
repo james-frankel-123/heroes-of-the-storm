@@ -1,0 +1,70 @@
+{
+  "name": "r2_win3_oof_s42",
+  "features": "oof_2.55.14.95918",
+  "regime": "window",
+  "window": 3,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.14.95918",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 274384,
+  "n_val": 5598,
+  "n_test": 280034,
+  "epochs": 34,
+  "val_acc": 57.324,
+  "test_acc_future": 56.587,
+  "test_acc_sizable": 56.619,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 55.861
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 55.065
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 56.773
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 55.037
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 55.415
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 56.652
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.491
+    }
+  },
+  "sanity": {
+    "passed_28": 23,
+    "passed_21": 17,
+    "by_category": {
+      "absurd": "7/8",
+      "trap": "4/5",
+      "normal": "3/5",
+      "symmetry": "9/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.20645245909690857,
+      "5 healers": 0.21543751657009125,
+      "5 ranged assassins": 0.4344819486141205,
+      "5 melee assassins": 0.4924698770046234,
+      "3T 2H no damage": 0.32574406266212463,
+      "No healer high WR": 0.4966273605823517
+    }
+  },
+  "minutes": 0.2,
+  "out": "/home/max/heroes-of-the-storm/training/drift_v2/models/r2_win3_oof_s42.pt"
+}

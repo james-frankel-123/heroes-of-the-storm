@@ -1,0 +1,70 @@
+{
+  "name": "r2_win3_oof_s123",
+  "features": "oof_2.55.14.95918",
+  "regime": "window",
+  "window": 3,
+  "half_life": null,
+  "seed": 123,
+  "cutoff_build": "2.55.14.95918",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 274384,
+  "n_val": 5598,
+  "n_test": 280034,
+  "epochs": 28,
+  "val_acc": 57.27,
+  "test_acc_future": 56.554,
+  "test_acc_sizable": 56.56,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 55.877
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 56.419
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 56.651
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 56.469
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 56.101
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 56.682
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.52
+    }
+  },
+  "sanity": {
+    "passed_28": 22,
+    "passed_21": 17,
+    "by_category": {
+      "absurd": "6/8",
+      "trap": "4/5",
+      "normal": "4/5",
+      "symmetry": "8/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.2692890167236328,
+      "5 healers": 0.3021255135536194,
+      "5 ranged assassins": 0.47023850679397583,
+      "5 melee assassins": 0.5202547907829285,
+      "3T 2H no damage": 0.3429616093635559,
+      "No healer high WR": 0.4948630630970001
+    }
+  },
+  "minutes": 0.2,
+  "out": "/home/max/hots/repo/training/drift_v2/models/r2_win3_oof_s123.pt"
+}

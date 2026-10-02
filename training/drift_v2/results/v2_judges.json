@@ -1,0 +1,122 @@
+{
+  "2022-07": {
+    "vintage": "2022-07",
+    "n_games": 314727,
+    "n_train_aug": 566510,
+    "n_test": 31472,
+    "window_min_date": "2021-12-07",
+    "window_max_date": "2022-07-31",
+    "holdout_acc": 0.5717463141840367,
+    "auc": 0.5987165475578707,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "2023-07": {
+    "vintage": "2023-07",
+    "n_games": 314727,
+    "n_train_aug": 566510,
+    "n_test": 31472,
+    "window_min_date": "2022-08-15",
+    "window_max_date": "2023-07-31",
+    "holdout_acc": 0.5676792069140824,
+    "auc": 0.5927420889927595,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "2024-07": {
+    "vintage": "2024-07",
+    "n_games": 314727,
+    "n_train_aug": 566510,
+    "n_test": 31472,
+    "window_min_date": "2023-08-21",
+    "window_max_date": "2024-07-31",
+    "holdout_acc": 0.5669166243009659,
+    "auc": 0.5935782769324415,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "2025-07": {
+    "vintage": "2025-07",
+    "n_games": 314727,
+    "n_train_aug": 566510,
+    "n_test": 31472,
+    "window_min_date": "2024-12-04",
+    "window_max_date": "2025-07-31",
+    "holdout_acc": 0.5641522623284189,
+    "auc": 0.585084337717235,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "2026-build": {
+    "vintage": "2026-build",
+    "n_games": 314727,
+    "n_train_aug": 566510,
+    "n_test": 31472,
+    "window_min_date": "2025-09-17",
+    "window_max_date": "2026-02-10",
+    "holdout_acc": 0.5647241992882562,
+    "auc": 0.5909385052099779,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "2022Q1-ranked": {
+    "vintage": "2022Q1-ranked",
+    "n_games": 158701,
+    "n_train_aug": 285662,
+    "n_test": 15870,
+    "window_min_date": "2021-12-07",
+    "window_max_date": "2022-03-31",
+    "holdout_acc": 0.5791430371770636,
+    "auc": 0.6072895340556203,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "QM-2021": {
+    "vintage": "QM-2021",
+    "n_games": 95581,
+    "n_train_aug": 172046,
+    "n_test": 9558,
+    "window_min_date": "2021-12-07",
+    "window_max_date": "2021-12-31",
+    "holdout_acc": 0.6123666038920276,
+    "auc": 0.6477959971611396,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "QM-2022": {
+    "vintage": "QM-2022",
+    "n_games": 129303,
+    "n_train_aug": 232746,
+    "n_test": 12930,
+    "window_min_date": "2022-01-01",
+    "window_max_date": "2022-02-07",
+    "holdout_acc": 0.6016241299303944,
+    "auc": 0.6417744865607579,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "QM-2024": {
+    "vintage": "QM-2024",
+    "n_games": 29468,
+    "n_train_aug": 53044,
+    "n_test": 2946,
+    "window_min_date": "2024-01-01",
+    "window_max_date": "2024-12-31",
+    "holdout_acc": 0.5678886625933469,
+    "auc": 0.5871635448545408,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  },
+  "QM-2026": {
+    "vintage": "QM-2026",
+    "n_games": 79687,
+    "n_train_aug": 143438,
+    "n_test": 7968,
+    "window_min_date": "2025-07-01",
+    "window_max_date": "2026-02-11",
+    "holdout_acc": 0.5737951807228916,
+    "auc": 0.5986370723973183,
+    "recipe": "qm2026/train_qm_wp.py MLP, naive features, team-swap aug, AdamW 1e-3, 30ep cosine, patience 5",
+    "seed": 20260713
+  }
+}

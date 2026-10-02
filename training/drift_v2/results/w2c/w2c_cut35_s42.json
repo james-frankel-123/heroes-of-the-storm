@@ -1,0 +1,61 @@
+{
+  "name": "w2c_cut35_s42",
+  "features": "cumulative_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.14.95817",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 3308520,
+  "n_val": 67520,
+  "n_test": 510636,
+  "epochs": 51,
+  "val_acc": 57.306,
+  "test_acc_future": 57.139,
+  "test_acc_sizable": 57.073,
+  "test_acc_per_build": {
+    "2.55.14.95883": {
+      "n_rows": 334,
+      "acc": 59.281
+    },
+    "2.55.14.95918": {
+      "n_rows": 230268,
+      "acc": 57.226
+    },
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.546
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 56.419
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 57.21
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 55.09
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.978
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 57.041
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.926
+    }
+  },
+  "sanity": null,
+  "minutes": 1.3,
+  "out": "/home/max/hots/repo/training/drift_v2/models/w2c_cut35_s42.pt"
+}

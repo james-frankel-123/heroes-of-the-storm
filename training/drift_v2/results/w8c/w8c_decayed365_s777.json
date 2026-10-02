@@ -1,0 +1,69 @@
+{
+  "name": "w8c_decayed365_s777",
+  "features": "decayed365_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 777,
+  "cutoff_build": "2.55.13.95301",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 3245756,
+  "n_val": 66238,
+  "n_test": 574682,
+  "epochs": 52,
+  "val_acc": 57.453,
+  "test_acc_future": 57.163,
+  "test_acc_sizable": 57.157,
+  "test_acc_per_build": {
+    "2.55.14.95774": {
+      "n_rows": 14666,
+      "acc": 57.528
+    },
+    "2.55.14.95817": {
+      "n_rows": 49380,
+      "acc": 56.993
+    },
+    "2.55.14.95883": {
+      "n_rows": 334,
+      "acc": 58.383
+    },
+    "2.55.14.95918": {
+      "n_rows": 230268,
+      "acc": 57.205
+    },
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.81
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 55.065
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 57.213
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 55.62
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.581
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 57.084
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 57.42
+    }
+  },
+  "sanity": null,
+  "minutes": 1.4,
+  "out": "/home/max/hots/repo/training/drift_v2/models/w8c_decayed365_s777.pt"
+}

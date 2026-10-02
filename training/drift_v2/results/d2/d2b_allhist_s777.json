@@ -1,0 +1,70 @@
+{
+  "name": "d2b_allhist_s777",
+  "features": "cutoff",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 777,
+  "cutoff_build": "2.55.14.95918",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 3534510,
+  "n_val": 72132,
+  "n_test": 280034,
+  "epochs": 40,
+  "val_acc": 59.086,
+  "test_acc_future": 56.288,
+  "test_acc_sizable": 56.294,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.252
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 56.125
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 56.307
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 55.143
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 56.534
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 56.363
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.085
+    }
+  },
+  "sanity": {
+    "passed_28": 25,
+    "passed_21": 18,
+    "by_category": {
+      "absurd": "7/8",
+      "trap": "4/5",
+      "normal": "4/5",
+      "symmetry": "10/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.107737235724926,
+      "5 healers": 0.16728012263774872,
+      "5 ranged assassins": 0.3154944181442261,
+      "5 melee assassins": 0.2907392680644989,
+      "3T 2H no damage": 0.24102461338043213,
+      "No healer high WR": 0.40070846676826477
+    }
+  },
+  "minutes": 1.2,
+  "out": "/home/max/hots/repo/training/drift_v2/models/d2b_allhist_s777.pt"
+}

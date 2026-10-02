@@ -202,13 +202,15 @@ Source: `audits/CONSOLIDATED_AUDIT_2026-10-01.md` §6 (4aff9b0). New scripts are
 
 **Running on the 3080:** W2b greedy degeneracy (51 cells, 4 CPU queues, about 2 h); then volmatch s123/s777, W9 MMR cells and report, and the opponent-model pools era 2.55.9.93613, win6, win30d, future and roll30 (gated to start after W2b to stay within 47 GB RAM). One MCTS agent, `v2_M_s0`, is finishing (fixed kernel, chance mode, about 4.5 h).
 
-**Manuscript status:** Secs. 4 (replay, decay, refresh), 6 and 7 and the Setting numbers are on v2. Still pending: Sec. 3 and the Setting degeneracy figure (waiting on W2b), Sec. 9 (waiting on the opponent pools), the MMR sentence (W9), and Secs. 5 and 8 plus the abstract/intro head-to-head numbers (waiting on MCTS).
+**Manuscript status:** Secs. 4 (replay, decay, refresh), 6 and 7 and the Setting numbers are on v2. Sec. 3, the Setting degeneracy figure, fig_scatter and the abstract/intro accuracy-level numbers are on v2 too. Still pending: Sec. 9 (waiting on the opponent pools) and Secs. 5 and 8 plus the abstract/intro head-to-head numbers (waiting on MCTS).
 
 **Claims changed by v2 so far:**
 - Replay: never maintained 1.06 → 1.02; refresh recovers 0.36 (35%, was 31%); retrain every 3: 0.03 without refresh / 0.00 with; every 6: 0.15 / 0.08; refresh between retrains adds 0.03-0.07; the finetune now matches a full retrain (−0.005, was +0.089).
 - Decayed aggregates: all three half-lives beat cumulative on the future window (+0.19 / +0.24 / +0.20, z 3.0-4.2), but the nested check no longer prefers the 90-day family (−0.02 / +0.03 / +0.06, |z| ≤ 1.3). The paper now recommends decay without a best half-life.
 - Recipe gap at the 2026 cutoff: 0.30pp (was 0.49), of which refresh is 0.035.
-- **Patch-embedding regime is now above maintained in accuracy:** 57.10 vs 56.98. Whether the equal-accuracy degeneracy claim survives waits on W2b.
+- **Patch-embedding regime is now above maintained in accuracy:** 57.10 vs 56.98, and it drafts broken teams at 24.0% vs 12.7% (Welch t 6.9, 3.7 df, p 0.003). The claim gets stronger: the most accurate regime is not the least degenerate. Abstract/intro now say "most accurate of eight, 0.12 points above maintained, 24% vs 13%".
+- Table I (W2b, era-matched cutoff opponent, 51 cells): OOF all-history 20.7% (was 25.8), maintained 12.7% (was 16.8; was 14.1 with the cutoff opponent), all-history vs maintained t 3.7, 3.0 df, p 0.04 (was p 0.01 / 0.08 by opponent). Short-history regimes 40-48%; all/most-history 21-30%. Spread 12.7-48.3%, nearly 4x. corr(future acc, degen) over the 7 cutoff regimes: OOF −0.38, leaky +0.36 (was −0.46 / +0.78). Leaky all-history 41.8% (was 43.5); leaky vs OOF t 8.9, 3.6 df, p 0.001. The two-opponent comparison paragraph is gone because v2 uses the era-matched opponent only.
+- Operating policy: "Prefer 90-day decayed statistics" → "Prefer decayed statistics; our data do not pick a half-life between 90 and 365 days" (follows the nested check).
 - Calibration aging (common window): 0.96 / 0.79 / 0.75 (was 0.93 / 0.79 / 0.73).
 - Detector: 46/59 (0.78) and 39/59 (0.66); boundary tests unchanged; replay arm 0.677 vs blind 0.675 / 0.685 vs every-build 0.662; sweep within 0.05pp.
 

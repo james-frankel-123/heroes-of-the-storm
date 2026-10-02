@@ -1,0 +1,843 @@
+{
+  "config": {
+    "model": "w2c_cut08_s42 (never retrained, trained through 2.55.3.89754)",
+    "detector": "W3b wr_bh (two-proportion WR test, BH FDR within boundary), latency = z_naive sequential test at day boundaries",
+    "refresh_stats": "cumulative through the fired build's predecessor (== every-build cumprev refresh for that build)",
+    "median_tp_latency_games": 9391
+  },
+  "fires": [
+    {
+      "pos": 16,
+      "build": "2.55.5.92264",
+      "build_games": 75313,
+      "n_detections": 4,
+      "detected_heroes": [
+        "Arthas",
+        "Junkrat",
+        "Rehgar",
+        "Samuro"
+      ],
+      "latencies_z_naive": [
+        2655,
+        2655,
+        5532,
+        8748
+      ],
+      "lat_first": 2655,
+      "lat_median": 4093.5
+    },
+    {
+      "pos": 17,
+      "build": "2.55.6.92665",
+      "build_games": 57075,
+      "n_detections": 2,
+      "detected_heroes": [
+        "Dehaka",
+        "Samuro"
+      ],
+      "latencies_z_naive": [
+        2055,
+        3027
+      ],
+      "lat_first": 2055,
+      "lat_median": 2541.0
+    },
+    {
+      "pos": 19,
+      "build": "2.55.7.93054",
+      "build_games": 23480,
+      "n_detections": 3,
+      "detected_heroes": [
+        "Hanzo",
+        "Mephisto",
+        "Thrall"
+      ],
+      "latencies_z_naive": [
+        958,
+        2762,
+        17682
+      ],
+      "lat_first": 958,
+      "lat_median": 2762.0
+    },
+    {
+      "pos": 22,
+      "build": "2.55.8.93382",
+      "build_games": 47861,
+      "n_detections": 1,
+      "detected_heroes": [
+        "Diablo"
+      ],
+      "latencies_z_naive": [
+        3245
+      ],
+      "lat_first": 3245,
+      "lat_median": 3245.0
+    },
+    {
+      "pos": 26,
+      "build": "2.55.10.93810",
+      "build_games": 85019,
+      "n_detections": 1,
+      "detected_heroes": [
+        "Kharazim"
+      ],
+      "latencies_z_naive": [
+        6947
+      ],
+      "lat_first": 6947,
+      "lat_median": 6947.0
+    },
+    {
+      "pos": 27,
+      "build": "2.55.10.94189",
+      "build_games": 26566,
+      "n_detections": 5,
+      "detected_heroes": [
+        "Cho",
+        "E.T.C.",
+        "Gall",
+        "Imperius",
+        "Samuro"
+      ],
+      "latencies_z_naive": [
+        572,
+        1975,
+        1975,
+        17955,
+        17955
+      ],
+      "lat_first": 572,
+      "lat_median": 1975.0
+    },
+    {
+      "pos": 28,
+      "build": "2.55.10.94387",
+      "build_games": 21877,
+      "n_detections": 1,
+      "detected_heroes": [
+        "Imperius"
+      ],
+      "latencies_z_naive": [
+        2281
+      ],
+      "lat_first": 2281,
+      "lat_median": 2281.0
+    },
+    {
+      "pos": 29,
+      "build": "2.55.10.94470",
+      "build_games": 68859,
+      "n_detections": 1,
+      "detected_heroes": [
+        "Imperius"
+      ],
+      "latencies_z_naive": [
+        448
+      ],
+      "lat_first": 448,
+      "lat_median": 448.0
+    },
+    {
+      "pos": 31,
+      "build": "2.55.12.94786",
+      "build_games": 94962,
+      "n_detections": 5,
+      "detected_heroes": [
+        "Hogger",
+        "Johanna",
+        "Li Li",
+        "Muradin",
+        "Tyrael"
+      ],
+      "latencies_z_naive": [
+        1642,
+        3214,
+        8159,
+        27337,
+        34216
+      ],
+      "lat_first": 1642,
+      "lat_median": 8159.0
+    },
+    {
+      "pos": 33,
+      "build": "2.55.13.95301",
+      "build_games": 133928,
+      "n_detections": 3,
+      "detected_heroes": [
+        "Dehaka",
+        "Maiev",
+        "Tyrael"
+      ],
+      "latencies_z_naive": [
+        2518,
+        8611,
+        20954
+      ],
+      "lat_first": 2518,
+      "lat_median": 8611.0
+    },
+    {
+      "pos": 35,
+      "build": "2.55.14.95817",
+      "build_games": 24690,
+      "n_detections": 3,
+      "detected_heroes": [
+        "Thrall",
+        "Tyrael",
+        "Zul'jin"
+      ],
+      "latencies_z_naive": [
+        4773,
+        7495,
+        11680
+      ],
+      "lat_first": 4773,
+      "lat_median": 7495.0
+    },
+    {
+      "pos": 37,
+      "build": "2.55.14.95918",
+      "build_games": 115134,
+      "n_detections": 3,
+      "detected_heroes": [
+        "Falstad",
+        "Sylvanas",
+        "Thrall"
+      ],
+      "latencies_z_naive": [
+        10198,
+        12410,
+        28430
+      ],
+      "lat_first": 10198,
+      "lat_median": 12410.0
+    },
+    {
+      "pos": 40,
+      "build": "2.55.15.96477",
+      "build_games": 79296,
+      "n_detections": 11,
+      "detected_heroes": [
+        "Anub'arak",
+        "Azmodan",
+        "Deathwing",
+        "Falstad",
+        "Garrosh",
+        "L\u00facio",
+        "Malfurion",
+        "Muradin",
+        "Thrall",
+        "Tyrande",
+        "Zagara"
+      ],
+      "latencies_z_naive": [
+        3483,
+        5477,
+        10264,
+        15027,
+        17004,
+        21345,
+        22660,
+        25682,
+        30095,
+        32772,
+        41609
+      ],
+      "lat_first": 3483,
+      "lat_median": 21345.0
+    },
+    {
+      "pos": 43,
+      "build": "2.55.16.96881",
+      "build_games": 30267,
+      "n_detections": 4,
+      "detected_heroes": [
+        "Chen",
+        "Genji",
+        "Mal'Ganis",
+        "Thrall"
+      ],
+      "latencies_z_naive": [
+        1840,
+        3408,
+        4979,
+        6792
+      ],
+      "lat_first": 1840,
+      "lat_median": 4193.5
+    }
+  ],
+  "oracle_weighted_acc": 56.866,
+  "reference_rows": {
+    "never retrain + every-build stats refresh": 56.204,
+    "never refresh (same C0 model, frozen stats)": 55.845,
+    "existing_table": [
+      {
+        "policy": "oracle (retrain every build)",
+        "retrains": 35,
+        "weighted_acc": 56.866,
+        "regret_pp": 0.0
+      },
+      {
+        "policy": "never retrain + frozen stats",
+        "retrains": 0,
+        "weighted_acc": 55.168,
+        "regret_pp": 1.698
+      },
+      {
+        "policy": "never retrain + stats refresh",
+        "retrains": 0,
+        "weighted_acc": 56.204,
+        "regret_pp": 0.662
+      },
+      {
+        "policy": "retrain every K=1 builds + refresh",
+        "retrains": 35,
+        "weighted_acc": 56.866,
+        "regret_pp": 0.0
+      },
+      {
+        "policy": "retrain every K=3 builds + refresh",
+        "retrains": 11,
+        "weighted_acc": 56.868,
+        "regret_pp": -0.002
+      },
+      {
+        "policy": "retrain every K=6 builds + refresh",
+        "retrains": 5,
+        "weighted_acc": 56.785,
+        "regret_pp": 0.081
+      },
+      {
+        "policy": "trigger: acc drop > 0.25pp + refresh",
+        "retrains": 10,
+        "weighted_acc": 56.808,
+        "regret_pp": 0.058
+      },
+      {
+        "policy": "trigger: acc drop > 0.5pp + refresh",
+        "retrains": 6,
+        "weighted_acc": 56.774,
+        "regret_pp": 0.092
+      },
+      {
+        "policy": "trigger: acc drop > 1.0pp + refresh",
+        "retrains": 2,
+        "weighted_acc": 56.618,
+        "regret_pp": 0.248
+      }
+    ]
+  },
+  "detector_rows": [
+    {
+      "policy": "detector-triggered refresh (zero latency)",
+      "retrains": 0,
+      "refreshes": 14,
+      "weighted_acc": 56.192,
+      "regret_pp": 0.674,
+      "delta_vs_every_build_refresh_pp": 0.012,
+      "per_build_acc": {
+        "2.55.3.90670": 56.692,
+        "2.55.3.91020": 58.564,
+        "2.55.3.91081": 55.912,
+        "2.55.3.91093": 56.834,
+        "2.55.4.91368": 56.291,
+        "2.55.4.91418": 57.153,
+        "2.55.4.91769": 56.988,
+        "2.55.5.92264": 56.17,
+        "2.55.6.92665": 56.29,
+        "2.55.7.93009": 55.405,
+        "2.55.7.93054": 56.474,
+        "2.55.7.93151": 56.315,
+        "2.55.8.93357": 57.547,
+        "2.55.8.93382": 56.389,
+        "2.55.9.93565": 53.415,
+        "2.55.9.93613": 55.59,
+        "2.55.9.93640": 55.941,
+        "2.55.10.93810": 55.847,
+        "2.55.10.94189": 55.972,
+        "2.55.10.94387": 55.291,
+        "2.55.10.94470": 55.959,
+        "2.55.12.94714": 56.345,
+        "2.55.12.94786": 55.809,
+        "2.55.13.95213": 56.317,
+        "2.55.13.95301": 55.965,
+        "2.55.14.95774": 56.253,
+        "2.55.14.95817": 55.545,
+        "2.55.14.95883": 58.683,
+        "2.55.14.95918": 56.105,
+        "2.55.15.96370": 55.545,
+        "2.55.15.96443": 54.77,
+        "2.55.15.96477": 55.789,
+        "2.55.16.96846": 53.765,
+        "2.55.16.96870": 56.318,
+        "2.55.16.96881": 56.306,
+        "2.55.16.97039": 55.692
+      },
+      "fire_splits": {
+        "2.55.5.92264": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 150626
+        },
+        "2.55.6.92665": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 114150
+        },
+        "2.55.7.93054": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 46960
+        },
+        "2.55.8.93382": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 95722
+        },
+        "2.55.10.93810": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 170038
+        },
+        "2.55.10.94189": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 53132
+        },
+        "2.55.10.94387": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 43754
+        },
+        "2.55.10.94470": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 137718
+        },
+        "2.55.12.94786": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 189924
+        },
+        "2.55.13.95301": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 267856
+        },
+        "2.55.14.95817": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 49380
+        },
+        "2.55.14.95918": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 230268
+        },
+        "2.55.15.96477": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 158592
+        },
+        "2.55.16.96881": {
+          "latency_games": 0,
+          "pre_rows": 0,
+          "post_rows": 60534
+        }
+      }
+    },
+    {
+      "policy": "detector-triggered refresh (first-detection latency)",
+      "retrains": 0,
+      "refreshes": 14,
+      "weighted_acc": 56.189,
+      "regret_pp": 0.677,
+      "delta_vs_every_build_refresh_pp": 0.015,
+      "per_build_acc": {
+        "2.55.3.90670": 56.692,
+        "2.55.3.91020": 58.564,
+        "2.55.3.91081": 55.912,
+        "2.55.3.91093": 56.834,
+        "2.55.4.91368": 56.291,
+        "2.55.4.91418": 57.153,
+        "2.55.4.91769": 56.988,
+        "2.55.5.92264": 56.15,
+        "2.55.6.92665": 56.273,
+        "2.55.7.93009": 55.405,
+        "2.55.7.93054": 56.486,
+        "2.55.7.93151": 56.315,
+        "2.55.8.93357": 57.547,
+        "2.55.8.93382": 56.372,
+        "2.55.9.93565": 53.415,
+        "2.55.9.93613": 55.59,
+        "2.55.9.93640": 55.941,
+        "2.55.10.93810": 55.843,
+        "2.55.10.94189": 55.959,
+        "2.55.10.94387": 55.312,
+        "2.55.10.94470": 55.955,
+        "2.55.12.94714": 56.345,
+        "2.55.12.94786": 55.811,
+        "2.55.13.95213": 56.317,
+        "2.55.13.95301": 55.967,
+        "2.55.14.95774": 56.253,
+        "2.55.14.95817": 55.535,
+        "2.55.14.95883": 58.683,
+        "2.55.14.95918": 56.111,
+        "2.55.15.96370": 55.545,
+        "2.55.15.96443": 54.77,
+        "2.55.15.96477": 55.782,
+        "2.55.16.96846": 53.765,
+        "2.55.16.96870": 56.318,
+        "2.55.16.96881": 56.301,
+        "2.55.16.97039": 55.692
+      },
+      "fire_splits": {
+        "2.55.5.92264": {
+          "latency_games": 2655,
+          "pre_rows": 5310,
+          "post_rows": 145316
+        },
+        "2.55.6.92665": {
+          "latency_games": 2055,
+          "pre_rows": 4110,
+          "post_rows": 110040
+        },
+        "2.55.7.93054": {
+          "latency_games": 958,
+          "pre_rows": 1916,
+          "post_rows": 45044
+        },
+        "2.55.8.93382": {
+          "latency_games": 3245,
+          "pre_rows": 6490,
+          "post_rows": 89232
+        },
+        "2.55.10.93810": {
+          "latency_games": 6947,
+          "pre_rows": 13894,
+          "post_rows": 156144
+        },
+        "2.55.10.94189": {
+          "latency_games": 572,
+          "pre_rows": 1144,
+          "post_rows": 51988
+        },
+        "2.55.10.94387": {
+          "latency_games": 2281,
+          "pre_rows": 4562,
+          "post_rows": 39192
+        },
+        "2.55.10.94470": {
+          "latency_games": 448,
+          "pre_rows": 896,
+          "post_rows": 136822
+        },
+        "2.55.12.94786": {
+          "latency_games": 1642,
+          "pre_rows": 3284,
+          "post_rows": 186640
+        },
+        "2.55.13.95301": {
+          "latency_games": 2518,
+          "pre_rows": 5036,
+          "post_rows": 262820
+        },
+        "2.55.14.95817": {
+          "latency_games": 4773,
+          "pre_rows": 9546,
+          "post_rows": 39834
+        },
+        "2.55.14.95918": {
+          "latency_games": 10198,
+          "pre_rows": 20396,
+          "post_rows": 209872
+        },
+        "2.55.15.96477": {
+          "latency_games": 3483,
+          "pre_rows": 6966,
+          "post_rows": 151626
+        },
+        "2.55.16.96881": {
+          "latency_games": 1840,
+          "pre_rows": 3680,
+          "post_rows": 56854
+        }
+      }
+    },
+    {
+      "policy": "detector-triggered refresh (median-detection latency)",
+      "retrains": 0,
+      "refreshes": 14,
+      "weighted_acc": 56.189,
+      "regret_pp": 0.677,
+      "delta_vs_every_build_refresh_pp": 0.015,
+      "per_build_acc": {
+        "2.55.3.90670": 56.692,
+        "2.55.3.91020": 58.564,
+        "2.55.3.91081": 55.912,
+        "2.55.3.91093": 56.834,
+        "2.55.4.91368": 56.291,
+        "2.55.4.91418": 57.153,
+        "2.55.4.91769": 56.988,
+        "2.55.5.92264": 56.145,
+        "2.55.6.92665": 56.286,
+        "2.55.7.93009": 55.405,
+        "2.55.7.93054": 56.523,
+        "2.55.7.93151": 56.315,
+        "2.55.8.93357": 57.547,
+        "2.55.8.93382": 56.372,
+        "2.55.9.93565": 53.415,
+        "2.55.9.93613": 55.59,
+        "2.55.9.93640": 55.941,
+        "2.55.10.93810": 55.843,
+        "2.55.10.94189": 55.955,
+        "2.55.10.94387": 55.312,
+        "2.55.10.94470": 55.955,
+        "2.55.12.94714": 56.345,
+        "2.55.12.94786": 55.815,
+        "2.55.13.95213": 56.317,
+        "2.55.13.95301": 55.965,
+        "2.55.14.95774": 56.253,
+        "2.55.14.95817": 55.541,
+        "2.55.14.95883": 58.683,
+        "2.55.14.95918": 56.109,
+        "2.55.15.96370": 55.545,
+        "2.55.15.96443": 54.77,
+        "2.55.15.96477": 55.77,
+        "2.55.16.96846": 53.765,
+        "2.55.16.96870": 56.318,
+        "2.55.16.96881": 56.289,
+        "2.55.16.97039": 55.692
+      },
+      "fire_splits": {
+        "2.55.5.92264": {
+          "latency_games": 4093,
+          "pre_rows": 8186,
+          "post_rows": 142440
+        },
+        "2.55.6.92665": {
+          "latency_games": 2541,
+          "pre_rows": 5082,
+          "post_rows": 109068
+        },
+        "2.55.7.93054": {
+          "latency_games": 2762,
+          "pre_rows": 5524,
+          "post_rows": 41436
+        },
+        "2.55.8.93382": {
+          "latency_games": 3245,
+          "pre_rows": 6490,
+          "post_rows": 89232
+        },
+        "2.55.10.93810": {
+          "latency_games": 6947,
+          "pre_rows": 13894,
+          "post_rows": 156144
+        },
+        "2.55.10.94189": {
+          "latency_games": 1975,
+          "pre_rows": 3950,
+          "post_rows": 49182
+        },
+        "2.55.10.94387": {
+          "latency_games": 2281,
+          "pre_rows": 4562,
+          "post_rows": 39192
+        },
+        "2.55.10.94470": {
+          "latency_games": 448,
+          "pre_rows": 896,
+          "post_rows": 136822
+        },
+        "2.55.12.94786": {
+          "latency_games": 8159,
+          "pre_rows": 16318,
+          "post_rows": 173606
+        },
+        "2.55.13.95301": {
+          "latency_games": 8611,
+          "pre_rows": 17222,
+          "post_rows": 250634
+        },
+        "2.55.14.95817": {
+          "latency_games": 7495,
+          "pre_rows": 14990,
+          "post_rows": 34390
+        },
+        "2.55.14.95918": {
+          "latency_games": 12410,
+          "pre_rows": 24820,
+          "post_rows": 205448
+        },
+        "2.55.15.96477": {
+          "latency_games": 21345,
+          "pre_rows": 42690,
+          "post_rows": 115902
+        },
+        "2.55.16.96881": {
+          "latency_games": 4193,
+          "pre_rows": 8386,
+          "post_rows": 52148
+        }
+      }
+    },
+    {
+      "policy": "detector-triggered refresh (fixed 9,391-game latency)",
+      "retrains": 0,
+      "refreshes": 14,
+      "weighted_acc": 56.183,
+      "regret_pp": 0.683,
+      "delta_vs_every_build_refresh_pp": 0.021,
+      "per_build_acc": {
+        "2.55.3.90670": 56.692,
+        "2.55.3.91020": 58.564,
+        "2.55.3.91081": 55.912,
+        "2.55.3.91093": 56.834,
+        "2.55.4.91368": 56.291,
+        "2.55.4.91418": 57.153,
+        "2.55.4.91769": 56.988,
+        "2.55.5.92264": 56.11,
+        "2.55.6.92665": 56.278,
+        "2.55.7.93009": 55.405,
+        "2.55.7.93054": 56.463,
+        "2.55.7.93151": 56.315,
+        "2.55.8.93357": 57.547,
+        "2.55.8.93382": 56.371,
+        "2.55.9.93565": 53.415,
+        "2.55.9.93613": 55.59,
+        "2.55.9.93640": 55.941,
+        "2.55.10.93810": 55.833,
+        "2.55.10.94189": 55.957,
+        "2.55.10.94387": 55.302,
+        "2.55.10.94470": 55.95,
+        "2.55.12.94714": 56.345,
+        "2.55.12.94786": 55.815,
+        "2.55.13.95213": 56.317,
+        "2.55.13.95301": 55.966,
+        "2.55.14.95774": 56.253,
+        "2.55.14.95817": 55.488,
+        "2.55.14.95883": 58.683,
+        "2.55.14.95918": 56.112,
+        "2.55.15.96370": 55.545,
+        "2.55.15.96443": 54.77,
+        "2.55.15.96477": 55.778,
+        "2.55.16.96846": 53.765,
+        "2.55.16.96870": 56.318,
+        "2.55.16.96881": 56.236,
+        "2.55.16.97039": 55.692
+      },
+      "fire_splits": {
+        "2.55.5.92264": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 131844
+        },
+        "2.55.6.92665": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 95368
+        },
+        "2.55.7.93054": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 28178
+        },
+        "2.55.8.93382": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 76940
+        },
+        "2.55.10.93810": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 151256
+        },
+        "2.55.10.94189": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 34350
+        },
+        "2.55.10.94387": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 24972
+        },
+        "2.55.10.94470": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 118936
+        },
+        "2.55.12.94786": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 171142
+        },
+        "2.55.13.95301": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 249074
+        },
+        "2.55.14.95817": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 30598
+        },
+        "2.55.14.95918": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 211486
+        },
+        "2.55.15.96477": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 139810
+        },
+        "2.55.16.96881": {
+          "latency_games": 9391,
+          "pre_rows": 18782,
+          "post_rows": 41752
+        }
+      }
+    }
+  ],
+  "latency_symmetry": {
+    "detection_median_tp_latency_games": 9391,
+    "detection_median_latency_all_flagged_z_naive": 12922,
+    "fire_first_detection_latencies": {
+      "2.55.5.92264": 2655,
+      "2.55.6.92665": 2055,
+      "2.55.7.93054": 958,
+      "2.55.8.93382": 3245,
+      "2.55.10.93810": 6947,
+      "2.55.10.94189": 572,
+      "2.55.10.94387": 2281,
+      "2.55.10.94470": 448,
+      "2.55.12.94786": 1642,
+      "2.55.13.95301": 2518,
+      "2.55.14.95817": 4773,
+      "2.55.14.95918": 10198,
+      "2.55.15.96477": 3483,
+      "2.55.16.96881": 1840
+    },
+    "local_stats_trust_hero_wr_1pp_median_games": 10719,
+    "local_stats_trust_hero_wr_1pp_p75_games": 12237,
+    "local_stats_trust_per_tier_games": {
+      "low": 6460,
+      "mid": 8668,
+      "high": 7753
+    }
+  },
+  "verification": {
+    "matrix_reproduction_max_diff_pp": 0.0005,
+    "selftest_build": "2.55.8.93357",
+    "selftest_acc_custom_vs_npz": [
+      57.651,
+      57.651
+    ],
+    "selftest_row_agreement": 1.0
+  }
+}

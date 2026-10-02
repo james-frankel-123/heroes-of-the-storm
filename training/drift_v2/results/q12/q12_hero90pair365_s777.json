@@ -1,0 +1,70 @@
+{
+  "name": "q12_hero90pair365_s777",
+  "features": "decayedmc_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 777,
+  "cutoff_build": "2.55.14.95918",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 3534510,
+  "n_val": 72132,
+  "n_test": 280034,
+  "epochs": 56,
+  "val_acc": 57.073,
+  "test_acc_future": 57.045,
+  "test_acc_sizable": 57.064,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.605
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 55.183
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 57.231
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 55.885
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.076
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 56.996
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.721
+    }
+  },
+  "sanity": {
+    "passed_28": 25,
+    "passed_21": 19,
+    "by_category": {
+      "absurd": "8/8",
+      "trap": "5/5",
+      "normal": "3/5",
+      "symmetry": "9/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.3208567202091217,
+      "5 healers": 0.2282310128211975,
+      "5 ranged assassins": 0.31405287981033325,
+      "5 melee assassins": 0.49382632970809937,
+      "3T 2H no damage": 0.25456324219703674,
+      "No healer high WR": 0.4714567959308624
+    }
+  },
+  "minutes": 1.6,
+  "out": "/home/max/hots/repo/training/drift_v2/models/q12_hero90pair365_s777.pt"
+}

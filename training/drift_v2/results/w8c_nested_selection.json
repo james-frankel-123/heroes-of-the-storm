@@ -1,0 +1,142 @@
+{
+  "inner_cutoff": "2.55.13.95301",
+  "true_cutoff": "2.55.14.95918",
+  "pseudo_future_builds": [
+    "2.55.14.95774",
+    "2.55.14.95817",
+    "2.55.14.95883",
+    "2.55.14.95918"
+  ],
+  "per_cell": {
+    "cumulative": [
+      {
+        "seed": 42,
+        "val": 57.484,
+        "pseudo_future": 57.11966227498574,
+        "true_future": 56.963310098059516,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      },
+      {
+        "seed": 123,
+        "val": 57.233,
+        "pseudo_future": 57.12742605413917,
+        "true_future": 56.98698036666976,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      },
+      {
+        "seed": 777,
+        "val": 57.379,
+        "pseudo_future": 57.14618202058048,
+        "true_future": 56.94293449366863,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      }
+    ],
+    "decayed365": [
+      {
+        "seed": 42,
+        "val": 57.325,
+        "pseudo_future": 57.163125892590486,
+        "true_future": 57.082463765114234,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      },
+      {
+        "seed": 123,
+        "val": 57.447,
+        "pseudo_future": 57.22351986777443,
+        "true_future": 57.20662589542699,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      },
+      {
+        "seed": 777,
+        "val": 57.453,
+        "pseudo_future": 57.1868835016698,
+        "true_future": 57.13854064863552,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      }
+    ],
+    "decayed90": [
+      {
+        "seed": 42,
+        "val": 57.428,
+        "pseudo_future": 57.0834700524015,
+        "true_future": 57.213009420284685,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      },
+      {
+        "seed": 123,
+        "val": 57.216,
+        "pseudo_future": 57.165251031739565,
+        "true_future": 57.122682481412966,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      },
+      {
+        "seed": 777,
+        "val": 57.446,
+        "pseudo_future": 57.093141158263414,
+        "true_future": 57.07810433018849,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      }
+    ],
+    "decayed90k100": [
+      {
+        "seed": 42,
+        "val": 57.559,
+        "pseudo_future": 57.23892494773425,
+        "true_future": 57.13969635829934,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      },
+      {
+        "seed": 123,
+        "val": 57.295,
+        "pseudo_future": 57.091044541283146,
+        "true_future": 57.11214288979195,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      },
+      {
+        "seed": 777,
+        "val": 57.446,
+        "pseudo_future": 57.16548894952621,
+        "true_future": 57.23721741645657,
+        "n_pseudo": 294648,
+        "n_true": 280034,
+        "n_train": 3245756
+      }
+    ]
+  },
+  "selected_on_pseudo_future": "decayed365",
+  "selected_on_true_future_inner_models": "decayed90k100",
+  "selected_on_true_future_q7_full_models": "decayed90k100",
+  "q7_reference_means": {
+    "cumulative": 57.081333333333326,
+    "decayed365": 57.06866666666667,
+    "decayed90": 57.189,
+    "decayed90k100": 57.220333333333336
+  },
+  "hl90_family_seed_clean_on_pseudo": false,
+  "hl90_family_min_vs_rest_max_pseudo": [
+    57.0834700524015,
+    57.22351986777443
+  ]
+}

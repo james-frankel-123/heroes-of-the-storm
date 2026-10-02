@@ -1,0 +1,53 @@
+{
+ "n_boundaries": 27,
+ "any": {
+  "flags": 59,
+  "tp_flags": 46,
+  "hero_precision": 0.78,
+  "fire_changed": [
+   16,
+   21
+  ],
+  "fire_unchanged": [
+   1,
+   6
+  ],
+  "fisher_p": 0.0152,
+  "boundary_precision": [
+   16,
+   17
+  ],
+  "base_rate": 0.778,
+  "binom_p": 0.0817,
+  "chance_hero_rate": 0.302
+ },
+ "balance": {
+  "flags": 59,
+  "tp_flags": 39,
+  "hero_precision": 0.661,
+  "fire_changed": [
+   15,
+   19
+  ],
+  "fire_unchanged": [
+   2,
+   8
+  ],
+  "fisher_p": 0.0138,
+  "boundary_precision": [
+   15,
+   17
+  ],
+  "base_rate": 0.704,
+  "binom_p": 0.0821,
+  "chance_hero_rate": 0.12
+ },
+ "latency": {
+  "first_flag_median": 2518.0,
+  "n_firing": 17,
+  "tp_n": 46,
+  "naive_median": 6869.5,
+  "bonf_median_crossing": 18840.0,
+  "bonf_never": 7
+ }
+}

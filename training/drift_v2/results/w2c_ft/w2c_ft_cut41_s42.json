@@ -1,0 +1,37 @@
+{
+  "name": "w2c_ft_cut41_s42",
+  "features": "cumulative_prev",
+  "regime": "window",
+  "window": 6,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.16.96846",
+  "init_from": "drift_v2/models/w2c_ft_cut38_s42.pt",
+  "lr": 5e-05,
+  "max_epochs": 5,
+  "max_train_rows": null,
+  "n_train": 414970,
+  "n_val": 8468,
+  "n_test": 87198,
+  "epochs": 5,
+  "val_acc": 57.204,
+  "test_acc_future": 57.394,
+  "test_acc_sizable": 57.386,
+  "test_acc_per_build": {
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.617
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 57.426
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 57.286
+    }
+  },
+  "sanity": null,
+  "minutes": 0.2,
+  "out": "/home/max/heroes-of-the-storm/training/drift_v2/models/w2c_ft_cut41_s42.pt"
+}

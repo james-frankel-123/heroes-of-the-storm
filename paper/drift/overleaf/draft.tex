@@ -50,17 +50,18 @@
 
 \begin{abstract}
 Learned draft assistants deploy into games whose balance keeps changing.
-Using 1.95 million ranked Heroes of the Storm drafts spanning 45 game
+Using 1.94 million ranked Heroes of the Storm drafts spanning 45 game
 builds over 4.5 years, we measure what that drift costs a deployed draft
 policy and what each kind of maintenance buys back. In a replayed
-2.8-year deployment, a model that is never maintained loses 1.06
+2.8-year deployment, a model that is never maintained loses 1.02
 percentage points of accuracy against one retrained after every build.
-Retraining every three builds recovers 1.01 of those points; recomputing
+Retraining every three builds recovers 0.99 of those points; recomputing
 the model's aggregate statistics at every build, with the weights fixed,
-recovers 0.33. Once retraining is on a schedule, refreshing statistics
-between retrains adds only 0.02 to 0.04 points. Accuracy understates
-policy differences: two training regimes within 0.03 points of each
-other draft structurally broken teams at 17\% and 32\%. Head-to-head,
+recovers 0.36. Once retraining is on a schedule, refreshing statistics
+between retrains adds only 0.03 to 0.07 points. Accuracy understates
+policy differences: the most accurate of eight training regimes, 0.12
+points above our maintained model, drafts structurally broken teams at
+24\% against 13\%. Head-to-head,
 scored on 298{,}000 games from five later builds that no agent's
 statistics include, a maintained agent's picks average 0.34 percentage
 points more realized future-meta hero win rate than those of an agent
@@ -101,17 +102,17 @@ nearly free; retraining costs a training run. Practitioners would like
 to know whether the cheap action is enough.
 
 We answer in four parts. First, a replayed 2.8-year deployment prices
-both actions at the accuracy level. Never maintaining costs 1.06
+both actions at the accuracy level. Never maintaining costs 1.02
 percentage points (pp) of accuracy relative to retraining after every
-build. Retraining every three builds recovers 1.01pp of that, and
-refreshing statistics without retraining recovers 0.33pp. With retraining
-on a schedule, refresh between retrains adds 0.02 to 0.04pp, and every
-cadence from one to six builds lands within 0.11pp of retraining
+build. Retraining every three builds recovers 0.99pp of that, and
+refreshing statistics without retraining recovers 0.36pp. With retraining
+on a schedule, refresh between retrains adds 0.03 to 0.07pp, and every
+cadence from one to six builds lands within 0.08pp of retraining
 constantly. Second, accuracy understates what drift does to policies.
-Among eight training regimes, the patch-embedding regime comes within
-0.03pp of our maintained model's future accuracy, yet drafting greedily
-it assembles structurally broken teams twice as often (32\% against
-17\%). Third, maintained and unmaintained MCTS agents draft against each
+Among eight training regimes, the patch-embedding regime has the best
+future accuracy, 0.12pp above our maintained model, yet drafting
+greedily it assembles structurally broken teams nearly twice as often
+(24\% against 13\%). Third, maintained and unmaintained MCTS agents draft against each
 other and are scored against realized outcomes of games that no
 agent's statistics include. Against an agent trained at the same cutoff, the maintained
 agent's picks average +0.34pp of realized future-meta hero win rate
@@ -190,7 +191,7 @@ validation accuracy falls from 59.04\% to 57.31\%, the calibration slope
 on the future window (the slope of a logistic recalibration of the
 model's predictions; 1 is calibrated) rises from 0.70 to 0.96
 (\maintained{}: 0.92), and the rate of structurally broken teams
-under greedy drafting falls from 43.5\% to 25.8\%. In-period validation
+under greedy drafting falls from 41.8\% to 20.7\%. In-period validation
 cannot reveal the leak, because validation rows carry it too; the leaky
 models look calibrated there (slope 1.0). Because training rows see
 statistics from four fifths of the games and deployment rows from all of
@@ -256,8 +257,9 @@ through each row's previous build.
 \caption{Training regimes, leak-free, with the leaky first version for
 comparison (3 seeds each). Val: in-period validation accuracy; future:
 future-window accuracy; slope: calibration slope on the future window;
-degen: broken compositions under greedy drafting (3 seeds $\times$ 500
-drafts). \maintained{} has no leaky version.}
+degen: broken compositions under greedy drafting against an opponent
+model trained to the cutoff (3 seeds $\times$ 500 drafts). \maintained{}
+has no leaky version.}
 \label{tab:regimes}
 \centering
 \footnotesize
@@ -267,14 +269,14 @@ drafts). \maintained{} has no leaky version.}
  & \multicolumn{4}{c|}{leak-free (out-of-fold)} & \multicolumn{3}{c}{leaky (first version)} \\
 Regime & Val & Future & Slope & Degen \% & Val & Future & Degen \% \\
 \midrule
-all history & 57.1 & 56.59 & 0.93 & 25.8 & 59.1 & 56.21 & 43.5 \\
-window 3 & 56.1 & 56.48 & 0.93 & 48.9 & 58.8 & 56.37 & 46.2 \\
-window 6 & 56.9 & 56.63 & 0.94 & 46.7 & 59.0 & 56.53 & 49.7 \\
-window 12 & 57.1 & 56.72 & 0.97 & 39.9 & 59.4 & 56.47 & 49.9 \\
-decay 90d & 56.5 & 56.66 & 1.03 & 49.7 & 58.9 & 56.48 & 50.1 \\
-decay 365d & 56.9 & 56.81 & 0.96 & 31.7 & 59.1 & 56.36 & 47.5 \\
-patch embed & 57.3 & 57.05 & 0.97 & 31.9 & 59.1 & 56.55 & 47.0 \\
-\maintained{} & 57.2 & \textbf{57.08} & 0.93 & \textbf{16.8} & & & \\
+all history & 57.3 & 56.68 & 0.96 & 20.7 & 59.0 & 56.34 & 41.8 \\
+window 3 & 57.3 & 56.59 & 0.97 & 42.5 & 59.5 & 56.56 & 48.8 \\
+window 6 & 57.9 & 56.73 & 0.90 & 40.2 & 59.8 & 56.61 & 48.0 \\
+window 12 & 56.5 & 56.71 & 0.92 & 30.1 & 59.0 & 56.52 & 46.2 \\
+decay 90d & 56.8 & 56.79 & 1.07 & 48.3 & 58.7 & 56.64 & 49.2 \\
+decay 365d & 57.2 & 56.87 & 0.98 & 30.1 & 59.0 & 56.47 & 44.5 \\
+patch embed & 57.5 & \textbf{57.10} & 0.98 & 24.0 & 59.2 & 56.73 & 42.5 \\
+\maintained{} & 57.0 & 56.98 & 0.92 & \textbf{12.7} & & & \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -290,42 +292,37 @@ the short-history regimes stay degenerate.}
 \label{fig:scatter}
 \end{figure}
 
-Leak-free, the regimes' future-window accuracies span 56.48\% to
-57.08\%, 0.6pp. Their rates of broken teams under greedy drafting span
-16.8\% to 49.7\%, a factor of three. Accuracy says little about which
-regime is which. Across the seven cutoff-frozen regimes, the correlation
-between future accuracy and degeneracy is $-0.46$ ($n = 7$, not
-significant), and the patch-embedding regime, within 0.03pp of
-\maintained{}'s accuracy, drafts broken teams at 31.9\% against 16.8\%
-(Welch $t = 11.0$, 2.6 df, $p = 0.003$, three seeds each). Selecting
-among these regimes by accuracy would call the best two
-interchangeable.
+Leak-free, the regimes' future-window accuracies span 56.59\% to
+57.10\%, 0.5pp. Their rates of broken teams under greedy drafting span
+12.7\% to 48.3\%, a factor of nearly four. Accuracy says little about
+which regime is which. Across the seven cutoff-frozen regimes, the
+correlation between future accuracy and degeneracy is $-0.38$ ($n = 7$,
+not significant). The patch-embedding regime is the most accurate of
+all eight, 0.12pp above \maintained{}, and drafts broken teams at
+24.0\% against 12.7\% (Welch $t = 6.9$, 3.7 df, $p = 0.003$, three
+seeds each). Selecting among these regimes by accuracy would pick the
+one that drafts broken teams twice as often.
 
 History length accounts for most of the spread: regimes that see
-mostly recent builds, by window or by 90-day sample decay, draft broken
-teams 40\% to 50\% of the time, and regimes that keep all history sit at
-26\% to 32\%. Training statistics aligned with each game's own era may
-lower the rate further. With the opponent pool restricted to an
-opponent model trained only to the cutoff, all-history training on
-cutoff-frozen statistics drafts broken teams 23.3\% of the time against
-14.1\% for \maintained{} (Welch $t = 7.0$, 2.6 df, $p = 0.01$); with the
-earlier paper's opponent model, which saw the test period, the rates
-are 25.8\% and 16.8\% ($t = 3.3$, 2.1 df, $p = 0.08$). Three seeds per
-arm make these tests weak, seed spread is large in some cells (standard
-deviation 4.7 points for all-history, 7.9 for the 12-build window), and
-we do not detect the difference at the agent level
-(Section~\ref{sec:neglect}).
+mostly recent builds, by a 3- or 6-build window or by 90-day sample
+decay, draft broken teams 40\% to 48\% of the time, and regimes that
+keep all or most history sit at 21\% to 30\%. Statistics aligned with
+each game's own era lower the rate further: all-history training on
+cutoff-frozen statistics drafts broken teams 20.7\% of the time against
+12.7\% for \maintained{} (Welch $t = 3.7$, 3.0 df, $p = 0.04$). Three
+seeds per arm make these tests weak, and we do not detect the
+difference at the agent level (Section~\ref{sec:neglect}).
 
-Our first version reported a 2.5-fold gap (43.5\% against 16.8\%) and a
-correlation of $+0.78$ between accuracy and degeneracy within the
-standard regimes, which we read as accuracy ranking policies backwards.
-The leak produced both (Figure~\ref{fig:scatter}). It raised the
-degeneracy of the all-history regimes most (from 25.8\% to 43.5\%, 31.7\%
-to 47.5\%, and 31.9\% to 47.0\%; Welch $t = 5.8$, 2.9 df, $p = 0.01$
-for all history), moved the short-history regimes to 46\% to 50\%, and
-lowered every regime's future accuracy by 0.1 to 0.5pp. What remains is
-that at equal accuracy, policies can differ twofold in how often they
-draft a broken team, so policy metrics have to be measured directly.
+Our first version reported a twofold gap (41.8\% against 12.7\%) and a
+positive correlation ($+0.36$) between accuracy and degeneracy within
+the standard regimes. The leak produced both (Figure~\ref{fig:scatter}).
+It raised the degeneracy of the all-history regimes most (from 20.7\% to
+41.8\%, 30.1\% to 44.5\%, and 24.0\% to 42.5\%; Welch $t = 8.9$, 3.6 df,
+$p = 0.001$ for all history), moved the short-history regimes to 46\% to
+49\%, and lowered every regime's future accuracy by 0.03 to 0.4pp. What
+remains is that at equal or better accuracy, a policy can draft a
+broken team twice as often, so policy metrics have to be measured
+directly.
 
 \section{What Retraining and Refresh Are Worth}
 \label{sec:replay}
@@ -899,7 +896,8 @@ never contained. Retrain the value model on a fixed schedule; every
 three to six builds (quarterly to twice yearly here) keeps regret within
 about 0.1pp of retraining constantly. Recompute the statistics at each
 retrain, and between retrains if it is free, which buys a few hundredths
-of a point. Prefer 90-day decayed statistics. Retrain the opponent model
+of a point. Prefer decayed statistics; our data do not pick a half-life
+between 90 and 365 days. Retrain the opponent model
 on recent play. Use the outcome-shift detector as an alarm that a
 build changed hero strength; do not use it to schedule refreshes.
 

@@ -1,0 +1,12 @@
+{
+  "cell": "d2:d2b_decay90",
+  "seed": 777,
+  "stats": "cutoff",
+  "gd_pool": "cutoff",
+  "drafts": 500,
+  "healer_rate": 56.0,
+  "degen_rate": 50.6,
+  "synergy_future": 0.4440397175082714,
+  "counter_future": 0.17462819221746656,
+  "minutes": 11.8
+}

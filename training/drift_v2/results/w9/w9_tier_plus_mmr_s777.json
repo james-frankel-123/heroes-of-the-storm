@@ -1,0 +1,76 @@
+{
+  "name": "w9_tier_plus_mmr_s777",
+  "cell": "b",
+  "cell_desc": "tier_plus_mmr",
+  "features": "decayed90k100_prev",
+  "regime": "all",
+  "seed": 777,
+  "cutoff_build": "2.55.14.95918",
+  "input_dim": 284,
+  "mmr_coverage_train": 1.0,
+  "mmr_mu_train": 2633.49,
+  "mmr_sd_train": 202.52,
+  "missing_indicator": false,
+  "tier_median_mmr_train": {
+    "low": 2366.3,
+    "mid": 2599.5,
+    "high": 2800.7
+  },
+  "n_train": 3534510,
+  "n_val": 72132,
+  "n_test": 280034,
+  "epochs": 68,
+  "val_acc": 57.183,
+  "test_acc_future": 57.275,
+  "test_acc_sizable": 57.281,
+  "test_acc_per_build": {
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.579
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 56.066
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 57.39
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 57.794
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.112
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 57.333
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 57.324
+    }
+  },
+  "sanity": {
+    "passed_28": 24,
+    "passed_21": 18,
+    "by_category": {
+      "absurd": "8/8",
+      "trap": "4/5",
+      "normal": "3/5",
+      "symmetry": "9/10"
+    },
+    "degen_scores": {
+      "5 tanks": 0.3573632538318634,
+      "5 healers": 0.23581178486347198,
+      "5 ranged assassins": 0.3244539201259613,
+      "5 melee assassins": 0.45653024315834045,
+      "3T 2H no damage": 0.2825606167316437,
+      "No healer high WR": 0.44365212321281433
+    }
+  },
+  "minutes": 3.1,
+  "out": "/home/max/hots/repo/training/drift_v2/models/w9_tier_plus_mmr_s777.pt"
+}

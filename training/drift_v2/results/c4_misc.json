@@ -1,0 +1,39 @@
+{
+ "retrain_every_K_refresh": {
+  "1": {
+   "retrains": 35,
+   "regret_pp": 0.0
+  },
+  "2": {
+   "retrains": 17,
+   "regret_pp": 0.024
+  },
+  "3": {
+   "retrains": 11,
+   "regret_pp": -0.002
+  },
+  "4": {
+   "retrains": 8,
+   "regret_pp": 0.064
+  },
+  "6": {
+   "retrains": 5,
+   "regret_pp": 0.081
+  },
+  "9": {
+   "retrains": 3,
+   "regret_pp": 0.167
+  },
+  "12": {
+   "retrains": 2,
+   "regret_pp": 0.196
+  }
+ },
+ "blind_changepoint_chance": {
+  "boundaries": 11,
+  "tolerance_days": 3,
+  "span_days": 507,
+  "covered_days": 77,
+  "chance_precision": 0.152
+ }
+}

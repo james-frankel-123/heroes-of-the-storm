@@ -1,0 +1,77 @@
+{
+  "name": "w2c_cut31_s42",
+  "features": "cumulative_prev",
+  "regime": "all",
+  "window": null,
+  "half_life": null,
+  "seed": 42,
+  "cutoff_build": "2.55.12.94786",
+  "init_from": null,
+  "lr": 0.0005,
+  "max_epochs": 200,
+  "max_train_rows": null,
+  "n_train": 2960932,
+  "n_val": 60426,
+  "n_test": 865318,
+  "epochs": 51,
+  "val_acc": 57.025,
+  "test_acc_future": 56.9,
+  "test_acc_sizable": 56.917,
+  "test_acc_per_build": {
+    "2.55.13.95213": {
+      "n_rows": 22780,
+      "acc": 57.283
+    },
+    "2.55.13.95301": {
+      "n_rows": 267856,
+      "acc": 56.871
+    },
+    "2.55.14.95774": {
+      "n_rows": 14666,
+      "acc": 57.398
+    },
+    "2.55.14.95817": {
+      "n_rows": 49380,
+      "acc": 56.62
+    },
+    "2.55.14.95883": {
+      "n_rows": 334,
+      "acc": 56.587
+    },
+    "2.55.14.95918": {
+      "n_rows": 230268,
+      "acc": 56.911
+    },
+    "2.55.15.96370": {
+      "n_rows": 30660,
+      "acc": 56.859
+    },
+    "2.55.15.96443": {
+      "n_rows": 1698,
+      "acc": 55.83
+    },
+    "2.55.15.96477": {
+      "n_rows": 158592,
+      "acc": 56.961
+    },
+    "2.55.16.96846": {
+      "n_rows": 1886,
+      "acc": 56.204
+    },
+    "2.55.16.96870": {
+      "n_rows": 2770,
+      "acc": 57.365
+    },
+    "2.55.16.96881": {
+      "n_rows": 60534,
+      "acc": 56.922
+    },
+    "2.55.16.97039": {
+      "n_rows": 23894,
+      "acc": 56.688
+    }
+  },
+  "sanity": null,
+  "minutes": 1.2,
+  "out": "/home/max/hots/repo/training/drift_v2/models/w2c_cut31_s42.pt"
+}

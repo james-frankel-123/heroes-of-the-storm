@@ -1,0 +1,12 @@
+{
+  "cell": "d2:d2c_cumprev",
+  "seed": 777,
+  "stats": "cutoff",
+  "gd_pool": "cutoff",
+  "drafts": 500,
+  "healer_rate": 90.2,
+  "degen_rate": 12.8,
+  "synergy_future": 0.2098242157354619,
+  "counter_future": 0.13425670202959894,
+  "minutes": 10.1
+}

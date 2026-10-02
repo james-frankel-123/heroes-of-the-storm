@@ -1,0 +1,12 @@
+{
+  "cell": "d2:d2b_embed",
+  "seed": 42,
+  "stats": "cutoff",
+  "gd_pool": "cutoff",
+  "drafts": 500,
+  "healer_rate": 69.0,
+  "degen_rate": 38.8,
+  "synergy_future": 0.4797205897760952,
+  "counter_future": 0.13925971206392307,
+  "minutes": 14.0
+}
