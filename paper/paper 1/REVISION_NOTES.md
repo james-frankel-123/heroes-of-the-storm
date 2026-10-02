@@ -1324,3 +1324,13 @@ The MCTS scheduler uses `mcts_slots.json`: 3090 2, 3080 1. The 3080 goes to 2 au
 - **Speed.** Self-play ran at about 5–8 ep/s at 200 sims while the drift MCTS run shared the GPU.
 - **Pause/resume.** Pause checkpointed at episode 768. Resume restored the state and continued from 896, one batch later. The drill was then ended and its run directory removed.
 - **GD 0 on the 3080 is held** for the expert study's GD trainer, per the coordinator. The GD caches are being pushed to the 3080 (light; network and disk only). GD 0 resumes from its epoch-9 checkpoint when the slot frees.
+
+### 15.10 GD on the 3080: not viable (2026-10-01 22:45)
+
+**Observed.** GD 0 resumed from its epoch-9 checkpoint. The memory-mapped training cache (27 GB) filled the page cache within two minutes. The job reached about 27–30 GB of resident memory, mostly file-backed. When the drift lane's GD trainer started at the same time, available memory fell to 12 GB. No epoch finished in 11 minutes (about 6 min on the main box before the move, about 12 min on the shared 3090).
+
+**Done.** GD 0 was stopped on the 3080 before it could push WSL over; the epoch-9 checkpoint is kept.
+
+**Plan.**
+- All five GD seeds run on the 3090 when it frees.
+- The 3080 takes this lane's MCTS runs (lean snapshot; drill passed) once the GD pool exists.
