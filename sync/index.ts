@@ -6,6 +6,7 @@ import { syncGlobalStats } from './sync-global'
 import { syncPlayerData, BattletagConfig } from './sync-players'
 import { computeDerivedStats } from './compute-derived'
 import { syncCompositions } from './sync-compositions'
+import { deriveMapStats } from './derive-map-stats'
 import { log } from './logger'
 
 // ── Configuration ────────────────────────────────────────────────────
@@ -92,6 +93,14 @@ async function main() {
       await logSyncError(db, globalLogId, err instanceof Error ? err.message : String(err))
         .catch(e => log.error('Failed to log sync error', e))
     }
+  }
+
+  // ── Phase 1b: Map / hero-map aggregates from our own replay corpus ──
+  // (drives the site's map lists; follows the ranked rotation)
+  try {
+    await deriveMapStats(db)
+  } catch (err) {
+    log.error('Map stats derivation failed (non-fatal)', err)
   }
 
   // ── Phase 2: Player match history ──

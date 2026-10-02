@@ -25,6 +25,7 @@ const HEROES = [
   "Sylvanas","Tassadar","The Butcher","The Lost Vikings","Thrall","Tracer",
   "Tychus","Tyrael","Tyrande","Uther","Valeera","Valla","Varian",
   "Whitemane","Xul","Yrel","Zagara","Zarya","Zeratul","Zul'jin",
+  "Xal'atath",
 ]
 
 function slug(name) {

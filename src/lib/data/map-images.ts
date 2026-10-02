@@ -18,6 +18,7 @@ const MAP_SLUGS: Record<string, string> = {
   'Towers of Doom':            'towers-of-doom',
   'Volskaya Foundry':          'volskaya-foundry',
   'Warhead Junction':          'warhead-junction',
+  'Haunted Mines':             'haunted-mines',
 }
 
 export function mapImageSrc(map: string): string | null {

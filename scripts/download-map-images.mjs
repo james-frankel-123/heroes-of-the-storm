@@ -26,6 +26,7 @@ const MAPS = {
   'Towers of Doom':            'towers-of-doom',
   'Volskaya Foundry':          'volskaya-foundry',
   'Warhead Junction':          'warhead-junction',
+  'Haunted Mines':             'haunted-mines',
 }
 
 const BASE = 'https://nexuscompendium.com/images/battlegrounds'
