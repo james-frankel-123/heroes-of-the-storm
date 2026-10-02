@@ -97,6 +97,30 @@ def setup():
                            "StatsCache would silently fall back to the live DB.")
     if not os.path.exists(SNAPSHOT_PATH):
         raise RuntimeError(f"Pinned replay snapshot missing: {SNAPSHOT_PATH}")
+    require_ns_hooks()
+
+
+def require_ns_hooks():
+    """oct2026 needs its import hooks (paper1_revision/oct2026_site): without
+    them StatsCache silently reads the live src/lib/data/compositions.json
+    instead of the namespace's own-corpus table, and constrained_search
+    defaults to the wrong MCTS checkpoint. Fail loudly instead."""
+    if RERUN_NS != "oct2026":
+        return
+    sc = sys.modules.get("sitecustomize")
+    comp = os.environ.get("P1R_COMP_PATH", "")
+    problems = []
+    if not (sc and getattr(sc, "__file__", "") and
+            os.path.basename(os.path.dirname(sc.__file__)) == "oct2026_site"):
+        problems.append("paper1_revision/oct2026_site/sitecustomize.py is not loaded "
+                        "(put that directory first on PYTHONPATH)")
+    if not comp or not os.path.exists(comp):
+        problems.append(f"P1R_COMP_PATH unset or missing ({comp!r})")
+    if not os.environ.get("P1R_MCTS_CKPT"):
+        problems.append("P1R_MCTS_CKPT unset")
+    if problems:
+        raise RuntimeError("RERUN_NS=oct2026 without its environment: " + "; ".join(problems) +
+                           ". Use oct2026_refresh.base_env (see paper1_revision/oct2026_refresh.py).")
 
 
 def load_exclude_ids():

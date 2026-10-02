@@ -428,7 +428,13 @@ def main():
     parser.add_argument("--wr", type=float, default=None, help="Single unseen WR")
     parser.add_argument("--volume", type=int, default=None, help="Single unseen volume")
     parser.add_argument("--scope", type=str, default=None, help="Single scope")
+    parser.add_argument("--hidden-dims", type=str, default=None,
+                        help="MLP hidden dims, e.g. '512,256,128'")
     args = parser.parse_args()
+
+    if args.hidden_dims:
+        TRAIN_HP["hidden_dims"] = [int(x) for x in args.hidden_dims.split(",")]
+        print(f"Architecture override: {TRAIN_HP['hidden_dims']}")
 
     os.makedirs(RESULTS_DIR, exist_ok=True)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -570,7 +576,13 @@ def main():
               f"{'YES' if e['all_degen_below_25'] else 'no':>10}")
 
     # Save Stage 1 results
-    stage1_path = os.path.join(RESULTS_DIR, "stage1_results.json")
+    if args.wr is not None and args.volume is not None and args.scope is not None:
+        suffix = f"_wr{int(args.wr)}_vol{args.volume}_{args.scope}"
+        if args.hidden_dims:
+            suffix += f"_arch{'x'.join(str(x) for x in TRAIN_HP['hidden_dims'])}"
+        stage1_path = os.path.join(RESULTS_DIR, f"stage1_results{suffix}.json")
+    else:
+        stage1_path = os.path.join(RESULTS_DIR, "stage1_results.json")
     with open(stage1_path, "w") as f:
         json.dump(all_results, f, indent=2, default=str)
     print(f"\nStage 1 results saved to {stage1_path}")
@@ -594,7 +606,7 @@ def main():
     print(f"{'='*70}")
 
     # Import greedy infrastructure
-    from experiment_value_function_quality import greedy_pick_with_model
+    import torch.nn.functional as F
     from train_draft_policy import DraftState, DRAFT_ORDER
     from train_generic_draft import GenericDraftModel
 
@@ -609,10 +621,46 @@ def main():
         gd.to(device).eval()
         gd_models.append(gd)
 
-    # Generate draft scenarios
     random.seed(42)
     draft_configs = [(i, random.choice(MAPS), random.choice(SKILL_TIERS), i % 2)
                      for i in range(args.drafts)]
+
+    healer_heroes = set(h for h, role in HERO_ROLE_FINE.items() if role == "healer")
+    tank_heroes = set(h for h, role in HERO_ROLE_FINE.items() if role == "tank")
+    bruiser_heroes = set(h for h, role in HERO_ROLE_FINE.items() if role == "bruiser")
+    ranged_heroes = set(h for h, role in HERO_ROLE_FINE.items()
+                       if role in ("ranged_aa", "ranged_mage", "pusher"))
+    frontline = tank_heroes | bruiser_heroes
+
+    def gd_pick(state, gd_models, device):
+        gd = random.choice(gd_models)
+        x = state.to_tensor_gd(device)
+        mask = state.valid_mask(device)
+        with torch.no_grad():
+            logits = gd(x, mask)
+        return logits.argmax(dim=1).item()
+
+    def greedy_wp_pick(state, step_team, step_idx, eval_fn, gd_models, device, game_map, tier, our_team):
+        mask_np = state.valid_mask_np()
+        valid_idxs = [i for i in range(NUM_HEROES) if mask_np[i] > 0]
+        best_idx = None
+        best_wp = -1
+        for hero_idx in valid_idxs:
+            s = state.clone()
+            s.apply_action(hero_idx, step_team, "pick")
+            remaining = DRAFT_ORDER[s.step:]
+            for rs_team, rs_type in remaining:
+                h = gd_pick(s, gd_models, device)
+                s.apply_action(h, rs_team, rs_type)
+            t0_heroes = [HEROES[i] for i in range(NUM_HEROES) if s.team0_picks[i] > 0]
+            t1_heroes = [HEROES[i] for i in range(NUM_HEROES) if s.team1_picks[i] > 0]
+            wp = eval_fn(t0_heroes, t1_heroes, game_map, tier)
+            if our_team == 1:
+                wp = 1 - wp
+            if wp > best_wp:
+                best_wp = wp
+                best_idx = hero_idx
+        return best_idx
 
     stage2_results = []
     for r in top_configs:
@@ -620,7 +668,6 @@ def main():
         name = r["name"]
         print(f"\n--- {name} ---")
 
-        # Retrain best seed
         if cfg.get("wr") is not None:
             synthetic, _ = generate_synthetic_data(
                 train_data, comp_data,
@@ -635,109 +682,35 @@ def main():
         )
         eval_fn = make_eval_fn(model, cols, stats_cache, device)
 
-        # Run greedy drafts
         healer_count = 0
         degen_count = 0
+        ranged_count = 0
         total_drafts = 0
 
-        healer_heroes = set(h for h, role in HERO_ROLE_FINE.items() if role == "healer")
-        tank_heroes = set(h for h, role in HERO_ROLE_FINE.items() if role == "tank")
-        bruiser_heroes = set(h for h, role in HERO_ROLE_FINE.items() if role == "bruiser")
-        ranged_heroes = set(h for h, role in HERO_ROLE_FINE.items()
-                           if role in ("ranged_aa", "ranged_mage", "pusher"))
-        frontline = tank_heroes | bruiser_heroes
-
         for di, (draft_id, game_map, tier, our_team) in enumerate(draft_configs):
-            state = DraftState(game_map, tier)
+            state = DraftState(game_map, tier, our_team=our_team)
 
-            for step_idx, (step_team, step_type) in enumerate(DRAFT_ORDER):
-                if step_type == "ban":
-                    # Simple ban: pick highest WR hero
-                    valid = state.valid_actions()
-                    if not valid:
-                        continue
-                    # Use GD model for ban
-                    gd = random.choice(gd_models)
-                    x = state.to_tensor().unsqueeze(0).to(device)
-                    with torch.no_grad():
-                        logits = gd(x).squeeze(0).cpu()
-                    mask = torch.full((NUM_HEROES,), float('-inf'))
-                    for h in valid:
-                        mask[HERO_TO_IDX[h]] = 0
-                    logits = logits + mask
-                    hero = HEROES[logits.argmax().item()]
-                    state.apply_action(hero, step_team, "ban")
-                elif step_team == our_team:
-                    # Our pick: greedy via WP model
-                    valid = state.valid_actions()
-                    best_hero = None
-                    best_wp = -1
-                    for hero in valid:
-                        test_state = state.clone()
-                        test_state.apply_action(hero, step_team, "pick")
-                        # Quick eval: complete draft with GD rollout
-                        s = test_state.clone()
-                        remaining = DRAFT_ORDER[step_idx+1:]
-                        for rs_team, rs_type in remaining:
-                            rv = s.valid_actions()
-                            if not rv:
-                                continue
-                            gd = random.choice(gd_models)
-                            x = s.to_tensor().unsqueeze(0).to(device)
-                            with torch.no_grad():
-                                logits = gd(x).squeeze(0).cpu()
-                            mask = torch.full((NUM_HEROES,), float('-inf'))
-                            for h in rv:
-                                mask[HERO_TO_IDX[h]] = 0
-                            logits = logits + mask
-                            h = HEROES[logits.argmax().item()]
-                            s.apply_action(h, rs_team, rs_type)
+            while not state.is_terminal():
+                step_team, step_type = DRAFT_ORDER[state.step]
 
-                        # Evaluate terminal state
-                        wp = eval_fn(s.team_heroes[0], s.team_heroes[1], game_map, tier)
-                        if our_team == 1:
-                            wp = 1 - wp
-                        if wp > best_wp:
-                            best_wp = wp
-                            best_hero = hero
-
-                    if best_hero:
-                        state.apply_action(best_hero, step_team, "pick")
+                if step_team == our_team and step_type == "pick":
+                    hero_idx = greedy_wp_pick(state, step_team, state.step, eval_fn,
+                                              gd_models, device, game_map, tier, our_team)
+                    state.apply_action(hero_idx, step_team, step_type)
                 else:
-                    # Opponent pick: use GD
-                    valid = state.valid_actions()
-                    if not valid:
-                        continue
-                    gd = random.choice(gd_models)
-                    x = state.to_tensor().unsqueeze(0).to(device)
-                    with torch.no_grad():
-                        logits = gd(x).squeeze(0).cpu()
-                    mask = torch.full((NUM_HEROES,), float('-inf'))
-                    for h in valid:
-                        mask[HERO_TO_IDX[h]] = 0
-                    logits = logits + mask
-                    hero = HEROES[logits.argmax().item()]
-                    state.apply_action(hero, step_team, "pick")
+                    hero_idx = gd_pick(state, gd_models, device)
+                    state.apply_action(hero_idx, step_team, step_type)
 
-            # Analyze our team composition
-            our_heroes = state.team_heroes[our_team]
-            has_healer = any(h in healer_heroes for h in our_heroes)
-            has_frontline = any(h in frontline for h in our_heroes)
-            has_ranged = any(h in ranged_heroes for h in our_heroes)
+            our_vec = state.team0_picks if our_team == 0 else state.team1_picks
+            our_picks = [HEROES[i] for i in range(NUM_HEROES) if our_vec[i] > 0]
 
-            # Role stacking
-            role_counts_map = {}
-            for h in our_heroes:
-                r = HERO_ROLE_FINE.get(h, "unknown")
-                role_counts_map[r] = role_counts_map.get(r, 0) + 1
-            has_stacking = any(c >= 3 for c in role_counts_map.values())
+            has_healer = any(h in healer_heroes for h in our_picks)
+            has_ranged = any(h in ranged_heroes for h in our_picks)
+            is_degen = is_degenerate(our_picks)
 
-            is_degen = is_degenerate(our_heroes)
-
-            if has_healer:
-                healer_count += 1
-            if is_degen:
-                degen_count += 1
+            if has_healer: healer_count += 1
+            if has_ranged: ranged_count += 1
+            if is_degen: degen_count += 1
             total_drafts += 1
 
             if (di + 1) % 50 == 0:
@@ -746,13 +719,15 @@ def main():
 
         healer_rate = healer_count / total_drafts * 100
         degen_rate = degen_count / total_drafts * 100
-        print(f"  Final: healer={healer_rate:.1f}% degen={degen_rate:.1f}%")
+        ranged_rate = ranged_count / total_drafts * 100
+        print(f"  Final: healer={healer_rate:.1f}% ranged={ranged_rate:.1f}% degen={degen_rate:.1f}%")
 
         stage2_results.append({
             "name": name,
             "config": cfg,
             "accuracy": acc,
             "healer_rate": healer_rate,
+            "ranged_rate": ranged_rate,
             "degen_rate": degen_rate,
             "total_drafts": total_drafts,
         })
@@ -766,11 +741,11 @@ def main():
     print(f"\n{'='*70}")
     print("STAGE 2 SUMMARY")
     print(f"{'='*70}")
-    print(f"{'Config':<35} {'Acc%':>6} {'Healer%':>8} {'Degen%':>8}")
-    print("-" * 60)
-    print(f"{'baseline (from main experiment)':<35} {'57.9':>6} {'66.5':>8} {'57.7':>8}")
+    print(f"{'Config':<35} {'Acc%':>6} {'Healer%':>8} {'Ranged%':>8} {'Degen%':>8}")
+    print("-" * 70)
     for r in stage2_results:
-        print(f"{r['name']:<35} {r['accuracy']:>6.2f} {r['healer_rate']:>8.1f} {r['degen_rate']:>8.1f}")
+        print(f"{r['name']:<35} {r['accuracy']:>6.2f} {r['healer_rate']:>8.1f} "
+              f"{r['ranged_rate']:>8.1f} {r['degen_rate']:>8.1f}")
 
     # Save
     stage2_path = os.path.join(RESULTS_DIR, "stage2_results.json")

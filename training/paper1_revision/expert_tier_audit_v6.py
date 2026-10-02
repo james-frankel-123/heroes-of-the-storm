@@ -26,7 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 SHOWN = {"low": {"Bronze", "Silver"}, "mid": {"Gold", "Platinum"}, "high": {"Diamond", "Master"}}
 NAMES = {1: "Wood", 2: "Bronze", 3: "Silver", 4: "Gold", 5: "Platinum", 6: "Diamond"}
-OUT = os.path.join(HERE, "results", "expert_v6", "tier_audit.json")
+OUT = os.environ.get("TIER_AUDIT_OUT", os.path.join(HERE, "results", "expert_v6", "tier_audit.json"))
 
 
 def rank(lt, mmr):

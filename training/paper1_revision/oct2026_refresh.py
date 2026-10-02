@@ -36,8 +36,10 @@ DIFFERENCES = [
     "statistics: decayed90 recipe unchanged, but computed from training rows only and "
     "out of fold for training rows (5 hash folds); own-corpus role-composition table "
     "replaces the external Heroes Profile compositions.json everywhere",
-    "WP models (4 evaluators / greedy value functions): early stopping and seed choice on "
-    "a validation subset of training rows (September: test set)",
+    "WP models (the 3 evaluators naive/herostrength/enriched, also the greedy value "
+    "function; wp_aug_v2_512 was trained but is unused): early stopping and seed choice on "
+    "a validation subset of training rows (September: test set). GD, CQL and MCQ still "
+    "select on test loss, as in September",
     "enriched CQL transitions: out-of-fold features",
     "ensemble members: trained on the out-of-fold caches",
     "MCTS policy: F_400sim (400 sims, 300K episodes), seed 0, instead of J_800sim seed 9",
@@ -424,6 +426,8 @@ if __name__ == "__main__":
     ap.add_argument("--constrained-pairs", action="store_true")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--print-remote-mcts-cmd", metavar="REMOTE_TRAINING_DIR")
+    ap.add_argument("--print-env", action="store_true",
+                    help="print 'export K=V' lines for the oct2026 CPU env (eval in a shell)")
     # remote mode (2026-10-01: no HotS compute on the main box)
     ap.add_argument("--nproc", type=int, default=4)
     ap.add_argument("--gpu-slots", type=int, default=2)
@@ -437,7 +441,13 @@ if __name__ == "__main__":
     OPTS.update(nproc=a.nproc, gpu_slots=a.gpu_slots, cpu_set=a.cpu_set, hots_cap=a.hots_cap,
                 assume_done={x for x in a.assume_done.split(",") if x},
                 only={x for x in a.only.split(",") if x} or None, retry_failed=a.retry_failed, gd_workers=a.gd_workers)
-    if a.print_remote_mcts_cmd:
+    if a.print_env:
+        import shlex
+        e = base_env(None)
+        for k in sorted(e):
+            if os.environ.get(k) != e[k]:
+                print(f"export {k}={shlex.quote(e[k])}")
+    elif a.print_remote_mcts_cmd:
         print(remote_mcts_cmd(a.print_remote_mcts_cmd))
     elif a.mcts_prep:
         mcts_prep()

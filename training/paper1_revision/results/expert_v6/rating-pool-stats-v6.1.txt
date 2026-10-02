@@ -1,0 +1,45 @@
+pool seed 20261001, 901 items; evaluators naive, herostrength, enriched, consensus
+[screener] n=8 tiers { high: 2, low: 3, mid: 3 }
+[calibration] n=40 tiers { high: 13, low: 14, mid: 13 }
+[pairs] n=280 tiers { high: 93, low: 93, mid: 94 }
+[anchors] n=570 tiers { high: 190, low: 190, mid: 190 }
+[catch] n=3 tiers { high: 1, low: 1, mid: 1 }
+pairs by stratum {
+  constrained_mcts_vs_mcts: 42,
+  mcts_vs_enriched: 42,
+  other_pairs: 78,
+  vs_anchored: 118
+}
+all items by map {
+  'Alterac Pass': 71,
+  'Battlefield of Eternity': 71,
+  "Blackheart's Bay": 19,
+  'Braxis Holdout': 71,
+  'Cursed Hollow': 73,
+  'Dragon Shire': 72,
+  'Garden of Terror': 71,
+  'Hanamura Temple': 20,
+  'Haunted Mines': 52,
+  'Infernal Shrines': 72,
+  'Sky Temple': 73,
+  'Tomb of the Spider Queen': 71,
+  'Towers of Doom': 73,
+  'Volskaya Foundry': 71,
+  'Warhead Junction': 21
+}
+
+machine pairs: 280
+  near-tie threshold 0.01: exclude 8 -> 272 effective items, 816 planned judgments; item-level worst-case z at 0.60 = 3.30 (uncorrected: 271)
+  near-tie threshold 0.02: exclude 25 -> 255 effective items, 765 planned judgments; item-level worst-case z at 0.60 = 3.19 (uncorrected: 255)
+  near-tie threshold 0.05: exclude 76 -> 204 effective items, 612 planned judgments; item-level worst-case z at 0.60 = 2.86 (uncorrected: 204)
+  evaluator naive alone (0.02): 249 effective items
+  evaluator herostrength alone (0.02): 254 effective items
+  evaluator enriched alone (0.02): 245 effective items
+  evaluator consensus alone (0.02): 255 effective items
+  correction: favored-side flips 2 (of which outside the 0.02 band in both: 1); near-tie status changes at 0.02: 0
+  vs_anchored stratum: 118 items, 114 after 0.02 exclusion (342 judgments)
+
+Bradley-Terry: 10 strategies, 45 of 45 pairings present, 1 connected component(s)
+strategies constrained_greedy, constrained_mcts, cql_enr_a2.0, cql_naive_a1.0, enriched, gd, gourdeau, gourdeau_disc, mcq_t0.5, mcts
+ood_var_max: n=280 mean 0.00121 median 0.00101 p90 0.00221 p95 0.00255 max 0.00487
+ood_var_matchup: n=280 mean 0.00105 median 0.00084 p90 0.00186 p95 0.00243 max 0.00601

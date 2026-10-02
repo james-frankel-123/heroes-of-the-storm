@@ -1,37 +1,33 @@
 """
-Pluggable judge step for the expert-study v6 pool (oct2026). NOT RUN until the
-judge set is decided (coordinator, 2026-10-01: the independent judges are
-being audited for under-penalizing degenerate compositions).
+Judge (label) step for the expert-study v6/v6.1 pool (oct2026).
 
 Where judges enter the pool
   * Item SAMPLING does not use any judge: generate-rating-items.ts draws
     machine pairs by matchup stratum (cycling strategy pairs, then least-used
-    tier/map), real games by tier and map, and screener/catch teams by role
-    rules.
-  * The only judge-derived item data is provenance.wpTeam0Sym on the 280
+    tier/map, with a per-team appearance cap), real games by tier and map,
+    and screener/catch teams by role rules.
+  * The only judge-derived item data is provenance.wpTeam0Sym* on the 280
     machine pairs: P(team0 wins), team-order symmetrized, per evaluator. The
-    tournament scripts write the four namespace evaluators (naive,
-    herostrength, enriched, augmented) into every record; the generator
-    copies them. The preregistration uses these frozen numbers for H1
-    (consensus side), the near-tie exclusion (|consensus - 0.5| <= 0.02, also
-    0.01/0.05), the per-evaluator sensitivities, S2 (slider calibration), and
-    S5. Nothing filters items on them at generation time.
+    tournament scripts write the three namespace evaluators (naive,
+    herostrength, enriched) into every record; the generator copies them,
+    and this script keeps that copy as provenance.wpTeam0Sym_tournament.
   * OOD covariates (rating_items_ood.py) come from the 20-member WP ensemble,
     a separate model family.
 
-This script (re)writes provenance.wpTeam0Sym for every machine pair from a
-configurable judge set and records which judges were used and the consensus
-definition in pool['judges']. Judges:
-  ns:<name>         a namespace WP evaluator (naive, herostrength, enriched,
-                    augmented), scored with the namespace deploy statistics
+v6/v6.1 runs this twice:
+  1. --judges ns:naive,ns:herostrength,ns:enriched --consensus naive,herostrength,enriched
+     --field wpTeam0Sym_uncorrected
+  2. --judges py:<oct2026_struct_correction.py>:{naive,herostrength,enriched,consensus}_sc
+     --consensus-judge consensus_sc --rename ..._sc:... --field wpTeam0Sym
+     (the structure-corrected labels the preregistration reads)
+Each run records its judge specs, consensus definition and near-tie counts in
+pool['judges'][field]. Judges:
+  ns:<name>         a namespace WP evaluator (naive, herostrength, enriched),
+                    scored with the namespace deploy statistics
   py:<file>:<func>  any Python callable func(rows) -> np.ndarray of
-                    P(team0 wins), rows = [(team0, team1, map, tier)]; this is
-                    the hook for the corrected, composition-aware judges
-The previous wpTeam0Sym is kept as provenance.wpTeam0Sym_tournament.
-
-Usage (env RERUN_NS=oct2026 etc., see oct2026_refresh.base_env):
-  python3 paper1_revision/oct2026_pool_judges.py --judges ns:naive,ns:herostrength,ns:enriched,ns:augmented \
-      [--consensus naive,herostrength,enriched,augmented] [--pool data/rating-items.json] [--dry-run]
+                    P(team0 wins), rows = [(team0, team1, map, tier)]
+Env: oct2026_refresh.base_env (RERUN_NS=oct2026, deploy stats, oct2026_site
+hook); rerun2026.common.setup() refuses to run without it.
 """
 import os
 import sys
@@ -49,7 +45,7 @@ import numpy as np
 NS_EVAL = {"naive": ("wp_naive.pt", [256, 128], []),
            "herostrength": ("wp_herostrength.pt", [256, 128], ["hero_wr", "team_avg_wr"]),
            "enriched": ("wp_enriched_256.pt", [256, 128], "E"),
-           "augmented": ("wp_aug_v2_512.pt", [512, 256, 128], "E")}
+           }  # wp_aug_v2_512 (synthetic augmentation) dropped in v6
 
 
 def ns_judge(name):

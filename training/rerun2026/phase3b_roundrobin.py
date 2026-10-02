@@ -87,6 +87,21 @@ def _cols(groups):
 
 
 def _find_mcts_checkpoint(preferred):
+    # In a namespaced run, an explicitly requested run must come from the
+    # namespace's own mcts_runs/: falling back to training/mcts_runs/<same
+    # name> (e.g. a July F_400sim_s0) would be silent and wrong. oct2026 never
+    # falls back at all. Un-namespaced runs and runs without --mcts-run keep
+    # the historical resolution (other lanes use it on purpose).
+    if common.RERUN_NS and (preferred or common.RERUN_NS == "oct2026"):
+        if not preferred:
+            raise FileNotFoundError("RERUN_NS=oct2026 requires --mcts-run")
+        p = os.path.join(common.MCTS_RUNS_DIR, preferred, "draft_policy.pt")
+        if not os.path.exists(p):
+            raise FileNotFoundError(f"--mcts-run {preferred}: {p} does not exist "
+                                    f"(no fallback to training/mcts_runs in namespace "
+                                    f"{common.RERUN_NS})")
+        print(f"MCTS checkpoint: {p}")
+        return preferred, p
     runs = [preferred] if preferred else []
     runs += [r for r in DEFAULT_MCTS_RUNS if r not in runs]
     for run in runs:

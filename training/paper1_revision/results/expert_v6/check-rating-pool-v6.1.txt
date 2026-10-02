@@ -1,0 +1,29 @@
+  ok  ids 1..901 unique
+  ok  screener: 8 items
+  ok  calibration: 40 items
+  ok  pairs: 280 items
+  ok  anchors: 570 items
+  ok  catch: 3 items
+  ok  anchors low: 190
+  ok  anchors mid: 190
+  ok  anchors high: 190
+  ok  calibration 14/13/13
+  ok  every slot: 240 items, 48-item opener, catch at 121/181/231, 60 pairs + 43/43/43 anchors
+  ok  every pair covered exactly 3x
+  ok  every anchor covered 3-4x
+  ok  anchors high: exactly 32 covered 4x
+  ok  anchors low: exactly 32 covered 4x
+  ok  anchors mid: exactly 32 covered 4x
+  ok  test smoke flow: 7 items
+  ok  all 621 real replays distinct
+  ok  all tournament records distinct
+  ok  every real game dated >= 2026-09-01
+  ok  every item has 5+5 distinct heroes
+  ok  every real game DB date < 2026-09-28
+  ok  every real game on builds 2.55.17.97771, 2.55.17.98025
+  ok  no machine team in more than 7 pairs (max 7)
+  ..  per-rater max exposure to one machine team (slots 0-13): 3 4 4 3 3 4 4 5 3 3 3 3 2 2
+  ok  every pair has finite wpTeam0Sym and wpTeam0Sym_uncorrected (naive, herostrength, enriched, consensus)
+  ok  every pair has finite, consistent OOD covariates (team0/1, max, mean, matchup, refs)
+
+pool seed 20261001, 901 items: ALL PASS

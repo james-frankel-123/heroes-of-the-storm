@@ -43,16 +43,20 @@
  *
  * Rater burden: 48 + 60 + 129 + 3 = 240 items, identical for every rater.
  *
- * ALL real ladder drafts (screener/catch reals + calibration + anchors)
- * POSTDATE the 2026-05-22 training snapshot (replay_id > 63653039), so no
- * anchor can appear in any model's training data.
+ * ALL real ladder drafts (screener/catch reals + calibration + anchors) are
+ * played after the training snapshot (DB game_date in [2026-09-01,
+ * 2026-09-28)) on an allowed build (ANCHOR_BUILDS), so no anchor can appear
+ * in any model's training data. provenance.gameDate is the DB's
+ * timezone-less game_date as stored (no conversion), provenance.gameVersion
+ * its build. The candidate replay ids per tier are written next to the
+ * output (<out>.ladder-candidates.json) with their sha256.
  *
- * After generation, run training/rerun2026/rating_items_ood.py to freeze the
- * OOD ensemble-variance covariates (reference-probe AND matchup-level) into
- * every machine-pair item's provenance, THEN seed with
- * scripts/seed-rating-items.ts.
+ * Pipeline (v6.1): generate -> label (training/paper1_revision/
+ * oct2026_pool_judges.py, uncorrected + structure-corrected) -> OOD
+ * covariates (training/rerun2026/rating_items_ood.py) -> checks
+ * (scripts/check-rating-pool.ts) -> seed (scripts/seed-rating-items.ts).
  *
- * Output: data/rating-items.json — committed to the repo and seeded into the
+ * Output: RATING_ITEMS_OUT (default data/rating-items.json), seeded into the
  * rating_items table by scripts/seed-rating-items.ts. Provenance (strategy
  * labels, source, winner, model WPs, OOD covariates) lives ONLY in this file /
  * the DB provenance column; it is never sent to the client.
@@ -97,6 +101,12 @@ const PAIR_SAMPLE_SEED = 20261001
 // train-set data. (Date, not replay id: HP replay ids are assigned at upload
 // and are not monotone in game date.)
 const TRAINING_SNAPSHOT_CUTOFF = '2026-09-01'
+// Upper bound on real games (DB game_date, exclusive; v6.1). Matches the
+// structure-correction fit window (2026-09-01 .. 2026-09-27).
+const REAL_GAME_END = '2026-09-28'
+// v6.1: an identical (sorted) five-hero machine team may appear in at most
+// this many of the 280 pairs, counted across all strata (v5's maximum was 7).
+const MAX_TEAM_APPEARANCES = 7
 // Builds a real-game item may come from (v6). Builds released after
 // 2026-09-27 (2.57.x) are reserved for the drift pre-registration and must
 // not be read; the 2.55.17 builds are the meta the agents were trained on.
@@ -362,7 +372,14 @@ function loadTournamentCandidates(): Map<string, Candidate[]> {
  * (so every pair file contributes) and, within each pair, preferring the
  * tier/map least represented so far.
  */
-function sampleStratum(cands: Candidate[], count: number, seed: number): Candidate[] {
+const teamKey = (t: string[]) => [...t].sort().join(',')
+
+function sampleStratum(
+  cands: Candidate[],
+  count: number,
+  seed: number,
+  teamUse: Map<string, number>
+): Candidate[] {
   const rand = mulberry32(seed)
   const byPair = new Map<string, Candidate[]>()
   for (const c of cands) {
@@ -388,6 +405,8 @@ function sampleStratum(cands: Candidate[], count: number, seed: number): Candida
     for (const c of pool) {
       const key = c.team0.join(',') + '|' + c.team1.join(',') + '|' + c.map
       if (usedKeys.has(key)) continue
+      if ((teamUse.get(teamKey(c.team0)) ?? 0) >= MAX_TEAM_APPEARANCES) continue
+      if ((teamUse.get(teamKey(c.team1)) ?? 0) >= MAX_TEAM_APPEARANCES) continue
       const score =
         (tierCount.get(c.tier) ?? 0) * 100 + (mapCount.get(c.map) ?? 0) * 3 + rand()
       if (score < bestScore) {
@@ -402,12 +421,18 @@ function sampleStratum(cands: Candidate[], count: number, seed: number): Candida
     stall = 0
     const key = best.team0.join(',') + '|' + best.team1.join(',') + '|' + best.map
     usedKeys.add(key)
+    for (const t of [best.team0, best.team1]) {
+      teamUse.set(teamKey(t), (teamUse.get(teamKey(t)) ?? 0) + 1)
+    }
     tierCount.set(best.tier, (tierCount.get(best.tier) ?? 0) + 1)
     mapCount.set(best.map, (mapCount.get(best.map) ?? 0) + 1)
     picked.push(best)
   }
   if (picked.length < count) {
-    throw new Error(`stratum sampling exhausted at ${picked.length}/${count}`)
+    throw new Error(
+      `stratum sampling exhausted at ${picked.length}/${count} ` +
+        `(team cap ${MAX_TEAM_APPEARANCES}): not relaxing the cap silently`
+    )
   }
   return picked
 }
@@ -420,7 +445,12 @@ interface LadderDraft {
   team1_heroes: string[]
   winner: number
   game_date: string
+  game_version: string
 }
+
+// Candidate replay ids per tier as returned by the ladder query (pre-filter),
+// saved for reproducibility (the DB keeps growing).
+const LADDER_CANDIDATES: Record<string, number[]> = {}
 
 /**
  * Ladder drafts for one tier: `count` distinct valid drafts, map-spread, ALL
@@ -432,14 +462,17 @@ async function loadLadderTier(tier: string, count: number): Promise<LadderDraft[
   // generous window so enough valid drafts survive filtering. The date floor
   // guarantees no anchor was ever seen by any trained model.
   const rows = (await sql`
-    select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner, game_date
+    select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner,
+           to_char(game_date, 'YYYY-MM-DD"T"HH24:MI:SS') as game_date, game_version
     from replay_draft_data
     where skill_tier = ${tier}
       and game_date >= ${TRAINING_SNAPSHOT_CUTOFF}
+      and game_date < ${REAL_GAME_END}
       and game_version = any(${ANCHOR_BUILDS})
     order by game_date desc, replay_id desc
     limit 6000
   `) as LadderDraft[]
+  LADDER_CANDIDATES[tier] = rows.map((r) => Number(r.replay_id))
   const valid = rows.filter((r) => validTeams(r.team0_heroes, r.team1_heroes))
   if (valid.length < count) {
     throw new Error(
@@ -479,7 +512,8 @@ function ladderCandidate(r: LadderDraft): Candidate {
       stratum: 'ladder_anchor',
       replayId: r.replay_id,
       winner: r.winner, // real game outcome (0 = team0 won)
-      gameDate: r.game_date,
+      gameDate: r.game_date, // DB game_date as stored (timezone-less)
+      gameVersion: r.game_version,
     },
   }
 }
@@ -534,6 +568,7 @@ function buildDegenItems(
         winner: realSide,
         replayId: built.real.replay_id,
         gameDate: built.real.game_date,
+        gameVersion: built.real.game_version,
       },
     })
   }
@@ -547,11 +582,14 @@ async function main() {
   }
   const byStratum = loadTournamentCandidates()
   const pairs: Candidate[] = []
+  const teamUse = new Map<string, number>()
   for (const { name, count } of STRATA) {
     const cands = byStratum.get(name) ?? []
     console.log(`stratum ${name}: ${cands.length} candidates -> sampling ${count}`)
-    pairs.push(...sampleStratum(cands, count, PAIR_SAMPLE_SEED ^ fnv1a(name)))
+    pairs.push(...sampleStratum(cands, count, PAIR_SAMPLE_SEED ^ fnv1a(name), teamUse))
   }
+  const maxUse = Math.max(...teamUse.values())
+  console.log(`machine teams: ${teamUse.size} distinct, max appearances ${maxUse} (cap ${MAX_TEAM_APPEARANCES})`)
 
   const screener: Candidate[] = []
   const catchItems: Candidate[] = []
@@ -637,6 +675,9 @@ async function main() {
         seed: SEED,
         generatedAt: new Date().toISOString(),
         trainingSnapshotCutoff: TRAINING_SNAPSHOT_CUTOFF,
+        realGameEnd: REAL_GAME_END,
+        realGameBuilds: ANCHOR_BUILDS,
+        maxTeamAppearances: MAX_TEAM_APPEARANCES,
         tournamentNamespace: 'oct2026',
         items,
       },
@@ -667,11 +708,38 @@ async function main() {
   }
   // Post-snapshot verification line for the prereg.
   const minReplay = Math.min(...replayIds)
+  // gameDate is an ISO-like DB string, so string order is date order.
   const minDate = gameDates.reduce((a, b) => (a < b ? a : b))
+  const maxDate = gameDates.reduce((a, b) => (a > b ? a : b))
   console.log(
-    `min anchor game_date = ${minDate} (>= snapshot cutoff ${TRAINING_SNAPSHOT_CUTOFF}: ${
-      minDate.slice(0, 10) >= TRAINING_SNAPSHOT_CUTOFF
-    }); min anchor replay_id = ${minReplay}`
+    `real games: DB game_date ${minDate} .. ${maxDate} (window [${TRAINING_SNAPSHOT_CUTOFF}, ` +
+      `${REAL_GAME_END}): ${minDate >= TRAINING_SNAPSHOT_CUTOFF && maxDate < REAL_GAME_END}); ` +
+      `min replay_id = ${minReplay}`
+  )
+
+  // Candidate replay ids per tier (the ladder query's result before
+  // filtering), so the draw can be reproduced after the DB grows.
+  const candPath = OUT_PATH.replace(/\.json$/, '') + '.ladder-candidates.json'
+  const candBody = JSON.stringify(
+    {
+      query: {
+        cutoff: TRAINING_SNAPSHOT_CUTOFF,
+        end: REAL_GAME_END,
+        builds: ANCHOR_BUILDS,
+        order: 'game_date desc, replay_id desc',
+        limit: 6000,
+      },
+      tiers: LADDER_CANDIDATES,
+    },
+    null,
+    1
+  )
+  fs.writeFileSync(candPath, candBody)
+  const { createHash } = await import('node:crypto')
+  console.log(
+    `ladder candidates: ${Object.entries(LADDER_CANDIDATES)
+      .map(([t, ids]) => `${t} ${ids.length}`)
+      .join(', ')} -> ${candPath} sha256 ${createHash('sha256').update(candBody).digest('hex')}`
   )
 }
 

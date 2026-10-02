@@ -1,5 +1,5 @@
 """
-Structure correction for the four oct2026 evaluators (expert-study v6 pool
+Structure correction for the three oct2026 evaluators and their consensus (v6 pool
 labels), the method of overfit2026/judges_v2.py applied to the namespace's
 own evaluators:
 
@@ -100,7 +100,9 @@ def load_games():
                      AND game_version = ANY(%s) AND skill_tier IN ('low','mid','high')
                    ORDER BY replay_id""", (list(BUILDS),))
     games = []
+    n_in_window = 0
     for rid, gm, st, t0, t1, w in cur.fetchall():
+        n_in_window += rid in in_pool
         t0 = json.loads(t0) if isinstance(t0, str) else t0
         t1 = json.loads(t1) if isinstance(t1, str) else t1
         if (not t0 or not t1 or len(t0) != 5 or len(t1) != 5 or len(set(t0) | set(t1)) != 10
@@ -108,6 +110,7 @@ def load_games():
             continue
         games.append((rid, gm, st, list(t0), list(t1), w))
     conn.close()
+    _CACHE["pool_ids_in_window"] = n_in_window
     return games, len(in_pool), pool.get("seed")
 
 
@@ -145,7 +148,8 @@ def cmd_fit():
     S = (struct_matrix([r[0] for r in rows]), struct_matrix([r[1] for r in rows]))
     Sc = (S[0][~fit], S[1][~fit])
     out = {"games": len(games), "fit_games": int(fit.sum()), "check_games": int((~fit).sum()),
-           "excluded_pool_replays": n_pool, "pool_seed": seed, "pool_path": os.path.relpath(POOL_PATH, REPO),
+           "pool_real_replays": n_pool,
+           "pool_replays_in_fit_window_excluded": _CACHE["pool_ids_in_window"], "pool_seed": seed, "pool_path": os.path.relpath(POOL_PATH, REPO),
            "pool_sha256": __import__("hashlib").sha256(open(POOL_PATH, "rb").read()).hexdigest(), "builds": list(BUILDS),
            "dates": ["2026-09-01", "2026-09-27"], "beta": {}, "beta_se": {}, "check": {}}
     for j, p in base.items():
@@ -160,6 +164,14 @@ def cmd_fit():
               f"{u['normal']['gap_pp']:+.2f} -> {c['normal']['gap_pp']:+.2f}pp | ll "
               f"{u['all']['ll']:.4f} -> {c['all']['ll']:.4f}", flush=True)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    # The DB keeps ingesting late uploads into the window, so freeze the game
+    # list the coefficients were fitted on.
+    ids_path = os.path.join(os.path.dirname(OUT), "struct_fit_games.json")
+    body = json.dumps({"fit": [int(g[0]) for g, f in zip(games, fit) if f],
+                       "check": [int(g[0]) for g, f in zip(games, fit) if not f]})
+    open(ids_path, "w").write(body)
+    out["games_file"] = os.path.relpath(ids_path, REPO)
+    out["games_file_sha256"] = __import__("hashlib").sha256(body.encode()).hexdigest()
     json.dump(out, open(OUT, "w"), indent=1)
 
 

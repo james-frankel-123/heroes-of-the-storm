@@ -1,7 +1,7 @@
 """
 Rich Draft Quality Evaluation Metrics.
 
-Runs 200 drafts with 5 strategies and computes:
+Runs drafts per strategy and computes:
 1. Counter-pick responsiveness
 2. Synergy exploitation
 3. Draft diversity (distinct heroes, entropy, top-10 concentration)
@@ -11,7 +11,7 @@ Runs 200 drafts with 5 strategies and computes:
 
 Usage:
     set -a && source .env && set +a
-    python3 -u training/experiment_rich_evaluation.py --drafts 200
+    python3 -u training/experiment_rich_evaluation.py --drafts 1000 --seeds 5
 """
 import os
 import sys
@@ -40,8 +40,8 @@ from sweep_enriched_wp import (
 from train_draft_policy import DraftState, DRAFT_ORDER
 from train_generic_draft import GenericDraftModel
 from experiment_cql_draft import CQLDraftAgent, CQLDataset, replay_to_transitions
-from experiment_synthetic_augmentation import ENRICHED_GROUPS, generate_synthetic_data
-from experiment_synthetic_ablation2 import train_with_options
+from experiment_synthetic_augmentation import ENRICHED_GROUPS
+from train_gourdeau_baseline import GourdeauWPModel
 
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "experiment_results", "rich_evaluation")
 
@@ -198,7 +198,7 @@ def run_drafts_with_strategy(strategy_fn, draft_configs, gd_models, stats, devic
             "terminal_bans": state.bans.copy(),
         })
 
-        if (di + 1) % 50 == 0:
+        if (di + 1) % 200 == 0:
             n = di + 1
             hr = sum(1 for d in all_drafts if d["has_healer"]) / n * 100
             dr = sum(1 for d in all_drafts if d["is_degen"]) / n * 100
@@ -294,11 +294,94 @@ def make_wp_greedy_strategy(wp_model, wp_groups, stats, group_indices, device):
     return strategy
 
 
+def make_cql_enriched_strategy(model_path, device, stats, group_indices, enriched_groups):
+    """CQL with enriched features (375-dim state = 289 base + 86 enriched)."""
+    enriched_cols = []
+    for g in enriched_groups:
+        s, e = group_indices[g]
+        enriched_cols.extend(range(s, e))
+    enriched_dim = len(enriched_cols)
+    all_mask = [True] * len(FEATURE_GROUPS)
+
+    model = CQLDraftAgent(input_dim=289 + enriched_dim).to(device)
+    model.load_state_dict(torch.load(model_path, weights_only=True, map_location=device))
+    model.eval()
+
+    def strategy(state, team, step_type, game_map, tier, gd_models, dev):
+        base_s = np.concatenate([
+            state.team0_picks, state.team1_picks, state.bans,
+            map_to_one_hot(game_map), tier_to_one_hot(tier),
+            [state.step / 15.0, 0.0 if step_type == "ban" else 1.0],
+        ])
+        t0h = [HEROES[i] for i in range(NUM_HEROES) if state.team0_picks[i] > 0]
+        t1h = [HEROES[i] for i in range(NUM_HEROES) if state.team1_picks[i] > 0]
+        d = {"team0_heroes": t0h, "team1_heroes": t1h,
+             "game_map": game_map, "skill_tier": tier, "winner": 0}
+        _, enriched_all = extract_features(d, stats, all_mask)
+        enriched_sel = enriched_all[enriched_cols]
+        s = np.concatenate([base_s, enriched_sel])
+        mask = state.valid_mask_np()
+        s_t = torch.tensor(s, dtype=torch.float32).unsqueeze(0).to(device)
+        m_t = torch.tensor(mask, dtype=torch.float32).unsqueeze(0).to(device)
+        with torch.no_grad():
+            q = model(s_t, m_t).squeeze(0).cpu()
+            return q.argmax().item()
+    return strategy
+
+
+def make_gourdeau_greedy_strategy(model, device):
+    """Gourdeau WP greedy: rollout all candidates, pick best terminal WP."""
+    def eval_terminal(t0_picks, t1_picks, game_map):
+        t0_hot = torch.zeros(1, NUM_HEROES, device=device)
+        t1_hot = torch.zeros(1, NUM_HEROES, device=device)
+        for h in t0_picks:
+            t0_hot[0, HERO_TO_IDX[h]] = 1.0
+        for h in t1_picks:
+            t1_hot[0, HERO_TO_IDX[h]] = 1.0
+        m_hot = torch.tensor(map_to_one_hot(game_map), dtype=torch.float32, device=device).unsqueeze(0)
+        with torch.no_grad():
+            return model.predict_wp(t0_hot, t1_hot, m_hot).item()
+
+    def strategy(state, team, step_type, game_map, tier, gd_models, dev):
+        mask = state.valid_mask_np()
+        valid_idxs = [i for i in range(NUM_HEROES) if mask[i] > 0]
+        best_hero = None
+        best_wp = -1
+
+        for hero_idx in valid_idxs:
+            test_state = state.clone()
+            test_state.apply_action(hero_idx, team, step_type)
+            s = test_state.clone()
+            remaining_steps = DRAFT_ORDER[test_state.step:]
+            for rs_team, rs_type in remaining_steps:
+                gd = random.choice(gd_models)
+                x = s.to_tensor_gd(torch.device("cpu"))
+                m = s.valid_mask(torch.device("cpu"))
+                with torch.no_grad():
+                    logits = gd(x, m)
+                    h = logits.argmax(dim=1).item()
+                s.apply_action(h, rs_team, rs_type)
+
+            t0h = [HEROES[i] for i in range(NUM_HEROES) if s.team0_picks[i] > 0]
+            t1h = [HEROES[i] for i in range(NUM_HEROES) if s.team1_picks[i] > 0]
+            wp = eval_terminal(t0h, t1h, game_map)
+            if state.our_team == 1:
+                wp = 1 - wp
+
+            if wp > best_wp:
+                best_wp = wp
+                best_hero = hero_idx
+
+        return best_hero
+    return strategy
+
+
 # ── Main ──
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--drafts", type=int, default=200)
+    parser.add_argument("--drafts", type=int, default=1000)
+    parser.add_argument("--seeds", type=int, default=5)
     args = parser.parse_args()
 
     os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -322,10 +405,11 @@ def main():
         gd.cpu().eval()
         gd_models.append(gd)
 
-    # Draft configs (same for all strategies)
+    # Draft configs (same for all strategies and seeds)
     random.seed(42)
     draft_configs = [(i, random.choice(MAPS), random.choice(SKILL_TIERS), i % 2)
                      for i in range(args.drafts)]
+    eval_seeds = list(range(args.seeds))
 
     # ═══════════════════════════════════════════════════════════════
     # Build strategies
@@ -372,19 +456,61 @@ def main():
         strategies["Enriched+aug"] = make_wp_greedy_strategy(
             aug_model, ENRICHED_GROUPS, stats, group_indices, device)
 
+    # 6. Gourdeau (greedy)
+    gourdeau_path = os.path.join(os.path.dirname(__file__), "gourdeau_wp.pt")
+    if os.path.exists(gourdeau_path):
+        gourdeau_model = GourdeauWPModel().to(device)
+        gourdeau_model.load_state_dict(torch.load(gourdeau_path, weights_only=True, map_location=device))
+        gourdeau_model.eval()
+        strategies["Gourdeau (greedy)"] = make_gourdeau_greedy_strategy(gourdeau_model, device)
+
+    # 7-8. CQL enriched alpha=0.5 and 2.0 (375-dim input = 289 base + 86 enriched)
+    for alpha in [0.5, 2.0]:
+        path = os.path.join(os.path.dirname(__file__), "experiment_results", "cql",
+                            f"_cql_enriched_a{alpha}.pt")
+        if os.path.exists(path):
+            strategies[f"CQL enr a={alpha}"] = make_cql_enriched_strategy(
+                path, device, stats, group_indices, ENRICHED_GROUPS)
+        else:
+            print(f"  WARNING: {path} not found, skipping CQL enriched a={alpha}")
+
+    # 9. MCQ tau=0.5
+    mcq_path = os.path.join(os.path.dirname(__file__), "experiment_results", "mcq",
+                            "_mcq_temp_t0.5.pt")
+    if os.path.exists(mcq_path):
+        strategies["MCQ t=0.5"] = make_cql_strategy(mcq_path, device)
+    else:
+        print(f"  WARNING: {mcq_path} not found, skipping MCQ")
+
+    # 10. BC-CQL beta=1.0
+    bccql_path = os.path.join(os.path.dirname(__file__), "experiment_results", "mcq",
+                              "_bc_cql_temp_bc1.0.pt")
+    if os.path.exists(bccql_path):
+        strategies["BC-CQL b=1.0"] = make_cql_strategy(bccql_path, device)
+    else:
+        print(f"  WARNING: {bccql_path} not found, skipping BC-CQL")
+
     # ═══════════════════════════════════════════════════════════════
-    # Run all strategies
+    # Run all strategies (reseed both random + torch per strategy+seed)
     # ═══════════════════════════════════════════════════════════════
     all_results = {}
+    per_seed_drafts = {}
     t0 = time.time()
 
     for name, strategy_fn in strategies.items():
         print(f"\n{'='*60}")
-        print(f"  {name}")
+        print(f"  {name}  ({len(eval_seeds)} seeds × {args.drafts} drafts)")
         print(f"{'='*60}")
-        random.seed(42)  # Reset seed for opponent consistency
-        drafts = run_drafts_with_strategy(strategy_fn, draft_configs, gd_models, stats, device)
-        all_results[name] = drafts
+        combined_drafts = []
+        seed_batches = []
+        for seed in eval_seeds:
+            random.seed(seed)
+            torch.manual_seed(seed)
+            drafts = run_drafts_with_strategy(strategy_fn, draft_configs, gd_models, stats, device)
+            combined_drafts.extend(drafts)
+            seed_batches.append(drafts)
+        all_results[name] = combined_drafts
+        per_seed_drafts[name] = seed_batches
 
     elapsed = time.time() - t0
     print(f"\nAll drafts complete in {elapsed/60:.1f} minutes")
@@ -478,8 +604,9 @@ def main():
     # ═══════════════════════════════════════════════════════════════
     # Print summary
     # ═══════════════════════════════════════════════════════════════
+    total_per_strat = args.drafts * args.seeds
     print(f"\n{'='*100}")
-    print("COMPREHENSIVE EVALUATION")
+    print(f"COMPREHENSIVE EVALUATION  ({args.seeds} seeds × {args.drafts} drafts = {total_per_strat} per strategy)")
     print(f"{'='*100}")
     print(f"{'Strategy':<22} {'Heal%':>6} {'Deg%':>6} {'Counter':>8} {'Synergy':>8} "
           f"{'Distinct':>8} {'Entropy':>8} {'Top10%':>7} {'GD Sim%':>8} {'AugWP':>7}")
@@ -510,9 +637,40 @@ def main():
                 vals.append(f"{'N/A':>16}")
         print(f"{name:<22}" + "".join(f"{v:>16}" for v in vals))
 
+    # Per-seed breakdown for std computation
+    print(f"\n{'='*100}")
+    print("PER-SEED BREAKDOWN (mean ± std across seeds)")
+    print(f"{'='*100}")
+    print(f"{'Strategy':<22} {'Deg%':>14} {'Counter':>14} {'Synergy':>14}")
+    print("-" * 70)
+    seed_metrics = {}
+    for name in strategies:
+        batches = per_seed_drafts[name]
+        seed_degens, seed_counters, seed_synergies = [], [], []
+        for batch in batches:
+            n = len(batch)
+            seed_degens.append(sum(1 for d in batch if d["is_degen"]) / n * 100)
+            seed_counters.append(np.mean([
+                counter_responsiveness(d["our_picks"], d["opp_picks"], stats, d["tier"])
+                for d in batch]))
+            seed_synergies.append(np.mean([
+                synergy_exploitation(d["our_picks"], stats, d["tier"])
+                for d in batch]))
+        deg_m, deg_s = np.mean(seed_degens), np.std(seed_degens)
+        ctr_m, ctr_s = np.mean(seed_counters), np.std(seed_counters)
+        syn_m, syn_s = np.mean(seed_synergies), np.std(seed_synergies)
+        print(f"{name:<22} {deg_m:>5.1f}±{deg_s:<5.1f}  {ctr_m:>+5.2f}±{ctr_s:<5.3f}  {syn_m:>+5.2f}±{syn_s:<5.3f}")
+        seed_metrics[name] = {
+            "degen_seeds": [round(x, 1) for x in seed_degens],
+            "counter_seeds": [round(x, 3) for x in seed_counters],
+            "synergy_seeds": [round(x, 3) for x in seed_synergies],
+            "degen_std": round(deg_s, 2),
+            "counter_std": round(ctr_s, 3),
+            "synergy_std": round(syn_s, 3),
+        }
+
     # Save
     save_path = os.path.join(RESULTS_DIR, "rich_evaluation_results.json")
-    # Convert numpy types for JSON serialization
     def convert(o):
         if isinstance(o, np.floating):
             return float(o)
@@ -522,8 +680,10 @@ def main():
             return o.tolist()
         return o
 
+    save_data = {"metrics": metrics, "seed_metrics": seed_metrics,
+                 "config": {"seeds": args.seeds, "drafts": args.drafts}}
     with open(save_path, "w") as f:
-        json.dump(metrics, f, indent=2, default=convert)
+        json.dump(save_data, f, indent=2, default=convert)
     print(f"\nResults saved to {save_path}")
 
 
