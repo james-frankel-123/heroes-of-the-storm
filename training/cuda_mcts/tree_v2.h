@@ -9,12 +9,7 @@
  */
 #pragma once
 
-#ifndef NUM_HEROES
-#define NUM_HEROES 90
-#endif
-#ifndef STATE_DIM
-#define STATE_DIM 290
-#endif
+#include "hots_dims.h"
 #ifndef MAX_OUR_TURNS
 #define MAX_OUR_TURNS 8
 #endif

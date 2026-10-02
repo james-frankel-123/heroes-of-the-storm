@@ -7,7 +7,15 @@ paper's q7_decayed90 flavor), and emits a matching stats artifact for the
 site so training and serving see the same statistics. Runs on a standing
 cadence (see cadence.sh); each run writes to a dated directory.
 
-Phases (subcommands; `all` chains them):
+Encoding: HOTS_HERO_SET=v2 (set below): 91 heroes (Xal'atath, patch 2.57,
+appended) and 15 maps (Haunted Mines appended); the MCTS kernel is the
+separate cuda_mcts/h91 build. Games from patch 2.55 on are used; decayed win
+rates are shrunk toward role / hero / additive priors (HERO_PRIOR_GAMES etc.),
+so a new hero with few games gets sane statistics.
+
+Phases (subcommands; several may be given; `all` chains stats..export):
+  dump    read-only DB dump of the corpus to corpus.pkl.gz, for runs on
+          machines without DB access (set HOTS_CORPUS_PATH to it there)
   stats   decayed90 stats from live replay_draft_data -> training stats JSON
           (frozen_stats schema for StatsCache) + site artifact
           (src/lib/data/draft-stats-decayed.json shape) + keep/exclude id sets
@@ -19,6 +27,8 @@ Phases (subcommands; `all` chains them):
   mcts    2 seeds at 400 sims (300K episodes; F_400sim operating point).
           Completion = process exit 0 + draft_policy.pt (NEVER file existence
           alone: the worker checkpoints DURING training)
+  kparity v2 kernel vs Python WP on finished self-play drafts (all 15 maps);
+          gated (gate kernel_parity)
   select  pick the deployed seed with an INDEPENDENT judge, not the worker's
           own eval WP (a proxy: the policy's score under the value function
           it searched against). Each seed's policy argmax drafts a fixed
@@ -50,6 +60,11 @@ Deploy gates (checked before export):
     vs the same GD opponent) under the same judge on the same benchmark
   - selected MCTS seed: proxy eval WP >= GATE_MCTS_PROXY_FLOOR (sanity only)
   - export parity asserts (in export_site_models.py) must pass
+
+Remote (pause-robust) runs: HOTS_CORPUS_PATH=<dump> refresh.py --resume stats
+data wp partial gd; each MCTS seed as its own job (`refresh.py mcts_cmd
+--seed N` prints the command); then REFRESH_MCTS_EXTERNAL=1
+REFRESH_EXPORT_DIR=<dir> refresh.py mcts select export.
 
 Usage:
     source .env first (DATABASE_URL required), then e.g.
@@ -94,6 +109,37 @@ WP_PT = os.path.join(RUN_DIR, "wp_enriched_256.pt")
 PARTIAL_PT = os.path.join(RUN_DIR, "partial_wp_prod.pt")
 GD_PT = os.path.join(RUN_DIR, "generic_draft_0.pt")
 META_JSON = os.path.join(RUN_DIR, "refresh_meta.json")
+# compositions.json snapshot: sync rewrites src/lib/data/compositions.json
+# daily, so every phase (and the export) reads this copy instead.
+COMPOSITIONS_JSON = os.path.join(RUN_DIR, "compositions.json")
+SRC_COMPOSITIONS = os.path.join(REPO_DIR, "src", "lib", "data", "compositions.json")
+# Corpus dump for machines without DB access (phase dump; HOTS_CORPUS_PATH).
+CORPUS_DUMP = os.path.join(RUN_DIR, "corpus.pkl.gz")
+LOW_DATA_JSON = os.path.join(RUN_DIR, "low_data_test_drafts.json")
+
+# Games from this major version on (2.57 shipped Xal'atath on 2026-09-28).
+MIN_VERSION = (2, 55)
+# Shrinkage of decayed win rates, in pseudo-games (decayed effective games):
+# hero -> games-weighted mean of its fine role in the tier; hero-map -> the
+# hero's (shrunk) tier rate; pair -> the additive expectation from the two
+# (shrunk) hero rates. Matters for new or rarely played heroes; for heroes
+# with thousands of decayed games per tier it moves rates by < 0.1pp.
+HERO_PRIOR_GAMES = 200.0
+MAP_PRIOR_GAMES = 50.0
+PAIR_PRIOR_GAMES = 30.0
+# Low-data heroes (fewer than this many picks in the corpus) get a fixed hash
+# share of their games in the WP test split, so their calibration can be
+# measured, and a swap check against same-role heroes.
+LOW_DATA_PICKS = 5000
+LOW_DATA_TEST_SHARE = 0.2
+# Gates for low-data heroes. Level: on held-out games containing the hero,
+# the WP's mean P(hero's team wins) must match the realized rate within
+# max(LEVEL_TOL, 2 SE); a genuinely strong new hero is then allowed a large
+# edge over its role peers, but not one the outcomes do not support. Swing:
+# replacing the hero by any same-role peer in a real draft must move the WP
+# by at most SWING_WORST_MAX (catches broken or exploding inputs).
+LEVEL_TOL = 0.03
+SWING_WORST_MAX = 0.30
 
 HALF_LIFE_DAYS = 90.0
 WP_SEEDS = [42, 123, 777]
@@ -114,7 +160,7 @@ GATE_MCTS_PROXY_FLOOR = 0.70
 JUDGE_DAYS = 90           # realized-index window, ending at the stats ref date
 JUDGE_SALT = 99           # gold.RealizedIndex fold-hash salt
 JUDGE_CLASS = "StructRealizedIndex"  # gold.<class>; v1 was RealizedIndex
-BENCH_DRAFTS = 1260       # 14 maps x 3 tiers x 2 sides x 15
+BENCH_DRAFTS = 1260       # v2: 15 maps x 3 tiers x 2 sides x 14
 BENCH_SEED = 20261101     # GD opponent sampling; same for every policy
 DEGEN_TOL = 0.02          # eligible seeds: degen rate <= best seed's + 2pp
 SELECT_JSON = os.path.join(RUN_DIR, "seed_selection.json")
@@ -126,6 +172,31 @@ MCTS_MIN_FREE_MIB = 16000  # only launch MCTS seeds on GPUs with this much free
 sys.path.insert(0, TRAINING_DIR)
 os.environ["WP_STATS_PATH"] = STATS_JSON
 os.environ["REPLAY_SNAPSHOT"] = "0"
+# Production encoding: 91 heroes (Xal'atath appended) and 15 maps (Haunted
+# Mines appended); research stays on shared.py's v1 default. Subprocesses
+# (partial-WP trainer, MCTS workers, exports) inherit all of these.
+os.environ["HOTS_HERO_SET"] = "v2"
+os.environ["WP_COMPOSITIONS_PATH"] = COMPOSITIONS_JSON
+
+
+def version_ok(gver):
+    try:
+        major = tuple(int(x) for x in (gver or "").split(".")[:2])
+    except ValueError:
+        return False
+    return len(major) == 2 and major >= MIN_VERSION
+
+
+def require_compositions():
+    if not os.path.exists(COMPOSITIONS_JSON):
+        sys.exit(f"{COMPOSITIONS_JSON} missing: run the stats phase first "
+                 "(it snapshots src/lib/data/compositions.json)")
+
+
+def wp_dim():
+    from sweep_enriched_wp import INPUT_DIM_BASE, FEATURE_GROUP_DIMS
+    from experiment_synthetic_augmentation import ENRICHED_GROUPS
+    return INPUT_DIM_BASE + sum(FEATURE_GROUP_DIMS[g] for g in ENRICHED_GROUPS)
 
 
 def log(msg):
@@ -174,6 +245,28 @@ def _merge_cells(folds, skip=None):
     return out
 
 
+def shrink(wins, games, prior, k):
+    """Posterior mean of a win rate (fraction) under k pseudo-games at prior."""
+    return (wins + k * prior) / (games + k)
+
+
+def shrunk_hero_rates(cell):
+    """hero -> win rate (fraction) shrunk toward its fine role's games-weighted
+    mean in this tier cell. A hero with no fine role shrinks toward 0.5."""
+    from shared import HERO_ROLE_FINE
+    role_g, role_w = {}, {}
+    for h, (g, wn) in cell["hero"].items():
+        r = HERO_ROLE_FINE.get(h)
+        role_g[r] = role_g.get(r, 0.0) + g
+        role_w[r] = role_w.get(r, 0.0) + wn
+    out = {}
+    for h, (g, wn) in cell["hero"].items():
+        r = HERO_ROLE_FINE.get(h)
+        prior = role_w[r] / role_g[r] if r is not None and role_g[r] > 0 else 0.5
+        out[h] = shrink(wn, g, prior, HERO_PRIOR_GAMES)
+    return out
+
+
 def _write_training_stats(cells, path, n_used, note):
     """Training stats JSON (frozen_stats schema). Storage thresholds mirror the
     drift decayed arm: hero>=20, map>=5, pair>=10 DECAYED effective games;
@@ -183,12 +276,13 @@ def _write_training_stats(cells, path, n_used, note):
         total = cell["games"]
         if total <= 0:
             continue
+        hwr = shrunk_hero_rates(cell)
         for h, (g, wn) in cell["hero"].items():
             if g < 20:
                 continue
             hero_stats.append({
                 "hero": h, "tier": tier, "games": round(g, 1),
-                "win_rate": round(100.0 * wn / g, 3),
+                "win_rate": round(100.0 * hwr[h], 3),
                 "pick_rate": round(100.0 * g / total, 3),
                 "ban_rate": round(100.0 * cell["bans"].get(h, 0.0) / total, 3)})
         for (m, h), (g, wn) in cell["hmap"].items():
@@ -196,11 +290,12 @@ def _write_training_stats(cells, path, n_used, note):
                 continue
             hero_map_stats.append({
                 "hero": h, "map": m, "tier": tier, "games": round(g, 1),
-                "win_rate": round(100.0 * wn / g, 3)})
+                "win_rate": round(100.0 * shrink(wn, g, hwr[h], MAP_PRIOR_GAMES), 3)})
         for (a, b), (g, wn) in cell["with"].items():
             if g < 10:
                 continue
-            wr = round(100.0 * wn / g, 3)
+            prior = min(max(hwr[a] + hwr[b] - 0.5, 0.0), 1.0)
+            wr = round(100.0 * shrink(wn, g, prior, PAIR_PRIOR_GAMES), 3)
             for x, y in ((a, b), (b, a)):
                 pairwise_stats.append({
                     "hero_a": x, "hero_b": y, "tier": tier,
@@ -209,7 +304,8 @@ def _write_training_stats(cells, path, n_used, note):
         for (a, b), (g, wa) in cell["against"].items():
             if g < 10:
                 continue
-            wr_a = round(100.0 * wa / g, 3)
+            prior = min(max(0.5 + hwr[a] - hwr[b], 0.0), 1.0)
+            wr_a = round(100.0 * shrink(wa, g, prior, PAIR_PRIOR_GAMES), 3)
             pairwise_stats.append({
                 "hero_a": a, "hero_b": b, "tier": tier,
                 "relationship": "against", "win_rate": wr_a,
@@ -220,7 +316,11 @@ def _write_training_stats(cells, path, n_used, note):
                 "games": round(g, 1)})
 
     json.dump({
-        "_meta": {"snapshot_date": RUN_DATE, "patch": "2.55",
+        "_meta": {"snapshot_date": RUN_DATE,
+                  "patch": ">=" + ".".join(map(str, MIN_VERSION)),
+                  "shrinkage": {"hero_to_role": HERO_PRIOR_GAMES,
+                                "map_to_hero": MAP_PRIOR_GAMES,
+                                "pair_to_additive": PAIR_PRIOR_GAMES},
                   "kind": "decayed90", "half_life_days": HALF_LIFE_DAYS,
                   "source": "live replay_draft_data (own corpus)",
                   "games_used": n_used, "note": note},
@@ -233,25 +333,89 @@ def _write_training_stats(cells, path, n_used, note):
     return hero_stats, hero_map_stats, pairwise_stats
 
 
-def phase_stats():
-    """Per-game exponentially decayed counts over the live 2.55 corpus.
-    Equivalent to the paper's per-build incremental decay up to within-build
-    granularity (weights compose multiplicatively either way)."""
-    from drift2026.build_patch_stats import HP_ROLE_MAP  # exact role mapping
-    from shared import HERO_ROLE_FINE
+DUMP_COLUMNS = ("replay_id", "game_map", "skill_tier", "draft_order",
+                "team0_heroes", "team1_heroes", "team0_bans", "team1_bans",
+                "winner", "avg_mmr", "league_tier", "game_date", "game_version")
 
+
+def phase_dump():
+    """Read-only DB dump of the whole corpus (the columns shared.load_replay_data
+    returns, plus game_date/game_version) for runs on machines without DB
+    access. Point HOTS_CORPUS_PATH at the file there."""
+    import pickle
     os.makedirs(RUN_DIR, exist_ok=True)
+    conn = _db_conn()
+    conn.set_session(readonly=True)
+    cur = conn.cursor(name="refresh_dump")
+    cur.itersize = 50_000
+    cur.execute(f"SELECT {', '.join(DUMP_COLUMNS)} FROM replay_draft_data ORDER BY replay_id")
+    rows = []
+    for rec in cur:
+        d = dict(zip(DUMP_COLUMNS, rec))
+        for f in ("draft_order", "team0_heroes", "team1_heroes", "team0_bans", "team1_bans"):
+            if isinstance(d[f], str):
+                d[f] = json.loads(d[f])
+        rows.append(d)
+    cur.close()
+    conn.close()
+    tmp = CORPUS_DUMP + ".tmp"
+    with gzip.open(tmp, "wb", compresslevel=3) as f:
+        pickle.dump(rows, f, protocol=pickle.HIGHEST_PROTOCOL)
+    os.replace(tmp, CORPUS_DUMP)
+    ref = max(r["game_date"] for r in rows if r["game_date"] is not None)
+    log(f"dumped {len(rows):,} replays (latest game {ref}) -> {CORPUS_DUMP} "
+        f"({os.path.getsize(CORPUS_DUMP) >> 20} MB)")
+    meta_update(dump={"rows": len(rows), "latest_game": str(ref),
+                      "dumped_at": datetime.datetime.now().isoformat(timespec="seconds")})
+
+
+def _corpus_rows():
+    """The dump's rows when HOTS_CORPUS_PATH is set, else None (read the DB)."""
+    if not os.environ.get("HOTS_CORPUS_PATH"):
+        return None
+    import shared
+    return shared.load_replay_data()
+
+
+def _stats_records():
+    """(ref_date, iterator of (rid, map, tier, t0, t1, b0, b1, winner, date, version))."""
+    rows = _corpus_rows()
+    if rows is not None:
+        ref = max(r["game_date"] for r in rows if r.get("game_date") is not None)
+        return ref, ((r["replay_id"], r["game_map"], r["skill_tier"], r["team0_heroes"],
+                      r["team1_heroes"], r["team0_bans"], r["team1_bans"], r["winner"],
+                      r["game_date"], r["game_version"]) for r in rows)
     conn = _db_conn()
     cur = conn.cursor()
     cur.execute("SELECT COALESCE(max(game_date), now()) FROM replay_draft_data")
-    ref_date = cur.fetchone()[0]
-    ref_ord = ref_date.toordinal() + (ref_date.hour / 24.0)
-    log(f"decay reference date: {ref_date}")
-
+    ref = cur.fetchone()[0]
     cur.execute("""
         SELECT replay_id, game_map, skill_tier, team0_heroes, team1_heroes,
                team0_bans, team1_bans, winner, game_date, game_version
         FROM replay_draft_data ORDER BY replay_id""")
+
+    def it():
+        while True:
+            batch = cur.fetchmany(50_000)
+            if not batch:
+                break
+            yield from batch
+        cur.close()
+        conn.close()
+    return ref, it()
+
+
+def phase_stats():
+    """Per-game exponentially decayed counts over the live corpus (patch 2.55
+    on). Equivalent to the paper's per-build incremental decay up to
+    within-build granularity (weights compose multiplicatively either way)."""
+    import shutil
+
+    os.makedirs(RUN_DIR, exist_ok=True)
+    shutil.copy(SRC_COMPOSITIONS, COMPOSITIONS_JSON)
+    ref_date, records = _stats_records()
+    ref_ord = ref_date.toordinal() + (ref_date.hour / 24.0)
+    log(f"decay reference date: {ref_date}")
 
     def new_cell():
         return {"games": 0.0, "bans": {}, "hero": {}, "hmap": {},
@@ -269,55 +433,49 @@ def phase_stats():
     exclude_ids = []
     n_used = 0
     t0 = time.time()
-    while True:
-        batch = cur.fetchmany(50_000)
-        if not batch:
-            break
-        for (rid, gmap, tier, t0h, t1h, t0b, t1b, winner, gdate, gver) in batch:
-            if not (gver or "").startswith("2.55"):
-                exclude_ids.append(rid)
-                continue
-            teams = []
-            for raw in (t0h, t1h):
-                teams.append(json.loads(raw) if isinstance(raw, str) else (raw or []))
-            bans = []
-            for raw in (t0b, t1b):
-                b = json.loads(raw) if isinstance(raw, str) else (raw or [])
-                bans.extend(b)
-            if gdate is None or len(teams[0]) != 5 or len(teams[1]) != 5:
-                continue
-            if tier not in TRAIN_TIERS:   # 'unknown': no league tier or MMR
-                continue
-            age = max(0.0, ref_ord - (gdate.toordinal() + gdate.hour / 24.0))
-            w = 0.5 ** (age / HALF_LIFE_DAYS)
-            cells = folds[rid % OOF_FOLDS]
-            cell = cells.get(tier)
-            if cell is None:
-                cell = cells[tier] = new_cell()
-            cell["games"] += w
-            for h in set(bans):
-                cell["bans"][h] = cell["bans"].get(h, 0.0) + w
-            for ti, heroes in enumerate(teams):
-                team_won = (winner == ti)
-                win_w = w if team_won else 0.0
-                for h in heroes:
-                    bump(cell["hero"], h, w, win_w)
-                    bump(cell["hmap"], (gmap, h), w, win_w)
-                hs = sorted(heroes)
-                for i in range(5):
-                    for j in range(i + 1, 5):
-                        bump(cell["with"], (hs[i], hs[j]), w, win_w)
-            for a in teams[0]:
-                for b in teams[1]:
-                    key = (a, b) if a < b else (b, a)
-                    wins_of_a = w if winner == 0 else 0.0
-                    if a < b:
-                        bump(cell["against"], key, w, wins_of_a)
-                    else:
-                        bump(cell["against"], key, w, w - wins_of_a)
-            n_used += 1
-    cur.close()
-    conn.close()
+    for (rid, gmap, tier, t0h, t1h, t0b, t1b, winner, gdate, gver) in records:
+        if not version_ok(gver):
+            exclude_ids.append(rid)
+            continue
+        teams = []
+        for raw in (t0h, t1h):
+            teams.append(json.loads(raw) if isinstance(raw, str) else (raw or []))
+        bans = []
+        for raw in (t0b, t1b):
+            b = json.loads(raw) if isinstance(raw, str) else (raw or [])
+            bans.extend(b)
+        if gdate is None or len(teams[0]) != 5 or len(teams[1]) != 5:
+            continue
+        if tier not in TRAIN_TIERS:   # 'unknown': no league tier or MMR
+            continue
+        age = max(0.0, ref_ord - (gdate.toordinal() + gdate.hour / 24.0))
+        w = 0.5 ** (age / HALF_LIFE_DAYS)
+        cells = folds[rid % OOF_FOLDS]
+        cell = cells.get(tier)
+        if cell is None:
+            cell = cells[tier] = new_cell()
+        cell["games"] += w
+        for h in set(bans):
+            cell["bans"][h] = cell["bans"].get(h, 0.0) + w
+        for ti, heroes in enumerate(teams):
+            team_won = (winner == ti)
+            win_w = w if team_won else 0.0
+            for h in heroes:
+                bump(cell["hero"], h, w, win_w)
+                bump(cell["hmap"], (gmap, h), w, win_w)
+            hs = sorted(heroes)
+            for i in range(5):
+                for j in range(i + 1, 5):
+                    bump(cell["with"], (hs[i], hs[j]), w, win_w)
+        for a in teams[0]:
+            for b in teams[1]:
+                key = (a, b) if a < b else (b, a)
+                wins_of_a = w if winner == 0 else 0.0
+                if a < b:
+                    bump(cell["against"], key, w, wins_of_a)
+                else:
+                    bump(cell["against"], key, w, w - wins_of_a)
+        n_used += 1
     cells = _merge_cells(folds)
     log(f"counted {n_used:,} games ({len(exclude_ids):,} pre-2.55 excluded) "
         f"in {time.time() - t0:.0f}s; effective decayed games/tier: "
@@ -378,7 +536,7 @@ def _load_fresh_corpus():
     exclude = set(json.load(open(EXCLUDE_IDS_JSON)))
     rows = [r for r in rows if r["replay_id"] not in exclude
             and r.get("skill_tier") in TRAIN_TIERS]
-    log(f"corpus: {len(rows):,} 2.55 replays")
+    log(f"corpus: {len(rows):,} replays (patch >= 2.55, known tiers)")
     return rows
 
 
@@ -409,17 +567,49 @@ def oof_features(rows, cache_path):
              labels=np.concatenate([p[2] for p in parts]))
 
 
-def phase_data():
-    from shared import split_data
+def low_data_heroes(rows):
+    """{hero: picks} for encoded heroes with fewer than LOW_DATA_PICKS picks."""
+    from collections import Counter
+    from shared import HEROES
+    c = Counter(h for r in rows for h in (r["team0_heroes"] or []) + (r["team1_heroes"] or []))
+    return {h: c.get(h, 0) for h in HEROES if c.get(h, 0) < LOW_DATA_PICKS}
 
+
+def wp_split(rows):
+    """98/2 random split (seed 42, as before), except that games with a
+    low-data hero go to test by a fixed replay-id hash share
+    (LOW_DATA_TEST_SHARE), so the hero's calibration is measurable."""
+    from shared import split_data
+    from overfit2026.data import splitmix64
+    low = low_data_heroes(rows)
+    has_low = [any(h in low for h in (r["team0_heroes"] or []) + (r["team1_heroes"] or []))
+               for r in rows]
+    rest = [r for r, f in zip(rows, has_low) if not f]
+    train_rows, test_rows = split_data(rest, test_frac=0.02, seed=42)
+    cut = int(LOW_DATA_TEST_SHARE * 1000)
+    for r, f in zip(rows, has_low):
+        if f:
+            (test_rows if splitmix64(int(r["replay_id"]) * 7907 + 11) % 1000 < cut
+             else train_rows).append(r)
+    return train_rows, test_rows, low
+
+
+def phase_data():
     rows = _load_fresh_corpus()
-    train_rows, test_rows = split_data(rows, test_frac=0.02, seed=42)
+    train_rows, test_rows, low = wp_split(rows)
+    log(f"low-data heroes (< {LOW_DATA_PICKS} picks): {low or 'none'}")
+    # raw drafts of the low-data test games, for the WP swap check
+    json.dump([{k: r[k] for k in ("replay_id", "game_map", "skill_tier", "team0_heroes",
+                                  "team1_heroes", "winner")}
+               for r in test_rows
+               if any(h in low for h in (r["team0_heroes"] or []) + (r["team1_heroes"] or []))],
+              open(LOW_DATA_JSON, "w"))
     log(f"building out-of-fold WP feature caches ({len(train_rows):,} train / "
         f"{len(test_rows):,} test, {OOF_FOLDS} folds)")
     oof_features(train_rows, FEATURE_CACHE_TRAIN)
     oof_features(test_rows, FEATURE_CACHE_TEST)
     meta_update(data={"train": len(train_rows), "test": len(test_rows),
-                      "oof_folds": OOF_FOLDS})
+                      "oof_folds": OOF_FOLDS, "low_data_heroes": low})
 
 
 # ── Phase: wp ────────────────────────────────────────────────────────
@@ -451,7 +641,7 @@ def phase_wp():
     train_X, train_y = tensors(FEATURE_CACHE_TRAIN)
     test_X, test_y = tensors(FEATURE_CACHE_TEST)
     dim = train_X.shape[1]
-    assert dim == 283, f"expected 283-d features, got {dim}"
+    assert dim == wp_dim(), f"expected {wp_dim()}-d features, got {dim}"
 
     best = {"acc": -1.0}
     accs = []
@@ -472,11 +662,89 @@ def phase_wp():
     model.to(device).eval()
     with torch.no_grad():
         p = model(test_X).clamp(1e-6, 1 - 1e-6).cpu().numpy()
-    slope = calibration_slope(p, test_y.cpu().numpy())
+    y = test_y.cpu().numpy()
+    slope = calibration_slope(p, y)
     log(f"WP best acc {best['acc']:.2f}% (seed {best['seed']}; all {accs}), "
         f"calibration slope {slope:.3f} on out-of-fold test rows -> {WP_PT}")
+    X = test_X.cpu().numpy()
+    low = json.load(open(META_JSON)).get("data", {}).get("low_data_heroes", {})
     meta_update(wp={"best_acc": best["acc"], "best_seed": best["seed"],
-                    "all_accs": accs, "cal_slope": slope})
+                    "all_accs": accs, "cal_slope": slope,
+                    "finite": bool(np.isfinite(p).all()),
+                    "low_data": {h: {**hero_calibration(h, X, p, y),
+                                     **swap_check(h, model.cpu())} for h in low}})
+
+
+def hero_calibration(hero, X, p, y):
+    """Calibration of P(hero's team wins) on the test games that contain the
+    hero (oriented to the hero's team)."""
+    import numpy as np
+    from shared import HERO_TO_IDX, NUM_HEROES
+    i = HERO_TO_IDX[hero]
+    on0, on1 = X[:, i] > 0.5, X[:, NUM_HEROES + i] > 0.5
+    ph = np.concatenate([p[on0], 1 - p[on1]])
+    yh = np.concatenate([y[on0], 1 - y[on1]])
+    # the feature cache holds every game in both team orders: 2 rows per game
+    n_games = len(ph) // 2
+    out = {"test_rows": int(len(ph)), "test_games": int(n_games)}
+    if n_games < 30:
+        return out
+    pc = np.clip(ph, 1e-6, 1 - 1e-6)
+    out.update({"mean_pred": float(ph.mean()), "realized": float(yh.mean()),
+                "realized_se": float(np.sqrt(yh.mean() * (1 - yh.mean()) / n_games)),
+                "brier": float(np.mean((ph - yh) ** 2)),
+                "brier_const": float(np.mean((yh.mean() - yh) ** 2)),
+                "logloss": float(-np.mean(yh * np.log(pc) + (1 - yh) * np.log(1 - pc))),
+                "acc": float(np.mean((ph > 0.5) == (yh > 0.5))),
+                "pred_sd": float(ph.std())})
+    try:
+        out["cal_slope"] = calibration_slope(pc, yh)
+    except np.linalg.LinAlgError:
+        out["cal_slope"] = None
+    log(f"WP calibration on {hero} test games: {out}")
+    return out
+
+
+def swap_check(hero, model):
+    """Mean and worst WP change when the low-data hero is replaced, in real
+    test drafts, by each available hero of the same fine role (features from
+    the serving stats, team-order symmetrized)."""
+    import numpy as np
+    import torch
+    from shared import HERO_ROLE_FINE
+    from sweep_enriched_wp import StatsCache, compute_group_indices
+    from experiment_synthetic_augmentation import ENRICHED_GROUPS, make_eval_fn
+    st = StatsCache.__new__(StatsCache)
+    st._load_frozen(STATS_JSON)
+    st._load_compositions()
+    gi = compute_group_indices()
+    cols = [c for g in ENRICHED_GROUPS for c in range(*gi[g])]
+    model.eval()
+    f = make_eval_fn(model, cols, st, torch.device("cpu"))
+
+    def sym(a, b, m, t):
+        return 0.5 * (f(a, b, m, t) + 1 - f(b, a, m, t))
+    role = HERO_ROLE_FINE[hero]
+    peers = [h for h, r in HERO_ROLE_FINE.items() if r == role and h != hero]
+    deltas, worst = [], 0.0
+    drafts = [d for d in json.load(open(LOW_DATA_JSON))
+              if hero in d["team0_heroes"] + d["team1_heroes"]][:200]
+    for d in drafts:
+        own, opp = ((d["team0_heroes"], d["team1_heroes"]) if hero in d["team0_heroes"]
+                    else (d["team1_heroes"], d["team0_heroes"]))
+        base = sym(own, opp, d["game_map"], d["skill_tier"])
+        alts = [sym([x if x != hero else h for x in own], opp, d["game_map"], d["skill_tier"])
+                for h in peers if h not in own and h not in opp]
+        dl = [base - a for a in alts]
+        deltas.append(float(np.mean(dl)))
+        worst = max(worst, float(np.max(np.abs(dl))))
+    out = {"swap_drafts": len(drafts), "swap_peers": len(peers)}
+    if deltas:
+        out.update({"swap_mean_delta": float(np.mean(deltas)),
+                    "swap_worst_abs_delta": worst,
+                    "swap_finite": bool(np.isfinite(deltas).all())})
+    log(f"WP swap check for {hero} vs {len(peers)} {role} peers: {out}")
+    return out
 
 
 def calibration_slope(p, y):
@@ -527,6 +795,8 @@ def phase_gd():
 
     # all of tgd's saves are relative to its __file__; redirect into RUN_DIR
     tgd.__file__ = os.path.join(RUN_DIR, "train_generic_draft.py")
+    # epoch-level resume: a paused or killed run continues at its last epoch
+    os.environ.setdefault("GD_RESUME_PATH", os.path.join(RUN_DIR, "gd_resume.pt"))
     rows = _load_fresh_corpus()
     train_rows, test_rows = split_data(rows, test_frac=0.02, seed=42)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -552,35 +822,89 @@ def free_gpus(min_free_mib=MCTS_MIN_FREE_MIB):
     return gpus
 
 
+def ensure_kernel():
+    """Build (or confirm) the v2 kernel in cuda_mcts/h91 for these sources."""
+    subprocess.run([sys.executable, os.path.join(TRAINING_DIR, "cuda_mcts", "build_h91.py"),
+                    "--if-stale"], check=True, cwd=TRAINING_DIR)
+    info = json.load(open(os.path.join(TRAINING_DIR, "cuda_mcts", "h91", "BUILD_INFO.json")))
+    meta_update(kernel=info)
+    return info
+
+
+def mcts_env(seed):
+    run_dir = os.path.join(RUN_DIR, f"mcts_s{seed}")
+    env = {
+        "MCTS_SAVE_DIR": run_dir,
+        "MCTS_NUM_EPISODES": str(MCTS_EPISODES),
+        "MCTS_NUM_SIMS": str(MCTS_SIMS),
+        "MCTS_NET_SIZE": "base",
+        "MCTS_POLICY_HEAD": "linear",
+        "MCTS_WP_MODEL": "enriched_full",
+        "MCTS_WP_PATH": WP_PT,
+        "MCTS_GD_PATH": GD_PT,
+        "MCTS_EXCLUDE_IDS": EXCLUDE_IDS_JSON,
+        "MCTS_FRESH": "1",
+        "MCTS_BATCH_EPISODES": "128",
+        "MCTS_SEARCH_MODE": MCTS_SEARCH_MODE,
+        "WANDB_RUN_NAME": f"prod_refresh_{RUN_DATE}_s{seed}",
+        "WP_STATS_PATH": STATS_JSON,
+        "REPLAY_SNAPSHOT": "0",
+        "HOTS_HERO_SET": os.environ["HOTS_HERO_SET"],
+        "WP_COMPOSITIONS_PATH": COMPOSITIONS_JSON,
+    }
+    if os.environ.get("HOTS_CORPUS_PATH"):
+        env["HOTS_CORPUS_PATH"] = os.environ["HOTS_CORPUS_PATH"]
+    return run_dir, env
+
+
+def mcts_cmd(seed):
+    """Shell command for one seed as a separate, pause-robust job (remote
+    workers: training/remote_workers/run_remote.sh recognizes the bare worker
+    and resumes it with MCTS_FRESH=0). Completion marker: DONE in its dir."""
+    import shlex
+    run_dir, env = mcts_env(seed)
+    os.makedirs(run_dir, exist_ok=True)
+    assigns = " ".join(f"{k}={shlex.quote(v)}" for k, v in env.items())
+    log_path = shlex.quote(os.path.join(run_dir, "train.log"))
+    return (f"{assigns} python -u train_mcts_worker.py >> {log_path} 2>&1 "
+            f"&& touch {shlex.quote(os.path.join(run_dir, 'DONE'))}")
+
+
+def phase_kparity():
+    """The v2 kernel's in-kernel WP must match the Python WP on finished
+    self-play drafts across all 15 maps (gated)."""
+    require_compositions()
+    if os.environ.get("REFRESH_MCTS_EXTERNAL") != "1":
+        ensure_kernel()
+    sys.path.insert(0, BASE)
+    import kernel_parity
+    res = kernel_parity.run(WP_PT, GD_PT, wp_dim())
+    log(f"kernel parity: {res}")
+    meta_update(kernel_parity=res)
+
+
 def phase_mcts():
+    require_compositions()
     procs = []
-    # cadence.sh pins the whole refresh to one GPU (REFRESH_GPU); the box is
-    # shared and HotS work is capped at ~25% of it.
-    gpus = ([int(os.environ["REFRESH_GPU"])] if os.environ.get("REFRESH_GPU")
-            else free_gpus())
-    log(f"MCTS on GPUs {gpus} (>= {MCTS_MIN_FREE_MIB} MiB free each)")
+    # REFRESH_MCTS_EXTERNAL=1: the seeds ran as separate jobs (mcts_cmd); only
+    # collect them here. Completion = DONE marker + draft_policy.pt.
+    external = os.environ.get("REFRESH_MCTS_EXTERNAL") == "1"
+    if not external:
+        ensure_kernel()
+        # cadence.sh pins the whole refresh to one GPU (REFRESH_GPU); the box
+        # is shared and HotS work is capped at ~25% of it.
+        gpus = ([int(os.environ["REFRESH_GPU"])] if os.environ.get("REFRESH_GPU")
+                else free_gpus())
+        log(f"MCTS on GPUs {gpus} (>= {MCTS_MIN_FREE_MIB} MiB free each)")
     for seed in MCTS_SEEDS:
-        run_dir = os.path.join(RUN_DIR, f"mcts_s{seed}")
+        run_dir, extra = mcts_env(seed)
         os.makedirs(run_dir, exist_ok=True)
+        if external:
+            procs.append((seed, None, run_dir))
+            continue
         env = dict(os.environ)
-        env.update({
-            "CUDA_VISIBLE_DEVICES": str(gpus[seed % len(gpus)]),
-            "MCTS_SAVE_DIR": run_dir,
-            "MCTS_NUM_EPISODES": str(MCTS_EPISODES),
-            "MCTS_NUM_SIMS": str(MCTS_SIMS),
-            "MCTS_NET_SIZE": "base",
-            "MCTS_POLICY_HEAD": "linear",
-            "MCTS_WP_MODEL": "enriched_full",
-            "MCTS_WP_PATH": WP_PT,
-            "MCTS_GD_PATH": GD_PT,
-            "MCTS_EXCLUDE_IDS": EXCLUDE_IDS_JSON,
-            "MCTS_FRESH": "1",
-            "MCTS_BATCH_EPISODES": "128",
-            "MCTS_SEARCH_MODE": MCTS_SEARCH_MODE,
-            "WANDB_RUN_NAME": f"prod_refresh_{RUN_DATE}_s{seed}",
-            "WP_STATS_PATH": STATS_JSON,
-            "REPLAY_SNAPSHOT": "0",
-        })
+        env.update(extra)
+        env["CUDA_VISIBLE_DEVICES"] = str(gpus[seed % len(gpus)])
         logf = open(os.path.join(run_dir, "train.log"), "w")
         p = subprocess.Popen(
             [sys.executable, "-u", os.path.join(TRAINING_DIR, "train_mcts_worker.py")],
@@ -594,7 +918,10 @@ def phase_mcts():
     # alone is NEVER a completion signal.
     results = {}
     for seed, p, run_dir in procs:
-        rc = p.wait()
+        if p is None:
+            rc = 0 if os.path.exists(os.path.join(run_dir, "DONE")) else None
+        else:
+            rc = p.wait()
         ckpt = os.path.join(run_dir, "draft_policy.pt")
         ok = rc == 0 and os.path.exists(ckpt)
         # Worker eval lines: "  EVAL @ {ep}: avg_wp=0.7712 win_rate=..."
@@ -608,7 +935,9 @@ def phase_mcts():
                     best_wp = v if best_wp is None else max(best_wp, v)
                 except ValueError:
                     pass
-        results[seed] = {"rc": rc, "ok": ok, "best_wp": best_wp}
+        ki = os.path.join(run_dir, "kernel_info.json")
+        results[seed] = {"rc": rc, "ok": ok, "best_wp": best_wp,
+                         "kernel_info": json.load(open(ki)) if os.path.exists(ki) else None}
         log(f"MCTS seed {seed}: rc={rc} ok={ok} best_wp={best_wp}")
 
     ok_seeds = {s: r for s, r in results.items() if r["ok"] and r["best_wp"]}
@@ -627,11 +956,28 @@ def phase_mcts():
 
 def _judge_games():
     """Slim games (gold.py format) from the last JUDGE_DAYS of the corpus the
-    other phases train on: replay_draft_data, 2.55 only (pre-2.55 exclude
+    other phases train on: replay_draft_data, patch 2.55 on (pre-2.55 exclude
     set), known tiers only, 5v5 with a recorded winner. The window ends at the
     stats phase's decay reference date so a rerun sees the same games."""
     exclude = set(json.load(open(EXCLUDE_IDS_JSON)))
     ref = json.load(open(META_JSON)).get("stats", {}).get("ref_date")
+    rows = _corpus_rows()
+    if rows is not None:
+        hi = max(r["game_date"] for r in rows if r.get("game_date") is not None)
+        if ref is not None:
+            hi = min(hi, datetime.datetime.fromisoformat(ref).replace(tzinfo=hi.tzinfo))
+        lo = hi - datetime.timedelta(days=JUDGE_DAYS)
+        games = []
+        for r in rows:
+            gd, t0, t1 = r.get("game_date"), tuple(r["team0_heroes"] or []), tuple(r["team1_heroes"] or [])
+            if (gd is None or not (lo < gd <= hi) or not version_ok(r.get("game_version"))
+                    or r["replay_id"] in exclude or r["skill_tier"] not in TRAIN_TIERS
+                    or r["winner"] not in (0, 1) or len(t0) != 5 or len(t1) != 5):
+                continue
+            games.append((int(r["replay_id"]), r["skill_tier"], r["game_map"], t0, t1,
+                          tuple(r["team0_bans"] or []) + tuple(r["team1_bans"] or []),
+                          int(r["winner"])))
+        return games, str(hi)
     conn = _db_conn()
     conn.set_session(readonly=True)
     cur = conn.cursor()
@@ -644,7 +990,11 @@ def _judge_games():
         FROM replay_draft_data
         WHERE game_date > %s::timestamptz - make_interval(days => %s)
           AND game_date <= %s::timestamptz
-          AND game_version LIKE '2.55%%'""", (ref, JUDGE_DAYS, ref))
+          AND CASE WHEN game_version ~ '^[0-9]+[.][0-9]+'
+                   THEN split_part(game_version, '.', 1)::int * 1000
+                        + split_part(game_version, '.', 2)::int
+                   ELSE 0 END >= %s""",
+                (ref, JUDGE_DAYS, ref, MIN_VERSION[0] * 1000 + MIN_VERSION[1]))
 
     def lst(x):
         return json.loads(x) if isinstance(x, str) else (x or [])
@@ -815,7 +1165,7 @@ def phase_select():
     st._load_compositions()
     gi = compute_group_indices()
     cols = [c for g in ENRICHED_GROUPS for c in range(*gi[g])]
-    wp = WinProbEnrichedModel(283, [256, 128], dropout=0.3)
+    wp = WinProbEnrichedModel(wp_dim(), [256, 128], dropout=0.3)
     wp.load_state_dict(torch.load(WP_PT, weights_only=True, map_location="cpu"))
     wp.eval()
     proxy_fn = make_eval_fn(wp, cols, st, torch.device("cpu"))
@@ -896,7 +1246,29 @@ def check_gates():
                                      "seed": seed},
         "mcts_proxy_floor": {"value": srow.get("proxy_best_wp"),
                              "min": GATE_MCTS_PROXY_FLOOR, "seed": seed},
+        "wp_finite": {"value": wp.get("finite")},
+        "kernel_parity": {"value": m.get("kernel_parity", {}).get("max_abs_diff"),
+                          "max": m.get("kernel_parity", {}).get("tol"),
+                          "pass": m.get("kernel_parity", {}).get("pass") is True},
     }
+    # low-data heroes (e.g. a hero added by a new patch): finite WP and no
+    # large swing against the same-role heroes it replaces
+    for h, r in wp.get("low_data", {}).items():
+        if "mean_pred" in r:
+            tol = max(LEVEL_TOL, 2 * r["realized_se"])
+            gap = r["mean_pred"] - r["realized"]
+            g[f"low_data_level:{h}"] = {"value": gap, "max_abs": tol,
+                                        "test_games": r["test_games"],
+                                        "pass": abs(gap) <= tol}
+        else:   # too few held-out games to measure: report, do not block
+            g[f"low_data_level:{h}"] = {"value": None, "test_games": r.get("test_games"),
+                                        "pass": True}
+        v = r.get("swap_worst_abs_delta")
+        g[f"low_data_swing:{h}"] = {"value": v, "max": SWING_WORST_MAX,
+                                    "mean_delta": r.get("swap_mean_delta"),
+                                    "pass": (v is not None and r.get("swap_finite", False)
+                                             and v <= SWING_WORST_MAX)}
+    g["wp_finite"]["pass"] = g["wp_finite"]["value"] is True
     for k in ("wp_acc", "partial_acc", "mcts_proxy_floor"):
         g[k]["pass"] = g[k]["value"] is not None and g[k]["value"] >= g[k]["min"]
     g["wp_cal_slope"]["pass"] = (slope is not None
@@ -921,51 +1293,110 @@ def phase_gates():
 
 # ── Phase: export ────────────────────────────────────────────────────
 
+def site_encoding_matches():
+    """The deployed site must encode heroes/maps exactly as these models do:
+    compare training/shared.py with src/lib/draft/encoding.ts on origin/main
+    (what cadence.sh deploys onto), else the working tree's copy."""
+    import re
+    from shared import HEROES, MAPS
+    src = None
+    try:
+        subprocess.run(["git", "-C", REPO_DIR, "fetch", "-q", "origin", "main"],
+                       check=True, timeout=120)
+        src = subprocess.run(["git", "-C", REPO_DIR, "show",
+                              "origin/main:src/lib/draft/encoding.ts"],
+                             capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        p = os.path.join(REPO_DIR, "src", "lib", "draft", "encoding.ts")
+        src = open(p).read() if os.path.exists(p) else ""
+
+    def lst(name):
+        m = re.search(name + r"[^=]*=\s*\[(.*?)\]", src, re.S)
+        if not m:
+            return None
+        body = re.sub(r"//[^\n]*", "", m.group(1))
+        return re.findall(r'"((?:[^"\\]|\\.)*)"', body)
+    ok = lst("export const HEROES") == list(HEROES) and lst("export const MAPS") == list(MAPS)
+    return ok
+
+
 def phase_export():
     phase_gates()
+    out_root = os.environ.get("REFRESH_EXPORT_DIR") or REPO_DIR
+    if out_root == REPO_DIR and not site_encoding_matches():
+        sys.exit("EXPORT REFUSED: the site's src/lib/draft/encoding.ts (origin/main) does "
+                 "not encode the same heroes/maps as training/shared.py "
+                 f"(HOTS_HERO_SET={os.environ['HOTS_HERO_SET']}); deploy the site code first")
     best_seed = json.load(open(META_JSON))["select"]["seed"]
 
+    # REFRESH_EXPORT_DIR: export into <dir>/public/models and <dir>/src/lib/data
+    # (remote runs; the files are copied back for the deploy). Default: this
+    # repo, as cadence.sh expects.
+    models_dir = os.path.join(out_root, "public", "models")
+    data_dir = os.path.join(out_root, "src", "lib", "data")
+    os.makedirs(models_dir, exist_ok=True)
+    os.makedirs(data_dir, exist_ok=True)
     env = dict(os.environ)
     env.update({
         "SITE_POLICY_PT": os.path.join(RUN_DIR, f"mcts_s{best_seed}", "draft_policy.pt"),
         "SITE_GD_PT": GD_PT,
         "SITE_WP_PT": WP_PT,
+        "SITE_MODELS_DIR": models_dir,
     })
     subprocess.run([sys.executable,
                     os.path.join(TRAINING_DIR, "export_site_models.py")],
                    env=env, check=True, cwd=TRAINING_DIR)
     penv = dict(os.environ)
     penv["PARTIAL_WP_CKPT"] = PARTIAL_PT
+    penv["SITE_MODELS_DIR"] = models_dir
     subprocess.run([sys.executable,
                     os.path.join(TRAINING_DIR, "production_refresh", "export_partial_wp.py")],
                    env=penv, check=True, cwd=TRAINING_DIR)
 
     import shutil
-    dst = os.path.join(REPO_DIR, "src", "lib", "data", "draft-stats-decayed.json")
+    dst = os.path.join(data_dir, "draft-stats-decayed.json")
     shutil.copy(SITE_STATS_JSON, dst)
     log(f"site stats artifact -> {dst}")
+    if out_root != REPO_DIR:
+        # the comp_wr features were computed from this snapshot
+        shutil.copy(COMPOSITIONS_JSON, os.path.join(data_dir, "compositions.json"))
     meta_update(exported=True, export_date=datetime.datetime.now().isoformat())
     log("export complete — commit public/models/ + src/lib/data/draft-stats-decayed.json to deploy")
 
 
-PHASES = {"stats": phase_stats, "data": phase_data, "wp": phase_wp,
-          "partial": phase_partial, "gd": phase_gd, "mcts": phase_mcts,
+PHASES = {"dump": phase_dump, "stats": phase_stats, "data": phase_data, "wp": phase_wp,
+          "partial": phase_partial, "gd": phase_gd,
+          "kparity": phase_kparity, "mcts": phase_mcts,
           "select": phase_select, "gates": phase_gates,
           "export": phase_export}
 
 
+ALL = ("stats", "data", "wp", "partial", "gd", "kparity", "mcts", "select", "export")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("phase", choices=list(PHASES) + ["all"])
+    ap.add_argument("phases", nargs="+", choices=list(PHASES) + ["all", "mcts_cmd"])
+    ap.add_argument("--resume", action="store_true",
+                    help="skip phases refresh_meta.json records as done (pause-robust "
+                         "remote runs: a re-run continues at the first unfinished phase)")
+    ap.add_argument("--seed", type=int, help="mcts_cmd: the MCTS seed")
     args = ap.parse_args()
     os.makedirs(RUN_DIR, exist_ok=True)
-    if args.phase == "all":
-        for name in ("stats", "data", "wp", "partial", "gd", "mcts", "select",
-                     "export"):
-            log(f"=== phase {name} ===")
-            PHASES[name]()
-    else:
-        PHASES[args.phase]()
+    if args.phases == ["mcts_cmd"]:
+        print(mcts_cmd(args.seed))
+        return
+    names = list(ALL) if args.phases == ["all"] else args.phases
+    for name in names:
+        done = json.load(open(META_JSON)).get("phases_done", []) if os.path.exists(META_JSON) else []
+        if args.resume and name in done:
+            log(f"=== phase {name}: done, skipping ===")
+            continue
+        log(f"=== phase {name} ===")
+        PHASES[name]()
+        if name not in ("gates",):
+            m = json.load(open(META_JSON)) if os.path.exists(META_JSON) else {}
+            meta_update(phases_done=sorted(set(m.get("phases_done", [])) | {name}))
 
 
 if __name__ == "__main__":

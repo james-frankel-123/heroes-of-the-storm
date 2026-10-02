@@ -92,7 +92,7 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
     extern __shared__ float smem[];
     int edim = policy_off.edim;
     int ws_size = policy_off.hdim * 3 + policy_off.cdim;
-    const int state_buf_size = 291;
+    const int state_buf_size = STATE_BUF_SIZE;
     float* state_buf = smem;
     float* mask_buf = smem + state_buf_size;
     float* priors_buf = smem + state_buf_size + NUM_HEROES;

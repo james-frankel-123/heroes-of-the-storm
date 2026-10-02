@@ -7,14 +7,10 @@
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 #include <cstdint>
+#include "hots_dims.h"
 #include "device_forward.cuh"
 #include "enriched_features.cuh"
 
-#define NUM_HEROES 90
-#define NUM_MAPS 14
-#define NUM_TIERS 3
-#define STATE_DIM 290
-#define GD_STATE_DIM 289
 #define MAX_NODES 4096
 #define MAX_CHILD_INDICES 81920
 #define MAX_OUR_TURNS 8
@@ -180,16 +176,16 @@ extern "C" __global__ void mcts_episodes_kernel(
     int tid = threadIdx.x;
 
     // Shared memory layout (dynamic based on policy network size):
-    // state_buf:     max(STATE_DIM, WP_INPUT_DIM) = 291 (reused for policy 290d and WP 291d)
-    // mask_buf:       90
-    // priors_buf:     90
+    // state_buf:     STATE_BUF_SIZE = max(STATE_DIM, WP_INPUT_DIM) (v1: 291)
+    // mask_buf:       NUM_HEROES
+    // priors_buf:     NUM_HEROES
     // buf_e:         edim (backbone output, persists across head calls)
     // workspace:     hdim*3 + cdim (backbone scratch, reused for WP forward)
     // enriched_buf:   86
     extern __shared__ float smem[];
     int edim = policy_off.edim;
     int ws_size = policy_off.hdim * 3 + policy_off.cdim;
-    const int state_buf_size = 291;  // max(STATE_DIM=290, WP_INPUT_DIM=291)
+    const int state_buf_size = STATE_BUF_SIZE;
     float* state_buf = smem;
     float* mask_buf = smem + state_buf_size;
     float* priors_buf = smem + state_buf_size + NUM_HEROES;

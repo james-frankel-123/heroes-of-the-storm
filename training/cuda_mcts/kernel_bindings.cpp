@@ -12,8 +12,7 @@
 
 namespace py = pybind11;
 
-#define NUM_HEROES 90
-#define STATE_DIM 290
+#include "hots_dims.h"
 #define MAX_OUR_TURNS 8
 #define MAX_NODES 4096
 #define MAX_CHILD_INDICES 81920
@@ -23,16 +22,6 @@ namespace py = pybind11;
 #define NUM_FINE_ROLES 9
 #define NUM_BLIZZ_ROLES 6
 #define MAX_COMP_ENTRIES 512
-#define ENRICHED_DIM 86
-#define WP_BASE_DIM 197
-#define WP_FULL_DIM 283
-
-#ifndef NUM_MAPS
-#define NUM_MAPS 14
-#endif
-#ifndef NUM_TIERS
-#define NUM_TIERS 3
-#endif
 
 struct WPLookupTables {
     float hero_wr[NUM_TIERS][NUM_HEROES];
@@ -330,8 +319,7 @@ public:
     }
 
     int shared_mem_bytes() const {
-        // state_buf = max(STATE_DIM=290, WP_INPUT_DIM=291) = 291
-        return (291 + NUM_HEROES + NUM_HEROES + policy_off_.edim
+        return (STATE_BUF_SIZE + NUM_HEROES + NUM_HEROES + policy_off_.edim
                 + policy_off_.hdim * 3 + policy_off_.cdim + ENRICHED_DIM) * sizeof(float);
     }
 

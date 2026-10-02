@@ -142,7 +142,10 @@ class StatsCache:
 
     def _load_compositions(self):
         self.comp_data = {}
-        comp_path = os.path.join(os.path.dirname(__file__), "..", "src", "lib", "data", "compositions.json")
+        # WP_COMPOSITIONS_PATH pins a snapshot (production_refresh copies the
+        # file into its run dir: sync rewrites src/lib/data/compositions.json daily)
+        comp_path = os.environ.get("WP_COMPOSITIONS_PATH") or os.path.join(
+            os.path.dirname(__file__), "..", "src", "lib", "data", "compositions.json")
         if os.path.exists(comp_path):
             import json as _json
             raw = _json.load(open(comp_path))

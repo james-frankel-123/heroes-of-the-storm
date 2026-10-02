@@ -38,11 +38,18 @@ try:
 except ImportError:
     HAS_WANDB = False
 
-# Load kernel module
+# Load kernel module. HOTS_HERO_SET=v2 (production: 91 heroes, 15 maps) uses
+# the separate build in cuda_mcts/h91/ (cuda_mcts/build_h91.py); v1 the
+# research build in cuda_mcts/.
+from shared import HERO_SET as _HERO_SET
 so_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cuda_mcts')
-so_files = [f for f in os.listdir(so_dir) if f.startswith('cuda_mcts_kernel') and f.endswith('.so')]
-if not so_files:
-    raise RuntimeError("cuda_mcts_kernel not built")
+if _HERO_SET == "v2":
+    so_dir = os.path.join(so_dir, "h91")
+    if not os.path.isdir(so_dir):
+        raise RuntimeError("HOTS_HERO_SET=v2 needs the h91 kernel: python cuda_mcts/build_h91.py")
+so_files = [f for f in os.listdir(so_dir) if f.startswith('cuda_mcts_kernel.') and f.endswith('.so')]
+if len(so_files) != 1:
+    raise RuntimeError(f"expected one cuda_mcts_kernel.*.so in {so_dir}, found {so_files}")
 spec = importlib.util.spec_from_file_location('cuda_mcts_kernel', os.path.join(so_dir, so_files[0]))
 kernel = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(kernel)
@@ -126,7 +133,8 @@ def main():
                  'pairwise_counters', 'pairwise_synergies', 'counter_detail',
                  'meta_strength', 'draft_diversity', 'comp_wr']
     enriched_dim = sum(FEATURE_GROUP_DIMS[g] for g in WP_GROUPS)
-    wp_input_dim = 197 + enriched_dim  # 283
+    from sweep_enriched_wp import INPUT_DIM_BASE
+    wp_input_dim = INPUT_DIM_BASE + enriched_dim  # v1: 197 + 86 = 283
 
     WP_MODEL_TYPE = os.environ.get("MCTS_WP_MODEL", "enriched")
     if WP_MODEL_TYPE == "base":
@@ -303,8 +311,17 @@ def main():
         os.makedirs(SAVE_DIR, exist_ok=True)
         _rev = _sp.run(["git", "rev-parse", "HEAD"], cwd=os.path.dirname(os.path.abspath(__file__)),
                        capture_output=True, text=True).stdout.strip()
+        import hashlib as _hl
+        _so = os.path.join(so_dir, so_files[0])
+        with open(_so, "rb") as _f:
+            _so_sha = _hl.sha256(_f.read()).hexdigest()
+        _bi = os.path.join(so_dir, "BUILD_INFO.json")
+        _build = _json.load(open(_bi)) if os.path.exists(_bi) else None
         _json.dump({"search_mode": SEARCH_MODE_NAME, "pw_k": PW_K, "pw_alpha": PW_ALPHA,
-                    "num_sims": NUM_SIMS, "kernel_so": os.path.join(so_dir, so_files[0]),
+                    "num_sims": NUM_SIMS, "kernel_so": _so, "so_sha256": _so_sha,
+                    "hero_set": _HERO_SET, "build_info": _build,
+                    "build_info_matches_so": (None if _build is None
+                                              else _build.get("so_sha256") == _so_sha),
                     "git_head": _rev, "time": time.strftime("%Y-%m-%d %H:%M:%S")},
                    open(os.path.join(SAVE_DIR, "kernel_info.json"), "w"), indent=1)
     except Exception as _e:  # provenance only; never block training

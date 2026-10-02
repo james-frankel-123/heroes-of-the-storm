@@ -18,19 +18,21 @@ from train_partial_wp import PartialStateWP  # noqa: E402
 CKPT = os.environ.get(
     "PARTIAL_WP_CKPT",
     os.path.join(TRAINING, "production_refresh", "2026-07-14", "partial_wp_prod.pt"))
-OUT = os.path.join(os.path.dirname(TRAINING), "public", "models", "partial_wp.onnx")
+OUT = os.path.join(os.environ.get("SITE_MODELS_DIR") or os.path.join(
+    os.path.dirname(TRAINING), "public", "models"), "partial_wp.onnx")
 
 
 def main():
     ckpt = torch.load(CKPT, weights_only=True, map_location="cpu")
-    model = PartialStateWP(input_dim=ckpt.get("input_dim", 283),
+    dim = ckpt.get("input_dim", 283)
+    model = PartialStateWP(input_dim=dim,
                            step_embed_dim=ckpt.get("step_embed_dim", 8),
                            hidden=tuple(ckpt.get("hidden", (256, 128))))
     model.load_state_dict(ckpt["model_state_dict"])
     model.cpu().eval()
     print(f"checkpoint: test acc {ckpt.get('best_test_acc')}")
 
-    feats = torch.randn(1, 283)
+    feats = torch.randn(1, dim)
     step = torch.tensor([7], dtype=torch.long)
     torch.onnx.export(
         model, (feats, step), OUT,
@@ -44,7 +46,7 @@ def main():
 
     import onnxruntime as ort
     sess = ort.InferenceSession(OUT, providers=["CPUExecutionProvider"])
-    x = torch.randn(8, 283)
+    x = torch.randn(8, dim)
     s = torch.randint(0, 16, (8,), dtype=torch.long)
     with torch.no_grad():
         t_out = model(x, s).numpy()

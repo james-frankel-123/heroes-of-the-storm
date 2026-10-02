@@ -1,4 +1,5 @@
 """Extract flattened weight arrays and offset dicts for CUDA kernels."""
+import os
 import torch
 import torch.nn as nn
 import numpy as np
@@ -184,11 +185,10 @@ def extract_lookup_tables(stats_cache, step_embed_weights=None):
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
     from shared import (HEROES, HERO_TO_IDX, MAPS, MAP_TO_IDX,
                         SKILL_TIERS, TIER_TO_IDX,
-                        HERO_ROLE_FINE, FINE_ROLE_TO_IDX)
-
-    NUM_HEROES = 90
-    NUM_MAPS = 14
-    NUM_TIERS = 3
+                        HERO_ROLE_FINE, FINE_ROLE_TO_IDX,
+                        NUM_HEROES, NUM_MAPS, NUM_TIERS)
+    # sizes follow shared.HOTS_HERO_SET and must match the kernel build's
+    # NUM_HEROES/NUM_MAPS (the engine rejects a blob of the wrong size)
     MAX_COMP_ENTRIES = 512
 
     # hero_wr: float[3][90]
@@ -351,14 +351,22 @@ KERNEL_ENRICHED_LAYOUT = [
 ]
 
 # WPLookupTables C-struct field layout (order/shapes mirror extract_lookup_tables).
+def _lut_dims():
+    import sys as _sys
+    _sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+    from shared import NUM_HEROES as _H, NUM_MAPS as _M
+    return _H, _M
+
+
+_H, _M = _lut_dims()
 LUT_LAYOUT = [
-    ("hero_wr", "float32", (3, 90)),
-    ("hero_map_wr", "float32", (3, 14, 90)),
-    ("pairwise_counter", "float32", (3, 90, 90)),
-    ("pairwise_synergy", "float32", (3, 90, 90)),
-    ("hero_meta", "float32", (3, 90, 2)),
-    ("hero_fine_role", "int32", (90,)),
-    ("hero_blizz_role", "int32", (90,)),
+    ("hero_wr", "float32", (3, _H)),
+    ("hero_map_wr", "float32", (3, _M, _H)),
+    ("pairwise_counter", "float32", (3, _H, _H)),
+    ("pairwise_synergy", "float32", (3, _H, _H)),
+    ("hero_meta", "float32", (3, _H, 2)),
+    ("hero_fine_role", "int32", (_H,)),
+    ("hero_blizz_role", "int32", (_H,)),
     ("comp_keys", "int32", (3, 512)),
     ("comp_wr", "float32", (3, 512)),
     ("comp_games", "float32", (3, 512)),

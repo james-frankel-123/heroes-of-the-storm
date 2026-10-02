@@ -32,11 +32,15 @@ sys.path.insert(0, os.path.dirname(__file__))
 from shared import embed_onnx_weights, optimize_onnx, NUM_HEROES  # noqa: E402
 from train_draft_policy import AlphaZeroDraftNet, STATE_DIM  # noqa: E402
 from train_generic_draft import GenericDraftModel, INPUT_DIM as GD_INPUT_DIM  # noqa: E402
-from sweep_enriched_wp import WinProbEnrichedModel  # noqa: E402
+from sweep_enriched_wp import WinProbEnrichedModel, INPUT_DIM_BASE, FEATURE_GROUP_DIMS  # noqa: E402
+from experiment_synthetic_augmentation import ENRICHED_GROUPS  # noqa: E402
 
 TRAINING_DIR = os.path.dirname(os.path.abspath(__file__))
 RERUN = os.path.join(TRAINING_DIR, "rerun2026")
-SITE_MODELS = os.path.join(os.path.dirname(TRAINING_DIR), "public", "models")
+# SITE_MODELS_DIR: write the ONNX files somewhere other than public/models
+# (remote production runs export into their run directory).
+SITE_MODELS = os.environ.get("SITE_MODELS_DIR") or os.path.join(
+    os.path.dirname(TRAINING_DIR), "public", "models")
 
 # SITE_*_PT env vars override the checkpoint sources (used by
 # production_refresh/refresh.py; defaults preserve the rerun2026 pin).
@@ -49,7 +53,8 @@ GD_ONNX_SRC = os.path.join(os.path.dirname(GD_PT), "generic_draft_0.onnx")
 GD_INT8_SRC = os.path.join(os.path.dirname(GD_PT), "generic_draft_0_int8.onnx")
 WP_PT = os.environ.get(
     "SITE_WP_PT", os.path.join(RERUN, "models", "wp_enriched_256.pt"))
-WP_INPUT_DIM = 283
+# v1: 197 base + 86 enriched = 283; v2 (HOTS_HERO_SET=v2): 200 + 86 = 286
+WP_INPUT_DIM = INPUT_DIM_BASE + sum(FEATURE_GROUP_DIMS[g] for g in ENRICHED_GROUPS)
 
 
 def _ort_session(path):

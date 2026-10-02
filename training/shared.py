@@ -6,7 +6,8 @@ import os
 import json
 import numpy as np
 
-# 90 heroes sorted alphabetically — must match src/lib/data/hero-roles.ts
+# v1: the 90 heroes sorted alphabetically. The site mirrors the encoding in
+# src/lib/draft/encoding.ts (v2 below); hero roles in src/lib/data/hero-roles.ts.
 HEROES = [
     "Abathur","Alarak","Alexstrasza","Ana","Anduin","Anub'arak","Artanis",
     "Arthas","Auriel","Azmodan","Blaze","Brightwing","Cassia","Chen","Cho",
@@ -23,6 +24,18 @@ HEROES = [
     "Whitemane","Xul","Yrel","Zagara","Zarya","Zeratul","Zul'jin",
 ]
 
+# HOTS_HERO_SET selects the encoding. "v1" (default): the 90 heroes and 14 maps
+# every research model, snapshot and frozen artifact was built with. "v2"
+# (production since 2026-10, opt-in): v1 with Xal'atath (patch 2.57) and
+# Haunted Mines APPENDED, so every v1 index keeps its meaning and a v1 vector
+# is a prefix-aligned slice of a v2 one. Never re-sort: the site's HEROES/MAPS
+# lists mirror these indices.
+HERO_SET = os.environ.get("HOTS_HERO_SET", "v1")
+if HERO_SET not in ("v1", "v2"):
+    raise ValueError(f"HOTS_HERO_SET must be v1 or v2, got {HERO_SET!r}")
+if HERO_SET == "v2":
+    HEROES = HEROES + ["Xal'atath"]
+
 NUM_HEROES = len(HEROES)
 HERO_TO_IDX = {h: i for i, h in enumerate(HEROES)}
 
@@ -33,6 +46,8 @@ MAPS = [
     "Sky Temple", "Tomb of the Spider Queen", "Towers of Doom",
     "Volskaya Foundry", "Warhead Junction",
 ]
+if HERO_SET == "v2":
+    MAPS = MAPS + ["Haunted Mines"]
 NUM_MAPS = len(MAPS)
 MAP_TO_IDX = {m: i for i, m in enumerate(MAPS)}
 
@@ -92,6 +107,10 @@ HERO_ROLE_FINE = {
     # Varian — own category (can be tank, bruiser, or assassin)
     "Varian": "varian",
 }
+
+if HERO_SET == "v2":
+    # 2.57 (2026-09-28); Blizzard role Ranged Assassin, ability-damage caster
+    HERO_ROLE_FINE["Xal'atath"] = "ranged_mage"
 
 FINE_ROLE_NAMES = ["tank", "bruiser", "healer", "ranged_aa", "ranged_mage",
                    "melee_assassin", "support_utility", "varian", "pusher"]
@@ -187,6 +206,19 @@ def load_replay_data(limit: int | None = None, force_refresh: bool = False) -> l
     If REPLAY_SNAPSHOT=1 (default), loads the pinned 2026-05-22 snapshot
     (1,956,753 replays) — the paper's dataset of record. Set REPLAY_SNAPSHOT=0
     to use the live cache/DB path."""
+
+    # HOTS_CORPUS_PATH: a corpus dump (gzip pickle of row dicts, written by
+    # production_refresh/refresh.py dump) for machines without DB access.
+    corpus = os.environ.get("HOTS_CORPUS_PATH")
+    if corpus:
+        import gzip
+        import pickle
+        with gzip.open(corpus, "rb") as f:
+            rows = pickle.load(f)
+        if limit:
+            rows = rows[:limit]
+        print(f"Loaded {len(rows)} replays from corpus dump {corpus}")
+        return rows
 
     if os.environ.get("REPLAY_SNAPSHOT", "1") != "0" and not force_refresh:
         if os.path.exists(_REPLAY_SNAPSHOT_PATH):

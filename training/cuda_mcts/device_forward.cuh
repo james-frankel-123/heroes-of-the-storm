@@ -8,6 +8,7 @@
  */
 #pragma once
 #include <cuda_runtime.h>
+#include "hots_dims.h"
 
 // ── Primitive ops (same as fused_forward.cu) ───────────────────────
 
@@ -161,7 +162,7 @@ __device__ void d_policy_backbone(
     float* buf_c = workspace + hdim * 2;
     float* buf_d = workspace + hdim * 3;
 
-    d_linear_layer(state_289, 289, W + off.input_fc_w, W + off.input_fc_b, hdim, buf_a);
+    d_linear_layer(state_289, GD_STATE_DIM, W + off.input_fc_w, W + off.input_fc_b, hdim, buf_a);
     d_batchnorm_relu(buf_a, hdim, W + off.input_bn_w, W + off.input_bn_b,
                      W + off.input_bn_mean, W + off.input_bn_var);
 
@@ -202,7 +203,7 @@ __device__ void d_policy_head(
 
     if (off.policy_head_type == 0) {
         // Original: single linear layer
-        d_linear_layer(buf_e, off.edim, W + off.policy_w, W + off.policy_b, 90, priors_out);
+        d_linear_layer(buf_e, off.edim, W + off.policy_w, W + off.policy_b, NUM_HEROES, priors_out);
     } else {
         // Deep / step-conditioned heads
         // Build policy input: buf_e (+ step embedding for types 2,3)
@@ -244,16 +245,16 @@ __device__ void d_policy_head(
     }
 
     // Mask invalid + softmax
-    for (int i = tid; i < 90; i += blockDim.x)
+    for (int i = tid; i < NUM_HEROES; i += blockDim.x)
         if (valid_mask[i] < 0.5f) priors_out[i] = -1e9f;
     __syncthreads();
 
     if (tid == 0) {
         float mx = -1e30f;
-        for (int i = 0; i < 90; i++) mx = fmaxf(mx, priors_out[i]);
+        for (int i = 0; i < NUM_HEROES; i++) mx = fmaxf(mx, priors_out[i]);
         float sm = 0.0f;
-        for (int i = 0; i < 90; i++) { priors_out[i] = expf(priors_out[i] - mx); sm += priors_out[i]; }
-        if (sm > 0.0f) for (int i = 0; i < 90; i++) priors_out[i] /= sm;
+        for (int i = 0; i < NUM_HEROES; i++) { priors_out[i] = expf(priors_out[i] - mx); sm += priors_out[i]; }
+        if (sm > 0.0f) for (int i = 0; i < NUM_HEROES; i++) priors_out[i] /= sm;
     }
     __syncthreads();
 }
@@ -331,14 +332,14 @@ __device__ void d_gd_forward(
     float* buf_a = workspace;
     float* buf_b = workspace + 256;
 
-    d_linear_layer(state_289, 289, W + off.fc1_w, W + off.fc1_b, 256, buf_a);
+    d_linear_layer(state_289, GD_STATE_DIM, W + off.fc1_w, W + off.fc1_b, 256, buf_a);
     d_relu_inplace(buf_a, 256);
     d_linear_layer(buf_a, 256, W + off.fc2_w, W + off.fc2_b, 128, buf_b);
     d_relu_inplace(buf_b, 128);
-    d_linear_layer(buf_b, 128, W + off.fc3_w, W + off.fc3_b, 90, logits_out);
+    d_linear_layer(buf_b, 128, W + off.fc3_w, W + off.fc3_b, NUM_HEROES, logits_out);
 
     int tid = threadIdx.x;
-    for (int i = tid; i < 90; i += blockDim.x)
+    for (int i = tid; i < NUM_HEROES; i += blockDim.x)
         if (valid_mask[i] < 0.5f) logits_out[i] = -1e9f;
     __syncthreads();
 }

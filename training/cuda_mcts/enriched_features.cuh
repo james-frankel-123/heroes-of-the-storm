@@ -19,23 +19,10 @@
 #include <cuda_runtime.h>
 #include <cmath>
 
-#ifndef NUM_HEROES
-#define NUM_HEROES 90
-#endif
-#ifndef NUM_MAPS
-#define NUM_MAPS 14
-#endif
-#ifndef NUM_TIERS
-#define NUM_TIERS 3
-#endif
+#include "hots_dims.h"
 #define NUM_FINE_ROLES 9
 #define NUM_BLIZZ_ROLES 6
 #define MAX_COMP_ENTRIES 512  // max compositions per tier
-#define ENRICHED_DIM 86
-#define WP_BASE_DIM 197
-#define WP_FULL_DIM 283  // 197 + 86
-#define STEP_EMBED_DIM 8
-#define WP_INPUT_DIM 291  // 283 + 8 (step embedding)
 
 // ── Lookup table structures (uploaded to GPU once) ──
 
@@ -420,11 +407,11 @@ __device__ float wp_eval_symmetrized(
     __syncthreads();
 
     if (tid == 0) {
-        // Base: t0(90) + t1(90) + map(14) + tier(3) = 197
+        // Base: t0(NUM_HEROES) + t1(NUM_HEROES) + map + tier = WP_BASE_DIM
         for (int i = 0; i < n_t0; i++) state_buf[t0_heroes[i]] = 1.0f;
-        for (int i = 0; i < n_t1; i++) state_buf[90 + t1_heroes[i]] = 1.0f;
-        state_buf[180 + map_idx] = 1.0f;
-        state_buf[194 + tier_idx] = 1.0f;
+        for (int i = 0; i < n_t1; i++) state_buf[NUM_HEROES + t1_heroes[i]] = 1.0f;
+        state_buf[2 * NUM_HEROES + map_idx] = 1.0f;
+        state_buf[2 * NUM_HEROES + NUM_MAPS + tier_idx] = 1.0f;
 
         if (wp_off.use_enriched) {
             // Enriched features (86 dims)
@@ -452,9 +439,9 @@ __device__ float wp_eval_symmetrized(
 
     if (tid == 0) {
         for (int i = 0; i < n_t1; i++) state_buf[t1_heroes[i]] = 1.0f;
-        for (int i = 0; i < n_t0; i++) state_buf[90 + t0_heroes[i]] = 1.0f;
-        state_buf[180 + map_idx] = 1.0f;
-        state_buf[194 + tier_idx] = 1.0f;
+        for (int i = 0; i < n_t0; i++) state_buf[NUM_HEROES + t0_heroes[i]] = 1.0f;
+        state_buf[2 * NUM_HEROES + map_idx] = 1.0f;
+        state_buf[2 * NUM_HEROES + NUM_MAPS + tier_idx] = 1.0f;
 
         if (wp_off.use_enriched) {
             compute_enriched_features(t1_heroes, n_t1, t0_heroes, n_t0,

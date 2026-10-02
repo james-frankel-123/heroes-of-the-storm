@@ -24,7 +24,7 @@ fi
 [ -d "$H/venv" ] || uv venv --python "$PY" "$H/venv"
 VPY=$H/venv/bin/python
 uv pip install --python "$VPY" "torch==$TORCH" --index-url "https://download.pytorch.org/whl/$CU"
-uv pip install --python "$VPY" numpy psycopg2-binary onnx onnxruntime filelock matplotlib \
+uv pip install --python "$VPY" numpy psycopg2-binary onnx onnxruntime onnxscript filelock matplotlib \
   scipy setuptools wheel ninja packaging
 uv pip install --python "$VPY" numba || echo "WARN: numba not installable (only used by a few side scripts)"
 
