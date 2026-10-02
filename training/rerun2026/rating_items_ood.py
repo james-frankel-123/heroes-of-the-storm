@@ -50,7 +50,8 @@ from rerun2026.ensemble_uncertainty import (ROSTER, _extract_set,
                                             _member_predict, model_path)
 from experiment_synthetic_augmentation import STANDARD
 
-ITEMS_PATH = os.path.join(common.TRAINING_DIR, "..", "data", "rating-items.json")
+ITEMS_PATH = os.environ.get("RATING_ITEMS_OOD_PATH",
+                            os.path.join(common.TRAINING_DIR, "..", "data", "rating-items.json"))
 
 # Same-fine-role substitutes for each STANDARD slot, tried in order when the
 # reference hero collides with the evaluated team. Deterministic.

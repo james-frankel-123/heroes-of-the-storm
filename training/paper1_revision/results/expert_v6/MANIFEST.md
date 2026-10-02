@@ -316,6 +316,27 @@ high (v5's old labels: mid 43%, high 39%).
     strata and counts, anchors 570, catch 3; 14 slots of 240), generator logic apart from
     seed, builds and namespace, and the app's assignment code.
 
+## 7a. Addendum (2026-10-02, after the manifest was handed to verification): OOD covariates
+
+The v2 plan's H2 needs the frozen OOD covariates (`ood_var_team0/1`, `ood_var_max`,
+`ood_var_mean`, `ood_var_matchup`, `ood_ref_team0/1`) on every machine pair. The v5 pool
+had them; the v6 pool above does not, because `rerun2026/rating_items_ood.py` had not been
+run. It was run on a copy, leaving `rating-items-v6.json` unchanged:
+
+    RATING_ITEMS_OOD_PATH=<copy> python3 rerun2026/rating_items_ood.py   (oct2026 env, CPU)
+
+| file | sha256 |
+|---|---|
+| `rating-items-v6-ood.json` (labeled pool + OOD covariates; proposed file to seed) | `58c6328a52277f73966071663727ec84a1611445d607cc3a734466e0a004134d` |
+
+- Ensemble: the 20 oct2026 members (`models/ens_unc/`), deploy statistics.
+- The step is deterministic: two independent runs gave the same sha256.
+- Removing the `ood_*` fields from every item gives back `rating-items-v6.json` exactly.
+- `ood_var_max` over 280 pairs: mean 0.00117, median 0.00098, p5 0.00042, p90 0.00209,
+  p95 0.00260, max 0.00397. `ood_var_matchup`: mean 0.00101, median 0.00075, p90 0.00194,
+  p95 0.00232, max 0.00601. Spearman between them 0.314. Reference substitutions on
+  175 of 560 probe records.
+
 ## 8. Not done (waiting for confirmation)
 
 - Seeding (`scripts/seed-rating-items.ts`; would also delete the 7 `test-watson`
