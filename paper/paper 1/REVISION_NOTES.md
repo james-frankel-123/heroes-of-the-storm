@@ -1355,3 +1355,25 @@ The fetch loops were restarted: the 3090 fetches everything, and the 3080 fetch 
 **ETA:**
 - GD pool: about 11 h for GD 0 (35 epochs left) and about 14 h for GD 1–4, so around Oct 3 01:00.
 - MCTS, option B: about 325 3090-equivalent GPU-hours, on 3090 (2 slots) and 3080 (1 slot, about 0.4 of a 3090 while shared). That is about 9–10 days of wall time from GD landing, so around Oct 12–13. This will be firmed up from the first 400/800-sim runs.
+
+### 15.12 GD trainer: illegal-target rows (2026-10-02)
+
+**Problem** (found by Codex on the oct2026 memmap). A handful of GD samples have a target hero that is already picked or banned. The model masks illegal logits to −1e9, so each such row adds about 1e9 to the summed cross-entropy.
+
+**p1site memmaps** (`site/results/gd_invalid_targets.json`):
+- train: 680 of 24,456,480 rows (0.003%);
+- held-out: 17 of 500,336 rows.
+
+The reported held-out loss (about 33,980) was almost entirely 17 × 1e9 / 500,336. At that magnitude float32 resolves about 0.004, against epoch-to-epoch changes of about 0.01 in the real cross-entropy, so best-checkpoint selection and early stopping were close to noise.
+
+**Effect on the gradient.** It is not pathological. Masked cross-entropy has gradient softmax − one-hot; the target's softmax is about 0, so the target logit gets a bounded −1 push, applied to 0.003% of rows.
+
+**Fix** (`train_generic_draft.py`, default behaviour):
+- rows whose target is not a legal action are dropped from every training batch and from evaluation;
+- best-checkpoint selection and early stopping use cross-entropy over legal-target rows;
+- top-1 and top-5 accuracy are logged every epoch, with the number of skipped rows;
+- resume states carry `loss_kind="legal"`; states saved under the old loss are ignored.
+
+A toy test (30 + 5 illegal rows) gave the expected chance-level loss ln 90.
+
+**Decision.** The p1site GD pool was restarted from scratch with the fix (10:45 Oct 2). Seeds 1–4 had finished one or two epochs and seed 0 about 11. The saved best checkpoints had been chosen on the noisy metric, and no per-epoch checkpoints exist to reselect from. The old files are kept in `~/hots/gd_oldloss` on both remotes and `rerun2026/ns/p1site/models_gd_oldloss` here.

@@ -192,8 +192,13 @@ def train_single_model(
     # finished epoch. Unset = original behaviour.
     resume_path = os.environ.get("GD_RESUME_PATH")
     start_epoch = 0
+    st = None
     if resume_path and os.path.exists(resume_path):
         st = torch.load(resume_path, weights_only=False, map_location="cpu")
+        if st.get("loss_kind") != "legal":   # saved before the legal-target fix
+            print("  ignoring resume state saved with the old loss; starting fresh")
+            st = None
+    if st is not None:
         model.load_state_dict(st["model"])
         optimizer.load_state_dict(st["optimizer"])
         best_test_loss, patience_counter = st["best_test_loss"], st["patience_counter"]
@@ -207,6 +212,18 @@ def train_single_model(
         if st.get("stopped"):
             start_epoch = 200
 
+    # A few replays record a pick of a hero that is already picked or banned
+    # (about 3 in 100,000 samples). Their target is masked out of the legal
+    # set, so the masked cross-entropy is ~1e9 per row: harmless for the
+    # gradient (softmax minus one-hot, bounded) but it swamps the summed eval
+    # loss and made checkpoint selection and early stopping track 1e9 x the
+    # count of such rows. Rows whose target is not a legal action are dropped
+    # from training and evaluation; selection and stopping use the
+    # cross-entropy over legal-target rows.
+    def _legal(y, mask):
+        return mask.gather(1, y.unsqueeze(1)).squeeze(1) > 0.5
+
+    skipped = {"train": 0, "test": 0}
     for epoch in range(start_epoch, 200):
         model.train()
         train_loss = 0
@@ -214,6 +231,12 @@ def train_single_model(
         train_total = 0
         for X, y, mask in train_dl:
             X, y, mask = X.to(device), y.to(device), mask.to(device)
+            ok = _legal(y, mask)
+            if not bool(ok.all()):
+                skipped["train"] += int((~ok).sum())
+                X, y, mask = X[ok], y[ok], mask[ok]
+                if len(y) == 0:
+                    continue
             logits = model(X, mask)
             loss = criterion(logits, y)
             optimizer.zero_grad()
@@ -231,6 +254,12 @@ def train_single_model(
         with torch.no_grad():
             for X, y, mask in test_dl:
                 X, y, mask = X.to(device), y.to(device), mask.to(device)
+                ok = _legal(y, mask)
+                if not bool(ok.all()):
+                    skipped["test"] += int((~ok).sum())
+                    X, y, mask = X[ok], y[ok], mask[ok]
+                    if len(y) == 0:
+                        continue
                 logits = model(X, mask)
                 loss = criterion(logits, y)
                 test_loss += loss.item() * len(y)
@@ -244,10 +273,11 @@ def train_single_model(
         test_top5_acc = test_top5 / test_total * 100
         avg_test_loss = test_loss / test_total
 
-        if (epoch + 1) % 10 == 0 or epoch == 0:
-            print(f"  Epoch {epoch+1:3d}: train_acc={train_acc:.1f}% "
-                  f"test_acc={test_acc:.1f}% test_top5={test_top5_acc:.1f}% "
-                  f"test_loss={avg_test_loss:.4f}")
+        print(f"  Epoch {epoch+1:3d}: train_acc={train_acc:.1f}% "
+              f"test_acc(top1)={test_acc:.2f}% test_top5={test_top5_acc:.1f}% "
+              f"test_loss={avg_test_loss:.5f} (legal-target rows; skipped "
+              f"train {skipped['train']} test {skipped['test']})", flush=True)
+        skipped = {"train": 0, "test": 0}
 
         stop = False
         if avg_test_loss < best_test_loss:
@@ -266,7 +296,8 @@ def train_single_model(
                         "epoch": epoch, "gen_state": train_dl.generator.get_state(),
                         "torch_rng": torch.get_rng_state(),
                         "cuda_rng": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
-                        "np_rng": np.random.get_state(), "stopped": stop}, tmp)
+                        "np_rng": np.random.get_state(), "stopped": stop,
+                        "loss_kind": "legal"}, tmp)
             os.replace(tmp, resume_path)
         if stop:
             break
