@@ -37,7 +37,9 @@ T=training
     echo $T/drift2026/w4_exclude_ids.json
     ls $T/drift_rebuild/models/exclude_after_*.json
     find $T/drift_v2/patch_stats -type f
-    find $T/drift_v2/feature_cache -maxdepth 1 -name "features_*.npz"
+    # value-function feature caches (63 GB) only with DRIFT_V2_FEATURES=1;
+    # opponent pools and MCTS do not read them
+    [ "${DRIFT_V2_FEATURES:-}" = 1 ] && find $T/drift_v2/feature_cache -maxdepth 1 -name "features_*.npz"
     find $T/drift_v2/models -name "*.pt" 2>/dev/null
   fi
 } | grep -v "/__pycache__/" | sort -u
