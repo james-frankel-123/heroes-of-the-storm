@@ -4,9 +4,11 @@ Job manager for a HotS remote worker (runs inside WSL; stdlib only).
 Manifests: ~/hots/jobs/<name>.json   Logs: ~/hots/logs/<name>.log
 
   hotsjob.py launch <name> <cmd> [--resume-cmd C] [--save-dir D] [--progress-log L] [--gpu 0]
+                                 [--mem-max 24G]
   hotsjob.py pause  <name|all> [--timeout 540]
   hotsjob.py resume <name|all>     (all: paused jobs; a named job may also be failed/died)
   hotsjob.py status [name|all]
+  hotsjob.py state  <name>             (just the status word, after the liveness check)
   hotsjob.py finish <name> <rc>        (called by the job's runner shell)
 
 Job kinds
@@ -21,6 +23,14 @@ Job kinds
   plain  anything else (benchmarks, tournaments). Pause = SIGTERM to the process
          group (SIGKILL after 30 s); resume re-runs the same command, and those
          scripts skip work whose output files already exist.
+
+Memory cap (--mem-max): the command runs in its own systemd user scope with
+MemoryMax=<cap> and MemorySwapMax=0, so a memory blow-up kills only that
+command (the kernel OOM-kills inside the scope). The runner shell sits
+outside the scope and records the exit code (137 = killed).
+
+A job whose process group is gone with no exit record (the runner itself was
+killed, e.g. by a host-wide OOM) is marked failed by every status/state call.
 """
 import json
 import os
@@ -123,9 +133,13 @@ def start(m, cmd):
         env_extra.update({"MCTS_PAUSE_FILE": m["pause_file"],
                           "MCTS_CKPT_EVERY_SEC": str(m.get("ckpt_every_sec", DEFAULT_CKPT_SEC))})
     exports = " ".join(f"export {k}={shlex.quote(v)};" for k, v in env_extra.items())
+    run = cmd
+    if m.get("mem_max"):
+        run = (f"systemd-run --user --scope -q -p MemoryMax={m['mem_max']} "
+               f"-p MemorySwapMax=0 bash -c {shlex.quote(cmd)}")
     runner = (f"source {HOTS}/env.sh; {exports} cd {TRAINING}; "
-              f"echo \"# start $(date -Is) host=$(hostname) cmd: \"{shlex.quote(cmd)}; "
-              f"{cmd}; rc=$?; echo \"# exit=$rc $(date -Is)\"; "
+              f"echo \"# start $(date -Is) host=$(hostname) mem_max={m.get('mem_max') or 'none'} cmd: \"{shlex.quote(cmd)}; "
+              f"{run}; rc=$?; echo \"# exit=$rc $(date -Is)\"; "
               f"{sys.executable} {SELF} finish {shlex.quote(m['name'])} $rc")
     if m.get("progress_log"):
         pl = abspath_t(m["progress_log"])
@@ -154,7 +168,7 @@ def cmd_launch(a):
          "resume_cmd": a.resume_cmd or resume_cmd,
          "save_dir": a.save_dir or save_dir, "progress_log": a.progress_log or plog,
          "log": os.path.join(LOGS, f"{name}.log"), "gpu": a.gpu,
-         "pause_file": os.path.join(JOBS, f"{name}.pause"),
+         "pause_file": os.path.join(JOBS, f"{name}.pause"), "mem_max": a.mem_max,
          "ckpt_every_sec": a.ckpt_every_sec, "created": time.strftime("%Y-%m-%dT%H:%M:%S")}
     if kind == "mcts" and not m["save_dir"]:
         sys.exit("mcts job needs --save-dir (or MCTS_SAVE_DIR=... in the command)")
@@ -185,7 +199,14 @@ def refresh(m):
     if m["status"] in ("running", "pausing") and not alive(m.get("pgid")):
         m = load(m["name"])  # runner may have just called finish
         if m["status"] in ("running", "pausing"):
-            m["status"] = "paused" if m["status"] == "pausing" else "died"
+            if m["status"] == "pausing":
+                m["status"] = "paused"
+            else:
+                # the runner never called finish: it was killed with the job
+                m["status"] = "failed"
+                m["failure"] = "process group gone with no exit record (killed, e.g. OOM)"
+                m.setdefault("history", []).append(
+                    {"t": time.strftime("%Y-%m-%dT%H:%M:%S"), "event": "dead -> failed"})
             save(m)
     ck = ckpt_info(m)
     if ck and ck != m.get("last_checkpoint"):
@@ -286,6 +307,10 @@ def cmd_status(a):
               + (f"\n    progress: {abspath_t(m['progress_log'])}" if m.get("progress_log") else ""))
 
 
+def cmd_state(a):
+    print(refresh(load(a.name))["status"] if os.path.exists(mpath(a.name)) else "none")
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser()
@@ -298,6 +323,7 @@ def main():
     p.add_argument("--progress-log")
     p.add_argument("--gpu", default="0")
     p.add_argument("--ckpt-every-sec", type=int, default=DEFAULT_CKPT_SEC)
+    p.add_argument("--mem-max", help="cgroup memory cap, e.g. 24G (swap disabled)")
     p = sub.add_parser("pause")
     p.add_argument("name")
     p.add_argument("--timeout", type=int, default=540)
@@ -305,12 +331,14 @@ def main():
     p.add_argument("name")
     p = sub.add_parser("status")
     p.add_argument("name", nargs="?")
+    p = sub.add_parser("state")
+    p.add_argument("name")
     p = sub.add_parser("finish")
     p.add_argument("name")
     p.add_argument("rc")
     a = ap.parse_args()
     {"launch": cmd_launch, "pause": cmd_pause, "resume": cmd_resume,
-     "status": cmd_status, "finish": cmd_finish}[a.op](a)
+     "status": cmd_status, "state": cmd_state, "finish": cmd_finish}[a.op](a)
 
 
 if __name__ == "__main__":

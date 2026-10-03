@@ -585,29 +585,41 @@ def pretrain_value_head(network: AlphaZeroDraftNet, device):
         return
 
     train_data, _ = split_data(data)
+    del data
 
-    X_list, y_list = [], []
-    for d in train_data:
+    # Rows are written straight into float32 arrays (same values as stacking
+    # per-row float64 vectors and casting): two rows per replay, one from each
+    # team's perspective.
+    from shared import HERO_TO_IDX
+    X_np = np.zeros((2 * len(train_data), STATE_DIM), dtype=np.float32)
+    y_np = np.zeros(2 * len(train_data), dtype=np.float32)
+    for i, d in enumerate(train_data):
         t0 = heroes_to_multi_hot(d["team0_heroes"])
         t1 = heroes_to_multi_hot(d["team1_heroes"])
         bans = np.zeros(NUM_HEROES, dtype=np.float32)
-        for h in d.get("team0_bans", []) + d.get("team1_bans", []):
-            from shared import HERO_TO_IDX
+        for h in (d.get("team0_bans") or []) + (d.get("team1_bans") or []):
             idx = HERO_TO_IDX.get(h)
             if idx is not None:
                 bans[idx] = 1.0
         m = map_to_one_hot(d["game_map"])
         t = tier_to_one_hot(d["skill_tier"])
         team0_won = float(d["winner"] == 0)
-        x0 = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0, 0.0]])
-        X_list.append(x0)
-        y_list.append(team0_won)
-        x1 = np.concatenate([t0, t1, bans, m, t, [1.0, 1.0, 1.0]])
-        X_list.append(x1)
-        y_list.append(1.0 - team0_won)
+        for k, (side, won) in enumerate(((0.0, team0_won), (1.0, 1.0 - team0_won))):
+            row = X_np[2 * i + k]
+            row[:NUM_HEROES] = t0
+            row[NUM_HEROES:2 * NUM_HEROES] = t1
+            row[2 * NUM_HEROES:3 * NUM_HEROES] = bans
+            row[3 * NUM_HEROES:3 * NUM_HEROES + NUM_MAPS] = m
+            row[3 * NUM_HEROES + NUM_MAPS:3 * NUM_HEROES + NUM_MAPS + NUM_TIERS] = t
+            row[-3:] = (1.0, 1.0, side)
+            y_np[2 * i + k] = won
+    del train_data
 
-    X = torch.tensor(np.array(X_list, dtype=np.float32)).to(pt_device)
-    y = torch.tensor(np.array(y_list, dtype=np.float32)).to(pt_device)
+    # MCTS_PRETRAIN_HOST=1 keeps the rows in host memory and moves each batch
+    # to the device (small-GPU workers); the batch order is the same either way.
+    on_host = os.environ.get("MCTS_PRETRAIN_HOST") == "1"
+    X = torch.from_numpy(X_np) if on_host else torch.from_numpy(X_np).to(pt_device)
+    y = torch.from_numpy(y_np) if on_host else torch.from_numpy(y_np).to(pt_device)
     network.to(pt_device)
 
     # Only train value head parameters (freeze backbone and policy)
@@ -625,6 +637,8 @@ def pretrain_value_head(network: AlphaZeroDraftNet, device):
         for i in range(0, len(X), batch_size):
             idx = perm[i:i+batch_size]
             bx, by = X[idx], y[idx]
+            if on_host:
+                bx, by = bx.to(pt_device), by.to(pt_device)
             _, value_pred = network(bx)
             loss = F.mse_loss(value_pred, by)
             optimizer.zero_grad()

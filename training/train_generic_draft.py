@@ -21,6 +21,7 @@ Usage:
     pip install psycopg2-binary
     python training/train_generic_draft.py
 """
+import json
 import os
 import sys
 import numpy as np
@@ -130,6 +131,79 @@ class DraftDataset(Dataset):
             torch.tensor(self.y[idx]),
             torch.from_numpy(self.masks[idx]),
         )
+
+
+class CompactDraftDataset(Dataset):
+    """DraftDataset streamed to disk and memory-mapped, for corpora whose
+    float32 sample arrays do not fit in RAM (2.4M replays -> ~30M samples:
+    35 GB of states + 11 GB of masks as float32).
+
+    Same samples, same tensors. States are stored as uint8: every entry is
+    0/1 except step_num = pick_number / 15, stored as pick_number and decoded
+    exactly as replay_to_training_samples computes it. The valid mask is not
+    stored: it is 1 - (team0 | team1 | bans), which is how the sample builder
+    defines it. Files: <cache_dir>/{states.u8,targets.i16,meta.json}; meta is
+    written last, so an interrupted build is redone and a finished one reused.
+    """
+    STEP_COL = NUM_HEROES * 3 + NUM_MAPS + NUM_TIERS
+
+    def __init__(self, data, cache_dir, chunk=200_000):
+        meta_p = os.path.join(cache_dir, "meta.json")
+        if not os.path.exists(meta_p):
+            self._build(data, cache_dir, chunk)
+        meta = json.load(open(meta_p))
+        assert meta["dim"] == INPUT_DIM, f"cache dim {meta['dim']} != {INPUT_DIM}"
+        self.n = meta["n"]
+        self.X = np.memmap(os.path.join(cache_dir, "states.u8"), dtype=np.uint8,
+                           mode="r", shape=(self.n, INPUT_DIM))
+        self.y = np.memmap(os.path.join(cache_dir, "targets.i16"), dtype=np.int16,
+                           mode="r", shape=(self.n,))
+
+    def _build(self, data, cache_dir, chunk):
+        os.makedirs(cache_dir, exist_ok=True)
+        n = 0
+        bx, by = [], []
+        with open(os.path.join(cache_dir, "states.u8"), "wb") as fx, \
+                open(os.path.join(cache_dir, "targets.i16"), "wb") as fy:
+            def flush():
+                if bx:
+                    np.stack(bx).tofile(fx)
+                    np.asarray(by, dtype=np.int16).tofile(fy)
+                    bx.clear()
+                    by.clear()
+            for d in data:
+                for x, target, _ in replay_to_training_samples(d):
+                    u = x.astype(np.uint8)
+                    u[self.STEP_COL] = int(round(x[self.STEP_COL] * 15))
+                    bx.append(u)
+                    by.append(target)
+                    n += 1
+                if len(bx) >= chunk:
+                    flush()
+            flush()
+        json.dump({"n": n, "dim": INPUT_DIM, "heroes": NUM_HEROES, "maps": NUM_MAPS},
+                  open(os.path.join(cache_dir, "meta.json"), "w"))
+
+    def decode(self, rows):
+        x = rows.astype(np.float32)
+        x[:, self.STEP_COL] = (rows[:, self.STEP_COL].astype(np.float64) / 15.0).astype(np.float32)
+        taken = np.minimum(x[:, :NUM_HEROES] + x[:, NUM_HEROES:2 * NUM_HEROES]
+                           + x[:, 2 * NUM_HEROES:3 * NUM_HEROES], 1.0)
+        return x, (1.0 - taken).astype(np.float32)
+
+    def __len__(self):
+        return self.n
+
+    def __getitems__(self, idx):
+        # batched fetch (DataLoader calls this with a batch's indices)
+        order = np.asarray(idx)
+        x, mask = self.decode(np.asarray(self.X[order]))
+        y = np.asarray(self.y[order], dtype=np.int64)
+        X, Y, M = torch.from_numpy(x), torch.from_numpy(y), torch.from_numpy(mask)
+        return [(X[i], Y[i], M[i]) for i in range(len(order))]
+
+    def __getitem__(self, idx):
+        return self.__getitems__([idx])[0]
 
 
 class GenericDraftModel(nn.Module):

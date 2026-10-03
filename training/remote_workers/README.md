@@ -73,6 +73,18 @@ and its outputs to `paper1_revision/mcts_runs/<cfg>_oof_s<seed>/`. `jobs_remote.
 ssh max-windows-3090 "wsl -e bash -s" <<< 'tail -5 ~/hots/repo/training/paper1_revision/logs/mcts_F_oof_s0.log'
 ```
 
+## Memory cap and failure detection
+
+`--mem-max 24G` (in `HOTSJOB_FLAGS`, or `hotsjob.py launch ... --mem-max 24G`) runs the
+command in its own systemd user scope with `MemoryMax=24G` and `MemorySwapMax=0`. A blow-up is
+OOM-killed inside the scope (exit 137, status `failed`) and the rest of WSL keeps running. The
+cap also applies on resume. Production jobs on the 3080 (47 GB) use it.
+
+A job whose process group is gone without an exit record is marked `failed` by `status` and by
+`hotsjob.py state <name>`, which prints only the status word. Scripts that wait on a job should
+poll `state`, not read the manifest: the manifest still says `running` if the runner itself was
+killed. That happened on 2026-10-02, when a host-wide OOM left a chain waiting for 5 h.
+
 ## Pause and resume
 
 The owner may ask for the GPUs back with about 15 minutes' notice:

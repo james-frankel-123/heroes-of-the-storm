@@ -875,11 +875,23 @@ def phase_gd():
     tgd.__file__ = os.path.join(RUN_DIR, "train_generic_draft.py")
     # epoch-level resume: a paused or killed run continues at its last epoch
     os.environ.setdefault("GD_RESUME_PATH", os.path.join(RUN_DIR, "gd_resume.pt"))
-    rows = _load_fresh_corpus()
-    train_rows, test_rows = split_data(rows, test_frac=0.02, seed=42)
+    # Samples are streamed to a compact on-disk cache and memory-mapped
+    # (tgd.CompactDraftDataset): as float32 arrays in RAM the full corpus's
+    # ~30M samples need ~46 GB (OOM-killed on a 47 GB worker, 2026-10-02).
+    # The corpus is freed before training.
+    import gc
+    cache = os.path.join(RUN_DIR, "gd_cache")
+    if not all(os.path.exists(os.path.join(cache, s, "meta.json")) for s in ("train", "test")):
+        rows = _load_fresh_corpus()
+        train_rows, test_rows = split_data(rows, test_frac=0.02, seed=42)
+        del rows
+        tgd.CompactDraftDataset(train_rows, os.path.join(cache, "train"))
+        tgd.CompactDraftDataset(test_rows, os.path.join(cache, "test"))
+        del train_rows, test_rows
+        gc.collect()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    train_ds = tgd.DraftDataset(train_rows)
-    test_ds = tgd.DraftDataset(test_rows)
+    train_ds = tgd.CompactDraftDataset(None, os.path.join(cache, "train"))
+    test_ds = tgd.CompactDraftDataset(None, os.path.join(cache, "test"))
     log(f"GD: {len(train_ds):,} train / {len(test_ds):,} test samples")
     loss = tgd.train_single_model(0, tgd.MODEL_VARIANTS[0], train_ds, test_ds, device)
     meta_update(gd={"best_test_loss": loss})
