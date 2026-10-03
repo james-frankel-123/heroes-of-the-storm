@@ -12,4 +12,8 @@ print(" ".join(f"{k}={v}" for k, v in env.items()) + " " + j["cmd"].replace("pyt
       + f" && touch {j['env']['MCTS_SAVE_DIR']}/DONE")
 PY
 )
+# Per-process memory cap (ulimit -d). Paper-1 MCTS workers, which load the same
+# snapshot, peak near 21 GB RSS; 32G leaves headroom for VmData > RSS.
+case " ${HOTSJOB_FLAGS:-} " in *" --mem-max "*) ;; *) HOTSJOB_FLAGS="${HOTSJOB_FLAGS:-} --mem-max ${MEM_MAX:-32G}" ;; esac
+export HOTSJOB_FLAGS
 RUN_NAME=${RUN_NAME:-$NAME} training/remote_workers/run_remote.sh "$HOST" "$CMD"

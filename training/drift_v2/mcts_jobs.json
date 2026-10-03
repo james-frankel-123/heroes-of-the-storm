@@ -671,7 +671,7 @@
   },
   "done_file": "/home/max/heroes-of-the-storm/training/drift_v2/mcts_runs/v2_S1_s0/draft_policy.pt",
   "vf_exists": true,
-  "gd_exists": false,
+  "gd_exists": true,
   "cmd": "python3 -u drift_rebuild/v2/run.py train_mcts_worker.py"
  },
  {
@@ -698,7 +698,7 @@
   },
   "done_file": "/home/max/heroes-of-the-storm/training/drift_v2/mcts_runs/v2_S1_s1/draft_policy.pt",
   "vf_exists": true,
-  "gd_exists": false,
+  "gd_exists": true,
   "cmd": "python3 -u drift_rebuild/v2/run.py train_mcts_worker.py"
  },
  {
@@ -725,7 +725,7 @@
   },
   "done_file": "/home/max/heroes-of-the-storm/training/drift_v2/mcts_runs/v2_S1_s2/draft_policy.pt",
   "vf_exists": true,
-  "gd_exists": false,
+  "gd_exists": true,
   "cmd": "python3 -u drift_rebuild/v2/run.py train_mcts_worker.py"
  },
  {
@@ -752,7 +752,7 @@
   },
   "done_file": "/home/max/heroes-of-the-storm/training/drift_v2/mcts_runs/v2_S1_s3/draft_policy.pt",
   "vf_exists": true,
-  "gd_exists": false,
+  "gd_exists": true,
   "cmd": "python3 -u drift_rebuild/v2/run.py train_mcts_worker.py"
  },
  {
@@ -779,7 +779,7 @@
   },
   "done_file": "/home/max/heroes-of-the-storm/training/drift_v2/mcts_runs/v2_S1_s4/draft_policy.pt",
   "vf_exists": true,
-  "gd_exists": false,
+  "gd_exists": true,
   "cmd": "python3 -u drift_rebuild/v2/run.py train_mcts_worker.py"
  },
  {
@@ -806,7 +806,7 @@
   },
   "done_file": "/home/max/heroes-of-the-storm/training/drift_v2/mcts_runs/v2_S1_s5/draft_policy.pt",
   "vf_exists": true,
-  "gd_exists": false,
+  "gd_exists": true,
   "cmd": "python3 -u drift_rebuild/v2/run.py train_mcts_worker.py"
  },
  {
