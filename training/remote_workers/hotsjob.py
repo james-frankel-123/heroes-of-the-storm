@@ -104,7 +104,11 @@ def infer(cmd):
     if "train_mcts_worker.py" in cmd:
         m = re.search(r"MCTS_SAVE_DIR=(\S+)", cmd)
         resume = re.sub(r"MCTS_FRESH=\S+\s*", "", cmd)
-        return ("mcts", m.group(1) if m else None, None, "MCTS_FRESH=0 " + resume)
+        # a worker whose output is redirected (refresh.py mcts_cmd: >> <save_dir>/train.log)
+        # reports progress there, not in the runner log
+        lg = re.search(r"train_mcts_worker\.py\s*>>\s*(\S+)", cmd)
+        return ("mcts", m.group(1) if m else None, lg.group(1).strip("'\"") if lg else None,
+                "MCTS_FRESH=0 " + resume)
     return ("plain", None, None, cmd)
 
 
@@ -254,7 +258,9 @@ def cmd_pause(a):
         save(m)
         if m["kind"] == "mcts":
             open(m["pause_file"], "w").close()
-            if "CUDA kernel engine" not in progress_text(m):
+            # a resume checkpoint means self-play has started, whatever the log says;
+            # killing it as "in setup" would also make resume start fresh
+            if "CUDA kernel engine" not in progress_text(m) and not ckpt_info(m):
                 print(f"{m['name']}: still in setup (no self-play yet), nothing to save: killing")
                 m["paused_in_setup"] = True
                 save(m)
