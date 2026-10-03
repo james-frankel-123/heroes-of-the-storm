@@ -1,13 +1,11 @@
-# Expert study v6.2 pool: manifest for review (NOT SEEDED)
+# Expert study v6.1 pool: manifest for review (NOT SEEDED)
 
-Written 2026-10-02/03 after the second verification round (`xaudit/{claude,grok,codex}_v61/
-VERIFY.md`). v6.2 keeps v6.1's real games, structure fit, labels method and checks, and
-redraws the machine pairs so that no matchup appears twice anywhere in the pool. It also
-hard-codes the acceptance policy in the checker, adds the patch-2.57 counts for the two
-pre-registered variants, and fixes the remaining documentation errors. Earlier manifests:
-`MANIFEST_v6.md`, `MANIFEST_v6.1.md`. Nothing was written to the database;
-`data/rating-items.json` is still the v5 pool (sha256 `3b870df1…`) and the `rating_items`
-table still holds v5.
+Written 2026-10-02 after the first verification round (reports in the coordinator's
+scratchpad: `xaudit/{claude,grok,codex}_v6/VERIFY.md`). v6.1 regenerates the v6 pool with a
+cap on repeated machine teams and a closed real-game window, adds the OOD covariates, and
+fixes the manifest's errors. The v6 manifest is kept as `MANIFEST_v6.md`. Nothing was
+written to the database and `data/rating-items.json` (the live v5 pool, sha256
+`3b870df1…`) is untouched.
 
 Paths are relative to the repo root unless they start with `ns/` (=
 `training/rerun2026/ns/oct2026/`) or sit in this directory
@@ -17,31 +15,27 @@ Paths are relative to the repo root unless they start with `ns/` (=
 
 | file (this directory) | what | sha256 |
 |---|---|---|
-| `rating-items-v6.2.json` | **the candidate to seed**: generated pool + labels + OOD covariates | `ed6d4da4a28bf2b076f46597eac12098f9e880a29433a33e33240054abbe6c2c` |
-| `rating-items-v6.2.generated.json` | generator output before the label and OOD steps | `6c60cde5891cefe075f0f6d4861c2cdb8dfe46fb681d615416d9c0170d8a3cce` |
-| `rating-items-v6.1.generated.ladder-candidates.json` | the ladder query's 6,000 candidate replay ids per tier, saved at the v6.1 draw and replayed for v6.2 | `192b0f543a675098f221ba6314b6d218b8c7a73c0a67062e5bb6223d58218968` |
-| `struct_correction.json` | structure-correction fit (from v6.1; unchanged, same 621 excluded games) | `f8503c845301f61a3471d9eaecd669b255107380ffcb1250b9accca3fd658038` |
+| `rating-items-v6.1.json` | **the candidate to seed**: generated pool + labels + OOD covariates | `d699edcf511c1eeeceeae5df05db05f88724cc094c7564a509d1d4b9502b6ef5` |
+| `rating-items-v6.1.generated.json` | generator output before the label and OOD steps | `681850287d0145b2abf2f91f51cd94a2911c94e9589f08a199aa09d5bc249a35` |
+| `rating-items-v6.1.generated.ladder-candidates.json` | the ladder query's 6,000 candidate replay ids per tier | `192b0f543a675098f221ba6314b6d218b8c7a73c0a67062e5bb6223d58218968` |
+| `struct_correction.json` | structure-correction fit (v6.1) | `f8503c845301f61a3471d9eaecd669b255107380ffcb1250b9accca3fd658038` |
 | `struct_fit_games.json` | the replay ids of the fit and check halves | `3ca043533417ef8e2d8c576472ff7131c225825c338adbf891b564af7bb23ea2` |
-| `check-rating-pool-v6.2.txt` | §6.1 output (ALL PASS) | `39d57e1ae6cee408ec43b4e95986ade43b6b68571c0c235af7a84af744230a60` |
-| `check-rating-pool-negative-controls.txt` | §6.1 negative controls (all FAIL) | `5e9da1dc565366c4581fda13330a9aa819fa8fcef0a3a51787053760f26d9463` |
-| `rating-pool-stats-v6.2.txt` | §6.2 output | `d0fa6833ca1461920bea6393f8404f37bbd7619dc2476ba81823922bccf66683` |
-| `tier_audit_v6.2.json` | §6.3 output | `ab44539c86ed21503f4a9e68b17eca39e7dd0007ae572a0c56edc6f70bfb676e` |
-| `patch257_counts_v6.2.json` | §5b counts (`paper1_revision/patch257_counts.py`) | `2f188cf08f66450ae5d61ede432917b00aa38cdecfd2845b1643e32f82bb03e0` |
+| `check-rating-pool-v6.1.txt` | §6.1 output | `a0e0408d0dc09ec6c3c61c0ab9be1276e83456a066c4d374b5a0a886a3ebca4b` |
+| `rating-pool-stats-v6.1.txt` | §6.2 output | `8567d03dd1f44d8e543cf4d1d85ca5248cab43910a029c8a1f4eba99036c1054` |
+| `tier_audit_v6.1.json` | §6.3 output | `7977613be01a72a6b0b5610f09f7ad43e112528f47afb75d62148ac3f1c178bc` |
 | `gd_valid_eval.json` | §2.2 GD metrics on valid rows | `e3ffe7df2feccb3cb470e77b3e608db65fbb1bdea23b0578b8d7bdb60650f418` |
 
-The v6 and v6.1 files (`rating-items-v6.json`, `rating-items-v6-ood.json`,
-`rating-items-v6.1*.json`, `struct_correction_v6.json`, `tier_audit.json`,
-`tier_audit_v6.1.json`, `check-rating-pool{,-v6.1}.txt`, `rating-pool-stats{,-v6.1}.txt`)
-are kept for the record and are not candidates.
+The v6 files (`rating-items-v6*.json`, `struct_correction_v6.json`, `tier_audit.json`,
+`check-rating-pool.txt`, `rating-pool-stats.txt`) are kept for the record and are not
+candidates.
 
 Normalization between the two pool files: removing every provenance key that starts with
 `wpTeam0Sym` or `ood_`, and the top-level `judges` object, makes
-`rating-items-v6.2.json` equal to `rating-items-v6.2.generated.json` (checked). The
+`rating-items-v6.1.json` equal to `rating-items-v6.1.generated.json` (checked). The
 generator's `wpTeam0Sym` equals the candidate's `wpTeam0Sym_tournament` on all 280 pairs.
-The generator was run with `LADDER_CANDIDATES=rating-items-v6.1.generated.ladder-candidates.json`,
-which restricts the ladder query to the saved ids in the saved order; a re-run that way
-reproduces `rating-items-v6.2.generated.json` except its `generatedAt` line. The final
-candidate adds the two label passes and the OOD step (§3, §4), both deterministic.
+A re-run of the generator reproduces the generated file except the `generatedAt` line
+(the clock), provided the DB returns the same candidate ids; the candidate file makes
+that checkable after the DB grows.
 
 ## 1. Snapshot and real-game window
 
@@ -54,7 +48,7 @@ candidate adds the two label passes and the OOD step (§3, §4), both determinis
 | tiers | site scheme: low = Bronze+Silver 946,019; mid = Gold+Platinum 962,687; high = Diamond+Master 400,643; 0 rows disagree with the site rule |
 | statistics | decayed90 (half-life 90 days, reference 2026-09-01), training rows only; out of fold (5 hash folds) for training features; deploy stats `ns/feature_cache/stats/deploy.json` (`d764a7b7…`), compositions `deploy_compositions.json` (`09eb509b…`) |
 
-**Real-game window (since v6.1; v6.2 replays the same draw).** `scripts/generate-rating-items.ts` reads real games from
+**Real-game window (v6.1).** `scripts/generate-rating-items.ts` reads real games from
 `replay_draft_data` with `game_date >= '2026-09-01' AND game_date < '2026-09-28'` and
 `game_version IN ('2.55.17.97771', '2.55.17.98025')`, newest 6,000 per tier
 (`order by game_date desc, replay_id desc`). All 621 real games drawn are on build
@@ -90,16 +84,13 @@ is used by nothing).
 | gourdeau_disc | `ns/models/gourdeau_discriminator.pt` | `3f4af647ec073b6dac975aff299ade703556fe75414bae86ce83ed3000463f39` | minimize P(generated) |
 
 The tournament results (`ns/results/roundrobin/`, 56 files; `ns/results/constrained/
-roundrobin/`, 34 files; 200 drafts each, generated 2026-10-02) are unchanged from v6;
-v6.1 and v6.2 only re-sample from them.
+roundrobin/`, 34 files; 200 drafts each) are unchanged from v6; v6.1 only re-samples
+from them.
 
 ### 2.1 Training notes and model selection
 
-- The three label evaluators (naive, herostrength, enriched): early stopping and seed
-  choice on a validation subset of training rows; test rows never used for selection.
-- The 20 OOD ensemble members (`ensemble_uncertainty.task_train` ->
-  `retrain_frozen_stats.train_wp_model`) early-stop on the test split, as in September.
-  Their features are out of fold; test games are never pool games.
+- WP evaluators (naive, herostrength, enriched): early stopping and seed choice on a
+  validation subset of training rows; test rows never used for selection.
 - GD, CQL and MCQ still select on test loss (GD: best-test-loss checkpoint, patience 10;
   CQL/MCQ: test-loss early stopping), as in September. Test games are never pool games.
   GD early stopping: GD 0 stopped by hand at about epoch 36 (main box, 2026-10-01 18:21)
@@ -160,7 +151,7 @@ build, and the log prints "Search: chance (mode 1, pw_k=1.0, pw_alpha=0.5)". The
 
 ### 2.4 Code
 
-All code the tournament and the pool steps import is committed (v6.1 commit 64977dd). Files that
+All code the tournament and the pool steps import is committed (v6.1 commit). Files that
 were uncommitted during the tournament and are now committed as they stood (unchanged
 since May-September; not another job's work in progress):
 `training/experiment_rich_evaluation.py` (defines `make_cql_enriched_strategy`,
@@ -202,14 +193,14 @@ late uploads since the v6 fit, which used 62,161 with 567 pool games removed); f
 
 All coefficients are within about 1.1 SE of zero. The consensus is the mean of the three
 uncorrected evaluators, corrected with its own beta; it is not the mean of the corrected
-evaluators (on the v6.2 pairs they differ by at most 0.0004; v6.1 0.0013, v6 0.0027).
-Mean |corrected - uncorrected| consensus on the v6.2 pairs 0.0023, max 0.081.
+evaluators (they differ by up to about 0.003). Mean |corrected - uncorrected| consensus
+0.0030, max 0.083.
 
 Labels (two runs of `paper1_revision/oct2026_pool_judges.py`, recorded in the pool's
 top-level `judges`): `wpTeam0Sym_uncorrected` (ns:naive, ns:herostrength, ns:enriched,
 consensus = mean); `wpTeam0Sym` (naive_sc, herostrength_sc, enriched_sc, consensus =
 consensus_sc), the field the preregistration v3 reads; `wpTeam0Sym_tournament` (the
-tournament's values; they equal the main box's uncorrected recomputation to 2.5e-7).
+tournament's values; they equal the main box's uncorrected recomputation to 2.7e-7).
 
 **This is a change to the registered endpoint.** Prereg v2 registered the uncorrected
 mean of four evaluators. v3 registers the corrected three-evaluator consensus for H1, the
@@ -219,37 +210,27 @@ near-tie rule, the per-evaluator sensitivities, S2 and S5 (prereg v3 §0).
 
 | item | value |
 |---|---|
-| generator | `scripts/generate-rating-items.ts`, `RATING_ITEMS_OUT=…/rating-items-v6.2.generated.json LADDER_CANDIDATES=…/rating-items-v6.1.generated.ladder-candidates.json` |
+| generator | `scripts/generate-rating-items.ts`, `RATING_ITEMS_OUT=training/paper1_revision/results/expert_v6/rating-items-v6.1.generated.json` |
 | SEED / PAIR_SAMPLE_SEED | 20261001 / 20261001 (unchanged from v6) |
-| generatedAt | 2026-10-03T02:46:39.413Z |
+| generatedAt | 2026-10-02T16:54:25.082Z |
 | team cap | `MAX_TEAM_APPEARANCES = 7`: an identical sorted five-hero team may appear in at most 7 of the 280 pairs, counted across strata (v5's maximum); recorded in the pool as `maxTeamAppearances` |
-| matchups (v6.2) | no matchup, meaning the unordered pair of sorted teams, appears twice anywhere in the pool, on any map, tier or side; the used-key set is pool-wide across strata |
 | window | `realGameEnd = 2026-09-28`, `realGameBuilds = [2.55.17.97771, 2.55.17.98025]`, recorded in the pool |
 | label + OOD steps | §3; `RATING_ITEMS_OOD_PATH=<pool> bash paper1_revision/oct2026_env.sh python3 rerun2026/rating_items_ood.py` |
 
 **Machine-team repetition.**
 
-| | v5 | v6 | v6.1 | v6.2 |
-|---|---|---|---|---|
-| most frequent team, appearances in 280 pairs | 7 | 21 | 7 | 7 (8 teams at the cap) |
-| per-rater maximum exposure to one team (slots 0-13) | 3 3 3 4 3 3 2 2 2 3 4 4 2 3 | 6 8 6 8 6 6 4 6 4 4 3 6 6 6 | 3 4 4 3 3 4 4 5 3 3 3 3 2 2 | 3 4 5 3 3 3 4 3 3 2 2 3 4 4 |
-| matchups appearing more than once | 6 | 3 | 5 (2 on the same map and tier) | 0 |
+| | v5 | v6 | v6.1 |
+|---|---|---|---|
+| most frequent team, appearances in 280 pairs | 7 | 21 | 7 (7 teams at the cap) |
+| per-rater maximum exposure to one team (slots 0-13) | 3 3 3 4 3 3 2 2 2 3 4 4 2 3 | 6 8 6 8 6 6 4 6 4 4 3 6 6 6 | 3 4 4 3 3 4 4 5 3 3 3 3 2 2 |
 
-v6.2 has 455 distinct machine teams (appearance histogram: 1x 410, 2x 24, 3x 9, 4x 1,
-5x 3, 7x 8). The per-rater maximum is 5 for one slot (v5: 4). Repetition among real
-games: one real team appears twice, {Arthas, Brightwing, Leoric, Sylvanas, Tychus}, in
-anchors 151 and 792 (different games); one real team, {Johanna, Li-Ming, Rehgar,
-Sylvanas, Tychus} in anchor 70, is identical to a machine team (pair 435). The cap and the
-matchup rule limit repetition as a cue; they do not guarantee that no item can be told
-apart by repetition.
-
-Versus v6.1, 221 of the 280 pairs changed (shared: constrained_mcts_vs_mcts 6 of 42,
-mcts_vs_enriched 42 of 42, vs_anchored 7 of 118, other_pairs 4 of 78); the pool-wide
-matchup key changes the sampler's path in every stratum but mcts_vs_enriched. The 621
-real items are identical to v6.1's in block, content and provenance.
+v6.1 has 451 distinct machine teams (appearance histogram: 1x 401, 2x 28, 3x 10, 4x 3,
+6x 2, 7x 7). The per-rater maximum is 5 for one slot (v5: 4). The cap was feasible in
+every stratum with the stratum counts and tier balance unchanged. Five matchups (same two
+teams) appear twice in the pool on different maps or tiers (v6: three).
 
 By block and tier: screener 8 (3/3/2), calibration 40 (14/13/13), pairs 280 (low 93 / mid
-93 / high 94), anchors 570 (190 per tier), catch 3 (1/1/1).
+94 / high 93), anchors 570 (190 per tier), catch 3 (1/1/1).
 
 Pairs by stratum and tier:
 
@@ -257,12 +238,12 @@ Pairs by stratum and tier:
 |---|---|---|---|---|
 | constrained_mcts_vs_mcts | 14 | 14 | 14 | 42 (400) |
 | mcts_vs_enriched | 14 | 14 | 14 | 42 (297) |
-| vs_anchored | 39 | 39 | 40 | 118 (8,950) |
+| vs_anchored | 39 | 40 | 39 | 118 (8,950) |
 | other_pairs | 26 | 26 | 26 | 78 (6,686) |
 
-Strategy appearances across the 280 pairs (unchanged from v6.1): mcts 115, enriched 80,
-constrained_mcts 78, cql_enr_a2.0 43, gourdeau_disc 42, gd 42, constrained_greedy 42,
-gourdeau 41, cql_naive_a1.0 41, mcq_t0.5 36. Bradley-Terry: 10 strategies, 45 of 45 pairings, one
+Strategy appearances across the 280 pairs: mcts 115, enriched 80, constrained_mcts 78,
+cql_enr_a2.0 43, gourdeau_disc 42, gd 42, constrained_greedy 42, gourdeau 41,
+cql_naive_a1.0 41, mcq_t0.5 36. Bradley-Terry: 10 strategies, 45 of 45 pairings, one
 component.
 
 By map and block:
@@ -270,20 +251,20 @@ By map and block:
 | map | screener | calibration | pairs | anchors | catch | all |
 |---|---|---|---|---|---|---|
 | Alterac Pass | 1 | 2 | 20 | 47 | 1 | 71 |
-| Battlefield of Eternity | 0 | 3 | 19 | 48 | 0 | 70 |
-| Blackheart's Bay | 0 | 0 | 20 | 0 | 0 | 20 |
-| Braxis Holdout | 0 | 4 | 20 | 47 | 1 | 72 |
-| Cursed Hollow | 0 | 5 | 19 | 48 | 0 | 72 |
-| Dragon Shire | 0 | 5 | 19 | 47 | 0 | 71 |
-| Garden of Terror | 1 | 4 | 19 | 46 | 0 | 70 |
+| Battlefield of Eternity | 0 | 3 | 20 | 48 | 0 | 71 |
+| Blackheart's Bay | 0 | 0 | 19 | 0 | 0 | 19 |
+| Braxis Holdout | 0 | 4 | 19 | 47 | 1 | 71 |
+| Cursed Hollow | 0 | 5 | 20 | 48 | 0 | 73 |
+| Dragon Shire | 0 | 5 | 20 | 47 | 0 | 72 |
+| Garden of Terror | 1 | 4 | 20 | 46 | 0 | 71 |
 | Hanamura Temple | 0 | 0 | 20 | 0 | 0 | 20 |
 | Haunted Mines | 0 | 4 | 0 | 48 | 0 | 52 |
-| Infernal Shrines | 0 | 3 | 21 | 48 | 1 | 73 |
+| Infernal Shrines | 0 | 3 | 20 | 48 | 1 | 72 |
 | Sky Temple | 1 | 3 | 20 | 49 | 0 | 73 |
-| Tomb of the Spider Queen | 1 | 3 | 21 | 47 | 0 | 72 |
+| Tomb of the Spider Queen | 1 | 3 | 20 | 47 | 0 | 71 |
 | Towers of Doom | 1 | 3 | 21 | 48 | 0 | 73 |
-| Volskaya Foundry | 3 | 1 | 21 | 47 | 0 | 72 |
-| Warhead Junction | 0 | 0 | 20 | 0 | 0 | 20 |
+| Volskaya Foundry | 3 | 1 | 20 | 47 | 0 | 71 |
+| Warhead Junction | 0 | 0 | 21 | 0 | 0 | 21 |
 
 Machine pairs follow the tournament's 14-map list; real games come from whatever maps the
 sampled ladder games were played on.
@@ -292,130 +273,90 @@ sampled ladder games were played on.
 
 | threshold | uncorrected | corrected (used) | entered / left after correction | effective items (judgments) |
 |---|---|---|---|---|
-| 0.01 | 11 | 8 | 0 / 3 | 272 (816) |
+| 0.01 | 9 | 8 | 1 / 2 | 272 (816) |
 | 0.02 | 25 | 25 | 0 / 0 | 255 (765) |
-| 0.05 | 69 | 67 | 2 / 4 | 213 (639) |
+| 0.05 | 76 | 76 | 2 / 2 | 204 (612) |
 
-Favored-side flips from uncorrected to corrected: 1 (inside the 0.02 band). Single-
-evaluator effective items at 0.02 (corrected): naive 255, herostrength 253, enriched 251.
-vs_anchored: 118 items, 113 after the 0.02 exclusion (339 judgments). Item-level
-worst-case z at true 0.60: 3.30 / 3.19 / 2.92.
+Favored-side flips from uncorrected to corrected: 2 (one outside the 0.02 band under both
+labels). Single-evaluator effective items at 0.02 (corrected): naive 249, herostrength
+254, enriched 245. vs_anchored: 118 items, 114 after the 0.02 exclusion (342 judgments).
+Item-level worst-case z at true 0.60: 3.30 / 3.19 / 2.86.
 
 OOD covariates (20 oct2026 ensemble members, deploy statistics, oct2026 env; deterministic:
 an independent re-run gave the same file hash):
 
 | covariate | mean | median | p90 | p95 | max |
 |---|---|---|---|---|---|
-| `ood_var_max` | 0.00124 | 0.00105 | 0.00215 | 0.00260 | 0.00437 |
-| `ood_var_matchup` | 0.00108 | 0.00084 | 0.00219 | 0.00259 | 0.00492 |
+| `ood_var_max` | 0.00121 | 0.00101 | 0.00215 | 0.00254 | 0.00487 |
+| `ood_var_matchup` | 0.00105 | 0.00083 | 0.00182 | 0.00241 | 0.00601 |
 
-(Linear-interpolation percentiles, as numpy; `rating-pool-stats.ts` now uses the same
-rule and prints the same numbers.) Spearman(`ood_var_max`, `ood_var_matchup`) = 0.322.
-Reference substitutions on 174 of 560 probe records.
+(numpy percentiles; `rating-pool-stats.ts` uses a different percentile rule and prints
+p90/p95 0.00221/0.00255 and 0.00186/0.00243.) Spearman(`ood_var_max`, `ood_var_matchup`)
+= 0.384. Reference substitutions on 181 of 560 probe records.
 
-## 5b. Patch 2.57
+## 5b. Patch 2.57 heroes
 
-Source: Blizzard, Heroes of the Storm live patch notes, September 28, 2026
-(https://news.blizzard.com/en-us/article/24303007/heroes-of-the-storm-live-patch-notes-september-28-2026).
-2.57 added Xal'atath, who appears in no item. Seven existing heroes had balance changes
-(in mixed directions): Abathur, Alexstrasza, Garrosh, Mal'Ganis, Qhira, Whitemane, Yrel.
-Gameplay-relevant bug fixes touched Ragnaros, Malfurion, Anduin and Xul; Garden of Terror
-and Volskaya Foundry changed. The pool's real games and every model's training data
-predate 2.57; the machine drafts were generated on 2026-10-02, after 2.57 went live, by
-those pre-2.57 models.
+Patch 2.57 (first games 2026-09-28) added Xal'atath and changed six heroes (nerfed:
+Garrosh, Whitemane, Abathur, Qhira; buffed: Mal'Ganis, Yrel). The pool predates it:
+Xal'atath appears in no item. Items with any of the six on either team:
 
-Two pre-registered descriptive variants (prereg v3 §4), counted by
-`paper1_revision/patch257_counts.py` (`patch257_counts_v6.2.json`):
-(a) drop items with any of the 7 heroes changed in 2.57; (b) also drop items with any of
-the 4 bug-fix heroes or on either changed map.
-
-| block | items | (a) affected, low / mid / high | (b) affected, low / mid / high |
+| block | items | affected | low / mid / high affected |
 |---|---|---|---|
-| screener | 8 | 6 (2 / 2 / 2) | 8 (3 / 3 / 2) |
-| calibration | 40 | 18 (4 / 6 / 8) | 34 (11 / 10 / 13) |
-| pairs | 280 | 63 (15 / 22 / 26) | 215 (70 / 72 / 73) |
-| anchors | 570 | 335 (98 / 114 / 123) | 473 (153 / 154 / 166) |
-| catch | 3 | 1 (1 / 0 / 0) | 2 (1 / 1 / 0) |
+| screener | 8 | 5 | 1 / 2 / 2 |
+| calibration | 40 | 18 | 4 / 6 / 8 |
+| pairs | 280 | 60 | 16 / 19 / 25 |
+| anchors | 570 | 316 | 93 / 106 / 117 |
+| catch | 3 | 1 | 1 / 0 / 0 |
 
-Pairs by stratum, (a) / (b): constrained_mcts_vs_mcts 8 / 22 of 42, mcts_vs_enriched
-15 / 24 of 42, vs_anchored 16 / 102 of 118, other_pairs 24 / 67 of 78. Hero appearances
-across all items: Abathur 82, Alexstrasza 46, Garrosh 109, Mal'Ganis 33, Qhira 75,
-Whitemane 121, Yrel 75; Ragnaros 135, Malfurion 58, Anduin 313, Xul 46.
+Pairs by stratum: constrained_mcts_vs_mcts 4 of 42, mcts_vs_enriched 12 of 42,
+vs_anchored 22 of 118, other_pairs 22 of 78. Hero appearances across all items:
+Whitemane 118, Garrosh 112, Abathur 85, Qhira 76, Yrel 75, Mal'Ganis 36.
 
-| effective n after exclusion | full | (a) | (b) |
-|---|---|---|---|
-| H1 items at 0.01 / 0.02 / 0.05 | 272 / 255 / 213 | 210 / 195 / 163 | 62 / 57 / 45 |
-| H1 planned judgments at 0.02 | 765 | 585 | 171 |
-| S5 items (0.02) | 113 | 97 | 16 |
-| S1 anchors low / mid / high | 190 / 190 / 190 | 92 / 76 / 67 | 37 / 36 / 24 |
-
-Variant (b) leaves too few items for anything beyond a descriptive look.
+Effective n after the exclusion (prereg v3 §4 sensitivity, descriptive): H1 at 0.02
+255 -> 200 items (765 -> 600 judgments); at 0.01 272 -> 214; at 0.05 204 -> 160; S5
+114 -> 93 items; S1 anchors per tier 190 -> 97 / 84 / 73 (low / mid / high).
 
 ## 6. Automated checks
 
-### 6.1 `npx tsx scripts/check-rating-pool.ts training/paper1_revision/results/expert_v6/rating-items-v6.2.json` (with `DATABASE_URL`)
+### 6.1 `npx tsx scripts/check-rating-pool.ts training/paper1_revision/results/expert_v6/rating-items-v6.1.json`
 
-v6.2 checker: the acceptance policy is hard-coded and does not read pool metadata. Real
-games: DB game_date in [2026-09-01, 2026-09-28) and build in {2.55.17.97771,
-2.55.17.98025}, read from the DB for the 621 replay ids (the check fails if the DB is not
-reachable, unless `--offline`), plus the same bounds on the provenance strings and a check
-that provenance equals the DB. Team cap 7; no matchup (unordered pair of sorted teams) twice
-anywhere; finite labels; OOD covariates present and consistent. It prints what it does
-not test to stdout. Output (`check-rating-pool-v6.2.txt`, abbreviated):
+Extended in v6.1 with the upper date bound, the build allow-list, the team cap (and the
+per-rater exposure line), label presence and OOD presence and consistency. It prints which
+requirements it does not test (label values, DB agreement, tier vs rank).
 
 ```
-  ok  ids 1..901 unique; block counts 8 / 40 / 280 / 570 / 3; anchors 190 per tier; calibration 14/13/13
+  ok  ids 1..901 unique
+  ok  screener 8 / calibration 40 / pairs 280 / anchors 570 / catch 3; anchors 190 per tier; calibration 14/13/13
   ok  every slot: 240 items, 48-item opener, catch at 121/181/231, 60 pairs + 43/43/43 anchors
-  ok  every pair covered exactly 3x; every anchor 3-4x, exactly 32 per tier 4x; test smoke flow 7 items
-  ok  all 621 real replays distinct; all tournament records distinct; every item 5+5 distinct heroes
-  ok  every real item records gameDate in [2026-09-01, 2026-09-28) (provenance, DB clock string)
-  ok  every real item records a build in {2.55.17.97771, 2.55.17.98025} (provenance)
+  ok  every pair covered exactly 3x; every anchor 3-4x, exactly 32 per tier 4x
+  ok  test smoke flow: 7 items
+  ok  all 621 real replays distinct; all tournament records distinct
+  ok  every real game dated >= 2026-09-01
+  ok  every item has 5+5 distinct heroes
+  ok  every real game DB date < 2026-09-28
+  ok  every real game on builds 2.55.17.97771, 2.55.17.98025
   ok  no machine team in more than 7 pairs (max 7)
-  ok  no matchup (unordered pair of team sets, any map/tier/side) appears twice in the pool
-  ..  per-rater max exposure to one machine team (slots 0-13): 3 4 5 3 3 3 4 3 3 2 2 3 4 4
+  ..  per-rater max exposure to one machine team (slots 0-13): 3 4 4 3 3 4 4 5 3 3 3 3 2 2
   ok  every pair has finite wpTeam0Sym and wpTeam0Sym_uncorrected (naive, herostrength, enriched, consensus)
   ok  every pair has finite, consistent OOD covariates (team0/1, max, mean, matchup, refs)
-  ok  DB: all 621 real replays found; every real game_date in [2026-09-01, 2026-09-28); every real game on {97771, 98025}
-  ok  provenance gameDate/gameVersion equal the DB values
-NOT tested by this script:
-  --  that label and OOD values are the right numbers (needs the models)
-  --  that each real item matches its DB teams/map/winner (only date and build are read from the DB)
-  --  that the tier banner matches the game rank (see expert_tier_audit_v6.py)
 pool seed 20261001, 901 items: ALL PASS
 ```
 
-Negative controls (`check-rating-pool-negative-controls.txt`), all exit 1:
+### 6.2 `npx tsx scripts/rating-pool-stats.ts training/paper1_revision/results/expert_v6/rating-items-v6.1.json`
 
-| pool | failures |
-|---|---|
-| v6 (`rating-items-v6.json`) | 7: provenance date window, provenance build, team cap (max 21), duplicate matchups (110=288=355, 397=818, 408=714), OOD, DB date window (09-15 .. 09-28 20:26), provenance != DB |
-| v6 with OOD (`rating-items-v6-ood.json`) | 6: the same without OOD |
-| v6.1 (`rating-items-v6.1.json`) | 1: duplicate matchups 36=670, 198=801, 392=834, 397=595, 408=714 |
-| v6.2 with one injected duplicate (item 8 set to item 7's teams, sides swapped and order shuffled) | 2: duplicate matchup 7=8, team cap (max 8) |
-
-### 6.2 `npx tsx scripts/rating-pool-stats.ts training/paper1_revision/results/expert_v6/rating-items-v6.2.json`
-
-Output in `rating-pool-stats-v6.2.txt`; the numbers are those in §4 and §5. The script now
-lists the three evaluators and reports the consensus separately, prints OOD distributions
-with numpy's percentile rule, and says so when OOD fields are absent.
+Output in `rating-pool-stats-v6.1.txt`; the numbers are those in §4 and §5.
 
 ### 6.3 Tier-banner audit: `TIER_AUDIT_OUT=… python3 training/paper1_revision/expert_tier_audit_v6.py <pool>`
 
 Real rank from the live DB's `league_tier` (stored one above the rank; NULL with an MMR =
 Master): 0 of 621 real items outside the banner; item tier equals DB `skill_tier` for all
-621; none missing. Anchor ranks (same real items as v6.1): low Bronze 102 / Silver 88; mid
-Gold 110 / Platinum 80; high Diamond 122 / Master 68. Each site label's training-window
-population is 100% inside its shown range (`tier_audit_v6.2.json`; its population counts
-are a few hundred higher than v6.1's because late uploads keep arriving for August games).
+621; none missing. Anchor ranks: low Bronze 102 / Silver 88; mid Gold 110 / Platinum 80;
+high Diamond 122 / Master 68. Each site label's training-window population is 100%
+inside its shown range.
 
 ### 6.4 Other checks
 
-- Uncorrected labels recomputed on the main box equal the tournament's to 2.5e-7.
-- The ladder draw is unchanged from v6.1: the generator replayed the saved candidates, and
-  the 621 real items equal v6.1's in block, content and provenance. So the structure fit,
-  which excludes exactly those 621 games, and its frozen game list are unchanged
-  (`struct_correction.json` still records the v6.1 generated-pool hash `68185028…` as the
-  exclusion source; the excluded replay set is identical).
+- Uncorrected labels recomputed on the main box equal the tournament's to 2.7e-7.
 - Normalization in §0 holds; the OOD step is deterministic.
 - The struct fit excluded all 621 pool games (`pool_replays_in_fit_window_excluded: 621`;
   v6's file called the id-list size `excluded_pool_replays`, 621, while only 567 were in
@@ -423,20 +364,6 @@ are a few hundred higher than v6.1's because late uploads keep arriving for Augu
 - No `enriched_aug` strategy or `augmented` evaluator anywhere in the pool.
 
 ## 7. Differences
-
-### 7.0 v6.2 vs v6.1 (seed unchanged)
-
-1. No matchup twice anywhere in the pool (v6.1: 5 repeated matchups, 2 of them exact
-   duplicates on the same map and tier: 36=670, 392=834). 221 of 280 pairs redrawn.
-2. Labels and OOD covariates recomputed for the new pairs; near-ties 8/25/67 (v6.1:
-   8/25/76).
-3. Real games, structure fit and frozen fit list unchanged (§6.4).
-4. Checker enforces the policy itself and queries the DB; negative controls (§6.1).
-5. Stats script lists evaluators and consensus separately; numpy percentiles.
-6. Patch-2.57 counts for two variants with the 7 balance-changed heroes (§5b).
-7. Generator: `RATING_ITEMS_OUT` required (never writes `data/rating-items.json`),
-   `LADDER_CANDIDATES` replay; stale comments fixed in the generator header,
-   `constrained_search.py`, `schema.ts` and `oct2026_refresh.py`.
 
 ### 7.1 v6.1 vs v6 (seed unchanged)
 
@@ -453,13 +380,13 @@ are a few hundred higher than v6.1's because late uploads keep arriving for Augu
 6. Checks extended (§6.1); oct2026 env guard; namespaced MCTS checkpoint guard; all
    imported code committed.
 
-### 7.2 v6.2 vs v5 (seed 20260918, namespace sept2026)
+### 7.2 v6.1 vs v5 (seed 20260918, namespace sept2026)
 
 1. Tiers: site scheme (v5: old labels; 239 of 621 v5 real items outside their banner;
-   v6.2: 0).
+   v6.1: 0).
 2. Leak-free statistics: training rows only, out of fold; own-corpus composition table.
-3. The three label evaluators select on a validation subset of training rows (v5: test
-   set). The OOD ensemble, GD, CQL and MCQ still select on test loss in both.
+3. WP evaluators select on a validation subset of training rows (v5: test set). GD, CQL
+   and MCQ still select on test loss in both.
 4. MCTS: F_400sim_s0 (400 sims, 300K episodes, seed 0, X2-fixed chance kernel) instead of
    J_800sim_s9 (pre-fix kernel).
 5. Constrained pairs: the 'mcts' side uses F_400sim_s0 (v5: a stale July L_800sim_4M_s0
@@ -471,8 +398,7 @@ are a few hundred higher than v6.1's because late uploads keep arriving for Augu
    a change to the registered endpoint (§3).
 9. Real games: DB date 2026-09-01 to 2026-09-27, builds 2.55.17.97771/98025 (v5: any
    build on or after 2026-09-01).
-10. Team cap 7 and no repeated matchup (v5 had neither rule; its team maximum happened to
-    be 7 and 6 of its matchups appeared more than once).
+10. Team cap 7 (v5 had no cap; its maximum happened to be 7).
 11. Seed 20261001 (v5: 20260918).
 12. Compute: from 2026-10-01 18:20 the GPU stages and both tournaments ran on the RTX
     3090 (Max: no HotS compute on the main box); GD there used 4 data-loader workers
@@ -483,15 +409,10 @@ are a few hundred higher than v6.1's because late uploads keep arriving for Augu
 
 ## 8. Not done (waiting for confirmation)
 
-- Copying `rating-items-v6.2.json` to `data/rating-items.json` and seeding with
-  `scripts/seed-rating-items.ts`. Seeding will delete the 7 `test-watson` is_test ratings
-  (exported to `draft_ratings_test_session_2026-09-30.csv`, as Max approved); they are
-  still in `draft_ratings` now.
-- Deploying the rater instruction line (commit 95d2114, not pushed) with the seeding.
-- Browser e2e run (`scripts/e2e-rate.mjs`) against the seeded table.
-- Prereg v3, instrument v1.3 and the HRPO FYI: `oss-export/docs/prereg_expert_study_v3.md`
-  (+ .pdf), `oss-export/docs/irb_survey_instrument_v1.3.pdf`,
-  `oss-export/docs/hrpo_fyi_v1.3.md` (untracked in the separate oss-export repo, like v2).
-- Seed from a clean state: the unrelated working-tree changes (`src/lib/data/
-  compositions.json`, several `src/app` pages, `paper/` deletions) belong to other lanes
-  and are not part of any study commit.
+- Copying `rating-items-v6.1.json` to `data/rating-items.json` and seeding with
+  `scripts/seed-rating-items.ts` (deletes the 7 `test-watson` is_test ratings, exported
+  to `draft_ratings_test_session_2026-09-30.csv`, as Max approved).
+- Browser e2e run (`scripts/e2e-rate.mjs`).
+- Prereg v3 and instrument v1.3 drafts: `oss-export/docs/prereg_expert_study_v3.md`
+  (+ .pdf) and `oss-export/docs/irb_survey_instrument_v1.3.pdf` (untracked in the
+  separate oss-export repo, like v2).
