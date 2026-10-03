@@ -18,6 +18,7 @@
   ok  all 621 real replays distinct
   ok  all tournament records distinct
   ok  every item has 5+5 distinct heroes
+  ok  all 621 non-pair items carry a replayId
   ok  every real item records gameDate in [2026-09-01, 2026-09-28) (provenance, DB clock string)
   ok  every real item records a build in {2.55.17.97771, 2.55.17.98025} (provenance)
   ok  no machine team in more than 7 pairs (max 7)

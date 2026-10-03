@@ -4,7 +4,9 @@
  * unchanged since v4: paid raters, fixed 240-item assignment, 14 slots).
  *
  * Blocks (block labels live server-side; item ids are a GLOBAL shuffle of all
- * 901 items so neither id nor serving position leaks block membership):
+ * 901 items, so an id does not reveal its block. Serving positions do, by
+ * design: positions 1-48 hold the screener + calibration items and 121/181/231
+ * the catch items):
  *
  *   SCREENER — 8 items:
  *     - each pairs a REAL recent ladder draft against a CONSTRUCTED

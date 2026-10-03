@@ -38,8 +38,8 @@ DIFFERENCES = [
     "replaces the external Heroes Profile compositions.json everywhere",
     "WP models (the 3 evaluators naive/herostrength/enriched, also the greedy value "
     "function; wp_aug_v2_512 was trained but is unused): early stopping and seed choice on "
-    "a validation subset of training rows (September: test set). GD, CQL and MCQ still "
-    "select on test loss, as in September",
+    "a validation subset of training rows (September: test set). The 20 OOD ensemble "
+    "members, GD, CQL and MCQ still select on test loss, as in September",
     "enriched CQL transitions: out-of-fold features",
     "ensemble members: trained on the out-of-fold caches",
     "MCTS policy: F_400sim (400 sims, 300K episodes), seed 0, instead of J_800sim seed 9",

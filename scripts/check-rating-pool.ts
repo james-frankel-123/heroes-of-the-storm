@@ -1,7 +1,8 @@
 /**
- * Offline verification of a frozen expert-rating pool (data/rating-items.json)
- * with the app's own assignment code (src/lib/rating/assignment.ts), WITHOUT
- * seeding or touching the database. Covers the design invariants that the
+ * Verification of a frozen expert-rating pool (data/rating-items.json) with
+ * the app's own assignment code (src/lib/rating/assignment.ts). It never
+ * seeds or writes; it makes one read-only DB query for the real games' dates
+ * and builds (skip with --offline). Covers the design invariants that the
  * puppeteer suite (scripts/e2e-rate.mjs) checks against a seeded table, plus
  * pool-integrity checks:
  *   1. block counts 8 / 40 / 280 / 570 / 3 and 190 anchors per tier;
@@ -137,6 +138,9 @@ const NOT_TESTED = [
   'that the tier banner matches the game rank (see expert_tier_audit_v6.py)',
 ]
 const reals = items.filter((i) => i.provenance?.replayId != null)
+check(`all ${items.length - byBlock('pairs').length} non-pair items carry a replayId`,
+  items.filter((i) => i.block !== 'pairs').every((i) => i.provenance?.replayId != null) &&
+    reals.length === items.length - byBlock('pairs').length)
 check(`every real item records gameDate in [${POLICY.cutoff}, ${POLICY.end}) (provenance, DB clock string)`,
   reals.every((i) => typeof i.provenance.gameDate === 'string' && !i.provenance.gameDate.endsWith('Z') &&
     i.provenance.gameDate >= POLICY.cutoff && i.provenance.gameDate < POLICY.end))

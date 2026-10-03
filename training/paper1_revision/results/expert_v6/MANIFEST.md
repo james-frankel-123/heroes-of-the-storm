@@ -22,7 +22,7 @@ Paths are relative to the repo root unless they start with `ns/` (=
 | `rating-items-v6.1.generated.ladder-candidates.json` | the ladder query's 6,000 candidate replay ids per tier, saved at the v6.1 draw and replayed for v6.2 | `192b0f543a675098f221ba6314b6d218b8c7a73c0a67062e5bb6223d58218968` |
 | `struct_correction.json` | structure-correction fit (from v6.1; unchanged, same 621 excluded games) | `f8503c845301f61a3471d9eaecd669b255107380ffcb1250b9accca3fd658038` |
 | `struct_fit_games.json` | the replay ids of the fit and check halves | `3ca043533417ef8e2d8c576472ff7131c225825c338adbf891b564af7bb23ea2` |
-| `check-rating-pool-v6.2.txt` | §6.1 output (ALL PASS) | `39d57e1ae6cee408ec43b4e95986ade43b6b68571c0c235af7a84af744230a60` |
+| `check-rating-pool-v6.2.txt` | §6.1 output (ALL PASS) | `2639b577e0f91399c10b85cc4579c1e186f4590d799378b1c83ff6ed182705a6` |
 | `check-rating-pool-negative-controls.txt` | §6.1 negative controls (all FAIL) | `5e9da1dc565366c4581fda13330a9aa819fa8fcef0a3a51787053760f26d9463` |
 | `rating-pool-stats-v6.2.txt` | §6.2 output | `d0fa6833ca1461920bea6393f8404f37bbd7619dc2476ba81823922bccf66683` |
 | `tier_audit_v6.2.json` | §6.3 output | `ab44539c86ed21503f4a9e68b17eca39e7dd0007ae572a0c56edc6f70bfb676e` |
@@ -202,7 +202,7 @@ late uploads since the v6 fit, which used 62,161 with 567 pool games removed); f
 
 All coefficients are within about 1.1 SE of zero. The consensus is the mean of the three
 uncorrected evaluators, corrected with its own beta; it is not the mean of the corrected
-evaluators (on the v6.2 pairs they differ by at most 0.0004; v6.1 0.0013, v6 0.0027).
+evaluators (on the v6.2 pairs they differ by at most 0.0004, unrounded 0.00041; v6.1 0.0013, v6 0.0027).
 Mean |corrected - uncorrected| consensus on the v6.2 pairs 0.0023, max 0.081.
 
 Labels (two runs of `paper1_revision/oct2026_pool_judges.py`, recorded in the pool's
@@ -368,6 +368,7 @@ not test to stdout. Output (`check-rating-pool-v6.2.txt`, abbreviated):
   ok  every slot: 240 items, 48-item opener, catch at 121/181/231, 60 pairs + 43/43/43 anchors
   ok  every pair covered exactly 3x; every anchor 3-4x, exactly 32 per tier 4x; test smoke flow 7 items
   ok  all 621 real replays distinct; all tournament records distinct; every item 5+5 distinct heroes
+  ok  all 621 non-pair items carry a replayId
   ok  every real item records gameDate in [2026-09-01, 2026-09-28) (provenance, DB clock string)
   ok  every real item records a build in {2.55.17.97771, 2.55.17.98025} (provenance)
   ok  no machine team in more than 7 pairs (max 7)
@@ -481,17 +482,18 @@ are a few hundred higher than v6.1's because late uploads keep arriving for Augu
 13. Unchanged: pool design (8 / 40 / 280 / 570 / 3, strata 42/42/118/78, 14 slots of
     240), assignment code, rater-facing text.
 
-## 8. Not done (waiting for confirmation)
+## 8. Seeding and deployment
 
-- Copying `rating-items-v6.2.json` to `data/rating-items.json` and seeding with
-  `scripts/seed-rating-items.ts`. Seeding will delete the 7 `test-watson` is_test ratings
-  (exported to `draft_ratings_test_session_2026-09-30.csv`, as Max approved); they are
-  still in `draft_ratings` now.
-- Deploying the rater instruction line (commit 95d2114, not pushed) with the seeding.
-- Browser e2e run (`scripts/e2e-rate.mjs`) against the seeded table.
-- Prereg v3, instrument v1.3 and the HRPO FYI: `oss-export/docs/prereg_expert_study_v3.md`
-  (+ .pdf), `oss-export/docs/irb_survey_instrument_v1.3.pdf`,
-  `oss-export/docs/hrpo_fyi_v1.3.md` (untracked in the separate oss-export repo, like v2).
-- Seed from a clean state: the unrelated working-tree changes (`src/lib/data/
-  compositions.json`, several `src/app` pages, `paper/` deletions) belong to other lanes
-  and are not part of any study commit.
+- **Seeded 2026-10-03 (UTC ~03:50).** `rating-items-v6.2.json` was copied unchanged to
+  `data/rating-items.json` (sha256 `ed6d4da4…` verified after the copy) and loaded with
+  `scripts/seed-rating-items.ts`. Before seeding, `draft_ratings` held exactly the 7
+  `test-watson` is_test rows and 0 non-test rows; the seed deleted those 7 (exported
+  beforehand to `draft_ratings_test_session_2026-09-30.csv`, as Max approved). After
+  seeding, `rating_items` has 901 rows with ids 1..901, and every row's block, teams, map,
+  tier and provenance equal the file's (0 mismatches); `draft_ratings` was empty.
+- **Rater instruction line.** Commit 95d2114 was already on origin/main, and the live site
+  footer showed build `f9c27e0` (which contains it) before seeding, so the patch line and
+  the per-item note were live while the table still held v5. No rater was invited.
+- Browser e2e and the final docs: see the coordinator report of 2026-10-03.
+- The unrelated working-tree changes (`src/lib/data/compositions.json`, several `src/app`
+  pages, `paper/` deletions) belong to other lanes and are not part of any study commit.

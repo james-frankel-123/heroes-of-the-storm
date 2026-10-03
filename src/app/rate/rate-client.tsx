@@ -138,7 +138,7 @@ const TIER_META: Record<string, { label: string; ranks: string; className: strin
 
 const CONFIDENCE_LABELS = ['Guess', 'Low', 'Medium', 'High', 'Certain']
 
-// Every draft in the v6.1 pool is from patch 2.55.17 (raters play 2.57).
+// Every draft in the v6.2 pool reflects patch 2.55.17 (raters play 2.57).
 const PATCH_INSTRUCTION =
   "These drafts are from patch 2.55.17, before Xal'atath. Judge them as of that patch."
 const PATCH_NOTE = "Patch 2.55.17 (before Xal'atath)"
