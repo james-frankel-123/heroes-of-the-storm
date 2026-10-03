@@ -28,6 +28,10 @@ import puppeteer from 'puppeteer'
 import { neon } from '@neondatabase/serverless'
 
 const BASE = process.argv[2] ?? 'http://localhost:3002'
+const PATCH_INSTRUCTION =
+  "These drafts are from patch 2.55.17, before Xal'atath. Judge them as of that patch."
+const PATCH_NOTE = "Patch 2.55.17 (before Xal'atath)"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const pool = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../data/rating-items.json'), 'utf8')
@@ -105,7 +109,12 @@ async function main() {
   const shortRater = `test-e2e-${stamp}`
   const slot = 3
 
-  const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] })
+  // PUPPETEER_EXECUTABLE_PATH may point at another Chromium (e.g. Playwright's).
+  const browser = await puppeteer.launch({
+    headless: 'shell',
+    args: ['--no-sandbox'],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+  })
   const page = await browser.newPage()
   page.setDefaultTimeout(30_000)
 
@@ -148,6 +157,17 @@ async function main() {
       data.items.every((it) => !('provenance' in it) && !('winner' in it) && !('block' in it))
     )
     const expectedOrder = data.items.map((it) => it.id)
+    const poolById = new Map(pool.items.map((it) => [it.id, it]))
+    const sameSet = (a, b) => a.length === b.length && [...a].sort().join() === [...b].sort().join()
+    check(
+      `served items match the local pool (seed ${pool.seed}): map, tier, team sets`,
+      data.items.every((it) => {
+        const p = poolById.get(it.id)
+        if (!p || p.map !== it.map || p.tier !== it.tier) return false
+        const t0 = p.teams.team0, t1 = p.teams.team1
+        return (sameSet(it.teamA, t0) && sameSet(it.teamB, t1)) || (sameSet(it.teamA, t1) && sameSet(it.teamB, t0))
+      })
+    )
 
     // ── Design invariants across all 14 slots ────────────────────────
     console.log('cross-slot coverage invariants (14 slots)')
@@ -184,7 +204,18 @@ async function main() {
     await page.goto(`${BASE}/rate?rater=${encodeURIComponent(fullRater)}&slot=${slot}`, {
       waitUntil: 'networkidle0',
     })
+    await page.waitForSelector('[data-testid="rate-instructions"]')
+    check(
+      'consent instructions include the patch sentence',
+      (await page.$eval('[data-testid="rate-patch-instruction"]', (n) => n.textContent.trim())) ===
+        PATCH_INSTRUCTION
+    )
     check('consent notice shown before first item', await consentIfShown(page))
+    await page.waitForSelector('[data-testid="rate-patch"]')
+    check(
+      'item shows the patch note under the map',
+      (await page.$eval('[data-testid="rate-patch"]', (n) => n.textContent.trim())) === PATCH_NOTE
+    )
     let id = await currentItemId(page)
     check('first item matches assignment', id === expectedOrder[0], `got ${id}`)
     check('progress starts 1 / 240', (await progressText(page)) === '1 / 240')

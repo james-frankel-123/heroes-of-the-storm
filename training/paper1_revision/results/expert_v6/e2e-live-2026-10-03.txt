@@ -1,0 +1,43 @@
+assignment API
+  ok  serves 240 items
+  ok  positions 1-48 = 8 screener + 40 calibration
+  ok  screener is interleaved (not a consecutive opening run)
+  ok  catch items at positions 121/181/231
+  ok  assigned region = 60 pairs + 129 anchors
+  ok  anchors tier-balanced 43/43/43
+  ok  no provenance or block leaked
+  ok  served items match the local pool (seed 20261001): map, tier, team sets
+cross-slot coverage invariants (14 slots)
+  ok  every pair covered by exactly 3 slots
+  ok  every anchor covered by 3 or 4 slots
+  ok  anchor judgments total 1806 (602/tier)
+full 240-item flow (testfull rater)
+  ok  consent instructions include the patch sentence
+  ok  consent notice shown before first item
+  ok  item shows the patch note under the map
+  ok  first item matches assignment
+  ok  progress starts 1 / 240
+  ok  no consent re-prompt on resume
+  ok  mid-first-48 resume shows item 4
+  ok  mid-first-48 progress 4 / 240
+  ok  mid-assigned resume shows item 151
+  ok  mid-assigned progress 151 / 240
+  ok  served exactly the assignment order
+  ok  completion screen after 240
+  ok  no "keep rating" volunteer arm
+gate metadata (draft_ratings)
+  ok  8 screener ratings recorded
+  ok  40 calibration ratings recorded
+  ok  60 pair ratings recorded
+  ok  129 anchor ratings recorded
+  ok  3 catch ratings recorded
+  ok  all rows is_test with ms_taken + choice
+  ok  one rating per item (upsert)
+abbreviated test rater (7-item smoke)
+  ok  7 items for test- rater
+  ok  smoke order: 2 screener, 2 calibration, 3 assigned
+  ok  smoke progress starts 1 / 7
+  ok  smoke completion screen
+cleanup: deleted e2e is_test rows for testfull-e2e-1790999384890, test-e2e-1790999384890
+
+all e2e checks passed

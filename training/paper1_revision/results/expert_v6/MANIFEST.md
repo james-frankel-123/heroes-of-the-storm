@@ -494,6 +494,18 @@ are a few hundred higher than v6.1's because late uploads keep arriving for Augu
 - **Rater instruction line.** Commit 95d2114 was already on origin/main, and the live site
   footer showed build `f9c27e0` (which contains it) before seeding, so the patch line and
   the per-item note were live while the table still held v5. No rater was invited.
-- Browser e2e and the final docs: see the coordinator report of 2026-10-03.
+- **Deploy and e2e.** Commit 096b2ac (the seed) was pushed and Vercel served it (live
+  footer `v096b2ac`). `scripts/e2e-rate.mjs` (Playwright's Chromium through
+  `PUPPETEER_EXECUTABLE_PATH`; two checks added for the patch sentence and note, and one
+  that served items equal the local pool) passed all 35 checks against
+  https://www.hotsfever.com with test raters: assignment shape and 14-slot coverage, served
+  items equal to v6.2, consent with the patch sentence, the per-item patch note, resume,
+  completion, stored block labels (8/40/60/129/3, all is_test), the 7-item smoke flow.
+  The script deleted its test ratings; `draft_ratings` then held 0 rows (0 non-test). Log:
+  `e2e-live-2026-10-03.txt`.
+- **Docs.** Prereg v3 records the seeding and the e2e result; the v2 OSF link (line 4)
+  is still a placeholder for Max. Final hashes: prereg v3 .md `486b2628…`, .pdf
+  `a74529fa…`, instrument v1.3 `bd95c008…`, HRPO FYI `3219907e…` (untracked in
+  oss-export).
 - The unrelated working-tree changes (`src/lib/data/compositions.json`, several `src/app`
   pages, `paper/` deletions) belong to other lanes and are not part of any study commit.
