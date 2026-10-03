@@ -877,50 +877,39 @@ Saved draft records only; nothing regenerated. MCTS benchmark: per-draft v1 scor
   - the largest shift is 0.098.
 - **Tier caveat.** The independent references condition on the old (pre-2026-09-30) tier labels, while oct2026 items carry site-scheme tiers. Using them on that pool needs a tier mapping decision first.
 
-## 12. Synthetic augmentation demoted; the structural mask is the repair (2026-10-01)
+## 12. The structural mask is the repair (2026-10-01; current as of 2026-10-03)
 
-**Decision (Max).** The submission presented targeted synthetic data for unseen role compositions as the repair for unsafe value search ("a layered repair: domain features, targeted synthetic data, MCTS self-play, structural masking"; the scope sweep called unseen compositions "the active ingredient"). The revision reports augmentation as a tested option with a tradeoff and recommends search plus the structural composition mask. The title stays; the repair it names is now the mask.
+**Position (Max).** The repair the paper recommends for unsafe value search is search plus the structural role mask. The title stays; the repair it names is the mask.
 
-**Why: the revision's own evidence**
+**Why value search builds broken teams (§V, "Why Value Search Builds Broken Teams", `sec:synth`).**
+- The enriched 512x256x128 model yields 23.7% degenerate teams under greedy search with GD-argmax rollouts and rates five tanks against a standard team at 0.25.
+- The cause is training concentration: over 95% of training teams have a healer, and 126-146 of the 252 role compositions per tier have fewer than 50 games in the training split. The composition features fall back to their pessimistic default on exactly the teams search should avoid, and the model has almost never seen that default paired with a loss. More features or capacity cannot supply outcomes the corpus does not contain.
+- The invalid region is small and easy to state (a healer, a frontline hero and ranged damage, at most two heroes of a stacking role), so the paper enforces it during search with the mask.
+
+**The mask (§VII-E, `sec:constrained`).**
 
 | | Degenerate % | Synergy | Counter | Head to head (consensus, v2) |
 |---|---|---|---|---|
 | Enriched greedy | 21.1 | +0.44 | +0.16 | reference |
-| Enriched + augmentation, greedy | 15.2 | +0.29 | +0.09 | 0.485 ± 0.004 vs unaugmented |
-| Enriched greedy + structural mask | 0.0 | +0.37 | +0.13 | 0.511 ± 0.003 vs unmasked |
+| Enriched greedy + structural mask | 0.0 | +0.37 | +0.13 | 0.512 +/- 0.003 vs unmasked |
 | MCTS (F_oof) | 6.2 | +0.78 | +0.09 | reference |
-| MCTS + structural mask | 0.0 | +0.63 | +0.08 | 0.509 ± 0.003 vs unmasked; ties for first in the tournament (.611 vs .610) |
+| MCTS + structural mask | 0.0 | +0.63 | +0.08 | 0.509 +/- 0.003 vs unmasked; ties for first in the tournament |
 
-- Augmentation improves safety (greedy degenerate 23.7 → 13.6%, five-tank WP 0.27 → 0.08, sanity 22 → 26/28) with no accuracy change, but it lowers synergy and counter responsiveness and loses head to head to the unaugmented agent.
-- The mask removes every degenerate team, needs no change to the value function, and wins head to head.
-- **Correction to the coordinator's framing:** the mask is not free on the synergy metric either (greedy +0.44 → +0.37, MCTS +0.78 → +0.63). Its cost there is smaller than augmentation's, and it gains win probability where augmentation loses it. The paper says this.
+- The mask removes every degenerate team, leaves the value function unchanged, keeps the pick entropy (3.52 bits for constrained MCTS) and gains win probability head to head.
+- It is not free on the synergy metric (greedy +0.44 -> +0.37, MCTS +0.78 -> +0.63); the anchored methods sit at -0.15 to -0.20. The paper says this.
+- Under the uncorrected references both head-to-head pairs tie (0.499, 0.500), because those references barely charged the broken teams the mask removes.
 
-**Manuscript changes**
-- **`draft_revision.tex`** (9 pages, 0 errors, 0 overfull boxes):
-  - **Abstract:** the repair is search plus a structural mask; synthetic data "also improves safety, but it dulls interaction-awareness, and we no longer recommend it".
-  - **Introduction:**
-    - "What achieves both is search plus a structural mask."
-    - Augmentation is named as the submission's proposed repair, which dulls interaction-awareness.
-    - Contribution 2: the heuristics "define a structural mask" (was "target synthetic data").
-    - Contribution 3: the repair is MCTS with domain features plus the mask; synthetic data is "tested as an alternative" and "trades interaction-awareness for safety".
-  - **§V, now "Synthetic Data: A Tradeoff" (`sec:synth`):** one paragraph with the key numbers (safety gains, interaction losses, 0.485 head to head) and the comparison with the mask. Table V (assigned win rate) and the scope-sweep details moved to the supplement. The "active ingredient" claim is removed.
-  - **§VI:** retitled "MCTS with the Leak-Free Value Function" (was "Repaired").
-  - **§VII-E:** the mask is called "our recommended repair".
-  - **Discussion, practical lessons:** mask invalid compositions during search where they can be described by rule; in our experiments this did better than synthetic data.
-  - **Conclusion:** "What works is search plus a structural mask"; synthetic data improves safety but dulls interaction-awareness.
-  - **Unchanged:** the tournament table keeps the Enr.+aug greedy row as a result, not featured. Table VI keeps H_augmented. The rich-evaluation table keeps its Enr.+aug row.
-- **`supplementary_revision.tex`** (7 pages, 0 errors, 0 overfull boxes):
-  - The augmentation section is renamed "Synthetic Augmentation: Assigned Win Rate and Scope".
-  - It now holds the moved table (`tab:synth`), the assigned-rate reading, a paragraph on the interaction cost, and the scope sweep.
-  - "The active ingredient is the unseen compositions" becomes "Within augmentation, the five-tank effect comes from the unseen compositions."
+**Where the manuscript says it.**
+- **Abstract:** the repair that works is search plus a structural mask; MCTS over a value function with domain features is interaction-aware, and the mask eliminates the broken teams search still builds, with a small gain in win probability.
+- **Introduction:** "What achieves both is search plus a structural mask." Contribution 2: the role heuristics evaluate policies, build features and define the mask. Contribution 3: the repair is MCTS self-play with domain features plus the mask.
+- **§V:** training concentration, then the mask as the response.
+- **§VI:** "MCTS with the Leak-Free Value Function".
+- **§VII-E:** the mask is "our recommended repair".
+- **Discussion and Conclusion:** anchoring gives safety and the mask makes it exact; "What works is search plus a structural mask."
+- **Tournament:** 11 strategies, 110 ordered pairs; constrained MCTS and MCTS share first place.
 
 **For the response to reviewers (draft):**
-> The submission proposed synthetic training records for never-observed role compositions as the main repair for unsafe value search. With leak-free models and independent judges, augmentation still improves every safety measure, but it lowers the agents' synergy and counter responsiveness and loses head to head against the same agent without it (0.485). A structural mask applied during search removes every broken team, leaves the value function unchanged, and gains win probability head to head (0.509 for MCTS, 0.511 for greedy). The constrained MCTS agent ties for first in the tournament. We therefore present the mask as the repair and report augmentation as a tested option with a safety-for-interaction tradeoff. Its full results are in the supplement.
-
-**Not changed:**
-- the markup files;
-- `REVISION_NOTES.md` §3.7, which still documents the leak-free augmentation numbers as evidence;
-- the response draft in §5. It does not mention augmentation as the repair, so it needs no edit beyond adding the paragraph above.
+> With leak-free models and independent judges, unsafe value search traces to training concentration: the corpus almost never pairs the rare compositions search drifts toward with their outcomes. A structural mask applied during search removes every broken team, leaves the value function unchanged, and gains win probability head to head (0.509 for MCTS, 0.512 for greedy), at a modest cost in measured synergy. The constrained MCTS agent ties for first in the tournament. We present the mask as the repair.
 
 ## 13. Consolidated audit (2026-10-01): composition-table pin, rebuilt gN, A/B/C/D items
 
