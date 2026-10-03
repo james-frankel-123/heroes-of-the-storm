@@ -15,7 +15,7 @@ import compositionsJson from '@/lib/data/compositions.json'
 
 import {
   HEROES, MAPS, NUM_HEROES, NUM_MAPS, NUM_TIERS, HERO_TO_IDX, MAP_TO_IDX, TIER_TO_IDX,
-  WP_BASE_DIM, ENRICHED_DIM, WP_INPUT_DIM,
+  STATE_DIM, WP_BASE_DIM, ENRICHED_DIM, WP_INPUT_DIM,
 } from './encoding'
 
 // ── ORT loading via CDN ─────────────────────────────────────────────
@@ -131,7 +131,7 @@ function encodeState(s: AIDraftState): Float32Array {
   const t = tierToOneHot(s.tier)
 
   // STATE_DIM = heroes*3 + maps + tiers + 2 + 1 (last = our_team indicator)
-  const input = new Float32Array(290)
+  const input = new Float32Array(STATE_DIM)
   let offset = 0
   input.set(t0, offset); offset += NUM_HEROES
   input.set(t1, offset); offset += NUM_HEROES
@@ -144,10 +144,10 @@ function encodeState(s: AIDraftState): Float32Array {
   return input
 }
 
-/** Encode state without ourTeam indicator (289 dims) for GD model. */
+/** Encode state without ourTeam indicator (STATE_DIM - 1) for GD model. */
 function encodeStateForGD(s: AIDraftState): Float32Array {
   const full = encodeState(s)
-  return full.slice(0, 289)
+  return full.slice(0, STATE_DIM - 1)
 }
 
 function buildValidMask(taken: Set<string>): Float32Array {
@@ -271,7 +271,7 @@ async function runPolicySymmetrized(
   mask: Float32Array,
 ): Promise<{ policyLogits: Float32Array; value: number }> {
   const state = encodeState(draftState)
-  const stateTensor = new ort.Tensor('float32', state, [1, 290])
+  const stateTensor = new ort.Tensor('float32', state, [1, STATE_DIM])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
   const result: any = await withInferLock(() => policySession.run({ state: stateTensor, valid_mask: maskTensor }))
   const policyLogits = result.policy_logits.data as Float32Array
@@ -279,8 +279,8 @@ async function runPolicySymmetrized(
 
   // Symmetrize: run with flipped ourTeam and average
   const flippedState = new Float32Array(state)
-  flippedState[289] = 1.0 - flippedState[289] // flip ourTeam
-  const flippedTensor = new ort.Tensor('float32', flippedState, [1, 290])
+  flippedState[STATE_DIM - 1] = 1.0 - flippedState[STATE_DIM - 1] // flip ourTeam
+  const flippedTensor = new ort.Tensor('float32', flippedState, [1, STATE_DIM])
   const flippedResult: any = await withInferLock(() => policySession.run({ state: flippedTensor, valid_mask: maskTensor }))
   const flippedValue = (flippedResult.value.data as Float32Array)[0]
 
@@ -448,10 +448,10 @@ export async function getGenericDraftPredictions(
     throw new Error('AI models not loaded. Call loadAIModels() first.')
   }
 
-  const state = encodeStateForGD(draftState)  // 289 dims — GD doesn't have ourTeam
+  const state = encodeStateForGD(draftState)  // GD has no ourTeam input
   const mask = buildValidMask(takenHeroes)
 
-  const stateTensor = new ort.Tensor('float32', state, [1, 289])
+  const stateTensor = new ort.Tensor('float32', state, [1, STATE_DIM - 1])
   const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
 
   const result: any = await withInferLock(() => gdSession.run({
