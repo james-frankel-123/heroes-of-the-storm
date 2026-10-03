@@ -10,6 +10,7 @@ import {
   assignedPairIds,
   fullSequence,
   isFullTestRater,
+  isTenthTestRater,
   isTestRater,
   raterSlot,
   sideSwapped,
@@ -154,6 +155,26 @@ describe('fullSequence', () => {
 
   it('gives testfull raters the complete 240-item sequence', () => {
     expect(fullSequence(POOL, 'testfull-claude', 0)).toHaveLength(SEQUENCE_LENGTH)
+  })
+})
+
+describe('fullSequence (testtenth)', () => {
+  it("serves every 10th item of the mirrored reviewer's real sequence", () => {
+    const real = fullSequence(POOL, 'rater03', 2)
+    const tenth = fullSequence(POOL, 'testtenth-rater03', 2)
+    expect(tenth).toHaveLength(SEQUENCE_LENGTH / 10)
+    expect(tenth).toEqual(real.filter((_, i) => i % 10 === 0))
+  })
+
+  it('terminates and serves 24 items for a bare testtenth name', () => {
+    expect(fullSequence(POOL, 'testtenth', 0)).toHaveLength(24)
+    expect(fullSequence(POOL, 'TestTenth-testtenth', 0)).toHaveLength(24)
+  })
+
+  it('stays flagged as a test rater', () => {
+    expect(isTestRater('testtenth-rater03')).toBe(true)
+    expect(isTenthTestRater('testtenth-rater03')).toBe(true)
+    expect(isTenthTestRater('rater03')).toBe(false)
   })
 })
 

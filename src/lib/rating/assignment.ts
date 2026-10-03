@@ -34,6 +34,10 @@
  * screener + 2 calibration + 3 assigned) and their ratings are flagged
  * is_test. Names starting with "testfull" get the complete real 240-item
  * sequence, still flagged is_test — used for end-to-end verification.
+ * Names starting with "testtenth" get every 10th item (24 of 240) of the
+ * real sequence for their slot, still flagged is_test. "testtenth-rater03"
+ * mirrors the item order rater03 would see, so a tester can sample exactly
+ * what that reviewer will rate.
  */
 
 export const NUM_SLOTS = 14
@@ -96,6 +100,24 @@ export function isTestRater(rater: string): boolean {
  */
 export function isFullTestRater(rater: string): boolean {
   return normalizeRater(rater).startsWith('testfull')
+}
+
+export const TENTH_TEST_PREFIX = 'testtenth'
+export const TENTH_TEST_STRIDE = 10
+
+/** Test rater that receives every 10th item of a real slot's sequence. */
+export function isTenthTestRater(rater: string): boolean {
+  return normalizeRater(rater).startsWith(TENTH_TEST_PREFIX)
+}
+
+/**
+ * The name whose seeded order a tenth-test rater mirrors: "testtenth-rater03"
+ * mirrors "rater03". A bare "testtenth" gets its own seeded order (a
+ * non-test key, so the recursion in fullSequence always terminates).
+ */
+function tenthMirrorName(name: string): string {
+  const rest = name.slice(TENTH_TEST_PREFIX.length).replace(/^[-_:]+/, '')
+  return rest && !rest.startsWith(TENTH_TEST_PREFIX) ? rest : 'mirror|' + name
 }
 
 /**
@@ -170,6 +192,10 @@ export interface PoolIds {
  * Test raters ("test…" but not "testfull…") get the 7-item smoke flow.
  */
 export function fullSequence(pool: PoolIds, rater: string, slot: number): number[] {
+  if (isTenthTestRater(rater)) {
+    const mirrored = fullSequence(pool, tenthMirrorName(normalizeRater(rater)), slot)
+    return mirrored.filter((_, i) => i % TENTH_TEST_STRIDE === 0)
+  }
   const name = normalizeRater(rater)
   const first48 = seededShuffle(
     [...pool.screener, ...pool.calibration].sort((a, b) => a - b),
@@ -179,7 +205,7 @@ export function fullSequence(pool: PoolIds, rater: string, slot: number): number
     [...assignedPairIds(pool.pairs, slot), ...assignedAnchorIds(pool.anchorsByTier, slot)],
     fnv1a('order|' + name)
   )
-  if (isTestRater(rater) && !isFullTestRater(rater)) {
+  if (isTestRater(rater) && !isFullTestRater(rater) && !isTenthTestRater(rater)) {
     const screenerSet = new Set(pool.screener)
     const smoke = [
       ...first48.filter((id) => screenerSet.has(id)).slice(0, TEST_SCREENER_COUNT),
