@@ -653,8 +653,12 @@ def task_rich_eval(args):
             gd_agree += step["hero_idx"] == votes.most_common(1)[0][0]
             gd_total += 1
 
-    # Cross-model WP: augmented (v2_512) model scores this strategy's drafts
-    if args.strategy != "enriched_aug":
+    # Cross-model WP: augmented (v2_512) model scores this strategy's drafts.
+    # Optional: skipped when the namespace has no augmented model (the
+    # paper-1 site-tier rebuild trains none), and then no aug_wp is written.
+    if args.strategy != "enriched_aug" and not os.path.exists(mpath("wp_aug_v2_512.pt")):
+        aug_wp = None
+    elif args.strategy != "enriched_aug":
         aug_model, aug_cols = load_wp("wp_aug_v2_512.pt", [512, 256, 128],
                                       ENRICHED_GROUPS, device)
         all_mask = [True] * len(FEATURE_GROUPS)
@@ -695,7 +699,8 @@ def task_rich_eval(args):
             "synergy": round(float(np.mean(synergies)), 2),
             **div,
             "gd_similarity": round(gd_agree / gd_total * 100, 1) if gd_total else 0,
-            "aug_wp": round(aug_wp, 3) if isinstance(aug_wp, float) else aug_wp,
+            **({} if aug_wp is None else
+               {"aug_wp": round(aug_wp, 3) if isinstance(aug_wp, float) else aug_wp}),
             "map_adapt": map_adaptation(combined),
         },
         "seed_metrics": seed_metrics,
@@ -894,7 +899,7 @@ def task_aggregate(args):
               f"{'Dist':>5} {'Ent':>5} {'T10%':>6} {'GD%':>6} {'AugWP':>6}")
         for k, r in rich.items():
             m = r["metrics"]
-            aug = m["aug_wp"]
+            aug = m.get("aug_wp", "-")
             print(f"{r['strategy']:<20} {m['healer_rate']:>6.1f} {m['degen_rate']:>6.1f} "
                   f"{m['counter']:>+6.2f} {m['synergy']:>+6.2f} "
                   f"{m['distinct_heroes']:>5} {m['entropy']:>5.2f} "

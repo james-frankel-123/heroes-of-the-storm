@@ -82,28 +82,12 @@ META = lambda n: os.path.join(NS, "models", "meta", f"{n}.json")
 NEEDS = {"rich_cql_a0.5": META("cql_naive_a0.5"), "rich_cql_a1.0": META("cql_naive_a1.0"),
          "rich_bccql_b1.0": META("bccql_b1.0"), "rich_mcq_t0.5": META("mcq_t0.5"),
          "rich_iql": META("iql_t0.9_b3.0"),
-         # the rich task also scores every strategy with an augmented WP; that
-         # column is not reported, the file only has to exist (setup_aug_scorer)
-         "rich_gd": os.path.join(NS, "models", "wp_aug_v2_512.pt")}
-
-
-def setup_aug_scorer():
-    """phase3 rich-eval loads wp_aug_v2_512.pt from the namespace for a column
-    the paper does not report; give it the site-tier augmented WP (WR 10%,
-    512x256x128, same input layout)."""
-    import json
-    import shutil
-    dst = NEEDS["rich_gd"]
-    if not os.path.exists(dst):
-        sel = json.load(open(os.path.join(SITE, "models", "aug_wr10_512.json")))["selected_seed"]
-        shutil.copy(os.path.join(SITE, "models", f"aug_wr10_512_s{sel}.pt"), dst)
+         }
 
 
 def main():
     import time
     q = sys.argv[1]
-    if q == "rich":
-        setup_aug_scorer()
     for name, argv, marker, env in queues()[q]:
         if marker and os.path.exists(marker):
             print(f"skip {name} (done)", flush=True)
