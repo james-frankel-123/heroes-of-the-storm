@@ -824,15 +824,16 @@ headline on realized outcomes.
 
 A deployed drafter also carries a behavioral model of its opponent (the
 next-pick predictor that guides search), and player behavior drifts on a
-different schedule than balance. We compared opponent models on 1.84
-million next-pick samples from the future builds
+different schedule than balance. We compared opponent models on 1.80
+million next-pick samples from the seven future builds
 (Table~\ref{tab:gdpools}).
 
 \begin{table}[t]
-\caption{Opponent models scored on 1.84M future next-pick samples
-(top-1/top-5 accuracy, \%). Rows 1 and 4 saw the test drafts in
-training and are references only. $^{a}$Retrained before each test
-build on the preceding 30 days of play.}
+\caption{Opponent models scored on 1.80M future next-pick samples
+(top-1/top-5 accuracy, \%), averaged over two model variants except where
+marked. Rows 1 and 4 saw the test drafts in training and are references
+only. $^{a}$Retrained before each test build on the preceding 30 days of
+play. $^{b}$One variant.}
 \label{tab:gdpools}
 \centering
 \small
@@ -841,51 +842,51 @@ build on the preceding 30 days of play.}
 \toprule
 Model (training data) & Top-1 & Top-5 \\
 \midrule
-test-period fit (98\% of the test drafts) & 13.09 & 40.39 \\
-30 days before each build (rolling)$^{a}$ & \textbf{11.97} & -- \\
-30 days before the cutoff, trained once & 11.83 & \textbf{36.98} \\
-earlier paper's model (full snapshot) & 11.71 & 36.31 \\
-last 6 builds before the cutoff & 11.64 & 36.91 \\
-all history to the cutoff & 11.08 & 34.47 \\
+test-period fit (98\% of the test drafts) & 13.19 & 40.56 \\
+30 days before each build (rolling)$^{a}$ & \textbf{11.99} & -- \\
+30 days before the cutoff, trained once & 11.84 & \textbf{37.05} \\
+full snapshot$^{b}$ & 11.83 & 36.58 \\
+last 6 builds before the cutoff & 11.73 & 37.01 \\
+all history to the cutoff & 11.14 & 34.59 \\
+\midrule
+all history to 2.55.9.93613 (1-year-stale agents)$^{b}$ & 10.54 & 32.41 \\
+all history to 2.55.4.91418 (2-year-stale agents)$^{b}$ & 10.25 & 31.34 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-With the same two model variants in each row, the earlier paper's model
-scores 11.76\% top-1, 0.68pp above the all-history model deployable at
-the cutoff; that is a lower bound on behavioral drift, since only about
-7\% of the earlier model's training data postdates the cutoff. Recency
-recovers most of the gap: a model trained on the last six builds gains
-0.56pp, and one trained once on the 30 days before the cutoff gains
-0.75pp, finishing 0.08pp above the earlier paper's model. The 30-day
-model's lead fades. It is the best model on the three 2.55.15 builds
-(13.1\%, 12.6\%, and 12.2\% top-1) and beats the all-history model on the
-first two 2.55.16 builds, but it is the worst model on the last two,
-falling to 10.6\% against 11.2\% for the all-history model. It wins on
-bans (17.1\% against 16.2\%) and loses on picks. Rolled forward,
-retraining on the 30 days before each build, the window scores 11.97\%
-overall, 0.14pp above the once-trained model and 0.89pp above the
-all-history model, and 11.5\% on the last build instead of 10.6\%. It
-trails the all-history model on one build (2.55.16.96881, 10.7\% against
-11.0\%). Behavior favors a rolling window, retrained often.
+The model trained on the full snapshot, of which 7\% postdates the
+cutoff, scores 0.75pp of top-1 above the all-history model deployable at
+the cutoff (same variant); that is a lower bound on behavioral drift.
+Recency recovers most of it: a model trained on the last six builds
+gains 0.59pp, and one trained once on the 30 days before the cutoff
+gains 0.70pp. The 30-day model's lead fades. It is the best deployable
+model on the three 2.55.15 builds (13.2\%, 12.3\%, and 12.2\% top-1),
+and the worst on the last two, at 10.8\% and 10.6\% against 11.0\% and
+11.2\% for the all-history model. Its gain is in bans (17.2\% against
+15.4\%); on picks the two are level (8.6\%). Rolled forward, retraining
+on the 30 days before each build, the window scores 11.99\% overall,
+0.15pp above the once-trained model and 0.85pp above the all-history
+model, and 11.4\% on the last build instead of 10.6\%. It still trails
+the all-history model on one build (2.55.16.96881, 10.6\% against
+11.0\%), and the six-build window is steadier than either 30-day model,
+never below 11.2\% on any build. Behavior favors recent play, retrained
+often.
 
-Before running this comparison we set a rule for escalating it: retrain
-the MCTS pipeline on refreshed opponents if behavioral drift cost at
-least 1.0pp of top-1, or if swapping opponent pools moved the maintained
-value function's greedy healer or degeneracy rates by at least 3pp. The
-rule lives in our analysis code, dated by file timestamps, and was not
-publicly registered. Neither condition was met: 0.63pp of top-1, and
-movements of 2.9pp in healer rate and 2.7pp in degeneracy (paired seed
-standard errors 1.2 and 0.9pp, so the degeneracy movement missed the
-threshold by 0.3pp at about 2.9 standard errors). The rule's accuracy
-measure is the lower bound above; the rolling window's 0.89pp gain over
-the all-history model, a less understated measure, also falls short of
-1.0pp. The all-history
-value function, which the rule did not cover, moved more (5.8pp of healer
-rate, 3.5pp of degeneracy). By rule, the escalation did not run. For the
-two stale agents we did train era-matched opponent models, because an
-agent's counter-play is learned from its opponent
-(Section~\ref{sec:neglect}).
+Opponent models age with their agents too. Against the all-history
+model at the cutoff, which the 2026 agents train against (same variant),
+a model trained to 2.55.9.93613, one year before the cutoff, scores
+0.54pp lower on the future builds (10.54\%), and one trained to
+2.55.4.91418, two years before, 0.84pp lower (10.25\%). The order holds
+on each of the seven builds, and the first year costs more than the
+second.
+
+Before running this comparison we set a threshold for retraining the
+search pipeline on refreshed opponents: 1.0pp of top-1 lost to
+behavioral drift. Neither the full-snapshot gap (0.75pp) nor the rolling
+window's gain (0.85pp) reaches it, so every agent in
+Section~\ref{sec:neglect} searches against an opponent model trained to
+its own cutoff, on all history to that point.
 
 \section{The Operating Policy}
 \label{sec:operating}
