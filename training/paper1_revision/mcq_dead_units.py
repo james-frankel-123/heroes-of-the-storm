@@ -21,13 +21,14 @@ import torch
 def main():
     from rerun2026 import common
     from experiment_cql_draft import CQLDraftAgent
-    mm = common.memmap_open(os.path.join(TRAINING_DIR, "rerun2026", "feature_cache", "cql_naive_test"))
+    mm = common.memmap_open(common.CQL_NAIVE_TEST)   # held-out states of the active namespace
     S = mm["states"]
     rng = np.random.RandomState(0)
     idx = np.sort(rng.choice(len(S), size=min(200000, len(S)), replace=False))
     X = torch.tensor(np.asarray(S[idx], dtype=np.float32))
     out = {"n_states": int(len(idx))}
-    M = os.path.join(TRAINING_DIR, "rerun2026", "models")
+    from rerun2026 import common as rcommon     # honours RERUN_NS (p1site rebuild)
+    M = rcommon.MODELS_DIR
     for name, path in (("mcq_t0.5", os.path.join(M, "mcq", "_mcq_temp_t0.5.pt")),
                        ("mcq_t0.6", os.path.join(M, "mcq", "_mcq_temp_t0.6.pt")),
                        ("cql_a1.0", os.path.join(M, "cql", "_cql_temp_a1.0.pt"))):

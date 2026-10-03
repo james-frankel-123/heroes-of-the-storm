@@ -22,7 +22,8 @@ def main():
     from train_gourdeau_baseline import GourdeauWPModel
     from shared import HERO_TO_IDX, NUM_HEROES, map_to_one_hot
     m = GourdeauWPModel()
-    m.load_state_dict(torch.load(os.path.join(TRAINING_DIR, "rerun2026", "models", "gourdeau_wp.pt"),
+    from rerun2026 import common as rcommon     # honours RERUN_NS (p1site rebuild)
+    m.load_state_dict(torch.load(os.path.join(rcommon.MODELS_DIR, "gourdeau_wp.pt"),
                                  map_location="cpu", weights_only=True))
     m.eval()
     out = {}
