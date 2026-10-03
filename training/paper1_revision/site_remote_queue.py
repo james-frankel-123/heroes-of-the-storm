@@ -19,6 +19,7 @@ Queues (balanced for concurrent use of one 24 GB GPU):
   cqlA    MCQ tau x5, BC-CQL beta x4
   cqlB    IQL 6 cells, CQL grid (alpha 1) taus at 512x256x128
   cqlC    CQL grid at 1024x512x256 and 256x128x64
+  cqlD    naive CQL alpha sweep (0.5, 1, 0.1, 2, 5)
 
 Usage (worker, from ~/hots/repo/training): python paper1_revision/site_remote_queue.py <queue>
 """
@@ -69,6 +70,8 @@ def queues():
         for tau in (0.005, 0.001, 0.01, 0.05, 0.1):
             Q[q].append((f"cql_hp_t{tau}_{a_s}", [TJ, "cql_hp", "--alpha", "1.0", "--tau", str(tau), "--arch", arch],
                          m(f"cql_hp_a1.0_t{tau}_{a_s}"), {}))
+    Q["cqlD"] = [(f"cql_naive_a{a}", [TJ, "cql_naive", "--alpha", str(a)], m(f"cql_naive_a{a}"), {})
+                 for a in (0.5, 1.0, 0.1, 2.0, 5.0)]
     # single-job queues, so the GD seeds can train concurrently
     for i in range(5):
         Q[f"gd{i}"] = [Q["gd"][i]]
