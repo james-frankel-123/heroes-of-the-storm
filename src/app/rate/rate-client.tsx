@@ -8,7 +8,7 @@
  *   (a) slider P(Team A wins) 0-100%
  *   (b) forced choice: which team drafted better (A/B)
  *   (c) confidence 1-5
- * Auto-advances once all three are answered.
+ * The rater presses Next (or Enter) once all three are answered.
  *
  * A consent-and-data-handling notice is shown before a rater's first item
  * (skipped on resume — a rater with saved ratings has already consented).
@@ -170,11 +170,6 @@ export function RateClient() {
   const [choice, setChoice] = useState<'A' | 'B' | null>(null)
   const [confidence, setConfidence] = useState<number | null>(null)
   const shownAtRef = useRef<number>(Date.now())
-  // Which control the rater used LAST. Auto-advance fires only after a
-  // button answer: if the slider is the final input (e.g. buttons answered
-  // first, then the slider), a timed submit could fire mid-drag at a value
-  // the rater never intended — they confirm with Next/Enter instead.
-  const lastInputRef = useRef<'slider' | 'button' | null>(null)
 
   // Resolve rater from ?rater= or localStorage
   useEffect(() => {
@@ -254,7 +249,6 @@ export function RateClient() {
     setChoice(null)
     setConfidence(null)
     setSubmitError(null)
-    lastInputRef.current = null
     shownAtRef.current = Date.now()
   }, [])
 
@@ -290,16 +284,6 @@ export function RateClient() {
     }
   }, [current, rater, slot, complete, submitting, p, choice, confidence, resetAnswers])
 
-  // Auto-advance shortly after all three questions are answered — but only
-  // when the completing input was a button. Slider-last requires an explicit
-  // Next/Enter so a mid-drag pause can never submit an unintended value.
-  useEffect(() => {
-    if (!complete || submitting || !current) return
-    if (lastInputRef.current !== 'button') return
-    const t = setTimeout(() => submit(), 500)
-    return () => clearTimeout(t)
-  }, [complete, submitting, current, submit])
-
   // Keyboard shortcuts
   useEffect(() => {
     if (!current || !consented) return
@@ -314,21 +298,16 @@ export function RateClient() {
         e.preventDefault()
         setP((v) => Math.min(100, v + (e.shiftKey ? 5 : 1)))
         setPTouched(true)
-        lastInputRef.current = 'slider'
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
         e.preventDefault()
         setP((v) => Math.max(0, v - (e.shiftKey ? 5 : 1)))
         setPTouched(true)
-        lastInputRef.current = 'slider'
       } else if (e.key === 'a' || e.key === 'A') {
         setChoice('A')
-        lastInputRef.current = 'button'
       } else if (e.key === 'b' || e.key === 'B') {
         setChoice('B')
-        lastInputRef.current = 'button'
       } else if (/^[1-5]$/.test(e.key)) {
         setConfidence(Number(e.key))
-        lastInputRef.current = 'button'
       } else if (e.key === 'Enter') {
         e.preventDefault()
         submit()
@@ -459,8 +438,7 @@ export function RateClient() {
                 </li>
               </ol>
               <p className="mt-2">
-                The page advances automatically when your last answer is one of the buttons; if
-                the slider is your last input, press Next (or Enter) to confirm it. There is no
+                When all three are answered, press Next (or Enter) to continue. There is no
                 time limit — most pairs take 15–60 seconds, and some are genuinely hard; use your
                 judgment and don&apos;t overthink.
               </p>
@@ -595,11 +573,9 @@ export function RateClient() {
             onChange={(e) => {
               setP(100 - Number(e.target.value))
               setPTouched(true)
-              lastInputRef.current = 'slider'
             }}
             onPointerUp={() => {
               setPTouched(true)
-              lastInputRef.current = 'slider'
             }}
             aria-label="Win probability (left = Team A wins, right = Team B wins)"
             data-testid="rate-slider"
@@ -642,7 +618,6 @@ export function RateClient() {
           <button
             onClick={() => {
               setChoice('A')
-              lastInputRef.current = 'button'
             }}
             data-testid="rate-choice-a"
             className={cn(
@@ -657,7 +632,6 @@ export function RateClient() {
           <button
             onClick={() => {
               setChoice('B')
-              lastInputRef.current = 'button'
             }}
             data-testid="rate-choice-b"
             className={cn(
@@ -681,7 +655,6 @@ export function RateClient() {
               key={c}
               onClick={() => {
                 setConfidence(c)
-                lastInputRef.current = 'button'
               }}
               data-testid={`rate-conf-${c}`}
               className={cn(

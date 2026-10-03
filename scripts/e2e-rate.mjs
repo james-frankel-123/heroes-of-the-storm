@@ -83,7 +83,8 @@ async function rateCurrent(page, prevId, whichTeam) {
   // Q2 forced choice + Q3 confidence.
   await page.click(`[data-testid="rate-choice-${whichTeam.toLowerCase()}"]`)
   await page.click('[data-testid="rate-conf-3"]')
-  // Auto-advance fires ~500ms after all three are answered.
+  // No auto-advance: confirm with Next.
+  await page.click('[data-testid="rate-next"]')
   await page.waitForFunction(
     (prev) => {
       const item = document.querySelector('[data-testid="rate-item"]')
