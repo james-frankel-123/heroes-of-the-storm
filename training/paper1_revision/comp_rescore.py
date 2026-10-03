@@ -138,8 +138,13 @@ def tournament():
     from paper1_revision.tournament import STRATEGIES
     from paper1_revision.score_tournament import load_pair, pair_stats, spearman
     sc = dict(np.load(os.path.join(R, "tournament_scores.npz")))
+    # tournament_scores.npz holds the pairs of the stored 12-strategy run in
+    # this order; standings are computed over the current STRATEGIES only
+    stored = ["mcts", "constrained_mcts", "enriched", "enriched_aug", "constrained_greedy",
+              "k_truebase", "gourdeau", "gourdeau_disc", "cql_naive_a1.0", "cql_enr_a2.0",
+              "gd", "mcq_t0.5"]
     rows_all, idx, pairs = [], {}, {}
-    for a, b in itertools.permutations(STRATEGIES, 2):
+    for a, b in itertools.permutations(stored, 2):
         d = load_pair(a, b)
         if d is None:
             continue
@@ -156,6 +161,8 @@ def tournament():
         per = {s: {j: [] for j in TREFS} for s in STRATEGIES}
         h2h = {}
         for (a, b), (i0, i1) in idx.items():
+            if a not in STRATEGIES or b not in STRATEGIES:
+                continue
             cfg = [(r["game_map"], r["tier"]) for r in pairs[(a, b)]]
             for j in TREFS:
                 mu, var = pair_stats(S[v][j][i0:i1], cfg)
@@ -178,7 +185,7 @@ def tournament():
         hh = {}
         for a, b in (("constrained_mcts", "mcts"), ("constrained_greedy", "enriched"),
                      ("mcts", "k_truebase"), ("constrained_mcts", "k_truebase"),
-                     ("enriched", "enriched_aug")):
+                     ):
             hh[f"{a} vs {b}"] = {}
             for j in TREFS:
                 m1, v1_ = h2h[j][(a, b)]

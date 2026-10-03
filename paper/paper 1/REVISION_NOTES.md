@@ -1386,3 +1386,16 @@ The 91-hero production retrain takes the 3080 from about Oct 3 morning to about 
 - 3090 alone from GD landing (about Oct 3 02:00) to about Oct 4 midday: roughly 34 h done.
 - The remaining about 290 h at 1.4× (3090 plus the 3080 at about 0.4×) is about 8.7 days.
 - Finish around Oct 13–14, also allowing for the non-MCTS stage sharing the 3090.
+
+### 15.14 Synthetic augmentation removed from paper 1 (Max, 2026-10-03)
+
+**Manuscript.**
+- §V is now "Why Value Search Builds Broken Teams". It keeps the training-concentration finding (95% healer; 126–146 of 252 role cells under 50 games) and presents the role mask as the repair.
+- Removed the Enr.+aug greedy rows (Table V, Table VII, Figs. 1–2). The tournament now has 11 strategies and 110 pairs; standings were recomputed from the stored drafts (`comp_rescore.py`).
+- Supplement: removed the augmentation section, its rows in the ensemble table, and the dual-snapshot section (old-kernel agents; to be recomputed with the rebuilt agents).
+- Build: main 9 pages, of which page 9 is references; supplement 6 pages.
+
+**Rebuild.**
+- The augmented greedy agent is dropped from `greedy_evals.py` (rich rows; WR sweep keeps `enriched_512`) and from `tournament.py`.
+- The augmentation scope sweep is removed from the B3 queue.
+- The site-tier `aug_wr*` WP models (Table I) are trained but no longer used.

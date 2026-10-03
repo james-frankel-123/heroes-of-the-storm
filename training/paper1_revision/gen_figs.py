@@ -134,7 +134,7 @@ def scatter():
             continue
         pts.append((k, m["degen_rate"], m["synergy"], m.get("entropy", 4.5), f))
     G = json.load(open(os.path.join(core.RESULTS, "greedy_rich.json")))
-    for k, lab, f in (("enriched", "Enriched", "vf"), ("enriched_aug", "Enr.+aug", "vf"),
+    for k, lab, f in (("enriched", "Enriched", "vf"),
                       ("constrained_mcts", "MCTS constr.", "mcts")):
         if k in G:
             pts.append((lab, G[k]["degen"], G[k]["synergy"], G[k]["entropy"], f))

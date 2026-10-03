@@ -69,7 +69,6 @@ def queues():
         ("mcq_dead", [p("mcq_dead_units.py")], S("mcq_dead_units.json"), P1),
         ("gourdeau_eval", [p("eval_gourdeau.py")], S("gourdeau_eval.json"), P1),
         ("ngs_quartiles", [D, "ngs_quartiles"], S("deferred", "ngs_quartiles.json"), P1),
-        ("scope", [D, "scope"], S("deferred", "scope_sweep.json"), P1),
         ("cql_build", [D, "cql_build"], None, P1),
         ("cql_train_a2.0", [D, "cql_train_a2.0"], None, P1),
         ("cql_train_a0.5", [D, "cql_train_a0.5"], None, P1),

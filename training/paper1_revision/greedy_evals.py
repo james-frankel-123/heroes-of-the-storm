@@ -37,9 +37,9 @@ import numpy as np
 import torch
 
 OUT = os.path.join(core.RESULTS, "greedy")
-RICH = {"enriched": "enriched", "enriched_aug": "aug_wr10_512", "constrained_greedy": "enriched",
+RICH = {"enriched": "enriched", "constrained_greedy": "enriched",
         "mcts": None, "constrained_mcts": None}
-WR = ["enriched_512", "aug_wr0_512", "aug_wr5_512", "aug_wr10_512", "aug_wr50_512"]
+WR = ["enriched_512"]   # composition rates of the 512-wide enriched greedy drafter
 RICH_SEEDS = range(5)
 WR_SEEDS = range(2)
 

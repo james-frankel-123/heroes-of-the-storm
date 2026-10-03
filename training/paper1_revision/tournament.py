@@ -47,7 +47,7 @@ from paper1_revision import core
 import numpy as np
 import torch
 
-STRATEGIES = ["mcts", "constrained_mcts", "enriched", "enriched_aug", "constrained_greedy",
+STRATEGIES = ["mcts", "constrained_mcts", "enriched", "constrained_greedy",
               "k_truebase", "gourdeau", "gourdeau_disc", "cql_naive_a1.0", "cql_enr_a2.0",
               "gd", "mcq_t0.5"]
 UNCHANGED = {"gourdeau", "gourdeau_disc", "cql_naive_a1.0", "cql_enr_a2.0", "gd", "mcq_t0.5"}

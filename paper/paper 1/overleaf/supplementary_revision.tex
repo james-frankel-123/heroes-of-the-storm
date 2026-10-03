@@ -50,37 +50,6 @@ Table~\ref{tab:throughput} shows the progression; all stages measured at 200 sim
 
 \paragraph{Apples-to-apples baseline.} For a controlled speedup claim we built a tuned host-tree baseline in the style of KataGo's batched-evaluation pipelines: 64--256 CPU threads each running one episode's tree, leaf evaluations batched across threads onto the GPU via cuBLAS GEMM over multiple streams, reproducing the production kernel's exact per-simulation work (policy priors at expansion, Generic Draft rollout to terminal at every leaf, symmetrized enriched-WP scoring). At equal work \textit{and} equal search semantics (leaf batch 1; first-turn root-visit total-variation distance from the kernel 0.047, at the 0.044 kernel-vs-kernel seed-noise floor; win rate vs.\ GD 0.761 vs.\ the kernel's 0.757), the host pipeline sustains 68 ep/s against the fused kernel's 151 ep/s on the same GPU: the fused kernel is 2.2$\times$ faster, the figure quoted in the main paper, because per-simulation host-device round trips cannot be amortized without within-episode leaf batching. Virtual-loss leaf batching does push the host pipeline to 163 ep/s (1.07$\times$ the kernel), but only by degrading the search itself: at leaf batch 32 the win rate vs.\ GD falls from 0.757 to 0.531 and the visit-distribution TV rises to 0.62; softening virtual loss to 0.25 recovers only 0.712. Per-component profiling shows the GD rollout evaluation dominates ($\sim$75\% of the host pipeline's evaluator wait time; policy priors and WP scoring share the rest), and that the kernel's per-node cache of opponent GD distributions is dead code in practice: leaves expand only at our-team steps, so cached nodes are never re-traversed at opponent steps (measured cache-miss count 0), which is why it is not listed among the optimizations above. The remaining advantages of the fused kernel are operational: 0.12~s startup, a deterministic $\sim$270~MB footprint, and no host thread pool or Python runtime at inference.
 
-\section{Synthetic Augmentation: Assigned Win Rate and Scope}
-\label{sec:synthsupp}
-
-The submission proposed synthetic records for unseen role compositions as the repair for unsafe value search. The revision reports augmentation as a tradeoff (main paper, Section~V) and recommends the structural mask. This section keeps the leak-free details.
-
-\begin{table}[t]
-\centering
-\caption{Synthetic augmentation by assigned win rate (leak-free 512$\to$256$\to$128 models, unseen compositions, 100 records per composition and tier). Acc.: 3-seed test mean. Composition rates: 2 opponent seeds $\times$ 1000 greedy drafts (GD-argmax rollouts) of the selected model. 5T: WP of five tanks against a standard team.}
-\label{tab:synth}
-\setlength{\tabcolsep}{3.6pt}
-\begin{tabular}{lcccccc}
-\toprule
-Assigned WR & Acc.\% & Heal\% & Rng\% & Deg\% & 5T & Sanity \\
-\midrule
-None & 57.5 & 81.8 & 93.6 & 23.7 & .27 & 22/28 \\
-0\% & 57.5 & 92.1 & 98.6 & 14.5 & .05 & 26/28 \\
-5\% & 57.5 & 91.6 & 98.1 & 14.6 & .06 & 26/28 \\
-10\% & 57.5 & 91.8 & 97.5 & 13.6 & .08 & 26/28 \\
-50\% & 57.5 & 95.1 & 95.8 & 8.9 & .29 & 25/28 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Assigned win rate} Synthetic rows get out-of-fold features like real rows, but their labels are adjusted with the deploy statistics (pairwise counter and synergy), so the realized mean label differs from the assigned rate: 4.9\%, 5.0\%, 9.5\%, and 29.9\% for assigned 0, 5, 10, and 50\%. Validation and test stay real. Augmentation leaves accuracy unchanged and improves every safety measure under greedy search (Table~\ref{tab:synth}). Assigned rates of 0--10\% behave alike; 50\% gives fewer degenerate greedy teams (8.9\%) but barely penalizes five tanks (0.29). Downstream models keep the submission's 10\%, so no downstream result is selected on this sweep.
-
-\paragraph{Interaction cost} Under the rich evaluation the augmented greedy agent trades interaction-awareness for safety: degenerate 21.1\% $\to$ 15.2\%, synergy +0.44 $\to$ +0.29, counter +0.16 $\to$ +0.09. Head to head in the tournament it scores 0.485 $\pm$ 0.004 against the unaugmented greedy agent, while masked greedy scores 0.511 $\pm$ 0.003 with 0\% degenerate teams and synergy +0.37.
-
-\paragraph{Scope}
-
-We swept 27 configurations, re-run with leak-free models (256$\to$128, out-of-fold features, own composition table, seed 42): assigned win rate for unseen compositions (10/20/30\%), volume (50/100/200 records per composition and tier), and scope (unseen only; sparse only, which tops up observed compositions with fewer than 300 games and win rate below 48\% to 300 games at their own win rate; or both). Sparse-only augmentation does not depend on win rate or volume (19,107 records in every cell) and leaves the five-tank WP at 0.26, against 0.27 without augmentation. Unseen-only augmentation lowers it to 0.07--0.12 at 10\%, 0.16--0.18 at 20\%, and 0.23--0.28 at 30\%; adding the sparse records changes little (0.08--0.10 at 10\%). Held-out accuracy stays at 57.5--57.7\% and post-snapshot calibration slope at 0.93--1.02 in every cell, and 24--27 of 28 sanity tests pass. Within augmentation, the five-tank effect comes from the unseen compositions, and lower assigned win rates penalize five tanks more.
-
 \section{Validity of the Interaction Metrics}
 \label{sec:metricvalid}
 
@@ -106,41 +75,6 @@ The main paper's interaction-awareness metrics are built from the pairwise syner
 
 The submission ran this check on the 38,981 test replays with the external statistics, which contain those replays' own outcomes (first row of Table~\ref{tab:metricvalid}). On 291,837 post-snapshot games, which were uploaded after the statistics were pulled and so cannot be in them, the same statistics give spreads of +9.1pp (synergy) and +8.0pp (counter), both monotone across all nine steps. The published spreads are 1.5pp and 1.7pp larger, about 16\% and 21\% of the clean values, though the two figures come from different game sets. Statistics built only from our training split give the same qualitative result on both game sets. The interaction deltas measure an outcome-relevant property of a composition beyond individual hero strength, which is the component they are designed to isolate. 
 
-\section{Dual-Snapshot Stability of the Interaction Metrics}
-\label{sec:dualsnap}
-
-The interaction-metric magnitudes are snapshot-sensitive: re-pulling the community aggregate statistics shifts the pairwise deltas systematically, so absolute synergy and counter values are not comparable across snapshots. The collapse diagnosis and the method comparisons rest instead on \textit{relative} gaps. Here we verify directly that the relative ordering of strategies is stable across statistics snapshots.
-
-The twelve MCTS training configurations of the main paper's simulation-scaling study were each re-benchmarked twice under an identical protocol (15 seeds $\times$ 600 drafts against behavioral-cloning opponents): once with the aggregate statistics in use before the May 2026 re-pull, and once with the frozen 2026-05-19 snapshot used throughout the paper. The trained policy networks are identical in both arms; only the statistics feeding the enriched features and the metric lookups change. Table~\ref{tab:dualsnap} shows synergy exploitation and counter responsiveness per configuration under both snapshots.
-
-\begin{table}[t]
-\centering
-\caption{Interaction metrics for twelve MCTS configurations under two statistics snapshots (earlier pull vs.\ frozen 2026-05-19; 15 seeds $\times$ 600 drafts each, identical policies). Rows sorted by frozen-snapshot synergy. Spearman rank correlation of the configuration ordering across snapshots: $\rho = 1.00$ (synergy), $\rho = 0.97$ (counter), $\rho = 1.00$ (early resilience, not shown).}
-\label{tab:dualsnap}
-\begin{tabular}{lcccc}
-\toprule
-& \multicolumn{2}{c}{Synergy} & \multicolumn{2}{c}{Counter} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Config & Earlier & Frozen & Earlier & Frozen \\
-\midrule
-L\_800sim\_4M & $+$1.20 & $+$1.21 & $+$0.19 & $+$0.18 \\
-J\_800sim & $+$1.07 & $+$1.07 & $+$0.20 & $+$0.20 \\
-I\_600sim & $+$0.99 & $+$1.01 & $+$0.20 & $+$0.19 \\
-F\_400sim & $+$0.92 & $+$0.94 & $+$0.18 & $+$0.19 \\
-E\_1M & $+$0.91 & $+$0.94 & $+$0.18 & $+$0.18 \\
-H\_augmented & $+$0.73 & $+$0.75 & $+$0.16 & $+$0.16 \\
-B\_fullwp & $+$0.69 & $+$0.73 & $+$0.15 & $+$0.15 \\
-A\_partial & $+$0.68 & $+$0.72 & $+$0.14 & $+$0.14 \\
-K\_truebase & $+$0.54 & $+$0.59 & $+$0.13 & $+$0.12 \\
-G\_base & $+$0.53 & $+$0.57 & $+$0.11 & $+$0.11 \\
-C\_large & $+$0.45 & $+$0.49 & $+$0.13 & $+$0.13 \\
-D\_deep & $+$0.14 & $+$0.14 & $+$0.12 & $+$0.11 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The ordering is essentially unchanged: Spearman rank correlations across the twelve configurations are 1.00 for synergy, 0.97 for counter responsiveness (adjacent reshuffling among near-tied configurations), and 1.00 for early-pick resilience. Absolute values shift by at most $+$0.05 (synergy) and $\pm$0.007 (counter), small relative to the between-configuration gaps the paper's conclusions rest on (e.g., the $+$0.9 synergy separation between deep-search and anchored strategies). This benchmark predates the paper's final retrained models, so its absolute magnitudes differ from the main-paper tables; the comparison isolates the snapshot effect, which is the quantity of interest. Strategy-level rich evaluations (Table~V of the main paper) were run only under the frozen snapshot; the earlier pull existed as a live database state and was not retained, so the controlled dual-snapshot evidence above is the MCTS configuration family, which spans the full range of interaction-awareness the paper reports.
-
 \section{External Validation on Coordinated-League Drafts}
 \label{sec:ngs}
 
@@ -148,7 +82,7 @@ The main paper's behavior policy is uncoordinated ranked-ladder play, and its Li
 
 \paragraph{Coordinated drafts are \textit{more} meta-concentrated.} A natural hypothesis is that coordinated teams, freed from solo-queue comfort picking, explore more of the hero pool. The data show the opposite, at both the hero and the composition level. Hero level: NGS pick entropy is 5.92 bits vs.\ the ladder's 6.25 (effective pool 60.5 vs.\ 75.9 heroes), the top-10 heroes take 33.5\% of picks vs.\ 25.1\%, and the off-meta share (picks outside the ladder top-30) is 39.8\% vs.\ 43.3\%; hero pick-rate rank correlation between the populations is 0.74. Composition level: NGS fields 78 distinct role compositions vs.\ 238 on ladder, with composition entropy 2.69 vs.\ 3.06 bits, the top-5 compositions covering 84.3\% vs.\ 78.6\% of teams, and 90\% coverage reached in 9 vs.\ 12 compositions. The modal composition is the same standard core in both populations (bruiser/healer/double-ranged/tank: 53\% vs.\ 50\%); NGS's second-most-common composition is a double-tank variant (12.3\%). Our reading: coordinated teams converge on a known-good playbook, while ladder ``diversity'' partly reflects uncoordinated comfort picking and error. This fits the main paper's description of the behavior policy as shaped largely by social habit. Coordinated teams draft more narrowly, so the ladder's wider spread reflects comfort picking more than exploration.
 
-\paragraph{Win-probability transfer.} Scored at the game level with symmetrized predictions, the leak-free enriched model reaches 55.5\% accuracy on NGS (95\% CI $\pm$0.9pp) against 57.7\% on the held-out ladder test set; the leak-free naive and augmented models also score 55.5\%. NGS games are in neither our corpus nor the Storm League aggregates, so no model has self-inclusion here. The ladder-to-NGS drop is about 2.2pp for every model. The submission compared NGS with a leaky ladder figure (58.1\%) and reported a larger drop for the enriched model; its enriched model also scored 55.5\% on NGS, with calibration slope 0.75 against 0.86 for the leak-free enriched model and 0.94 for the leak-free naive model. Splitting NGS drafts into quartiles by off-meta pick share, the submitted enriched model scored 57.6\% on the most-meta quartile and 54.5\% on the least-meta quartile. The leak-free models show no such trend: the enriched model scores 56.0\%, 54.2\%, 56.9\%, and 54.8\% from most- to least-meta quartile (about 2,760 games each, CI $\pm$1.9pp), and the naive model 56.4\%, 54.7\%, 56.2\%, and 54.5\%. We therefore do not claim that the degradation concentrates in off-meta drafts. 99.98\% of NGS team compositions fall within the composition sets observed in the ladder-era aggregate statistics, so this shift re-weights familiar structures and does not reach the never-observed compositions that synthetic augmentation targets. One caveat caps interpretation: NGS outcomes also reflect persistent team-strength imbalances that the models never observe (the same organized teams meet repeatedly), which lowers attainable accuracy in a way not directly comparable to solo-queue ladder play.
+\paragraph{Win-probability transfer.} Scored at the game level with symmetrized predictions, the leak-free enriched model reaches 55.5\% accuracy on NGS (95\% CI $\pm$0.9pp) against 57.7\% on the held-out ladder test set; the leak-free naive and augmented models also score 55.5\%. NGS games are in neither our corpus nor the Storm League aggregates, so no model has self-inclusion here. The ladder-to-NGS drop is about 2.2pp for every model. The submission compared NGS with a leaky ladder figure (58.1\%) and reported a larger drop for the enriched model; its enriched model also scored 55.5\% on NGS, with calibration slope 0.75 against 0.86 for the leak-free enriched model and 0.94 for the leak-free naive model. Splitting NGS drafts into quartiles by off-meta pick share, the submitted enriched model scored 57.6\% on the most-meta quartile and 54.5\% on the least-meta quartile. The leak-free models show no such trend: the enriched model scores 56.0\%, 54.2\%, 56.9\%, and 54.8\% from most- to least-meta quartile (about 2,760 games each, CI $\pm$1.9pp), and the naive model 56.4\%, 54.7\%, 56.2\%, and 54.5\%. We therefore do not claim that the degradation concentrates in off-meta drafts. 99.98\% of NGS team compositions fall within the composition sets observed in the ladder-era aggregate statistics, so this shift re-weights familiar structures and does not reach the never-observed compositions. One caveat caps interpretation: NGS outcomes also reflect persistent team-strength imbalances that the models never observe (the same organized teams meet repeatedly), which lowers attainable accuracy in a way not directly comparable to solo-queue ladder play.
 
 \section{Draft Concentration and Out-of-Distribution Extrapolation}
 \label{sec:concentration}
@@ -186,7 +120,6 @@ Gourdeau estimator & 0.94 & 2.21 & 35.5\% \\
 MCTS & 0.77 & 1.82 & 22.9\% \\
 Constrained greedy & 0.77 & 1.81 & 24.6\% \\
 MCTS, no features & 0.77 & 1.80 & 24.9\% \\
-Enr.+aug greedy & 0.76 & 1.79 & 24.2\% \\
 Enriched greedy & 0.74 & 1.75 & 23.8\% \\
 Constrained MCTS & 0.71 & 1.66 & 20.2\% \\
 MCQ & 0.63 & 1.48 & 20.9\% \\
