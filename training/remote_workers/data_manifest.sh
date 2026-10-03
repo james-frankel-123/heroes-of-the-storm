@@ -28,6 +28,9 @@ T=training
   find $T/overfit2026/cache -maxdepth 1 -type f -size -100M
   find $T/overfit2026/results -type f -size -20M
   find $T/qm2026/results -type f -size -20M
+  # NGS tournament drafts (paper1_revision/deferred.py ngs_quartiles)
+  echo $T/ngs2026/ngs_drafts.json
+  echo $T/ngs2026/meta_analysis.json
   # drift paper v2 rebuild (opt-in: DRIFT_V2_DATA=1): site-tiered stats and
   # feature caches, patch index/sidecar
   if [ "${DRIFT_V2_DATA:-}" = 1 ]; then

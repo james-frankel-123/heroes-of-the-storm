@@ -20,6 +20,11 @@ Queues (balanced for concurrent use of one 24 GB GPU):
   cqlB    IQL 6 cells, CQL grid (alpha 1) taus at 512x256x128
   cqlC    CQL grid at 1024x512x256 and 256x128x64
   cqlD    naive CQL alpha sweep (0.5, 1, 0.1, 2, 5)
+  cqlN    (since 2026-10-03, with cqlG replacing cqlA-D) Gourdeau WP, naive
+          CQL a=0.5/1.0, BC-CQL b=1 (what the evaluations wait on), then the
+          rest of cqlA and cqlD
+  cqlG    cqlB then cqlC
+Per-job memory: site/mem_caps.json (RLIMIT_DATA per job, see data_limit).
 
 Usage (worker, from ~/hots/repo/training): python paper1_revision/site_remote_queue.py <queue>
 """
@@ -72,11 +77,47 @@ def queues():
                          m(f"cql_hp_a1.0_t{tau}_{a_s}"), {}))
     Q["cqlD"] = [(f"cql_naive_a{a}", [TJ, "cql_naive", "--alpha", str(a)], m(f"cql_naive_a{a}"), {})
                  for a in (0.5, 1.0, 0.1, 2.0, 5.0)]
+    # the Gourdeau WP reads heroes, map and winner only: the lean snapshot copy
+    # (same rows, same order; site_lite_snapshot.py) at a fraction of the memory
+    gourdeau = ("gourdeau_wp", [TJ, "gourdeau"], m("gourdeau_wp"),
+                {"REPLAY_SNAPSHOT_PATH": SNAP[:-5] + "_lite.json"})
+    # after the 3090 WSL hang (2026-10-03): two sequential lanes instead of
+    # four concurrent queues. cqlN = models the evaluation queues wait on
+    # first, then the rest of the MCQ/BC-CQL/naive-CQL sweeps; cqlG = IQL and
+    # the CQL hyperparameter grid. Finished jobs are skipped by marker.
+    by = {j[0]: j for k in ("cqlA", "cqlB", "cqlC", "cqlD") for j in Q[k]}
+    first = ["cql_naive_a0.5", "cql_naive_a1.0", "bccql_b1.0"]
+    Q["cqlN"] = [gourdeau] + [by[n] for n in first] + [
+        j for k in ("cqlA", "cqlD") for j in Q[k] if j[0] not in first and not j[0].startswith("iql")]
+    Q["cqlG"] = [j for k in ("cqlB", "cqlC") for j in Q[k]]
     # single-job queues, so the GD seeds can train concurrently
     for i in range(5):
         Q[f"gd{i}"] = [Q["gd"][i]]
     Q["disc"] = Q["gd"][5:]
     return Q
+
+
+def data_limit(job):
+    """preexec_fn setting the job's RLIMIT_DATA from site/mem_caps.json
+    ({"default": "32G", "jobs": {name: "24G"}}, sized from measured peaks;
+    read at each job start). None when the file is missing."""
+    import json
+    import resource
+    p = os.path.join(SITE, "mem_caps.json")
+    if not os.path.exists(p):
+        return None
+    caps = json.load(open(p))
+    cap = caps.get("jobs", {}).get(job) or caps.get("default")
+    if not cap:
+        return None
+    n = int(float(cap[:-1]) * {"G": 1 << 30, "M": 1 << 20}[cap[-1].upper()])
+    print(f"data limit {job}: {cap}", flush=True)
+
+    def _set():
+        soft, hard = resource.getrlimit(resource.RLIMIT_DATA)
+        lim = n if hard == resource.RLIM_INFINITY else min(n, hard)
+        resource.setrlimit(resource.RLIMIT_DATA, (lim, hard))
+    return _set
 
 
 def main():
@@ -99,7 +140,8 @@ def main():
         print(f"=== {name}", flush=True)
         e = dict(env)
         e.update(extra)
-        rc = subprocess.call([sys.executable, "-u"] + argv, cwd=TRAINING_DIR, env=e)
+        rc = subprocess.call([sys.executable, "-u"] + argv, cwd=TRAINING_DIR, env=e,
+                             preexec_fn=data_limit(name))
         if rc != 0:
             print(f"FAILED {name} rc={rc}", flush=True)
             sys.exit(rc)

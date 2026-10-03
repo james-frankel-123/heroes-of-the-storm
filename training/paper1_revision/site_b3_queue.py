@@ -27,6 +27,9 @@ import sys
 import glob
 import subprocess
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from site_remote_queue import data_limit  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 T = os.path.dirname(HERE)
 SITE = os.path.join(HERE, "site")
@@ -38,7 +41,7 @@ BASE = {"RERUN_NS": "p1site", "RERUN_SPLIT": "p1val", "REPLAY_SNAPSHOT_PATH": SN
 RICH = dict(BASE, WP_STATS_PATH=os.path.join(T, "frozen_stats_2026-05-19.json"),
             P1R_COMP_PATH=os.path.join(T, "pins", "compositions_hp_f2eb025.json"),
             PYTHONPATH=os.path.join(HERE, "oct2026_site"))
-P1 = dict(BASE, P1_TIERS="site", P1R_NPROC="6",
+P1 = dict(BASE, P1_TIERS="site", P1R_NPROC="3",
           WP_STATS_PATH=os.path.join(SITE, "cache", "stats", "deploy.json"),
           P1R_COMP_PATH=os.path.join(SITE, "cache", "stats", "deploy_compositions.json"),
           PYTHONPATH=os.path.join(HERE, "oct2026_site"))
@@ -52,27 +55,29 @@ def queues():
     Q = {"rich": [], "p1": []}
     # the order puts baselines whose training has finished first; each job waits
     # for its model's final meta file (NEEDS)
-    for s in ("gd", "mcq_t0.5", "gourdeau", "bccql_b1.0", "cql_a0.5", "cql_a1.0"):
+    disc = os.path.join(T, "rerun2026", "train_gourdeau_discriminator.py")
+    Q["rich"].append(("disc_degen", [disc, "--stage", "degen"], None, RICH))
+    Q["rich"].append(("disc_rich", [disc, "--stage", "rich"], R("rich_eval", "gourdeau_discriminator.json"), RICH))
+    # models in the order the cqlN lane trains them (site_remote_queue.py)
+    for s in ("gd", "mcq_t0.5", "gourdeau", "cql_a0.5", "cql_a1.0", "bccql_b1.0"):
         Q["rich"].append((f"rich_{s}", [P3, "--task", "rich-eval", "--strategy", s, "--drafts", "1000",
                                         "--seeds", "5"], R("rich_eval", f"{s}.json"), RICH))
     Q["rich"].append(("rich_iql", [os.path.join(T, "rerun2026", "experiment_iql_draft.py"), "--task", "rich-eval",
                                    "--cell", "t0.9_b3.0"], R("rich_eval", "iql_t0.9_b3.0.json"), RICH))
-    disc = os.path.join(T, "rerun2026", "train_gourdeau_discriminator.py")
-    Q["rich"].append(("disc_degen", [disc, "--stage", "degen"], None, RICH))
-    Q["rich"].append(("disc_rich", [disc, "--stage", "rich"], R("rich_eval", "gourdeau_discriminator.json"), RICH))
+    Q["rich"].sort(key=lambda j: j[0] not in ("disc_degen", "disc_rich", "rich_iql", "rich_gd", "rich_mcq_t0.5"))
     p = lambda f: os.path.join(HERE, f)
     Q["p1"] += [
         ("sanity", [p("sanity.py")], S("sanity.json"), P1),
         ("crosseval", [p("crosseval.py")], S("crosseval.json"), P1),
-        ("greedy_pool", [p("greedy_evals.py"), "pool", "--procs", "6"], None, P1),
+        ("greedy_pool", [p("greedy_evals.py"), "pool", "--procs", "2"], None, P1),
         ("greedy_agg", [p("greedy_evals.py"), "aggregate"], S("greedy_rich.json"), P1),
-        ("mcq_dead", [p("mcq_dead_units.py")], S("mcq_dead_units.json"), P1),
-        ("gourdeau_eval", [p("eval_gourdeau.py")], S("gourdeau_eval.json"), P1),
         ("ngs_quartiles", [D, "ngs_quartiles"], S("deferred", "ngs_quartiles.json"), P1),
         ("cql_build", [D, "cql_build"], None, P1),
         ("cql_train_a2.0", [D, "cql_train_a2.0"], None, P1),
         ("cql_train_a0.5", [D, "cql_train_a0.5"], None, P1),
         ("cql_eval", [D, "cql_eval"], S("deferred", "cql_enriched_eval.json"), P1),
+        ("gourdeau_eval", [p("eval_gourdeau.py")], S("gourdeau_eval.json"), P1),
+        ("mcq_dead", [p("mcq_dead_units.py")], S("mcq_dead_units.json"), P1),
     ]
     return Q
 
@@ -80,7 +85,8 @@ def queues():
 META = lambda n: os.path.join(NS, "models", "meta", f"{n}.json")
 NEEDS = {"rich_cql_a0.5": META("cql_naive_a0.5"), "rich_cql_a1.0": META("cql_naive_a1.0"),
          "rich_bccql_b1.0": META("bccql_b1.0"), "rich_mcq_t0.5": META("mcq_t0.5"),
-         "rich_iql": META("iql_t0.9_b3.0"),
+         "rich_iql": META("iql_t0.9_b3.0"), "rich_gourdeau": META("gourdeau_wp"),
+         "gourdeau_eval": META("gourdeau_wp"), "mcq_dead": META("cql_naive_a1.0"),
          }
 
 
@@ -97,7 +103,7 @@ def main():
         print(f"=== {name}", flush=True)
         e = dict(os.environ)
         e.update(env)
-        rc = subprocess.call([sys.executable, "-u"] + argv, cwd=T, env=e)
+        rc = subprocess.call([sys.executable, "-u"] + argv, cwd=T, env=e, preexec_fn=data_limit(name))
         if rc != 0:
             print(f"FAILED {name} rc={rc}", flush=True)     # continue with the rest
     print(f"QUEUE {q} DONE", flush=True)

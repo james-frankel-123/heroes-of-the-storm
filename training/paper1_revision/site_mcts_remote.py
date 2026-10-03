@@ -14,6 +14,12 @@ to yield to other lanes; read every cycle), e.g. {"max-windows-3090": 2,
 and stats, exclude list, GD pool) before its first launch. A run is never
 launched twice: a manifest of that name on any host counts as taken.
 
+Memory (2026-10-03): at most 2 runs per host, launched one at a time: a run
+starts only when no other run on that host is in value pretraining; each
+run has a per-process data cap (site/mem_caps.json "mcts"). An unreachable
+host (ssh or WSL not answering) stops all launches and writes an alert to
+site/logs/ALERT_site_mcts_remote.
+
 Usage (from training/): setsid nohup python3 paper1_revision/site_mcts_remote.py &
 Log: paper1_revision/site/logs/site_mcts_remote.log
 """
@@ -49,15 +55,50 @@ def ready():
             and os.path.exists(os.path.join(SITE, "models", "enriched_leak.json")))
 
 
+ALERT = os.path.join(SITE, "logs", "ALERT_site_mcts_remote")
+
+
+def alert(msg):
+    """Log and leave a flag file the session watcher picks up."""
+    log(f"ALERT {msg}")
+    open(ALERT, "a").write(f"[{time.strftime('%m-%d %H:%M:%S')}] {msg}\n")
+
+
 def status(host):
-    r = subprocess.run([os.path.join(RW, "jobs_remote.sh"), host], capture_output=True, text=True,
-                       cwd=TRAINING_DIR)
+    """{run: status} of this lane's MCTS jobs on host, or None when the host
+    (or its WSL) does not answer: then nothing is launched or assumed."""
+    try:
+        r = subprocess.run([os.path.join(RW, "jobs_remote.sh"), host], capture_output=True, text=True,
+                           cwd=TRAINING_DIR, timeout=240)
+    except subprocess.TimeoutExpired:
+        return None
+    text = (r.stdout + r.stderr).replace("\0", "")
+    # a live WSL lists at least one manifest line (hotsjob prints "no jobs" otherwise)
+    if r.returncode != 0 or "HCS_E" in text or "Wsl/" in text or not re.search(r"^\S+\s+(running|completed|failed|paused|died|pausing)\b", r.stdout, re.M):
+        return None
     out = {}
     for line in r.stdout.splitlines():
         m = re.match(r"(p1site_[A-Z]_(oof|leak)_s\d)\s+(\w+)", line.strip())
         if m:
             out[m.group(1)] = m.group(3)
     return out
+
+
+def in_pretraining(host, runs):
+    """Runs on host whose value pretraining has not finished (the stagger rule:
+    never two value pretrainings at once on a host). Unknown -> treated as in."""
+    if not runs:
+        return []
+    cmd = "; ".join(f"grep -qE 'pre-training complete|^Episode ' ~/hots/repo/training/paper1_revision/site/logs/mcts_{r[len('p1site_'):]}.log 2>/dev/null || echo {r}"
+                    for r in runs)
+    try:
+        r = subprocess.run(["ssh", host, "wsl -e bash -s"], input=cmd + "\necho __ok\n", capture_output=True,
+                           text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        return list(runs)
+    if "__ok" not in r.stdout:
+        return list(runs)
+    return [l.strip() for l in r.stdout.splitlines() if l.strip().startswith("p1site_")]
 
 
 def drift_mcts_running():
@@ -83,12 +124,21 @@ def push(host):
     return r.returncode == 0
 
 
+def mem_cap(cfg):
+    """Per-process data limit for an MCTS run (site/mem_caps.json "mcts", sized
+    from measured peaks; default 32G)."""
+    p = os.path.join(SITE, "mem_caps.json")
+    caps = json.load(open(p)) if os.path.exists(p) else {}
+    return caps.get("mcts", {}).get(cfg) or caps.get("mcts", {}).get("default") or "32G"
+
+
 def launch(host, cfg, tag, seed):
     run = f"{cfg}_{tag}_s{seed}"
     wp = " --wp enriched_leak" if tag == "leak" else ""
     env = dict(os.environ, RUN_NAME=f"p1site_{run}",
                HOTSJOB_FLAGS=f"--save-dir paper1_revision/site/mcts_runs/{run} "
-                             f"--progress-log paper1_revision/site/logs/mcts_{run}.log")
+                             f"--progress-log paper1_revision/site/logs/mcts_{run}.log "
+                             f"--mem-max {mem_cap(cfg)}")
     r = subprocess.run([os.path.join(RW, "run_remote.sh"), host, "env", "P1_TIERS=site", "python",
                         "paper1_revision/train_mcts.py", cfg, str(seed), "--gpu", "0"] + wp.split(),
                        capture_output=True, text=True, cwd=TRAINING_DIR, env=env)
@@ -107,6 +157,13 @@ def main():
     while True:
         slots = json.load(open(SLOTS)) if os.path.exists(SLOTS) else {"max-windows-3090": 2}
         st = {h: status(h) for h in slots}
+        down = [h for h, v in st.items() if v is None]
+        if down:
+            # an unreachable host's jobs are unknown: launch nothing anywhere
+            # (a run there may be alive) and alert
+            alert(f"unreachable (ssh/WSL): {', '.join(down)}; no launches this cycle")
+            time.sleep(300)
+            continue
         taken = {n for s in st.values() for n in s}
         pending = [r for r in RUNS if f"p1site_{r[0]}_{r[1]}_s{r[2]}" not in taken]
         if not pending and all(v in ("done", "finished") for s in st.values() for v in s.values()):
@@ -117,7 +174,12 @@ def main():
         if slots.get("3080-gaming-desktop") == 1 and not drift_mcts_running():
             slots["3080-gaming-desktop"] = 2
         for host, n in slots.items():
-            running = sum(1 for v in st[host].values() if v in ("running", "starting"))
+            n = min(n, 2)    # at most 2 concurrent MCTS runs per host (3090 rule, 2026-10-03)
+            live = [r for r, v in st[host].items() if v in ("running", "starting")]
+            running = len(live)
+            # stagger: no launch while a run on this host is still in value pretraining
+            if running < n and pending and in_pretraining(host, live):
+                continue
             while running < n and pending:
                 if host not in pushed:
                     if not push(host):
@@ -128,6 +190,7 @@ def main():
                 cfg, tag, seed = pending.pop(0)
                 launch(host, cfg, tag, seed)
                 running += 1
+                break        # one launch per host per cycle; the next waits out its pretraining
         time.sleep(300)
 
 

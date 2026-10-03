@@ -88,6 +88,18 @@ A job whose process group is gone without an exit record is marked `failed` by `
 poll `state`, not read the manifest: the manifest still says `running` if the runner itself was
 killed. That happened on 2026-10-02, when a host-wide OOM left a chain waiting for 5 h.
 
+### Memory monitor (memmon.py)
+
+Run one per worker as a plain job: `RUN_NAME=memmon run_remote.sh <host> python
+remote_workers/memmon.py --min-free-gb 40`. Every minute it appends `free -g` to
+`/mnt/c/hots_memlog/free.log` (Windows side, readable after a WSL hang:
+`ssh <host> "type C:\hots_memlog\free.log"`), records each running job's PSS, anonymous memory
+and largest per-process VmData in `/mnt/c/hots_memlog/jobs.log` and `~/hots/memmon_state.json`
+(current and peak; size `--mem-max` from the VmData peak), and, when MemAvailable drops below
+the threshold, pauses the most recently started job and writes an ALERT line to
+`/mnt/c/hots_memlog/alerts.log`. Paused jobs are not resumed automatically. On 2026-10-03 the
+3090's WSL hung with vmmem at 134 GB (too many jobs at once) and every job there died.
+
 ## Pause and resume
 
 The owner may ask for the GPUs back with about 15 minutes' notice:
@@ -213,6 +225,11 @@ echo 'bash ~/hots/repo/training/remote_workers/build_ext.sh' | ssh <host> "wsl -
 ```
 
 Gotchas:
+- `.wslconfig` needs `[general] instanceIdleTimeout=-1` (besides `[wsl2] vmIdleTimeout=-1`).
+  Without it, once the SSH session that launched a job ends, WSL treats the distro as idle and
+  terminates it, killing the job (seen on the 3090 after the WSL 2.7 restart on 2026-10-03,
+  where the systemd user session also fails to start). Check: `ps -o lstart= -p 1` must not change
+  between two SSH sessions.
 - On the 3080 (driver 576.52), `CUDA_VISIBLE_DEVICES=""` makes WSL's libcuda abort in
   `cuInit` with a "double free". Do not hide the GPU that way; `build_ext.sh` keeps it visible.
 - The extensions are built for sm_86 only (`TORCH_CUDA_ARCH_LIST=8.6`).
