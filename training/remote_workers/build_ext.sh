@@ -2,6 +2,9 @@
 # Build the CUDA MCTS extensions in place (nvcc only; needs no GPU).
 # Run inside WSL on a worker: bash ~/hots/repo/training/remote_workers/build_ext.sh
 # Rebuild after every code sync that touches training/cuda_mcts or overfit2026/cuda_ofit.
+# Paper-1 site-tier MCTS (paper1_revision/train_mcts.py, P1_TIERS=site) needs the
+# composition fallback in the Python WP's order: HOTS_COMP_FALLBACK_MID_HIGH_LOW=1 bash build_ext.sh
+# (train_mcts.py refuses a build without it; check: the module's COMP_FALLBACK_ORDER).
 set -euo pipefail
 source ~/hots/env.sh
 # nvcc needs no GPU, but torch probes cuInit; CUDA_VISIBLE_DEVICES="" crashes the

@@ -50,6 +50,19 @@ def exclude_path():
     return p
 
 
+def kernel_fallback_order():
+    """COMP_FALLBACK_ORDER of the research cuda_mcts build (None: predates the attribute)."""
+    import subprocess
+    code = ("import importlib.util,os,sys,torch;d=sys.argv[1];"
+            "f=[x for x in os.listdir(d) if x.startswith('cuda_mcts_kernel.') and x.endswith('.so')][0];"
+            "s=importlib.util.spec_from_file_location('cuda_mcts_kernel',os.path.join(d,f));"
+            "k=importlib.util.module_from_spec(s);s.loader.exec_module(k);"
+            "print(getattr(k,'COMP_FALLBACK_ORDER','none'))")
+    out = subprocess.run([sys.executable, "-c", code, os.path.join(TRAINING_DIR, "cuda_mcts")],
+                         capture_output=True, text=True)
+    return out.stdout.strip().splitlines()[-1] if out.returncode == 0 and out.stdout.strip() else None
+
+
 def worker():
     """Child entry: patch compositions, then run the worker as __main__."""
     sys.path.insert(0, TRAINING_DIR)
@@ -99,6 +112,13 @@ def main():
         snap = os.path.join(TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site.json")
         lite = snap[:-5] + "_lite.json"
         os.environ["REPLAY_SNAPSHOT_PATH"] = lite if os.path.exists(lite) else snap
+        # the kernel's composition fallback must follow StatsCache.get_comp_wr
+        # (mid, high, low), the order the leaf WP was trained on: build with
+        # HOTS_COMP_FALLBACK_MID_HIGH_LOW=1
+        order = kernel_fallback_order()
+        if order != "mid_high_low":
+            raise SystemExit(f"cuda_mcts kernel composition fallback is {order}; rebuild with "
+                             "HOTS_COMP_FALLBACK_MID_HIGH_LOW=1 (remote_workers/build_ext.sh)")
     if a.wp is None:
         a.wp = "naive" if a.config == "K" else "enriched"
     meta = json.load(open(os.path.join(core.MODEL_DIR, f"{a.wp}.json")))

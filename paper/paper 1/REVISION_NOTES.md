@@ -1399,3 +1399,34 @@ The 91-hero production retrain takes the 3080 from about Oct 3 morning to about 
 - The augmented greedy agent is dropped from `greedy_evals.py` (rich rows; WR sweep keeps `enriched_512`) and from `tournament.py`.
 - The augmentation scope sweep is removed from the B3 queue.
 - The site-tier `aug_wr*` WP models (Table I) are trained but no longer used.
+
+### 15.15 Kernel composition fallback in the WP's tier order (2026-10-03)
+When a team's role composition is missing from its own tier's table, the CUDA
+kernels (cuda_mcts research build, overfit2026/cuda_ofit) fell back to the
+other tiers in index order (low, mid, high); StatsCache.get_comp_wr, which
+built the leaf WP's training features, uses mid, high, low. Production fixed
+this in 11a198e behind -DCOMP_FALLBACK_MID_HIGH_LOW; the research builds
+did not set it.
+
+Parity on the site-tier training setup (paper1_revision/verify_kernel_site.py:
+768 self-play drafts per leaf WP, 50 sims, root temperature 2, all maps,
+tiers low/mid/high, both sides; kernel vs Python WP, same StatsCache):
+
+| build | leaf WP | drafts where the orders pick different tiers | max abs diff | mean abs diff | max diff elsewhere |
+|---|---|---|---|---|---|
+| index order | enriched (oof) | 17 / 768 (2.2%) | 0.044 | 3.2e-4 | 6.6e-7 |
+| index order | enriched_leak | 12 / 768 (1.6%) | 0.036 | 1.6e-4 | 1.4e-6 |
+| mid,high,low | enriched (oof) | 19 / 768 | 7.2e-7 | 1.7e-7 | — |
+| mid,high,low | enriched_leak | 32 / 768 | 1.5e-6 | 3.2e-7 | — |
+
+Every difference above float noise came from the fallback. Earlier offline
+simulation on benchmark and tournament drafts: 0.41% of rows, max 0.046.
+
+Decision: fix and rerun. The 3090's cuda_mcts and cuda_ofit were rebuilt
+with HOTS_COMP_FALLBACK_MID_HIGH_LOW=1 (setup.py reads it; the modules now
+expose COMP_FALLBACK_ORDER) and train_mcts.py under P1_TIERS=site refuses a
+build whose order is not mid_high_low. B_oof s0/s1 (started 00:51 on the old
+build, paused at ~203K/300K episodes) are discarded (archived under
+site/mcts_runs/_discarded_index_fallback/) and rerun from scratch; all
+remaining option-B runs start on the fixed build. The 3080 needs the same
+rebuild before it takes paper-1 MCTS slots again.
