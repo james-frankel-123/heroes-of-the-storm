@@ -1,0 +1,236 @@
+{
+ "pool_seed": 20261001,
+ "changed_heroes": [
+  "Abathur",
+  "Alexstrasza",
+  "Garrosh",
+  "Mal'Ganis",
+  "Qhira",
+  "Whitemane",
+  "Yrel"
+ ],
+ "bugfix_heroes": [
+  "Ragnaros",
+  "Malfurion",
+  "Anduin",
+  "Xul"
+ ],
+ "changed_maps": [
+  "Garden of Terror",
+  "Volskaya Foundry"
+ ],
+ "xalatath_items": 0,
+ "hero_appearances": {
+  "Abathur": 82,
+  "Alexstrasza": 46,
+  "Garrosh": 109,
+  "Mal'Ganis": 33,
+  "Qhira": 75,
+  "Whitemane": 121,
+  "Yrel": 75,
+  "Ragnaros": 135,
+  "Malfurion": 58,
+  "Anduin": 313,
+  "Xul": 46
+ },
+ "variants": {
+  "a_changed_heroes": {
+   "blocks": {
+    "screener": {
+     "items": 8,
+     "affected": 6,
+     "affected_by_tier": {
+      "low": 2,
+      "mid": 2,
+      "high": 2
+     }
+    },
+    "calibration": {
+     "items": 40,
+     "affected": 18,
+     "affected_by_tier": {
+      "low": 4,
+      "mid": 6,
+      "high": 8
+     }
+    },
+    "pairs": {
+     "items": 280,
+     "affected": 63,
+     "affected_by_tier": {
+      "low": 15,
+      "mid": 22,
+      "high": 26
+     }
+    },
+    "anchors": {
+     "items": 570,
+     "affected": 335,
+     "affected_by_tier": {
+      "low": 98,
+      "mid": 114,
+      "high": 123
+     }
+    },
+    "catch": {
+     "items": 3,
+     "affected": 1,
+     "affected_by_tier": {
+      "low": 1,
+      "mid": 0,
+      "high": 0
+     }
+    }
+   },
+   "strata": {
+    "constrained_mcts_vs_mcts": {
+     "items": 42,
+     "affected": 8
+    },
+    "mcts_vs_enriched": {
+     "items": 42,
+     "affected": 15
+    },
+    "vs_anchored": {
+     "items": 118,
+     "affected": 16
+    },
+    "other_pairs": {
+     "items": 78,
+     "affected": 24
+    }
+   },
+   "effective": {
+    "H1_0.01": {
+     "before": 272,
+     "after": 210
+    },
+    "H1_0.02": {
+     "before": 255,
+     "after": 195
+    },
+    "H1_0.05": {
+     "before": 213,
+     "after": 163
+    },
+    "S5_0.02": {
+     "before": 113,
+     "after": 97
+    },
+    "S1_anchors": {
+     "low": {
+      "before": 190,
+      "after": 92
+     },
+     "mid": {
+      "before": 190,
+      "after": 76
+     },
+     "high": {
+      "before": 190,
+      "after": 67
+     }
+    }
+   }
+  },
+  "b_broad": {
+   "blocks": {
+    "screener": {
+     "items": 8,
+     "affected": 8,
+     "affected_by_tier": {
+      "low": 3,
+      "mid": 3,
+      "high": 2
+     }
+    },
+    "calibration": {
+     "items": 40,
+     "affected": 34,
+     "affected_by_tier": {
+      "low": 11,
+      "mid": 10,
+      "high": 13
+     }
+    },
+    "pairs": {
+     "items": 280,
+     "affected": 215,
+     "affected_by_tier": {
+      "low": 70,
+      "mid": 72,
+      "high": 73
+     }
+    },
+    "anchors": {
+     "items": 570,
+     "affected": 473,
+     "affected_by_tier": {
+      "low": 153,
+      "mid": 154,
+      "high": 166
+     }
+    },
+    "catch": {
+     "items": 3,
+     "affected": 2,
+     "affected_by_tier": {
+      "low": 1,
+      "mid": 1,
+      "high": 0
+     }
+    }
+   },
+   "strata": {
+    "constrained_mcts_vs_mcts": {
+     "items": 42,
+     "affected": 22
+    },
+    "mcts_vs_enriched": {
+     "items": 42,
+     "affected": 24
+    },
+    "vs_anchored": {
+     "items": 118,
+     "affected": 102
+    },
+    "other_pairs": {
+     "items": 78,
+     "affected": 67
+    }
+   },
+   "effective": {
+    "H1_0.01": {
+     "before": 272,
+     "after": 62
+    },
+    "H1_0.02": {
+     "before": 255,
+     "after": 57
+    },
+    "H1_0.05": {
+     "before": 213,
+     "after": 45
+    },
+    "S5_0.02": {
+     "before": 113,
+     "after": 16
+    },
+    "S1_anchors": {
+     "low": {
+      "before": 190,
+      "after": 37
+     },
+     "mid": {
+      "before": 190,
+      "after": 36
+     },
+     "high": {
+      "before": 190,
+      "after": 24
+     }
+    }
+   }
+  }
+ }
+}

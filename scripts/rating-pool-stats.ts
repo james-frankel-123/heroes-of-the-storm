@@ -42,10 +42,14 @@ const file = process.argv[2] ?? path.resolve(__dirname, '../data/rating-items.js
 const pool = JSON.parse(fs.readFileSync(file, 'utf8'))
 const items: Item[] = pool.items
 const judged = pool.judges?.wpTeam0Sym
+// Evaluators are the individual judges; the consensus is reported separately.
 const EVALUATORS: string[] = judged
-  ? judged.specs.map((s: string) => s.split(':').pop()!.replace(/_sc$/, ''))
+  ? judged.specs.map((s: string) => s.split(':').pop()!.replace(/_sc$/, '')).filter((e: string) => e !== 'consensus')
   : ['naive', 'herostrength', 'enriched', 'augmented']
-console.log(`pool seed ${pool.seed}, ${items.length} items; evaluators ${EVALUATORS.join(', ')}`)
+console.log(
+  `pool seed ${pool.seed}, ${items.length} items; evaluators ${EVALUATORS.join(', ')}; ` +
+    `consensus: ${judged ? judged.consensus.join('+') : 'mean of the evaluators'}`
+)
 
 const count = (xs: string[]) => {
   const m = new Map<string, number>()
@@ -118,8 +122,17 @@ console.log('strategies', [...strategies].sort().join(', '))
 
 function summary(name: string, xs: number[]) {
   const s = xs.filter((x) => typeof x === 'number').sort((a, b) => a - b)
-  if (!s.length) return
-  const q = (p: number) => s[Math.min(s.length - 1, Math.floor(p * s.length))]
+  if (!s.length) {
+    console.log(`${name}: ABSENT on all pairs`)
+    return
+  }
+  if (s.length < xs.length) console.log(`${name}: missing on ${xs.length - s.length} pairs`)
+  // linear interpolation between order statistics (numpy's default percentile)
+  const q = (p: number) => {
+    const h = (s.length - 1) * p
+    const lo = Math.floor(h)
+    return s[lo] + (h - lo) * ((s[Math.min(lo + 1, s.length - 1)] ?? s[lo]) - s[lo])
+  }
   const mean = s.reduce((a, b) => a + b, 0) / s.length
   console.log(`${name}: n=${s.length} mean ${mean.toFixed(5)} median ${q(0.5).toFixed(5)} ` +
     `p90 ${q(0.9).toFixed(5)} p95 ${q(0.95).toFixed(5)} max ${s[s.length - 1].toFixed(5)}`)

@@ -1,0 +1,44 @@
+pool seed 20261001, 901 items; evaluators naive, herostrength, enriched; consensus: consensus_sc
+[screener] n=8 tiers { high: 2, low: 3, mid: 3 }
+[calibration] n=40 tiers { high: 13, low: 14, mid: 13 }
+[pairs] n=280 tiers { high: 94, low: 93, mid: 93 }
+[anchors] n=570 tiers { high: 190, low: 190, mid: 190 }
+[catch] n=3 tiers { high: 1, low: 1, mid: 1 }
+pairs by stratum {
+  constrained_mcts_vs_mcts: 42,
+  mcts_vs_enriched: 42,
+  other_pairs: 78,
+  vs_anchored: 118
+}
+all items by map {
+  'Alterac Pass': 71,
+  'Battlefield of Eternity': 70,
+  "Blackheart's Bay": 20,
+  'Braxis Holdout': 72,
+  'Cursed Hollow': 72,
+  'Dragon Shire': 71,
+  'Garden of Terror': 70,
+  'Hanamura Temple': 20,
+  'Haunted Mines': 52,
+  'Infernal Shrines': 73,
+  'Sky Temple': 73,
+  'Tomb of the Spider Queen': 72,
+  'Towers of Doom': 73,
+  'Volskaya Foundry': 72,
+  'Warhead Junction': 20
+}
+
+machine pairs: 280
+  near-tie threshold 0.01: exclude 8 -> 272 effective items, 816 planned judgments; item-level worst-case z at 0.60 = 3.30 (uncorrected: 269)
+  near-tie threshold 0.02: exclude 25 -> 255 effective items, 765 planned judgments; item-level worst-case z at 0.60 = 3.19 (uncorrected: 255)
+  near-tie threshold 0.05: exclude 67 -> 213 effective items, 639 planned judgments; item-level worst-case z at 0.60 = 2.92 (uncorrected: 211)
+  evaluator naive alone (0.02): 255 effective items
+  evaluator herostrength alone (0.02): 253 effective items
+  evaluator enriched alone (0.02): 251 effective items
+  correction: favored-side flips 1 (of which outside the 0.02 band in both: 0); near-tie status changes at 0.02: 0
+  vs_anchored stratum: 118 items, 113 after 0.02 exclusion (339 judgments)
+
+Bradley-Terry: 10 strategies, 45 of 45 pairings present, 1 connected component(s)
+strategies constrained_greedy, constrained_mcts, cql_enr_a2.0, cql_naive_a1.0, enriched, gd, gourdeau, gourdeau_disc, mcq_t0.5, mcts
+ood_var_max: n=280 mean 0.00124 median 0.00105 p90 0.00215 p95 0.00260 max 0.00437
+ood_var_matchup: n=280 mean 0.00108 median 0.00084 p90 0.00219 p95 0.00259 max 0.00492

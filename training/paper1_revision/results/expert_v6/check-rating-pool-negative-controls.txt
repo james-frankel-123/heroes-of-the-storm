@@ -1,0 +1,156 @@
+=== rating-items-v6.json
+  ok  ids 1..901 unique
+  ok  screener: 8 items
+  ok  calibration: 40 items
+  ok  pairs: 280 items
+  ok  anchors: 570 items
+  ok  catch: 3 items
+  ok  anchors low: 190
+  ok  anchors mid: 190
+  ok  anchors high: 190
+  ok  calibration 14/13/13
+  ok  every slot: 240 items, 48-item opener, catch at 121/181/231, 60 pairs + 43/43/43 anchors
+  ok  every pair covered exactly 3x
+  ok  every anchor covered 3-4x
+  ok  anchors high: exactly 32 covered 4x
+  ok  anchors low: exactly 32 covered 4x
+  ok  anchors mid: exactly 32 covered 4x
+  ok  test smoke flow: 7 items
+  ok  all 621 real replays distinct
+  ok  all tournament records distinct
+  ok  every item has 5+5 distinct heroes
+FAIL  every real item records gameDate in [2026-09-01, 2026-09-28) (provenance, DB clock string)
+FAIL  every real item records a build in {2.55.17.97771, 2.55.17.98025} (provenance)
+FAIL  no machine team in more than 7 pairs (max 21)
+FAIL  no matchup (unordered pair of team sets, any map/tier/side) appears twice in the pool - 110=288=355, 397=818, 408=714
+  ..  per-rater max exposure to one machine team (slots 0-13): 6 8 6 8 6 6 4 6 4 4 3 6 6 6
+  ok  every pair has finite wpTeam0Sym and wpTeam0Sym_uncorrected (naive, herostrength, enriched, consensus)
+FAIL  every pair has finite, consistent OOD covariates (team0/1, max, mean, matchup, refs)
+  ok  DB: all 621 real replays found
+FAIL  DB: every real game_date in [2026-09-01, 2026-09-28) - range 2026-09-15T01:20:01 .. 2026-09-28T20:26:27
+  ok  DB: every real game on {2.55.17.97771, 2.55.17.98025}
+FAIL  provenance gameDate/gameVersion equal the DB values
+NOT tested by this script:
+  --  that label and OOD values are the right numbers (needs the models)
+  --  that each real item matches its DB teams/map/winner (only date and build are read from the DB)
+  --  that the tier banner matches the game rank (see expert_tier_audit_v6.py)
+
+pool seed 20261001, 901 items: 7 FAILURES
+exit=1
+=== rating-items-v6-ood.json
+  ok  ids 1..901 unique
+  ok  screener: 8 items
+  ok  calibration: 40 items
+  ok  pairs: 280 items
+  ok  anchors: 570 items
+  ok  catch: 3 items
+  ok  anchors low: 190
+  ok  anchors mid: 190
+  ok  anchors high: 190
+  ok  calibration 14/13/13
+  ok  every slot: 240 items, 48-item opener, catch at 121/181/231, 60 pairs + 43/43/43 anchors
+  ok  every pair covered exactly 3x
+  ok  every anchor covered 3-4x
+  ok  anchors high: exactly 32 covered 4x
+  ok  anchors low: exactly 32 covered 4x
+  ok  anchors mid: exactly 32 covered 4x
+  ok  test smoke flow: 7 items
+  ok  all 621 real replays distinct
+  ok  all tournament records distinct
+  ok  every item has 5+5 distinct heroes
+FAIL  every real item records gameDate in [2026-09-01, 2026-09-28) (provenance, DB clock string)
+FAIL  every real item records a build in {2.55.17.97771, 2.55.17.98025} (provenance)
+FAIL  no machine team in more than 7 pairs (max 21)
+FAIL  no matchup (unordered pair of team sets, any map/tier/side) appears twice in the pool - 110=288=355, 397=818, 408=714
+  ..  per-rater max exposure to one machine team (slots 0-13): 6 8 6 8 6 6 4 6 4 4 3 6 6 6
+  ok  every pair has finite wpTeam0Sym and wpTeam0Sym_uncorrected (naive, herostrength, enriched, consensus)
+  ok  every pair has finite, consistent OOD covariates (team0/1, max, mean, matchup, refs)
+  ok  DB: all 621 real replays found
+FAIL  DB: every real game_date in [2026-09-01, 2026-09-28) - range 2026-09-15T01:20:01 .. 2026-09-28T20:26:27
+  ok  DB: every real game on {2.55.17.97771, 2.55.17.98025}
+FAIL  provenance gameDate/gameVersion equal the DB values
+NOT tested by this script:
+  --  that label and OOD values are the right numbers (needs the models)
+  --  that each real item matches its DB teams/map/winner (only date and build are read from the DB)
+  --  that the tier banner matches the game rank (see expert_tier_audit_v6.py)
+
+pool seed 20261001, 901 items: 6 FAILURES
+exit=1
+=== rating-items-v6.1.json
+  ok  ids 1..901 unique
+  ok  screener: 8 items
+  ok  calibration: 40 items
+  ok  pairs: 280 items
+  ok  anchors: 570 items
+  ok  catch: 3 items
+  ok  anchors low: 190
+  ok  anchors mid: 190
+  ok  anchors high: 190
+  ok  calibration 14/13/13
+  ok  every slot: 240 items, 48-item opener, catch at 121/181/231, 60 pairs + 43/43/43 anchors
+  ok  every pair covered exactly 3x
+  ok  every anchor covered 3-4x
+  ok  anchors high: exactly 32 covered 4x
+  ok  anchors low: exactly 32 covered 4x
+  ok  anchors mid: exactly 32 covered 4x
+  ok  test smoke flow: 7 items
+  ok  all 621 real replays distinct
+  ok  all tournament records distinct
+  ok  every item has 5+5 distinct heroes
+  ok  every real item records gameDate in [2026-09-01, 2026-09-28) (provenance, DB clock string)
+  ok  every real item records a build in {2.55.17.97771, 2.55.17.98025} (provenance)
+  ok  no machine team in more than 7 pairs (max 7)
+FAIL  no matchup (unordered pair of team sets, any map/tier/side) appears twice in the pool - 36=670, 198=801, 392=834, 397=595, 408=714
+  ..  per-rater max exposure to one machine team (slots 0-13): 3 4 4 3 3 4 4 5 3 3 3 3 2 2
+  ok  every pair has finite wpTeam0Sym and wpTeam0Sym_uncorrected (naive, herostrength, enriched, consensus)
+  ok  every pair has finite, consistent OOD covariates (team0/1, max, mean, matchup, refs)
+  ok  DB: all 621 real replays found
+  ok  DB: every real game_date in [2026-09-01, 2026-09-28)
+  ok  DB: every real game on {2.55.17.97771, 2.55.17.98025}
+  ok  provenance gameDate/gameVersion equal the DB values
+NOT tested by this script:
+  --  that label and OOD values are the right numbers (needs the models)
+  --  that each real item matches its DB teams/map/winner (only date and build are read from the DB)
+  --  that the tier banner matches the game rank (see expert_tier_audit_v6.py)
+
+pool seed 20261001, 901 items: 1 FAILURES
+exit=1
+=== v6.2 with an injected duplicate (item 8 := item 7, sides swapped)
+  ok  ids 1..901 unique
+  ok  screener: 8 items
+  ok  calibration: 40 items
+  ok  pairs: 280 items
+  ok  anchors: 570 items
+  ok  catch: 3 items
+  ok  anchors low: 190
+  ok  anchors mid: 190
+  ok  anchors high: 190
+  ok  calibration 14/13/13
+  ok  every slot: 240 items, 48-item opener, catch at 121/181/231, 60 pairs + 43/43/43 anchors
+  ok  every pair covered exactly 3x
+  ok  every anchor covered 3-4x
+  ok  anchors high: exactly 32 covered 4x
+  ok  anchors low: exactly 32 covered 4x
+  ok  anchors mid: exactly 32 covered 4x
+  ok  test smoke flow: 7 items
+  ok  all 621 real replays distinct
+  ok  all tournament records distinct
+  ok  every item has 5+5 distinct heroes
+  ok  every real item records gameDate in [2026-09-01, 2026-09-28) (provenance, DB clock string)
+  ok  every real item records a build in {2.55.17.97771, 2.55.17.98025} (provenance)
+FAIL  no machine team in more than 7 pairs (max 8)
+FAIL  no matchup (unordered pair of team sets, any map/tier/side) appears twice in the pool - 7=8
+  ..  per-rater max exposure to one machine team (slots 0-13): 3 4 5 3 3 3 4 3 3 2 2 3 4 4
+  ok  every pair has finite wpTeam0Sym and wpTeam0Sym_uncorrected (naive, herostrength, enriched, consensus)
+  ok  every pair has finite, consistent OOD covariates (team0/1, max, mean, matchup, refs)
+  ok  DB: all 621 real replays found
+  ok  DB: every real game_date in [2026-09-01, 2026-09-28)
+  ok  DB: every real game on {2.55.17.97771, 2.55.17.98025}
+  ok  provenance gameDate/gameVersion equal the DB values
+NOT tested by this script:
+  --  that label and OOD values are the right numbers (needs the models)
+  --  that each real item matches its DB teams/map/winner (only date and build are read from the DB)
+  --  that the tier banner matches the game rank (see expert_tier_audit_v6.py)
+
+pool seed 20261001, 901 items: 2 FAILURES
+exit=1

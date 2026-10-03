@@ -56,8 +56,10 @@ DIFFERENCES = [
     "stages ran on the remote RTX 3090 (WSL, kernel built from the same 1db7df8 sources for "
     "sm_86): GD 2-4, naive CQL, MCQ, the discriminator, MCTS and both tournaments. GD 0 was "
     "stopped on the main box after about 36 epochs, before early stopping fired; its "
-    "best-test-loss checkpoint (epoch ~31) is used, and its test loss had moved by under 1e-6 "
-    "relative since epoch 10",
+    "best-test-loss checkpoint (epoch ~31) is used. On held-out rows whose target is legal it "
+    "scores like GD 1-3 (cross-entropy 3.548 vs 3.546-3.549, top-1 0.130; "
+    "results/expert_v6/gd_valid_eval.json); the logged test loss is dominated by 18 rows "
+    "whose target hero was already taken and says nothing about convergence",
     "roster: synthetic augmentation removed (no enriched_aug strategy, no augmented "
     "evaluator; Max 2026-10-01): 10 strategies, 3 evaluators",
 ]

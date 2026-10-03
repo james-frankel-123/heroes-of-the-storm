@@ -275,7 +275,7 @@ export const replayDraftData = pgTable(
     gameLength: integer('game_length'), // seconds
     gameVersion: varchar('game_version', { length: 40 }).notNull(),
     avgMmr: real('avg_mmr'),
-    leagueTier: integer('league_tier'), // 1-6 (Bronze-Master)
+    leagueTier: integer('league_tier'), // rank + 1: 2=Bronze .. 6=Diamond; NULL with avg_mmr = Master
     // Draft order: array of { pick_number, type (0=ban,1=pick), player_slot, hero }
     draftOrder: jsonb('draft_order').notNull(),
     // Team compositions

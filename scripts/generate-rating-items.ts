@@ -1,6 +1,7 @@
 /**
- * Generate the item set for the expert draft-rating study (v4: paid raters,
- * fixed 240-item assignment, 14 slots — see oss-export/docs/prereg_expert_study.md).
+ * Generate the item set for the expert draft-rating study (pool v6.2 for
+ * preregistration v3, oss-export/docs/prereg_expert_study_v3.md; design
+ * unchanged since v4: paid raters, fixed 240-item assignment, 14 slots).
  *
  * Blocks (block labels live server-side; item ids are a GLOBAL shuffle of all
  * 901 items so neither id nor serving position leaks block membership):
@@ -56,8 +57,11 @@
  * covariates (training/rerun2026/rating_items_ood.py) -> checks
  * (scripts/check-rating-pool.ts) -> seed (scripts/seed-rating-items.ts).
  *
- * Output: RATING_ITEMS_OUT (default data/rating-items.json), seeded into the
- * rating_items table by scripts/seed-rating-items.ts. Provenance (strategy
+ * Output: RATING_ITEMS_OUT (required; the live data/rating-items.json is
+ * only ever replaced by copying a verified pool). With LADDER_CANDIDATES set
+ * to a saved <out>.ladder-candidates.json, the ladder query is restricted to
+ * those ids in the saved order, so a re-run reproduces the draw after the DB
+ * has grown. Provenance (strategy
  * labels, source, winner, model WPs, OOD covariates) lives ONLY in this file /
  * the DB provenance column; it is never sent to the client.
  *
@@ -117,7 +121,14 @@ const RESULT_DIRS = [
   path.join(REPO, 'training/rerun2026/ns/oct2026/results/constrained/roundrobin'),
 ]
 // RATING_ITEMS_OUT: write somewhere other than the live pool file (v6 review before seeding).
-const OUT_PATH = process.env.RATING_ITEMS_OUT ?? path.join(REPO, 'data/rating-items.json')
+const OUT_PATH = process.env.RATING_ITEMS_OUT ?? ''
+if (!OUT_PATH) {
+  console.error('set RATING_ITEMS_OUT (the generator never writes data/rating-items.json directly)')
+  process.exit(1)
+}
+const SAVED_CANDIDATES: Record<string, number[]> | null = process.env.LADDER_CANDIDATES
+  ? JSON.parse(fs.readFileSync(process.env.LADDER_CANDIDATES, 'utf8')).tiers
+  : null
 
 const ANCHORED = new Set(['gd', 'cql_naive_a1.0', 'cql_enr_a2.0', 'gourdeau_disc'])
 // Machine-pair matchup strata (v4: single merged count per stratum = the v3
@@ -373,12 +384,16 @@ function loadTournamentCandidates(): Map<string, Candidate[]> {
  * tier/map least represented so far.
  */
 const teamKey = (t: string[]) => [...t].sort().join(',')
+// v6.2: a matchup is the unordered pair of sorted teams, ignoring map, tier,
+// sides and pick order; no matchup may appear twice anywhere in the pool.
+const matchupKey = (a: string[], b: string[]) => [teamKey(a), teamKey(b)].sort().join('|')
 
 function sampleStratum(
   cands: Candidate[],
   count: number,
   seed: number,
-  teamUse: Map<string, number>
+  teamUse: Map<string, number>,
+  usedKeys: Set<string>
 ): Candidate[] {
   const rand = mulberry32(seed)
   const byPair = new Map<string, Candidate[]>()
@@ -393,7 +408,6 @@ function sampleStratum(
   const picked: Candidate[] = []
   const tierCount = new Map<string, number>()
   const mapCount = new Map<string, number>()
-  const usedKeys = new Set<string>()
   let pi = 0
   let stall = 0
   while (picked.length < count && stall < pairKeys.length * 2) {
@@ -403,8 +417,7 @@ function sampleStratum(
     let best: Candidate | null = null
     let bestScore = Infinity
     for (const c of pool) {
-      const key = c.team0.join(',') + '|' + c.team1.join(',') + '|' + c.map
-      if (usedKeys.has(key)) continue
+      if (usedKeys.has(matchupKey(c.team0, c.team1))) continue
       if ((teamUse.get(teamKey(c.team0)) ?? 0) >= MAX_TEAM_APPEARANCES) continue
       if ((teamUse.get(teamKey(c.team1)) ?? 0) >= MAX_TEAM_APPEARANCES) continue
       const score =
@@ -419,8 +432,7 @@ function sampleStratum(
       continue
     }
     stall = 0
-    const key = best.team0.join(',') + '|' + best.team1.join(',') + '|' + best.map
-    usedKeys.add(key)
+    usedKeys.add(matchupKey(best.team0, best.team1))
     for (const t of [best.team0, best.team1]) {
       teamUse.set(teamKey(t), (teamUse.get(teamKey(t)) ?? 0) + 1)
     }
@@ -461,17 +473,39 @@ async function loadLadderTier(tier: string, count: number): Promise<LadderDraft[
   // Deterministic recent window; the committed JSON freezes the sample. Pull a
   // generous window so enough valid drafts survive filtering. The date floor
   // guarantees no anchor was ever seen by any trained model.
-  const rows = (await sql`
-    select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner,
-           to_char(game_date, 'YYYY-MM-DD"T"HH24:MI:SS') as game_date, game_version
-    from replay_draft_data
-    where skill_tier = ${tier}
-      and game_date >= ${TRAINING_SNAPSHOT_CUTOFF}
-      and game_date < ${REAL_GAME_END}
-      and game_version = any(${ANCHOR_BUILDS})
-    order by game_date desc, replay_id desc
-    limit 6000
-  `) as LadderDraft[]
+  let rows: LadderDraft[]
+  if (SAVED_CANDIDATES) {
+    // Reproduce a saved draw: the same filters, restricted to the saved ids,
+    // returned in the saved order.
+    const ids = SAVED_CANDIDATES[tier]
+    const got = (await sql`
+      select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner,
+             to_char(game_date, 'YYYY-MM-DD"T"HH24:MI:SS') as game_date, game_version
+      from replay_draft_data
+      where replay_id = any(${ids})
+        and skill_tier = ${tier}
+        and game_date >= ${TRAINING_SNAPSHOT_CUTOFF}
+        and game_date < ${REAL_GAME_END}
+        and game_version = any(${ANCHOR_BUILDS})
+    `) as LadderDraft[]
+    const byId = new Map(got.map((r) => [Number(r.replay_id), r]))
+    if (byId.size !== ids.length) {
+      throw new Error(`saved candidates for ${tier}: ${ids.length} ids, ${byId.size} found with the filters`)
+    }
+    rows = ids.map((id) => byId.get(id)!)
+  } else {
+    rows = (await sql`
+      select replay_id, game_map, skill_tier, team0_heroes, team1_heroes, winner,
+             to_char(game_date, 'YYYY-MM-DD"T"HH24:MI:SS') as game_date, game_version
+      from replay_draft_data
+      where skill_tier = ${tier}
+        and game_date >= ${TRAINING_SNAPSHOT_CUTOFF}
+        and game_date < ${REAL_GAME_END}
+        and game_version = any(${ANCHOR_BUILDS})
+      order by game_date desc, replay_id desc
+      limit 6000
+    `) as LadderDraft[]
+  }
   LADDER_CANDIDATES[tier] = rows.map((r) => Number(r.replay_id))
   const valid = rows.filter((r) => validTeams(r.team0_heroes, r.team1_heroes))
   if (valid.length < count) {
@@ -583,10 +617,11 @@ async function main() {
   const byStratum = loadTournamentCandidates()
   const pairs: Candidate[] = []
   const teamUse = new Map<string, number>()
+  const usedMatchups = new Set<string>()
   for (const { name, count } of STRATA) {
     const cands = byStratum.get(name) ?? []
     console.log(`stratum ${name}: ${cands.length} candidates -> sampling ${count}`)
-    pairs.push(...sampleStratum(cands, count, PAIR_SAMPLE_SEED ^ fnv1a(name), teamUse))
+    pairs.push(...sampleStratum(cands, count, PAIR_SAMPLE_SEED ^ fnv1a(name), teamUse, usedMatchups))
   }
   const maxUse = Math.max(...teamUse.values())
   console.log(`machine teams: ${teamUse.size} distinct, max appearances ${maxUse} (cap ${MAX_TEAM_APPEARANCES})`)

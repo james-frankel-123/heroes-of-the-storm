@@ -1,7 +1,9 @@
 """
 Phase 3c: "queue constrained search" — hard role-constraint masking as a
 strategy wrapper, applied to enriched-WP greedy search and to the MCTS
-policy (rerun2026/mcts_runs/J_800sim_s9), then evaluated with the exact
+policy (default rerun2026/mcts_runs/J_800sim_s9, the September run; the
+oct2026 namespace sets F_400sim_s0 through P1R_MCTS_CKPT and
+paper1_revision/oct2026_site), then evaluated with the exact
 phase 3 machinery: rich evaluation (5 seeds x 1000 drafts) and round-robin
 tournament pairs against the existing 9 phase3b strategies.
 
@@ -69,6 +71,8 @@ from experiment_synthetic_augmentation import ENRICHED_GROUPS
 from train_draft_policy import DraftState, DRAFT_ORDER, AlphaZeroDraftNet
 from rerun2026 import phase3b_roundrobin as p3b
 
+# Default MCTS policy for the September namespace; oct2026 overrides it
+# (sitecustomize hook, P1R_MCTS_CKPT -> F_400sim_s0).
 MCTS_CHECKPOINT = os.path.join(common.MCTS_RUNS_DIR, "J_800sim_s9",
                                "draft_policy.pt")
 NEW_STRATEGIES = ["constrained_greedy", "constrained_mcts"]
@@ -196,7 +200,7 @@ def load_mcts_policy(path=MCTS_CHECKPOINT):
 
 
 def make_mcts_policy_strategy(net):
-    """J_800sim policy argmax (the phase3b 'mcts' actor, rich-eval signature).
+    """MCTS policy argmax (the phase3b 'mcts' actor, rich-eval signature).
     Perspective: our_team indicator = acting team."""
     def strategy(state, team, step_type, game_map, tier, gd_models, device):
         x = state.to_numpy().copy()
@@ -223,7 +227,8 @@ def build_strategy(name, device, stats, group_indices):
         return "Constrained enriched greedy", constrain(inner)
     if name == "constrained_mcts":
         net = load_mcts_policy()
-        return "Constrained MCTS (J_800sim_s9)", constrain(
+        run = os.path.basename(os.path.dirname(load_mcts_policy.__defaults__[0]))
+        return f"Constrained MCTS ({run})", constrain(
             make_mcts_policy_strategy(net))
     raise ValueError(name)
 
