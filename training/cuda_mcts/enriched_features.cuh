@@ -86,8 +86,17 @@ __device__ void lookup_comp_wr(
             return;
         }
     }
-    // Fallback to all tiers
+    // Fallback to the other tiers
+#ifdef COMP_FALLBACK_MID_HIGH_LOW
+    // Same order as StatsCache.get_comp_wr and the site (mid, high, low with
+    // low=0, mid=1, high=2), which the WP was trained on. The production v2
+    // build sets this; research builds keep the index order below.
+    const int order[3] = {1, 2, 0};
+    for (int k = 0; k < 3; k++) {
+        const int t = order[k];
+#else
     for (int t = 0; t < NUM_TIERS; t++) {
+#endif
         if (t == tier) continue;
         for (int i = 0; i < lut->comp_count[t]; i++) {
             if (lut->comp_keys[t][i] == key) {

@@ -76,7 +76,9 @@ def main():
             return
     from setuptools import setup
     from torch.utils.cpp_extension import CUDAExtension, BuildExtension
-    defs = [f"-DNUM_HEROES={NUM_HEROES}", f"-DNUM_MAPS={NUM_MAPS}"]
+    # COMP_FALLBACK_MID_HIGH_LOW: composition fallback order of the Python WP
+    # features (enriched_features.cuh); kernel parity failed without it
+    defs = [f"-DNUM_HEROES={NUM_HEROES}", f"-DNUM_MAPS={NUM_MAPS}", "-DCOMP_FALLBACK_MID_HIGH_LOW"]
     shutil.rmtree(OUT, ignore_errors=True)
     os.makedirs(OUT)
     tmp = os.path.join(HERE, "build_h91")
