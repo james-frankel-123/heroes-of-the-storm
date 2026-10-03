@@ -75,10 +75,13 @@ ssh max-windows-3090 "wsl -e bash -s" <<< 'tail -5 ~/hots/repo/training/paper1_r
 
 ## Memory cap and failure detection
 
-`--mem-max 24G` (in `HOTSJOB_FLAGS`, or `hotsjob.py launch ... --mem-max 24G`) runs the
-command in its own systemd user scope with `MemoryMax=24G` and `MemorySwapMax=0`. A blow-up is
-OOM-killed inside the scope (exit 137, status `failed`) and the rest of WSL keeps running. The
-cap also applies on resume. Production jobs on the 3080 (47 GB) use it.
+`--mem-max 26G` (in `HOTSJOB_FLAGS`, or `hotsjob.py launch ... --mem-max 26G`) runs the command
+under `ulimit -d` (RLIMIT_DATA). This is a per-process limit on heap and private writable
+mappings; CUDA's address-space reservations don't count. A blow-up then fails inside that process
+(MemoryError, exit 1, status `failed`) instead of the host OOM killer taking WSL down. The cap also
+applies on resume. Production jobs on the 3080 (47 GB) use it. systemd scopes (MemoryMax) are not
+an option on these workers: once only scoped processes remain, WSL considers the distro idle and
+shuts it down, which killed every job on 2026-10-02.
 
 A job whose process group is gone without an exit record is marked `failed` by `status` and by
 `hotsjob.py state <name>`, which prints only the status word. Scripts that wait on a job should

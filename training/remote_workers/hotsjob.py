@@ -24,10 +24,12 @@ Job kinds
          group (SIGKILL after 30 s); resume re-runs the same command, and those
          scripts skip work whose output files already exist.
 
-Memory cap (--mem-max): the command runs in its own systemd user scope with
-MemoryMax=<cap> and MemorySwapMax=0, so a memory blow-up kills only that
-command (the kernel OOM-kills inside the scope). The runner shell sits
-outside the scope and records the exit code (137 = killed).
+Memory cap (--mem-max 26G): the command runs under `ulimit -d` (RLIMIT_DATA,
+per process: heap and private writable mappings; CUDA's address-space
+reservations are not counted). A blow-up raises MemoryError / fails malloc
+in that process only, instead of the host-wide OOM killer taking WSL down.
+(systemd scopes are not usable here: once only scoped processes remain, WSL
+treats the distro as idle and shuts it down.)
 
 A job whose process group is gone with no exit record (the runner itself was
 killed, e.g. by a host-wide OOM) is marked failed by every status/state call.
@@ -126,6 +128,12 @@ def progress_text(m):
         return f.read()
 
 
+def mem_kb(spec):
+    """'26G' / '512M' / '1048576K' -> KiB"""
+    n, unit = float(spec[:-1]), spec[-1].upper()
+    return int(n * {"K": 1, "M": 1024, "G": 1024 ** 2}[unit])
+
+
 def start(m, cmd):
     """Spawn cmd detached (own session/process group) via a runner shell."""
     env_extra = {"CUDA_VISIBLE_DEVICES": str(m.get("gpu", "0"))}
@@ -135,8 +143,9 @@ def start(m, cmd):
     exports = " ".join(f"export {k}={shlex.quote(v)};" for k, v in env_extra.items())
     run = cmd
     if m.get("mem_max"):
-        run = (f"systemd-run --user --scope -q -p MemoryMax={m['mem_max']} "
-               f"-p MemorySwapMax=0 bash -c {shlex.quote(cmd)}")
+        # per-process data limit (RLIMIT_DATA): heap and private writable
+        # mappings, not CUDA's address-space reservations
+        run = f"ulimit -d {mem_kb(m['mem_max'])} && {cmd}"
     runner = (f"source {HOTS}/env.sh; {exports} cd {TRAINING}; "
               f"echo \"# start $(date -Is) host=$(hostname) mem_max={m.get('mem_max') or 'none'} cmd: \"{shlex.quote(cmd)}; "
               f"{run}; rc=$?; echo \"# exit=$rc $(date -Is)\"; "
@@ -323,7 +332,7 @@ def main():
     p.add_argument("--progress-log")
     p.add_argument("--gpu", default="0")
     p.add_argument("--ckpt-every-sec", type=int, default=DEFAULT_CKPT_SEC)
-    p.add_argument("--mem-max", help="cgroup memory cap, e.g. 24G (swap disabled)")
+    p.add_argument("--mem-max", help="per-process data limit (ulimit -d), e.g. 26G")
     p = sub.add_parser("pause")
     p.add_argument("name")
     p.add_argument("--timeout", type=int, default=540)
