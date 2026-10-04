@@ -74,6 +74,11 @@ WP_PATH_OVERRIDE = os.environ.get("MCTS_WP_PATH", "")
 GD_PATH_OVERRIDE = os.environ.get("MCTS_GD_PATH", "")
 WP_ZERO_GROUPS = [g for g in os.environ.get("MCTS_WP_ZERO_GROUPS", "").split(",") if g]
 EXCLUDE_IDS_PATH = os.environ.get("MCTS_EXCLUDE_IDS", "")
+# MCTS_VALUE_PRETRAIN=0 skips value-head pretraining on replay outcomes (default 1,
+# historical behavior). Production sets 0: with the backbone frozen at random init
+# the head collapses to a constant 0.5 (loss 0.2500, measured 2026-10-03), and the
+# search scores leaves with GD rollouts + WP, not the value head.
+VALUE_PRETRAIN = os.environ.get("MCTS_VALUE_PRETRAIN", "1") != "0"
 # Search algorithm of the CUDA kernel (X2 fix, audits/CONSOLIDATED_AUDIT_2026-10-01.md):
 #   chance   (default) opponent turns are chance nodes; the tree reaches later
 #            own picks and bans (cuda_mcts/search_v2.cuh)
@@ -277,7 +282,10 @@ def main():
 
             _tdp.load_replay_data = _filtered_loader
         bootstrap_from_generic_draft(network, device, gd_path=GD_PATH_OVERRIDE or None)
-        pretrain_value_head(network, device)
+        if VALUE_PRETRAIN:
+            pretrain_value_head(network, device)
+        else:
+            print("Value-head pretraining skipped (MCTS_VALUE_PRETRAIN=0)")
 
     optimizer = torch.optim.Adam(network.parameters(), lr=1e-3, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=150000, eta_min=1e-5)

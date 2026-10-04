@@ -936,6 +936,7 @@ def mcts_env(seed):
         "MCTS_FRESH": "1",
         "MCTS_BATCH_EPISODES": "128",
         "MCTS_SEARCH_MODE": MCTS_SEARCH_MODE,
+        "MCTS_VALUE_PRETRAIN": "0",   # no-op on outcome labels; skip (2026-10-04)
         "WANDB_RUN_NAME": f"prod_refresh_{RUN_DATE}_s{seed}",
         "WP_STATS_PATH": STATS_JSON,
         "REPLAY_SNAPSHOT": "0",
@@ -971,6 +972,10 @@ def phase_kparity():
     res = kernel_parity.run(WP_PT, GD_PT, wp_dim())
     log(f"kernel parity: {res}")
     meta_update(kernel_parity=res)
+    if not res.get("pass"):
+        # fail before hours of MCTS on a kernel that disagrees with the WP
+        sys.exit(f"KERNEL PARITY FAIL: max |kernel - python WP| {res.get('max_abs_diff')} "
+                 f"> tol {res.get('tol')} (malformed {res.get('malformed')}); not continuing")
 
 
 def phase_mcts():

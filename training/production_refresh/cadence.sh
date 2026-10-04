@@ -24,7 +24,19 @@ REFRESH_GPU=$(nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nou
 export REFRESH_GPU CUDA_VISIBLE_DEVICES=$REFRESH_GPU
 export OMP_NUM_THREADS=16 MKL_NUM_THREADS=16
 echo "refresh pinned to GPU $REFRESH_GPU, cores 48-63, nice 19"
-nice -n 19 taskset -c 48-63 /home/linuxbrew/.linuxbrew/bin/python3 training/production_refresh/refresh.py all
+PY=/home/linuxbrew/.linuxbrew/bin/python3
+fail() { echo "=== REFRESH FAILED $DATE: $1; NOTHING DEPLOYED (see training/production_refresh/$DATE/) ==="; exit 1; }
+
+# Production MCTS kernel (91 heroes, 15 maps): rebuilt only when its sources
+# changed, CPU only (GPU hidden; sm_120 = this box's GPUs), nice 19, same 16
+# cores. refresh.py's ensure_kernel then finds it up to date, and phase
+# kparity gates it against the Python WP (exits nonzero on mismatch).
+CUDA_VISIBLE_DEVICES= TORCH_CUDA_ARCH_LIST=${H91_ARCH:-12.0} nice -n 19 taskset -c 48-63 \
+    $PY training/cuda_mcts/build_h91.py --if-stale || fail "h91 kernel build"
+
+# Any failed phase or gate (kernel parity included) exits nonzero: no deploy.
+nice -n 19 taskset -c 48-63 $PY training/production_refresh/refresh.py all \
+    || fail "refresh.py all exited nonzero (a phase or a deploy gate failed)"
 
 # Gates passed (refresh.py export exits nonzero otherwise) — deploy.
 # Commit from a clean temporary worktree of origin/main: this working tree is
