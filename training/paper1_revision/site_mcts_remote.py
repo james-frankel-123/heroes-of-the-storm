@@ -20,6 +20,9 @@ run has a per-process data cap (site/mem_caps.json "mcts"). An unreachable
 host (ssh or WSL not answering) stops all launches and writes an alert to
 site/logs/ALERT_site_mcts_remote.
 
+Handoff: once every run has been launched, site/logs/HANDOFF_<host> says how
+many MCTS slots each host has free for the drift lane (updated as runs end).
+
 Usage (from training/): setsid nohup python3 paper1_revision/site_mcts_remote.py &
 Log: paper1_revision/site/logs/site_mcts_remote.log
 """
@@ -41,6 +44,9 @@ RUNS = ([("B", "oof", s) for s in range(5)] + [("F", "oof", s) for s in range(5)
         + [("J", "oof", s) for s in range(5)] + [("K", "oof", s) for s in range(5)]
         + [("E", "oof", s) for s in range(3)] + [("B", "leak", s) for s in range(3)]
         + [("F", "leak", s) for s in range(3)] + [("J", "leak", s) for s in range(3)])
+
+
+MAX_SLOTS = {"max-windows-3090": 2, "3080-gaming-desktop": 1}
 
 
 def log(msg):
@@ -169,12 +175,20 @@ def main():
         if not pending and all(v in ("done", "finished") for s in st.values() for v in s.values()):
             log("all runs finished")
             return
-        # 3080: a second slot once the drift lane's MCTS job there has finished
-        # (paper 1 outranks drift there; agreed via the coordinator 2026-10-01)
-        if slots.get("3080-gaming-desktop") == 1 and not drift_mcts_running():
-            slots["3080-gaming-desktop"] = 2
+        if not pending:
+            # handoff to the drift lane: a host whose option-B runs have all been
+            # launched gets a marker (with its free slots) once per change
+            for host, n in slots.items():
+                live = sum(1 for v in st[host].values() if v in ("running", "starting"))
+                mk = os.path.join(SITE, "logs", f"HANDOFF_{host}")
+                msg = f"no option-B runs pending; {live} still running, {max(0, MAX_SLOTS.get(host, 1) - live)} MCTS slots free"
+                if not os.path.exists(mk) or open(mk).read().strip() != msg:
+                    open(mk, "w").write(msg + "\n")
+                    log(f"HANDOFF {host}: {msg}")
         for host, n in slots.items():
-            n = min(n, 2)    # at most 2 concurrent MCTS runs per host (3090 rule, 2026-10-03)
+            # at most 2 concurrent MCTS runs on the 3090 (2026-10-03); one on the
+            # 3080, whose GPU one agent saturates and whose WSL has 47 GB (2026-10-04)
+            n = min(n, MAX_SLOTS.get(host, 1))
             live = [r for r, v in st[host].items() if v in ("running", "starting")]
             running = len(live)
             # stagger: no launch while a run on this host is still in value pretraining

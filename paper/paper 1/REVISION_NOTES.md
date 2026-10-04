@@ -1406,3 +1406,20 @@ build, paused at ~203K/300K episodes) are discarded (archived under
 site/mcts_runs/_discarded_index_fallback/) and rerun from scratch; all
 remaining option-B runs start on the fixed build. The 3080 needs the same
 rebuild before it takes paper-1 MCTS slots again.
+
+### 15.15 3080 joins option B (2026-10-04)
+- Production released the 3080 (91-hero deploy live). Code synced; research
+  kernels rebuilt with HOTS_COMP_FALLBACK_MID_HIGH_LOW=1 (cuda_mcts and
+  cuda_ofit report mid_high_low; production's h91 build untouched, same
+  digest before and after). Kernel parity on the 3080 with the site setup:
+  max 6.7e-7 (enriched), 1.5e-6 (enriched_leak), 0 of 1,536 drafts over
+  tolerance.
+- memmon on the 3080 pauses the newest job below 10 GB free; MCTS runs carry
+  a 12G per-process cap (measured peak 7.2 GB). One MCTS slot there
+  (scheduler MAX_SLOTS: 3090 2, 3080 1). `.wslconfig` already had
+  instanceIdleTimeout=-1.
+- B_oof_s4 started there at 02:09 and runs at about 13.5 ep/s alone (the
+  3090 does about 7 ep/s per run with two runs).
+- Handoff: once all option-B runs are launched, the scheduler writes
+  site/logs/HANDOFF_<host> with the free MCTS slots on that host for the
+  drift lane.
