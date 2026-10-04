@@ -75,7 +75,8 @@ Healer: Ana, Alexstrasza, Auriel, Brightwing, Deckard, Kharazim, Li Li, Lt. Mora
 Support (utility): Abathur, Medivh, The Lost Vikings, Zarya, Tassadar
 Ranged Assassin: Chromie, Falstad, Fenix, Gall, Greymane (ranged), Gul'dan, Hanzo, Jaina,
                  Kael'thas, Kel'Thuzad, Li-Ming, Lunara, Mephisto, Nazeebo, Nova, Orphea,
-                 Probius, Raynor, Sgt. Hammer, Sylvanas, Tracer, Tychus, Valla, Zagara, Zul'jin
+                 Probius, Raynor, Sgt. Hammer, Sylvanas, Tracer, Tychus, Valla, Xal'atath (new in 2.57),
+                 Zagara, Zul'jin
 Melee Assassin: Alarak, The Butcher, Genji, Illidan, Kerrigan, Maiev, Murky, Qhira,
                 Samuro, Valeera, Zeratul
 
@@ -93,6 +94,7 @@ MAP MECHANICS
 - Warhead Junction: nuke denial; fast movers, spread poke
 - Alterac Pass: cavalry + boss; catch-and-kill, sustained teamfight
 - Tomb of the Spider Queen: gem turn-ins → webweavers; waveclear, poke, sustain
+- Haunted Mines: underground skull collection → golem; mine fights, golem pushes
 
 SYNERGY ARCHETYPES
 - Dive: Illidan/Genji + engage Tank + Medivh/Rehgar
