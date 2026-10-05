@@ -291,6 +291,8 @@ export const replayDraftData = pgTable(
     // Nullable because rows fetched before talent tracking was added don't have this.
     talents: jsonb('talents'),
     fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
+    // Local store only: bumped by trigger on every write; incremental-backup watermark.
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => ({
     mapIdx: index('replay_draft_map_idx').on(t.gameMap),
@@ -331,6 +333,8 @@ export const replayPlayers = pgTable(
     rawExtras: jsonb('raw_extras'), // any per-player fields not extracted above
     region: integer('region'), // replay-level region, denormalized
     fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
+    // Local store only: bumped by trigger on every write; incremental-backup watermark.
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.replayId, t.blizzId] }),
@@ -349,6 +353,8 @@ export const replayExtras = pgTable('replay_extras', {
   replayId: integer('replay_id').primaryKey(),
   extras: jsonb('extras').notNull(),
   fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
+  // Local store only: bumped by trigger on every write; incremental-backup watermark.
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
 /**
@@ -390,6 +396,8 @@ export const qmGames = pgTable(
     leagueTier: integer('league_tier'), // from the listing row
     rank: varchar('rank', { length: 20 }), // from the listing row
     fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
+    // Local store only: bumped by trigger on every write; incremental-backup watermark.
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => ({
     mapIdx: index('qm_games_map_idx').on(t.gameMap),

@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
+    "db:push:local": "drizzle-kit push --config drizzle.local.config.ts",
     "db:studio": "drizzle-kit studio",
     "sync": "tsx sync/index.ts",
     "test": "vitest run",
