@@ -30,6 +30,12 @@ echo "=== HotS Fever sync started at $(date -Iseconds) ===" | tee "$LOG_FILE"
 npx tsx sync/index.ts 2>&1 | tee -a "$LOG_FILE"
 EXIT_CODE=${PIPESTATUS[0]}
 
+# Sync writes the local store; push the website's tables to Neon (gated, skips unchanged).
+echo "=== publish-site $(date -Iseconds) ===" | tee -a "$LOG_FILE"
+npx tsx sync/publish-site.ts 2>&1 | tee -a "$LOG_FILE"
+PUBLISH_CODE=${PIPESTATUS[0]}
+[ "$EXIT_CODE" -eq 0 ] && EXIT_CODE=$PUBLISH_CODE
+
 echo "=== Sync finished at $(date -Iseconds) with exit code $EXIT_CODE ===" | tee -a "$LOG_FILE"
 
 # Rotate logs: keep last 50 log files

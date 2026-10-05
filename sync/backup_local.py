@@ -40,6 +40,8 @@ MOUNT = "/archive-backup"
 ROOT = os.path.join(MOUNT, "hots-db")
 STAGE = "/home/max/pgdata/staging/backup"   # local RAID; /staging inside the container
 CONTAINER = "hots-pg"
+# cron runs with a minimal PATH; zstd comes from linuxbrew on this box.
+ZSTD = shutil.which("zstd") or "/home/linuxbrew/.linuxbrew/bin/zstd"
 OVERLAP = dt.timedelta(minutes=10)
 DAILY = dt.timedelta(hours=20)
 
@@ -85,7 +87,7 @@ def export(cur, table, where, path):
     """COPY rows to <path> (CSV with header) through zstd; returns (rows, columns)."""
     cols = columns(cur, table)
     collist = ", ".join(f'"{c}"' for c in cols)
-    z = subprocess.Popen(["zstd", "-q", "-3", "-T4", "-o", path], stdin=subprocess.PIPE)
+    z = subprocess.Popen([ZSTD, "-q", "-3", "-T4", "-o", path], stdin=subprocess.PIPE)
     cur.copy_expert(f'COPY (SELECT {collist} FROM public."{table}" {where}) '
                     f"TO STDOUT WITH (FORMAT csv, HEADER true)", z.stdin)
     z.stdin.close()

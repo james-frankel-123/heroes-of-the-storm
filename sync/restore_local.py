@@ -37,6 +37,8 @@ import psycopg2
 ROOT = "/archive-backup/hots-db"
 STAGE = "/home/max/pgdata/staging/backup"
 CONTAINER = "hots-pg"
+# cron runs with a minimal PATH; zstd comes from linuxbrew on this box.
+ZSTD = shutil.which("zstd") or "/home/linuxbrew/.linuxbrew/bin/zstd"
 
 
 def sha256(path):
@@ -73,7 +75,7 @@ def pk_columns(cur, table):
 
 def copy_in(cur, target, cols, path):
     collist = ", ".join(f'"{c}"' for c in cols)
-    z = subprocess.Popen(["zstd", "-dcq", path], stdout=subprocess.PIPE)
+    z = subprocess.Popen([ZSTD, "-dcq", path], stdout=subprocess.PIPE)
     cur.copy_expert(f"COPY {target} ({collist}) FROM STDIN WITH (FORMAT csv, HEADER true)", z.stdout)
     if z.wait() != 0:
         raise RuntimeError(f"zstd failed on {path}")
