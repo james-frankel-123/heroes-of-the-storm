@@ -71,7 +71,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { neon } from '@neondatabase/serverless'
+import { pgSql } from '../sync/db'
 import { fnv1a, mulberry32, seededShuffle } from '../src/lib/rating/assignment'
 import { HERO_ROLES } from '../src/lib/data/hero-roles'
 
@@ -471,7 +471,7 @@ const LADDER_CANDIDATES: Record<string, number[]> = {}
  * played on/after the training snapshot cutoff (game_date >= TRAINING_SNAPSHOT_CUTOFF).
  */
 async function loadLadderTier(tier: string, count: number): Promise<LadderDraft[]> {
-  const sql = neon(process.env.DATABASE_URL!)
+  const sql = pgSql(process.env.DATABASE_URL!) // corpus: local primary store
   // Deterministic recent window; the committed JSON freezes the sample. Pull a
   // generous window so enough valid drafts survive filtering. The date floor
   // guarantees no anchor was ever seen by any trained model.

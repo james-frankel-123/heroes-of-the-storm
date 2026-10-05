@@ -15,11 +15,12 @@ import path from 'node:path'
 import { neon } from '@neondatabase/serverless'
 
 async function main() {
-  if (!process.env.DATABASE_URL) {
-    console.error('DATABASE_URL not set. Run: set -a && source .env && set +a')
+  // The expert study lives on Neon only (never in the local store).
+  if (!process.env.NEON_DATABASE_URL) {
+    console.error('NEON_DATABASE_URL not set. Run: set -a && source .env && set +a')
     process.exit(1)
   }
-  const sql = neon(process.env.DATABASE_URL)
+  const sql = neon(process.env.NEON_DATABASE_URL)
   const file = path.resolve(__dirname, '../data/rating-items.json')
   const { items } = JSON.parse(fs.readFileSync(file, 'utf8'))
 

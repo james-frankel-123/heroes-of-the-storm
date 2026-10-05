@@ -1,6 +1,6 @@
 /** Cheap pipeline status: planner estimates for big tables, exact counts for
  * small correctness-critical ones. Run via sync/status.sh (sources .env). */
-import { createDb } from './db'
+import { createDb, createNeonDb } from './db'
 import { sql } from 'drizzle-orm'
 
 async function main() {
@@ -16,7 +16,9 @@ async function main() {
   console.log('queue pending:', Number(q.rows[0].n).toLocaleString(),
               '| players enumerated:', Number(marks.rows[0].n).toLocaleString())
   // draft_ratings is tiny and correctness-critical (prereg): count exactly.
-  const dr = await db.execute(
+  // The study lives on Neon only.
+  const study = process.env.NEON_DATABASE_URL ? createNeonDb() : db
+  const dr = await study.execute(
     sql`SELECT count(*) n, count(*) FILTER (WHERE NOT is_test) real FROM draft_ratings`)
   console.log('ratings collected:', Number(dr.rows[0].real).toLocaleString(),
               'real,', Number(dr.rows[0].n).toLocaleString(), 'total')

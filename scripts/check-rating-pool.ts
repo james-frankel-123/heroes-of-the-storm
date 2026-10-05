@@ -199,8 +199,8 @@ async function dbChecks() {
     check('DB reachable for the real-game date/build check (set DATABASE_URL or pass --offline)', false)
     return
   }
-  const { neon } = await import('@neondatabase/serverless')
-  const sql = neon(process.env.DATABASE_URL)
+  const { pgSql } = await import('../sync/db')
+  const sql = pgSql(process.env.DATABASE_URL) // corpus: local primary store
   const ids = reals.map((i) => Number(i.provenance.replayId))
   const rows = (await sql`
     select replay_id, to_char(game_date, 'YYYY-MM-DD"T"HH24:MI:SS') as d, game_version as v

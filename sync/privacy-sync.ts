@@ -23,6 +23,9 @@
  *
  * Inert while the v1 account serves fixture data (never apply example rows).
  *
+ * Site tables on Neon pick up the deletes when sync/publish-site.ts runs
+ * right after this job (same cron line).
+ *
  * Usage:
  *   npx tsx sync/privacy-sync.ts            # poll + apply
  *   npx tsx sync/privacy-sync.ts --dry-run  # poll + report, write nothing
@@ -98,29 +101,31 @@ async function recordPage(db: SyncDb, page: FeedPage): Promise<void> {
     const prev = latest.get(k)
     if (!prev || prev.changed_at < c.changed_at) latest.set(k, c)
   }
-  const upserts = [...latest.values()].map(c => db.execute(sql`
+  const upserts = [...latest.values()].map(c => sql`
     INSERT INTO player_privacy (battletag, region, state, changed_at)
     VALUES (${c.battletag}, ${c.region}, ${c.state}, ${c.changed_at})
     ON CONFLICT (battletag, region) DO UPDATE
       SET state = excluded.state, changed_at = excluded.changed_at,
           applied_at = NULL, applied_mode = NULL, research_ids = NULL, research_rows = NULL
-      WHERE excluded.changed_at > player_privacy.changed_at`))
-  const cursor = db.execute(sql`
+      WHERE excluded.changed_at > player_privacy.changed_at`)
+  const cursor = sql`
     INSERT INTO privacy_feed_state (id, next_since, next_after_id, last_polled_at)
     VALUES (1, ${page.next_since}, ${page.next_after_id}, now())
     ON CONFLICT (id) DO UPDATE SET next_since = excluded.next_since,
-      next_after_id = excluded.next_after_id, last_polled_at = excluded.last_polled_at`)
-  // neon-http batch = one transaction: changes and cursor land together.
-  await db.batch([...upserts, cursor] as any)
+      next_after_id = excluded.next_after_id, last_polled_at = excluded.last_polled_at`
+  // One transaction: changes and cursor land together.
+  await db.transaction(async tx => {
+    for (const q of [...upserts, cursor]) await tx.execute(q)
+  })
 }
 
 async function purge(db: SyncDb, battletag: string, region: number, mode: Mode) {
-  await db.batch([
-    db.execute(sql`DELETE FROM player_match_history WHERE battletag = ${battletag}`),
-    db.execute(sql`DELETE FROM player_hero_stats WHERE battletag = ${battletag}`),
-    db.execute(sql`DELETE FROM player_hero_map_stats WHERE battletag = ${battletag}`),
-    db.execute(sql`UPDATE sync_log SET battletag = NULL WHERE battletag = ${battletag}`),
-  ] as any)
+  await db.transaction(async tx => {
+    await tx.execute(sql`DELETE FROM player_match_history WHERE battletag = ${battletag}`)
+    await tx.execute(sql`DELETE FROM player_hero_stats WHERE battletag = ${battletag}`)
+    await tx.execute(sql`DELETE FROM player_hero_map_stats WHERE battletag = ${battletag}`)
+    await tx.execute(sql`UPDATE sync_log SET battletag = NULL WHERE battletag = ${battletag}`)
+  })
 
   let researchIds = 0
   let researchRows = 0
