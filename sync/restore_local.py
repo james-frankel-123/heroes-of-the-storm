@@ -161,7 +161,9 @@ def main():
     base_snap = man["snapshot"]
 
     conn = psycopg2.connect(dsn_for(a.db))
-    conn.cursor().execute("SET TimeZone = 'UTC'")
+    # Triggers off while applying: keep each row's backed-up updated_at instead of
+    # re-stamping it, so increments taken after a promote stay contiguous.
+    conn.cursor().execute("SET TimeZone = 'UTC'; SET session_replication_role = replica")
     incrs = sorted(f for f in os.listdir(os.path.join(ROOT, "incr")) if f.endswith(".tar"))
     for f in incrs:
         stamp = f[len("incr_"):-len(".tar")]

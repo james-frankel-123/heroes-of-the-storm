@@ -1,4 +1,7 @@
 """
+RETIRED 2026-10-05: full Neon dumps cost ~100+ GB of egress per run. Replaced by
+sync/backup_local.py (bundled backups of the local primary store). Kept for reference.
+
 Local backup of the Neon database (no pg_dump on this box; uses psycopg2
 COPY). Every user table is exported to gzipped CSV under
 /archive-backup/hots-db/<YYYY-MM-DD>/ (NAS, mirrored), plus a schema.sql-ish
