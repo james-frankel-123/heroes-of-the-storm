@@ -247,7 +247,7 @@ def main():
     if "neon.tech" in os.environ.get("DATABASE_URL", ""):
         sys.exit("DATABASE_URL points at Neon; backups read the local store only")
     run_start = dt.datetime.now(dt.timezone.utc)
-    stamp = run_start.strftime("%Y-%m-%dT%H%MZ")
+    stamp = run_start.strftime("%Y-%m-%dT%H%M%SZ")
     try:
         (run_incr if sys.argv[1] == "incr" else run_base)(stamp, run_start)
     finally:
