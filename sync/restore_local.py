@@ -90,6 +90,23 @@ def apply_incr(conn, work, man):
         if sha256(f) != meta["sha256"]:
             raise RuntimeError(f"sha256 mismatch: {f}")
     replace = [t for t, m in man["tables"].items() if m["mode"] == "replace"]
+    # FK parents load before their children (e.g. users before tracked_battletags).
+    cur.execute("""SELECT conrelid::regclass::text, confrelid::regclass::text
+                   FROM pg_constraint WHERE contype = 'f'""")
+    parents = {}
+    for child, parent in cur.fetchall():
+        parents.setdefault(child.strip('"'), set()).add(parent.strip('"'))
+    ordered = []
+    def visit(t, seen=()):
+        if t in ordered or t not in replace:
+            return
+        for p in parents.get(t, ()):
+            if p not in seen:
+                visit(p, seen + (t,))
+        ordered.append(t)
+    for t in replace:
+        visit(t)
+    replace = ordered
     if replace:
         cur.execute("TRUNCATE " + ", ".join(f'public."{t}"' for t in replace))
         for t in replace:
@@ -114,6 +131,8 @@ def main():
     ap.add_argument("--db", required=True)
     ap.add_argument("--base")
     ap.add_argument("--upto")
+    ap.add_argument("--incr-only", action="store_true",
+                    help="--db already holds the restored base: only apply increments")
     a = ap.parse_args()
     if a.db == "hots":
         sys.exit("refusing to restore over the live database 'hots'")
@@ -123,17 +142,22 @@ def main():
     work = os.path.join(STAGE, f"restore_{a.db}")
     shutil.rmtree(work, ignore_errors=True)
     print(f"base {base}", flush=True)
-    man = extract(os.path.join(ROOT, "base", base), work)
-    if sha256(os.path.join(work, "hots.dump")) != man["files"]["hots.dump"]["sha256"]:
-        sys.exit("base dump sha256 mismatch")
-    print("  sha256 ok", flush=True)
-
-    psql("postgres", f'CREATE DATABASE "{a.db}"')
-    r = subprocess.run(["docker", "exec", CONTAINER, "pg_restore", "-U", "hots", "-d", a.db,
-                        "-j", "4", "--no-owner", f"/staging/backup/restore_{a.db}/hots.dump"])
-    if r.returncode != 0:
-        sys.exit("pg_restore failed")
-    print("  pg_restore ok", flush=True)
+    if a.incr_only:
+        os.makedirs(work, exist_ok=True)
+        with tarfile.open(os.path.join(ROOT, "base", base)) as t:
+            man = json.load(t.extractfile("manifest.json"))
+    else:
+        man = extract(os.path.join(ROOT, "base", base), work)
+        if sha256(os.path.join(work, "hots.dump")) != man["files"]["hots.dump"]["sha256"]:
+            sys.exit("base dump sha256 mismatch")
+        print("  sha256 ok", flush=True)
+        psql("postgres", f'CREATE DATABASE "{a.db}"')
+        r = subprocess.run(["docker", "exec", CONTAINER, "pg_restore", "-U", "hots", "-d", a.db,
+                            "-j", "4", "--no-owner", f"/staging/backup/restore_{a.db}/hots.dump"])
+        if r.returncode != 0:
+            sys.exit("pg_restore failed")
+        print("  pg_restore ok", flush=True)
+        os.remove(os.path.join(work, "hots.dump"))
     base_snap = man["snapshot"]
 
     conn = psycopg2.connect(dsn_for(a.db))
