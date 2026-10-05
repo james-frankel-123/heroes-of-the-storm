@@ -64,9 +64,10 @@ def sha256(path):
     return h.hexdigest()
 
 
-def connect(env):
+def connect(env, snapshot=False):
+    """Read-only session in UTC; snapshot=True gives one REPEATABLE READ snapshot."""
     c = psycopg2.connect(os.environ[env])
-    c.set_session(readonly=True)
+    c.set_session(readonly=True, isolation_level="REPEATABLE READ" if snapshot else None)
     c.cursor().execute("SET TimeZone = 'UTC'")
     return c
 
@@ -131,11 +132,8 @@ def run_incr(stamp, run_start):
         sys.exit("no watermarks yet: take a base first (its snapshot time seeds them)")
     work = os.path.join(STAGE, stamp)
     os.makedirs(work)
-    local = connect("DATABASE_URL")
-    # One snapshot for the whole bundle.
-    local.set_session(isolation_level="REPEATABLE READ", readonly=True)
+    local = connect("DATABASE_URL", snapshot=True)   # one snapshot for the whole bundle
     cur = local.cursor()
-    cur.execute("SET TimeZone = 'UTC'")
     cur.execute("SELECT now()")      # pins the snapshot; rows visible == rows <= this
     snap = cur.fetchone()[0]
     manifest = {"kind": "incr", "stamp": stamp, "snapshot": snap.isoformat(), "tables": {}}
@@ -188,9 +186,7 @@ def run_base(stamp, run_start):
     work = os.path.join(STAGE, stamp)
     os.makedirs(work)
     local = connect("DATABASE_URL")
-    local.set_session(isolation_level="REPEATABLE READ", readonly=True)
     cur = local.cursor()
-    cur.execute("SET TimeZone = 'UTC'")
     # Snapshot time taken BEFORE pg_dump's own snapshot: increments from here on
     # (with the overlap) cover anything the dump might miss.
     cur.execute("SELECT now()")
