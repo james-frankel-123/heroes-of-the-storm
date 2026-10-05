@@ -1,7 +1,10 @@
 # Data architecture plan: local primary store, small Neon, incremental NAS backups
 
-Status: Phase 1 (audit and plan), 2026-10-05. Nothing has been changed on Neon.
-All Neon numbers below come from catalog queries (`pg_stat_user_tables`,
+Status: implemented 2026-10-05, except the Neon shrink (Step E), which waits for a final go.
+Section 10 records what was built and the measured numbers. Sections 1 to 8 are the Phase 1
+plan as approved, with Max's changes: the NAS gets one bundled archive per run, there is no WAL
+archiving, and the cutover happened right after verification.
+All Phase 1 Neon numbers come from catalog queries (`pg_stat_user_tables`,
 `pg_total_relation_size`) and a 0.05% `TABLESAMPLE` for row widths.
 
 ## 1. Summary
@@ -414,3 +417,81 @@ replays a day (about 48K/day), and the daemon and QM worker shared the same pool
 spent the week's allowance in about 4.2 days. Calls should come back around 2026-10-08
 00:30 UTC; the first backfills run after that is 2026-10-08 04:30 UTC. Nothing needs changing.
 (The `ETA 250K: -342h` figure in the log is a cosmetic display bug.)
+
+## 10. Implementation record (2026-10-05)
+
+Max approved the plan with changes: NAS backups are bundled (one archive per run), there is no
+WAL archiving, the cutover happens as soon as verification passes, and Neon shrinks once the
+RAID store and a NAS restore both match Neon.
+
+### What runs where now
+
+| Piece | Where | Notes |
+|---|---|---|
+| Primary store | `hots-pg` container (`postgres:17`, 17.11, same as Neon), `127.0.0.1:5433`, PGDATA `/home/max/pgdata/hots17` on the RAID | 16 GB memory cap, cpuset 48-63, cpu-shares 128, blkio-weight 100, `shared_buffers` 4 GB, `--restart unless-stopped` |
+| `.env` | `DATABASE_URL` = local store, `DATABASE_URL_RESEARCH` = read-only `hots_research`, `NEON_DATABASE_URL` = Neon | `.env.local` still points `next dev` at Neon; Vercel unchanged |
+| Sync writers | local store, through `sync/db.ts` (node-postgres) | no worker logic changed |
+| Site publish | `sync/publish-site.ts`, end of `run-sync.sh` and after every `privacy-sync` | 9 site tables only; skips unchanged tables; >20% drop gate (exit 2) |
+| Expert study | Neon only (`rating_items`, `draft_ratings`) | local copies dropped; `seed-rating-items.ts` and `status.ts` use `NEON_DATABASE_URL` |
+| Research and production | local store (`DATABASE_URL` or `DATABASE_URL_RESEARCH`) | frozen paper snapshots stay as files (`HOTS_CORPUS_PATH`) |
+| Local-only schema | `sync/sql/local-store.sql` | `updated_at` + trigger + index on the 4 big tables; `hots_research` role |
+| Drizzle | `drizzle.config.ts` = Neon, `tablesFilter` = 9 site + 2 study tables; `drizzle.local.config.ts` (`db:push:local`) = local | the guard keeps push/generate away from corpus tables on Neon |
+
+### NAS backups (bundled)
+
+```
+/archive-backup/hots-db/
+  base/base_<UTC stamp>.tar   weekly (Sun 03:00): hots.dump (pg_dump -Fc, zstd) + manifest.json (sha256, snapshot time, row counts)
+  incr/incr_<UTC stamp>.tar   every 4 h (:50): big-table rows with updated_at > watermark - 10 min (upsert);
+                              once a day also full copies of the small tables and, from Neon, the 2 study tables
+                              (manifest.json: rows, sha256, watermark range, columns per member)
+  state.json                  per-table watermarks and last daily copy time
+```
+
+Both cron lines share `sync/.backup.lock` and run at `nice 19`, `ionice -c3` and `taskset 48-63`.
+Retention: the 4 newest bases plus the first base of each of the last 6 months; increments older
+than the oldest kept base are pruned. Restore: `python3 sync/restore_local.py --db <name>` (base +
+increments into a fresh database; `--incr-only` resumes on a restored base).
+
+### Measured numbers
+
+| | Value |
+|---|---|
+| Seed load from the 2026-10-04 NAS dump (62 GB of CSV) | about 15 min (10 min for `replay_players`), plus 2 min for indexes |
+| Neon egress for the migration (row data, logged per pull) | **2.83 GB**: 1.86 GB `replay_players` delta (522,871 rows), 0.45 GB `replay_fetch_queue`, 0.33 GB `replay_extras` delta, 0.13 GB skill-tier backup table, small tables and buckets. Schema, hash queries and publish fingerprints add only KB. |
+| Wire size per `replay_players` row | about 3.5 KB as CSV (JSON quotes are doubled). A full `backup_db.py` run was therefore closer to 140 GB than the 62 GB estimated in section 1. |
+| Cutover window (writer cron paused) | 16:35 to 16:45 EDT |
+| First base bundle | 7.41 GB, about 6 min |
+| First incremental bundle (includes the first daily small-table copies) | 79.9 MB; a 4-hourly bundle with no daily copies is about 2 MB per 1,000 changed rows per table |
+| Restore from NAS (sha256 + pg_restore -j4 + 3 increments) | about 12 min |
+| Production dry run (`refresh.py dump stats`, `REFRESH_DATE=2026-10-05-localdry`) | exit 0; 2,443,035 replays dumped from the local store; draft-stats-decayed.json written; nothing deployed |
+| NAS legacy dumps deleted after the restore test | 2026-07-21, 2026-09-27, 2026-10-04 (19.7 GB) |
+
+### Verification evidence (`/home/max/pgdata/verify/`)
+
+Method: `sync/verify_store.py`. Each side computes `count(*)` and
+`sum(hashtextextended(ROW(cols)::text, 0))` per bucket of 100,000 `replay_id`s (whole table when
+there is no integer `replay_id`), over the reference side's columns, in UTC.
+
+- `v1_*`: Neon vs local after the delta. 24/24 tables match.
+- `v2_cutover_*`: at cutover with writers paused. 24/24 match, after re-copying one
+  `replay_fetch_queue` bucket from the 16:30 discovery run.
+- `final_A_neon_vs_restore.json`: fresh Neon hashes (no writers left on Neon) vs the database restored
+  from the NAS bundles. All 12 frozen drop candidates match. `player_privacy` and `privacy_feed_state`
+  differ only by the 20:41 UTC post-cutover privacy run: 1 new row and an advanced cursor. Neon's rows
+  are a strict subset of local's.
+- `final_B_neon_vs_local.json`: same result, Neon vs the live local store.
+- `final_C_local_vs_restore.json`: live local vs restored, 24/24 identical including `updated_at`.
+
+### Neon shrink (Step E): pending the coordinator's final go
+
+```sql
+DROP TABLE replay_players, replay_draft_data, replay_extras, replay_fetch_queue,
+  replay_draft_skill_tier_backup_20260930, qm_games, player_fetch_queue,
+  player_history_marks, sync_log, player_privacy, qm_fetch_state,
+  player_refetch_state, replay_sync_state, privacy_feed_state;
+```
+
+That is 14 tables and about 72.4 GB. Kept on Neon: the 9 site tables, `rating_items`,
+`draft_ratings`, and `users` (1 row; `tracked_battletags` has an FK to it). No kept table has an FK
+into the drop list.
