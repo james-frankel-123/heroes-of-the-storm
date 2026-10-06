@@ -76,6 +76,20 @@ def wait_job(host, job):
         time.sleep(POLL)
 
 
+def wait_completed(host, job):
+    """Wait until the job completes; on failure alert once and keep waiting,
+    so a fixed and resumed job is picked up without restarting this script."""
+    said = None
+    while True:
+        st = wait_job(host, job)
+        if st == "completed":
+            return True
+        if st != said:
+            alert(f"{job} on {host} is {st}; waiting for it to be resumed")
+            said = st
+        time.sleep(POLL)
+
+
 def launch(host, name, cmd, **env):
     e = dict(os.environ, **env)
     r = subprocess.run([JOB, host, name] + cmd, capture_output=True, text=True, cwd=REPO, env=e, timeout=300)
@@ -168,8 +182,8 @@ def main():
     state = json.load(open(STATE)) if os.path.exists(STATE) else {"done": []}
     log(f"start pid {os.getpid()}; done so far {state['done']}")
     steps = [
-        ("wait_fixes", lambda: wait_job(H90, "p3_fixes") == "completed"),
-        ("wait_gd", lambda: wait_job(H90, "p3_gd_trainonly2") == "completed"),
+        ("wait_fixes", lambda: wait_completed(H90, "p3_fixes")),
+        ("wait_gd", lambda: wait_completed(H90, "p3_gd_trainonly2")),
         ("sync_code_3090", lambda: subprocess.run(
             [os.path.join(TRAINING, "remote_workers", "sync.sh"), H90, "code"], cwd=REPO,
             capture_output=True).returncode == 0),
