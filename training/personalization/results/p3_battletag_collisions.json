@@ -1,0 +1,10 @@
+{
+ "query": "distinct blizz_id per (region, battletag) over replay_players, local store, 2026-10-05; private placeholders excluded",
+ "by_region": {
+  "1 (US)": {"battletags": 365625, "with_more_than_one_blizz_id": 13, "accounts_in_collisions": 29},
+  "2 (EU)": {"battletags": 625140, "with_more_than_one_blizz_id": 12, "accounts_in_collisions": 31},
+  "3 (KR)": {"battletags": 101965, "with_more_than_one_blizz_id": 0},
+  "5 (CN)": {"battletags": 25116, "with_more_than_one_blizz_id": 0}
+ },
+ "collision_rate": "25 of 1,117,846 battletags (0.002%)"
+}
