@@ -86,12 +86,39 @@ def data():
         print(f"{name}: {len(ds):,} samples", flush=True)
 
 
+class _Batches:
+    """In-RAM uint8 samples of a CompactDraftDataset directory, decoded on the
+    device per batch (the generic DataLoader builds one tensor per sample and
+    was CPU-bound at about one epoch per hour)."""
+
+    def __init__(self, d, dev):
+        from train_generic_draft import CompactDraftDataset, INPUT_DIM, NUM_HEROES
+        ds = CompactDraftDataset(None, d)
+        self.X = torch.from_numpy(np.ascontiguousarray(ds.X[:]))
+        self.y = torch.from_numpy(np.asarray(ds.y[:], dtype=np.int64))
+        self.n, self.dev, self.H, self.step = len(self.y), dev, NUM_HEROES, CompactDraftDataset.STEP_COL
+
+    def decode(self, xb):
+        x = xb.to(self.dev, non_blocking=True).float()
+        x[:, self.step] = x[:, self.step] / 15.0
+        H = self.H
+        taken = (x[:, :H] + x[:, H:2 * H] + x[:, 2 * H:3 * H]).clamp(max=1.0)
+        return x, 1.0 - taken
+
+    def iterate(self, bs, order=None):
+        idx = torch.arange(self.n) if order is None else order
+        for a in range(0, self.n, bs):
+            b = idx[a:a + bs]
+            x, m = self.decode(self.X[b])
+            yield x, self.y[b].to(self.dev), m
+
+
 def gd():
-    from train_generic_draft import CompactDraftDataset, GenericDraftModel, MODEL_VARIANTS
-    from torch.utils.data import DataLoader
+    from train_generic_draft import GenericDraftModel, MODEL_VARIANTS
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    tr = CompactDraftDataset(None, os.path.join(OUT, "train"))
-    ho = CompactDraftDataset(None, os.path.join(OUT, "hold"))
+    tr = _Batches(os.path.join(OUT, "train"), dev)
+    ho = _Batches(os.path.join(OUT, "hold"), dev)
+    print(f"in RAM: train {tr.n:,}, holdout {ho.n:,}", flush=True)
     for i, var in enumerate(MODEL_VARIANTS):
         pt = os.path.join(OUT, f"generic_draft_{i}.pt")
         done = os.path.join(OUT, f"generic_draft_{i}.done")
@@ -100,9 +127,6 @@ def gd():
             continue
         torch.manual_seed(var["seed"])
         np.random.seed(var["seed"])
-        gen = torch.Generator().manual_seed(var["seed"])
-        tdl = DataLoader(tr, batch_size=512, shuffle=True, generator=gen, num_workers=0)
-        hdl = DataLoader(ho, batch_size=4096)
         m = GenericDraftModel(dropout1=var["dropout1"], dropout2=var["dropout2"]).to(dev)
         opt = torch.optim.Adam(m.parameters(), lr=var["lr"], weight_decay=1e-5)
         best, bad, ep0 = float("inf"), 0, 0
@@ -112,25 +136,23 @@ def gd():
             m.load_state_dict(st["model"])
             opt.load_state_dict(st["opt"])
             best, bad, ep0 = st["best"], st["bad"], st["epoch"] + 1
-            gen.set_state(st["gen"])
             torch.set_rng_state(st["rng"])
             print(f"variant {i}: resumed after epoch {ep0}", flush=True)
         for ep in range(ep0, 200):
             m.train()
             t0 = time.time()
-            for X, y, mk in tdl:
-                X, y, mk = X.to(dev), y.to(dev), mk.to(dev)
+            # epoch order from (seed, epoch): a resumed run sees the same order
+            order = torch.from_numpy(np.random.RandomState(var["seed"] * 1000 + ep).permutation(tr.n))
+            for X, y, mk in tr.iterate(512, order):
                 ok = mk.gather(1, y[:, None])[:, 0] > 0.5
-                X, y, mk = X[ok], y[ok], mk[ok]
-                loss = F.cross_entropy(m(X, mk), y)
+                loss = F.cross_entropy(m(X[ok], mk[ok]), y[ok])
                 opt.zero_grad()
                 loss.backward()
                 opt.step()
             m.eval()
             tot, n = 0.0, 0
             with torch.no_grad():
-                for X, y, mk in hdl:
-                    X, y, mk = X.to(dev), y.to(dev), mk.to(dev)
+                for X, y, mk in ho.iterate(8192):
                     ok = mk.gather(1, y[:, None])[:, 0] > 0.5
                     tot += F.cross_entropy(m(X[ok], mk[ok]), y[ok], reduction="sum").item()
                     n += int(ok.sum())
@@ -143,7 +165,7 @@ def gd():
             else:
                 bad += 1
             torch.save({"model": m.state_dict(), "opt": opt.state_dict(), "best": best, "bad": bad,
-                        "epoch": ep, "gen": gen.get_state(), "rng": torch.get_rng_state()}, rs + ".tmp")
+                        "epoch": ep, "rng": torch.get_rng_state()}, rs + ".tmp")
             os.replace(rs + ".tmp", rs)
             if bad >= 10:
                 break
