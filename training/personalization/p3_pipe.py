@@ -99,6 +99,19 @@ CHAINS = {
     "lifetime": [
         s("c_lifetime", "p3_c_lifetime.py"),
     ],
+    # B models on the rebuilt caches (after the drafter chain: the ban model
+    # reads its tables and the train-window GD). Development choices were made
+    # on the legacy caches; these runs are the reported numbers. The sealed
+    # build is scored by the separate "bfinal" chain once, at the end.
+    "bmodels": [
+        s("b_onetrick", "p3_b_onetrick.py"),
+        s("b_demean", "p3_b_demean.py", "--kalman"),
+        s("b_bans", "p3_b_bans.py"),
+    ],
+    "bfinal": [
+        s("b_onetrick_final", "p3_b_onetrick.py", "--final"),
+        s("b_demean_final", "p3_b_demean.py", "--final"),
+    ],
     # A5/A7: the drafter harness on the fixed protocol (train-window GD and
     # BC prior, team-level assignment, GD-sampled bans, lag-1 tables)
     "drafter": [

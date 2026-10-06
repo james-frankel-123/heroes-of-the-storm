@@ -184,6 +184,8 @@ def main():
             ["setsid", "nohup", "nice", "-n", "19", "python3", os.path.join(HERE, "p3_mcts_waiter.py")],
             stdout=open(os.path.join(LOGS, "p3_mcts_waiter.out"), "a"), stderr=subprocess.STDOUT,
             cwd=TRAINING, start_new_session=True) is not None),
+        ("bmodels_chain", lambda: job_ok(H90, "p3_bmodels", ["python", "personalization/p3_pipe.py", "bmodels"],
+                                         grep="chain bmodels complete")),
     ]
     for name, fn in steps:
         if not run_step(state, name, fn):
