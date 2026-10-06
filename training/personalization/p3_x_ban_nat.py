@@ -39,6 +39,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES, HKEY
 import p3_hs_core as C
 import p3_x_common as X
 import p3_x_ban_feat as F
@@ -103,9 +104,9 @@ def main():
     po = np.load(PICKO)
     names = [str(x) for x in d["hero_names"]]
     hid = {h: i for i, h in enumerate(names)}
-    pk = po["replay_ids"].astype(np.int64) * 128 + np.array([hid.get(h, 127) for h in po["hero"]])
+    pk = po["replay_ids"].astype(np.int64) * HKEY + np.array([hid.get(h, HKEY - 1) for h in po["hero"]])
     so = np.argsort(pk)
-    key = d["replay_id"].astype(np.int64) * 128 + d["hero"]
+    key = d["replay_id"].astype(np.int64) * HKEY + d["hero"]
     jj = np.searchsorted(pk[so], key)
     okp = pk[so][np.minimum(jj, len(so) - 1)] == key
     rank = np.where(okp, po["pick_rank"][so][np.minimum(jj, len(so) - 1)], -1)
@@ -128,9 +129,9 @@ def main():
         opp_ban_late |= hit & is_opp & second & (rank < 5) & (rank >= 0)
         own_ban |= hit & is_own
     # main picked by another slot of this game
-    gk = g.astype(np.int64) * 128 + d["hero"]
+    gk = g.astype(np.int64) * HKEY + d["hero"]
     sgk = np.sort(gk)
-    mk = g.astype(np.int64) * 128 + main
+    mk = g.astype(np.int64) * HKEY + main
     jj2 = np.searchsorted(sgk, mk)
     taken = (sgk[np.minimum(jj2, len(sgk) - 1)] == mk) & (d["hero"] != main)
     elig = (Fz["tot"] >= 30) & (d["day"] >= C.day_of("2024-07-01")) & (rank >= 0)
@@ -149,7 +150,7 @@ def main():
     bidx = w["build_idx"][np.argsort(w["replay_ids"])]
     bg = bidx[np.searchsorted(np.sort(w["replay_ids"]), grid)]
     nb_build = bg.max() + 1
-    banned_any = np.zeros((nb_build, 90))
+    banned_any = np.zeros((nb_build, NUM_HEROES))
     gcount = np.bincount(bg, minlength=nb_build).astype(float)
     for k in range(6):
         m = bh[:, k] >= 0

@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_mcts_core as M
 import p3_ds_common as DS
@@ -46,10 +47,10 @@ def build(S, R, pers_only=True):
     rows = np.array([int(lobs[li]["rows"][lobs[li]["slot_of"][k]]) for li, k, _ in items])
     ur, inv = np.unique(rows, return_inverse=True)
     Fr = DS.player_features(S, ur)                      # my order
-    F = np.zeros((len(items), 90, len(DS.FEATS)), np.float32)
+    F = np.zeros((len(items), NUM_HEROES, len(DS.FEATS)), np.float32)
     X = np.zeros((len(items), 290), np.float32)
-    Mk = np.zeros((len(items), 90), bool)
-    Y = np.zeros((len(items), 90), np.float32)
+    Mk = np.zeros((len(items), NUM_HEROES), bool)
+    Y = np.zeros((len(items), NUM_HEROES), np.float32)
     A = np.zeros(len(items), np.int64)
     G = np.zeros(len(items), np.int64)
     for i, (li, k, pol) in enumerate(items):

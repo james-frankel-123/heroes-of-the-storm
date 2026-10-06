@@ -34,6 +34,7 @@ import pickle
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_dr_core as D
 
@@ -125,9 +126,9 @@ def main():
         pool_size = int((n > 0).sum())
         # real effective pool: exp entropy of play counts, and of a sample of
         # 30 games drawn from them (matches the 30-context resolution)
-        sim = [entropy_eff(np.bincount(rng.choice(90, 30, p=n / n.sum()), minlength=90)) for _ in range(20)]
-        col.append({"pers_eff": entropy_eff(np.bincount(v["pers"], minlength=90)),
-                    "pop_eff": entropy_eff(np.bincount(v["pop"], minlength=90)),
+        sim = [entropy_eff(np.bincount(rng.choice(NUM_HEROES, 30, p=n / n.sum()), minlength=NUM_HEROES)) for _ in range(20)]
+        col.append({"pers_eff": entropy_eff(np.bincount(v["pers"], minlength=NUM_HEROES)),
+                    "pop_eff": entropy_eff(np.bincount(v["pop"], minlength=NUM_HEROES)),
                     "real_eff_all": entropy_eff(n), "real_eff_30": float(np.mean(sim)),
                     "pers_distinct": len(set(v["pers"])), "pop_distinct": len(set(v["pop"])),
                     "pool": pool_size,
@@ -144,7 +145,7 @@ def main():
 
     # ---------- 4. emergent meta
     def counts(key, which=None):
-        c = np.zeros(90)
+        c = np.zeros(NUM_HEROES)
         for l in full:
             dr = l[key]
             teams = ("t0", "t1") if which is None else (("t0",) if l["ctrl"] == 0 else ("t1",))
@@ -154,7 +155,7 @@ def main():
         return c
     cp, cq, cr = counts("b|pers"), counts("b|pop"), counts("real")
     ap_, aq_ = counts("a-gd|pers", "ctrl"), counts("a-gd|pop", "ctrl")
-    ar = np.zeros(90)
+    ar = np.zeros(NUM_HEROES)
     for l in full:
         for h in (l["real"]["t0"] if l["ctrl"] == 0 else l["real"]["t1"]).values():
             ar[h] += 1
@@ -265,9 +266,9 @@ def main():
     for l in alll:
         st = L["steps"][l["gi"]]
         mo, to = D.one_hots(str(L["map"][l["gi"]]), str(L["tier"][l["gi"]]))
-        t0 = np.zeros(90, np.float32)
-        t1 = np.zeros(90, np.float32)
-        bans = np.zeros(90, np.float32)
+        t0 = np.zeros(NUM_HEROES, np.float32)
+        t1 = np.zeros(NUM_HEROES, np.float32)
+        bans = np.zeros(NUM_HEROES, np.float32)
         di = 0
         for k, (h, ty, tm, row) in enumerate(st):
             if ty == 1:
@@ -280,7 +281,7 @@ def main():
                 bans[h] = 1
     rows_needed = np.array(sorted(rows_needed))
     rec = I.recency_features(d, rows_needed)
-    fake = {"row": rows_needed, "recpos": np.arange(len(rows_needed)), "lp": np.zeros((len(rows_needed), 90), np.float32)}
+    fake = {"row": rows_needed, "recpos": np.arange(len(rows_needed)), "lp": np.zeros((len(rows_needed), NUM_HEROES), np.float32)}
     Xp = I.feature_tensor(fake, T, rec, meta)
     ipers = {int(r): (Xp[i, :, 1:] * iw[1:]).sum(-1) for i, r in enumerate(rows_needed)}
     cls = []
@@ -328,7 +329,7 @@ def main():
     fig, axs = plt.subplots(1, 3, figsize=(22, 7.5))
     for ax, (xa, ya, xl, yl) in zip(axs[:2], ((sh(cq), sh(cp), "population self-play", "personalized self-play"),
                                               (sh(cr), sh(cp), "real drafts (same lobbies)", "personalized self-play"))):
-        for i in range(90):
+        for i in range(NUM_HEROES):
             ax.scatter(100 * xa[i], 100 * ya[i], color=role_col[meta["blizz"][i]], s=18)
         lim = 100 * max(xa.max(), ya.max()) * 1.05
         ax.plot([0, lim], [0, lim], color="#999", lw=0.7)

@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
 
+from p3_heroes import NUM_HEROES, HKEY
 import p3_hs_core as C
 import p3_mcts_core as M
 import p3_pgd_common as P
@@ -59,10 +60,10 @@ def metagd_kernel_weights(mg, to_sh):
     b1 = mg.net[0].bias.detach().numpy()
     W2, b2 = mg.net[3].weight.detach().numpy(), mg.net[3].bias.detach().numpy()
     W3, b3 = mg.net[6].weight.detach().numpy(), mg.net[6].bias.detach().numpy()
-    W1s = np.zeros((256, 289), np.float32)
+    W1s = np.zeros((256, 3 * NUM_HEROES + 19), np.float32)
     for blk in range(3):
-        W1s[:, blk * 90 + to_sh] = W1[:, blk * 90:blk * 90 + 90]
-    W1s[:, 270:289] = W1[:, 270:289]
+        W1s[:, blk * NUM_HEROES + to_sh] = W1[:, blk * NUM_HEROES:(blk + 1) * NUM_HEROES]
+    W1s[:, 3 * NUM_HEROES:3 * NUM_HEROES + 19] = W1[:, 3 * NUM_HEROES:3 * NUM_HEROES + 19]
     W3s = np.zeros_like(W3)
     b3s = np.zeros_like(b3)
     W3s[to_sh] = W3
@@ -95,9 +96,9 @@ class PGDSetup(Setup):
         self.hb.eval()
         self.dx = X.load_ext()
         # hs_slots row -> extended-table row, by (replay_id, hero)
-        kx = self.dx["replay_id"] * 128 + self.dx["hero"]
+        kx = self.dx["replay_id"] * HKEY + self.dx["hero"]
         ox = np.argsort(kx)
-        kh = self.d["replay_id"] * 128 + self.d["hero"]
+        kh = self.d["replay_id"] * HKEY + self.d["hero"]
         j = np.searchsorted(kx[ox], kh)
         assert np.array_equal(kx[ox][j], kh)
         self.hs2ext = ox[j]
@@ -118,7 +119,7 @@ class PGDSetup(Setup):
                                 "main": aux["is_main"][i] * aux["main_share"][i], "tot": aux["tot"][i]}
 
     def ban_bias(self, opp_rows, own_rows):
-        G = np.zeros((90, len(BAN_FEATS)), np.float32)
+        G = np.zeros((NUM_HEROES, len(BAN_FEATS)), np.float32)
         co = [self.ctx[int(r)] for r in opp_rows]
         cw = [self.ctx[int(r)] for r in own_rows]
         so = np.stack([c["sshare"] for c in co])
@@ -138,7 +139,7 @@ class PGDSetup(Setup):
 
     def pgd_tensors(self, lb):
         """(14, 90) personal-GD terms (shared order) and the meta GD offset."""
-        out = np.zeros((14, 90), np.float32)
+        out = np.zeros((14, NUM_HEROES), np.float32)
         for sl in range(10):
             out[sl, self.to_sh] = self.ctx[int(lb["rows"][sl])]["pick_bias"]
         slot_step = {int(lb["slot_of"][k]): k for k in range(16) if M.IS_PICK[k]}
@@ -159,7 +160,7 @@ class PGDSetup(Setup):
         lb = self.lobby(gi)
         # audit fix: pools from pre-day history only
         for sl in range(10):
-            pm = np.zeros(90, bool)
+            pm = np.zeros(NUM_HEROES, bool)
             pm[self.to_sh] = self.T["n"][self.T["pos"][int(lb["rows"][sl])]] > 0
             lb["pool"][sl] = M.pool_bits(pm)
         lb["forced"] = np.full(16, -1, np.int32)
@@ -193,7 +194,8 @@ class PGDSetup(Setup):
                 pg = np.stack([jobs[i][2] for i in ii])
                 b1 = np.stack([jobs[i][3] for i in ii])
                 eng = self.engine(key, (bs // BATCH) % 5, len(ii), use_pgd)
-                r = eng.run(cfg, s, off, imit, pool, coefs, pg, b1, sims, 2.0, seed + bs, 0.0, 0.3, 0.0, 1)
+                r = eng.run(cfg, s, off, imit, pool, coefs, pg, b1, sims, 2.0, seed + bs, 0.0, 0.3, 0.0, 1,
+                    search_mode=M.search_mode())
                 del eng
                 for j, i in enumerate(ii):
                     nt = max(int(r[4][j]), 1)
@@ -235,15 +237,15 @@ def verify(S):
     diffs = []
     for (lb, k), pk in zip(items, kp):
         x = np.zeros(469, np.float32)
-        taken = np.zeros(90, bool)
+        taken = np.zeros(NUM_HEROES, bool)
         for j in range(k):
             h = int(S.from_sh[lb["acts"][j]])
             taken[h] = True
             if M.IS_PICK[j]:
-                x[(0 if M.DRAFT_TEAM[j] == 0 else 90) + h] = 1
+                x[(0 if M.DRAFT_TEAM[j] == 0 else NUM_HEROES) + h] = 1
             else:
-                x[180 + h] = 1
-        x[270 + lb["map"]] = 1
+                x[2 * NUM_HEROES + h] = 1
+        x[3 * NUM_HEROES + lb["map"]] = 1
         x[284 + lb["tier"]] = 1
         x[287] = k / 15.0
         x[288] = M.IS_PICK[k]
@@ -313,7 +315,9 @@ def main():
     ap.add_argument("--stage", required=True, choices=["verify", "real", "full", "analyze"])
     ap.add_argument("--sims", type=int, default=400)
     ap.add_argument("--nlobbies", type=int, default=2000)
+    ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
     a = ap.parse_args()
+    M.set_search_mode(a.search_mode)
     torch.set_num_threads(2)
     t0 = time.time()
     if a.stage == "analyze":
@@ -325,8 +329,7 @@ def main():
         verify(S)
         return
     res = stage_real(S, a.sims, a.nlobbies) if a.stage == "real" else stage_full(S, a.sims)
-    with gzip.open(os.path.join(C.CACHE, f"pgdmcts_{a.stage}_s{a.sims}.pkl.gz"), "wb") as f:
-        pickle.dump(res, f)
+    M.save_pickle(res, f"pgdmcts_{a.stage}_s{a.sims}.pkl.gz")
     print(f"done {time.time() - t0:.0f}s")
 
 

@@ -29,6 +29,7 @@ import json
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 from p3_hs_fit import prepare
 
@@ -91,8 +92,8 @@ def main():
     Sm = np.where(N >= 5, S, 0.0)
     M, npair = empirical_cov(Sm, Pm, 5)
     # split-half diagonal: odd vs even games of each cell
-    o = np.lexsort((d["replay_id"], d["day"], d["pid"] * 128 + d["hero"]))
-    key = (d["pid"] * 128 + d["hero"])[o]
+    o = np.lexsort((d["replay_id"], d["day"], d["pid"] * HKEY + d["hero"]))
+    key = (d["pid"] * HKEY + d["hero"])[o]
     brk = np.flatnonzero(np.r_[True, key[1:] != key[:-1]])
     rank = np.arange(len(o)) - np.repeat(brk, np.diff(np.r_[brk, len(o)]))
     half = np.empty(len(o), bool)

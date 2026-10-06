@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_mcts_core as M
 import p3_ds_common as DS
@@ -65,7 +66,7 @@ class PriorSetup(Setup):
             b = self.model.bias(torch.tensor(F)).numpy()
         pos = {int(r): i for i, r in enumerate(rows)}
         for lb in lbs:
-            out = np.zeros((10, 90), np.float32)
+            out = np.zeros((10, NUM_HEROES), np.float32)
             for s in range(10):
                 out[s, self.to_sh] = b[pos[int(lb["rows"][s])]]
             self._bias[tuple(int(r) for r in lb["rows"])] = out
@@ -85,16 +86,18 @@ class PriorSetup(Setup):
                 off = np.stack([jobs[i][0]["off"] for i in ii])
                 imit = np.stack([jobs[i][0]["imit"] for i in ii])
                 pool = np.stack([jobs[i][0]["pool"] for i in ii])
-                bias = np.zeros((len(ii), 10, 90), np.float32) if zero_bias else \
+                bias = np.zeros((len(ii), 10, NUM_HEROES), np.float32) if zero_bias else \
                     np.stack([self.bias_for(jobs[i][0]) for i in ii])
                 gdi = (bs // BATCH) % 5
                 if kernel == "prior":
                     eng = make_prior_engine(self.KP, self.W, key, gdi, len(ii), 0)
-                    r = eng.run(cfg, s, off, imit, pool, coefs, bias, sims, 2.0, seed + bs, 0.0, 0.3, 0.0, 1)
+                    r = eng.run(cfg, s, off, imit, pool, coefs, bias, sims, 2.0, seed + bs, 0.0, 0.3, 0.0, 1,
+                    search_mode=M.search_mode())
                 else:
                     eng = M.make_engine(self.K, self.W, key, gdi, len(ii), 0)
                     r = eng.run(cfg[:, :M.CFG_LEN].copy(), s, off, imit, pool, self.coefs, sims, 2.0, seed + bs,
-                                0.0, 0.3, 0.0, 1)
+                                0.0, 0.3, 0.0, 1,
+                    search_mode=M.search_mode())
                 del eng
                 for j, i in enumerate(ii):
                     nt = max(int(r[4][j]), 1)
@@ -128,8 +131,8 @@ def verify(S):
     # 2. root priors vs Python (decide-only at step 6 of each lobby)
     ks = 6
     X = np.zeros((len(lbs), 290), np.float32)
-    Mk = np.zeros((len(lbs), 90), bool)
-    Bias = np.zeros((len(lbs), 90), np.float32)
+    Mk = np.zeros((len(lbs), NUM_HEROES), bool)
+    Bias = np.zeros((len(lbs), NUM_HEROES), np.float32)
     for i, lb in enumerate(lbs):
         lob = {"acts_real": lb["acts"], "map": lb["map"], "tier": lb["tier"]}
         sl = lb["slot_of"][ks]
@@ -159,7 +162,9 @@ def main():
     ap.add_argument("--sims", type=int, default=400)
     ap.add_argument("--nlobbies", type=int, default=2000)
     ap.add_argument("--contexts", type=int, default=30)
+    ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
     a = ap.parse_args()
+    M.set_search_mode(a.search_mode)
     torch.set_num_threads(2)
     t0 = time.time()
     S = PriorSetup()
@@ -208,8 +213,7 @@ def main():
         S.precompute_bias([j[0] for j in jobs])
         rr = S.run_prior(jobs, a.sims, 7000)
         res["decisions"] = [(m[0], m[1], m[2], int(np.argmax(r["pol"][0]))) for m, r in zip(meta_, rr)]
-    with gzip.open(os.path.join(C.CACHE, f"dsmcts_{a.stage}_s{a.sims}.pkl.gz"), "wb") as f:
-        pickle.dump(res, f)
+    M.save_pickle(res, f"dsmcts_{a.stage}_s{a.sims}.pkl.gz")
     print(f"done {time.time() - t0:.0f}s")
 
 

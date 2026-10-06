@@ -29,6 +29,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_mcts_core as M
 
@@ -59,7 +60,7 @@ def player_features(S, rows):
     I = S.I
     rows = np.asarray(rows)
     rec = I.recency_features(S.d, rows)
-    fake = {"row": rows, "recpos": np.arange(len(rows)), "lp": np.zeros((len(rows), 90), np.float32)}
+    fake = {"row": rows, "recpos": np.arange(len(rows)), "lp": np.zeros((len(rows), NUM_HEROES), np.float32)}
     Xp = I.feature_tensor(fake, S.T, rec, S.meta)  # gd_logp, log1p_n, never_n, e20, e100, log1p_days, never_pl, log_fine
     pos = np.array([S.T["pos"][int(r)] for r in rows])
     b2 = float(S.coefs[2])
@@ -73,20 +74,20 @@ def state_and_mask(lob, k, pool_row_my, to_sh):
     kernel valid mask (free and in the acting player's pool), shared order."""
     acts = lob["acts_real"]
     x = np.zeros(290, np.float32)
-    taken = np.zeros(90, bool)
+    taken = np.zeros(NUM_HEROES, bool)
     for j in range(k):
         h = int(acts[j])
         taken[h] = True
         if M.IS_PICK[j]:
-            x[(0 if M.DRAFT_TEAM[j] == 0 else 90) + h] = 1
+            x[(0 if M.DRAFT_TEAM[j] == 0 else NUM_HEROES) + h] = 1
         else:
-            x[180 + h] = 1
-    x[270 + lob["map"]] = 1
+            x[2 * NUM_HEROES + h] = 1
+    x[3 * NUM_HEROES + lob["map"]] = 1
     x[284 + lob["tier"]] = 1
     x[287] = k / 15.0
     x[288] = 1.0
     x[289] = float(M.DRAFT_TEAM[k])
-    pool = np.zeros(90, bool)
+    pool = np.zeros(NUM_HEROES, bool)
     pool[to_sh] = pool_row_my
     m = ~taken & pool
     if not m.any():
@@ -119,6 +120,6 @@ def slot_bias(model, S, lob_rows, to_sh):
     F = player_features(S, lob_rows)
     with torch.no_grad():
         b = model.bias(torch.tensor(F)).numpy()
-    out = np.zeros((len(lob_rows), 90), np.float32)
+    out = np.zeros((len(lob_rows), NUM_HEROES), np.float32)
     out[:, to_sh] = b
     return out

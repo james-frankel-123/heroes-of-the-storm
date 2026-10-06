@@ -41,6 +41,7 @@ import time
 os.environ.setdefault("OMP_NUM_THREADS", "4")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_x_common as X
 import p3_x_ban_feat as F
@@ -148,9 +149,9 @@ def main():
         n_h = Q["q_cnt"][q].astype(float)
         tot = n_h.sum()
         top = n_h.max()
-        ism = np.arange(90) == np.argmax(n_h)
+        ism = np.arange(NUM_HEROES) == np.argmax(n_h)
         Xh = slot_design(T["s"][p].astype(float), Q["q_mawp"][q].astype(float), Q["q_ewr10"][q].astype(float),
-                         n_h, np.full(90, tot), np.full(90, top), ism)
+                         n_h, np.full(NUM_HEROES, tot), np.full(NUM_HEROES, top), ism)
         cols, b = coefs[arm]
         return b[0] + Xh[:, cols] @ b[1:]
 
@@ -186,9 +187,9 @@ def main():
         pick_step = {int(row): k for k, (h, ty, tm, row) in enumerate(st) if ty == 1}
         team_of = {int(row): tm for (h, ty, tm, row) in st if ty == 1}
         sig = {a: {r_: strength(r_, a) for r_ in pick_step} for a in arms_eval}
-        t0_ = np.zeros(90, np.float32)
-        t1_ = np.zeros(90, np.float32)
-        bans = np.zeros(90, np.float32)
+        t0_ = np.zeros(NUM_HEROES, np.float32)
+        t1_ = np.zeros(NUM_HEROES, np.float32)
+        bans = np.zeros(NUM_HEROES, np.float32)
         for k, (h, ty, tm, row) in enumerate(st):
             if ty == 1:
                 (t0_ if tm == 0 else t1_)[h] = 1

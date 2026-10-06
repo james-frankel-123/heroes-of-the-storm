@@ -30,6 +30,7 @@ import json
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 from p3_hs_fit import prepare, KERNELS
 from p3_hs_eval import team_diff
@@ -105,7 +106,7 @@ def fit_eval(specs, Dm, lo, y, fit_m, test_m, boots, ref):
 def main():
     rng = np.random.RandomState(0)
     d = C.load_slots()
-    H = 90
+    H = NUM_HEROES
     e_mask, n_p, n_ph, table, r_adj = prepare(d)
     z = np.load(GT)
     o = np.argsort(z["replay_ids"])

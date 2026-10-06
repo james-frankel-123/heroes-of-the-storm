@@ -30,6 +30,7 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import NUM_HEROES, sample_rows
 import p3_hs_core as C
 
 FIX_CACHE = os.path.join(C.CACHE, "fix")
@@ -133,10 +134,10 @@ def patch_onestep():
     def ban_sample(states, k, lob, rng):
         gd = DR._W["gd"]
         B = len(states)
-        t0 = np.zeros((B, 90), np.float32)
-        t1 = np.zeros((B, 90), np.float32)
-        bans = np.zeros((B, 90), np.float32)
-        avail = np.zeros((B, 90), bool)
+        t0 = np.zeros((B, NUM_HEROES), np.float32)
+        t1 = np.zeros((B, NUM_HEROES), np.float32)
+        bans = np.zeros((B, NUM_HEROES), np.float32)
+        avail = np.zeros((B, NUM_HEROES), bool)
         for i, s in enumerate(states):
             t0[i, list(s["t0"].values())] = 1
             t1[i, list(s["t1"].values())] = 1
@@ -146,7 +147,7 @@ def patch_onestep():
                          np.full(B, k, np.float32), np.zeros(B, np.float32), avail)
         p = np.where(avail, np.exp(lp), 0)
         p /= p.sum(1, keepdims=True)
-        return np.minimum((p.cumsum(1) < rng.rand(B, 1)).sum(1), 89)
+        return sample_rows(p, rng.rand(B, 1))
 
     def apply_ban(s, hero):
         s = {"t0": dict(s["t0"]), "t1": dict(s["t1"]), "bans": set(s["bans"]), "taken": s["taken"].copy()}
@@ -168,7 +169,7 @@ def patch_onestep():
 
     def _run_draft(lob, seed, modes, opp_kind):
         rng = np.random.RandomState(seed)
-        state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(90, bool)}
+        state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(NUM_HEROES, bool)}
         decs = []
         for k in range(16):
             h, ty, tm, row = lob["steps"][k]

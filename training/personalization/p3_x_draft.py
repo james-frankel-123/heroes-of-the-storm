@@ -55,6 +55,7 @@ import argparse
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES, HKEY
 import p3_hs_core as C
 
 RUNS = os.path.join(C.CACHE, "dr_runs.pkl.gz")
@@ -80,7 +81,7 @@ def ci_mean(x, rng, n=1000):
 # ------------------------------------------------------------------ sim workers
 
 def _empty():
-    return {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(90, bool)}
+    return {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(NUM_HEROES, bool)}
 
 
 def _ban(state, hero):
@@ -101,9 +102,9 @@ def decide_ban(state, k, lob, rng):
     W = DR._W
     h_real, ty, tm, _ = lob["steps"][k]
     free = ~state["taken"]
-    t0 = np.zeros((1, 90), np.float32)
-    t1 = np.zeros((1, 90), np.float32)
-    bans = np.zeros((1, 90), np.float32)
+    t0 = np.zeros((1, NUM_HEROES), np.float32)
+    t1 = np.zeros((1, NUM_HEROES), np.float32)
+    bans = np.zeros((1, NUM_HEROES), np.float32)
     t0[0, list(state["t0"].values())] = 1
     t1[0, list(state["t1"].values())] = 1
     bans[0, list(state["bans"])] = 1
@@ -111,7 +112,7 @@ def decide_ban(state, k, lob, rng):
                           np.zeros(1, np.float32), free[None])[0]
     cand_f = np.flatnonzero(free)
     a = cand_f[np.argsort(-lp[cand_f])[:10]]
-    strength = np.full(90, -1.0)
+    strength = np.full(NUM_HEROES, -1.0)
     for row in _opp_rows(lob, tm):
         strength = np.maximum(strength, np.where(lob["pool"][row], lob["s"][row], -1.0))
     b_ = cand_f[np.argsort(-strength[cand_f])[:10]]
@@ -136,9 +137,9 @@ def degraded_lob(lob, tm):
     """What a drafter for team tm knows when the opponents are unidentified."""
     ld = dict(lob)
     opp = set(_opp_rows(lob, tm))
-    ld["s"] = {r: (np.zeros(90, np.float32) if r in opp else v) for r, v in lob["s"].items()}
-    ld["off"] = {r: (np.zeros(90) if r in opp else v) for r, v in lob["off"].items()}
-    ld["pool"] = {r: (np.ones(90, bool) if r in opp else v) for r, v in lob["pool"].items()}
+    ld["s"] = {r: (np.zeros(NUM_HEROES, np.float32) if r in opp else v) for r, v in lob["s"].items()}
+    ld["off"] = {r: (np.zeros(NUM_HEROES) if r in opp else v) for r, v in lob["off"].items()}
+    ld["pool"] = {r: (np.ones(NUM_HEROES, bool) if r in opp else v) for r, v in lob["pool"].items()}
     return ld
 
 
@@ -241,7 +242,7 @@ def work_real(args):
 
 class ZeroDict(dict):
     def __missing__(self, key):
-        return np.zeros(90, np.float32)
+        return np.zeros(NUM_HEROES, np.float32)
 
 
 def sim(procs, n_real):
@@ -484,9 +485,9 @@ def combine():
     for l in z["lobbies"]:
         st = L["steps"][l["gi"]]
         mo, to = D.one_hots(str(L["map"][l["gi"]]), str(L["tier"][l["gi"]]))
-        t0 = np.zeros(90, np.float32)
-        t1 = np.zeros(90, np.float32)
-        bans = np.zeros(90, np.float32)
+        t0 = np.zeros(NUM_HEROES, np.float32)
+        t1 = np.zeros(NUM_HEROES, np.float32)
+        bans = np.zeros(NUM_HEROES, np.float32)
         di = 0
         for k, (h, ty, tm, row) in enumerate(st):
             if ty == 1:
@@ -501,7 +502,7 @@ def combine():
     rows_needed = np.array(sorted(rows_needed))
     rec = I.recency_features(d, rows_needed)
     fake = {"row": rows_needed, "recpos": np.arange(len(rows_needed)),
-            "lp": np.zeros((len(rows_needed), 90), np.float32)}
+            "lp": np.zeros((len(rows_needed), NUM_HEROES), np.float32)}
     Xp = I.feature_tensor(fake, T, rec, meta)
     ipers = {int(r): (Xp[i, :, 1:] * iw[1:]).sum(-1) for i, r in enumerate(rows_needed)}
     per_pick = []
@@ -715,7 +716,7 @@ def chem():
                              "pair_specific_sd_pp": float(100 * np.sqrt(max(cov - mean_ ** 2, 0))),
                              "var_ci_pp2": [float(1e4 * np.percentile(bs, 2.5)), float(1e4 * np.percentile(bs, 97.5))]}
     # joint comfort: this hero pair played together by this premade pair before
-    hp = np.minimum(d["hero"][ra], d["hero"][rb]) * 128 + np.maximum(d["hero"][ra], d["hero"][rb])
+    hp = np.minimum(d["hero"][ra], d["hero"][rb]) * HKEY + np.maximum(d["hero"][ra], d["hero"][rb])
     ck = pkey * 16384 + hp
     o3 = np.lexsort((rid, day, ck))
     c3 = ck[o3]

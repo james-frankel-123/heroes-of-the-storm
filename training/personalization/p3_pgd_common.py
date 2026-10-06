@@ -22,6 +22,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 
 GAMES = os.path.join(C.CACHE, "pgd_games.npz")
@@ -58,7 +59,7 @@ def states(g, gi, k):
     B = len(gi)
     X = np.zeros((B, DIM), np.float32)
     H, T = g["H"][gi], g["T"][gi]
-    taken = np.zeros((B, 90), bool)
+    taken = np.zeros((B, NUM_HEROES), bool)
     ar = np.arange(B)
     for j in range(16):
         sel = k > j
@@ -66,11 +67,11 @@ def states(g, gi, k):
             continue
         h = H[sel, j]
         if TYPES[j] == 1:
-            X[ar[sel], np.where(T[sel, j] == 0, 0, 90) + h] = 1
+            X[ar[sel], np.where(T[sel, j] == 0, 0, NUM_HEROES) + h] = 1
         else:
-            X[ar[sel], 180 + h] = 1
+            X[ar[sel], 2 * NUM_HEROES + h] = 1
         taken[ar[sel], h] = True
-    X[ar, 270 + g["map"][gi]] = 1
+    X[ar, 3 * NUM_HEROES + g["map"][gi]] = 1
     X[ar, 284 + g["tier"][gi]] = 1
     X[:, 287] = k / 15.0
     X[:, 288] = TYPES[k]
@@ -84,7 +85,7 @@ class MetaGD(nn.Module):
     def __init__(self, d_in=DIM, dropout=0.1):
         super().__init__()
         self.net = nn.Sequential(nn.Linear(d_in, 256), nn.ReLU(), nn.Dropout(dropout),
-                                 nn.Linear(256, 128), nn.ReLU(), nn.Dropout(dropout), nn.Linear(128, 90))
+                                 nn.Linear(256, 128), nn.ReLU(), nn.Dropout(dropout), nn.Linear(128, NUM_HEROES))
 
     def forward(self, x, mask=None):
         lg = self.net(x)
@@ -108,7 +109,8 @@ def logp_metagd(m, X, M, bs=16384):
 
 def logp_paper_gd(gd, X, M):
     """Paper-1 GD (5-model average, p3_dr_core.GDPolicy) on the same states."""
-    return gd.logprobs(X[:, 0:90], X[:, 90:180], X[:, 180:270], X[:, 270:284], X[:, 284:287], X[:, 287] * 15.0,
+    return gd.logprobs(X[:, 0:NUM_HEROES], X[:, NUM_HEROES:2 * NUM_HEROES], X[:, 2 * NUM_HEROES:3 * NUM_HEROES],
+                       X[:, 3 * NUM_HEROES:3 * NUM_HEROES + 14], X[:, 284:287], X[:, 287] * 15.0,
                        X[:, 288], M)
 
 

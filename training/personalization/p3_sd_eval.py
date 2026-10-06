@@ -35,6 +35,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from numba import njit, prange
+from p3_heroes import NUM_HEROES, HKEY
 import p3_hs_core as C
 import p3_sd_kalman as K
 from p3_hs_fit import prepare, KERNELS
@@ -63,9 +64,9 @@ def _momentum(starts, ends, day, hero, y, r, feat):
         ew = np.zeros(3)
         er = np.zeros(3)
         wsum = np.zeros(3)
-        hew = np.zeros(90)
-        hw = np.zeros(90)
-        last_h = np.full(90, -1)
+        hew = np.zeros(NUM_HEROES)
+        hw = np.zeros(NUM_HEROES)
+        last_h = np.full(NUM_HEROES, -1)
         buf = np.zeros(20)
         nb = 0
         last_any = -1
@@ -124,7 +125,7 @@ def momentum_features(d):
              "days since hero", "days since any"]
     res = {n: out[:, i] for i, n in enumerate(names)}
     # 365-day volumes (games on days t-365 .. t-1)
-    for nm, key in (("vol365 all", d["pid"]), ("vol365 hero", d["pid"] * 128 + d["hero"])):
+    for nm, key in (("vol365 all", d["pid"]), ("vol365 hero", d["pid"] * HKEY + d["hero"])):
         o2 = np.lexsort((d["day"], key))
         comp = np.empty(len(o2), np.int64)
         kk = key[o2]
@@ -326,7 +327,7 @@ def main():
     for G in (1, 7, 30):
         for col, key, nm in (("player_mmr", d["pid"], "player"),
                              ("role_mmr", d["pid"] * 8 + role_of, "role"),
-                             ("hero_mmr", d["pid"] * 128 + d["hero"], "hero")):
+                             ("hero_mmr", d["pid"] * HKEY + d["hero"], "hero")):
             vals = d[col].astype(np.float64)
             for kind, mg in (("naive", -10 ** 12), ("safe", margin)):
                 x = safe_lagged(d, vals, key, G, mg)
@@ -414,7 +415,7 @@ def main():
         pm, ps = run(filt, sd, lam, nm, upd)
         # cell = (player, hero) played in V2; prediction = mean over its V2 slots
         s = v2r
-        cell = d["pid"][s] * 128 + d["hero"][s]
+        cell = d["pid"][s] * HKEY + d["hero"][s]
         u, inv, nf = np.unique(cell, return_inverse=True, return_counts=True)
         rbar = np.bincount(inv, weights=r_adj[s]) / nf
         noise = np.bincount(inv, weights=d["v"][s]) / nf ** 2

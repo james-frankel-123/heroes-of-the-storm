@@ -33,6 +33,7 @@ import time
 os.environ.setdefault("OMP_NUM_THREADS", "4")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 
 RUNS = os.path.join(C.CACHE, "dr_runs.pkl.gz")
@@ -99,9 +100,9 @@ def main():
         gi = gi_of[i]
         st = L["steps"][gi]
         mo, to = D.one_hots(str(L["map"][gi]), str(L["tier"][gi]))
-        t0_ = np.zeros(90, np.float32)
-        t1_ = np.zeros(90, np.float32)
-        bans = np.zeros(90, np.float32)
+        t0_ = np.zeros(NUM_HEROES, np.float32)
+        t1_ = np.zeros(NUM_HEROES, np.float32)
+        bans = np.zeros(NUM_HEROES, np.float32)
         for k, (h, ty, tm, row) in enumerate(st):
             if k == step_of[i]:
                 break
@@ -195,7 +196,7 @@ def main():
         m = main[i]
         for ban in (True, False):
             rr = np.random.RandomState(int(i))
-            state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(90, bool)}
+            state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(NUM_HEROES, bool)}
             if ban:
                 state["bans"].add(m)
                 state["taken"][m] = True
@@ -220,7 +221,7 @@ def main():
     _, fr = np.unique(d["g"][post], return_index=True)
     med = np.median(d["day"][post][fr])
     hist = d["day"] < med
-    S, Pm, N, _, _ = C.static_state(d, hist, d["n_players"], 90, P["r_adj"].astype(np.float64))
+    S, Pm, N, _, _ = C.static_state(d, hist, d["n_players"], NUM_HEROES, P["r_adj"].astype(np.float64))
     tot = N.sum(1)
     mainh = N.argmax(1)
     shr = N.max(1) / np.maximum(tot, 1)

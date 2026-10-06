@@ -37,6 +37,7 @@ os.environ.setdefault("OMP_NUM_THREADS", "4")
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "4")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 from p3_hs_fit import prepare, KERNELS
 from p3_hs_similarity import half_tables, features, pref_matrix, GT
@@ -68,7 +69,7 @@ def main():
     d = C.load_slots()
     names = np.array([str(x) for x in d["hero_names"]])
     meta = C.hero_meta(d["hero_names"])
-    H = 90
+    H = NUM_HEROES
     e_mask, _, _, _, r_adj = prepare(d)
     z = np.load(GT)
     o = np.argsort(z["replay_ids"])

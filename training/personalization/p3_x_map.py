@@ -34,6 +34,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 import p3_x_common as X
 import p3_x_side as XS
@@ -51,13 +52,13 @@ def group_terms(pid, cell_h, cell_m, S1, S2, N1, N2, W):
     wx = W * x
     Q = W * W * x * x
     out = {"same": (W * xa * xb * ok2, W * ok2, pid)}
-    for nm, key in (("p", pid), ("ph", pid * 128 + cell_h), ("pm", pid * 64 + cell_m)):
+    for nm, key in (("p", pid), ("ph", pid * HKEY + cell_h), ("pm", pid * 64 + cell_m)):
         u, inv = np.unique(key, return_inverse=True)
         A = np.bincount(inv, weights=wx)
         B = np.bincount(inv, weights=W)
         Qg = np.bincount(inv, weights=Q)
         W2 = np.bincount(inv, weights=W * W)
-        gp = u if nm == "p" else (u // 128 if nm == "ph" else u // 64)
+        gp = u if nm == "p" else (u // HKEY if nm == "ph" else u // 64)
         out[nm] = (A ** 2 - Qg, B ** 2 - W2, gp)
     return out
 
@@ -80,7 +81,7 @@ def components(G, mult=None):
 
 def decompose(d, val, mapi, rng, label):
     pid = d["pid"]
-    key = (pid * 128 + d["hero"]) * 64 + mapi
+    key = (pid * HKEY + d["hero"]) * 64 + mapi
     o = np.lexsort((d["replay_id"], d["day"], key))
     ks = key[o]
     st = np.flatnonzero(np.r_[True, ks[1:] != ks[:-1]])
@@ -94,8 +95,8 @@ def decompose(d, val, mapi, rng, label):
     N2 = np.bincount(inv, weights=(~odd).astype(float))
     n = N1 + N2
     W = n / (1 + n / 50.0)
-    cp = u // (128 * 64)
-    ch = (u // 64) % 128
+    cp = u // (HKEY * 64)
+    ch = (u // 64) % HKEY
     cm = u % 64
     G = group_terms(cp, ch, cm, S1, S2, N1, N2, W)
     est = components(G)
@@ -173,7 +174,7 @@ def main():
     D0 = X.team_diff(base_s, d["g"], d["team"], n_games)
     feats = {}
     for nm, gkey, s2k in (("player x map", d["pid"] * 64 + mapi, "s2_pm"),
-                          ("player x hero x map", (d["pid"] * 128 + d["hero"]) * 64 + mapi, "s2_phm")):
+                          ("player x hero x map", (d["pid"] * HKEY + d["hero"]) * 64 + mapi, "s2_phm")):
         s2 = max(comp[s2k]["pp2"] / 1e4, 1e-7)
         S, Cn = causal_group_mean(d, np.where(ok, e, 0.0), gkey)
         est = S / (Cn + noise / s2)

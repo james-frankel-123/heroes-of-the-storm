@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.join(TRAINING, "overfit2026"))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import importlib.util
 import numpy as np
+from p3_heroes import NUM_HEROES
 import torch
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -40,11 +41,63 @@ DRAFT_TEAM = [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1]
 IS_PICK = [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1]
 
 
+SEARCH_MODES = {"legacy": 0, "chance": 1, "rollfwd": 2}
+_SEARCH_MODE = None
+
+
+def set_search_mode(name):
+    """Every host sets the search mode once from its required --search-mode."""
+    global _SEARCH_MODE
+    if name not in ("chance", "rollfwd"):
+        raise SystemExit(f"search mode {name!r}: use chance (headline) or rollfwd")
+    _SEARCH_MODE = name
+
+
+def search_mode():
+    """Kernel search_mode for engine.run; refuses to run before set_search_mode."""
+    if _SEARCH_MODE is None:
+        raise SystemExit("search mode not set: pass --search-mode chance|rollfwd")
+    return SEARCH_MODES[_SEARCH_MODE]
+
+
+def search_mode_name():
+    return _SEARCH_MODE
+
+
+def out_path(fname):
+    """Search outputs of the fixed kernel live apart from the legacy-tree
+    caches: cache/mcts_v2/<search mode>/<fname>. Written atomically."""
+    d = os.path.join(HERE, "cache", "mcts_v2", search_mode_name() or "unset")
+    os.makedirs(d, exist_ok=True)
+    return os.path.join(d, fname)
+
+
+def save_pickle(obj, fname):
+    import gzip
+    import pickle
+    p = out_path(fname)
+    with gzip.open(p + ".tmp", "wb") as f:
+        pickle.dump(obj, f)
+    os.replace(p + ".tmp", p)
+    return p
+
+
 def load_module(name, d):
-    so = [f for f in os.listdir(d) if f.startswith(name) and f.endswith(".so")][0]
-    spec = importlib.util.spec_from_file_location(name, os.path.join(d, so))
+    """Load a P3 kernel build. Refuses builds without the v2 search or whose
+    composition fallback is not in the WP's tier order (mid, high, low):
+    rebuild with personalization/build_p3_kernels.sh."""
+    so = [f for f in os.listdir(d) if f.startswith(name) and f.endswith(".so")]
+    if len(so) != 1:
+        raise SystemExit(f"{d}: expected one {name}*.so, found {so}")
+    spec = importlib.util.spec_from_file_location(name, os.path.join(d, so[0]))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    order = getattr(mod, "COMP_FALLBACK_ORDER", None)
+    if order != "mid_high_low":
+        raise SystemExit(f"{name}: COMP_FALLBACK_ORDER is {order}; rebuild with "
+                         "HOTS_COMP_FALLBACK_MID_HIGH_LOW=1 (personalization/build_p3_kernels.sh)")
+    if getattr(mod, "SEARCH_CHANCE", None) != 1:
+        raise SystemExit(f"{name}: build predates the v2 (chance) search")
     return mod
 
 
@@ -110,8 +163,8 @@ def empty_cfg(n):
 
 
 def zeros_personal(n):
-    return (np.zeros((n, 10, 90), np.float32), np.zeros((n, 10, 90), np.float32),
-            np.zeros((n, 10, 90), np.float32), np.zeros((n, 10, 3), np.uint32))
+    return (np.zeros((n, 10, NUM_HEROES), np.float32), np.zeros((n, 10, NUM_HEROES), np.float32),
+            np.zeros((n, 10, NUM_HEROES), np.float32), np.zeros((n, 10, 3), np.uint32))
 
 
 def pool_bits(mask90):

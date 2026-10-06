@@ -37,13 +37,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 
 DRAFTS = os.path.join(C.CACHE, "drafts_post.json.gz")
 LOBBY = os.path.join(C.CACHE, "dr_lobbies.npz")
 PTAB = os.path.join(C.CACHE, "dr_personal_post.npz")
 RR_MODELS = os.path.join(TRAINING, "rerun2026", "models")
-H = 90
+H = NUM_HEROES
 
 
 # ------------------------------------------------------------------ lobbies
@@ -179,12 +180,12 @@ class GDPolicy:
         """Batched: t0/t1/bans (B, 90) multi-hot in MY index order; avail
         (B, 90) bool. Returns (B, 90) log-probs over MY index order."""
         B = t0.shape[0]
-        X = np.zeros((B, 289), np.float32)
+        X = np.zeros((B, 3 * NUM_HEROES + 19), np.float32)
         sh = self.to_shared
         X[:, sh] = t0
-        X[:, 90 + sh] = t1
-        X[:, 180 + sh] = bans
-        X[:, 270:284] = map_oh
+        X[:, NUM_HEROES + sh] = t1
+        X[:, 2 * NUM_HEROES + sh] = bans
+        X[:, 3 * NUM_HEROES:3 * NUM_HEROES + 14] = map_oh
         X[:, 284:287] = tier_oh
         X[:, 287] = step_num / 15.0
         X[:, 288] = step_type

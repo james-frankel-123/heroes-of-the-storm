@@ -47,6 +47,7 @@ os.environ.setdefault("OMP_NUM_THREADS", "4")
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "4")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 from p3_hs_fit import prepare, KERNELS
 
@@ -58,7 +59,7 @@ CAP = 200
 
 def half_tables(d, r_adj, ts):
     """Per (player, hero): n, sums of halves A/B, and player totals."""
-    H = 90
+    H = NUM_HEROES
     npl = int(d["n_players"])
     key = d["pid"] * H + d["hero"]
     o = np.lexsort((d["replay_id"], ts, key))
@@ -120,7 +121,7 @@ def pair_matrix(xA, xB, A, w=None):
 
 
 def pref_matrix(d, min_games=100, k=12, players_mask=None):
-    H = 90
+    H = NUM_HEROES
     npl = int(d["n_players"])
     cnt = np.bincount(d["pid"] * H + d["hero"], minlength=npl * H).reshape(npl, H).astype(float)
     keep = cnt.sum(1) >= min_games
@@ -154,7 +155,7 @@ def main():
     d = C.load_slots()
     names = np.array([str(x) for x in d["hero_names"]])
     meta = C.hero_meta(d["hero_names"])
-    H = 90
+    H = NUM_HEROES
     _, _, _, _, r_adj = prepare(d)
     z = np.load(GT)
     o = np.argsort(z["replay_ids"])

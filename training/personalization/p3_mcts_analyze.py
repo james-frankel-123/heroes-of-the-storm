@@ -31,6 +31,7 @@ import pickle
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_dr_core as D
 import p3_mcts_core as M
@@ -228,20 +229,20 @@ def main():
     print("final", json.dumps(out["final_drafts"]), flush=True)
     # ---------- meta and off-role
     def counts(key, which=None):
-        c = np.zeros(90)
+        c = np.zeros(NUM_HEROES)
         for lob, r in zip(full["lobbies"], full[key]):
             for tm, row, h in X.slot_heroes(lob, r["acts"]):
                 if which is None or tm == lob["kctrl"]:
                     c[h] += 1
         return c
-    creal = np.zeros(90)
+    creal = np.zeros(NUM_HEROES)
     for lob in full["lobbies"]:
         for tm, row, h in X.slot_heroes(lob, lob["acts_real"]):
             creal[h] += 1
     cp, cq = counts("b|pers"), counts("b|pop")
     sh = lambda c: c / c.sum()
     z1 = pickle.load(gzip.open(os.path.join(C.CACHE, "dr_runs.pkl.gz")))
-    c1p, c1q = np.zeros(90), np.zeros(90)
+    c1p, c1q = np.zeros(NUM_HEROES), np.zeros(NUM_HEROES)
     for l in z1["lobbies"]:
         if "b|pers" in l:
             for t in ("t0", "t1"):
@@ -296,7 +297,7 @@ def main():
         for p, v in per.items():
             nn = X.T["n"][X.T["pos"][int(p)]]
             top1, top3 = int(np.argmax(nn)), set(np.argsort(-nn)[:3])
-            rows.append({"pers_eff": eff(np.bincount(v[1], minlength=90)), "pop_eff": eff(np.bincount(v[0], minlength=90)),
+            rows.append({"pers_eff": eff(np.bincount(v[1], minlength=NUM_HEROES)), "pop_eff": eff(np.bincount(v[0], minlength=NUM_HEROES)),
                          "pers_top1": np.mean([h == top1 for h in v[1]]), "pop_top1": np.mean([h == top1 for h in v[0]]),
                          "pers_top3": np.mean([h in top3 for h in v[1]]), "pop_top3": np.mean([h in top3 for h in v[0]])})
         out["collapse"] = {k: [float(np.median([r[k] for r in rows])), float(np.mean([r[k] for r in rows]))]
@@ -341,7 +342,7 @@ def main():
     rows_needed = sorted(set(int(r) for lob in lobs for r in lob["rows"]))
     rec = I.recency_features(X.d, np.array(rows_needed))
     fake = {"row": np.array(rows_needed), "recpos": np.arange(len(rows_needed)),
-            "lp": np.zeros((len(rows_needed), 90), np.float32)}
+            "lp": np.zeros((len(rows_needed), NUM_HEROES), np.float32)}
     Xp = I.feature_tensor(fake, X.T, rec, X.meta)
     ipers = {r: (Xp[i, :, 1:] * iw[1:]).sum(-1) for i, r in enumerate(rows_needed)}
     dec = {}
@@ -353,8 +354,8 @@ def main():
             continue
         lob = lobs[li]
         acts = [int(X.from_sh[a]) for a in lob["acts_real"]]
-        t = np.zeros((2, 90), np.float32)
-        bans = np.zeros(90, np.float32)
+        t = np.zeros((2, NUM_HEROES), np.float32)
+        bans = np.zeros(NUM_HEROES, np.float32)
         for j in range(k):
             if M.IS_PICK[j]:
                 t[M.DRAFT_TEAM[j] ^ lob["first"], acts[j]] = 1
@@ -430,7 +431,7 @@ def main():
     fig, axs = plt.subplots(1, 2, figsize=(15, 6.5))
     for ax, (xa, ya, xl) in zip(axs, ((sh(cq), sh(cp), "MCTS population self-play"),
                                       (sh(creal), sh(cp), "real drafts (same lobbies)"))):
-        for i in range(90):
+        for i in range(NUM_HEROES):
             ax.scatter(100 * xa[i], 100 * ya[i], color=role_col[X.meta["blizz"][i]], s=18)
         lim = 100 * max(xa.max(), ya.max()) * 1.05
         ax.plot([0, lim], [0, lim], color="#999", lw=0.7)

@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
 
+from p3_heroes import NUM_HEROES, sample_rows
 import p3_hs_core as C
 import p3_mcts_core as M
 import p3_ds_common as DS
@@ -66,16 +67,16 @@ def main():
         """Batched: returns (B, 90) logits in MY order over valid heroes."""
         B = len(states)
         X = np.zeros((B, 290), np.float32)
-        Mk = np.zeros((B, 90), bool)
+        Mk = np.zeros((B, NUM_HEROES), bool)
         for i, (st, lb, k, sl) in enumerate(zip(states, lbs, ks, slots)):
             x = X[i]
             for h in st["t0"]:
                 x[to_sh[h]] = 1
             for h in st["t1"]:
-                x[90 + to_sh[h]] = 1
+                x[NUM_HEROES + to_sh[h]] = 1
             for h in st["bans"]:
-                x[180 + to_sh[h]] = 1
-            x[270 + lb["map"]] = 1
+                x[2 * NUM_HEROES + to_sh[h]] = 1
+            x[3 * NUM_HEROES + lb["map"]] = 1
             x[284 + lb["tier"]] = 1
             x[287] = k / 15.0
             x[288] = 1.0
@@ -92,10 +93,10 @@ def main():
 
     def gd_sample(states, lbs, k, rng, kind, is_pick):
         Bn = len(states)
-        t0_ = np.zeros((Bn, 90), np.float32)
-        t1_ = np.zeros((Bn, 90), np.float32)
-        bans = np.zeros((Bn, 90), np.float32)
-        avail = np.zeros((Bn, 90), bool)
+        t0_ = np.zeros((Bn, NUM_HEROES), np.float32)
+        t1_ = np.zeros((Bn, NUM_HEROES), np.float32)
+        bans = np.zeros((Bn, NUM_HEROES), np.float32)
+        avail = np.zeros((Bn, NUM_HEROES), bool)
         for i, (st, lb) in enumerate(zip(states, lbs)):
             t0_[i, list(st["t0"])] = 1
             t1_[i, list(st["t1"])] = 1
@@ -119,14 +120,13 @@ def main():
         else:
             p = np.where(avail, np.exp(lp), 0)
         p /= p.sum(1, keepdims=True)
-        r = rng.rand(Bn, 1)
-        return np.minimum((p.cumsum(1) < r).sum(1), 89)
+        return sample_rows(p, rng.rand(Bn, 1))
 
     def draft(lbs, controllers, opp_kind, bias, seed):
         """controllers: list of sets of kernel teams driven by the greedy
         prior; personal: distilled vs BC. Returns per lobby acts (shared)."""
         rng = np.random.RandomState(seed)
-        states = [{"t0": [], "t1": [], "bans": [], "taken": np.zeros(90, bool), "acts": np.zeros(16, np.int32)}
+        states = [{"t0": [], "t1": [], "bans": [], "taken": np.zeros(NUM_HEROES, bool), "acts": np.zeros(16, np.int32)}
                   for _ in lbs]
         for k in range(16):
             tm = M.DRAFT_TEAM[k]
@@ -201,7 +201,7 @@ def main():
     for k in [k for k in range(16) if M.IS_PICK[k]]:
         states = []
         for lb in lbs:
-            st = {"t0": [], "t1": [], "bans": [], "taken": np.zeros(90, bool)}
+            st = {"t0": [], "t1": [], "bans": [], "taken": np.zeros(NUM_HEROES, bool)}
             for j in range(k):
                 h = int(from_sh[lb["acts"][j]])
                 st["taken"][h] = True
@@ -215,9 +215,9 @@ def main():
             p = np.exp(sc - sc.max(1, keepdims=True))
             p /= p.sum(1, keepdims=True)
             for li in range(len(lbs)):
-                pol = np.zeros(90, np.float32)
+                pol = np.zeros(NUM_HEROES, np.float32)
                 pol[to_sh] = p[li]
-                dec.append((li, k, pers, pol, np.zeros(90, np.float32)))
+                dec.append((li, k, pers, pol, np.zeros(NUM_HEROES, np.float32)))
         print(f"real step {k}: {time.time() - t0:.0f}s", flush=True)
     with gzip.open(os.path.join(C.CACHE, "dsgreedy_real.pkl.gz"), "wb") as f:
         pickle.dump({"decisions": dec, "lobbies": lob_meta}, f)
@@ -237,7 +237,7 @@ def main():
     for pers in (1, 0):
         states = []
         for (pr, gi, k), lb in zip(ctx, lbs):
-            st = {"t0": [], "t1": [], "bans": [], "taken": np.zeros(90, bool)}
+            st = {"t0": [], "t1": [], "bans": [], "taken": np.zeros(NUM_HEROES, bool)}
             for j in range(k):
                 h = int(from_sh[lb["acts"][j]])
                 st["taken"][h] = True

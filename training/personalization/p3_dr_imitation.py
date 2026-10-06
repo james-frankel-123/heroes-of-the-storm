@@ -32,6 +32,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
 from numba import njit, prange
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_dr_core as D
 
@@ -46,20 +47,20 @@ def _recency(starts, ends, day, hero, qslot, out_e20, out_e100, out_last):
     a20 = 1 - np.exp(-np.log(2) / 20.0)
     a100 = 1 - np.exp(-np.log(2) / 100.0)
     for p in prange(starts.shape[0]):
-        e20 = np.zeros(90)
-        e100 = np.zeros(90)
+        e20 = np.zeros(NUM_HEROES)
+        e100 = np.zeros(NUM_HEROES)
         w20 = 0.0
         w100 = 0.0
-        last = np.full(90, -1)
+        last = np.full(NUM_HEROES, -1)
         for r in range(starts[p], ends[p]):
             q = qslot[r]
             if q >= 0:
-                for h in range(90):
+                for h in range(NUM_HEROES):
                     out_e20[q, h] = e20[h] / w20 if w20 > 0 else 0.0
                     out_e100[q, h] = e100[h] / w100 if w100 > 0 else 0.0
                     out_last[q, h] = day[r] - last[h] if last[h] >= 0 else -1
             h = hero[r]
-            for k in range(90):
+            for k in range(NUM_HEROES):
                 e20[k] *= 1 - a20
                 e100[k] *= 1 - a100
             e20[h] += a20
@@ -82,9 +83,9 @@ def recency_features(d, qrows):
     qpos[qrows] = np.arange(len(qrows))
     qslot[:] = qpos[srt]
     nq = len(qrows)
-    e20 = np.zeros((nq, 90), np.float32)
-    e100 = np.zeros((nq, 90), np.float32)
-    last = np.zeros((nq, 90), np.float32)
+    e20 = np.zeros((nq, NUM_HEROES), np.float32)
+    e100 = np.zeros((nq, NUM_HEROES), np.float32)
+    last = np.zeros((nq, NUM_HEROES), np.float32)
     _recency(brk.astype(np.int64), ends.astype(np.int64), d["day"][srt].astype(np.int64),
              d["hero"][srt].astype(np.int64), qslot, e20, e100, last)
     return e20, e100, last
@@ -99,9 +100,9 @@ def pick_states(L, gd, idx):
     for gi in idx:
         st = L["steps"][gi]
         mo, to = D.one_hots(str(L["map"][gi]), str(L["tier"][gi]))
-        t0 = np.zeros(90, np.float32)
-        t1 = np.zeros(90, np.float32)
-        bans = np.zeros(90, np.float32)
+        t0 = np.zeros(NUM_HEROES, np.float32)
+        t1 = np.zeros(NUM_HEROES, np.float32)
+        bans = np.zeros(NUM_HEROES, np.float32)
         for k, (h, ty, tm, row) in enumerate(st):
             if ty == 1:
                 avail = (t0 + t1 + bans) == 0

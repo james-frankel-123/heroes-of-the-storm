@@ -35,6 +35,7 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import HKEY
 import p3_hs_core as C
 import p3_x_common as X
 import p3_fix_counts as F
@@ -67,7 +68,7 @@ def main():
     _, first_row = np.unique(d["g"][post], return_index=True)
     med = np.median(days[post][first_row])
     # first row of each (player, hero) in play order (day, replay_id)
-    key = d["pid"] * 128 + d["hero"]
+    key = d["pid"] * HKEY + d["hero"]
     o = np.lexsort((d["replay_id"], days, key))
     ks = key[o]
     first = np.r_[True, ks[1:] != ks[:-1]]

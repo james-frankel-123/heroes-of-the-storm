@@ -35,13 +35,14 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from numba import njit, prange
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 
 KOUT = os.path.join(C.CACHE, "hs_kernels.npz")
 PARAMS = os.path.join(C.CACHE, "sd_params.json")
 # components: (name, number of states)
 LAYOUT = [("player_s", 1), ("player_m", 1), ("player_f", 1), ("role", 6), ("fine", 9), ("melee", 2),
-          ("cf", 2), ("hero_s", 90), ("hero_f", 90)]
+          ("cf", 2), ("hero_s", NUM_HEROES), ("hero_f", NUM_HEROES)]
 COMPS = [c for c, _ in LAYOUT]
 OFF = {}
 _o = 0
@@ -169,7 +170,7 @@ class Filter:
         comp = state_comp()
         out = np.array([lam.get(COMPS[c], 0.0) for c in comp], float)
         for c, arr in (by_role or {}).items():
-            for h in range(90):
+            for h in range(NUM_HEROES):
                 out[OFF[c] + h] = arr[self.blizz[h]]
         return out
 

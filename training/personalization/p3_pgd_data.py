@@ -34,6 +34,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import NUM_HEROES, HKEY
 import p3_hs_core as C
 import p3_x_common as X
 
@@ -51,12 +52,12 @@ def main():
     names = [str(h) for h in d["hero_names"]]
     hidx = {n: i for i, n in enumerate(names)}
     n_rows = len(d["pid"])
-    rkey = d["replay_id"] * 128 + d["hero"]
+    rkey = d["replay_id"] * HKEY + d["hero"]
     ro = np.argsort(rkey)
     rkey_s = rkey[ro]
 
     def rows_of(rid, hero):
-        k = rid * 128 + hero
+        k = rid * HKEY + hero
         j = np.searchsorted(rkey_s, k)
         ok = (j < n_rows) & (rkey_s[np.minimum(j, n_rows - 1)] == k)
         return np.where(ok, ro[np.minimum(j, n_rows - 1)], -1)
@@ -167,8 +168,8 @@ def main():
     days = games["day"]
     d0 = int(days.min())
     nd = int(days.max()) - d0 + 1
-    pc = np.zeros((nd, 3, 90), np.float32)
-    bc = np.zeros((nd, 3, 90), np.float32)
+    pc = np.zeros((nd, 3, NUM_HEROES), np.float32)
+    bc = np.zeros((nd, 3, NUM_HEROES), np.float32)
     gcnt = np.zeros((nd, 3), np.float32)
     di = days - d0
     np.add.at(gcnt, (di, games["tier"]), 1)

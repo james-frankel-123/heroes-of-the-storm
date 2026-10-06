@@ -42,6 +42,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 import p3_x_common as X
 import p3_x_side as XS
@@ -369,8 +370,8 @@ def main():
         cf = np.nan_to_num(side["conf"][mk].astype(float), nan=np.nanmean(side["conf"]))
         conf = bc(cf) / k
         party = bc((d["party"][mk] != 0).astype(float)) / k
-        uph = np.unique(pid_k * 128 + d["hero"][mk])
-        heroes = np.bincount(uph // 128, minlength=npl)[A].astype(float)
+        uph = np.unique(pid_k * HKEY + d["hero"][mk])
+        heroes = np.bincount(uph // HKEY, minlength=npl)[A].astype(float)
         span = np.zeros(len(A))
         dmin = np.full(npl, 10 ** 9)
         dmax = np.zeros(npl)

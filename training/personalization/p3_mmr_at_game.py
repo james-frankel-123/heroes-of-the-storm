@@ -46,6 +46,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 
 STAMPS = os.path.join(C.CACHE, "mmr_stamps_db.npz")
@@ -289,7 +290,7 @@ def main():
     out = {"replay_ids": s["replay_ids"], "blizz_ids": s["blizz_ids"], "region": s["region"],
            "start_ts": s["start_ts"], "hero": s["hero"]}
     for nm, grp, val in (("player", pkey, s["player_mmr"]),
-                         ("hero", pkey * 128 + np.maximum(hero, 0) + np.where(hero < 0, 127, 0), s["hero_mmr"]),
+                         ("hero", pkey * HKEY + np.maximum(hero, 0) + np.where(hero < 0, HKEY - 1, 0), s["hero_mmr"]),
                          ("role", pkey * 8 + np.maximum(role, 0) + np.where(role < 0, 7, 0), s["role_mmr"])):
         causal, cidx, fresh, used = at_game(grp, s["parse_ts"], s["start_ts"], s["end_ts"],
                                             val.astype(np.float64))

@@ -41,6 +41,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_sd_kalman as K
 import p3_ph_patch as PP
@@ -61,14 +62,14 @@ def main():
     build = PP.slot_builds(d)
     bnds, builds = PP.boundaries(names)
     nb = len(builds)
-    bh = build * 90 + d["hero"]
+    bh = build * NUM_HEROES + d["hero"]
     _, inv = np.unique(bh, return_inverse=True)
     u = r_adj - (np.bincount(inv, weights=r_adj) / np.bincount(inv))[inv]
     days = d["day"]
     post = ~d["in_sample"]
     # ---- aggregate shift per (boundary, hero) and pre-segment pick volume
-    dwr = np.zeros((len(bnds), 90))
-    vol = np.zeros((len(bnds), 90))
+    dwr = np.zeros((len(bnds), NUM_HEROES))
+    vol = np.zeros((len(bnds), NUM_HEROES))
     mid_pos = np.full(len(bnds), -1)
     for k, b in enumerate(bnds):
         lo = bnds[k - 1]["pos"] if k > 0 else 0
@@ -80,10 +81,10 @@ def main():
         t_b = days[po].min()
         pre &= days >= t_b - 90
         po &= days < t_b + 90
-        c0 = np.bincount(d["hero"][pre], minlength=90)
-        c1 = np.bincount(d["hero"][po], minlength=90)
-        dwr[k] = np.bincount(d["hero"][po], weights=d["y"][po], minlength=90) / np.maximum(c1, 1) - \
-            np.bincount(d["hero"][pre], weights=d["y"][pre], minlength=90) / np.maximum(c0, 1)
+        c0 = np.bincount(d["hero"][pre], minlength=NUM_HEROES)
+        c1 = np.bincount(d["hero"][po], minlength=NUM_HEROES)
+        dwr[k] = np.bincount(d["hero"][po], weights=d["y"][po], minlength=NUM_HEROES) / np.maximum(c1, 1) - \
+            np.bincount(d["hero"][pre], weights=d["y"][pre], minlength=NUM_HEROES) / np.maximum(c0, 1)
         vol[k] = c0
         pb = np.unique(build[pre])
         if len(pb) >= 2:
@@ -97,7 +98,7 @@ def main():
         out, used = [], set()
         for k, h in pairs:
             ch = bnds[k]["notes"] | bnds[k]["detector"] | (np.abs(dwr[k]) >= 0.02)
-            cand = [h2 for h2 in range(90) if not ch[h2] and meta["blizz"][h2] == meta["blizz"][h]
+            cand = [h2 for h2 in range(NUM_HEROES) if not ch[h2] and meta["blizz"][h2] == meta["blizz"][h]
                     and (k, h2) not in used and vol[k, h2] > 0]
             if not cand:
                 continue
@@ -107,7 +108,7 @@ def main():
         return out
 
     def table_for(pairs, J, time_placebo=False):
-        t = np.zeros((nb + 1, 90))
+        t = np.zeros((nb + 1, NUM_HEROES))
         for k, h in pairs:
             pos = mid_pos[k] if time_placebo else bnds[k]["pos"]
             if pos >= 0:
@@ -134,7 +135,7 @@ def main():
     jf_hold = PP.JumpFilter(d, meta, kz["V_cf2"], u, build, e_mask & samp_hold[d["pid"]])
     jf_oot = PP.JumpFilter(d, meta, kz["V_cf2"], u, build, samp_hold[d["pid"]])
     v_fit, v_hold, v_oot = jf_fit.v.copy(), jf_hold.v.copy(), jf_oot.v.copy()
-    zero = np.zeros((nb + 1, 90))
+    zero = np.zeros((nb + 1, NUM_HEROES))
     # noise scale profile (fit sample, no jump)
     prof = {}
     for c in NOISE_GRID:

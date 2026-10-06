@@ -43,6 +43,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import NUM_HEROES, sample_rows
 import p3_hs_core as C
 
 OUT = os.path.join(C.CACHE, "dr_runs.pkl.gz")
@@ -81,10 +82,10 @@ def _policy_sample(states, k, lob, rng, kind):
     gd = _W["gd"]
     h, ty, tm, row = lob["steps"][k]
     B = len(states)
-    t0 = np.zeros((B, 90), np.float32)
-    t1 = np.zeros((B, 90), np.float32)
-    bans = np.zeros((B, 90), np.float32)
-    avail = np.zeros((B, 90), bool)
+    t0 = np.zeros((B, NUM_HEROES), np.float32)
+    t1 = np.zeros((B, NUM_HEROES), np.float32)
+    bans = np.zeros((B, NUM_HEROES), np.float32)
+    avail = np.zeros((B, NUM_HEROES), bool)
     for i, s in enumerate(states):
         t0[i, list(s["t0"].values())] = 1
         t1[i, list(s["t1"].values())] = 1
@@ -104,9 +105,7 @@ def _policy_sample(states, k, lob, rng, kind):
         p = np.exp(lp)
         p = np.where(avail, p, 0)
         p /= p.sum(1, keepdims=True)
-    c = p.cumsum(1)
-    rr = rng.rand(B, 1)
-    return np.minimum((c < rr).sum(1), 89)
+    return sample_rows(p, rng.rand(B, 1))
 
 
 def _apply(s, k, hero, lob):
@@ -145,9 +144,9 @@ def _decide(state, k, lob, rng, opp_kind):
     cand = np.flatnonzero(free)
     if len(cand) > 2 * TOPK:
         gd = _W["gd"]
-        t0 = np.zeros((1, 90), np.float32)
-        t1 = np.zeros((1, 90), np.float32)
-        bans = np.zeros((1, 90), np.float32)
+        t0 = np.zeros((1, NUM_HEROES), np.float32)
+        t1 = np.zeros((1, NUM_HEROES), np.float32)
+        bans = np.zeros((1, NUM_HEROES), np.float32)
         t0[0, list(state["t0"].values())] = 1
         t1[0, list(state["t1"].values())] = 1
         bans[0, list(state["bans"])] = 1
@@ -175,7 +174,7 @@ def _decide(state, k, lob, rng, opp_kind):
 def _run_draft(lob, seed, modes, opp_kind):
     """modes: {team: 'pers'|'pop'|'gd'|'imit'}; returns final picks and decisions."""
     rng = np.random.RandomState(seed)
-    state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(90, bool)}
+    state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(NUM_HEROES, bool)}
     decs = []
     for k in range(16):
         h, ty, tm, row = lob["steps"][k]
@@ -197,7 +196,7 @@ def _run_draft(lob, seed, modes, opp_kind):
 def work_lobby(args):
     lob, seed, full = args
     out = {"gi": lob["gi"], "ctrl": lob["ctrl"]}
-    real_state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(90, bool)}
+    real_state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(NUM_HEROES, bool)}
     rng = np.random.RandomState(seed + 7)
     realdec = []
     for k in range(16):
@@ -228,7 +227,7 @@ def work_collapse(args):
     # lob: another lobby whose team-0 pick step k is taken over by player prow
     rng = np.random.RandomState(seed)
     k = lob["k"]
-    state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(90, bool)}
+    state = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(NUM_HEROES, bool)}
     for j in range(k):
         state = _apply(state, j, lob["steps"][j][0], lob)
     dd = _decide(state, k, lob, rng, "gd")
@@ -290,7 +289,7 @@ def main():
     rec = I.recency_features(d, need_rows)
     rp = {int(r): i for i, r in enumerate(need_rows)}
     fake = {"row": need_rows, "recpos": np.arange(len(need_rows)),
-            "lp": np.zeros((len(need_rows), 90), np.float32)}
+            "lp": np.zeros((len(need_rows), NUM_HEROES), np.float32)}
     Xp = I.feature_tensor(fake, T, rec, meta)
     ipers_all = (Xp[:, :, 1:] * iw[1:]).sum(-1)
     ipers = {int(r): ipers_all[i] for i, r in enumerate(need_rows)}

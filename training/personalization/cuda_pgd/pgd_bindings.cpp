@@ -364,13 +364,13 @@ public:
                   py::array_t<float> imit, py::array_t<unsigned int> pool, py::array_t<float> coefs,
                   py::array_t<float> pgd, py::array_t<float> b1, int num_sims, float c_puct, unsigned long long seed, float root_temp,
                   float dir_alpha, float dir_eps, int guard,
-                  int search_mode = SEARCH_CHANCE, float pw_k = 1.0f, float pw_alpha = 0.5f) {
+                  int search_mode = -1, float pw_k = 1.0f, float pw_alpha = 0.5f) {
         int n;
         PersonalArgs pa = upload(cfg, s, off, imit, pool, coefs, pgd, b1, n);
         int shared_mem = (291 + NUM_HEROES + NUM_HEROES + policy_off_.edim
                           + policy_off_.hdim * 3 + policy_off_.cdim + ENRICHED_DIM) * sizeof(float);
         const int* cptr = d_cfg_;
-        if (search_mode < 0 || search_mode > 2) throw std::runtime_error("search_mode must be 0, 1 or 2");
+        if (search_mode < 0 || search_mode > 2) throw std::runtime_error("search_mode must be passed explicitly: 0 legacy, 1 chance, 2 rollfwd");
         V2Args v2;
         v2.mode = search_mode; v2.pw_k = pw_k; v2.pw_alpha = pw_alpha;
         v2.nodes = nullptr; v2.slots = nullptr; v2.node_cap = 0; v2.slot_cap = 0;
@@ -488,10 +488,18 @@ PYBIND11_MODULE(pgd_kernel, m) {
         .def("run", &PersonalEngine::run, py::arg("cfg"), py::arg("s"), py::arg("off"), py::arg("imit"), py::arg("pool"), py::arg("coefs"), py::arg("pgd"), py::arg("b1"),
              py::arg("num_sims"), py::arg("c_puct"), py::arg("seed"), py::arg("root_temp"),
              py::arg("dir_alpha"), py::arg("dir_eps"), py::arg("guard"),
-             py::arg("search_mode") = SEARCH_CHANCE, py::arg("pw_k") = 1.0f, py::arg("pw_alpha") = 0.5f)
+             py::arg("search_mode") = -1, py::arg("pw_k") = 1.0f, py::arg("pw_alpha") = 0.5f)
         .def("last_stats", &PersonalEngine::last_stats)
         .def("leaf_eval", &PersonalEngine::leaf_eval)
         .def("pgd_eval", &PersonalEngine::pgd_eval);
     m.attr("CFG_LEN") = CFG_LEN;
     m.attr("MAX_OUR_TURNS") = MAX_OUR_TURNS;
+    m.attr("SEARCH_LEGACY") = SEARCH_LEGACY;
+    m.attr("SEARCH_CHANCE") = SEARCH_CHANCE;
+    m.attr("SEARCH_ROLLFWD") = SEARCH_ROLLFWD;
+#ifdef COMP_FALLBACK_MID_HIGH_LOW
+    m.attr("COMP_FALLBACK_ORDER") = "mid_high_low";
+#else
+    m.attr("COMP_FALLBACK_ORDER") = "low_mid_high";
+#endif
 }

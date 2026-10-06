@@ -32,6 +32,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 import p3_sd_kalman as K
 from p3_hs_fit import prepare
@@ -127,7 +128,7 @@ def main():
     n_p = prior_counts(d, d["pid"], ts)
     n_pb = prior_counts(d, d["pid"] * 8 + blizz, ts)
     n_pf = prior_counts(d, d["pid"] * 16 + fine, ts)
-    n_ph = prior_counts(d, d["pid"] * 128 + d["hero"], ts)
+    n_ph = prior_counts(d, d["pid"] * HKEY + d["hero"], ts)
     share_b = n_pb / np.maximum(n_p, 1)
     share_f = n_pf / np.maximum(n_p, 1)
     est = n_p >= 50
@@ -166,8 +167,8 @@ def main():
         po = np.load(PO)
         names = {str(n): i for i, n in enumerate(d["hero_names"])}
         ph = np.array([names.get(str(h), -1) for h in po["hero"]])
-        key_po = po["replay_ids"] * 128 + ph
-        key_d = d["replay_id"] * 128 + d["hero"]
+        key_po = po["replay_ids"] * HKEY + ph
+        key_d = d["replay_id"] * HKEY + d["hero"]
         so = np.argsort(key_po)
         j = np.searchsorted(key_po[so], key_d)
         j = np.minimum(j, len(so) - 1)

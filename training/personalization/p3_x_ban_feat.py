@@ -27,6 +27,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from numba import njit
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 
 GAMETIME = os.path.join(C.CACHE, "gametime_2024q2.npz")
@@ -65,32 +66,32 @@ def _walk(starts, ends, hero, y, r, t_end, t_start, qslot,
     a10 = 1 - np.exp(-np.log(2) / 10.0)
     a30 = 1 - np.exp(-np.log(2) / 30.0)
     lam_d = np.log(2) / 90.0
-    bt = np.zeros((90, 400))
-    by = np.zeros((90, 400))
+    bt = np.zeros((NUM_HEROES, 400))
+    by = np.zeros((NUM_HEROES, 400))
     for p in range(starts.shape[0]):
-        cnt = np.zeros(90)
-        dec = np.zeros(90)
-        ewr10 = np.zeros(90)
-        ewr30 = np.zeros(90)
-        eww10 = np.zeros(90)
-        w10 = np.zeros(90)
-        w30 = np.zeros(90)
-        last = np.full(90, -1.0)
-        head = np.zeros(90, np.int64)  # ring entries beyond cnt are never read
+        cnt = np.zeros(NUM_HEROES)
+        dec = np.zeros(NUM_HEROES)
+        ewr10 = np.zeros(NUM_HEROES)
+        ewr30 = np.zeros(NUM_HEROES)
+        eww10 = np.zeros(NUM_HEROES)
+        w10 = np.zeros(NUM_HEROES)
+        w30 = np.zeros(NUM_HEROES)
+        last = np.full(NUM_HEROES, -1.0)
+        head = np.zeros(NUM_HEROES, np.int64)  # ring entries beyond cnt are never read
         tlast = -1.0
         for i in range(starts[p], ends[p]):
             now = t_start[i]
             # decay the calendar-decayed counts to now
             if tlast >= 0:
                 f = np.exp(-lam_d * max(now - tlast, 0.0) / 86400.0)
-                for h in range(90):
+                for h in range(NUM_HEROES):
                     dec[h] *= f
             tlast = now
             tot = 0.0
             mx = -1.0
             mh = -1
             dsum = 0.0
-            for h in range(90):
+            for h in range(NUM_HEROES):
                 tot += cnt[h]
                 dsum += dec[h]
                 if cnt[h] > mx:
@@ -108,7 +109,7 @@ def _walk(starts, ends, hero, y, r, t_end, t_start, qslot,
             o_nown[i] = cnt[h0]
             q = qslot[i]
             if q >= 0:
-                for h in range(90):
+                for h in range(NUM_HEROES):
                     q_mawp[q, h] = _mawp(bt[h], by[h], int(cnt[h]), head[h], now)
                     q_ewr10[q, h] = ewr10[h] / w10[h] if w10[h] > 0 else 0.0
                     q_ewr30[q, h] = ewr30[h] / w30[h] if w30[h] > 0 else 0.0
@@ -155,7 +156,7 @@ def compute(d, qrows=None):
         nq = len(qrows)
     qs = qpos[srt]
     outs = [np.zeros(n, np.int64)] + [np.zeros(n) for _ in range(8)]
-    qa = [np.zeros((max(nq, 1), 90), np.float32) for _ in range(6)]
+    qa = [np.zeros((max(nq, 1), NUM_HEROES), np.float32) for _ in range(6)]
     _walk(brk.astype(np.int64), ends.astype(np.int64), d["hero"][srt].astype(np.int64),
           d["y"][srt].astype(np.float64), (d["y"] - d["wp"])[srt].astype(np.float64),
           t_end[srt], t_start[srt], qs, *outs, *qa)

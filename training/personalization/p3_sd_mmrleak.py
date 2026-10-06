@@ -26,6 +26,7 @@ import json
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 
 
@@ -83,7 +84,7 @@ def main():
     out = {}
     for col in ("player_mmr", "hero_mmr"):
         vals = d[col].astype(np.float64)
-        key = d["pid"] if col == "player_mmr" else d["pid"] * 128 + d["hero"]
+        key = d["pid"] if col == "player_mmr" else d["pid"] * HKEY + d["hero"]
         out[col] = {}
         for lag in (-1, 1, 7, 30):
             src = lag_source(d, key, lag, vals)

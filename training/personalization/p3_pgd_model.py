@@ -39,6 +39,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_x_common as X
 import p3_pgd_common as P
@@ -97,7 +98,7 @@ def build(g, d, games, hist_rows, Fall, aux, lp_meta_fn, lp_paper_fn, kind):
         meta = {"tot": aux["tot"][q], "main_share": aux["main_share"][q],
                 "main": aux["is_main"][q].argmax(1), "q": q}
         return dict(gi=gi, k=k, M=M, y=y, lpm=lpm, lpp=lpp, F=F, meta=meta)
-    G = np.zeros((len(gi), 90, len(BAN_FEATS)), np.float32)
+    G = np.zeros((len(gi), NUM_HEROES, len(BAN_FEATS)), np.float32)
     opp_tot = np.zeros(len(gi))
     opp_type = np.zeros(len(gi), np.int64)
     for i, (gg, kk) in enumerate(zip(gi, k)):

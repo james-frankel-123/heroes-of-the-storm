@@ -30,6 +30,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 from p3_hs_fit import KERNELS, KOUT, main_kernels
 
@@ -185,7 +186,7 @@ def main():
     for G in (1, 7, 30):
         lp = C.lagged_value(d, d["player_mmr"].astype(np.float32), d["pid"], G)
         lr = C.lagged_value(d, d["role_mmr"].astype(np.float32), d["pid"] * 8 + role_of, G)
-        lh = C.lagged_value(d, d["hero_mmr"].astype(np.float32), d["pid"] * 128 + d["hero"], G)
+        lh = C.lagged_value(d, d["hero_mmr"].astype(np.float32), d["pid"] * HKEY + d["hero"], G)
         mmr_feats[G] = (lp, lr, lh)
     # MMR slot predictors: centered on the lobby, linear map fit on V1
     lobby_cnt = np.bincount(d["g"], minlength=n_games)

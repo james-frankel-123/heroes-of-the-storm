@@ -23,6 +23,7 @@ import pickle
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_mcts_core as M
 from p3_mcts_analyze import Ctx, ci_mean, eff
@@ -128,13 +129,13 @@ def main():
             vp.append(Va)
         full[f"{pers} vs {pop}"] = {"dV_pp": ci_mean(100 * np.array(dV), rng), "dWPpop_pp": ci_mean(100 * np.array(dW), rng),
                                     "mean_V_pers": float(np.mean(vp))}
-    creal = np.zeros(90)
+    creal = np.zeros(NUM_HEROES)
     for lob in F["lobbies"]:
         for tm, row, h in X.slot_heroes(lob, lob["acts_real"]):
             creal[h] += 1
     meta = {"real": {"effective_heroes": eff(creal)}}
     for nm in names:
-        c = np.zeros(90)
+        c = np.zeros(NUM_HEROES)
         o, n = 0, 0
         for lob, r in zip(F["lobbies"], F[f"{nm}|self"]):
             for tm, row, h in X.slot_heroes(lob, r["acts"]):

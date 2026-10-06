@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_mcts_core as M
 from p3_mcts_drafter import Setup
@@ -49,7 +50,7 @@ def extend_ipers(S, rows):
     if len(rows) == 0:
         return
     rec = I.recency_features(S.d, rows)
-    fake = {"row": rows, "recpos": np.arange(len(rows)), "lp": np.zeros((len(rows), 90), np.float32)}
+    fake = {"row": rows, "recpos": np.arange(len(rows)), "lp": np.zeros((len(rows), NUM_HEROES), np.float32)}
     Xp = I.feature_tensor(fake, S.T, rec, S.meta)
     ip = (Xp[:, :, 1:] * S.iw[1:]).sum(-1)
     for i, r in enumerate(rows):
@@ -60,7 +61,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lobbies", type=int, default=6000)
     ap.add_argument("--sims", type=int, default=400)
+    ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
     a = ap.parse_args()
+    M.set_search_mode(a.search_mode)
     torch.set_num_threads(2)
     t0 = time.time()
     S = Setup()
@@ -80,8 +83,7 @@ def main():
     rr = S.run(jobs, a.sims, 9000)
     out = {"sims": a.sims, "lobbies": lob_meta,
            "decisions": [(m[0], m[1], r["pol"][0], r["q"][0]) for m, r in zip(meta_, rr)]}
-    with gzip.open(os.path.join(C.CACHE, f"ds_targets_s{a.sims}.pkl.gz"), "wb") as f:
-        pickle.dump(out, f)
+    M.save_pickle(out, f"ds_targets_s{a.sims}.pkl.gz")
     print(f"done: {len(meta_):,} searches ({time.time() - t0:.0f}s)")
 
 

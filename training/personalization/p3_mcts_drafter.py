@@ -39,6 +39,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_mcts_core as M
 
@@ -78,7 +79,7 @@ class Setup:
         rows |= set(int(r) for r in self.coll_players)
         rows = np.array(sorted(rows))
         rec = I.recency_features(self.d, rows)
-        fake = {"row": rows, "recpos": np.arange(len(rows)), "lp": np.zeros((len(rows), 90), np.float32)}
+        fake = {"row": rows, "recpos": np.arange(len(rows)), "lp": np.zeros((len(rows), NUM_HEROES), np.float32)}
         Xp = I.feature_tensor(fake, self.T, rec, self.meta)
         ip = (Xp[:, :, 1:] * self.iw[1:]).sum(-1)
         self.ipers = {int(r): ip[i] for i, r in enumerate(rows)}
@@ -93,9 +94,9 @@ class Setup:
         slot_of = np.full(16, -1, np.int32)
         forced = np.full(16, -1, np.int32)
         rows = np.zeros(10, np.int64)
-        s = np.zeros((10, 90), np.float32)
-        off = np.zeros((10, 90), np.float32)
-        imit = np.zeros((10, 90), np.float32)
+        s = np.zeros((10, NUM_HEROES), np.float32)
+        off = np.zeros((10, NUM_HEROES), np.float32)
+        imit = np.zeros((10, NUM_HEROES), np.float32)
         pool = np.zeros((10, 3), np.uint32)
         cnt = [0, 0]
         for k in range(16):
@@ -116,7 +117,7 @@ class Setup:
             s[sl, self.to_sh] = T["s"][p]
             off[sl, self.to_sh] = T["off"][p].astype(np.float32)
             imit[sl, self.to_sh] = self.ipers[int(row)]
-            pm = np.zeros(90, bool)
+            pm = np.zeros(NUM_HEROES, bool)
             pm[self.to_sh] = T["pool"][p]
             pool[sl] = M.pool_bits(pm)
         return {"gi": int(gi), "first": int(first), "acts": acts, "slot_of": slot_of, "forced": forced,
@@ -150,7 +151,8 @@ class Setup:
                 pool = np.stack([jobs[i][0]["pool"] for i in ii])
                 gdi = (bs // BATCH) % 5
                 eng = M.make_engine(self.K, self.W, key, gdi, len(ii), device)
-                r = eng.run(cfg, s, off, imit, pool, self.coefs, sims, 2.0, seed + bs, 0.0, 0.3, 0.0, 1)
+                r = eng.run(cfg, s, off, imit, pool, self.coefs, sims, 2.0, seed + bs, 0.0, 0.3, 0.0, 1,
+                    search_mode=M.search_mode())
                 del eng
                 for j, i in enumerate(ii):
                     out[i] = {"win": float(r[0][j]), "wp_t0": float(r[1][j]), "v_t0": float(r[2][j]),
@@ -167,7 +169,9 @@ def main():
     ap.add_argument("--sims", type=int, default=400)
     ap.add_argument("--nlobbies", type=int, default=0, help="real stage: first N lobbies (0 = all)")
     ap.add_argument("--contexts", type=int, default=30)
+    ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
     a = ap.parse_args()
+    M.set_search_mode(a.search_mode)
     torch.set_num_threads(2)
     t0 = time.time()
     S = Setup()
@@ -234,8 +238,7 @@ def main():
         rr = S.run(jobs, a.sims, 7000)
         res["decisions"] = [(m[0], m[1], m[2], int(np.argmax(r["pol"][0]))) for m, r in zip(meta_, rr)]
     res["max_nodes"] = int(max(r["max_nodes"] for k, v in res.items() if isinstance(v, list) and v and isinstance(v[0], dict) and "max_nodes" in v[0] for r in v)) if a.stage in ("full", "curve") else None
-    with gzip.open(os.path.join(C.CACHE, f"mcts_{a.stage}_s{a.sims}.pkl.gz"), "wb") as f:
-        pickle.dump(res, f)
+    M.save_pickle(res, f"mcts_{a.stage}_s{a.sims}.pkl.gz")
     print(f"done {time.time() - t0:.0f}s")
 
 

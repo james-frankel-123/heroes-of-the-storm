@@ -33,6 +33,7 @@ sys.path.insert(0, TRAINING)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
+from p3_heroes import HKEY, check_heroes
 from numba import njit, prange
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -143,6 +144,7 @@ def build_slots():
 def load_slots():
     z = np.load(SLOTS, allow_pickle=False)
     d = {k: z[k] for k in z.files}
+    check_heroes(d["hero_names"], d["hero"])
     d["r"] = d["y"] - d["wp"]
     d["v"] = d["wp"] * (1 - d["wp"])
     return d
@@ -160,7 +162,7 @@ def experience_counts(d):
     k = np.arange(n) - np.repeat(starts, lens)
     n_p = np.empty(n, np.int64)
     n_p[o] = k
-    key = d["pid"] * 128 + d["hero"]
+    key = d["pid"] * HKEY + d["hero"]
     o2 = np.lexsort((d["replay_id"], d["day"], key))
     kk = key[o2]
     first = np.r_[True, kk[1:] != kk[:-1]]

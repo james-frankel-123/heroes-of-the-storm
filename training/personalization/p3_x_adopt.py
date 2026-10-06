@@ -36,6 +36,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 import p3_x_side as XS
 from p3_sd_similarity import HARD
@@ -48,7 +49,7 @@ GP = {"player-only": "m_player", "player+hero (no hero pooling)": "m_ph",
 
 
 def cell_order(d):
-    key = d["pid"] * 128 + d["hero"]
+    key = d["pid"] * HKEY + d["hero"]
     o = np.lexsort((d["replay_id"], d["day"], key))
     k = key[o]
     starts = np.flatnonzero(np.r_[True, k[1:] != k[:-1]])

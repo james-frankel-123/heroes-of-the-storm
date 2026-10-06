@@ -26,6 +26,7 @@ import pickle
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 from p3_mcts_analyze import Ctx, final_drafts, realized, eff, ci_mean, load, SUB
 
@@ -36,7 +37,7 @@ def lp(name):
 
 
 def meta_offrole(X, full, key):
-    c = np.zeros(90)
+    c = np.zeros(NUM_HEROES)
     o, n = 0, 0
     for lob, r in zip(full["lobbies"], full[key]):
         for tm, row, h in X.slot_heroes(lob, r["acts"]):
@@ -57,7 +58,7 @@ def collapse_stats(X, dec, which):
     for p, v in per.items():
         nn = X.T["n"][X.T["pos"][int(p)]]
         top3 = set(np.argsort(-nn)[:3])
-        rows.append((eff(np.bincount(v, minlength=90)), np.mean([h in top3 for h in v])))
+        rows.append((eff(np.bincount(v, minlength=NUM_HEROES)), np.mean([h in top3 for h in v])))
     a = np.array(rows)
     return {"effective_pool_median": float(np.median(a[:, 0])), "top3_share_mean": float(a[:, 1].mean()),
             "players": len(a)}
@@ -127,7 +128,7 @@ def main():
         tab["MCTS personalized, distilled prior"]["realized_subset_100sims"] = rr["personalized agreement"]["top_minus_bottom_pp"]
     out["drafters"] = tab
     # meta breadth and off-role (self-play and vs GD)
-    creal = np.zeros(90)
+    creal = np.zeros(NUM_HEROES)
     for lob in m_full["lobbies"]:
         for tm, row, h in X.slot_heroes(lob, lob["acts_real"]):
             creal[h] += 1
@@ -163,7 +164,7 @@ def main():
     fig, axs = plt.subplots(1, 3, figsize=(22, 7))
     for ax, (xa, xl) in zip(axs[:2], ((b, "MCTS personalized, BC prior: self-play pick share (%)"),
                                       (shares["real"], "real drafts (same lobbies): pick share (%)"))):
-        for i in range(90):
+        for i in range(NUM_HEROES):
             ax.scatter(100 * xa[i], 100 * a[i], color=role_col[X.meta["blizz"][i]], s=18)
         lim = 100 * max(xa.max(), a.max()) * 1.05
         ax.plot([0, lim], [0, lim], color="#999", lw=0.7)

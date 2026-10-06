@@ -692,4 +692,9 @@ PYBIND11_MODULE(pop_ref_kernel, m) {
     m.attr("SEARCH_LEGACY") = SEARCH_LEGACY;
     m.attr("SEARCH_CHANCE") = SEARCH_CHANCE;
     m.attr("SEARCH_ROLLFWD") = SEARCH_ROLLFWD;
+#ifdef COMP_FALLBACK_MID_HIGH_LOW
+    m.attr("COMP_FALLBACK_ORDER") = "mid_high_low";
+#else
+    m.attr("COMP_FALLBACK_ORDER") = "low_mid_high";
+#endif
 }

@@ -16,8 +16,9 @@ P3 personalized MCTS kernel verification.
 3. Tree guard: max nodes used and capacity hits at the sim counts used.
 
 Run (from training/):
-  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_mcts_verify.py
-Output: results/p3_mcts_verify.json
+  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_mcts_verify.py --search-mode chance
+Output: results/p3_mcts_verify_<mode>.json; exits 1 if a gate fails (leaf parity
+1e-5, population identity, tree reaching a later own pick block).
 """
 import os
 import sys
@@ -26,12 +27,17 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import torch
+from p3_heroes import NUM_HEROES
 import p3_mcts_core as M
 import p3_hs_core as C
 import p3_dr_core as D
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
+    M.set_search_mode(ap.parse_args().search_mode)
     torch.set_num_threads(4)
     rng = np.random.RandomState(0)
     W = M.Weights()
@@ -49,7 +55,7 @@ def main():
     wmap = np.load(C.WP)
     bidx_all = wmap["build_idx"][np.argsort(wmap["replay_ids"])]
     # ---------- 1. leaf values
-    games = rng.choice(len(L["replay_id"]), 300, replace=False)
+    games = rng.choice(len(L["replay_id"]), 1000, replace=False)
     items = {}
     for gi in games:
         key = W.stats_key(bidx_all[L["g"][gi]])
@@ -124,7 +130,8 @@ def main():
     ident = {}
     for sims in (100, 400):
         er = M.make_engine(R, W, key, 1, n, 0)
-        rr = er.run_episodes(np.ascontiguousarray(base), sims, 2.0, 777, 0.0, 0.3, 0.0, 1)
+        rr = er.run_episodes(np.ascontiguousarray(base), sims, 2.0, 777, 0.0, 0.3, 0.0, 1,
+                    search_mode=M.search_mode())
         del er
         for label, personal in (("personal terms zeroed", 1), ("personal valuation off", 0)):
             cfg = M.empty_cfg(n)
@@ -134,7 +141,8 @@ def main():
             s, off, imit, pool = M.zeros_personal(n)
             ek = M.make_engine(K, W, key, 1, n, 0)
             kk = ek.run(cfg, s, off, imit, pool, np.array([0, 1, 0, 0, 0.8], np.float32),
-                        sims, 2.0, 777, 0.0, 0.3, 0.0, 1)
+                        sims, 2.0, 777, 0.0, 0.3, 0.0, 1,
+                    search_mode=M.search_mode())
             del ek
             same_wp = all(float(rr[i][0]) == float(kk[0][i]) for i in range(n))
             same_draft = True
@@ -145,9 +153,9 @@ def main():
                 t0 = sorted(int(a) for k, a in enumerate(acts) if M.IS_PICK[k] and M.DRAFT_TEAM[k] == 0)
                 t1 = sorted(int(a) for k, a in enumerate(acts) if M.IS_PICK[k] and M.DRAFT_TEAM[k] == 1)
                 bn = sorted(int(a) for k, a in enumerate(acts) if not M.IS_PICK[k])
-                if (t0 != sorted(np.flatnonzero(tsv[:90] > 0.5).tolist()) or
-                        t1 != sorted(np.flatnonzero(tsv[90:180] > 0.5).tolist()) or
-                        bn != sorted(np.flatnonzero(tsv[180:270] > 0.5).tolist())):
+                if (t0 != sorted(np.flatnonzero(tsv[:NUM_HEROES] > 0.5).tolist()) or
+                        t1 != sorted(np.flatnonzero(tsv[NUM_HEROES:2 * NUM_HEROES] > 0.5).tolist()) or
+                        bn != sorted(np.flatnonzero(tsv[2 * NUM_HEROES:3 * NUM_HEROES] > 0.5).tolist())):
                     same_draft = False
                 for t, ex in enumerate(rr[i][1]):
                     if not np.array_equal(np.array(ex[1]), kk[5][i, t]):
@@ -165,13 +173,46 @@ def main():
     ek = M.make_engine(K, W, key, 1, 16, 0)
     g = {}
     for sims in (1000, 3000):
-        kk = ek.run(cfg, s, off, imit, pool, np.array([0, 1, 0, 0, 0.8], np.float32), sims, 2.0, 5, 0.0, 0.3, 0.0, 1)
+        kk = ek.run(cfg, s, off, imit, pool, np.array([0, 1, 0, 0, 0.8], np.float32), sims, 2.0, 5, 0.0, 0.3, 0.0, 1,
+                    search_mode=M.search_mode())
         g[f"sims {sims}"] = {"max_nodes_used": int(kk[9].max()), "capacity_hits_total": int(kk[10].sum()),
                              "episodes_with_hits": int((kk[10] > 0).sum())}
     out["guard"] = g
     print("guard", g, flush=True)
-    with open(os.path.join(C.RESULTS, "p3_mcts_verify.json"), "w") as f:
+    # ---------- 4. tree depth: the search must reach our later pick blocks
+    depth = {}
+    for sims in (100, 400):
+        cfg = M.empty_cfg(16)
+        cfg[:, :3] = base[:16]
+        cfg[:, 2] = 0
+        kk = ek.run(cfg, s, off, imit, pool, np.array([0, 1, 0, 0, 0.8], np.float32), sims, 2.0, 11,
+                    0.0, 0.3, 0.0, 1, search_mode=M.search_mode())
+        st = np.asarray(ek.last_stats())
+        own_steps = [k for k in range(16) if M.DRAFT_TEAM[k] == 0]
+        later = [k for k in own_steps if k > 4]
+        mask = int(np.bitwise_or.reduce(st[:, 8]))
+        depth[f"sims {sims}"] = {"max_depth_steps": int(st[:, 11].max()),
+                                 "mean_own_decisions_ahead_per_sim": float(st[:, 7].sum() / max(st[:, 1].sum(), 1)),
+                                 "later_own_steps_reached": [k for k in later if mask >> k & 1]}
+    out["depth"] = depth
+    out["search_mode"] = M.search_mode_name()
+    out["comp_fallback_order"] = {"personal": K.COMP_FALLBACK_ORDER, "ref": R.COMP_FALLBACK_ORDER}
+    print("depth", depth, flush=True)
+    # ---------- gates: refuse downstream runs on a failed build
+    fails = []
+    if out["leaf"]["max_abs_diff_wp"] > 1e-5 or out["leaf"]["max_abs_diff_personal_value"] > 1e-5:
+        fails.append("leaf parity above 1e-5")
+    if not all(v["identical_win_prob"] and v["identical_drafts"] for v in ident.values()):
+        fails.append("population identity vs the reference kernel")
+    if not depth["sims 400"]["later_own_steps_reached"]:
+        fails.append("tree never reaches a later own pick block")
+    out["gates_failed"] = fails
+    out["ok"] = not fails
+    with open(os.path.join(C.RESULTS, f"p3_mcts_verify_{M.search_mode_name()}.json"), "w") as f:
         json.dump(out, f, indent=1)
+    if fails:
+        raise SystemExit("VERIFY FAILED: " + "; ".join(fails))
+    print("VERIFY OK", flush=True)
 
 
 if __name__ == "__main__":

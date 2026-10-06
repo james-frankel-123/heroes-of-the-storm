@@ -25,6 +25,7 @@ import importlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import NUM_HEROES, HKEY
 import p3_hs_core as C
 
 FIX_RESULTS = os.path.join(C.RESULTS, "fix")
@@ -47,7 +48,7 @@ def lag1_key_counts(d, key):
 
 
 def lag1_counts(d):
-    return lag1_key_counts(d, d["pid"]), lag1_key_counts(d, d["pid"] * 128 + d["hero"])
+    return lag1_key_counts(d, d["pid"]), lag1_key_counts(d, d["pid"] * HKEY + d["hero"])
 
 
 def prepare_l1(d):
@@ -72,11 +73,11 @@ def _recency_l1_kernel():
         a20 = 1 - np.exp(-np.log(2) / 20.0)
         a100 = 1 - np.exp(-np.log(2) / 100.0)
         for p in prange(starts.shape[0]):
-            e20 = np.zeros(90)
-            e100 = np.zeros(90)
+            e20 = np.zeros(NUM_HEROES)
+            e100 = np.zeros(NUM_HEROES)
             w20 = 0.0
             w100 = 0.0
-            last = np.full(90, -1)
+            last = np.full(NUM_HEROES, -1)
             r = starts[p]
             while r < ends[p]:
                 b = r
@@ -85,13 +86,13 @@ def _recency_l1_kernel():
                 for i in range(r, b):  # queries see earlier days only
                     q = qslot[i]
                     if q >= 0:
-                        for h in range(90):
+                        for h in range(NUM_HEROES):
                             out_e20[q, h] = e20[h] / w20 if w20 > 0 else 0.0
                             out_e100[q, h] = e100[h] / w100 if w100 > 0 else 0.0
                             out_last[q, h] = day[i] - last[h] if last[h] >= 0 else -1
                 for i in range(r, b):
                     h0 = hero[i]
-                    for h in range(90):
+                    for h in range(NUM_HEROES):
                         e20[h] *= 1 - a20
                         e100[h] *= 1 - a100
                     e20[h0] += a20
@@ -123,9 +124,9 @@ def recency_features_l1(d, qrows):
     qpos[qrows] = np.arange(len(qrows))
     qslot = qpos[srt]
     nq = len(qrows)
-    e20 = np.zeros((nq, 90), np.float32)
-    e100 = np.zeros((nq, 90), np.float32)
-    last = np.zeros((nq, 90), np.float32)
+    e20 = np.zeros((nq, NUM_HEROES), np.float32)
+    e100 = np.zeros((nq, NUM_HEROES), np.float32)
+    last = np.zeros((nq, NUM_HEROES), np.float32)
     _RK(brk.astype(np.int64), ends.astype(np.int64), d["day"][srt].astype(np.int64),
         d["hero"][srt].astype(np.int64), qslot, e20, e100, last)
     return e20, e100, last

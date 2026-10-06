@@ -16,6 +16,7 @@ import json
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_sd_kalman as K
 import p3_ph_patch as PP
@@ -32,7 +33,7 @@ def main():
     bnds, builds = PP.boundaries(names)
     nb = len(builds)
     days = d["day"]
-    dwr = np.zeros((len(bnds), 90))
+    dwr = np.zeros((len(bnds), NUM_HEROES))
     for k, b in enumerate(bnds):
         lo = bnds[k - 1]["pos"] if k > 0 else 0
         hi = bnds[k + 1]["pos"] if k + 1 < len(bnds) else 10 ** 6
@@ -43,10 +44,10 @@ def main():
         t_b = days[post].min()
         pre &= days >= t_b - PP.CAP_DAYS
         post &= days < t_b + PP.CAP_DAYS
-        w0 = np.bincount(d["hero"][pre], weights=d["y"][pre], minlength=90) / np.maximum(
-            np.bincount(d["hero"][pre], minlength=90), 1)
-        w1 = np.bincount(d["hero"][post], weights=d["y"][post], minlength=90) / np.maximum(
-            np.bincount(d["hero"][post], minlength=90), 1)
+        w0 = np.bincount(d["hero"][pre], weights=d["y"][pre], minlength=NUM_HEROES) / np.maximum(
+            np.bincount(d["hero"][pre], minlength=NUM_HEROES), 1)
+        w1 = np.bincount(d["hero"][post], weights=d["y"][post], minlength=NUM_HEROES) / np.maximum(
+            np.bincount(d["hero"][post], minlength=NUM_HEROES), 1)
         dwr[k] = w1 - w0
     rng = np.random.RandomState(3)
     fits = json.load(open(os.path.join(C.RESULTS, "p3_sd_fit.json")))
@@ -57,7 +58,7 @@ def main():
     samp[rs.choice(np.flatnonzero(fitp & (nE > 0)), 40000, replace=False)] = True
     p = fits["random 40k"]["fits"]["drift days"]["params"]
     jf = PP.JumpFilter(d, meta, kz["V_cf2"], r_adj, build, e_mask & samp[d["pid"]])
-    base = jf.run_jump(p, np.zeros((nb + 1, 90)))[2].sum()
+    base = jf.run_jump(p, np.zeros((nb + 1, NUM_HEROES)))[2].sum()
     out = {}
     small = np.argwhere(np.abs(dwr) < 0.01)
     for thr in (0.02, 0.04):
@@ -65,7 +66,7 @@ def main():
         pick = small[rng.choice(len(small), len(big), replace=False)]
         for lab, pairs in (("big shift", big), ("placebo (<1pp, same count)", pick)):
             for sdpp in (1.0, 2.0, 3.0, 5.0):
-                t = np.zeros((nb + 1, 90))
+                t = np.zeros((nb + 1, NUM_HEROES))
                 for k, h in pairs:
                     t[bnds[k]["pos"], h] = (sdpp / 100) ** 2
                 ll = jf.run_jump(p, t)[2].sum() - base

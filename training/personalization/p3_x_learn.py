@@ -35,6 +35,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+from p3_heroes import HKEY
 import p3_hs_core as C
 from p3_sd_similarity import HARD
 
@@ -238,7 +239,7 @@ def rust(d, P):
     since_break[po] = since
     # hero-level gap: days since this player last played this hero
     ho = np.lexsort((d["replay_id"], ts, d["hero"], d["pid"]))
-    key = d["pid"][ho] * 128 + d["hero"][ho]
+    key = d["pid"][ho] * HKEY + d["hero"][ho]
     newk = np.r_[True, key[1:] != key[:-1]]
     hg = np.r_[np.nan, np.diff(ts[ho]) / 86400.0]
     hg[newk] = np.nan

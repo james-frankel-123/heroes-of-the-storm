@@ -54,6 +54,7 @@ TRAINING = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, TRAINING)
 import numpy as np
 from numba import njit, prange
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_sd_kalman as K
 from p3_hs_fit import prepare
@@ -94,7 +95,7 @@ def boundaries(names):
 # ------------------------------------------------------------------ A, B
 
 def cell_table(d, u, build, bnds):
-    H = 90
+    H = NUM_HEROES
     rows = []
     days = d["day"]
     for k, b in enumerate(bnds):
@@ -132,7 +133,7 @@ def cell_table(d, u, build, bnds):
         ok = (pr[3][ia] >= MIN_SIDE) & (po[3][ib] >= MIN_SIDE)
         ck = common_keys[ok]
         a, b_ = ia[ok], ib[ok]
-        cells.append(dict(k=np.full(len(ck), k), pid=ck // 90, hero=ck % 90,
+        cells.append(dict(k=np.full(len(ck), k), pid=ck // NUM_HEROES, hero=ck % NUM_HEROES,
                           n0=pr[3][a], n1=po[3][b_],
                           u0=pr[4][a] / pr[3][a], u1=po[4][b_] / po[3][b_],
                           z0=pr[5][a] / pr[3][a] ** 2, z1=po[5][b_] / po[3][b_] ** 2,
@@ -144,13 +145,13 @@ def cell_table(d, u, build, bnds):
     for k in set(r[0] for r in rows):
         pr = [r for r in rows if r[0] == k and r[1] == 0][0]
         po = [r for r in rows if r[0] == k and r[1] == 1][0]
-        h0 = np.bincount(pr[2] % 90, weights=pr[6], minlength=90) / np.maximum(
-            np.bincount(pr[2] % 90, weights=pr[3], minlength=90), 1)
-        h1 = np.bincount(po[2] % 90, weights=po[6], minlength=90) / np.maximum(
-            np.bincount(po[2] % 90, weights=po[3], minlength=90), 1)
+        h0 = np.bincount(pr[2] % NUM_HEROES, weights=pr[6], minlength=NUM_HEROES) / np.maximum(
+            np.bincount(pr[2] % NUM_HEROES, weights=pr[3], minlength=NUM_HEROES), 1)
+        h1 = np.bincount(po[2] % NUM_HEROES, weights=po[6], minlength=NUM_HEROES) / np.maximum(
+            np.bincount(po[2] % NUM_HEROES, weights=po[3], minlength=NUM_HEROES), 1)
         agg[k] = h1 - h0
     # center within (boundary, hero, side)
-    g = cat["k"] * 90 + cat["hero"]
+    g = cat["k"] * NUM_HEROES + cat["hero"]
     ug, gi = np.unique(g, return_inverse=True)
     for s in ("u0", "u1", "u0a", "u0b", "u1a", "u1b"):
         mean = np.bincount(gi, weights=cat[s]) / np.bincount(gi)
@@ -178,7 +179,7 @@ def group_stats(c, sel):
 
 def spearman_by_group(c, sel):
     out = []
-    g = c["k"] * 90 + c["hero"]
+    g = c["k"] * NUM_HEROES + c["hero"]
     for gg in np.unique(g[sel]):
         m = sel & (g == gg)
         if m.sum() < 30:
@@ -312,7 +313,7 @@ class JumpFilter(K.Filter):
 
 
 def jtab_for(bnds, nb, which, J):
-    t = np.zeros((nb + 1, 90))
+    t = np.zeros((nb + 1, NUM_HEROES))
     for b in bnds:
         if which == "notes":
             m = b["notes"]
@@ -351,7 +352,7 @@ def main():
                            "n_notes": int(b["notes"].sum()), "n_detector": int(b["detector"].sum())}
                           for b in bnds]}
     # population part: per (build, hero) mean of r_adj
-    bh = build * 90 + d["hero"]
+    bh = build * NUM_HEROES + d["hero"]
     ubh, inv = np.unique(bh, return_inverse=True)
     mean_bh = np.bincount(inv, weights=r_adj) / np.bincount(inv)
     u = r_adj - mean_bh[inv]
@@ -471,7 +472,7 @@ def main():
             psf = np.empty(len(d["pid"]))
             pmf[rows], psf[rows] = mf, sf
             for nm, sel in (("changed heroes", win & changed_slot), ("unchanged heroes", win & ~changed_slot)):
-                key_ = d["pid"][sel] * 90 + d["hero"][sel]
+                key_ = d["pid"][sel] * NUM_HEROES + d["hero"][sel]
                 uk, inv, nf = np.unique(key_, return_inverse=True, return_counts=True)
                 rbar = np.bincount(inv, weights=r_adj[sel]) / nf
                 noise = np.bincount(inv, weights=d["v"][sel]) / nf ** 2

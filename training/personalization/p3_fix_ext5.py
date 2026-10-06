@@ -38,6 +38,7 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_fix_drafters as FD
 
@@ -140,7 +141,7 @@ def b_sim(procs):
 
     class ZeroDict(dict):
         def __missing__(self, key):
-            return np.zeros(90, np.float32)
+            return np.zeros(NUM_HEROES, np.float32)
     ip = ZeroDict()
     tasks = [(DR.lobby_payload(L, T, gi, ip, ctrl[gi], bidx_all), int(1000 + gi)) for gi in ctrl]
     rtasks = [(DR.lobby_payload(L, T, gi, ip, 0, bidx_all), int(1000 + gi)) for gi in real_g]
@@ -233,9 +234,9 @@ def d_combine():
     for l in z["lobbies"]:
         st = L["steps"][l["gi"]]
         mo, to = D.one_hots(str(L["map"][l["gi"]]), str(L["tier"][l["gi"]]))
-        t0 = np.zeros(90, np.float32)
-        t1 = np.zeros(90, np.float32)
-        bans = np.zeros(90, np.float32)
+        t0 = np.zeros(NUM_HEROES, np.float32)
+        t1 = np.zeros(NUM_HEROES, np.float32)
+        bans = np.zeros(NUM_HEROES, np.float32)
         di = 0
         for k, (h, ty, tm, row) in enumerate(st):
             if ty == 1:
@@ -250,7 +251,7 @@ def d_combine():
     rows_needed = np.array(sorted(rows_needed))
     rec = I.recency_features(d, rows_needed)
     fake = {"row": rows_needed, "recpos": np.arange(len(rows_needed)),
-            "lp": np.zeros((len(rows_needed), 90), np.float32)}
+            "lp": np.zeros((len(rows_needed), NUM_HEROES), np.float32)}
     Xp = I.feature_tensor(fake, T, rec, meta)
     ipers = {int(r): (Xp[i, :, 1:] * iw[1:]).sum(-1) for i, r in enumerate(rows_needed)}
     gaps = {}

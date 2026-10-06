@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from numba import njit, prange
 
+from p3_heroes import NUM_HEROES
 import p3_hs_core as C
 import p3_x_ban_feat as B
 
@@ -71,28 +72,28 @@ def play_end_times(d):
 def _walk(starts, ends, hero, y, t_end, t_start, qslot, q_n, q_e20, q_e100, q_days, q_mawp):
     a20 = 1 - np.exp(-np.log(2) / 20.0)
     a100 = 1 - np.exp(-np.log(2) / 100.0)
-    bt = np.zeros((90, 400))
-    by = np.zeros((90, 400))
+    bt = np.zeros((NUM_HEROES, 400))
+    by = np.zeros((NUM_HEROES, 400))
     for p in range(starts.shape[0]):
-        cnt = np.zeros(90)
-        e20 = np.zeros(90)
-        e100 = np.zeros(90)
+        cnt = np.zeros(NUM_HEROES)
+        e20 = np.zeros(NUM_HEROES)
+        e100 = np.zeros(NUM_HEROES)
         w20 = 0.0
         w100 = 0.0
-        last = np.full(90, -1.0)
-        head = np.zeros(90, np.int64)
+        last = np.full(NUM_HEROES, -1.0)
+        head = np.zeros(NUM_HEROES, np.int64)
         for i in range(starts[p], ends[p]):
             q = qslot[i]
             if q >= 0:
                 now = t_start[i]
-                for h in range(90):
+                for h in range(NUM_HEROES):
                     q_n[q, h] = cnt[h]
                     q_e20[q, h] = e20[h] / w20 if w20 > 0 else 0.0
                     q_e100[q, h] = e100[h] / w100 if w100 > 0 else 0.0
                     q_days[q, h] = (now - last[h]) / 86400.0 if last[h] >= 0 else -1.0
                     q_mawp[q, h] = B._mawp(bt[h], by[h], int(cnt[h]), head[h], now)
             h0 = hero[i]
-            for h in range(90):
+            for h in range(NUM_HEROES):
                 e20[h] *= 1 - a20
                 e100[h] *= 1 - a100
             e20[h0] += a20
@@ -117,7 +118,7 @@ def walk(d, qrows):
     qpos = np.full(n, -1, np.int64)
     qpos[qrows] = np.arange(len(qrows))
     nq = len(qrows)
-    arrs = [np.zeros((nq, 90), np.float32) for _ in range(5)]
+    arrs = [np.zeros((nq, NUM_HEROES), np.float32) for _ in range(5)]
     _walk(brk.astype(np.int64), ends.astype(np.int64), d["hero"][srt].astype(np.int64),
           d["y"][srt].astype(np.float64), t_end[srt], t_start[srt], qpos[srt], *arrs)
     return dict(zip(["n", "e20", "e100", "days", "mawp"], arrs))
@@ -127,7 +128,7 @@ def fit_pref(d, cutoff_day):
     """Hero embedding and clusters from pre-cutoff counts."""
     m = d["day"] < cutoff_day
     npl = int(d["n_players"])
-    cnt = np.bincount(d["pid"][m] * 90 + d["hero"][m], minlength=npl * 90).reshape(npl, 90).astype(np.float64)
+    cnt = np.bincount(d["pid"][m] * NUM_HEROES + d["hero"][m], minlength=npl * NUM_HEROES).reshape(npl, NUM_HEROES).astype(np.float64)
     tot = cnt.sum(1)
     keep = tot >= 100
     Xl = np.log1p(cnt[keep])
@@ -189,7 +190,7 @@ def context(hist, fine, pref=None, use_cluster=True):
     F = np.stack([np.log(sshare), np.log(cshare), aff, np.log1p(n), (n == 0).astype(np.float64),
                   hist["e20"], hist["e100"], np.where(days >= 0, np.log1p(np.maximum(days, 0)), np.log1p(1000.0)),
                   np.log(role), is_main * mshare[:, None], hist["mawp"] - 0.5,
-                  np.repeat(np.log1p(tot)[:, None], 90, 1)], -1).astype(np.float32)
+                  np.repeat(np.log1p(tot)[:, None], NUM_HEROES, 1)], -1).astype(np.float32)
     return F, {"tot": tot, "main_share": mshare, "sshare": sshare, "is_main": is_main}
 
 
