@@ -27,3 +27,4 @@
 /dsmcts_.*.pkl.gz$
 /dsgreedy_.*.pkl.gz$
 /pgdmcts_.*.pkl.gz$
+/b[0-9]+_.*
