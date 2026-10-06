@@ -106,6 +106,7 @@ CHAINS = {
     "bmodels": [
         s("b_onetrick", "p3_b_onetrick.py"),
         s("b_demean", "p3_b_demean.py", "--kalman"),
+        s("b_nowcast", "p3_b_nowcast.py"),
         s("b_bans", "p3_b_bans.py"),
     ],
     "bfinal": [
