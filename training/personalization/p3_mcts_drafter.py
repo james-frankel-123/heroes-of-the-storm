@@ -6,8 +6,14 @@ the outcome-free BC prior distilled from GD (overfit2026/models/bc_prior.pt).
 In-tree opponent and rollouts: GD (one of the 5 paper-1 GD models per
 launch, cycled; the personalized and population runs of a batch share the
 GD model and the seed). Root: argmax of visits. Pools restrict every pick
-to the acting player's pool; real bans are forced where still free (the
-one-step protocol). Valuation: personal (V) or population (WP).
+to the acting player's pool. No real bans are forced (default, matches the
+one-step drafter): our bans are searched, the opponent's come from GD;
+Setup.force_real_bans = True restores forcing real bans where still free.
+Valuation: personal (V) or population (WP).
+--assign team (default slot): assign mode (p3_mcts_core docstring): team
+picks from the union of its players' pools, personal terms from each team's
+best hero -> player assignment; full-draft results carry that assignment
+("assign": per team, the slot of its j-th pick). Outputs get _assign-team.
 
 Lobbies and players are those of p3_dr_drafter (same 1,000 full lobbies,
 same 5,724 realized lobbies, same 300 collapse players; controlled team as
@@ -47,6 +53,8 @@ BATCH = 256
 
 
 class Setup:
+    force_real_bans = False   # True: real bans forced where still free (old protocol)
+
     def __init__(self):
         import p3_dr_core as D
         import p3_dr_imitation as I
@@ -105,7 +113,8 @@ class Setup:
             assert kt == M.DRAFT_TEAM[k] and ty == M.IS_PICK[k]
             acts[k] = self.to_sh[h]
             if ty == 0:
-                forced[k] = self.to_sh[h]
+                if self.force_real_bans:
+                    forced[k] = self.to_sh[h]
                 continue
             if sub is not None and sub[0] == k:
                 row = sub[1]
@@ -132,7 +141,14 @@ class Setup:
         c[8:24] = lb["acts"] if decide >= 0 else -1
         c[24:40] = lb["slot_of"]
         c[40:56] = lb["forced"]
+        c[56:M.CFG_LEN] = 0
+        c[M.CFG_ASSIGN] = M.assign_mode()
         return c
+
+    def assignment(self, lb, acts):
+        """Assign mode: best assignment of a complete draft (host recompute,
+        float64; the kernel uses the same rule in float32)."""
+        return M.assignment_terms(lb["s"], lb["off"], acts, float(self.coefs[2]), float(self.coefs[3]))[2]
 
     def run(self, jobs, sims, seed, device=0):
         """jobs: list of (lobby dict, cfg row). Batched by stats key; the
@@ -160,6 +176,8 @@ class Setup:
                               "pol": r[5][j, :max(int(r[4][j]), 1)].copy(), "q": r[6][j, :max(int(r[4][j]), 1)].copy(),
                               "step": r[7][j, :max(int(r[4][j]), 1)].copy(), "team": r[8][j, :max(int(r[4][j]), 1)].copy(),
                               "max_nodes": int(r[9][j]), "cap_hits": int(r[10][j])}
+                    if cfg[j, M.CFG_ASSIGN] == 1 and cfg[j, 4] < 0:
+                        out[i]["assign"] = self.assignment(jobs[i][0], out[i]["acts"])
         return out
 
 
@@ -170,12 +188,14 @@ def main():
     ap.add_argument("--nlobbies", type=int, default=0, help="real stage: first N lobbies (0 = all)")
     ap.add_argument("--contexts", type=int, default=30)
     ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
+    ap.add_argument("--assign", default="slot", choices=["slot", "team"])
     a = ap.parse_args()
     M.set_search_mode(a.search_mode)
+    M.set_assign_mode(a.assign)
     torch.set_num_threads(2)
     t0 = time.time()
     S = Setup()
-    res = {"sims": a.sims, "stage": a.stage}
+    res = {"sims": a.sims, "stage": a.stage, "assign": a.assign}
     if a.stage in ("full", "curve"):
         lbs = [S.lobby(gi) for gi in S.full_set]
         kctrl = [S.ctrl[lb["gi"]] ^ lb["first"] for lb in lbs]

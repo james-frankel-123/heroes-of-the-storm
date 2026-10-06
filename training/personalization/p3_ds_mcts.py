@@ -13,6 +13,8 @@ personalized drafter changes its prior):
   real      decide-only at the real pick states of the first N lobbies
   collapse  300 players x 30 contexts (same contexts as the BC-prior run)
 
+--assign {slot,team}: see p3_mcts_drafter (default slot).
+
 Run (from training/):
   CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 48-63 \
     python3 personalization/p3_ds_mcts.py --stage verify|full|real|collapse --sims 400
@@ -81,7 +83,8 @@ class PriorSetup(Setup):
         for key, idx in by_key.items():
             for bs in range(0, len(idx), BATCH):
                 ii = idx[bs:bs + BATCH]
-                cfg = np.stack([np.r_[jobs[i][1], np.int32(use_prior)] for i in ii]).astype(np.int32)
+                cfg = np.stack([jobs[i][1] for i in ii]).astype(np.int32)
+                cfg[:, 56] = use_prior
                 s = np.stack([jobs[i][0]["s"] for i in ii])
                 off = np.stack([jobs[i][0]["off"] for i in ii])
                 imit = np.stack([jobs[i][0]["imit"] for i in ii])
@@ -95,7 +98,8 @@ class PriorSetup(Setup):
                     search_mode=M.search_mode())
                 else:
                     eng = M.make_engine(self.K, self.W, key, gdi, len(ii), 0)
-                    r = eng.run(cfg[:, :M.CFG_LEN].copy(), s, off, imit, pool, self.coefs, sims, 2.0, seed + bs,
+                    cfg[:, 56] = 0
+                    r = eng.run(cfg, s, off, imit, pool, self.coefs, sims, 2.0, seed + bs,
                                 0.0, 0.3, 0.0, 1,
                     search_mode=M.search_mode())
                 del eng
@@ -105,12 +109,14 @@ class PriorSetup(Setup):
                               "acts": r[3][j].copy(), "turns": int(r[4][j]), "pol": r[5][j, :nt].copy(),
                               "q": r[6][j, :nt].copy(), "max_nodes": int(r[9][j]), "cap_hits": int(r[10][j]),
                               "prior": r[13][j, :nt].copy() if kernel == "prior" else None}
+                    if cfg[j, M.CFG_ASSIGN] == 1 and cfg[j, 4] < 0:
+                        out[i]["assign"] = self.assignment(jobs[i][0], out[i]["acts"])
         return out
 
 
 def verify(S):
     import search as SR
-    net = SR.policy_net("bc")
+    net = SR.policy_net("path:" + __import__("p3_dr_core").bc_prior_path())
     out = {}
     gis = S.full_set[:64]
     lbs = [S.lobby(gi) for gi in gis]
@@ -163,15 +169,17 @@ def main():
     ap.add_argument("--nlobbies", type=int, default=2000)
     ap.add_argument("--contexts", type=int, default=30)
     ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
+    ap.add_argument("--assign", default="slot", choices=["slot", "team"])
     a = ap.parse_args()
     M.set_search_mode(a.search_mode)
+    M.set_assign_mode(a.assign)
     torch.set_num_threads(2)
     t0 = time.time()
     S = PriorSetup()
     if a.stage == "verify":
         verify(S)
         return
-    res = {"sims": a.sims, "stage": a.stage, "alpha": S.alpha}
+    res = {"sims": a.sims, "stage": a.stage, "alpha": S.alpha, "assign": a.assign}
     if a.stage == "full":
         lbs = [S.lobby(gi) for gi in S.full_set]
         S.precompute_bias(lbs)

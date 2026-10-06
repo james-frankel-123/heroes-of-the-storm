@@ -13,6 +13,17 @@ Kernel conventions
     who picked at that step in the real draft (draft_order). Kernel slots
     0-4 are kernel team 0's players in the order of their picks, 5-9 kernel
     team 1's.
+  - Assign mode (cfg[CFG_ASSIGN] = 1, hosts' --assign team): the slot rule
+    above uses who ended up playing the hero (after in-draft trades), mild
+    oracle information. In assign mode the TEAM picks: candidates at a pick
+    step are the union of the acting team's 5 slot pools, and each team's
+    personal terms S_t, O_t come from the assignment of its 5 heroes to its
+    5 slots maximizing b2 S_t + b3 O_t (both teams assign for themselves;
+    first maximum over permutations in lexicographic order, identity = the
+    pick order first). The kernel values complete drafts only (rollouts run
+    to the end). step_slot still selects the per-slot PUCT prior bias,
+    imitation bias and personalized-GD pick term at a pick step (priors and
+    opponent model, not valuation).
   - Hero indices are the shared.HEROES order used by all kernels.
   - Leaf value: population WP of the complete draft = the 3 d2c_cumprev
     seeds combined as a mean-logit net (the overfit2026 K-member path) per
@@ -32,11 +43,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import importlib.util
 import numpy as np
 from p3_heroes import NUM_HEROES
+from p3_assign import best_assignment, team_picks, assignment_terms  # noqa: F401 (re-exported)
 import torch
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KDIR = os.path.join(HERE, "cuda_personal")
-CFG_LEN = 56
+CFG_LEN = 59      # shared by personal / prior / pgd kernels; [56], [57] kernel-specific flags
+CFG_ASSIGN = 58   # 0 slot mode (pick-step -> player), 1 assign mode (team pick + best assignment)
 DRAFT_TEAM = [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1]
 IS_PICK = [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1]
 
@@ -64,6 +77,27 @@ def search_mode_name():
     return _SEARCH_MODE
 
 
+ASSIGN_MODES = {"slot": 0, "team": 1}
+_ASSIGN_MODE = "slot"
+
+
+def set_assign_mode(name):
+    """Hosts set this from --assign {slot,team} (default slot)."""
+    global _ASSIGN_MODE
+    if name not in ASSIGN_MODES:
+        raise SystemExit(f"assign mode {name!r}: use slot or team")
+    _ASSIGN_MODE = name
+
+
+def assign_mode():
+    """cfg[CFG_ASSIGN] value for the current assign mode."""
+    return ASSIGN_MODES[_ASSIGN_MODE]
+
+
+def assign_mode_name():
+    return _ASSIGN_MODE
+
+
 def out_path(fname):
     """Search outputs of the fixed kernel live apart from the legacy-tree
     caches: cache/mcts_v2/<search mode>/<fname>. Written atomically."""
@@ -73,8 +107,12 @@ def out_path(fname):
 
 
 def save_pickle(obj, fname):
+    """Assign-mode (team) outputs get an _assign-team suffix."""
     import gzip
     import pickle
+    if _ASSIGN_MODE != "slot":
+        base = fname[:-len(".pkl.gz")] if fname.endswith(".pkl.gz") else fname
+        fname = f"{base}_assign-{_ASSIGN_MODE}.pkl.gz"
     p = out_path(fname)
     with gzip.open(p + ".tmp", "wb") as f:
         pickle.dump(obj, f)
@@ -119,8 +157,17 @@ class Weights:
         from sweep_enriched_wp import WinProbEnrichedModel
         self.S = S
         self.common = common
-        self.policy = S.policy_flat("bc")
-        self.gds = S.gd_flats()
+        import p3_dr_core as D
+        from train_generic_draft import GenericDraftModel
+        from extract_weights import extract_gd_weights
+        # prior and in-tree GD pool: train-window models unless P3_GD=paper1
+        self.policy = S.policy_flat("path:" + D.bc_prior_path())
+        self.gds = []
+        for i in range(5):
+            g = GenericDraftModel()
+            g.load_state_dict(torch.load(os.path.join(D.gd_dir(), f"generic_draft_{i}.pt"),
+                                         weights_only=True, map_location="cpu"))
+            self.gds.append(extract_gd_weights(g.eval()))
         self.models = []
         for s in (42, 123, 777):
             ck = torch.load(os.path.join(common.MODELS_DIR, f"d2c_cumprev_s{s}.pt"), map_location="cpu",
@@ -159,6 +206,7 @@ def empty_cfg(n):
     c = np.full((n, CFG_LEN), -1, np.int32)
     c[:, 3:8] = 0
     c[:, 4] = -1
+    c[:, 56:CFG_LEN] = 0
     return c
 
 
@@ -174,9 +222,14 @@ def pool_bits(mask90):
     return b
 
 
-def reference_value(W, key, map_name, tier, t0_names, t1_names, our_team, S, O, coefs):
+def reference_value(W, key, map_name, tier, t0_names, t1_names, our_team, S, O, coefs,
+                    assign=False, s=None, off=None, acts=None):
     """float64 mirror of the kernel leaf: mean-logit ensemble per
-    orientation, symmetrized, our side; then personal terms."""
+    orientation, symmetrized, our side; then personal terms. assign=True:
+    S, O are ignored and recomputed by the best assignment (assignment_terms)
+    from s, off (10, NUM_HEROES) and the 16 kernel-order actions acts."""
+    if assign:
+        S, O, _ = assignment_terms(s, off, acts, float(coefs[2]), float(coefs[3]))
     from sweep_enriched_wp import extract_features, _swap_features, FEATURE_GROUPS
     from drift2026.train_drift_wp import enriched_cols
     _, st = W.wp_cfg(key)

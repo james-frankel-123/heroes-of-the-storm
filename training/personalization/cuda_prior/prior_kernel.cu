@@ -1,4 +1,13 @@
 /**
+ * Assign mode (cfg[58] = 1; any other value = slot mode, the code path
+ * below it unchanged): at a pick step the TEAM picks, candidates are the
+ * heroes in the union of the acting team's 5 slot pools; the personal
+ * terms S_t, O_t of each team come from the assignment of its picks to its
+ * 5 slots maximizing b2 S_t + b3 O_t (120 permutations, first maximum in
+ * lexicographic order, identity = slot mode's pick order first). Leaves are
+ * always complete drafts (rollout to terminal), so no partial-draft rule is
+ * needed. Per-slot PUCT / imitation / personalized-GD terms still use the
+ * acting slot step_slot[step] (priors and opponent model only, not value).
  * P3 distilled-prior variant (copy of cuda_personal/personal_kernel.cu). Adds
  * a per-slot additive prior term: at pick steps with cfg[56] = 1 the PUCT
  * priors of the acting slot become softmax(alpha log p_policy + bias[slot]),
@@ -45,7 +54,8 @@
 #define MAX_NODES 4096
 #define MAX_CHILD_INDICES 81920
 #define MAX_OUR_TURNS 16
-#define CFG_LEN 57
+#define CFG_LEN 59
+#define CFG_ASSIGN 58
 #define NUM_SLOTS 10
 #define DRAFT_STEPS 16
 #define MAX_PATH_DEPTH 64
@@ -212,6 +222,10 @@ __device__ void apply_prior_bias(float* pri, const float* mask, int step, const 
 // [5] use_pool [6] opp_model (0 GD, 1 imitation) [7] personal valuation (0/1)
 // [8..23] prefix actions per step [24..39] step_slot per step (-1 = ban)
 // [40..55] forced ban hero per step (-1 = none)
+// [56] prior kernel: distilled prior term; pgd kernel: personalized GD; else unused
+// [57] pgd kernel: personalized-GD PUCT priors (unused otherwise)
+// [58] CFG_ASSIGN: 1 = team pick + assignment ("assign mode"), else slot mode.
+//      All three P3 kernels share this 59-wide layout.
 
 __device__ int forced_action(const DraftStateGPU& s, const int* ecfg) {
     int st = s.step;
@@ -226,7 +240,20 @@ __device__ void ep_valid_mask(const DraftStateGPU& s, float* out, const int* ecf
     s.valid_mask(out);
     if (threadIdx.x == 0) {
         int st = s.step;
-        if (st < 16 && ecfg[5] && c_draft_is_pick[st]) {
+        if (st < 16 && ecfg[5] && c_draft_is_pick[st] && ecfg[CFG_ASSIGN] == 1) {
+            // assign mode: the team picks; pool = union of the acting team's 5 slot pools
+            int base = 5 * c_draft_team[st];
+            uint32_t u[3] = {0u, 0u, 0u};
+            for (int k = 0; k < 5; k++)
+                for (int w = 0; w < 3; w++) u[w] |= epool[(base + k) * 3 + w];
+            int any = 0;
+            for (int i = 0; i < NUM_HEROES; i++)
+                if (out[i] > 0.5f && ((u[i / 32] >> (i % 32)) & 1u)) any = 1;
+            if (any)
+                for (int i = 0; i < NUM_HEROES; i++)
+                    if (out[i] > 0.5f && !((u[i / 32] >> (i % 32)) & 1u))
+                        out[i] = 0.0f;
+        } else if (st < 16 && ecfg[5] && c_draft_is_pick[st]) {
             int slot = ecfg[24 + st];
             if (slot >= 0) {
                 int any = 0;
@@ -242,20 +269,68 @@ __device__ void ep_valid_mask(const DraftStateGPU& s, float* out, const int* ecf
     __syncthreads();
 }
 
+// Thread 0. Lexicographic next permutation of 5 ints (std::next_permutation).
+__device__ bool next_perm5(int* a) {
+    int i = 3;
+    while (i >= 0 && a[i] >= a[i + 1]) i--;
+    if (i < 0) return false;
+    int j = 4;
+    while (a[j] <= a[i]) j--;
+    int t = a[i]; a[i] = a[j]; a[j] = t;
+    for (int l = i + 1, r = 4; l < r; l++, r--) { t = a[l]; a[l] = a[r]; a[r] = t; }
+    return true;
+}
+
+// Thread 0, assign mode. Team tm's picks h[0..n) in pick-step order; slot
+// 5 tm + i plays pick perm[i] (none if perm[i] >= n). Over the 120
+// permutations in lexicographic order (identity first), keep the first one
+// maximizing b2 S + b3 O (same rule as p3_dr_drafter / p3_assign); return
+// its S and O.
+__device__ void best_assignment(int tm, const DraftStateGPU& s, const float* es, const float* eo,
+                                const PersonalArgs& pa, float* S_out, float* O_out) {
+    int h[5];
+    int n = 0;
+    for (int st = 0; st < 16 && st < s.step; st++)
+        if (c_draft_is_pick[st] && c_draft_team[st] == tm && n < 5) h[n++] = s.step_action[st];
+    int base = 5 * tm;
+    int p[5] = {0, 1, 2, 3, 4};
+    float best = -1e30f, bS = 0.0f, bO = 0.0f;
+    do {
+        float sS = 0.0f, sO = 0.0f;
+        for (int i = 0; i < 5; i++) {
+            if (p[i] >= n) continue;
+            sS += es[(base + i) * NUM_HEROES + h[p[i]]];
+            sO += eo[(base + i) * NUM_HEROES + h[p[i]]];
+        }
+        float obj = pa.b2 * sS + pa.b3 * sO;
+        if (obj > best) {
+            best = obj; bS = sS; bO = sO;
+        }
+    } while (next_perm5(p));
+    *S_out = bS;
+    *O_out = bO;
+}
+
 // Thread 0 only. p_our: population WP from our_team's side.
 __device__ float personal_value(float p_our, const DraftStateGPU& s, int our,
                                 const int* ecfg, const float* es, const float* eo,
                                 const PersonalArgs& pa) {
     if (!ecfg[7]) return p_our;
     float S[2] = {0.0f, 0.0f}, O[2] = {0.0f, 0.0f};
-    for (int st = 0; st < 16 && st < s.step; st++) {
-        if (!c_draft_is_pick[st]) continue;
-        int slot = ecfg[24 + st];
-        if (slot < 0) continue;
-        int h = s.step_action[st];
-        int tm = slot < 5 ? 0 : 1;
-        S[tm] += es[slot * NUM_HEROES + h];
-        O[tm] += eo[slot * NUM_HEROES + h];
+    if (ecfg[CFG_ASSIGN] == 1) {
+        // assign mode: each team's heroes go to its players by the best assignment
+        best_assignment(0, s, es, eo, pa, &S[0], &O[0]);
+        best_assignment(1, s, es, eo, pa, &S[1], &O[1]);
+    } else {
+        for (int st = 0; st < 16 && st < s.step; st++) {
+            if (!c_draft_is_pick[st]) continue;
+            int slot = ecfg[24 + st];
+            if (slot < 0) continue;
+            int h = s.step_action[st];
+            int tm = slot < 5 ? 0 : 1;
+            S[tm] += es[slot * NUM_HEROES + h];
+            O[tm] += eo[slot * NUM_HEROES + h];
+        }
     }
     float adj = pa.b2 * (S[our] - S[1 - our]) + pa.b3 * (O[our] - O[1 - our]);
     float b0s = (our == 0) ? pa.b0 : -pa.b0;

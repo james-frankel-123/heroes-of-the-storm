@@ -14,7 +14,7 @@ namespace py = pybind11;
 #define NUM_HEROES 90
 #define STATE_DIM 290
 #define MAX_OUR_TURNS 16
-#define CFG_LEN 58
+#define CFG_LEN 59   // shared P3 layout; [58] = assign mode (see *_kernel.cu)
 #define NUM_SLOTS 10
 #include "tree_v2.h"   // X2 fix: v2 search arena and stats layout
 #define MAX_NODES 4096

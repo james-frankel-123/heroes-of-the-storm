@@ -21,6 +21,9 @@ Runs:
   full    1,000 lobbies: controlled team vs the configuration's opponent
           model, and self-play
   analyze tables
+--assign {slot,team}: see p3_mcts_drafter (default slot). verify step 2
+(kernel personalized-GD vs Python) masks with the acting slot's pool; in
+assign mode it masks with the team's pool union.
 Run (from training/):
   CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 48-63 \
     python3 personalization/p3_pgd_mcts.py --stage verify|real|full|analyze
@@ -48,7 +51,6 @@ from p3_pgd_model import Head, BAN_FEATS
 
 CFGS = {"R1 pers-GD": (1, 0, 0), "R2 pers-PGD": (1, 1, 0), "R3 pers-PGD+P": (1, 1, 1),
         "P1 pop-GD": (0, 0, 0), "P2 pop-PGD": (0, 1, 0)}   # personal valuation, use_pgd, pgd_prior
-CFG_LEN = 58
 
 
 def metagd_kernel_weights(mg, to_sh):
@@ -167,8 +169,10 @@ class PGDSetup(Setup):
         return lb
 
     def cfg_row58(self, lb, our_team, personal, use_pgd, pgd_prior, selfplay=0, decide=-1):
+        """cfg row with the pgd flags [56] use_pgd, [57] pgd_prior."""
         c = self.cfg_row(lb, our_team, personal, selfplay=selfplay, decide=decide, opp=0)
-        return np.r_[c, np.int32(use_pgd), np.int32(pgd_prior)].astype(np.int32)
+        c[56], c[57] = use_pgd, pgd_prior
+        return c
 
     def engine(self, key, gdi, n, use_pgd):
         (wf, wo, lut), _ = self.W.wp_cfg(key)
@@ -201,6 +205,8 @@ class PGDSetup(Setup):
                     nt = max(int(r[4][j]), 1)
                     out[i] = {"wp_t0": float(r[1][j]), "v_t0": float(r[2][j]), "acts": r[3][j].copy(),
                               "pol": r[5][j, :nt].copy(), "q": r[6][j, :nt].copy(), "step": r[7][j, :nt].copy()}
+                    if cfg[j, M.CFG_ASSIGN] == 1 and cfg[j, 4] < 0:
+                        out[i]["assign"] = self.assignment(jobs[i][0], out[i]["acts"])
         return out
 
 
@@ -255,7 +261,11 @@ def verify(S):
         mask = ~taken
         if M.IS_PICK[k]:
             sl = lb["slot_of"][k]
-            pm = S.T["n"][S.T["pos"][int(lb["rows"][sl])]] > 0
+            if M.assign_mode() == 1:
+                team = range(5 * M.DRAFT_TEAM[k], 5 * M.DRAFT_TEAM[k] + 5)
+                pm = np.logical_or.reduce([S.T["n"][S.T["pos"][int(lb["rows"][x])]] > 0 for x in team])
+            else:
+                pm = S.T["n"][S.T["pos"][int(lb["rows"][sl])]] > 0
             if (pm & mask).any():
                 mask = mask & pm
         lp = P.logp_metagd(S.mg, x[None], mask[None])[0]
@@ -316,8 +326,10 @@ def main():
     ap.add_argument("--sims", type=int, default=400)
     ap.add_argument("--nlobbies", type=int, default=2000)
     ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
+    ap.add_argument("--assign", default="slot", choices=["slot", "team"])
     a = ap.parse_args()
     M.set_search_mode(a.search_mode)
+    M.set_assign_mode(a.assign)
     torch.set_num_threads(2)
     t0 = time.time()
     if a.stage == "analyze":
@@ -329,6 +341,7 @@ def main():
         verify(S)
         return
     res = stage_real(S, a.sims, a.nlobbies) if a.stage == "real" else stage_full(S, a.sims)
+    res["assign"] = a.assign
     M.save_pickle(res, f"pgdmcts_{a.stage}_s{a.sims}.pkl.gz")
     print(f"done {time.time() - t0:.0f}s")
 

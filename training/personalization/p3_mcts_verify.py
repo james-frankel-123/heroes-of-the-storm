@@ -8,6 +8,9 @@ P3 personalized MCTS kernel verification.
    absolute difference of the population WP and of the personal value.
    Also the gap between the kernel's mean-logit ensemble and the
    mean-probability ensemble used by the one-step drafter.
+   Both slot mode (cfg[CFG_ASSIGN] = 0) and assign mode (= 1: personal terms
+   from each team's best hero -> slot assignment, reference
+   p3_mcts_core.best_assignment) on the same drafts and tensors.
 2. Population identity: the unmodified reference kernel (cuda_personal/ref,
    = overfit2026/cuda_ofit) vs the personalized kernel with personal terms
    zeroed (b = 0, 1, 0, 0; no pools, no forced bans), same configs, seeds,
@@ -61,12 +64,13 @@ def main():
         key = W.stats_key(bidx_all[L["g"][gi]])
         items.setdefault(key, []).append(gi)
     diffs_p, diffs_v, gap_ens = [], [], []
+    diffs_va, n_nonident = [], 0
     wpE = D.WPEval(d["hero_names"])
     for key, gl in items.items():
         n = len(gl)
         cfg = M.empty_cfg(n)
         s, off, imit, pool = M.zeros_personal(n)
-        refs = []
+        refs, refs_a = [], []
         for i, gi in enumerate(gl):
             st = L["steps"][gi]
             first = st[[k for k in range(16) if st[k][1] == 1][0]][2]
@@ -103,6 +107,11 @@ def main():
                     Ox[tm] += float(off[i, sl, acts[k]])
             refs.append(M.reference_value(W, key, str(L["map"][gi]), str(L["tier"][gi]), t0, t1, int(cfg[i, 2]),
                                           Sx, Ox, coefs.astype(np.float64)))
+            refs_a.append(M.reference_value(W, key, str(L["map"][gi]), str(L["tier"][gi]), t0, t1, int(cfg[i, 2]),
+                                            None, None, coefs.astype(np.float64), assign=True,
+                                            s=s[i], off=off[i], acts=acts))
+            _, _, asl = M.assignment_terms(s[i], off[i], acts, float(coefs[2]), float(coefs[3]))
+            n_nonident += asl != [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
             # mean-probability ensemble (one-step drafter) for the same draft, team-0 side
             my = {HEROES[a]: j for j, a in enumerate(to_sh)}
             wp_mp = wpE.wp([(tuple(np.argsort(to_sh)[[HEROES.index(x) for x in t0]]),
@@ -112,13 +121,22 @@ def main():
             gap_ens.append(abs(wp_mp - ref_t0))
         eng = M.make_engine(K, W, key, 0, n, 0)
         res = eng.leaf_eval(cfg, s, off, imit, pool, coefs)
+        cfg_a = cfg.copy()
+        cfg_a[:, M.CFG_ASSIGN] = 1
+        res_a = eng.leaf_eval(cfg_a, s, off, imit, pool, coefs)
         del eng
         refs = np.array(refs)
+        refs_a = np.array(refs_a)
         diffs_p += list(np.abs(res[:, 0] - refs[:, 0]))
         diffs_v += list(np.abs(res[:, 1] - refs[:, 1]))
+        diffs_p += list(np.abs(res_a[:, 0] - refs_a[:, 0]))
+        diffs_va += list(np.abs(res_a[:, 1] - refs_a[:, 1]))
     out["leaf"] = {"drafts": len(diffs_p), "max_abs_diff_wp": float(np.max(diffs_p)),
                    "mean_abs_diff_wp": float(np.mean(diffs_p)), "max_abs_diff_personal_value": float(np.max(diffs_v)),
                    "mean_abs_diff_personal_value": float(np.mean(diffs_v)),
+                   "assign_mode_max_abs_diff_personal_value": float(np.max(diffs_va)),
+                   "assign_mode_mean_abs_diff_personal_value": float(np.mean(diffs_va)),
+                   "assign_mode_drafts_with_non_identity_assignment": int(n_nonident),
                    "mean_logit_vs_mean_prob_ensemble_max_gap": float(np.max(gap_ens)),
                    "mean_logit_vs_mean_prob_ensemble_mean_gap": float(np.mean(gap_ens))}
     print("leaf", json.dumps(out["leaf"]), flush=True)
@@ -202,6 +220,10 @@ def main():
     fails = []
     if out["leaf"]["max_abs_diff_wp"] > 1e-5 or out["leaf"]["max_abs_diff_personal_value"] > 1e-5:
         fails.append("leaf parity above 1e-5")
+    if out["leaf"]["assign_mode_max_abs_diff_personal_value"] > 1e-5:
+        fails.append("assign-mode leaf parity above 1e-5")
+    if out["leaf"]["assign_mode_drafts_with_non_identity_assignment"] == 0:
+        fails.append("assign-mode parity never exercised a non-identity assignment")
     if not all(v["identical_win_prob"] and v["identical_drafts"] for v in ident.values()):
         fails.append("population identity vs the reference kernel")
     if not depth["sims 400"]["later_own_steps_reached"]:

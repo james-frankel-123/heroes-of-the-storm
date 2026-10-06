@@ -37,7 +37,9 @@ from p3_heroes import HKEY, check_heroes
 from numba import njit, prange
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CACHE = os.path.join(HERE, "cache")
+# P3_CACHE points a development run at another cache directory (default:
+# personalization/cache).
+CACHE = os.environ.get("P3_CACHE") or os.path.join(HERE, "cache")
 # P3_RESULTS redirects every results file of a run (e.g. results/oct26 on a
 # remote worker); the default is the committed results directory.
 RESULTS = os.environ.get("P3_RESULTS") or os.path.join(HERE, "results")
