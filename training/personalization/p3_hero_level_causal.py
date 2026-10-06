@@ -61,7 +61,8 @@ def parse(tag):
     names = [str(h) for h in np.load(C.PLAYERS)["hero_names"]]
     hidx = {h: i for i, h in enumerate(names)}
     keys = ("replay_ids", "blizz_ids", "region", "region_was_null", "hero", "lo", "hi",
-            "parse_ts", "end_ts", "game_length", "fetched_ts")
+            "parse_ts", "end_ts", "game_length", "fetched_ts", "team", "party", "winner",
+            "player_mmr", "hero_mmr", "role_mmr")
     cols = {k: [] for k in keys}
     bands, unknown_heroes = {}, {}
     num = lambda x, dflt: dflt if x == "" else x
@@ -70,7 +71,8 @@ def parse(tag):
         hdr = next(rd)
         c = {k: hdr.index(k) for k in ("replay_id", "blizz_id", "region", "region_was_null", "hero",
                                          "hero_level", "hero_level_band", "parse_ts", "end_ts",
-                                         "game_length", "fetched_ts")}
+                                         "game_length", "fetched_ts", "team", "party", "winner",
+                                         "player_mmr", "hero_mmr", "role_mmr")}
         n = 0
         for r in rd:
             if r[c["blizz_id"]] == "":
@@ -98,12 +100,18 @@ def parse(tag):
             cols["end_ts"].append(int(r[c["end_ts"]]))
             cols["game_length"].append(int(num(r[c["game_length"]], -1)))
             cols["fetched_ts"].append(int(num(r[c["fetched_ts"]], -1)))
+            cols["team"].append(int(num(r[c["team"]], -1)))
+            cols["party"].append(int(num(r[c["party"]], 0)))
+            cols["winner"].append(int(num(r[c["winner"]], -1)))
+            for k in ("player_mmr", "hero_mmr", "role_mmr"):
+                cols[k].append(float(num(r[c[k]], "nan")))
             n += 1
             if n % 2_000_000 == 0:
                 print(f"  {n:,} rows", flush=True)
     dt = {"replay_ids": np.int64, "blizz_ids": np.int64, "region": np.int16, "region_was_null": np.int8,
           "hero": np.int16, "lo": np.float32, "hi": np.float32, "parse_ts": np.int64, "end_ts": np.int64,
-          "game_length": np.int32, "fetched_ts": np.int64}
+          "game_length": np.int32, "fetched_ts": np.int64, "team": np.int8, "party": np.int64,
+          "winner": np.int8, "player_mmr": np.float32, "hero_mmr": np.float32, "role_mmr": np.float32}
     z = {k: np.array(v, dt[k]) for k, v in cols.items()}
     del cols
     z["hero_names"] = np.array(names)

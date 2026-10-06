@@ -78,6 +78,27 @@ CHAINS = {
         s("x_map", "p3_x_map.py"),
         s("x_robust", "p3_x_robust.py"),
     ],
+    # C: headline on the full (backfilled) history; run with P3_CACHE=<full
+    # cache from p3_c_history.py>, P3_RESULTS=results/oct26_full and
+    # P3_EXPORT_TAG=<the post-backfill export>
+    "full": [
+        s("hs_slots", "p3_hs_fit.py", "slots"),
+        s("hl_parse", "p3_hero_level_causal.py", "parse", "--tag", TAG),
+        s("hl_build_snap", "p3_hero_level_causal.py", "build", "--tag", TAG),
+        s("hs_fit", "p3_hs_fit.py", "fit"),
+        s("hs_eval", "p3_hs_eval.py"),
+        s("mmr_at_game", "p3_mmr_at_game.py"),
+        s("x_ext", "p3_x_common.py", "ext"),
+        s("hl_build", "p3_hero_level_causal.py", "build", "--tag", TAG),
+        s("x_predall", "p3_x_predall.py"),
+        s("x_oot", "p3_x_oot.py"),
+        s("x_newacct", "p3_x_newacct.py"),
+        s("c_lifetime", "p3_c_lifetime.py"),
+    ],
+    # #2 on the window caches (run after the fixes chain)
+    "lifetime": [
+        s("c_lifetime", "p3_c_lifetime.py"),
+    ],
     # A5/A7: the drafter harness on the fixed protocol (train-window GD and
     # BC prior, team-level assignment, GD-sampled bans, lag-1 tables)
     "drafter": [
