@@ -107,11 +107,15 @@ CHAINS = {
         s("b_onetrick", "p3_b_onetrick.py"),
         s("b_demean", "p3_b_demean.py", "--kalman"),
         s("b_nowcast", "p3_b_nowcast.py"),
+        s("b_joint", "p3_b_joint.py", "--skill", "phase1"),
+        s("b_joint_C", "p3_b_joint.py", "--skill", "C"),
+        s("b_form", "p3_b_form.py"),
         s("b_bans", "p3_b_bans.py"),
     ],
     "bfinal": [
         s("b_onetrick_final", "p3_b_onetrick.py", "--final"),
         s("b_demean_final", "p3_b_demean.py", "--final"),
+        s("b_joint_final", "p3_b_joint.py", "--skill", "C", "--final"),
     ],
     # A5/A7: the drafter harness on the fixed protocol (train-window GD and
     # BC prior, team-level assignment, GD-sampled bans, lag-1 tables)
