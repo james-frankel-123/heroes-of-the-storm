@@ -79,6 +79,7 @@ def _walk(starts, ends, hero, y, r, t_end, t_start, qslot,
         last = np.full(NUM_HEROES, -1.0)
         head = np.zeros(NUM_HEROES, np.int64)  # ring entries beyond cnt are never read
         tlast = -1.0
+        ap = starts[p]
         for i in range(starts[p], ends[p]):
             now = t_start[i]
             # decay the calendar-decayed counts to now
@@ -86,7 +87,23 @@ def _walk(starts, ends, hero, y, r, t_end, t_start, qslot,
                 f = np.exp(-lam_d * max(now - tlast, 0.0) / 86400.0)
                 for h in range(NUM_HEROES):
                     dec[h] *= f
-            tlast = now
+            tlast = max(tlast, now)
+            # games enter the history only once they have ended before this
+            # game started (end-time order: the first unfinished one blocks)
+            while ap < i and t_end[ap] <= now:
+                h0 = hero[ap]
+                cnt[h0] += 1
+                dec[h0] += np.exp(-lam_d * max(now - t_end[ap], 0.0) / 86400.0)
+                ewr10[h0] = (1 - a10) * ewr10[h0] + a10 * r[ap]
+                w10[h0] = (1 - a10) * w10[h0] + a10
+                ewr30[h0] = (1 - a30) * ewr30[h0] + a30 * r[ap]
+                w30[h0] = (1 - a30) * w30[h0] + a30
+                eww10[h0] = (1 - a10) * eww10[h0] + a10 * (y[ap] - 0.5)
+                last[h0] = t_end[ap]
+                bt[h0, head[h0] % 400] = t_end[ap]
+                by[h0, head[h0] % 400] = y[ap]
+                head[h0] += 1
+                ap += 1
             tot = 0.0
             mx = -1.0
             mh = -1
@@ -116,18 +133,6 @@ def _walk(starts, ends, hero, y, r, t_end, t_start, qslot,
                     q_eww10[q, h] = eww10[h] / w10[h] if w10[h] > 0 else 0.0
                     q_cnt[q, h] = cnt[h]
                     q_days[q, h] = (now - last[h]) / 86400.0 if last[h] >= 0 else -1.0
-            # add this game
-            cnt[h0] += 1
-            dec[h0] += 1
-            ewr10[h0] = (1 - a10) * ewr10[h0] + a10 * r[i]
-            w10[h0] = (1 - a10) * w10[h0] + a10
-            ewr30[h0] = (1 - a30) * ewr30[h0] + a30 * r[i]
-            w30[h0] = (1 - a30) * w30[h0] + a30
-            eww10[h0] = (1 - a10) * eww10[h0] + a10 * (y[i] - 0.5)
-            last[h0] = t_end[i]
-            bt[h0, head[h0] % 400] = t_end[i]
-            by[h0, head[h0] % 400] = y[i]
-            head[h0] += 1
 
 
 def play_times(d):

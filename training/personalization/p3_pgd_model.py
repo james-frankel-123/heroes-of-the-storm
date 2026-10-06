@@ -194,8 +194,11 @@ def main():
     print(f"preference clusters from {n_fit:,} players: sizes {sizes.tolist()}", flush=True)
     w = g["window"]
     pre = np.flatnonzero((w == 0) & (g["day"] >= C.day_of("2025-04-01")))
-    sel = rng.choice(pre, 55000, replace=False)
-    sets = {"train": sel[:50000], "val": sel[50000:],
+    # Training games: N_TRAIN (default 200,000; the first version used 50,000,
+    # which left the personal GD 0.03 to 0.04 worse than the paper-1 GD on bans)
+    n_tr = int(os.environ.get("P3_PGD_NTRAIN", "200000"))
+    sel = rng.choice(pre, min(n_tr + 5000, len(pre)), replace=False)
+    sets = {"train": sel[:-5000], "val": sel[-5000:],
             "V2": rng.choice(np.flatnonzero(w == 2), 25000, replace=False),
             "post": rng.choice(np.flatnonzero(w == 3), 25000, replace=False)}
     allg = np.concatenate(list(sets.values()))
@@ -224,10 +227,12 @@ def main():
             print(f"{vname} {kind}: val log loss {bv:.4f}, alpha {float(heads[kind].alpha):.3f} "
                   f"({time.time() - t0:.0f}s)", flush=True)
         variants[vname] = (S, heads)
-        if use_cl:
+        if not use_cl:
+            # the deployed head: no preference clusters (slightly better overall, simpler;
+            # second review). The MCTS host reads use_cluster from this file.
             torch.save({"pick": heads["pick"].state_dict(), "ban": heads["ban"].state_dict(),
-                        "pick_feats": PF.FEATS, "ban_feats": BAN_FEATS}, OUT)
-            del Fall
+                        "pick_feats": PF.FEATS, "ban_feats": BAN_FEATS, "use_cluster": False}, OUT)
+        del Fall
     S, heads = variants["personal GD"]
     S0, heads0 = variants["personal GD without clusters"]
     hq_all = {k: v for k, v in hist.items()}

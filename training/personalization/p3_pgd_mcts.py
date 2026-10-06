@@ -91,6 +91,7 @@ class PGDSetup(Setup):
         self.mg = P.load_metagd()
         self.meta_flat, self.W1meta = metagd_kernel_weights(self.mg, self.to_sh)
         ck = torch.load(os.path.join(C.CACHE, "pgd_personal.pt"), weights_only=False)
+        self.use_cluster = bool(ck.get("use_cluster", True))
         self.hp, self.hb = Head(len(PF.FEATS)), Head(len(BAN_FEATS))
         self.hp.load_state_dict(ck["pick"])
         self.hb.load_state_dict(ck["ban"])
@@ -113,7 +114,7 @@ class PGDSetup(Setup):
         if len(rows) == 0:
             return
         hist = PF.walk(self.dx, self.hs2ext[rows])
-        F, aux = PF.context(hist, self.meta["fine"])
+        F, aux = PF.context(hist, self.meta["fine"], use_cluster=self.use_cluster)
         with torch.no_grad():
             pb = self.hp.bias(torch.tensor(F)).numpy()
         for i, r in enumerate(rows):

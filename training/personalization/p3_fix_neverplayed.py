@@ -67,9 +67,9 @@ def main():
     post = ~d["in_sample"]
     _, first_row = np.unique(d["g"][post], return_index=True)
     med = np.median(days[post][first_row])
-    # first row of each (player, hero) in play order (day, replay_id)
+    # first row of each (player, hero) in play order (game time, then replay_id)
     key = d["pid"] * HKEY + d["hero"]
-    o = np.lexsort((d["replay_id"], days, key))
+    o = np.lexsort((d["replay_id"], C.game_end_ts(d), key))
     ks = key[o]
     first = np.r_[True, ks[1:] != ks[:-1]]
     rank = np.arange(len(o)) - np.repeat(np.flatnonzero(first), np.diff(np.r_[np.flatnonzero(first), len(o)]))

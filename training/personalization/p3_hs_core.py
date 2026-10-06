@@ -146,6 +146,17 @@ def build_slots():
           f"(blizz_ids {len(np.unique(p['blizz_ids'])):,})")
 
 
+def game_end_ts(d):
+    """UTC game-end epoch per slot row from cache/gametime_2024q2.npz; rows
+    without one get noon of their day (a same-day tie-break only)."""
+    z = np.load(os.path.join(CACHE, "gametime_2024q2.npz"))
+    o = np.argsort(z["replay_ids"])
+    zs = z["replay_ids"][o]
+    j = np.minimum(np.searchsorted(zs, d["replay_id"]), len(zs) - 1)
+    ok = zs[j] == d["replay_id"]
+    return np.where(ok, z["ts"][o][j].astype(np.float64), d["day"] * 86400.0 + 43200.0)
+
+
 def load_slots():
     z = np.load(SLOTS, allow_pickle=False)
     d = {k: z[k] for k in z.files}

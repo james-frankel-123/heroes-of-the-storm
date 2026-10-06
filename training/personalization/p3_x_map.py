@@ -159,8 +159,12 @@ def main():
     dh = {k: (v[hk] if np.ndim(v) > 0 and len(v) == len(ok) else v) for k, v in d.items()}
     out["r_adj, players with 300+ games"] = decompose(dh, r_adj[hk], mapi[hk], rng, "heavy r_adj")
 
-    # predictive check
-    comp = out["e (after skill model)"]
+    # predictive check: shrinkage from variance components estimated on the E
+    # window only (the full-sample decomposition above includes V games)
+    ke = keep & d["in_sample"] & (d["day"] >= C.day_of(C.E_START))
+    de_ = {k: (v[ke] if np.ndim(v) > 0 and len(v) == len(ok) else v) for k, v in d.items()}
+    out["e (after skill model), E window only"] = decompose(de_, e[ke], mapi[ke], rng, "e E-only")
+    comp = out["e (after skill model), E window only"]
     noise = float(np.mean(d["v"]))
     post = ~d["in_sample"]
     _, fr = np.unique(d["g"][post], return_index=True)
