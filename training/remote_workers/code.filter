@@ -30,6 +30,7 @@
 + *.py
 + *.cu
 + *.cuh
++ *.inc
 + *.cpp
 + *.h
 + *.hpp
