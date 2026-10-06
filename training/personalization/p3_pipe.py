@@ -110,6 +110,7 @@ CHAINS = {
         s("b_joint", "p3_b_joint.py", "--skill", "phase1"),
         s("b_joint_C", "p3_b_joint.py", "--skill", "C"),
         s("b_form", "p3_b_form.py"),
+        s("b_leak", "p3_b_leak.py"),
         s("b_bans", "p3_b_bans.py"),
     ],
     "bfinal": [
