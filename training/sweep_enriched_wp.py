@@ -86,6 +86,21 @@ FROZEN_STATS_PATH = os.environ.get(
     os.path.join(os.path.dirname(__file__), "frozen_stats_2026-05-19.json"))
 
 
+# Fine role -> the Heroes Profile role names composition tables are keyed by
+COMP_ROLE_MAP = {
+    "tank": "Tank", "bruiser": "Bruiser", "healer": "Healer",
+    "ranged_aa": "Ranged Assassin", "ranged_mage": "Ranged Assassin",
+    "melee_assassin": "Melee Assassin", "support_utility": "Support",
+    "varian": "Bruiser", "pusher": "Ranged Assassin", "unknown": "Ranged Assassin",
+}
+
+
+def comp_key(heroes):
+    """Composition-table key of a team: its sorted HP roles, comma-joined."""
+    return ",".join(sorted(COMP_ROLE_MAP.get(HERO_ROLE_FINE.get(h, "unknown"), "Ranged Assassin")
+                           for h in heroes))
+
+
 class StatsCache:
     """Preloaded stats. Uses frozen snapshot if available, else database."""
     def __init__(self):
@@ -140,11 +155,11 @@ class StatsCache:
         cur.close()
         conn.close()
 
-    def _load_compositions(self):
+    def _load_compositions(self, path=None):
         self.comp_data = {}
-        # WP_COMPOSITIONS_PATH pins a snapshot (production_refresh copies the
-        # file into its run dir: sync rewrites src/lib/data/compositions.json daily)
-        comp_path = os.environ.get("WP_COMPOSITIONS_PATH") or os.path.join(
+        # path (e.g. production_refresh's per-fold tables), else
+        # WP_COMPOSITIONS_PATH (a pinned snapshot), else the site's file
+        comp_path = path or os.environ.get("WP_COMPOSITIONS_PATH") or os.path.join(
             os.path.dirname(__file__), "..", "src", "lib", "data", "compositions.json")
         if os.path.exists(comp_path):
             import json as _json
@@ -159,16 +174,7 @@ class StatsCache:
     def get_comp_wr(self, heroes, tier):
         """Look up composition WR from HP data given a list of hero names.
         Returns (winRate, games) or (33.0, 0) if not found (unknown comp = bad)."""
-        roles = sorted([HERO_ROLE_FINE.get(h, "unknown") for h in heroes])
-        # Map fine roles to official HP roles
-        hp_role_map = {
-            "tank": "Tank", "bruiser": "Bruiser", "healer": "Healer",
-            "ranged_aa": "Ranged Assassin", "ranged_mage": "Ranged Assassin",
-            "melee_assassin": "Melee Assassin", "support_utility": "Support",
-            "varian": "Bruiser", "pusher": "Ranged Assassin", "unknown": "Ranged Assassin",
-        }
-        hp_roles = sorted([hp_role_map.get(r, "Ranged Assassin") for r in roles])
-        key = ",".join(hp_roles)
+        key = comp_key(heroes)
         tier_data = self.comp_data.get(tier, {})
         if key in tier_data:
             return tier_data[key]

@@ -193,17 +193,43 @@ def train():
     # features contain its own outcome. Unset: one StatsCache for all rows.
     oof_pattern = os.environ.get("PARTIAL_WP_OOF_STATS")
     oof_folds = int(os.environ.get("PARTIAL_WP_OOF_FOLDS", "0"))
+    # Production (refresh.py) options, all unset for research runs:
+    #   PARTIAL_WP_OOF_COMPS   per-fold composition tables ({k} pattern)
+    #   PARTIAL_WP_SPLIT_JSON  split.json of the stats phase: its post_cut_ids
+    #                          are the chronological test window, featurized
+    #                          with PARTIAL_WP_TEST_STATS / _TEST_COMPS (train
+    #                          era only) and only scored; the epoch is chosen
+    #                          on a 15% replay split of the train era
+    comp_pattern = os.environ.get("PARTIAL_WP_OOF_COMPS")
+    split_json = os.environ.get("PARTIAL_WP_SPLIT_JSON")
+    post = set(json.load(open(split_json))["post_cut_ids"]) if split_json else set()
+
+    def extract(rows, stats):
+        # extract_partial_states numbers replays by position in `rows`; the split
+        # mode needs real replay ids (positions repeat across fold parts)
+        f, s, lab, idx = extract_partial_states(rows, stats)
+        if split_json:
+            idx = np.array([rows[i]["replay_id"] for i in idx], dtype=np.int64)
+        return f, s, lab, idx
     print(f"\n[3/4] Extracting partial draft states (feature dim = {TOTAL_FEATURE_DIM})...")
     t0 = time.time()
     if oof_pattern and oof_folds:
         print(f"  out-of-fold stats: {oof_folds} folds ({oof_pattern})")
         parts = []
         for k in range(oof_folds):
-            fold = [r for r in replays if r["replay_id"] % oof_folds == k]
+            fold = [r for r in replays if r["replay_id"] % oof_folds == k
+                    and r["replay_id"] not in post]
             stats = StatsCache.__new__(StatsCache)
             stats._load_frozen(oof_pattern.format(k=k))
-            stats._load_compositions()
-            parts.append(extract_partial_states(fold, stats))
+            stats._load_compositions(comp_pattern.format(k=k) if comp_pattern else None)
+            parts.append(extract(fold, stats))
+        if split_json:
+            test_reps = [r for r in replays if r["replay_id"] in post]
+            stats = StatsCache.__new__(StatsCache)
+            stats._load_frozen(os.environ["PARTIAL_WP_TEST_STATS"])
+            stats._load_compositions(os.environ["PARTIAL_WP_TEST_COMPS"])
+            parts.append(extract(test_reps, stats))
+            print(f"  test window: {len(test_reps):,} replays (train-era stats)")
         features, steps, labels, replay_ids = (
             np.concatenate([p[i] for p in parts]) for i in range(4))
     else:
@@ -226,14 +252,23 @@ def train():
     print("\n[4/4] Training...")
     rng = np.random.RandomState(42)
     unique_replays = np.unique(replay_ids)
+    if split_json:
+        is_post = np.array([int(r) in post for r in unique_replays])
+        test_replays = set(unique_replays[is_post].tolist())
+        era = rng.permutation(unique_replays[~is_post])
+        val_replays = set(era[:int(len(era) * 0.15)].tolist())
+    else:
+        replay_perm = rng.permutation(unique_replays)
+        test_replays = set(replay_perm[:int(len(unique_replays) * 0.15)].tolist())
+        val_replays = set()
     n_replays = len(unique_replays)
-    replay_perm = rng.permutation(unique_replays)
-    test_replay_count = int(n_replays * 0.15)
-    test_replays = set(replay_perm[:test_replay_count].tolist())
+    test_replay_count = len(test_replays)
 
-    train_mask = np.array([rid not in test_replays for rid in replay_ids])
-    train_idx = np.where(train_mask)[0]
-    test_idx = np.where(~train_mask)[0]
+    in_test = np.array([rid in test_replays for rid in replay_ids])
+    in_val = np.array([rid in val_replays for rid in replay_ids])
+    train_idx = np.where(~in_test & ~in_val)[0]
+    test_idx = np.where(in_test)[0]
+    val_idx = np.where(in_val)[0]
 
     X_train = torch.tensor(features[train_idx])
     S_train = torch.tensor(steps[train_idx])
@@ -249,6 +284,17 @@ def train():
     test_ds = TensorDataset(X_test, S_test, Y_test)
     train_loader = DataLoader(train_ds, batch_size=4096, shuffle=True, num_workers=4, pin_memory=True)
     test_loader = DataLoader(test_ds, batch_size=4096, shuffle=False, num_workers=4, pin_memory=True)
+    # epoch selection: the train-era validation replays when split, else (research
+    # default, unchanged) the test replays
+    if split_json:
+        sel_loader = DataLoader(TensorDataset(torch.tensor(features[val_idx]),
+                                              torch.tensor(steps[val_idx]),
+                                              torch.tensor(labels[val_idx])),
+                                batch_size=4096, shuffle=False, num_workers=4, pin_memory=True)
+        print(f"  Val:   {len(val_idx):,} samples ({len(val_replays)} train-era replays, "
+              "epoch selection)")
+    else:
+        sel_loader = test_loader
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"  Device: {device}")
@@ -306,7 +352,7 @@ def train():
             test_total = 0
 
             with torch.no_grad():
-                for X_batch, S_batch, Y_batch in test_loader:
+                for X_batch, S_batch, Y_batch in sel_loader:
                     X_batch = X_batch.to(device)
                     S_batch = S_batch.to(device)
                     Y_batch = Y_batch.to(device)
@@ -323,7 +369,8 @@ def train():
             lr = optimizer.param_groups[0]["lr"]
             print(f"  Epoch {epoch:3d} | "
                   f"Train loss={train_loss/train_total:.4f} acc={train_acc:.4f} | "
-                  f"Test loss={test_loss/test_total:.4f} acc={test_acc:.4f} | "
+                  f"{'Val' if split_json else 'Test'} loss={test_loss/test_total:.4f} "
+                  f"acc={test_acc:.4f} | "
                   f"lr={lr:.6f}")
 
             if test_acc > best_test_acc:
@@ -383,6 +430,10 @@ def train():
         "hidden": [256, 128],
         "best_test_acc": best_test_acc,
         "wp_groups": WP_GROUPS,
+        # split mode: the epoch was chosen on validation (best_val_acc); test_acc
+        # is the chosen model on the chronological test window
+        **({"best_val_acc": best_test_acc, "test_acc": float(overall_acc)}
+           if split_json else {}),
     }, save_path)
     print(f"\n  Model saved to {save_path}")
     print(f"  File size: {os.path.getsize(save_path) / 1024:.1f} KB")

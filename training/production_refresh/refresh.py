@@ -16,11 +16,12 @@ so a new hero with few games gets sane statistics.
 Phases (subcommands; several may be given; `all` chains stats..export):
   dump    read-only DB dump of the corpus to corpus.pkl.gz, for runs on
           machines without DB access (set HOTS_CORPUS_PATH to it there)
-  stats   decayed90 stats from live replay_draft_data -> training stats JSON
-          (frozen_stats schema for StatsCache) + site artifact
-          (src/lib/data/draft-stats-decayed.json shape) + keep/exclude id sets
-  data    fresh corpus load (REPLAY_SNAPSHOT=0, 2.55 only), 98/2 split,
-          WP feature cache (decayed-stats features)
+  stats   outer split first: games of the last TEST_DAYS are the test window
+          (split.json). decayed90 stats and composition tables from
+          replay_draft_data: serving (all games) + site artifact, train-era
+          out-of-fold (training rows), train-era (test rows)
+  data    fresh corpus load (REPLAY_SNAPSHOT=0, 2.55 only), chronological
+          train / test, train-era hash validation; WP feature caches
   wp      WinProbEnrichedModel 283-d [256,128], seeds {42,123,777}, keep best
   partial partial-draft WP (drafter projections; recent-500K cap, step embed)
   gd      generic_draft_0 (behavior cloning; benefits from fresh meta data)
@@ -56,8 +57,11 @@ Deploy gates (checked before export):
   - WP best test acc >= GATE_WP_MIN (drift-era models land ~57-58%)
   - WP calibration slope within GATE_CAL_SLOPE
   - partial-WP overall test acc >= GATE_PARTIAL_MIN
-  - selected MCTS seed: judge score > population-greedy baseline (GD argmax
-    vs the same GD opponent) under the same judge on the same benchmark
+  - selected MCTS seed beats population-greedy (GD argmax vs the same GD
+    opponent) by > 2 paired SE under the GATE judge (fit on the test window;
+    the seed was chosen with a judge fit on earlier, disjoint games)
+  WP / partial accuracy and calibration are measured on the chronological
+  test window; early stopping, epoch and seed choice use train-era data.
   - selected MCTS seed: proxy eval WP >= GATE_MCTS_PROXY_FLOOR (sanity only)
   - export parity asserts (in export_site_models.py) must pass
 
@@ -88,12 +92,17 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 RUN_DATE = os.environ.get("REFRESH_DATE") or datetime.date.today().isoformat()
 RUN_DIR = os.path.join(BASE, RUN_DATE)
 STATS_JSON = os.path.join(RUN_DIR, "stats_decayed90.json")
-# Out-of-fold training stats: fold k = replay_id % OOF_FOLDS. Rows in fold k
-# get features from every OTHER fold's games, so no training (or test) row's
-# features contain its own outcome. STATS_JSON (all games) is only for
-# serving, search and the site artifact. Leaky training stats made the WP
-# overconfident on unseen games (calibration slope 0.61 vs 1.0-1.1 out of
-# fold; training/overfit2026/REPORT.md).
+# Outer split first (2026-10-05 reviews): games dated in the last TEST_DAYS
+# before the stats reference date are the test window. Every training
+# aggregate (stats and composition tables) is counted from train-era games
+# only, decayed as of the cut, so no test label reaches a training feature.
+# Test rows get features from all train-era games (STATS_TEST_JSON).
+# Within the train era, out-of-fold stats: fold k = replay_id % OOF_FOLDS;
+# rows in fold k get features from the other folds' games, so no training
+# row's features contain its own outcome (leaky stats made the WP
+# overconfident: calibration slope 0.61 vs 1.0-1.1 out of fold;
+# training/overfit2026/REPORT.md). STATS_JSON (all games, as of the reference
+# date) is only for serving, search and the site artifact.
 # skill_tier uses the site's scheme (low = Bronze+Silver, mid = Gold+Platinum,
 # high = Diamond+Master; relabelled 2026-09-30). Rows with no tier or MMR are
 # 'unknown' and carry no tier information, so they are left out of training.
@@ -101,18 +110,33 @@ TRAIN_TIERS = ("low", "mid", "high")
 OOF_FOLDS = 5
 REFRESH_WORKERS = 16  # CPU pool size (cadence.sh also pins to 16 cores)
 OOF_STATS_JSON = os.path.join(RUN_DIR, "stats_decayed90_oof{k}.json")
+STATS_TEST_JSON = os.path.join(RUN_DIR, "stats_decayed90_test.json")
+TEST_DAYS = float(os.environ.get("REFRESH_TEST_DAYS", "14"))
+# train-era hash share held out of gradient steps: early stopping and seed /
+# epoch choice happen here, never on the test window the gates score
+VAL_SHARE = 0.02
+SPLIT_JSON = os.path.join(RUN_DIR, "split.json")
 SITE_STATS_JSON = os.path.join(RUN_DIR, "draft-stats-decayed.json")
 EXCLUDE_IDS_JSON = os.path.join(RUN_DIR, "pre255_exclude_ids.json")
 FEATURE_CACHE_TRAIN = os.path.join(RUN_DIR, "wp_features_train.npz")
+FEATURE_CACHE_VAL = os.path.join(RUN_DIR, "wp_features_val.npz")
 FEATURE_CACHE_TEST = os.path.join(RUN_DIR, "wp_features_test.npz")
 WP_PT = os.path.join(RUN_DIR, "wp_enriched_256.pt")
 PARTIAL_PT = os.path.join(RUN_DIR, "partial_wp_prod.pt")
 GD_PT = os.path.join(RUN_DIR, "generic_draft_0.pt")
 META_JSON = os.path.join(RUN_DIR, "refresh_meta.json")
-# compositions.json snapshot: sync rewrites src/lib/data/compositions.json
-# daily, so every phase (and the export) reads this copy instead.
+# Composition win-rate tables (the comp_wr features), built by the stats phase
+# from our own corpus with the same cells as the other stats: all games for
+# serving / search / the site (COMPOSITIONS_JSON, deployed as
+# src/lib/data/compositions.json), out of fold for training rows, train era
+# only for test rows. Until 2026-10-05 one Heroes Profile table built from
+# all games (the live site file, rewritten by the nightly sync) fed every row.
+# Provenance: COMPOSITIONS_META_JSON and refresh_meta.json "compositions".
 COMPOSITIONS_JSON = os.path.join(RUN_DIR, "compositions.json")
-SRC_COMPOSITIONS = os.path.join(REPO_DIR, "src", "lib", "data", "compositions.json")
+COMPS_OOF_JSON = os.path.join(RUN_DIR, "compositions_oof{k}.json")
+COMPS_TEST_JSON = os.path.join(RUN_DIR, "compositions_test.json")
+COMPOSITIONS_META_JSON = os.path.join(RUN_DIR, "compositions.meta.json")
+COMP_MIN_GAMES = 100.0   # decayed team-games; HP listed comps with >= ~100 games
 # Corpus dump for machines without DB access (phase dump; HOTS_CORPUS_PATH).
 CORPUS_DUMP = os.path.join(RUN_DIR, "corpus.pkl.gz")
 LOW_DATA_JSON = os.path.join(RUN_DIR, "low_data_test_drafts.json")
@@ -129,11 +153,11 @@ MIN_VERSION = (2, 55)
 HERO_PRIOR_GAMES = 200.0
 MAP_PRIOR_GAMES = 50.0
 PAIR_PRIOR_GAMES = 30.0
-# Low-data heroes (fewer than this many picks in the corpus) get a fixed hash
-# share of their games in the WP test split, so their calibration can be
-# measured, and a swap check against same-role heroes.
+# Low-data heroes (fewer than this many picks in the corpus) get identity
+# tying, calibration on their test-window games and a swap check against
+# same-role heroes. (Their games used to go to test by hash share; the split
+# is now chronological, so a new hero's latest games are its test games.)
 LOW_DATA_PICKS = 5000
-LOW_DATA_TEST_SHARE = 0.2
 # Gates for low-data heroes. Level: on held-out games containing the hero,
 # the WP's mean P(hero's team wins) must match the realized rate within
 # max(LEVEL_TOL, 2 SE); a genuinely strong new hero is then allowed a large
@@ -195,7 +219,7 @@ def version_ok(gver):
 def require_compositions():
     if not os.path.exists(COMPOSITIONS_JSON):
         sys.exit(f"{COMPOSITIONS_JSON} missing: run the stats phase first "
-                 "(it snapshots src/lib/data/compositions.json)")
+                 "(it builds the composition tables from the corpus)")
 
 
 def wp_dim():
@@ -226,28 +250,56 @@ def _db_conn():
     return psycopg2.connect(url)
 
 
-def _merge_cells(folds, skip=None):
-    """Sum per-fold decayed count cells (optionally leaving one fold out)."""
+CELL_KEYS = ("hero", "hmap", "with", "against", "comp")
+
+
+def _new_cell():
+    return {"games": 0.0, "bans": {}, **{k: {} for k in CELL_KEYS}}
+
+
+def _merge_cells(folds, skip=None, scales=None):
+    """Sum per-fold decayed count cells (optionally leaving one fold out;
+    scales[k] multiplies fold k, e.g. to move its decay reference date)."""
     out = {}
     for k, cells in enumerate(folds):
         if k == skip:
             continue
+        sc = 1.0 if scales is None else scales[k]
         for tier, c in cells.items():
-            d = out.setdefault(tier, {"games": 0.0, "bans": {}, "hero": {},
-                                      "hmap": {}, "with": {}, "against": {}})
-            d["games"] += c["games"]
+            d = out.setdefault(tier, _new_cell())
+            d["games"] += sc * c["games"]
             for h, v in c["bans"].items():
-                d["bans"][h] = d["bans"].get(h, 0.0) + v
-            for key in ("hero", "hmap", "with", "against"):
+                d["bans"][h] = d["bans"].get(h, 0.0) + sc * v
+            for key in CELL_KEYS:
                 dd = d[key]
-                for kk, (g, wn) in c[key].items():
+                for kk, (g, wn) in c.get(key, {}).items():
                     e = dd.get(kk)
                     if e is None:
-                        dd[kk] = [g, wn]
+                        dd[kk] = [sc * g, sc * wn]
                     else:
-                        e[0] += g
-                        e[1] += wn
+                        e[0] += sc * g
+                        e[1] += sc * wn
     return out
+
+
+def _write_compositions(cells, path):
+    """Composition table in the site's compositions.json shape ({tier: [{roles,
+    winRate, games, popularity}]}) from the cells' decayed team-composition
+    counts. Raw win rates (no shrinkage, like the Heroes Profile table it
+    replaces); comps under COMP_MIN_GAMES decayed team-games are left out, so
+    lookups fall back across tiers and then to the 33% unknown-comp default."""
+    out = {}
+    for tier in TRAIN_TIERS:
+        cell = cells.get(tier)
+        if not cell:
+            continue
+        total = sum(g for g, _ in cell["comp"].values())
+        rows = [{"roles": key.split(","), "winRate": round(100.0 * wn / g, 2),
+                 "games": int(round(g)), "popularity": round(100.0 * g / total, 2)}
+                for key, (g, wn) in cell["comp"].items() if g >= COMP_MIN_GAMES]
+        out[tier] = sorted(rows, key=lambda r: -r["games"])
+    json.dump(out, open(path, "w"))
+    return {t: len(v) for t, v in out.items()}
 
 
 def shrink(wins, games, prior, k):
@@ -374,6 +426,15 @@ def phase_dump():
                       "dumped_at": datetime.datetime.now().isoformat(timespec="seconds")})
 
 
+def _naive(d):
+    """UTC-naive datetime, so DB (aware) and dump dates compare."""
+    if isinstance(d, str):
+        d = datetime.datetime.fromisoformat(d)
+    if d.tzinfo is not None:
+        d = d.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+    return d
+
+
 def _corpus_rows():
     """The dump's rows when HOTS_CORPUS_PATH is set, else None (read the DB)."""
     if not os.environ.get("HOTS_CORPUS_PATH"):
@@ -416,15 +477,14 @@ def phase_stats():
     within-build granularity (weights compose multiplicatively either way)."""
     import shutil
 
+    from sweep_enriched_wp import comp_key
+
     os.makedirs(RUN_DIR, exist_ok=True)
-    shutil.copy(SRC_COMPOSITIONS, COMPOSITIONS_JSON)
     ref_date, records = _stats_records()
     ref_ord = ref_date.toordinal() + (ref_date.hour / 24.0)
-    log(f"decay reference date: {ref_date}")
-
-    def new_cell():
-        return {"games": 0.0, "bans": {}, "hero": {}, "hmap": {},
-                "with": {}, "against": {}}
+    cut_date = ref_date - datetime.timedelta(days=TEST_DAYS)
+    cut_ord = ref_ord - TEST_DAYS
+    log(f"decay reference date: {ref_date}; test window: games from {cut_date}")
 
     def bump(d, key, w, win_w):
         e = d.get(key)
@@ -434,14 +494,21 @@ def phase_stats():
             e[0] += w
             e[1] += win_w
 
-    folds = [{} for _ in range(OOF_FOLDS)]   # fold -> tier -> cell
+    folds = [{} for _ in range(OOF_FOLDS)]   # train era: fold -> tier -> cell, as of cut
+    test_cells = {}                          # test window: tier -> cell, as of ref
+    post_cut_ids = []
     exclude_ids = []
-    n_used = 0
+    n_used = n_test = 0
     t0 = time.time()
     for (rid, gmap, tier, t0h, t1h, t0b, t1b, winner, gdate, gver) in records:
         if not version_ok(gver):
             exclude_ids.append(rid)
             continue
+        # era by date alone, before the other filters: every later phase
+        # treats these ids as test-window games
+        post = gdate is not None and _naive(gdate) >= _naive(cut_date)
+        if post:
+            post_cut_ids.append(int(rid))
         teams = []
         for raw in (t0h, t1h):
             teams.append(json.loads(raw) if isinstance(raw, str) else (raw or []))
@@ -453,12 +520,16 @@ def phase_stats():
             continue
         if tier not in TRAIN_TIERS:   # 'unknown': no league tier or MMR
             continue
-        age = max(0.0, ref_ord - (gdate.toordinal() + gdate.hour / 24.0))
+        g_ord = gdate.toordinal() + gdate.hour / 24.0
+        if post:
+            cells, age = test_cells, max(0.0, ref_ord - g_ord)
+            n_test += 1
+        else:
+            cells, age = folds[rid % OOF_FOLDS], max(0.0, cut_ord - g_ord)
         w = 0.5 ** (age / HALF_LIFE_DAYS)
-        cells = folds[rid % OOF_FOLDS]
         cell = cells.get(tier)
         if cell is None:
-            cell = cells[tier] = new_cell()
+            cell = cells[tier] = _new_cell()
         cell["games"] += w
         for h in set(bans):
             cell["bans"][h] = cell["bans"].get(h, 0.0) + w
@@ -468,6 +539,7 @@ def phase_stats():
             for h in heroes:
                 bump(cell["hero"], h, w, win_w)
                 bump(cell["hmap"], (gmap, h), w, win_w)
+            bump(cell["comp"], comp_key(heroes), w, win_w)
             hs = sorted(heroes)
             for i in range(5):
                 for j in range(i + 1, 5):
@@ -481,18 +553,43 @@ def phase_stats():
                 else:
                     bump(cell["against"], key, w, w - wins_of_a)
         n_used += 1
-    cells = _merge_cells(folds)
-    log(f"counted {n_used:,} games ({len(exclude_ids):,} pre-2.55 excluded) "
-        f"in {time.time() - t0:.0f}s; effective decayed games/tier: "
+    # serving: every game as of the reference date (train-era cells were
+    # decayed as of the cut; one factor moves them to the reference date)
+    to_ref = 0.5 ** (TEST_DAYS / HALF_LIFE_DAYS)
+    cells = _merge_cells(folds + [test_cells], scales=[to_ref] * OOF_FOLDS + [1.0])
+    train_cells = _merge_cells(folds)
+    log(f"counted {n_used:,} games ({n_test:,} in the test window, "
+        f"{len(exclude_ids):,} pre-2.55 excluded) in {time.time() - t0:.0f}s; "
+        "effective decayed games/tier: "
         + ", ".join(f"{t}={c['games']:.0f}" for t, c in sorted(cells.items())))
 
     hero_stats, hero_map_stats, pairwise_stats = _write_training_stats(
         cells, STATS_JSON, n_used, "all games (serving / search / site)")
+    _write_training_stats(train_cells, STATS_TEST_JSON, n_used - n_test,
+                          f"train era only (games before {cut_date}), as of the "
+                          "cut: features for test-window rows")
     for k in range(OOF_FOLDS):
         _write_training_stats(_merge_cells(folds, skip=k),
-                              OOF_STATS_JSON.format(k=k), n_used,
-                              f"out-of-fold: excludes fold {k} (replay_id % "
-                              f"{OOF_FOLDS} == {k})")
+                              OOF_STATS_JSON.format(k=k), n_used - n_test,
+                              f"train era, out-of-fold: excludes fold {k} (replay_id % "
+                              f"{OOF_FOLDS} == {k}) and the test window")
+
+    comps = {"serving": _write_compositions(cells, COMPOSITIONS_JSON),
+             "test": _write_compositions(train_cells, COMPS_TEST_JSON)}
+    for k in range(OOF_FOLDS):
+        comps[f"oof{k}"] = _write_compositions(_merge_cells(folds, skip=k),
+                                               COMPS_OOF_JSON.format(k=k))
+    comp_meta = {
+        "source": "own corpus (replay_draft_data), decayed team-composition counts",
+        "built_by": "refresh.py phase stats", "half_life_days": HALF_LIFE_DAYS,
+        "min_games": COMP_MIN_GAMES, "role_map": "sweep_enriched_wp.COMP_ROLE_MAP",
+        "tables": {
+            "compositions.json": f"all games through {ref_date} (serving, search, site)",
+            "compositions_test.json": f"train era (games before {cut_date}): test-window rows",
+            "compositions_oof{k}.json": "train era minus fold k: training rows of fold k"},
+        "entries_per_tier": comps}
+    json.dump(comp_meta, open(COMPOSITIONS_META_JSON, "w"), indent=1)
+    log(f"composition tables (entries per tier): {comps}")
 
     # Site artifact: same numbers reshaped for getDraftData. Sub-threshold
     # rows are dropped at generation (browser thresholds: pairwise>=30 games,
@@ -526,8 +623,13 @@ def phase_stats():
     log(f"wrote {SITE_STATS_JSON} ({os.path.getsize(SITE_STATS_JSON) // 1024} KB)")
 
     json.dump(exclude_ids, open(EXCLUDE_IDS_JSON, "w"))
+    json.dump({"ref_date": str(ref_date), "cut_date": str(cut_date), "test_days": TEST_DAYS,
+               "post_cut_ids": sorted(post_cut_ids)}, open(SPLIT_JSON, "w"))
     meta_update(stats={"games_used": n_used, "ref_date": str(ref_date),
-                       "excluded_pre255": len(exclude_ids)})
+                       "excluded_pre255": len(exclude_ids)},
+                split={"cut_date": str(cut_date), "test_days": TEST_DAYS,
+                       "test_window_games": n_test},
+                compositions=comp_meta)
 
 
 # ── Phase: data ──────────────────────────────────────────────────────
@@ -545,19 +647,27 @@ def _load_fresh_corpus():
     return rows
 
 
-def oof_stats_cache(k):
-    """StatsCache over fold k's out-of-fold stats (compositions unchanged)."""
+def _stats_cache(stats_path, comps_path):
     from sweep_enriched_wp import StatsCache
     st = StatsCache.__new__(StatsCache)
-    st._load_frozen(OOF_STATS_JSON.format(k=k))
-    st._load_compositions()
+    st._load_frozen(stats_path)
+    st._load_compositions(comps_path)
     return st
 
 
+def oof_stats_cache(k):
+    """StatsCache over fold k's train-era out-of-fold stats and compositions."""
+    return _stats_cache(OOF_STATS_JSON.format(k=k), COMPS_OOF_JSON.format(k=k))
+
+
+def test_stats_cache():
+    """StatsCache over all train-era games (features for test-window rows)."""
+    return _stats_cache(STATS_TEST_JSON, COMPS_TEST_JSON)
+
+
 def oof_features(rows, cache_path):
-    """Feature cache where every row's aggregate features come from the
-    stats that exclude its own fold (replay_id % OOF_FOLDS)."""
-    import numpy as np
+    """Feature cache for train-era rows: every row's aggregate features come
+    from the train-era stats that exclude its own fold (replay_id % OOF_FOLDS)."""
     from sweep_enriched_wp import precompute_all_features
     parts = []
     for k in range(OOF_FOLDS):
@@ -566,6 +676,19 @@ def oof_features(rows, cache_path):
             b, e, y = precompute_all_features(fold_rows, oof_stats_cache(k),
                                               num_workers=REFRESH_WORKERS)
             parts.append((b.numpy(), e.numpy(), y.numpy()))
+    _save_features(parts, cache_path)
+
+
+def test_features(rows, cache_path):
+    """Feature cache for test-window rows (train-era stats, no fold exclusion:
+    no test game is in them)."""
+    from sweep_enriched_wp import precompute_all_features
+    b, e, y = precompute_all_features(rows, test_stats_cache(), num_workers=REFRESH_WORKERS)
+    _save_features([(b.numpy(), e.numpy(), y.numpy())], cache_path)
+
+
+def _save_features(parts, cache_path):
+    import numpy as np
     np.savez(cache_path,
              bases=np.concatenate([p[0] for p in parts]),
              enricheds=np.concatenate([p[1] for p in parts]),
@@ -581,22 +704,23 @@ def low_data_heroes(rows):
 
 
 def wp_split(rows):
-    """98/2 random split (seed 42, as before), except that games with a
-    low-data hero go to test by a fixed replay-id hash share
-    (LOW_DATA_TEST_SHARE), so the hero's calibration is measurable."""
-    from shared import split_data
+    """Chronological outer split (stats phase): test = games dated in the last
+    TEST_DAYS before the reference date. The train era is split by a fixed
+    replay-id hash into train and a VAL_SHARE validation set (early stopping,
+    epoch and seed choice); the test window is only scored."""
     from overfit2026.data import splitmix64
-    low = low_data_heroes(rows)
-    has_low = [any(h in low for h in (r["team0_heroes"] or []) + (r["team1_heroes"] or []))
-               for r in rows]
-    rest = [r for r, f in zip(rows, has_low) if not f]
-    train_rows, test_rows = split_data(rest, test_frac=0.02, seed=42)
-    cut = int(LOW_DATA_TEST_SHARE * 1000)
-    for r, f in zip(rows, has_low):
-        if f:
-            (test_rows if splitmix64(int(r["replay_id"]) * 7907 + 11) % 1000 < cut
-             else train_rows).append(r)
-    return train_rows, test_rows, low
+    post = set(json.load(open(SPLIT_JSON))["post_cut_ids"])
+    cut = int(VAL_SHARE * 1000)
+    train_rows, val_rows, test_rows = [], [], []
+    for r in rows:
+        rid = int(r["replay_id"])
+        if rid in post:
+            test_rows.append(r)
+        elif splitmix64(rid * 7907 + 11) % 1000 < cut:
+            val_rows.append(r)
+        else:
+            train_rows.append(r)
+    return train_rows, val_rows, test_rows, low_data_heroes(rows)
 
 
 def peer_test_drafts(rows, test_rows, low):
@@ -624,8 +748,15 @@ def peer_test_drafts(rows, test_rows, low):
 
 def phase_data():
     rows = _load_fresh_corpus()
-    train_rows, test_rows, low = wp_split(rows)
+    train_rows, val_rows, test_rows, low = wp_split(rows)
     log(f"low-data heroes (< {LOW_DATA_PICKS} picks): {low or 'none'}")
+
+    def n_with(h, rs):
+        return sum(h in (r["team0_heroes"] or []) + (r["team1_heroes"] or []) for r in rs)
+    low_split = {h: {"train": n_with(h, train_rows) + n_with(h, val_rows),
+                     "test": n_with(h, test_rows)} for h in low}
+    for h, v in low_split.items():
+        log(f"low-data {h}: {v['train']} train-era games, {v['test']} test-window games")
     # raw drafts of the low-data test games, for the WP swap check
     json.dump([{k: r[k] for k in ("replay_id", "game_map", "skill_tier", "team0_heroes",
                                   "team1_heroes", "winner")}
@@ -633,12 +764,16 @@ def phase_data():
                if any(h in low for h in (r["team0_heroes"] or []) + (r["team1_heroes"] or []))],
               open(LOW_DATA_JSON, "w"))
     json.dump(peer_test_drafts(rows, test_rows, low), open(PEER_DRAFTS_JSON, "w"))
-    log(f"building out-of-fold WP feature caches ({len(train_rows):,} train / "
-        f"{len(test_rows):,} test, {OOF_FOLDS} folds)")
+    log(f"building WP feature caches ({len(train_rows):,} train / {len(val_rows):,} val "
+        f"out of fold, {len(test_rows):,} test from train-era stats)")
     oof_features(train_rows, FEATURE_CACHE_TRAIN)
-    oof_features(test_rows, FEATURE_CACHE_TEST)
-    meta_update(data={"train": len(train_rows), "test": len(test_rows),
-                      "oof_folds": OOF_FOLDS, "low_data_heroes": low})
+    oof_features(val_rows, FEATURE_CACHE_VAL)
+    test_features(test_rows, FEATURE_CACHE_TEST)
+    split = json.load(open(SPLIT_JSON))
+    meta_update(data={"train": len(train_rows), "val": len(val_rows), "test": len(test_rows),
+                      "split": "chronological test window; train-era hash validation",
+                      "cut_date": split["cut_date"], "oof_folds": OOF_FOLDS,
+                      "low_data_heroes": low, "low_data_split": low_split})
 
 
 # ── Phase: wp ────────────────────────────────────────────────────────
@@ -668,6 +803,7 @@ def phase_wp():
                 torch.tensor(z["labels"], dtype=torch.float32).to(device))
 
     train_X, train_y = tensors(FEATURE_CACHE_TRAIN)
+    val_X, val_y = tensors(FEATURE_CACHE_VAL)
     test_X, test_y = tensors(FEATURE_CACHE_TEST)
     dim = train_X.shape[1]
     assert dim == wp_dim(), f"expected {wp_dim()}-d features, got {dim}"
@@ -681,7 +817,8 @@ def phase_wp():
         torch.manual_seed(seed)
         np.random.seed(seed)
         model = WinProbEnrichedModel(dim, [256, 128], dropout=0.3)
-        model, acc = train_wp_model(model, train_X, test_X, train_y, test_y,
+        # early stopping and the seed choice use the train-era validation set
+        model, acc = train_wp_model(model, train_X, val_X, train_y, val_y,
                                     f"prod_wp-s{seed}", device,
                                     after_step=(lambda m: tie_hero_columns(m.net[0].weight, tied))
                                     if tied else None)
@@ -697,11 +834,14 @@ def phase_wp():
     with torch.no_grad():
         p = model(test_X).clamp(1e-6, 1 - 1e-6).cpu().numpy()
     y = test_y.cpu().numpy()
+    test_acc = float(((p > 0.5) == (y > 0.5)).mean() * 100)
     slope = calibration_slope(p, y)
-    log(f"WP best acc {best['acc']:.2f}% (seed {best['seed']}; all {accs}), "
-        f"calibration slope {slope:.3f} on out-of-fold test rows -> {WP_PT}")
-    meta_update(wp={"best_acc": best["acc"], "best_seed": best["seed"],
-                    "all_accs": accs, "cal_slope": slope, "identity_tied": tied,
+    log(f"WP seed {best['seed']} chosen on validation (val acc {best['acc']:.2f}%; "
+        f"all {accs}); test window: acc {test_acc:.2f}%, calibration slope {slope:.3f} "
+        f"-> {WP_PT}")
+    # best_acc / cal_slope (the gates) are measured on the test window only
+    meta_update(wp={"best_acc": test_acc, "val_acc": best["acc"], "best_seed": best["seed"],
+                    "all_val_accs": accs, "cal_slope": slope, "identity_tied": tied,
                     "finite": bool(np.isfinite(p).all())})
 
 
@@ -853,15 +993,23 @@ def phase_partial():
     env.update({"PARTIAL_WP_MAX_REPLAYS": "500000", "PARTIAL_WP_OUT": PARTIAL_PT,
                 "WP_STATS_PATH": STATS_JSON, "REPLAY_SNAPSHOT": "0",
                 "PARTIAL_WP_OOF_STATS": OOF_STATS_JSON,
+                "PARTIAL_WP_OOF_COMPS": COMPS_OOF_JSON,
                 "PARTIAL_WP_OOF_FOLDS": str(OOF_FOLDS),
+                # chronological test window (scored only) from the stats phase;
+                # epoch choice on a train-era replay split
+                "PARTIAL_WP_SPLIT_JSON": SPLIT_JSON,
+                "PARTIAL_WP_TEST_STATS": STATS_TEST_JSON,
+                "PARTIAL_WP_TEST_COMPS": COMPS_TEST_JSON,
                 "PARTIAL_WP_TIE_HEROES": json.dumps(tied_heroes())})
     subprocess.run([sys.executable, "-u",
                     os.path.join(TRAINING_DIR, "train_partial_wp.py")],
                    env=env, check=True, cwd=TRAINING_DIR)
     ckpt = torch.load(PARTIAL_PT, weights_only=True, map_location="cpu")
-    acc = float(ckpt.get("best_test_acc", 0.0))
-    meta_update(partial={"best_acc": acc})
-    log(f"partial-WP done (overall test acc {acc:.4f}) -> {PARTIAL_PT}")
+    if "test_acc" not in ckpt:
+        sys.exit("partial-WP checkpoint has no test-window accuracy (split not applied)")
+    acc = float(ckpt["test_acc"])
+    meta_update(partial={"best_acc": acc, "val_acc": float(ckpt.get("best_val_acc", 0.0))})
+    log(f"partial-WP done (test-window acc {acc:.4f}) -> {PARTIAL_PT}")
 
 
 # ── Phase: gd ────────────────────────────────────────────────────────
@@ -1049,61 +1197,56 @@ def phase_mcts():
 
 # ── Phase: select ────────────────────────────────────────────────────
 
-def _judge_games():
-    """Slim games (gold.py format) from the last JUDGE_DAYS of the corpus the
-    other phases train on: replay_draft_data, patch 2.55 on (pre-2.55 exclude
-    set), known tiers only, 5v5 with a recorded winner. The window ends at the
-    stats phase's decay reference date so a rerun sees the same games."""
+def _judge_games(cohort):
+    """Slim games (gold.py format) for a judge, from the corpus the other phases
+    use: patch 2.55 on (pre-2.55 exclude set), known tiers, 5v5 with a winner.
+    cohort "select": the JUDGE_DAYS of train-era games before the cut (seed
+    selection). cohort "gate": the test window, cut <= date <= reference date
+    (the deploy gate). The two never share a game, and the gate cohort was in
+    no model's training or selection. Returns (games, "lo .. hi")."""
+    split = json.load(open(SPLIT_JSON))
+    cut, ref = _naive(split["cut_date"]), _naive(split["ref_date"])
+    if cohort == "select":
+        lo, hi = cut - datetime.timedelta(days=JUDGE_DAYS), cut
+        def inside(d): return lo <= d < hi
+    elif cohort == "gate":
+        lo, hi = cut, ref
+        def inside(d): return lo <= d <= hi
+    else:
+        raise ValueError(cohort)
     exclude = set(json.load(open(EXCLUDE_IDS_JSON)))
-    ref = json.load(open(META_JSON)).get("stats", {}).get("ref_date")
-    rows = _corpus_rows()
-    if rows is not None:
-        hi = max(r["game_date"] for r in rows if r.get("game_date") is not None)
-        if ref is not None:
-            hi = min(hi, datetime.datetime.fromisoformat(ref).replace(tzinfo=hi.tzinfo))
-        lo = hi - datetime.timedelta(days=JUDGE_DAYS)
-        games = []
-        for r in rows:
-            gd, t0, t1 = r.get("game_date"), tuple(r["team0_heroes"] or []), tuple(r["team1_heroes"] or [])
-            if (gd is None or not (lo < gd <= hi) or not version_ok(r.get("game_version"))
-                    or r["replay_id"] in exclude or r["skill_tier"] not in TRAIN_TIERS
-                    or r["winner"] not in (0, 1) or len(t0) != 5 or len(t1) != 5):
-                continue
-            games.append((int(r["replay_id"]), r["skill_tier"], r["game_map"], t0, t1,
-                          tuple(r["team0_bans"] or []) + tuple(r["team1_bans"] or []),
-                          int(r["winner"])))
-        return games, str(hi)
-    conn = _db_conn()
-    conn.set_session(readonly=True)
-    cur = conn.cursor()
-    if ref is None:
-        cur.execute("SELECT max(game_date) FROM replay_draft_data")
-        ref = str(cur.fetchone()[0])
-    cur.execute("""
-        SELECT replay_id, skill_tier, game_map, team0_heroes, team1_heroes,
-               team0_bans, team1_bans, winner
-        FROM replay_draft_data
-        WHERE game_date > %s::timestamptz - make_interval(days => %s)
-          AND game_date <= %s::timestamptz
-          AND CASE WHEN game_version ~ '^[0-9]+[.][0-9]+'
-                   THEN split_part(game_version, '.', 1)::int * 1000
-                        + split_part(game_version, '.', 2)::int
-                   ELSE 0 END >= %s""",
-                (ref, JUDGE_DAYS, ref, MIN_VERSION[0] * 1000 + MIN_VERSION[1]))
 
     def lst(x):
         return json.loads(x) if isinstance(x, str) else (x or [])
+
+    def keep(rid, gd, gver, tier, w, t0, t1):
+        return (gd is not None and inside(_naive(gd)) and version_ok(gver)
+                and rid not in exclude and tier in TRAIN_TIERS and w in (0, 1)
+                and len(t0) == 5 and len(t1) == 5)
     games = []
-    for rid, tier, gmap, t0, t1, b0, b1, w in cur:
-        t0, t1 = tuple(lst(t0)), tuple(lst(t1))
-        if (rid in exclude or tier not in TRAIN_TIERS or w not in (0, 1)
-                or len(t0) != 5 or len(t1) != 5):
-            continue
-        games.append((int(rid), tier, gmap, t0, t1,
-                      tuple(lst(b0)) + tuple(lst(b1)), int(w)))
-    cur.close()
-    conn.close()
-    return games, ref
+    rows = _corpus_rows()
+    if rows is None:
+        conn = _db_conn()
+        conn.set_session(readonly=True)
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT replay_id, skill_tier, game_map, team0_heroes, team1_heroes,
+                   team0_bans, team1_bans, winner, game_date, game_version
+            FROM replay_draft_data
+            WHERE game_date >= %s::timestamp AT TIME ZONE 'UTC' - interval '1 day'
+              AND game_date <= %s::timestamp AT TIME ZONE 'UTC' + interval '1 day'""",
+                    (lo.isoformat(), hi.isoformat()))
+        rows = ({"replay_id": a, "skill_tier": b, "game_map": c, "team0_heroes": d,
+                 "team1_heroes": e, "team0_bans": f, "team1_bans": g, "winner": h,
+                 "game_date": i, "game_version": j} for a, b, c, d, e, f, g, h, i, j in cur)
+    for r in rows:
+        t0, t1 = tuple(lst(r["team0_heroes"])), tuple(lst(r["team1_heroes"]))
+        if keep(r["replay_id"], r.get("game_date"), r.get("game_version"), r["skill_tier"],
+                r["winner"], t0, t1):
+            games.append((int(r["replay_id"]), r["skill_tier"], r["game_map"], t0, t1,
+                          tuple(lst(r["team0_bans"])) + tuple(lst(r["team1_bans"])),
+                          int(r["winner"])))
+    return games, f"{lo} .. {hi}"
 
 
 def _bench_configs():
@@ -1233,25 +1376,34 @@ def phase_select():
     # v2 (2026-10-01): the index carries explicit structure terms. The plain
     # v1 index is still built from the same games and reported per bench row
     # ("judge_v1") for continuity; it does not enter the rule.
-    games = None
-    judges = {}
-    for cls, tag in ((JUDGE_CLASS, "struct_"), ("RealizedIndex", "")):
+    # Two judges on disjoint games (2026-10-05 reviews): the selection judge
+    # (train era, JUDGE_DAYS before the cut) picks the seed; the gate judge
+    # (the test window, in no model's training or selection) scores the
+    # chosen seed against the baseline for the deploy gate.
+    games = {}
+    judges, spans = {}, {}
+    for cohort, cls, tag in (("select", JUDGE_CLASS, "sel_struct_"), ("select", "RealizedIndex", "sel_"),
+                             ("gate", JUDGE_CLASS, "gate_struct_")):
         judge_pkl = os.path.join(RUN_DIR, f"judge_realized_{tag}{JUDGE_DAYS}d_s{JUDGE_SALT}.pkl")
+        key = (cohort, cls)
         if os.path.exists(judge_pkl):
             with open(judge_pkl, "rb") as f:
-                judges[cls], ref = pickle.load(f)
+                judges[key], spans[cohort] = pickle.load(f)
             continue
-        if games is None:
-            games, ref = _judge_games()
-            log(f"judge: {len(games):,} games in the {JUDGE_DAYS} days to {ref}")
+        if cohort not in games:
+            games[cohort] = _judge_games(cohort)
+            log(f"judge cohort {cohort}: {len(games[cohort][0]):,} games, {games[cohort][1]}")
+        g, spans[cohort] = games[cohort]
         t0 = time.time()
-        j = getattr(gold, cls)(games, salt=JUDGE_SALT, name=f"recent{JUDGE_DAYS}d_{cls}")
+        j = getattr(gold, cls)(g, salt=JUDGE_SALT, name=f"{cohort}_{cls}")
         with open(judge_pkl, "wb") as f:
-            pickle.dump((j, ref), f, protocol=pickle.HIGHEST_PROTOCOL)
-        judges[cls] = j
-        log(f"judge {cls} built in {time.time() - t0:.0f}s; held-out fold acc "
+            pickle.dump((j, spans[cohort]), f, protocol=pickle.HIGHEST_PROTOCOL)
+        judges[key] = j
+        log(f"judge {cohort}/{cls} built in {time.time() - t0:.0f}s; held-out fold acc "
             + ", ".join(f"{x['acc']:.4f}" for x in j.fit))
-    judge, judge_v1 = judges[JUDGE_CLASS], judges["RealizedIndex"]
+    judge, judge_v1 = judges[("select", JUDGE_CLASS)], judges[("select", "RealizedIndex")]
+    gate_judge = judges[("gate", JUDGE_CLASS)]
+    ref = spans["select"]
 
     # Proxy on the same drafts: the fresh WP with the serving stats (what the
     # MCTS searched against), team-order symmetrized.
@@ -1269,7 +1421,7 @@ def phase_select():
     gd.load_state_dict(torch.load(GD_PT, weights_only=True, map_location="cpu"))
     gd.eval()
 
-    per_draft = {}
+    per_draft, gate_draft = {}, {}
     rows = {}
     for name, chooser in ([("pop_greedy", _gd_argmax_chooser(gd)),
                            ("hero_wr_greedy", _hero_wr_chooser(st))]
@@ -1280,6 +1432,8 @@ def phase_select():
         per_draft[name], rows[name] = _summ(drafts, judge, proxy_fn)
         r = rows[name]
         r["judge_v1"] = float(np.mean([judge_v1.score(o, p, t) for o, p, m, t in drafts]))
+        gate_draft[name] = np.array([gate_judge.score(o, p, t) for o, p, m, t in drafts])
+        r["gate_judge"] = float(gate_draft[name].mean())
         log(f"bench {name:15s} judge {r['judge']:.4f}±{r['judge_se']:.4f} (v1 {r['judge_v1']:.4f}) "
             f"proxy_bench {r['proxy_bench']:.4f} degen {r['degen']:.3f} "
             f"distinct {r['distinct_heroes']} ({time.time() - t0:.0f}s)")
@@ -1289,9 +1443,12 @@ def phase_select():
     for s in ok:
         r = rows[f"s{s}"]
         d = per_draft[f"s{s}"] - base
+        dg = gate_draft[f"s{s}"] - gate_draft["pop_greedy"]
         r.update({"proxy_best_wp": results[str(s)]["best_wp"],
                   "vs_pop_greedy": float(d.mean()),
-                  "vs_pop_greedy_se": float(d.std(ddof=1) / np.sqrt(len(d)))})
+                  "vs_pop_greedy_se": float(d.std(ddof=1) / np.sqrt(len(d))),
+                  "gate_vs_pop_greedy": float(dg.mean()),
+                  "gate_vs_pop_greedy_se": float(dg.std(ddof=1) / np.sqrt(len(dg)))})
         seeds[s] = r
     min_degen = min(r["degen"] for r in seeds.values())
     eligible = [s for s in ok if seeds[s]["degen"] <= min_degen + DEGEN_TOL + 1e-12]
@@ -1302,8 +1459,10 @@ def phase_select():
         "rule": (f"max judge among seeds with degen <= min degen + {DEGEN_TOL}"),
         "eligible": eligible,
         "proxy_pick_would_have_been": proxy_pick,
-        "judge": {"kind": f"overfit2026.gold.{JUDGE_CLASS}", "days": JUDGE_DAYS,
-                  "ref_date": str(ref), "salt": JUDGE_SALT, **judge.describe()},
+        "judge": {"kind": f"overfit2026.gold.{JUDGE_CLASS}", "cohort": "select",
+                  "span": str(ref), "salt": JUDGE_SALT, **judge.describe()},
+        "gate_judge": {"kind": f"overfit2026.gold.{JUDGE_CLASS}", "cohort": "gate",
+                       "span": spans["gate"], "salt": JUDGE_SALT, **gate_judge.describe()},
         "bench": {"drafts": BENCH_DRAFTS, "seed": BENCH_SEED,
                   "policy_mode": "policy-head argmax",
                   "opponent": "fresh GD (generic_draft_0.pt), sampled T=1"},
@@ -1336,8 +1495,12 @@ def check_gates():
         "wp_cal_slope": {"value": slope, "range": list(GATE_CAL_SLOPE)},
         "partial_acc": {"value": m.get("partial", {}).get("best_acc"),
                         "min": GATE_PARTIAL_MIN},
-        "mcts_judge_vs_pop_greedy": {"value": srow.get("judge"),
-                                     "must_exceed": base.get("judge"),
+        # gate judge (test window), paired over the same bench drafts: the
+        # chosen seed must beat population-greedy by more than 2 SE
+        "mcts_judge_vs_pop_greedy": {"value": srow.get("gate_judge"),
+                                     "baseline": base.get("gate_judge"),
+                                     "paired_diff": srow.get("gate_vs_pop_greedy"),
+                                     "paired_se": srow.get("gate_vs_pop_greedy_se"),
                                      "seed": seed},
         "mcts_proxy_floor": {"value": srow.get("proxy_best_wp"),
                              "min": GATE_MCTS_PROXY_FLOOR, "seed": seed},
@@ -1373,8 +1536,8 @@ def check_gates():
     g["wp_cal_slope"]["pass"] = (slope is not None
                                  and GATE_CAL_SLOPE[0] <= slope <= GATE_CAL_SLOPE[1])
     j = g["mcts_judge_vs_pop_greedy"]
-    j["pass"] = (j["value"] is not None and j["must_exceed"] is not None
-                 and j["value"] > j["must_exceed"])
+    j["pass"] = (j["paired_diff"] is not None and j["paired_se"] is not None
+                 and j["paired_diff"] - 2 * j["paired_se"] > 0)
     ok = all(v["pass"] for v in g.values())
     meta_update(gates={"pass": ok, "checked": datetime.datetime.now().isoformat(),
                        **g})
