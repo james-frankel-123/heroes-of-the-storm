@@ -63,6 +63,10 @@ def set_search_mode(name):
     global _SEARCH_MODE
     if name not in ("chance", "rollfwd"):
         raise SystemExit(f"search mode {name!r}: use chance (headline) or rollfwd")
+    env = os.environ.get("P3_SEARCH_MODE")
+    if env not in (None, name):
+        raise SystemExit(f"--search-mode {name} but P3_SEARCH_MODE={env}")
+    os.environ["P3_SEARCH_MODE"] = name  # readers (result_path, the distilled prior path) follow it
     _SEARCH_MODE = name
 
 
@@ -86,6 +90,10 @@ def set_assign_mode(name):
     global _ASSIGN_MODE
     if name not in ASSIGN_MODES:
         raise SystemExit(f"assign mode {name!r}: use slot or team")
+    env = os.environ.get("P3_ASSIGN")
+    if env not in (None, name):
+        raise SystemExit(f"--assign {name} but P3_ASSIGN={env}")
+    os.environ["P3_ASSIGN"] = name
     _ASSIGN_MODE = name
 
 
@@ -118,6 +126,83 @@ def save_pickle(obj, fname):
         pickle.dump(obj, f)
     os.replace(p + ".tmp", p)
     return p
+
+
+class BatchCache:
+    """Pause-robust search runs: results of finished batches are kept in
+    cache/mcts_v2/<mode>/partial_<tag>[_assign-team].pkl.gz (written at most
+    every 5 minutes and on SIGTERM), so a resumed run redoes only the
+    batches in flight. Results do not depend on batch order (each batch has
+    its own seed and GD model), so a resumed run equals an uninterrupted one."""
+
+    def __init__(self, tag):
+        import gzip
+        import pickle
+        import signal
+        import time
+        sfx = "" if _ASSIGN_MODE == "slot" else f"_assign-{_ASSIGN_MODE}"
+        self.path = out_path(f"partial_{tag}{sfx}.pkl.gz")
+        self.d = {}
+        if os.path.exists(self.path):
+            with gzip.open(self.path, "rb") as f:
+                self.d = pickle.load(f)
+            print(f"resume: {len(self.d)} finished batches from {os.path.basename(self.path)}", flush=True)
+        self.t = time.time()
+        self._time = time.time
+        prev = signal.getsignal(signal.SIGTERM)
+
+        def on_term(signum, frame):
+            self.flush()
+            if callable(prev):
+                prev(signum, frame)
+            raise SystemExit(143)
+        signal.signal(signal.SIGTERM, on_term)
+
+    def get(self, k):
+        return self.d.get(k)
+
+    def put(self, k, v):
+        self.d[k] = v
+        if self._time() - self.t > 300:
+            self.flush()
+
+    def flush(self):
+        import gzip
+        import pickle
+        with gzip.open(self.path + ".tmp", "wb") as f:
+            pickle.dump(self.d, f)
+        os.replace(self.path + ".tmp", self.path)
+        self.t = self._time()
+
+    def done(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)
+
+
+SEARCH_OUTPUTS = ("mcts_", "dsmcts_", "ds_targets_", "pgdmcts_")
+
+
+def result_path(name):
+    """Where analysis scripts read a search output: with P3_SEARCH_MODE set
+    (chance or rollfwd; P3_ASSIGN slot or team, default team), the fixed-
+    kernel file cache/mcts_v2/<mode>/<name>[_assign-team]; otherwise the
+    legacy cache/<name>."""
+    import p3_hs_core as C
+    mode = os.environ.get("P3_SEARCH_MODE")
+    if not mode or not name.startswith(SEARCH_OUTPUTS):
+        return os.path.join(C.CACHE, name)
+    assign = os.environ.get("P3_ASSIGN", "team")
+    if assign != "slot":
+        name = f"{name[:-len('.pkl.gz')]}_assign-{assign}.pkl.gz"
+    return os.path.join(C.CACHE, "mcts_v2", mode, name)
+
+
+def clear_partials(tag):
+    """Remove a finished run's batch caches (a later run must not reuse them)."""
+    d = os.path.dirname(out_path("x"))
+    for f in os.listdir(d):
+        if f.startswith(f"partial_{tag}_"):
+            os.remove(os.path.join(d, f))
 
 
 def load_module(name, d):

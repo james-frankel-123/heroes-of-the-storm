@@ -32,7 +32,7 @@ from p3_mcts_analyze import Ctx, final_drafts, realized, eff, ci_mean, load, SUB
 
 
 def lp(name):
-    p = os.path.join(C.CACHE, name)
+    p = __import__("p3_mcts_core").result_path(name)
     return pickle.load(gzip.open(p)) if os.path.exists(p) else None
 
 

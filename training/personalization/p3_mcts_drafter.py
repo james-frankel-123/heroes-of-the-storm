@@ -157,9 +157,15 @@ class Setup:
         by_key = {}
         for i, (lb, c) in enumerate(jobs):
             by_key.setdefault(lb["key"], []).append(i)
+        bc = M.BatchCache(f"{getattr(self, 'tag', 'mcts')}_s{sims}_seed{seed}_n{len(jobs)}")
         for key, idx in by_key.items():
             for bs in range(0, len(idx), BATCH):
                 ii = idx[bs:bs + BATCH]
+                got = bc.get((key, bs))
+                if got is not None:
+                    for i, v in zip(ii, got):
+                        out[i] = v
+                    continue
                 cfg = np.stack([jobs[i][1] for i in ii])
                 s = np.stack([jobs[i][0]["s"] for i in ii])
                 off = np.stack([jobs[i][0]["off"] for i in ii])
@@ -178,6 +184,8 @@ class Setup:
                               "max_nodes": int(r[9][j]), "cap_hits": int(r[10][j])}
                     if cfg[j, M.CFG_ASSIGN] == 1 and cfg[j, 4] < 0:
                         out[i]["assign"] = self.assignment(jobs[i][0], out[i]["acts"])
+                bc.put((key, bs), [out[i] for i in ii])
+        bc.flush()
         return out
 
 
@@ -195,6 +203,7 @@ def main():
     torch.set_num_threads(2)
     t0 = time.time()
     S = Setup()
+    S.tag = f"mcts_{a.stage}"
     res = {"sims": a.sims, "stage": a.stage, "assign": a.assign}
     if a.stage in ("full", "curve"):
         lbs = [S.lobby(gi) for gi in S.full_set]
@@ -259,6 +268,7 @@ def main():
         res["decisions"] = [(m[0], m[1], m[2], int(np.argmax(r["pol"][0]))) for m, r in zip(meta_, rr)]
     res["max_nodes"] = int(max(r["max_nodes"] for k, v in res.items() if isinstance(v, list) and v and isinstance(v[0], dict) and "max_nodes" in v[0] for r in v)) if a.stage in ("full", "curve") else None
     M.save_pickle(res, f"mcts_{a.stage}_s{a.sims}.pkl.gz")
+    M.clear_partials(S.tag)
     print(f"done {time.time() - t0:.0f}s")
 
 

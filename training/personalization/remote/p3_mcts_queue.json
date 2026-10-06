@@ -1,0 +1,330 @@
+[
+ {
+  "name": "p3mcts_full_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage full --sims 400 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_real_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage real --sims 400 --nlobbies 2000 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_collapse_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage collapse --sims 400 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_curve_s25",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage curve --sims 25 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_real_s25",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage real --sims 25 --nlobbies 2000 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_curve_s100",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage curve --sims 100 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_real_s100",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage real --sims 100 --nlobbies 2000 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_curve_s1500",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage curve --sims 1500 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_real_s1500",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage real --sims 1500 --nlobbies 2000 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_dstargets_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_targets.py --sims 400 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3cpu_ds_train",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_train.py",
+  "needs": [
+   "p3mcts_dstargets_s400",
+   "p3mcts_real_s400"
+  ],
+  "gpu": false,
+  "hosts": [
+   "max-windows-3090"
+  ]
+ },
+ {
+  "name": "p3mcts_ds_full_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_mcts.py --stage full --sims 400 --search-mode chance --assign team",
+  "needs": [
+   "p3cpu_ds_train"
+  ],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_ds_real_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_mcts.py --stage real --sims 400 --search-mode chance --assign team",
+  "needs": [
+   "p3cpu_ds_train"
+  ],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_ds_real_s100",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_mcts.py --stage real --sims 100 --search-mode chance --assign team",
+  "needs": [
+   "p3cpu_ds_train"
+  ],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_ds_collapse_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_mcts.py --stage collapse --sims 400 --search-mode chance --assign team",
+  "needs": [
+   "p3cpu_ds_train"
+  ],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3cpu_ds_greedy",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_greedy.py",
+  "needs": [
+   "p3cpu_ds_train"
+  ],
+  "gpu": false,
+  "hosts": [
+   "max-windows-3090"
+  ]
+ },
+ {
+  "name": "p3mcts_pgd_verify",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_pgd_mcts.py --stage verify --sims 400 --search-mode chance --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_pgd_real_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_pgd_mcts.py --stage real --sims 400 --search-mode chance --assign team",
+  "needs": [
+   "p3mcts_pgd_verify"
+  ],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_pgd_full_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_pgd_mcts.py --stage full --sims 400 --search-mode chance --assign team",
+  "needs": [
+   "p3mcts_pgd_verify"
+  ],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_rf_full_s400",
+  "cmd": "env P3_SEARCH_MODE=rollfwd P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage full --sims 400 --search-mode rollfwd --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_rf_real_s400",
+  "cmd": "env P3_SEARCH_MODE=rollfwd P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage real --sims 400 --nlobbies 2000 --search-mode rollfwd --assign team",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_slot_full_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=slot python personalization/p3_mcts_drafter.py --stage full --sims 400 --search-mode chance --assign slot",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3mcts_slot_real_s400",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=slot python personalization/p3_mcts_drafter.py --stage real --sims 400 --nlobbies 2000 --search-mode chance --assign slot",
+  "needs": [],
+  "gpu": true,
+  "hosts": [
+   "max-windows-3090",
+   "3080-gaming-desktop"
+  ]
+ },
+ {
+  "name": "p3cpu_mcts_analyze",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_analyze.py",
+  "needs": [
+   "p3mcts_full_s400",
+   "p3mcts_real_s400",
+   "p3mcts_collapse_s400",
+   "p3mcts_curve_s25",
+   "p3mcts_real_s25",
+   "p3mcts_curve_s100",
+   "p3mcts_real_s100",
+   "p3mcts_curve_s1500",
+   "p3mcts_real_s1500"
+  ],
+  "gpu": false,
+  "hosts": [
+   "max-windows-3090"
+  ]
+ },
+ {
+  "name": "p3cpu_ds_analyze",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_analyze.py",
+  "needs": [
+   "p3mcts_ds_full_s400",
+   "p3mcts_ds_real_s400",
+   "p3mcts_ds_real_s100",
+   "p3mcts_ds_collapse_s400",
+   "p3cpu_ds_greedy"
+  ],
+  "gpu": false,
+  "hosts": [
+   "max-windows-3090"
+  ]
+ },
+ {
+  "name": "p3cpu_pgd_analyze",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_pgd_mcts.py --stage analyze --sims 400 --search-mode chance --assign team",
+  "needs": [
+   "p3mcts_pgd_real_s400",
+   "p3mcts_pgd_full_s400"
+  ],
+  "gpu": false,
+  "hosts": [
+   "max-windows-3090"
+  ]
+ },
+ {
+  "name": "p3cpu_fix_realized",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_fix_realized.py",
+  "needs": [
+   "p3cpu_mcts_analyze",
+   "p3cpu_ds_analyze",
+   "p3cpu_pgd_analyze"
+  ],
+  "gpu": false,
+  "hosts": [
+   "max-windows-3090"
+  ]
+ },
+ {
+  "name": "p3cpu_rf_analyze",
+  "cmd": "env P3_SEARCH_MODE=rollfwd P3_ASSIGN=team python personalization/p3_mcts_analyze.py",
+  "needs": [
+   "p3mcts_rf_full_s400",
+   "p3mcts_rf_real_s400"
+  ],
+  "gpu": false,
+  "hosts": [
+   "max-windows-3090"
+  ]
+ },
+ {
+  "name": "p3cpu_slot_analyze",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=slot python personalization/p3_mcts_analyze.py",
+  "needs": [
+   "p3mcts_slot_full_s400",
+   "p3mcts_slot_real_s400"
+  ],
+  "gpu": false,
+  "hosts": [
+   "max-windows-3090"
+  ]
+ }
+]

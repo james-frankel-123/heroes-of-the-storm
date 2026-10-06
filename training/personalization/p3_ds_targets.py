@@ -62,11 +62,14 @@ def main():
     ap.add_argument("--lobbies", type=int, default=6000)
     ap.add_argument("--sims", type=int, default=400)
     ap.add_argument("--search-mode", required=True, choices=["chance", "rollfwd"])
+    ap.add_argument("--assign", default="slot", choices=["slot", "team"])
     a = ap.parse_args()
     M.set_search_mode(a.search_mode)
+    M.set_assign_mode(a.assign)
     torch.set_num_threads(2)
     t0 = time.time()
     S = Setup()
+    S.tag = "ds_targets"
     gis, n_elig = v1_lobbies(S, a.lobbies)
     assert not set(gis.tolist()) & set(np.r_[S.full_set, S.extra_set].tolist())
     extend_ipers(S, [r for gi in gis for r in S.L["steps"][gi][:, 3] if r >= 0])
@@ -84,6 +87,7 @@ def main():
     out = {"sims": a.sims, "lobbies": lob_meta,
            "decisions": [(m[0], m[1], r["pol"][0], r["q"][0]) for m, r in zip(meta_, rr)]}
     M.save_pickle(out, f"ds_targets_s{a.sims}.pkl.gz")
+    M.clear_partials("ds_targets")
     print(f"done: {len(meta_):,} searches ({time.time() - t0:.0f}s)")
 
 

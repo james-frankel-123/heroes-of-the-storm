@@ -32,8 +32,9 @@ from p3_mcts_analyze import Ctx, ci_mean, eff
 def main():
     rng = np.random.RandomState(0)
     X = Ctx()
-    R = pickle.load(gzip.open(os.path.join(C.CACHE, "pgdmcts_real_s400.pkl.gz")))
-    F = pickle.load(gzip.open(os.path.join(C.CACHE, "pgdmcts_full_s400.pkl.gz")))
+    import p3_mcts_core as M
+    R = pickle.load(gzip.open(M.result_path("pgdmcts_real_s400.pkl.gz")))
+    F = pickle.load(gzip.open(M.result_path("pgdmcts_full_s400.pkl.gz")))
     lobs = R["lobbies"]
     names = ["R1 pers-GD", "R2 pers-PGD", "R3 pers-PGD+P", "P1 pop-GD", "P2 pop-PGD"]
     dec = {nm: {(li, k): (pol, q) for li, k, pol, q in R[nm]} for nm in names}

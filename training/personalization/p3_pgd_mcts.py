@@ -187,9 +187,15 @@ class PGDSetup(Setup):
         for i, j in enumerate(jobs):
             by_key.setdefault(j[0]["key"], []).append(i)
         coefs = np.r_[self.coefs, np.float32(self.hp.alpha.item()), np.float32(self.hb.alpha.item())].astype(np.float32)
+        bc = M.BatchCache(f"{getattr(self, 'tag', 'pgdmcts')}_pgd{use_pgd}_s{sims}_seed{seed}_n{len(jobs)}")
         for key, idx in by_key.items():
             for bs in range(0, len(idx), BATCH):
                 ii = idx[bs:bs + BATCH]
+                got = bc.get((key, bs))
+                if got is not None:
+                    for i, v in zip(ii, got):
+                        out[i] = v
+                    continue
                 cfg = np.stack([jobs[i][1] for i in ii])
                 s = np.stack([jobs[i][0]["s"] for i in ii])
                 off = np.stack([jobs[i][0]["off"] for i in ii])
@@ -207,6 +213,8 @@ class PGDSetup(Setup):
                               "pol": r[5][j, :nt].copy(), "q": r[6][j, :nt].copy(), "step": r[7][j, :nt].copy()}
                     if cfg[j, M.CFG_ASSIGN] == 1 and cfg[j, 4] < 0:
                         out[i]["assign"] = self.assignment(jobs[i][0], out[i]["acts"])
+                bc.put((key, bs), [out[i] for i in ii])
+        bc.flush()
         return out
 
 
@@ -337,12 +345,14 @@ def main():
         p3_pgd_analyze.main()
         return
     S = PGDSetup()
+    S.tag = f"pgdmcts_{a.stage}"
     if a.stage == "verify":
         verify(S)
         return
     res = stage_real(S, a.sims, a.nlobbies) if a.stage == "real" else stage_full(S, a.sims)
     res["assign"] = a.assign
     M.save_pickle(res, f"pgdmcts_{a.stage}_s{a.sims}.pkl.gz")
+    M.clear_partials(f"pgdmcts_{a.stage}")
     print(f"done {time.time() - t0:.0f}s")
 
 

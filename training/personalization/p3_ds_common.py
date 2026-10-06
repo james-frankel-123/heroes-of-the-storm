@@ -34,6 +34,10 @@ import p3_hs_core as C
 import p3_mcts_core as M
 
 MODEL = os.path.join(C.CACHE, "ds_prior.pt")
+if os.environ.get("P3_SEARCH_MODE"):
+    # distilled from the fixed-kernel targets of this search / assign mode
+    _sfx = "" if os.environ.get("P3_ASSIGN", "team") == "slot" else "_assign-" + os.environ.get("P3_ASSIGN", "team")
+    MODEL = os.path.join(C.CACHE, "mcts_v2", os.environ["P3_SEARCH_MODE"], f"ds_prior{_sfx}.pt")
 FEATS = ["b2_s", "off_role", "log1p_n", "never_n", "ewma20", "ewma100", "log1p_days_since", "never_played",
          "log_fine_share"]
 

@@ -80,9 +80,15 @@ class PriorSetup(Setup):
             by_key.setdefault(lb["key"], []).append(i)
         a = self.alpha if alpha is None else alpha
         coefs = np.r_[self.coefs, np.float32(a)].astype(np.float32)
+        bc = M.BatchCache(f"{getattr(self, 'tag', 'dsmcts')}_{kernel}_p{use_prior}_z{int(zero_bias)}_a{a:.4f}_s{sims}_seed{seed}_n{len(jobs)}")
         for key, idx in by_key.items():
             for bs in range(0, len(idx), BATCH):
                 ii = idx[bs:bs + BATCH]
+                got = bc.get((key, bs))
+                if got is not None:
+                    for i, v in zip(ii, got):
+                        out[i] = v
+                    continue
                 cfg = np.stack([jobs[i][1] for i in ii]).astype(np.int32)
                 cfg[:, 56] = use_prior
                 s = np.stack([jobs[i][0]["s"] for i in ii])
@@ -111,6 +117,8 @@ class PriorSetup(Setup):
                               "prior": r[13][j, :nt].copy() if kernel == "prior" else None}
                     if cfg[j, M.CFG_ASSIGN] == 1 and cfg[j, 4] < 0:
                         out[i]["assign"] = self.assignment(jobs[i][0], out[i]["acts"])
+                bc.put((key, bs), [out[i] for i in ii])
+        bc.flush()
         return out
 
 
@@ -176,6 +184,7 @@ def main():
     torch.set_num_threads(2)
     t0 = time.time()
     S = PriorSetup()
+    S.tag = f"dsmcts_{a.stage}"
     if a.stage == "verify":
         verify(S)
         return
@@ -222,6 +231,7 @@ def main():
         rr = S.run_prior(jobs, a.sims, 7000)
         res["decisions"] = [(m[0], m[1], m[2], int(np.argmax(r["pol"][0]))) for m, r in zip(meta_, rr)]
     M.save_pickle(res, f"dsmcts_{a.stage}_s{a.sims}.pkl.gz")
+    M.clear_partials(f"dsmcts_{a.stage}")
     print(f"done {time.time() - t0:.0f}s")
 
 

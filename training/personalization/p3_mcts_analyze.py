@@ -42,7 +42,7 @@ SUB = 2000
 
 
 def load(stage, s):
-    p = os.path.join(C.CACHE, f"mcts_{stage}_s{s}.pkl.gz")
+    p = __import__("p3_mcts_core").result_path(f"mcts_{stage}_s{s}.pkl.gz")
     return pickle.load(gzip.open(p)) if os.path.exists(p) else None
 
 

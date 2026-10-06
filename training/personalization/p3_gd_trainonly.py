@@ -41,12 +41,32 @@ V2_START = "2026-03-29"
 SNAP_END = "2026-05-23"
 
 
+def _end_days():
+    """replay_id -> UTC game-end day from the frozen games export (the
+    snapshot rows carry no date)."""
+    import csv
+    import gzip
+    tag = os.environ.get("P3_EXPORT_TAG", "oct05")
+    out = {}
+    with gzip.open(os.path.join(C.CACHE, "export", tag, "games.csv.gz"), "rt", newline="") as f:
+        rd = csv.reader(f)
+        hdr = next(rd)
+        ir, ie = hdr.index("replay_id"), hdr.index("end_ts")
+        for r in rd:
+            out[int(r[ir])] = int(r[ie]) // 86400
+    return out
+
+
 def _games(lo=None, hi=None):
     from shared import load_replay_data
     rows = load_replay_data()
-    out = [r for r in rows if (lo is None or str(r["game_date"])[:10] >= lo)
-           and (hi is None or str(r["game_date"])[:10] < hi)]
-    print(f"games in [{lo}, {hi}): {len(out):,} of {len(rows):,}", flush=True)
+    day = _end_days()
+    lo_d = None if lo is None else C.day_of(lo)
+    hi_d = None if hi is None else C.day_of(hi)
+    miss = sum(1 for r in rows if r["replay_id"] not in day)
+    out = [r for r in rows if r["replay_id"] in day and (lo_d is None or day[r["replay_id"]] >= lo_d)
+           and (hi_d is None or day[r["replay_id"]] < hi_d)]
+    print(f"games in [{lo}, {hi}): {len(out):,} of {len(rows):,} ({miss:,} without a date, dropped)", flush=True)
     return out
 
 

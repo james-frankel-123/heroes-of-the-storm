@@ -88,8 +88,9 @@ def main():
     S = Setup()
     import search as SR
     net = SR.policy_net("path:" + __import__("p3_dr_core").bc_prior_path())
-    tr = pickle.load(gzip.open(os.path.join(C.CACHE, "ds_targets_s400.pkl.gz")))
-    te = pickle.load(gzip.open(os.path.join(C.CACHE, "mcts_real_s400.pkl.gz")))
+    import p3_mcts_core as M
+    tr = pickle.load(gzip.open(M.result_path("ds_targets_s400.pkl.gz")))
+    te = pickle.load(gzip.open(M.result_path("mcts_real_s400.pkl.gz")))
     Xa, Ma, Ya, Fa, Aa, Ga = build(S, tr)
     Xt, Mt, Yt, Ft, At, Gt = build(S, te)
     print(f"examples: train+val {len(Xa):,}, test {len(Xt):,} ({time.time() - t0:.0f}s)", flush=True)

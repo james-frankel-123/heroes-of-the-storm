@@ -47,7 +47,7 @@ if OLD:
 
 
 def lp(name):
-    p = os.path.join(FIXC, name)
+    p = os.path.join(FIXC, name) if OLD else __import__("p3_mcts_core").result_path(name)
     return pickle.load(gzip.open(p)) if os.path.exists(p) else None
 
 
