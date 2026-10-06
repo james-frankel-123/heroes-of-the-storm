@@ -37,7 +37,11 @@ import type {
 } from '@/lib/types'
 
 import type { DraftData, CompositionData } from '@/lib/draft/types'
+// Display data for the composition panel and the heuristic engine: the
+// Heroes Profile table the nightly sync writes (sync/sync-compositions.ts).
+// The models' comp_wr features use model-compositions.json instead.
 import compositionsJson from '@/lib/data/compositions.json'
+import modelCompositionsJson from '@/lib/data/model-compositions.json'
 import draftStatsDecayed from '@/lib/data/draft-stats-decayed.json'
 import { computeBaselineCompWR } from '@/lib/draft/composition'
 
@@ -902,9 +906,12 @@ export async function getDraftData(
     }
   }
 
-  // Composition data from static JSON
-  const allComps = compositionsJson as Record<string, CompositionData[]>
-  const compositions = allComps[tier] ?? []
+  // Composition panel data: Heroes Profile (richer: ~70-130 comps per tier);
+  // our own corpus table, with its game counts, only if HP has none for the tier
+  const hpComps = (compositionsJson as Record<string, CompositionData[]>)[tier] ?? []
+  const compositions = hpComps.length > 0
+    ? hpComps
+    : ((modelCompositionsJson as Record<string, CompositionData[]>)[tier] ?? [])
   const baselineCompWR = computeBaselineCompWR(compositions)
 
   return {

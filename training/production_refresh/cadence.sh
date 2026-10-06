@@ -34,6 +34,10 @@ fail() { echo "=== REFRESH FAILED $DATE: $1; NOTHING DEPLOYED (see training/prod
 CUDA_VISIBLE_DEVICES= TORCH_CUDA_ARCH_LIST=${H91_ARCH:-12.0} nice -n 19 taskset -c 48-63 \
     $PY training/cuda_mcts/build_h91.py --if-stale || fail "h91 kernel build"
 
+# Production refits the gated WP and partial-WP on all data after the gates
+# pass and deploys the refits (refresh.py phase refit, sanity-gated).
+export REFRESH_REFIT=1
+
 # Any failed phase or gate (kernel parity included) exits nonzero: no deploy.
 nice -n 19 taskset -c 48-63 $PY training/production_refresh/refresh.py all \
     || fail "refresh.py all exited nonzero (a phase or a deploy gate failed)"
@@ -42,9 +46,13 @@ nice -n 19 taskset -c 48-63 $PY training/production_refresh/refresh.py all \
 # Commit from a clean temporary worktree of origin/main: this working tree is
 # shared with other jobs (uncommitted research edits, other sessions pushing
 # to main), so never rebase or commit here.
+# model-compositions.json: the models' comp_wr table (this run's export).
+# compositions.json: the display panel's Heroes Profile table, as the nightly
+# sync last wrote it (sync/sync-compositions.ts); deployed to keep it fresh.
 DEPLOY_FILES="public/models/draft_policy.onnx public/models/generic_draft_0.onnx
 public/models/win_probability.onnx public/models/partial_wp.onnx
-src/lib/data/draft-stats-decayed.json src/lib/data/compositions.json"
+src/lib/data/draft-stats-decayed.json src/lib/data/model-compositions.json
+src/lib/data/compositions.json"
 DEPLOY_DIR=$(mktemp -d /tmp/hots-deploy-XXXXXX)
 trap 'git -C "$REPO" worktree remove --force "$DEPLOY_DIR" 2>/dev/null || true' EXIT
 git fetch origin main

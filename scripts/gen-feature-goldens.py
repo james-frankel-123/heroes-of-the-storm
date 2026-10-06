@@ -4,7 +4,7 @@ Regenerate when either feature implementation or the stats artifact changes:
     npx tsx scripts/check-feature-parity.ts
 GOLDEN_RUN_DIR is the production refresh run whose stats and compositions
 snapshot the site serves (src/lib/data/draft-stats-decayed.json and
-compositions.json come from its export). Encoding: HOTS_HERO_SET=v2.
+model-compositions.json come from its export). Encoding: HOTS_HERO_SET=v2.
 """
 import os, sys, json, random
 TRAINING = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "training")

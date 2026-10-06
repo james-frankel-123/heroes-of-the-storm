@@ -1,0 +1,4376 @@
+{
+  "low": [
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer"
+      ],
+      "winRate": 59.68,
+      "games": 124,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 52.77,
+      "games": 5641,
+      "popularity": 0.26
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 51.59,
+      "games": 21812,
+      "popularity": 1.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 51.11,
+      "games": 84346,
+      "popularity": 3.91
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 50.94,
+      "games": 3892,
+      "popularity": 0.18
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin"
+      ],
+      "winRate": 50.77,
+      "games": 439,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 50.67,
+      "games": 25042,
+      "popularity": 1.16
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 50.53,
+      "games": 151,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 50.44,
+      "games": 54363,
+      "popularity": 2.52
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Tank"
+      ],
+      "winRate": 50,
+      "games": 373,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 49.86,
+      "games": 1075,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 49.41,
+      "games": 202,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 49.22,
+      "games": 260323,
+      "popularity": 12.08
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 49.21,
+      "games": 1705,
+      "popularity": 0.08
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 49.01,
+      "games": 162,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin"
+      ],
+      "winRate": 48.74,
+      "games": 103,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 48.2,
+      "games": 159701,
+      "popularity": 7.41
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 48.15,
+      "games": 19821,
+      "popularity": 0.92
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 48.15,
+      "games": 709,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 48.08,
+      "games": 1073839,
+      "popularity": 49.84
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 47.82,
+      "games": 2584,
+      "popularity": 0.12
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 47.77,
+      "games": 2710,
+      "popularity": 0.13
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 47.5,
+      "games": 1901,
+      "popularity": 0.09
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 47.42,
+      "games": 4193,
+      "popularity": 0.19
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 47.37,
+      "games": 7409,
+      "popularity": 0.34
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 47.35,
+      "games": 2039,
+      "popularity": 0.09
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 47.35,
+      "games": 607,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 47.21,
+      "games": 4646,
+      "popularity": 0.22
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 47.08,
+      "games": 5137,
+      "popularity": 0.24
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 47.07,
+      "games": 430,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 47.01,
+      "games": 120,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 47,
+      "games": 7795,
+      "popularity": 0.36
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 46.99,
+      "games": 19581,
+      "popularity": 0.91
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 46.9,
+      "games": 1025,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 46.75,
+      "games": 403,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 46.67,
+      "games": 135,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin"
+      ],
+      "winRate": 46.38,
+      "games": 345,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 46.36,
+      "games": 126,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 46.06,
+      "games": 2269,
+      "popularity": 0.11
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 45.9,
+      "games": 437,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 45.86,
+      "games": 1247,
+      "popularity": 0.06
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 45.77,
+      "games": 3577,
+      "popularity": 0.17
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 45.71,
+      "games": 200,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 45.63,
+      "games": 1073,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 45.47,
+      "games": 6380,
+      "popularity": 0.3
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 45.44,
+      "games": 1242,
+      "popularity": 0.06
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 45.31,
+      "games": 708,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Tank"
+      ],
+      "winRate": 44.97,
+      "games": 181,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 44.83,
+      "games": 217,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 44.76,
+      "games": 4693,
+      "popularity": 0.22
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 44.73,
+      "games": 31915,
+      "popularity": 1.48
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 44.69,
+      "games": 92967,
+      "popularity": 4.31
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 44.5,
+      "games": 698,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 44.41,
+      "games": 906,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 44.4,
+      "games": 5491,
+      "popularity": 0.25
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 44.33,
+      "games": 162,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 44.27,
+      "games": 729,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 44.2,
+      "games": 6963,
+      "popularity": 0.32
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 44.16,
+      "games": 276,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 44.09,
+      "games": 801,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 44.05,
+      "games": 911,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 43.91,
+      "games": 32550,
+      "popularity": 1.51
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 43.87,
+      "games": 11131,
+      "popularity": 0.52
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 43.8,
+      "games": 2126,
+      "popularity": 0.1
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 43.8,
+      "games": 502,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 43.78,
+      "games": 613,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 43.77,
+      "games": 11620,
+      "popularity": 0.54
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 43.72,
+      "games": 54989,
+      "popularity": 2.55
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 43.43,
+      "games": 5611,
+      "popularity": 0.26
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 43.28,
+      "games": 586,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 43.04,
+      "games": 427,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 42.99,
+      "games": 2595,
+      "popularity": 0.12
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 42.9,
+      "games": 132,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 42.64,
+      "games": 728,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 42.6,
+      "games": 1795,
+      "popularity": 0.08
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 42.49,
+      "games": 4283,
+      "popularity": 0.2
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin"
+      ],
+      "winRate": 42.07,
+      "games": 164,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 41.79,
+      "games": 1546,
+      "popularity": 0.07
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 41.62,
+      "games": 11298,
+      "popularity": 0.52
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 41.49,
+      "games": 1753,
+      "popularity": 0.08
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 41.4,
+      "games": 777,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 41.03,
+      "games": 290,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 41.01,
+      "games": 43912,
+      "popularity": 2.04
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 39.92,
+      "games": 1116,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 39.53,
+      "games": 290,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 39.45,
+      "games": 1168,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 39.45,
+      "games": 130,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 39.3,
+      "games": 257,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 39.12,
+      "games": 1174,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 39.1,
+      "games": 2348,
+      "popularity": 0.11
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 38.81,
+      "games": 253,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 38.8,
+      "games": 140,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 38.79,
+      "games": 721,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Support"
+      ],
+      "winRate": 38.6,
+      "games": 152,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 38.53,
+      "games": 337,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 38.33,
+      "games": 103,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 38.15,
+      "games": 1310,
+      "popularity": 0.06
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 37.93,
+      "games": 139,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 37.74,
+      "games": 113,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 37.6,
+      "games": 283,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 37.54,
+      "games": 568,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 37.37,
+      "games": 848,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 37.28,
+      "games": 181,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 37.23,
+      "games": 1650,
+      "popularity": 0.08
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 37.18,
+      "games": 293,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 36.83,
+      "games": 326,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 36.76,
+      "games": 193,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 36.45,
+      "games": 469,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 36.13,
+      "games": 314,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 35.97,
+      "games": 106,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 35.94,
+      "games": 752,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 35.76,
+      "games": 178,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 35.72,
+      "games": 139,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 35.38,
+      "games": 163,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 35.15,
+      "games": 1304,
+      "popularity": 0.06
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 34.99,
+      "games": 205,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 34.57,
+      "games": 216,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 34.43,
+      "games": 833,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 34.27,
+      "games": 191,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 34.02,
+      "games": 330,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 33.33,
+      "games": 308,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 33.15,
+      "games": 109,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 32.07,
+      "games": 1030,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 31.12,
+      "games": 274,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 30.69,
+      "games": 290,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 29.53,
+      "games": 687,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 29.01,
+      "games": 293,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 28.2,
+      "games": 258,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 27.69,
+      "games": 417,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 26.32,
+      "games": 182,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 21.72,
+      "games": 110,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Healer",
+        "Healer"
+      ],
+      "winRate": 21.01,
+      "games": 194,
+      "popularity": 0.01
+    }
+  ],
+  "mid": [
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer"
+      ],
+      "winRate": 55.82,
+      "games": 117,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 53.88,
+      "games": 9215,
+      "popularity": 0.23
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 53.18,
+      "games": 40274,
+      "popularity": 1.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 52.94,
+      "games": 6414,
+      "popularity": 0.16
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 52.52,
+      "games": 1450,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Tank"
+      ],
+      "winRate": 52.11,
+      "games": 318,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 52.03,
+      "games": 77905,
+      "popularity": 1.96
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 52,
+      "games": 183621,
+      "popularity": 4.62
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 51.85,
+      "games": 42820,
+      "popularity": 1.08
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Tank"
+      ],
+      "winRate": 51.78,
+      "games": 175,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 51.76,
+      "games": 41711,
+      "popularity": 1.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 51.74,
+      "games": 435721,
+      "popularity": 10.96
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 51.57,
+      "games": 446,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 50.81,
+      "games": 346,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 50.75,
+      "games": 324969,
+      "popularity": 8.18
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin"
+      ],
+      "winRate": 50.51,
+      "games": 607,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 50.38,
+      "games": 4248,
+      "popularity": 0.11
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 50.36,
+      "games": 5407,
+      "popularity": 0.14
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 50.2,
+      "games": 407,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin"
+      ],
+      "winRate": 50.18,
+      "games": 385,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 50.11,
+      "games": 12265,
+      "popularity": 0.31
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 50.05,
+      "games": 12277,
+      "popularity": 0.31
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 50.03,
+      "games": 2080689,
+      "popularity": 52.34
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 49.96,
+      "games": 2723,
+      "popularity": 0.07
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 49.91,
+      "games": 217,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 49.82,
+      "games": 13158,
+      "popularity": 0.33
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 49.78,
+      "games": 356,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 49.76,
+      "games": 17824,
+      "popularity": 0.45
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 49.76,
+      "games": 2074,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin"
+      ],
+      "winRate": 49.66,
+      "games": 205,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 49.44,
+      "games": 1009,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 49.37,
+      "games": 4154,
+      "popularity": 0.1
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 49.32,
+      "games": 474,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 49.25,
+      "games": 1168,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin"
+      ],
+      "winRate": 49.21,
+      "games": 126,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 49.19,
+      "games": 271,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 49.13,
+      "games": 1798,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 48.84,
+      "games": 654,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 48.78,
+      "games": 164,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 48.72,
+      "games": 62789,
+      "popularity": 1.58
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 48.59,
+      "games": 2096,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 48.37,
+      "games": 441,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 48.33,
+      "games": 9461,
+      "popularity": 0.24
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 48.25,
+      "games": 137,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 47.97,
+      "games": 718,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 47.85,
+      "games": 25357,
+      "popularity": 0.64
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 47.85,
+      "games": 592,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 47.75,
+      "games": 9129,
+      "popularity": 0.23
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin"
+      ],
+      "winRate": 47.75,
+      "games": 134,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 47.71,
+      "games": 94281,
+      "popularity": 2.37
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 47.52,
+      "games": 351,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 47.26,
+      "games": 2241,
+      "popularity": 0.06
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Support"
+      ],
+      "winRate": 47.14,
+      "games": 199,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 47.09,
+      "games": 133114,
+      "popularity": 3.35
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 47.09,
+      "games": 20010,
+      "popularity": 0.5
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 47.08,
+      "games": 384,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 46.96,
+      "games": 3815,
+      "popularity": 0.1
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 46.67,
+      "games": 114,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 46.54,
+      "games": 107,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 46.52,
+      "games": 8002,
+      "popularity": 0.2
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 46.48,
+      "games": 102732,
+      "popularity": 2.58
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 46.4,
+      "games": 511,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 46.34,
+      "games": 1144,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 46.26,
+      "games": 3962,
+      "popularity": 0.1
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 46.04,
+      "games": 948,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 45.93,
+      "games": 16068,
+      "popularity": 0.4
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 45.31,
+      "games": 714,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 45.25,
+      "games": 246,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 45.22,
+      "games": 452,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 45.09,
+      "games": 21791,
+      "popularity": 0.55
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 45.09,
+      "games": 151,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 44.99,
+      "games": 74913,
+      "popularity": 1.88
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 44.99,
+      "games": 3199,
+      "popularity": 0.08
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 44.98,
+      "games": 1636,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 44.75,
+      "games": 559,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 44.48,
+      "games": 1714,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 44.32,
+      "games": 689,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 44.19,
+      "games": 241,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 43.81,
+      "games": 199,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 43.77,
+      "games": 220,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 43.67,
+      "games": 4508,
+      "popularity": 0.11
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 43.25,
+      "games": 568,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 43.24,
+      "games": 549,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 42.94,
+      "games": 1448,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 42.65,
+      "games": 3374,
+      "popularity": 0.08
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 42.64,
+      "games": 500,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 42.61,
+      "games": 3172,
+      "popularity": 0.08
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 42.47,
+      "games": 847,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 42.37,
+      "games": 195,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 42.17,
+      "games": 1108,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 42.12,
+      "games": 1181,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 41.88,
+      "games": 626,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 41.85,
+      "games": 432,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 41.79,
+      "games": 1196,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 41.76,
+      "games": 397,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 41.66,
+      "games": 167,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 41.52,
+      "games": 616,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 41.4,
+      "games": 759,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 41.38,
+      "games": 122,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Support"
+      ],
+      "winRate": 41.37,
+      "games": 102,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 40.84,
+      "games": 239,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 40.69,
+      "games": 1925,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 40.67,
+      "games": 251,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 40.64,
+      "games": 224,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 40.61,
+      "games": 287,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 40.41,
+      "games": 1333,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 40.36,
+      "games": 221,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 39.78,
+      "games": 343,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 39.23,
+      "games": 2201,
+      "popularity": 0.06
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 39.03,
+      "games": 388,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 38.23,
+      "games": 785,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 38.14,
+      "games": 756,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 37.4,
+      "games": 926,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 37.35,
+      "games": 246,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 37.07,
+      "games": 878,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 36.44,
+      "games": 343,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 36.42,
+      "games": 179,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 36.24,
+      "games": 1615,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 35.22,
+      "games": 671,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 34.93,
+      "games": 554,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 34.78,
+      "games": 157,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 34.35,
+      "games": 183,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 34.09,
+      "games": 149,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 31.43,
+      "games": 217,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 31.37,
+      "games": 303,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 30.2,
+      "games": 287,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 28.66,
+      "games": 161,
+      "popularity": 0
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 27.44,
+      "games": 504,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Healer",
+        "Healer"
+      ],
+      "winRate": 21.68,
+      "games": 236,
+      "popularity": 0.01
+    }
+  ],
+  "high": [
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 59.24,
+      "games": 550,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Tank"
+      ],
+      "winRate": 58.47,
+      "games": 142,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 56.74,
+      "games": 179,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin"
+      ],
+      "winRate": 56.44,
+      "games": 202,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 54.72,
+      "games": 22393,
+      "popularity": 1.12
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 54.59,
+      "games": 4089,
+      "popularity": 0.2
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 54.5,
+      "games": 227631,
+      "popularity": 11.39
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 54.47,
+      "games": 30578,
+      "popularity": 1.53
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 54.38,
+      "games": 112,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 53.82,
+      "games": 47334,
+      "popularity": 2.37
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 53.72,
+      "games": 4143,
+      "popularity": 0.21
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 53.68,
+      "games": 258,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 53.6,
+      "games": 19607,
+      "popularity": 0.98
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 53.47,
+      "games": 2654,
+      "popularity": 0.13
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 53.27,
+      "games": 5619,
+      "popularity": 0.28
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 53.14,
+      "games": 89371,
+      "popularity": 4.47
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 53.07,
+      "games": 8092,
+      "popularity": 0.4
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 52.99,
+      "games": 6957,
+      "popularity": 0.35
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 52.88,
+      "games": 177478,
+      "popularity": 8.88
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 52.78,
+      "games": 1355,
+      "popularity": 0.07
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 52.57,
+      "games": 9852,
+      "popularity": 0.49
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin"
+      ],
+      "winRate": 52.56,
+      "games": 109,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin"
+      ],
+      "winRate": 52.51,
+      "games": 286,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 52.46,
+      "games": 424,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 52.4,
+      "games": 36446,
+      "popularity": 1.82
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 52.37,
+      "games": 4203,
+      "popularity": 0.21
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 52.27,
+      "games": 962888,
+      "popularity": 48.19
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 52.24,
+      "games": 21626,
+      "popularity": 1.08
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 52.05,
+      "games": 2228,
+      "popularity": 0.11
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 51.83,
+      "games": 723,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 51.77,
+      "games": 555,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 51.48,
+      "games": 4625,
+      "popularity": 0.23
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 51.4,
+      "games": 723,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 51.39,
+      "games": 84453,
+      "popularity": 4.23
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 51.36,
+      "games": 509,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 51.17,
+      "games": 36567,
+      "popularity": 1.83
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 51.1,
+      "games": 256,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 51.09,
+      "games": 155,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 50.85,
+      "games": 7792,
+      "popularity": 0.39
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 50.79,
+      "games": 267,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 50.79,
+      "games": 165,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 50.7,
+      "games": 1670,
+      "popularity": 0.08
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 50.69,
+      "games": 10721,
+      "popularity": 0.54
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 50.45,
+      "games": 64738,
+      "popularity": 3.24
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 50.3,
+      "games": 232,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 50.25,
+      "games": 445,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 50.18,
+      "games": 1301,
+      "popularity": 0.07
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 49.74,
+      "games": 8008,
+      "popularity": 0.4
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 49.72,
+      "games": 720,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 49.63,
+      "games": 42070,
+      "popularity": 2.11
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 49.36,
+      "games": 109,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 49.25,
+      "games": 1888,
+      "popularity": 0.09
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 49.11,
+      "games": 6998,
+      "popularity": 0.35
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Support"
+      ],
+      "winRate": 49.06,
+      "games": 405,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 49.05,
+      "games": 10326,
+      "popularity": 0.52
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Tank"
+      ],
+      "winRate": 48.88,
+      "games": 401,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 48.87,
+      "games": 4509,
+      "popularity": 0.23
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Bruiser",
+        "Healer",
+        "Support"
+      ],
+      "winRate": 48.81,
+      "games": 118,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 48.67,
+      "games": 487,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 48.52,
+      "games": 155,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Tank",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 48.4,
+      "games": 256,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 48.25,
+      "games": 903,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 47.53,
+      "games": 621,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 47.44,
+      "games": 133,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 47.22,
+      "games": 1022,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 47.19,
+      "games": 524,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 47.09,
+      "games": 110,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 47.01,
+      "games": 191,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 46.74,
+      "games": 909,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 46,
+      "games": 100,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 45.57,
+      "games": 158,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 44.6,
+      "games": 1230,
+      "popularity": 0.06
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 44.52,
+      "games": 979,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 43.98,
+      "games": 125,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 43.64,
+      "games": 357,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 43.58,
+      "games": 831,
+      "popularity": 0.04
+    },
+    {
+      "roles": [
+        "Healer",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 43.47,
+      "games": 1396,
+      "popularity": 0.07
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin"
+      ],
+      "winRate": 43.23,
+      "games": 248,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 43.14,
+      "games": 532,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 43.11,
+      "games": 401,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 43.05,
+      "games": 104,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 42.55,
+      "games": 166,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank",
+        "Tank"
+      ],
+      "winRate": 42.36,
+      "games": 213,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Healer",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 41.83,
+      "games": 147,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 41.66,
+      "games": 1063,
+      "popularity": 0.05
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 41.14,
+      "games": 161,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 40.88,
+      "games": 291,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Healer",
+        "Melee Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 40.28,
+      "games": 102,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 39.97,
+      "games": 151,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 39.01,
+      "games": 189,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 38.3,
+      "games": 472,
+      "popularity": 0.02
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Healer",
+        "Support",
+        "Support",
+        "Tank"
+      ],
+      "winRate": 38.27,
+      "games": 118,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 38.02,
+      "games": 101,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 37.9,
+      "games": 137,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 37.12,
+      "games": 153,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 37.04,
+      "games": 113,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Tank"
+      ],
+      "winRate": 36.59,
+      "games": 184,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 36.46,
+      "games": 521,
+      "popularity": 0.03
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 36.29,
+      "games": 239,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 35.4,
+      "games": 142,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Healer",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support",
+        "Support"
+      ],
+      "winRate": 31.55,
+      "games": 153,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Bruiser",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Support"
+      ],
+      "winRate": 31.19,
+      "games": 156,
+      "popularity": 0.01
+    },
+    {
+      "roles": [
+        "Melee Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin",
+        "Ranged Assassin"
+      ],
+      "winRate": 30.78,
+      "games": 115,
+      "popularity": 0.01
+    }
+  ]
+}

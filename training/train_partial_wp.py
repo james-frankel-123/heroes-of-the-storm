@@ -200,15 +200,22 @@ def train():
     #                          with PARTIAL_WP_TEST_STATS / _TEST_COMPS (train
     #                          era only) and only scored; the epoch is chosen
     #                          on a 15% replay split of the train era
+    #   PARTIAL_WP_FIXED_EPOCHS N  refit: train on every replay for exactly N
+    #                          epochs, no selection; with
+    #                          PARTIAL_WP_SANITY_SPLIT_JSON, report accuracy on
+    #                          that split's post_cut_ids (in sample: a sanity check)
     comp_pattern = os.environ.get("PARTIAL_WP_OOF_COMPS")
+    fixed_epochs = int(os.environ.get("PARTIAL_WP_FIXED_EPOCHS", "0"))
+    sanity_post = (set(json.load(open(os.environ["PARTIAL_WP_SANITY_SPLIT_JSON"]))["post_cut_ids"])
+                   if os.environ.get("PARTIAL_WP_SANITY_SPLIT_JSON") else None)
     split_json = os.environ.get("PARTIAL_WP_SPLIT_JSON")
     post = set(json.load(open(split_json))["post_cut_ids"]) if split_json else set()
 
     def extract(rows, stats):
         # extract_partial_states numbers replays by position in `rows`; the split
-        # mode needs real replay ids (positions repeat across fold parts)
+        # and refit modes need real replay ids (positions repeat across fold parts)
         f, s, lab, idx = extract_partial_states(rows, stats)
-        if split_json:
+        if split_json or fixed_epochs:
             idx = np.array([rows[i]["replay_id"] for i in idx], dtype=np.int64)
         return f, s, lab, idx
     print(f"\n[3/4] Extracting partial draft states (feature dim = {TOTAL_FEATURE_DIM})...")
@@ -252,7 +259,9 @@ def train():
     print("\n[4/4] Training...")
     rng = np.random.RandomState(42)
     unique_replays = np.unique(replay_ids)
-    if split_json:
+    if fixed_epochs:
+        test_replays, val_replays = set(), set()
+    elif split_json:
         is_post = np.array([int(r) in post for r in unique_replays])
         test_replays = set(unique_replays[is_post].tolist())
         era = rng.permutation(unique_replays[~is_post])
@@ -283,7 +292,8 @@ def train():
     train_ds = TensorDataset(X_train, S_train, Y_train)
     test_ds = TensorDataset(X_test, S_test, Y_test)
     train_loader = DataLoader(train_ds, batch_size=4096, shuffle=True, num_workers=4, pin_memory=True)
-    test_loader = DataLoader(test_ds, batch_size=4096, shuffle=False, num_workers=4, pin_memory=True)
+    test_loader = (DataLoader(test_ds, batch_size=4096, shuffle=False, num_workers=4, pin_memory=True)
+                   if len(test_ds) else None)
     # epoch selection: the train-era validation replays when split, else (research
     # default, unchanged) the test replays
     if split_json:
@@ -317,8 +327,9 @@ def train():
 
     best_test_acc = 0.0
     best_state = None
+    best_epoch = 0
 
-    for epoch in range(1, 51):
+    for epoch in range(1, (fixed_epochs or 50) + 1):
         # Train
         model.train()
         train_loss = 0.0
@@ -344,8 +355,8 @@ def train():
 
         scheduler.step()
 
-        # Evaluate every 5 epochs
-        if epoch % 5 == 0 or epoch == 1:
+        # Evaluate every 5 epochs (refit: no selection)
+        if not fixed_epochs and (epoch % 5 == 0 or epoch == 1):
             model.eval()
             test_loss = 0.0
             test_correct = 0
@@ -375,6 +386,7 @@ def train():
 
             if test_acc > best_test_acc:
                 best_test_acc = test_acc
+                best_epoch = epoch
                 best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
 
     # Restore best model
@@ -383,41 +395,61 @@ def train():
         model = model.to(device)
     print(f"\n  Best test accuracy: {best_test_acc:.4f}")
 
-    # ── Per-step accuracy breakdown ──
-    print("\n" + "=" * 60)
-    print("Per-step accuracy breakdown (test set)")
-    print("=" * 60)
+    # Refit sanity (fixed epochs): finite outputs and accuracy on the given
+    # test-window replays, which the refit trained on (in sample)
+    overall_acc = None
+    sanity = {}
+    if fixed_epochs:
+        model.eval()
+        idx = (np.where(np.array([int(r) in sanity_post for r in replay_ids]))[0]
+               if sanity_post else np.arange(min(len(labels), 200_000)))
+        out = []
+        with torch.no_grad():
+            for i in range(0, len(idx), 8192):
+                j = idx[i:i + 8192]
+                out.append(model(torch.tensor(features[j]).to(device),
+                                 torch.tensor(steps[j]).to(device)).cpu().numpy())
+        p_s = np.concatenate(out) if out else np.zeros(0)
+        sanity = {"sanity_test_acc": float(((p_s > 0.5) == (labels[idx] > 0.5)).mean()) if len(idx) else None,
+                  "sanity_rows": int(len(idx)), "finite": bool(np.isfinite(p_s).all())}
+        print(f"  refit sanity: {sanity}")
 
-    model.eval()
-    all_preds = []
-    all_labels = []
-    all_steps = []
+    if test_loader is not None:
+        # ── Per-step accuracy breakdown ──
+        print("\n" + "=" * 60)
+        print("Per-step accuracy breakdown (test set)")
+        print("=" * 60)
 
-    with torch.no_grad():
-        for X_batch, S_batch, Y_batch in test_loader:
-            X_batch = X_batch.to(device)
-            S_batch = S_batch.to(device)
-            preds = model(X_batch, S_batch)
-            all_preds.append(preds.cpu().numpy())
-            all_labels.append(Y_batch.cpu().numpy())
-            all_steps.append(S_batch.cpu().numpy())
+        model.eval()
+        all_preds = []
+        all_labels = []
+        all_steps = []
 
-    all_preds = np.concatenate(all_preds)
-    all_labels = np.concatenate(all_labels)
-    all_steps = np.concatenate(all_steps)
+        with torch.no_grad():
+            for X_batch, S_batch, Y_batch in test_loader:
+                X_batch = X_batch.to(device)
+                S_batch = S_batch.to(device)
+                preds = model(X_batch, S_batch)
+                all_preds.append(preds.cpu().numpy())
+                all_labels.append(Y_batch.cpu().numpy())
+                all_steps.append(S_batch.cpu().numpy())
 
-    overall_acc = ((all_preds > 0.5) == all_labels).mean()
-    print(f"\n  Overall test accuracy: {overall_acc:.4f}")
-    print(f"\n  {'Step':>6} {'Count':>8} {'Accuracy':>10} {'Avg Pred':>10} {'Avg |Pred-0.5|':>16}")
-    print(f"  {'-'*6} {'-'*8} {'-'*10} {'-'*10} {'-'*16}")
+        all_preds = np.concatenate(all_preds)
+        all_labels = np.concatenate(all_labels)
+        all_steps = np.concatenate(all_steps)
 
-    for step in sorted(np.unique(all_steps)):
-        mask = all_steps == step
-        count = mask.sum()
-        acc = ((all_preds[mask] > 0.5) == all_labels[mask]).mean()
-        avg_pred = all_preds[mask].mean()
-        avg_confidence = np.abs(all_preds[mask] - 0.5).mean()
-        print(f"  {int(step):6d} {count:8d} {acc:10.4f} {avg_pred:10.4f} {avg_confidence:16.4f}")
+        overall_acc = ((all_preds > 0.5) == all_labels).mean()
+        print(f"\n  Overall test accuracy: {overall_acc:.4f}")
+        print(f"\n  {'Step':>6} {'Count':>8} {'Accuracy':>10} {'Avg Pred':>10} {'Avg |Pred-0.5|':>16}")
+        print(f"  {'-'*6} {'-'*8} {'-'*10} {'-'*10} {'-'*16}")
+
+        for step in sorted(np.unique(all_steps)):
+            mask = all_steps == step
+            count = mask.sum()
+            acc = ((all_preds[mask] > 0.5) == all_labels[mask]).mean()
+            avg_pred = all_preds[mask].mean()
+            avg_confidence = np.abs(all_preds[mask] - 0.5).mean()
+            print(f"  {int(step):6d} {count:8d} {acc:10.4f} {avg_pred:10.4f} {avg_confidence:16.4f}")
 
     # Save model
     save_path = os.environ.get(
@@ -432,8 +464,9 @@ def train():
         "wp_groups": WP_GROUPS,
         # split mode: the epoch was chosen on validation (best_val_acc); test_acc
         # is the chosen model on the chronological test window
-        **({"best_val_acc": best_test_acc, "test_acc": float(overall_acc)}
-           if split_json else {}),
+        **({"best_val_acc": best_test_acc, "test_acc": float(overall_acc),
+            "best_epoch": best_epoch} if split_json and not fixed_epochs else {}),
+        **({"refit_epochs": fixed_epochs, **sanity} if fixed_epochs else {}),
     }, save_path)
     print(f"\n  Model saved to {save_path}")
     print(f"  File size: {os.path.getsize(save_path) / 1024:.1f} KB")

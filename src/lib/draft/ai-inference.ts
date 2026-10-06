@@ -11,7 +11,9 @@
  */
 import { DRAFT_SEQUENCE, type DraftData } from './types'
 import { HERO_ROLES } from '@/lib/data/hero-roles'
-import compositionsJson from '@/lib/data/compositions.json'
+// Composition table of the models' comp_wr features (built with the models
+// by training/production_refresh; not the display table in compositions.json)
+import modelCompositionsJson from '@/lib/data/model-compositions.json'
 
 import {
   HEROES, MAPS, NUM_HEROES, NUM_MAPS, NUM_TIERS, HERO_TO_IDX, MAP_TO_IDX, TIER_TO_IDX,
@@ -524,6 +526,7 @@ function computeEnrichedFeatures(
   t0HeroesIn: string[],
   t1HeroesIn: string[],
   map: string,
+  tier: string,
   draftData: DraftData,
 ): Float32Array {
   const features = new Float32Array(ENRICHED_DIM)
@@ -671,10 +674,11 @@ function computeEnrichedFeatures(
       }
       return null
     }
-    const hit = scan(draftData.compositions)
+    const modelComps = modelCompositionsJson as Record<string, { roles: string[]; winRate: number; games: number }[]>
+    const hit = scan(modelComps[tier] ?? [])
     if (hit) return hit
     for (const fallbackTier of ['mid', 'high', 'low']) {
-      const comps = (compositionsJson as any)[fallbackTier]
+      const comps = modelComps[fallbackTier]
       if (!comps) continue
       const fhit = scan(comps)
       if (fhit) return fhit
@@ -722,7 +726,7 @@ export async function getWinProbability(
     base.set(t, off); off += NUM_TIERS
     let inp: Float32Array
     if (draftData) {
-      const enriched = computeEnrichedFeatures(t0h, t1h, map, draftData)
+      const enriched = computeEnrichedFeatures(t0h, t1h, map, tier, draftData)
       inp = new Float32Array(WP_INPUT_DIM)
       inp.set(base, 0)
       inp.set(enriched, WP_BASE_DIM)
@@ -805,7 +809,7 @@ export async function getPartialProjection(
     inp.set(t1, off); off += NUM_HEROES
     inp.set(m, off); off += NUM_MAPS
     inp.set(tv, off); off += NUM_TIERS
-    inp.set(computeEnrichedFeatures(t0h, t1h, map, draftData), WP_BASE_DIM)
+    inp.set(computeEnrichedFeatures(t0h, t1h, map, tier, draftData), WP_BASE_DIM)
     const features = new ort.Tensor('float32', inp, [1, WP_INPUT_DIM])
     const stepT = new ort.Tensor('int64', BigInt64Array.from([stepIdx]), [1])
     const result: any = await withInferLock(() =>

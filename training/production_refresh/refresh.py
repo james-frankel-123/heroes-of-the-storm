@@ -43,6 +43,10 @@ Phases (subcommands; several may be given; `all` chains stats..export):
           seeds whose degenerate-comp rate is within DEGEN_TOL of the best.
   gates   check every deploy gate, record them in refresh_meta.json, exit
           nonzero if any fails (export runs this first)
+  refit   REFRESH_REFIT=1 (production): after the gates pass, refit WP and
+          partial-WP with the same seed and epochs on all games; sanity gate
+          (finite, test-window acc within 1pp of the gated model); export
+          then deploys the refits
   export  ONNX -> public/models/ via export_site_models.py (env-overridden
           paths) + copy site stats artifact into src/lib/data/
   all     everything in order; refuses to export if gates fail
@@ -111,6 +115,8 @@ OOF_FOLDS = 5
 REFRESH_WORKERS = 16  # CPU pool size (cadence.sh also pins to 16 cores)
 OOF_STATS_JSON = os.path.join(RUN_DIR, "stats_decayed90_oof{k}.json")
 STATS_TEST_JSON = os.path.join(RUN_DIR, "stats_decayed90_test.json")
+# all games, out of fold (as of the reference date): features for the refit
+ALL_OOF_STATS_JSON = os.path.join(RUN_DIR, "stats_decayed90_alloof{k}.json")
 TEST_DAYS = float(os.environ.get("REFRESH_TEST_DAYS", "14"))
 # train-era hash share held out of gradient steps: early stopping and seed /
 # epoch choice happen here, never on the test window the gates score
@@ -123,18 +129,41 @@ FEATURE_CACHE_VAL = os.path.join(RUN_DIR, "wp_features_val.npz")
 FEATURE_CACHE_TEST = os.path.join(RUN_DIR, "wp_features_test.npz")
 WP_PT = os.path.join(RUN_DIR, "wp_enriched_256.pt")
 PARTIAL_PT = os.path.join(RUN_DIR, "partial_wp_prod.pt")
+# Refit (REFRESH_REFIT=1; cadence.sh sets it): once the gated train-era models
+# pass every gate, the WP and partial-WP are refit with the same config (seed,
+# epochs) on all games and those refits are deployed, after a sanity gate.
+REFIT = os.environ.get("REFRESH_REFIT", "0") == "1"
+FEATURE_CACHE_ALL = os.path.join(RUN_DIR, "wp_features_all.npz")
+WP_REFIT_PT = os.path.join(RUN_DIR, "wp_enriched_256_refit.pt")
+PARTIAL_REFIT_PT = os.path.join(RUN_DIR, "partial_wp_prod_refit.pt")
+PARTIAL_MAX_REPLAYS = os.environ.get("REFRESH_PARTIAL_MAX_REPLAYS", "500000")
+REFIT_ACC_TOL_PP = 1.0   # refit's (in-sample) test-window acc within 1pp of the gated model
+# Recorded in refresh_meta.json and the log: which evaluation protocol made
+# these gate numbers (gates are only comparable within one protocol).
+PROTOCOL = {
+    "version": "chrono-v1",
+    "since": "2026-10-05",
+    "summary": ("chronological test window (REFRESH_TEST_DAYS) split before any aggregate; "
+                "train-era out-of-fold stats and own composition tables; epochs/seeds chosen "
+                "on train-era validation; seed selection and the deploy gate judged on "
+                "disjoint games; optional all-data refit after the gates"),
+    "previous": "random 98/2 split, out-of-fold stats over all games, Heroes Profile "
+                "composition table, test set used for selection and gates (until 2026-10-04)",
+}
 GD_PT = os.path.join(RUN_DIR, "generic_draft_0.pt")
 META_JSON = os.path.join(RUN_DIR, "refresh_meta.json")
 # Composition win-rate tables (the comp_wr features), built by the stats phase
 # from our own corpus with the same cells as the other stats: all games for
 # serving / search / the site (COMPOSITIONS_JSON, deployed as
-# src/lib/data/compositions.json), out of fold for training rows, train era
+# src/lib/data/model-compositions.json; the site's display panel keeps the
+# Heroes Profile table in compositions.json), out of fold for training rows, train era
 # only for test rows. Until 2026-10-05 one Heroes Profile table built from
 # all games (the live site file, rewritten by the nightly sync) fed every row.
 # Provenance: COMPOSITIONS_META_JSON and refresh_meta.json "compositions".
 COMPOSITIONS_JSON = os.path.join(RUN_DIR, "compositions.json")
 COMPS_OOF_JSON = os.path.join(RUN_DIR, "compositions_oof{k}.json")
 COMPS_TEST_JSON = os.path.join(RUN_DIR, "compositions_test.json")
+COMPS_ALL_OOF_JSON = os.path.join(RUN_DIR, "compositions_alloof{k}.json")
 COMPOSITIONS_META_JSON = os.path.join(RUN_DIR, "compositions.meta.json")
 COMP_MIN_GAMES = 100.0   # decayed team-games; HP listed comps with >= ~100 games
 # Corpus dump for machines without DB access (phase dump; HOTS_CORPUS_PATH).
@@ -257,12 +286,13 @@ def _new_cell():
     return {"games": 0.0, "bans": {}, **{k: {} for k in CELL_KEYS}}
 
 
-def _merge_cells(folds, skip=None, scales=None):
-    """Sum per-fold decayed count cells (optionally leaving one fold out;
-    scales[k] multiplies fold k, e.g. to move its decay reference date)."""
+def _merge_cells(folds, skip=(), scales=None):
+    """Sum per-fold decayed count cells, leaving out the indices in skip;
+    scales[k] multiplies fold k (e.g. to move its decay reference date)."""
     out = {}
+    skip = {skip} if isinstance(skip, int) else set(skip or ())
     for k, cells in enumerate(folds):
-        if k == skip:
+        if k in skip:
             continue
         sc = 1.0 if scales is None else scales[k]
         for tier, c in cells.items():
@@ -495,7 +525,7 @@ def phase_stats():
             e[1] += win_w
 
     folds = [{} for _ in range(OOF_FOLDS)]   # train era: fold -> tier -> cell, as of cut
-    test_cells = {}                          # test window: tier -> cell, as of ref
+    test_folds = [{} for _ in range(OOF_FOLDS)]   # test window: fold -> tier -> cell, as of ref
     post_cut_ids = []
     exclude_ids = []
     n_used = n_test = 0
@@ -522,7 +552,7 @@ def phase_stats():
             continue
         g_ord = gdate.toordinal() + gdate.hour / 24.0
         if post:
-            cells, age = test_cells, max(0.0, ref_ord - g_ord)
+            cells, age = test_folds[rid % OOF_FOLDS], max(0.0, ref_ord - g_ord)
             n_test += 1
         else:
             cells, age = folds[rid % OOF_FOLDS], max(0.0, cut_ord - g_ord)
@@ -556,7 +586,8 @@ def phase_stats():
     # serving: every game as of the reference date (train-era cells were
     # decayed as of the cut; one factor moves them to the reference date)
     to_ref = 0.5 ** (TEST_DAYS / HALF_LIFE_DAYS)
-    cells = _merge_cells(folds + [test_cells], scales=[to_ref] * OOF_FOLDS + [1.0])
+    all_scales = [to_ref] * OOF_FOLDS + [1.0] * OOF_FOLDS
+    cells = _merge_cells(folds + test_folds, scales=all_scales)
     train_cells = _merge_cells(folds)
     log(f"counted {n_used:,} games ({n_test:,} in the test window, "
         f"{len(exclude_ids):,} pre-2.55 excluded) in {time.time() - t0:.0f}s; "
@@ -579,6 +610,11 @@ def phase_stats():
     for k in range(OOF_FOLDS):
         comps[f"oof{k}"] = _write_compositions(_merge_cells(folds, skip=k),
                                                COMPS_OOF_JSON.format(k=k))
+        # refit (all games, out of fold): both eras minus fold k, as of ref
+        all_k = _merge_cells(folds + test_folds, skip=(k, OOF_FOLDS + k), scales=all_scales)
+        _write_training_stats(all_k, ALL_OOF_STATS_JSON.format(k=k), n_used,
+                              f"all games, out-of-fold: excludes fold {k} (refit)")
+        comps[f"alloof{k}"] = _write_compositions(all_k, COMPS_ALL_OOF_JSON.format(k=k))
     comp_meta = {
         "source": "own corpus (replay_draft_data), decayed team-composition counts",
         "built_by": "refresh.py phase stats", "half_life_days": HALF_LIFE_DAYS,
@@ -586,7 +622,8 @@ def phase_stats():
         "tables": {
             "compositions.json": f"all games through {ref_date} (serving, search, site)",
             "compositions_test.json": f"train era (games before {cut_date}): test-window rows",
-            "compositions_oof{k}.json": "train era minus fold k: training rows of fold k"},
+            "compositions_oof{k}.json": "train era minus fold k: training rows of fold k",
+            "compositions_alloof{k}.json": "all games minus fold k: refit rows of fold k"},
         "entries_per_tier": comps}
     json.dump(comp_meta, open(COMPOSITIONS_META_JSON, "w"), indent=1)
     log(f"composition tables (entries per tier): {comps}")
@@ -824,7 +861,7 @@ def phase_wp():
                                     if tied else None)
         accs.append(acc)
         if acc > best["acc"]:
-            best = {"acc": acc, "seed": seed,
+            best = {"acc": acc, "seed": seed, "epoch": model.best_epoch,
                     "state": {k: v.cpu().clone()
                               for k, v in model.state_dict().items()}}
     torch.save(best["state"], WP_PT)
@@ -841,6 +878,7 @@ def phase_wp():
         f"-> {WP_PT}")
     # best_acc / cal_slope (the gates) are measured on the test window only
     meta_update(wp={"best_acc": test_acc, "val_acc": best["acc"], "best_seed": best["seed"],
+                    "best_epoch": best["epoch"],
                     "all_val_accs": accs, "cal_slope": slope, "identity_tied": tied,
                     "finite": bool(np.isfinite(p).all())})
 
@@ -990,7 +1028,7 @@ def phase_partial():
     feature extraction."""
     import torch
     env = dict(os.environ)
-    env.update({"PARTIAL_WP_MAX_REPLAYS": "500000", "PARTIAL_WP_OUT": PARTIAL_PT,
+    env.update({"PARTIAL_WP_MAX_REPLAYS": PARTIAL_MAX_REPLAYS, "PARTIAL_WP_OUT": PARTIAL_PT,
                 "WP_STATS_PATH": STATS_JSON, "REPLAY_SNAPSHOT": "0",
                 "PARTIAL_WP_OOF_STATS": OOF_STATS_JSON,
                 "PARTIAL_WP_OOF_COMPS": COMPS_OOF_JSON,
@@ -1008,7 +1046,8 @@ def phase_partial():
     if "test_acc" not in ckpt:
         sys.exit("partial-WP checkpoint has no test-window accuracy (split not applied)")
     acc = float(ckpt["test_acc"])
-    meta_update(partial={"best_acc": acc, "val_acc": float(ckpt.get("best_val_acc", 0.0))})
+    meta_update(partial={"best_acc": acc, "val_acc": float(ckpt.get("best_val_acc", 0.0)),
+                         "best_epoch": int(ckpt["best_epoch"])})
     log(f"partial-WP done (test-window acc {acc:.4f}) -> {PARTIAL_PT}")
 
 
@@ -1540,7 +1579,9 @@ def check_gates():
                  and j["paired_diff"] - 2 * j["paired_se"] > 0)
     ok = all(v["pass"] for v in g.values())
     meta_update(gates={"pass": ok, "checked": datetime.datetime.now().isoformat(),
+                       "protocol": PROTOCOL["version"],
                        **g})
+    log(f"gates under evaluation protocol {PROTOCOL['version']}")
     for k, v in g.items():
         log(f"gate {k:26s} {'PASS' if v['pass'] else 'FAIL'}  "
             + json.dumps({kk: vv for kk, vv in v.items() if kk != 'pass'}))
@@ -1551,6 +1592,104 @@ def phase_gates():
     if not check_gates():
         sys.exit("GATE FAIL — not exporting (see refresh_meta.json 'gates')")
     log("all gates pass")
+
+
+# ── Phase: refit ─────────────────────────────────────────────────────
+
+def phase_refit():
+    """REFRESH_REFIT=1: after the gated (train-era) models pass every gate,
+    refit the WP and partial-WP with the same config on all games (all-games
+    out-of-fold stats and composition tables), then a sanity gate: finite
+    outputs and test-window accuracy within REFIT_ACC_TOL_PP of the gated
+    model (in sample for the refit, so only a sanity check)."""
+    if not REFIT:
+        log("refit: REFRESH_REFIT unset, the gated models are deployed")
+        return
+    if not check_gates():
+        sys.exit("GATE FAIL: no refit, nothing deployed (see refresh_meta.json 'gates')")
+    import numpy as np
+    import torch
+    from sweep_enriched_wp import (WinProbEnrichedModel, compute_group_indices,
+                                   precompute_all_features)
+    from experiment_synthetic_augmentation import ENRICHED_GROUPS
+    from retrain_frozen_stats import train_wp_model
+    from shared import tie_hero_columns
+    m = json.load(open(META_JSON))
+    wp_meta, partial_meta = m["wp"], m["partial"]
+    post = set(json.load(open(SPLIT_JSON))["post_cut_ids"])
+
+    # all-games feature cache (each row out of its own fold)
+    rows = _load_fresh_corpus()
+    parts, is_post = [], []
+    for k in range(OOF_FOLDS):
+        st = _stats_cache(ALL_OOF_STATS_JSON.format(k=k), COMPS_ALL_OOF_JSON.format(k=k))
+        for in_window in (False, True):
+            # featurized apart, so the test-window flags stay aligned even if
+            # the extractor drops a malformed row
+            sub = [r for r in rows if r["replay_id"] % OOF_FOLDS == k
+                   and (r["replay_id"] in post) == in_window]
+            if sub:
+                b, e, y = precompute_all_features(sub, st, num_workers=REFRESH_WORKERS)
+                parts.append((b.numpy(), e.numpy(), y.numpy()))
+                is_post.append(np.full(len(y), in_window))
+    _save_features(parts, FEATURE_CACHE_ALL)
+    is_post = np.concatenate(is_post)
+    del rows
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    gi = compute_group_indices()
+    cols = [c for g in ENRICHED_GROUPS for c in range(*gi[g])]
+    z = np.load(FEATURE_CACHE_ALL)
+    X = torch.tensor(np.concatenate([z["bases"], z["enricheds"][:, cols]], axis=1),
+                     dtype=torch.float32).to(device)
+    y = torch.tensor(z["labels"], dtype=torch.float32).to(device)
+    assert len(is_post) == len(y), (len(is_post), len(y))
+    tied = tied_heroes()
+    seed, epochs = wp_meta["best_seed"], wp_meta["best_epoch"]
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    log(f"refit WP: seed {seed}, {epochs} epochs on {len(y):,} rows (all games)")
+    model = WinProbEnrichedModel(wp_dim(), [256, 128], dropout=0.3)
+    model, _ = train_wp_model(model, X, None, y, None, "prod_wp-refit", device,
+                              after_step=(lambda mm: tie_hero_columns(mm.net[0].weight, tied))
+                              if tied else None, fixed_epochs=epochs)
+    torch.save({k: v.cpu() for k, v in model.state_dict().items()}, WP_REFIT_PT)
+    with torch.no_grad():
+        p = torch.cat([model(X[i:i + 65536]) for i in range(0, len(X), 65536)]).cpu().numpy()
+    yy = y.cpu().numpy()
+    tw = is_post
+    wp_acc = float(((p[tw] > 0.5) == (yy[tw] > 0.5)).mean() * 100) if tw.any() else None
+    wp_ok = bool(np.isfinite(p).all()) and wp_acc is not None and \
+        abs(wp_acc - wp_meta["best_acc"]) <= REFIT_ACC_TOL_PP
+    del X, y
+
+    env = dict(os.environ)
+    env.update({"PARTIAL_WP_MAX_REPLAYS": PARTIAL_MAX_REPLAYS, "PARTIAL_WP_OUT": PARTIAL_REFIT_PT,
+                "WP_STATS_PATH": STATS_JSON, "REPLAY_SNAPSHOT": "0",
+                "PARTIAL_WP_OOF_STATS": ALL_OOF_STATS_JSON,
+                "PARTIAL_WP_OOF_COMPS": COMPS_ALL_OOF_JSON,
+                "PARTIAL_WP_OOF_FOLDS": str(OOF_FOLDS),
+                "PARTIAL_WP_FIXED_EPOCHS": str(partial_meta["best_epoch"]),
+                "PARTIAL_WP_SANITY_SPLIT_JSON": SPLIT_JSON,
+                "PARTIAL_WP_TIE_HEROES": json.dumps(tied)})
+    env.pop("PARTIAL_WP_SPLIT_JSON", None)
+    subprocess.run([sys.executable, "-u", os.path.join(TRAINING_DIR, "train_partial_wp.py")],
+                   env=env, check=True, cwd=TRAINING_DIR)
+    ck = torch.load(PARTIAL_REFIT_PT, weights_only=True, map_location="cpu")
+    pacc = ck.get("sanity_test_acc")
+    p_ok = bool(ck.get("finite")) and pacc is not None and \
+        abs(100 * pacc - 100 * partial_meta["best_acc"]) <= REFIT_ACC_TOL_PP
+    res = {"pass": wp_ok and p_ok, "tol_pp": REFIT_ACC_TOL_PP,
+           "wp": {"seed": seed, "epochs": epochs, "rows": int(len(p)),
+                  "finite": bool(np.isfinite(p).all()), "test_window_acc_in_sample": wp_acc,
+                  "gated_test_acc": wp_meta["best_acc"], "pass": wp_ok},
+           "partial": {"epochs": partial_meta["best_epoch"], "finite": bool(ck.get("finite")),
+                       "test_window_acc_in_sample": pacc, "gated_test_acc": partial_meta["best_acc"],
+                       "pass": p_ok}}
+    meta_update(refit=res)
+    log(f"refit sanity: {json.dumps(res)}")
+    if not res["pass"]:
+        sys.exit("REFIT SANITY FAIL: not exporting (see refresh_meta.json 'refit')")
 
 
 # ── Phase: export ────────────────────────────────────────────────────
@@ -1589,7 +1728,15 @@ def phase_export():
         sys.exit("EXPORT REFUSED: the site's src/lib/draft/encoding.ts (origin/main) does "
                  "not encode the same heroes/maps as training/shared.py "
                  f"(HOTS_HERO_SET={os.environ['HOTS_HERO_SET']}); deploy the site code first")
-    best_seed = json.load(open(META_JSON))["select"]["seed"]
+    m = json.load(open(META_JSON))
+    wp_pt, partial_pt = WP_PT, PARTIAL_PT
+    if REFIT:
+        if not m.get("refit", {}).get("pass"):
+            sys.exit("EXPORT REFUSED: REFRESH_REFIT=1 but no passing refit in refresh_meta.json "
+                     "(run phase refit)")
+        wp_pt, partial_pt = WP_REFIT_PT, PARTIAL_REFIT_PT
+        log(f"exporting the all-data refits ({wp_pt}, {partial_pt})")
+    best_seed = m["select"]["seed"]
 
     # REFRESH_EXPORT_DIR: export into <dir>/public/models and <dir>/src/lib/data
     # (remote runs; the files are copied back for the deploy). Default: this
@@ -1602,14 +1749,14 @@ def phase_export():
     env.update({
         "SITE_POLICY_PT": os.path.join(RUN_DIR, f"mcts_s{best_seed}", "draft_policy.pt"),
         "SITE_GD_PT": GD_PT,
-        "SITE_WP_PT": WP_PT,
+        "SITE_WP_PT": wp_pt,
         "SITE_MODELS_DIR": models_dir,
     })
     subprocess.run([sys.executable,
                     os.path.join(TRAINING_DIR, "export_site_models.py")],
                    env=env, check=True, cwd=TRAINING_DIR)
     penv = dict(os.environ)
-    penv["PARTIAL_WP_CKPT"] = PARTIAL_PT
+    penv["PARTIAL_WP_CKPT"] = partial_pt
     penv["SITE_MODELS_DIR"] = models_dir
     subprocess.run([sys.executable,
                     os.path.join(TRAINING_DIR, "production_refresh", "export_partial_wp.py")],
@@ -1621,21 +1768,22 @@ def phase_export():
     log(f"site stats artifact -> {dst}")
     # the comp_wr features were computed from this snapshot; cadence.sh deploys
     # it with the models so the site serves the same table
-    shutil.copy(COMPOSITIONS_JSON, os.path.join(data_dir, "compositions.json"))
-    meta_update(exported=True, export_date=datetime.datetime.now().isoformat())
+    shutil.copy(COMPOSITIONS_JSON, os.path.join(data_dir, "model-compositions.json"))
+    meta_update(exported=True, export_date=datetime.datetime.now().isoformat(),
+                exported_models={"wp": wp_pt, "partial_wp": partial_pt, "refit": REFIT})
     log("export complete — commit public/models/ + src/lib/data/draft-stats-decayed.json "
-        "+ src/lib/data/compositions.json to deploy")
+        "+ src/lib/data/model-compositions.json to deploy")
 
 
 PHASES = {"dump": phase_dump, "stats": phase_stats, "data": phase_data, "wp": phase_wp, "lowdata": phase_lowdata,
           "partial": phase_partial, "gd": phase_gd,
           "kparity": phase_kparity, "mcts": phase_mcts,
-          "select": phase_select, "gates": phase_gates,
+          "select": phase_select, "gates": phase_gates, "refit": phase_refit,
           "export": phase_export}
 
 
 ALL = ("stats", "data", "wp", "lowdata", "partial", "gd", "kparity", "mcts", "select",
-       "export")
+       "refit", "export")
 
 
 def main():
@@ -1651,6 +1799,10 @@ def main():
         print(mcts_cmd(args.seed))
         return
     names = list(ALL) if args.phases == ["all"] else args.phases
+    log(f"evaluation protocol {PROTOCOL['version']} (since {PROTOCOL['since']}): "
+        f"{PROTOCOL['summary']}; test window {TEST_DAYS:g} days; refit "
+        f"{'on' if REFIT else 'off'}")
+    meta_update(protocol={**PROTOCOL, "test_days": TEST_DAYS, "refit": REFIT})
     for name in names:
         done = json.load(open(META_JSON)).get("phases_done", []) if os.path.exists(META_JSON) else []
         if args.resume and name in done:

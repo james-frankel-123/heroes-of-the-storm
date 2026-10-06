@@ -7,7 +7,7 @@ import {
   NUM_HEROES, NUM_MAPS, WP_BASE_DIM, ENRICHED_DIM,
 } from '../src/lib/draft/encoding'
 import draftStats from '../src/lib/data/draft-stats-decayed.json'
-import compositionsJson from '../src/lib/data/compositions.json'
+import modelCompositionsJson from '../src/lib/data/model-compositions.json'
 import goldens from './feature-parity-goldens.json'
 
 const g = goldens as any
@@ -35,9 +35,9 @@ for (const c of g.cases as any[]) {
     heroStats: t.heroStats, heroMapWinRates: t.heroMapWinRates,
     synergies: t.synergies, counters: t.counters,
     playerStats: {}, playerMapStats: {},
-    compositions: (compositionsJson as any)[c.tier] ?? [], baselineCompWR: 50,
+    compositions: (modelCompositionsJson as any)[c.tier] ?? [], baselineCompWR: 50,
   }
-  const ts = _testComputeEnrichedFeatures(c.t0, c.t1, c.map, draftData)
+  const ts = _testComputeEnrichedFeatures(c.t0, c.t1, c.map, c.tier, draftData)
   for (let i = 0; i < ENRICHED_DIM; i++) {
     const d = Math.abs(ts[i] - c.enriched[i])
     if (d > worst) { worst = d; worstInfo = `idx ${i} (${c.t0.length}v${c.t1.length}, ${c.map}/${c.tier}): ts=${ts[i].toFixed(3)} py=${c.enriched[i]}` }

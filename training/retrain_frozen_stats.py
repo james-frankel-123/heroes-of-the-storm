@@ -43,19 +43,22 @@ ALL_MASK = [True] * len(FEATURE_GROUPS)
 
 
 def train_wp_model(model, train_X, test_X, train_y, test_y, name, device,
-                   lr=5e-4, epochs=200, patience=25, after_step=None):
+                   lr=5e-4, epochs=200, patience=25, after_step=None, fixed_epochs=None):
     """after_step(model): optional hook run after every optimizer step (and
-    once before training), e.g. shared.tie_hero_columns."""
+    once before training), e.g. shared.tie_hero_columns.
+    The returned model carries best_epoch (epochs run to its selected state).
+    fixed_epochs=N: train exactly N epochs with no evaluation or selection
+    (refit on all data; test_X/test_y may be None); returns (model, None)."""
     criterion = nn.BCELoss()
     model.to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=5e-3)
     sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=100, eta_min=1e-5)
-    best_loss, best_acc, best_state = float('inf'), 0, None
+    best_loss, best_acc, best_state, best_ep = float('inf'), 0, None, 0
     pat = 0
     n = len(train_X)
     if after_step is not None:
         after_step(model)
-    for ep in range(epochs):
+    for ep in range(fixed_epochs or epochs):
         model.train()
         pm = torch.randperm(n, device=device)
         for i in range(0, n, 4096):
@@ -65,13 +68,15 @@ def train_wp_model(model, train_X, test_X, train_y, test_y, name, device,
             if after_step is not None:
                 after_step(model)
         sch.step()
+        if fixed_epochs:
+            continue
         model.eval()
         with torch.no_grad():
             tp = model(test_X)
             tl = criterion(tp, test_y).item()
             ta = ((tp > 0.5).float() == test_y).float().mean().item() * 100
         if tl < best_loss:
-            best_loss, best_acc = tl, ta
+            best_loss, best_acc, best_ep = tl, ta, ep + 1
             best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
             pat = 0
         else:
@@ -80,8 +85,13 @@ def train_wp_model(model, train_X, test_X, train_y, test_y, name, device,
                 break
         if (ep + 1) % 20 == 0:
             print(f'  {name} ep{ep+1}: acc={ta:.2f}% best={best_acc:.2f}%')
+    if fixed_epochs:
+        model.eval()
+        model.best_epoch = fixed_epochs
+        return model, None
     model.load_state_dict(best_state)
     model.eval()
+    model.best_epoch = best_ep
     return model, best_acc
 
 
