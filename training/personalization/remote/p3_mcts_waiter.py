@@ -175,6 +175,9 @@ def main():
             pick = next((q for q in cand if (q.get("gpu", True) and gpu_ok) or
                          (not q.get("gpu", True) and not cpu_busy)), None)
             if pick is None:
+                if DRY:
+                    log(f"[dry] {host}: nothing to launch (live MCTS {len(live)}/{cap}, cpu busy {cpu_busy}, "
+                        f"avail {avail:.0f} GB)")
                 continue
             todo.remove(pick)
             name = pick["name"]

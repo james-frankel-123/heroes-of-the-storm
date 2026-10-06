@@ -192,9 +192,24 @@ def result_path(name):
     if not mode or not name.startswith(SEARCH_OUTPUTS):
         return os.path.join(C.CACHE, name)
     assign = os.environ.get("P3_ASSIGN", "team")
+    if "_collapse_" in name:
+        assign = "slot"  # collapse probes ask what one given player gets: always slot mode
     if assign != "slot":
         name = f"{name[:-len('.pkl.gz')]}_assign-{assign}.pkl.gz"
     return os.path.join(C.CACHE, "mcts_v2", mode, name)
+
+
+def team_mixture(x):
+    """Assign mode: who on a team makes a given pick is not known before the
+    draft, so a per-slot behavioral term (imitation bias, distilled prior
+    bias) is replaced, for every slot of a team, by the team mixture
+    log(mean_i exp(x_i)) over its five players. x: (10, H)."""
+    out = np.empty_like(x)
+    for t in (0, 1):
+        blk = x[5 * t:5 * t + 5].astype(np.float64)
+        m = blk.max(0)
+        out[5 * t:5 * t + 5] = (m + np.log(np.exp(blk - m).mean(0)))[None, :]
+    return out
 
 
 def clear_partials(tag):

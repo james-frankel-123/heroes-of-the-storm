@@ -129,6 +129,8 @@ class Setup:
             pm = np.zeros(NUM_HEROES, bool)
             pm[self.to_sh] = T["pool"][p]
             pool[sl] = M.pool_bits(pm)
+        if M.assign_mode() == 1:
+            imit = M.team_mixture(imit)
         return {"gi": int(gi), "first": int(first), "acts": acts, "slot_of": slot_of, "forced": forced,
                 "rows": rows, "s": s, "off": off, "imit": imit, "pool": pool,
                 "map": self.MAPS.index(str(self.L["map"][gi])), "tier": self.TIERS.index(str(self.L["tier"][gi])),

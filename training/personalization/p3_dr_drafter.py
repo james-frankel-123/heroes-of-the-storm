@@ -132,6 +132,12 @@ def best_assignment(heroes, lob, t, b):
     return out
 
 
+def _logmeanexp(xs):
+    a = np.stack(xs).astype(np.float64)
+    m = a.max(0)
+    return (m + np.log(np.exp(a - m).mean(0))).astype(np.float32)
+
+
 def _mode(lob):
     """Assignment mode for this lobby: the run's --assign, except collapse
     probes, which ask what the drafter picks for one given player (slot)."""
@@ -188,7 +194,8 @@ def _policy_sample(states, k, lob, rng, kind):
     lp = gd.logprobs(t0, t1, bans, np.repeat(lob["mo"][None], B, 0), np.repeat(lob["to"][None], B, 0),
                      np.full(B, k, np.float32), np.ones(B, np.float32), avail)
     if kind == "imit":
-        u = _W["iw0"] * lp + lob["ipers"][row][None, :]
+        ip = lob["ipers_team"][tm] if _mode(lob) == "team" else lob["ipers"][row]
+        u = _W["iw0"] * lp + ip[None, :]
         u = np.where(avail, u, -1e9)
         u -= u.max(1, keepdims=True)
         p = np.exp(u)
@@ -343,6 +350,10 @@ def lobby_payload(L, T, gi, ipers, ctrl, bidx_all, extra_rows=None):
             "pool": {r: T["pool"][p] for r, p in zip(rows, pos)},
             "ipers": {r: ipers[r] for r in rows},
             "team_rows": {t: [int(s[3]) for s in st if s[1] == 1 and s[2] == t] for t in (0, 1)},
+            # team mode: who makes a pick is unknown, so the imitation term is the
+            # mixture log(mean exp) over the team's five players
+            "ipers_team": {t: _logmeanexp([ipers[int(s[3])] for s in st if s[1] == 1 and s[2] == t])
+                           for t in (0, 1)},
             "team_pool": {t: np.any([T["pool"][T["pos"][int(s[3])]] for s in st if s[1] == 1 and s[2] == t],
                                     axis=0) for t in (0, 1)}}
 

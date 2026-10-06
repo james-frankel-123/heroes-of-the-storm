@@ -21,7 +21,7 @@
  },
  {
   "name": "p3mcts_collapse_s400",
-  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_mcts_drafter.py --stage collapse --sims 400 --search-mode chance --assign team",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=slot python personalization/p3_mcts_drafter.py --stage collapse --sims 400 --search-mode chance --assign slot",
   "needs": [],
   "gpu": true,
   "hosts": [
@@ -149,7 +149,7 @@
  },
  {
   "name": "p3mcts_ds_collapse_s400",
-  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=team python personalization/p3_ds_mcts.py --stage collapse --sims 400 --search-mode chance --assign team",
+  "cmd": "env P3_SEARCH_MODE=chance P3_ASSIGN=slot python personalization/p3_ds_mcts.py --stage collapse --sims 400 --search-mode chance --assign slot",
   "needs": [
    "p3cpu_ds_train"
   ],

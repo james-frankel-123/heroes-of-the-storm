@@ -58,7 +58,8 @@ class PriorSetup(Setup):
     def bias_for(self, lb):
         key = tuple(int(r) for r in lb["rows"])
         if key not in self._bias:
-            self._bias[key] = DS.slot_bias(self.model, self, lb["rows"], self.to_sh)
+            b = DS.slot_bias(self.model, self, lb["rows"], self.to_sh)
+            self._bias[key] = M.team_mixture(b) if M.assign_mode() == 1 else b
         return self._bias[key]
 
     def precompute_bias(self, lbs):
@@ -71,7 +72,7 @@ class PriorSetup(Setup):
             out = np.zeros((10, NUM_HEROES), np.float32)
             for s in range(10):
                 out[s, self.to_sh] = b[pos[int(lb["rows"][s])]]
-            self._bias[tuple(int(r) for r in lb["rows"])] = out
+            self._bias[tuple(int(r) for r in lb["rows"])] = M.team_mixture(out) if M.assign_mode() == 1 else out
 
     def run_prior(self, jobs, sims, seed, use_prior=1, alpha=None, zero_bias=False, kernel="prior"):
         out = [None] * len(jobs)
