@@ -40,6 +40,22 @@ Rules for every item: research stays on the 90-hero v1 set; snapshot data and bu
 | E2 | #12: regression battery and deployment gates (golden V2/OOT sets, slope, ECE, coefficient, per-n slopes, visibility, hero-set assertions) | main (code), 3090 run | A7 | Oct 11 |
 | E3 | 5.5: nightly `player_skill_state` table builder keyed (region, blizz_id, hero) with the WP vintage id; not deployed | main (code) | E1 | Oct 12 |
 
+## Second review (Astra) folded in, deduplicated against Fable
+
+| # | item | status | where |
+|---|---|---|---|
+| X1 | Actor order is oracle information (who on a team makes each pick) | team mode removes it from valuation (best assignment) and from behavioral terms (team mixture of imitation and prior bias); collapse probes stay per player | p3_dr_drafter, p3_mcts_drafter, p3_ds_mcts, kernels |
+| X2 | History walkers in the personal GD and ban features did not require prior games to have ended before the queried game started | fixed (pending-queue walk) | p3_pgd_feats, p3_x_ban_feat |
+| X3 | Patch-jump test demeans with full-sample (build, hero) means and effect-defined groups | past-only demeaning, release-time triggers, power check by injected jumps | b25 agent (with B5) |
+| X4 | Map forward check took its shrinkage from the test era | E-only variance components | p3_x_map |
+| X5 | First appearances ordered by day and replay_id | ordered by game time | p3_fix_neverplayed |
+| X6 | Personal GD: drop preference clusters | deployed head is the no-cluster variant, 200K training games | p3_pgd_model, p3_pgd_mcts |
+| X7 | Sealed final window | OOT build 2.55.17.98025 (2026-09-12 to 09-27) is scored once, with --final, after all choices | B agents |
+| X8 | Nested ablations against the account-status model; week-block bootstrap | in the joint combiner | b13 agent (with B1) |
+| X9 | MCTS: factorial design (value x rollout x prior x opponent identity), sparse-history lobbies, seeds, equal wall clock | queued after the base reruns; the waiter queue gets the extra arms once the base runs report | D5 |
+| X10 | Regression checks: future-deletion invariance, permuted future picks and pick order | to add to prod/gates as fixture tests | E2 |
+| X11 | Production refresh: outer chronological split before aggregates, composition provenance, judge/selection separation | outside this lane (production refresh); flagged to the coordinator | refresh.py |
+
 Out of scope by instruction: Fable 2.57 prospective test (5.6) and any pre-registration.
 
 ## Milestone reports
@@ -50,5 +66,7 @@ Out of scope by instruction: Fable 2.57 prospective test (5.6) and any pre-regis
 4. Reruns: C3 and D5 results.
 
 ## Status log
+
+- 2026-10-05 23:40: A1-A6 code committed (3c1ffba, 7ea104f, 731cd25, b883067, 1c9ba1c). Fixes chain running on the 3090 (stage hs_fit). Train-window GD training on the 3090 (data stage). P3 kernels built on the 3090 with mid_high_low (BUILD OK). Production plumbing E1-E3 committed (9732088). B agents writing and dev-testing on legacy caches.
 
 - 2026-10-05: plan written. Backfill 331,178 replays left below the cursor. Paper 1 holds the 3090 (2 MCTS) and the 3080 (1 MCTS). The drift waiter is waiting for HANDOFF.
