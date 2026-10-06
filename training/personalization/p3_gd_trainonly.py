@@ -94,7 +94,7 @@ class _Batches:
     def __init__(self, d, dev):
         from train_generic_draft import CompactDraftDataset, INPUT_DIM, NUM_HEROES
         ds = CompactDraftDataset(None, d)
-        self.X = torch.from_numpy(np.ascontiguousarray(ds.X[:]))
+        self.X = torch.from_numpy(np.array(ds.X[:]))
         self.y = torch.from_numpy(np.asarray(ds.y[:], dtype=np.int64))
         self.n, self.dev, self.H, self.step = len(self.y), dev, NUM_HEROES, CompactDraftDataset.STEP_COL
 
@@ -105,12 +105,17 @@ class _Batches:
         taken = (x[:, :H] + x[:, H:2 * H] + x[:, 2 * H:3 * H]).clamp(max=1.0)
         return x, 1.0 - taken
 
-    def iterate(self, bs, order=None):
+    def iterate(self, bs, order=None, chunk=256):
+        """Copies chunk batches to the device at once (one copy per batch cost
+        about 20 ms next to the MCTS jobs on the same GPU), then slices there."""
         idx = torch.arange(self.n) if order is None else order
-        for a in range(0, self.n, bs):
-            b = idx[a:a + bs]
-            x, m = self.decode(self.X[b])
-            yield x, self.y[b].to(self.dev), m
+        step = bs * chunk
+        for c in range(0, self.n, step):
+            b = idx[c:c + step]
+            xc, mc = self.decode(self.X[b].pin_memory())
+            yc = self.y[b].to(self.dev, non_blocking=True)
+            for a in range(0, len(b), bs):
+                yield xc[a:a + bs], yc[a:a + bs], mc[a:a + bs]
 
 
 def gd():
