@@ -172,7 +172,7 @@ def realized(X, R, rng, gis_subset=None):
 
 
 def onestep_realized(X, gis_subset, rng):
-    z = pickle.load(gzip.open(os.path.join(C.CACHE, "dr_runs.pkl.gz")))
+    z = pickle.load(gzip.open(os.path.join(C.CACHE, "dr_runs.pkl.gz" if os.environ.get("P3_LOBBY_SET", "all10") == "all10" else f"dr_runs_{os.environ['P3_LOBBY_SET']}.pkl.gz")))
     recs = []
     for l in z["lobbies"]:
         if l["gi"] not in gis_subset:
@@ -241,7 +241,7 @@ def main():
             creal[h] += 1
     cp, cq = counts("b|pers"), counts("b|pop")
     sh = lambda c: c / c.sum()
-    z1 = pickle.load(gzip.open(os.path.join(C.CACHE, "dr_runs.pkl.gz")))
+    z1 = pickle.load(gzip.open(os.path.join(C.CACHE, "dr_runs.pkl.gz" if os.environ.get("P3_LOBBY_SET", "all10") == "all10" else f"dr_runs_{os.environ['P3_LOBBY_SET']}.pkl.gz")))
     c1p, c1q = np.zeros(NUM_HEROES), np.zeros(NUM_HEROES)
     for l in z1["lobbies"]:
         if "b|pers" in l:

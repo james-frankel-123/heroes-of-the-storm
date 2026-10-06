@@ -75,7 +75,10 @@ class Setup:
         self.coefs = np.array([0.0, b[1], b[2], b[3], self.iw[0]], np.float32)
         w = np.load(C.WP)
         self.bidx_all = w["build_idx"][np.argsort(w["replay_ids"])]
-        z = pickle.load(gzip.open(os.path.join(C.CACHE, "dr_runs.pkl.gz")))
+        # lobby set: P3_LOBBY_SET=ctrl5 takes the controlled-team-only lobbies
+        lset = os.environ.get("P3_LOBBY_SET", "all10")
+        runs = "dr_runs.pkl.gz" if lset == "all10" else f"dr_runs_{lset}.pkl.gz"
+        z = pickle.load(gzip.open(os.path.join(C.CACHE, runs)))
         self.full_set = z["full_set"]
         self.extra_set = z["extra_set"]
         self.coll_players = z["coll_players"]

@@ -366,9 +366,13 @@ def main():
     ap.add_argument("--contexts", type=int, default=30)
     ap.add_argument("--procs", type=int, default=4)
     ap.add_argument("--assign", choices=["team", "slot"], default="team")
+    ap.add_argument("--lobby-req", choices=["all10", "ctrl5"], default="all10",
+                    help="all10: every player has 50+ earlier games; ctrl5: only the controlled team")
     a = ap.parse_args()
-    global ASSIGN
+    global ASSIGN, OUT
     ASSIGN = a.assign
+    if a.lobby_req != "all10":
+        OUT = OUT.replace("dr_runs.pkl.gz", f"dr_runs_{a.lobby_req}.pkl.gz")
     t0 = time.time()
     import p3_dr_core as D
     import p3_dr_imitation as I
@@ -385,12 +389,22 @@ def main():
     prow = L["steps"][:, :, 3]
     picks = prow[prow >= 0].reshape(len(L["replay_id"]), 10)
     npos = np.vectorize(lambda r: T["pos"][int(r)])(picks)
-    est = (T["n_p"][npos] >= 50).all(1)
+    rich = T["n_p"][npos] >= 50
+    if a.lobby_req == "all10":
+        est = rich.all(1)
+        ctrl_fix = None
+    else:
+        # deployable case: the controlled team is resolved (all five with 50+
+        # earlier games), the opponents are not all resolved
+        tm = L["steps"][:, :, 2][prow >= 0].reshape(len(L["replay_id"]), 10)
+        ok = np.stack([np.where(tm == t, rich, True).all(1) for t in (0, 1)], 1)
+        est = ok.any(1) & ~ok.all(1)
+        ctrl_fix = np.where(ok[:, 0], 0, 1)
     cand = np.flatnonzero((L["day"] >= med) & est)
     rng = np.random.RandomState(42)
     sel = rng.choice(cand, a.lobbies + a.real_extra, replace=False)
     full_set, extra_set = sel[:a.lobbies], sel[a.lobbies:]
-    print(f"eligible V2 lobbies (all ten players >= 50 games): {len(cand):,}; full {len(full_set)}, "
+    print(f"eligible V2 lobbies ({a.lobby_req}): {len(cand):,}; full {len(full_set)}, "
           f"realized-only {len(extra_set)}", flush=True)
     # imitation personal part (state-independent) for needed rows
     iw = np.load(I.OUT)["w"]
@@ -408,7 +422,9 @@ def main():
     shared = {"hero_names": d["hero_names"], "b": b, "iw0": float(iw[0])}
     tasks = []
     for gi in full_set:
-        tasks.append((lobby_payload(L, T, gi, ipers, rng.randint(2), bidx_all), int(1000 + gi), True))
+        c_ = rng.randint(2)
+        tasks.append((lobby_payload(L, T, gi, ipers, c_ if ctrl_fix is None else int(ctrl_fix[gi]), bidx_all),
+                       int(1000 + gi), True))
     for gi in extra_set:
         tasks.append((lobby_payload(L, T, gi, ipers, 0, bidx_all), int(1000 + gi), False))
     # collapse contexts: other lobbies' team-0 pick steps, player substituted

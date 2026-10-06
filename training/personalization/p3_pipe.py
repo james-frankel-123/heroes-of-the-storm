@@ -106,6 +106,7 @@ CHAINS = {
         s("dr_tables", "p3_dr_core.py", "tables"),
         s("dr_imitation", "p3_dr_imitation.py"),
         s("dr_drafter", "p3_dr_drafter.py", "--procs", "7", "--assign", "team"),
+        s("dr_drafter_ctrl5", "p3_dr_drafter.py", "--procs", "7", "--assign", "team", "--lobby-req", "ctrl5"),
         s("dr_analyze", "p3_dr_analyze.py"),
         s("fix_realized_onestep", "p3_fix_realized.py"),
         s("fix_ext5_bsim", "p3_fix_ext5.py", "b_sim", "--procs", "7"),

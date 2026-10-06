@@ -164,11 +164,15 @@ def main():
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
         sys.exit("another orchestrator holds the lock")
+    open(os.path.join(LOGS, "p3_orch.pid"), "w").write(f"{os.getpid()}\n")
     state = json.load(open(STATE)) if os.path.exists(STATE) else {"done": []}
     log(f"start pid {os.getpid()}; done so far {state['done']}")
     steps = [
         ("wait_fixes", lambda: wait_job(H90, "p3_fixes") == "completed"),
         ("wait_gd", lambda: wait_job(H90, "p3_gd_trainonly2") == "completed"),
+        ("sync_code_3090", lambda: subprocess.run(
+            [os.path.join(TRAINING, "remote_workers", "sync.sh"), H90, "code"], cwd=REPO,
+            capture_output=True).returncode == 0),
         ("drafter_chain", lambda: job_ok(H90, "p3_drafter", ["python", "personalization/p3_pipe.py", "drafter"],
                                          grep="chain drafter complete")),
         ("verify_3090", lambda: verify(H90, "3090", "32-35", "24G")),

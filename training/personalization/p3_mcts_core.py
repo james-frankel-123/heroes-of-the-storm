@@ -109,7 +109,8 @@ def assign_mode_name():
 def out_path(fname):
     """Search outputs of the fixed kernel live apart from the legacy-tree
     caches: cache/mcts_v2/<search mode>/<fname>. Written atomically."""
-    d = os.path.join(HERE, "cache", "mcts_v2", search_mode_name() or "unset")
+    lset = os.environ.get("P3_LOBBY_SET", "all10")
+    d = os.path.join(HERE, "cache", "mcts_v2", (search_mode_name() or "unset") + ("" if lset == "all10" else "_" + lset))
     os.makedirs(d, exist_ok=True)
     return os.path.join(d, fname)
 
@@ -196,7 +197,8 @@ def result_path(name):
         assign = "slot"  # collapse probes ask what one given player gets: always slot mode
     if assign != "slot":
         name = f"{name[:-len('.pkl.gz')]}_assign-{assign}.pkl.gz"
-    return os.path.join(C.CACHE, "mcts_v2", mode, name)
+    lset = os.environ.get("P3_LOBBY_SET", "all10")
+    return os.path.join(C.CACHE, "mcts_v2", mode + ("" if lset == "all10" else "_" + lset), name)
 
 
 def team_mixture(x):
