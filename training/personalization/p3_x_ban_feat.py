@@ -80,7 +80,10 @@ def _walk(starts, ends, hero, y, r, t_end, t_start, qslot,
         head = np.zeros(NUM_HEROES, np.int64)  # ring entries beyond cnt are never read
         tlast = -1.0
         ap = starts[p]
-        for i in range(starts[p], ends[p]):
+        # queries in start-time order; history rows (end-time order) enter once
+        # they ended before the query started, so the included set only grows
+        qord = starts[p] + np.argsort(t_start[starts[p]:ends[p]], kind="mergesort")
+        for i in qord:
             now = t_start[i]
             # decay the calendar-decayed counts to now
             if tlast >= 0:
@@ -90,7 +93,7 @@ def _walk(starts, ends, hero, y, r, t_end, t_start, qslot,
             tlast = max(tlast, now)
             # games enter the history only once they have ended before this
             # game started (end-time order: the first unfinished one blocks)
-            while ap < i and t_end[ap] <= now:
+            while ap < ends[p] and t_end[ap] <= now:
                 h0 = hero[ap]
                 cnt[h0] += 1
                 dec[h0] += np.exp(-lam_d * max(now - t_end[ap], 0.0) / 86400.0)
@@ -138,9 +141,11 @@ def _walk(starts, ends, hero, y, r, t_end, t_start, qslot,
 def play_times(d):
     z = np.load(GAMETIME)
     o = np.argsort(z["replay_ids"])
-    j = np.searchsorted(z["replay_ids"][o], d["replay_id"])
-    t_end = z["ts"][o][j].astype(np.float64)
-    gl = z["game_length"][o][j].astype(np.float64)
+    zs = z["replay_ids"][o]
+    j = np.minimum(np.searchsorted(zs, d["replay_id"]), len(zs) - 1)
+    ok = zs[j] == d["replay_id"]  # a missing replay must not take a neighbour's time
+    t_end = np.where(ok, z["ts"][o][j], d["day"] * 86400.0 + 43200.0).astype(np.float64)
+    gl = np.where(ok, z["game_length"][o][j], -1).astype(np.float64)
     t_start = t_end - np.where(gl > 0, gl, 1200.0)
     return t_end, t_start
 

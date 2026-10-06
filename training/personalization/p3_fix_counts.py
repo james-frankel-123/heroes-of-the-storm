@@ -117,7 +117,9 @@ def recency_features_l1(d, qrows):
         _RK = _recency_l1_kernel()
     gt = np.load(os.path.join(C.CACHE, "gametime_2024q2.npz"))
     o = np.argsort(gt["replay_ids"])
-    ts = gt["ts"][o][np.searchsorted(gt["replay_ids"][o], d["replay_id"])]
+    zs = gt["replay_ids"][o]
+    j = np.minimum(np.searchsorted(zs, d["replay_id"]), len(zs) - 1)
+    ts = np.where(zs[j] == d["replay_id"], gt["ts"][o][j], d["day"] * 86400 + 43200)
     srt = np.lexsort((d["replay_id"], ts, d["day"], d["pid"]))
     pid = d["pid"][srt]
     brk = np.flatnonzero(np.r_[True, pid[1:] != pid[:-1]])

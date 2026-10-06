@@ -83,7 +83,10 @@ def _walk(starts, ends, hero, y, t_end, t_start, qslot, q_n, q_e20, q_e100, q_da
         last = np.full(NUM_HEROES, -1.0)
         head = np.zeros(NUM_HEROES, np.int64)
         ap = starts[p]
-        for i in range(starts[p], ends[p]):
+        # queries in start-time order; history rows (end-time order) enter once
+        # they ended before the query started, so the included set only grows
+        qord = starts[p] + np.argsort(t_start[starts[p]:ends[p]], kind="mergesort")
+        for i in qord:
             q = qslot[i]
             if q < 0:
                 continue
@@ -91,7 +94,7 @@ def _walk(starts, ends, hero, y, t_end, t_start, qslot, q_n, q_e20, q_e100, q_da
             # a game enters the history only once it has ended before this
             # game started (rows are in end-time order, so the first one that
             # has not ended blocks the rest)
-            while ap < i and t_end[ap] <= now:
+            while ap < ends[p] and t_end[ap] <= now:
                 h0 = hero[ap]
                 for h in range(NUM_HEROES):
                     e20[h] *= 1 - a20
