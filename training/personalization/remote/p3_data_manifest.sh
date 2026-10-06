@@ -17,6 +17,7 @@ P=$T/personalization
   find $T/drift2026/patch_stats -type f
   echo $T/drift2026/patch_index.json
   echo $T/drift2026/patch_sidecar.npz
+  echo $T/drift2026/results/w3_changepoints.json
   # paper-1 GD pool and the BC prior (legacy in-sample models, kept for the A/B)
   ls $T/rerun2026/models/generic_draft_*.pt
   echo $T/overfit2026/models/bc_prior.pt
