@@ -149,8 +149,11 @@ def gd():
             # epoch order from (seed, epoch): a resumed run sees the same order
             order = torch.from_numpy(np.random.RandomState(var["seed"] * 1000 + ep).permutation(tr.n))
             for X, y, mk in tr.iterate(512, order):
-                ok = mk.gather(1, y[:, None])[:, 0] > 0.5
-                loss = F.cross_entropy(m(X[ok], mk[ok]), y[ok])
+                # mean over legal-target rows by masking the loss: boolean row
+                # indexing forced a GPU sync per step behind the MCTS kernels
+                ok = mk.gather(1, y[:, None])[:, 0]
+                ce = F.cross_entropy(m(X, mk), y, reduction="none")
+                loss = (ce * ok).sum() / ok.sum().clamp(min=1.0)
                 opt.zero_grad()
                 loss.backward()
                 opt.step()
