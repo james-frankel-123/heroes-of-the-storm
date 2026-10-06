@@ -97,8 +97,8 @@ def teams_onestep(X, z):
         for t, pg, rr in ((0, pg0, r0), (1, pg1, r1)):
             pp, pq = [], []
             for dd in l["real"]["decisions"]:
-                if dd["team"] != t or len(dd["cand"]) < 2:
-                    continue
+                if dd["team"] != t or len(dd["cand"]) < 2 or not np.isin(dd["actual"], dd["cand"]):
+                    continue  # real hero outside the drafter's candidates: no rank
                 cand = list(range(len(dd["cand"])))
                 i = int(np.flatnonzero(dd["cand"] == dd["actual"])[0])
                 pp.append(pct(dd["V"], cand, i))
@@ -125,7 +125,7 @@ def teams_mcts(X, lobs, decs_pers, decs_pop):
             taken = set(int(a) for a in lob["acts_real"][:k])
             cand = [int(X.to_sh[h]) for h in np.flatnonzero(pool) if int(X.to_sh[h]) not in taken]
             if actual not in cand:
-                cand.append(actual)
+                continue  # real hero outside the search's candidates: no rank
             if len(cand) < 2:
                 continue
             real_team = M.DRAFT_TEAM[k] ^ lob["first"]

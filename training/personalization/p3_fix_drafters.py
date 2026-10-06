@@ -1,4 +1,9 @@
 """
+SUPERSEDED (October 2026): this protocol is now the default of the drafter
+modules themselves (p3_dr_core, p3_dr_drafter, p3_dr_imitation, p3_mcts_*),
+with team-level assignment and train-window GD models on top. This runner is
+kept only to reproduce the 2026-10-01 numbers; do not use it for new runs.
+
 Audit fixes P3-02 and P3-03 for every drafter: rerun one-step, MCTS,
 distilled-prior and personalized-GD drafters under one protocol.
 
@@ -33,12 +38,19 @@ import numpy as np
 from p3_heroes import NUM_HEROES, sample_rows
 import p3_hs_core as C
 
-FIX_CACHE = os.path.join(C.CACHE, "fix")
-FIX_RESULTS = os.path.join(C.RESULTS, "fix")
+# October 2026 reruns (P3_RESULTS set): the fixed protocol is the modules'
+# default, so this file only passes through: same cache, same tables, the
+# combiner of this run, no patches.
+NEW = bool(os.environ.get("P3_RESULTS"))
+FIX_CACHE = C.CACHE if NEW else os.path.join(C.CACHE, "fix")
+FIX_RESULTS = C.RESULTS if NEW else os.path.join(C.RESULTS, "fix")
 FIX_PTAB = os.path.join(FIX_CACHE, "dr_personal_post.npz")
 
 
 def fixed_combiner():
+    if NEW:
+        import p3_dr_core as D
+        return D.combiner()
     with open(os.path.join(FIX_RESULTS, "p3_ph_role.json")) as f:
         c = json.load(f)["D_game"]["skill + off-role count (fine)"]["coef"]
     return np.array(c, float)
@@ -76,6 +88,8 @@ FIX_IMIT = os.path.join(FIX_CACHE, "dr_imitation.npz")
 def patch_imitation():
     """P3-24: imitation recency features on the lag-1 contract, weights refit
     on V1 picks with them (built on first use)."""
+    if NEW:
+        return
     import p3_fix_counts as F
     import p3_dr_imitation as I
     I.recency_features = F.recency_features_l1
@@ -102,6 +116,8 @@ def link_inputs():
 
 
 def patch_common():
+    if NEW:
+        return
     os.makedirs(FIX_CACHE, exist_ok=True)
     os.makedirs(FIX_RESULTS, exist_ok=True)
     link_inputs()
@@ -129,6 +145,8 @@ def patch_common():
 
 def patch_onestep():
     import p3_dr_drafter as DR
+    if NEW:
+        return DR
     DR.OUT = os.path.join(FIX_CACHE, "dr_runs.pkl.gz")
 
     def ban_sample(states, k, lob, rng):

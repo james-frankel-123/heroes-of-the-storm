@@ -28,7 +28,9 @@ import numpy as np
 from p3_heroes import NUM_HEROES, HKEY
 import p3_hs_core as C
 
-FIX_RESULTS = os.path.join(C.RESULTS, "fix")
+# With P3_RESULTS set (the October 2026 reruns), every result of the run,
+# fixed or not, goes to that one directory.
+FIX_RESULTS = C.RESULTS if os.environ.get("P3_RESULTS") else os.path.join(C.RESULTS, "fix")
 
 
 def lag1_key_counts(d, key):
@@ -161,6 +163,6 @@ if __name__ == "__main__":
         assert n_p[i] == m.sum()
         assert n_ph[i] == (m & (d["hero"] == d["hero"][i])).sum()
     print("lag-1 counts verified on 2,000 random rows")
-    _, n_p_rid, n_ph_rid = (None,) + C.experience_counts(d)
+    _, n_p_rid, n_ph_rid = (None,) + C.experience_counts_upload_order(d)
     same = (d["day"] >= 0)
     print(f"rows whose overall count differs from the old replay_id-order count: {(n_p != n_p_rid).mean():.3f}")

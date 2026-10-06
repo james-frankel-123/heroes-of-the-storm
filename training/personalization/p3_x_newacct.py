@@ -27,34 +27,15 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import p3_hs_core as C
+import p3_hero_level_causal as HL
 import p3_x_common as X
 
 
 def status_of(d):
-    n = len(d["pid"])
-    npl = int(d["n_players"])
-    day = d["day"]
-    first_day = np.full(npl, 10 ** 9)
-    np.minimum.at(first_day, d["pid"], day)
-    hl = d["hero_level"].astype(float)
-    hl[hl < 0] = 99
-    o = np.lexsort((d["replay_id"], day, d["pid"]))
-    pid, dy = d["pid"][o], day[o].astype(np.int64)
-    hv = hl[o]
-    starts = np.flatnonzero(np.r_[True, pid[1:] != pid[:-1]])
-    ends = np.r_[starts[1:], n]
-    cm = np.empty(n)
-    for a, b in zip(starts, ends):
-        cm[a:b] = np.maximum.accumulate(hv[a:b])
-    comp = pid * 100000 + dy
-    fod = np.searchsorted(comp, comp, side="left")
-    fop = np.searchsorted(pid, pid, side="left")
-    prev_max = np.where(fod > fop, cm[np.maximum(fod - 1, 0)], -1)
-    late = first_day[pid] >= C.day_of("2024-07-01")
-    st = np.where(~late, 0, np.where(prev_max < 0, 1, np.where(prev_max <= 5, 2, 3)))
-    out = np.empty(n, np.int64)
-    out[o] = st
-    return out
+    """Account status at each game from level stamps parsed before the game
+    started (p3_hero_level_causal.account_status); an unknown level is
+    status 1, never a high level."""
+    return HL.account_status(d, HL.load(d))
 
 
 VARIANTS = {"phase-1 table": lambda s: np.zeros_like(s),

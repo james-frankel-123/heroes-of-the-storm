@@ -56,7 +56,8 @@ def build_ext():
     team = p["team"][ok].astype(np.int8)
     y = np.where(team == 0, g_y[gi], 1 - g_y[gi]).astype(np.float32)
     wpt = np.where(team == 0, g_wp[gi], 1 - g_wp[gi])
-    key = p["region"][ok].astype(np.int64) * (1 << 40) + p["blizz_ids"][ok]
+    from p3_keys import player_keys
+    key = player_keys(p["region"][ok], p["blizz_ids"][ok], label="post")
     old_keys = d["player_keys"]
     j = np.searchsorted(old_keys, key)
     known = (j < len(old_keys)) & (old_keys[np.minimum(j, len(old_keys) - 1)] == key)

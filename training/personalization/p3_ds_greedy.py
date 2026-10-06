@@ -44,7 +44,7 @@ def main():
     S = Setup()
     import search as SR
     import p3_dr_core as D
-    net = SR.policy_net("bc")
+    net = SR.policy_net("path:" + __import__("p3_dr_core").bc_prior_path())
     model, ck = DS.load_model()
     alpha = float(ck["alpha"])
     wpE = D.WPEval(S.d["hero_names"])

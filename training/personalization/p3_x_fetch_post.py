@@ -64,7 +64,7 @@ def main():
     cur = conn.cursor(name="x_p")
     cur.itersize = 200000
     cur.execute(f"""
-        SELECT p.replay_id, p.blizz_id, p.region, p.hero, p.team, p.party,
+        SELECT p.replay_id, p.blizz_id, COALESCE(p.region, d.region), p.hero, p.team, p.party,
                p.player_mmr, p.hero_mmr, p.role_mmr, p.hero_level
         FROM replay_players p JOIN replay_draft_data d USING (replay_id)
         WHERE {WHERE}""")

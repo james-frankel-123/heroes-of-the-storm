@@ -140,6 +140,8 @@ def degraded_lob(lob, tm):
     ld["s"] = {r: (np.zeros(NUM_HEROES, np.float32) if r in opp else v) for r, v in lob["s"].items()}
     ld["off"] = {r: (np.zeros(NUM_HEROES) if r in opp else v) for r, v in lob["off"].items()}
     ld["pool"] = {r: (np.ones(NUM_HEROES, bool) if r in opp else v) for r, v in lob["pool"].items()}
+    if "team_pool" in lob:
+        ld["team_pool"] = {t: (np.ones(NUM_HEROES, bool) if t != tm else v) for t, v in lob["team_pool"].items()}
     return ld
 
 
@@ -275,8 +277,12 @@ def sim(procs, n_real):
             rres.append(r)
             if (i + 1) % 500 == 0:
                 print(f"  real {i + 1}/{len(rtasks)} ({time.time() - t0:.0f}s)", flush=True)
-    with gzip.open(SIM, "wb") as f:
+    # deterministic order: imap_unordered returns results in completion order
+    res.sort(key=lambda r: r["gi"])
+    rres.sort(key=lambda r: r["gi"])
+    with gzip.open(SIM + ".tmp", "wb") as f:
         pickle.dump({"full": res, "real": rres}, f)
+    os.replace(SIM + ".tmp", SIM)
     print(f"sim done {time.time() - t0:.0f}s", flush=True)
 
 

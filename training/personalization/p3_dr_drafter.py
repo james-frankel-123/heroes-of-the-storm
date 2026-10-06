@@ -27,6 +27,23 @@ population trajectory. Collapse contexts (separate mode "collapse"): a
 player is inserted at a random team-0 pick step of other lobbies' real
 partial drafts and both drafters choose for him.
 
+Protocol (October 2026; the audit fixes are the defaults, no monkeypatching):
+  - pools are heroes the player played on earlier days (lag 1); the real
+    hero is never added; an empty pool falls back to every free hero
+  - no real bans are replayed: every ban in a rollout or a simulated draft is
+    sampled from the GD policy (both teams); the real-state replay keeps the
+    real bans because it is the real draft
+  - --assign team (default): the TEAM picks a hero from the union of its
+    players' pools, and each finished draft is valued with the best
+    assignment of each team's five heroes to its five players (120
+    permutations), which is what in-draft hero trades do. The real draft's
+    step-to-player mapping (the final owner, not the picker) is not used.
+    --assign slot keeps the per-step player mapping.
+  - real-state rankings rank the drafter's own candidates; a decision whose
+    real hero is not a candidate is kept with actual_in_cand = False and
+    left out of agreement metrics (its share is reported)
+  - GD and the imitation model come from the train window (p3_dr_core.gd_dir)
+
 Run (from training/):
   OMP_NUM_THREADS=1 nice -n 19 taskset -c 48-63 python3 personalization/p3_dr_drafter.py \
       [--lobbies 1000] [--real-extra 3000] [--collapse-players 300] [--procs 4]
@@ -49,6 +66,8 @@ import p3_hs_core as C
 OUT = os.path.join(C.CACHE, "dr_runs.pkl.gz")
 R = 4
 TOPK = 15
+ASSIGN = "team"
+_PERMS = np.array(list(__import__("itertools").permutations(range(5))), np.int64)  # (120, 5)
 
 _W = {}
 
@@ -68,13 +87,86 @@ def _value(finals, lob, b):
     wpE = _W["wp"]
     drafts = [(tuple(a.values()), tuple(c.values())) for a, c in finals]
     wp = wpE.wp(drafts, lob["bidx"], lob["map"], lob["tier"])
-    S0 = np.array([sum(lob["s"][r][h] for r, h in a.items()) for a, _ in finals])
-    S1 = np.array([sum(lob["s"][r][h] for r, h in c.items()) for _, c in finals])
-    O0 = np.array([sum(lob["off"][r][h] for r, h in a.items()) for a, _ in finals])
-    O1 = np.array([sum(lob["off"][r][h] for r, h in c.items()) for _, c in finals])
+    if _mode(lob) == "team":
+        S0, O0 = _assign_terms([list(a.values()) for a, _ in finals], lob, 0, b)
+        S1, O1 = _assign_terms([list(c.values()) for _, c in finals], lob, 1, b)
+    else:
+        S0 = np.array([sum(lob["s"][r][h] for r, h in a.items()) for a, _ in finals])
+        S1 = np.array([sum(lob["s"][r][h] for r, h in c.items()) for _, c in finals])
+        O0 = np.array([sum(lob["off"][r][h] for r, h in a.items()) for a, _ in finals])
+        O1 = np.array([sum(lob["off"][r][h] for r, h in c.items()) for _, c in finals])
     lw = np.log(np.clip(wp, 1e-6, 1 - 1e-6) / np.clip(1 - wp, 1e-6, 1 - 1e-6))
     z = b[0] + b[1] * lw + b[2] * (S0 - S1) + b[3] * (O0 - O1)
     return wp, 1 / (1 + np.exp(-z))
+
+
+def _assign_terms(teams, lob, t, b):
+    """Best assignment of each team's heroes to its players: maximizes
+    b2 * S + b3 * O over the 120 permutations (first maximum in
+    lexicographic permutation order). teams: list of 5-hero lists for team t.
+    Returns (S, O) arrays."""
+    rows = lob["team_rows"][t]
+    sm = np.stack([lob["s"][r] for r in rows])     # (5, H)
+    om = np.stack([lob["off"][r] for r in rows])
+    H = np.array(teams, np.int64)                  # (B, 5)
+    s5 = sm[np.arange(5)[None, :, None], H[:, None, :]]  # (B, 5 players, 5 heroes)
+    o5 = om[np.arange(5)[None, :, None], H[:, None, :]]
+    i = np.arange(5)[None, :]
+    sp = s5[:, i, _PERMS].sum(-1)                  # (B, 120): player i takes hero perm[i]
+    op = o5[:, i, _PERMS].sum(-1)
+    best = np.argmax(b[2] * sp + b[3] * op, axis=1)
+    return sp[np.arange(len(H)), best], op[np.arange(len(H)), best]
+
+
+def best_assignment(heroes, lob, t, b):
+    """Players (rows) in the order of `heroes` for team t's best assignment."""
+    rows = lob["team_rows"][t]
+    sm = np.stack([lob["s"][r] for r in rows])
+    om = np.stack([lob["off"][r] for r in rows])
+    h = np.array(heroes, np.int64)
+    sc = [(b[2] * sm[np.arange(5), h[p]].sum() + b[3] * om[np.arange(5), h[p]].sum()) for p in _PERMS]
+    p = _PERMS[int(np.argmax(sc))]
+    out = [None] * 5
+    for i in range(5):
+        out[p[i]] = rows[i]
+    return out
+
+
+def _mode(lob):
+    """Assignment mode for this lobby: the run's --assign, except collapse
+    probes, which ask what the drafter picks for one given player (slot)."""
+    return lob.get("assign", ASSIGN)
+
+
+def _avail_pool(lob, tm, row):
+    return lob["team_pool"][tm] if _mode(lob) == "team" else lob["pool"][row]
+
+
+def _ban_sample(states, k, lob, rng):
+    """Bans are sampled from the GD policy for both teams (no forced real bans)."""
+    gd = _W["gd"]
+    B = len(states)
+    t0 = np.zeros((B, NUM_HEROES), np.float32)
+    t1 = np.zeros((B, NUM_HEROES), np.float32)
+    bans = np.zeros((B, NUM_HEROES), np.float32)
+    avail = np.zeros((B, NUM_HEROES), bool)
+    for i, s in enumerate(states):
+        t0[i, list(s["t0"].values())] = 1
+        t1[i, list(s["t1"].values())] = 1
+        bans[i, list(s["bans"])] = 1
+        avail[i] = ~s["taken"]
+    lp = gd.logprobs(t0, t1, bans, np.repeat(lob["mo"][None], B, 0), np.repeat(lob["to"][None], B, 0),
+                     np.full(B, k, np.float32), np.zeros(B, np.float32), avail)
+    p = np.where(avail, np.exp(lp), 0)
+    p /= p.sum(1, keepdims=True)
+    return sample_rows(p, rng.rand(B, 1))
+
+
+def _apply_ban(s, hero):
+    s = {"t0": dict(s["t0"]), "t1": dict(s["t1"]), "bans": set(s["bans"]), "taken": s["taken"].copy()}
+    s["bans"].add(int(hero))
+    s["taken"][hero] = True
+    return s
 
 
 def _policy_sample(states, k, lob, rng, kind):
@@ -90,7 +182,7 @@ def _policy_sample(states, k, lob, rng, kind):
         t0[i, list(s["t0"].values())] = 1
         t1[i, list(s["t1"].values())] = 1
         bans[i, list(s["bans"])] = 1
-        avail[i] = lob["pool"][row] & ~s["taken"]
+        avail[i] = _avail_pool(lob, tm, row) & ~s["taken"]
         if not avail[i].any():
             avail[i] = ~s["taken"]
     lp = gd.logprobs(t0, t1, bans, np.repeat(lob["mo"][None], B, 0), np.repeat(lob["to"][None], B, 0),
@@ -126,7 +218,8 @@ def _rollout(states, k0, lob, rng, opp_kind, our_team):
     for k in range(k0, 16):
         h, ty, tm, row = lob["steps"][k]
         if ty == 0:
-            states = [_apply(s, k, h, lob) for s in states]
+            bs = _ban_sample(states, k, lob, rng)
+            states = [_apply_ban(s, x) for s, x in zip(states, bs)]
         else:
             kind = opp_kind if (tm != our_team and opp_kind == "imit") else "gd"
             picks = _policy_sample(states, k, lob, rng, kind)
@@ -138,7 +231,7 @@ def _decide(state, k, lob, rng, opp_kind):
     """Rank candidates for the pick at step k. Returns dict with candidate
     list, mean pop / personal values from the acting team's side."""
     h, ty, tm, row = lob["steps"][k]
-    free = lob["pool"][row] & ~state["taken"]
+    free = _avail_pool(lob, tm, row) & ~state["taken"]
     if not free.any():
         free = ~state["taken"]
     cand = np.flatnonzero(free)
@@ -153,10 +246,12 @@ def _decide(state, k, lob, rng, opp_kind):
         lp = gd.logprobs(t0, t1, bans, lob["mo"][None], lob["to"][None], np.array([k], np.float32),
                          np.ones(1, np.float32), free[None])[0]
         a = cand[np.argsort(-lp[cand])[:TOPK]]
-        b_ = cand[np.argsort(-lob["s"][row][cand])[:TOPK]]
+        if _mode(lob) == "team":
+            sbest = np.max(np.stack([lob["s"][r] for r in lob["team_rows"][tm]]), axis=0)
+        else:
+            sbest = lob["s"][row]
+        b_ = cand[np.argsort(-sbest[cand])[:TOPK]]
         cand = np.union1d(a, b_)
-    if "force" in state and state["force"] is not None and state["force"] not in cand:
-        cand = np.r_[cand, state["force"]]
     starts = []
     for c in cand:
         s1 = _apply(state, k, int(c), lob)
@@ -179,7 +274,7 @@ def _run_draft(lob, seed, modes, opp_kind):
     for k in range(16):
         h, ty, tm, row = lob["steps"][k]
         if ty == 0:
-            state = _apply(state, k, h, lob)
+            state = _apply_ban(state, int(_ban_sample([state], k, lob, rng)[0]))
             continue
         m = modes[tm]
         if m in ("pers", "pop"):
@@ -202,10 +297,9 @@ def work_lobby(args):
     for k in range(16):
         h, ty, tm, row = lob["steps"][k]
         if ty == 1:
-            st = dict(real_state)
-            st["force"] = h
-            dd = _decide(st, k, lob, rng, "gd")
+            dd = _decide(dict(real_state), k, lob, rng, "gd")
             dd["actual"] = int(h)
+            dd["actual_in_cand"] = bool(np.isin(h, dd["cand"]))
             realdec.append(dd)
         real_state = _apply(real_state, k, h, lob)
     wp, V = _value([(real_state["t0"], real_state["t1"])], lob, _W["b"])
@@ -231,7 +325,7 @@ def work_collapse(args):
     for j in range(k):
         state = _apply(state, j, lob["steps"][j][0], lob)
     dd = _decide(state, k, lob, rng, "gd")
-    return {"player": row_player, "pop": dd["pop"], "pers": dd["pers"]}
+    return {"player": row_player, "seed": seed, "pop": dd["pop"], "pers": dd["pers"]}
 
 
 def lobby_payload(L, T, gi, ipers, ctrl, bidx_all, extra_rows=None):
@@ -247,7 +341,10 @@ def lobby_payload(L, T, gi, ipers, ctrl, bidx_all, extra_rows=None):
             "ctrl": int(ctrl),
             "s": {r: T["s"][p] for r, p in zip(rows, pos)}, "off": {r: T["off"][p].astype(float) for r, p in zip(rows, pos)},
             "pool": {r: T["pool"][p] for r, p in zip(rows, pos)},
-            "ipers": {r: ipers[r] for r in rows}}
+            "ipers": {r: ipers[r] for r in rows},
+            "team_rows": {t: [int(s[3]) for s in st if s[1] == 1 and s[2] == t] for t in (0, 1)},
+            "team_pool": {t: np.any([T["pool"][T["pos"][int(s[3])]] for s in st if s[1] == 1 and s[2] == t],
+                                    axis=0) for t in (0, 1)}}
 
 
 def main():
@@ -257,7 +354,10 @@ def main():
     ap.add_argument("--collapse-players", type=int, default=300)
     ap.add_argument("--contexts", type=int, default=30)
     ap.add_argument("--procs", type=int, default=4)
+    ap.add_argument("--assign", choices=["team", "slot"], default="team")
     a = ap.parse_args()
+    global ASSIGN
+    ASSIGN = a.assign
     t0 = time.time()
     import p3_dr_core as D
     import p3_dr_imitation as I
@@ -315,6 +415,7 @@ def main():
             # the substituted player takes the slot's place for valuation
             pay["steps"] = [tuple(s) for s in steps]
             pay["k"] = k
+            pay["assign"] = "slot"
             ctasks.append((pay, int(5000 + j), int(pr), old))
     print(f"tasks: {len(tasks)} lobbies, {len(ctasks)} collapse contexts ({time.time() - t0:.0f}s)", flush=True)
     import multiprocessing as mp
@@ -329,9 +430,14 @@ def main():
             cres.append(r)
             if (i + 1) % 2000 == 0:
                 print(f"  collapse {i + 1}/{len(ctasks)} ({time.time() - t0:.0f}s)", flush=True)
-    with gzip.open(OUT, "wb") as f:
+    # deterministic order (imap_unordered returns in completion order)
+    order = {int(g): i for i, g in enumerate(np.r_[full_set, extra_set])}
+    res.sort(key=lambda r: order[int(r["gi"])])
+    cres.sort(key=lambda r: (r["player"], r["seed"]))
+    with gzip.open(OUT + ".tmp", "wb") as f:
         pickle.dump({"lobbies": res, "collapse": cres, "full_set": full_set, "extra_set": extra_set,
-                     "coll_players": coll_players}, f)
+                     "coll_players": coll_players, "assign": ASSIGN}, f)
+    os.replace(OUT + ".tmp", OUT)
     print(f"done {time.time() - t0:.0f}s")
 
 

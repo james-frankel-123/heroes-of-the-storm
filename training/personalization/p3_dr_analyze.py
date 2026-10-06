@@ -217,8 +217,8 @@ def main():
         for t in (0, 1):
             pp, pq, pd = [], [], []
             for dd in l["real"]["decisions"]:
-                if dd["team"] != t:
-                    continue
+                if dd["team"] != t or not np.isin(dd["actual"], dd["cand"]):
+                    continue  # real hero outside the drafter's candidates: no rank
                 i = int(np.flatnonzero(dd["cand"] == dd["actual"])[0])
                 nc = len(dd["cand"])
                 if nc < 2:

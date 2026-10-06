@@ -27,7 +27,7 @@ def main():
     cur = conn.cursor(name="p3hm")
     cur.itersize = 200000
     cur.execute(f"""
-        SELECT p.replay_id, p.blizz_id, p.region, p.hero_mmr, p.role_mmr, p.hero_level
+        SELECT p.replay_id, p.blizz_id, COALESCE(p.region, d.region), p.hero_mmr, p.role_mmr, p.hero_level
         FROM replay_players p JOIN replay_draft_data d USING (replay_id)
         WHERE d.game_date >= '{E_START}' AND d.replay_id <= {SNAPSHOT_BOUND}""")
     rid, bid, reg, hm, rm, hl = [], [], [], [], [], []

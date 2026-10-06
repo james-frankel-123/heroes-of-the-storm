@@ -19,8 +19,8 @@ The population drafter values drafts with WP_pop alone.
 
 Lobbies: post-cutoff snapshot games with a standard 16-step draft. The
 player making each pick is the one who played the hero picked at that step.
-A player's available heroes ("pool") are the heroes he played before the
-game day, plus the hero he actually played.
+A player's available heroes ("pool") are the heroes he played on earlier
+days (lag 1); the hero he actually played is not added.
 
 Pieces here: lobby table, personal tables (s, off-role, pool, counts for
 every candidate hero of every slot), GD policy (paper-1 generic-draft
@@ -43,7 +43,28 @@ import p3_hs_core as C
 DRAFTS = os.path.join(C.CACHE, "drafts_post.json.gz")
 LOBBY = os.path.join(C.CACHE, "dr_lobbies.npz")
 PTAB = os.path.join(C.CACHE, "dr_personal_post.npz")
-RR_MODELS = os.path.join(TRAINING, "rerun2026", "models")
+# GD pool for rollouts, opponents and imitation: the train-window models
+# (p3_gd_trainonly.py, games before 2026-02-10) unless P3_GD=paper1 selects
+# the paper-1 pool, which was trained on a random 98% of the snapshot and is
+# in sample for V1/V2.
+PAPER1_GD = os.path.join(TRAINING, "rerun2026", "models")
+TRAINONLY_GD = os.path.join(C.CACHE, "gd_trainonly")
+
+
+def gd_dir():
+    d = PAPER1_GD if os.environ.get("P3_GD") == "paper1" else TRAINONLY_GD
+    if not all(os.path.exists(os.path.join(d, f"generic_draft_{i}.pt")) for i in range(5)):
+        raise SystemExit(f"GD pool missing in {d} (run p3_gd_trainonly.py, or set P3_GD=paper1)")
+    return d
+
+
+def bc_prior_path():
+    if os.environ.get("P3_GD") == "paper1":
+        return os.path.join(TRAINING, "overfit2026", "models", "bc_prior.pt")
+    p = os.path.join(TRAINONLY_GD, "bc_prior.pt")
+    if not os.path.exists(p):
+        raise SystemExit(f"{p} missing (run p3_gd_trainonly.py bc, or set P3_GD=paper1)")
+    return p
 H = NUM_HEROES
 
 
@@ -136,8 +157,7 @@ def personal_tables(d, rows, table, kernel_K, r_adj):
         fine_cnt[:, f] = N[:, fine == f].sum(1)
     share = fine_cnt[:, fine] / np.maximum(n_p[:, None], 1)
     off = (n_p[:, None] >= 50) & (share < 0.10)
-    pool = N > 0
-    pool[np.arange(len(qidx)), d["hero"][qidx]] = True
+    pool = N > 0  # heroes played on earlier days only; the game's own hero is not added
     # restore the caller's row order
     inv = np.empty(len(qidx), np.int64)
     pos = {r: i for i, r in enumerate(qidx)}
@@ -168,7 +188,7 @@ class GDPolicy:
         self.models = []
         for i in range(5):
             m = GenericDraftModel()
-            m.load_state_dict(torch.load(os.path.join(RR_MODELS, f"generic_draft_{i}.pt"),
+            m.load_state_dict(torch.load(os.path.join(gd_dir(), f"generic_draft_{i}.pt"),
                                          weights_only=True, map_location="cpu"))
             m.eval()
             self.models.append(m)

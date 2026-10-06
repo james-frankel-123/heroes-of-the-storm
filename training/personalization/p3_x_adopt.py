@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from p3_heroes import HKEY
 import p3_hs_core as C
+import p3_hero_level_causal as HL
 import p3_x_side as XS
 from p3_sd_similarity import HARD
 
@@ -119,7 +120,9 @@ def main():
         (d["day"][first] - fday[d["pid"][first]] >= 90)
     es, el, ef = starts[ev], lens[ev], first[ev]
     print(f"adoption events: {ev.sum():,} (cells {len(starts):,})", flush=True)
-    hl0 = d["hero_level"][ef].astype(float)
+    # level on this hero stamped before the event's first game started; no
+    # earlier stamp on the hero = level 0 (no recorded experience)
+    hl0 = np.nan_to_num(HL.load(d)["hero_lo"][ef], nan=0.0)
     r_adj = P["r_adj"].astype(np.float64)
     v = d["v"]
     # per-event first-N rows

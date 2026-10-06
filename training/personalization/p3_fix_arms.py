@@ -149,7 +149,7 @@ def role():
     share_b = n_pb / np.maximum(n_p, 1)
     share_f = n_pf / np.maximum(n_p, 1)
     est = n_p >= 50
-    pm = np.load(os.path.join(C.CACHE, "fix_sd_pred_static_lag1.npz"))["m"]
+    pm = np.load(os.path.join(C.CACHE, "sd_pred_static_lag1.npz"))["m"]
     e = d["r"] - (table[C.exp_bins(n_p, n_ph)] + pm)
     post = ~d["in_sample"]
     days = d["day"]

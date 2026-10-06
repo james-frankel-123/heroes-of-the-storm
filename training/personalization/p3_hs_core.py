@@ -38,7 +38,10 @@ from numba import njit, prange
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, "cache")
-RESULTS = os.path.join(HERE, "results")
+# P3_RESULTS redirects every results file of a run (e.g. results/oct26 on a
+# remote worker); the default is the committed results directory.
+RESULTS = os.environ.get("P3_RESULTS") or os.path.join(HERE, "results")
+os.makedirs(RESULTS, exist_ok=True)
 WP = os.path.join(CACHE, "wp_drift.npz")
 PLAYERS = os.path.join(CACHE, "players_2024q2.npz")
 HERO_MMR = os.path.join(CACHE, "hero_mmr_2024q2.npz")
@@ -121,8 +124,8 @@ def build_slots():
     wp_team = np.where(team == 0, wp, 1 - wp).astype(np.float64)
     day = w["date_days"][order][gi].astype(np.int32)
     rid = p["replay_ids"]
-    region = m["region"][take].astype(np.int64)
-    key = region * (1 << 40) + p["blizz_ids"]
+    from p3_keys import player_keys
+    key = player_keys(m["region"][take], p["blizz_ids"], label="snapshot")
     pid_u, pid = np.unique(key, return_inverse=True)
     srt = np.lexsort((rid, day))
     out = dict(
@@ -151,8 +154,16 @@ def load_slots():
 
 
 def experience_counts(d):
-    """Games seen in the window before each row (exact order), overall and
-    on this hero."""
+    """Games seen in the window before each row, overall and on this hero:
+    games on EARLIER DAYS only (lag 1 day), the one count contract (audit
+    P3-03). Same-day order is upload order, so same-day games never count."""
+    import p3_fix_counts as F
+    return F.lag1_counts(d)
+
+
+def experience_counts_upload_order(d):
+    """Superseded: counts with same-day games in replay_id (upload) order.
+    Kept only to measure the old convention."""
     n = len(d["pid"])
     o = np.lexsort((d["replay_id"], d["day"], d["pid"]))
     pid = d["pid"][o]

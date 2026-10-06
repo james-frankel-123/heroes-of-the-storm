@@ -87,7 +87,7 @@ def main():
     torch.manual_seed(0)
     S = Setup()
     import search as SR
-    net = SR.policy_net("bc")
+    net = SR.policy_net("path:" + __import__("p3_dr_core").bc_prior_path())
     tr = pickle.load(gzip.open(os.path.join(C.CACHE, "ds_targets_s400.pkl.gz")))
     te = pickle.load(gzip.open(os.path.join(C.CACHE, "mcts_real_s400.pkl.gz")))
     Xa, Ma, Ya, Fa, Aa, Ga = build(S, tr)

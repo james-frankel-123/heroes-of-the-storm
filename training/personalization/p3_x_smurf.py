@@ -44,6 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from p3_heroes import HKEY
 import p3_hs_core as C
+import p3_hero_level_causal as HL
 import p3_x_common as X
 import p3_x_side as XS
 
@@ -108,8 +109,9 @@ def main():
     np.minimum.at(first_day, d["pid"], day)
     ngames = np.bincount(d["pid"], minlength=npl)
     early = n_p < 10
-    hl = d["hero_level"].astype(float)
-    hl[hl < 0] = np.nan
+    # hero level as of each game's start (parse-order safe); NaN = no earlier stamp
+    HLV = HL.load(d)
+    hl = HLV["hero_lo"].copy()
     med_hl = np.full(npl, np.nan)
     pe = d["pid"][early]
     he = hl[early]
@@ -292,28 +294,8 @@ def main():
     print(json.dumps(gl), flush=True)
 
     # ---------------- C. new-account prior
-    hl_f = np.nan_to_num(hl, nan=99)
-    # causal status: max hero level on the account's earlier days
-    o2 = np.lexsort((d["replay_id"], day, d["pid"]))
-    pid2 = d["pid"][o2]
-    day2 = day[o2].astype(np.int64)
-    runmax = np.zeros(n)
-    hv = hl_f[o2]
-    comp = pid2 * 100000 + day2
-    fod = np.searchsorted(comp, comp, side="left")
-    fop = np.searchsorted(pid2, pid2, side="left")
-    # running max by player via segment-wise maximum.accumulate
-    cm = np.empty(n)
-    starts = np.flatnonzero(np.r_[True, pid2[1:] != pid2[:-1]])
-    ends = np.r_[starts[1:], n]
-    for a, b in zip(starts, ends):
-        cm[a:b] = np.maximum.accumulate(hv[a:b])
-    prev_max = np.where(fod > fop, cm[np.maximum(fod - 1, 0)], -1)
-    status = np.empty(n, np.int64)
-    fd2 = first_day[pid2]
-    late = fd2 >= C.day_of("2024-07-01")
-    status_o = np.where(~late, 0, np.where(prev_max < 0, 1, np.where(prev_max <= 5, 2, 3)))
-    status[o2] = status_o  # 0 old/early window, 1 first day unknown, 2 new low-level, 3 new window but high level
+    # causal status from level stamps parsed before each game started
+    status = HL.account_status(d, HLV)
     e_mask = d["in_sample"] & (day >= C.day_of(C.E_START))
     b = C.exp_bins(n_p, n_ph)
     nb = len(C.NP_EDGES) * len(C.NPH_EDGES)

@@ -32,6 +32,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from p3_heroes import NUM_HEROES
 import p3_hs_core as C
+import p3_hero_level_causal as HL
 from p3_hs_fit import prepare, KERNELS
 from p3_hs_eval import team_diff
 
@@ -121,16 +122,18 @@ def main():
     gidx[srt] = gidx_s
     first_day = np.full(npl, 10 ** 6)
     np.minimum.at(first_day, d["pid"], d["day"])
-    hl = d["hero_level"].astype(float)
+    hl = HL.load(d)["hero_lo"]  # level stamped before each game started
     f10 = gidx < 10
     # median hero level over first 10 games
-    med_hl = np.full(npl, 99.0)
+    med_hl = np.full(npl, np.nan)
     o10 = np.flatnonzero(f10)
     oo = o10[np.argsort(d["pid"][o10], kind="stable")]
     pp = d["pid"][oo]
     b2 = np.flatnonzero(np.r_[True, pp[1:] != pp[:-1]])
     for s_, e_ in zip(b2, np.r_[b2[1:], len(oo)]):
-        med_hl[pp[s_]] = np.median(hl[oo[s_:e_]])
+        v = hl[oo[s_:e_]]
+        if (~np.isnan(v)).any():
+            med_hl[pp[s_]] = np.nanmedian(v)
     new_acc = (first_day >= C.day_of("2024-07-01")) & (med_hl <= 5)
     total = np.bincount(d["pid"], minlength=npl)
     out = {"A": {}, "B": {}}

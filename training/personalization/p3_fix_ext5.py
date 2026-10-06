@@ -70,7 +70,7 @@ def run_picks_b(lob, seed, mode):
     for k in range(16):
         h, ty, tm, row = lob["steps"][k]
         if ty == 0:
-            state = DR.fix_apply_ban(state, int(DR.fix_ban_sample([state], k, lob, rng_env)[0]))
+            state = DR._apply_ban(state, int(DR._ban_sample([state], k, lob, rng_env)[0]))
             continue
         if tm == c:
             if mode == "deg":

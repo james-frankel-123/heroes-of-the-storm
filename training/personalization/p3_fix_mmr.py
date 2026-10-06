@@ -40,7 +40,7 @@ def main():
     d = C.load_slots()
     _, n_p, n_ph, table, _ = F.prepare_l1(d)
     mu = table[C.exp_bins(n_p, n_ph)]
-    m = np.load(os.path.join(C.CACHE, "fix_sd_pred_static_lag1.npz"))["m"]
+    m = np.load(os.path.join(C.CACHE, "sd_pred_static_lag1.npz"))["m"]
     skill = mu + np.where(np.isnan(m), 0, m)
     z = np.load(os.path.join(C.CACHE, "mmr_at_game.npz"))
     pkey = z["region"].astype(np.int64) << 40 | z["blizz_ids"]

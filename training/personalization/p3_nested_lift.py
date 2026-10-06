@@ -46,6 +46,7 @@ import argparse
 
 TRAINING = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, TRAINING)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 
@@ -53,7 +54,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, "cache")
 WP = os.path.join(CACHE, "wp_drift.npz")
 PLAYERS = os.path.join(CACHE, "players_2024q2.npz")
-RESULTS = os.path.join(HERE, "results")
+RESULTS = os.environ.get("P3_RESULTS") or os.path.join(HERE, "results")
 E_START = "2024-04-01"
 SNAPSHOT_BOUND = 63653039
 
@@ -102,6 +103,16 @@ def load():
     games["replay_ids"] = g_rid
     rows = {k: p[k][ok] for k in ("blizz_ids", "hero", "team", "party", "mmr")}
     rows["g"] = gi[ok]
+    # player identity is (region, blizz_id): region from the aligned hero_mmr rows
+    from p3_keys import player_keys
+    m = np.load(os.path.join(CACHE, "hero_mmr_2024q2.npz"))
+    ka = np.lexsort((p["blizz_ids"], p["replay_ids"]))
+    kb = np.lexsort((m["blizz_ids"], m["replay_ids"]))
+    assert np.array_equal(p["replay_ids"][ka], m["replay_ids"][kb])
+    assert np.array_equal(p["blizz_ids"][ka], m["blizz_ids"][kb])
+    inv = np.empty_like(ka)
+    inv[ka] = np.arange(len(ka))
+    rows["player_key"] = player_keys(m["region"][kb[inv]][ok], rows["blizz_ids"], label="nested lift")
     return games, rows
 
 
@@ -125,7 +136,7 @@ def personal_features(games, rows, e_mask_game):
     in_e = e_mask_game[g]
     sigma2 = float(np.mean((wp_team * (1 - wp_team))[in_e]))
 
-    pid, pinv = np.unique(rows["blizz_ids"], return_inverse=True)
+    pid, pinv = np.unique(rows["player_key"], return_inverse=True)
     nh = int(rows["hero"].max()) + 1
     ph = pinv.astype(np.int64) * nh + rows["hero"]
 

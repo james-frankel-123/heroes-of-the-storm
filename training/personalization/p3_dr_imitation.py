@@ -71,24 +71,10 @@ def _recency(starts, ends, day, hero, qslot, out_e20, out_e100, out_last):
 
 
 def recency_features(d, qrows):
-    z = np.load(GT)
-    o = np.argsort(z["replay_ids"])
-    ts = z["ts"][o][np.searchsorted(z["replay_ids"][o], d["replay_id"])]
-    srt = np.lexsort((d["replay_id"], ts, d["pid"]))
-    pid = d["pid"][srt]
-    brk = np.flatnonzero(np.r_[True, pid[1:] != pid[:-1]])
-    ends = np.r_[brk[1:], len(pid)]
-    qslot = np.full(len(srt), -1, np.int64)
-    qpos = np.full(len(d["pid"]), -1, np.int64)
-    qpos[qrows] = np.arange(len(qrows))
-    qslot[:] = qpos[srt]
-    nq = len(qrows)
-    e20 = np.zeros((nq, NUM_HEROES), np.float32)
-    e100 = np.zeros((nq, NUM_HEROES), np.float32)
-    last = np.zeros((nq, NUM_HEROES), np.float32)
-    _recency(brk.astype(np.int64), ends.astype(np.int64), d["day"][srt].astype(np.int64),
-             d["hero"][srt].astype(np.int64), qslot, e20, e100, last)
-    return e20, e100, last
+    """EWMA shares and days-since per hero from games on EARLIER DAYS only
+    (the lag-1 contract, audit P3-24; p3_fix_counts.recency_features_l1)."""
+    import p3_fix_counts as F
+    return F.recency_features_l1(d, qrows)
 
 
 def pick_states(L, gd, idx):
