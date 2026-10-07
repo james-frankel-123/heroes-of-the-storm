@@ -249,6 +249,7 @@ def evaluate():
             Mk.append(mk)
             T.append(x[-1])
     X, Y, Mk, T = (torch.tensor(np.array(a)) for a in (X, Y, Mk, T))
+    X, Mk = X.float(), Mk.float()  # the GD nets are float32
     ok = Mk[torch.arange(len(Y)), Y] > 0.5
     X, Y, Mk, T = X[ok], Y[ok], Mk[ok], T[ok]
     out = {"v2_games": len(rows)}
