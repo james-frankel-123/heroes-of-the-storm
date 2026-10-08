@@ -212,6 +212,7 @@ def main():
     o = np.argsort(w["replay_ids"])
     y_all, wp_all = w["y"][o], w["wp0"][o]
     recs = []
+    n_unranked = 0
     for l in alll:
         g = L["g"][l["gi"]]
         for t in (0, 1):
@@ -227,11 +228,14 @@ def main():
                 pq.append((np.sum(dd["wp"] < dd["wp"][i])) / (nc - 1))
                 pd_ = dd["V"] - dd["wp"]
                 pd.append((np.sum(pd_ < pd_[i])) / (nc - 1))
+            if not pp:
+                n_unranked += 1  # no real pick of this team was among the drafter's candidates
+                continue
             yt = y_all[g] if t == 0 else 1 - y_all[g]
             wt = wp_all[g] if t == 0 else 1 - wp_all[g]
             recs.append((np.mean(pp), np.mean(pq), np.mean(pd), yt - wt, yt, wt))
     A = np.array(recs)
-    rv = {"teams": int(len(A))}
+    rv = {"teams": int(len(A)), "teams_without_a_ranked_decision": n_unranked}
     for j, nm in ((0, "personalized drafter agreement"), (1, "population drafter agreement"),
                   (2, "personal-component agreement (V - WP ranking)")):
         qs = np.percentile(A[:, j], [20, 40, 60, 80])
