@@ -203,6 +203,8 @@ def b_analyze():
             for dd, df in zip(l["picks_deg"], full_dec):
                 if dd["team"] != t or len(dd["cand"]) < 2 or len(df["cand"]) < 2:
                     continue
+                if not (np.isin(dd["actual"], dd["cand"]) and np.isin(df["actual"], df["cand"])):
+                    continue  # real hero outside a drafter's candidates: no rank
                 pdg.append(pct(dd["V"], dd["cand"], dd["actual"]))
                 pfl.append(pct(df["V"], df["cand"], df["actual"]))
             if len(pdg) >= 3:
@@ -284,8 +286,8 @@ def d_combine():
             if sel_half is not None and (p["gi"] in half) != sel_half:
                 continue
             nc = len(p["cand"])
-            if nc < 2:
-                continue
+            if nc < 2 or not np.isin(p["actual"], p["cand"]):
+                continue  # real hero outside the drafter's candidates: no rank
             i = int(np.flatnonzero(p["cand"] == p["actual"])[0])
             key = (p["gi"], p["team"])
             r_ = recs.setdefault(key, [[], [], [], [], p["res"], p["pred"]])

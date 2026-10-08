@@ -181,8 +181,8 @@ def onestep_realized(X, gis_subset, rng):
         for t in (0, 1):
             pp = []
             for dd in l["real"]["decisions"]:
-                if dd["team"] != t or len(dd["cand"]) < 2:
-                    continue
+                if dd["team"] != t or len(dd["cand"]) < 2 or not np.isin(dd["actual"], dd["cand"]):
+                    continue  # real hero outside the drafter's candidates: no rank
                 i = int(np.flatnonzero(dd["cand"] == dd["actual"])[0])
                 pp.append(np.sum(dd["V"] < dd["V"][i]) / (len(dd["cand"]) - 1))
             yt = X.y_all[g] if t == 0 else 1 - X.y_all[g]

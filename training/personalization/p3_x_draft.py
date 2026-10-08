@@ -383,8 +383,10 @@ def analyze_sim():
                 if dd["team"] != t:
                     continue
                 nc = len(dd["cand"])
-                if nc < 2:
+                if nc < 2 or len(df["cand"]) < 2:
                     continue
+                if not (np.isin(dd["actual"], dd["cand"]) and np.isin(df["actual"], df["cand"])):
+                    continue # real hero outside the drafter's candidates: no rank
                 i = int(np.flatnonzero(dd["cand"] == dd["actual"])[0])
                 pdg.append(np.sum(dd["V"] < dd["V"][i]) / (nc - 1))
                 j = int(np.flatnonzero(df["cand"] == df["actual"])[0])
@@ -540,7 +542,7 @@ def combine():
                 continue
             sc = p["V"] + lam * p["logp"]
             nc = len(p["cand"])
-            if nc < 2:
+            if nc < 2 or not np.isin(p["actual"], p["cand"]):
                 continue
             i = int(np.flatnonzero(p["cand"] == p["actual"])[0])
             key = (p["gi"], p["team"])
@@ -563,7 +565,7 @@ def combine():
     recs = {}
     for p in per_pick:
         nc = len(p["cand"])
-        if nc < 2:
+        if nc < 2 or not np.isin(p["actual"], p["cand"]):
             continue
         i = int(np.flatnonzero(p["cand"] == p["actual"])[0])
         key = (p["gi"], p["team"])
