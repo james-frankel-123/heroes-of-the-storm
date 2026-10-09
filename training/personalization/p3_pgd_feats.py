@@ -197,10 +197,15 @@ def context(hist, fine, pref=None, use_cluster=True):
     is_main = np.zeros_like(n)
     is_main[np.arange(len(n)), main] = (tot >= 10)
     days = hist["days"]
-    F = np.stack([np.log(sshare), np.log(cshare), aff, np.log1p(n), (n == 0).astype(np.float64),
-                  hist["e20"], hist["e100"], np.where(days >= 0, np.log1p(np.maximum(days, 0)), np.log1p(1000.0)),
-                  np.log(role), is_main * mshare[:, None], hist["mawp"] - 0.5,
-                  np.repeat(np.log1p(tot)[:, None], NUM_HEROES, 1)], -1).astype(np.float32)
+    # filled channel by channel in float32: stacking in float64 first needs ~2x the memory
+    chans = (lambda: np.log(sshare), lambda: np.log(cshare), lambda: aff, lambda: np.log1p(n),
+             lambda: (n == 0), lambda: hist["e20"], lambda: hist["e100"],
+             lambda: np.where(days >= 0, np.log1p(np.maximum(days, 0)), np.log1p(1000.0)),
+             lambda: np.log(role), lambda: is_main * mshare[:, None], lambda: hist["mawp"] - 0.5,
+             lambda: np.log1p(tot)[:, None])
+    F = np.empty(n.shape + (len(chans),), np.float32)
+    for k, ch in enumerate(chans):
+        F[:, :, k] = ch()
     return F, {"tot": tot, "main_share": mshare, "sshare": sshare, "is_main": is_main}
 
 
