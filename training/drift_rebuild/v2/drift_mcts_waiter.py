@@ -48,7 +48,7 @@ HANDOFF = os.path.join(TRAINING, "paper1_revision", "site", "logs", "HANDOFF_{}"
 RW = os.path.join(TRAINING, "remote_workers")
 LAUNCH = os.path.join(HERE, "launch_mcts_remote.sh")
 
-MAX_SLOTS = {"max-windows-3090": 2, "3080-gaming-desktop": 1}
+MAX_SLOTS = {"max-windows-3090": 1, "3080-gaming-desktop": 1}  # 3090: one MCTS job at a time (2026-10-09; two processes time-slice the GPU, no gain)
 # Per-process data cap. Drift agents load the full 2.9 GB snapshot for value
 # pretraining; paper-1 runs on that snapshot peaked near 21 GB RSS (the 12G
 # paper-1 cap is sized for its 0.6 GB lite snapshot).

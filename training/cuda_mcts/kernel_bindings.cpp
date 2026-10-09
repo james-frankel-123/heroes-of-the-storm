@@ -280,6 +280,10 @@ public:
         wp_off_(dict_to_wp_offsets(wp_offsets_dict))
     {
         cudaSetDevice(device_id);
+        // One non-blocking stream per engine: every copy, launch and wait of this
+        // engine is ordered on it, so engines in one process run concurrently and
+        // never wait on each other or on torch's default stream.
+        cudaStreamCreateWithFlags(&stream_, cudaStreamNonBlocking);
 
         auto pw = policy_weights.unchecked<1>();
         auto gw = gd_weights.unchecked<1>();
@@ -370,8 +374,10 @@ public:
         int n = cfg.shape(0);
         if (n > max_episodes_) throw std::runtime_error("Too many episodes");
         if (search_mode < 0 || search_mode > 2) throw std::runtime_error("search_mode must be 0, 1 or 2");
-        cudaMemcpy(d_configs_, cfg.data(0, 0), n * 3 * sizeof(int), cudaMemcpyHostToDevice);
+        std::vector<int> cfg_host(cfg.data(0, 0), cfg.data(0, 0) + (size_t)n * 3);
         int shared_mem = shared_mem_bytes();
+        py::gil_scoped_release no_gil;  // other Python threads (other engines, training) run meanwhile
+        cudaMemcpyAsync(d_configs_, cfg_host.data(), n * 3 * sizeof(int), cudaMemcpyHostToDevice, stream_);
         if (search_mode == SEARCH_LEGACY) {
             if (stop_after_turn >= 0) throw std::runtime_error("stop_after_turn needs a v2 search mode");
             ensure_legacy();
@@ -380,10 +386,10 @@ public:
                             &d_configs_, &d_episodes_, &num_sims, &c_puct, &seed,
                             &root_temp, &dir_alpha, &dir_eps};
             cudaLaunchKernel((void*)mcts_episodes_kernel, dim3(n), dim3(256),
-                             args, shared_mem, 0);
-            cudaDeviceSynchronize();
+                             args, shared_mem, stream_);
+            cudaMemcpyAsync(h_episodes_, d_episodes_, n * sizeof(EpisodeMemory), cudaMemcpyDeviceToHost, stream_);
+            cudaStreamSynchronize(stream_);
             check_cuda("legacy kernel");
-            cudaMemcpy(h_episodes_, d_episodes_, n * sizeof(EpisodeMemory), cudaMemcpyDeviceToHost);
         } else {
             ensure_arena(num_sims);
             void* args[] = {&d_policy_weights_, &d_gd_weights_, &d_wp_weights_,
@@ -393,10 +399,10 @@ public:
                             &root_temp, &dir_alpha, &dir_eps,
                             &search_mode, &pw_k, &pw_alpha, &stop_after_turn};
             cudaLaunchKernel((void*)mcts_episodes_kernel_v2, dim3(n), dim3(256),
-                             args, shared_mem, 0);
-            cudaDeviceSynchronize();
+                             args, shared_mem, stream_);
+            cudaMemcpyAsync(h_outs_, d_outs_, n * sizeof(EpisodeOutV2), cudaMemcpyDeviceToHost, stream_);
+            cudaStreamSynchronize(stream_);
             check_cuda("v2 kernel");
-            cudaMemcpy(h_outs_, d_outs_, n * sizeof(EpisodeOutV2), cudaMemcpyDeviceToHost);
         }
         last_n_ = n;
         last_mode_ = search_mode;
@@ -535,8 +541,9 @@ public:
         int n = last_n_;
         std::vector<TreeNodeV2> hn((size_t)n * node_cap_);
         std::vector<TreeSlotV2> hs((size_t)n * slot_cap_);
-        cudaMemcpy(hn.data(), d_nodes_, hn.size() * sizeof(TreeNodeV2), cudaMemcpyDeviceToHost);
-        cudaMemcpy(hs.data(), d_slots_, hs.size() * sizeof(TreeSlotV2), cudaMemcpyDeviceToHost);
+        cudaMemcpyAsync(hn.data(), d_nodes_, hn.size() * sizeof(TreeNodeV2), cudaMemcpyDeviceToHost, stream_);
+        cudaMemcpyAsync(hs.data(), d_slots_, hs.size() * sizeof(TreeSlotV2), cudaMemcpyDeviceToHost, stream_);
+        cudaStreamSynchronize(stream_);
         check_cuda("debug_tree copy");
         py::list out;
         for (int e = 0; e < n; e++) {
@@ -586,10 +593,16 @@ public:
 
     void update_weights(py::array_t<float> new_weights) {
         auto w = new_weights.unchecked<1>();
-        cudaMemcpy(d_policy_weights_, w.data(0), w.shape(0) * sizeof(float), cudaMemcpyHostToDevice);
+        // ordered after this engine's in-flight batch, as the old default-stream copy was
+        const float* src = w.data(0);
+        size_t bytes = w.shape(0) * sizeof(float);
+        py::gil_scoped_release no_gil;
+        cudaMemcpyAsync(d_policy_weights_, src, bytes, cudaMemcpyHostToDevice, stream_);
+        cudaStreamSynchronize(stream_);
     }
 
     ~MCTSKernelEngine() {
+        if (stream_) { cudaStreamSynchronize(stream_); cudaStreamDestroy(stream_); }
         cudaFree(d_policy_weights_);
         cudaFree(d_gd_weights_);
         cudaFree(d_wp_weights_);
@@ -605,6 +618,7 @@ public:
 
 private:
     int max_episodes_;
+    cudaStream_t stream_ = nullptr;
     int policy_weight_count_;
     PolicyNetOffsets policy_off_;
     GDNetOffsets gd_off_;

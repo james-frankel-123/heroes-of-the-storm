@@ -43,7 +43,10 @@ except ImportError:
 # research build in cuda_mcts/.
 from shared import HERO_SET as _HERO_SET
 so_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cuda_mcts')
-if _HERO_SET == "v2":
+# MCTS_KERNEL_DIR: load cuda_mcts_kernel.*.so from another build directory (opt-in)
+if os.environ.get("MCTS_KERNEL_DIR"):
+    so_dir = os.environ["MCTS_KERNEL_DIR"]
+elif _HERO_SET == "v2":
     so_dir = os.path.join(so_dir, "h91")
     if not os.path.isdir(so_dir):
         raise RuntimeError("HOTS_HERO_SET=v2 needs the h91 kernel: python cuda_mcts/build_h91.py")
