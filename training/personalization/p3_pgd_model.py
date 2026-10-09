@@ -232,7 +232,9 @@ def main():
             # second review). The MCTS host reads use_cluster from this file.
             torch.save({"pick": heads["pick"].state_dict(), "ban": heads["ban"].state_dict(),
                         "pick_feats": PF.FEATS, "ban_feats": BAN_FEATS, "use_cluster": False}, OUT)
-        del Fall
+        del Fall, aux  # the next variant's features are rebuilt from scratch
+        import gc
+        gc.collect()
     S, heads = variants["personal GD"]
     S0, heads0 = variants["personal GD without clusters"]
     hq_all = {k: v for k, v in hist.items()}

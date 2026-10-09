@@ -188,7 +188,7 @@ def main():
             [os.path.join(TRAINING, "remote_workers", "sync.sh"), H90, "code"], cwd=REPO,
             capture_output=True).returncode == 0),
         ("drafter_chain", lambda: job_ok(H90, "p3_drafter", ["python", "personalization/p3_pipe.py", "drafter"],
-                                         grep="chain drafter complete")),
+                                         grep="chain drafter complete", P3_MEM="64G")),
         ("verify_3090", lambda: verify(H90, "3090", "32-35", "24G")),
         ("ready_3090", lambda: remote(H90, "touch ~/hots/p3_ready") is not None),
         ("stage_3080", stage_3080),
