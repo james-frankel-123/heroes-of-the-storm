@@ -7,7 +7,8 @@ HOST=${1:?usage: sync.sh <host> [code|data|all]}
 WHAT=${2:-code}
 cd "$(dirname "$0")/../.."
 DEST=/home/max/hots/repo/
-R=(nice -n 19 rsync -rlt --rsync-path="wsl rsync" -z --compress-choice=zstd --compress-level=3)
+source training/remote_workers/_remote.sh
+R=(nice -n 19 rsync -rlt --rsync-path="$(remote_rsync "$HOST")" -z --compress-choice=zstd --compress-level=3)
 if [ "$WHAT" = code ] || [ "$WHAT" = all ]; then
   "${R[@]}" --max-size=2m --prune-empty-dirs --filter="merge training/remote_workers/code.filter" \
     --stats ./ "$HOST:$DEST" | grep -E "files transferred|Total transferred"

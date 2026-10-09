@@ -59,7 +59,7 @@ export HOTS=\$HOME/hots
 export CUDA_HOME=$CH
 export PATH=\$HOTS/venv/bin:\$CUDA_HOME/bin:\$HOTS/bin:\$PATH
 export LD_LIBRARY_PATH=/usr/lib/wsl/lib:\$CUDA_HOME/lib64\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}
-export TORCH_CUDA_ARCH_LIST=8.6
+export TORCH_CUDA_ARCH_LIST=${HOTS_ARCH:-8.6}
 export MAX_JOBS=\${MAX_JOBS:-4}
 export UV_CACHE_DIR=\$HOTS/.uv-cache UV_PYTHON_INSTALL_DIR=\$HOTS/.uv-python
 export WANDB_MODE=disabled

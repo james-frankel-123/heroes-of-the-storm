@@ -31,6 +31,9 @@ import re
 import json
 import time
 import subprocess
+import sys as _rw_sys, os as _rw_os
+_rw_sys.path.insert(0, _rw_os.path.join(_rw_os.path.dirname(_rw_os.path.abspath(__file__)), *(['..'] * (2 if 'drift_rebuild' in __file__ or '/remote/' in __file__ else 1)), 'remote_workers'))
+import hosts as _rw_hosts  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TRAINING_DIR = os.path.dirname(HERE)
@@ -46,7 +49,7 @@ RUNS = ([("B", "oof", s) for s in range(5)] + [("F", "oof", s) for s in range(5)
         + [("F", "leak", s) for s in range(3)] + [("J", "leak", s) for s in range(3)])
 
 
-MAX_SLOTS = {"max-windows-3090": 2, "3080-gaming-desktop": 1}
+MAX_SLOTS = {"max-windows-3090": 2, "3080-gaming-desktop": 1, "windows-5090-wsl": 2}
 
 
 def log(msg):
@@ -98,7 +101,7 @@ def in_pretraining(host, runs):
     cmd = "; ".join(f"grep -qE 'pre-training complete|^Episode ' ~/hots/repo/training/paper1_revision/site/logs/mcts_{r[len('p1site_'):]}.log 2>/dev/null || echo {r}"
                     for r in runs)
     try:
-        r = subprocess.run(["ssh", host, "wsl -e bash -s"], input=cmd + "\necho __ok\n", capture_output=True,
+        r = subprocess.run(["ssh", host, _rw_hosts.shell(host)], input=cmd + "\necho __ok\n", capture_output=True,
                            text=True, timeout=120)
     except subprocess.TimeoutExpired:
         return list(runs)
@@ -124,7 +127,7 @@ def push(host):
               os.path.join(TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site_lite.json")]
     files += [os.path.join(NS, f"generic_draft_{i}.pt") for i in range(5)]
     lst = "\n".join(os.path.relpath(f, REPO) for f in files) + "\n"
-    r = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", "--rsync-path=wsl rsync", "-z",
+    r = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", f"--rsync-path={_rw_hosts.rsync_path(host)}", "-z",
                         "--files-from=-", "./", f"{host}:/home/max/hots/repo/"],
                        input=lst, text=True, cwd=REPO, capture_output=True)
     return r.returncode == 0

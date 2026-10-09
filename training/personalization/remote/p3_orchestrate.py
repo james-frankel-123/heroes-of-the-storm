@@ -22,6 +22,9 @@ import os
 import subprocess
 import sys
 import time
+import sys as _rw_sys, os as _rw_os
+_rw_sys.path.insert(0, _rw_os.path.join(_rw_os.path.dirname(_rw_os.path.abspath(__file__)), *(['..'] * (2 if 'drift_rebuild' in __file__ or '/remote/' in __file__ else 1)), 'remote_workers'))
+import hosts as _rw_hosts  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 P3 = os.path.dirname(HERE)
@@ -50,7 +53,7 @@ def alert(msg):
 
 def remote(host, script, timeout=600):
     try:
-        r = subprocess.run(["ssh", "-o", "ConnectTimeout=30", host, "wsl -e bash -s"],
+        r = subprocess.run(["ssh", "-o", "ConnectTimeout=30", host, _rw_hosts.shell(host)],
                            input=script + "\necho __ok\n", capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         return None

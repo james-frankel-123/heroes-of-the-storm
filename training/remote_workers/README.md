@@ -9,6 +9,9 @@ which avoids cmd.exe quoting.
 |---|---|---|---|---|---|
 | `max-windows-3090` | RTX 3090 24 GB | 560.94 (CUDA <= 12.6) | 2.10.0+cu126 | 12.6.3 | 36 / 196 GB |
 | `3080-gaming-desktop` | RTX 3080 10 GB | 576.52 (CUDA <= 12.9) | 2.10.0+cu128 | 12.8.1 | 20 / 47 GB |
+| `windows-5090-wsl` | RTX 5090 32 GB | 591.86 | 2.10.0+cu128 | 12.8.1 (`HOTS_ARCH=12.0`) | 16 / 35 GB |
+
+The 5090 runs sshd inside WSL (port 2222), so commands go to `bash -s` / `rsync` directly instead of through `wsl`; `hosts.py` and `_remote.sh` hold the list of such direct-WSL hosts. Its env was built with `HOTS_ARCH=12.0 bash setup_env.sh cu128`. RAM is the constraint there: lite-snapshot MCTS runs only (about 7 GB each).
 
 The 3090 uses cu126 because its driver predates CUDA 12.8. After a driver update to
 570 or newer it can switch to cu128 by re-running `setup_env.sh cu128` after
