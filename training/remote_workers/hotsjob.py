@@ -101,6 +101,10 @@ def infer(cmd):
         return ("mcts", f"paper1_revision/mcts_runs/{name}",
                 f"paper1_revision/logs/mcts_{name}.log",
                 cmd if "--resume" in cmd else cmd + " --resume")
+    if "multi_mcts.py" in cmd:
+        # several runs in one process: SIGTERM pauses every run (exit 75); the same
+        # command resumes them (completed runs are skipped via run_status.json)
+        return ("mcts", None, None, cmd)
     if "train_mcts_worker.py" in cmd:
         m = re.search(r"MCTS_SAVE_DIR=(\S+)", cmd)
         resume = re.sub(r"MCTS_FRESH=\S+\s*", "", cmd)

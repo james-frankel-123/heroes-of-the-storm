@@ -93,6 +93,8 @@ def main():
     ap.add_argument("--wp", default=None,
                     help="leaf WP spec in paper1_revision/train_wp.py (default: enriched; "
                          "naive for config K; enriched_leak = in-sample statistics control)")
+    ap.add_argument("--print-env", action="store_true",
+                    help="print the worker environment overrides as JSON (for multi_mcts.py) and exit")
     ap.add_argument("--resume", action="store_true",
                     help="continue from the run's saved checkpoint (the worker saves at each new best eval)")
     a = ap.parse_args()
@@ -151,6 +153,13 @@ def main():
         "PYTHONHASHSEED": str(a.seed),
         "P1R_RUN_SEED": str(a.seed),
     })
+    if a.print_env:
+        print(json.dumps({"name": name, "log": os.path.join(core.LOGS, f"mcts_{name}.log"),
+                          "env": {k: v for k, v in env.items()
+                                  if k == "REPLAY_SNAPSHOT_PATH" or k.startswith(("MCTS_", "P1R_", "WP_"))
+                                  or k in ("CUDA_VISIBLE_DEVICES", "REPLAY_SNAPSHOT", "WANDB_MODE",
+                                           "WANDB_RUN_NAME", "PYTHONHASHSEED", "P1_TIERS")}}))
+        return
     json.dump({"config": a.config, "sims": sims, "episodes": episodes, "seed": a.seed,
                "wp": wp, "stats": core.stats_path("deploy")},
               open(os.path.join(save, "run_meta.json" if not a.resume else "run_meta_resume.json"), "w"),

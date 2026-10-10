@@ -53,9 +53,18 @@ elif _HERO_SET == "v2":
 so_files = [f for f in os.listdir(so_dir) if f.startswith('cuda_mcts_kernel.') and f.endswith('.so')]
 if len(so_files) != 1:
     raise RuntimeError(f"expected one cuda_mcts_kernel.*.so in {so_dir}, found {so_files}")
-spec = importlib.util.spec_from_file_location('cuda_mcts_kernel', os.path.join(so_dir, so_files[0]))
-kernel = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(kernel)
+_so_path = os.path.join(so_dir, so_files[0])
+if 'cuda_mcts_kernel' in sys.modules:
+    # several workers in one process (multi_mcts.py): an extension can be
+    # initialised only once; all runs must share the same build
+    kernel = sys.modules['cuda_mcts_kernel']
+    if os.path.realpath(getattr(kernel, '__file__', '')) != os.path.realpath(_so_path):
+        raise RuntimeError(f"kernel already loaded from {kernel.__file__}, run wants {_so_path}")
+else:
+    spec = importlib.util.spec_from_file_location('cuda_mcts_kernel', _so_path)
+    kernel = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kernel)
+    sys.modules['cuda_mcts_kernel'] = kernel
 
 # Config
 SAVE_DIR = os.environ.get("MCTS_SAVE_DIR", os.path.dirname(__file__))
