@@ -84,9 +84,20 @@ def alive(pgid):
         return False
     except PermissionError:
         return True
-    # a zombie leader with no other members still answers killpg; check /proc
-    out = subprocess.run(["ps", "-o", "stat=", "-g", str(pgid)], capture_output=True, text=True).stdout
-    return any(s and not s.startswith("Z") for s in out.split())
+    # a zombie leader with no other members still answers killpg; check its
+    # members. A job is declared gone only if three looks over ~4 s all agree:
+    # one empty `ps` answer once marked a live 4-run job failed (2026-10-10, 5090)
+    # and its resume started a duplicate.
+    for attempt in range(3):
+        out = subprocess.run(["ps", "-o", "stat=", "-g", str(pgid)], capture_output=True, text=True).stdout
+        if any(s and not s.startswith("Z") for s in out.split()):
+            return True
+        try:
+            os.killpg(pgid, 0)
+        except ProcessLookupError:
+            return False
+        time.sleep(2)
+    return False
 
 
 def abspath_t(p):

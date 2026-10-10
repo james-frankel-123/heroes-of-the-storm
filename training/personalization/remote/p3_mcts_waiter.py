@@ -57,7 +57,7 @@ DRIFT_ORDER = os.path.join(TRAINING, "drift_v2", "mcts_remote_order.txt")
 DRIFT_STATE = os.path.join(TRAINING, "drift_v2", "logs", "drift_mcts_waiter_state.json")
 HANDOFF = os.path.join(TRAINING, "paper1_revision", "site", "logs", "HANDOFF_{}")
 
-MAX_SLOTS = {"max-windows-3090": 1, "3080-gaming-desktop": 1}  # 3090: one MCTS job at a time (2026-10-09; two processes time-slice the GPU, no gain)
+MAX_SLOTS = {"max-windows-3090": 1, "3080-gaming-desktop": 1}  # one MCTS job per GPU; add windows-5090-wsl (and MEM/CORES below) once P3 kernels and data are staged there
 MEM = {"max-windows-3090": "24G", "3080-gaming-desktop": "20G"}
 CORES = {"max-windows-3090": "28-35", "3080-gaming-desktop": "0-19"}
 PEAK_GB = 14

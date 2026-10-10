@@ -120,7 +120,24 @@ BUFFER_SIZE = 150_000
 BATCH_SIZE = 512
 
 
+def _lock_save_dir():
+    """Exclusive lock on SAVE_DIR for the life of the run: a second process (or
+    thread) for the same run fails at once instead of writing the same checkpoint
+    files (two writers corrupted a resume_state.pt on 2026-10-10)."""
+    import fcntl
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    f = open(os.path.join(SAVE_DIR, ".run.lock"), "w")
+    try:
+        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise RuntimeError(f"{SAVE_DIR} is in use by another run (lock .run.lock held)")
+    f.write(f"{os.getpid()}\n")
+    f.flush()
+    return f
+
+
 def main():
+    _run_lock = _lock_save_dir()  # noqa: F841  (held until the process or thread ends)
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print(f"Run: {RUN_NAME}")
     print(f"Config: episodes={NUM_EPISODES}, sims={NUM_SIMS}, batch={BATCH_EPISODES}, "

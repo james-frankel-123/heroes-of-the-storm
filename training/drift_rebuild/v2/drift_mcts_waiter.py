@@ -48,7 +48,7 @@ HANDOFF = os.path.join(TRAINING, "paper1_revision", "site", "logs", "HANDOFF_{}"
 RW = os.path.join(TRAINING, "remote_workers")
 LAUNCH = os.path.join(HERE, "launch_mcts_remote.sh")
 
-MAX_SLOTS = {"max-windows-3090": 1, "3080-gaming-desktop": 1}  # 3090: one MCTS job at a time (2026-10-09; two processes time-slice the GPU, no gain)
+MAX_SLOTS = {"max-windows-3090": 1, "3080-gaming-desktop": 1, "windows-5090-wsl": 1}  # one MCTS job per GPU (2026-10-09/10: two processes time-slice the GPU; two runs in one process gave no gain in full training)
 # Per-process data cap. Drift agents load the full 2.9 GB snapshot for value
 # pretraining; paper-1 runs on that snapshot peaked near 21 GB RSS (the 12G
 # paper-1 cap is sized for its 0.6 GB lite snapshot).
@@ -166,11 +166,24 @@ def main():
         order = [l.strip() for l in open(ORDER) if l.strip()]
         st = {h: status(h) for h in MAX_SLOTS}
         down = [h for h, v in st.items() if v is None]
+        seen = state.setdefault("last_seen", {})  # host -> agents last seen there
+        for h, jobs in st.items():
+            if jobs is not None:
+                seen[h] = sorted(n for n in jobs if n in order)
         if down:
-            alert(f"unreachable (ssh/WSL): {', '.join(down)}; no launches this cycle")
-            time.sleep(CYCLE)
-            continue
-        v2 = {n: (h, j) for h, jobs in st.items() for n, j in jobs.items() if n in order}
+            unknown = [h for h in down if h not in seen]
+            if unknown:
+                # no record of what runs there: an agent could be launched twice
+                alert(f"unreachable (ssh/WSL), never seen: {', '.join(unknown)}; no launches this cycle")
+                time.sleep(CYCLE)
+                continue
+            alert(f"unreachable (ssh/WSL): {', '.join(down)}; its last-seen agents count as taken, "
+                  f"launches continue elsewhere", key="down:" + ",".join(sorted(down)), state=state)
+        json.dump(state, open(STATE, "w"))
+        v2 = {n: (h, j) for h, jobs in st.items() if jobs is not None for n, j in jobs.items() if n in order}
+        for h in down:
+            for n in seen.get(h, []):
+                v2.setdefault(n, (h, {"status": "unreachable", "kind": "mcts", "log": "?"}))
         for n, (h, j) in v2.items():
             if j["status"] in ("failed", "died", "paused"):
                 alert(f"{n} on {h} is {j['status']} (log {j['log']})", key=f"{n}:{h}:{j['status']}",
@@ -182,6 +195,8 @@ def main():
         for host, cap in MAX_SLOTS.items():
             if not pending:
                 break
+            if host in down:
+                continue
             if not os.path.exists(HANDOFF.format(host)) and not ASSUME_HANDOFF:
                 if host not in waiting_logged:
                     log(f"{host}: waiting for HANDOFF")
