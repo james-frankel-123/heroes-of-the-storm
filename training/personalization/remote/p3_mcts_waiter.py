@@ -95,6 +95,11 @@ def drift_all_launched(st):
     if os.path.exists(DRIFT_STATE):
         failed = set(json.load(open(DRIFT_STATE)).get("launch_failed", []))
     seen = {n for jobs in st.values() for n in jobs}
+    # drift agents also ran on hosts outside this lane's slot list (the 5090):
+    # count every host the drift waiter has seen them on
+    if os.path.exists(DRIFT_STATE):
+        for names in json.load(open(DRIFT_STATE)).get("last_seen", {}).values():
+            seen.update(names)
     pending = [n for n in order if n not in seen and n not in failed]
     return not pending, pending
 
