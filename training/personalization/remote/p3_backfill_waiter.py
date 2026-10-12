@@ -22,6 +22,9 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "remote_workers"))
+import hosts as _rw_hosts  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 P3 = os.path.dirname(HERE)
 REPO = os.path.dirname(os.path.dirname(P3))
@@ -64,7 +67,7 @@ def remaining():
 
 def remote_state(job):
     try:
-        r = subprocess.run(["ssh", "-o", "ConnectTimeout=30", H90, "wsl -e bash -s"],
+        r = subprocess.run(["ssh", "-o", "ConnectTimeout=30", H90, _rw_hosts.shell(H90)],
                            input=f"source ~/hots/env.sh; python ~/hots/repo/training/remote_workers/hotsjob.py state {job}\n",
                            capture_output=True, text=True, timeout=120)
         return r.stdout.split()[-1] if r.stdout.split() else "none"
@@ -102,7 +105,7 @@ def main():
                 json.dump(state, open(STATE, "w"))
         if "tag" in state and "shipped" not in state:
             src = f"training/personalization/cache/export/{state['tag']}/"
-            r = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", "--rsync-path=wsl rsync", src,
+            r = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", f"--rsync-path={_rw_hosts.rsync_path(H90)}", src,
                                 f"{H90}:/home/max/hots/repo/{src}"], cwd=REPO, capture_output=True, text=True)
             if r.returncode != 0:
                 alert(f"rsync of the export failed: {r.stderr[-300:]}")

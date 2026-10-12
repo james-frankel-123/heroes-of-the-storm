@@ -6,6 +6,9 @@
 #   personalization/results/oct26 (P3_RESULTS). GPU jobs pass P3_GPU=1.
 set -euo pipefail
 HOST=${1:?host}; NAME=${2:?name}; shift 2
+# run_remote.sh joins the command with $*, so a quoted multi-word argument
+# (e.g. bash -c "a && b") would be split and run partly outside env/taskset.
+for a in "$@"; do case "$a" in *" "*) echo "p3_job.sh: argument with spaces ('$a'): launch one command per job" >&2; exit 2;; esac; done
 CORES=${P3_CORES:-28-31}
 THREADS=${P3_THREADS:-8}
 MEM=${P3_MEM:-48G}

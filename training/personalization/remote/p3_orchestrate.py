@@ -144,7 +144,7 @@ def verify(host, tag, cores, mem):
 def stage_3080():
     os.makedirs(STAGE, exist_ok=True)
     src = f"{H90}:/home/max/hots/repo/training/personalization/"
-    r1 = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", "--rsync-path=wsl rsync", "-z",
+    r1 = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", f"--rsync-path={_rw_hosts.rsync_path(H90)}", "-z",
                          "--exclude", "cache/_legacy_pre_oct26/", "--exclude", "cache/mmr_history/",
                          "--exclude", "cache/export/", "--exclude", "cache/mcts_v2/", "--exclude", "cache/fix/",
                          "--exclude", "cache/gd_trainonly/train/", "--exclude", "cache/gd_trainonly/hold/",
@@ -154,7 +154,7 @@ def stage_3080():
         alert(f"rsync from {H90} failed: {r1.stderr[-300:]}")
         return False
     dst = f"{H80}:/home/max/hots/repo/training/personalization/"
-    r2 = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", "--rsync-path=wsl rsync", "-z", STAGE + "/", dst],
+    r2 = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", f"--rsync-path={_rw_hosts.rsync_path(H80)}", "-z", STAGE + "/", dst],
                         capture_output=True, text=True)
     if r2.returncode != 0:
         alert(f"rsync to {H80} failed: {r2.stderr[-300:]}")
@@ -162,7 +162,7 @@ def stage_3080():
     # population WP, patch stats and the snapshot-independent inputs of the search hosts
     lst = subprocess.run([os.path.join(HERE, "p3_data_manifest.sh")], capture_output=True, text=True).stdout
     keep = "\n".join(l for l in lst.splitlines() if not l.startswith("training/personalization/cache/"))
-    r3 = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", "--rsync-path=wsl rsync", "-z",
+    r3 = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", f"--rsync-path={_rw_hosts.rsync_path(H80)}", "-z",
                          "--files-from=-", "./", f"{H80}:/home/max/hots/repo/"], input=keep, text=True,
                         capture_output=True, cwd=REPO)
     if r3.returncode != 0:

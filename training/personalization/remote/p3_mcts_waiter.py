@@ -57,9 +57,13 @@ DRIFT_ORDER = os.path.join(TRAINING, "drift_v2", "mcts_remote_order.txt")
 DRIFT_STATE = os.path.join(TRAINING, "drift_v2", "logs", "drift_mcts_waiter_state.json")
 HANDOFF = os.path.join(TRAINING, "paper1_revision", "site", "logs", "HANDOFF_{}")
 
-MAX_SLOTS = {"max-windows-3090": 1, "3080-gaming-desktop": 1}  # one MCTS job per GPU; add windows-5090-wsl (and MEM/CORES below) once P3 kernels and data are staged there
-MEM = {"max-windows-3090": "24G", "3080-gaming-desktop": "20G"}
-CORES = {"max-windows-3090": "28-35", "3080-gaming-desktop": "0-19"}
+# one MCTS job per GPU. windows-5090-wsl is staged and verified for P3
+# (sm_120 kernels, VERIFY OK 2026-10-12) but lent to paper 1 until the
+# coordinator frees it: add "windows-5090-wsl": 1 here then. Its RAM is 35 GB,
+# so its per-job cap is 16G (MCTS hosts peak near 3.5 GB RSS).
+MAX_SLOTS = {"max-windows-3090": 1, "3080-gaming-desktop": 1}
+MEM = {"max-windows-3090": "24G", "3080-gaming-desktop": "20G", "windows-5090-wsl": "16G"}
+CORES = {"max-windows-3090": "28-35", "3080-gaming-desktop": "0-19", "windows-5090-wsl": "0-7"}
 PEAK_GB = 14
 CYCLE = 300
 DRY = "--dry" in sys.argv

@@ -6,7 +6,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -16,7 +17,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -26,7 +28,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -36,7 +39,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -46,7 +50,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -56,7 +61,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -66,7 +72,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -76,7 +83,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -86,7 +94,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -96,7 +105,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -120,7 +130,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -132,7 +143,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -144,7 +156,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -156,7 +169,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -177,7 +191,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -189,7 +204,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -201,7 +217,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -211,7 +228,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -221,7 +239,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -231,7 +250,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -241,7 +261,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -251,7 +272,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -261,7 +283,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
@@ -273,7 +296,8 @@
   "gpu": true,
   "hosts": [
    "max-windows-3090",
-   "3080-gaming-desktop"
+   "3080-gaming-desktop",
+   "windows-5090-wsl"
   ]
  },
  {
