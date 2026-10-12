@@ -357,6 +357,9 @@ def cmd_heldout(args):
     for n, sp in specs.items():
         if not os.path.exists(model_path(n)):
             continue
+        if sp["side"] not in ("A", "B"):
+            # post-snapshot judges (side N) are scored by judge_calibration.py
+            continue
         other = "A" if sp["side"] == "B" else "B"
         Xf, Xs, y, rid = eval_features(sp["side"], sp["e"], other)
         m, meta = load_model(n)
