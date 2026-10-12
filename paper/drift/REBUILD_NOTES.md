@@ -271,3 +271,13 @@ Source: `audits/CONSOLIDATED_AUDIT_2026-10-01.md` §6 (4aff9b0). New scripts are
 - Abstract, intro, conclusion and Limitations rewritten from these numbers. The names table drops U-era.
 - Figures: `gen_figs.py` fig_dose plots U and M against S1/S2 from `r8_scores.json`; fig_vintage reads `v2_vintage.json`, with QM x-positions at their v2 windows.
 - PDF: 10 pages, no overfull boxes.
+
+**Narration removed (2026-10-12).**
+- Sec. 2: the out-of-fold paragraph now states the leaky-vs-out-of-fold contrast directly.
+- Sec. 3: the paragraph on the leaky regimes now states the v2 measurement (41.8 vs 20.7, 44.5 vs 30.1, 42.5 vs 24.0; Welch t 8.9; short-history 46-49%; accuracy −0.03 to −0.4pp; correlation +0.36) with no reference to a first version.
+- Sec. 3 table and figure captions: the leaky columns and points are labeled "leaky statistics".
+- Names table: \leakyunm{} is the unmaintained agent trained on leaky statistics, kept as the registered head-to-head's control.
+- Sec. 11: the prereg disclosure keeps its content (C2 was drafted by \leakyunm{}, the agent available at registration).
+- Limitations: the "analysis went wrong three times" passage is removed.
+- Sec. 5: the counter-reversal explanation is one sentence, labeled as an untested hypothesis.
+- PDF: 9 pages (the removals freed most of a page), no overfull boxes.

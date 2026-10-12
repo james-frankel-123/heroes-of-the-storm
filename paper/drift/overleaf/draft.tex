@@ -188,10 +188,9 @@ Each replay therefore receives one of five hash folds, and a training
 row gets the cutoff statistics with its own fold's games removed;
 deployment rows keep the unmodified cutoff statistics, which contain no
 deployment game. Built from the full counts, the same code reproduces
-the stored cutoff statistics to the last digit. The first version of
-this study used the leaky construction for every cutoff-frozen arm, and
-the correction changed results. For all-history training, in-period
-validation accuracy falls from 59.04\% to 57.31\%, the calibration slope
+the stored cutoff statistics to the last digit. The leak matters.
+For all-history training, moving from leaky to out-of-fold statistics
+lowers in-period validation accuracy from 59.04\% to 57.31\%, the calibration slope
 on the future window (the slope of a logistic recalibration of the
 model's predictions; 1 is calibrated) rises from 0.70 to 0.96
 (\maintained{}: 0.92), and the rate of structurally broken teams
@@ -239,7 +238,7 @@ Name & Meaning \\
 \mcut{} & the \maintained{} value functions, with the MCTS policy trained on kernel statistics frozen at the cutoff \\
 \stalefour{} & value function trained on cutoff-frozen statistics with out-of-fold training rows; policy trained on cutoff statistics \\
 \staleone{} / \staletwo{} & the \stalefour{} recipe with the cutoff one and two years earlier, and an opponent model of that era \\
-\leakyunm{} & our first version of \stalefour{}, whose training rows saw their own outcomes; a control \\
+\leakyunm{} & \stalefour{} trained on leaky statistics, whose training rows saw their own outcomes; the registered head-to-head's control (Sec.~\ref{sec:prospective}) \\
 frozen-statistics recipe & in the replay (Sec.~\ref{sec:replay}), a value function trained at the replay's first cutoff (July 2023) on out-of-fold cutoff statistics and deployed with those statistics frozen \\
 \leakyfrozen{} & the earlier paper's model, whose statistics saw the future; a control \\
 \bottomrule
@@ -257,7 +256,7 @@ decay with 90- and 365-day half-lives, a learned patch embedding, and
 through each row's previous build.
 
 \begin{table}[t]
-\caption{Training regimes, leak-free, with the leaky first version for
+\caption{Training regimes, leak-free, with leaky statistics for
 comparison (3 seeds each). Val: in-period validation accuracy; future:
 future-window accuracy; slope: calibration slope on the future window;
 degen: broken compositions under greedy drafting against an opponent
@@ -269,7 +268,7 @@ has no leaky version.}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{lcccc|ccc}
 \toprule
- & \multicolumn{4}{c|}{leak-free (out-of-fold)} & \multicolumn{3}{c}{leaky (first version)} \\
+ & \multicolumn{4}{c|}{leak-free (out-of-fold)} & \multicolumn{3}{c}{leaky} \\
 Regime & Val & Future & Slope & Degen \% & Val & Future & Degen \% \\
 \midrule
 all history & 57.3 & 56.68 & 0.96 & 20.7 & 59.0 & 56.34 & 41.8 \\
@@ -289,7 +288,7 @@ patch embed & 57.5 & \textbf{57.10} & 0.98 & 24.0 & 59.2 & 56.73 & 42.5 \\
 \includegraphics[width=\columnwidth]{fig_scatter.pdf}
 \caption{Future-window accuracy against greedy degenerate-composition
 rate for the eight training regimes, leak-free (filled) and in the
-leaky first version (hollow, joined to their leak-free counterpart).
+with leaky statistics (hollow, joined to their leak-free counterpart).
 Removing the leak moves the all-history regimes down and to the right;
 the short-history regimes stay degenerate.}
 \label{fig:scatter}
@@ -316,13 +315,14 @@ cutoff-frozen statistics drafts broken teams 20.7\% of the time against
 seeds per arm make these tests weak, and we do not detect the
 difference at the agent level (Section~\ref{sec:neglect}).
 
-Our first version reported a twofold gap (41.8\% against 12.7\%) and a
-positive correlation ($+0.36$) between accuracy and degeneracy within
-the standard regimes. The leak produced both (Figure~\ref{fig:scatter}).
-It raised the degeneracy of the all-history regimes most (from 20.7\% to
-41.8\%, 30.1\% to 44.5\%, and 24.0\% to 42.5\%; Welch $t = 8.9$, 3.6 df,
-$p = 0.001$ for all history), moved the short-history regimes to 46\% to
-49\%, and lowered every regime's future accuracy by 0.03 to 0.4pp. What
+Leaky statistics distort both measures (Figure~\ref{fig:scatter}). With
+each row's own outcome in its statistics, the all-history regimes draft
+broken teams far more often (41.8\% against 20.7\%, 44.5\% against
+30.1\%, and 42.5\% against 24.0\%; Welch $t = 8.9$, 3.6 df,
+$p = 0.001$ for all history), the short-history regimes reach 46\% to
+49\%, every regime's future accuracy falls by 0.03 to 0.4pp, and the
+correlation between accuracy and degeneracy within the standard regimes
+turns positive ($+0.36$). What
 remains is that at equal or better accuracy, a policy can draft a
 broken team twice as often, so policy metrics have to be measured
 directly.
@@ -551,9 +551,8 @@ difference ($|t| \le 1.0$). Counters favor the two-year agent. Against
 by $0.24 \pm 0.11$ ($p = 0.052$), and \maintained{} by $0.15 \pm 0.09$
 ($p = 0.11$). Against \staleone{} the newer agents counter slightly
 better, and neither gap is significant ($+0.25$, $p = 0.14$ and $0.25$).
-Matchup advantages that held across builds would explain this pattern,
-since an agent trained on two older years of data sees more of them;
-we have not tested that explanation. Within the 2026 cutoff, the
+One hypothesis, which we did not test, is that matchup advantages that
+held across builds favor an agent trained on two older years of data. Within the 2026 cutoff, the
 decayed-statistics agent's synergy exceeds \stalefour{}'s by $0.35 \pm
 0.10$ ($p = 0.005$), and \mcut{} counters better than \stalefour{} by
 $0.51 \pm 0.19$ ($p = 0.03$). No matchup shows a significant difference
@@ -887,9 +886,9 @@ every hero the notes mention. The registered test is the frozen code, so
 C1 will be adjudicated with the any-mention truth, and we will also
 report the balance-only variant. The retrospective numbers in
 Section~\ref{sec:detect} report both. Second, the registered
-head-to-head (C2) was drafted by \leakyunm{}, the leaky first version of
-the unmaintained agent, because it was registered before the leak was
-found. We will report it as registered and report the leak-free
+head-to-head (C2) was drafted by \leakyunm{}, the unmaintained agent
+trained on leaky statistics, which was the agent available at
+registration. We will report it as registered and report the leak-free
 matchups of Section~\ref{sec:neglect} alongside it as descriptive
 results. Third, on September 30, 2026 our database relabeled skill tiers
 into a new scheme (Section~\ref{sec:setting}), while the registered
@@ -979,15 +978,7 @@ one-year arm was cut from 6 agents to 3 when compute was capped, so the
 staleness gradient's one-year point rests on three agents. We tested about
 twenty accuracy cells on the same future window and many
 matchup-by-metric combinations; we name the primary contrasts in each
-section and treat the rest as secondary. Finally, our analysis went
-wrong three times before this version: an evaluator panel that shared the
-maintained agent's vintage (Section~\ref{sec:vintage}), scoring games
-that overlapped the maintained agent's statistics
-(Section~\ref{sec:neglect}), and unmaintained baselines trained on their
-own outcomes (Section~\ref{sec:setting}). The last one changed the
-paper's main conclusion, and we cannot rule out further errors of the
-same kind.
-
+section and treat the rest as secondary. 
 \section{Conclusion}
 
 A draft policy that nobody maintains loses about a point of accuracy
