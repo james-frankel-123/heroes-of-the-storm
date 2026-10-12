@@ -124,7 +124,9 @@ def job_ngs_quartiles():
     import torch
     from paper1_revision.train_wp import load
     d = json.load(open(os.path.join(TRAINING_DIR, "ngs2026", "ngs_drafts.json")))["drafts"]
-    sc = json.load(open(os.path.join(TRAINING_DIR, "ngs2026", "meta_analysis.json")))[
+    from overfit2026 import data as _od
+    tag = "_p1site" if _od.TIER_SCHEME == "site" else ""     # ladder side of the site corpus
+    sc = json.load(open(os.path.join(TRAINING_DIR, "ngs2026", f"meta_analysis{tag}.json")))[
         "per_draft_offmeta_score"]
     rows = [(g["team0_heroes"], g["team1_heroes"], g["game_map"], "mid") for g in d]
     y = np.array([1.0 if int(g["winner"]) == 0 else 0.0 for g in d])
