@@ -34,7 +34,7 @@ ALERT = os.path.join(LOGS, "ALERT_p3_backfill")
 STATE = os.path.join(LOGS, "p3_backfill_state.json")
 H90 = "max-windows-3090"
 MIN_LEFT = 5000
-DEADLINE = datetime.date(2026, 10, 16)
+DEADLINE = datetime.date(2026, 10, 19)  # quota-gated: 121K left on 10-12, reset about 10-15
 CYCLE = 6 * 3600
 
 
