@@ -5,6 +5,7 @@ network as prior, its own proxy at the leaves, 200 inference sims, root T=1;
 plus T=0), 400 paired draft configs, scored on side-B gold and post-snapshot
 gold exactly like stage E.
 Output: results/selfplay/<run>__inf<sims>__T<T>.json
+P1_TIERS=site: runs, logs and results under site/; half-A GD opponent.
 """
 import os
 import sys
@@ -18,22 +19,27 @@ sys.path.insert(0, TRAINING_DIR)
 
 import numpy as np
 
-from overfit2026 import search, score
-from overfit2026.stage_e import N_DRAFTS, SEED
+from overfit2026 import search, score, data
+from overfit2026.stage_e import N_DRAFTS, SEED, use_split_gd
 
-OUT = os.path.join(HERE, "results", "selfplay")
+SITE = data.TIER_SCHEME == "site"
+OUT = data.art(HERE, "results", "selfplay") if SITE else os.path.join(HERE, "results", "selfplay")
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
+    use_split_gd()
     kernel = search.load_kernel("ofit")
-    dirs = sorted(glob.glob(os.path.join(HERE, "mcts_runs", "*"))) + \
-        sorted(glob.glob(os.path.join(HERE, "mcts_runs_partial", "*")))
+    base = data.art(HERE) if SITE else HERE
+    dirs = sorted(glob.glob(os.path.join(base, "mcts_runs", "*"))) + \
+        sorted(glob.glob(os.path.join(base, "mcts_runs_partial", "*")))
     for d in dirs:
         ck = os.path.join(d, "draft_policy.pt")
         name = os.path.basename(d)
         if "_at" not in name:
-            log = os.path.join(HERE, "logs", f"mcts_{name}.log")
+            log = os.path.join(base, "logs", f"mcts_{name}.log")
+            if SITE and not os.path.exists(log):
+                continue
             if not os.path.exists(ck) or "Complete." not in open(log).read():
                 continue
         proxy = name.split("_")[0] + "_" + name.split("_")[1]   # pA8_leak / pA8_oof

@@ -19,7 +19,7 @@ Statistics modes for training rows
         uses statistics over the whole training subset, like the leaky one.
 
 Subcommands
-  stats     write stats JSONs (cache/split_stats/*.json)
+  stats     write stats JSONs (cache/split_stats/*.json); --only = exact names
   train     train WP models from a spec list (models/*.pt, models/*.json)
   heldout   evaluate every trained model on the other half's real games
 """
@@ -149,8 +149,9 @@ def _build_one(args):
     games = [g for g in _GAMES if (g[0] > data.SNAPSHOT_BOUND) == (side == "N")]
     sel = [g for g in subset(games, side, e) if fold is None or fold_of(g[0]) == fold]
     js = frozen_json(counts_for(sel), {"subset": name, "games_used": len(sel)})
-    with open(stats_path(name), "w") as f:
+    with open(stats_path(name) + ".tmp", "w") as f:      # atomic: a killed run leaves no stub
         json.dump(js, f)
+    os.replace(stats_path(name) + ".tmp", stats_path(name))
     return name, len(sel)
 
 
@@ -159,10 +160,11 @@ def cmd_stats(args):
     os.makedirs(STATS_DIR, exist_ok=True)
     global _GAMES
     _GAMES = data.load_snapshot() + games_for("N")
+    only = set(args.only.split(",")) if args.only else None     # exact stats names
     todo = [(n, spec) for n, spec in stats_names().items()
-            if not os.path.exists(stats_path(n))]
+            if not os.path.exists(stats_path(n)) and (only is None or n in only)]
     ctx = mp.get_context("fork")
-    with ctx.Pool(min(24, max(1, len(todo)))) as pool:
+    with ctx.Pool(min(int(os.environ.get("SPLIT_STATS_NPROC", "24")), max(1, len(todo)))) as pool:
         for n, k in pool.imap_unordered(_build_one, todo):
             print(f"  stats {n}: {k:,} games", flush=True)
 
@@ -201,7 +203,8 @@ def feature_set(side, e, mode):
         raise ValueError(mode)
     y = np.array([1.0 if g[6] == 0 else 0.0 for g in games], np.float32)
     rid = np.array([g[0] for g in games])
-    np.savez(path, Xf=Xf, Xs=Xs, y=y, rid=rid)
+    np.savez(path[:-4] + ".tmp.npz", Xf=Xf, Xs=Xs, y=y, rid=rid)
+    os.replace(path[:-4] + ".tmp.npz", path)
     return Xf, Xs, y, rid
 
 
@@ -218,7 +221,8 @@ def eval_features(side, e_stats, games_side):
     Xf, Xs = feats.featurize(rows_of(games), load_stats(f"{side}{e_stats}"))
     y = np.array([1.0 if g[6] == 0 else 0.0 for g in games], np.float32)
     rid = np.array([g[0] for g in games])
-    np.savez(path, Xf=Xf, Xs=Xs, y=y, rid=rid)
+    np.savez(path[:-4] + ".tmp.npz", Xf=Xf, Xs=Xs, y=y, rid=rid)
+    os.replace(path[:-4] + ".tmp.npz", path)
     return Xf, Xs, y, rid
 
 
@@ -330,7 +334,8 @@ def cmd_train(args):
     names = [n for n in specs if (not args.only or any(o in n for o in args.only.split(",")))]
     dev = torch.device("cuda")
     for n in names:
-        if os.path.exists(model_path(n)) and not args.force:
+        if (os.path.exists(model_path(n)) and os.path.exists(model_path(n)[:-3] + ".json")
+                and not args.force):
             continue
         t0 = time.time()
         train_one(n, specs[n], dev)

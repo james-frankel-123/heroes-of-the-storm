@@ -112,6 +112,13 @@ def infer(cmd):
         return ("mcts", f"paper1_revision/mcts_runs/{name}",
                 f"paper1_revision/logs/mcts_{name}.log",
                 cmd if "--resume" in cmd else cmd + " --resume")
+    m = re.search(r"overfit2026/train_mcts_split\.py\s+(\S+)\s+(\d+)\s+(\S+)", cmd)
+    if m:
+        # split-experiment self-play (site tiers when P1_TIERS=site is in the command)
+        name = f"{m.group(1)}_{m.group(2)}sim_{m.group(3)}"
+        base = "overfit2026/site" if re.search(r"\bP1_TIERS=site\b", cmd) else "overfit2026"
+        return ("mcts", f"{base}/mcts_runs/{name}", f"{base}/logs/mcts_{name}.log",
+                cmd if "--resume" in cmd else cmd + " --resume")
     if "multi_mcts.py" in cmd:
         # several runs in one process: SIGTERM pauses every run (exit 75); the same
         # command resumes them (completed runs are skipped via run_status.json)

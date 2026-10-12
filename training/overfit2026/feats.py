@@ -120,8 +120,9 @@ def _chunk(args):
 _POOL = None
 
 
-def featurize(rows, stats, nproc=48, chunk=2000):
+def featurize(rows, stats, nproc=None, chunk=2000):
     import multiprocessing as mp
+    nproc = nproc or int(os.environ.get("OFIT_FEAT_NPROC", "48"))   # default 48 (small hosts: env)
     rows = list(rows)
     if len(rows) <= chunk:
         return _chunk((rows, _stats_dict(stats)))

@@ -10,7 +10,8 @@ Priors
   ckpt:<run>    a paper MCTS checkpoint (rerun2026/mcts_runs/<run>)
   uniform       AlphaZeroDraftNet with a zeroed policy head -> uniform prior
   bc            outcome-free behavioral-cloning prior (models/bc_prior.pt,
-                distilled from the GD opponent model; see train_bc_prior)
+                distilled from the GD opponent model; see bc_prior.py; under
+                P1_TIERS=site: site/models/bc_prior.pt, half A only)
 Opponent and rollout policy: the paper's 5 GD models, cycled per batch.
 
 Search (X2 fix, 2026-10-01): search_mode 1 = opponent chance nodes (default),
@@ -43,10 +44,19 @@ def load_kernel(which="ofit"):
     spec = importlib.util.spec_from_file_location(pref, os.path.join(d, so))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    from overfit2026 import data as _d
+    if _d.TIER_SCHEME == "site" and getattr(mod, "COMP_FALLBACK_ORDER", None) != "mid_high_low":
+        # the kernel's composition fallback must follow StatsCache.get_comp_wr
+        # (mid, high, low), the order the proxies' features were built with
+        raise SystemExit(f"{pref}: composition fallback {getattr(mod, 'COMP_FALLBACK_ORDER', None)}; "
+                         "rebuild with HOTS_COMP_FALLBACK_MID_HIGH_LOW=1 (remote_workers/build_ext.sh)")
     return mod
 
 
 _GD = None
+# Explicit GD opponent/rollout checkpoints (overrides gd_dir()); the site
+# split experiment sets it to the half-A GD (split_gd.model_paths()).
+GD_PATHS = None
 
 
 def gd_dir():
@@ -64,10 +74,10 @@ def gd_flats():
         from train_generic_draft import GenericDraftModel
         from extract_weights import extract_gd_weights
         _GD = []
-        for i in range(5):
+        paths = GD_PATHS or [os.path.join(gd_dir(), f"generic_draft_{i}.pt") for i in range(5)]
+        for path in paths:
             gd = GenericDraftModel()
-            gd.load_state_dict(torch.load(os.path.join(gd_dir(), f"generic_draft_{i}.pt"),
-                                          weights_only=True, map_location="cpu"))
+            gd.load_state_dict(torch.load(path, weights_only=True, map_location="cpu"))
             gd.eval()
             _GD.append(extract_gd_weights(gd))
     return _GD
@@ -89,7 +99,8 @@ def policy_net(kind):
             for p in net.policy_head.parameters():
                 p.zero_()
     elif kind == "bc":
-        net.load_state_dict(torch.load(os.path.join(HERE, "models", "bc_prior.pt"),
+        from overfit2026 import data as _d
+        net.load_state_dict(torch.load(_d.art(HERE, "models", "bc_prior.pt"),
                                        weights_only=True, map_location="cpu"))
     else:
         raise ValueError(kind)

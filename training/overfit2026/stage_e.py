@@ -9,6 +9,10 @@ at the leaves (GD rollouts to the terminal draft, then the proxy). Every run
 uses the same 400 draft configurations (map, mid tier, side) and the same GD
 opponent pool, so conditions are paired.
 
+P1_TIERS=site: results under site/results/split_search; the opponent,
+rollout policy and BC prior are the half-A GD and its distillation
+(split_gd.py, bc_prior.py), so no half-B game enters the search.
+
 Usage:
   python3 overfit2026/stage_e.py run --grid main [--gpu 2]
   python3 overfit2026/stage_e.py summarize
@@ -26,7 +30,20 @@ sys.path.insert(0, TRAINING_DIR)
 import numpy as np
 import torch
 
-OUT_DIR = os.path.join(HERE, "results", "split_search")
+from overfit2026 import data as _odata
+
+OUT_DIR = (_odata.art(HERE, "results", "split_search") if _odata.TIER_SCHEME == "site"
+           else os.path.join(HERE, "results", "split_search"))
+
+
+def use_split_gd():
+    """Site: point the kernel's GD opponent/rollouts at the half-A GD."""
+    if _odata.TIER_SCHEME == "site":
+        from overfit2026 import search, split_gd
+        search.GD_PATHS = split_gd.model_paths()
+        missing = [p for p in search.GD_PATHS if not os.path.exists(p)]
+        if missing:
+            raise SystemExit(f"half-A GD missing: {missing} (run split_gd.py train)")
 N_DRAFTS = 400
 SEED = 20260929
 
@@ -87,11 +104,11 @@ def policy_only(prior, n, seed, argmax):
     from overfit2026 import search
     net = search.policy_net(prior)
     gds = []
-    for i in range(5):
+    paths = search.GD_PATHS or [os.path.join(TRAINING_DIR, "rerun2026", "models",
+                                             f"generic_draft_{i}.pt") for i in range(5)]
+    for path in paths:
         g = GenericDraftModel()
-        g.load_state_dict(torch.load(os.path.join(TRAINING_DIR, "rerun2026", "models",
-                                                  f"generic_draft_{i}.pt"),
-                                     weights_only=True, map_location="cpu"))
+        g.load_state_dict(torch.load(path, weights_only=True, map_location="cpu"))
         g.eval()
         gds.append(g)
     cfgs = search.draft_configs(n, seed)
@@ -163,6 +180,7 @@ def do_run(spec, kernel, device_id, force=False):
 def cmd_run(a):
     from overfit2026 import search
     os.makedirs(OUT_DIR, exist_ok=True)
+    use_split_gd()
     kernel = search.load_kernel("ofit")
     for g in a.grid.split(","):
         for spec in grid(g):

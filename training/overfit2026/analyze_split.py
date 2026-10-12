@@ -2,6 +2,7 @@
 Within-snapshot split experiment: tables, paired contrasts, figures.
 Input: results/split_search/*.json (+ mcts_selfplay/*.json if present)
 Output: results/split_summary.json, figs/split_*.png
+(P1_TIERS=site: site/results/..., site/figs/...)
 """
 import os
 import sys
@@ -13,12 +14,15 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 import numpy as np
 
+from overfit2026 import data as _odata
+
+BASE = _odata.art(HERE) if _odata.TIER_SCHEME == "site" else HERE
 REFS = ["gB", "gB_naive", "RB", "RN", "QM2026"]
 
 
 def load(pattern="split_search/*.json"):
     runs = {}
-    for p in glob.glob(os.path.join(HERE, "results", pattern)):
+    for p in glob.glob(os.path.join(BASE, "results", pattern)):
         r = json.load(open(p))
         runs[os.path.basename(p)[:-5]] = r
     return runs
@@ -62,7 +66,7 @@ def main():
                 if a in runs and b in runs:
                     summary["contrasts"][f"{px} sims{s1}-sims{s0} T{T}"] = {
                         k: paired(runs[a], runs[b], k) for k in REFS + [f"proxy:{px}"]}
-    json.dump(summary, open(os.path.join(HERE, "results", "split_summary.json"), "w"), indent=1)
+    json.dump(summary, open(os.path.join(BASE, "results", "split_summary.json"), "w"), indent=1)
 
     def show(names):
         for n in names:
@@ -80,7 +84,7 @@ def main():
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    os.makedirs(os.path.join(HERE, "figs"), exist_ok=True)
+    os.makedirs(os.path.join(BASE, "figs"), exist_ok=True)
     SIMS = [0, 64, 256, 1024, 4096, 16384]
     # Fig 1: pressure curves, leak vs oof, BC prior, argmax root
     fig, axes = plt.subplots(1, 4, figsize=(17, 4.2), sharey=False)
@@ -106,7 +110,7 @@ def main():
     axes[0].set_ylabel("mean P(our team wins)")
     axes[0].legend(fontsize=7)
     fig.tight_layout()
-    fig.savefig(os.path.join(HERE, "figs", "split_pressure_curves.png"), dpi=130)
+    fig.savefig(os.path.join(BASE, "figs", "split_pressure_curves.png"), dpi=130)
 
     # Fig 2: proxy vs gold (Gao-style)
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.4))
@@ -128,7 +132,7 @@ def main():
         ax.grid(alpha=0.3)
     axes[0].legend(fontsize=6, ncol=2)
     fig.tight_layout()
-    fig.savefig(os.path.join(HERE, "figs", "split_proxy_vs_gold.png"), dpi=130)
+    fig.savefig(os.path.join(BASE, "figs", "split_proxy_vs_gold.png"), dpi=130)
 
     # Fig 3: LCB
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
@@ -150,7 +154,7 @@ def main():
         ax.grid(alpha=0.3)
     axes[0].legend(fontsize=7)
     fig.tight_layout()
-    fig.savefig(os.path.join(HERE, "figs", "split_lcb.png"), dpi=130)
+    fig.savefig(os.path.join(BASE, "figs", "split_lcb.png"), dpi=130)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,11 @@ it as a PUCT prior. States come from the phase0 GD cache (human draft
 states). Loss: cross-entropy to GD's masked softmax.
 
 Output: models/bc_prior.pt
+
+P1_TIERS=site: the teacher is the half-A GD (split_gd.py) and the states come
+from its half-A sample cache (site/cache/gd_splitA/gd_train: replays with
+split.side_of(replay_id) == "A" only), so no half-B game reaches the prior.
+Output: site/models/bc_prior.pt
 """
 import os
 import sys
@@ -23,16 +28,24 @@ def main(n_samples=4_000_000, epochs=3, bs=4096):
     from rerun2026 import common
     from train_generic_draft import GenericDraftModel
     from train_draft_policy import AlphaZeroDraftNet
+    from overfit2026 import data
     dev = torch.device("cuda")
-    mm = common.memmap_open(os.path.join(common.CACHE_DIR, "gd_train"))
+    if data.TIER_SCHEME == "site":
+        from overfit2026 import split_gd
+        states_dir, teacher = split_gd.cache_dir("gd_train"), split_gd.model_path(0)
+        out = data.art(HERE, "models", "bc_prior.pt")
+    else:
+        states_dir = os.path.join(common.CACHE_DIR, "gd_train")
+        teacher = os.path.join(common.MODELS_DIR, "generic_draft_0.pt")
+        out = os.path.join(HERE, "models", "bc_prior.pt")
+    mm = common.memmap_open(states_dir)
     rng = np.random.RandomState(0)
     idx = np.sort(rng.choice(mm["meta"]["n"], n_samples, replace=False))
     S = torch.tensor(np.asarray(mm["states"][idx]), dtype=torch.float32)
     occ = S[:, :270].reshape(-1, 3, 90).sum(1)
     M = (1.0 - occ.clamp(0, 1))
     gd = GenericDraftModel()
-    gd.load_state_dict(torch.load(os.path.join(common.MODELS_DIR, "generic_draft_0.pt"),
-                                  weights_only=True, map_location="cpu"))
+    gd.load_state_dict(torch.load(teacher, weights_only=True, map_location="cpu"))
     gd.eval().to(dev)
     net = AlphaZeroDraftNet(size="base", policy_head_type="linear").to(dev)
     opt = torch.optim.Adam(net.parameters(), lr=1e-3)
@@ -65,8 +78,7 @@ def main(n_samples=4_000_000, epochs=3, bs=4096):
             agree = (lg.argmax(-1) == tgt.argmax(-1)).float().mean().item()
         print(f"epoch {ep + 1}: train CE {tot / len(perm):.4f}  holdout CE {ce:.4f} "
               f"(GD entropy {ent:.4f}, KL {ce - ent:.4f})  argmax agree {agree:.3f}", flush=True)
-    torch.save({k: v.cpu() for k, v in net.state_dict().items()},
-               os.path.join(HERE, "models", "bc_prior.pt"))
+    torch.save({k: v.cpu() for k, v in net.state_dict().items()}, out)
 
 
 if __name__ == "__main__":
