@@ -1423,3 +1423,27 @@ rebuild before it takes paper-1 MCTS slots again.
 - Handoff: once all option-B runs are launched, the scheduler writes
   site/logs/HANDOFF_<host> with the free MCTS slots on that host for the
   drift lane.
+
+### 15.16 Post-MCTS steps and the manuscript on site tiers (2026-10-12)
+- **Bench** (5090, 32 runs x T in {1,0} x 1,000 drafts): each run searches with
+  the leaf it trained against; in-kernel leaf vs Python max |diff| <= 1e-6 on every
+  run. Results: `site/results/mcts_bench`, `comp_rescore.json`, `SUMMARY.json`.
+- **Tournament**: 11 strategies, all 110 pairs played anew with the p1site
+  baselines, the leak-free enriched CQL and K_oof (3090 CPU). Constrained MCTS
+  .612 (20 wins), K .607, MCTS .606; MCTS vs K 0.500 +/- 0.003.
+- **Findings that changed text**: leak-free sims add nothing under the judges
+  (J - B consensus +0.003 +/- 0.004); the in-sample leaf over-optimizes (J_leak -
+  J_oof gN -0.029, 27% degenerate); 1M episodes do not help (E - B -0.006);
+  features leave win probability unchanged at matched 400 sims and cut
+  degenerate teams 15.4% -> 4.5%; MCQ t=0.5 now never takes a healer.
+- **Also rerun on site tiers**: submitted models on the site test set (Table I),
+  leak measure, offline-RL sweeps (CQL alpha, capacity grid, MCQ/BC-CQL, IQL
+  screen), concentration (F, J), ensemble (5090), NGS ladder side (ranked games
+  only) and quartiles, statistics-set sensitivity of the interaction metrics
+  (new supplement section; replaces the dual-snapshot table).
+- **Manuscript**: main paper and supplement renumbered from these results
+  (commits 5b13eaf, 4163770); 9 + 6 pages, no overfull boxes.
+- **Pending**: the within-snapshot split experiment (5090, `overfit2026/
+  site_split_queue.py`; BC prior and self-play GD now trained on half A only,
+  self-play runs to the full 300K episodes); main Sec. III-B paragraph and the
+  supplement section follow its results.
