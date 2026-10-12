@@ -171,8 +171,11 @@ def main():
     while True:
         queue = json.load(open(QUEUE))
         names = [q["name"] for q in queue]
-        st = {h: DW.status(h) for h in MAX_SLOTS}
-        down = [h for h, v in st.items() if v is None]
+        # manifests from every host (a job that ran on a host now out of
+        # MAX_SLOTS still counts as taken / completed); launches only on MAX_SLOTS
+        st = {h: DW.status(h) for h in ALL_HOSTS}
+        down = [h for h, v in st.items() if v is None and h in MAX_SLOTS]
+        st = {h: (v or {}) for h, v in st.items()}
         if down:
             alert(f"unreachable (ssh/WSL): {', '.join(down)}; no launches this cycle")
             time.sleep(CYCLE)
@@ -186,13 +189,18 @@ def main():
         cpu_names = {q["name"] for q in queue if not q.get("gpu", True)}
         failed_cpu = [n for n, (h, j) in ours.items() if n in cpu_names and j["status"] in ("failed", "died")
                       and n not in state["cpu_retried"]]
-        if failed_cpu and not DRY:
-            if gather():
-                for n in failed_cpu:
-                    if all(x in done for x in next(q for q in queue if q["name"] == n).get("needs", [])):
-                        resume(ours[n][0], n)
-                        state["cpu_retried"].append(n)
+        cpu_running = any(n in cpu_names and j["status"] in ("running", "starting", "pausing")
+                          for n, (h, j) in ours.items())
+        # one CPU job at a time on the CPU host (memory: another lane shares it)
+        if failed_cpu and not DRY and not cpu_running:
+            n = next((n for n in failed_cpu
+                      if all(x in done for x in next(q for q in queue if q["name"] == n).get("needs", []))), None)
+            if n is not None and gather():
+                resume(ours[n][0], n)
+                state["cpu_retried"].append(n)
                 json.dump(state, open(STATE, "w"))
+                time.sleep(CYCLE)
+                continue
         if all(n in done or n in state["launch_failed"] or
                (n in state.get("cpu_retried", []) and ours.get(n, (None, {"status": ""}))[1]["status"] in ("failed", "died"))
                for n in names):
