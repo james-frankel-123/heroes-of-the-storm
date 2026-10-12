@@ -52,7 +52,7 @@ D = os.path.join(HERE, "deferred.py")
 
 
 def queues():
-    Q = {"rich": [], "p1": []}
+    Q = {"rich": [], "p1": [], "sweeps": []}
     # the order puts baselines whose training has finished first; each job waits
     # for its model's final meta file (NEEDS)
     disc = os.path.join(T, "rerun2026", "train_gourdeau_discriminator.py")
@@ -64,6 +64,21 @@ def queues():
                                         "--seeds", "5"], R("rich_eval", f"{s}.json"), RICH))
     Q["rich"].append(("rich_iql", [os.path.join(T, "rerun2026", "experiment_iql_draft.py"), "--task", "rich-eval",
                                    "--cell", "t0.9_b3.0"], R("rich_eval", "iql_t0.9_b3.0.json"), RICH))
+    # offline-RL sweeps of the supplement (p1site checkpoints, community
+    # aggregates as the metric instrument as in the rich evaluation)
+    Q["sweeps"] = [("cql_basic", [P3, "--task", "cql-basic"], R("cql_naive_5x1000.json"), RICH)]
+    for arch in ("256,128,64", "512,256,128", "1024,512,256"):
+        for tau in (0.001, 0.005, 0.01, 0.05, 0.1):
+            a_s = arch.replace(",", "x")
+            Q["sweeps"].append((f"cqlhp_{tau}_{a_s}", [P3, "--task", "cql-hp-eval", "--tau", str(tau),
+                                                      "--arch", arch],
+                                R("cql_hyperparams", f"a1.0_t{tau}_{a_s}.json"), RICH))
+    for m_ in ("mcq_t0.4", "mcq_t0.5", "mcq_t0.6", "mcq_t0.7", "mcq_t0.8",
+               "bccql_b0.1", "bccql_b0.5", "bccql_b1.0", "bccql_b2.0"):
+        Q["sweeps"].append((f"mcqeval_{m_}", [P3, "--task", "mcq-eval", "--model", m_],
+                            R("mcq", f"{m_}.json"), RICH))
+    Q["sweeps"].append(("iql_screen", [os.path.join(T, "rerun2026", "experiment_iql_draft.py"), "--task", "screen"],
+                        None, RICH))
     Q["rich"].sort(key=lambda j: j[0] not in ("disc_degen", "disc_rich", "rich_iql", "rich_gd", "rich_mcq_t0.5"))
     p = lambda f: os.path.join(HERE, f)
     Q["p1"] += [

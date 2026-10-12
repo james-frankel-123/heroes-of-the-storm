@@ -423,14 +423,16 @@ def task_screen(args):
             with open(meta_path) as f:
                 r["train_metrics"] = json.load(f).get("metrics")
         out["cells"][slug] = r
-        print(f"  {slug}: aug_wp={r['metrics']['aug_wp']} "
+        print(f"  {slug}: aug_wp={r['metrics'].get('aug_wp')} "
               f"healer={r['metrics']['healer_rate']} "
               f"degen={r['metrics']['degen_rate']} "
               f"gd_sim={r['metrics']['gd_similarity']} "
               f"synergy={r['metrics']['synergy']}", flush=True)
 
     cells = out["cells"]
-    if cells:
+    # the cell selection needs the augmented-WP cross score; namespaces
+    # without that model report the cells only
+    if cells and all("aug_wp" in c["metrics"] for c in cells.values()):
         best = max(cells, key=lambda k: cells[k]["metrics"]["aug_wp"])
         bt, bb = best.split("_")
         others = {k: v for k, v in cells.items()

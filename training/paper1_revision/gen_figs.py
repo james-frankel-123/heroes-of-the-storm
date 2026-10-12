@@ -95,7 +95,7 @@ def glance():
     dg = [r[3] for r in rows]
     dgd = [max(v, 0.9) for v in dg]
     ax_dg.barh(y, dgd, height=BH, color=colors, zorder=3)
-    ax_dg.set_xlim(0, 62)
+    ax_dg.set_xlim(0, max(62, 1.18 * max(dg)))
     for yi, v, vd, o in zip(y, dg, dgd, ours):
         ax_dg.text(vd + 1.6, yi, f"{v:.0f}", va="center", ha="left", fontsize=5.8,
                    color=TEXT if o else MUTED, fontweight="bold" if o else "normal")
@@ -170,12 +170,14 @@ def scatter():
         if f in ("mcts", "vf", "mcq") or name == "gourdeau_discriminator":
             lab = {"gourdeau": "Gourdeau est.", "gourdeau_discriminator": "G&A disc.",
                    "mcq_t0.5": "MCQ"}.get(name, name)
-            ax.annotate(lab, (dg, syn), xytext=(4, 2), textcoords="offset points", fontsize=5.8,
+            off = {"MCTS 400s": (2, -10), "MCTS 800s": (5, 1), "MCTS 200s": (5, -9)}.get(lab, (4, 2))
+            ax.annotate(lab, (dg, syn), xytext=off, textcoords="offset points", fontsize=5.8,
+                        ha="right" if off[0] < 0 else "left",
                         color=TEXT, zorder=4)
     ax.axhline(0, color=MUTED, linestyle=(0, (4, 3)), alpha=0.5, linewidth=0.6)
     ax.set_xlabel("Degenerate composition rate (%)  (lower = safer)", fontsize=7.5, color=TEXT)
     ax.set_ylabel("Synergy  (higher = interaction-aware)", fontsize=6.2, color=TEXT)
-    ax.set_xlim(-1.5, 55)
+    ax.set_xlim(-1.5, max(55, 1.08 * max(p[1] for p in pts)))
     ax.tick_params(labelsize=7, colors=TEXT)
     for s in ("top", "right"):
         ax.spines[s].set_visible(False)
@@ -184,7 +186,7 @@ def scatter():
     handles = [plt.Line2D([], [], linestyle="", marker=st["marker"], markerfacecolor=st["color"],
                           markeredgecolor="white", markersize=6, label=st["label"])
                for st in FAMILY.values()]
-    ax.legend(handles=handles, loc="lower left", fontsize=5.9, frameon=True, framealpha=0.9,
+    ax.legend(handles=handles, loc="upper right", fontsize=5.9, frameon=True, framealpha=0.9,
               edgecolor="#d8d7d2")
     fig.tight_layout(pad=0.4)
     for ext in ("pdf", "png"):

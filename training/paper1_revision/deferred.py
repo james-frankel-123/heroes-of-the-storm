@@ -222,7 +222,8 @@ def job_concentration():
     comps = core.comps_from_json(core.comp_path("deploy"))
     team_index = Counter(tuple(sorted(t)) for g in snap for t in (g[3], g[4]))
     out = {}
-    for label, prefix in (("F_oof", "new__F_oof_s"), ("J_800sim_submitted", "old__J_800sim_s")):
+    for label, prefix in (("F_oof", "new__F_oof_s"), ("J_oof", "new__J_oof_s"),
+                          ("J_800sim_submitted", "old__J_800sim_s")):   # (submitted runs: legacy tiers only)
         per_seed, pooled = [], Counter()
         drafts = []
         for s in range(5):
