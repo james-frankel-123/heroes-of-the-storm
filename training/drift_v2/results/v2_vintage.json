@@ -1,0 +1,63 @@
+{
+  "n_drafts": 2880,
+  "n_pairings": 36,
+  "judges": {
+    "2022Q1-ranked": {
+      "mean": 0.4753,
+      "se_pairing": 0.0039
+    },
+    "2022-07": {
+      "mean": 0.5013,
+      "se_pairing": 0.0051
+    },
+    "2023-07": {
+      "mean": 0.4989,
+      "se_pairing": 0.0038
+    },
+    "2024-07": {
+      "mean": 0.5125,
+      "se_pairing": 0.0054
+    },
+    "2025-07": {
+      "mean": 0.5252,
+      "se_pairing": 0.0053
+    },
+    "2026-build": {
+      "mean": 0.5561,
+      "se_pairing": 0.0073
+    },
+    "QM-2021": {
+      "mean": 0.438,
+      "se_pairing": 0.0097
+    },
+    "QM-2022": {
+      "mean": 0.4328,
+      "se_pairing": 0.013
+    },
+    "QM-2024": {
+      "mean": 0.4895,
+      "se_pairing": 0.0057
+    },
+    "QM-2026": {
+      "mean": 0.5148,
+      "se_pairing": 0.0043
+    },
+    "2026-build_s7": {
+      "mean": 0.5466,
+      "se_pairing": 0.0054
+    },
+    "2026-build_s991": {
+      "mean": 0.5738,
+      "se_pairing": 0.0097
+    }
+  },
+  "judge_seed_2026_build": {
+    "means": [
+      0.5561,
+      0.5466,
+      0.5738
+    ],
+    "sd": 0.0138,
+    "range": 0.0272
+  }
+}
