@@ -246,3 +246,28 @@ Source: `audits/CONSOLIDATED_AUDIT_2026-10-01.md` §6 (4aff9b0). New scripts are
 - Cost now: 30 agents from scratch, about 144 GPU-hours on the 3080 (6.0 days) or about 162 on the 3090 (6.8 days), or about 76 hours of wall time with both.
 
 **MCTS waiter armed (2026-10-04).** `drift_rebuild/v2/drift_mcts_waiter.py` replaces `mcts_remote_scheduler.sh`. It runs on the main box (nice 19, ssh polling every 5 min, one instance via flock) and uses a host only after paper 1's scheduler writes `paper1_revision/site/logs/HANDOFF_<host>`. Per host: at most 2 MCTS runs on the 3090 and 1 on the 3080, counting both lanes; no launch while an MCTS job there is paused or still in setup/value pretraining; memmon must be running and MemAvailable must exceed memmon's threshold plus 24 GB; one launch per cycle in `mcts_remote_order.txt` order through `launch_mcts_remote.sh` with a 32G cap. Drift agents load the full 2.9 GB snapshot (paper 1 uses a 0.6 GB lite one, peak VmData 7-9 GB), and paper-1 runs on the full snapshot peaked near 21 GB RSS, so 12G would fail during the load. Alerts go to `drift_v2/logs/ALERT_drift_mcts`. 3080 prep done: v2_M_s0 and v2_M_s3 save dirs and the v2_M_s0 manifest are archived under `_archive_low_mid_high/`, the era 93613 opponent model is copied, and every drift input matches the main box by md5. The exception is `train_mcts_worker.py`, which is the 519eddf version on both workers; 36c9adb only added `MCTS_VALUE_PRETRAIN`, default on. Both workers' kernels report mid_high_low, and `run.py` is synced to both.
+
+## 9. v2 MCTS agents: Secs. 5 and 8, abstract, intro (2026-10-12)
+
+**Agents.** All 30 v2 agents (`mcts_remote_order.txt`) were fetched from the 3090 (3), the 3080 (9) and the 5090 (18) into `drift_v2/mcts_runs/`, sha256-matched per host (24 + 144 files; the 3080 set also matched), with logs in `drift_v2/logs/mcts_agents/`. Every save dir has DONE, the mid_high_low marker, the chance kernel, and a log that reaches episode 300,000 with exit 0. v2_M_s0 and v2_M_s3 resumed after the 3090 outage from fixed-build checkpoints (episodes 262,144 and 180,608).
+
+**Downstream (3090 CPU, hotsjob caps, 12 min).** `drift_rebuild/v2/stage_h2h.sh` runs 11 head-to-heads (r7 protocol, 23,040 drafts) and then `r8_score.py` and `r15_net_struct.py` under the v2 environment. Both scorers now skip the v1 paper files when they are absent. `drift_rebuild/v2/v2_vintage.py` trained 2026-build judge seeds 7 and 991 (same pool and 314,727-game cap) and scored the 2,880 M vs U drafts with all 12 judges. Results: `drift_v2/results/h2h/`, `r8_scores.json`, `R8_SCORES.md`, `r15_net_struct.json`, `v2_vintage.json`. Truth: 292,902 games (11,960 inside the pinned future window; 156,057 on 2.55.17). Net uses the same games.
+
+**Table III (v2), hero-WR Δ, t (df), 2.55.17-only, Net:** U vs S1 +0.56 ± 0.19, 2.9 (8), +0.79, +2.1; U vs S2 +1.39 ± 0.26, 5.4 (10), +1.50, +4.7; S1 vs S2 +0.70 ± 0.26, 2.7 (7), +0.66, +2.5; M vs S1 +1.02 ± 0.20, 5.1 (7), +1.16, +4.7; M vs S2 +1.77 ± 0.26, 6.9 (10), +1.82, +7.7; M-vol vs S2 +1.71 ± 0.23, 7.3 (7), +1.76, +7.5; M vs U +0.58 ± 0.28, 2.0 (10), p 0.067, +0.51, +3.2; M vs M-cut +0.21 ± 0.25, 0.8 (8), +0.14, +1.5; M-cut vs U +0.39 ± 0.28, 1.4 (7), +0.42, +2.7; M-d90 vs U +0.78 ± 0.24, 3.3 (7), +0.70, +4.2; M-d90 vs M +0.06 ± 0.23, 0.3 (7), +0.05, −0.2.
+
+**Claims now in the paper:**
+- Staleness is a dose: one and two years cost +0.56 and +1.39pp, and the steps are distinct (S1 vs S2 p 0.03). M vs S2 is +1.77, and M-vol keeps 97% of it.
+- Same cutoff: M vs U is +0.58, p 0.067. It is positive on every truth set but not significant. The recipe/refresh split (M vs M-cut, M-cut vs U) is not resolved; the refresh 95% interval is −0.37 to +0.79. M-d90 vs U is +0.78 (p 0.014).
+- Interaction metrics:
+  - Synergy: S1 beats U (0.35, p 0.005).
+  - Counters: S2 out-counters S1 (p 0.009), M-vol (p 0.005), U (p 0.052) and M (p 0.11).
+  - Within the cutoff: M-d90 synergy beats U (p 0.005) and M-cut out-counters U (p 0.03).
+  - Degeneracy: no significant difference anywhere (|t| ≤ 1.2; M 26.4% vs U 27.0%).
+- Vintage (2,880 drafts):
+  - Ranked judges score 0.475 / 0.501 / 0.499 / 0.513 / 0.525 / 0.556; QM judges 0.438 / 0.433 / 0.490 / 0.515.
+  - The 2026-build judge seeds score 0.556 / 0.547 / 0.574 (SD 0.014).
+  - Combined SE: judges through early 2022 reverse the verdict (1.7-3.7 SE), mid-2022 to 2024 are within 1 SE of even, and 2025-2026 agree (1.0-3.6).
+- Removed: the U-era arm (every v2 agent's opponent model is era-matched), all first-version leaky-agent rows and text in Sec. 5, the first-version drafts and capped-QM sentences in Sec. 8, and the tournament rank-correlation sentence (paper 1's rebuilt tournament had not landed).
+- Abstract, intro, conclusion and Limitations rewritten from these numbers. The names table drops U-era.
+- Figures: `gen_figs.py` fig_dose plots U and M against S1/S2 from `r8_scores.json`; fig_vintage reads `v2_vintage.json`, with QM x-positions at their v2 windows.
+- PDF: 10 pages, no overfull boxes.

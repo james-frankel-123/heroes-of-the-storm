@@ -53,44 +53,41 @@ def _t_quantile(df, q=0.975):
 def fig_dose():
     """Staleness, scored on the W12 out-of-sample builds (T_clean, crossed
     seed random effects), 95% t intervals with each contrast's Satterthwaite
-    df (consolidated audit B14). Filled: leak-free agents with era-matched
-    opponent models on both sides (U-gc vs S1/S2; 0 months = U-gc vs U-gc,
-    drawn at 0). Hollow: the first version (maintained vs leaky unmaintained
-    / stale agents, all sharing the paper-1 opponent model)."""
-    sc = json.load(open(_rb("r8_scores.json")))
+    df. v2 agents: every agent's opponent model is trained to its own cutoff.
+    Filled: the unmaintained 2026 agent U against S1, S2; hollow: the
+    maintained agent M against S1, S2 (0 months drawn at 0)."""
+    sc = json.load(open(os.path.join(RB, "r8_scores.json")))
 
     def pts(keys):
         out = []
         for x, k in keys:
-            if k in sc:
-                t = sc[k]["by_truth"]["T_clean"]
-                h, y = t["future_hero_wr"], t["synergy"]
-                out.append((x, h["est"], _t_quantile(h["df"]) * h["se"],
-                            y["est"], _t_quantile(y["df"]) * y["se"]))
+            t = sc[k]["by_truth"]["T_clean"]
+            h, y = t["future_hero_wr"], t["synergy"]
+            out.append((x, h["est"], _t_quantile(h["df"]) * h["se"],
+                        y["est"], _t_quantile(y["df"]) * y["se"]))
         return out
-    new = [(0, 0.0, 0.0, 0.0, 0.0)] + pts([(12, "Ugc_vs_S1"), (24, "Ugc_vs_S2")])
-    old = [(0.8, 0.0, 0.0, 0.0, 0.0)] + pts([(12, "U_vs_S1"), (24, "U_vs_S2")])
+    u = [(0, 0.0, 0.0, 0.0, 0.0)] + pts([(12, "U_vs_S1"), (24, "U_vs_S2")])
+    m = [(0.8, 0.0, 0.0, 0.0, 0.0)] + pts([(12.8, "M_vs_S1"), (24.8, "M_vs_S2")])
     fig, axes = plt.subplots(1, 2, figsize=(3.5, 2.3), sharex=True)
     for ax, col, ci, title, color in ((axes[0], 1, 2, "hero timing (pp)", BLUE),
                                       (axes[1], 3, 4, "synergy", GREEN)):
-        ax.errorbar([p[0] + 0.8 for p in old], [p[col] for p in old],
-                    yerr=[p[ci] for p in old], fmt="o--", mfc="white",
+        ax.errorbar([p[0] for p in m], [p[col] for p in m],
+                    yerr=[p[ci] for p in m], fmt="o--", mfc="white",
                     color="#999999", lw=1.0, ms=4.5, capsize=2.5,
-                    label="2026 side on paper-1 opponent model")
-        ax.errorbar([p[0] for p in new], [p[col] for p in new],
-                    yerr=[p[ci] for p in new], fmt="o-", color=color,
-                    lw=1.6, ms=5.5, capsize=3, label="era-matched opponent models")
+                    label="maintained 2026 agent")
+        ax.errorbar([p[0] for p in u], [p[col] for p in u],
+                    yerr=[p[ci] for p in u], fmt="o-", color=color,
+                    lw=1.6, ms=5.5, capsize=3, label="unmaintained 2026 agent")
         ax.axhline(0, color=GRAY, lw=0.8, ls=":")
         ax.set_title(title, fontsize=8.5)
         ax.set_xlabel("staleness (months)")
         ax.set_xticks([0, 12, 24])
-        ax.set_ylim(-0.6, 2.0)
     axes[0].set_ylabel("cost of staleness")
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, frameon=False, loc="upper center", ncol=2, fontsize=6)
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     fig.savefig(os.path.join(OUT, "fig_dose.pdf"))
-    print("fig_dose.pdf (era-matched, t intervals)")
+    print("fig_dose.pdf (v2 agents, t intervals)")
 
 
 def fig_detector_curves():
@@ -139,37 +136,17 @@ def fig_detector_curves():
 
 
 def fig_vintage():
-    v = json.load(open(os.path.join(REPO, "training", "drift2026", "results", "W6_VINTAGE_MATRIX.json")))["judges"]  # placeholders; values come from the c8 file
-    qm26 = json.load(open(os.path.join(
-        TRAINING, "qm2026", "results", "qm2026_judge.json")))["w6"]
-    era = json.load(open(os.path.join(
-        TRAINING, "qm2026", "results", "qm_era_judges.json")))
-    # vintage date axis positions (years); ranked-2022Q1 from W8d
-    ranked = [
-        ("ranked 2022Q1", 2022.2, 0.4688, 0.0021),
-        ("2022-07", 2022.6, v["2022-07"]["maintained_wp_mean"], v["2022-07"]["se"]),
-        ("2023-07", 2023.6, v["2023-07"]["maintained_wp_mean"], v["2023-07"]["se"]),
-        ("2024-07", 2024.6, v["2024-07"]["maintained_wp_mean"], v["2024-07"]["se"]),
-        ("2025-07", 2025.6, v["2025-07"]["maintained_wp_mean"], v["2025-07"]["se"]),
-        ("2026", 2026.1, v["2026-build"]["maintained_wp_mean"], v["2026-build"]["se"]),
-    ]
-    qm = [
-        ("QM 2021", 2021.5, v["QM-2021"]["maintained_wp_mean"], v["QM-2021"]["se"]),
-        ("QM 2022", 2022.5, era["QM-2022"]["w6"]["maintained_wp_mean"], era["QM-2022"]["w6"]["se"]),
-        ("QM 2024", 2024.5, era["QM-2024"]["w6"]["maintained_wp_mean"], era["QM-2024"]["w6"]["se"]),
-        ("QM 2026", 2026.35, qm26["maintained_wp_mean"], qm26["se"]),
-    ]
-    # Error bars: SE clustered by the 25 seed pairings (audit B18), single
-    # judge seed everywhere (the 2026 ranked value is its seed-0 judge).
-    # Leak-free M vs U drafts (consolidated audit C8); pairing-clustered SE.
-    se = json.load(open(_rb("c8_vintage_leakfree.json")))["leakfree_M_vs_U"]
-    key = {"ranked 2022Q1": "2022Q1-ranked", "2022-07": "2022-07",
-           "2023-07": "2023-07", "2024-07": "2024-07", "2025-07": "2025-07",
-           "2026": "2026-build", "QM 2021": "QM-2021", "QM 2022": "QM-2022",
-           "QM 2024": "QM-2024", "QM 2026": "QM-2026"}
-    ranked = [(n, x, se[key[n]]["mean"], se[key[n]]["se_pairing"]) for n, x, _, _ in ranked]
-    qm = [(n, (2021.95 if n == "QM 2021" else x), se[key[n]]["mean"],
-           se[key[n]]["se_pairing"]) for n, x, _, _ in qm]
+    """v2 vintage matrix: the v2 maintained vs unmaintained head-to-head drafts
+    scored by the ten v2 judges (drift_rebuild/v2/v2_vintage.py); 95% normal
+    intervals from SEs clustered by seed pairing (judge-seed error not drawn)."""
+    vv = json.load(open(os.path.join(RB, "v2_vintage.json")))
+    se = vv["judges"]
+    ranked = [("2022Q1-ranked", 2022.2), ("2022-07", 2022.6), ("2023-07", 2023.6),
+              ("2024-07", 2024.6), ("2025-07", 2025.6), ("2026-build", 2026.1)]
+    qm = [("QM-2021", 2021.95), ("QM-2022", 2022.1), ("QM-2024", 2024.5), ("QM-2026", 2025.85)]
+    ranked = [(n, x, se[n]["mean"], se[n]["se_pairing"]) for n, x in ranked]
+    qm = [(n, x, se[n]["mean"], se[n]["se_pairing"]) for n, x in qm]
+    allv = [p[2] for p in ranked + qm]
     fig, ax = plt.subplots(figsize=(3.5, 2.4))
     ax.errorbar([p[1] for p in ranked], [p[2] for p in ranked],
                 yerr=[1.96 * p[3] for p in ranked], fmt="o-", color=BLUE,
@@ -179,16 +156,17 @@ def fig_vintage():
                 lw=1.5, ms=5, capsize=2.5,
                 label="Quick Match judges\n(draft-free mode)")
     ax.axhline(0.5, color=GRAY, lw=0.8, ls=":")
-    ax.annotate("unmaintained\nagent ahead", xy=(2022.75, 0.386), color=GRAY, fontsize=7)
-    ax.annotate("maintained agent ahead", xy=(2021.9, 0.512), color=GRAY, fontsize=7)
+    lo, hi = min(allv + [0.5]) - 0.02, max(allv + [0.5]) + 0.02
+    ax.annotate("unmaintained agent ahead", xy=(2021.8, 0.5 - 0.012), color=GRAY, fontsize=6.5, va="top")
+    ax.annotate("maintained agent ahead", xy=(2021.8, 0.5 + 0.004), color=GRAY, fontsize=6.5)
     ax.set_xlabel("judge training vintage")
-    ax.set_ylabel("score for the maintained side\n(same 7,200 drafts)")
-    ax.set_ylim(0.38, 0.535)
+    ax.set_ylabel(f"score for the maintained side\n(same {vv['n_drafts']:,} drafts)")
+    ax.set_ylim(lo, hi)
     ax.set_xlim(2021.7, 2026.6)
     ax.legend(frameon=False, loc="lower right", fontsize=6.5)
     fig.tight_layout()
     fig.savefig(os.path.join(OUT, "fig_vintage.pdf"))
-    print("fig_vintage.pdf")
+    print("fig_vintage.pdf (v2)")
 
 
 def fig_decay():
