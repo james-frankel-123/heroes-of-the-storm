@@ -82,17 +82,19 @@ def mcts():
         cfg = name.rsplit("_s", 1)[0]
         key = (f"{'new' if kind == 'new' else 'old'}:{cfg}", d["temp"])
         rows.setdefault(key, []).append(d)
-    refs = ["proxy_sub", "proxy_rev", "naive_rev", "gN", "gN_naive", "RN", "R17", "QM2026", "QM2021",
-            "degen", "healer", "syn_hp", "ctr_hp", "syn_own", "ctr_own"]
+    from paper1_revision.comp_rescore import site, SITE_PAIRS
+    refs = (["proxy_own", "proxy_rev", "leak_rev"] if site() else ["proxy_sub", "proxy_rev"]) + [
+        "naive_rev", "gN", "gN_naive", "RN", "R17", "QM2026", "QM2021",
+        "degen", "healer", "syn_hp", "ctr_hp", "syn_own", "ctr_own"]
+    nan = float("nan")
     out = {}
     per_seed = {}
     for (cfg, T), ds in rows.items():
         ds = sorted(ds, key=lambda d: d["run"])
         k = f"{cfg}|T{T:g}"
-        per_seed[k] = {r: np.array([d["means"][r] for d in ds]) for r in refs}
-        per_seed[k]["_draft"] = {r: np.array([d["per_draft"][r] for d in ds]) for r in refs}
+        per_seed[k] = {r: np.array([d["means"].get(r, nan) for d in ds]) for r in refs}
         out[k] = {"n_seeds": len(ds),
-                  "seeds": [d["run"] for d in ds],
+                  "seeds": [d["run"] for d in ds], "leaf": ds[0].get("leaf"),
                   "mean": {r: float(per_seed[k][r].mean()) for r in refs},
                   "se": {r: float(per_seed[k][r].std(ddof=1) / np.sqrt(len(ds))) if len(ds) > 1 else None
                          for r in refs},
@@ -108,6 +110,8 @@ def mcts():
              ("new:B_oof", "old:B_fullwp"), ("new:F_oof", "old:F_400sim"),
              ("new:J_oof", "old:J_800sim"), ("old:E_1M", "old:B_fullwp"),
              ("new:F_oof", "old:E_1M"), ("new:J_oof", "old:E_1M")]
+    if site():
+        pairs = SITE_PAIRS
     for T in (1.0, 0.0):
         for a, b in pairs:
             ka, kb = f"{a}|T{T:g}", f"{b}|T{T:g}"
@@ -158,13 +162,14 @@ def main():
     m = S["mcts"]
     for k, v in sorted(m["configs"].items()):
         mu = v["mean"]
-        print(f"  {k:24s} n={v['n_seeds']} sub={mu['proxy_sub']:.3f} rev={mu['proxy_rev']:.3f} "
+        print(f"  {k:24s} n={v['n_seeds']} own={mu.get('proxy_own', mu.get('proxy_sub')):.3f} rev={mu['proxy_rev']:.3f} "
               f"gN={mu['gN']:.3f} gNn={mu['gN_naive']:.3f} RN={mu['RN']:.3f} R17={mu['R17']:.3f} "
               f"QM={mu['QM2026']:.3f} deg={100 * mu['degen']:.1f} hlr={100 * mu['healer']:.1f} "
               f"syn={mu['syn_hp']:.2f} dist={v['distinct']:.0f} caps={v['cap_hits']}")
     for k, c in m["contrasts"].items():
         print(f"  {k:40s} " + " ".join(f"{r}={c[r]['diff']:+.4f}({c[r]['se']:.4f})"
-                                        for r in ("proxy_rev", "proxy_sub", "gN", "RN", "QM2026", "degen")))
+                                        for r in ("proxy_own" if "proxy_own" in c else "proxy_sub", "proxy_rev",
+                                                  "gN", "RN", "QM2026", "degen")))
 
 
 if __name__ == "__main__":

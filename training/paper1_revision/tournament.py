@@ -28,6 +28,13 @@ Interaction metrics per side (counter, synergy, resilience) use the external
 Heroes Profile statistics, as in the submission, so reused and new records are
 on one scale; they are evaluation instruments only.
 
+Site rebuild (P1_TIERS=site, RERUN_NS=p1site; 11 strategies, 110 ordered
+pairs, all played anew): the six baselines are the p1site retrains (GD pool,
+CQL naive a=1, MCQ t=0.5, Gourdeau estimator and discriminator), the enriched
+CQL is the leak-free retrain with own deploy statistics, and the no-features
+MCTS agent is K_oof (naive leaf, 400 sims, 300K episodes; seeds 0-4 pooled
+like F_oof).
+
 Usage: python3 paper1_revision/tournament.py --pair A__B
        python3 paper1_revision/tournament.py --list-todo
 """
@@ -48,12 +55,13 @@ import numpy as np
 import torch
 
 STRATEGIES = ["mcts", "constrained_mcts", "enriched", "constrained_greedy",
-              "k_truebase", "gourdeau", "gourdeau_disc", "cql_naive_a1.0", "cql_enr_a2.0",
+              "k_oof", "gourdeau", "gourdeau_disc", "cql_naive_a1.0", "cql_enr_a2.0",
               "gd", "mcq_t0.5"]
 UNCHANGED = {"gourdeau", "gourdeau_disc", "cql_naive_a1.0", "cql_enr_a2.0", "gd", "mcq_t0.5"}
 MCTS_CONFIG = "F_oof"
 MCTS_SEEDS = [0, 1, 2, 3, 4]
-K_SEEDS = list(range(15))
+K_CONFIG = "K_oof"         # no-features agent: naive leaf, 400 sims, matched to F_oof
+K_SEEDS = [0, 1, 2, 3, 4]
 OUT = os.path.join(core.RESULTS, "tournament")
 RR = os.path.join(TRAINING_DIR, "rerun2026")
 
@@ -91,17 +99,23 @@ def build(name, device, gd_models):
     from sweep_enriched_wp import compute_group_indices
     from paper1_revision import train_wp
     gi = compute_group_indices()
-    if name in UNCHANGED:
+    if name == "cql_enr_a2.0" and site():
+        # leak-free enriched CQL of the site rebuild (paper1_revision/deferred.py
+        # cql_train_a2.0): out-of-fold training features, own deploy statistics
+        from experiment_rich_evaluation import make_cql_enriched_strategy
+        ck = os.path.join(core.MODEL_DIR, "cql_enriched_oof", "_cql_enriched_a2.0.pt")
+        inner = make_cql_enriched_strategy(ck, device, core.load_stats("deploy"), gi, ENRICHED_GROUPS)
+    elif name in UNCHANGED:
         act = p3b.build_actor(name, device, core.load_stats("hp"), gi, gd_models, None)
         return act
-    if name in ("mcts", "constrained_mcts"):
+    elif name in ("mcts", "constrained_mcts"):
         paths = [os.path.join(core.MCTS_RUNS, f"{MCTS_CONFIG}_s{s}", "draft_policy.pt")
                  for s in MCTS_SEEDS]
         inner = pooled_policy(paths)
         if name == "constrained_mcts":
             inner = constrain(inner)
-    elif name == "k_truebase":
-        paths = [os.path.join(RR, "mcts_runs", f"K_truebase_s{s}", "draft_policy.pt")
+    elif name == "k_oof":
+        paths = [os.path.join(core.MCTS_RUNS, f"{K_CONFIG}_s{s}", "draft_policy.pt")
                  for s in K_SEEDS]
         inner = pooled_policy(paths)
     else:
@@ -153,13 +167,26 @@ def run_pair(a, b, n):
             "bans": [HEROES[j] for j in range(NUM_HEROES) if state.bans[j] > 0],
         })
     return {"team0_strategy": a, "team1_strategy": b, "n_drafts": n,
-            "mcts_config": MCTS_CONFIG, "mcts_seeds": MCTS_SEEDS, "records": records}
+            "mcts_config": MCTS_CONFIG, "mcts_seeds": MCTS_SEEDS,
+            "k_config": K_CONFIG, "k_seeds": K_SEEDS, "records": records}
+
+
+def site():
+    """Site rebuild: every baseline is the p1site retrain (rerun2026 namespace,
+    RERUN_NS=p1site) and every pair is played anew."""
+    from overfit2026 import data as odata
+    if odata.TIER_SCHEME != "site":
+        return False
+    from rerun2026 import common
+    if os.environ.get("RERUN_NS") != "p1site" or "p1site" not in common.MODELS_DIR:
+        raise SystemExit("P1_TIERS=site needs RERUN_NS=p1site (baselines and GD pool of the rebuild)")
+    return True
 
 
 def todo():
     out = []
     for a, b in itertools.permutations(STRATEGIES, 2):
-        if a in UNCHANGED and b in UNCHANGED:
+        if a in UNCHANGED and b in UNCHANGED and not site():
             continue
         if not os.path.exists(pair_path(a, b)):
             out.append(f"{a}__{b}")

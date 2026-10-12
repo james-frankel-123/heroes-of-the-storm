@@ -16,16 +16,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TRAINING_DIR = os.path.dirname(HERE)
 sys.path.insert(0, TRAINING_DIR)
 from paper1_revision import core
-from paper1_revision.tournament import todo, MCTS_CONFIG, MCTS_SEEDS
+from paper1_revision.tournament import todo, MCTS_CONFIG, MCTS_SEEDS, K_CONFIG, K_SEEDS
 
 
 def ready(name):
-    if name in ("mcts", "constrained_mcts"):
-        for s in MCTS_SEEDS:
-            log = os.path.join(core.LOGS, f"mcts_{MCTS_CONFIG}_s{s}.log")
-            if not os.path.exists(log) or "Complete." not in open(log).read():
-                return False
-        return True
+    """A pooled MCTS agent is ready when every seed's final policy is present
+    (runs train on the remote workers; only the checkpoints come back)."""
+    runs = {"mcts": (MCTS_CONFIG, MCTS_SEEDS), "constrained_mcts": (MCTS_CONFIG, MCTS_SEEDS),
+            "k_oof": (K_CONFIG, K_SEEDS)}
+    if name in runs:
+        cfg, seeds = runs[name]
+        return all(os.path.exists(os.path.join(core.MCTS_RUNS, f"{cfg}_s{s}", "draft_policy.pt"))
+                   for s in seeds)
     if name == "enriched_aug":
         return os.path.exists(os.path.join(core.MODEL_DIR, "aug_wr10_512.json"))
     return True

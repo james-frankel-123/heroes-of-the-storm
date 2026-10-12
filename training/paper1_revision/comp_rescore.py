@@ -71,7 +71,28 @@ PAIRS = [("new:F_oof", "new:B_oof"), ("new:J_oof", "new:F_oof"), ("new:J_oof", "
          ("new:J_oof", "old:J_800sim"), ("old:E_1M", "old:B_fullwp"),
          ("new:F_oof", "old:E_1M"), ("new:J_oof", "old:E_1M"), ("old:C_large", "old:B_fullwp"),
          ("old:N2_absolute", "old:B_fullwp"), ("old:M2_relational", "old:B_fullwp")]
-REFS = [j for j in JUDGES if j != "QM2021"] + ["consensus"]   # benchmark has no QM2021
+# site rebuild: every agent is a site-tier retrain on the chance kernel
+SITE_PAIRS = [
+    # sim scaling (leak-free leaf; in-sample-statistics leaf)
+    ("new:F_oof", "new:B_oof"), ("new:J_oof", "new:F_oof"), ("new:J_oof", "new:B_oof"),
+    ("new:F_leak", "new:B_leak"), ("new:J_leak", "new:F_leak"), ("new:J_leak", "new:B_leak"),
+    # leaky vs leak-free leaf at matched sims
+    ("new:B_leak", "new:B_oof"), ("new:F_leak", "new:F_oof"), ("new:J_leak", "new:J_oof"),
+    # feature gap at matched search (K_oof: hero-identity leaf, 400 sims)
+    ("new:F_oof", "new:K_oof"), ("new:B_oof", "new:K_oof"), ("new:J_oof", "new:K_oof"),
+    # training length and operating point
+    ("new:E_oof", "new:B_oof"), ("new:F_oof", "new:E_oof"), ("new:J_oof", "new:E_oof")]
+
+
+def site():
+    from overfit2026 import data as odata
+    return odata.TIER_SCHEME == "site"
+
+
+if site():
+    PAIRS = SITE_PAIRS
+REFS = ([j for j in JUDGES if j != "QM2021"] if not site() else list(JUDGES)) + ["consensus"]
+# (the legacy benchmark files have no QM2021; the site benchmark scores it)
 TREFS = JUDGES + ["consensus"]
 
 
@@ -86,7 +107,7 @@ def mcts():
         kind, name = d["run"].split(":", 1)
         cfg = f"{kind}:{name.rsplit('_s', 1)[0]}"
         rows = [(x["our"], x["opp"], x["map"], "mid") for x in d["drafts"]]
-        base = {k: v for k, v in d["per_draft"].items() if k != "QM2021"}   # QM2021 key held QM2022
+        base = {k: v for k, v in d["per_draft"].items() if site() or k != "QM2021"}   # legacy QM2021 key held QM2022
         base["gN"] = gn_all[off:off + len(rows)]
         off += len(rows)
         sc = v1_v2(base, rows)
@@ -94,14 +115,17 @@ def mcts():
             {"run": d["run"], "v1": {k: float(v.mean()) for k, v in sc["v1"].items()},
              "v2": {k: float(v.mean()) for k, v in sc["v2"].items()},
              "degen": float(np.mean(d["per_draft"]["degen"])),
-             "proxy": float(np.mean(d["per_draft"]["proxy_rev" if kind == "new" else "proxy_sub"]))})
+             "proxy": float(np.mean(d["per_draft"]["proxy_own" if "proxy_own" in d["per_draft"]
+                                                  else ("proxy_rev" if kind == "new" else "proxy_sub")])),
+             "leaf": d.get("leaf")})
     per = {}
     configs = {}
     for (cfg, T), runs in groups.items():
         k = f"{cfg}|T{T:g}"
         runs = sorted(runs, key=lambda r: r["run"])
         per[k] = {v: {r: np.array([x[v][r] for x in runs]) for r in REFS} for v in ("v1", "v2")}
-        configs[k] = {"n_seeds": len(runs),
+        configs[k] = {"n_seeds": len(runs), "leaf": runs[0].get("leaf"),
+                      "proxy_per_seed": [x["proxy"] for x in runs],
                       "degen": float(np.mean([x["degen"] for x in runs])),
                       "proxy": float(np.mean([x["proxy"] for x in runs])),
                       **{v: {r: float(per[k][v][r].mean()) for r in REFS} for v in ("v1", "v2")}}
@@ -143,6 +167,8 @@ def tournament():
     stored = ["mcts", "constrained_mcts", "enriched", "enriched_aug", "constrained_greedy",
               "k_truebase", "gourdeau", "gourdeau_disc", "cql_naive_a1.0", "cql_enr_a2.0",
               "gd", "mcq_t0.5"]
+    if site():
+        stored = list(STRATEGIES)        # the site tournament: 11 strategies, 110 pairs
     rows_all, idx, pairs = [], {}, {}
     for a, b in itertools.permutations(stored, 2):
         d = load_pair(a, b)
@@ -184,7 +210,8 @@ def tournament():
                                    [stand[s]["consensus"]["mean"] for s in top6])} for j in TREFS}
         hh = {}
         for a, b in (("constrained_mcts", "mcts"), ("constrained_greedy", "enriched"),
-                     ("mcts", "k_truebase"), ("constrained_mcts", "k_truebase"),
+                     *((("mcts", "k_oof"), ("constrained_mcts", "k_oof")) if site() else
+                       (("mcts", "k_truebase"), ("constrained_mcts", "k_truebase"))),
                      ):
             hh[f"{a} vs {b}"] = {}
             for j in TREFS:
@@ -243,7 +270,7 @@ def crosseval():
 
 def greedy():
     out = {}
-    for name in ("enriched", "enriched_aug", "constrained_greedy", "mcts", "constrained_mcts"):
+    for name in ("enriched", "constrained_greedy", "mcts", "constrained_mcts"):
         rows = []
         for p in sorted(glob.glob(os.path.join(R, "greedy", f"rich_{name}_s*.json"))):
             rows += [(x["our"], x["opp"], x["map"], x["tier"]) for x in json.load(open(p))]
@@ -261,7 +288,8 @@ def main():
     print("mcts done", flush=True)
     res["tournament"] = tournament()
     print("tournament done", flush=True)
-    res["h2h_submitted"] = h2h_submitted(res["mcts"])
+    if os.path.exists(os.path.join(R, "h2h_submitted.json")):   # submission checkpoints (legacy only)
+        res["h2h_submitted"] = h2h_submitted(res["mcts"])
     res["crosseval"] = crosseval()
     print("crosseval done", flush=True)
     res["greedy"] = greedy()

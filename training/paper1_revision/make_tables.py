@@ -28,6 +28,17 @@ def pct(x, d=1):
 def table1():
     t = S["table1"]
     sub = S["submitted"] or {}
+    from paper1_revision.comp_rescore import site
+    if site():      # no submission-model columns in the site rebuild
+        L = []
+        for lab, k, dim in (("Naive", "naive", 197), ("Hero Str.", "herostrength", 209),
+                            ("Enriched", "enriched", 283), ("Enr., in-sample stats", "enriched_leak", 283)):
+            if k in t:
+                d = t[k]
+                L.append(f"{lab} & {pct(d['test']['acc'])} & {pct(d['NODRIFT']['acc'])} & "
+                         f"{d['NODRIFT']['slope']:.2f} & {dim} \\\\")
+        emit("Table I (site)", L)
+        return
     rows = [("Naive", "naive", "naive", 197, "Multi-hot + map + tier"),
             ("Hero Str.", "herostrength", "herostrength", 209, "+ per-hero WR, team avg"),
             ("Enriched", "enriched", "enriched_256", 283, "+ role counts, pairwise, comp WR, meta")]
@@ -51,6 +62,15 @@ def table_mcts():
              ("old:E_1M", "E\\_1M", "200/1M", "sub"), ("old:K_truebase", "K\\_truebase", 200, None),
              ("new:B_oof", "B\\_oof", 200, "rev"), ("new:F_oof", "F\\_oof", 400, "rev"),
              ("new:J_oof", "J\\_oof", 800, "rev")]
+    from paper1_revision.comp_rescore import site
+    if site():
+        # site rebuild: own = the run's own leaf WP (leak-free enriched, the
+        # in-sample control, or hero identity for K)
+        names = [("new:B_oof", "B", 200, "own"), ("new:F_oof", "F", 400, "own"),
+                 ("new:J_oof", "J", 800, "own"), ("new:E_oof", "E (1M ep.)", 200, "own"),
+                 ("new:K_oof", "K (no features)", 400, "own"),
+                 ("new:B_leak", "B, in-sample leaf", 200, "own"), ("new:F_leak", "F, in-sample leaf", 400, "own"),
+                 ("new:J_leak", "J, in-sample leaf", 800, "own")]
     L = []
     for T in ("T1", "T0"):
         L.append(f"% root {T}")
@@ -60,7 +80,8 @@ def table_mcts():
                 continue
             v = m[key]["mean"]
             se = m[key]["se"]
-            own = (f"{v['proxy_sub']:.3f}" if proxy == "sub" else
+            own = (f"{v['proxy_own']:.3f}" if proxy == "own" else
+                   f"{v['proxy_sub']:.3f}" if proxy == "sub" else
                    f"{v['proxy_rev']:.3f}" if proxy == "rev" else "--")
             L.append(f"{lab} & {sims} & {own} & {v['gN']:.3f}{{\\scriptsize$\\pm$.{int(round(1000 * se['gN'])):03d}}} & "
                      f"{v['RN']:.3f} & {v['QM2026']:.3f} & {v['R17']:.3f} & {pct(v['degen'])} & "
@@ -76,7 +97,8 @@ def table_tournament():
     order = sorted(st, key=lambda s: -st[s]["consensus"]["mean"])
     LAB = {"constrained_mcts": "Constrained MCTS", "mcts": "MCTS", "constrained_greedy":
            "Constrained greedy", "enriched": "Enriched greedy", "enriched_aug": "Enr.+aug greedy",
-           "k_truebase": "MCTS, no features (K)", "gourdeau": "G\\&A estimator",
+           "k_truebase": "MCTS, no features (K)", "k_oof": "MCTS, no features",
+           "gourdeau": "G\\&A estimator",
            "gourdeau_disc": "G\\&A discriminator", "cql_naive_a1.0": "CQL naive",
            "cql_enr_a2.0": "CQL enriched", "gd": "GD", "mcq_t0.5": "MCQ"}
     L = []

@@ -27,6 +27,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 OUT = "/home/max/heroes-of-the-storm/paper/paper 1/overleaf/"
+from overfit2026 import data as _odata
+SITE = _odata.TIER_SCHEME == "site"
+if SITE:   # site rebuild: figures land next to the site results; copied in when the paper is updated
+    OUT = os.path.join(core.RESULTS, "figs") + "/"
+    os.makedirs(OUT, exist_ok=True)
 matplotlib.rcParams.update({"font.size": 7.0, "font.family": "sans-serif", "axes.linewidth": 0.6})
 ACCENT, ACCENT2, NEUTRAL = "#2a78d6", "#8ab6e8", "#b9b7b1"
 TEXT, MUTED = "#0b0b0b", "#52514e"
@@ -34,6 +39,7 @@ LABELS = {
     "constrained_mcts": "Ours + constraints", "mcts": "Ours (MCTS)",
     "constrained_greedy": "Greedy + constraints", "enriched": "Enriched greedy search",
     "enriched_aug": "Greedy + synthetic data", "k_truebase": "MCTS, no domain features",
+    "k_oof": "MCTS, no domain features",
     "gourdeau": "WR-estimator search (G&A)", "cql_best": "Conservative RL (CQL, best)",
     "gourdeau_disc": "Prof.-manifold discrim. (G&A)", "gd": "Imitating human drafts (BC)",
     "mcq_t0.5": "Mildly conserv. RL (MCQ)",
@@ -119,8 +125,20 @@ FAMILY = {"mcts": dict(marker="p", color="#2a78d6", label="MCTS"),
 
 
 def scatter():
-    old = json.load(open(os.path.join(core.TRAINING_DIR, "rerun2026", "results",
-                                      "rich_evaluation_results.json")))
+    rr = os.path.join(core.TRAINING_DIR, "rerun2026", *(("ns", "p1site") if SITE else ()), "results")
+    if SITE:   # per-strategy rich evaluations of the p1site retrains
+        import glob
+        old = {}
+        for f in glob.glob(os.path.join(rr, "rich_eval", "*.json")):
+            d = json.load(open(f))
+            old[d.get("slug", os.path.basename(f)[:-5])] = d
+        ce = os.path.join(core.RESULTS, "deferred", "cql_enriched_eval.json")
+        if os.path.exists(ce):   # leak-free enriched CQL (deferred.py)
+            for a_, v in json.load(open(ce)).items():
+                old[f"cql_enr_{a_}"] = {"metrics": {"degen_rate": v["degen"], "synergy": v["synergy"],
+                                                    "entropy": v["entropy"]}}
+    else:
+        old = json.load(open(os.path.join(rr, "rich_evaluation_results.json")))
     pts = []
     fam = {"gourdeau": "vf", "gd": "bc", "gourdeau_discriminator": "bc", "mcq_t0.5": "mcq"}
     for k, v in (old.items() if isinstance(old, dict) else []):

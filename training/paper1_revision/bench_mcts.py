@@ -28,8 +28,14 @@ Scores per draft, P(our team wins), team-order symmetrized:
   QM2026      Quick Match judge (draft-free mode, current era)
 plus degen / healer / synergy / counter (own deploy stats and external stats).
 
+Site rebuild (P1_TIERS=site): the leaf of a new run is the WP it trained
+against (run_meta.json): leak-free enriched (oof runs), the in-sample-statistics
+control (leak runs, scored as leak_rev) or the hero-identity WP (K); proxy_own
+is that leaf's score. proxy_sub (a legacy-tier model) is not computed; QM2021
+(qm_wp_v0, as in the tournament) is.
+
 Usage: python3 paper1_revision/bench_mcts.py <run>[,<run>...] [--temps 1,0]
-  runs: new:<B|F|J>_oof_s<k>   old:<config>_s<k>   (e.g. old:J_800sim_s9)
+  runs: new:<B|F|J|K|E>_<oof|leak>_s<k>   old:<config>_s<k>   (e.g. old:J_800sim_s9)
 """
 import os
 import sys
@@ -68,6 +74,16 @@ def ckpt_of(run):
 
 
 _WCFG = {}
+OWN_KEY = {"enriched": "proxy_rev", "enriched_leak": "leak_rev", "naive": "naive_rev"}
+
+
+def leaf_spec(run):
+    """Leaf WP (train_wp spec) a new run trained against, from its run_meta.json:
+    enriched (oof runs), enriched_leak (leak runs) or naive (K)."""
+    meta = json.load(open(os.path.join(os.path.dirname(ckpt_of(run)), "run_meta.json")))
+    spec = os.path.basename(meta["wp"]).rsplit("_s", 1)[0]
+    assert spec in OWN_KEY, spec
+    return spec
 
 
 def leaf_config(run):
@@ -76,14 +92,14 @@ def leaf_config(run):
     from sweep_enriched_wp import WinProbEnrichedModel
     kind, name = run.split(":", 1)
     exp = name.rsplit("_s", 1)[0]
-    key = "rev" if kind == "new" else OLD_WP.get(exp, "sub")
+    key = ("rev:" + leaf_spec(run)) if kind == "new" else OLD_WP.get(exp, "sub")
     if key in _WCFG:
         return _WCFG[key]
-    if key == "rev":
+    if key.startswith("rev:"):
         from paper1_revision import train_wp
-        m, cols = train_wp.load("enriched")
+        m, cols = train_wp.load(key[4:])
         st = core.load_stats("deploy")
-        dim = 283
+        dim = len(cols)
     elif key in SUB_WP_FILES:
         m = WinProbEnrichedModel(283, [256, 128], dropout=0.3)
         m.load_state_dict(torch.load(os.path.join(RR, "models", SUB_WP_FILES[key]),
@@ -202,13 +218,16 @@ def score_drafts(drafts):
     from experiment_synthetic_augmentation import ENRICHED_GROUPS
     rows = [(tuple(d["our"]), tuple(d["opp"]), d["map"], d.get("tier", "mid")) for d in drafts]
     out = {}
-    # submission proxy (external stats)
-    Xf, Xs = core.featurize(rows, core.load_stats("hp"), nproc=min(6, int(os.environ.get("P1R_NPROC", "6"))))
-    out["proxy_sub"] = sym_predict(sub_enriched(), core.group_cols(ENRICHED_GROUPS), Xf, Xs)
+    from overfit2026 import data as odata
+    if odata.TIER_SCHEME != "site":
+        # submission proxy (external stats); legacy tiers only (the site rebuild
+        # keeps no legacy-tier model in the paper)
+        Xf, Xs = core.featurize(rows, core.load_stats("hp"), nproc=min(6, int(os.environ.get("P1R_NPROC", "6"))))
+        out["proxy_sub"] = sym_predict(sub_enriched(), core.group_cols(ENRICHED_GROUPS), Xf, Xs)
     out["syn_hp"], out["ctr_hp"] = interaction(rows, core.load_stats("hp"))
     # revision models (own deploy stats)
     Xf, Xs = core.featurize(rows, core.load_stats("deploy"), nproc=min(6, int(os.environ.get("P1R_NPROC", "6"))))
-    for name, key in (("enriched", "proxy_rev"), ("naive", "naive_rev")):
+    for name, key in OWN_KEY.items():
         m, cols = rev_model(name)
         out[key] = sym_predict(m, cols, Xf, Xs)
     out["syn_own"], out["ctr_own"] = interaction(rows, core.load_stats("deploy"))
@@ -225,6 +244,8 @@ def score_drafts(drafts):
     # qm_wp_2022.pt (2022-era QM judge). Before 2026-10-01 this column was
     # stored under the wrong key "QM2021"; the tournament's QM2021 is qm_wp_v0.
     out["QM2022"] = q.get("QM2022", np.full(len(rows), np.nan))
+    from paper1_revision.score_tournament import qm2021
+    out["QM2021"] = qm_scores({"QM2021": qm2021()}, rows)["QM2021"]
     healers = {h for h, r in HERO_ROLE_FINE.items() if r == "healer"}
     out["degen"] = np.array([float(is_degenerate(list(o))) for o, p, m, t in rows])
     out["healer"] = np.array([float(any(h in healers for h in o)) for o, p, m, t in rows])
@@ -250,6 +271,10 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     from overfit2026 import search
     kernel = search.load_kernel("ofit")
+    from overfit2026 import data as odata
+    if odata.TIER_SCHEME == "site" and getattr(kernel, "COMP_FALLBACK_ORDER", None) != "mid_high_low":
+        # the site leaf WPs were trained on StatsCache's fallback order
+        raise SystemExit("ofit kernel must be built with HOTS_COMP_FALLBACK_MID_HIGH_LOW=1")
     torch.set_num_threads(4)
     for run in a.runs.split(","):
         if not os.path.exists(ckpt_of(run)):
@@ -262,8 +287,15 @@ def main():
             t0 = time.time()
             drafts = generate(run, T, kernel)
             sc = score_drafts(drafts)
+            if run.startswith("new:"):
+                sc["proxy_own"] = sc[OWN_KEY[leaf_spec(run)]]   # the run's own leaf WP
+            kw = np.array([d.get("kernel_wp", np.nan) for d in drafts])
+            parity = float(np.nanmax(np.abs(kw - sc["proxy_own"]))) if run.startswith("new:") else None
             res = {"run": run, "temp": T, "n": len(drafts),
+                   "leaf": leaf_spec(run) if run.startswith("new:") else None,
+                   "kernel_comp_fallback_order": getattr(kernel, "COMP_FALLBACK_ORDER", None),
                    "cap_hits": int(sum(d.get("cap_hits", 0) for d in drafts)),
+                   "kernel_parity_max_abs": parity,   # in-kernel leaf WP vs Python, same teams
                    "means": {k: float(np.nanmean(v)) for k, v in sc.items()},
                    "diversity": diversity(drafts),
                    "per_draft": {k: np.round(v, 5).tolist() for k, v in sc.items()},
@@ -271,7 +303,7 @@ def main():
                    "secs": time.time() - t0}
             json.dump(res, open(path, "w"))
             m = res["means"]
-            print(f"{run:24s} T{T:g}: sub={m['proxy_sub']:.4f} rev={m['proxy_rev']:.4f} "
+            print(f"{run:24s} T{T:g}: own={m.get('proxy_own', m.get('proxy_sub', float('nan'))):.4f} rev={m['proxy_rev']:.4f} "
                   f"gN={m['gN']:.4f} RN={m['RN']:.4f} R17={m['R17']:.4f} QM={m['QM2026']:.4f} "
                   f"deg={m['degen']:.3f} ({res['secs']:.0f}s)", flush=True)
 

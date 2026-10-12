@@ -19,7 +19,7 @@ revision's leak-free enriched WP, objective of MCTS / greedy / constrained).
 
 Consensus (fixed before scoring) = mean of gN, gN_naive, RN, QM2026.
 
-Standing of a strategy = mean over its 22 ordered pairs of its mean P(win).
+Standing of a strategy = mean over its 2(n-1) ordered pairs of its mean P(win).
 SE: within each pair, drafts are clustered by (map, tier) configuration (42
 configs; argmax agents repeat drafts across the 200), pair variances are
 summed over the fixed opponent set.
@@ -44,7 +44,9 @@ CONSENSUS = ["gN", "gN_naive", "RN", "QM2026"]
 
 
 def load_pair(a, b):
-    p = reused_path(a, b) if (a in UNCHANGED and b in UNCHANGED) else pair_path(a, b)
+    from paper1_revision.tournament import site
+    reuse = a in UNCHANGED and b in UNCHANGED and not site()
+    p = reused_path(a, b) if reuse else pair_path(a, b)
     if not os.path.exists(p):
         return None
     return json.load(open(p))
