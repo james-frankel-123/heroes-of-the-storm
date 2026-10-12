@@ -61,7 +61,11 @@ HANDOFF = os.path.join(TRAINING, "paper1_revision", "site", "logs", "HANDOFF_{}"
 # (sm_120 kernels, VERIFY OK 2026-10-12) but lent to paper 1 until the
 # coordinator frees it: add "windows-5090-wsl": 1 here then. Its RAM is 35 GB,
 # so its per-job cap is 16G (MCTS hosts peak near 3.5 GB RSS).
-MAX_SLOTS = {"max-windows-3090": 1, "3080-gaming-desktop": 1}
+# 3080: lent to the tennis lane through about 2026-10-18 (out of MAX_SLOTS).
+MAX_SLOTS = {"max-windows-3090": 1}
+CPU_HOST = "max-windows-3090"   # CPU items (training the distilled prior, analyses) run here
+SCRATCH = "/tmp/claude-1000/-home-max-heroes-of-the-storm/a49813e0-7f18-4a49-90f1-0426c355d609/scratchpad/p3_mcts_gather"
+ALL_HOSTS = ["max-windows-3090", "3080-gaming-desktop", "windows-5090-wsl"]
 MEM = {"max-windows-3090": "24G", "3080-gaming-desktop": "20G", "windows-5090-wsl": "16G"}
 CORES = {"max-windows-3090": "28-35", "3080-gaming-desktop": "0-19", "windows-5090-wsl": "0-7"}
 PEAK_GB = 14
@@ -108,6 +112,43 @@ def drift_all_launched(st):
     return not pending, pending
 
 
+def gather():
+    """Copy every host's finished search outputs (cache/mcts_v2, not the
+    partial batch files) to the CPU host, through this box. Search jobs write
+    on the host they ran on; the analyses read them all on CPU_HOST."""
+    sys.path.insert(0, os.path.join(TRAINING, "remote_workers"))
+    import hosts as RH
+    rel = "/home/max/hots/repo/training/personalization/cache/mcts_v2/"
+    os.makedirs(SCRATCH, exist_ok=True)
+    for h in ALL_HOSTS:
+        if h == CPU_HOST:
+            continue
+        r = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", "-z", f"--rsync-path={RH.rsync_path(h)}",
+                            "--exclude", "partial_*", "--exclude", "*.tmp", f"{h}:{rel}", SCRATCH + "/"],
+                           capture_output=True, text=True, timeout=1800)
+        if r.returncode not in (0, 23, 24):  # 23/24: source dir missing on a host that ran nothing
+            alert(f"gather from {h} failed rc={r.returncode}: {r.stderr[-200:]}")
+            return False
+    r = subprocess.run(["nice", "-n", "19", "rsync", "-rlt", "-z", "--ignore-existing",
+                        f"--rsync-path={RH.rsync_path(CPU_HOST)}", SCRATCH + "/", f"{CPU_HOST}:{rel}"],
+                       capture_output=True, text=True, timeout=1800)
+    if r.returncode != 0:
+        alert(f"gather to {CPU_HOST} failed rc={r.returncode}: {r.stderr[-200:]}")
+        return False
+    log("gathered search outputs to " + CPU_HOST)
+    return True
+
+
+def resume(host, name):
+    sys.path.insert(0, os.path.join(TRAINING, "remote_workers"))
+    import hosts as RH
+    r = subprocess.run(["ssh", "-o", "ConnectTimeout=30", host, RH.shell(host)],
+                       input=f"source ~/hots/env.sh; python ~/hots/repo/training/remote_workers/hotsjob.py resume {name}\n",
+                       capture_output=True, text=True, timeout=300)
+    log(f"resume {name} on {host}: rc={r.returncode} {r.stdout.strip()[-150:]}")
+    return r.returncode == 0
+
+
 def ready(host):
     out = DW.remote(host, "test -f ~/hots/p3_ready && echo READY || echo NOTREADY")
     return out is not None and "READY" in out.split()
@@ -141,7 +182,20 @@ def main():
             if j["status"] in ("failed", "died", "paused"):
                 alert(f"{n} on {h} is {j['status']} (log {j['log']})", key=f"{n}:{h}:{j['status']}", state=state)
         done = {n for n, (h, j) in ours.items() if j["status"] == "completed"}
-        if all(n in done or n in state["launch_failed"] for n in names):
+        state.setdefault("cpu_retried", [])
+        cpu_names = {q["name"] for q in queue if not q.get("gpu", True)}
+        failed_cpu = [n for n, (h, j) in ours.items() if n in cpu_names and j["status"] in ("failed", "died")
+                      and n not in state["cpu_retried"]]
+        if failed_cpu and not DRY:
+            if gather():
+                for n in failed_cpu:
+                    if all(x in done for x in next(q for q in queue if q["name"] == n).get("needs", [])):
+                        resume(ours[n][0], n)
+                        state["cpu_retried"].append(n)
+                json.dump(state, open(STATE, "w"))
+        if all(n in done or n in state["launch_failed"] or
+               (n in state.get("cpu_retried", []) and ours.get(n, (None, {"status": ""}))[1]["status"] in ("failed", "died"))
+               for n in names):
             log("all P3 queue items completed")
             return
         gate, pend = drift_all_launched(st)
@@ -192,6 +246,8 @@ def main():
             name = pick["name"]
             if DRY:
                 log(f"[dry] would launch {name} on {host} (avail {avail:.0f} GB, live {len(live)}/{cap})")
+                continue
+            if not pick.get("gpu", True) and not gather():
                 continue
             env = dict(os.environ, P3_CORES=CORES[host], P3_THREADS="2", P3_MEM=MEM[host])
             r = subprocess.run([JOB, host, name] + pick["cmd"].split(), capture_output=True, text=True,
