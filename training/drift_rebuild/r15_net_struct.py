@@ -48,6 +48,7 @@ def main():
         files[k] = os.path.join(common.RESULTS_DIR, f)
     files["paper_Md90_vs_M"] = os.path.join(common.RESULTS_DIR,
                                             "w6_head2head_champ_vs_cumprev.json")
+    files = {k: p for k, p in files.items() if os.path.exists(p)}   # paper files absent under v2
     out = {"n_games": len(games), "fits": {k: v.describe() for k, v in idx.items()},
            "files": {}}
     for key, path in files.items():

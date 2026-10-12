@@ -69,7 +69,8 @@ def main():
     files = {os.path.splitext(os.path.basename(p))[0]: p
              for p in sorted(glob.glob(os.path.join(rb.RESULTS_DIR, "h2h", "*.json")))}
     for k, f in PAPER_FILES.items():
-        files[k] = os.path.join(common.RESULTS_DIR, f)
+        if os.path.exists(os.path.join(common.RESULTS_DIR, f)):   # absent under v2
+            files[k] = os.path.join(common.RESULTS_DIR, f)
     out = {}
     for key, path in files.items():
         recs, res = load_records(path)
