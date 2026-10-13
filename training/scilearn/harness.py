@@ -196,11 +196,10 @@ def canary_cards(sid, axes):
     for i, ax in enumerate(rng.choice(axes, 2, replace=False) if axes else []):
         nulls.append({"type": "attr_sum", "name": f"canary_null_perm_{i + 1}", "axis": str(ax),
                       "shape": "free", "n_knots": 4, "_perm_key": f"{k[40:56]}:{i}"})
-    true = [{"type": "indicator", "name": "canary_true_no_healer", "sign": "-",
-             "predicates": [{"field": "role_count", "key": "Healer", "op": "==", "value": 0}]},
-            {"type": "indicator", "name": "canary_true_no_healer_lanes3", "sign": "-",
-             "predicates": [{"field": "role_count", "key": "Healer", "op": "==", "value": 0},
-                            {"field": "map_class", "value": "lanes3"}]}]
+    # Known-true: structure the K0 backbone lacks and that is stable across S builds.
+    # (No-healer flags are absorbed by K0's healing_throughput shape, so they cannot serve.)
+    true = [{"type": "multiset", "name": "canary_true_role_multiset", "min_teams": 200},
+            {"type": "pair_family", "name": "canary_true_ally_pairs", "min_games": 2000}]
     return [("null", t) for t in nulls] + [("true", t) for t in true]
 
 
@@ -218,9 +217,10 @@ def run_canaries(broker, wait=True):
         spec = {"job_id": job, "kind": "q2", "fit_tranches": fit_tranches(dev), "eval_tranches": [],
                 "models": {}, "incumbent_job": inc["job"], "incumbent": inc["name"], "term": term,
                 "dev_tranche": dev, "recent_s_builds": recent_s_builds(broker.meta)}
+        jobs.append((kind, term, job, spec))
+    for kind, term, job, spec in jobs:
+        # one at a time: keeps scilearn RAM on the 3090 well under its 60 GB share
         R.submit(spec, HOST, label_mode=label_mode(st))
-        jobs.append((kind, term, job))
-    for kind, term, job in jobs:
         res = R.wait(job, HOST)
         pr = res["paired"]
         k = int(res.get("term_k", 1))

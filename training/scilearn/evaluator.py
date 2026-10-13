@@ -88,9 +88,11 @@ def gate_decisions(z, group_bits_before, k_params=1, sum2=None):
         "p_one_sided": p_one,     # FDR (BH at 10%) is decided over the cycle's p-values at close
     }
     if k_params > 1 and sum2 is not None:
-        # family test: k-df likelihood-ratio threshold at the same tail probability
+        # in-sample family rule, recorded for comparison (FRAMING 5.4 last paragraph)
         alt["family_lrt"] = bool(sum2 >= stats.chi2.isf(stats.norm.sf(thr), k_params))
-    decision = alt["family_lrt"] if (k_params > 1 and sum2 is not None) else alt["half_margin"]
+    # Terms are fit on the fit tranches and scored on held-out dev games, so the paired z
+    # already pays for every parameter; the k-df LRT (an in-sample rule) is recorded only.
+    decision = alt["half_margin"]
     near = (not decision) and z >= C.GATE_NEAR_MISS
     return decision, thr, alt, near
 

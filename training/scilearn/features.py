@@ -25,19 +25,22 @@ def _asof_sum(keys_ev, t_ev, ts_ev, keys_q, t_q, val_ev, tau):
     qidx = np.concatenate([np.full(ne, -1), np.arange(nq)])[order]
     decay = np.isfinite(tau)
     cur_key, s, t_last = None, 0.0, 0
-    kl, tl, ql, tsl, vl, il = k.tolist(), t.tolist(), is_q.tolist(), ts_all.tolist(), v_all.tolist(), qidx.tolist()
     import math
-    for i in range(len(kl)):
-        if kl[i] != cur_key:
-            cur_key, s, t_last = kl[i], 0.0, tl[i]
-        if decay:
-            s *= math.exp(-(tl[i] - t_last) / tau)
-            t_last = tl[i]
-        if ql[i]:
-            out[il[i]] = s
-        else:
-            # event enters at its first-seen time, decayed from its game time
-            s += vl[i] * (math.exp(-(tl[i] - tsl[i]) / tau) if decay else 1.0)
+    CH = 2_000_000
+    for c0 in range(0, len(k), CH):
+        kl, tl, ql = k[c0:c0 + CH].tolist(), t[c0:c0 + CH].tolist(), is_q[c0:c0 + CH].tolist()
+        tsl, vl, il = ts_all[c0:c0 + CH].tolist(), v_all[c0:c0 + CH].tolist(), qidx[c0:c0 + CH].tolist()
+        for i in range(len(kl)):
+            if kl[i] != cur_key:
+                cur_key, s, t_last = kl[i], 0.0, tl[i]
+            if decay:
+                s *= math.exp(-(tl[i] - t_last) / tau)
+                t_last = tl[i]
+            if ql[i]:
+                out[il[i]] = s
+            else:
+                # event enters at its first-seen time, decayed from its game time
+                s += vl[i] * (math.exp(-(tl[i] - tsl[i]) / tau) if decay else 1.0)
     return out
 
 
