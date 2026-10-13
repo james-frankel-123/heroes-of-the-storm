@@ -1,0 +1,22 @@
+id: c01
+family: composition          # composition | strength | solo_lane | macro | team_fight | ganking | scaling | others
+tag: structural              # structural | meta
+theory: >
+  Two to five sentences: why this should change who wins, from mechanics.
+mechanism:
+  intermediate: early isolated deaths of the backline
+  direction: more for the team without peel
+  window: minutes 0 to 10
+  negative_control: minion XP share
+expected_effect:
+  sign: "-"                  # sign of the term for the team that has the feature
+  pp: 1.0                    # win probability shift on affected games
+  logloss: 0.0001
+  frac_games: 0.05
+term:
+  type: indicator
+  predicates:
+    - {field: role_count, key: Healer, op: "==", value: 0}
+  sign: "-"
+sources: ["ledger seq 12 (S query)", "kit axis healing_throughput"]
+alternatives_considered: ["a concave healing_throughput sum instead of a flag"]

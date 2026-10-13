@@ -1,0 +1,12 @@
+{"_doc": "A0: state-space hierarchical additive logit, built by infra (FRAMING 10.2 A). LLM-free.",
+ "terms": [
+  {"type": "state", "name": "hero_build", "jump_precision": 400},
+  {"type": "lookup", "keys": ["hero", "map"], "name": "hero_map", "prior_precision": 200},
+  {"type": "lookup", "keys": ["hero", "tier"], "name": "hero_tier", "prior_precision": 200},
+  {"type": "multiset", "name": "role_multiset", "min_teams": 200},
+  {"type": "indicator", "name": "no_healer", "predicates": [{"field": "role_count", "key": "Healer", "op": "==", "value": 0}], "sign": "-"},
+  {"type": "indicator", "name": "no_frontline", "predicates": [{"field": "role_count", "key": "Tank", "op": "==", "value": 0}, {"field": "role_count", "key": "Bruiser", "op": "==", "value": 0}], "sign": "-"},
+  {"type": "pair_family", "name": "ally_pairs", "min_games": 500},
+  {"type": "cross_family", "name": "counter_pairs", "min_games": 500},
+  {"type": "decay", "name": "player_hero_exp", "half_life_days": 180, "sign": "+"}
+ ]}
