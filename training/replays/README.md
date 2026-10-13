@@ -60,7 +60,9 @@ of small files on the NAS.
 Heroes Profile keeps files for about **28 days after upload**. Retention follows the upload
 order (replayID), not the game date: on 2026-10-13 at 13:10 UTC, every listed replay with ID
 >= 65,189,949 was downloadable and every one below was not. The boundary replays were
-uploaded at about 2026-09-15 13:10, exactly 28 days earlier. Late uploads of old games
+uploaded at about 2026-09-15 13:10, exactly 28 days earlier. A second probe 11 minutes
+later found the boundary at 65,189,979 (upload 2026-09-15 13:21), so the window rolls
+continuously. Late uploads of old games
 (game dates in 2024 and 2025) above the boundary are still downloadable. The listing's
 `downloadable` flag agrees with the download endpoint (10 of 10 probes), so
 `fetch-replay-files.py probe-retention` finds the boundary with about 20 listing calls and
