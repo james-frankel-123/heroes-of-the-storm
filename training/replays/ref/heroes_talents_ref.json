@@ -1,0 +1,9602 @@
+{
+"heroes": {
+"HeroAbathur": "Abathur",
+"HeroAlarak": "Alarak",
+"HeroAlexstrasza": "Alexstrasza",
+"HeroAmazon": "Cassia",
+"HeroAna": "Ana",
+"HeroAnduin": "Anduin",
+"HeroAnubarak": "Anub'arak",
+"HeroArtanis": "Artanis",
+"HeroArthas": "Arthas",
+"HeroAuriel": "Auriel",
+"HeroAzmodan": "Azmodan",
+"HeroBarbarian": "Sonya",
+"HeroButcher": "The Butcher",
+"HeroChen": "Chen",
+"HeroCho": "Cho",
+"HeroChromie": "Chromie",
+"HeroCrusader": "Johanna",
+"HeroDVaMech": "D.Va",
+"HeroDeathwing": "Deathwing",
+"HeroDeckard": "Deckard",
+"HeroDehaka": "Dehaka",
+"HeroDemonHunter": "Valla",
+"HeroDiablo": "Diablo",
+"HeroDryad": "Lunara",
+"HeroFaerieDragon": "Brightwing",
+"HeroFalstad": "Falstad",
+"HeroFenix": "Fenix",
+"HeroFirebat": "Blaze",
+"HeroGall": "Gall",
+"HeroGarrosh": "Garrosh",
+"HeroGenji": "Genji",
+"HeroGreymane": "Greymane",
+"HeroGuldan": "Gul'dan",
+"HeroHanzo": "Hanzo",
+"HeroHogger": "Hogger",
+"HeroIllidan": "Illidan",
+"HeroImperius": "Imperius",
+"HeroJaina": "Jaina",
+"HeroJunkrat": "Junkrat",
+"HeroKaelthas": "Kael'thas",
+"HeroKelThuzad": "Kel'Thuzad",
+"HeroKerrigan": "Kerrigan",
+"HeroL90ETC": "E.T.C.",
+"HeroLeoric": "Leoric",
+"HeroLiLi": "Li Li",
+"HeroLostVikingsController": "The Lost Vikings",
+"HeroLucio": "L\u00facio",
+"HeroMaiev": "Maiev",
+"HeroMalGanis": "Mal'Ganis",
+"HeroMalfurion": "Malfurion",
+"HeroMalthael": "Malthael",
+"HeroMedic": "Lt. Morales",
+"HeroMedivh": "Medivh",
+"HeroMeiOW": "Mei",
+"HeroMephisto": "Mephisto",
+"HeroMonk": "Kharazim",
+"HeroMuradin": "Muradin",
+"HeroMurky": "Murky",
+"HeroNecromancer": "Xul",
+"HeroNexusHunter": "Qhira",
+"HeroNova": "Nova",
+"HeroOrphea": "Orphea",
+"HeroProbius": "Probius",
+"HeroRagnaros": "Ragnaros",
+"HeroRaynor": "Raynor",
+"HeroRehgar": "Rehgar",
+"HeroRexxar": "Rexxar",
+"HeroSamuro": "Samuro",
+"HeroSgtHammer": "Sgt. Hammer",
+"HeroStitches": "Stitches",
+"HeroStukov": "Stukov",
+"HeroSylvanas": "Sylvanas",
+"HeroTassadar": "Tassadar",
+"HeroThrall": "Thrall",
+"HeroTinker": "Gazlowe",
+"HeroTracer": "Tracer",
+"HeroTychus": "Tychus",
+"HeroTyrael": "Tyrael",
+"HeroTyrande": "Tyrande",
+"HeroUther": "Uther",
+"HeroValeera": "Valeera",
+"HeroVarian": "Varian",
+"HeroWhitemane": "Whitemane",
+"HeroWitchDoctor": "Nazeebo",
+"HeroWizard": "Li-Ming",
+"HeroYrel": "Yrel",
+"HeroZagara": "Zagara",
+"HeroZarya": "Zarya",
+"HeroZeratul": "Zeratul",
+"HeroZuljin": "Zul'jin"
+},
+"source": "heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027 (MIT)",
+"talents": {
+"AbathurCombatStyleBombardStrain": {
+"hero": "Abathur",
+"level": 13,
+"name": "Bombard Strain"
+},
+"AbathurCombatStyleLocustBrood": {
+"hero": "Abathur",
+"level": 16,
+"name": "Locust Brood"
+},
+"AbathurCombatStyleSurvivalInstincts": {
+"hero": "Abathur",
+"level": 1,
+"name": "Survival Instincts"
+},
+"AbathurHeroicAbilityEvolveMonstrosity": {
+"hero": "Abathur",
+"level": 10,
+"name": "Evolve Monstrosity"
+},
+"AbathurHeroicAbilityUltimateEvolution": {
+"hero": "Abathur",
+"level": 10,
+"name": "Ultimate Evolution"
+},
+"AbathurMasteryAdrenalineBoost": {
+"hero": "Abathur",
+"level": 16,
+"name": "Adrenaline Boost"
+},
+"AbathurMasteryEnvenomedNestsToxicNest": {
+"hero": "Abathur",
+"level": 1,
+"name": "Envenomed Nest"
+},
+"AbathurMasteryEnvenomedSpikes": {
+"hero": "Abathur",
+"level": 16,
+"name": "Envenomed Spikes"
+},
+"AbathurMasteryEvolutionComplete": {
+"hero": "Abathur",
+"level": 20,
+"name": "Evolution Complete"
+},
+"AbathurMasteryLocustMaster": {
+"hero": "Abathur",
+"level": 20,
+"name": "Locust Nest"
+},
+"AbathurMasteryNeedlespine": {
+"hero": "Abathur",
+"level": 4,
+"name": "Needlespine"
+},
+"AbathurMasteryPressurizedGlands": {
+"hero": "Abathur",
+"level": 1,
+"name": "Pressurized Glands"
+},
+"AbathurMasteryProlificDispersal": {
+"hero": "Abathur",
+"level": 4,
+"name": "Prolific Dispersal"
+},
+"AbathurMasterySpatialEfficiency": {
+"hero": "Abathur",
+"level": 13,
+"name": "Spatial Efficiency"
+},
+"AbathurMasteryVileNestsToxicNest": {
+"hero": "Abathur",
+"level": 7,
+"name": "Vile Nest"
+},
+"AbathurReinforcedCarapace": {
+"hero": "Abathur",
+"level": 1,
+"name": "Reinforced Carapace"
+},
+"AbathurSymbioteAdrenalOverload": {
+"hero": "Abathur",
+"level": 4,
+"name": "Adrenal Overload"
+},
+"AbathurSymbioteCarapaceNetworkedCarapace": {
+"hero": "Abathur",
+"level": 7,
+"name": "Networked Carapace"
+},
+"AbathurSymbioteHivemind": {
+"hero": "Abathur",
+"level": 20,
+"name": "Hivemind"
+},
+"AbathurSymbioteSpikeBurstSomaTransference": {
+"hero": "Abathur",
+"level": 13,
+"name": "Soma Transference"
+},
+"AbathurUltimateEvolutionEvolutionaryLink": {
+"hero": "Abathur",
+"level": 20,
+"name": "Evolutionary Link"
+},
+"AbathurVolatileMutation": {
+"hero": "Abathur",
+"level": 16,
+"name": "Volatile Mutation"
+},
+"AlarakAppliedForce": {
+"hero": "Alarak",
+"level": 7,
+"name": "Applied Force"
+},
+"AlarakBladeoftheHighlord": {
+"hero": "Alarak",
+"level": 13,
+"name": "Blade of the Highlord"
+},
+"AlarakChaosReigns": {
+"hero": "Alarak",
+"level": 4,
+"name": "Chaos Reigns"
+},
+"AlarakCounterStrikeItem": {
+"hero": "Alarak",
+"level": 20,
+"name": "Counter-Strike"
+},
+"AlarakDeadlyChargeFirstHeroic": {
+"hero": "Alarak",
+"level": 10,
+"name": "Deadly Charge"
+},
+"AlarakDeadlyChargeSecondHeroic": {
+"hero": "Alarak",
+"level": 20,
+"name": "Deadly Charge"
+},
+"AlarakDissonance": {
+"hero": "Alarak",
+"level": 7,
+"name": "Dissonance"
+},
+"AlarakExtendedLightning": {
+"hero": "Alarak",
+"level": 1,
+"name": "Extended Lightning"
+},
+"AlarakHastyBargain": {
+"hero": "Alarak",
+"level": 20,
+"name": "Hasty Bargain"
+},
+"AlarakHeroicAbilityCounterStrike": {
+"hero": "Alarak",
+"level": 10,
+"name": "Counter-Strike"
+},
+"AlarakHinderedMotion": {
+"hero": "Alarak",
+"level": 7,
+"name": "Hindered Motion"
+},
+"AlarakLastLaugh": {
+"hero": "Alarak",
+"level": 20,
+"name": "Last Laugh"
+},
+"AlarakLethalOnslaughtDiscordStrike": {
+"hero": "Alarak",
+"level": 16,
+"name": "Lethal Onslaught"
+},
+"AlarakLightningBarrage": {
+"hero": "Alarak",
+"level": 16,
+"name": "Lightning Barrage"
+},
+"AlarakMockingStrikes": {
+"hero": "Alarak",
+"level": 16,
+"name": "Mocking Strikes"
+},
+"AlarakNegativelyCharged": {
+"hero": "Alarak",
+"level": 4,
+"name": "Negatively Charged"
+},
+"AlarakOverwhelmingPowerDiscordStrike": {
+"hero": "Alarak",
+"level": 1,
+"name": "Overwhelming Power"
+},
+"AlarakPureMalice": {
+"hero": "Alarak",
+"level": 13,
+"name": "Pure Malice"
+},
+"AlarakRiteofRakShir": {
+"hero": "Alarak",
+"level": 13,
+"name": "Rite of Rak'Shir"
+},
+"AlarakRuthlessMomentum": {
+"hero": "Alarak",
+"level": 1,
+"name": "Ruthless Momentum"
+},
+"AlarakShowofForce": {
+"hero": "Alarak",
+"level": 4,
+"name": "Show of Force"
+},
+"AlexstraszaAncientFlameFlameBuffet": {
+"hero": "Alexstrasza",
+"level": 20,
+"name": "Ancient Flame"
+},
+"AlexstraszaBlessingOfTheRed": {
+"hero": "Alexstrasza",
+"level": 20,
+"name": "Blessing of the Red"
+},
+"AlexstraszaCircleOfLifeAbundance": {
+"hero": "Alexstrasza",
+"level": 1,
+"name": "Circle of Life"
+},
+"AlexstraszaCleansingFlame": {
+"hero": "Alexstrasza",
+"level": 10,
+"name": "Cleansing Flame"
+},
+"AlexstraszaDraconicDisciplineDragonqueen": {
+"hero": "Alexstrasza",
+"level": 16,
+"name": "Draconic Discipline"
+},
+"AlexstraszaDragonScales": {
+"hero": "Alexstrasza",
+"level": 13,
+"name": "Dragon Scales"
+},
+"AlexstraszaExuberance": {
+"hero": "Alexstrasza",
+"level": 4,
+"name": "Exuberance"
+},
+"AlexstraszaFireWithinFlameBuffet": {
+"hero": "Alexstrasza",
+"level": 7,
+"name": "Fire Within"
+},
+"AlexstraszaFlamesOfFuryFlameBuffet": {
+"hero": "Alexstrasza",
+"level": 1,
+"name": "Flames of Fury"
+},
+"AlexstraszaHeatExhaustionFlameBuffet": {
+"hero": "Alexstrasza",
+"level": 4,
+"name": "Heat Exhaustion"
+},
+"AlexstraszaLifeUnbound": {
+"hero": "Alexstrasza",
+"level": 13,
+"name": "Life Unbound"
+},
+"AlexstraszaLifebinder": {
+"hero": "Alexstrasza",
+"level": 10,
+"name": "Life-Binder"
+},
+"AlexstraszaLifeblossomGiftOfLife": {
+"hero": "Alexstrasza",
+"level": 7,
+"name": "Lifeblossom"
+},
+"AlexstraszaLiveAndLetLiveGiftOfLife": {
+"hero": "Alexstrasza",
+"level": 1,
+"name": "Live and Let Live"
+},
+"AlexstraszaOnRubyWingsCleansingFlame": {
+"hero": "Alexstrasza",
+"level": 20,
+"name": "On Ruby Wings"
+},
+"AlexstraszaOverprotectiveAbundance": {
+"hero": "Alexstrasza",
+"level": 16,
+"name": "Overprotective"
+},
+"AlexstraszaPacify": {
+"hero": "Alexstrasza",
+"level": 13,
+"name": "Pacify"
+},
+"AlexstraszaRitualOfLife": {
+"hero": "Alexstrasza",
+"level": 20,
+"name": "Ritual of Life"
+},
+"AlexstraszaSurgeOfVitalityAbundance": {
+"hero": "Alexstrasza",
+"level": 4,
+"name": "Surge of Vitality"
+},
+"AlexstraszaToughLoveGiftOfLife": {
+"hero": "Alexstrasza",
+"level": 16,
+"name": "Tough Love"
+},
+"AlexstraszaVerdantFlourishAbundance": {
+"hero": "Alexstrasza",
+"level": 7,
+"name": "Verdant Flourish"
+},
+"Amazon-AvoidanceRockstopper": {
+"hero": "Cassia",
+"level": 20,
+"name": "Rockstopper"
+},
+"AmazonBallLightning": {
+"hero": "Cassia",
+"level": 10,
+"name": "Ball Lightning"
+},
+"AmazonChargedStrikes": {
+"hero": "Cassia",
+"level": 1,
+"name": "Charged Strikes"
+},
+"AmazonFendGlovesOfAlacrity": {
+"hero": "Cassia",
+"level": 13,
+"name": "Gloves Of Alacrity"
+},
+"AmazonFendGroundingRod": {
+"hero": "Cassia",
+"level": 7,
+"name": "Grounding Rod"
+},
+"AmazonFendWarMatron": {
+"hero": "Cassia",
+"level": 13,
+"name": "War Matron"
+},
+"AmazonImpale": {
+"hero": "Cassia",
+"level": 1,
+"name": "Impale"
+},
+"AmazonImprisoningLight": {
+"hero": "Cassia",
+"level": 20,
+"name": "Imprisoning Light"
+},
+"AmazonInfiniteLightning": {
+"hero": "Cassia",
+"level": 20,
+"name": "Infinite Lightning"
+},
+"AmazonInnerLight": {
+"hero": "Cassia",
+"level": 4,
+"name": "Inner Light"
+},
+"AmazonMartialLaw": {
+"hero": "Cassia",
+"level": 16,
+"name": "Martial Law"
+},
+"AmazonPlateoftheWhale": {
+"hero": "Cassia",
+"level": 4,
+"name": "Plate of the Whale"
+},
+"AmazonPowerStrike": {
+"hero": "Cassia",
+"level": 16,
+"name": "Power Strike"
+},
+"AmazonRingoftheLeech": {
+"hero": "Cassia",
+"level": 4,
+"name": "Ring of the Leech"
+},
+"AmazonSeraphsHymn": {
+"hero": "Cassia",
+"level": 7,
+"name": "Seraph's Hymn"
+},
+"AmazonStaticElectricity": {
+"hero": "Cassia",
+"level": 16,
+"name": "Static Electricity"
+},
+"AmazonSurgeOfLight": {
+"hero": "Cassia",
+"level": 7,
+"name": "Surge of Light"
+},
+"AmazonThunderstroke": {
+"hero": "Cassia",
+"level": 1,
+"name": "Thunderstroke"
+},
+"AmazonTitansRevenge": {
+"hero": "Cassia",
+"level": 20,
+"name": "Titan's Revenge"
+},
+"AmazonValkyrie": {
+"hero": "Cassia",
+"level": 10,
+"name": "Valkyrie"
+},
+"AmazonWarTraveler": {
+"hero": "Cassia",
+"level": 13,
+"name": "War Traveler"
+},
+"AnaBioticGrenadeAntiHealer": {
+"hero": "Ana",
+"level": 7,
+"name": "Anti-Healer"
+},
+"AnaBioticGrenadeBioticEnhancements": {
+"hero": "Ana",
+"level": 4,
+"name": "Biotic Enhancements"
+},
+"AnaBioticGrenadeContactHealing": {
+"hero": "Ana",
+"level": 1,
+"name": "Contact Healing"
+},
+"AnaDebilitatingDart": {
+"hero": "Ana",
+"level": 4,
+"name": "Debilitating Dart"
+},
+"AnaDetachableBoxMagazine": {
+"hero": "Ana",
+"level": 16,
+"name": "Active Reload"
+},
+"AnaDynamicOptics": {
+"hero": "Ana",
+"level": 20,
+"name": "Dynamic Optics"
+},
+"AnaEyeOfHorusDeadeye": {
+"hero": "Ana",
+"level": 20,
+"name": "Deadeye"
+},
+"AnaHealingDartConcentratedDoses": {
+"hero": "Ana",
+"level": 16,
+"name": "Concentrated Doses"
+},
+"AnaHealingDartPurifyingDarts": {
+"hero": "Ana",
+"level": 13,
+"name": "Purifying Darts"
+},
+"AnaHealingDartSharpshooter": {
+"hero": "Ana",
+"level": 16,
+"name": "Sharpshooter"
+},
+"AnaHealingDartSmellingSalts": {
+"hero": "Ana",
+"level": 13,
+"name": "Smelling Salts"
+},
+"AnaHealingDartSpeedSerum": {
+"hero": "Ana",
+"level": 13,
+"name": "Speed Serum"
+},
+"AnaHeroicAbilityEyeOfHorus": {
+"hero": "Ana",
+"level": 10,
+"name": "Eye of Horus"
+},
+"AnaHeroicAbilityNanaBoost": {
+"hero": "Ana",
+"level": 10,
+"name": "Nano Boost"
+},
+"AnaMindNumbingAgent": {
+"hero": "Ana",
+"level": 7,
+"name": "Mind-Numbing Agent"
+},
+"AnaNanoInfusion": {
+"hero": "Ana",
+"level": 20,
+"name": "Nano Infusion"
+},
+"AnaOverdose": {
+"hero": "Ana",
+"level": 4,
+"name": "Overdose"
+},
+"AnaShrikeArmoredStance": {
+"hero": "Ana",
+"level": 20,
+"name": "Armored Stance"
+},
+"AnaShrikeVampiricRounds": {
+"hero": "Ana",
+"level": 1,
+"name": "Vampiric Rounds"
+},
+"AnaSleepDartNightTerrors": {
+"hero": "Ana",
+"level": 7,
+"name": "Night Terrors"
+},
+"AnaSleepingDartSlumberShells": {
+"hero": "Ana",
+"level": 1,
+"name": "Slumber Shells"
+},
+"AnduinBlessedRecovery": {
+"hero": "Anduin",
+"level": 7,
+"name": "Blessed Recovery"
+},
+"AnduinCensure": {
+"hero": "Anduin",
+"level": 20,
+"name": "Censure"
+},
+"AnduinDivineStarHolyNova": {
+"hero": "Anduin",
+"level": 16,
+"name": "Holy Nova"
+},
+"AnduinDivineStarMoralCompass": {
+"hero": "Anduin",
+"level": 4,
+"name": "Moral Compass"
+},
+"AnduinDivineStarPowerWordShield": {
+"hero": "Anduin",
+"level": 1,
+"name": "Power Word: Shield"
+},
+"AnduinDivineStarSpeedOfThePious": {
+"hero": "Anduin",
+"level": 13,
+"name": "Speed of the Pious"
+},
+"AnduinFlashHealBindingHeal": {
+"hero": "Anduin",
+"level": 7,
+"name": "Binding Heal"
+},
+"AnduinFlashHealDesperatePrayer": {
+"hero": "Anduin",
+"level": 7,
+"name": "Desperate Prayer"
+},
+"AnduinFlashHealEvenhandedBlessings": {
+"hero": "Anduin",
+"level": 1,
+"name": "Evenhanded Blessings"
+},
+"AnduinFlashHealInnerFocus": {
+"hero": "Anduin",
+"level": 16,
+"name": "Inner Focus"
+},
+"AnduinFlashHealRenew": {
+"hero": "Anduin",
+"level": 16,
+"name": "Renew"
+},
+"AnduinHolyWordSalvation": {
+"hero": "Anduin",
+"level": 10,
+"name": "Holy Word: Salvation"
+},
+"AnduinHolyWordSalvationLightOfStormwind": {
+"hero": "Anduin",
+"level": 20,
+"name": "Light of Stormwind"
+},
+"AnduinInnerFire": {
+"hero": "Anduin",
+"level": 20,
+"name": "Inner Fire"
+},
+"AnduinLeapOfFaithEnchantBootsLionsSpeed": {
+"hero": "Anduin",
+"level": 13,
+"name": "Enchant Boots - Lion's Speed"
+},
+"AnduinLeapOfFaithGlyphOfFaith": {
+"hero": "Anduin",
+"level": 16,
+"name": "Glyph of Faith"
+},
+"AnduinLightBomb": {
+"hero": "Anduin",
+"level": 10,
+"name": "Lightbomb"
+},
+"AnduinLightwell": {
+"hero": "Anduin",
+"level": 1,
+"name": "Lightwell"
+},
+"AnduinPiercingLight": {
+"hero": "Anduin",
+"level": 4,
+"name": "Piercing Light"
+},
+"AnduinPushForward": {
+"hero": "Anduin",
+"level": 13,
+"name": "Push Forward!"
+},
+"AnduinSurgeofLight": {
+"hero": "Anduin",
+"level": 4,
+"name": "Surge of Light"
+},
+"AnduinVariansLegacy": {
+"hero": "Anduin",
+"level": 20,
+"name": "Varian's Legacy"
+},
+"AnubarakAcidDrenchedMandibles": {
+"hero": "Anub'arak",
+"level": 13,
+"name": "Acid Drenched Mandibles"
+},
+"AnubarakBurningBeetles": {
+"hero": "Anub'arak",
+"level": 13,
+"name": "Burning Beetles"
+},
+"AnubarakCocoonCryptweave": {
+"hero": "Anub'arak",
+"level": 20,
+"name": "Cryptweave"
+},
+"AnubarakCombatStyleChitinousPlating": {
+"hero": "Anub'arak",
+"level": 7,
+"name": "Chitinous Plating"
+},
+"AnubarakCombatStyleLegionOfBeetles": {
+"hero": "Anub'arak",
+"level": 1,
+"name": "Legion of Beetles"
+},
+"AnubarakDebilitation": {
+"hero": "Anub'arak",
+"level": 16,
+"name": "Debilitation"
+},
+"AnubarakHeroicAbilityCocoon": {
+"hero": "Anub'arak",
+"level": 10,
+"name": "Cocoon"
+},
+"AnubarakLocustSwarm": {
+"hero": "Anub'arak",
+"level": 10,
+"name": "Locust Swarm"
+},
+"AnubarakLocustSwarmHiveMaster": {
+"hero": "Anub'arak",
+"level": 20,
+"name": "Hive Master"
+},
+"AnubarakMasteryBedOfBarbs": {
+"hero": "Anub'arak",
+"level": 4,
+"name": "Bed of Barbs"
+},
+"AnubarakMasteryEpicenterBurrowCharge": {
+"hero": "Anub'arak",
+"level": 16,
+"name": "Epicenter"
+},
+"AnubarakMasteryLeechingScarabs": {
+"hero": "Anub'arak",
+"level": 7,
+"name": "Leeching Scarabs"
+},
+"AnubarakMasteryShedExoskeletonHardenCarapace": {
+"hero": "Anub'arak",
+"level": 4,
+"name": "Shed Exoskeleton"
+},
+"AnubarakMasteryUnderkingBurrowCharge": {
+"hero": "Anub'arak",
+"level": 4,
+"name": "Underking"
+},
+"AnubarakMasteryUrticatingSpines": {
+"hero": "Anub'arak",
+"level": 13,
+"name": "Urticating Spines"
+},
+"AnubarakNerubianArmor": {
+"hero": "Anub'arak",
+"level": 1,
+"name": "Nerubian Armor"
+},
+"AnubarakScarabHostBeetleJuiced": {
+"hero": "Anub'arak",
+"level": 16,
+"name": "Beetle, Juiced"
+},
+"AnubarakSubterraneanShield": {
+"hero": "Anub'arak",
+"level": 7,
+"name": "Subterranean Shield"
+},
+"AnubarakTheTraitorKing": {
+"hero": "Anub'arak",
+"level": 20,
+"name": "The Traitor King"
+},
+"ArtanisBladeDashSolariteReaper": {
+"hero": "Artanis",
+"level": 7,
+"name": "Solarite Reaper"
+},
+"ArtanisBladeDashTemplarsZeal": {
+"hero": "Artanis",
+"level": 13,
+"name": "Templar's Zeal"
+},
+"ArtanisFinalCut": {
+"hero": "Artanis",
+"level": 7,
+"name": "Final Cut"
+},
+"ArtanisHeroicAbilitySpearofAdunPurifierBeam": {
+"hero": "Artanis",
+"level": 10,
+"name": "Purifier Beam"
+},
+"ArtanisHeroicAbilitySpearofAdunSuppressionPulse": {
+"hero": "Artanis",
+"level": 10,
+"name": "Suppression Pulse"
+},
+"ArtanisPhasePrismChronoSurge": {
+"hero": "Artanis",
+"level": 7,
+"name": "Chrono Surge"
+},
+"ArtanisPhasePrismGravitonVortex": {
+"hero": "Artanis",
+"level": 13,
+"name": "Graviton Vortex"
+},
+"ArtanisPhasePrismPsionicSynergy": {
+"hero": "Artanis",
+"level": 4,
+"name": "Psionic Synergy"
+},
+"ArtanisPlasmaBurn": {
+"hero": "Artanis",
+"level": 20,
+"name": "Plasma Burn"
+},
+"ArtanisProtectorOfAiur": {
+"hero": "Artanis",
+"level": 1,
+"name": "Protector Of Aiur"
+},
+"ArtanisShieldOverloadForceofWill": {
+"hero": "Artanis",
+"level": 16,
+"name": "Force of Will"
+},
+"ArtanisShieldOverloadPhaseBulwark": {
+"hero": "Artanis",
+"level": 13,
+"name": "Phase Bulwark"
+},
+"ArtanisShieldOverloadShieldBattery": {
+"hero": "Artanis",
+"level": 4,
+"name": "Shield Battery"
+},
+"ArtanisShieldOverloadShieldSurge": {
+"hero": "Artanis",
+"level": 4,
+"name": "Shield Surge"
+},
+"ArtanisSpearofAdunPurifierBeamTargetPurified": {
+"hero": "Artanis",
+"level": 20,
+"name": "Target Purified"
+},
+"ArtanisSpearofAdunSuppressionPulseOrbitalBombardment": {
+"hero": "Artanis",
+"level": 20,
+"name": "Orbital Bombardment"
+},
+"ArtanisTwinBladesAmateurOpponent": {
+"hero": "Artanis",
+"level": 1,
+"name": "Amateur Opponent"
+},
+"ArtanisTwinBladesBladesofaTemplar": {
+"hero": "Artanis",
+"level": 16,
+"name": "Blades of a Templar"
+},
+"ArtanisTwinBladesReactiveParry": {
+"hero": "Artanis",
+"level": 1,
+"name": "Reactive Parry"
+},
+"ArtanisTwinBladesTitanKiller": {
+"hero": "Artanis",
+"level": 16,
+"name": "Titan Killer"
+},
+"ArtanisTwinBladesTripleStrike": {
+"hero": "Artanis",
+"level": 13,
+"name": "Triple Strike"
+},
+"ArtanisTwinBladesZealotCharge": {
+"hero": "Artanis",
+"level": 20,
+"name": "Zealot Charge"
+},
+"ArthasAntiMagicShell": {
+"hero": "Arthas",
+"level": 20,
+"name": "Anti-Magic Shell"
+},
+"ArthasDeathlord": {
+"hero": "Arthas",
+"level": 4,
+"name": "Deathlord"
+},
+"ArthasDeathsAdvance": {
+"hero": "Arthas",
+"level": 20,
+"name": "Death's Advance"
+},
+"ArthasHeroicAbilityArmyoftheDead": {
+"hero": "Arthas",
+"level": 10,
+"name": "Army of the Dead"
+},
+"ArthasHeroicAbilitySummonSindragosa": {
+"hero": "Arthas",
+"level": 10,
+"name": "Summon Sindragosa"
+},
+"ArthasIceboundFortitude": {
+"hero": "Arthas",
+"level": 7,
+"name": "Icebound Fortitude"
+},
+"ArthasIcyTalons": {
+"hero": "Arthas",
+"level": 4,
+"name": "Icy Talons"
+},
+"ArthasMasteryAbsoluteZeroSummonSindragosa": {
+"hero": "Arthas",
+"level": 20,
+"name": "Absolute Zero"
+},
+"ArthasMasteryBitingColdFrozenTempest": {
+"hero": "Arthas",
+"level": 13,
+"name": "Biting Cold"
+},
+"ArthasMasteryEmbraceDeathDeathCoil": {
+"hero": "Arthas",
+"level": 16,
+"name": "Embrace Death"
+},
+"ArthasMasteryEternalHungerFrostmourneHungers": {
+"hero": "Arthas",
+"level": 1,
+"name": "Eternal Hunger"
+},
+"ArthasMasteryFrostPresenceHowlingBlast": {
+"hero": "Arthas",
+"level": 1,
+"name": "Frost Presence"
+},
+"ArthasMasteryFrostStrikeFrostmourneHungers": {
+"hero": "Arthas",
+"level": 13,
+"name": "Frost Strike"
+},
+"ArthasMasteryFrostmourneFeedsFrostmourneHungers": {
+"hero": "Arthas",
+"level": 16,
+"name": "Frostmourne Feeds"
+},
+"ArthasMasteryFrozenWastesFrozenTempest": {
+"hero": "Arthas",
+"level": 4,
+"name": "Frozen Wastes"
+},
+"ArthasMasteryImmortalCoilDeathCoil": {
+"hero": "Arthas",
+"level": 7,
+"name": "Immortal Coil"
+},
+"ArthasMasteryLegionOfNorthrendArmyoftheDead": {
+"hero": "Arthas",
+"level": 20,
+"name": "Legion of Northrend"
+},
+"ArthasMasteryRemorselessWinterFrozenTempest": {
+"hero": "Arthas",
+"level": 16,
+"name": "Remorseless Winter"
+},
+"ArthasRime": {
+"hero": "Arthas",
+"level": 1,
+"name": "Rime"
+},
+"ArthasRuneTap": {
+"hero": "Arthas",
+"level": 7,
+"name": "Rune Tap"
+},
+"ArthasShatteredArmor": {
+"hero": "Arthas",
+"level": 13,
+"name": "Shattered Armor"
+},
+"AurielAngelicFlightTalent": {
+"hero": "Auriel",
+"level": 20,
+"name": "Angelic Flight"
+},
+"AurielBlindingFlashSacredSweepTalent": {
+"hero": "Auriel",
+"level": 13,
+"name": "Blinding Flash"
+},
+"AurielConvergingForceSacredSweepTalent": {
+"hero": "Auriel",
+"level": 13,
+"name": "Converging Force"
+},
+"AurielDiamondResolveCrystalAegisTalent": {
+"hero": "Auriel",
+"level": 20,
+"name": "Diamond Resolve"
+},
+"AurielEmpathicLinkBestowHopeTalent": {
+"hero": "Auriel",
+"level": 7,
+"name": "Empathic Link"
+},
+"AurielEnergizedCordRayOfHeavenTalent": {
+"hero": "Auriel",
+"level": 7,
+"name": "Energized Cord"
+},
+"AurielGlimmerofHopeRayOfHeavenTalent": {
+"hero": "Auriel",
+"level": 7,
+"name": "Glimmer of Hope"
+},
+"AurielHeavyBurdenDetainmentStrikeTalent": {
+"hero": "Auriel",
+"level": 4,
+"name": "Heavy Burden"
+},
+"AurielHeroicCrystalAegis": {
+"hero": "Auriel",
+"level": 10,
+"name": "Crystal Aegis"
+},
+"AurielHeroicResurrect": {
+"hero": "Auriel",
+"level": 10,
+"name": "Resurrect"
+},
+"AurielIncreasingClaritySacredSweepTalent": {
+"hero": "Auriel",
+"level": 1,
+"name": "Increasing Clarity"
+},
+"AurielLightSpeedResurrectTalent": {
+"hero": "Auriel",
+"level": 20,
+"name": "Light Speed"
+},
+"AurielMajesticSpanSacredSweepTalent": {
+"hero": "Auriel",
+"level": 4,
+"name": "Majestic Span"
+},
+"AurielPiercingLashDetainmentStrikeTalent": {
+"hero": "Auriel",
+"level": 13,
+"name": "Piercing Lash"
+},
+"AurielRepeatedOffenseDetainmentStrikeTalent": {
+"hero": "Auriel",
+"level": 4,
+"name": "Repeated Offense"
+},
+"AurielReservoirofHopeRayOfHeavenTalent": {
+"hero": "Auriel",
+"level": 16,
+"name": "Reservoir of Hope"
+},
+"AurielRighteousAssaultSacredSweepTalent": {
+"hero": "Auriel",
+"level": 1,
+"name": "Righteous Assault"
+},
+"AurielSearingLightRayOfHeavenTalent": {
+"hero": "Auriel",
+"level": 1,
+"name": "Searing Light"
+},
+"AurielShieldOfHopeTalent": {
+"hero": "Auriel",
+"level": 20,
+"name": "Shield of Hope"
+},
+"AurielWillofHeavenBestowHopeTalent": {
+"hero": "Auriel",
+"level": 16,
+"name": "Will of Heaven"
+},
+"AurielWrathofHeavenBestowHopeTalent": {
+"hero": "Auriel",
+"level": 16,
+"name": "Wrath of Heaven"
+},
+"AzmodanArmyOfHell": {
+"hero": "Azmodan",
+"level": 4,
+"name": "Army of Hell"
+},
+"AzmodanArtOfChaos": {
+"hero": "Azmodan",
+"level": 7,
+"name": "Art of Chaos"
+},
+"AzmodanBattleborn": {
+"hero": "Azmodan",
+"level": 4,
+"name": "Battleborn"
+},
+"AzmodanBlackPool": {
+"hero": "Azmodan",
+"level": 20,
+"name": "Black Pool"
+},
+"AzmodanBombardment": {
+"hero": "Azmodan",
+"level": 7,
+"name": "Bombardment"
+},
+"AzmodanBrutishVanguard": {
+"hero": "Azmodan",
+"level": 13,
+"name": "Brutish Vanguard"
+},
+"AzmodanChainOfCommand": {
+"hero": "Azmodan",
+"level": 13,
+"name": "Chain of Command"
+},
+"AzmodanCydaeasKiss": {
+"hero": "Azmodan",
+"level": 13,
+"name": "Cydaea's Kiss"
+},
+"AzmodanGluttony": {
+"hero": "Azmodan",
+"level": 1,
+"name": "Gluttony"
+},
+"AzmodanGreed": {
+"hero": "Azmodan",
+"level": 1,
+"name": "Greed"
+},
+"AzmodanHellRift": {
+"hero": "Azmodan",
+"level": 16,
+"name": "Hell Rift"
+},
+"AzmodanHellforgedArmor": {
+"hero": "Azmodan",
+"level": 4,
+"name": "Hellforged Armor"
+},
+"AzmodanHeroicAbilityDemonicInvasion": {
+"hero": "Azmodan",
+"level": 10,
+"name": "Demonic Invasion"
+},
+"AzmodanMasterofDestruction": {
+"hero": "Azmodan",
+"level": 7,
+"name": "Master of Destruction"
+},
+"AzmodanPride": {
+"hero": "Azmodan",
+"level": 20,
+"name": "Pride"
+},
+"AzmodanSiegebreaker": {
+"hero": "Azmodan",
+"level": 20,
+"name": "Siegebreaker"
+},
+"AzmodanSinsGrasp": {
+"hero": "Azmodan",
+"level": 20,
+"name": "Sin's Grasp"
+},
+"AzmodanTideOfSin": {
+"hero": "Azmodan",
+"level": 10,
+"name": "Tide of Sin"
+},
+"AzmodanTotalAnnihilation": {
+"hero": "Azmodan",
+"level": 16,
+"name": "Total Annihilation"
+},
+"AzmodanTrample": {
+"hero": "Azmodan",
+"level": 16,
+"name": "Trample"
+},
+"AzmodanWrath": {
+"hero": "Azmodan",
+"level": 1,
+"name": "Wrath"
+},
+"BarbarianArreatCrater": {
+"hero": "Sonya",
+"level": 20,
+"name": "Arreat Crater"
+},
+"BarbarianBattleRage": {
+"hero": "Sonya",
+"level": 7,
+"name": "Battle Rage"
+},
+"BarbarianCompositeSpear": {
+"hero": "Sonya",
+"level": 20,
+"name": "Composite Spear"
+},
+"BarbarianFuriousBlow": {
+"hero": "Sonya",
+"level": 1,
+"name": "Furious Blow"
+},
+"BarbarianGiantSlammer": {
+"hero": "Sonya",
+"level": 16,
+"name": "Giant Slammer"
+},
+"BarbarianHeroicAbilityLeap": {
+"hero": "Sonya",
+"level": 10,
+"name": "Leap"
+},
+"BarbarianHeroicAbilityWrathoftheBerserker": {
+"hero": "Sonya",
+"level": 10,
+"name": "Wrath of the Berserker"
+},
+"BarbarianHurricane": {
+"hero": "Sonya",
+"level": 4,
+"name": "Hurricane"
+},
+"BarbarianIgnorePain": {
+"hero": "Sonya",
+"level": 20,
+"name": "Ignore Pain"
+},
+"BarbarianLifeFunnel": {
+"hero": "Sonya",
+"level": 7,
+"name": "Life Funnel"
+},
+"BarbarianMysticalSpear": {
+"hero": "Sonya",
+"level": 13,
+"name": "Mystical Spear"
+},
+"BarbarianNervesOfSteel": {
+"hero": "Sonya",
+"level": 16,
+"name": "Nerves of Steel"
+},
+"BarbarianNoEscape": {
+"hero": "Sonya",
+"level": 13,
+"name": "No Escape"
+},
+"BarbarianPoisonedSpear": {
+"hero": "Sonya",
+"level": 7,
+"name": "Poisoned Spear"
+},
+"BarbarianRampage": {
+"hero": "Sonya",
+"level": 16,
+"name": "Rampage"
+},
+"BarbarianRuthless": {
+"hero": "Sonya",
+"level": 13,
+"name": "Ruthless"
+},
+"BarbarianShatteredGround": {
+"hero": "Sonya",
+"level": 4,
+"name": "Shattered Ground"
+},
+"BarbarianShotOfFury": {
+"hero": "Sonya",
+"level": 4,
+"name": "Shot Of Fury"
+},
+"BarbarianStridingGiant": {
+"hero": "Sonya",
+"level": 20,
+"name": "Striding Giant"
+},
+"BarbarianToughAsNails": {
+"hero": "Sonya",
+"level": 1,
+"name": "Tough As Nails"
+},
+"BarbarianWarPaint": {
+"hero": "Sonya",
+"level": 1,
+"name": "War Paint"
+},
+"BrightwingArcaneFlareHush!": {
+"hero": "Brightwing",
+"level": 16,
+"name": "Hush!"
+},
+"BrightwingArcaneFlareStickyFlare": {
+"hero": "Brightwing",
+"level": 7,
+"name": "Sticky Flare"
+},
+"BrightwingCriticalMistCalmingMist": {
+"hero": "Brightwing",
+"level": 7,
+"name": "Critical Mist"
+},
+"BrightwingDreamShotArcaneFlare": {
+"hero": "Brightwing",
+"level": 4,
+"name": "Dream Shot"
+},
+"BrightwingFaerieProtector": {
+"hero": "Brightwing",
+"level": 20,
+"name": "Faerie Protector"
+},
+"BrightwingGreaterPolymorphPolymorph": {
+"hero": "Brightwing",
+"level": 1,
+"name": "Greater Polymorph"
+},
+"BrightwingIntensiveWinds": {
+"hero": "Brightwing",
+"level": 20,
+"name": "Intensive Winds"
+},
+"BrightwingInvisibleFriends": {
+"hero": "Brightwing",
+"level": 20,
+"name": "Invisible Friends"
+},
+"BrightwingMagicSpit": {
+"hero": "Brightwing",
+"level": 4,
+"name": "Magic Spit"
+},
+"BrightwingPhaseOut": {
+"hero": "Brightwing",
+"level": 16,
+"name": "Phase Out"
+},
+"BrightwingPhaseShiftHyperShift": {
+"hero": "Brightwing",
+"level": 1,
+"name": "Hyper Shift"
+},
+"BrightwingPhaseShiftPeekaboo": {
+"hero": "Brightwing",
+"level": 7,
+"name": "Peekaboo!"
+},
+"BrightwingPixieBoostPixieDust": {
+"hero": "Brightwing",
+"level": 13,
+"name": "Pixie Boost"
+},
+"BrightwingPixieCharm": {
+"hero": "Brightwing",
+"level": 1,
+"name": "Pixie Charm"
+},
+"BrightwingPixieDustPixiePower": {
+"hero": "Brightwing",
+"level": 13,
+"name": "Pixie Power"
+},
+"BrightwingPixieDustSafetyDust": {
+"hero": "Brightwing",
+"level": 13,
+"name": "Safety Dust"
+},
+"BrightwingSpeedyDragon": {
+"hero": "Brightwing",
+"level": 20,
+"name": "Speedy Dragon"
+},
+"BrightwingUnstableAnomalyPolymorph": {
+"hero": "Brightwing",
+"level": 4,
+"name": "Unstable Anomaly"
+},
+"ButcherCleaver": {
+"hero": "The Butcher",
+"level": 13,
+"name": "Cleaver"
+},
+"ButcherHeroicAbilityButcherFurnaceBlast": {
+"hero": "The Butcher",
+"level": 10,
+"name": "Furnace Blast"
+},
+"ButcherHeroicAbilityLambToTheSlaughter": {
+"hero": "The Butcher",
+"level": 10,
+"name": "Lamb to the Slaughter"
+},
+"ButcherMasteryButchersBrandInsatiableBlade": {
+"hero": "The Butcher",
+"level": 7,
+"name": "Insatiable Blade"
+},
+"ButcherMasteryFiresofHell": {
+"hero": "The Butcher",
+"level": 20,
+"name": "Fires of Hell"
+},
+"ButcherMasteryFreshMeatBloodFrenzy": {
+"hero": "The Butcher",
+"level": 16,
+"name": "Blood Frenzy"
+},
+"ButcherMasteryFreshMeatVictuals": {
+"hero": "The Butcher",
+"level": 7,
+"name": "Victuals"
+},
+"ButcherMasteryHamstringBrutalStrike": {
+"hero": "The Butcher",
+"level": 13,
+"name": "Brutal Strike"
+},
+"ButcherMasteryHamstringCheapShot": {
+"hero": "The Butcher",
+"level": 4,
+"name": "Cheap Shot"
+},
+"ButcherMasteryHamstringChopMeat": {
+"hero": "The Butcher",
+"level": 1,
+"name": "Chop Meat"
+},
+"ButcherMasteryHamstringCripplingSlam": {
+"hero": "The Butcher",
+"level": 16,
+"name": "Crippling Slam"
+},
+"ButcherMasteryHamstringFlailAxe": {
+"hero": "The Butcher",
+"level": 4,
+"name": "Flail Axe"
+},
+"ButcherMasteryHamstringInvigoration": {
+"hero": "The Butcher",
+"level": 1,
+"name": "Invigoration"
+},
+"ButcherMasteryRuthlessOnslaughtSavageCharge": {
+"hero": "The Butcher",
+"level": 13,
+"name": "Savage Charge"
+},
+"ButcherMasteryRuthlessOnslaughtUnrelentingPursuit": {
+"hero": "The Butcher",
+"level": 4,
+"name": "Unrelenting Pursuit"
+},
+"ButcherMasterySlaughterhouse": {
+"hero": "The Butcher",
+"level": 20,
+"name": "Slaughterhouse"
+},
+"ButcherMeatShield": {
+"hero": "The Butcher",
+"level": 7,
+"name": "Meat Shield"
+},
+"ButcherTalentEnraged": {
+"hero": "The Butcher",
+"level": 16,
+"name": "Enraged"
+},
+"ChenAccumulatingFlame": {
+"hero": "Chen",
+"level": 4,
+"name": "Accumulating Flame"
+},
+"ChenBrewmastersBalance": {
+"hero": "Chen",
+"level": 7,
+"name": "Brewmaster's Balance"
+},
+"ChenCelerity": {
+"hero": "Chen",
+"level": 16,
+"name": "Celerity"
+},
+"ChenComboStrikes": {
+"hero": "Chen",
+"level": 16,
+"name": "Combo Strikes"
+},
+"ChenDeadlyStrike": {
+"hero": "Chen",
+"level": 4,
+"name": "Deadly Strike"
+},
+"ChenElementalConduit": {
+"hero": "Chen",
+"level": 20,
+"name": "Elemental Conduit"
+},
+"ChenElusiveBrawler": {
+"hero": "Chen",
+"level": 7,
+"name": "Elusive Brawler"
+},
+"ChenEnergizingBrew": {
+"hero": "Chen",
+"level": 20,
+"name": "Energizing Brew"
+},
+"ChenEyeOfTheTiger": {
+"hero": "Chen",
+"level": 1,
+"name": "Eye of the Tiger"
+},
+"ChenFlyingLeap": {
+"hero": "Chen",
+"level": 16,
+"name": "Flying Leap"
+},
+"ChenFreshestIngredients": {
+"hero": "Chen",
+"level": 1,
+"name": "Freshest Ingredients"
+},
+"ChenGiftOfTheOxStagger": {
+"hero": "Chen",
+"level": 7,
+"name": "Gift of the Ox"
+},
+"ChenHeroicAbilityStormEarthFire": {
+"hero": "Chen",
+"level": 10,
+"name": "Storm, Earth, Fire"
+},
+"ChenHeroicAbilityWanderingKeg": {
+"hero": "Chen",
+"level": 10,
+"name": "Wandering Keg"
+},
+"ChenMasteryFortifyingBrewEnoughToShare": {
+"hero": "Chen",
+"level": 13,
+"name": "Enough to Share"
+},
+"ChenMasteryKegSmashATouchOfHoney": {
+"hero": "Chen",
+"level": 13,
+"name": "A Touch of Honey"
+},
+"ChenMasteryWanderingKegUntappedPotential": {
+"hero": "Chen",
+"level": 20,
+"name": "Untapped Potential"
+},
+"ChenPressurePoint": {
+"hero": "Chen",
+"level": 13,
+"name": "Pressure Point"
+},
+"ChenPurifyingBrew": {
+"hero": "Chen",
+"level": 20,
+"name": "Purifying Brew"
+},
+"ChenRingofFire": {
+"hero": "Chen",
+"level": 13,
+"name": "Ring of Fire"
+},
+"ChenStormstoutSecretRecipe": {
+"hero": "Chen",
+"level": 1,
+"name": "Stormstout Secret Recipe"
+},
+"ChenWitheringFlames": {
+"hero": "Chen",
+"level": 4,
+"name": "Withering Flames"
+},
+"ChoCallousedHide": {
+"hero": "Cho",
+"level": 1,
+"name": "Calloused Hide"
+},
+"ChoConsumingFire": {
+"hero": "Cho",
+"level": 1,
+"name": "Consuming Fire"
+},
+"ChoCthunsGift": {
+"hero": "Cho",
+"level": 20,
+"name": "C'Thun's Gift"
+},
+"ChoEnragedRegeneration": {
+"hero": "Cho",
+"level": 7,
+"name": "Enraged Regeneration"
+},
+"ChoFavorOfTheOldGods": {
+"hero": "Cho",
+"level": 20,
+"name": "Favor of the Old Gods"
+},
+"ChoFirestarter": {
+"hero": "Cho",
+"level": 7,
+"name": "Firestarter"
+},
+"ChoFrenziedFists": {
+"hero": "Cho",
+"level": 16,
+"name": "Frenzied Fists"
+},
+"ChoFuelForTheFlame": {
+"hero": "Cho",
+"level": 20,
+"name": "Fuel for the Flame"
+},
+"ChoHeroicAbilityHammerOfTwilight": {
+"hero": "Cho",
+"level": 10,
+"name": "Hammer of Twilight"
+},
+"ChoHeroicAbilityUpheaval": {
+"hero": "Cho",
+"level": 10,
+"name": "Upheaval"
+},
+"ChoHourofTwilight": {
+"hero": "Cho",
+"level": 20,
+"name": "Hour of Twilight"
+},
+"ChoPowerSurge": {
+"hero": "Cho",
+"level": 7,
+"name": "Power Surge"
+},
+"ChoRollback": {
+"hero": "Cho",
+"level": 4,
+"name": "Rollback"
+},
+"ChoRunedGauntlet": {
+"hero": "Cho",
+"level": 16,
+"name": "Runed Gauntlet"
+},
+"ChoRunicFeedback": {
+"hero": "Cho",
+"level": 16,
+"name": "Runic Feedback"
+},
+"ChoSearedFlesh": {
+"hero": "Cho",
+"level": 4,
+"name": "Seared Flesh"
+},
+"ChoSurgingDash": {
+"hero": "Cho",
+"level": 13,
+"name": "Surging Dash"
+},
+"ChoTalentMoltenBlock": {
+"hero": "Cho",
+"level": 13,
+"name": "Molten Block"
+},
+"ChoTheWillofCho": {
+"hero": "Cho",
+"level": 1,
+"name": "The Will of Cho"
+},
+"ChoTwilightVeil": {
+"hero": "Cho",
+"level": 13,
+"name": "Twilight Veil"
+},
+"ChoUppercut": {
+"hero": "Cho",
+"level": 4,
+"name": "Uppercut"
+},
+"ChromieAProperGreeting": {
+"hero": "Chromie",
+"level": 7,
+"name": "A Proper Greeting"
+},
+"ChromieBlessingOfTheBronze": {
+"hero": "Chromie",
+"level": 20,
+"name": "Blessing of the Bronze"
+},
+"ChromieDragonsBreathDeepBreathing": {
+"hero": "Chromie",
+"level": 1,
+"name": "Deep Breathing"
+},
+"ChromieDragonsBreathMobiusLoop": {
+"hero": "Chromie",
+"level": 7,
+"name": "Mobius Loop"
+},
+"ChromieHereAndThere": {
+"hero": "Chromie",
+"level": 13,
+"name": "Here and There"
+},
+"ChromieHeroicAbilitySlowingSands": {
+"hero": "Chromie",
+"level": 10,
+"name": "Slowing Sands"
+},
+"ChromieHeroicAbilityTemporalLoop": {
+"hero": "Chromie",
+"level": 10,
+"name": "Temporal Loop"
+},
+"ChromieQuantumOverdrive": {
+"hero": "Chromie",
+"level": 16,
+"name": "Quantum Overdrive"
+},
+"ChromieSandBlastBronzeTalons": {
+"hero": "Chromie",
+"level": 7,
+"name": "Bronze Talons"
+},
+"ChromieSandBlastFastForward": {
+"hero": "Chromie",
+"level": 16,
+"name": "Fast Forward"
+},
+"ChromieSandBlastGnomeSpeedAhead": {
+"hero": "Chromie",
+"level": 13,
+"name": "Gnome Speed Ahead!"
+},
+"ChromieSandBlastOnceAgainTheFirstTime": {
+"hero": "Chromie",
+"level": 1,
+"name": "Once Again the First Time"
+},
+"ChromieSandBlastPiercingSands": {
+"hero": "Chromie",
+"level": 20,
+"name": "Piercing Sands"
+},
+"ChromieSandBlastShiftingSands": {
+"hero": "Chromie",
+"level": 16,
+"name": "Shifting Sands"
+},
+"ChromieSlowingSandsUnravelling": {
+"hero": "Chromie",
+"level": 20,
+"name": "Unravelling"
+},
+"ChromieTemporalLoopStuckInALoop": {
+"hero": "Chromie",
+"level": 20,
+"name": "Stuck in a Loop"
+},
+"ChromieTimeOut": {
+"hero": "Chromie",
+"level": 13,
+"name": "Time Out"
+},
+"ChromieTimeTrapAndorhalAnomaly": {
+"hero": "Chromie",
+"level": 4,
+"name": "Andorhal Anomaly"
+},
+"ChromieTimeTrapChronicConditions": {
+"hero": "Chromie",
+"level": 4,
+"name": "Chronic Conditions"
+},
+"ChromieTimeTrapTimeTroubles": {
+"hero": "Chromie",
+"level": 4,
+"name": "Time Troubles"
+},
+"ChromieTimewalkersPursuit": {
+"hero": "Chromie",
+"level": 1,
+"name": "Timewalker's Pursuit"
+},
+"CrusaderBlessedHammer": {
+"hero": "Johanna",
+"level": 13,
+"name": "Blessed Hammer"
+},
+"CrusaderBlessedMomentum": {
+"hero": "Johanna",
+"level": 16,
+"name": "Blessed Momentum"
+},
+"CrusaderBlindedByTheLight": {
+"hero": "Johanna",
+"level": 20,
+"name": "Blinded By The Light"
+},
+"CrusaderCondemnShrinkingVacuum": {
+"hero": "Johanna",
+"level": 16,
+"name": "Shrinking Vacuum"
+},
+"CrusaderHeroicAbilityBlessedShield": {
+"hero": "Johanna",
+"level": 10,
+"name": "Blessed Shield"
+},
+"CrusaderHeroicAbilityFallingSword": {
+"hero": "Johanna",
+"level": 10,
+"name": "Falling Sword"
+},
+"CrusaderHeroicMasteryIndestructable": {
+"hero": "Johanna",
+"level": 20,
+"name": "Indestructible"
+},
+"CrusaderHolyFury": {
+"hero": "Johanna",
+"level": 13,
+"name": "Holy Fury"
+},
+"CrusaderIronSkinSteedCharge": {
+"hero": "Johanna",
+"level": 7,
+"name": "Steed Charge"
+},
+"CrusaderMasteryBlessedShieldRadiatingFaith": {
+"hero": "Johanna",
+"level": 20,
+"name": "Radiating Faith"
+},
+"CrusaderMasteryCondemnConviction": {
+"hero": "Johanna",
+"level": 7,
+"name": "Conviction"
+},
+"CrusaderMasteryCondemnEternalRetaliation": {
+"hero": "Johanna",
+"level": 4,
+"name": "Eternal Retaliation"
+},
+"CrusaderMasteryFallingSwordHeavensFury": {
+"hero": "Johanna",
+"level": 20,
+"name": "Heaven's Fury"
+},
+"CrusaderMasteryIronSkinHoldYourGround": {
+"hero": "Johanna",
+"level": 4,
+"name": "Hold Your Ground"
+},
+"CrusaderMasteryLawsOfHope": {
+"hero": "Johanna",
+"level": 1,
+"name": "Laws of Hope"
+},
+"CrusaderMasteryPunishRoar": {
+"hero": "Johanna",
+"level": 13,
+"name": "Roar"
+},
+"CrusaderMasteryPunishSubdue": {
+"hero": "Johanna",
+"level": 4,
+"name": "Subdue"
+},
+"CrusaderMasteryShieldGlareHolyRenewal": {
+"hero": "Johanna",
+"level": 16,
+"name": "Holy Renewal"
+},
+"CrusaderMasteryShieldGlareSinsExposed": {
+"hero": "Johanna",
+"level": 7,
+"name": "Sins Exposed"
+},
+"CrusaderPassiveDivineFortress": {
+"hero": "Johanna",
+"level": 1,
+"name": "Divine Fortress"
+},
+"CrusaderZealousGlare": {
+"hero": "Johanna",
+"level": 1,
+"name": "Zealous Glare"
+},
+"DVaBigShotPewPewPew": {
+"hero": "D.Va",
+"level": 13,
+"name": "Pew! Pew! Pew!"
+},
+"DVaBoostersHitTheNitrous": {
+"hero": "D.Va",
+"level": 7,
+"name": "Hit the Nitrous"
+},
+"DVaBoostersRushdown": {
+"hero": "D.Va",
+"level": 4,
+"name": "Rush-down"
+},
+"DVaBunnyHop": {
+"hero": "D.Va",
+"level": 10,
+"name": "Bunny Hop"
+},
+"DVaBunnyHopStopAndPop": {
+"hero": "D.Va",
+"level": 20,
+"name": "Stop and Pop"
+},
+"DVaDefenseMatrixAggressionMatrix": {
+"hero": "D.Va",
+"level": 4,
+"name": "Aggression Matrix"
+},
+"DVaDefenseMatrixDivertingPower": {
+"hero": "D.Va",
+"level": 16,
+"name": "Diverting Power"
+},
+"DVaDefenseMatrixFusionGenerator": {
+"hero": "D.Va",
+"level": 7,
+"name": "Fusion Generator"
+},
+"DVaFullMetal": {
+"hero": "D.Va",
+"level": 1,
+"name": "Full Metal"
+},
+"DVaGoodToGo": {
+"hero": "D.Va",
+"level": 13,
+"name": "Good To Go"
+},
+"DVaHeadshot": {
+"hero": "D.Va",
+"level": 20,
+"name": "Headshot!"
+},
+"DVaInForTheKill": {
+"hero": "D.Va",
+"level": 16,
+"name": "In For The Kill"
+},
+"DVaLiquidCooling": {
+"hero": "D.Va",
+"level": 1,
+"name": "Liquid Cooling"
+},
+"DVaMechAblativeArmor": {
+"hero": "D.Va",
+"level": 20,
+"name": "Ablative Armor"
+},
+"DVaMechEmergencyShielding": {
+"hero": "D.Va",
+"level": 16,
+"name": "Emergency Shielding"
+},
+"DVaMechProMoves": {
+"hero": "D.Va",
+"level": 1,
+"name": "Pro Moves"
+},
+"DVaMicroMissiles": {
+"hero": "D.Va",
+"level": 10,
+"name": "Micro Missiles"
+},
+"DVaSelfDestructNuclearOption": {
+"hero": "D.Va",
+"level": 4,
+"name": "Nuclear Option"
+},
+"DVaTargetLocked": {
+"hero": "D.Va",
+"level": 13,
+"name": "Target Locked"
+},
+"DVaTimingAttack": {
+"hero": "D.Va",
+"level": 20,
+"name": "Timing Attack"
+},
+"DeathwingArrivalOfAGod": {
+"hero": "Deathwing",
+"level": 20,
+"name": "Arrival of a God"
+},
+"DeathwingBellowingRoar": {
+"hero": "Deathwing",
+"level": 10,
+"name": "Bellowing Roar"
+},
+"DeathwingBurnBeneathMyShadow": {
+"hero": "Deathwing",
+"level": 10,
+"name": "Burn Beneath My Shadow"
+},
+"DeathwingConflagration": {
+"hero": "Deathwing",
+"level": 16,
+"name": "Conflagration"
+},
+"DeathwingDeathDrop": {
+"hero": "Deathwing",
+"level": 7,
+"name": "Death Drop"
+},
+"DeathwingDestroyersRampage": {
+"hero": "Deathwing",
+"level": 20,
+"name": "Destroyer's Rampage"
+},
+"DeathwingDraconicMight": {
+"hero": "Deathwing",
+"level": 1,
+"name": "Draconic Might"
+},
+"DeathwingDragonSoul": {
+"hero": "Deathwing",
+"level": 1,
+"name": "Dragon Soul"
+},
+"DeathwingDragonsIre": {
+"hero": "Deathwing",
+"level": 4,
+"name": "Dragon's Ire"
+},
+"DeathwingElementiumPlating": {
+"hero": "Deathwing",
+"level": 16,
+"name": "Elementium Plating"
+},
+"DeathwingFireAndFury": {
+"hero": "Deathwing",
+"level": 13,
+"name": "Fire and Fury"
+},
+"DeathwingFirestorm": {
+"hero": "Deathwing",
+"level": 7,
+"name": "Firestorm"
+},
+"DeathwingGazeOntoDestruction": {
+"hero": "Deathwing",
+"level": 16,
+"name": "Gaze Onto Destruction"
+},
+"DeathwingHeatWave": {
+"hero": "Deathwing",
+"level": 4,
+"name": "Heat Wave"
+},
+"DeathwingInfernus": {
+"hero": "Deathwing",
+"level": 4,
+"name": "Infernus"
+},
+"DeathwingMoltenBlood": {
+"hero": "Deathwing",
+"level": 1,
+"name": "Molten Blood"
+},
+"DeathwingRuination": {
+"hero": "Deathwing",
+"level": 13,
+"name": "Ruination"
+},
+"DeathwingSkyfall": {
+"hero": "Deathwing",
+"level": 7,
+"name": "Skyfall"
+},
+"DeathwingStoodInTheFire": {
+"hero": "Deathwing",
+"level": 20,
+"name": "Stood in the Fire"
+},
+"DeathwingWickedInferno": {
+"hero": "Deathwing",
+"level": 13,
+"name": "Wicked Inferno"
+},
+"DeckardAncientBlessings": {
+"hero": "Deckard",
+"level": 13,
+"name": "Ancient Blessings"
+},
+"DeckardBottomlessFlask": {
+"hero": "Deckard",
+"level": 20,
+"name": "Bottomless Flask"
+},
+"DeckardCubeMastery": {
+"hero": "Deckard",
+"level": 7,
+"name": "Cube Mastery"
+},
+"DeckardFieldStudy": {
+"hero": "Deckard",
+"level": 1,
+"name": "Field Study"
+},
+"DeckardGemEmerald": {
+"hero": "Deckard",
+"level": 7,
+"name": "Emerald"
+},
+"DeckardGemRuby": {
+"hero": "Deckard",
+"level": 4,
+"name": "Ruby"
+},
+"DeckardGemSapphire": {
+"hero": "Deckard",
+"level": 1,
+"name": "Sapphire"
+},
+"DeckardHoradricStaff": {
+"hero": "Deckard",
+"level": 16,
+"name": "Horadric Staff"
+},
+"DeckardKanaisCube": {
+"hero": "Deckard",
+"level": 7,
+"name": "Kanai's Cube"
+},
+"DeckardLorenado": {
+"hero": "Deckard",
+"level": 10,
+"name": "Lorenado"
+},
+"DeckardMorenados": {
+"hero": "Deckard",
+"level": 20,
+"name": "Morenados!"
+},
+"DeckardPerfectGems": {
+"hero": "Deckard",
+"level": 20,
+"name": "Perfect Gems"
+},
+"DeckardPotionOfRevival": {
+"hero": "Deckard",
+"level": 13,
+"name": "Potion of Revival"
+},
+"DeckardPotionOfShielding": {
+"hero": "Deckard",
+"level": 4,
+"name": "Potion of Shielding"
+},
+"DeckardRejuvenationPotion": {
+"hero": "Deckard",
+"level": 4,
+"name": "Rejuvenation Potion"
+},
+"DeckardRespectTheElderly": {
+"hero": "Deckard",
+"level": 20,
+"name": "Respect the Elderly"
+},
+"DeckardSafetyInNumbers": {
+"hero": "Deckard",
+"level": 16,
+"name": "Safety in Numbers"
+},
+"DeckardScrollOfIdentify": {
+"hero": "Deckard",
+"level": 1,
+"name": "Scroll of Identify"
+},
+"DeckardScrollOfStoneCurse": {
+"hero": "Deckard",
+"level": 16,
+"name": "Scroll of Stone Curse"
+},
+"DeckardStayAWhileAndListen": {
+"hero": "Deckard",
+"level": 10,
+"name": "Stay Awhile and Listen"
+},
+"DeckardSuperHealingPotion": {
+"hero": "Deckard",
+"level": 13,
+"name": "Super Healing Potion"
+},
+"DehakaAdaptationChangeIsSurvivalTalent": {
+"hero": "Dehaka",
+"level": 20,
+"name": "Change Is Survival"
+},
+"DehakaBrushstalkerApexPredator": {
+"hero": "Dehaka",
+"level": 20,
+"name": "Apex Predator"
+},
+"DehakaBrushstalkerFerociousStalker": {
+"hero": "Dehaka",
+"level": 13,
+"name": "Ferocious Stalker"
+},
+"DehakaBurrowTalentLurkerStrain": {
+"hero": "Dehaka",
+"level": 4,
+"name": "Lurker Strain"
+},
+"DehakaDarkSwarmTalentEnduringSwarm": {
+"hero": "Dehaka",
+"level": 1,
+"name": "Enduring Swarm"
+},
+"DehakaDarkSwarmTalentSymbiosis": {
+"hero": "Dehaka",
+"level": 7,
+"name": "Symbiosis"
+},
+"DehakaDragTalentElongatedTongue": {
+"hero": "Dehaka",
+"level": 16,
+"name": "Elongated Tongue"
+},
+"DehakaDragTalentFeedingFrenzy": {
+"hero": "Dehaka",
+"level": 7,
+"name": "Feeding Frenzy"
+},
+"DehakaDragTalentParalyzingEnzymes": {
+"hero": "Dehaka",
+"level": 7,
+"name": "Paralyzing Enzymes"
+},
+"DehakaEssenceClaws": {
+"hero": "Dehaka",
+"level": 20,
+"name": "Essence Claws"
+},
+"DehakaEssenceCollectionOneWhoCollectsTalent": {
+"hero": "Dehaka",
+"level": 4,
+"name": "One-Who-Collects"
+},
+"DehakaEssenceCollectionTalentEnhancedAgility": {
+"hero": "Dehaka",
+"level": 1,
+"name": "Enhanced Agility"
+},
+"DehakaEssenceCollectionTalentHeroStalker": {
+"hero": "Dehaka",
+"level": 4,
+"name": "Hero Stalker"
+},
+"DehakaEssenceCollectionTalentTissueRegeneration": {
+"hero": "Dehaka",
+"level": 1,
+"name": "Tissue Regeneration"
+},
+"DehakaHeroicAbilityAdaptation": {
+"hero": "Dehaka",
+"level": 10,
+"name": "Adaptation"
+},
+"DehakaHeroicAbilityIsolation": {
+"hero": "Dehaka",
+"level": 10,
+"name": "Isolation"
+},
+"DehakaIsolationTalentContagion": {
+"hero": "Dehaka",
+"level": 20,
+"name": "Contagion"
+},
+"DehakaPackLeaderBrushstalkerTalent": {
+"hero": "Dehaka",
+"level": 16,
+"name": "Pack Leader"
+},
+"DehakaPrimalRage": {
+"hero": "Dehaka",
+"level": 13,
+"name": "Primal Rage"
+},
+"DehakaPrimalSwarm": {
+"hero": "Dehaka",
+"level": 13,
+"name": "Primal Swarm"
+},
+"DehakaTunnelingClaws": {
+"hero": "Dehaka",
+"level": 16,
+"name": "Tunneling Claws"
+},
+"DemonHunterCombatStyleHotPursuit": {
+"hero": "Valla",
+"level": 7,
+"name": "Hot Pursuit"
+},
+"DemonHunterCombatStyleTemperedByDiscipline": {
+"hero": "Valla",
+"level": 13,
+"name": "Tempered by Discipline"
+},
+"DemonHunterCreedoftheHunter": {
+"hero": "Valla",
+"level": 1,
+"name": "Creed of the Hunter"
+},
+"DemonHunterDeathDealer": {
+"hero": "Valla",
+"level": 4,
+"name": "Death Dealer"
+},
+"DemonHunterFarflightQuiver": {
+"hero": "Valla",
+"level": 20,
+"name": "Farflight Quiver"
+},
+"DemonHunterGloom": {
+"hero": "Valla",
+"level": 13,
+"name": "Gloom"
+},
+"DemonHunterHeroicAbilityRainofVengeance": {
+"hero": "Valla",
+"level": 10,
+"name": "Rain of Vengeance"
+},
+"DemonHunterHeroicAbilityStrafe": {
+"hero": "Valla",
+"level": 10,
+"name": "Strafe"
+},
+"DemonHunterManticore": {
+"hero": "Valla",
+"level": 16,
+"name": "Manticore"
+},
+"DemonHunterMasteryArsenal": {
+"hero": "Valla",
+"level": 4,
+"name": "Arsenal"
+},
+"DemonHunterMasteryDeathSiphon": {
+"hero": "Valla",
+"level": 20,
+"name": "Death Siphon"
+},
+"DemonHunterMasteryFrostShot": {
+"hero": "Valla",
+"level": 7,
+"name": "Frost Shot"
+},
+"DemonHunterMasteryMonsterHunterHungeringArrow": {
+"hero": "Valla",
+"level": 7,
+"name": "Monster Hunter"
+},
+"DemonHunterMasteryPuncturingArrow": {
+"hero": "Valla",
+"level": 1,
+"name": "Puncturing Arrow"
+},
+"DemonHunterMasteryRepeatingArrowVault": {
+"hero": "Valla",
+"level": 4,
+"name": "Repeating Arrow"
+},
+"DemonHunterMasterySiphoningArrow": {
+"hero": "Valla",
+"level": 13,
+"name": "Siphoning Arrows"
+},
+"DemonHunterMasteryStormofVengeance": {
+"hero": "Valla",
+"level": 20,
+"name": "Storm of Vengeance"
+},
+"DemonHunterMultishotFireAtWill": {
+"hero": "Valla",
+"level": 1,
+"name": "Fire At Will"
+},
+"DemonHunterPunishment": {
+"hero": "Valla",
+"level": 16,
+"name": "Punishment"
+},
+"DemonHunterSeethingHatred": {
+"hero": "Valla",
+"level": 16,
+"name": "Seething Hatred"
+},
+"DemonHunterVaultAcrobat": {
+"hero": "Valla",
+"level": 20,
+"name": "Acrobat"
+},
+"DiabloDebilitatingFlames": {
+"hero": "Diablo",
+"level": 16,
+"name": "Debilitating Flames"
+},
+"DiabloDevastatingCharge": {
+"hero": "Diablo",
+"level": 13,
+"name": "Devastating Charge"
+},
+"DiabloDiabolicalMomentum": {
+"hero": "Diablo",
+"level": 7,
+"name": "Diabolical Momentum"
+},
+"DiabloFireStompSoulsToTheFlame": {
+"hero": "Diablo",
+"level": 4,
+"name": "Souls to the Flame"
+},
+"DiabloHellfire": {
+"hero": "Diablo",
+"level": 13,
+"name": "Hellfire"
+},
+"DiabloHellgate": {
+"hero": "Diablo",
+"level": 20,
+"name": "Hellgate"
+},
+"DiabloHeroicAbilityApocalypse": {
+"hero": "Diablo",
+"level": 10,
+"name": "Apocalypse"
+},
+"DiabloHeroicAbilityLightningBreath": {
+"hero": "Diablo",
+"level": 10,
+"name": "Lightning Breath"
+},
+"DiabloLifeLeech": {
+"hero": "Diablo",
+"level": 4,
+"name": "Life Leech"
+},
+"DiabloMalevolence": {
+"hero": "Diablo",
+"level": 7,
+"name": "Malevolence"
+},
+"DiabloMasteryDevilsDueBlackSoulstone": {
+"hero": "Diablo",
+"level": 1,
+"name": "Devil's Due"
+},
+"DiabloMasteryDyingBreathApocalypse": {
+"hero": "Diablo",
+"level": 20,
+"name": "Dying Breath"
+},
+"DiabloMasteryFeastOnFearBlackSoulstone": {
+"hero": "Diablo",
+"level": 1,
+"name": "Feast on Fear"
+},
+"DiabloMasteryHellstormLightningBreath": {
+"hero": "Diablo",
+"level": 20,
+"name": "Hellstorm"
+},
+"DiabloOverpowerOverpoweringNightmare": {
+"hero": "Diablo",
+"level": 16,
+"name": "Overpowering Nightmare"
+},
+"DiabloShadowChargeOverpowerCruelty": {
+"hero": "Diablo",
+"level": 13,
+"name": "Cruelty"
+},
+"DiabloShadowChargeOverpowerEternalFlames": {
+"hero": "Diablo",
+"level": 7,
+"name": "Eternal Flames"
+},
+"DiabloShadowChargeSacrificialSoul": {
+"hero": "Diablo",
+"level": 4,
+"name": "Sacrificial Soul"
+},
+"DiabloSoulShield": {
+"hero": "Diablo",
+"level": 1,
+"name": "Soul Shield"
+},
+"DiabloTalentDominationOverpower": {
+"hero": "Diablo",
+"level": 16,
+"name": "Domination"
+},
+"DiabloTalentLordOfTerror": {
+"hero": "Diablo",
+"level": 20,
+"name": "Lord of Terror"
+},
+"DryadAbolishMagic": {
+"hero": "Lunara",
+"level": 13,
+"name": "Abolish Magic"
+},
+"DryadAcceleratedContamination": {
+"hero": "Lunara",
+"level": 16,
+"name": "Accelerated Contamination"
+},
+"DryadBlossomSwell": {
+"hero": "Lunara",
+"level": 4,
+"name": "Blossom Swell"
+},
+"DryadBoundlessStrideTalent": {
+"hero": "Lunara",
+"level": 20,
+"name": "Boundless Stride"
+},
+"DryadChokingPollen": {
+"hero": "Lunara",
+"level": 7,
+"name": "Choking Pollen"
+},
+"DryadEndlessSpores": {
+"hero": "Lunara",
+"level": 13,
+"name": "Endless Spores"
+},
+"DryadForestsWrath": {
+"hero": "Lunara",
+"level": 20,
+"name": "Forest's Wrath"
+},
+"DryadGallopingGait": {
+"hero": "Lunara",
+"level": 20,
+"name": "Galloping Gait"
+},
+"DryadGreaterSpellShield": {
+"hero": "Lunara",
+"level": 13,
+"name": "Greater Spell Shield"
+},
+"DryadHeroicAbilityLeapingStrike": {
+"hero": "Lunara",
+"level": 10,
+"name": "Leaping Strike"
+},
+"DryadHeroicAbilityThornwoodVine": {
+"hero": "Lunara",
+"level": 10,
+"name": "Thornwood Vine"
+},
+"DryadHippityHop": {
+"hero": "Lunara",
+"level": 1,
+"name": "Hippity Hop"
+},
+"DryadIntensifyingToxin": {
+"hero": "Lunara",
+"level": 20,
+"name": "Intensifying Toxin"
+},
+"DryadInvigoratingSpores": {
+"hero": "Lunara",
+"level": 16,
+"name": "Invigorating Spores"
+},
+"DryadLetThemWither": {
+"hero": "Lunara",
+"level": 13,
+"name": "Let Them Wither"
+},
+"DryadNaturalPerspective": {
+"hero": "Lunara",
+"level": 1,
+"name": "Natural Perspective"
+},
+"DryadNaturesCulling": {
+"hero": "Lunara",
+"level": 4,
+"name": "Nature's Culling"
+},
+"DryadSentinelWisp": {
+"hero": "Lunara",
+"level": 1,
+"name": "Sentinel Wisp"
+},
+"DryadSiphoningToxin": {
+"hero": "Lunara",
+"level": 4,
+"name": "Siphoning Toxin"
+},
+"DryadSplinteredSpear": {
+"hero": "Lunara",
+"level": 7,
+"name": "Splintered Spear"
+},
+"DryadStarWoodSpear": {
+"hero": "Lunara",
+"level": 16,
+"name": "Star Wood Spear"
+},
+"DryadUnfairAdvantage": {
+"hero": "Lunara",
+"level": 16,
+"name": "Unfair Advantage"
+},
+"DryadWildVigor": {
+"hero": "Lunara",
+"level": 7,
+"name": "Wild Vigor"
+},
+"DvaGetOnThePoint": {
+"hero": "D.Va",
+"level": 7,
+"name": "Get On The Point!"
+},
+"ETCBlockParty": {
+"hero": "E.T.C.",
+"level": 1,
+"name": "Block Party"
+},
+"ETCCombatStyleEchoPedal": {
+"hero": "E.T.C.",
+"level": 7,
+"name": "Echo Pedal"
+},
+"ETCCrowdSurfer": {
+"hero": "E.T.C.",
+"level": 4,
+"name": "Crowd Surfer"
+},
+"ETCHeroicAbilityMoshPit": {
+"hero": "E.T.C.",
+"level": 10,
+"name": "Mosh Pit"
+},
+"ETCHeroicAbilityStageDive": {
+"hero": "E.T.C.",
+"level": 10,
+"name": "Stage Dive"
+},
+"ETCMasteryEncore": {
+"hero": "E.T.C.",
+"level": 13,
+"name": "Encore"
+},
+"ETCMasteryFaceSmelt": {
+"hero": "E.T.C.",
+"level": 13,
+"name": "Face Smelt"
+},
+"ETCMasteryGuitarHero": {
+"hero": "E.T.C.",
+"level": 1,
+"name": "Guitar Hero"
+},
+"ETCMasteryGuitarSoloAggressiveShredding": {
+"hero": "E.T.C.",
+"level": 16,
+"name": "Aggressive Shredding"
+},
+"ETCMasteryHammeron": {
+"hero": "E.T.C.",
+"level": 7,
+"name": "Hammer-on"
+},
+"ETCMasteryMicCheck": {
+"hero": "E.T.C.",
+"level": 13,
+"name": "Mic Check"
+},
+"ETCMasteryProgRock": {
+"hero": "E.T.C.",
+"level": 1,
+"name": "Prog Rock"
+},
+"ETCMasteryShowStopper": {
+"hero": "E.T.C.",
+"level": 16,
+"name": "Show Stopper"
+},
+"ETCMasterySpeedMetal": {
+"hero": "E.T.C.",
+"level": 4,
+"name": "Speed Metal"
+},
+"FaerieDragonHeroicAbilityBlinkHeal": {
+"hero": "Brightwing",
+"level": 10,
+"name": "Blink Heal"
+},
+"FaerieDragonHeroicAbilityEmeraldWind": {
+"hero": "Brightwing",
+"level": 10,
+"name": "Emerald Wind"
+},
+"FaerieDragonMasteryCritterize": {
+"hero": "Brightwing",
+"level": 16,
+"name": "Critterize"
+},
+"FalstadHammerangBOOMerang": {
+"hero": "Falstad",
+"level": 7,
+"name": "BOOMerang"
+},
+"FalstadHammerangGatheringStorm": {
+"hero": "Falstad",
+"level": 1,
+"name": "Gathering Storm"
+},
+"FalstadHeroicAbilityHinterlandBlast": {
+"hero": "Falstad",
+"level": 10,
+"name": "Hinterland Blast"
+},
+"FalstadHeroicAbilityMightyGust": {
+"hero": "Falstad",
+"level": 10,
+"name": "Mighty Gust"
+},
+"FalstadLightningRodDishonorableDischarge": {
+"hero": "Falstad",
+"level": 1,
+"name": "Dishonorable Discharge"
+},
+"FalstadMasteryAerieGustsTailwind": {
+"hero": "Falstad",
+"level": 16,
+"name": "Aerie Gusts"
+},
+"FalstadMasteryAfterburner": {
+"hero": "Falstad",
+"level": 16,
+"name": "Afterburner"
+},
+"FalstadMasteryBarrelRollFlowRider": {
+"hero": "Falstad",
+"level": 13,
+"name": "Flow Rider"
+},
+"FalstadMasteryCalloftheWildhammerHinterlandBlast": {
+"hero": "Falstad",
+"level": 20,
+"name": "Call of the Wildhammer"
+},
+"FalstadMasteryCripplingHammerHammerang": {
+"hero": "Falstad",
+"level": 16,
+"name": "Crippling Hammer"
+},
+"FalstadMasteryFlightEpicMount": {
+"hero": "Falstad",
+"level": 20,
+"name": "Epic Mount"
+},
+"FalstadMasteryHammerangSecretWeapon": {
+"hero": "Falstad",
+"level": 7,
+"name": "Secret Weapon"
+},
+"FalstadMasteryLightningRodChargedUp": {
+"hero": "Falstad",
+"level": 7,
+"name": "Charged Up"
+},
+"FalstadMasteryLightningRodStaticShield": {
+"hero": "Falstad",
+"level": 4,
+"name": "Static Shield"
+},
+"FalstadMasteryLightningRodThunderstrikes": {
+"hero": "Falstad",
+"level": 13,
+"name": "Thunderstrikes"
+},
+"FalstadMasteryMightyGustWindTunnel": {
+"hero": "Falstad",
+"level": 20,
+"name": "Wind Tunnel"
+},
+"FalstadMasteryUpdraftBarrelRoll": {
+"hero": "Falstad",
+"level": 4,
+"name": "Updraft"
+},
+"FalstadTailwindFrequentFlyer": {
+"hero": "Falstad",
+"level": 1,
+"name": "Frequent Flyer"
+},
+"FalstadTailwindSustainedWinds": {
+"hero": "Falstad",
+"level": 13,
+"name": "Sustained Winds"
+},
+"FalstadTalentHammerGains": {
+"hero": "Falstad",
+"level": 4,
+"name": "Hammer Gains"
+},
+"FenixAdaniumShell": {
+"hero": "Fenix",
+"level": 13,
+"name": "Adanium Shell"
+},
+"FenixAdvancedTargeting": {
+"hero": "Fenix",
+"level": 1,
+"name": "Advanced Targeting"
+},
+"FenixArmageddonBeam": {
+"hero": "Fenix",
+"level": 20,
+"name": "Armageddon Beam"
+},
+"FenixArsenalOvercharge": {
+"hero": "Fenix",
+"level": 16,
+"name": "Arsenal Overcharge"
+},
+"FenixArsenalSynergy": {
+"hero": "Fenix",
+"level": 1,
+"name": "Arsenal Synergy"
+},
+"FenixAuxiliaryShields": {
+"hero": "Fenix",
+"level": 13,
+"name": "Auxiliary Shields"
+},
+"FenixCombatAdvantage": {
+"hero": "Fenix",
+"level": 7,
+"name": "Combat Advantage"
+},
+"FenixDampeningField": {
+"hero": "Fenix",
+"level": 13,
+"name": "Dampening Field"
+},
+"FenixDivertPowerWeaponsTalent": {
+"hero": "Fenix",
+"level": 7,
+"name": "Divert Power: Weapons"
+},
+"FenixEmergencyProtocol": {
+"hero": "Fenix",
+"level": 4,
+"name": "Emergency Protocol"
+},
+"FenixHeroicAbilityPlanetCracker": {
+"hero": "Fenix",
+"level": 10,
+"name": "Planet Cracker"
+},
+"FenixHeroicAbilityPurificationSalvo": {
+"hero": "Fenix",
+"level": 10,
+"name": "Purification Salvo"
+},
+"FenixInhibitingEnergy": {
+"hero": "Fenix",
+"level": 4,
+"name": "Inhibiting Energy"
+},
+"FenixMobileOffense": {
+"hero": "Fenix",
+"level": 1,
+"name": "Mobile Offense"
+},
+"FenixOffensiveCadence": {
+"hero": "Fenix",
+"level": 16,
+"name": "Offensive Cadence"
+},
+"FenixPhotonicWeaponry": {
+"hero": "Fenix",
+"level": 16,
+"name": "Photonic Weaponry"
+},
+"FenixRapidRecharge": {
+"hero": "Fenix",
+"level": 13,
+"name": "Rapid Recharge"
+},
+"FenixSecondaryFire": {
+"hero": "Fenix",
+"level": 20,
+"name": "Secondary Fire"
+},
+"FenixSingularityCharge": {
+"hero": "Fenix",
+"level": 20,
+"name": "Singularity Charge"
+},
+"FenixTargetAcquired": {
+"hero": "Fenix",
+"level": 4,
+"name": "Target Acquired"
+},
+"FenixUnconqueredSpirit": {
+"hero": "Fenix",
+"level": 20,
+"name": "Unconquered Spirit"
+},
+"FenixWarpWarfare": {
+"hero": "Fenix",
+"level": 7,
+"name": "Warp Warfare"
+},
+"FirebatActiveJuggernautPlating": {
+"hero": "Blaze",
+"level": 16,
+"name": "Juggernaut Plating"
+},
+"FirebatAdrenalineStimpack": {
+"hero": "Blaze",
+"level": 1,
+"name": "Adrenaline Stimpack"
+},
+"FirebatBunkerDropFortifiedBunker": {
+"hero": "Blaze",
+"level": 20,
+"name": "Fortified Bunker"
+},
+"FirebatCombustionFlashFire": {
+"hero": "Blaze",
+"level": 20,
+"name": "Flash Fire"
+},
+"FirebatEnduranceStimpack": {
+"hero": "Blaze",
+"level": 1,
+"name": "Endurance Stimpack"
+},
+"FirebatFlameStreamSuppressiveFire": {
+"hero": "Blaze",
+"level": 7,
+"name": "Suppressive Fire"
+},
+"FirebatHeroicAbilityBunkerDrop": {
+"hero": "Blaze",
+"level": 10,
+"name": "Bunker Drop"
+},
+"FirebatHeroicAbilityCombustion": {
+"hero": "Blaze",
+"level": 10,
+"name": "Combustion"
+},
+"FirebatIgniteHeatTreatment": {
+"hero": "Blaze",
+"level": 16,
+"name": "Heat Treatment"
+},
+"FirebatIgniteMeltdown": {
+"hero": "Blaze",
+"level": 4,
+"name": "Meltdown"
+},
+"FirebatJetPropulsionCollisionCourse": {
+"hero": "Blaze",
+"level": 13,
+"name": "Collision Course"
+},
+"FirebatJetPropulsionFuelLeak": {
+"hero": "Blaze",
+"level": 7,
+"name": "Fuel Leak"
+},
+"FirebatJetPropulsionThermalProtection": {
+"hero": "Blaze",
+"level": 16,
+"name": "Thermal Protection"
+},
+"FirebatNeuralStimpack": {
+"hero": "Blaze",
+"level": 1,
+"name": "Neural Stimpack"
+},
+"FirebatNewHabits": {
+"hero": "Blaze",
+"level": 1,
+"name": "New Habits"
+},
+"FirebatOilSpillAdhesivePetroleum": {
+"hero": "Blaze",
+"level": 13,
+"name": "Adhesive Petroleum"
+},
+"FirebatOilSpillGrillandKill": {
+"hero": "Blaze",
+"level": 13,
+"name": "Grill and Kill"
+},
+"FirebatOilSpillNanomachineCoating": {
+"hero": "Blaze",
+"level": 7,
+"name": "Nanomachine Coating"
+},
+"FirebatOilSpillOilDispersal": {
+"hero": "Blaze",
+"level": 4,
+"name": "Oil Dispersal"
+},
+"FirebatWeaponBurnNotice": {
+"hero": "Blaze",
+"level": 20,
+"name": "Burn Notice"
+},
+"FirebatWeaponIncineratorGauntlets": {
+"hero": "Blaze",
+"level": 4,
+"name": "Incinerator Gauntlets"
+},
+"GallBombsAway": {
+"hero": "Gall",
+"level": 4,
+"name": "Bomb's Away"
+},
+"GallDeafeningBlast": {
+"hero": "Gall",
+"level": 16,
+"name": "Deafening Blast"
+},
+"GallDoubleTrouble": {
+"hero": "Gall",
+"level": 7,
+"name": "Double Trouble"
+},
+"GallEdgeOfMadness": {
+"hero": "Gall",
+"level": 7,
+"name": "Edge of Madness"
+},
+"GallHeroicAbilityShadowboltVolley": {
+"hero": "Gall",
+"level": 10,
+"name": "Shadow Bolt Volley"
+},
+"GallHeroicAbilityTwistingNether": {
+"hero": "Gall",
+"level": 10,
+"name": "Twisting Nether"
+},
+"GallKeepMoving": {
+"hero": "Gall",
+"level": 1,
+"name": "Keep Moving!"
+},
+"GallLeadenOrb": {
+"hero": "Gall",
+"level": 16,
+"name": "Leaden Orb"
+},
+"GallOgreRampage": {
+"hero": "Gall",
+"level": 7,
+"name": "Ogre Rampage"
+},
+"GallPsychoticBreak": {
+"hero": "Gall",
+"level": 13,
+"name": "Psychotic Break"
+},
+"GallRisingDread": {
+"hero": "Gall",
+"level": 4,
+"name": "Rising Dread"
+},
+"GallRunicPersistence": {
+"hero": "Gall",
+"level": 4,
+"name": "Runic Persistence"
+},
+"GallSearingShadows": {
+"hero": "Gall",
+"level": 13,
+"name": "Searing Shadows"
+},
+"GallShadowboltVolleyShadowfury": {
+"hero": "Gall",
+"level": 20,
+"name": "Shadowfury"
+},
+"GallShadowsnare": {
+"hero": "Gall",
+"level": 16,
+"name": "Shadowsnare"
+},
+"GallShiftingNether": {
+"hero": "Gall",
+"level": 20,
+"name": "Shifting Nether"
+},
+"GallTaskmaster": {
+"hero": "Gall",
+"level": 1,
+"name": "Taskmaster"
+},
+"GallTheWillofGall": {
+"hero": "Gall",
+"level": 20,
+"name": "The Will of Gall"
+},
+"GallTwilightFrenzy": {
+"hero": "Gall",
+"level": 20,
+"name": "Twilight Frenzy"
+},
+"GallTwilightNova": {
+"hero": "Gall",
+"level": 13,
+"name": "Twilight Nova"
+},
+"GallWeSeeYou": {
+"hero": "Gall",
+"level": 1,
+"name": "We See You!"
+},
+"GarroshArmorUpBodyCheck": {
+"hero": "Garrosh",
+"level": 1,
+"name": "Body Check"
+},
+"GarroshArmorUpDoubleUp": {
+"hero": "Garrosh",
+"level": 13,
+"name": "Double Up"
+},
+"GarroshArmorUpInnerRage": {
+"hero": "Garrosh",
+"level": 20,
+"name": "Inner Rage"
+},
+"GarroshArmorUpSeasonedSoldier": {
+"hero": "Garrosh",
+"level": 16,
+"name": "Seasoned Soldier"
+},
+"GarroshBloodthirstBloodcraze": {
+"hero": "Garrosh",
+"level": 13,
+"name": "Bloodcraze"
+},
+"GarroshBloodthirstInFortheKill": {
+"hero": "Garrosh",
+"level": 4,
+"name": "In For the Kill"
+},
+"GarroshBloodthirstThirstforBattle": {
+"hero": "Garrosh",
+"level": 4,
+"name": "Thirst for Battle"
+},
+"GarroshDecimateDeadlyCalm": {
+"hero": "Garrosh",
+"level": 20,
+"name": "Deadly Calm"
+},
+"GarroshGroundbreakerDefensiveMeasures": {
+"hero": "Garrosh",
+"level": 13,
+"name": "Defensive Measures"
+},
+"GarroshGroundbreakerIntimidation": {
+"hero": "Garrosh",
+"level": 7,
+"name": "Intimidation"
+},
+"GarroshGroundbreakerMortalCombo": {
+"hero": "Garrosh",
+"level": 16,
+"name": "Mortal Combo"
+},
+"GarroshGroundbreakerWarbreaker": {
+"hero": "Garrosh",
+"level": 1,
+"name": "Warbreaker"
+},
+"GarroshHeroicAbilityDecimate": {
+"hero": "Garrosh",
+"level": 10,
+"name": "Decimate"
+},
+"GarroshHeroicAbilityWarlordsChallenge": {
+"hero": "Garrosh",
+"level": 10,
+"name": "Warlord's Challenge"
+},
+"GarroshIndomitable": {
+"hero": "Garrosh",
+"level": 4,
+"name": "Indomitable"
+},
+"GarroshIntotheFrayLoktarOgar": {
+"hero": "Garrosh",
+"level": 7,
+"name": "Lok-tar ogar!"
+},
+"GarroshOppressor": {
+"hero": "Garrosh",
+"level": 7,
+"name": "Oppressor"
+},
+"GarroshWarlordsChallengeDeathWish": {
+"hero": "Garrosh",
+"level": 20,
+"name": "Death Wish"
+},
+"GarroshWreckingBallEarthshaker": {
+"hero": "Garrosh",
+"level": 16,
+"name": "Earthshaker"
+},
+"GarroshWreckingBallTitanicMight": {
+"hero": "Garrosh",
+"level": 20,
+"name": "Titanic Might"
+},
+"GarroshWreckingBallUnrivaledStrength": {
+"hero": "Garrosh",
+"level": 1,
+"name": "Unrivaled Strength"
+},
+"GazloweBigGameHunter": {
+"hero": "Gazlowe",
+"level": 1,
+"name": "Big Game Hunter"
+},
+"GazloweDethLazorFirinMahLazorz": {
+"hero": "Gazlowe",
+"level": 16,
+"name": "Firin' Mah Lazorz"
+},
+"GazloweHyperfocusCoils": {
+"hero": "Gazlowe",
+"level": 4,
+"name": "Hyperfocus Coils"
+},
+"GazloweMasterBlaster": {
+"hero": "Gazlowe",
+"level": 7,
+"name": "Master Blaster"
+},
+"GazloweOneManWreckingCrew": {
+"hero": "Gazlowe",
+"level": 1,
+"name": "One Man Wrecking Crew"
+},
+"GazloweOverklock": {
+"hero": "Gazlowe",
+"level": 16,
+"name": "Overklock"
+},
+"GazloweOverload": {
+"hero": "Gazlowe",
+"level": 7,
+"name": "Overload"
+},
+"GazloweRockItSockIt": {
+"hero": "Gazlowe",
+"level": 4,
+"name": "Rock It Sock It"
+},
+"GazloweRockItTurretOverchargedCapacitors": {
+"hero": "Gazlowe",
+"level": 13,
+"name": "Overcharged Capacitors"
+},
+"GazloweRockItTurretPositiveReinforcement": {
+"hero": "Gazlowe",
+"level": 13,
+"name": "Positive Reinforcement"
+},
+"GazloweRockItTurretSuperiorSchematics": {
+"hero": "Gazlowe",
+"level": 13,
+"name": "Superior Schematics"
+},
+"GazloweXplodiumChargeArkReaktor": {
+"hero": "Gazlowe",
+"level": 16,
+"name": "Ark Reaktor"
+},
+"GazloweXplodiumChargeBombToss": {
+"hero": "Gazlowe",
+"level": 20,
+"name": "Bomb Toss"
+},
+"GazloweXplodiumChargeRocketBoots": {
+"hero": "Gazlowe",
+"level": 1,
+"name": "Rocket Boots"
+},
+"GenericTalentBlock": {
+"hero": "The Butcher",
+"level": 1,
+"name": "Block"
+},
+"GenericTalentCalldownMULE": {
+"hero": "Abathur",
+"level": 7,
+"name": "Calldown: MULE"
+},
+"GenericTalentFlashoftheStorms": {
+"hero": "The Butcher",
+"level": 20,
+"name": "Bolt of the Storm"
+},
+"GenericTalentFollowThrough": {
+"hero": "Thrall",
+"level": 7,
+"name": "Follow Through"
+},
+"GenericTalentGiantKillerSgtHammer": {
+"hero": "Sgt. Hammer",
+"level": 16,
+"name": "Giant Killer"
+},
+"GenericTalentHardenedShield": {
+"hero": "Muradin",
+"level": 20,
+"name": "Hardened Shield"
+},
+"GenericTalentIceBlock": {
+"hero": "Nazeebo",
+"level": 13,
+"name": "Ice Block"
+},
+"GenericTalentImposingPresence": {
+"hero": "Muradin",
+"level": 16,
+"name": "Imposing Presence"
+},
+"GenericTalentMercenaryLord": {
+"hero": "The Lost Vikings",
+"level": 4,
+"name": "Mercenary Lord"
+},
+"GenericTalentNexusBlades": {
+"hero": "Thrall",
+"level": 20,
+"name": "Nexus Blades"
+},
+"GenericTalentNexusFrenzy": {
+"hero": "Falstad",
+"level": 20,
+"name": "Nexus Frenzy"
+},
+"GenericTalentRegenerationMaster": {
+"hero": "Anub'arak",
+"level": 1,
+"name": "Regeneration Master"
+},
+"GenericTalentRewind": {
+"hero": "Nova",
+"level": 20,
+"name": "Rewind"
+},
+"GenericTalentSpellShield": {
+"hero": "Zeratul",
+"level": 13,
+"name": "Spell Shield"
+},
+"GenericTalentStormShield": {
+"hero": "Kharazim",
+"level": 20,
+"name": "Storm Shield"
+},
+"GenjiCyberAgilityAgileDismount": {
+"hero": "Genji",
+"level": 1,
+"name": "Agile Dismount"
+},
+"GenjiCyberAgilityCyberShield": {
+"hero": "Genji",
+"level": 7,
+"name": "Cyber Shield"
+},
+"GenjiCyberAgilityPathfinder": {
+"hero": "Genji",
+"level": 1,
+"name": "Pathfinder"
+},
+"GenjiDeflectAugmentedGuard": {
+"hero": "Genji",
+"level": 7,
+"name": "Augmented Guard"
+},
+"GenjiDeflectDragonClaw": {
+"hero": "Genji",
+"level": 4,
+"name": "Dragon Claw"
+},
+"GenjiDeflectPerfectDefense": {
+"hero": "Genji",
+"level": 7,
+"name": "Perfect Defense"
+},
+"GenjiDeflectReflect": {
+"hero": "Genji",
+"level": 16,
+"name": "Reflect"
+},
+"GenjiDeflectZanshin": {
+"hero": "Genji",
+"level": 20,
+"name": "Zanshin"
+},
+"GenjiDragonbladeTheDragonBecomesMe": {
+"hero": "Genji",
+"level": 20,
+"name": "The Dragon Becomes Me"
+},
+"GenjiHeroicDragonblade": {
+"hero": "Genji",
+"level": 10,
+"name": "Dragonblade"
+},
+"GenjiHeroicXStrike": {
+"hero": "Genji",
+"level": 10,
+"name": "X-Strike"
+},
+"GenjiShurikenSharpenedStars": {
+"hero": "Genji",
+"level": 20,
+"name": "Sharpened Stars"
+},
+"GenjiShurikenShingan": {
+"hero": "Genji",
+"level": 13,
+"name": "Shingan"
+},
+"GenjiShurikenShurikenMastery": {
+"hero": "Genji",
+"level": 4,
+"name": "Shuriken Mastery"
+},
+"GenjiSwiftStrikeFinalCut": {
+"hero": "Genji",
+"level": 16,
+"name": "Final Cut"
+},
+"GenjiSwiftStrikeFlowLikeWater": {
+"hero": "Genji",
+"level": 13,
+"name": "Flow Like Water"
+},
+"GenjiSwiftStrikeSteadyBlade": {
+"hero": "Genji",
+"level": 16,
+"name": "Steady Blade"
+},
+"GenjiSwiftStrikeStrikeAtTheHeart": {
+"hero": "Genji",
+"level": 4,
+"name": "Strike At The Heart"
+},
+"GenjiSwiftStrikeSwiftAsTheWind": {
+"hero": "Genji",
+"level": 1,
+"name": "Swift as the Wind"
+},
+"GenjiWayOfTheShimadaTalent": {
+"hero": "Genji",
+"level": 13,
+"name": "Way Of The Shimada"
+},
+"GenjiXStrikeLivingWeapon": {
+"hero": "Genji",
+"level": 20,
+"name": "Living Weapon"
+},
+"GreymaneCursedBulletGilneanRoulette": {
+"hero": "Greymane",
+"level": 20,
+"name": "Gilnean Roulette"
+},
+"GreymaneDarkflightDisengageRunningWild": {
+"hero": "Greymane",
+"level": 13,
+"name": "Running Wild"
+},
+"GreymaneDarkflightThickSkin": {
+"hero": "Greymane",
+"level": 4,
+"name": "Thick Skin"
+},
+"GreymaneDisengageEyesInTheDark": {
+"hero": "Greymane",
+"level": 4,
+"name": "Eyes in the Dark"
+},
+"GreymaneEagerWolf": {
+"hero": "Greymane",
+"level": 16,
+"name": "Eager Wolf"
+},
+"GreymaneGilneanCocktailIncendiaryElixir": {
+"hero": "Greymane",
+"level": 7,
+"name": "Incendiary Elixir"
+},
+"GreymaneGilneanCocktailPerfectAim": {
+"hero": "Greymane",
+"level": 1,
+"name": "Perfect Aim"
+},
+"GreymaneGoForTheThroatUnleashed": {
+"hero": "Greymane",
+"level": 20,
+"name": "Unleashed"
+},
+"GreymaneHeroicAbilityCursedBullet": {
+"hero": "Greymane",
+"level": 10,
+"name": "Cursed Bullet"
+},
+"GreymaneHeroicAbilityGoForTheThroat": {
+"hero": "Greymane",
+"level": 10,
+"name": "Go for the Throat"
+},
+"GreymaneHuntersBlunderbuss": {
+"hero": "Greymane",
+"level": 20,
+"name": "Hunter's Blunderbuss"
+},
+"GreymaneInnerBeastInsatiable": {
+"hero": "Greymane",
+"level": 4,
+"name": "Insatiable"
+},
+"GreymaneInnerBeastOnTheProwl": {
+"hero": "Greymane",
+"level": 13,
+"name": "On the Prowl"
+},
+"GreymaneInnerBeastViciousness": {
+"hero": "Greymane",
+"level": 1,
+"name": "Viciousness"
+},
+"GreymaneInnerBeastWolfheart": {
+"hero": "Greymane",
+"level": 1,
+"name": "Wolfheart"
+},
+"GreymaneRazorSwipeUnfetteredAssault": {
+"hero": "Greymane",
+"level": 13,
+"name": "Unfettered Assault"
+},
+"GreymaneToothAndClaw": {
+"hero": "Greymane",
+"level": 20,
+"name": "Tooth and Claw"
+},
+"GreymaneWizenedDuelist": {
+"hero": "Greymane",
+"level": 7,
+"name": "Wizened Duelist"
+},
+"GreymaneWorgenFormAlphaKiller": {
+"hero": "Greymane",
+"level": 16,
+"name": "Alpha Killer"
+},
+"GreymaneWorgenFormQuicksilverBullets": {
+"hero": "Greymane",
+"level": 7,
+"name": "Quicksilver Bullets"
+},
+"GuldanChaoticEnergy": {
+"hero": "Gul'dan",
+"level": 1,
+"name": "Chaotic Energy"
+},
+"GuldanConsumeSoul": {
+"hero": "Gul'dan",
+"level": 4,
+"name": "Consume Soul"
+},
+"GuldanCorruptionCurseOfExhaustion": {
+"hero": "Gul'dan",
+"level": 7,
+"name": "Curse of Exhaustion"
+},
+"GuldanCorruptionEchoedCorruption": {
+"hero": "Gul'dan",
+"level": 1,
+"name": "Echoed Corruption"
+},
+"GuldanCorruptionRuinousAffliction": {
+"hero": "Gul'dan",
+"level": 16,
+"name": "Ruinous Affliction"
+},
+"GuldanDarkBargain": {
+"hero": "Gul'dan",
+"level": 13,
+"name": "Dark Bargain"
+},
+"GuldanDemonicCircle": {
+"hero": "Gul'dan",
+"level": 20,
+"name": "Demonic Circle"
+},
+"GuldanDrainLifeHarvestLife": {
+"hero": "Gul'dan",
+"level": 13,
+"name": "Harvest Life"
+},
+"GuldanDrainLifeHealthFunnel": {
+"hero": "Gul'dan",
+"level": 4,
+"name": "Health Funnel"
+},
+"GuldanFelFlameBoundByShadow": {
+"hero": "Gul'dan",
+"level": 7,
+"name": "Bound by Shadow"
+},
+"GuldanFelFlameFelArmor": {
+"hero": "Gul'dan",
+"level": 13,
+"name": "Fel Armor"
+},
+"GuldanFelFlamePursuitOfFlame": {
+"hero": "Gul'dan",
+"level": 1,
+"name": "Pursuit of Flame"
+},
+"GuldanFelFlameRampantHellfire": {
+"hero": "Gul'dan",
+"level": 16,
+"name": "Rampant Hellfire"
+},
+"GuldanHealthstone": {
+"hero": "Gul'dan",
+"level": 13,
+"name": "Healthstone"
+},
+"GuldanHorrify": {
+"hero": "Gul'dan",
+"level": 10,
+"name": "Horrify"
+},
+"GuldanHorrifyHaunt": {
+"hero": "Gul'dan",
+"level": 20,
+"name": "Haunt"
+},
+"GuldanLifeTapDarknessWithin": {
+"hero": "Gul'dan",
+"level": 16,
+"name": "Darkness Within"
+},
+"GuldanLifeTapHungerforPower": {
+"hero": "Gul'dan",
+"level": 7,
+"name": "Hunger for Power"
+},
+"GuldanLifeTapImprovedLifeTap": {
+"hero": "Gul'dan",
+"level": 4,
+"name": "Improved Life Tap"
+},
+"GuldanRainOfDestruction": {
+"hero": "Gul'dan",
+"level": 10,
+"name": "Rain of Destruction"
+},
+"GuldanRainOfDestructionDeepImpact": {
+"hero": "Gul'dan",
+"level": 20,
+"name": "Deep Impact"
+},
+"HanzoBullseye": {
+"hero": "Hanzo",
+"level": 20,
+"name": "Bullseye"
+},
+"HanzoDragonsArrow": {
+"hero": "Hanzo",
+"level": 10,
+"name": "Dragon's Arrow"
+},
+"HanzoDragonstrike": {
+"hero": "Hanzo",
+"level": 10,
+"name": "Dragonstrike"
+},
+"HanzoExplosiveArrows": {
+"hero": "Hanzo",
+"level": 4,
+"name": "Explosive Arrows"
+},
+"HanzoFlawlessTechnique": {
+"hero": "Hanzo",
+"level": 16,
+"name": "Flawless Technique"
+},
+"HanzoFleetofFoot": {
+"hero": "Hanzo",
+"level": 13,
+"name": "Fleet of Foot"
+},
+"HanzoGiantSlayer": {
+"hero": "Hanzo",
+"level": 16,
+"name": "Giant Slayer"
+},
+"HanzoIgnoreAllDistractions": {
+"hero": "Hanzo",
+"level": 4,
+"name": "Ignore All Distractions"
+},
+"HanzoMountedArchery": {
+"hero": "Hanzo",
+"level": 13,
+"name": "Mounted Archery"
+},
+"HanzoNeverOutmatched": {
+"hero": "Hanzo",
+"level": 7,
+"name": "Never Outmatched"
+},
+"HanzoNinjaAssassin": {
+"hero": "Hanzo",
+"level": 13,
+"name": "Ninja Assassin"
+},
+"HanzoPOTG": {
+"hero": "Hanzo",
+"level": 20,
+"name": "Play of the Game"
+},
+"HanzoPerfectAgility": {
+"hero": "Hanzo",
+"level": 20,
+"name": "Perfect Agility"
+},
+"HanzoPiercingArrows": {
+"hero": "Hanzo",
+"level": 16,
+"name": "Piercing Arrows"
+},
+"HanzoRedemption": {
+"hero": "Hanzo",
+"level": 1,
+"name": "Redemption"
+},
+"HanzoSerratedArrows": {
+"hero": "Hanzo",
+"level": 4,
+"name": "Serrated Arrows"
+},
+"HanzoSharpenedArrowheads": {
+"hero": "Hanzo",
+"level": 7,
+"name": "Sharpened Arrowheads"
+},
+"HanzoSimpleGeometry": {
+"hero": "Hanzo",
+"level": 1,
+"name": "Simple Geometry"
+},
+"HanzoTargetPractice": {
+"hero": "Hanzo",
+"level": 1,
+"name": "Target Practice"
+},
+"HanzoTheDragonAwakens": {
+"hero": "Hanzo",
+"level": 20,
+"name": "The Dragon Awakens"
+},
+"HanzoTheDragonHungers": {
+"hero": "Hanzo",
+"level": 7,
+"name": "The Dragon Hungers"
+},
+"HeroGenericExecutionerPassive": {
+"hero": "Sgt. Hammer",
+"level": 16,
+"name": "Executioner"
+},
+"HoggerAggroRange": {
+"hero": "Hogger",
+"level": 4,
+"name": "Aggro Range"
+},
+"HoggerAngerManagement": {
+"hero": "Hogger",
+"level": 20,
+"name": "Anger Management"
+},
+"HoggerBloodthirst": {
+"hero": "Hogger",
+"level": 13,
+"name": "Bloodthirst"
+},
+"HoggerBonestoGnaw": {
+"hero": "Hogger",
+"level": 1,
+"name": "Bones to Gnaw"
+},
+"HoggerBruteForce": {
+"hero": "Hogger",
+"level": 4,
+"name": "Brute Force"
+},
+"HoggerDenseBlastingPowder": {
+"hero": "Hogger",
+"level": 7,
+"name": "Dense Blasting Powder"
+},
+"HoggerDustDevil": {
+"hero": "Hogger",
+"level": 13,
+"name": "Dust Devil"
+},
+"HoggerFurzerker": {
+"hero": "Hogger",
+"level": 16,
+"name": "Furzerker"
+},
+"HoggerGarbageFire": {
+"hero": "Hogger",
+"level": 7,
+"name": "Garbage Fire"
+},
+"HoggerHeadbanger": {
+"hero": "Hogger",
+"level": 16,
+"name": "Headbanger"
+},
+"HoggerHoardapult": {
+"hero": "Hogger",
+"level": 10,
+"name": "Hoardapult"
+},
+"HoggerHoggersJoggers": {
+"hero": "Hogger",
+"level": 4,
+"name": "Hogger's Joggers"
+},
+"HoggerJourneymanCooking": {
+"hero": "Hogger",
+"level": 1,
+"name": "Journeyman Cooking"
+},
+"HoggerKablooie": {
+"hero": "Hogger",
+"level": 16,
+"name": "Kablooie!"
+},
+"HoggerNoControl": {
+"hero": "Hogger",
+"level": 20,
+"name": "No Control"
+},
+"HoggerOnTheProwl": {
+"hero": "Hogger",
+"level": 1,
+"name": "On The Prowl"
+},
+"HoggerPowerSpike": {
+"hero": "Hogger",
+"level": 20,
+"name": "Power Spike"
+},
+"HoggerPummel": {
+"hero": "Hogger",
+"level": 13,
+"name": "Pummel"
+},
+"HoggerSecretStash": {
+"hero": "Hogger",
+"level": 20,
+"name": "Secret Stash"
+},
+"HoggerSeeingRed": {
+"hero": "Hogger",
+"level": 7,
+"name": "Seeing Red"
+},
+"HoggerShockwave": {
+"hero": "Hogger",
+"level": 10,
+"name": "Shockwave"
+},
+"IllidanBladesOfAzzinoth": {
+"hero": "Illidan",
+"level": 16,
+"name": "Blades of Azzinoth"
+},
+"IllidanCombatStyleHuntersOnslaught": {
+"hero": "Illidan",
+"level": 4,
+"name": "Hunter's Onslaught"
+},
+"IllidanElusiveStrike": {
+"hero": "Illidan",
+"level": 13,
+"name": "Elusive Strike"
+},
+"IllidanFieryBrand": {
+"hero": "Illidan",
+"level": 16,
+"name": "Fiery Brand"
+},
+"IllidanHeroicAbilityMetamorphosis": {
+"hero": "Illidan",
+"level": 10,
+"name": "Metamorphosis"
+},
+"IllidanHeroicAbilityTheHunt": {
+"hero": "Illidan",
+"level": 10,
+"name": "The Hunt"
+},
+"IllidanMasteryBatteredAssaultSweepingStrike": {
+"hero": "Illidan",
+"level": 1,
+"name": "Battered Assault"
+},
+"IllidanMasteryDemonicFormMetamorphosis": {
+"hero": "Illidan",
+"level": 20,
+"name": "Demonic Form"
+},
+"IllidanMasteryFriendOrFoeDive": {
+"hero": "Illidan",
+"level": 7,
+"name": "Friend or Foe"
+},
+"IllidanMasteryImmolationSweepingStrike": {
+"hero": "Illidan",
+"level": 1,
+"name": "Immolation"
+},
+"IllidanMasteryMarkedforDeathDive": {
+"hero": "Illidan",
+"level": 16,
+"name": "Marked for Death"
+},
+"IllidanMasteryNowhereToHideTheHunt": {
+"hero": "Illidan",
+"level": 20,
+"name": "Nowhere to Hide"
+},
+"IllidanMasteryRapidChaseDive": {
+"hero": "Illidan",
+"level": 7,
+"name": "Rapid Chase"
+},
+"IllidanMasterySixthSenseEvasion": {
+"hero": "Illidan",
+"level": 13,
+"name": "Sixth Sense"
+},
+"IllidanMasteryUnboundSweepingStrike": {
+"hero": "Illidan",
+"level": 7,
+"name": "Unbound"
+},
+"IllidanNimbleDefender": {
+"hero": "Illidan",
+"level": 13,
+"name": "Nimble Defender"
+},
+"IllidanReflexiveBlock": {
+"hero": "Illidan",
+"level": 4,
+"name": "Reflexive Block"
+},
+"IllidanSweepingStrikesThirstingBlade": {
+"hero": "Illidan",
+"level": 4,
+"name": "Thirsting Blade"
+},
+"IllidanUnendingHatredPassive": {
+"hero": "Illidan",
+"level": 1,
+"name": "Unending Hatred"
+},
+"ImperiusAngelicArmaments": {
+"hero": "Imperius",
+"level": 10,
+"name": "Angelic Armaments"
+},
+"ImperiusAngelicArmamentsHeavenlyHost": {
+"hero": "Imperius",
+"level": 20,
+"name": "Heavenly Host"
+},
+"ImperiusCelestialChargeCelestialSwiftness": {
+"hero": "Imperius",
+"level": 16,
+"name": "Celestial Swiftness"
+},
+"ImperiusCelestialChargeFlashOfAnger": {
+"hero": "Imperius",
+"level": 7,
+"name": "Flash of Anger"
+},
+"ImperiusCelestialChargeImpalingLight": {
+"hero": "Imperius",
+"level": 1,
+"name": "Impaling Light"
+},
+"ImperiusCelestialChargePatheticMortals": {
+"hero": "Imperius",
+"level": 13,
+"name": "Pathetic Mortals"
+},
+"ImperiusHolyFervor": {
+"hero": "Imperius",
+"level": 7,
+"name": "Holy Fervor"
+},
+"ImperiusImpervious": {
+"hero": "Imperius",
+"level": 20,
+"name": "Impervious"
+},
+"ImperiusMoltenArmorDivineRage": {
+"hero": "Imperius",
+"level": 13,
+"name": "Divine Rage"
+},
+"ImperiusMoltenArmorHeatOfBattle": {
+"hero": "Imperius",
+"level": 13,
+"name": "Heat of Battle"
+},
+"ImperiusMoltenArmorMeltingTouch": {
+"hero": "Imperius",
+"level": 16,
+"name": "Melting Touch"
+},
+"ImperiusMoltenArmorSovereignArmor": {
+"hero": "Imperius",
+"level": 4,
+"name": "Sovereign Armor"
+},
+"ImperiusPressForward": {
+"hero": "Imperius",
+"level": 4,
+"name": "Press Forward"
+},
+"ImperiusSolarionsFireBlazeOfGlory": {
+"hero": "Imperius",
+"level": 7,
+"name": "Blaze of Glory"
+},
+"ImperiusSolarionsFireConsumingFlame": {
+"hero": "Imperius",
+"level": 1,
+"name": "Consuming Flame"
+},
+"ImperiusValorousBrandBattleHunger": {
+"hero": "Imperius",
+"level": 4,
+"name": "Battle Hunger"
+},
+"ImperiusValorousBrandBrandOfSolarion": {
+"hero": "Imperius",
+"level": 20,
+"name": "Brand of Solarion"
+},
+"ImperiusValorousBrandBurnTheImpure": {
+"hero": "Imperius",
+"level": 1,
+"name": "Burn the Impure"
+},
+"ImperiusValorousPursuit": {
+"hero": "Imperius",
+"level": 16,
+"name": "Valorous Pursuit"
+},
+"ImperiusWrathOfTheAngiris": {
+"hero": "Imperius",
+"level": 10,
+"name": "Wrath of the Angiris"
+},
+"ImperiusWrathOfTheAngirisUnrelentingDescent": {
+"hero": "Imperius",
+"level": 20,
+"name": "Unrelenting Descent"
+},
+"JainaBlizzardSnowstorm": {
+"hero": "Jaina",
+"level": 16,
+"name": "Snowstorm"
+},
+"JainaBlizzardStormFront": {
+"hero": "Jaina",
+"level": 13,
+"name": "Storm Front"
+},
+"JainaConeOfColdIceFloes": {
+"hero": "Jaina",
+"level": 7,
+"name": "Ice Floes"
+},
+"JainaConeOfColdNorthernExposure": {
+"hero": "Jaina",
+"level": 16,
+"name": "Northern Exposure"
+},
+"JainaConeOfColdNumbingBlast": {
+"hero": "Jaina",
+"level": 16,
+"name": "Numbing Blast"
+},
+"JainaFingersOfFrost": {
+"hero": "Jaina",
+"level": 1,
+"name": "Fingers of Frost"
+},
+"JainaFrigidTransmission": {
+"hero": "Jaina",
+"level": 20,
+"name": "Ice Blink"
+},
+"JainaFrostbiteArcaneIntellect": {
+"hero": "Jaina",
+"level": 4,
+"name": "Arcane Intellect"
+},
+"JainaFrostbiteDeepChill": {
+"hero": "Jaina",
+"level": 20,
+"name": "Deep Chill"
+},
+"JainaFrostbiteFrostArmor": {
+"hero": "Jaina",
+"level": 4,
+"name": "Frost Armor"
+},
+"JainaFrostbiteIceBarrier": {
+"hero": "Jaina",
+"level": 13,
+"name": "Ice Barrier"
+},
+"JainaFrostbiteLingeringChill": {
+"hero": "Jaina",
+"level": 1,
+"name": "Lingering Chill"
+},
+"JainaFrostboltFrostShards": {
+"hero": "Jaina",
+"level": 4,
+"name": "Frost Shards"
+},
+"JainaFrostboltIceLance": {
+"hero": "Jaina",
+"level": 7,
+"name": "Ice Lance"
+},
+"JainaFrostboltWintersReach": {
+"hero": "Jaina",
+"level": 1,
+"name": "Winter's Reach"
+},
+"JainaHeroicRingOfFrost": {
+"hero": "Jaina",
+"level": 10,
+"name": "Ring of Frost"
+},
+"JainaHeroicSummonWaterElemental": {
+"hero": "Jaina",
+"level": 10,
+"name": "Summon Water Elemental"
+},
+"JainaIcefuryWand": {
+"hero": "Jaina",
+"level": 7,
+"name": "Icefury Wand"
+},
+"JainaIcyVeins": {
+"hero": "Jaina",
+"level": 13,
+"name": "Icy Veins"
+},
+"JainaRingOfFrostColdSnap": {
+"hero": "Jaina",
+"level": 20,
+"name": "Cold Snap"
+},
+"JainaSummonWaterElementalWintermute": {
+"hero": "Jaina",
+"level": 20,
+"name": "Wintermute"
+},
+"JunkratConcussionMineBOOMPOW": {
+"hero": "Junkrat",
+"level": 4,
+"name": "BOOM POW"
+},
+"JunkratConcussionMineBlowEmUp": {
+"hero": "Junkrat",
+"level": 1,
+"name": "Blow 'Em Up!"
+},
+"JunkratConcussionMineBoggedDown": {
+"hero": "Junkrat",
+"level": 7,
+"name": "Bogged Down"
+},
+"JunkratConcussionMineRipperAir": {
+"hero": "Junkrat",
+"level": 13,
+"name": "Ripper Air"
+},
+"JunkratFragLauncherBombsAwayTalent": {
+"hero": "Junkrat",
+"level": 13,
+"name": "Bombs Away"
+},
+"JunkratFragLauncherBurstFire": {
+"hero": "Junkrat",
+"level": 16,
+"name": "Burst Fire"
+},
+"JunkratFragLauncherCannonball": {
+"hero": "Junkrat",
+"level": 20,
+"name": "Cannonball!"
+},
+"JunkratFragLauncherEndlessNades": {
+"hero": "Junkrat",
+"level": 16,
+"name": "Endless Nades"
+},
+"JunkratFragLauncherExtraWoundTimers": {
+"hero": "Junkrat",
+"level": 1,
+"name": "Extra-Wound Timers"
+},
+"JunkratFragLauncherSpreadVolley": {
+"hero": "Junkrat",
+"level": 16,
+"name": "Spread Volley"
+},
+"JunkratFragLauncherTasteForExplosions": {
+"hero": "Junkrat",
+"level": 4,
+"name": "Taste For Explosions"
+},
+"JunkratFragLauncherTrickyShuffles": {
+"hero": "Junkrat",
+"level": 1,
+"name": "Tricky Shuffles"
+},
+"JunkratIHateWaitingTalent": {
+"hero": "Junkrat",
+"level": 20,
+"name": "I Hate Waiting!"
+},
+"JunkratRIPTire": {
+"hero": "Junkrat",
+"level": 10,
+"name": "RIP-Tire"
+},
+"JunkratRIPTireExtraOomph": {
+"hero": "Junkrat",
+"level": 20,
+"name": "Extra Oomph"
+},
+"JunkratRocketRide": {
+"hero": "Junkrat",
+"level": 10,
+"name": "Rocket Ride"
+},
+"JunkratRocketRidePuckishScamp": {
+"hero": "Junkrat",
+"level": 20,
+"name": "Puckish Scamp"
+},
+"JunkratSteelTrapBigAs": {
+"hero": "Junkrat",
+"level": 13,
+"name": "Big As"
+},
+"JunkratSteelTrapChatteringTeeth": {
+"hero": "Junkrat",
+"level": 4,
+"name": "Chattering Teeth"
+},
+"JunkratSteelTrapGottaTrapEmAll": {
+"hero": "Junkrat",
+"level": 13,
+"name": "Gotta Trap 'Em All!"
+},
+"JunkratSteelTrapStickyWicket": {
+"hero": "Junkrat",
+"level": 7,
+"name": "Sticky Wicket"
+},
+"JunkratTotalMayhemDirtyTricksterTalent": {
+"hero": "Junkrat",
+"level": 7,
+"name": "Dirty Trickster"
+},
+"KaelthasFlamestrikeBurnedFlesh": {
+"hero": "Kael'thas",
+"level": 7,
+"name": "Burned Flesh"
+},
+"KaelthasFlamestrikeConvection": {
+"hero": "Kael'thas",
+"level": 1,
+"name": "Convection"
+},
+"KaelthasFlamestrikeFuryOfTheSunwell": {
+"hero": "Kael'thas",
+"level": 16,
+"name": "Fury of the Sunwell"
+},
+"KaelthasFlamestrikeManaTap": {
+"hero": "Kael'thas",
+"level": 4,
+"name": "Mana Tap"
+},
+"KaelthasGravityLapseEnergyRoil": {
+"hero": "Kael'thas",
+"level": 4,
+"name": "Energy Roil"
+},
+"KaelthasGravityLapseNetherWind": {
+"hero": "Kael'thas",
+"level": 4,
+"name": "Nether Wind"
+},
+"KaelthasHeroicAbilityPhoenix": {
+"hero": "Kael'thas",
+"level": 10,
+"name": "Phoenix"
+},
+"KaelthasHeroicAbilityPyroblast": {
+"hero": "Kael'thas",
+"level": 10,
+"name": "Pyroblast"
+},
+"KaelthasLivingBombBackdraft": {
+"hero": "Kael'thas",
+"level": 13,
+"name": "Backdraft"
+},
+"KaelthasLivingBombFissionBomb": {
+"hero": "Kael'thas",
+"level": 13,
+"name": "Fission Bomb"
+},
+"KaelthasLivingBombIgnite": {
+"hero": "Kael'thas",
+"level": 16,
+"name": "Ignite"
+},
+"KaelthasLivingBombPyromaniac": {
+"hero": "Kael'thas",
+"level": 13,
+"name": "Pyromaniac"
+},
+"KaelthasLivingBombSunKingsFury": {
+"hero": "Kael'thas",
+"level": 7,
+"name": "Sun King's Fury"
+},
+"KaelthasManaAddict": {
+"hero": "Kael'thas",
+"level": 1,
+"name": "Mana Addict"
+},
+"KaelthasMasterOfFlames": {
+"hero": "Kael'thas",
+"level": 20,
+"name": "Master of Flames"
+},
+"KaelthasMasteryFlamethrower": {
+"hero": "Kael'thas",
+"level": 20,
+"name": "Flamethrower"
+},
+"KaelthasMasterySunfireEnchantment": {
+"hero": "Kael'thas",
+"level": 7,
+"name": "Sunfire Enchantment"
+},
+"KaelthasPhoenixRebirth": {
+"hero": "Kael'thas",
+"level": 20,
+"name": "Rebirth"
+},
+"KaelthasPyroblastPresenceOfMind": {
+"hero": "Kael'thas",
+"level": 20,
+"name": "Presence Of Mind"
+},
+"KaelthasTwinSpheres": {
+"hero": "Kael'thas",
+"level": 16,
+"name": "Twin Spheres"
+},
+"KaelthasVerdantSpheresFelInfusion": {
+"hero": "Kael'thas",
+"level": 1,
+"name": "Fel Infusion"
+},
+"KelThuzadAcceleratedDecay": {
+"hero": "Kel'Thuzad",
+"level": 7,
+"name": "Accelerated Decay"
+},
+"KelThuzadArcaneEchoes": {
+"hero": "Kel'Thuzad",
+"level": 16,
+"name": "Arcane Echoes"
+},
+"KelThuzadArchlichArmor": {
+"hero": "Kel'Thuzad",
+"level": 4,
+"name": "Armor of the Archlich"
+},
+"KelThuzadBarbedChains": {
+"hero": "Kel'Thuzad",
+"level": 1,
+"name": "Barbed Chains"
+},
+"KelThuzadBlightedFrost": {
+"hero": "Kel'Thuzad",
+"level": 1,
+"name": "Blighted Frost"
+},
+"KelThuzadChainLink": {
+"hero": "Kel'Thuzad",
+"level": 13,
+"name": "Chain-Link"
+},
+"KelThuzadChainsOfIce": {
+"hero": "Kel'Thuzad",
+"level": 13,
+"name": "Chains of Ice"
+},
+"KelThuzadChillingTouch": {
+"hero": "Kel'Thuzad",
+"level": 7,
+"name": "Chilling Touch"
+},
+"KelThuzadDeathchill": {
+"hero": "Kel'Thuzad",
+"level": 20,
+"name": "Deathchill"
+},
+"KelThuzadFrozenTomb": {
+"hero": "Kel'Thuzad",
+"level": 10,
+"name": "Frost Blast"
+},
+"KelThuzadHungeringCold": {
+"hero": "Kel'Thuzad",
+"level": 16,
+"name": "Hungering Cold"
+},
+"KelThuzadIceCold": {
+"hero": "Kel'Thuzad",
+"level": 7,
+"name": "Ice Cold"
+},
+"KelThuzadIcyGrasp": {
+"hero": "Kel'Thuzad",
+"level": 13,
+"name": "Icy Grasp"
+},
+"KelThuzadMightOfTheScourge": {
+"hero": "Kel'Thuzad",
+"level": 20,
+"name": "Might of the Scourge"
+},
+"KelThuzadPhylactery": {
+"hero": "Kel'Thuzad",
+"level": 4,
+"name": "Phylactery of Kel'Thuzad"
+},
+"KelThuzadPowerOfIcecrown": {
+"hero": "Kel'Thuzad",
+"level": 16,
+"name": "Power of Icecrown"
+},
+"KelThuzadShadowFissure": {
+"hero": "Kel'Thuzad",
+"level": 10,
+"name": "Shadow Fissure"
+},
+"KelThuzadShiftingMalice": {
+"hero": "Kel'Thuzad",
+"level": 20,
+"name": "Shifting Malice"
+},
+"KelThuzadStripShields": {
+"hero": "Kel'Thuzad",
+"level": 4,
+"name": "Strip Shields"
+},
+"KelThuzadTheDamnedReturn": {
+"hero": "Kel'Thuzad",
+"level": 20,
+"name": "The Damned Return"
+},
+"KelThuzadThePlaguelands": {
+"hero": "Kel'Thuzad",
+"level": 1,
+"name": "The Plaguelands"
+},
+"KerriganAssimilationAssimilationBlades": {
+"hero": "Kerrigan",
+"level": 20,
+"name": "Assimilation Blades"
+},
+"KerriganAssimilationMastery": {
+"hero": "Kerrigan",
+"level": 1,
+"name": "Assimilation Mastery"
+},
+"KerriganAssimilationVolatilePower": {
+"hero": "Kerrigan",
+"level": 13,
+"name": "Volatile Power"
+},
+"KerriganBladedMomentum": {
+"hero": "Kerrigan",
+"level": 7,
+"name": "Bladed Momentum"
+},
+"KerriganChrysalis": {
+"hero": "Kerrigan",
+"level": 13,
+"name": "Chrysalis"
+},
+"KerriganFuryOfTheSwarm": {
+"hero": "Kerrigan",
+"level": 1,
+"name": "Fury of the Swarm"
+},
+"KerriganHeroicAbilityMaelstrom": {
+"hero": "Kerrigan",
+"level": 10,
+"name": "Maelstrom"
+},
+"KerriganHeroicAbilitySummonUltralisk": {
+"hero": "Kerrigan",
+"level": 10,
+"name": "Summon Ultralisk"
+},
+"KerriganImpalingBladesKineticFulmination": {
+"hero": "Kerrigan",
+"level": 4,
+"name": "Kinetic Fulmination"
+},
+"KerriganImpalingBladesPainfulSpikes": {
+"hero": "Kerrigan",
+"level": 16,
+"name": "Painful Spikes"
+},
+"KerriganOmegastormMaelstrom": {
+"hero": "Kerrigan",
+"level": 20,
+"name": "Omegastorm"
+},
+"KerriganPrimalGraspPsionicBarrier": {
+"hero": "Kerrigan",
+"level": 13,
+"name": "Psionic Barrier"
+},
+"KerriganPrimalGraspPsionicPulse": {
+"hero": "Kerrigan",
+"level": 4,
+"name": "Psionic Pulse"
+},
+"KerriganPsionicShift": {
+"hero": "Kerrigan",
+"level": 20,
+"name": "Psionic Shift"
+},
+"KerriganRavageBoundlessFury": {
+"hero": "Kerrigan",
+"level": 7,
+"name": "Boundless Fury"
+},
+"KerriganRavageMountingPotency": {
+"hero": "Kerrigan",
+"level": 16,
+"name": "Mounting Potency"
+},
+"KerriganRavageQueenOfBlades": {
+"hero": "Kerrigan",
+"level": 7,
+"name": "Queen of Blades"
+},
+"KerriganRavageSharpenedBlades": {
+"hero": "Kerrigan",
+"level": 4,
+"name": "Sharpened Blades"
+},
+"KerriganRavageSiphoningImpact": {
+"hero": "Kerrigan",
+"level": 1,
+"name": "Siphoning Impact"
+},
+"KerriganTorrasqueSummonUltralisk": {
+"hero": "Kerrigan",
+"level": 20,
+"name": "Torrasque"
+},
+"KerriganUnbridledEnergy": {
+"hero": "Kerrigan",
+"level": 16,
+"name": "Unbridled Energy"
+},
+"L90ETCMasteryDeathMetal": {
+"hero": "E.T.C.",
+"level": 20,
+"name": "Death Metal"
+},
+"L90ETCMasteryFaceMeltLoudSpeakers": {
+"hero": "E.T.C.",
+"level": 4,
+"name": "Loud Speakers"
+},
+"L90ETCMasteryFaceMeltPinballWizard": {
+"hero": "E.T.C.",
+"level": 7,
+"name": "Pinball Wizard"
+},
+"L90ETCMasteryMoshPitTourBus": {
+"hero": "E.T.C.",
+"level": 20,
+"name": "Tour Bus"
+},
+"L90ETCMasteryStageDiveCrowdPleaser": {
+"hero": "E.T.C.",
+"level": 20,
+"name": "Crowd Pleaser"
+},
+"LeoricBurningDespairTalent": {
+"hero": "Leoric",
+"level": 20,
+"name": "Burning Despair"
+},
+"LeoricDrainHopeCrushingHopeTalent": {
+"hero": "Leoric",
+"level": 16,
+"name": "Crushing Hope"
+},
+"LeoricHeroicAbilityEntomb": {
+"hero": "Leoric",
+"level": 10,
+"name": "Entomb"
+},
+"LeoricHeroicAbilityMarchoftheBlackKing": {
+"hero": "Leoric",
+"level": 10,
+"name": "March of the Black King"
+},
+"LeoricMasteryBuriedAliveEntomb": {
+"hero": "Leoric",
+"level": 20,
+"name": "Buried Alive"
+},
+"LeoricMasteryConsumeVitalitySkeletalSwing": {
+"hero": "Leoric",
+"level": 1,
+"name": "Consume Vitality"
+},
+"LeoricMasteryDeathMarchMarchoftheBlackKing": {
+"hero": "Leoric",
+"level": 20,
+"name": "Death March"
+},
+"LeoricMasteryDrainMomentumDrainHope": {
+"hero": "Leoric",
+"level": 7,
+"name": "Drain Momentum"
+},
+"LeoricMasteryFealtyUntoDeathUndying": {
+"hero": "Leoric",
+"level": 1,
+"name": "Fealty Unto Death"
+},
+"LeoricMasteryGhastlyReachSkeletalSwing": {
+"hero": "Leoric",
+"level": 4,
+"name": "Ghastly Reach"
+},
+"LeoricMasteryHopelessnessDrainHope": {
+"hero": "Leoric",
+"level": 7,
+"name": "Hopelessness"
+},
+"LeoricMasteryOsseinRenewal": {
+"hero": "Leoric",
+"level": 1,
+"name": "Ossein Renewal"
+},
+"LeoricMasteryParalyzingRageSkeletalSwing": {
+"hero": "Leoric",
+"level": 4,
+"name": "Paralyzing Rage"
+},
+"LeoricMasteryRoyalFocusWraithWalk": {
+"hero": "Leoric",
+"level": 16,
+"name": "Royal Focus"
+},
+"LeoricMasterySpectralLeech": {
+"hero": "Leoric",
+"level": 13,
+"name": "Spectral Leech"
+},
+"LeoricMasteryUnyieldingDespairDrainHope": {
+"hero": "Leoric",
+"level": 13,
+"name": "Unyielding Despair"
+},
+"LeoricMasteryWillingVesselDrainHope": {
+"hero": "Leoric",
+"level": 7,
+"name": "Willing Vessel"
+},
+"LeoricMithrilMaceTalent": {
+"hero": "Leoric",
+"level": 16,
+"name": "Mithril Mace"
+},
+"LeoricShroudoftheDeadKingTalent": {
+"hero": "Leoric",
+"level": 20,
+"name": "Shroud of the Dead King"
+},
+"LeoricSkeletalSwingKneelPeasantsTalent": {
+"hero": "Leoric",
+"level": 4,
+"name": "Kneel, Peasants!"
+},
+"LeoricWraithWalkOminousWraithTalent": {
+"hero": "Leoric",
+"level": 13,
+"name": "Ominous Wraith"
+},
+"LiLiBlessingsOfYulon": {
+"hero": "Li Li",
+"level": 16,
+"name": "Blessings Of Yu'lon"
+},
+"LiLiEagerAdventurer": {
+"hero": "Li Li",
+"level": 1,
+"name": "Eager Adventurer"
+},
+"LiLiFreeDrinks": {
+"hero": "Li Li",
+"level": 1,
+"name": "Free Drinks"
+},
+"LiLiHeroicAbilityJugof1000Cups": {
+"hero": "Li Li",
+"level": 10,
+"name": "Jug of 1,000 Cups"
+},
+"LiLiHeroicAbilityWaterDragon": {
+"hero": "Li Li",
+"level": 10,
+"name": "Water Dragon"
+},
+"LiLiHinderingWinds": {
+"hero": "Li Li",
+"level": 13,
+"name": "Hindering Winds"
+},
+"LiLiLetsGo": {
+"hero": "Li Li",
+"level": 7,
+"name": "Let's Go!"
+},
+"LiLiMasteryBlindingWindGaleForce": {
+"hero": "Li Li",
+"level": 13,
+"name": "Gale Force"
+},
+"LiLiMasteryBlindingWindMassVortex": {
+"hero": "Li Li",
+"level": 7,
+"name": "Mass Vortex"
+},
+"LiLiMasteryBlindingWindSurgingWinds": {
+"hero": "Li Li",
+"level": 4,
+"name": "Surging Winds"
+},
+"LiLiMasteryCloudSerpentLightningSerpent": {
+"hero": "Li Li",
+"level": 13,
+"name": "Lightning Serpent"
+},
+"LiLiMasteryCloudSerpentSerpentSidekick": {
+"hero": "Li Li",
+"level": 1,
+"name": "Serpent Sidekick"
+},
+"LiLiMasteryFastFeetSafetySprint": {
+"hero": "Li Li",
+"level": 4,
+"name": "Safety Sprint"
+},
+"LiLiMasteryHealingBrewTheGoodStuff": {
+"hero": "Li Li",
+"level": 7,
+"name": "The Good Stuff"
+},
+"LiLiMasteryHealingBrewTwoForOne": {
+"hero": "Li Li",
+"level": 16,
+"name": "Two For One"
+},
+"LiLiMasteryJugof1000CupsJugof1000000Cups": {
+"hero": "Li Li",
+"level": 20,
+"name": "Jug of 1,000,000 Cups"
+},
+"LiLiMasteryWaterDragonDoubleDragon": {
+"hero": "Li Li",
+"level": 20,
+"name": "Double Dragon"
+},
+"LiLiMistweaver": {
+"hero": "Li Li",
+"level": 20,
+"name": "Mistweaver"
+},
+"LiLiPickMeUp": {
+"hero": "Li Li",
+"level": 16,
+"name": "Pick Me Up"
+},
+"LiLiShakeItOff": {
+"hero": "Li Li",
+"level": 20,
+"name": "Shake It Off"
+},
+"LiLiWindSerpent": {
+"hero": "Li Li",
+"level": 4,
+"name": "Wind Serpent"
+},
+"LostVikingsGoGoGo64KBMarathon": {
+"hero": "The Lost Vikings",
+"level": 16,
+"name": "64 KB Marathon"
+},
+"LostVikingsHeroicAbilityLongboatRaid": {
+"hero": "The Lost Vikings",
+"level": 10,
+"name": "Longboat Raid!"
+},
+"LostVikingsHeroicAbilityPlayAgain": {
+"hero": "The Lost Vikings",
+"level": 10,
+"name": "Play Again!"
+},
+"LostVikingsMasteryBaleogTheFierce": {
+"hero": "The Lost Vikings",
+"level": 7,
+"name": "Baleog the Fierce"
+},
+"LostVikingsMasteryCheckpointReached": {
+"hero": "The Lost Vikings",
+"level": 20,
+"name": "Checkpoint Reached"
+},
+"LostVikingsMasteryErikTheSwift": {
+"hero": "The Lost Vikings",
+"level": 4,
+"name": "Erik the Swift"
+},
+"LostVikingsMasteryExplosiveAttacks": {
+"hero": "The Lost Vikings",
+"level": 1,
+"name": "Explosive Attacks"
+},
+"LostVikingsMasteryHunkaBurningOlaf": {
+"hero": "The Lost Vikings",
+"level": 13,
+"name": "Hunka' Burning Olaf"
+},
+"LostVikingsMasteryImpatienceIsAVirtue": {
+"hero": "The Lost Vikings",
+"level": 16,
+"name": "Impatience Is a Virtue"
+},
+"LostVikingsMasteryItsASabotage": {
+"hero": "The Lost Vikings",
+"level": 4,
+"name": "It's a Sabotage!"
+},
+"LostVikingsMasteryJump": {
+"hero": "The Lost Vikings",
+"level": 13,
+"name": "Jump!"
+},
+"LostVikingsMasteryLargeAndInCharge": {
+"hero": "The Lost Vikings",
+"level": 16,
+"name": "Large and In Charge"
+},
+"LostVikingsMasteryNordicAttackSquad": {
+"hero": "The Lost Vikings",
+"level": 13,
+"name": "Nordic Attack Squad"
+},
+"LostVikingsMasteryNorseForce": {
+"hero": "The Lost Vikings",
+"level": 7,
+"name": "Norse Force!"
+},
+"LostVikingsMasteryOlafTheStout": {
+"hero": "The Lost Vikings",
+"level": 1,
+"name": "Olaf the Stout"
+},
+"LostVikingsMasteryPainDontHurt": {
+"hero": "The Lost Vikings",
+"level": 4,
+"name": "Pain Don't Hurt"
+},
+"LostVikingsMasterySpinToWin": {
+"hero": "The Lost Vikings",
+"level": 7,
+"name": "Spin To Win!"
+},
+"LostVikingsMasterySpyGames": {
+"hero": "The Lost Vikings",
+"level": 1,
+"name": "Spy Games"
+},
+"LostVikingsMasteryTheSequel": {
+"hero": "The Lost Vikings",
+"level": 20,
+"name": "The Sequel!"
+},
+"LostVikingsMasteryVikingBribery": {
+"hero": "The Lost Vikings",
+"level": 1,
+"name": "Viking Bribery"
+},
+"LostVikingsMasteryWereOnABoat": {
+"hero": "The Lost Vikings",
+"level": 20,
+"name": "Ragnarok 'n' Roll!"
+},
+"LostVikingsTalentFuryoftheStorm": {
+"hero": "The Lost Vikings",
+"level": 20,
+"name": "Fury of the Storm"
+},
+"LucioAmpItUpRejuvenescencia": {
+"hero": "L\u00facio",
+"level": 16,
+"name": "Rejuvenesc\u00eancia"
+},
+"LucioAmpItUpUpTheFrequency": {
+"hero": "L\u00facio",
+"level": 16,
+"name": "Up the Frequency"
+},
+"LucioAmpItUpUpToEleven": {
+"hero": "L\u00facio",
+"level": 16,
+"name": "Up To Eleven"
+},
+"LucioBoombox": {
+"hero": "L\u00facio",
+"level": 7,
+"name": "Boombox"
+},
+"LucioCrossfadeAllTogetherTalent": {
+"hero": "L\u00facio",
+"level": 13,
+"name": "All Together"
+},
+"LucioCrossfadeMixingFire": {
+"hero": "L\u00facio",
+"level": 20,
+"name": "Mixing Fire"
+},
+"LucioCrossfadePartyMixQuest": {
+"hero": "L\u00facio",
+"level": 1,
+"name": "Party Mix"
+},
+"LucioHighFive": {
+"hero": "L\u00facio",
+"level": 10,
+"name": "High Five"
+},
+"LucioItemSummerAnthem": {
+"hero": "L\u00facio",
+"level": 20,
+"name": "Summer Anthem"
+},
+"LucioPassiveHouseParty": {
+"hero": "L\u00facio",
+"level": 20,
+"name": "House Party"
+},
+"LucioPassiveSmoothMoves": {
+"hero": "L\u00facio",
+"level": 1,
+"name": "Smooth Moves"
+},
+"LucioPushOffHeavyCasters": {
+"hero": "L\u00facio",
+"level": 13,
+"name": "Heavy Casters"
+},
+"LucioPushOffSupersonic": {
+"hero": "L\u00facio",
+"level": 4,
+"name": "Supersonic"
+},
+"LucioReverseAmp": {
+"hero": "L\u00facio",
+"level": 7,
+"name": "Reverse Amp"
+},
+"LucioSoundBarrier": {
+"hero": "L\u00facio",
+"level": 10,
+"name": "Sound Barrier"
+},
+"LucioSoundBarrierBossaNova": {
+"hero": "L\u00facio",
+"level": 20,
+"name": "Bossa Nova"
+},
+"LucioSoundwaveGoodVibrations": {
+"hero": "L\u00facio",
+"level": 7,
+"name": "Good Vibrations"
+},
+"LucioSoundwaveOffTheWall": {
+"hero": "L\u00facio",
+"level": 4,
+"name": "Off the Wall"
+},
+"LucioSoundwaveSubwoofer": {
+"hero": "L\u00facio",
+"level": 4,
+"name": "Subwoofer"
+},
+"LucioWallRideAccelerando": {
+"hero": "L\u00facio",
+"level": 1,
+"name": "Accelerando"
+},
+"LucioWallRideSlip": {
+"hero": "L\u00facio",
+"level": 13,
+"name": "Slip"
+},
+"MaievArmoredAssault": {
+"hero": "Maiev",
+"level": 16,
+"name": "Armored Assault"
+},
+"MaievContainmentDisc": {
+"hero": "Maiev",
+"level": 10,
+"name": "Containment Disc"
+},
+"MaievFanOfKnivesBladeDance": {
+"hero": "Maiev",
+"level": 4,
+"name": "Blade Dance"
+},
+"MaievFanOfKnivesBladedArmor": {
+"hero": "Maiev",
+"level": 13,
+"name": "Bladed Armor"
+},
+"MaievFanOfKnivesElunesWrath": {
+"hero": "Maiev",
+"level": 7,
+"name": "Elune's Wrath"
+},
+"MaievFanOfKnivesNaishasMemento": {
+"hero": "Maiev",
+"level": 1,
+"name": "Naisha's Memento"
+},
+"MaievFanOfKnivesPinDown": {
+"hero": "Maiev",
+"level": 4,
+"name": "Pin Down"
+},
+"MaievShadowOrbHuntress": {
+"hero": "Maiev",
+"level": 20,
+"name": "Shadow Orb: Huntress"
+},
+"MaievShadowOrbShadowStrike": {
+"hero": "Maiev",
+"level": 20,
+"name": "Shadow Orb: Shadow Strike"
+},
+"MaievSpiritOfVengeanceRuthlessSpirit": {
+"hero": "Maiev",
+"level": 7,
+"name": "Ruthless Spirit"
+},
+"MaievSpiritOfVengeanceShadowArmor": {
+"hero": "Maiev",
+"level": 13,
+"name": "Shadow Armor"
+},
+"MaievSpiritOfVengeanceShadowOrbVengeance": {
+"hero": "Maiev",
+"level": 20,
+"name": "Shadow Orb: Vengeance"
+},
+"MaievSpiritOfVengeanceSuddenVengeance": {
+"hero": "Maiev",
+"level": 4,
+"name": "Sudden Vengeance"
+},
+"MaievSpiritOfVengeanceVengefulKnives": {
+"hero": "Maiev",
+"level": 16,
+"name": "Vengeful Knives"
+},
+"MaievUmbralBindBondsOfCorruption": {
+"hero": "Maiev",
+"level": 7,
+"name": "Bonds of Corruption"
+},
+"MaievUmbralBindBondsOfJustice": {
+"hero": "Maiev",
+"level": 1,
+"name": "Bonds of Justice"
+},
+"MaievUmbralBindChainGang": {
+"hero": "Maiev",
+"level": 13,
+"name": "Chain Gang"
+},
+"MaievUmbralBindCruelChain": {
+"hero": "Maiev",
+"level": 16,
+"name": "Cruel Chain"
+},
+"MaievUmbralBindPursuitOfVengeance": {
+"hero": "Maiev",
+"level": 1,
+"name": "Pursuit of Vengeance"
+},
+"MaievWardensCage": {
+"hero": "Maiev",
+"level": 10,
+"name": "Warden's Cage"
+},
+"MalGanisCarrionSwarm": {
+"hero": "Mal'Ganis",
+"level": 10,
+"name": "Carrion Swarm"
+},
+"MalGanisCarrionSwarmSeekerSwarm": {
+"hero": "Mal'Ganis",
+"level": 20,
+"name": "Seeker Swarm"
+},
+"MalGanisDarkConversion": {
+"hero": "Mal'Ganis",
+"level": 10,
+"name": "Dark Conversion"
+},
+"MalGanisDarkConversionWrathOfNathreza": {
+"hero": "Mal'Ganis",
+"level": 20,
+"name": "Wrath of Nathreza"
+},
+"MalGanisFelClawsBlackClaws": {
+"hero": "Mal'Ganis",
+"level": 7,
+"name": "Black Claws"
+},
+"MalGanisFelClawsBlindAsABat": {
+"hero": "Mal'Ganis",
+"level": 16,
+"name": "Blind as a Bat"
+},
+"MalGanisFelClawsVanquishTheWeak": {
+"hero": "Mal'Ganis",
+"level": 20,
+"name": "Vanquish the Weak"
+},
+"MalGanisFelClawsWillOfTichondrius": {
+"hero": "Mal'Ganis",
+"level": 7,
+"name": "Will of Tichondrius"
+},
+"MalGanisNecroticEmbraceEchoOfDoom": {
+"hero": "Mal'Ganis",
+"level": 4,
+"name": "Echo of Doom"
+},
+"MalGanisNecroticEmbraceFueledByTorment": {
+"hero": "Mal'Ganis",
+"level": 4,
+"name": "Fueled by Torment"
+},
+"MalGanisNecroticEmbraceMightOfSargeras": {
+"hero": "Mal'Ganis",
+"level": 4,
+"name": "Might of Sargeras"
+},
+"MalGanisNecroticEmbracePlagueBats": {
+"hero": "Mal'Ganis",
+"level": 16,
+"name": "Plague Bats"
+},
+"MalGanisNecroticEmbraceWingedGuard": {
+"hero": "Mal'Ganis",
+"level": 1,
+"name": "Winged Guard"
+},
+"MalGanisNightRushAloneInTheDark": {
+"hero": "Mal'Ganis",
+"level": 20,
+"name": "Alone in the Dark"
+},
+"MalGanisNightRushDeepSleep": {
+"hero": "Mal'Ganis",
+"level": 13,
+"name": "Deep Sleep"
+},
+"MalGanisNightRushSpreadingPlague": {
+"hero": "Mal'Ganis",
+"level": 7,
+"name": "Spreading Plague"
+},
+"MalGanisNightRushTheNightBeckons": {
+"hero": "Mal'Ganis",
+"level": 13,
+"name": "The Night Beckons"
+},
+"MalGanisVampiricTouchBloodRush": {
+"hero": "Mal'Ganis",
+"level": 13,
+"name": "Blood Rush"
+},
+"MalGanisVampiricTouchFrenziedAssault": {
+"hero": "Mal'Ganis",
+"level": 16,
+"name": "Frenzied Assault"
+},
+"MalGanisVampiricTouchTimeToFeed": {
+"hero": "Mal'Ganis",
+"level": 1,
+"name": "Time to Feed"
+},
+"MalGanisVampiricTouchVampiricAura": {
+"hero": "Mal'Ganis",
+"level": 1,
+"name": "Vampiric Aura"
+},
+"MalfurionCelestialAlignment": {
+"hero": "Malfurion",
+"level": 4,
+"name": "Celestial Alignment"
+},
+"MalfurionCombatStyleShandosClarity": {
+"hero": "Malfurion",
+"level": 4,
+"name": "Shan'do's Clarity"
+},
+"MalfurionEntanglingRootsDeepRootsTalent": {
+"hero": "Malfurion",
+"level": 1,
+"name": "Deep Roots"
+},
+"MalfurionEntanglingRootsEmeraldDreams": {
+"hero": "Malfurion",
+"level": 1,
+"name": "Emerald Dreams"
+},
+"MalfurionHeroicAbilityTranquility": {
+"hero": "Malfurion",
+"level": 10,
+"name": "Tranquility"
+},
+"MalfurionHeroicAbilityTwilightDream": {
+"hero": "Malfurion",
+"level": 10,
+"name": "Twilight Dream"
+},
+"MalfurionLifebloomRegrowth": {
+"hero": "Malfurion",
+"level": 20,
+"name": "Lifebloom"
+},
+"MalfurionMasteryAstralCommunion": {
+"hero": "Malfurion",
+"level": 20,
+"name": "Astral Communion"
+},
+"MalfurionMasteryHinderingMoonfire": {
+"hero": "Malfurion",
+"level": 13,
+"name": "Hindering Moonfire"
+},
+"MalfurionMasteryLunarShower": {
+"hero": "Malfurion",
+"level": 20,
+"name": "Lunar Shower"
+},
+"MalfurionMasterySerenity": {
+"hero": "Malfurion",
+"level": 20,
+"name": "Serenity"
+},
+"MalfurionMasteryTenaciousRootsEntanglingRoots": {
+"hero": "Malfurion",
+"level": 7,
+"name": "Tenacious Roots"
+},
+"MalfurionMasteryVengefulRoots": {
+"hero": "Malfurion",
+"level": 1,
+"name": "Vengeful Roots"
+},
+"MalfurionMoonfireMoonlitHarmonyTalent": {
+"hero": "Malfurion",
+"level": 16,
+"name": "Moonlit Harmony"
+},
+"MalfurionNaturesCureRegrowth": {
+"hero": "Malfurion",
+"level": 7,
+"name": "Nature's Cure"
+},
+"MalfurionRegrowthNaturesBalance": {
+"hero": "Malfurion",
+"level": 16,
+"name": "Nature's Balance"
+},
+"MalfurionRegrowthNaturesSwiftness": {
+"hero": "Malfurion",
+"level": 13,
+"name": "Nature's Swiftness"
+},
+"MalfurionRejuvenation": {
+"hero": "Malfurion",
+"level": 4,
+"name": "Rejuvenation"
+},
+"MalfurionRevitalizeInnervateTalent": {
+"hero": "Malfurion",
+"level": 13,
+"name": "Revitalize"
+},
+"MalfurionWildGrowthTalent": {
+"hero": "Malfurion",
+"level": 7,
+"name": "Wild Growth"
+},
+"MalfurionYserasGift": {
+"hero": "Malfurion",
+"level": 16,
+"name": "Ysera's Gift"
+},
+"MalthaelAngelOfDeath": {
+"hero": "Malthael",
+"level": 20,
+"name": "Angel of Death"
+},
+"MalthaelBlackHarvest": {
+"hero": "Malthael",
+"level": 4,
+"name": "Black Harvest"
+},
+"MalthaelColdHand": {
+"hero": "Malthael",
+"level": 7,
+"name": "Cold Hand"
+},
+"MalthaelDeathsReach": {
+"hero": "Malthael",
+"level": 1,
+"name": "Death's Reach"
+},
+"MalthaelDieAlone": {
+"hero": "Malthael",
+"level": 4,
+"name": "Die Alone"
+},
+"MalthaelEtherealExistence": {
+"hero": "Malthael",
+"level": 13,
+"name": "Ethereal Existence"
+},
+"MalthaelFearTheReaper": {
+"hero": "Malthael",
+"level": 1,
+"name": "Fear the Reaper"
+},
+"MalthaelFinalCurtain": {
+"hero": "Malthael",
+"level": 20,
+"name": "Final Curtain"
+},
+"MalthaelInevitableEnd": {
+"hero": "Malthael",
+"level": 13,
+"name": "Inevitable End"
+},
+"MalthaelLastRites": {
+"hero": "Malthael",
+"level": 10,
+"name": "Last Rites"
+},
+"MalthaelMassacre": {
+"hero": "Malthael",
+"level": 7,
+"name": "Massacre"
+},
+"MalthaelMementoMori": {
+"hero": "Malthael",
+"level": 16,
+"name": "Memento Mori"
+},
+"MalthaelMortality": {
+"hero": "Malthael",
+"level": 16,
+"name": "Mortality"
+},
+"MalthaelNoOneCanStopDeath": {
+"hero": "Malthael",
+"level": 20,
+"name": "No One Can Stop Death"
+},
+"MalthaelOnAPaleHorse": {
+"hero": "Malthael",
+"level": 1,
+"name": "On a Pale Horse"
+},
+"MalthaelReaperOfSouls": {
+"hero": "Malthael",
+"level": 20,
+"name": "Reaper of Souls"
+},
+"MalthaelShroudOfWisdom": {
+"hero": "Malthael",
+"level": 13,
+"name": "Shroud of Wisdom"
+},
+"MalthaelSoulCollector": {
+"hero": "Malthael",
+"level": 16,
+"name": "Soul Collector"
+},
+"MalthaelSoulSiphon": {
+"hero": "Malthael",
+"level": 13,
+"name": "Soul Siphon"
+},
+"MalthaelThrowingShade": {
+"hero": "Malthael",
+"level": 4,
+"name": "Throwing Shade"
+},
+"MalthaelTormentedSouls": {
+"hero": "Malthael",
+"level": 10,
+"name": "Tormented Souls"
+},
+"MalthaelTouchOfDeath": {
+"hero": "Malthael",
+"level": 7,
+"name": "Touch of Death"
+},
+"MedicBedsideManner": {
+"hero": "Lt. Morales",
+"level": 13,
+"name": "Bedside Manner"
+},
+"MedicBlastShield": {
+"hero": "Lt. Morales",
+"level": 4,
+"name": "Blast Shield"
+},
+"MedicCaduceusFeedback": {
+"hero": "Lt. Morales",
+"level": 1,
+"name": "Caduceus Feedback"
+},
+"MedicCellularReactor": {
+"hero": "Lt. Morales",
+"level": 4,
+"name": "Cellular Reactor"
+},
+"MedicClear": {
+"hero": "Lt. Morales",
+"level": 1,
+"name": "Clear!"
+},
+"MedicEMPGrenade": {
+"hero": "Lt. Morales",
+"level": 13,
+"name": "EMP Grenade"
+},
+"MedicExtendedCare": {
+"hero": "Lt. Morales",
+"level": 16,
+"name": "Extended Care"
+},
+"MedicFirstResponder": {
+"hero": "Lt. Morales",
+"level": 16,
+"name": "First Responder"
+},
+"MedicHeroicAbilityMedivacDropship": {
+"hero": "Lt. Morales",
+"level": 10,
+"name": "Medivac Dropships"
+},
+"MedicHeroicAbilityStimDrone": {
+"hero": "Lt. Morales",
+"level": 10,
+"name": "Stim Drone"
+},
+"MedicHospiceCare": {
+"hero": "Lt. Morales",
+"level": 20,
+"name": "Hospice Care"
+},
+"MedicHyperactivity": {
+"hero": "Lt. Morales",
+"level": 20,
+"name": "Hyperactivity"
+},
+"MedicLifeSupport": {
+"hero": "Lt. Morales",
+"level": 1,
+"name": "Life Support"
+},
+"MedicMediDrone": {
+"hero": "Lt. Morales",
+"level": 7,
+"name": "Medi-Drone"
+},
+"MedicPhysicalTherapy": {
+"hero": "Lt. Morales",
+"level": 7,
+"name": "Physical Therapy"
+},
+"MedicSafeZone": {
+"hero": "Lt. Morales",
+"level": 20,
+"name": "Safe Zone"
+},
+"MedicSecondOpinion": {
+"hero": "Lt. Morales",
+"level": 20,
+"name": "Second Opinion"
+},
+"MedicShieldSequencer": {
+"hero": "Lt. Morales",
+"level": 16,
+"name": "Shield Sequencer"
+},
+"MedicSystemShock": {
+"hero": "Lt. Morales",
+"level": 13,
+"name": "System Shock"
+},
+"MedicTraumaTrigger": {
+"hero": "Lt. Morales",
+"level": 4,
+"name": "Trauma Trigger"
+},
+"MedicVanadiumPlating": {
+"hero": "Lt. Morales",
+"level": 7,
+"name": "Vanadium Plating"
+},
+"MedivhArcaneBrilliance": {
+"hero": "Medivh",
+"level": 20,
+"name": "Arcane Brilliance"
+},
+"MedivhArcaneRiftArcaneCharge": {
+"hero": "Medivh",
+"level": 16,
+"name": "Arcane Charge"
+},
+"MedivhArcaneRiftGuardianOfTirisfal": {
+"hero": "Medivh",
+"level": 20,
+"name": "Guardian of Tirisfal"
+},
+"MedivhDustOfAppearance": {
+"hero": "Medivh",
+"level": 4,
+"name": "Dust of Appearance"
+},
+"MedivhDustofDisappearance": {
+"hero": "Medivh",
+"level": 20,
+"name": "Dust of Disappearance"
+},
+"MedivhForceOfWillArcaneExplosion": {
+"hero": "Medivh",
+"level": 7,
+"name": "Arcane Explosion"
+},
+"MedivhForceOfWillCircleOfProtection": {
+"hero": "Medivh",
+"level": 13,
+"name": "Circle of Protection"
+},
+"MedivhForceOfWillEnduringWill": {
+"hero": "Medivh",
+"level": 13,
+"name": "Enduring Will"
+},
+"MedivhForceOfWillReabsorption": {
+"hero": "Medivh",
+"level": 13,
+"name": "Reabsorption"
+},
+"MedivhForceofMagic": {
+"hero": "Medivh",
+"level": 7,
+"name": "Force of Magic"
+},
+"MedivhLeyLineSeal": {
+"hero": "Medivh",
+"level": 10,
+"name": "Ley Line Seal"
+},
+"MedivhLeyLineSealMedivhCheats": {
+"hero": "Medivh",
+"level": 20,
+"name": "Medivh Cheats!"
+},
+"MedivhMysticAssault": {
+"hero": "Medivh",
+"level": 7,
+"name": "Mystic Assault"
+},
+"MedivhPolyBomb": {
+"hero": "Medivh",
+"level": 10,
+"name": "Poly Bomb"
+},
+"MedivhPolyBombGlyphOfPolyBomb": {
+"hero": "Medivh",
+"level": 20,
+"name": "Glyph Of Poly Bomb"
+},
+"MedivhPortalMageArmor": {
+"hero": "Medivh",
+"level": 4,
+"name": "Mage Armor"
+},
+"MedivhPortalPortalMastery": {
+"hero": "Medivh",
+"level": 1,
+"name": "Portal Mastery"
+},
+"MedivhPortalRavenFamiliar": {
+"hero": "Medivh",
+"level": 4,
+"name": "Raven Familiar"
+},
+"MedivhPortalStablePortal": {
+"hero": "Medivh",
+"level": 16,
+"name": "Stable Portal"
+},
+"MedivhTemporalFlux": {
+"hero": "Medivh",
+"level": 16,
+"name": "Temporal Flux"
+},
+"MedivhTransformRavenRavensIntellect": {
+"hero": "Medivh",
+"level": 1,
+"name": "Raven's Intellect"
+},
+"MedivhTransformRavenWindsOfCelerity": {
+"hero": "Medivh",
+"level": 1,
+"name": "Winds of Celerity"
+},
+"MeiOWAcclimation": {
+"hero": "Mei",
+"level": 16,
+"name": "Acclimation"
+},
+"MeiOWAvalanche": {
+"hero": "Mei",
+"level": 10,
+"name": "Avalanche"
+},
+"MeiOWBackupBattery": {
+"hero": "Mei",
+"level": 7,
+"name": "Backup Battery"
+},
+"MeiOWBlackIce": {
+"hero": "Mei",
+"level": 16,
+"name": "Black Ice"
+},
+"MeiOWCascade": {
+"hero": "Mei",
+"level": 20,
+"name": "Cascade"
+},
+"MeiOWColdFront": {
+"hero": "Mei",
+"level": 4,
+"name": "Cold Front"
+},
+"MeiOWCryoFreezeCoolingServos": {
+"hero": "Mei",
+"level": 13,
+"name": "Cooling Servos"
+},
+"MeiOWCrystallize": {
+"hero": "Mei",
+"level": 4,
+"name": "Crystallize"
+},
+"MeiOWFlashFreeze": {
+"hero": "Mei",
+"level": 20,
+"name": "Flash Freeze"
+},
+"MeiOWFlurry": {
+"hero": "Mei",
+"level": 13,
+"name": "Flurry"
+},
+"MeiOWFreshPowder": {
+"hero": "Mei",
+"level": 16,
+"name": "Fresh Powder"
+},
+"MeiOWHeatTransfer": {
+"hero": "Mei",
+"level": 1,
+"name": "Heat Transfer"
+},
+"MeiOWHeavyPack": {
+"hero": "Mei",
+"level": 1,
+"name": "Heavy Pack"
+},
+"MeiOWIceStorm": {
+"hero": "Mei",
+"level": 1,
+"name": "Ice Storm"
+},
+"MeiOWIceWall": {
+"hero": "Mei",
+"level": 10,
+"name": "Ice Wall"
+},
+"MeiOWInduceHibernation": {
+"hero": "Mei",
+"level": 7,
+"name": "Induce Hibernation"
+},
+"MeiOWPolarVortex": {
+"hero": "Mei",
+"level": 13,
+"name": "Polar Vortex"
+},
+"MeiOWShatter": {
+"hero": "Mei",
+"level": 20,
+"name": "Shatter"
+},
+"MeiOWSkatingAway": {
+"hero": "Mei",
+"level": 7,
+"name": "Skating Away"
+},
+"MeiOWSlushball": {
+"hero": "Mei",
+"level": 4,
+"name": "Slushball"
+},
+"MeiOWTheBigOne": {
+"hero": "Mei",
+"level": 20,
+"name": "The Big One"
+},
+"MephistoAnimosity": {
+"hero": "Mephisto",
+"level": 16,
+"name": "Animosity"
+},
+"MephistoConsumeSouls": {
+"hero": "Mephisto",
+"level": 10,
+"name": "Consume Souls"
+},
+"MephistoConsumeSoulsConsumedByHatred": {
+"hero": "Mephisto",
+"level": 20,
+"name": "Consumed by Hatred"
+},
+"MephistoDuranceOfHate": {
+"hero": "Mephisto",
+"level": 10,
+"name": "Durance of Hate"
+},
+"MephistoDuranceOfHateUnspeakableHorror": {
+"hero": "Mephisto",
+"level": 20,
+"name": "Unspeakable Horror"
+},
+"MephistoLightningNovaFuriousSpark": {
+"hero": "Mephisto",
+"level": 1,
+"name": "Furious Spark"
+},
+"MephistoLightningNovaMimic": {
+"hero": "Mephisto",
+"level": 20,
+"name": "Mimic"
+},
+"MephistoLightningNovaStaticBarrier": {
+"hero": "Mephisto",
+"level": 4,
+"name": "Static Barrier"
+},
+"MephistoLightningNovaStaticField": {
+"hero": "Mephisto",
+"level": 16,
+"name": "Static Field"
+},
+"MephistoLordOfHatredHysteria": {
+"hero": "Mephisto",
+"level": 13,
+"name": "Hysteria"
+},
+"MephistoShadeOfMephistoFrostStorm": {
+"hero": "Mephisto",
+"level": 7,
+"name": "Frost Storm"
+},
+"MephistoShadeOfMephistoGhastlyArmor": {
+"hero": "Mephisto",
+"level": 7,
+"name": "Ghastly Armor"
+},
+"MephistoShadeOfMephistoMaliciousIntent": {
+"hero": "Mephisto",
+"level": 1,
+"name": "Malicious Intent"
+},
+"MephistoShadeOfMephistoShadeLord": {
+"hero": "Mephisto",
+"level": 20,
+"name": "Shade Lord"
+},
+"MephistoShadeOfMephistoTrickery": {
+"hero": "Mephisto",
+"level": 7,
+"name": "Trickery"
+},
+"MephistoShardOfHate": {
+"hero": "Mephisto",
+"level": 13,
+"name": "Shard of Hate"
+},
+"MephistoSkullMissileAbhorredSkull": {
+"hero": "Mephisto",
+"level": 13,
+"name": "Abhorred Skull"
+},
+"MephistoSkullMissileHatefulMending": {
+"hero": "Mephisto",
+"level": 4,
+"name": "Hateful Mending"
+},
+"MephistoSkullMissileLightningReaction": {
+"hero": "Mephisto",
+"level": 16,
+"name": "Lightning Reaction"
+},
+"MephistoSkullMissileUnyieldingPower": {
+"hero": "Mephisto",
+"level": 1,
+"name": "Unyielding Power"
+},
+"MephistoSpite": {
+"hero": "Mephisto",
+"level": 4,
+"name": "Spite"
+},
+"MonkAirAlly": {
+"hero": "Kharazim",
+"level": 4,
+"name": "Air Ally"
+},
+"MonkBlazingFistsDeadlyReach": {
+"hero": "Kharazim",
+"level": 7,
+"name": "Blazing Fists"
+},
+"MonkBlindingSpeedRadiantDash": {
+"hero": "Kharazim",
+"level": 7,
+"name": "Blinding Speed"
+},
+"MonkCleansingTouchRadiantDash": {
+"hero": "Kharazim",
+"level": 16,
+"name": "Cleansing Touch"
+},
+"MonkEarthAlly": {
+"hero": "Kharazim",
+"level": 4,
+"name": "Earth Ally"
+},
+"MonkEchoofHeavenBreathofHeaven": {
+"hero": "Kharazim",
+"level": 16,
+"name": "Echo of Heaven"
+},
+"MonkElevenSidedStrikeSevenSidedStrike": {
+"hero": "Kharazim",
+"level": 20,
+"name": "Transgression"
+},
+"MonkEpiphany": {
+"hero": "Kharazim",
+"level": 20,
+"name": "Epiphany"
+},
+"MonkFistsofLegendTrait": {
+"hero": "Kharazim",
+"level": 20,
+"name": "Fists of Legend"
+},
+"MonkHeavenlyZealBreathofHeaven": {
+"hero": "Kharazim",
+"level": 7,
+"name": "Heavenly Zeal"
+},
+"MonkHeroicAbilityDivinePalm": {
+"hero": "Kharazim",
+"level": 10,
+"name": "Divine Palm"
+},
+"MonkHeroicAbilitySevenSidedStrike": {
+"hero": "Kharazim",
+"level": 10,
+"name": "Seven-Sided Strike"
+},
+"MonkInsight": {
+"hero": "Kharazim",
+"level": 1,
+"name": "Insight"
+},
+"MonkIronFists": {
+"hero": "Kharazim",
+"level": 1,
+"name": "Iron Fists"
+},
+"MonkPeacefulReposeDivinePalm": {
+"hero": "Kharazim",
+"level": 20,
+"name": "Peaceful Repose"
+},
+"MonkQuicksilverRadiantDash": {
+"hero": "Kharazim",
+"level": 13,
+"name": "Quicksilver"
+},
+"MonkSixthSense": {
+"hero": "Kharazim",
+"level": 13,
+"name": "Sixth Sense"
+},
+"MonkSpiritAlly": {
+"hero": "Kharazim",
+"level": 4,
+"name": "Spirit Ally"
+},
+"MonkTranscendence": {
+"hero": "Kharazim",
+"level": 1,
+"name": "Transcendence"
+},
+"MonkWayoftheHundredFistsRadiantDash": {
+"hero": "Kharazim",
+"level": 16,
+"name": "Way of the Hundred Fists"
+},
+"MuradinBronzebeardRage": {
+"hero": "Muradin",
+"level": 13,
+"name": "Bronzebeard Rage"
+},
+"MuradinCombatStyleSkullcracker": {
+"hero": "Muradin",
+"level": 7,
+"name": "Skullcracker"
+},
+"MuradinCombatStyleThirdWind": {
+"hero": "Muradin",
+"level": 1,
+"name": "Third Wind"
+},
+"MuradinDwarfBlock": {
+"hero": "Muradin",
+"level": 1,
+"name": "Dwarf Block"
+},
+"MuradinGiveEmTheAxeExecutioner60DamageBonus": {
+"hero": "Muradin",
+"level": 7,
+"name": "Give 'em the Axe!"
+},
+"MuradinHeroicAbilityAvatar": {
+"hero": "Muradin",
+"level": 10,
+"name": "Avatar"
+},
+"MuradinHeroicAbilityHaymaker": {
+"hero": "Muradin",
+"level": 10,
+"name": "Haymaker"
+},
+"MuradinMasteryAvatarUnstoppableForce": {
+"hero": "Muradin",
+"level": 20,
+"name": "Unstoppable Force"
+},
+"MuradinMasteryDwarfTossDwarfLaunch": {
+"hero": "Muradin",
+"level": 16,
+"name": "Dwarf Launch"
+},
+"MuradinMasteryDwarfTossHeavyImpact": {
+"hero": "Muradin",
+"level": 7,
+"name": "Heavy Impact"
+},
+"MuradinMasteryHaymakerGrandSlam": {
+"hero": "Muradin",
+"level": 20,
+"name": "Grand Slam"
+},
+"MuradinMasteryPassiveStoneform": {
+"hero": "Muradin",
+"level": 16,
+"name": "Stoneform"
+},
+"MuradinMasteryStormhammerSledgehammer": {
+"hero": "Muradin",
+"level": 4,
+"name": "Sledgehammer"
+},
+"MuradinMasteryThunderburn": {
+"hero": "Muradin",
+"level": 4,
+"name": "Thunder Burn"
+},
+"MuradinMasteryThunderclapHealingStatic": {
+"hero": "Muradin",
+"level": 13,
+"name": "Healing Static"
+},
+"MuradinMasteryThunderclapReverberation": {
+"hero": "Muradin",
+"level": 4,
+"name": "Reverberation"
+},
+"MuradinMasteryThunderclapThunderstrike": {
+"hero": "Muradin",
+"level": 13,
+"name": "Thunder Strike"
+},
+"MuradinStormboltPerfectStorm": {
+"hero": "Muradin",
+"level": 1,
+"name": "Perfect Storm"
+},
+"MurkyAFishyDeal": {
+"hero": "Murky",
+"level": 1,
+"name": "A Fishy Deal"
+},
+"MurkyBigTunaKahuna": {
+"hero": "Murky",
+"level": 20,
+"name": "Big Tuna Kahuna"
+},
+"MurkyBlackLagoon": {
+"hero": "Murky",
+"level": 7,
+"name": "Black Lagoon"
+},
+"MurkyEggHunt": {
+"hero": "Murky",
+"level": 1,
+"name": "Egg Hunt"
+},
+"MurkyEggShell": {
+"hero": "Murky",
+"level": 13,
+"name": "Egg Shell"
+},
+"MurkyFishEye": {
+"hero": "Murky",
+"level": 1,
+"name": "Fish Eye"
+},
+"MurkyFishOil": {
+"hero": "Murky",
+"level": 16,
+"name": "Fish Oil"
+},
+"MurkyFishTank": {
+"hero": "Murky",
+"level": 13,
+"name": "Fish Tank"
+},
+"MurkyHeroicAbilityMarchoftheMurlocs": {
+"hero": "Murky",
+"level": 10,
+"name": "March of the Murlocs"
+},
+"MurkyHeroicAbilityOctoGrab": {
+"hero": "Murky",
+"level": 10,
+"name": "Octo-Grab"
+},
+"MurkyLivingtheDream": {
+"hero": "Murky",
+"level": 4,
+"name": "Living the Dream"
+},
+"MurkyMakingInky": {
+"hero": "Murky",
+"level": 20,
+"name": "Making Inky"
+},
+"MurkyMasteryAndASharkToo": {
+"hero": "Murky",
+"level": 20,
+"name": "... And a Shark Too!"
+},
+"MurkyMasteryNeverEndingMurlocs": {
+"hero": "Murky",
+"level": 20,
+"name": "Never-Ending Murlocs"
+},
+"MurkyMasteryRejuvenatingBubble": {
+"hero": "Murky",
+"level": 13,
+"name": "Rejuvenating Bubble"
+},
+"MurkyMasteryTufferfish": {
+"hero": "Murky",
+"level": 4,
+"name": "Tufferfish"
+},
+"MurkyMasteryWrathOfCod": {
+"hero": "Murky",
+"level": 16,
+"name": "Wrath of Cod"
+},
+"MurkySlimeTime": {
+"hero": "Murky",
+"level": 4,
+"name": "Slime Time"
+},
+"MurkySlipperyWhenWet": {
+"hero": "Murky",
+"level": 7,
+"name": "Slippery When Wet"
+},
+"MurkyTimetoKrill": {
+"hero": "Murky",
+"level": 7,
+"name": "Time to Krill"
+},
+"MurkyToxicBuildup": {
+"hero": "Murky",
+"level": 16,
+"name": "Toxic Buildup"
+},
+"NecromancerBoneArmorWallOfBonesTalent": {
+"hero": "Xul",
+"level": 7,
+"name": "Wall Of Bones"
+},
+"NecromancerHeroicAbilityPoisonNova": {
+"hero": "Xul",
+"level": 10,
+"name": "Poison Nova"
+},
+"NecromancerHeroicAbilitySkeletalMages": {
+"hero": "Xul",
+"level": 10,
+"name": "Skeletal Mages"
+},
+"NecromancerTalentAmplifyDamage": {
+"hero": "Xul",
+"level": 13,
+"name": "Amplify Damage"
+},
+"NecromancerTalentAndarielsVisage": {
+"hero": "Xul",
+"level": 20,
+"name": "Andariel's Visage"
+},
+"NecromancerTalentBoneArmorBacklash": {
+"hero": "Xul",
+"level": 1,
+"name": "Backlash"
+},
+"NecromancerTalentBoneArmorShackler": {
+"hero": "Xul",
+"level": 1,
+"name": "Shackler"
+},
+"NecromancerTalentBoneArmorShade": {
+"hero": "Xul",
+"level": 1,
+"name": "Shade"
+},
+"NecromancerTalentBoneSpear": {
+"hero": "Xul",
+"level": 16,
+"name": "Bone Spear"
+},
+"NecromancerTalentColdHandOfDeath": {
+"hero": "Xul",
+"level": 20,
+"name": "Cold Hand of Death"
+},
+"NecromancerTalentDecrepify": {
+"hero": "Xul",
+"level": 16,
+"name": "Decrepify"
+},
+"NecromancerTalentEchoesOfDeath": {
+"hero": "Xul",
+"level": 13,
+"name": "Echoes of Death"
+},
+"NecromancerTalentGrimScythe": {
+"hero": "Xul",
+"level": 4,
+"name": "Grim Scythe"
+},
+"NecromancerTalentHarvestVitality": {
+"hero": "Xul",
+"level": 7,
+"name": "Harvest Vitality"
+},
+"NecromancerTalentJailors": {
+"hero": "Xul",
+"level": 4,
+"name": "Jailors"
+},
+"NecromancerTalentKalansEdict": {
+"hero": "Xul",
+"level": 20,
+"name": "Kalan's Edict"
+},
+"NecromancerTalentMortalWound": {
+"hero": "Xul",
+"level": 20,
+"name": "Mortal Wound"
+},
+"NecromancerTalentRapidHarvest": {
+"hero": "Xul",
+"level": 13,
+"name": "Rapid Harvest"
+},
+"NecromancerTalentReapersToll": {
+"hero": "Xul",
+"level": 4,
+"name": "Reaper's Toll"
+},
+"NecromancerTalentTragOulsEssence": {
+"hero": "Xul",
+"level": 7,
+"name": "Trag'Oul's Essence"
+},
+"NecromancerTalentWeaken": {
+"hero": "Xul",
+"level": 16,
+"name": "Weaken"
+},
+"NexusHunterBloodRageHealmonger": {
+"hero": "Qhira",
+"level": 7,
+"name": "Healmonger"
+},
+"NexusHunterBloodRageYourPainMyGain": {
+"hero": "Qhira",
+"level": 4,
+"name": "Your Pain, My Gain"
+},
+"NexusHunterCarnageMaximumEffort": {
+"hero": "Qhira",
+"level": 1,
+"name": "Maximum Effort"
+},
+"NexusHunterChainsaw": {
+"hero": "Qhira",
+"level": 13,
+"name": "Chainsaw"
+},
+"NexusHunterEnsnaringSwing": {
+"hero": "Qhira",
+"level": 4,
+"name": "Ensnaring Swing"
+},
+"NexusHunterFatalWounds": {
+"hero": "Qhira",
+"level": 1,
+"name": "Fatal Wounds"
+},
+"NexusHunterFinalStrike": {
+"hero": "Qhira",
+"level": 10,
+"name": "Final Strike"
+},
+"NexusHunterFinalStrikeUnleashedPotential": {
+"hero": "Qhira",
+"level": 20,
+"name": "Unleashed Potential"
+},
+"NexusHunterFinishingTouch": {
+"hero": "Qhira",
+"level": 1,
+"name": "Finishing Touch"
+},
+"NexusHunterGrapplingHookUtilityBelt": {
+"hero": "Qhira",
+"level": 20,
+"name": "Utility Belt"
+},
+"NexusHunterHuntersVengeanceNoSanctuary": {
+"hero": "Qhira",
+"level": 20,
+"name": "No Sanctuary"
+},
+"NexusHunterPulsingPain": {
+"hero": "Qhira",
+"level": 13,
+"name": "Pulsing Pain"
+},
+"NexusHunterRevolvingSweepBoomingKick": {
+"hero": "Qhira",
+"level": 16,
+"name": "Booming Kick"
+},
+"NexusHunterRevolvingSweepLingeringAilment": {
+"hero": "Qhira",
+"level": 16,
+"name": "Lingering Ailment"
+},
+"NexusHunterRevolvingSweepSwingLifeAway": {
+"hero": "Qhira",
+"level": 16,
+"name": "Swing Life Away"
+},
+"NexusHunterSiphoningLink": {
+"hero": "Qhira",
+"level": 7,
+"name": "Siphoning Link"
+},
+"NexusHunterTheHunted": {
+"hero": "Qhira",
+"level": 13,
+"name": "The Hunted"
+},
+"NexusHunterTheThirst": {
+"hero": "Qhira",
+"level": 7,
+"name": "The Thirst"
+},
+"NexusHunterUnrelentingStrikes": {
+"hero": "Qhira",
+"level": 10,
+"name": "Unrelenting Strikes"
+},
+"NexusHunterUnrelentingStrikesSilentKiller": {
+"hero": "Qhira",
+"level": 20,
+"name": "Silent Killer"
+},
+"NexusHunterUpstage": {
+"hero": "Qhira",
+"level": 4,
+"name": "Upstage"
+},
+"NovaAdvancedCloaking": {
+"hero": "Nova",
+"level": 1,
+"name": "Advanced Cloaking"
+},
+"NovaApolloSuit": {
+"hero": "Nova",
+"level": 20,
+"name": "Apollo Suit"
+},
+"NovaCombatStyleAntiArmorShells": {
+"hero": "Nova",
+"level": 7,
+"name": "Anti-Armor Shells"
+},
+"NovaCombatStyleOneintheChamber": {
+"hero": "Nova",
+"level": 7,
+"name": "One in the Chamber"
+},
+"NovaCovertMission": {
+"hero": "Nova",
+"level": 4,
+"name": "Covert Mission"
+},
+"NovaCovertOps": {
+"hero": "Nova",
+"level": 1,
+"name": "Covert Ops"
+},
+"NovaHeroicAbilityPrecisionStrike": {
+"hero": "Nova",
+"level": 10,
+"name": "Precision Strike"
+},
+"NovaHeroicAbilityTripleTap": {
+"hero": "Nova",
+"level": 10,
+"name": "Triple Tap"
+},
+"NovaHoloStability": {
+"hero": "Nova",
+"level": 4,
+"name": "Holo Stability"
+},
+"NovaIonicForceField": {
+"hero": "Nova",
+"level": 13,
+"name": "Ionic Force Field"
+},
+"NovaMasteryCripplingShot": {
+"hero": "Nova",
+"level": 16,
+"name": "Crippling Shot"
+},
+"NovaMasteryDoubleTap": {
+"hero": "Nova",
+"level": 13,
+"name": "Double Tap"
+},
+"NovaMasteryExplosiveShot": {
+"hero": "Nova",
+"level": 16,
+"name": "Explosive Round"
+},
+"NovaMasteryFastReload": {
+"hero": "Nova",
+"level": 20,
+"name": "Fast Reload"
+},
+"NovaMasteryLethalDecoy": {
+"hero": "Nova",
+"level": 16,
+"name": "Lethal Decoy"
+},
+"NovaMasteryLongshot": {
+"hero": "Nova",
+"level": 1,
+"name": "Longshot"
+},
+"NovaMasteryPerfectShotSnipe": {
+"hero": "Nova",
+"level": 7,
+"name": "Perfect Shot"
+},
+"NovaMasteryPrecisionBarrage": {
+"hero": "Nova",
+"level": 20,
+"name": "Precision Barrage"
+},
+"NovaMasteryPsionicEfficiency": {
+"hero": "Nova",
+"level": 13,
+"name": "Psionic Efficiency"
+},
+"NovaRapidProjection": {
+"hero": "Nova",
+"level": 4,
+"name": "Rapid Projection"
+},
+"OrpheaAbyssalSymbiosis": {
+"hero": "Orphea",
+"level": 13,
+"name": "Abyssal Symbiosis"
+},
+"OrpheaAllegrissimo": {
+"hero": "Orphea",
+"level": 4,
+"name": "Allegrissimo"
+},
+"OrpheaAncestralStrength": {
+"hero": "Orphea",
+"level": 1,
+"name": "Ancestral Strength"
+},
+"OrpheaBackbiter": {
+"hero": "Orphea",
+"level": 4,
+"name": "Backbiter"
+},
+"OrpheaBondOfAnguish": {
+"hero": "Orphea",
+"level": 16,
+"name": "Bond of Anguish"
+},
+"OrpheaChaoticAssault": {
+"hero": "Orphea",
+"level": 4,
+"name": "Chaotic Assault"
+},
+"OrpheaCrushingJaws": {
+"hero": "Orphea",
+"level": 10,
+"name": "Crushing Jaws"
+},
+"OrpheaDeadMagic": {
+"hero": "Orphea",
+"level": 16,
+"name": "Dead Magic"
+},
+"OrpheaDetermination": {
+"hero": "Orphea",
+"level": 13,
+"name": "Determination"
+},
+"OrpheaEldritchConduit": {
+"hero": "Orphea",
+"level": 20,
+"name": "Eldritch Conduit"
+},
+"OrpheaEnPointe": {
+"hero": "Orphea",
+"level": 1,
+"name": "En Pointe"
+},
+"OrpheaEngulfingOblivion": {
+"hero": "Orphea",
+"level": 20,
+"name": "Engulfing Oblivion"
+},
+"OrpheaEternalFeast": {
+"hero": "Orphea",
+"level": 10,
+"name": "Eternal Feast"
+},
+"OrpheaFinalToccata": {
+"hero": "Orphea",
+"level": 20,
+"name": "Final Toccata"
+},
+"OrpheaGrowingNightmare": {
+"hero": "Orphea",
+"level": 1,
+"name": "Growing Nightmare"
+},
+"OrpheaInsatiable": {
+"hero": "Orphea",
+"level": 7,
+"name": "Insatiable"
+},
+"OrpheaInvasiveMiasma": {
+"hero": "Orphea",
+"level": 13,
+"name": "Invasive Miasma"
+},
+"OrpheaLurkingTerror": {
+"hero": "Orphea",
+"level": 16,
+"name": "Lurking Terror"
+},
+"OrpheaMindDevourer": {
+"hero": "Orphea",
+"level": 7,
+"name": "Mind Devourer"
+},
+"OrpheaMonsterWithin": {
+"hero": "Orphea",
+"level": 20,
+"name": "Monster Within"
+},
+"OrpheaRavenousHunger": {
+"hero": "Orphea",
+"level": 7,
+"name": "Ravenous Hunger"
+},
+"ProbiusAggressiveMatrixWarpInPylon": {
+"hero": "Probius",
+"level": 13,
+"name": "Aggressive Matrix"
+},
+"ProbiusConstructAdditionalPylonsPylonOvercharge": {
+"hero": "Probius",
+"level": 20,
+"name": "Construct Additional Pylons"
+},
+"ProbiusEchoPulseDisruptionPulse": {
+"hero": "Probius",
+"level": 1,
+"name": "Echo Pulse"
+},
+"ProbiusGateKeeperNullGate": {
+"hero": "Probius",
+"level": 20,
+"name": "Gate Keeper"
+},
+"ProbiusGatherMineralsPhotonCannonQuest": {
+"hero": "Probius",
+"level": 1,
+"name": "Gather Minerals"
+},
+"ProbiusGravityWellWarpRift": {
+"hero": "Probius",
+"level": 16,
+"name": "Gravity Well"
+},
+"ProbiusInterferenceWarpRift": {
+"hero": "Probius",
+"level": 16,
+"name": "Interference"
+},
+"ProbiusNullGateHeroic": {
+"hero": "Probius",
+"level": 10,
+"name": "Null Gate"
+},
+"ProbiusParticleAcceleratorDisruptionPulse": {
+"hero": "Probius",
+"level": 7,
+"name": "Particle Accelerator"
+},
+"ProbiusPhotonBarrierPhotonCannon": {
+"hero": "Probius",
+"level": 4,
+"name": "Photon Barrier"
+},
+"ProbiusPowerOverflowingWarpInPylon": {
+"hero": "Probius",
+"level": 13,
+"name": "Power Overflowing"
+},
+"ProbiusProbiusLoopWarpRift": {
+"hero": "Probius",
+"level": 20,
+"name": "Probius Loop"
+},
+"ProbiusPylonOverchargeHeroic": {
+"hero": "Probius",
+"level": 10,
+"name": "Pylon Overcharge"
+},
+"ProbiusQuantumEntanglementWarpRift": {
+"hero": "Probius",
+"level": 16,
+"name": "Quantum Entanglement"
+},
+"ProbiusRiftShockWarpRift": {
+"hero": "Probius",
+"level": 7,
+"name": "Rift Shock"
+},
+"ProbiusShieldBatteryWarpInPylon": {
+"hero": "Probius",
+"level": 13,
+"name": "Shield Battery"
+},
+"ProbiusShieldCapacitor": {
+"hero": "Probius",
+"level": 4,
+"name": "Shield Capacitor"
+},
+"ProbiusShootEmUptoRiftsDisruptionPulse": {
+"hero": "Probius",
+"level": 20,
+"name": "Shoot 'Em Up"
+},
+"ProbiusTowerDefensePhotonCannon": {
+"hero": "Probius",
+"level": 7,
+"name": "Tower Defense"
+},
+"ProbiusTurboChargedWorkerRush": {
+"hero": "Probius",
+"level": 4,
+"name": "Turbo Charged"
+},
+"ProbiusWarpResonanceWarpRiftQuest": {
+"hero": "Probius",
+"level": 1,
+"name": "Warp Resonance"
+},
+"RagnarosBlastWaveBlastEcho": {
+"hero": "Ragnaros",
+"level": 16,
+"name": "Blast Echo"
+},
+"RagnarosBlastWaveEngulfingFlame": {
+"hero": "Ragnaros",
+"level": 1,
+"name": "Engulfing Flame"
+},
+"RagnarosBlastWaveSlowBurn": {
+"hero": "Ragnaros",
+"level": 4,
+"name": "Slow Burn"
+},
+"RagnarosBlastWaveTemperedFlame": {
+"hero": "Ragnaros",
+"level": 13,
+"name": "Tempered Flame"
+},
+"RagnarosBlisteringAttacks": {
+"hero": "Ragnaros",
+"level": 7,
+"name": "Blistering Attacks"
+},
+"RagnarosCatchingFire": {
+"hero": "Ragnaros",
+"level": 4,
+"name": "Catching Fire"
+},
+"RagnarosEmpowerSulfurasCauterizeWounds": {
+"hero": "Ragnaros",
+"level": 13,
+"name": "Cauterize Wounds"
+},
+"RagnarosEmpowerSulfurasGiantScorcher": {
+"hero": "Ragnaros",
+"level": 16,
+"name": "Giant Scorcher"
+},
+"RagnarosEmpowerSulfurasHandOfRagnaros": {
+"hero": "Ragnaros",
+"level": 7,
+"name": "Hand of Ragnaros"
+},
+"RagnarosEmpowerSulfurasSulfurasHungers": {
+"hero": "Ragnaros",
+"level": 1,
+"name": "Sulfuras Hungers"
+},
+"RagnarosLavaWave": {
+"hero": "Ragnaros",
+"level": 10,
+"name": "Lava Wave"
+},
+"RagnarosLavaWaveLavaSurge": {
+"hero": "Ragnaros",
+"level": 20,
+"name": "Lava Surge"
+},
+"RagnarosLivingMeteorFireWard": {
+"hero": "Ragnaros",
+"level": 4,
+"name": "Fire Ward"
+},
+"RagnarosLivingMeteorMeteorBomb": {
+"hero": "Ragnaros",
+"level": 16,
+"name": "Meteor Bomb"
+},
+"RagnarosLivingMeteorMoltenPower": {
+"hero": "Ragnaros",
+"level": 7,
+"name": "Molten Power"
+},
+"RagnarosLivingMeteorShiftingMeteor": {
+"hero": "Ragnaros",
+"level": 1,
+"name": "Shifting Meteor"
+},
+"RagnarosMoltenCoreHeroicDifficulty": {
+"hero": "Ragnaros",
+"level": 20,
+"name": "Heroic Difficulty"
+},
+"RagnarosResilientFlame": {
+"hero": "Ragnaros",
+"level": 13,
+"name": "Resilient Flame"
+},
+"RagnarosSubmerge": {
+"hero": "Ragnaros",
+"level": 20,
+"name": "Submerge"
+},
+"RagnarosSulfurasSmash": {
+"hero": "Ragnaros",
+"level": 10,
+"name": "Sulfuras Smash"
+},
+"RagnarosSulfurasSmashFlamesOfSulfuron": {
+"hero": "Ragnaros",
+"level": 20,
+"name": "Flames of Sulfuron"
+},
+"RaynorAceInTheHole": {
+"hero": "Raynor",
+"level": 1,
+"name": "Ace In The Hole"
+},
+"RaynorAdrenalineRushRaidersRoll": {
+"hero": "Raynor",
+"level": 20,
+"name": "Raiders Roll"
+},
+"RaynorBasicAttackSustainingRounds": {
+"hero": "Raynor",
+"level": 4,
+"name": "Sustaining Rounds"
+},
+"RaynorBehemothArmor": {
+"hero": "Raynor",
+"level": 4,
+"name": "Behemoth Armor"
+},
+"RaynorBountyHunter": {
+"hero": "Raynor",
+"level": 16,
+"name": "Bounty Hunter"
+},
+"RaynorDuskWing": {
+"hero": "Raynor",
+"level": 20,
+"name": "Dusk Wing"
+},
+"RaynorGive'EmSomePepperSergeantPepper": {
+"hero": "Raynor",
+"level": 20,
+"name": "Sergeant Pepper"
+},
+"RaynorGiveEmSomePepperExterminator": {
+"hero": "Raynor",
+"level": 1,
+"name": "Exterminator"
+},
+"RaynorGiveEmSomePepperUnstableCompound": {
+"hero": "Raynor",
+"level": 7,
+"name": "Unstable Compound"
+},
+"RaynorHeroicAbilityHyperion": {
+"hero": "Raynor",
+"level": 10,
+"name": "Hyperion"
+},
+"RaynorHeroicAbilityRaynorsRaiders": {
+"hero": "Raynor",
+"level": 10,
+"name": "Raynor's Raider"
+},
+"RaynorHyperionCavalrysArrived": {
+"hero": "Raynor",
+"level": 20,
+"name": "Cavalry's Arrived"
+},
+"RaynorHyperionExecuteOrders": {
+"hero": "Raynor",
+"level": 20,
+"name": "Execute Orders"
+},
+"RaynorInspireFuelTheRush": {
+"hero": "Raynor",
+"level": 7,
+"name": "Fuel The Rush"
+},
+"RaynorInspireGiddyUp": {
+"hero": "Raynor",
+"level": 13,
+"name": "Giddy-Up"
+},
+"RaynorInspireRallyingCry": {
+"hero": "Raynor",
+"level": 16,
+"name": "Rallying Cry"
+},
+"RaynorMasteryFightorFlightAdrenalineRush": {
+"hero": "Raynor",
+"level": 4,
+"name": "Fight or Flight"
+},
+"RaynorMasteryGiveMeMoreAdrenalineRush": {
+"hero": "Raynor",
+"level": 13,
+"name": "Give Me More!"
+},
+"RaynorPenetratingRoundHeavySlugs": {
+"hero": "Raynor",
+"level": 7,
+"name": "Heavy Slugs"
+},
+"RaynorPenetratingRoundLine'EmUp": {
+"hero": "Raynor",
+"level": 13,
+"name": "Line 'Em Up"
+},
+"RaynorPenetratingRoundPaintThemRed": {
+"hero": "Raynor",
+"level": 16,
+"name": "Paint Them Red"
+},
+"RaynorVeteranMarksman": {
+"hero": "Raynor",
+"level": 1,
+"name": "Veteran Marksman"
+},
+"RehgarAncestralHealing": {
+"hero": "Rehgar",
+"level": 10,
+"name": "Ancestral Healing"
+},
+"RehgarAncestralHealingFarseersBlessing": {
+"hero": "Rehgar",
+"level": 20,
+"name": "Farseer's Blessing"
+},
+"RehgarBloodAndThunder": {
+"hero": "Rehgar",
+"level": 7,
+"name": "Blood and Thunder"
+},
+"RehgarBloodlust": {
+"hero": "Rehgar",
+"level": 10,
+"name": "Bloodlust"
+},
+"RehgarEarthbindTotemColossalTotem": {
+"hero": "Rehgar",
+"level": 1,
+"name": "Colossal Totem"
+},
+"RehgarEarthbindTotemEarthgraspTotem": {
+"hero": "Rehgar",
+"level": 16,
+"name": "Earthgrasp Totem"
+},
+"RehgarEarthbindTotemGroundedTotem": {
+"hero": "Rehgar",
+"level": 7,
+"name": "Grounded Totem"
+},
+"RehgarEarthlivingEnchant": {
+"hero": "Rehgar",
+"level": 4,
+"name": "Earthliving Enchant"
+},
+"RehgarElementalConduit": {
+"hero": "Rehgar",
+"level": 20,
+"name": "Elemental Conduit"
+},
+"RehgarFeralHeart": {
+"hero": "Rehgar",
+"level": 1,
+"name": "Feral Heart"
+},
+"RehgarGladiatorsWarShout": {
+"hero": "Rehgar",
+"level": 20,
+"name": "Gladiator's War Shout"
+},
+"RehgarHealingTotem": {
+"hero": "Rehgar",
+"level": 4,
+"name": "Healing Totem"
+},
+"RehgarHungerOfTheWolf": {
+"hero": "Rehgar",
+"level": 16,
+"name": "Hunger of the Wolf"
+},
+"RehgarLightningShieldEarthShield": {
+"hero": "Rehgar",
+"level": 13,
+"name": "Earth Shield"
+},
+"RehgarLightningShieldElectricCharge": {
+"hero": "Rehgar",
+"level": 4,
+"name": "Electric Charge"
+},
+"RehgarLightningShieldRisingStorm": {
+"hero": "Rehgar",
+"level": 16,
+"name": "Rising Storm"
+},
+"RehgarLightningShieldStormcaller": {
+"hero": "Rehgar",
+"level": 1,
+"name": "Stormcaller"
+},
+"RehgarMasteryTidalWaves": {
+"hero": "Rehgar",
+"level": 13,
+"name": "Tidal Waves"
+},
+"RehgarPitFighter": {
+"hero": "Rehgar",
+"level": 20,
+"name": "Pit Fighter"
+},
+"RehgarPurification": {
+"hero": "Rehgar",
+"level": 7,
+"name": "Purification"
+},
+"RehgarWellspring": {
+"hero": "Rehgar",
+"level": 13,
+"name": "Wellspring"
+},
+"RexxarAnimalHusbandry": {
+"hero": "Rexxar",
+"level": 4,
+"name": "Animal Husbandry"
+},
+"RexxarAspectOfTheHawkSpiritSwoop": {
+"hero": "Rexxar",
+"level": 13,
+"name": "Aspect of the Hawk"
+},
+"RexxarAspectoftheBeastCharge": {
+"hero": "Rexxar",
+"level": 7,
+"name": "Aspect of the Beast"
+},
+"RexxarDireBeast": {
+"hero": "Rexxar",
+"level": 13,
+"name": "Dire Beast"
+},
+"RexxarFeignDeath": {
+"hero": "Rexxar",
+"level": 16,
+"name": "Feign Death"
+},
+"RexxarFlare": {
+"hero": "Rexxar",
+"level": 1,
+"name": "Flare"
+},
+"RexxarFrenzyofKalimdor": {
+"hero": "Rexxar",
+"level": 20,
+"name": "Frenzy of Kalimdor"
+},
+"RexxarHardenedSkin": {
+"hero": "Rexxar",
+"level": 20,
+"name": "Hardened Skin"
+},
+"RexxarHeroicAbilityBestialWrath": {
+"hero": "Rexxar",
+"level": 10,
+"name": "Bestial Wrath"
+},
+"RexxarHeroicAbilityUnleashTheBoars": {
+"hero": "Rexxar",
+"level": 10,
+"name": "Unleash the Boars"
+},
+"RexxarHungryBear": {
+"hero": "Rexxar",
+"level": 4,
+"name": "Hungry Bear"
+},
+"RexxarHunterGatherer": {
+"hero": "Rexxar",
+"level": 4,
+"name": "Hunter-Gatherer"
+},
+"RexxarSpiritBond": {
+"hero": "Rexxar",
+"level": 20,
+"name": "Spirit Bond"
+},
+"RexxarSpiritBondEasyPrey": {
+"hero": "Rexxar",
+"level": 1,
+"name": "Easy Prey"
+},
+"RexxarSpiritBondGrizzledFortitude": {
+"hero": "Rexxar",
+"level": 4,
+"name": "Grizzled Fortitude"
+},
+"RexxarSpiritBondPrimalIntimidation": {
+"hero": "Rexxar",
+"level": 16,
+"name": "Primal Intimidation"
+},
+"RexxarSpiritBondWildfireBear": {
+"hero": "Rexxar",
+"level": 13,
+"name": "Wildfire Bear"
+},
+"RexxarSpiritSwoopBirdOfPrey": {
+"hero": "Rexxar",
+"level": 1,
+"name": "Bird of Prey"
+},
+"RexxarSpiritSwoopCripplingTalons": {
+"hero": "Rexxar",
+"level": 7,
+"name": "Crippling Talons"
+},
+"RexxarTakingFlightSpiritSwoop": {
+"hero": "Rexxar",
+"level": 7,
+"name": "Taking Flight"
+},
+"RexxarThrilloftheHunt": {
+"hero": "Rexxar",
+"level": 16,
+"name": "Thrill of the Hunt"
+},
+"RexxarUnleashTheBoarsKillCommand": {
+"hero": "Rexxar",
+"level": 20,
+"name": "Kill Command"
+},
+"SamuroAdvancingStrikesDeflection": {
+"hero": "Samuro",
+"level": 4,
+"name": "Deflection"
+},
+"SamuroBlademastersPursuit": {
+"hero": "Samuro",
+"level": 20,
+"name": "Blademaster's Pursuit"
+},
+"SamuroBurningBlade": {
+"hero": "Samuro",
+"level": 7,
+"name": "Burning Blade"
+},
+"SamuroCrushingBlow": {
+"hero": "Samuro",
+"level": 7,
+"name": "Crushing Blows"
+},
+"SamuroDanceOfDeath": {
+"hero": "Samuro",
+"level": 20,
+"name": "Dance Of Death"
+},
+"SamuroHarshWinds": {
+"hero": "Samuro",
+"level": 16,
+"name": "Harsh Winds"
+},
+"SamuroHeroicAbilityBladestorm": {
+"hero": "Samuro",
+"level": 10,
+"name": "Bladestorm"
+},
+"SamuroHeroicAbilityIllusionMaster": {
+"hero": "Samuro",
+"level": 10,
+"name": "Illusion Master"
+},
+"SamuroMercilessStrikes": {
+"hero": "Samuro",
+"level": 16,
+"name": "Merciless Strikes"
+},
+"SamuroMirage": {
+"hero": "Samuro",
+"level": 4,
+"name": "Mirage"
+},
+"SamuroMirrorImageWayOfTheBlade": {
+"hero": "Samuro",
+"level": 1,
+"name": "Way of the Blade"
+},
+"SamuroMirroredSteel": {
+"hero": "Samuro",
+"level": 13,
+"name": "Mirrored Steel"
+},
+"SamuroPhantomPain": {
+"hero": "Samuro",
+"level": 7,
+"name": "Phantom Pain"
+},
+"SamuroPressTheAttack": {
+"hero": "Samuro",
+"level": 16,
+"name": "Press the Attack"
+},
+"SamuroShukuchi": {
+"hero": "Samuro",
+"level": 13,
+"name": "Shukuchi"
+},
+"SamuroThreeBladeStyle": {
+"hero": "Samuro",
+"level": 20,
+"name": "Three Blade Style"
+},
+"SamuroWayOfIllusion": {
+"hero": "Samuro",
+"level": 1,
+"name": "Way of Illusion"
+},
+"SamuroWayOfTheWind": {
+"hero": "Samuro",
+"level": 1,
+"name": "Way of the Wind"
+},
+"SamuroWindStrider": {
+"hero": "Samuro",
+"level": 20,
+"name": "Wind Strider"
+},
+"SamuroWindwalkKawarimi": {
+"hero": "Samuro",
+"level": 13,
+"name": "Kawarimi"
+},
+"SamuroWindwalkOneWithTheWind": {
+"hero": "Samuro",
+"level": 4,
+"name": "One With The Wind"
+},
+"SgtHammerAmbush": {
+"hero": "Sgt. Hammer",
+"level": 1,
+"name": "Ambush"
+},
+"SgtHammerBarricade": {
+"hero": "Sgt. Hammer",
+"level": 4,
+"name": "Barricade"
+},
+"SgtHammerConcussiveBlastEntrenched": {
+"hero": "Sgt. Hammer",
+"level": 13,
+"name": "Entrenched"
+},
+"SgtHammerGraduatingRange": {
+"hero": "Sgt. Hammer",
+"level": 7,
+"name": "Graduating Range"
+},
+"SgtHammerHeroicAbilityBluntForceGun": {
+"hero": "Sgt. Hammer",
+"level": 10,
+"name": "Blunt Force Gun"
+},
+"SgtHammerHeroicAbilityNapalmStrike": {
+"hero": "Sgt. Hammer",
+"level": 10,
+"name": "Napalm Strike"
+},
+"SgtHammerHyperCoolingEngines": {
+"hero": "Sgt. Hammer",
+"level": 13,
+"name": "Hyper-Cooling Engines"
+},
+"SgtHammerMasteryAdvancedLavaStrikeNapalmStrike": {
+"hero": "Sgt. Hammer",
+"level": 20,
+"name": "Advanced Lava Strike"
+},
+"SgtHammerMasteryHoverSiegeMode": {
+"hero": "Sgt. Hammer",
+"level": 7,
+"name": "Hover Siege Mode"
+},
+"SgtHammerMasteryOrbitalBFGBluntForceGun": {
+"hero": "Sgt. Hammer",
+"level": 20,
+"name": "Orbital BFG"
+},
+"SgtHammerNeosteelPlatingMechanicalKnowhow": {
+"hero": "Sgt. Hammer",
+"level": 16,
+"name": "Mechanical Know-how"
+},
+"SgtHammerNeosteelPlatingSiegeTactics": {
+"hero": "Sgt. Hammer",
+"level": 4,
+"name": "Siege Tactics"
+},
+"SgtHammerSiegeModeAdvancedArtillery": {
+"hero": "Sgt. Hammer",
+"level": 1,
+"name": "Advanced Artillery"
+},
+"SgtHammerSiegeModeMaelstromRounds": {
+"hero": "Sgt. Hammer",
+"level": 1,
+"name": "Maelstrom Rounds"
+},
+"SgtHammerSiegeModeRegenerativeBioSteel": {
+"hero": "Sgt. Hammer",
+"level": 4,
+"name": "Regenerative Bio-Steel"
+},
+"SgtHammerSiegeModeUltraCapacitors": {
+"hero": "Sgt. Hammer",
+"level": 20,
+"name": "Ultra Capacitors"
+},
+"SgtHammerSpiderMinesPulseDetonationCore": {
+"hero": "Sgt. Hammer",
+"level": 7,
+"name": "Pulse Detonation Core"
+},
+"SgtHammerSpiderMinesShrapnelMines": {
+"hero": "Sgt. Hammer",
+"level": 20,
+"name": "Shrapnel Mines"
+},
+"SgtHammerSpiderMinesTacticalMineDeployment": {
+"hero": "Sgt. Hammer",
+"level": 13,
+"name": "Tactical Mine Deployment"
+},
+"StitchesChopChop": {
+"hero": "Stitches",
+"level": 13,
+"name": "Chop Chop"
+},
+"StitchesDigestiveJuices": {
+"hero": "Stitches",
+"level": 16,
+"name": "Digestive Juices"
+},
+"StitchesFlareUp": {
+"hero": "Stitches",
+"level": 16,
+"name": "Flare Up"
+},
+"StitchesGasBag": {
+"hero": "Stitches",
+"level": 20,
+"name": "Gas Bag"
+},
+"StitchesGiftFromTheEmbalmer": {
+"hero": "Stitches",
+"level": 20,
+"name": "Gift From The Embalmer"
+},
+"StitchesHeroicAbilityGorge": {
+"hero": "Stitches",
+"level": 10,
+"name": "Gorge"
+},
+"StitchesHeroicAbilityPutridBile": {
+"hero": "Stitches",
+"level": 10,
+"name": "Putrid Bile"
+},
+"StitchesHookMasterHooker": {
+"hero": "Stitches",
+"level": 20,
+"name": "Master Hooker"
+},
+"StitchesHungryHungryStitchesGorge": {
+"hero": "Stitches",
+"level": 20,
+"name": "Hungry Hungry Stitches"
+},
+"StitchesHungryforMore": {
+"hero": "Stitches",
+"level": 1,
+"name": "Hungry for More"
+},
+"StitchesMeatHook": {
+"hero": "Stitches",
+"level": 13,
+"name": "Meat Hook"
+},
+"StitchesPatchworkCreation": {
+"hero": "Stitches",
+"level": 1,
+"name": "Patchwork Creation"
+},
+"StitchesPlaytime": {
+"hero": "Stitches",
+"level": 4,
+"name": "Playtime!"
+},
+"StitchesPulverizeSlam": {
+"hero": "Stitches",
+"level": 16,
+"name": "Pulverize"
+},
+"StitchesPutrefaction": {
+"hero": "Stitches",
+"level": 7,
+"name": "Putrefaction"
+},
+"StitchesSavortheFlavorDevour": {
+"hero": "Stitches",
+"level": 1,
+"name": "Savor The Flavor"
+},
+"StitchesSecondHelping": {
+"hero": "Stitches",
+"level": 7,
+"name": "Second Helping"
+},
+"StitchesSerratedEdge": {
+"hero": "Stitches",
+"level": 7,
+"name": "Serrated Edge"
+},
+"StitchesTenderizer": {
+"hero": "Stitches",
+"level": 4,
+"name": "Tenderizer"
+},
+"StitchesUnderPressure": {
+"hero": "Stitches",
+"level": 13,
+"name": "Under Pressure"
+},
+"StitchesVileCleaver": {
+"hero": "Stitches",
+"level": 4,
+"name": "Vile Cleaver"
+},
+"StukovBioExplosionSwitch": {
+"hero": "Stukov",
+"level": 20,
+"name": "Bio-Explosion Switch"
+},
+"StukovBioticArmor": {
+"hero": "Stukov",
+"level": 4,
+"name": "Biotic Armor"
+},
+"StukovControlledChaos": {
+"hero": "Stukov",
+"level": 20,
+"name": "Controlled Chaos"
+},
+"StukovFetidTouch": {
+"hero": "Stukov",
+"level": 1,
+"name": "Fetid Touch"
+},
+"StukovGrowingInfestation": {
+"hero": "Stukov",
+"level": 7,
+"name": "Growing Infestation"
+},
+"StukovHeroicAbilityFlailingSwipe": {
+"hero": "Stukov",
+"level": 10,
+"name": "Flailing Swipe"
+},
+"StukovHeroicAbilityMassiveShove": {
+"hero": "Stukov",
+"level": 10,
+"name": "Massive Shove"
+},
+"StukovItHungers": {
+"hero": "Stukov",
+"level": 13,
+"name": "It Hungers"
+},
+"StukovLongPitch": {
+"hero": "Stukov",
+"level": 7,
+"name": "The Long Pitch"
+},
+"StukovLowBlow": {
+"hero": "Stukov",
+"level": 1,
+"name": "Low Blow"
+},
+"StukovOneGoodSpread": {
+"hero": "Stukov",
+"level": 4,
+"name": "One Good Spread..."
+},
+"StukovPoppinPustules": {
+"hero": "Stukov",
+"level": 13,
+"name": "Poppin' Pustules"
+},
+"StukovPoxPopuli": {
+"hero": "Stukov",
+"level": 16,
+"name": "Pox Populi"
+},
+"StukovPushComesToShove": {
+"hero": "Stukov",
+"level": 20,
+"name": "Push Comes To Shove"
+},
+"StukovSuperstrain": {
+"hero": "Stukov",
+"level": 16,
+"name": "Superstrain"
+},
+"StukovTargetedExcision": {
+"hero": "Stukov",
+"level": 7,
+"name": "Targeted Excision"
+},
+"StukovTopOff": {
+"hero": "Stukov",
+"level": 20,
+"name": "Top Off"
+},
+"StukovUniversalCarrier": {
+"hero": "Stukov",
+"level": 16,
+"name": "Universal Carrier"
+},
+"StukovVigorousReuptake": {
+"hero": "Stukov",
+"level": 4,
+"name": "Vigorous Reuptake"
+},
+"StukovVirulentReaction": {
+"hero": "Stukov",
+"level": 13,
+"name": "Virulent Reaction"
+},
+"StukovWeightedPustuleReactiveBallistospores": {
+"hero": "Stukov",
+"level": 1,
+"name": "Reactive Ballistospores"
+},
+"SylvanasDarkLadysCall": {
+"hero": "Sylvanas",
+"level": 20,
+"name": "Dark Lady's Call"
+},
+"SylvanasHeroicAbilityPossession": {
+"hero": "Sylvanas",
+"level": 4,
+"name": "Possession"
+},
+"SylvanasHeroicAbilityWailingArrow": {
+"hero": "Sylvanas",
+"level": 10,
+"name": "Wailing Arrow"
+},
+"SylvanasMindControl": {
+"hero": "Sylvanas",
+"level": 10,
+"name": "Mind Control"
+},
+"SylvanasTalentColdEmbrace": {
+"hero": "Sylvanas",
+"level": 13,
+"name": "Cold Embrace"
+},
+"SylvanasTalentFesteringWounds": {
+"hero": "Sylvanas",
+"level": 7,
+"name": "Festering Wounds"
+},
+"SylvanasTalentLifeDrain": {
+"hero": "Sylvanas",
+"level": 16,
+"name": "Life Drain"
+},
+"SylvanasTalentLostSoul": {
+"hero": "Sylvanas",
+"level": 7,
+"name": "Lost Soul"
+},
+"SylvanasTalentMercenaryQueen": {
+"hero": "Sylvanas",
+"level": 4,
+"name": "Mercenary Queen"
+},
+"SylvanasTalentMightOfTheBansheeQueen": {
+"hero": "Sylvanas",
+"level": 1,
+"name": "Might of the Banshee Queen"
+},
+"SylvanasTalentOverwhelmingAffliction": {
+"hero": "Sylvanas",
+"level": 1,
+"name": "Overwhelming Affliction"
+},
+"SylvanasTalentRemorseless": {
+"hero": "Sylvanas",
+"level": 13,
+"name": "Remorseless"
+},
+"SylvanasTalentUnstablePoison": {
+"hero": "Sylvanas",
+"level": 4,
+"name": "Unstable Poison"
+},
+"SylvanasTalentWillOfTheForsaken": {
+"hero": "Sylvanas",
+"level": 16,
+"name": "Will of the Forsaken"
+},
+"SylvanasTalentWindrunnerHauntingWave": {
+"hero": "Sylvanas",
+"level": 13,
+"name": "Windrunner"
+},
+"SylvanasTalentWitheringBarrage": {
+"hero": "Sylvanas",
+"level": 20,
+"name": "Withering Barrage"
+},
+"SylvanasTalentWitheringFireBarbedShot": {
+"hero": "Sylvanas",
+"level": 7,
+"name": "Barbed Shot"
+},
+"SylvanasTalentWitheringFireEvasiveFire": {
+"hero": "Sylvanas",
+"level": 16,
+"name": "Evasive Fire"
+},
+"SylvanasUnfurlingShadowsShadowDagger": {
+"hero": "Sylvanas",
+"level": 1,
+"name": "Unfurling Shadows"
+},
+"SylvanasWailingArrowDeafeningBlast": {
+"hero": "Sylvanas",
+"level": 20,
+"name": "Deafening Blast"
+},
+"TassadarArcDischarge": {
+"hero": "Tassadar",
+"level": 7,
+"name": "Arc Discharge"
+},
+"TassadarBeamAlignment": {
+"hero": "Tassadar",
+"level": 7,
+"name": "Beam Alignment"
+},
+"TassadarElectricFence": {
+"hero": "Tassadar",
+"level": 4,
+"name": "Electric Fence"
+},
+"TassadarExecutorsWill": {
+"hero": "Tassadar",
+"level": 16,
+"name": "Executor's Will"
+},
+"TassadarFeedback": {
+"hero": "Tassadar",
+"level": 13,
+"name": "Feedback"
+},
+"TassadarHeroicAbilityArchon": {
+"hero": "Tassadar",
+"level": 10,
+"name": "Archon"
+},
+"TassadarHeroicAbilityBlackHole": {
+"hero": "Tassadar",
+"level": 10,
+"name": "Black Hole"
+},
+"TassadarInduction": {
+"hero": "Tassadar",
+"level": 4,
+"name": "Induction"
+},
+"TassadarKhalasGift": {
+"hero": "Tassadar",
+"level": 20,
+"name": "Khala's Gift"
+},
+"TassadarKhaydarinAmulet": {
+"hero": "Tassadar",
+"level": 1,
+"name": "Khaydarin Amulet"
+},
+"TassadarKugelblitz": {
+"hero": "Tassadar",
+"level": 20,
+"name": "Kugelblitz"
+},
+"TassadarMasteryForceBarrier": {
+"hero": "Tassadar",
+"level": 20,
+"name": "Force Barrier"
+},
+"TassadarMasteryTwilightArchon": {
+"hero": "Tassadar",
+"level": 20,
+"name": "Twilight Archon"
+},
+"TassadarOracle": {
+"hero": "Tassadar",
+"level": 13,
+"name": "Oracle"
+},
+"TassadarPlasmaShield": {
+"hero": "Tassadar",
+"level": 4,
+"name": "Plasma Shield"
+},
+"TassadarPsionicEcho": {
+"hero": "Tassadar",
+"level": 7,
+"name": "Psionic Echo"
+},
+"TassadarPsionicStormPsiInfusion": {
+"hero": "Tassadar",
+"level": 1,
+"name": "Psi-Infusion"
+},
+"TassadarPsychicShock": {
+"hero": "Tassadar",
+"level": 16,
+"name": "Psychic Shock"
+},
+"TassadarShadowWalk": {
+"hero": "Tassadar",
+"level": 13,
+"name": "Shadow Walk"
+},
+"TassadarStaticCharge": {
+"hero": "Tassadar",
+"level": 1,
+"name": "Static Charge"
+},
+"TassadarThermalLance": {
+"hero": "Tassadar",
+"level": 16,
+"name": "Thermal Lance"
+},
+"ThrallAlphaWolf": {
+"hero": "Thrall",
+"level": 16,
+"name": "Alpha Wolf"
+},
+"ThrallAncestralWrath": {
+"hero": "Thrall",
+"level": 7,
+"name": "Ancestral Wrath"
+},
+"ThrallCrashLightning": {
+"hero": "Thrall",
+"level": 1,
+"name": "Crash Lightning"
+},
+"ThrallEchooftheElements": {
+"hero": "Thrall",
+"level": 1,
+"name": "Echo of the Elements"
+},
+"ThrallElementalMomentum": {
+"hero": "Thrall",
+"level": 20,
+"name": "Elemental Momentum"
+},
+"ThrallFeralResilience": {
+"hero": "Thrall",
+"level": 4,
+"name": "Feral Resilience"
+},
+"ThrallFrostwolfPack": {
+"hero": "Thrall",
+"level": 4,
+"name": "Frostwolf Pack"
+},
+"ThrallHeroicAbilityEarthquake": {
+"hero": "Thrall",
+"level": 10,
+"name": "Earthquake"
+},
+"ThrallHeroicAbilitySundering": {
+"hero": "Thrall",
+"level": 10,
+"name": "Sundering"
+},
+"ThrallMaelstromWeapon": {
+"hero": "Thrall",
+"level": 7,
+"name": "Maelstrom Weapon"
+},
+"ThrallMasteryEarthenShields": {
+"hero": "Thrall",
+"level": 20,
+"name": "Earthen Shields"
+},
+"ThrallMasteryFrostwolfsGrace": {
+"hero": "Thrall",
+"level": 13,
+"name": "Frostwolf's Grace"
+},
+"ThrallMasteryGraceOfAir": {
+"hero": "Thrall",
+"level": 13,
+"name": "Grace Of Air"
+},
+"ThrallMasteryManaTide": {
+"hero": "Thrall",
+"level": 4,
+"name": "Mana Tide"
+},
+"ThrallMasteryRollingThunder": {
+"hero": "Thrall",
+"level": 1,
+"name": "Rolling Thunder"
+},
+"ThrallMasteryTempestFury": {
+"hero": "Thrall",
+"level": 16,
+"name": "Tempest Fury"
+},
+"ThrallMasteryWorldbreaker": {
+"hero": "Thrall",
+"level": 20,
+"name": "Worldbreaker"
+},
+"ThrallSpiritShield": {
+"hero": "Thrall",
+"level": 13,
+"name": "Spirit Shield"
+},
+"ThrallThunderstorm": {
+"hero": "Thrall",
+"level": 16,
+"name": "Thunderstorm"
+},
+"ThrallWindRush": {
+"hero": "Thrall",
+"level": 20,
+"name": "Wind Rush"
+},
+"TinkerHeroicAbilityGravOBomb3000": {
+"hero": "Gazlowe",
+"level": 10,
+"name": "Grav-O-Bomb 3000"
+},
+"TinkerHeroicAbilityRoboGoblin": {
+"hero": "Gazlowe",
+"level": 10,
+"name": "Robo-Goblin"
+},
+"TinkerItsRainingScrap": {
+"hero": "Gazlowe",
+"level": 20,
+"name": "It's Raining Scrap"
+},
+"TinkerMasteryEZPZDimensionalRipper": {
+"hero": "Gazlowe",
+"level": 4,
+"name": "EZ-PZ Dimensional Ripper"
+},
+"TinkerMasteryGoblinFusion": {
+"hero": "Gazlowe",
+"level": 7,
+"name": "Goblin Fusion"
+},
+"TinkerMasteryMechaLord": {
+"hero": "Gazlowe",
+"level": 20,
+"name": "Mecha-Lord"
+},
+"TinkerMasteryMiniatureBlackHole": {
+"hero": "Gazlowe",
+"level": 20,
+"name": "Miniature Black Hole"
+},
+"TracerBulletSprayMelee": {
+"hero": "Tracer",
+"level": 16,
+"name": "Bullet Spray"
+},
+"TracerChronoTriggers": {
+"hero": "Tracer",
+"level": 20,
+"name": "Chrono Triggers"
+},
+"TracerCompositionBPulseBomb": {
+"hero": "Tracer",
+"level": 20,
+"name": "Composition B"
+},
+"TracerFocusFire": {
+"hero": "Tracer",
+"level": 7,
+"name": "Focus Fire"
+},
+"TracerGetStuffedMelee": {
+"hero": "Tracer",
+"level": 20,
+"name": "Get Stuffed!"
+},
+"TracerHeavyHanded": {
+"hero": "Tracer",
+"level": 16,
+"name": "Heavy Handed"
+},
+"TracerIsThataHealthPack": {
+"hero": "Tracer",
+"level": 4,
+"name": "Is That a Health Pack?!"
+},
+"TracerJumper": {
+"hero": "Tracer",
+"level": 13,
+"name": "Jumper"
+},
+"TracerLeechingRounds": {
+"hero": "Tracer",
+"level": 4,
+"name": "Leeching Rounds"
+},
+"TracerLockedandLoaded": {
+"hero": "Tracer",
+"level": 7,
+"name": "Locked and Loaded"
+},
+"TracerOneTwoPunch": {
+"hero": "Tracer",
+"level": 1,
+"name": "One-Two Punch"
+},
+"TracerPartingGift": {
+"hero": "Tracer",
+"level": 1,
+"name": "Parting Gift"
+},
+"TracerPulseGenerator": {
+"hero": "Tracer",
+"level": 4,
+"name": "Pulse Generator"
+},
+"TracerPulseRounds": {
+"hero": "Tracer",
+"level": 10,
+"name": "Pulse Rounds"
+},
+"TracerQuantumSpike": {
+"hero": "Tracer",
+"level": 10,
+"name": "Quantum Spike"
+},
+"TracerRicochetHeroWeapon": {
+"hero": "Tracer",
+"level": 16,
+"name": "Ricochet"
+},
+"TracerSleightofHand": {
+"hero": "Tracer",
+"level": 7,
+"name": "Sleight of Hand"
+},
+"TracerStickyBomb": {
+"hero": "Tracer",
+"level": 10,
+"name": "Sticky Bomb"
+},
+"TracerTelefrag": {
+"hero": "Tracer",
+"level": 13,
+"name": "Telefrag"
+},
+"TracerTotalRecallRecall": {
+"hero": "Tracer",
+"level": 20,
+"name": "Total Recall"
+},
+"TracerTracerRounds": {
+"hero": "Tracer",
+"level": 1,
+"name": "Tracer Rounds"
+},
+"TracerUntouchable": {
+"hero": "Tracer",
+"level": 13,
+"name": "Untouchable"
+},
+"TychusCanDoThisAllDayOverkillTalent": {
+"hero": "Tychus",
+"level": 20,
+"name": "Can Do This All Day"
+},
+"TychusCombatTactician": {
+"hero": "Tychus",
+"level": 7,
+"name": "Combat Tactician"
+},
+"TychusHeroicAbilityCommandeerOdin": {
+"hero": "Tychus",
+"level": 10,
+"name": "Commandeer Odin"
+},
+"TychusHeroicAbilityDrakkenLaserDrill": {
+"hero": "Tychus",
+"level": 10,
+"name": "Drakken Laser Drill"
+},
+"TychusInTheRhythm": {
+"hero": "Tychus",
+"level": 4,
+"name": "In the Rhythm"
+},
+"TychusMasterAssassin": {
+"hero": "Tychus",
+"level": 4,
+"name": "Master Assassin"
+},
+"TychusMasteryDrakkenLaserFocusingDiodes": {
+"hero": "Tychus",
+"level": 20,
+"name": "Focusing Diodes"
+},
+"TychusMasteryFragGrenadeTitanGrenade": {
+"hero": "Tychus",
+"level": 16,
+"name": "Titan Grenade"
+},
+"TychusMasteryOdinBigRedButton": {
+"hero": "Tychus",
+"level": 20,
+"name": "Big Red Button"
+},
+"TychusMasteryOverkillArmorPiercingRounds": {
+"hero": "Tychus",
+"level": 16,
+"name": "Armor Piercing Rounds"
+},
+"TychusMasteryQuarterback": {
+"hero": "Tychus",
+"level": 1,
+"name": "Quarterback"
+},
+"TychusMasteryRunandGunDash": {
+"hero": "Tychus",
+"level": 1,
+"name": "Dash"
+},
+"TychusMasterySprayNPray": {
+"hero": "Tychus",
+"level": 13,
+"name": "Spray 'n' Pray"
+},
+"TychusMeltingPoint": {
+"hero": "Tychus",
+"level": 7,
+"name": "Melting Point"
+},
+"TychusNeosteelCoating": {
+"hero": "Tychus",
+"level": 13,
+"name": "Neosteel Coating"
+},
+"TychusPressTheAdvantage": {
+"hero": "Tychus",
+"level": 1,
+"name": "Press the Advantage"
+},
+"TychusRelentlessSoldier": {
+"hero": "Tychus",
+"level": 7,
+"name": "Relentless Soldier"
+},
+"TychusRunAndGunBobAndWeave": {
+"hero": "Tychus",
+"level": 20,
+"name": "Bob and Weave"
+},
+"TychusSizzlinAttacks": {
+"hero": "Tychus",
+"level": 16,
+"name": "Sizzlin' Attacks"
+},
+"TychusThatsTheStuff": {
+"hero": "Tychus",
+"level": 13,
+"name": "That's the Stuff!"
+},
+"TychusTheBiggerTheyAre": {
+"hero": "Tychus",
+"level": 4,
+"name": "The Bigger They Are..."
+},
+"TyraelArdentRestoration": {
+"hero": "Tyrael",
+"level": 1,
+"name": "Ardent Restoration"
+},
+"TyraelBurningHalo": {
+"hero": "Tyrael",
+"level": 16,
+"name": "Burning Halo"
+},
+"TyraelDefenseOfTheAngels": {
+"hero": "Tyrael",
+"level": 20,
+"name": "Defense of the Angels"
+},
+"TyraelDivineVigor": {
+"hero": "Tyrael",
+"level": 4,
+"name": "Divine Vigor"
+},
+"TyraelElDruinsMightBoundByLaw": {
+"hero": "Tyrael",
+"level": 4,
+"name": "Bound by Law"
+},
+"TyraelHeroicAbilityJudgement": {
+"hero": "Tyrael",
+"level": 10,
+"name": "Judgment"
+},
+"TyraelHeroicAbilitySanctification": {
+"hero": "Tyrael",
+"level": 10,
+"name": "Sanctification"
+},
+"TyraelHoradricReforging": {
+"hero": "Tyrael",
+"level": 16,
+"name": "Horadric Reforging"
+},
+"TyraelJusticeForAll": {
+"hero": "Tyrael",
+"level": 1,
+"name": "Justice for All"
+},
+"TyraelMasteryElDruinsMightSwordOfJustice": {
+"hero": "Tyrael",
+"level": 13,
+"name": "Sword of Justice"
+},
+"TyraelMasteryHolyGround": {
+"hero": "Tyrael",
+"level": 13,
+"name": "Holy Ground"
+},
+"TyraelMasteryJudgmentAngelofJustice": {
+"hero": "Tyrael",
+"level": 20,
+"name": "Angel of Justice"
+},
+"TyraelMasteryLawAndOrder": {
+"hero": "Tyrael",
+"level": 13,
+"name": "Law and Order"
+},
+"TyraelMasteryPurgeEvil": {
+"hero": "Tyrael",
+"level": 7,
+"name": "Purge Evil"
+},
+"TyraelMasteryRighteousnessReciprocate": {
+"hero": "Tyrael",
+"level": 7,
+"name": "Reciprocate"
+},
+"TyraelMasterySanctificationHolyArena": {
+"hero": "Tyrael",
+"level": 20,
+"name": "Holy Arena"
+},
+"TyraelMasterySwiftRetribution": {
+"hero": "Tyrael",
+"level": 7,
+"name": "Swift Retribution"
+},
+"TyraelSalvation": {
+"hero": "Tyrael",
+"level": 1,
+"name": "Salvation"
+},
+"TyraelSealOfElDruin": {
+"hero": "Tyrael",
+"level": 20,
+"name": "Seal of El'druin"
+},
+"TyraelSmiteTheWicked": {
+"hero": "Tyrael",
+"level": 16,
+"name": "Smite the Wicked"
+},
+"TyraelStalwartAngel": {
+"hero": "Tyrael",
+"level": 4,
+"name": "Stalwart Angel"
+},
+"TyrandeCelestialAttunement": {
+"hero": "Tyrande",
+"level": 16,
+"name": "Celestial Attunement"
+},
+"TyrandeDarnassianArchery": {
+"hero": "Tyrande",
+"level": 16,
+"name": "Darnassian Archery"
+},
+"TyrandeElunesChosen": {
+"hero": "Tyrande",
+"level": 4,
+"name": "Elune's Chosen"
+},
+"TyrandeEmpower": {
+"hero": "Tyrande",
+"level": 16,
+"name": "Empower"
+},
+"TyrandeEyesOfTheHuntress": {
+"hero": "Tyrande",
+"level": 20,
+"name": "Eyes of the Huntress"
+},
+"TyrandeHarshMoonlight": {
+"hero": "Tyrande",
+"level": 13,
+"name": "Harsh Moonlight"
+},
+"TyrandeHeroicAbilityShadowstalk": {
+"hero": "Tyrande",
+"level": 10,
+"name": "Shadowstalk"
+},
+"TyrandeHeroicAbilityStarfall": {
+"hero": "Tyrande",
+"level": 10,
+"name": "Starfall"
+},
+"TyrandeHuntressFury": {
+"hero": "Tyrande",
+"level": 7,
+"name": "Huntress' Fury"
+},
+"TyrandeIcebladeArrows": {
+"hero": "Tyrande",
+"level": 20,
+"name": "Iceblade Arrows"
+},
+"TyrandeKaldoreiResistance": {
+"hero": "Tyrande",
+"level": 7,
+"name": "Kaldorei Resistance"
+},
+"TyrandeLightOfEluneEverlastingLight": {
+"hero": "Tyrande",
+"level": 4,
+"name": "Everlasting Light"
+},
+"TyrandeMarkofMending": {
+"hero": "Tyrande",
+"level": 4,
+"name": "Mark of Mending"
+},
+"TyrandeMasteryLightofEluneQuickeningBlessing": {
+"hero": "Tyrande",
+"level": 13,
+"name": "Quickening Blessing"
+},
+"TyrandeMasteryLunarBlaze": {
+"hero": "Tyrande",
+"level": 1,
+"name": "Lunar Blaze"
+},
+"TyrandeMasteryStarfallCelestialWrath": {
+"hero": "Tyrande",
+"level": 20,
+"name": "Celestial Wrath"
+},
+"TyrandeMoonlitArrows": {
+"hero": "Tyrande",
+"level": 7,
+"name": "Moonlit Arrows"
+},
+"TyrandeRanger": {
+"hero": "Tyrande",
+"level": 1,
+"name": "Ranger"
+},
+"TyrandeRangersMark": {
+"hero": "Tyrande",
+"level": 13,
+"name": "Ranger's Mark"
+},
+"TyrandeShootingStar": {
+"hero": "Tyrande",
+"level": 20,
+"name": "Shooting Star"
+},
+"TyrandeTrueshotAura": {
+"hero": "Tyrande",
+"level": 1,
+"name": "Trueshot Aura"
+},
+"UtherBeaconOfLight": {
+"hero": "Uther",
+"level": 16,
+"name": "Beacon of Light"
+},
+"UtherCombatStyleHammerOfTheLightbringer": {
+"hero": "Uther",
+"level": 1,
+"name": "Hammer of the Lightbringer"
+},
+"UtherEternalDevotionArmorOfFaith": {
+"hero": "Uther",
+"level": 7,
+"name": "Armor of Faith"
+},
+"UtherEternalDevotionDivineProtection": {
+"hero": "Uther",
+"level": 20,
+"name": "Divine Protection"
+},
+"UtherEternalDevotionGuardianOfAncientKings": {
+"hero": "Uther",
+"level": 7,
+"name": "Guardian of Ancient Kings"
+},
+"UtherHammerOfJusticePursuitOfJustice": {
+"hero": "Uther",
+"level": 4,
+"name": "Pursuit of Justice"
+},
+"UtherHammerOfJusticeWellMet": {
+"hero": "Uther",
+"level": 13,
+"name": "Well Met"
+},
+"UtherHandOfProtection": {
+"hero": "Uther",
+"level": 7,
+"name": "Hand of Protection"
+},
+"UtherHeroicAbilityDivineShield": {
+"hero": "Uther",
+"level": 10,
+"name": "Divine Shield"
+},
+"UtherHeroicAbilityDivineStorm": {
+"hero": "Uther",
+"level": 10,
+"name": "Divine Storm"
+},
+"UtherHolyFire": {
+"hero": "Uther",
+"level": 4,
+"name": "Holy Fire"
+},
+"UtherHolyLightSilverTouch": {
+"hero": "Uther",
+"level": 1,
+"name": "Silver Touch"
+},
+"UtherHolyRadianceTyrsDeliverance": {
+"hero": "Uther",
+"level": 16,
+"name": "Tyr's Deliverance"
+},
+"UtherMasteryBenediction": {
+"hero": "Uther",
+"level": 16,
+"name": "Benediction"
+},
+"UtherMasteryBlessedChampion": {
+"hero": "Uther",
+"level": 13,
+"name": "Blessed Champion"
+},
+"UtherMasteryBulwarkOfLightDivineShield": {
+"hero": "Uther",
+"level": 20,
+"name": "Bulwark of Light"
+},
+"UtherMasteryDivineHurricaneDivineStorm": {
+"hero": "Uther",
+"level": 20,
+"name": "Divine Hurricane"
+},
+"UtherMasteryHolyShock": {
+"hero": "Uther",
+"level": 4,
+"name": "Holy Shock"
+},
+"UtherMasteryRedemption": {
+"hero": "Uther",
+"level": 20,
+"name": "Redemption"
+},
+"UtherMasteryWaveofLightHolyRadiance": {
+"hero": "Uther",
+"level": 1,
+"name": "Wave of Light"
+},
+"ValeeraAmbushAssassinate": {
+"hero": "Valeera",
+"level": 16,
+"name": "Assassinate"
+},
+"ValeeraAmbushDeathFromAbove": {
+"hero": "Valeera",
+"level": 13,
+"name": "Death From Above"
+},
+"ValeeraBladeFlurryFatalFinesse": {
+"hero": "Valeera",
+"level": 7,
+"name": "Fatal Finesse"
+},
+"ValeeraCheapShotBlind": {
+"hero": "Valeera",
+"level": 13,
+"name": "Blind"
+},
+"ValeeraCloakOfShadows": {
+"hero": "Valeera",
+"level": 10,
+"name": "Cloak of Shadows"
+},
+"ValeeraCloakOfShadowsEnvelopingShadows": {
+"hero": "Valeera",
+"level": 20,
+"name": "Enveloping Shadows"
+},
+"ValeeraCombatReadiness": {
+"hero": "Valeera",
+"level": 1,
+"name": "Combat Readiness"
+},
+"ValeeraCripplingPoison": {
+"hero": "Valeera",
+"level": 1,
+"name": "Crippling Poison"
+},
+"ValeeraEviscerateSliceAndDice": {
+"hero": "Valeera",
+"level": 7,
+"name": "Slice and Dice"
+},
+"ValeeraGarroteHemorrhage": {
+"hero": "Valeera",
+"level": 4,
+"name": "Hemorrhage"
+},
+"ValeeraGarroteRupture": {
+"hero": "Valeera",
+"level": 20,
+"name": "Rupture"
+},
+"ValeeraGarroteStrangle": {
+"hero": "Valeera",
+"level": 13,
+"name": "Strangle"
+},
+"ValeeraSinisterStrikeMutilate": {
+"hero": "Valeera",
+"level": 7,
+"name": "Mutilate"
+},
+"ValeeraSinisterStrikeRelentlessStrikes": {
+"hero": "Valeera",
+"level": 4,
+"name": "Relentless Strikes"
+},
+"ValeeraSinisterStrikeSealFate": {
+"hero": "Valeera",
+"level": 16,
+"name": "Seal Fate"
+},
+"ValeeraSmokeBomb": {
+"hero": "Valeera",
+"level": 10,
+"name": "Smoke Bomb"
+},
+"ValeeraSmokeBombAdrenalineRush": {
+"hero": "Valeera",
+"level": 20,
+"name": "Adrenaline Rush"
+},
+"ValeeraThistleTea": {
+"hero": "Valeera",
+"level": 16,
+"name": "Thistle Tea"
+},
+"ValeeraVanishElusiveness": {
+"hero": "Valeera",
+"level": 20,
+"name": "Elusiveness"
+},
+"ValeeraVanishInitiative": {
+"hero": "Valeera",
+"level": 4,
+"name": "Initiative"
+},
+"ValeeraVanishSubtlety": {
+"hero": "Valeera",
+"level": 1,
+"name": "Subtlety"
+},
+"ValeeraVigor": {
+"hero": "Valeera",
+"level": 1,
+"name": "Vigor"
+},
+"ValeeraWoundPoison": {
+"hero": "Valeera",
+"level": 4,
+"name": "Wound Poison"
+},
+"VarianBannerOfDalaran": {
+"hero": "Varian",
+"level": 16,
+"name": "Banner of Dalaran"
+},
+"VarianBannerOfIronforge": {
+"hero": "Varian",
+"level": 16,
+"name": "Banner of Ironforge"
+},
+"VarianBannerOfStormwind": {
+"hero": "Varian",
+"level": 16,
+"name": "Banner of Stormwind"
+},
+"VarianBannersGloryToTheAlliance": {
+"hero": "Varian",
+"level": 20,
+"name": "Glory to the Alliance"
+},
+"VarianChargeJuggernaut": {
+"hero": "Varian",
+"level": 13,
+"name": "Juggernaut"
+},
+"VarianChargeWarbringer": {
+"hero": "Varian",
+"level": 10,
+"name": "Warbringer"
+},
+"VarianColossusSmash": {
+"hero": "Varian",
+"level": 4,
+"name": "Colossus Smash"
+},
+"VarianColossusSmashMasterAtArms": {
+"hero": "Varian",
+"level": 20,
+"name": "Master at Arms"
+},
+"VarianDemoralizingShout": {
+"hero": "Varian",
+"level": 20,
+"name": "Demoralizing Shout"
+},
+"VarianHighKingsQuestQuest": {
+"hero": "Varian",
+"level": 1,
+"name": "High King's Quest"
+},
+"VarianLionsFangLionheart": {
+"hero": "Varian",
+"level": 7,
+"name": "Lionheart"
+},
+"VarianLionsFangLionsMawQuest": {
+"hero": "Varian",
+"level": 1,
+"name": "Lion's Maw"
+},
+"VarianMortalStrike": {
+"hero": "Varian",
+"level": 13,
+"name": "Mortal Strike"
+},
+"VarianParryOverpower": {
+"hero": "Varian",
+"level": 1,
+"name": "Overpower"
+},
+"VarianParryShieldWall": {
+"hero": "Varian",
+"level": 10,
+"name": "Shield Wall"
+},
+"VarianSecondWind": {
+"hero": "Varian",
+"level": 7,
+"name": "Second Wind"
+},
+"VarianShatteringThrow": {
+"hero": "Varian",
+"level": 13,
+"name": "Shattering Throw"
+},
+"VarianTaunt": {
+"hero": "Varian",
+"level": 4,
+"name": "Taunt"
+},
+"VarianTauntVigilance": {
+"hero": "Varian",
+"level": 20,
+"name": "Vigilance"
+},
+"VarianTwinBladesOfFury": {
+"hero": "Varian",
+"level": 4,
+"name": "Twin Blades of Fury"
+},
+"VarianTwinBladesOfFuryFrenzy": {
+"hero": "Varian",
+"level": 20,
+"name": "Frenzy"
+},
+"VarianVictoryRush": {
+"hero": "Varian",
+"level": 7,
+"name": "Victory Rush"
+},
+"WhitemaneDesperatePleaMartyrdom": {
+"hero": "Whitemane",
+"level": 4,
+"name": "Martyrdom"
+},
+"WhitemaneDesperatePleaRadiance": {
+"hero": "Whitemane",
+"level": 16,
+"name": "Radiance"
+},
+"WhitemaneDesperatePleaUnwaveringFaith": {
+"hero": "Whitemane",
+"level": 4,
+"name": "Unwavering Faith"
+},
+"WhitemaneDesperatePleaZealousSpirit": {
+"hero": "Whitemane",
+"level": 7,
+"name": "Zealous Spirit"
+},
+"WhitemaneDivineReckoning": {
+"hero": "Whitemane",
+"level": 10,
+"name": "Divine Reckoning"
+},
+"WhitemaneDivineReckoningJudgmentDay": {
+"hero": "Whitemane",
+"level": 20,
+"name": "Judgment Day"
+},
+"WhitemaneGuidingLight": {
+"hero": "Whitemane",
+"level": 20,
+"name": "Guiding Light"
+},
+"WhitemaneInquisitionSharedPunishment": {
+"hero": "Whitemane",
+"level": 16,
+"name": "Shared Punishment"
+},
+"WhitemaneInquisitionSubjugation": {
+"hero": "Whitemane",
+"level": 13,
+"name": "Subjugation"
+},
+"WhitemaneInquisitorsPrayer": {
+"hero": "Whitemane",
+"level": 1,
+"name": "Inquisitor's Prayer"
+},
+"WhitemaneIntercession": {
+"hero": "Whitemane",
+"level": 7,
+"name": "Intercession"
+},
+"WhitemanePurgeTheWicked": {
+"hero": "Whitemane",
+"level": 20,
+"name": "Purge the Wicked"
+},
+"WhitemaneSaintlyGreatstaff": {
+"hero": "Whitemane",
+"level": 7,
+"name": "Saintly Greatstaff"
+},
+"WhitemaneScarletAegis": {
+"hero": "Whitemane",
+"level": 10,
+"name": "Scarlet Aegis"
+},
+"WhitemaneScarletAegisScarletCrusade": {
+"hero": "Whitemane",
+"level": 20,
+"name": "Scarlet Crusade"
+},
+"WhitemaneSearingLashHarshDiscipline": {
+"hero": "Whitemane",
+"level": 16,
+"name": "Harsh Discipline"
+},
+"WhitemaneSearingLashLashingOut": {
+"hero": "Whitemane",
+"level": 13,
+"name": "Lashing Out"
+},
+"WhitemaneSearingLashRighteousFlame": {
+"hero": "Whitemane",
+"level": 1,
+"name": "Righteous Flame"
+},
+"WhitemaneZealIndulgence": {
+"hero": "Whitemane",
+"level": 4,
+"name": "Indulgence"
+},
+"WhitemaneZealPityTheFrail": {
+"hero": "Whitemane",
+"level": 1,
+"name": "Pity the Frail"
+},
+"WhitemaneZealScarletWrath": {
+"hero": "Whitemane",
+"level": 13,
+"name": "Scarlet Wrath"
+},
+"WitchDoctorAnnihilatingSpirits": {
+"hero": "Nazeebo",
+"level": 20,
+"name": "Annihilating Spirit"
+},
+"WitchDoctorBadMedicine": {
+"hero": "Nazeebo",
+"level": 20,
+"name": "Bad Medicine"
+},
+"WitchDoctorBigVoodoo": {
+"hero": "Nazeebo",
+"level": 4,
+"name": "Big Voodoo"
+},
+"WitchDoctorBloodRitual": {
+"hero": "Nazeebo",
+"level": 4,
+"name": "Blood Ritual"
+},
+"WitchDoctorDeadRush": {
+"hero": "Nazeebo",
+"level": 7,
+"name": "Dead Rush"
+},
+"WitchDoctorGuardianToads": {
+"hero": "Nazeebo",
+"level": 13,
+"name": "Guardian Toads"
+},
+"WitchDoctorHeroicAbilityGargantuan": {
+"hero": "Nazeebo",
+"level": 10,
+"name": "Gargantuan"
+},
+"WitchDoctorHeroicAbilityRavenousSpirits": {
+"hero": "Nazeebo",
+"level": 10,
+"name": "Ravenous Spirit"
+},
+"WitchDoctorHexedCrawlers": {
+"hero": "Nazeebo",
+"level": 4,
+"name": "Hexed Crawlers"
+},
+"WitchDoctorHumongoid": {
+"hero": "Nazeebo",
+"level": 20,
+"name": "Humongoid"
+},
+"WitchDoctorPandemic": {
+"hero": "Nazeebo",
+"level": 1,
+"name": "Pandemic"
+},
+"WitchDoctorRingOfPoison": {
+"hero": "Nazeebo",
+"level": 16,
+"name": "Ring of Poison"
+},
+"WitchDoctorSoulHarvest": {
+"hero": "Nazeebo",
+"level": 16,
+"name": "Soul Harvest"
+},
+"WitchDoctorSpiderColony": {
+"hero": "Nazeebo",
+"level": 16,
+"name": "Spider Colony"
+},
+"WitchDoctorSpiritofArachyr": {
+"hero": "Nazeebo",
+"level": 7,
+"name": "Spirit of Arachyr"
+},
+"WitchDoctorSuperstition": {
+"hero": "Nazeebo",
+"level": 13,
+"name": "Superstition"
+},
+"WitchDoctorThingOfTheDeep": {
+"hero": "Nazeebo",
+"level": 1,
+"name": "Thing of the Deep"
+},
+"WitchDoctorToadsofHugeness": {
+"hero": "Nazeebo",
+"level": 7,
+"name": "Toads of Hugeness"
+},
+"WitchDoctorVileInfection": {
+"hero": "Nazeebo",
+"level": 20,
+"name": "Vile Infection"
+},
+"WitchDoctorWidowmakers": {
+"hero": "Nazeebo",
+"level": 1,
+"name": "Widowmakers"
+},
+"WizardAetherWalker": {
+"hero": "Li-Ming",
+"level": 1,
+"name": "Aether Walker"
+},
+"WizardArcaneOrbArcaneOrbit": {
+"hero": "Li-Ming",
+"level": 16,
+"name": "Arcane Orbit"
+},
+"WizardArcaneOrbTriumvirate": {
+"hero": "Li-Ming",
+"level": 4,
+"name": "Triumvirate"
+},
+"WizardArcaneOrbZeisVengeance": {
+"hero": "Li-Ming",
+"level": 7,
+"name": "Zei's Vengeance"
+},
+"WizardArchonPurePower": {
+"hero": "Li-Ming",
+"level": 20,
+"name": "Archon: Pure Power"
+},
+"WizardCannoneer": {
+"hero": "Li-Ming",
+"level": 13,
+"name": "Cannoneer"
+},
+"WizardDisintegrateTemporalFlux": {
+"hero": "Li-Ming",
+"level": 20,
+"name": "Temporal Flux"
+},
+"WizardDominance": {
+"hero": "Li-Ming",
+"level": 4,
+"name": "Dominance"
+},
+"WizardFireflies": {
+"hero": "Li-Ming",
+"level": 16,
+"name": "Fireflies"
+},
+"WizardForceArmor": {
+"hero": "Li-Ming",
+"level": 1,
+"name": "Force Armor"
+},
+"WizardGlassCannon": {
+"hero": "Li-Ming",
+"level": 13,
+"name": "Glass Cannon"
+},
+"WizardHeroicAbilityDisintegrate": {
+"hero": "Li-Ming",
+"level": 10,
+"name": "Disintegrate"
+},
+"WizardHeroicAbilityWaveOfForce": {
+"hero": "Li-Ming",
+"level": 10,
+"name": "Wave of Force"
+},
+"WizardMagicMissilesChargedBlast": {
+"hero": "Li-Ming",
+"level": 4,
+"name": "Charged Blast"
+},
+"WizardMagicMissilesMirrorball": {
+"hero": "Li-Ming",
+"level": 16,
+"name": "Mirrorball"
+},
+"WizardMagicMissilesSeeker": {
+"hero": "Li-Ming",
+"level": 7,
+"name": "Seeker"
+},
+"WizardPowerHungry": {
+"hero": "Li-Ming",
+"level": 1,
+"name": "Power Hungry"
+},
+"WizardTalRashasElements": {
+"hero": "Li-Ming",
+"level": 20,
+"name": "Tal Rasha's Elements"
+},
+"WizardTeleportCalamity": {
+"hero": "Li-Ming",
+"level": 7,
+"name": "Calamity"
+},
+"WizardTeleportDiamondSkin": {
+"hero": "Li-Ming",
+"level": 16,
+"name": "Diamond Skin"
+},
+"WizardTeleportIllusionist": {
+"hero": "Li-Ming",
+"level": 13,
+"name": "Illusionist"
+},
+"WizardWaveOfForceRepulsion": {
+"hero": "Li-Ming",
+"level": 20,
+"name": "Repulsion"
+},
+"YrelArdentDefender": {
+"hero": "Yrel",
+"level": 10,
+"name": "Ardent Defender"
+},
+"YrelArdentDefenderWordOfGlory": {
+"hero": "Yrel",
+"level": 20,
+"name": "Word of Glory"
+},
+"YrelAvengingWrathAegisOfLight": {
+"hero": "Yrel",
+"level": 4,
+"name": "Aegis of Light"
+},
+"YrelAvengingWrathHolyAvenger": {
+"hero": "Yrel",
+"level": 7,
+"name": "Holy Avenger"
+},
+"YrelAvengingWrathRepentance": {
+"hero": "Yrel",
+"level": 13,
+"name": "Repentance"
+},
+"YrelBubbleHearth": {
+"hero": "Yrel",
+"level": 20,
+"name": "Bubble Hearth"
+},
+"YrelDauntless": {
+"hero": "Yrel",
+"level": 1,
+"name": "Dauntless"
+},
+"YrelDivinePurposeDivineFavor": {
+"hero": "Yrel",
+"level": 16,
+"name": "Divine Favor"
+},
+"YrelDivinePurposeGiftOfTheNaaru": {
+"hero": "Yrel",
+"level": 4,
+"name": "Gift of the Naaru"
+},
+"YrelDivineSteed": {
+"hero": "Yrel",
+"level": 7,
+"name": "Divine Steed"
+},
+"YrelHandOfFreedom": {
+"hero": "Yrel",
+"level": 4,
+"name": "Hand of Freedom"
+},
+"YrelHolyWrath": {
+"hero": "Yrel",
+"level": 16,
+"name": "Holy Wrath"
+},
+"YrelMaraadsInsight": {
+"hero": "Yrel",
+"level": 1,
+"name": "Maraad's Insight"
+},
+"YrelRighteousHammerRighteousMomentum": {
+"hero": "Yrel",
+"level": 7,
+"name": "Righteous Momentum"
+},
+"YrelRighteousHammerTemplarsVerdict": {
+"hero": "Yrel",
+"level": 16,
+"name": "Templar's Verdict"
+},
+"YrelSacredGround": {
+"hero": "Yrel",
+"level": 10,
+"name": "Sacred Ground"
+},
+"YrelSacredGroundHallowedGround": {
+"hero": "Yrel",
+"level": 20,
+"name": "Hallowed Ground"
+},
+"YrelSeraphim": {
+"hero": "Yrel",
+"level": 20,
+"name": "Seraphim"
+},
+"YrelVelensChosen": {
+"hero": "Yrel",
+"level": 13,
+"name": "Velen's Chosen"
+},
+"YrelVindicationAldorPeacekeeper": {
+"hero": "Yrel",
+"level": 13,
+"name": "Aldor Peacekeeper"
+},
+"YrelVindicationLightOfKarabor": {
+"hero": "Yrel",
+"level": 1,
+"name": "Light of Karabor"
+},
+"ZagaraBroodmother": {
+"hero": "Zagara",
+"level": 20,
+"name": "Broodmother"
+},
+"ZagaraCombatStyleMedusaBlades": {
+"hero": "Zagara",
+"level": 4,
+"name": "Medusa Blades"
+},
+"ZagaraHeroicAbilityDevouringMaw": {
+"hero": "Zagara",
+"level": 10,
+"name": "Devouring Maw"
+},
+"ZagaraHeroicAbilityNydusAssault": {
+"hero": "Zagara",
+"level": 10,
+"name": "Nydus Network"
+},
+"ZagaraJaggedBarbsTalent": {
+"hero": "Zagara",
+"level": 16,
+"name": "Jagged Barbs"
+},
+"ZagaraMasteryBanelingMassacre": {
+"hero": "Zagara",
+"level": 7,
+"name": "Baneling Massacre"
+},
+"ZagaraMasteryBileDrop": {
+"hero": "Zagara",
+"level": 7,
+"name": "Bile Drop"
+},
+"ZagaraMasteryCorpseFeeders": {
+"hero": "Zagara",
+"level": 1,
+"name": "Corpse Feeders"
+},
+"ZagaraMasteryCorrosiveSaliva": {
+"hero": "Zagara",
+"level": 16,
+"name": "Corrosive Saliva"
+},
+"ZagaraMasteryEndlessCreep": {
+"hero": "Zagara",
+"level": 20,
+"name": "Endless Creep"
+},
+"ZagaraMasteryEnvenomedSpines": {
+"hero": "Zagara",
+"level": 4,
+"name": "Envenomed Spines"
+},
+"ZagaraMasteryHydraliskTransfusion": {
+"hero": "Zagara",
+"level": 13,
+"name": "Hydralisk Transfusion"
+},
+"ZagaraMasteryInfest": {
+"hero": "Zagara",
+"level": 1,
+"name": "Infest"
+},
+"ZagaraMasteryMutalisk": {
+"hero": "Zagara",
+"level": 16,
+"name": "Mutalisk"
+},
+"ZagaraMasteryProtectiveCoating": {
+"hero": "Zagara",
+"level": 13,
+"name": "Protective Coating"
+},
+"ZagaraMasterySerratedSpines": {
+"hero": "Zagara",
+"level": 4,
+"name": "Serrated Spines"
+},
+"ZagaraMasteryTyrantMaw": {
+"hero": "Zagara",
+"level": 20,
+"name": "Tyrant Maw"
+},
+"ZagaraMasteryVolatileAcid": {
+"hero": "Zagara",
+"level": 1,
+"name": "Volatile Acid"
+},
+"ZagaraPackInstinct": {
+"hero": "Zagara",
+"level": 20,
+"name": "Pack Instinct"
+},
+"ZagaraViscousAcid": {
+"hero": "Zagara",
+"level": 7,
+"name": "Viscous Acid"
+},
+"ZaryaDeepBurn": {
+"hero": "Zarya",
+"level": 7,
+"name": "Deep Burn"
+},
+"ZaryaDefensiveShielding": {
+"hero": "Zarya",
+"level": 4,
+"name": "Defensive Shielding"
+},
+"ZaryaEnergyBornInBattle": {
+"hero": "Zarya",
+"level": 16,
+"name": "Born in Battle"
+},
+"ZaryaEnergyEnduranceTraining": {
+"hero": "Zarya",
+"level": 13,
+"name": "Endurance Training"
+},
+"ZaryaEnergyMaximumChargeQuest": {
+"hero": "Zarya",
+"level": 1,
+"name": "Maximum Charge"
+},
+"ZaryaExpulsionZoneClearOut": {
+"hero": "Zarya",
+"level": 20,
+"name": "Clear Out"
+},
+"ZaryaGravitonSurgeGravityKills": {
+"hero": "Zarya",
+"level": 20,
+"name": "Gravity Kills"
+},
+"ZaryaHeroicAbilityExpulsionZone": {
+"hero": "Zarya",
+"level": 10,
+"name": "Expulsion Zone"
+},
+"ZaryaHeroicAbilityGravitonSurge": {
+"hero": "Zarya",
+"level": 10,
+"name": "Graviton Surge"
+},
+"ZaryaPainIsTemporary": {
+"hero": "Zarya",
+"level": 13,
+"name": "Pain is Temporary"
+},
+"ZaryaParticleGrenadeDemolitionsExpertQuest": {
+"hero": "Zarya",
+"level": 1,
+"name": "Demolitions Expert"
+},
+"ZaryaParticleGrenadeGrenadier": {
+"hero": "Zarya",
+"level": 20,
+"name": "Grenadier"
+},
+"ZaryaParticleGrenadePinpointAccuracy": {
+"hero": "Zarya",
+"level": 7,
+"name": "Pinpoint Accuracy"
+},
+"ZaryaPersonalBarrierExplosiveBarrier": {
+"hero": "Zarya",
+"level": 7,
+"name": "Explosive Barrier"
+},
+"ZaryaPersonalBarrierIAmTheStrongest": {
+"hero": "Zarya",
+"level": 4,
+"name": "I Am the Strongest"
+},
+"ZaryaPersonalBarrierSpellBarrier": {
+"hero": "Zarya",
+"level": 13,
+"name": "Spell Barrier"
+},
+"ZaryaPersonalBarrierUnstoppableCompetitor": {
+"hero": "Zarya",
+"level": 13,
+"name": "Unstoppable Competitor"
+},
+"ZaryaShieldAllyCleansingShield": {
+"hero": "Zarya",
+"level": 16,
+"name": "Cleansing Shield"
+},
+"ZaryaShieldAllyGainTrain": {
+"hero": "Zarya",
+"level": 16,
+"name": "Gain Train"
+},
+"ZaryaShieldAllyGiveMeTwentyQuest": {
+"hero": "Zarya",
+"level": 4,
+"name": "Give Me Twenty"
+},
+"ZaryaShieldAllySpeedBarrier": {
+"hero": "Zarya",
+"level": 4,
+"name": "Speed Barrier"
+},
+"ZaryaShieldAllyTogetherWeAreStrong": {
+"hero": "Zarya",
+"level": 1,
+"name": "Together We Are Strong"
+},
+"ZaryaUnyieldingDefender": {
+"hero": "Zarya",
+"level": 20,
+"name": "Unyielding Defender"
+},
+"ZaryaWeaponFeelTheHeat": {
+"hero": "Zarya",
+"level": 1,
+"name": "Feel the Heat"
+},
+"ZeratulDarknessDescends": {
+"hero": "Zeratul",
+"level": 4,
+"name": "Darkness Descends"
+},
+"ZeratulHeroicAbilityVoidPrison": {
+"hero": "Zeratul",
+"level": 10,
+"name": "Void Prison"
+},
+"ZeratulMasterWarpBlade": {
+"hero": "Zeratul",
+"level": 16,
+"name": "Master Warp-Blade"
+},
+"ZeratulMasteryGreaterCleaveCleave": {
+"hero": "Zeratul",
+"level": 1,
+"name": "Greater Cleave"
+},
+"ZeratulMendingStrikes": {
+"hero": "Zeratul",
+"level": 13,
+"name": "Mending Strikes"
+},
+"ZeratulMightOfTheNerazim": {
+"hero": "Zeratul",
+"level": 10,
+"name": "Might Of The Nerazim"
+},
+"ZeratulMoveUnseen": {
+"hero": "Zeratul",
+"level": 1,
+"name": "Move Unseen"
+},
+"ZeratulPsionicStrength": {
+"hero": "Zeratul",
+"level": 4,
+"name": "Psionic Strength"
+},
+"ZeratulRendingCleave": {
+"hero": "Zeratul",
+"level": 4,
+"name": "Rending Cleave"
+},
+"ZeratulSeekerInTheDark": {
+"hero": "Zeratul",
+"level": 7,
+"name": "Seeker in the Dark"
+},
+"ZeratulSentencedtoDeath": {
+"hero": "Zeratul",
+"level": 16,
+"name": "Sentenced to Death"
+},
+"ZeratulShadowHunter": {
+"hero": "Zeratul",
+"level": 1,
+"name": "Shadow Hunter"
+},
+"ZeratulShadowMending": {
+"hero": "Zeratul",
+"level": 20,
+"name": "Shadow Mending"
+},
+"ZeratulShadowStrideTalent": {
+"hero": "Zeratul",
+"level": 20,
+"name": "Shadow Stride"
+},
+"ZeratulShroudofAdun": {
+"hero": "Zeratul",
+"level": 13,
+"name": "Shroud of Adun"
+},
+"ZeratulTwilightFalls": {
+"hero": "Zeratul",
+"level": 20,
+"name": "Twilight Falls"
+},
+"ZeratulUnwaveringPressure": {
+"hero": "Zeratul",
+"level": 20,
+"name": "Unwavering Pressure"
+},
+"ZeratulVoidSlash": {
+"hero": "Zeratul",
+"level": 16,
+"name": "Void Slash"
+},
+"ZeratulWarpSkirmisherTalent": {
+"hero": "Zeratul",
+"level": 7,
+"name": "Warp Skirmisher"
+},
+"ZeratulWormhole": {
+"hero": "Zeratul",
+"level": 7,
+"name": "Wormhole"
+},
+"Zul'jinAmaniRageAmaniHide": {
+"hero": "Zul'jin",
+"level": 4,
+"name": "Amani Hide"
+},
+"ZuljinAmaniResilience": {
+"hero": "Zul'jin",
+"level": 20,
+"name": "Amani Resilience"
+},
+"ZuljinArcaniteAxes": {
+"hero": "Zul'jin",
+"level": 7,
+"name": "Arcanite Axes"
+},
+"ZuljinBoneslicer": {
+"hero": "Zul'jin",
+"level": 1,
+"name": "Boneslicer"
+},
+"ZuljinBuzzsaw": {
+"hero": "Zul'jin",
+"level": 20,
+"name": "Buzzsaw"
+},
+"ZuljinEnsnare": {
+"hero": "Zul'jin",
+"level": 13,
+"name": "Ensnare"
+},
+"ZuljinEyeOfZuljin": {
+"hero": "Zul'jin",
+"level": 13,
+"name": "Eye of Zul'jin"
+},
+"ZuljinFerocity": {
+"hero": "Zul'jin",
+"level": 7,
+"name": "Ferocity"
+},
+"ZuljinForestMedicine": {
+"hero": "Zul'jin",
+"level": 20,
+"name": "Forest Medicine"
+},
+"ZuljinGuillotine": {
+"hero": "Zul'jin",
+"level": 10,
+"name": "Guillotine"
+},
+"ZuljinHeadhunter": {
+"hero": "Zul'jin",
+"level": 1,
+"name": "Headhunter"
+},
+"ZuljinLacerate": {
+"hero": "Zul'jin",
+"level": 13,
+"name": "Lacerate"
+},
+"ZuljinLetTheKillingBegin": {
+"hero": "Zul'jin",
+"level": 16,
+"name": "Let the Killing Begin"
+},
+"ZuljinNoMercyTalent": {
+"hero": "Zul'jin",
+"level": 16,
+"name": "No Mercy!"
+},
+"ZuljinPassiveASurpriseForYa": {
+"hero": "Zul'jin",
+"level": 20,
+"name": "A Surprise For Ya"
+},
+"ZuljinRecklessness": {
+"hero": "Zul'jin",
+"level": 1,
+"name": "Recklessness"
+},
+"ZuljinTazdingo": {
+"hero": "Zul'jin",
+"level": 10,
+"name": "Taz'dingo!"
+},
+"ZuljinTrollsBlood": {
+"hero": "Zul'jin",
+"level": 4,
+"name": "Troll's Blood"
+},
+"ZuljinViciousAssault": {
+"hero": "Zul'jin",
+"level": 7,
+"name": "Vicious Assault"
+},
+"ZuljinVoodooShuffle": {
+"hero": "Zul'jin",
+"level": 4,
+"name": "Voodoo Shuffle"
+},
+"ZuljinWrongPlaceWrongTime": {
+"hero": "Zul'jin",
+"level": 16,
+"name": "Wrong Place Wrong Time"
+}
+}
+}

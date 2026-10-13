@@ -161,6 +161,7 @@ class Api:
         self.last = 0.0
         self.quota_remaining = None
         self.quota_reset = None   # seconds until the rolling window frees calls
+        self.last_429 = ""
 
     def _pace(self, interval):
         wait = self.last + interval - time.time()
@@ -202,6 +203,7 @@ class Api:
         body = r.content[:300]
         r.close()
         if r.status_code == 429:
+            self.last_429 = body.decode("utf-8", "replace")[:200]
             return "http_429", False, int(h.get("Retry-After", "60"))
         # 403/404/500 observed uncharged (quota header did not move on 403s)
         return f"http_{r.status_code}", False, body.decode("utf-8", "replace")
@@ -458,7 +460,9 @@ def run(args):
                 except requests.RequestException as e:
                     status, charged, info = "net_error", False, str(e)[:200]
                 if status == "http_429":
-                    log(f"429: sleeping {info}s (quota remaining {api.quota_remaining})")
+                    log(f"429: sleeping {info}s (quota remaining {api.quota_remaining}): {api.last_429}")
+                    if "quota" in api.last_429.lower() and "rate" not in api.last_429.lower():
+                        return finish(state, api, fetched)
                     if api.quota_remaining is not None and api.quota_remaining <= 0:
                         return finish(state, api, fetched)
                     time.sleep(int(info) + 1)
@@ -684,7 +688,10 @@ def backup(args):
                 if os.path.exists(p):
                     tar.add(p, arcname="meta/" + os.path.relpath(p, ROOT))
             for r in rows:
-                tar.add(os.path.join(ROOT, r["path"]), arcname=r["path"])
+                src = os.path.join(ROOT, r["path"])
+                if sha256_file(src) != r["sha256"]:      # verify each file as it is bundled
+                    raise RuntimeError(f"sha256 mismatch for {src}; bundle aborted")
+                tar.add(src, arcname=r["path"])
         os.rename(partial, final)
         os.remove(mpath)
         side = {"archive": os.path.basename(final), "sha256": sha256_file(final),
