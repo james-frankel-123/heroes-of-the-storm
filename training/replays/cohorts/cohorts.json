@@ -1,0 +1,35 @@
+{
+  "_doc": "Live config for sync/fetch-replay-files.py. Rules are in SELECTION_RULES.md. Caps count quota-charged downloads per rolling 7-day replay_download window. A schedule entry overrides the defaults until its date.",
+  "quota_margin": 1000,
+  "window_total_cap": 24000,
+  "window_caps": {
+    "stratified_b": 8300
+  },
+  "schedule": [
+    {
+      "until": "2026-10-20",
+      "_doc": "week 1: sealed set first, then cohort b up to about 20K downloads in total",
+      "window_total_cap": 20000,
+      "window_caps": {
+        "stratified_b": 15000
+      }
+    }
+  ],
+  "cohorts": [
+    {
+      "name": "sealed",
+      "kind": "sealed",
+      "priority": 0,
+      "patch_prefix": "2.57.",
+      "universe_scan_from": 65450000,
+      "target": 5000
+    },
+    {
+      "name": "stratified_b",
+      "kind": "stratified",
+      "priority": 10,
+      "patch_prefix": "2.57.",
+      "salt": "b3d5f9dece938c934048a5caf11d8ca7b96500a044801bc157cb737606c3b9cd"
+    }
+  ]
+}
