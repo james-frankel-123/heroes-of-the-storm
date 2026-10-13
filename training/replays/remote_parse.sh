@@ -7,11 +7,16 @@
 #   training/replays/remote_parse.sh run    [host]            detached parse (setsid, log)
 #   training/replays/remote_parse.sh status [host]
 #   training/replays/remote_parse.sh pull   [host]            timelines back to the RAID
+#   training/replays/remote_parse.sh cycle  [host] [cohort]   all of the above, then validate
+#
+# Cron (daily, after most downloads):
+#   40 22 * * * flock -n /home/max/heroes-of-the-storm/sync/.replay-parse.lock \
+#     /home/max/heroes-of-the-storm/training/replays/remote_parse.sh cycle >> /home/max/heroes-of-the-storm/sync/logs/replay-parse.log 2>&1
 #
 # Sealed files never leave this box: the push list comes from the manifest with the
 # sealed cohort and sealed IDs removed, and the parser refuses them again on the worker.
 set -euo pipefail
-CMD=${1:?usage: remote_parse.sh setup|push|run|status|pull [host] [cohort]}
+CMD=${1:?usage: remote_parse.sh setup|push|run|status|pull|cycle [host] [cohort]}
 HOST=${2:-max-windows-3090}
 COHORT=${3:-stratified_b}
 CORES=${HOTS_PARSE_CORES:-24-35}
@@ -59,13 +64,10 @@ EOF
     remote <<EOF
 set -e
 cd $RD/code
-for L in $RD/data/list_*.txt; do
-  setsid nohup taskset -c $CORES nice -n 19 $RD/venv/bin/python run_parse.py --root $RD/data \
-    --list "\$L" --workers $WORKERS >> $RD/parse.log 2>&1 < /dev/null &
-  wait \$! 2>/dev/null || true
-done &
-disown
-echo "launched on cores $CORES with $WORKERS workers; log $RD/parse.log"
+cat $RD/data/list_*.txt | sort -u > $RD/data/all.txt
+setsid nohup taskset -c $CORES nice -n 19 $RD/venv/bin/python run_parse.py --root $RD/data \
+  --list $RD/data/all.txt --workers $WORKERS >> $RD/parse.log 2>&1 < /dev/null &
+echo "launched on cores $CORES with $WORKERS workers: \$(wc -l < $RD/data/all.txt) files; log $RD/parse.log"
 EOF
     ;;
   status)
@@ -74,7 +76,20 @@ tail -3 $RD/parse.log; pgrep -fc run_parse.py || true
 EOF
     ;;
   pull)
-    "${R[@]}" --stats "$HOST:$RD/data/timelines/" "$ROOT/timelines/" | grep -E "files transferred|Total transferred"
+    "${R[@]}" --exclude index.jsonl --stats "$HOST:$RD/data/timelines/" "$ROOT/timelines/" \
+      | grep -E "files transferred|Total transferred"
+    "${R[@]}" "$HOST:$RD/data/timelines/index.jsonl" "$ROOT/timelines/index_$HOST.jsonl"
+    ;;
+  cycle)
+    # push new files, parse, wait, pull, validate. Cron-safe (daily); no-op cost if nothing new.
+    "$0" push "$HOST" "$COHORT"
+    "$0" run "$HOST"
+    sleep 30
+    while remote <<< "pgrep -f run_parse.py > /dev/null" ; do sleep 60; done
+    "$0" status "$HOST"
+    "$0" pull "$HOST"
+    set -a; . ./.env; set +a
+    nice -n 19 /home/linuxbrew/.linuxbrew/bin/python3 training/replays/validate_timelines.py > "$ROOT/timelines/validation_latest.log"
     ;;
   *) echo "unknown command $CMD"; exit 2 ;;
 esac

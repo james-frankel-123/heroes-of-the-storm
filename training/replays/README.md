@@ -116,5 +116,28 @@ training/replays/remote_parse.sh pull             # timelines back to the RAID
 set -a; . ./.env; set +a; python3 training/replays/validate_timelines.py
 ```
 
+`remote_parse.sh cycle` does all of that; cron runs it daily at 22:40 (`flock`,
+`sync/logs/replay-parse.log`). On the 3090's cores 24-35 a game takes about 7 s per worker
+(those are busy SMT siblings), so 12 workers do about 6,000 games per hour.
+
 Each worker holds one replay at a time (about 25 MB). Locally:
 `nice -n 19 taskset -c 48-63 <venv>/python training/replays/run_parse.py --workers 4`.
+
+## Validation against our DB (first 617 cohort-b games, 2026-10-13)
+
+| check | agreement |
+|---|---|
+| games found in `replay_draft_data` | 617 / 617 |
+| winner | 100% |
+| hero sets per team | 100% |
+| players matched on toon_id = `replay_players.blizz_id` | 6,133 / 6,170 (the other 37 are missing from `replay_players`: those games have 8 or 9 rows) |
+| per player hero, team, win | 100%, 100%, 100% |
+| talent count per player (non-empty DB talents) | 99.64% |
+| talent names, by tier | 99.80% of 39,740 (38,778 via the reference, 881 by name inside the internal id) |
+| internal talent id maps to one DB name | 100% of 1,880 ids |
+| game length | replay length = DB `game_length` + 70 s, offset between 70.0 and 70.9 s in 100% of games |
+
+The 81 talent misses are all reference gaps, not parse errors: Muradin's reworked
+`MuradinExtraCharges` (DB: Mountain King) and three Xal'atath talents, which postdate
+the reference data. `validate_timelines.py` writes the full numbers to
+`timelines/validation.json`.
