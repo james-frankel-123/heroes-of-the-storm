@@ -1,0 +1,12 @@
+{
+ "frozen_at": "2026-10-13T13:12:56+00:00",
+ "salt": "9e751a514d05be740c65dc66efc1a3b5b043e5c24eed718cb6d54194156d4497",
+ "rule": "universe = every replay in the Heroes Profile /replays listing with game_type == 'Storm League', game_version starting '2.57.', deleted == 0, downloadable == true, and replayID in (65450000, 65956438]. rank(id) = sha256(f'{salt}:{id}') as hex; sealed = the 5000 universe members with the lowest rank.",
+ "universe_scan_from_exclusive": 65450000,
+ "freeze_max_replay_id": 65956438,
+ "listing_calls": 121,
+ "universe_size": 42166,
+ "universe_ids_sha256": "5c98e457ae492509b51cc25ff1e5d12cb0e5d2b12547aae27dfaef0d296313b8",
+ "sealed_size": 5000,
+ "sealed_ids_sha256": "c1b80f243049e5e00d545b11c418e0b57490a929d0a7d64465e6170e33a4033b"
+}
