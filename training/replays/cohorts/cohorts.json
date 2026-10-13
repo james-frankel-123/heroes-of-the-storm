@@ -8,10 +8,20 @@
   "schedule": [
     {
       "until": "2026-10-20",
-      "_doc": "week 1: sealed set first, then cohort b up to about 20K downloads in total",
-      "window_total_cap": 20000,
+      "_doc": "week 1: sealed set first, then cohort b up to 15K, plus surprise_v1 up to 3K (total 23K, quota margin 1K)",
+      "window_total_cap": 23000,
       "window_caps": {
-        "stratified_b": 15000
+        "stratified_b": 15000,
+        "surprise_v1": 3000
+      }
+    },
+    {
+      "until": "2026-10-27",
+      "_doc": "week 2: cohort b drops to 4K (FRAMING 4.2), interesting up to 6K; about 14K left for wave-1 and wave-2 requests",
+      "window_total_cap": 11000,
+      "window_caps": {
+        "stratified_b": 4000,
+        "surprise_v1": 6000
       }
     }
   ],
@@ -30,6 +40,14 @@
       "priority": 10,
       "patch_prefix": "2.57.",
       "salt": "b3d5f9dece938c934048a5caf11d8ca7b96500a044801bc157cb737606c3b9cd"
+    },
+    {
+      "name": "surprise_v1",
+      "kind": "ids",
+      "priority": 20,
+      "ids_file": "interesting/surprise_v1.txt",
+      "target": 895,
+      "_doc": "two-phase surprise draw from the scilearn interesting pool, SELECTION_RULES.md C.1"
     }
   ]
 }

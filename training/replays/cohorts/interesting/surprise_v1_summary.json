@@ -1,0 +1,39 @@
+{
+ "name": "surprise_v1",
+ "snap": "snap_20261013",
+ "pool_file_sha256": "9e6294a49472346a65871e73eb1feb5817bc44a0cb01751053056ca23eda7b80",
+ "pool_size": 3302,
+ "pool_replay_id_range": [
+  65537165,
+  65928106
+ ],
+ "history_rows_used": 610042,
+ "model_version": "A0@a0_fitSDG:48c81aabd50e4efb",
+ "model_hash": "48c81aabd50e4efb9126312107a61860f5fae2dfd8ec3ab663c86d8b6eb68e7b",
+ "model_train_tranches": [
+  "S",
+  "Dpre",
+  "G"
+ ],
+ "seed": 1722864024,
+ "surprise_type_counts": {
+  "trajectory": 3131,
+  "outcome": 171
+ },
+ "top_thresholds": {
+  "trajectory": 0.028127909081656483,
+  "outcome": 0.7357099808464329
+ },
+ "top_quintile": 662,
+ "selected": 895,
+ "selected_by_pi": {
+  "0.2": 490,
+  "0.6": 405
+ },
+ "expected_selected": 925.2000000000003,
+ "ht_check_sum_1_over_pi_selected": 3125.0,
+ "ids_file": "training/replays/cohorts/interesting/surprise_v1.txt",
+ "design_file": "training/replays/cohorts/interesting/surprise_v1_design.tsv",
+ "ids_file_sha256": "db87c3b82b411b7930286882affd7bf8983e2f49df9925e66e596a709f2599cc",
+ "design_file_sha256": "4c00a54c0638609d90b657e4f27323edb70a6665922a49a60437c7c605b3ac67"
+}
