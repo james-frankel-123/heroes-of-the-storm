@@ -5,6 +5,7 @@
   python -m training.scilearn.session broker <sid>          start the broker in the background
   python -m training.scilearn.session launch <sid> [--dry-run]   run claude -p in the sandbox
   python -m training.scilearn.session stop <sid>
+  python -m training.scilearn.session canaries <sid>       6 harness canaries (harness ledger only)
 
 One budget per session (its own ledger), one working directory (SESSIONS/<sid>/work), one
 broker socket bound only into that session's container.
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     sp = ap.add_subparsers(dest="cmd", required=True)
     p = sp.add_parser("prepare"); p.add_argument("sid"); p.add_argument("--arm", required=True, choices=sorted(BR.ARMS))
     p.add_argument("--variant", default="K"); p.add_argument("--cycle", type=int, default=1)
-    for name in ("prefit", "broker", "stop"):
+    for name in ("prefit", "broker", "stop", "canaries"):
         q = sp.add_parser(name); q.add_argument("sid")
     l = sp.add_parser("launch"); l.add_argument("sid"); l.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
@@ -125,5 +126,8 @@ if __name__ == "__main__":
         start_broker(a.sid)
     elif a.cmd == "stop":
         stop(a.sid)
+    elif a.cmd == "canaries":
+        from training.scilearn import harness
+        print(json.dumps(harness.run_canaries(BR.Broker(a.sid)), indent=1))
     else:
         sys.exit(launch(a.sid, a.dry_run))

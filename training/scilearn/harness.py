@@ -17,6 +17,32 @@ from training.scilearn.ledger import Ledger, canonical
 
 REGISTRY = C.PRIVATE / "incumbents.json"
 HOST = "max-windows-3090"
+REMOTE_SLOTS = 2      # concurrent scilearn jobs on the 3090 (about 16 GB peak each; our share is 60 GB)
+
+
+class remote_slot:
+    """Cross-process semaphore over the broker processes (one flock file per slot)."""
+
+    def __enter__(self):
+        import fcntl
+        import time as _t
+        d = C.PRIVATE / "locks"
+        d.mkdir(exist_ok=True)
+        while True:
+            for i in range(REMOTE_SLOTS):
+                f = open(d / f"remote_slot_{i}", "w")
+                try:
+                    fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    self.f = f
+                    return self
+                except BlockingIOError:
+                    f.close()
+            _t.sleep(10)
+
+    def __exit__(self, *exc):
+        import fcntl
+        fcntl.flock(self.f, fcntl.LOCK_UN)
+        self.f.close()
 
 
 def fit_tranches(dev):
@@ -46,9 +72,10 @@ def ensure_incumbent(state, dev, wait=True):
     if key in reg:
         return reg[key]
     job = f"inc_{key}"
-    R.submit({"job_id": job, "kind": "fit_eval", "fit_tranches": fit_tranches(dev), "eval_tranches": [dev],
-              "models": {"INC": specs}}, HOST, label_mode=lm)
-    res = R.wait(job, HOST) if wait else None
+    with remote_slot():
+        R.submit({"job_id": job, "kind": "fit_eval", "fit_tranches": fit_tranches(dev), "eval_tranches": [dev],
+                  "models": {"INC": specs}}, HOST, label_mode=lm)
+        res = R.wait(job, HOST) if wait else None
     reg = _registry()
     reg[key] = {"job": job, "name": "INC", "labels": lm, "dev": dev,
                 "dev_metrics_private": res["models"]["INC"]["eval"].get(dev) if res else None}
@@ -81,8 +108,9 @@ def finish_q2(broker, cid):
     spec = {"job_id": job, "kind": "q2", "fit_tranches": fit_tranches(dev), "eval_tranches": [],
             "models": {}, "incumbent_job": inc["job"], "incumbent": inc["name"], "term": card["term"],
             "dev_tranche": dev, "recent_s_builds": recent_s_builds(broker.meta)}
-    R.submit(spec, HOST, label_mode=label_mode(st))
-    res = R.wait(job, HOST)
+    with remote_slot():
+        R.submit(spec, HOST, label_mode=label_mode(st))
+        res = R.wait(job, HOST)
     with broker.lock:
         apply_gate(broker, cid, res, inc)
 
@@ -220,8 +248,9 @@ def run_canaries(broker, wait=True):
         jobs.append((kind, term, job, spec))
     for kind, term, job, spec in jobs:
         # one at a time: keeps scilearn RAM on the 3090 well under its 60 GB share
-        R.submit(spec, HOST, label_mode=label_mode(st))
-        res = R.wait(job, HOST)
+        with remote_slot():
+            R.submit(spec, HOST, label_mode=label_mode(st))
+            res = R.wait(job, HOST)
         pr = res["paired"]
         k = int(res.get("term_k", 1))
         decision, thr, alt, near = E.gate_decisions(pr["z"], 0.0, k_params=k, sum2=pr["sum2"])
