@@ -69,3 +69,4 @@ benchmark/cache/
 
 # CSV dumps
 training/*.csv
+paper/hypothesis_system/runs/
