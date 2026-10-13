@@ -1,0 +1,65 @@
+Hero code: K431
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 0.8 s, 99 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 60): Slide to a location dealing 105 (+4% per level) damage and Stunning enemies hit for 1.25 seconds.
+[W] basic (cooldown 12 s, cost 55): Deals 68 (+4% per level) damage to nearby enemies, knocking them back.
+[E] basic (cooldown 9 s, cost 40): Regenerate 66 (+4% per level) Health per second for 4 seconds.
+[R1] heroic (cooldown 120 s, cost 100): After 0.75 seconds, channel to stun nearby enemies for 4 seconds.
+[R2] heroic (cooldown 75 s, cost 70): Leap to target location, landing after 2.75 seconds, dealing 330 (+4% per level) damage to enemies in the area, and slowing them by 50% for 4 seconds.
+[D] trait: Using a Basic Ability grants 20 Armor for 2 seconds. Heroic Abilities grant 60 Armor.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies E: While [E] is active, this hero heals for 60% of his damage dealt by Basic Attacks.  Basic Attacks increase the duration of [E] by 0.5 seconds.
+  [T1.2] modifies E: Quest: Gathering a Regeneration Globe permanently increases the healing per second of [E] by 5, to a maximum of 100  Reward: After gathering 20 Regeneration Globes, [E] also heals nearby allied Heroes for 50 (+4% per level) Health every second while it is active.
+  [T1.3] modifies Trait: Using a Basic or Heroic ability also gives nearby allied Heroes a stack of Block, granting 75 Physical Armor against the next Hero Basic Attack for 8 seconds, reducing the damage taken by 75%. Maximum 2 stacks of Block.
+Level 4:
+  [T4.1] modifies Q: Allows [Q] to travel over walls and terrain. If no enemies are hit, reduce the cooldown by 7 seconds and refund the Mana cost.
+  [T4.2] modifies W: Increases [W] range and knockback by 50%.
+  [T4.3] modifies Trait: Using a Basic or Heroic ability also gives nearby allied Heroes 20% Movement Speed for 2.5 seconds.
+Level 7:
+  [T7.1] modifies W: [W] does 300% more damage to enemies recently affected by [Q].
+  [T7.2] modifies E: While [E] is active your Basic Attacks deal 35% more damage.
+  [T7.3] modifies Passive: Using a Basic or Heroic Ability releases two pulses of 18 (+4% per level) damage.  This deals 200% bonus damage to Minions, Mercenaries, and Monsters. The first occurs instantly, the second occurs 2 seconds later.
+Level 10:
+  [R1] modifies Heroic (cooldown 120 s): After 0.75 seconds, channel to stun nearby enemies for 4 seconds.
+  [R2] modifies Heroic (cooldown 75 s): Leap to target location, landing after 2.75 seconds, dealing 330 (+4% per level) damage to enemies in the area, and slowing them by 50% for 4 seconds.
+Level 13:
+  [T13.1] modifies W: Hitting at least 2 targets with [W] reduces its cooldown by 6 seconds.
+  [T13.2] modifies W: [W] leaves an Amp behind, which will knock enemies away again 2 seconds later.  Passive: Each enemy Hero hit by [W] or the Amp reduces your Heroic Ability cooldown by 5%.
+  [T13.3] modifies W: [W] slows enemies by 50% fading over 2 seconds.
+Level 16:
+  [T16.1] modifies Q: After using [Q], gain 35 Armor for 4 seconds, reducing all damage taken by 35%.
+  [T16.2] modifies E: this hero's Basic Attacks reduce the cooldown of [E] by 0.75 seconds.
+  [T16.3] modifies Active (cooldown 20 s): Activate to reduce the Attack Speed by 50% and Movement Speed by 20% of nearby Heroes and Summons for 2.5 seconds.  Passive: Heroes and Summons that attack your Hero have their Attack Speed Slowed by 20% for 2.5 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Channeling [R1] refreshes [Q]'s cooldown, and it can be cast to increase [R1]'s duration by 2 seconds.
+  [T20.2] modifies Heroic: [R2]'s impact area is 50% bigger, and its Slow is increased by 30%.
+  [T20.3] modifies Passive: Upon dying, a ghost uses [R1] at this hero's location.
+  [T20.4] modifies Active (cooldown 45 s): Activate to give all nearby allied Heroes a Shield for 20% of their max Health for 3 seconds.
+  [T20.5] modifies Active (cooldown 70 s): Activate to teleport to a nearby location.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-05:
+Base
+[W] [W]
+Cooldown reduced from 12 to 10 seconds.
+[D] [Trait D]
+Armor from Basic Abilities increased from 20 to 25.
+Armor from Heroic Abilities reduced from 60 to 50.
+Talents
+Level 4
+[T4.1]
+Cooldown reduction reduced from 7 to 6 seconds.
+Level 7
+[T7.2]
+ADDED FUNCTIONALITY: Basic Attacks deal 12% more damage, increased to 36% while [E] is active.
+Level 13
+[T13.2]
+Cooldown reduction reduced from 5% to 4%.
+Level 20
+Power of the Horde
+NEW TALENT: Activate to grant nearby allied Heroes a Shield that absorbs damage equal to 30% of their maximum Health for 5 seconds, increased by 2% for each other allied Hero in the area. This new Talent replaces [T20.4].
+Ride the Lightning
+NEW TALENT: Activate to teleport to a nearby location and deal 48 damage to nearby enemy Heroes. The cooldown is reduced by 10 seconds for every enemy Hero hit, up to 50 seconds.

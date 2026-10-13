@@ -1,0 +1,88 @@
+Hero code: K655
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1, one attack every 0.8 s, 95 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 15 s, cost 75): this hero lashes out his tongue, dealing 160 (+4% per level) damage to the first enemy hit, Stunning and dragging them with him for 1.75 seconds.  If this hero is Stunned or Silenced while using [Q], the effect ends.
+[W] basic (cooldown 10 s, cost 50): Deal 52 (+4% per level) damage every 0.5 seconds to nearby enemies for 3.5 seconds. While active, you are able to move through units. Can be cast during [Q] and Burrow.
+[E] basic (cooldown 20 s, cost 65): Burrow into the ground, entering Stasis and becoming Invulnerable for 2 seconds. While Burrowed, this hero can move at 50% movement speed.
+[R1] heroic (cooldown 60 s, cost 70): Launch biomass that hits the first enemy Hero dealing 200 (+4% per level) damage, revealing, Silencing, and Slowing them 30% for 3 seconds. Additionally, their vision radius is greatly reduced for 6 seconds.
+[R2] heroic (cooldown 60 s, cost 70): After 4 seconds, heal for 100% of the damage this hero took over this period.
+[D] trait (cooldown 5 s): Heal this hero for 29 (+4% per level) Health per stored term C over 5 seconds. Can be cast during [Q] and Burrow.  Passive: Gain 10 term C from Takedowns and 2 term C from nearby Minions dying. Maximum of 50 term C.
+[Z] mount (cooldown 75 s): Activate to burrow to a bush on the Battleground.  Passive: Gain 20% movement speed while in a bush and for 2 seconds after leaving.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: [W]'s duration is increased by 0.5 seconds and grants 50 Spell Armor while active.
+  [T1.2] modifies Trait: Regeneration Globes grant 10 term C.  Repeatable Quest: Every 50 term C collected permanently increases Health Regeneration by 4, up to 40, and maximum term C by 1, up to 10.
+  [T1.3] modifies Z: [Z]'s Movement Speed bonus now lasts for 5 seconds after leaving a bush.  Repeatable Quest: Every 50 term C collected permanently increases the Movement Speed bonus of [Z] by 2%, up to 20%.
+Level 4:
+  [T4.1] modifies E: Emerging from Burrow grants this hero Stealth for 3 seconds and knocks nearby enemies back, dealing 125 (+4% per level) damage and Slowing them by 30% for 3 seconds.  Passive: Reduce the cooldown of Burrow by 3 seconds.
+  [T4.2] modifies Trait: Increases term C collected from Minions by 50%. [W] deals 40% more damage to Mercenaries.
+  [T4.3] modifies Trait: Increases term C gained from Takedowns by 100%, and gain 1 term C each time an enemy Hero is hit by [W].
+Level 7:
+  [T7.1] modifies Q: Basic Attacks reduce [Q]'s cooldown by 1.5 seconds.  Passive: Increase [Q]'s duration by 0.5 seconds.
+  [T7.2] modifies Q: [Q] Slows enemies by 40% for 2 seconds after it ends.  Gambit: When [Q] ends, deal an additional 280 (+4% per level) damage to the target over 2 seconds. Every death reduces this damage by 40 (+4% per level), up to 5 times.
+  [T7.3] modifies W: Every time [W] damages an enemy Hero, reduce its cooldown by 0.4 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 60 s): Launch biomass that hits the first enemy Hero dealing 200 (+4% per level) damage, revealing, Silencing, and Slowing them 30% for 3 seconds. Additionally, their vision radius is greatly reduced for 6 seconds.
+  [R2] modifies Heroic (cooldown 60 s): After 4 seconds, heal for 100% of the damage this hero took over this period.
+Level 13:
+  [T13.1] modifies W: [W] Slows enemy Heroes by 15% for 0.75 seconds and deals 60% more damage while [Z]'s Movement Speed bonus is active.
+  [T13.2] modifies W: [W] causes enemies hit to lose 10 Armor for 0.75 seconds, causing them to take 10% extra damage.
+  [T13.3] modifies Trait: Gain 1.25% increased Attack Damage per term C stored.
+Level 16:
+  [T16.1] modifies Q: Increase [Q] range by 20%.
+  [T16.2] modifies E: Increase movement speed while Burrowing to 125%.
+  [T16.3] modifies Z: this hero gains 20 Armor and 15% increased Attack Speed while in a bush and for 5 seconds after leaving.
+Level 20:
+  [T20.1] modifies Heroic: Isolation hits all Heroes near the first target.
+  [T20.2] modifies Heroic: Increases [R2] healing to 200% of the damage received and reduces the cooldown by 40 seconds.
+  [T20.3] modifies Trait: this hero's Basic Attacks slow the target by 20% for 1 second. If the target is a Hero, this hero gains 5 term C.
+  [T20.4] modifies Z: Reduces [Z]'s cooldown by 50 seconds and the cast time by 0.5 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-03:
+Base
+[W] [W]
+Damage reduced from 52 to 48.
+Talents
+Level 4
+[T4.3]
+Hitting more than 3 Heroes at once no longer grants additional term C.
+[T4.1]
+Cooldown reduction bonus reduced from 3 seconds to 2 seconds.
+Level 7
+[T7.1]
+REWORK: Cooldown reduction is now a Gambit bonus, starting from 1.5 second cooldown reduction. Each death lowers this by 0.25, up to 3 times.
+[T7.2]
+REWORK: Gambit removed. Now reduces [Q]'s target's healing received by 40% while [Q] is active and for 2 seconds after.
+Level 13
+[T13.1]
+Damage bonus reduced from 60% to 50%.
+Level 16
+term B
+Movement speed reduced from 125% to 120%.
+Level 20
+[T20.1]
+Now also reduces the damage of Isolation by 60%.
+Change set 2025-07:
+Talents
+Level 1
+[T1.3]
+Reduced Movement Speed bonus from 5 seconds to 4 seconds.
+Level 7
+[T7.2]
+Basic Attacks now also sets the remaining duration to 2 seconds.
+Healing reduction increased from 40% to 50%.
+Level 16
+[T16.3]
+Reduced duration from 5 seconds to 4 seconds.
+Change set 2025-09:
+Base
+[Z] [ Z ]
+Cooldown increased from 75 seconds to 240 seconds.
+Cooldown is reduced by 40 seconds when a Regen Globe is picked up.
+Talents
+Level 20
+[T20.4]
+Cooldown reduction increased from 50 to 120 seconds.

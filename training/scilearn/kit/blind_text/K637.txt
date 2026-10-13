@@ -1,0 +1,49 @@
+Hero code: K637
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 63 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 3 s, cost 20): Fire three missiles toward an area, each dealing 147 (+3.5% per level) damage to the first enemy hit. These missiles do 50% damage to Structures.
+[W] basic (cooldown 8 s, cost 40): Fire an Orb that powers up as it travels, dealing 135 (+3% per level) damage to the first enemy hit. Damage is increased the further it travels, up to 270 (+3% per level) more damage.
+[E] basic (cooldown 5 s, cost 30): Teleport a short distance instantly.
+[R1] heroic (cooldown 20 s, cost 80): Channel a powerful beam, dealing 480 (+5% per level) damage over 2.6 seconds to enemies while they are in it. The direction of the beam changes with your mouse cursor position.
+[R2] heroic (cooldown 30 s, cost 80): Knock away all enemies from an area and deal 160 (+5% per level) damage.
+[D] trait: Getting a Takedown will refresh the cooldown on all of this hero's Abilities.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: When [Q] damages an enemy Hero, gain 50 Spell Armor, reducing the damage taken by the next Ability by 50%. Gain 1 charge per cast and store up to 4 charges.  Passive: this hero's Mana regeneration is increased by 100% while below 35% Mana.
+  [T1.2] modifies E: Teleport costs no Mana.  If this hero hasn't taken damage in the last 3 seconds, Teleport's cooldown is decreased by 2 seconds.  Casting Teleport causes this hero's next cast of [Q] to deal 10% bonus damage.
+  [T1.3] modifies Passive: Regeneration Globes restore 100% more Mana and grant 10% Spell Power for 20 seconds.
+Level 4:
+  [T4.1] modifies Q: Basic Attacking a target recently hit by a term A does an extra 87 (+4% per level) damage.
+  [T4.2] modifies W: If [W] hits an enemy Hero after traveling at least 50% of its base range, the cooldown is reduced by 5 seconds and 40 Mana is refunded.
+  [T4.3] modifies Trait: Takedowns restore 30% of this hero's missing Health.
+Level 7:
+  [T7.1] modifies Q: If three [Q] hit the same target, the third one deals an additional 140 (+4% per level) damage.
+  [T7.2] modifies W: Increase [W]'s damage increase for distance traveled by 30%. Additionally, reduce its cooldown by 1 second.
+  [T7.3] modifies E: Teleport does 300 (+3% per level) damage to enemy Heroes near the destination.
+Level 10:
+  [R1] modifies Heroic (cooldown 20 s): Channel a powerful beam, dealing 480 (+5% per level) damage over 2.6 seconds to enemies while they are in it. The direction of the beam changes with your mouse cursor position.
+  [R2] modifies Heroic (cooldown 30 s): Knock away all enemies from an area and deal 160 (+5% per level) damage.
+Level 13:
+  [T13.1] modifies E: If this hero loses more than 20% of her Health at once, its cooldown is instantly refreshed.  This effect has a 4 second cooldown.  Passive: Increases Teleport range by 50%
+  [T13.2] modifies Passive: When this hero uses an Ability, her next Basic Attack's damage is increased by 75% and deals Spell damage instead of Physical.  Stacks up to 3 times.
+  [T13.3] modifies Passive: Increase this hero's Spell Power by 20%, but decrease her maximum Health by 15%.
+Level 16:
+  [T16.1] modifies Q: Drastically increases [Q] speed. Its cooldown is reduced by 1 second, and its Mana cost is reduced by 5.
+  [T16.2] modifies Q: [Q] fires an additional 2 missiles, but its Mana cost is increased by 5.
+  [T16.3] modifies W: [W] travels 25% farther, increasing its maximum distance damage bonus from 270 (+3% per level) to 371 (+3% per level).
+  [T16.4] modifies E: Teleport grants a Shield equal to 25% of this hero's maximum Health for 4 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R1] gradually slows enemies caught in its beam, to a maximum of 60%.
+  [T20.2] modifies Heroic: Increases [R2] knockback distance by 150% and increases its cast range by 100%.
+  [T20.3] modifies Passive: Casting Abilities increases the damage of the next Ability by 5%, up to 20%.  This bonus is reset when the same Ability is used within a chain.
+  [T20.4] modifies Active: Activate to enter term D form, allowing this hero to repeatedly use [R1], but be unable to cast other Abilities.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Talents
+Level 10
+[R1] [R1]
+Can now be cancelled by pressing Stop or Hold Fire.

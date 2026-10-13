@@ -1,0 +1,54 @@
+Hero code: K814
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.25, one attack every 1 s, 111 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s, cost 50): Dash forward and deal 63 (+4% per level) damage to enemies, then return and deal 171 (+4% per level) damage. Every enemy hit reduces the cooldown on [D] by 1 second, and Heroes by 2 seconds.
+[W] basic (cooldown 4 s, cost 20): this hero's next Basic Attack immediately causes him to charge a short distance and strike the enemy 2 times.
+[E] basic (cooldown 12 s, cost 50): Fire a [E] that deals 66 (+4% per level) damage to the first Hero hit and swaps this hero's position with theirs. Hitting a Hero also grants this hero Unstoppable for 1.5 seconds. Can be used during [Q].
+[R1] heroic (cooldown 70 s, cost 65): Target an enemy Hero with an orbital beam from the term A, dealing 184 (+4% per level) damage per second for 8 seconds. The beam will chase the target as they move.  Unlimited range.
+[R2] heroic (cooldown 50 s, cost 40): Fire a large area pulse from the term A, dealing 114 (+4% per level) damage and Blinding enemies for 4 seconds. Unlimited range.
+[D] trait (cooldown 24 s): After taking damage while below 75% Health, this hero gains a 365 (+4% per level) Shield for 5 seconds. Basic Attacks lower the cooldown of [D] by 4 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Damaging enemy Heroes with [W] or [Q] grants this hero 50 Physical Armor against the next enemy Hero Basic Attack, reducing its damage by 50%.  Stores up to 2 charges.
+  [T1.2] modifies W: [W] attacks deal 150% bonus damage to non-Heroes.
+  [T1.3] modifies Passive: Quest: Basic Attacks against enemy Heroes increase this hero's Attack damage by 0.1%.  Takedowns grant 1% bonus damage.
+Level 4:
+  [T4.1] modifies E: Hitting an enemy Hero with [E] grants 30 Armor for 5 seconds.
+  [T4.2] modifies Trait: [D]'s cooldown recharges 125% faster while its Shield is active.  Passive: Reduce [D]'s cooldown by 4 seconds.
+  [T4.3] modifies Trait: Increases [D]'s Shields by 80% while below 25% Health.
+Level 7:
+  [T7.1] modifies Q: Increases the damage of the first dash of [Q] by 175%.
+  [T7.2] modifies E: Hitting an enemy Hero with [E] grants 40% bonus Attack Speed for 5 seconds and Slows the enemy's Movement Speed by 30% for 4 seconds.
+  [T7.3] modifies Passive: After using an Ability, your next Basic Attack within 6 seconds deals 40% additional damage. While under 25% Health, this damage bonus is increased to 60%.
+Level 10:
+  [R2] modifies Heroic (cooldown 50 s): Fire a large area pulse from the term A, dealing 114 (+4% per level) damage and Blinding enemies for 4 seconds. Unlimited range.
+  [R1] modifies Heroic (cooldown 70 s): Target an enemy Hero with an orbital beam from the term A, dealing 184 (+4% per level) damage per second for 8 seconds. The beam will chase the target as they move.  Unlimited range.
+Level 13:
+  [T13.1] modifies Q: Reduce the Mana cost of [Q] from 50 to 25. Each time that [D] activates, reduce the cooldown of [Q] by 6 seconds.
+  [T13.2] modifies W: Increases [W]'s number of Basic Attacks to 3, but increase its cooldown by 1 second.
+  [T13.3] modifies E: Reduce the Mana cost of [E] from 50 to 25. Hitting an enemy Hero with Basic Attacks or [Q] reduces the cooldown of [E] by 2 seconds.
+  [T13.4] modifies Trait: [D] grants 50 Spell Armor while active and for 2 seconds after it expires.
+Level 16:
+  [T16.1] modifies W: Basic Attacks against Heroes deal bonus damage equal to 0.5% of the target's maximum Health in damage, increased to 1.5% when empowered by [W].
+  [T16.2] modifies Trait: Casting Basic Abilities reduces the cooldown of [D] by 5 seconds.
+  [T16.3] modifies Passive: Increase Attack Speed by 20%. Basic Attacks Slow by 20% for 1.25 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R2] gains an additional charge.  There is a 10 second cooldown between uses.
+  [T20.2] modifies Heroic: Increase the speed of [R1] by 15%. If the target of [R1] dies, it automatically recasts on the nearest visible enemy Hero.
+  [T20.3] modifies W: Increase [W]' charge distance by 75%.
+  [T20.4] modifies Trait: While [D] is active, deal 70 (+4% per level) damage per second to nearby enemies.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+ARAM
+Talents
+Level 4
+[D]
+Added to the Buff Bar.
+Trait is now highlighted when below 25%.
+Level 7
+[Passive]
+Conditional part of the ability has been added to the Buff Bar.

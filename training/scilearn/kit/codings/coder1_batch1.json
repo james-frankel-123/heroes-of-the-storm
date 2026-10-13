@@ -1,0 +1,247 @@
+{
+ "coder": 1,
+ "batch": 1,
+ "codes": [
+  "K573",
+  "K814",
+  "K140",
+  "K292",
+  "K637",
+  "K592",
+  "K343",
+  "K824",
+  "K407",
+  "K495",
+  "K716",
+  "K285",
+  "K593"
+ ],
+ "prompt_file": "codings/prompts/coder1_batch1.txt",
+ "prompt_sha256": "af0156217f756ac5aa6afbaa738c0f3f23c4bb9867d2e5d02a97274e9d0327c2",
+ "model_requested": "claude-opus-5-5",
+ "models_reported": [
+  "claude-opus-5-5"
+ ],
+ "session_id": "435c8022-a4ab-407e-8444-aaef07bf6f5c",
+ "started": "2026-10-13T14:07:37Z",
+ "finished": "2026-10-13T14:08:20Z",
+ "attempts": [
+  {
+   "attempt": 1,
+   "started": "2026-10-13T14:07:37Z",
+   "error": null,
+   "models": [
+    "claude-opus-5-5"
+   ]
+  }
+ ],
+ "raw_result": "{\"K573\":{\"hard_cc\":1,\"soft_cc_peel\":1,\"healing_throughput\":0,\"self_sustain_shields\":1,\"burst\":4,\"sustained_damage\":4,\"range\":2,\"mobility\":2,\"waveclear\":2,\"siege\":1,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[\"hard_cc\",\"waveclear\"]},\"K814\":{\"hard_cc\":1,\"soft_cc_peel\":2,\"healing_throughput\":0,\"self_sustain_shields\":3,\"burst\":3,\"sustained_damage\":2,\"range\":1,\"mobility\":3,\"waveclear\":1,\"siege\":0,\"global_presence\":1,\"early_vs_late\":0,\"low_confidence\":[]},\"K140\":{\"hard_cc\":3,\"soft_cc_peel\":1,\"healing_throughput\":0,\"self_sustain_shields\":2,\"burst\":3,\"sustained_damage\":3,\"range\":1,\"mobility\":2,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":1,\"low_confidence\":[\"sustained_damage\"]},\"K292\":{\"hard_cc\":2,\"soft_cc_peel\":2,\"healing_throughput\":1,\"self_sustain_shields\":3,\"burst\":2,\"sustained_damage\":2,\"range\":1,\"mobility\":1,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[]},\"K637\":{\"hard_cc\":1,\"soft_cc_peel\":0,\"healing_throughput\":0,\"self_sustain_shields\":1,\"burst\":4,\"sustained_damage\":3,\"range\":3,\"mobility\":3,\"waveclear\":2,\"siege\":1,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[\"range\"]},\"K592\":{\"hard_cc\":2,\"soft_cc_peel\":2,\"healing_throughput\":0,\"self_sustain_shields\":2,\"burst\":3,\"sustained_damage\":3,\"range\":0,\"mobility\":2,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":2,\"low_confidence\":[]},\"K343\":{\"hard_cc\":2,\"soft_cc_peel\":2,\"healing_throughput\":3,\"self_sustain_shields\":1,\"burst\":2,\"sustained_damage\":1,\"range\":2,\"mobility\":0,\"waveclear\":1,\"siege\":0,\"global_presence\":1,\"early_vs_late\":1,\"low_confidence\":[]},\"K824\":{\"hard_cc\":0,\"soft_cc_peel\":0,\"healing_throughput\":0,\"self_sustain_shields\":2,\"burst\":3,\"sustained_damage\":1,\"range\":2,\"mobility\":3,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[\"burst\"]},\"K407\":{\"hard_cc\":1,\"soft_cc_peel\":2,\"healing_throughput\":0,\"self_sustain_shields\":1,\"burst\":3,\"sustained_damage\":3,\"range\":0,\"mobility\":3,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[]},\"K495\":{\"hard_cc\":2,\"soft_cc_peel\":1,\"healing_throughput\":0,\"self_sustain_shields\":2,\"burst\":3,\"sustained_damage\":2,\"range\":1,\"mobility\":2,\"waveclear\":1,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[]},\"K716\":{\"hard_cc\":1,\"soft_cc_peel\":2,\"healing_throughput\":0,\"self_sustain_shields\":4,\"burst\":2,\"sustained_damage\":3,\"range\":0,\"mobility\":2,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[\"hard_cc\"]},\"K285\":{\"hard_cc\":2,\"soft_cc_peel\":2,\"healing_throughput\":1,\"self_sustain_shields\":3,\"burst\":1,\"sustained_damage\":2,\"range\":0,\"mobility\":2,\"waveclear\":1,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[]},\"K593\":{\"hard_cc\":1,\"soft_cc_peel\":0,\"healing_throughput\":0,\"self_sustain_shields\":0,\"burst\":3,\"sustained_damage\":4,\"range\":3,\"mobility\":1,\"waveclear\":1,\"siege\":0,\"global_presence\":1,\"early_vs_late\":0,\"low_confidence\":[]}}",
+ "codes_out": {
+  "K573": {
+   "hard_cc": 1,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 4,
+   "sustained_damage": 4,
+   "range": 2,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 1,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "hard_cc",
+    "waveclear"
+   ]
+  },
+  "K814": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 3,
+   "sustained_damage": 2,
+   "range": 1,
+   "mobility": 3,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K140": {
+   "hard_cc": 3,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 2,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "sustained_damage"
+   ]
+  },
+  "K292": {
+   "hard_cc": 2,
+   "soft_cc_peel": 2,
+   "healing_throughput": 1,
+   "self_sustain_shields": 3,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 1,
+   "mobility": 1,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K637": {
+   "hard_cc": 1,
+   "soft_cc_peel": 0,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 4,
+   "sustained_damage": 3,
+   "range": 3,
+   "mobility": 3,
+   "waveclear": 2,
+   "siege": 1,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "range"
+   ]
+  },
+  "K592": {
+   "hard_cc": 2,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 2,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 0,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 2,
+   "low_confidence": []
+  },
+  "K343": {
+   "hard_cc": 2,
+   "soft_cc_peel": 2,
+   "healing_throughput": 3,
+   "self_sustain_shields": 1,
+   "burst": 2,
+   "sustained_damage": 1,
+   "range": 2,
+   "mobility": 0,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 1,
+   "low_confidence": []
+  },
+  "K824": {
+   "hard_cc": 0,
+   "soft_cc_peel": 0,
+   "healing_throughput": 0,
+   "self_sustain_shields": 2,
+   "burst": 3,
+   "sustained_damage": 1,
+   "range": 2,
+   "mobility": 3,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "burst"
+   ]
+  },
+  "K407": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 0,
+   "mobility": 3,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K495": {
+   "hard_cc": 2,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 2,
+   "burst": 3,
+   "sustained_damage": 2,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K716": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 4,
+   "burst": 2,
+   "sustained_damage": 3,
+   "range": 0,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "hard_cc"
+   ]
+  },
+  "K285": {
+   "hard_cc": 2,
+   "soft_cc_peel": 2,
+   "healing_throughput": 1,
+   "self_sustain_shields": 3,
+   "burst": 1,
+   "sustained_damage": 2,
+   "range": 0,
+   "mobility": 2,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K593": {
+   "hard_cc": 1,
+   "soft_cc_peel": 0,
+   "healing_throughput": 0,
+   "self_sustain_shields": 0,
+   "burst": 3,
+   "sustained_damage": 4,
+   "range": 3,
+   "mobility": 1,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 0,
+   "low_confidence": []
+  }
+ }
+}

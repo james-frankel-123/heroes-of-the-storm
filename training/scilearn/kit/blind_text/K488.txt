@@ -1,0 +1,56 @@
+Hero code: K488
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 6.5, one attack every 1 s, 105 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 6 s, cost 50): Deal 230 (+4% per level) damage to the first enemy hit.  Passive: Hitting an enemy Hero with Snipe permanently increases the damage of Snipe by 6%, stacking up to 30%. Gain an additional 25% damage bonus at maximum stacks. All stacks are lost if Snipe fails to hit an enemy.
+[W] basic (cooldown 12 s, cost 65): Deal 100 (+4% per level) damage to an enemy and Slow them by 40% for 2.25 seconds.
+[E] basic (cooldown 15 s, cost 50): Create a Decoy for 5 seconds with 100% of this hero's current Health that attacks enemies, dealing 10% of this hero's base damage. Whenever a Decoy takes damage, it deals that amount of damage to itself, effectively doubling the damage it takes.  Using this Ability does not break Stealth.
+[R1] heroic (cooldown 100 s, cost 100): Locks in on the target Hero, then fires 3 shots that hit the first Hero or Structure they come in contact with for 372 (+4% per level) damage each.
+[R2] heroic (cooldown 50 s, cost 100): After a 1.5 second delay, deals 435 (+4% per level) damage to enemies within an area. Unlimited range.
+[D] trait: Gain Stealth when out of combat for 3 seconds. Taking damage, attacking, using Abilities, or Channeling ends Stealth. Remaining stationary for at least 1.5 seconds while Stealthed grants Invisible.  Passive: Gain 15% Movement Speed while Stealthed.
+[1] activable (cooldown 60 s): Activate to instantly grant Stealth to this hero and spawn a [E] at her location. this hero is Unrevealable for the first 0.5 seconds when Stealthed by [1].
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Increases the cast range of [W] by 30%. [W] also increases the range of this hero's next Basic Attack by 2.
+  [T1.2] modifies W: After being Stealthed for 2 seconds, [W]'s Slow is increased to 60% and costs no Mana. Bonus is lost after losing Stealth for 1 second.
+  [T1.3] modifies Trait: After being Stealthed for 1 second, gain an additional 10% Movement Speed. While Stealthed, regenerate 3 Mana per second.
+Level 4:
+  [T4.1] modifies E: Reduces [E]'s cooldown and Mana cost by 60%.
+  [T4.2] modifies E: Increase the cast range of [E] by 100% and its duration by 120%.  Passive: Reduce the cooldown of [1] by 15 seconds.
+  [T4.3] modifies Active: Enemy Minions killed near this hero grant a stack of Bribe. Hero Takedowns grant 10 stacks of Bribe. Use 25 stacks to bribe a Mercenary, instantly defeating them.  Does not work on Elite Mercenaries.  Maximum of 100 stacks. If a camp is defeated entirely with Bribe, the camp respawns 50% faster.
+Level 7:
+  [T7.1] modifies Q: Hitting an enemy with Snipe reduces its cooldown by 2 seconds and refunds half its Mana cost, doubled against enemy Heroes.
+  [T7.2] modifies Passive: After using an Ability, this hero's next Basic Attack within 3 seconds deals 65% additional damage.
+  [T7.3] modifies Passive: this hero's Basic Attacks deal 250% damage and decrease the Physical Armor of Heroic targets by 15 for 3 seconds, but her Attack Speed is proportionally slower.
+Level 10:
+  [R1] modifies Heroic (cooldown 100 s): Locks in on the target Hero, then fires 3 shots that hit the first Hero or Structure they come in contact with for 372 (+4% per level) damage each.
+  [R2] modifies Heroic (cooldown 50 s): After a 1.5 second delay, deals 435 (+4% per level) damage to enemies within an area. Unlimited range.
+Level 13:
+  [T13.1] modifies Q: Snipe's range is increased by 15% and hitting a Hero grants an additional stack of term A.
+  [T13.2] modifies W: [W] now has 2 charges, but its cooldown is increased by 2 seconds.
+  [T13.3] modifies Trait: Gain 25 Armor for 3 seconds after losing Stealth.
+Level 16:
+  [T16.1] modifies Q: Snipe also deals 90% damage to enemies near the impact.
+  [T16.2] modifies W: [W] lowers a Hero's Armor by 20 for the duration of the Slow, causing them to take 20% increased damage.
+  [T16.3] modifies E: Increases the damage [E] deals to 30% of this hero's damage.
+Level 20:
+  [T20.1] modifies Heroic: [R1]'s cooldown is reset if it kills an enemy Hero.
+  [T20.2] modifies Heroic: [R2] gains a 2nd charge and its cooldown is reduced by 25 seconds.
+  [T20.3] modifies Trait: Reduce the cooldown of [D] by 2 seconds.
+  [T20.4] modifies Active (cooldown 60 s): Activate to reset the cooldowns of your Basic Abilities.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-02:
+Updates
+Talents
+Level 1
+[T1.3]
+Mana Regeneration increased from 3 to 6.
+Level 7
+[T7.3]
+Armor reduction duration increased from 3 to
+4 seconds.
+Change set 2024-05:
+Updates
+ARAM

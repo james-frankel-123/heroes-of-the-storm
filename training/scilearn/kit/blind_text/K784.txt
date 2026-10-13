@@ -1,0 +1,80 @@
+Hero code: K784
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 1.1 s, 173 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 7 s, cost 40): Shock an enemy with lightning, dealing 162 (+4% per level) damage. The lightning then bounces 3 times to nearby enemies, dealing 81 (+4% per level) damage to each enemy hit.
+[W] basic (cooldown 12 s, cost 40): Unleash a [W] that deals 153 (+4% per level) damage to enemies in its path and Roots Heroes hit for 1 second. Each Hero hit increases the distance traveled by 25%.
+[E] basic (cooldown 12 s, cost 60): Increase this hero's Movement Speed by 30% for 4 seconds. His next 3 Basic Attacks occur 100% faster and generate stacks of [D].
+[R1] heroic (cooldown 70 s, cost 75): After 0.5 seconds, sunder the earth in a long line, dealing 290 (+4% per level) damage and shoving enemies to the side, Stunning them for 1 second.
+[R2] heroic (cooldown 100 s, cost 90): After 0.5 seconds, summon a massive [R2] that pulses every 4 seconds. Each pulse lasts 2 seconds, Slowing all enemies in the area by 50%, and deals 50 (+4% per level) damage to enemy Heroes. Does 3 pulses.
+[D] trait: Dealing damage with Abilities grants 1 stack of [D]. At 5 stacks, this hero is instantly healed for 223 (+4% per level) Health.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Kill Minions or Heroes within 1.5 seconds of hitting them with [Q].  Reward: After killing 10 enemies, reduce the Mana cost of [Q] from 40 to 20.  Reward: After killing 20 enemies, gain a second charge of [Q].
+  [T1.2] modifies Q: Repeatable Quest: Hitting at least 2 Heroes with a single use of [Q] increases the damage of its bounces by 12, up to 360.  Reward: After hitting multiple Heroes 30 times, [Q] prioritizes bouncing to Heroes.
+  [T1.3] modifies Q: For 8 seconds after hitting an enemy with [Q], this hero's next Basic Attack against them grants a stack of [D]. If the target is an enemy Hero, then he also deals damage to them equal to 3% of their maximum Health and healing for the same amount.  Passive: Increase the number of [Q] bounces by 1.
+Level 4:
+  [T4.1] modifies W: Heroes damaged by [W] grant 4 stacks of [D] and 2 stacks of [T4.1], granting 75 Physical Armor against the next incoming Hero Basic Attack.  Stacks are consumed on the next cast of [W].
+  [T4.2] modifies W: Quest: Hit 6 Heroes with [W]. Progress is lost on death and when this hero fails to hit a Hero.  Reward: Reduce the cooldown and Mana cost of [W] by 50%.
+  [T4.3] modifies Trait: [D] restores 15 Mana and reduces Basic Ability cooldowns by 0.5 seconds.
+Level 7:
+  [T7.1] modifies E: Repeatable Quest: Basic Attacks against Heroes while [E]'s Movement Speed bonus is active increase Attack Damage by 1.  Reward: After gaining 20 Attack Damage, increase the Movement Speed bonus of [E] to 40%.  Reward: After gaining 40 Attack Damage, this hero permanently gains 15% increased Movement Speed.
+  [T7.2] modifies Active: Activate to consume 8 stacks of [T7.2], damaging a target enemy Hero for 15% of their maximum Health over 3 seconds, and healing this hero for 150% of the damage dealt.  Gain 1 stack of [T7.2] every time [D] activates.
+  [T7.3] modifies Passive: After using an Ability, your next Basic Attack within 6 seconds deals 40% additional damage.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): After 0.5 seconds, sunder the earth in a long line, dealing 290 (+4% per level) damage and shoving enemies to the side, Stunning them for 1 second.
+  [R2] modifies Heroic (cooldown 100 s): After 0.5 seconds, summon a massive [R2] that pulses every 4 seconds. Each pulse lasts 2 seconds, Slowing all enemies in the area by 50%, and deals 50 (+4% per level) damage to enemy Heroes. Does 3 pulses.
+Level 13:
+  [T13.1] modifies E: [E] attacks grant twice as many stacks of [D].
+  [T13.2] modifies Trait (cooldown 15 s): [D] can be activated to instantly heal. This healing is increased by up to 100% based on this hero's missing health.
+  [T13.3] modifies Active (cooldown 45 s): Every 45 seconds, gain 50 Spell Armor against the next enemy Ability and subsequent Abilities for 4 seconds. [D] reduces this cooldown by 10 seconds.  Can be toggled to allow or prevent this talent from triggering automatically.
+Level 16:
+  [T16.1] modifies E: The final strike of [E] hits 3 times for 75% normal damage.
+  [T16.2] modifies Q: [Q] Slows targets by 8% for 2 seconds.  Quest: Targeting a Hero directly with [Q] increases this Slow by 8%, up to an additional 40%.  Reward: While at a 40% bonus, [Q]'s damage is increased by 25%.  Bonuses are reset if [Q] is used on the same Hero it was last used on, or if this hero dies.
+  [T16.3] modifies W: For 3 seconds after a Hero is hit by [W], this hero's Basic Attacks against them deal an additional 3% of the target's maximum Health as damage.  Passive: Increase the duration of [W]'s Root to 1.5 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Lower the cooldown of [R1] by 40 seconds. After [R1] impacts, it leaves behind an impassable rift, blocking unit movement for 3 seconds.
+  [T20.2] modifies Heroic: Allies within the [R2] area gain a Shield equal to 15% of their maximum Health each pulse. This shield lasts 4 seconds.
+  [T20.3] modifies Passive: Basic Attacks reduce this hero's Basic and Heroic Ability cooldowns by 0.25 seconds, tripled against Heroes.
+  [T20.4] modifies Passive: Basic Attacks deal 20% more damage and Slow enemy Movement Speed by 20% for 1 second.
+  [T20.5] modifies Active (cooldown 80 s): Activate to immediately teleport to a target location and gain [E].
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-12:
+Talents
+Level 1
+[T7.1]
+Completion requirements increased to 25/55/100, up from 20/40/100.
+Change set 2025-12:
+Updates
+Talents
+Level 1
+[T7.1]
+Quest requirements increased from 20/40/100 to 25/55/100.
+Change set 2026-02:
+Base
+Basic Attack damage decreased from 173 to 167.
+Talents
+Level 1
+[T1.2]
+Mythic Reward Damage bonus increased from 270 to 325.
+[T1.1]
+Mythic Reward now also allows [Q] to bounce back to the same target.
+Change set 2026-04:
+Talents
+Level 1
+[T1.2]
+Amount stacks lost on death reduced from 6 to 4.
+[T1.1]
+Kill window increased from 1.5 seconds to 2 seconds.
+Stack requirements increased from 20/40/100 to 20/50/125.
+Second reward no longer provides an extra bounce.
+Level 7
+[T1.3]
+Now also provides an extra bounce of [Q].
+Change set 2026-07:
+Talents
+Level 1
+[T1.2]
+Talent disabled in ARAM.

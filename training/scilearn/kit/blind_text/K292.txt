@@ -1,0 +1,86 @@
+Hero code: K292
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 2, one attack every 1.2 s, 126 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s, cost 40): Lunge towards a targeted direction and stab, dealing 35 (+4% per level) damage. If an enemy Hero is hit, Channel to Stun for 1 second and deal 80 (+4% per level) additional damage when it fully finishes.
+[W] basic (cooldown 8 s, cost 50): Release a fiery wave that deals 110 (+4% per level) damage. Enemies hit by the center take 50% bonus damage and are Slowed by 40% for 3 seconds.
+[E] basic (cooldown 12 s, cost 75): Shroud this hero in flames for 3 seconds, striking a nearby enemy for 19 (+4% per level) damage every 0.25 seconds. this hero heals for 50% of the damage dealt, increased to 100% against Heroes.
+[R1] heroic (cooldown 70 s, cost 70): Summon a ring of blazing swords that grants 850 (+4% per level) Shield for 3 seconds.  If the Shield lasts the full duration, this ability can be reactivated within 5 seconds to launch 6 swords toward an area, each dealing 140 (+4% per level) damage to the first enemy hit.
+[R2] heroic (cooldown 80 s, cost 80): After 0.75 seconds, charge in the target direction, lifting the first enemy Hero hit into the Heavens. While in the air, this hero can steer the landing location by moving.  After 2 seconds, slam the target into the ground, dealing 375 (+4% per level) damage and Stunning them for 1 second.
+[D] trait: Each Basic Ability marks enemy Heroes hit for 10 seconds. Basic Attacks consume the target's marks, dealing 20% bonus damage per mark and healing for 75 (+4% per level) per mark.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: [Q]'s final damage is increased by 75% and its cooldown is reduced by 1.25 seconds for each [D] on the target when the Stun completes.
+  [T1.2] modifies W: Increase the center damage of [W] by an additional 125% and its Slow amount by 15%. The first enemy Hero hit with [W] restores 30 Mana.
+  [T1.3] modifies Trait: Consuming a [D] mark deals bonus damage equal to 2.5% of the Hero's maximum Health.
+Level 4:
+  [T4.1] modifies E: [E] grants 20 Armor for 1.5 seconds. Damaging an enemy Hero with [E] increases the duration of the Armor by 0.5 seconds.
+  [T4.2] modifies Trait: Increase the healing of [D] by 80%.
+  [T4.3] modifies Passive: Gain 10 Armor while being healed by a Regeneration Globe.  Damaging an enemy Hero sets the duration of an active Regeneration Globe on this hero to 8 seconds (unless it is already higher).
+Level 7:
+  [T7.1] modifies Q: Consuming a mark from [Q] deals 150 (+4% per level) damage to the target and nearby enemies and grants this hero a 250 (+4% per level) point Shield for 4 seconds.
+  [T7.2] modifies W: [W] leaves a line of scorched earth along its center that explodes after 2 seconds for 205 (+4% per level) damage, dealing bonus damage with [D] marks.
+  [T7.3] modifies Active (cooldown 25 s): Activate to cause the next 4 Basic Attacks within 10 seconds to cleave for 30% additional damage.  Passive: Casting [E] grants [T7.3] for 2 Basic Attacks.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): Summon a ring of blazing swords that grants 850 (+4% per level) Shield for 3 seconds.  If the Shield lasts the full duration, this ability can be reactivated within 5 seconds to launch 6 swords toward an area, each dealing 140 (+4% per level) damage to the first enemy hit.
+  [R2] modifies Heroic (cooldown 80 s): After 0.75 seconds, charge in the target direction, lifting the first enemy Hero hit into the Heavens. While in the air, this hero can steer the landing location by moving.  After 2 seconds, slam the target into the ground, dealing 375 (+4% per level) damage and Stunning them for 1 second.
+Level 13:
+  [T13.1] modifies Q: Stunning enemy Heroes with [Q] reduces their Movement Speed by 25% and their damage by 50% for 4 seconds.
+  [T13.2] modifies E: Consuming a [D] mark reduces the cooldown of [E] by 1 second.
+  [T13.3] modifies E: Increase [E]'s healing against Heroes by 2% for every 1% Health this hero is missing.
+Level 16:
+  [T16.1] modifies Q: Gain 20% Movement Speed for 5 seconds after casting [Q]. Gain 40% Attack Speed for 5 seconds for each Hero stunned with [Q].
+  [T16.2] modifies E: Consuming a [E] mark reduces the target's Armor by 25 for 4 seconds.
+  [T16.3] modifies Active (cooldown 20 s): Activate to teleport to an enemy that has been marked by [D] and gain 25 Armor for 3 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Nearby allied Heroes gain 600 (+4% per level) Shield for 3 seconds.  If the Shield lasts the full duration, fire a sword at the nearest enemy Hero, dealing 140 (+4% per level) damage.
+  [T20.2] modifies Heroic: Descending from the Heavens restores 30% of this hero' maximum Health and Mana. Consuming a [D] reduces the cooldown of [R2] by 10 seconds.
+  [T20.3] modifies Trait: Reduce the duration of [D] to 5 seconds, but it is no longer consumed when triggered.
+  [T20.4] modifies Active (cooldown 75 s): Activate to become Unstoppable and gain 75 Spell Armor for 3 seconds. Hitting Heroes with the center of [W] reduces this cooldown by 5 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-12:
+Talents
+Level 10
+[R2]
+Rework: Damage reduced from 375 to 250.
+Rework: Now deals 20% additional damage for each [D] marker on the target when landing.
+Rework: [D] markers placed by this hero will no longer be removed when launching the target into the air. These can still expire while in the air.
+Change set 2025-05:
+Base
+[E] [E]
+Now hits two extra targets if no Heroes are in range.
+Talents
+Level 1
+[T1.1]
+REWORK: [T1.1] cooldown is reduced by 2 seconds.
+REWORK: [T1.1] does 180% more damage to Heroes, reduced by 20% for each additional Hero hit.
+REWORK: [T1.1] mana cost is reduced from 40 to 30.
+REWORK: When a Valorous Branded target's Stun ends, [T1.1]'s cooldown is reduced by 1 second for each [D] on the target.
+Level 7
+[T7.2] delay reduced from 2 seconds to 1.75 seconds.
+[E] no longer grants [T7.3].
+Level 20
+[T20.1]
+ADDED FUNCTIONALITY: All Shields created by [R1] no longer expire.
+ADDED FUNCTIONALITY: Swords fired by [T20.1] Shields can target non-Heroes, but Heroes are prioritized.
+term B
+NEW TALENT: [E] will now hit two extra targets even if enemy Heroes are in range.
+Change set 2025-07:
+Base
+[E] [E]
+Now restores 1 Mana for each target hit by [E] on expiration.
+Talents
+Level 1
+[T1.1]
+Bonus from 180 to 150.
+Passive cooldown reduction reduced from 2 seconds to 1.5.
+Level 7
+[T7.2]
+Damage increased from 205 to 212.
+[T7.3]
+Now resets this hero' attack cooldown.
+Level 20
+term B
+Now also increases [E] radius by 25%.

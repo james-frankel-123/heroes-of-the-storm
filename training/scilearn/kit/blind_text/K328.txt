@@ -1,0 +1,46 @@
+Hero code: K328
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 72 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 5 s, cost 20): After 0.5 seconds, launch an orb that explodes upon hitting an enemy, dealing 150 (+2.5% per level) damage to enemies in the area. The explosion leaves behind a pool of decay that lasts 2 seconds, dealing 82 (+2.5% per level) damage every 0.5 seconds to enemies.
+[W] basic (cooldown 8 s, cost 50): Create a nova that explodes after 1 second, dealing 180 (+2.5% per level) damage to enemies inside and Slowing them by 35% for 2.5 seconds. Enemies in the center are Rooted for 1 second.
+[E] basic (cooldown 10 s, cost 50): Launch a chain, dealing 97 (+2.5% per level) damage to the first enemy Hero hit. For 3 seconds after hitting an enemy, Chains can be reactivated to launch to an additional enemy, pulling both enemies together and Stunning them for 0.5 seconds.
+[R1] heroic (cooldown 50 s, cost 45): Launch a meteor of ice at an enemy Hero. Upon impact, the meteor deals 115 (+2.5% per level) damage to its target and 275 (+2.5% per level) damage to enemies in the area. All enemies hit by [R1] are Rooted for 2 seconds.
+[R2] heroic (cooldown 16 s, cost 40): Create a fissure anywhere on the Battleground that explodes after 1.5 seconds, dealing 320 (+2.5% per level) damage to enemy Heroes in its area. If an enemy Hero is hit, set its cooldown to 1.5 seconds.
+[D] trait: Quest: Gain 1 Blight every time a Hero is Rooted by [W] or hit by [E].  Reward: After gaining 15 Blight, gain the [1] Ability.  Reward: After gaining 30 Blight, gain 75% Spell Power.  Blight: 0/30
+[1] activable (cooldown 30 s): Activate to create a spike that detonates after 4 seconds, dealing 70 (+2.5% per level) damage to nearby enemies. The spike can be affected by [E].
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Increase [Q]'s duration by 1 second. After gaining 30 Blight, increase the radius of [Q]'s pool by 30%.
+  [T1.2] modifies W: [W] deals 75% more damage to enemies in the center. After gaining 30 Blight, increase [W]'s Root duration by 0.5 seconds.
+  [T1.3] modifies E: Increase [E] damage by 125%. After gaining 30 Blight, [E] reduces the Armor of pulled Heroes by 10 for 4 seconds.
+Level 4:
+  [T4.1] modifies E: Pulling a Hero with [E] grants this hero a permanent 128 (+4% per level) Shield, stacking up to 2 times.  Additionally, [E] deals up to 270 (+2.5% per level) bonus damage to Heroes' Shields.
+  [T4.2] modifies Passive: Quest: Collect 12 Regeneration Globes to charge this hero's term D.  Reward: this hero's term D can be activated while dead to immediately respawn at the Hall of Storms, but must be charged again.  Passive: this hero heals for 10% of all Spell Damage dealt while the term D is charged.
+  [T4.3] modifies Active (cooldown 25 s): Activate to gain 50 Physical Armor for 4 seconds. Upon activation, nearby enemies take 45 (+4% per level) damage and are Slowed by 35% for 4 seconds.
+Level 7:
+  [T7.1] modifies Q: Each time a Hero is hit by [Q]'s pool, they take 25% more periodic damage from [Q] for the next 4 seconds, stacking up to 4 times.
+  [T7.2] modifies Passive: Every 8 seconds, this hero's next Basic Attack hits all enemies in the area for 80%  additional damage, deals Spell damage instead of Physical, and Slows by 30% for 2 seconds.
+  [T7.3] modifies Passive: Reduce the cooldown of [1] by 10 seconds and increase its damage by 400%.
+Level 10:
+  [R1] modifies Heroic (cooldown 50 s): Launch a meteor of ice at an enemy Hero. Upon impact, the meteor deals 115 (+2.5% per level) damage to its target and 275 (+2.5% per level) damage to enemies in the area. All enemies hit by [R1] are Rooted for 2 seconds.
+  [R2] modifies Heroic (cooldown 16 s): Create a fissure anywhere on the Battleground that explodes after 1.5 seconds, dealing 320 (+2.5% per level) damage to enemy Heroes in its area. If an enemy Hero is hit, set its cooldown to 1.5 seconds.
+Level 13:
+  [T13.1] modifies W: Increase [W]'s Slow by 20%. Each time this hero damages enemies Slowed by [W], reduce the cooldown of [W] by 0.75 seconds.
+  [T13.2] modifies E: After [E]'s Stun expires, the enemy is also Slowed by 60% for 1 second.
+  [T13.3] modifies E: Pulling a Hero with [E] reduces its cooldown by 5 seconds and refunds its Mana cost.
+Level 16:
+  [T16.1] modifies Q: Whenever this hero hits an enemy Hero with [Q]'s explosion, its cooldown is reduced by 1.5 seconds.
+  [T16.2] modifies Passive: Enemies that are Rooted take an additional 55 (+2.5% per level) damage each time they are damaged by this hero.
+  [T16.3] modifies Passive: Stunning, Rooting, or Slowing a Hero grants 6% Spell Power for 10 seconds, stacking up to 5 times.
+Level 20:
+  [T20.1] modifies Heroic: When [R1]'s Root expires, enemies are Slowed by 40% for 3 seconds. Heroes killed while under the effects of [R1] instantly release another [R1] explosion.
+  [T20.2] modifies Heroic: If a Hero is hit with [R2], a second one is cast below them 1 second later.  This second cast will not duplicate itself.
+  [T20.3] modifies Active (cooldown 240 s): Activate to dash forward, dealing 150 (+2.5% per level) damage to enemies in the path. Takedowns reset the cooldown of [T20.3].
+  [T20.4] modifies Active (cooldown 15 s): Activate to create a Shade of term E that lasts 15 seconds and mimics this hero's casts of [Q].
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-10:
+Updates
+ARAM

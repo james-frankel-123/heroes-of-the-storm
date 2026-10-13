@@ -1,0 +1,58 @@
+Hero code: K920
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.6, one attack every 0.9 s, 90 damage per attack; range 5.5, one attack every 0.9 s, 90 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 60): After 0.5 seconds, cause an area to explode with pollen dealing 160 (+4% per level) damage.
+[W] basic (cooldown 10 s, cost 50): Enemies currently afflicted by [D] have its duration increased by 3 seconds and are Slowed by 40% decaying over 3 seconds.
+[E] basic (cooldown 30 s): Spawn a [E] to scout an area. Can be redirected once active. When the [E] is in a bush for more 2 seconds, its vision radius is increased by 75%.  Lasts 45 seconds.
+[R1] heroic (cooldown 15 s, cost 35): Send forth vines that deal 184 (+4% per level) damage to all enemies in a line.  Stores up to 3 charges.
+[R2] heroic (cooldown 20 s, cost 50): Leap over an enemy, Slowing them by 80% for 0.35 seconds and dealing 271 (+4% per level) damage.  Stores up to 2 charges.
+[D] trait: this hero's Basic Attacks and damaging Abilities poison their target, dealing 33 (+4% per level) damage a second for 3 seconds. Every additional application increases the duration by 3 seconds, up to a maximum of 9 seconds.
+[Z] mount: this hero moves 20% faster by leaping short distances.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies E: After remaining in a bush for 5 seconds, [E]'s vision radius is increased by 200% and reveals the surrounding area.
+  [T1.2] modifies Trait: [D] reveals enemies for its duration.
+  [T1.3] modifies Z: After not Basic Attacking or taking damage for 2 seconds, increase the Move Speed bonus of [Z] by 10%.
+Level 4:
+  [T4.1] modifies Q: Increases [Q]'s range by 25% and its radius by 20%.  [T4.1] applies 2 stacks of [D] to enemies hit.
+  [T4.2] modifies Trait: Increases [D]'s damage by 125% to non-Heroes.
+  [T4.3] modifies Trait: While at least one enemy is afflicted by [D], heal for 9 (+4% per level) per second.  When an enemy Hero has 3 stacks of [D], increase this healing by 19 (+4% per level) per second.
+Level 7:
+  [T7.1] modifies Q: Using [Q] causes this hero's next Basic Attack to hit up to 4 enemies. These extra attacks can apply [D].
+  [T7.2] modifies Q: [Q] deals 100% more damage to enemies afflicted by [D], increased to 175% against enemies with 3 stacks.
+  [T7.3] modifies W: Using [W] increases the damage of this hero's next 4 Basic Attacks by 70%.
+Level 10:
+  [R1] modifies Heroic (cooldown 15 s): Send forth vines that deal 184 (+4% per level) damage to all enemies in a line.  Stores up to 3 charges.
+  [R2] modifies Heroic (cooldown 20 s): Leap over an enemy, Slowing them by 80% for 0.35 seconds and dealing 271 (+4% per level) damage.  Stores up to 2 charges.
+Level 13:
+  [T13.1] modifies W: Casting [W] while at least 2 Heroes are afflicted by [D] reduces the cooldown by 4 seconds.
+  [T13.2] modifies W: Increases [W]' Slow duration by 1 second and causes it to no longer decay.
+  [T13.3] modifies Passive: Every 30 seconds, gain 75 Spell Armor against the next enemy Ability and subsequent Abilities for 3 seconds, reducing the damage taken by 75%.  Can be toggled to allow or prevent this talent from triggering automatically.
+  [T13.4] modifies Active (cooldown 20 s): Target an ally to remove all damage over time and disabling effects from them and this hero. For 2 seconds after, the duration of disabling effects is reduced by 50%.
+Level 16:
+  [T16.1] modifies Q: Reduce the Mana cost of [Q] from 60 to 40.  While at least 1 enemy Hero is afflicted with [D], [Q]'s cooldown recharges 75% faster.
+  [T16.2] modifies W: Increase this hero's Basic Attack range by 0.5.  Using [W] increases this hero's Basic Attack range by an additional 2.25 for 6 seconds.
+  [T16.3] modifies W: [W] grants 30% Attack Speed for 6 seconds.  Basic Attacks against enemy Heroes with 3 stacks of [D] deal damage equal to 1.5% of their maximum Health.
+  [T16.4] modifies Trait: [D] deals 60% more damage to Heroes that are Slowed, Rooted, or Stunned.
+Level 20:
+  [T20.1] modifies Heroic: [R1] now applies 2 stacks of [D].  Increase [R1]'s range by 30% and this hero's vision radius by 35%.
+  [T20.2] modifies Heroic: All [R2] charges are returned every 15 seconds. [R2] can be used on allies.
+  [T20.3] modifies Trait: At 3 stacks, [D] deals 40% more damage.
+  [T20.4] modifies Z (cooldown 30 s): Activate to increase the Movement Speed bonus of [Z] to 80% for 6 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-05:
+Talents
+Level 7
+[T7.1]
+ADDED FUNCTIONALITY: Now grants 3 stacks of [T7.1]. A stack is consumed when an extra target is attacked. Can have a maximum of 3 stacks and all stacks can be consumed in a single attack.
+Level 13
+[T13.1]
+Now also refunds 50 Mana.
+Level 20
+term A!
+NEW TALENT: [R1] now shoots out 4 additional Vines in an arc.
+[T20.1]
+Can now be selected with either Heroic.

@@ -1,0 +1,57 @@
+Hero code: K906
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 1.1 s, 63 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 4 s, cost 25): Throw a [Q] on the ground that heals the first allied Hero that comes in contact with it for 285 (+4% per level).  Limit 5 active term F.
+[W] basic (cooldown 12 s, cost 35): Release the [W]. After 0.5 seconds it explodes, dealing 80 (+4% per level) damage to all enemies in the area and Slowing them by 35% for 2 seconds.
+[E] basic (cooldown 16 s, cost 40): Unfurl an enchanted scroll over 2.25 seconds, forming a triangle that deals 150 (+4% per level) damage to enemies inside and Roots them for 1.5 seconds.
+[R1] heroic (cooldown 70 s, cost 60): After 1 second, Channel for 3 seconds, putting enemy Heroes in front of this hero to Sleep while Channeling, and for 2 seconds after.  Enemies can only be put to Sleep once per cast, and Sleep's effects end instantly if they take damage.
+[R2] heroic (cooldown 30 s, cost 35): Vector Targeting After 1 second, create a twirling tome tornado that travels towards the targeted direction, continually knocking away enemies that come into contact with it. Deals 20 (+4% per level) damage to Heroes hit.
+[D] trait: When at least 1 other allied Hero is nearby, this hero gains 10 Armor and his Basic Abilities recharge 50% faster.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies E: Quest: Hitting an enemy Hero with [E] permanently increases its damage by 2.  Reward: After hitting 15 Heroes, [E] reveals and reduces the Armor of Heroes hit by 10 for 4 seconds.  Reward: After hitting 30 Heroes, this talent's Armor reduction effect is increased to 15 and its duration to 6 seconds.
+  [T1.2] modifies E: Each enemy Hero hit by [E] grants 20% Spell Power for 16 seconds, up to 40%.
+  [T1.3] modifies Active (cooldown 30 s): Activate to increase the damage of the next [W] by 100% and its slow by 30%.  Only 1 Gem may be active at a time.
+Level 4:
+  [T4.1] modifies Q: Whenever an ally is healed by a [Q], they gain a 140 (+4% per level) Shield for 6 seconds.
+  [T4.2] modifies Q: [Q] restore 15 Mana and heal for an additional 114 (+4% per level) over 3 seconds.
+  [T4.3] modifies Active (cooldown 20 s): Activate to increase the damage of the next [W] by 100%  and it spawns 3 Lesser [Q] from each enemy Hero hit, healing allied Heroes for 250 (+4% per level) when picked up. Lesser [Q] last for 10 seconds.  Only 1 Gem may be active at a time.
+Level 7:
+  [T7.1] modifies W: Reduce the Mana cost of [E] from 40 to 25.  Each enemy Hero hit by [W] reduces the cooldown of [E] by 4 seconds.
+  [T7.2] modifies W: [W] reduces Hero damage dealt by 30% for 4 seconds.
+  [T7.3] modifies Active (cooldown 30 s): Activate to increase the damage of the next [W] by 100% and have it reduce the healing received of enemy Heroes by 75% for 4 seconds.  Only 1 Gem may be active at a time.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): After 1 second, Channel for 3 seconds, putting enemy Heroes in front of this hero to Sleep while Channeling, and for 2 seconds after.  Enemies can only be put to Sleep once per cast, and Sleep's effects end instantly if they take damage.
+  [R2] modifies Heroic (cooldown 30 s): Vector Targeting After 1 second, create a twirling tome tornado that travels towards the targeted direction, continually knocking away enemies that come into contact with it. Deals 20 (+4% per level) damage to Heroes hit.
+Level 13:
+  [T13.1] modifies Q: If a [Q] isn't picked up for at least 2 seconds, it heals for 100% more.  Passive: [Q] heals for 25% more when the target is under 50% health.
+  [T13.2] modifies Q: When a [Q] is picked up, it also heals all nearby allied Heroes for 75% of the healing amount.
+  [T13.3] modifies Trait (cooldown 45 s): Activate [D] to empower nearby allied Hero Basic Attacks for 8 seconds, causing them to deal an additional 62 (+4% per level) damage in an area and heal for 90 (+4% per level) for each Hero hit. This effect can only occur once per second.
+Level 16:
+  [T16.1] modifies E: [E] deals 200% more damage when hitting at least 2 Heroes.
+  [T16.2] modifies Trait: If at least 2 allied Heroes are nearby, [D] grants an additional 10 Armor, 50% Mana Regeneration per second, and causes this hero's Basic Abilities to recharge an additional 50% faster.
+  [T16.3] modifies Passive: Every 5 seconds, this hero's next Basic Attack Stuns Heroes for 0.75 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R1] Silences and Blinds enemies for 3 seconds upon waking up from Sleep.
+  [T20.2] modifies Heroic: [R2] gains an additional charge and its cooldown is reduced by 10 seconds every time an enemy Hero is knocked back. This effect can only occur once per 0.5 seconds.
+  [T20.3] modifies Q: After use, [Q] recharge after 8 seconds.
+  [T20.4] modifies W: Reduce the cooldown of all Gems to 5 seconds and the cooldown of [W] by 6 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Base
+Quickcast Settings
+Removed Cancel [R1].
+Change set 2025-07:
+Talents
+Level 10
+[R2]
+Being hit by [R2] while already knocked back will now refresh the duration of the knockback.
+Damage can only occur once every 0.1875 seconds per [R2] per target.
+Knockback duration reduced by 33%. Distance pushed back from [R2] is unchanged.
+Level 20
+[T20.2]!
+Each [R2] now has its own cooldown reduction.

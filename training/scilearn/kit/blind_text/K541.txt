@@ -1,0 +1,60 @@
+Hero code: K541
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.25, one attack every 0.8 s, 100 damage per attack.
+
+ABILITIES
+[Q] basic (cost 4): Create a turret that deals 36 (+4% per level) damage. Lasts for 15 seconds.  Turrets prioritize the nearest enemy Hero when first created.
+[W] basic (cooldown 8 s): After 0.65 seconds, deal 175 (+4% per level) damage to enemies in a line. Heal for 25% of the damage dealt, increased to 75% against enemy Heroes.
+[E] basic (cooldown 12 s): Place a bomb that deals 142 (+4% per level) damage to enemies within the target area after 1.25 seconds.  Enemies hit are also Stunned for 1 second.
+[R1] heroic (cooldown 40 s): Activate to become Unstoppable for 1.5 seconds.  Passive: Basic Attacks deal 90 (+4% per level) bonus damage over 5 seconds, stacking up to 3 times.
+[R2] heroic (cooldown 60 s): After a 1.5 second delay, pull enemies toward the center of an area and deal 220 (+4% per level) damage. Basic Abilities deal 30% more damage for 5 seconds after casting [R2].
+[D] trait: Regenerate 1 term G every 4 seconds. Destroyed [Q] drop 1 term G, which can be picked up.  Activate to destroy a target [Q].
+[1] activable (cooldown 1 s): Orders any nearby [Q] to focus the target.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies E: Increase the cast range of [E] by 30% and its damage by 35%. Hitting an enemy Hero increases Movement Speed by 20% for 3 seconds.
+  [T1.2] modifies Trait: Increase maximum term G by 2. Basic Attacks against enemy Heroes, Mercenaries, or Monsters accelerates [D] term G regeneration by 1.5 seconds.
+  [T1.3] modifies Passive: Casting Basic Abilities cause this hero's next Basic Attack within 6 seconds to deal 60% more damage.  Stores up to 2 charges.
+Level 4:
+  [T4.1] modifies Q: Casting [Q] grants this hero a Shield that absorbs up to 200 (+4% per level) damage for 2.5 seconds.
+  [T4.2] modifies Passive: Heroes hit by [W] or [E] take an additional 2% of their maximum Health in damage. this hero is healed for 150% of the damage dealt.
+  [T4.3] modifies Active (cooldown 30 s): Activate to gain 40 Armor for 3 seconds, reducing damage taken by 40%, and reduce damage dealt by all nearby enemy Heroes and Summons by 50% for 3 seconds
+Level 7:
+  [T7.1] modifies Q: Generate 3 term G for each Hero hit by [W].
+  [T7.2] modifies W: [W] can now store up to 2 charges. Each enemy Hero hit by [W] reduces its cooldown by 0.75 seconds.
+  [T7.3] modifies Passive: [W] and [E] Slow enemies hit by 35% for 3 seconds. [Q] Basic Attacks against enemies Slowed in this way extend the Slow duration by 0.5 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 40 s): Activate to become Unstoppable for 1.5 seconds.  Passive: Basic Attacks deal 90 (+4% per level) bonus damage over 5 seconds, stacking up to 3 times.
+  [R2] modifies Heroic (cooldown 60 s): After a 1.5 second delay, pull enemies toward the center of an area and deal 220 (+4% per level) damage. Basic Abilities deal 30% more damage for 5 seconds after casting [R2].
+Level 13:
+  [T13.1] modifies Q: Primary [Q] attacks against Heroes increase this hero's Attack Speed by 40% for 3 seconds.
+  [T13.2] modifies Q: [Q] attack up to 2 additional enemies for 60% damage and have 30% increased Basic Attack range.
+  [T13.3] modifies Q: this hero gains 5% Spell Power for each active [Q], up to a maximum of 15%. Dealing Basic Attack damage extends the duration of [Q] by 1.25 seconds.
+Level 16:
+  [T16.1] modifies W: Firing [W] causes all of this hero's [Q] to fire a [W] of their own that deals 125 (+4% per level) damage.
+  [T16.2] modifies E: Reduce the cooldown of [E] by 2 seconds. Casting [E] creates 3 miniature [Q] that last for 3 seconds.  These Turrets do not drop term G or benefit from other Talents.
+  [T16.3] modifies Passive: Basic Attacks grant this hero 15% Movement Speed for 2 seconds.  Dealing Basic Attack damage to Heroes causes them to take an additional 2.5% of their maximum Health as damage.
+Level 20:
+  [T20.1] modifies Heroic: Basic Attacks increase this hero's Armor by 10 for 10 seconds, up to a maximum of 30, and deal 50% bonus damage to Stunned or Slowed enemies.
+  [T20.2] modifies Heroic: Increase [R2]'s radius by 25% and its damage by 50%. Each enemy Hero pulled reduces its cooldown by 12 seconds.
+  [T20.3] modifies Q: Reduce the term G cost of [Q] by 1. Regain 2 term G for each term G pickup.
+  [T20.4] modifies E: [E] gains a 2nd charge with a 3 second cooldown between uses and launches 2 more bombs when it detonates.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2026-04:
+Base
+[Q] [Q]
+Turret Health increased from 510 to 600.
+Health decays over 20 seconds (from 17).
+Talents
+Level 10
+term D
+Damage per second increased from 90 to 100.
+Change set 2026-05:
+Base
+term C
+Damage increased from 37 to 43.
+Talents
+Level 1
+[T1.3]
+Damage bonus increased from 60% to 75%.

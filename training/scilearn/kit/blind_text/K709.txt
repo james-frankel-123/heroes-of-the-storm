@@ -1,0 +1,68 @@
+Hero code: K709
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.9 s, 80 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 7 s, cost 50): Launch a rift that deals 170 (+4% per level) damage to enemies in its path. If an enemy Hero is hit, reduce its cooldown by 5 seconds and refund 50 Mana.  Quest: Hit 40 enemy Heroes with [Q] without dying.  Reward: Permanently increase the damage dealt by 75 and cooldown reduction for hitting a Hero by 1 second.
+[W] basic (cooldown 9 s, cost 60): Protect an allied Hero from all damage for 1.5 seconds.  Upon expiration, [W] heals the target for 20% of the damage it absorbed.
+[E] basic (cooldown 16 s, cost 65): Create a set of portals between this hero and the target location, allowing allies to teleport between both. The portals last 6 seconds.
+[R1] heroic (cooldown 40 s, cost 75): Polymorph an enemy Hero for 2 seconds, Silencing them and making them unable to attack. On expiration, [R1] spreads to other nearby enemy Heroes.
+[R2] heroic (cooldown 80 s, cost 75): After 0.5 seconds, unleash a wave of energy that places enemy Heroes in Time Stop for 3 seconds.
+[D] trait: Instead of mounting, this hero can transform into a raven, increasing Movement Speed by 20%. While transformed, this hero can see and fly over all terrain and is immune to all effects.
+[Z] mount (cooldown 4 s): Transform into a raven, increasing Movement Speed by 20%. While transformed, this hero can see and fly over terrain and is immune to all effects.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Z: Increases [D]'s Movement Speed bonus by 50%.
+  [T1.2] modifies Z: [D] increases this hero's Mana and Health Regeneration by 75%.
+  [T1.3] modifies Active (cooldown 16 s): this hero can manually place both Portal locations and it no longer breaks [D].  Activate this hero's Trait to cancel an unlinked Portal.
+Level 4:
+  [T4.1] modifies E: The first time an ally uses a Portal, they gain 30 Armor for 4 seconds, reducing their damage taken by 30%.
+  [T4.2] modifies E: A [T4.2] joins allies each time they use a Portal. The term C will dive at the ally's next Basic Attack against a Hero within 5 seconds, dealing 114 (+4% per level) damage and Slowing them by 30% for 2.5 seconds.
+  [T4.3] modifies Active (cooldown 45 s): Activate to greatly increase sight range for 5 seconds and reveal enemy Heroes in the area for 8 seconds. Does not cancel [D].  Passive: Increase this hero's sight range while in [D] by 25%.
+Level 7:
+  [T7.1] modifies Q: If [Q] hits an enemy Hero, this hero's next Basic Attack within 6 seconds deals 50% more damage and heals for 50% of the damage dealt.
+  [T7.2] modifies W: When [W] expires, it deals 80 (+4% per level) damage to nearby enemies, plus 50% of the damage it prevented, up to 315 (+4% per level) additional damage.
+  [T7.3] modifies W: Preventing at least 268 (+4% per level) damage with a single cast of [W] grants 30% Spell Power for 15 seconds. Stacks up to 2 times.
+Level 10:
+  [R1] modifies Heroic (cooldown 40 s): Polymorph an enemy Hero for 2 seconds, Silencing them and making them unable to attack. On expiration, [R1] spreads to other nearby enemy Heroes.
+  [R2] modifies Heroic (cooldown 80 s): After 0.5 seconds, unleash a wave of energy that places enemy Heroes in Time Stop for 3 seconds.
+Level 13:
+  [T13.1] modifies W: [W] also applies to allies near the target, but its cooldown is increased by 2 seconds.
+  [T13.2] modifies W: Preventing at least 268 (+4% per level) damage with [W] reduces its cooldown to 4 seconds.
+  [T13.3] modifies W: Increase the amount of healing from [W] to 70% of the damage it absorbed.
+Level 16:
+  [T16.1] modifies Q: When [Q] damages an enemy Hero, the next [Q] deals 15% more damage.
+  [T16.2] modifies Q: Basic Attacks reduce this hero's Heroic Ability cooldown by 3%. Each enemy Hero hit by [Q] reduces this hero's Heroic Ability cooldown by 9%.
+  [T16.3] modifies E: Decrease Portal cooldown by 25% and increase Portal duration by 50%.
+Level 20:
+  [T20.1] modifies Heroic: [R1] explodes 1 second sooner and the spread radius is increased by 25%.
+  [T20.2] modifies Heroic: Increase the duration of the Time Stop by 33% and gain the ability to redirect the wave once while it's active.
+  [T20.3] modifies Q: Minions and Catapults hit by [Q] are instantly killed.
+  [T20.4] modifies Active (cooldown 60 s): Activate to instantly restore 200 mana to all nearby allied Heroes and grant them 15% Spell Power for 10 seconds.
+  [T20.5] modifies Active (cooldown 10 s): Stealth an allied Hero for 40 seconds, they are Unrevealable for the first 0.5 seconds. Remaining stationary for at least 1.5 seconds while Stealthed grants Invisible.  Stores up to 2 charges.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-12:
+Talents
+Level 20
+[T20.1]
+Rework: Target an area to apply [R1] to all enemy Heroes in the area. [R1] activates a second time 1 second after.
+Change set 2026-04:
+Talents
+Level 1
+[T1.1]
+Movement Speed bonus increased from 50% to 100% .
+[T1.2]
+Bonus increased from 75% to 200% .
+Level 4
+[T4.2]
+Slow reduced from 30% to 20%.
+Level 7
+[T7.3]
+Spell Power increased from 30% to 35%.
+Level 13
+[T13.1]
+No longer increases the cooldown of [W].
+Level 20
+[T20.3]
+Now also increases the range of [Q] by 50%.

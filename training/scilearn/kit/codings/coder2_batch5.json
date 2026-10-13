@@ -1,0 +1,252 @@
+{
+ "coder": 2,
+ "batch": 5,
+ "codes": [
+  "K288",
+  "K688",
+  "K488",
+  "K906",
+  "K495",
+  "K683",
+  "K382",
+  "K956",
+  "K626",
+  "K257",
+  "K448",
+  "K932",
+  "K804"
+ ],
+ "prompt_file": "codings/prompts/coder2_batch5.txt",
+ "prompt_sha256": "168ba454040dd0e1fd2939b7e48478065911a22af0dba5c17bd123ed49d713eb",
+ "model_requested": "claude-opus-5-5",
+ "models_reported": [
+  "claude-opus-5-5"
+ ],
+ "session_id": "4098c299-1712-4916-a859-9203d12e8ec0",
+ "started": "2026-10-13T14:09:44Z",
+ "finished": "2026-10-13T14:10:33Z",
+ "attempts": [
+  {
+   "attempt": 1,
+   "started": "2026-10-13T14:09:44Z",
+   "error": null,
+   "models": [
+    "claude-opus-5-5"
+   ]
+  }
+ ],
+ "raw_result": "{\"K288\":{\"hard_cc\":2,\"soft_cc_peel\":3,\"healing_throughput\":0,\"self_sustain_shields\":3,\"burst\":3,\"sustained_damage\":3,\"range\":1,\"mobility\":2,\"waveclear\":4,\"siege\":1,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[\"burst\",\"siege\"]},\"K688\":{\"hard_cc\":4,\"soft_cc_peel\":3,\"healing_throughput\":0,\"self_sustain_shields\":3,\"burst\":2,\"sustained_damage\":2,\"range\":2,\"mobility\":2,\"waveclear\":3,\"siege\":1,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[]},\"K488\":{\"hard_cc\":0,\"soft_cc_peel\":2,\"healing_throughput\":0,\"self_sustain_shields\":1,\"burst\":3,\"sustained_damage\":3,\"range\":3,\"mobility\":1,\"waveclear\":1,\"siege\":1,\"global_presence\":2,\"early_vs_late\":1,\"low_confidence\":[\"range\",\"siege\"]},\"K906\":{\"hard_cc\":3,\"soft_cc_peel\":2,\"healing_throughput\":3,\"self_sustain_shields\":1,\"burst\":1,\"sustained_damage\":1,\"range\":1,\"mobility\":0,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[]},\"K495\":{\"hard_cc\":2,\"soft_cc_peel\":1,\"healing_throughput\":0,\"self_sustain_shields\":3,\"burst\":3,\"sustained_damage\":3,\"range\":1,\"mobility\":2,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":1,\"low_confidence\":[]},\"K683\":{\"hard_cc\":0,\"soft_cc_peel\":0,\"healing_throughput\":0,\"self_sustain_shields\":1,\"burst\":3,\"sustained_damage\":4,\"range\":2,\"mobility\":3,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[\"burst\"]},\"K382\":{\"hard_cc\":0,\"soft_cc_peel\":3,\"healing_throughput\":4,\"self_sustain_shields\":1,\"burst\":1,\"sustained_damage\":2,\"range\":1,\"mobility\":1,\"waveclear\":2,\"siege\":0,\"global_presence\":1,\"early_vs_late\":0,\"low_confidence\":[\"sustained_damage\"]},\"K956\":{\"hard_cc\":3,\"soft_cc_peel\":3,\"healing_throughput\":3,\"self_sustain_shields\":1,\"burst\":3,\"sustained_damage\":3,\"range\":1,\"mobility\":0,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[\"hard_cc\"]},\"K626\":{\"hard_cc\":3,\"soft_cc_peel\":1,\"healing_throughput\":1,\"self_sustain_shields\":4,\"burst\":2,\"sustained_damage\":2,\"range\":0,\"mobility\":1,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[]},\"K257\":{\"hard_cc\":1,\"soft_cc_peel\":2,\"healing_throughput\":1,\"self_sustain_shields\":4,\"burst\":2,\"sustained_damage\":3,\"range\":1,\"mobility\":2,\"waveclear\":2,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[]},\"K448\":{\"hard_cc\":1,\"soft_cc_peel\":2,\"healing_throughput\":0,\"self_sustain_shields\":2,\"burst\":3,\"sustained_damage\":4,\"range\":2,\"mobility\":3,\"waveclear\":2,\"siege\":1,\"global_presence\":2,\"early_vs_late\":2,\"low_confidence\":[]},\"K932\":{\"hard_cc\":2,\"soft_cc_peel\":3,\"healing_throughput\":0,\"self_sustain_shields\":3,\"burst\":2,\"sustained_damage\":2,\"range\":1,\"mobility\":1,\"waveclear\":3,\"siege\":0,\"global_presence\":0,\"early_vs_late\":1,\"low_confidence\":[\"soft_cc_peel\"]},\"K804\":{\"hard_cc\":2,\"soft_cc_peel\":3,\"healing_throughput\":1,\"self_sustain_shields\":3,\"burst\":2,\"sustained_damage\":2,\"range\":2,\"mobility\":1,\"waveclear\":3,\"siege\":0,\"global_presence\":0,\"early_vs_late\":0,\"low_confidence\":[\"healing_throughput\"]}}",
+ "codes_out": {
+  "K288": {
+   "hard_cc": 2,
+   "soft_cc_peel": 3,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 4,
+   "siege": 1,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "burst",
+    "siege"
+   ]
+  },
+  "K688": {
+   "hard_cc": 4,
+   "soft_cc_peel": 3,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 2,
+   "mobility": 2,
+   "waveclear": 3,
+   "siege": 1,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K488": {
+   "hard_cc": 0,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 3,
+   "mobility": 1,
+   "waveclear": 1,
+   "siege": 1,
+   "global_presence": 2,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "range",
+    "siege"
+   ]
+  },
+  "K906": {
+   "hard_cc": 3,
+   "soft_cc_peel": 2,
+   "healing_throughput": 3,
+   "self_sustain_shields": 1,
+   "burst": 1,
+   "sustained_damage": 1,
+   "range": 1,
+   "mobility": 0,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K495": {
+   "hard_cc": 2,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": []
+  },
+  "K683": {
+   "hard_cc": 0,
+   "soft_cc_peel": 0,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 4,
+   "range": 2,
+   "mobility": 3,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "burst"
+   ]
+  },
+  "K382": {
+   "hard_cc": 0,
+   "soft_cc_peel": 3,
+   "healing_throughput": 4,
+   "self_sustain_shields": 1,
+   "burst": 1,
+   "sustained_damage": 2,
+   "range": 1,
+   "mobility": 1,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "sustained_damage"
+   ]
+  },
+  "K956": {
+   "hard_cc": 3,
+   "soft_cc_peel": 3,
+   "healing_throughput": 3,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 0,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "hard_cc"
+   ]
+  },
+  "K626": {
+   "hard_cc": 3,
+   "soft_cc_peel": 1,
+   "healing_throughput": 1,
+   "self_sustain_shields": 4,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 0,
+   "mobility": 1,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K257": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 1,
+   "self_sustain_shields": 4,
+   "burst": 2,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K448": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 2,
+   "burst": 3,
+   "sustained_damage": 4,
+   "range": 2,
+   "mobility": 3,
+   "waveclear": 2,
+   "siege": 1,
+   "global_presence": 2,
+   "early_vs_late": 2,
+   "low_confidence": []
+  },
+  "K932": {
+   "hard_cc": 2,
+   "soft_cc_peel": 3,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 1,
+   "mobility": 1,
+   "waveclear": 3,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "soft_cc_peel"
+   ]
+  },
+  "K804": {
+   "hard_cc": 2,
+   "soft_cc_peel": 3,
+   "healing_throughput": 1,
+   "self_sustain_shields": 3,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 2,
+   "mobility": 1,
+   "waveclear": 3,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "healing_throughput"
+   ]
+  }
+ }
+}

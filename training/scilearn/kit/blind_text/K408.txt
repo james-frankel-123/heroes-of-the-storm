@@ -1,0 +1,107 @@
+Hero code: K408
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.25, one attack every 0.8 s, 60 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 4 s): Deal 86 (+4% per level) damage and apply [Q] on nearby enemies for 6 seconds, slowing them by 20%.  Deal 210 (+4% per level) damage to enemies who are already Slimed.
+[W] basic (cooldown 15 s): Spit out a [W] with 225 (+5.5% per level) health at the target point. After 3 seconds, the fish will blow up for 410 (+4% per level) damage. Deals 50% less damage to Structures.
+[E] basic (cooldown 14 s): Becomes Invulnerable for 2 seconds. While active, this hero cannot attack or use abilities.
+[R1] heroic (cooldown 110 s): After 0.75 seconds, this hero commands a legion of term D to march in a target direction, each one leaping onto the first enemy Hero or Structure they find. Each term D deals 125 (+4% per level) damage and slows its target by 15% for 5 seconds. term D deal 50% damage to Structures.
+[R2] heroic (cooldown 50 s): this hero becomes Unstoppable and Stuns target enemy Hero for 3 seconds while he hits them for 1 damage a second.
+[D] trait (cooldown 15 s): Place an term F at target location, revealing the nearby area. Upon dying, this hero respawns at the term F after 8 seconds. this hero only grants 25% of a real Hero's experience upon dying.  If this hero's term F is killed, he is revealed to enemies for 15 seconds, and [D] is placed on cooldown.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Trait: term F's Health is increased by 100%, its sight radius is increased by 300% and it can see Stealthed enemies.  Passive: Spawning from his term F increases this hero's mount speed to 45% for 5 seconds.
+  [T1.2] modifies Active (cooldown 3 s): Activate to place a fake term F. If the fake term F dies, it casts an untalented [Q]. Maximum 3 fake term F.  Passive: Spawning from his term F grants this hero Stealth for 5 seconds.
+  [T1.3] modifies Active: Killing a Minion with [W] grants a stack of Bribe. Use 8 stacks to bribe a Mercenary, instantly defeating them. Does not work on Elite Mercenaries.  Maximum of 32 stacks of Bribe.
+Level 4:
+  [T4.1] modifies Q: Quest: [Q] enemy Heroes that are already Slimed.  Reward: After Sliming 10 Heroes, increase [Q]'s bonus damage by 125.  Reward: After Sliming 20 Heroes, increase [Q]'s slow amount to 30%.
+  [T4.2] modifies W: [W] gains 50 Spell Armor and deals 50% more damage to Slimed targets.
+  [T4.3] modifies Passive: Quest: Every 15 seconds this hero is alive, he gains 5% Spell Power, up to 25%. This bonus is reset upon his death.
+Level 7:
+  [T7.1] modifies Q: Increase [Q]'s radius by 30%.
+  [T7.2] modifies E: Gain 50% Movement Speed and move through units while in [E]. Additionally, [E]'s cooldown is reduced by 2 seconds.
+  [T7.3] modifies Passive: Basic Attacks against Heroes deal an additional 7 (+4% per level) damage a second and slow the target by 7% for 4 seconds. This effect can stack up to 5 times.
+Level 10:
+  [R1] modifies Heroic (cooldown 110 s): After 0.75 seconds, this hero commands a legion of term D to march in a target direction, each one leaping onto the first enemy Hero or Structure they find. Each term D deals 125 (+4% per level) damage and slows its target by 15% for 5 seconds. term D deal 50% damage to Structures.
+  [R2] modifies Heroic (cooldown 50 s): this hero becomes Unstoppable and Stuns target enemy Hero for 3 seconds while he hits them for 1 damage a second.
+Level 13:
+  [T13.1] modifies E: [E] restores 40% of this hero's maximum Health.
+  [T13.2] modifies Trait: Spawning from his term F grants this hero a Shield equal to 100% of his maximum Health. The shield lasts indefinitely.
+  [T13.3] modifies Passive: this hero is healed for 25% of the damage he deals with Basic Attacks and Basic Abilities.
+Level 16:
+  [T16.1] modifies Q: Every 3rd consecutive Basic Attack against an enemy Hero causes a free [Q] to be cast upon them.
+  [T16.2] modifies W: The [W] casts [Q] at its location upon landing.
+  [T16.3] modifies W: Heroes hit by [W] take additional damage equal to 15% of their maximum Health over 5 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R1] can be channeled, sending little term D indefinitely.
+  [T20.2] modifies Heroic: Increase the damage of [R2] by 13700% (+4% per level).
+  [T20.3] modifies Trait: this hero's maximum Health and term F respawn time are doubled.
+  [T20.4] modifies Q: Reduces the cooldown of [Q] from 4 seconds to 2 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-07:
+Base
+[D] [Trait D]
+Health is reduced by 80% of its current value.
+Now has a Shield equal to the amount of Health removed.
+Shield starts regenerating after 5 seconds.
+Shield takes 8 seconds to re-fill from empty to full.
+Change set 2026-02:
+Base
+this hero now gains a 35% Shield for 10 seconds upon reviving.
+[D] [D]
+term F now regenerates quickly instead of having a Shield.
+[Q] [Q]
+Now applies its debuff to enemy Structures.
+Now deals 50% damage to Structures.
+[W] [W]
+Damage reduced by 20%.
+Detonation time reduced from 3 seconds to 2.75 seconds.
+NEW QUEST: Kill Slimed enemies, or hit them with [W] . Provides 1 stack per minion, 5 stacks per Hero or Structure hit. At 200 stacks, Basic Abilities now deal full damage to Structures. Mythic Reward: At 400 stacks, this hero gains 50% Health and increases in size.
+Talents
+Level 1
+[T1.2]
+Talent removed.
+Shell Game
+NEW: this hero can now place 2 eggs, but randomly revives from one of them. Increases the cooldown of placing an egg to 30 seconds and goes on cooldown if either egg dies.
+Level 10
+[R1]
+Damage increased by 4%.
+Level 13
+[T13.2]
+REWORK: this hero gains a Shield equal to 35% of his Health upon placing an egg or when one of his eggs dies.
+[T13.3]
+Healing reduced from 25% to 20%.
+Level 16
+[T16.3]
+Reduced the amount of time needed to deal the full Damage over Time from 5 seconds to 4 seconds.
+Level 20
+[T20.3]
+Talent removed.
+Faster Fish
+NEW: [W] detonates 80% faster.
+[T20.4]
+Cooldown reduction reduced from 2 seconds to 1.5 seconds.
+[T20.1]
+No longer deals reduced damage to Structures.
+Change set 2026-02:
+Base
+[D] [D]
+Revive Shield duration increased from 10 seconds to 15 seconds.
+Talents
+Level 10
+[R1]
+Cooldown reduced from 110 seconds to 100 seconds.
+Level 13
+[T13.2]
+Shield increased from 35% to 50% of this hero's Health.
+Shield now lasts until destroyed.
+Level 20
+Never-Ending March
+Will now last a minimum of 7 seconds, even if stopped.
+Change set 2026-05:
+Talents
+Level 20
+March of term D
+Cooldown reduced from 100 seconds to 90 seconds.

@@ -1,0 +1,68 @@
+Hero code: K140
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 0.8332 s, 150 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 55): After a 0.5 second delay, enemies in front of this hero take 165 (+4% per level) damage and are silenced for 1.5 seconds.
+[W] basic (cooldown 12 s, cost 30): Vector Targeting Create a force, pushing this hero and all enemies hit from the targeted point towards the targeted direction. Deals 48 (+4% per level) damage to enemies.
+[E] basic (cooldown 6 s, cost 25): Deal 62 (+4% per level) damage to an enemy and an additional 100% damage to enemies between this hero and the target. Restore 70 (+4% per level) health for each Hero hit.
+[R1] heroic (cooldown 45 s, cost 60): After channeling, this hero charges forward dealing 200 (+4% per level) damage to all enemies in his path. Distance is increased based on the amount of time channeled, up to 1.5 seconds.  Issuing a Move order while this is channeling will cancel it at no cost. Taking damage will interrupt the channeling.
+[R2] heroic (cooldown 30 s, cost 50): this hero targets an area and channels for 1 second, becoming Protected and Unstoppable. After, if he took damage from an enemy Hero, he sends a shockwave that deals 275 (+4% per level) damage.
+[D] trait: this hero's Ability damage and self-healing are increased by 100% against enemy Heroes.  Repeatable Quest: Takedowns increase [D] by 3%, up to 30%. [D] gained from Takedowns is lost on death.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Hitting an enemy Hero with [Q] grants 40% Attack Speed and causes Basic Attacks to heal for 50% of the damage dealt for 4 seconds.
+  [T1.2] modifies W: Reduce the Mana cost of [W] from 30 to 20.  [W]'s cooldown recharges 100% faster while above 80% Health.
+  [T1.3] modifies E: Reduce [D] by 10%.  Quest: Hit Heroes with the center of [E].  Reward: After hitting 5 Heroes, increase [E]'s range by 20%.  Reward: After hitting 15 Heroes, [E]'s center also Slows enemies by 40% for 2 seconds.  Reward: After hitting 3 Heroes with the center of a single cast, increase [D] by 10% and instantly gain all other Rewards.
+Level 4:
+  [T4.1] modifies Q: Quest: Hit Heroes with [Q].  Reward: After hitting 15 Heroes, increase [Q]'s damage by 60.  Reward: After hitting 2 Heroes with a single [Q], increase its damage by 60.  Reward: After hitting 3 Heroes with a single [Q], increase its damage by 100 and instantly gain all other Rewards.
+  [T4.2] modifies E: Increase the [E] damage bonus to enemies between this hero and his victim to 175%.  Repeatable Quest: Each Hero hit by the center of [E] permanently increases the damage bonus by 5%.
+  [T4.3] modifies Trait: Heroes hit with 3 of this hero's Abilities within 2 seconds take an additional 61 (+4% per level) damage and increase [D] by 2%, stacking up to 20%.   [D] gained from [T4.3] is lost on death.
+Level 7:
+  [T7.1] modifies Q: Increase [Q]'s Silence duration by 0.75 seconds.
+  [T7.2] modifies W: [W] Slows enemies by 30% for 3 seconds.
+  [T7.3] modifies W: Reduce [D] by 10%, but [W] pushes 20% further and has 20% increased range.
+Level 10:
+  [R1] modifies Heroic (cooldown 45 s): After channeling, this hero charges forward dealing 200 (+4% per level) damage to all enemies in his path. Distance is increased based on the amount of time channeled, up to 1.5 seconds.  Issuing a Move order while this is channeling will cancel it at no cost. Taking damage will interrupt the channeling.
+  [R2] modifies Heroic (cooldown 30 s): this hero targets an area and channels for 1 second, becoming Protected and Unstoppable. After, if he took damage from an enemy Hero, he sends a shockwave that deals 275 (+4% per level) damage.
+Level 13:
+  [T13.1] modifies Trait: Basic Attacks against Heroes increase [D] by 2% stacking up to 40%.  [D] gained from [T13.1] is lost on death.
+  [T13.2] modifies Trait: Increase [D] by 10% any time an allied Hero dies, up to 40%.  [D] gained from [T13.2] is lost on death.
+  [T13.3] modifies Trait (cooldown 300 s): Activate to mark an enemy Hero for 300 seconds.  Hitting the marked Hero with [Q] increases [D] by 3%. Killing the marked Hero increases [D] by 5% and lowers the cooldown of [T13.3] to 10 seconds.  [D] gained from [T13.3] is lost on death.
+Level 16:
+  [T16.1] modifies Q: Hitting an enemy Hero with [Q] grants 50% of [D]'s damage bonus to this hero's Basic Attacks for 4 seconds. Basic Attacks against Heroes refresh this duration.
+  [T16.2] modifies E: Hitting an enemy Hero with the center of [E] allows it to be cast again for free on a different primary target within the next 3 seconds. This free cast cannot benefit from [T16.2].
+  [T16.3] modifies Passive: Basic Attacks against enemy Heroes reduce the cooldown of this hero's Basic Abilities by 1.5 seconds.  This bonus is doubled against enemy Heroes who are Stunned, Silenced, Slowed, or Rooted.
+Level 20:
+  [R2] modifies Heroic (cooldown 30 s): this hero targets an area and channels for 1 second, becoming Protected and Unstoppable. After, if he took damage from an enemy Hero, he sends a shockwave that deals 275 (+4% per level) damage.  This ability will take over this hero's Trait button.
+  [R1] modifies Heroic (cooldown 45 s): After channeling, this hero charges forward dealing 200 (+4% per level) damage to all enemies in his path. Distance is increased based on the amount of time channeled, up to 1.5 seconds.  Issuing a Move order while this is channeling will cancel it at no cost. Taking damage will interrupt the channeling.
+  [T20.3] modifies Active (cooldown 30 s): Activate to teleport to the chosen location and remove all Roots, Slows, and damage over time effects. If this hero fails to hit enemy Heroes 3 times with Basic Abilities within 4 seconds of using [T20.3], his Health is reduced to 1.
+  [T20.4] modifies Active (cooldown 20 s): Activate to permanently reduce this hero's [D] by 4% and reset the cooldowns of his Basic Abilities.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-07:
+Base
+Basic Attack damage increased from 150 to 160.
+[E] [E]
+Healing increased from 70 to 75.
+[W] [W]
+Knockback speed now slows down over the duration of the knockback.
+Push-to-point distance increased from 6.25 from where [W] was targeted to 12.5.
+Talents
+Level 1
+[T1.1]
+REWORK: Healing reduced from 50% to 15% of damage dealt.
+REWORK: Percent of damage converted to Healing is now increased by 50% of [D]'s bonus when attacking Heroes (For example: At 100% [D], this will be 65% of damage dealt).
+Level 7
+[T7.3]
+Now pushes targets 15% further.
+Level 20
+[R2]
+Talent Removed.
+[R1]
+Talent Removed.
+Might of the term A
+NEW: this hero gains access to his other Heroic which occupies the Trait slot. This also grants an ability to swap which slot each Heroic occupies.
+Wrath of the term A
+NEW: If [R2] is this hero's Heroic, Basic Abilities reduce its cooldown by 2.5 seconds for each enemy Hero they hit.
+NEW: If [R1] is this hero's Heroic, Heroes hit by [R1] now take bonus damage from this hero's Abilities equal to 75% of [D]'s bonus .

@@ -1,0 +1,90 @@
+Hero code: K523
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 73 damage per attack; range 9, one attack every 1.25 s, 143 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 7 s): Sacrifice 15% of this hero's current Health, healing an allied Hero for 150% of that amount.  Passive: Increase this hero's Health regeneration by 150%.  [D]: [alt-Q] Cooldown greatly reduced and does not cost Health.
+[W] basic (cooldown 14 s, cost 75): Plant a seed of healing that blooms after 3 seconds, healing nearby allied Heroes for 20% of their maximum Health.  [D]: [alt-W] Heal area and amount greatly increased.
+[E] basic (cooldown 2 s, cost 50): Launch a fireball, Burning enemies hit for 75 (+4% per level) damage over 5.5 seconds.  Hitting enemies that are already Burning deals 125 (+4% per level) bonus damage upon impact, Slows them by 40% decaying over 2 seconds, and refunds the Mana cost.  [D]: [alt-E] Damage and Knockback enemies in an arc.
+[R1] heroic (cooldown 50 s, cost 50): Bind this hero's life force with an allied Hero. Both her and her target are healed for 480 (+4% per level) Health over 2 seconds. Afterwards, the Hero with a lower percentage of Health is healed to the same Health percentage as the other Hero.
+[R2] heroic (cooldown 100 s, cost 100): After 1.25 seconds, take to the sky and drop 5 fireballs over 6 seconds at the position of the mouse cursor. term D deal 135 (+4% per level) damage to enemies and heal allied Heroes for 300 (+4% per level) Health.  2 seconds after dropping all fireballs, this hero lands at the position of the mouse cursor.
+[D] trait (cooldown 150 s): After 1.25 seconds, transform into a dragon and gain 500 (+4% per level) Health.  While [D] is active, this hero's Abilities are empowered, and her Basic Attacks deal 143 (+4% per level) damage and heal allied Heroes for 43 (+4% per level) in an arc in front of her. Additionally, the duration of incoming Stuns, Roots, and Slows, is reduced by 50%.  Lasts 15 seconds.
+Alternate form or second unit abilities:
+[alt-Q] basic (cooldown 3 s): Heal an allied Hero for 20% of this hero's current Health.
+[alt-W] basic (cooldown 16 s): Plant a seed of healing that blooms after 3 seconds, healing nearby allied Heroes for 30% of their maximum Health.
+[alt-E] basic (cooldown 4 s): Deal 150 (+4% per level) damage to enemies in an area, knocking them back and Slowing them by 50% for 3 seconds.
+[alt-D] trait: this hero has transformed into a powerful dragon aspect, gaining 500 (+4% per level) Health, resistance to disabling effects, and empowered Basic Attacks and Abilities.
+[alt-R] heroic (cooldown 100 s, cost 100): Take to the sky and drop 5 fireballs over 6 seconds at the position of the mouse cursor. term D deal 135 (+4% per level) damage to enemies and heal allied Heroes for 300 (+4% per level) Health.  2 seconds after dropping all fireballs, this hero lands at the position of the mouse cursor.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: While this hero is above 75% Health, [Q]'s cooldown recharges 125% faster.
+  [T1.2] modifies W: Quest: Collect Regeneration Globes.  Reward: After collecting 10 Regeneration Globes, [W] heals for an additional 5% maximum Health.  Reward: After collecting 15 Regeneration Globes, [W]'s healing burst creates a Regeneration Globe.
+  [T1.3] modifies E: Reduce the Mana cost of [E] from 50 to 40.  Quest: Hit 20 Burning Heroes with [E].  Reward: Hitting a Burning Hero with [E] reduces [D]'s cooldown by 5 seconds.
+Level 4:
+  [T4.1] modifies W: [W]'s healing burst grants allied Heroes 30% Movement Speed for 3 seconds.
+  [T4.2] modifies E: Increase [E]'s Slow from 40% to 50% and cause it to no longer decay.
+  [T4.3] modifies Passive: While above 75% Health, gain 15% Movement Speed.
+Level 7:
+  [T7.1] modifies Q: While this hero is above 75% Health, [Q] creates a [T7.1] at the target's location. this hero can collect the [T7.1] to make her next [Q] cost no Health.  Passive: Reduces the cost of [Q] to 10% of this hero's current Health.
+  [T7.2] modifies W: this hero receives 40% more healing from [W] and 100% more healing from Regeneration Globes.
+  [T7.3] modifies E: Hitting a Burning Hero with [E] heals this hero for 10% of her maximum Health.
+Level 10:
+  [R1] modifies Heroic (cooldown 50 s): Bind this hero's life force with an allied Hero. Both her and her target are healed for 480 (+4% per level) Health over 2 seconds. Afterwards, the Hero with a lower percentage of Health is healed to the same Health percentage as the other Hero.
+  [R2] modifies Heroic (cooldown 100 s): After 1.25 seconds, take to the sky and drop 5 fireballs over 6 seconds at the position of the mouse cursor. term D deal 135 (+4% per level) damage to enemies and heal allied Heroes for 300 (+4% per level) Health.  2 seconds after dropping all fireballs, this hero lands at the position of the mouse cursor.
+Level 13:
+  [T13.1] modifies Passive: Gain 50 Armor while Stunned, Rooted, or Silenced, and for 2 seconds after. Can only trigger once every 10 seconds.
+  [T13.2] modifies Active (cooldown 60 s): Activate to Slow and reduce an enemy Hero's damage by 50% for 3 seconds.  Healing a Stunned, Rooted, or Silenced ally reduces [T13.2]'s cooldown by 30 seconds.
+  [T13.3] modifies Active (cooldown 90 s): Activate to heal an allied Hero for 15% of their maximum Health and deal 200 (+4% per level) damage to nearby enemies.  Healing a Stunned, Rooted, or Silenced ally reduces [T13.3]'s cooldown by 30 seconds.  Cannot be used on this hero.
+Level 16:
+  [T16.1] modifies Q: [Q] grants its target 10 Armor for 2.5 seconds, increased to 30 while this hero is above 75% Health.
+  [T16.2] modifies W: Heroes healed by [W] gain a Shield for 6 seconds equal to 70% of the amount healed.
+  [T16.3] modifies Trait: Increase [D]'s duration by 6 seconds, and Basic Attack healing by 50%.
+Level 20:
+  [T20.1] modifies Heroic: [R1] activates 3 times over 6 seconds.
+  [T20.2] modifies Heroic: Healing or damaging Heroes 8 or more times with [R2] activates [D] for 15 seconds upon landing.
+  [T20.3] modifies Trait: While [D] is active, this hero's Basic Attacks apply [E].
+  [T20.4] modifies Active (cooldown 40 s): Activate to grant an allied Hero 500 bonus maximum Health until they die.  Cannot be used on this hero, or on a Hero who already has [T20.4].
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2026-07:
+Base
+[D] [D]
+Cooldown now starts after [D] has expired.
+Cooldown reduced from 150 to 130 seconds.
+Talents that affect [Q] also apply to [alt-Q].
+Talents that affect [W] also apply to [alt-W].
+[alt-Q] [Dragonqueen Q]
+Healing reduced from 20% to 15%.
+[alt-W] [Dragonqueen W]
+Healing reduced from 30% to 25%.
+Talents
+Level 1
+[T1.1]
+Now also provides 25% recharge rate for [alt-Q].
+[T1.3]
+Cooldown reduction increased from 5 to 6 seconds.
+NEW MYTHIC REWARD: Hit an additional 40 Heroes without dying to cause [D]'s duration to be refreshed when damaging an enemy Hero.
+Level 7
+[T7.1]
+Now makes [alt-Q] remove Slows and Roots.
+Transforming into [D] will no longer remove the collected [T7.1].
+Level 16
+term A
+No longer affects [D]'s duration.
+For each allied Hero healed with [D]'s Basic Attacks, reduce the cooldown of [alt-W] by 1.25 seconds.
+Level 20
+[T20.2]
+NEW FUNCTIONALITY: If at least 3 Heroes are in an area hit by a term D, that term D charge is not consumed.
+[T20.3]
+ADDITIONAL FUNCTIONALITY: Now also provides +25% Health.
+Does not provide Quest stacks while active.
+Change set 2026-09:
+Base
+Health increased from 1698 to 1780.
+Talents
+Level 1
+[T1.3]
+Mythic Reward requirement reduced from 40 extra hits without dying to 30.
+Level 16
+[T16.2]
+Shield reduced from 70% of healing to 50%.

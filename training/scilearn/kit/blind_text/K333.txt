@@ -1,0 +1,42 @@
+Hero code: K333
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.9 s, 88 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 40): Hurl a jar of spiders that deals 50 (+4% per level) damage. If it hits at least one enemy, create 3 [Q] that attack for 38 (+4% per level) damage. term D last for 4 seconds.
+[W] basic (cooldown 14 s, cost 70): After 1 second, create a ring of term E surrounding the target area that deal 28 (+4% per level) damage and last for 3 seconds.
+[E] basic (cooldown 8 s, cost 30): Create a wave of 3 term F that explode on contact, dealing 126 (+4% per level) damage over 6 seconds. This effect stacks.  Stores up to 2 charges.
+[R1] heroic (cooldown 70 s, cost 90): Summon a [R1] to guard an area for 20 seconds. Deals 100 (+4% per level) damage when summoned, attacks for 140 (+4% per level) damage, and can be ordered to stomp nearby enemies. The [R1]'s Stomp deals 140 (+4% per level) damage and Slows by 30% for 2 seconds.
+[R2] heroic (cooldown 90 s, cost 100): Channel a [R2] that deals 230 (+4% per level) damage per second. Cannot move while channeling. Lasts for 8 seconds.
+[D] trait: this hero's Basic Attacks and Abilities poison Non-Heroic enemies, causing them to take 67 (+4% per level) additional damage over 6 seconds.  Quest: If a Minion dies while poisoned by [D], this hero permanently gains 6 Health and 1 Mana.
+Alternate form or second unit abilities:
+[alt-R] subunit (cooldown 5 s): Order the [R1] to stomp, dealing 240 (+4% per level) damage to nearby enemies and Slowing them by 30% for 2 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Enemies hit by [Q]' jar are Slowed by 25% for 1 second.  Reward: After [Q] attack Heroes 100 times, their attack damage is increased by 25% and their duration is increased by 1 second.
+  [T1.2] modifies E: Quest: Hit Heroes with [E].  Reward: After hitting 35 Heroes with [E], it spawns 2 additional toads.  Reward: After hitting 70 Heroes with [E], it reduces the damage Heroes deal by 5%, stacking up to 25%.
+  [T1.3] modifies Passive: Increase the range of this hero's Basic Abilities by 20%.  Reward: After gaining 50 stacks of [D], gain 5% Spell Power.  Reward: After gaining 100 stacks of [D], gain an additional 5% Spell Power.
+Level 4:
+  [T4.1] modifies Q: [Q] restore 1% of this hero's maximum Health and Mana when they attack an enemy Hero.
+  [T4.2] modifies Trait: Increases the Health and Mana bonuses from [D] by 100%.
+  [T4.3] modifies Trait: If an enemy dies while poisoned by [D], restore 2% of this hero's maximum Health and Mana.  Passive: Takedowns grant 3 stacks of [D].
+Level 7:
+  [T7.1] modifies Q: The number of [Q] spawned is increased from 3 to 4. If [Q]' jar hits only one enemy, it creates an additional spider.
+  [T7.2] modifies W: [W] deals 100% more damage. When it expires up to 5 remaining term E uproot and attack nearby enemies for 3 seconds.
+  [T7.3] modifies E: Increase the damage and explosion radius of [E] by 25% after each hop, up to a maximum of 100%.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): Summon a [R1] to guard an area for 20 seconds. Deals 100 (+4% per level) damage when summoned, attacks for 140 (+4% per level) damage, and can be ordered to stomp nearby enemies. The [R1]'s Stomp deals 140 (+4% per level) damage and Slows by 30% for 2 seconds.
+  [R2] modifies Heroic (cooldown 90 s): Channel a [R2] that deals 230 (+4% per level) damage per second. Cannot move while channeling. Lasts for 8 seconds.
+Level 13:
+  [T13.1] modifies E: Hitting an enemy Hero with [E] grants 30 Armor for 3 seconds, stacking up to 6 seconds.
+  [T13.2] modifies Passive: Gain 40 Spell Armor. Heroic Basic Attacks against this hero remove this bonus for 3 seconds and spawn a term B to attack the Hero.
+  [T13.3] modifies Active (cooldown 60 s): Activate to place yourself in Stasis and gain Invulnerability for 3 seconds.
+Level 16:
+  [T16.1] modifies Q: term B Attacks against Heroes reduce the cooldown of this hero's Basic Abilities by 0.125 seconds.
+  [T16.2] modifies W: [W] lasts 1 second longer, and the center is filled with poison that deals a total of 319 (+4% per level) damage over 4 seconds. This damage starts small and increases over the duration.
+  [T16.3] modifies Active (cooldown 15 s): Activate to increase this hero's Health and Spell Power by 7% for each nearby enemy, up to a maximum of 35%. Lasts 15 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [alt-R]'s area is increased by 25% and its Slow amount is increased to 50%.  Passive: Reduce [R1]'s cooldown by 40 seconds and its Mana cost by 50%.
+  [T20.2] modifies Heroic: When [R2] damages an enemy Hero, reduce their healing received by 50% for 1 second and increase [R2]'s damage by 5% for the rest of its duration.  Passive: Increases the range of [R2] by 50%.
+  [T20.3] modifies Trait: Quest: Reach 175 stacks of [D].  Reward: After reaching 175 stacks of [D], it can also be applied to Heroes and its damage is increased from 67 (+4% per level) to 167 (+4% per level) over 6 seconds.
+  [T20.4] modifies Active (cooldown 30 s): Consume 5 stacks of [D] to become Unstoppable, gain 20% increased Movement Speed, and 50 Armor for 2 seconds.

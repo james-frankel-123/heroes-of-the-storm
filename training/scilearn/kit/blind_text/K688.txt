@@ -1,0 +1,40 @@
+Hero code: K688
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 4.5, one attack every 1 s, 75 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s, cost 35): Throw a snowball that hits all enemies in an area. Enemies hit take 70 (+4% per level) damage, are Slowed by 35%, and are Blinded for 1.75 seconds.
+[W] basic (cooldown 14 s, cost 70): Command Snowball to create a [W] at the target location for 2 seconds. Enemies within the blizzard take 13 (+4% per level) damage every 0.25 seconds and are Slowed by 7%, stacking up to 35%. When the [W] ends, enemies within its area take an additional 75 (+4% per level) damage and are Stunned for 1.25 seconds.
+[E] basic (cooldown 14 s, cost 70): Slide quickly in the targeted direction. When this effect ends, enemies near this hero are knocked back, take 52 (+4% per level) damage, and are Slowed by 80%, rapidly decaying over 1.5 seconds.  Can be canceled during sliding.
+[R1] heroic (cooldown 90 s, cost 80): After 0.5 seconds, roll a massive snowball that consumes enemy Heroes in its path. At the end of its path, the snowball crumbles, releasing the consumed Heroes, dealing 220 (+4% per level) damage and Stunning them for 0.5 seconds per Hero consumed.
+[R2] heroic (cooldown 60 s, cost 50): Vector Targeting After a 0.75 second delay, create an impassable wall that traps enemy Heroes hit for 2.5 seconds. When the wall expires, trapped Heroes are Slowed by 75%, decaying over 3 seconds.
+[D] trait (cooldown 40 s): Become encased in ice for 3 seconds, gaining a rapidly decaying Shield that absorbs up to 1104 (+4% per level) damage. While active, this Shield grants Unstoppable and restores up to 35% of this hero's maximum Health.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Increases the duration of [Q]'s Slow by 1.5 seconds. Each time [W] damages an enemy Hero, reduce the cooldown of [Q] by 0.5 seconds and gain 3 Mana.
+  [T1.2] modifies W: Every 3rd hit of [W] against enemy Heroes deals an additional 42 (+4% per level) damage. [W]'s final Stun damage is increased by 150% against all enemies.
+  [T1.3] modifies Passive: Basic Attacks against Stunned, Rooted, or Slowed Heroes deal 33% more damage. Each time this hero Stuns or Slows an enemy Hero she heals for 16 (+4% per level) Health.
+Level 4:
+  [T4.1] modifies Q: [Q] deals 75% increased damage and Structures hit are disabled for 3 seconds.
+  [T4.2] modifies E: Reduce the cooldown of [E] by 3 seconds.  If this hero enters her own [W] while [E] is active, the cooldown of [E] is reduced by 5 seconds and she gains 80 Mana.
+  [T4.3] modifies Trait: Reduce the cooldown of [D] by 10 seconds. this hero gains 40 Spell Armor while [D] is active and for 1 second after.
+Level 7:
+  [T7.1] modifies W: [W] reduces the damage dealt by enemy Heroes inside of its area by 40%.  When [W] ends, enemy Heroes still within its area gain this effect for an additional 4 seconds.
+  [T7.2] modifies E: When [E] ends, this hero and all nearby allied Heroes gain 20% Movement Speed and 50 Physical Armor for 3 seconds.
+  [T7.3] modifies Active (cooldown 70 s): Activate to remove all Roots and Slows and regenerate 20% of maximum Health over 2 seconds. The cooldown of this ability is reduced by 10 seconds each time this hero picks up a Regeneration Globe.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): After 0.5 seconds, roll a massive snowball that consumes enemy Heroes in its path. At the end of its path, the snowball crumbles, releasing the consumed Heroes, dealing 220 (+4% per level) damage and Stunning them for 0.5 seconds per Hero consumed.
+  [R2] modifies Heroic (cooldown 60 s): Vector Targeting After a 0.75 second delay, create an impassable wall that traps enemy Heroes hit for 2.5 seconds. When the wall expires, trapped Heroes are Slowed by 75%, decaying over 3 seconds.
+Level 13:
+  [T13.1] modifies W: While in her own [W], this hero gains 50% increased Attack Speed and [W]'s cooldown refreshes 125% faster. If this hero is in her own [W] when it ends, gain these bonuses for 3 additional seconds.
+  [T13.2] modifies Trait: While [D] is active, this hero's Basic Ability cooldowns recover 200% faster.  Passive: Basic Attacks Slow by 20% for 1.5 seconds.
+  [T13.3] modifies Passive: Using an ability causes this hero to deal 24 (+4% per level) damage a second to nearby enemies for 4 seconds. Enemy Heroes damaged by this effect also have their Movement Speed and Attack Speed Slowed by 20%.
+Level 16:
+  [T16.1] modifies Q: [Q] gains an additional charge and its range is increased by 33%.
+  [T16.2] modifies E: [E]'s Slow effect no longer decays over its duration. [E] deals 300% more damage to enemies very close to this hero.
+  [T16.3] modifies Passive: Each time this hero Stuns or Slows an enemy Hero, the damage she deals and healing she receives is increased by 1%, stacking up to 20 times. While at maximum stacks, this hero also gains 10 Armor. Lasts 8 seconds.
+Level 20:
+  [T20.1] modifies Heroic: While traveling, [R1] constantly launches a volley of untalented [Q] snowballs ahead of itself.  Passive: Reduce the cooldown of [R1] by 30 seconds.
+  [T20.2] modifies Heroic: When [R2] expires, trapped enemy Heroes hit take 210 (+4% per level) damage and have their Armor reduced by 25 for 5 seconds.
+  [T20.3] modifies Q: Every 15 seconds, the next [Q] you cast has 67% increased area and 200% increased damage.
+  [T20.4] modifies Trait: When this hero takes fatal damage she instantly gains [D]. This effect has a 180 second cooldown.

@@ -1,0 +1,85 @@
+Hero code: K603
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 1.3 s, 155 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 6 s, cost 65): Unleash holy energy around this hero, dealing 42 (+4% per level) damage to nearby enemies and healing her for 96 (+4% per level).  Charging up this Ability increases its damage up to 140 (+4% per level), and healing up to 320 (+4% per level).
+[W] basic (cooldown 6 s, cost 65): Swing this hero's hammer, dealing 38 (+4% per level) damage to enemies in front of her and knocking them away.  Charging up this Ability increases its knockback distance, and damage up to 125 (+4% per level). Enemies hit at maximum charge are Stunned for 0.75 seconds.
+[E] basic (cooldown 6 s, cost 65): Leap to a location, dealing 225 (+4% per level) damage to enemies in an area and Slowing them by 50% for 1 second.  Charging up this Ability increases its range.
+[R1] heroic (cooldown 120 s, cost 80): Surround this hero in a barrier for 3 seconds, absorbing all damage taken and healing her for 50% of the damage received.
+[R2] heroic (cooldown 40 s, cost 40): this hero sanctifies the ground around her, gaining 50 Armor until she leaves the area.
+[D] trait (cooldown 8 s): Activate to instantly charge this hero's next Basic Ability at no mana cost. [D]'s cooldown is reset when this hero casts a Heroic ability.  Passive: this hero's Basic Abilities charge up over 1.5 seconds, increasing in effectiveness, but reducing this hero's Movement Speed by 25%.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Increase [Q]'s radius by 15%. Hitting an enemy Hero increases [Q]'s healing by 45%. If more than one Hero is hit, the bonus is increased to 90%.
+  [T1.2] modifies Passive: Casting a Basic Ability grants this hero 35 Physical Armor for 2.5 seconds.
+  [T1.3] modifies Passive: After damaging an enemy Hero with a Basic Ability, this hero's next Basic Attack heals her for 140 (+4% per level).
+Level 4:
+  [T4.1] modifies E: Upon landing, [E] grants other nearby allied Heroes 30 Armor for 4 seconds.
+  [T4.2] modifies Trait: [D] heals the lowest Health nearby allied Hero other than this hero for 275 (+4% per level).
+  [T4.3] modifies Active (cooldown 30 s): Grant an allied Hero 30% Movement Speed for 3 seconds and remove all Slows and Roots from them.
+Level 7:
+  [T7.1] modifies W: Gain 5% Movement Speed. this hero is no longer Slowed while Channeling [W], and instead this bonus is quadrupled.
+  [T7.2] modifies E: Hitting an enemy Hero with [E] at maximum charge deals 25% more damage and reduces its cooldown to 1 second.
+  [T7.3] modifies Z: Mounting is instant and grants 60% Movement Speed that decays over 3 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 120 s): Surround this hero in a barrier for 3 seconds, absorbing all damage taken and healing her for 50% of the damage received.
+  [R2] modifies Heroic (cooldown 40 s): this hero sanctifies the ground around her, gaining 50 Armor until she leaves the area.
+Level 13:
+  [T13.1] modifies Q: Enemy Heroes hit by [Q] at maximum charge deal 40% less damage for 3 seconds.
+  [T13.2] modifies E: Increase [E]'s Slow by 25% and duration by 0.75 seconds.
+  [T13.3] modifies Passive: Hitting an enemy Hero with a Basic Ability at maximum charge grants 10% Spell Power for 10 seconds, up to 30%.
+Level 16:
+  [T16.1] modifies W: [W] reduces the Armor of enemy Heroes hit by 20 for 4 seconds and deals bonus damage equal to 7% of their maximum Health.
+  [T16.2] modifies Trait: Casting a Basic Ability reduces the cooldown of [D] by 2.5 seconds.
+  [T16.3] modifies Passive: After casting a Basic Ability, this hero's next Basic Attack splashes for 35% increased damage around the target.
+Level 20:
+  [T20.1] modifies Heroic: Increase the amount that this hero heals from damage received from 50% to 75%. [R1] heals nearby allied Heroes for 100% of the healing received by this hero.
+  [T20.2] modifies Heroic: Casting [E] while inside [R2] moves [R2] to this hero's location upon landing.
+  [T20.3] modifies Active (cooldown 80 s): After 1 second, this hero becomes Invulnerable and casts Hearthstone. Cannot be canceled.
+  [T20.4] modifies Active (cooldown 10 s): Activate to become Unstoppable for 2 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2026-07:
+Base
+[Q] [Q]
+Heal increased from 320 to 370.
+Damage increased from 140 to 160.
+Mana cost reduced from 65 to 50.
+[W] [W]
+Stun duration increased from 0.75 to 1 second.
+Damage increased from 125 to 140.
+Mana cost reduced from 65 to 50.
+[E] [E]
+Slow increased from 50% to 60%.
+Damage increased from 225 to 260.
+Mana cost reduced from 65 to 50.
+[D] [D]
+Cooldown increased to from 8 to 12 seconds.
+Cooldown is now reduced by 3 seconds whenever this hero's Basic Abilities are interrupted.
+Cooldown is no longer reset when this hero's Heroic Abilities are used.
+Talents
+Level 4
+[T4.3]
+Cooldown increased from 30 to 40 seconds.
+Movement Speed bonus reduced from 30% to 25%.
+Level 20
+[T20.4]
+Cooldown increased from 10 to 20 seconds.
+Change set 2026-07:
+[T1.1] · Level 1: tooltip now reads: Increase [Q]'s radius by 15%. Hitting an enemy Hero increases [Q]'s healing by 40%. If more than one Hero is hit, the bonus is increased to 80%.
+Change set 2026-09:
+Base
+[Q] [Q]
+Mana cost increased from 50 to 65.
+Talents
+Level 13
+[T13.1]
+Damage reduction increased from 40% to 50%.
+Damage reduction duration increased from 3 seconds to 4 seconds.
+[T13.3]
+Damage bonus per stack decreased from 10% to 8%.
+Stacks increased from 3 to 4.
+Level 20
+[T20.4]
+Cooldown increased from 20 to 30 seconds.

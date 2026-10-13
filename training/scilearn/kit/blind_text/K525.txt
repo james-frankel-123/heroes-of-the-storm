@@ -1,0 +1,41 @@
+Hero code: K525
+Basic attack: ranged (range and rate not available).
+
+ABILITIES
+[D] trait (cost 35): Every basic attack against heroes, and every 2 basic attacks against non-heroes generate charge. Once fully charged this hero can activate [D] to unleash a barrage of 6 orb at a target location, each dealing 72 damage on impact. Charge fully decays if this hero does not hit an enemy with a Basic Attack after 6 seconds. Quest: Hit enemy Heroes with [D] to grant 1 stack per hit and increases [D]'s damage by 1%. Lose all stacks upon dying. Reward (20 Stacks): +2 [D] Range Stack loss on death lowered to 6. Reward (60 Stacks): -1 Basic Attack required to charge [D]. Mythic Reward (100 Stacks): +50% Basic Attack and [D] Damage. [D] projectiles Pierce all targets. Stack loss will never cause the Hero to fall below a quest reward threshold.
+[Q] basic (cooldown 7 s, cost 45): Shoot a orb that deals 60 damage to enemies hit, and an additional 120 damage to enemies in the center. If an enemy Hero or Structure is hit by the center, they are marked for 4 seconds. Targets afflicted by [Q] are Revealed and draw the summon C and summon A towards them.
+[W] basic (cooldown 15 s, cost 50): Summon the summon C, which pulses for 50 damage per second to nearby enemies and lasts 8 seconds. The summon C moves to [Q]'s impact location. The summon C will pursue targets afflicted by [Q] and detonate on impact, dealing 245 damage to nearby enemies and 61 more damage to the Marked target.
+[E] basic (cooldown 15 s, cost 50): Cast to teleport this hero 3 times in a triangular pattern. Each time this hero teleports, her Basic Attacks deal 10% more damage while the Ability is active. Reactivate to end [E] early and remain at your current location.
+[R1] heroic (cooldown 75 s, cost 80): Channel a powerful orb that grows over time until reaching maximum size after 2 seconds. Recast to launch the Orb early. Enemies that come into contact with the Orb take 90 damage and are Blinded for 1 second. When the Orb reaches the end of its path, it detonates in a large explosion, dealing 400 damage. Charging up this Ability increases its contact damage up to 166 and its explosion damage up to 700. Contact damage is dealt every 0.25 seconds.
+[R2] heroic (cooldown 75 s, cost 75): After channeling for 2 seconds, summon a summon B that spawns up to 3 summon A to attack nearby enemies. You can have up to 1 active summon B. Enemies near the summon B are Slowed by 25%. summon A are attracted to targets afflicted by [Q]. The Portal expires after 20 seconds. summon A automatically choose a nearby lane to push. summon A Basic Attacks deal 50 damage per hit. summon A lose Health over 12 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Detonate the summon C on targets afflicted by [Q]. Each successful detonation permanently increases [Q] and the [W] Detonation damage by 20, up to 10 times.
+  [T1.2] modifies W: [W]: +25% Radius +25% Duration summon C's damage bounces 2 times from the primary target to nearby enemies, dealing 25 damage.
+  [T1.3] modifies E: Activating [E] grants 50% Movement Speed and 25 Spell Armor for 2 seconds. This bonus refreshes each time this hero teleports.
+Level 4:
+  [T4.1] modifies Q: +1s [Q] Duration Heroes afflicted by [Q] have their Movement Speed reduced by 25%.
+  [T4.2] modifies W: Each time the summon C damages an enemy Hero, this hero gains a Shield equal to 2% of her maximum Health, up to 10%.
+  [T4.3] modifies E: Completing [E] fully charges [D]. The next [D] deals 25% increased damage and costs no Mana.
+Level 7:
+  [T7.1] modifies Q: +1s [Q] Duration Heroes affliced with [Q] have their Armor reduced by 10 and take damage equal to 1% of their maximum Health every second.
+  [T7.2] modifies E: Activating [E] summons a seal of void magic on the ground. When the seal completes, it deals 250 damage to enemies inside and Silences them for 2 seconds.
+  [T7.3] modifies E: Activating [E] summons a single summon A in this hero's original postion. summon A are attracted to targets afflicted by [Q]. summon A automatically choose a nearby lane to push. summon A Basic Attacks deal 50 damage per hit. summon A loses Health over 12 seconds.
+Level 10:
+  [R1] modifies Heroic: Channel a powerful orb that grows over time until reaching maximum size after 2 seconds. Recast to launch the Orb early. Enemies that come into contact with the Orb take 90 damage and are Blinded for 1 second. When the Orb reaches the end of its path, it detonates in a large explosion, dealing 400 damage. Charging up this Ability increases its contact damage up to 166 and its explosion damage up to 700. Contact damage is dealt every 0.25 seconds.
+  [R2] modifies Heroic: After channeling for 2 seconds, summon a summon B that spawns up to 3 summon A to attack nearby enemies. You can have up to 1 active summon B. Enemies near the summon B are Slowed by 25%. summon A are attracted to targets afflicted by [Q]. The Portal expires after 20 seconds. summon A automatically choose a nearby lane to push. summon A Basic Attacks deal 50 damage per hit. summon A lose Health over 12 seconds.
+Level 13:
+  [T13.1] modifies W: Enemies damaged by the [W] are Slowed by 10% for each pulse, stacking up to 5 times and decaying over 2 seconds.
+  [T13.2] modifies W: Detonating the summon C now Silences enemies inside its radius for 1 second. this hero and allied Heroes gain 30 Spell Armor while inside the summon C's radius.
+  [T13.3] modifies Trait: Enemies hit by [D] are Slowed by 6% for 2 seconds per projectile, up to 50%.
+Level 16:
+  [T16.1] modifies Q: Basic Attacks against enemy Heroes afflicted by [Q] grant a 160 point Shield that rapidly decays. Shield starts decaying after 1 second, decays over 2 seconds.
+  [T16.2] modifies E: While [E] is active, this hero's Basic Attack Speed is increased by 150%.
+  [T16.3] modifies Trait: +25% [D] Projectile Damage [D]'s projectiles leave behind a trail of fire for 3 seconds, constantly dealing 9 damage to enemies. Damage is increased the longer a target stands in the flames. Damage is dealt every 0.1875 seconds. Damage increases up to 300%. Damage increase from multiple fires stack.
+Level 20:
+  [T20.1] modifies Heroic: [R1] splits into 3 orbiting orb. Each enemy Hero hit by their explosions reduces [R1]'s cooldown by 14 seconds.
+  [T20.2] modifies Heroic: [R2]'s summon B self decay is no longer lethal, raises the active summon B limit to 2, and can spawn and sustain up to 4 summon A.
+  [T20.3] modifies Q: +1 [Q] Charge [Q] has a 3 second cooldown between uses.
+  [T20.4] modifies W: When the summon C expires or detonates on a target afflicted by [Q], it leaves behind a pool of void flames for 5 seconds. Enemies in the flames take 45 damage over time. The flames deal damage every 1 second.
+  [T20.5] modifies E: After completing [E], this hero immediately performs a second [E] in the opposite direction. Added effects are triggered again. Bonus Basic Attack damage stacks up to 3 times

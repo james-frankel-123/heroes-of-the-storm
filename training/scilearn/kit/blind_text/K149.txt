@@ -1,0 +1,72 @@
+Hero code: K149
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.8 s, 96 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 40): this hero throws an axe forward, dealing 125 (+4% per level) damage to the first 2 enemies hit and marking them for 6 seconds. Marked enemies take 50% bonus damage from this hero's next 3 Basic Attacks against them.
+[W] basic (cooldown 10 s, cost 60): Throw 2 axes in a large, circular arc, dealing 112 (+4% per level) damage and Slowing affected enemies by 15% per axe for 2 seconds.
+[E] basic (cooldown 15 s, cost 75): this hero channels to regenerate 30% of his maximum Health over 4 seconds. Moving while channeling or taking damage will interrupt this effect.
+[R1] heroic (cooldown 90 s, cost 75): For the next 4 seconds, this hero is Unkillable, and cannot be reduced to less than 1 Health. [R1]!
+[R2] heroic (cooldown 40 s, cost 70): this hero launches a massive axe into the air that drops on the targeted area, dealing 330 (+4% per level) damage plus bonus damage the lower his Health is.
+[D] trait: Activate to increase Basic Attack damage by 25% but consume 2% maximum Health per attack.  Passive: this hero attacks 1% faster for every 1% of maximum Health missing.  term A?  Quest: Every 5 Basic Attacks against Heroes permanently increases Basic Attack damage by 1.  Reward: After attacking Heroes 75 times, Basic Attack range is increased by 1.1.  Reward: After attacking Heroes 150 times, [W] now revolves twice.
+[1] activable (cooldown 30 s): Activate to cause this hero to instantly lose 50% of his current Health and heal for that amount over 10 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: [Q] now pierces through all enemies hit and restores 15 Mana per Hero hit. Additionally, [Q]'s mark is no longer removed by Basic Attacks.
+  [T1.2] modifies Trait: While this hero is below 75% Health, he gains 10% Spell Power. While he is below 50% Health, his Basic Attack damage is increased by 15% and Basic Attacks against Heroes grant an additional stack of term A?.
+  [T1.3] modifies Passive: Quest: this hero's first Takedown against each enemy Hero permanently increases his damage dealt by 2%.  Reward: After getting Takedowns on every enemy Hero, Basic Attack range is increased by 1.1.
+Level 4:
+  [T4.1] modifies E: Increase Regeneration's healing by 25%. If Regeneration fully finishes, restore 10% of this hero's maximum Mana.
+  [T4.2] modifies Active (cooldown 10 s): Activate to remove Roots and Slows.  Passive: Lower the cooldown and Mana cost of Regeneration by 40%.
+  [T4.3] modifies Active: Lower the cooldown of [1] by 10 seconds and gain 15 Armor while regenerating Health from it.
+Level 7:
+  [T7.1] modifies Q: Increase the duration of [Q]'s mark by 3 seconds and its damage bonus by 45%.
+  [T7.2] modifies W: Quest: [W]'s damage is permanently increased by 0.75 every time it hits a Hero.
+  [T7.3] modifies Trait: Increases the Attack Speed bonus of [D] by 40%.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): For the next 4 seconds, this hero is Unkillable, and cannot be reduced to less than 1 Health. [R1]!
+  [R2] modifies Heroic (cooldown 40 s): this hero launches a massive axe into the air that drops on the targeted area, dealing 330 (+4% per level) damage plus bonus damage the lower his Health is.
+Level 13:
+  [T13.1] modifies W: Increase the Slow amount of each [W] axe by 10% and its duration by 0.5 seconds.
+  [T13.2] modifies Passive: Basic Attacks against enemy Heroes grant this hero 6% Movement Speed for 2 seconds, up to 30%.
+  [T13.3] modifies Active (cooldown 40 s): Throw a net forward, Rooting the first enemy Hero hit for 1.5 seconds. If no Heroes are hit, [T13.3]'s cooldown is reduced to 10 seconds.
+Level 16:
+  [T16.1] modifies Q: this hero's Basic Attacks against enemy Heroes marked with [Q] ignore Armor and deal an additional 2% of maximum Health as damage.
+  [T16.2] modifies W: If an enemy is hit by both [W] axes at the same time, they take an additional 100 (+4% per level) damage and count as 5 Hero hits for term A?.
+  [T16.3] modifies Passive: When this hero kills an enemy, his Attack Speed is increased by 5%, up to 40%, for 12 seconds. Basic Attacks refresh the duration.  Hero Takedowns instantly grant 40% Attack Speed.
+Level 20:
+  [T20.1] modifies Heroic: Increase [R1]'s duration by 1 second. Upon expiring, this hero heals for 50% of the damage he dealt during [R1].
+  [T20.2] modifies Heroic: After impact, [R2] continues forward, dealing 75% damage to enemies hit. If a Hero is killed by [R2], this hero is instantly healed to full.
+  [T20.3] modifies E: Regeneration is no longer Channeled, and cannot be interrupted.
+  [T20.4] modifies Passive: Basic Attacks bounce to a nearby enemy for 50% damage, prioritizing enemy Heroes.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-01:
+Base
+term A? [Trait]
+Basic Attack damage increased from 94 to 96 .
+Now has a limit of 50 stacks.
+Talents
+Level 1
+[T1.2]
+Basic Attack damage bonus reduced from 15% to 10%.
+Level 10
+[R2]
+Cooldown reduced from 40 seconds to 30 seconds.
+Mana cost reduced from 70 to 60.
+[R1]!
+Cooldown increased from 90 seconds to 100 seconds.
+Mana cost increased from 75 to 80.
+Level 16
+[T16.3]
+Kill window reduced from 1.5 seconds to 0.5 seconds.
+Change set 2025-12:
+Base
+Basic Attack Damage decreased from 96 to 94.
+term A? [D]
+No longer has a cap on stacks.
+Now causes this hero to lose 3 stacks (15 hits) on death.
+Talents
+Level 1
+[T1.3]
+Increased damage bonus per hero kill from 2% to 2.5%.

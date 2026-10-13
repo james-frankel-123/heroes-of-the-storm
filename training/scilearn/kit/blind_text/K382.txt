@@ -1,0 +1,41 @@
+Hero code: K382
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 0.9 s, 110 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 60): Heal an ally with a wave of healing for 260 (+4% per level) Health. The wave then bounces 2 times to nearby allies within 7 range, restoring 260 (+4% per level) Health to them.
+[W] basic (cooldown 8 s, cost 50): Imbue an ally with lightning dealing 64 (+4% per level) damage a second to nearby enemies. Each enemy hit restores 2 Mana to this hero. Lasts 5 seconds.
+[E] basic (cooldown 15 s, cost 50): Create a totem that Slows nearby enemies by 35%. The totem has 260 (+4% per level) Health and lasts for 6 seconds.
+[R1] heroic (cooldown 90 s, cost 70): Grant nearby allied Heroes 40% Attack Speed and 35% Movement Speed and causes them to heal for 30% of the Basic Attack damage to their primary target. Lasts for 6 seconds.
+[R2] heroic (cooldown 100 s, cost 80): After 1 second, heal an allied Hero for 1180 (+4% per level) Health.
+[D] trait (cooldown 60 s): When used on an allied Hero, make them Unstoppable for 0.5 seconds. When used on an enemy Hero, Slow them by 80%, decaying over 2 seconds.  Cannot be cast on yourself.
+[Z] mount (cooldown 4 s): Instead of using a mount, this hero transforms into a [Z] with 20% increased Movement Speed. Basic Attacks in [Z] form cause him to lunge at his target and deal 75% bonus damage. Dealing damage, using Abilities, and channeling cancels [Z] form.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Increase the radius of [W] by 25%.  Quest: Each time [W] damages an enemy Hero, permanently increase this hero's Health by 2 and Mana by 1, stacking up to 300 times.
+  [T1.2] modifies E: Reactivate [E] to move an existing totem to a new location. This can be used once per cast.  Passive: Increase [E]'s area and duration by 50%, and Health by 25%.
+  [T1.3] modifies Z: [Z]'s Movement Speed bonus is increased to 40% for the first second, then falls to 30%. Entering or exiting [Z] form grants 15 Armor for 1 second.
+Level 4:
+  [T4.1] modifies Q: When [Q] heals a Hero below 50% Health, they are healed an additional 160 (+4% per level) Health over 4 seconds.
+  [T4.2] modifies W: The bearer of [W] Heals for 20% of the damage it deals to enemy Heroes, doubled if the bearer is this hero.  While [W] is damaging an enemy, its bearer gains 10% increased Movement Speed.
+  [T4.3] modifies Active (cooldown 30 s): Activate to place a Totem that heals allied Heroes in an area for 2% of their maximum Health every second. This Totem has 125 (+4% per level) Health and lasts for 10 seconds.
+Level 7:
+  [T7.1] modifies E: Enemy Heroes in [E]'s area also have their Attack Speed Slowed by 25% and their Spell Power reduced by 15%.  Passive: Increase [E]'s range by 50%.
+  [T7.2] modifies Trait: If Purge removes a Slow, Stun, Root, or Silence effect from an ally, heal them for 220 (+4% per level).  Using Purge on an enemy Hero deals up to 330 (+4% per level) damage to Shields and reduces healing received by 40% for 2 seconds.  Passive: Reduce Purge's cooldown by 15 seconds.
+  [T7.3] modifies Z: [Z] attacks reduce Basic Ability cooldowns by 1.5 seconds and restore 5% of this hero's maximum Mana.
+Level 10:
+  [R2] modifies Heroic (cooldown 100 s): After 1 second, heal an allied Hero for 1180 (+4% per level) Health.
+  [R1] modifies Heroic (cooldown 90 s): Grant nearby allied Heroes 40% Attack Speed and 35% Movement Speed and causes them to heal for 30% of the Basic Attack damage to their primary target. Lasts for 6 seconds.
+Level 13:
+  [T13.1] modifies Q: Reduces [Q]'s cooldown by 1 second for each Hero healed, and reduces its Mana cost from 60 to 40.
+  [T13.2] modifies W: [W] gives Heroes a Shield that absorbs damage equal to 14% of their maximum Health for 3 seconds.
+  [T13.3] modifies E: Every 2 seconds, [E] will cast an untalented [Q] at the nearest allied Hero with the lowest Health. This [Q] heals for 35% of its normal amount.
+Level 16:
+  [T16.1] modifies W: Every time a Lighting Shield damages an enemy Hero, increase its damage by 10%. Stacks up to 15 times.  Passive: Increase the duration of [W] by 3 seconds.
+  [T16.2] modifies E: When [E] is first cast, it deals 115 (+4% per level) damage and Slows nearby enemies by 90% for 1 second.
+  [T16.3] modifies Z: [Z] attacks against Heroes deal an additional 6% of the target's maximum Health and heal this hero for 6% of his maximum Health.
+Level 20:
+  [T20.1] modifies Heroic: After 1.5 seconds, [R2] is cast a second time on the same target. Allies near the target are healed for 590 (+4% per level).
+  [T20.2] modifies Heroic: Increase the duration and range of Bloodlust by 100%.
+  [T20.3] modifies Active (cooldown 70 s): Activate to gain [W] and grant all nearby allied Heroes a Shield equal to 10% of their maximum Health for 5 seconds.  For up to 5 seconds after activating, hitting an enemy Hero with this effects' [W] gives nearby allies a Shield equal to 1.5% of their maximum Health for 5 seconds.
+  [T20.4] modifies Passive: Gain 10% increased Attack Damage and 3 Spell Power. Each nearby ally Hero grants an additional stack of this effect, up to 5 stacks.  While at 2 or more stacks, Purge's cooldown refreshes 50% faster.

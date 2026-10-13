@@ -1,0 +1,88 @@
+Hero code: K110
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1, one attack every 0.7 s, 26 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 4 s): Spawn and attach a [Q] to a target ally or Structure. While active, this hero controls the [Q], gaining access to new Abilities. The [Q] is able to gain XP from nearby enemy deaths.
+[W] basic (cooldown 10 s): Spawn a mine that becomes active after a short time. Deals 153 (+4% per level) damage and reveals the enemy for 4 seconds. Lasts 90 seconds.  Stores up to 3 charges.
+[R1] heroic (cooldown 90 s): Turn an allied Minion or term I into a term E. When enemy Minions near the term E die, it gains 2% Health and 2% Basic Attack damage, stacking up to 40 times.  The term E can be healed by [alt-E] and has the ability to Burrow to a visible location every 80 seconds.  Using [Q] on the term E allows this hero to control it, in addition to [Q]'s normal benefits.  This Ability can be reactivated to automatically cast [Q] on his term E.
+[R2] heroic (cooldown 70 s): Clone target allied Hero and control it for 20 seconds. this hero has perfected the clone, granting it 20% Spell Power, 20% bonus Attack Damage, and 10% bonus Movement Speed. Cannot use their Heroic Ability.
+[D] trait (cooldown 15 s): Spawns a term I to attack down the nearest lane every 15 seconds. term I last for 16 seconds, have 350 (+4% per level) health and deal 46 (+4% per level) damage with each Basic Attack, dealing 25% bonus damage to enemy Structures.
+[Z] mount (cooldown 30 s): Quickly tunnel to a visible location
+Alternate form or second unit abilities:
+[alt-E] basic (cooldown 6 s): Shields the assisted ally for 150 (+4% per level). Allied Heroes are healed for 22 (+4% per level) Health per second while the Shield is active. Lasts for 6 seconds.
+[alt-Q] basic (cooldown 3 s): Shoots a spike towards target area that deals 119 (+4% per level) damage to the first enemy it contacts.
+[alt-W] basic (cooldown 6 s): Deals 120 (+4% per level) damage to nearby enemies.
+[alt-Z] mount (cooldown 80 s): Order your term A to quickly tunnel to a visible location
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Increases the range of [Q]'s [alt-W] by 25% and decreases the cooldown by 1 second.
+  [T1.2] modifies W: [W] deal 75% more damage over 3 seconds and reduce the Armor of enemy Heroes hit by 10 for 4 seconds.
+  [T1.3] modifies E: Increase the Shield amount of [alt-E] by 40%.
+  [T1.4] modifies Trait: Increases term I's Health by 100% and damage by 60%.
+Level 4:
+  [T4.1] modifies Q: Heroic [Q] hosts gain 25% increased Attack Speed.
+  [T4.2] modifies Q: Increases the damage and range of [Q]'s [alt-Q] by 20%.
+  [T4.3] modifies W: Increase the duration of [W] by 45 seconds, reduce its cooldown by 2 seconds, and add 2 additional charges.
+Level 7:
+  [T7.1] modifies W: [W] Slow enemy Movement Speed by 40% for 2.5 seconds.
+  [T7.2] modifies E: Using [Q]'s [alt-E] also applies an untalented [alt-E] Shield to all nearby allied Heroes, Minions, and Mercenaries.
+  [T7.3] modifies Active (cooldown 60 s): Activate to calldown a term J that repairs Structures, one at a time, near target point for 40 seconds, healing for 90 Health every 1 second.
+Level 10:
+  [R2] modifies Heroic (cooldown 70 s): Clone target allied Hero and control it for 20 seconds. this hero has perfected the clone, granting it 20% Spell Power, 20% bonus Attack Damage, and 10% bonus Movement Speed. Cannot use their Heroic Ability.
+  [R1] modifies Heroic (cooldown 90 s): Turn an allied Minion or term I into a term E. When enemy Minions near the term E die, it gains 2% Health and 2% Basic Attack damage, stacking up to 40 times.  The term E can be healed by [alt-E] and has the ability to Burrow to a visible location every 80 seconds.  Using [Q] on the term E allows this hero to control it, in addition to [Q]'s normal benefits.  This Ability can be reactivated to automatically cast [Q] on his term E.
+Level 13:
+  [T13.1] modifies Q: [Q]'s [alt-Q] gains 1 additional charge and its cooldown is reduced by .5 seconds.
+  [T13.2] modifies W: [Q]'s [alt-W] heals the host for 64 (+4% per level) Health per enemy Hero hit.
+  [T13.3] modifies Trait: term I's Basic Attacks become a long-range siege attack and their duration is increased by 75%.
+Level 16:
+  [T16.1] modifies W: this hero's [Q]'s [alt-W] also Slows enemy Movement Speed by 40% for 2 seconds.
+  [T16.2] modifies E: [Q]'s [alt-E] increases the Movement Speed of the target by 40% for 3.5 seconds.
+  [T16.3] modifies Heroic: [R2] clones and term D deal 137 (+4% per level) damage to nearby enemies every 3 seconds and when they die. Enemy Heroes hit heal the clone or term E for 100% of the damage dealt.
+  [T16.4] modifies Active (cooldown 45 s): Activate to spawn 3 term I at a nearby location.
+Level 20:
+  [T20.1] modifies Heroic: Increase the duration of [R2] by 50%.  As long as the [R2] is alive, the original target of the clone gains a Shield equal to 35% of their maximum Health.  Refreshes every 5 seconds.
+  [T20.2] modifies Heroic: Increase term E's Basic Attack damage by 100%.
+  [T20.3] modifies Q: [Q] creates an additional [Q] on a nearby allied Hero.  This [Q] mimics the commands of the first, but does half damage and Shielding.
+  [T20.4] modifies Active (cooldown 45 s): Activate to create a nest that periodically spawns term I. Only one [T20.4] can be active at a time.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-09:
+Base
+term I damage increased by 25%.
+Change set 2026-07:
+Base
+[D] [D]
+Health reduced from 350 to 225.
+term I no longer have a duration but now lose Health over time.
+term I now heal for 20% of the damage they deal, and heal for 20% of their maximum Health when a nearby Minion dies.
+term I damage reduced from 58 to 36.
+term I now deal 100% bonus damage to non-Heroes.
+term I no longer deal 25% bonus damage to Structures.
+Talents
+Level 1
+[T1.2]
+Armor reduction increased from 10 to 15.
+[T16.4]
+Moved from Level 16 to Level 1.
+Cooldown increased from 45 to 75 seconds.
+Level 4
+(New) term G
+this hero's Basic Attacks now deal 350% bonus damage, Stun enemies, and disable Structures for 1.5 seconds . This effect has a 6 second cooldown per target against Structures and Heroes.
+Level 10
+[R1]
+Now displays as a Quest.
+this hero now has a term E unit frame for tracking Health and stacks of the unit.
+Level 16
+term B
+Moved from Level 1 to Level 16.
+Change set 2026-07:
+term G · Level 4: tooltip now reads: this hero's Basic Attacks deal 350% additional damage and Stun non-Elite enemies and disable Structures for 1.5 seconds. The same Hero or Structure can only be Stunned or disabled once every 6 seconds.
+Change set 2026-09:
+Talents
+Level 13
+[T13.3]
+Health decay reduction lowered from 50% to 40%.
+Level 16
+[T1.4]
+Now provides 50% damage reduction against non-Heroes, instead of +100% Health.

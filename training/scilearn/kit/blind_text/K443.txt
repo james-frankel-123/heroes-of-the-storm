@@ -1,0 +1,101 @@
+Hero code: K443
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.6 s, 81 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 25): Shoot the closest enemy up to 5 times over 1.5 seconds for 39 (+4% per level) damage, prioritizing Heroes. Cooldown is reset on getting a Takedown.
+[W] basic (cooldown 11 s, cost 50): Throw a dagger at a target enemy that deals 30 (+4% per level) damage and an additional 150 (+4% per level) damage over 2.5 seconds. Damage dealt by this hero to the initial target spreads [W] to all nearby enemies.
+[E] basic (cooldown 11 s, cost 75): Send forth a wave of banshees dealing 114 (+4% per level) damage to all targets. Reactivate to teleport to the banshees' location.
+[R1] heroic (cooldown 90 s, cost 100): Shoot an arrow that can be reactivated to deal 228 (+4% per level) damage and Silence enemies in an area for 2.5 seconds. The arrow detonates automatically if it reaches maximum range.
+[R2] heroic (cooldown 40 s, cost 50): After 0.25 seconds, fire a missile that [R2] the first enemy Hero hit. Heroes hit are Silenced, Slowed by 30%, have 3 stacks of term B applied to them, and are forced to walk towards this hero for 1.75 seconds.
+[D] trait (cooldown 40 s): Activate to cause all Basic Attacks and Abilities to Stun Minions, non-Elite Mercenaries, and Structures for 3 seconds. Lasts for 10 seconds.   term B  Basic Attacks infect enemies with term B for 3 seconds, stacking up to 3 times. Deal 25% more damage to enemies with 3 stacks.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Hitting an enemy Hero with [Q] increases this hero's Attack Speed and Spell Power by 5% for 6 seconds, stacking up to 5 times.
+  [T1.2] modifies W: Quest: Each time an enemy Hero with 3 stacks of term B is hit by [W], its damage is permanently increased by 0.5%.
+  [T1.3] modifies Trait: Enemy Heroes with 3 stacks of term B are Slowed by 15%. this hero's Basic Attacks against Slowed enemy Heroes deal 1% of their maximum Health as damage.
+Level 4:
+  [T4.1] modifies W: Minions that die under the effects of [W] or this hero's Traits explode, dealing 130 (+4% per level) damage to nearby Minions, Mercenaries, and Summons.
+  [T4.2] modifies Trait: Friendly non-Elite Mercenaries near this hero deal 60% more damage. this hero Stuns and deals 30% additional damage to Mercenaries with 3 stacks of term B.
+  [T4.3] modifies Active (cooldown 12 s): Activate to force an enemy Minion to fight for this hero's team. Catapults require 3 charges. Stores up to 3 charges.
+Level 7:
+  [T7.1] modifies Q: Hitting the same enemy with 5 shots of [Q] causes the 5th shot to deal 350% bonus damage.
+  [T7.2] modifies W: Increase [W]'s damage by 10%.  Basic Attacks against Heroes with 3 stacks of term B reduce the cooldown of [W] by 1.75 seconds.
+  [T7.3] modifies E: Increase [E]'s damage by 15%. [E] applies 3 stacks of term B.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): Shoot an arrow that can be reactivated to deal 228 (+4% per level) damage and Silence enemies in an area for 2.5 seconds. The arrow detonates automatically if it reaches maximum range.
+  [R2] modifies Heroic (cooldown 40 s): After 0.25 seconds, fire a missile that [R2] the first enemy Hero hit. Heroes hit are Silenced, Slowed by 30%, have 3 stacks of term B applied to them, and are forced to walk towards this hero for 1.75 seconds.
+Level 13:
+  [T13.1] modifies W: [W] reduces the Armor of the initial target by 25 and any enemy it spreads to by 10 for 2.5 seconds.
+  [T13.2] modifies E: [E] can be cast a second time for free within 5 seconds after teleporting. Teleporting with [E] resets the cooldown of [Q].
+  [T13.3] modifies Trait: Increase this hero's Basic Attack range by 1. this hero's Basic Attacks against enemy Heroes with 3 stacks of term B shoot an untalented shot of [Q]. This shot of [Q] applies term B.
+Level 16:
+  [T16.1] modifies Q: Hitting an enemy with [Q] grants 6% Movement Speed for 2 seconds, up to 30%. Basic Attacks refresh this duration.
+  [T16.2] modifies Trait: Heal for 15% of damage dealt by this hero to enemies with 3 stacks of term B. Healing is doubled against Heroes.
+  [T16.3] modifies Active (cooldown 60 s): Activate to become Unstoppable and gain 40% Movement Speed for 3 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Enemies at the center of [R1]'s explosion take 50% more damage and are Silenced for twice as long.
+  [T20.2] modifies Heroic: Heroes hit by [R2] have their vision radius greatly reduced for 5 seconds. [R2]'s cooldown is reduced by 25 seconds.
+  [T20.3] modifies Q: [Q] applies term B, and Heroes hit by [Q] reduce its cooldown by 0.75 seconds.
+  [T20.4] modifies Active (cooldown 70 s): Activate to teleport to a nearby location.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-12:
+Base
+[D] [D]
+[D] now refers to what was previously called "term B".
+New Baseline Quest: Deal damage to Heroes or Structures with 3 stacks of [D]. At 250 stacks, increased the damage bonus of [D] to 50%. Pinnacle Reward: At 400 stacks, heal for 25% of damage dealt against enemies with 3 stacks of [D], doubled against Heroes.
+Reduced base damage bonus of [D] to 15%.
+Activatable portion of [D] has been removed.
+Talents
+Level 1
+[T1.2]
+Talent has been removed.
+term A
+NEW: Increases the damage of [W] by 20% and increase its duration by 1 second.
+Level 4
+term C
+NEW: You can now activate [D] to cause all damage dealt to stun non-heroes. 90 second cooldown, reduced by 3 seconds when attacking a structure.
+[T4.3]
+Now a Baseline ability. 25 seconds to restore each charge, 2 seconds cooldown. Max 4 charges.
+Level 7
+[T7.1]
+Bonus damage increased from 350% to 400%.
+[T7.2]
+REWORK: Reduces the cooldown of [W] when attacking non-minions with 3 stacks of [D] by .75 seconds, doubled against Heroes.
+Level 13
+[T13.2]
+Recast window reduced from 5 seconds to 4 seconds.
+Change set 2025-12:
+Talents
+Level 4
+[T4.3]
+Now has a 1 second cooldown between uses, down from 2 seconds.
+Level 4
+[T4.1]
+Damage increased to 150, up from 130.
+Level 4
+term C
+No longer affects Mercs.
+Change set 2025-12:
+Updates
+Base
+[1]
+Cooldown between uses reduced from 2 to 1 second.
+Talents
+Level 4
+[T4.1]
+Damage increased from 130 to 150.
+Level 4
+term C
+No longer affects Mercenaries.
+Change set 2026-02:
+Talents
+Level 4
+[T4.2]
+Now also causes this hero' Basic Attacks to instantly apply 3 stacks of [D] to Mercs.
+Change set 2026-02:
+Talents
+Level 7
+[T7.2]
+Extra 10% damage bonus provided by [T7.2] has been removed.

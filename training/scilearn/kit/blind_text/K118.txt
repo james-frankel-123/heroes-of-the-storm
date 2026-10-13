@@ -1,0 +1,68 @@
+Hero code: K118
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.25, one attack every 1.2 s, 137 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 40): Deal 81 (+4% per level) damage to enemies in an area. Heroes hit on the outer edge are Stunned for 0.5 seconds and then Slowed by 40% for 2 seconds.
+[W] basic (cooldown 12 s, cost 55): Deal 156 (+4% per level) damage to an enemy and heal for 10% of this hero's missing Health. Healing is increased by 100% against Heroes.
+[E] basic (cooldown 16 s, cost 60): Throw a nearby enemy Hero, Minion, or Mercenary to the target location, dealing 91 (+4% per level) damage to enemies near the impact and Slowing them by 30% for 2.5 seconds.
+[R1] heroic (cooldown 50 s, cost 40): Silence nearby Heroes and force them to attack this hero for 2 seconds.
+[R2] heroic (cooldown 8 s, cost 25): Deal 50 (+4% per level) damage to nearby enemies and Slow them by 40% for 1.5 seconds. Deals 100% more damage to Heroes, and each Hero hit reduces the cooldown by 1 second.  Stores up to 3 charges.
+[D] trait: this hero gains 1 Armor for every 2% of maximum Health missing.
+[1] activable (cooldown 45 s): Activate to throw a nearby ally and grant them 20 Armor for 3 seconds. Deals 91 (+4% per level) damage to nearby enemies upon impact and Slows them by 30% for 2.5 seconds.  While in flight, allied Heroes are Unstoppable.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Stun Heroes with [Q].  Reward: After Stunning 5 Heroes, [Q]'s Stun deals an additional 165 (+4% per level) damage over 3 seconds to Heroes.  Reward: After Stunning 15 Heroes, permanently reduce [Q]'s cooldown by 2 seconds.
+  [T1.2] modifies E: Increase [E]'s throw range by 25% and its damage by 125%.
+  [T1.3] modifies Active (cooldown 15 s): Activate to deal 111 (+4% per level) damage to a target enemy and Slow them by 35% for 3 seconds. Enemy Heroes hit receive 30% reduced healing for 3 seconds.
+Level 4:
+  [T4.1] modifies W: Increase [W]'s damage against non-Heroes by 70%. Killing enemies with [W] resets its cooldown and refunds its Mana cost.
+  [T4.2] modifies W: Basic Attacks against Heroes reduce the cooldown of [W] by 2 seconds.
+  [T4.3] modifies Active (cooldown 40 s): Activate to become Unstoppable for 1.5 seconds.
+Level 7:
+  [T7.1] modifies Q: [Q] reduces the Attack Speed of Heroes hit by 30% for 4 seconds.
+  [T7.2] modifies W: Basic Attacks and [W] against Heroes reduce the target's Spell Power by 30% for 2.5 seconds.
+  [T7.3] modifies Active (cooldown 45 s): Increase [1]'s Armor by 20. Hitting enemy Heroes with [1] reduces its cooldown by 12 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 50 s): Silence nearby Heroes and force them to attack this hero for 2 seconds.
+  [R2] modifies Heroic (cooldown 8 s): Deal 50 (+4% per level) damage to nearby enemies and Slow them by 40% for 1.5 seconds. Deals 100% more damage to Heroes, and each Hero hit reduces the cooldown by 1 second.  Stores up to 3 charges.
+Level 13:
+  [T13.1] modifies Q: If [Q] Stuns a Hero, this hero gains a 350 (+4% per level) Shield for 6 seconds.
+  [T13.2] modifies W: When hitting a Hero, [W] heals for an additional 15% of this hero's maximum Health over 3 seconds.
+  [T13.3] modifies Trait (cooldown 30 s): [D] can be activated to increase its Armor bonus by 100% for 3 seconds.
+Level 16:
+  [T16.1] modifies E: Hitting a Hero with [Q]'s Stun and throwing them with [E] within 3 seconds reduces [E]'s cooldown by 10 seconds, regardless of order.
+  [T16.2] modifies E: [E] Stuns enemies near the impact area for 0.5 seconds.
+  [T16.3] modifies Active: Gain 5% maximum Health, increase [Q]'s Slow duration by 1 second, and [W] gains an additional charge.
+Level 20:
+  [T20.1] modifies Heroic: Increase the duration of [R1] by 0.5 seconds.  If an enemy Hero is killed while Taunted by [R1], its cooldown is reduced by 45 seconds.
+  [T20.2] modifies Heroic: Heroes hit by [R2] deal 40% less damage for 3 seconds.
+  [T20.3] modifies E: [E] now throws the 2 closest enemies.
+  [T20.4] modifies Active: [T1.3] gains an additional charge and its healing reduction is increased by an additional 45%.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2026-04:
+Base
+[E] [E]
+Range reduced from 6.5 to 6.
+Search range reduced from 2.5 to 2.25.
+Talents
+Level 1
+[T1.2]
+Ranged bonus reduced from 20% to 15%.
+Change set 2026-09:
+Talents
+Level 1
+[T1.2]
+Damage bonus reduced from 125% to 75%.
+Level 4
+[T4.1]
+Damage bonus increased from 70% to 100%.
+Level 7
+[T7.2]
+Spell Power reduction decreased from 30% to 25%.
+Level 13
+[T13.2]
+Heal duration increased from 3 seconds to 4 seconds. Total healing remains the same.
+[T13.3]
+Armor duration increased from 3 seconds to 5 seconds.

@@ -1,0 +1,45 @@
+Hero code: K925
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 0.9 s, 145 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 4 s, cost 30): Deal 152 (+4% per level) damage to enemies in a crescent area.  Hitting at least 2 enemy Heroes with [Q] reduces its cooldown to 0.5 seconds, and refunds its Mana cost.
+[W] basic (cooldown 14 s, cost 55): this hero's next Basic Attack cleaves and applies a tether to enemy Heroes hit for 2.5 seconds. If a tethered Hero moves too far from this hero, they are pulled toward her, dealing 110 (+4% per level) damage and breaking the tether.
+[E] basic (cooldown 13 s, cost 50): Send a shadow of this hero outward that will return to its cast location, dealing 150 (+4% per level) damage to enemies along both paths. If an enemy Hero is hit, reduce the cooldown by 4 seconds.
+[R1] heroic (cooldown 40 s, cost 50): Throw a glaive in the target direction. If an enemy Hero is hit, [R1] can be reactivated to remove their vision and Time Stop them for 4 seconds. Leaving Containment Silences the enemy Hero for 1.5 seconds.  [R1] automatically activates 6 seconds after hitting a Hero.
+[R2] heroic (cooldown 100 s, cost 80): Summon 8 term C as a cage around this hero. After 1.5 seconds, enemy Heroes that come in contact with an Avatar consume it and are knocked to the center of the cage. term C last 5 seconds.
+[D] trait (cooldown 13 s): Leap into the air, becoming Immune to all hostile effects for 0.75 seconds.  After reaching Level 20, [D] gains an additional charge.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Quest: Each tether applied to a secondary target of [W] permanently increases [W]'s pull damage by 15.  Reward: After applying 5 tethers to secondary targets, increase [W]'s pull damage by 75.  Reward: After applying 10 tethers to secondary targets, increase [W]'s cleave damage by 30%.
+  [T1.2] modifies W: Each Hero tethered by [W] reduces the cooldown of [E] by 2.5 seconds and each Hero hit by [E] reduces the cooldown of [W] by 1 second.
+  [T1.3] modifies Active: Activate to make primary Basic Attacks bounce between nearby enemies up to 2 times. Lasts 8 seconds.  Recharge [T1.3] by hitting at least 2 Heroes with a single [Q].
+Level 4:
+  [T4.1] modifies Q: Quest: Hit 3 enemy Heroes with a single [Q].  Reward: Increase [Q] damage by 35%.  Reward: Each additional time 3 enemy Heroes are hit by a single [Q], gain an additional 5% damage, up to 50%.  Reward: Hit 4 enemy Heroes with a single [Q] to instantly gain all Rewards.
+  [T4.2] modifies Q: Using [Q] deals 50 (+4% per level) Physical Damage to enemies around this hero.
+  [T4.3] modifies E: After blinking with [E], the shadow explodes, damaging all nearby enemy Heroes for 6% of their maximum Health.
+Level 7:
+  [T7.1] modifies Q: Hitting at least 2 Heroes with a single [Q] causes the next [Q] to drop a star on targets that deals 77 (+4% per level) damage when it impacts.
+  [T7.2] modifies W: Enemy Heroes pulled by [W] have their Armor reduced by 15 and are Slowed by 25% for 3 seconds
+  [T7.3] modifies E: Each enemy Hero hit by [E] increases all damage this hero deals by 15% for 4 seconds, stacking up to 30%.
+Level 10:
+  [R1] modifies Heroic (cooldown 40 s): Throw a glaive in the target direction. If an enemy Hero is hit, [R1] can be reactivated to remove their vision and Time Stop them for 4 seconds. Leaving Containment Silences the enemy Hero for 1.5 seconds.  [R1] automatically activates 6 seconds after hitting a Hero.
+  [R2] modifies Heroic (cooldown 100 s): Summon 8 term C as a cage around this hero. After 1.5 seconds, enemy Heroes that come in contact with an Avatar consume it and are knocked to the center of the cage. term C last 5 seconds.
+Level 13:
+  [T13.1] modifies Q: Each enemy Hero hit by [Q] grants 5 Armor for 5 seconds, up to 20 Armor.
+  [T13.2] modifies W: Tethering at least 2 enemy Heroes with [W] grants 35 Armor for 4 seconds.
+  [T13.3] modifies E: Blink grants 20 Armor for 3.5 seconds. this hero's Basic Attacks against enemy Heroes refresh this duration.
+Level 16:
+  [T16.1] modifies Q: Dealing damage to enemy Heroes causes the next cast of [Q] that hits enemy Heroes to deal 1% maximum Health as bonus damage, up to 5%.
+  [T16.2] modifies W: [W] grants 25% Movement Speed for 2.5 seconds. In addition, each time this hero deals damage to tethered targets, [W]'s pull damage to all targets is increased by 30%, up to 150%.
+  [T16.3] modifies Passive: While this hero has positive Armor of any kind, all Physical Damage dealt is increased by 25%.
+Level 20:
+  [T20.1] modifies Active: Activate to reset the cooldown of [E].  Recharge term D by damaging enemy Heroes with [E] 5 times.
+  [T20.2] modifies Active: Activate to increase Movement Speed and Attack Speed by 40% for 5 seconds.  Recharge term D by dealing Physical Damage to enemy Heroes 10 times.
+  [T20.3] modifies Active: Activate to deal 75 (+4% per level) damage to an enemy Hero, Slowing them by 30% and reducing their Armor by 20 for 4 seconds.  Recharge term D by dealing Spell Damage to enemy Heroes 10 times.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-09:
+Base
+[W] [W]
+Pull force reduced from 35 to 21.05.

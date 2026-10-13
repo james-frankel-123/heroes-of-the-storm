@@ -1,0 +1,69 @@
+Hero code: K899
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1, one attack every 1 s, 75 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 80): Heal target allied Hero for 362 (+4% per level) Health. When used on a target other than this hero, also heal this hero for 181 (+4% per level) Health.
+[W] basic (cooldown 10 s, cost 55): Heal all allied Heroes and Minions in a line for 194 (+4% per level) Health, dealing 177 (+4% per level) damage to enemies.
+[E] basic (cooldown 10 s, cost 40): Deal 109 (+4% per level) damage and Stun the target for 1 second.
+[R1] heroic (cooldown 90 s, cost 80): Make an allied Hero Invulnerable and increase their Movement Speed by 20% for 3 seconds.
+[R2] heroic (cooldown 80 s, cost 80): Deal 170 (+4% per level) damage and Stun nearby enemies for 1.75 seconds.
+[D] trait: this hero's Basic Abilities grant 25 Armor to allied Heroes, and 15 to this hero, for 2 seconds.  term A  Upon dying, this hero becomes an Invulnerable spirit for up to 8 seconds. While in spirit form, this hero can heal allies with [alt-Q] for 230 (+4% per level).
+Alternate form or second unit abilities:
+[alt-Q] basic (cooldown 1.5 s): Heal an ally for 230 (+4% per level) Health.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Reduce damage from Heroic sources with [D].  Reward: After reducing damage 40 times, [Q]'s Mana cost is reduced from 80 to 60.  Reward: After reducing damage 80 times, [Q]'s Mana cost is reduced to 40, and its range is increased by 50%.
+  [T1.2] modifies W: Quest: Damage or heal Heroes 60 times with [W].  Reward: Increase the duration of [D] by 0.5 seconds.  Passive: Damaging or healing Heroes with [W] refunds 5 Mana and reduces its cooldown by 0.75 seconds.
+  [T1.3] modifies E: Quest: Basic Attack enemies 75 times.  Reward: Basic Attacks reduce the cooldown of [E] by 1.5 seconds.  Passive: Basic Attacks restore 1.5% of this hero's maximum Mana.
+Level 4:
+  [T4.1] modifies Q: [Q] can be used on an enemy to do 40% of its healing amount as damage. When used this way, this hero receives its self-healing benefits, its cooldown is reduced by 6 seconds, and it refunds 45 Mana.
+  [T4.2] modifies E: [E] increases this hero's Movement Speed by 25% for 3 seconds.
+  [T4.3] modifies Passive: Deal 13 (+4% per level) damage per second to nearby enemies. Basic Attacks against enemy Heroes increase this damage by 20% for 3 seconds. This can stack up to 3 times.
+Level 7:
+  [T7.1] modifies Q: Being Stunned, Rooted, or Silenced grants this hero 90 Mana and causes [Q]'s cooldown to recharge 200% faster for 6 seconds. This effect has a 20 second cooldown.
+  [T7.2] modifies Trait: Healing a Hero with a Basic Ability that is Stunned, Rooted, or Silenced grants them 50 Armor for 3 seconds.
+  [T7.3] modifies Active (cooldown 90 s): Activate to make target ally Unstoppable for 1 second. Cannot be cast on this hero. Basic Attacks reduce [T7.3]'s cooldown by 5 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): Make an allied Hero Invulnerable and increase their Movement Speed by 20% for 3 seconds.
+  [R2] modifies Heroic (cooldown 80 s): Deal 170 (+4% per level) damage and Stun nearby enemies for 1.75 seconds.
+Level 13:
+  [T13.1] modifies Q: For the next 5 seconds after using [Q], this hero's Basic Attacks heal him and nearby allied Heroes for 15% of the total amount healed by [Q].
+  [T13.2] modifies E: When used against Heroes, [E] reduces the target's Movement Speed and damage dealt by 25% for 3 seconds.
+  [T13.3] modifies Active: Every 30 seconds, gain 50 Spell Armor against the next enemy Ability and subsequent Abilities for 3 seconds, reducing the damage taken by 50%.  Can be toggled to allow or prevent this talent from triggering automatically.
+Level 16:
+  [T16.1] modifies Q: this hero receives 125% bonus self-healing when targeting others with [Q].  This bonus is increased to 250% while he is below 50% Health.
+  [T16.2] modifies W: Increase the damage and healing of [W] by 10%. Basic Attacks against enemy Heroes cause this hero's next cast of [W] to have its damage and healing increased by an additional 10%, stacking up to 7 times.
+  [T16.3] modifies Active (cooldown 60 s): Activate to reduce the Mana cost of this hero's next Basic Ability by 50 and its cooldown by 10 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R1] is also applied to all nearby allied Heroes and lasts 1 second longer.
+  [T20.2] modifies Heroic: [R2]'s radius is increased by 50% and its cooldown is reduced by 40 seconds.
+  [T20.3] modifies Trait: After term A ends, this hero revives at the spirit's location with 50% of his maximum Health.  This effect has a 180 second cooldown.
+  [T20.4] modifies Trait: Increase [D] Armor to 50 and its duration by 0.5 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Talents
+Level 4
+[Passive]
+Added to the Buff Bar.
+Level 16
+[Q]
+Added a health threshold indicator.
+Change set 2024-08:
+Updates
+Talents
+Level 20
+[T20.1]
+Added a radius indicator while targeting with [R1].
+Change set 2025-09:
+Base
+[Q] [Q]
+Range increased from 7.75 to 8.
+Range is no longer increased to 8.75 after selecting [T4.1].
+Talents
+Level 4
+[T4.1]
+No longer grants reduced cooldown or Mana cost and instead costs less Mana and has a lower cooldown.
+Now features its own active button.

@@ -1,0 +1,796 @@
+You are coding hero kits for a research table. Below is a rubric, then 13 hero texts.
+
+The texts are anonymized on purpose: names of the hero, its abilities, talents and summons were replaced by neutral tokens. Do not try to identify any hero, and do not use anything you know about specific heroes. Code each text only from what it says, under the rubric. Do not judge strength, balance, win rate, tier or meta.
+
+Code every hero code listed: K925, K803, K688, K521, K939, K100, K518, K655, K920, K117, K909, K482, K333.
+Return strict JSON only (one object keyed by hero code), no prose and no code fences.
+
+===== RUBRIC =====
+# Kit coding rubric (kit table v2.57)
+
+You code what a hero's kit can do, read from its ability and talent text. You do not judge how good the hero is.
+
+## Forbidden
+
+- No judgment of strength, balance, win rate, pick rate, tier lists, the meta, popularity or how often anything is played.
+- Do not try to identify the hero, and do not use anything you may know about a particular hero. The texts are anonymized on purpose. Code only from the text and from general game rules (minions, structures, mounts, mercenaries, levels).
+- Do not compare heroes with each other by reputation. Two texts with the same mechanics get the same codes.
+
+## How to read a text
+
+- Ability slots are shown as tokens: [Q], [W], [E], [D] (trait), [R1] and [R2] (the two heroic choices, one is picked at level 10), [alt-Q] and similar (abilities of an alternate form or a second unit), [T4.2] (talent 2 at level 4). "term A", "summon A", "unit A" stand for named summons, forms or companions. "this hero" is the hero being coded; "another hero" is any other hero.
+- "LATER PATCH CHANGES" update the text above them, oldest first. Where they conflict with the base text, the later change wins. A note that a hero was "fully reworked" replaces the earlier text.
+- Numbers are level-1 values unless stated; "(+4% per level)" means the value grows about 4% per level. Basic attack lines give range (in game units; melee is about 1 to 2, typical ranged is 5.5), attack interval and damage.
+
+## Scope rule
+
+Code the hero at a typical mid-game state (levels 10 to 16) with a sensible talent build:
+
+- The base kit (basic abilities, trait, basic attack) counts fully.
+- Heroics: use the heroic option that matters most for the axis, but a capability that exists only in one heroic usually moves the score by at most 1 point, because the heroic has a long cooldown and is one of two choices.
+- Talents: one talent per level is chosen, so a capability that exists only in one talent usually moves the score by at most 1 point. Quest talents count at their completed reward if the quest is easy to complete.
+- Mechanics only: count what the text says an ability does (damage numbers, durations, cooldowns, ranges, area or single target, reliability such as skillshot versus targeted).
+
+## Scale
+
+All axes are integers from 0 to 4, except early_vs_late, which is an integer from -2 to +2. Use the full range across heroes. 0 means the capability is absent or negligible; 4 means it is a central, repeatable part of the kit at the top of what the text format allows.
+
+## Axes
+
+**hard_cc.** Effects that stop an enemy acting or moving: stun, root, silence, sleep, polymorph, fear, taunt, time stop, knock-up, knockback, pull, grab, and similar displacement.
+- 0: none in base kit or heroics.
+- 1: one short (under about 1 s) or conditional or hard-to-land source, or only via one heroic or talent.
+- 2: one reliable basic-ability source (about 1 s or more, cooldown about 12 s or less) or a strong area heroic.
+- 3: two or more base-kit sources, or one area source that can catch several heroes.
+- 4: several reliable sources including area effects on short cooldowns; disabling enemies is a main job of the kit.
+
+**soft_cc_peel.** Slows, blinds, attack-speed reductions, area denial, and tools that protect allies from attackers without healing them: cleanse, unstoppable or invulnerability given to an ally, moving allies out of danger, displacing attackers off an ally, damage reduction applied to enemies.
+- 0: none. 1: one minor slow or one situational tool. 2: a reliable slow or blind, or one ally-protection tool. 3: several such tools, or a strong area slow plus a protection tool. 4: protecting allies and impairing attackers is a main job, with several frequent tools.
+
+**healing_throughput.** Healing and shields given to allies (not to this hero alone).
+- 0: none. 1: incidental or talent-only ally healing or shielding. 2: meaningful but secondary ally healing or shields (for example an area shield on a long cooldown, or small heals on hits). 3: sustained ally healing as a main function, but limited in amount, targets or uptime. 4: several frequent, large heal or shield sources; keeping allies alive is the kit's core.
+
+**self_sustain_shields.** Ways this hero keeps itself alive: self-healing, lifesteal, self-shields, armor, damage reduction, self invulnerability or untargetability, extra lives, large health regeneration.
+- 0: none. 1: one minor or long-cooldown source. 2: one reliable source or two minor ones. 3: several reliable sources. 4: surviving through own healing, shields or armor is central and repeatable.
+
+**burst.** Damage this hero can deal in a short window (about 2 s), counting abilities usable together, empowered attacks, execute effects and percent-of-max-health damage. Rough guide using level-1 numbers of a full combo against one hero: 0 under about 150; 1 about 150 to 300; 2 about 300 to 500; 3 about 500 to 750; 4 above about 750, or strong execute or percent-health effects. Lower the score if most of the damage depends on hard-to-land conditions.
+
+**sustained_damage.** Damage per second this hero can keep up over about 10 s of fighting: basic attack damage per second (damage divided by attack interval), repeatable ability damage, damage over time and summons. Rough guide using basic attack DPS at level 1: 0 under about 50 with little ability damage; 1 about 50 to 90; 2 about 90 to 130; 3 about 130 to 180; 4 above about 180, or strong stacking attack-speed or damage-over-time engines. Adjust up or down for ability damage that repeats quickly or for attacks that only work in some forms.
+
+**range.** The distance from which this hero applies most of its damage and effects.
+- 0: melee basic attack and short-range abilities only. 1: melee or short-range attacker with some medium-range abilities. 2: ranged basic attack (about 4.5 to 5.5) with typical ability ranges. 3: ranged attacker whose core damage comes from long-range abilities (about 10 or more). 4: very long range is the core of the kit (artillery, snipes, map-wide or very long targeting).
+
+**mobility.** Moving faster than the enemy or crossing terrain: dashes, blinks, teleports, leaps, flight, movement-speed boosts, unstoppable movement, stealth used to reposition. Normal mount does not count; a special mount does.
+- 0: none. 1: one minor speed boost or one long-cooldown movement tool. 2: one reliable dash, blink or strong speed boost on a moderate cooldown. 3: several tools, or one frequent one. 4: mobility is the core of the kit (several short-cooldown dashes or blinks).
+
+**waveclear.** Killing minion waves quickly: area damage, piercing or line damage, bonus damage against minions or non-heroes, damage that spreads, summons that fight minions.
+- 0: single-target only and slow. 1: limited area damage. 2: one good area ability or a strong basic attack against waves. 3: several area tools, or one that clears most of a wave. 4: fast, repeated area damage that clears full waves.
+
+**siege.** Damaging and pressuring structures: summons that push or attack structures, attacks that out-range towers, bonus damage to structures, disabling structures, sustained damage while standing near forts.
+- 0: none beyond a normal basic attack. 1: some structure damage from abilities or summons. 2: one clear siege tool. 3: several siege tools or strong unattended lane pressure. 4: taking structures is a main purpose of the kit.
+
+**global_presence.** Affecting distant parts of the map: global or long-distance teleports, map-wide abilities or vision, remote lane soaking (summons or units that push lanes alone), fast travel such as special mounts or travel abilities.
+- 0: none. 1: one minor tool (for example faster travel). 2: one global or semi-global tool. 3: several such tools. 4: the kit is built around acting across the whole map.
+
+**early_vs_late** (-2 to +2). Where the mechanics put this hero's power over the game, read only from the text.
+- -2: high base numbers and lane or early-fight tools, little or no scaling, nothing important gated behind levels.
+- -1: leans early.
+- 0: neutral.
+- +1: leans late: some quests or stacking rewards, or key effects at levels 16 or 20.
+- +2: heavy scaling: large quest rewards, permanent stacking bonuses, or core capabilities gated behind high-level talents or heroics, with weak base numbers.
+
+## Output
+
+Return strict JSON only, no prose, no code fences. One object keyed by hero code. Each value has the 12 integer fields and an optional list "low_confidence" naming axes where the text was unclear:
+
+```
+{"K123": {"hard_cc": 2, "soft_cc_peel": 1, "healing_throughput": 0, "self_sustain_shields": 1,
+          "burst": 3, "sustained_damage": 2, "range": 2, "mobility": 1, "waveclear": 2, "siege": 1,
+          "global_presence": 0, "early_vs_late": 0, "low_confidence": []}}
+```
+
+
+===== HERO TEXTS =====
+----- K925 -----
+Hero code: K925
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 0.9 s, 145 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 4 s, cost 30): Deal 152 (+4% per level) damage to enemies in a crescent area.  Hitting at least 2 enemy Heroes with [Q] reduces its cooldown to 0.5 seconds, and refunds its Mana cost.
+[W] basic (cooldown 14 s, cost 55): this hero's next Basic Attack cleaves and applies a tether to enemy Heroes hit for 2.5 seconds. If a tethered Hero moves too far from this hero, they are pulled toward her, dealing 110 (+4% per level) damage and breaking the tether.
+[E] basic (cooldown 13 s, cost 50): Send a shadow of this hero outward that will return to its cast location, dealing 150 (+4% per level) damage to enemies along both paths. If an enemy Hero is hit, reduce the cooldown by 4 seconds.
+[R1] heroic (cooldown 40 s, cost 50): Throw a glaive in the target direction. If an enemy Hero is hit, [R1] can be reactivated to remove their vision and Time Stop them for 4 seconds. Leaving Containment Silences the enemy Hero for 1.5 seconds.  [R1] automatically activates 6 seconds after hitting a Hero.
+[R2] heroic (cooldown 100 s, cost 80): Summon 8 term C as a cage around this hero. After 1.5 seconds, enemy Heroes that come in contact with an Avatar consume it and are knocked to the center of the cage. term C last 5 seconds.
+[D] trait (cooldown 13 s): Leap into the air, becoming Immune to all hostile effects for 0.75 seconds.  After reaching Level 20, [D] gains an additional charge.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Quest: Each tether applied to a secondary target of [W] permanently increases [W]'s pull damage by 15.  Reward: After applying 5 tethers to secondary targets, increase [W]'s pull damage by 75.  Reward: After applying 10 tethers to secondary targets, increase [W]'s cleave damage by 30%.
+  [T1.2] modifies W: Each Hero tethered by [W] reduces the cooldown of [E] by 2.5 seconds and each Hero hit by [E] reduces the cooldown of [W] by 1 second.
+  [T1.3] modifies Active: Activate to make primary Basic Attacks bounce between nearby enemies up to 2 times. Lasts 8 seconds.  Recharge [T1.3] by hitting at least 2 Heroes with a single [Q].
+Level 4:
+  [T4.1] modifies Q: Quest: Hit 3 enemy Heroes with a single [Q].  Reward: Increase [Q] damage by 35%.  Reward: Each additional time 3 enemy Heroes are hit by a single [Q], gain an additional 5% damage, up to 50%.  Reward: Hit 4 enemy Heroes with a single [Q] to instantly gain all Rewards.
+  [T4.2] modifies Q: Using [Q] deals 50 (+4% per level) Physical Damage to enemies around this hero.
+  [T4.3] modifies E: After blinking with [E], the shadow explodes, damaging all nearby enemy Heroes for 6% of their maximum Health.
+Level 7:
+  [T7.1] modifies Q: Hitting at least 2 Heroes with a single [Q] causes the next [Q] to drop a star on targets that deals 77 (+4% per level) damage when it impacts.
+  [T7.2] modifies W: Enemy Heroes pulled by [W] have their Armor reduced by 15 and are Slowed by 25% for 3 seconds
+  [T7.3] modifies E: Each enemy Hero hit by [E] increases all damage this hero deals by 15% for 4 seconds, stacking up to 30%.
+Level 10:
+  [R1] modifies Heroic (cooldown 40 s): Throw a glaive in the target direction. If an enemy Hero is hit, [R1] can be reactivated to remove their vision and Time Stop them for 4 seconds. Leaving Containment Silences the enemy Hero for 1.5 seconds.  [R1] automatically activates 6 seconds after hitting a Hero.
+  [R2] modifies Heroic (cooldown 100 s): Summon 8 term C as a cage around this hero. After 1.5 seconds, enemy Heroes that come in contact with an Avatar consume it and are knocked to the center of the cage. term C last 5 seconds.
+Level 13:
+  [T13.1] modifies Q: Each enemy Hero hit by [Q] grants 5 Armor for 5 seconds, up to 20 Armor.
+  [T13.2] modifies W: Tethering at least 2 enemy Heroes with [W] grants 35 Armor for 4 seconds.
+  [T13.3] modifies E: Blink grants 20 Armor for 3.5 seconds. this hero's Basic Attacks against enemy Heroes refresh this duration.
+Level 16:
+  [T16.1] modifies Q: Dealing damage to enemy Heroes causes the next cast of [Q] that hits enemy Heroes to deal 1% maximum Health as bonus damage, up to 5%.
+  [T16.2] modifies W: [W] grants 25% Movement Speed for 2.5 seconds. In addition, each time this hero deals damage to tethered targets, [W]'s pull damage to all targets is increased by 30%, up to 150%.
+  [T16.3] modifies Passive: While this hero has positive Armor of any kind, all Physical Damage dealt is increased by 25%.
+Level 20:
+  [T20.1] modifies Active: Activate to reset the cooldown of [E].  Recharge term D by damaging enemy Heroes with [E] 5 times.
+  [T20.2] modifies Active: Activate to increase Movement Speed and Attack Speed by 40% for 5 seconds.  Recharge term D by dealing Physical Damage to enemy Heroes 10 times.
+  [T20.3] modifies Active: Activate to deal 75 (+4% per level) damage to an enemy Hero, Slowing them by 30% and reducing their Armor by 20 for 4 seconds.  Recharge term D by dealing Spell Damage to enemy Heroes 10 times.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-09:
+Base
+[W] [W]
+Pull force reduced from 35 to 21.05.
+
+----- K803 -----
+Hero code: K803
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.6 s, 70 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s, cost 60): Fire an arrow that deals 140 (+4% per level) damage to the first target hit, then seeks up to 2 additional enemies, prioritizing Heroes, dealing 80 (+4% per level) damage. Can hit an enemy multiple times.
+[W] basic (cooldown 13 s, cost 75): Deal 159 (+4% per level) damage to enemies within the target area.
+[E] basic (cooldown 10 s, cost 50): Dash to the target area. this hero's next Basic Attack within 2 seconds deals 6% increased damage per stack of [D].
+[R1] heroic (cooldown 60 s, cost 80): Rapidly attack enemies within 10 range for 60 (+4% per level) damage per hit, prioritizing Heroes over Minions. this hero is able to move and use [E] while strafing. Lasts for 4 seconds.
+[R2] heroic (cooldown 50 s, cost 50): Launch a wave of term C that deals 250 (+4% per level) damage and Stuns enemies in the target area for 0.5 seconds.  Stores up to 2 charges.
+[D] trait: Basic Attacks grant a stack of [D], up to 10. Each [D] stack increases Basic Attack damage by 8% and Movement Speed by 1%. Lasts 6 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Increase the number of [Q] bounces by 1.  Quest: Hitting an enemy Hero with the initial impact of [Q] refunds 40 Mana and permanently increases the damage of its initial impact by 6.
+  [T1.2] modifies W: Quest: Hitting a Hero with [W] grants 2 [D] and permanently increases its damage by 2.  Reward: After hitting 20 Heroes with [W], increase its damage by 40.
+  [T1.3] modifies Trait: Quest: Every 50 Basic Attacks against Heroes increases [D]'s damage bonus per stack by 1%, up to 6%.  Gambit: Gain 25% bonus Attack Speed. Every death reduces this bonus by 5%.
+Level 4:
+  [T4.1] modifies W: Increase the range of [W] by 20%. [W] also fires 3 grenades that deal 100 (+4% per level) damage and refund 25 Mana after hitting enemy Heroes.
+  [T4.2] modifies E: Increase [E] Basic Attack damage bonus from 6% to 15% per stack of [D]. If this attack kills its victim within 1.5 seconds, the Mana cost and cooldown of [E] are refunded.  Passive: Reduce the cooldown of [E] by 5 seconds.
+  [T4.3] modifies E: [E] no longer has a Mana cost. Casting [E] resets the cooldown of [Q].
+Level 7:
+  [T7.1] modifies Q: [Q] deals 150% additional damage to Minions, Mercenaries, and Monsters.
+  [T7.2] modifies Q: [W] Slows enemies by 20% for 2.5 seconds. [Q] deals 25% more damage to Slowed enemies.
+  [T7.3] modifies Trait: Increase the Movement Speed bonus of each stack of [D] to 2%.
+Level 10:
+  [R1] modifies Heroic (cooldown 60 s): Rapidly attack enemies within 10 range for 60 (+4% per level) damage per hit, prioritizing Heroes over Minions. this hero is able to move and use [E] while strafing. Lasts for 4 seconds.
+  [R2] modifies Heroic (cooldown 50 s): Launch a wave of term C that deals 250 (+4% per level) damage and Stuns enemies in the target area for 0.5 seconds.  Stores up to 2 charges.
+Level 13:
+  [T13.1] modifies Q: Hitting a Hero with [Q] heals this hero for 4% of her maximum Health, and [W] heals for 2%.
+  [T13.2] modifies Trait: Basic Attacks heal for 10% of the damage dealt, increased by 2% per [D] stack.
+  [T13.3] modifies Active (cooldown 5 s): Activate to consume all [D], granting 3 Spell Armor per [D] consumed for 5 seconds.  Passive: Gain 15 Spell Armor, and each stack of [D] heals for 1.2 (+4% per level) Health per second.
+Level 16:
+  [T16.1] modifies W: While at max [D], [W]'s cooldown recharges 50% faster.
+  [T16.2] modifies Trait: While at max [D], increase all damage dealt by 10%.
+  [T16.3] modifies Passive: Every 3rd Basic Attack against the same Hero deals an additional 5% of their maximum Health as damage.
+Level 20:
+  [T20.1] modifies Heroic: Hitting an enemy Hero with [R1] increases its duration by 0.125 seconds. [R1] also fires penetrating bolts in a line for 34 (+4% per level) damage every 0.25 seconds.
+  [T20.2] modifies Heroic: Basic Attacks against Heroes reduce the cooldown of [R2] by 5 seconds.  Passive: Each stack of [D] increases your Attack Speed by 2%. While at max [D], gain an additional 30% Attack Speed.
+  [T20.3] modifies E: Gain 2 additional charges of [E]. Drop 3 Caltrops while Vaulting that deal 60 (+4% per level) damage and Slow enemies by 40% for 1 second.
+  [T20.4] modifies Trait: Gain 20% Basic Attack range. While at max [D], gain an additional 30% Basic Attack range.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-10:
+Updates
+Base
+[D] [Trait]
+Duration reduced from 6 seconds to 5 seconds.
+Talents
+Level 10
+[R1]
+Damage per bolt increased from 60 to 70.
+Mana cost reduced from 80 to 60.
+Level 16
+[T16.3]
+Reduced bonus damage from 5% of maximum Health to 4% of maximum Health.
+[T16.1]
+Reduced the Mana cost of [W] by 20.
+
+----- K688 -----
+Hero code: K688
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 4.5, one attack every 1 s, 75 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s, cost 35): Throw a snowball that hits all enemies in an area. Enemies hit take 70 (+4% per level) damage, are Slowed by 35%, and are Blinded for 1.75 seconds.
+[W] basic (cooldown 14 s, cost 70): Command Snowball to create a [W] at the target location for 2 seconds. Enemies within the blizzard take 13 (+4% per level) damage every 0.25 seconds and are Slowed by 7%, stacking up to 35%. When the [W] ends, enemies within its area take an additional 75 (+4% per level) damage and are Stunned for 1.25 seconds.
+[E] basic (cooldown 14 s, cost 70): Slide quickly in the targeted direction. When this effect ends, enemies near this hero are knocked back, take 52 (+4% per level) damage, and are Slowed by 80%, rapidly decaying over 1.5 seconds.  Can be canceled during sliding.
+[R1] heroic (cooldown 90 s, cost 80): After 0.5 seconds, roll a massive snowball that consumes enemy Heroes in its path. At the end of its path, the snowball crumbles, releasing the consumed Heroes, dealing 220 (+4% per level) damage and Stunning them for 0.5 seconds per Hero consumed.
+[R2] heroic (cooldown 60 s, cost 50): Vector Targeting After a 0.75 second delay, create an impassable wall that traps enemy Heroes hit for 2.5 seconds. When the wall expires, trapped Heroes are Slowed by 75%, decaying over 3 seconds.
+[D] trait (cooldown 40 s): Become encased in ice for 3 seconds, gaining a rapidly decaying Shield that absorbs up to 1104 (+4% per level) damage. While active, this Shield grants Unstoppable and restores up to 35% of this hero's maximum Health.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Increases the duration of [Q]'s Slow by 1.5 seconds. Each time [W] damages an enemy Hero, reduce the cooldown of [Q] by 0.5 seconds and gain 3 Mana.
+  [T1.2] modifies W: Every 3rd hit of [W] against enemy Heroes deals an additional 42 (+4% per level) damage. [W]'s final Stun damage is increased by 150% against all enemies.
+  [T1.3] modifies Passive: Basic Attacks against Stunned, Rooted, or Slowed Heroes deal 33% more damage. Each time this hero Stuns or Slows an enemy Hero she heals for 16 (+4% per level) Health.
+Level 4:
+  [T4.1] modifies Q: [Q] deals 75% increased damage and Structures hit are disabled for 3 seconds.
+  [T4.2] modifies E: Reduce the cooldown of [E] by 3 seconds.  If this hero enters her own [W] while [E] is active, the cooldown of [E] is reduced by 5 seconds and she gains 80 Mana.
+  [T4.3] modifies Trait: Reduce the cooldown of [D] by 10 seconds. this hero gains 40 Spell Armor while [D] is active and for 1 second after.
+Level 7:
+  [T7.1] modifies W: [W] reduces the damage dealt by enemy Heroes inside of its area by 40%.  When [W] ends, enemy Heroes still within its area gain this effect for an additional 4 seconds.
+  [T7.2] modifies E: When [E] ends, this hero and all nearby allied Heroes gain 20% Movement Speed and 50 Physical Armor for 3 seconds.
+  [T7.3] modifies Active (cooldown 70 s): Activate to remove all Roots and Slows and regenerate 20% of maximum Health over 2 seconds. The cooldown of this ability is reduced by 10 seconds each time this hero picks up a Regeneration Globe.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): After 0.5 seconds, roll a massive snowball that consumes enemy Heroes in its path. At the end of its path, the snowball crumbles, releasing the consumed Heroes, dealing 220 (+4% per level) damage and Stunning them for 0.5 seconds per Hero consumed.
+  [R2] modifies Heroic (cooldown 60 s): Vector Targeting After a 0.75 second delay, create an impassable wall that traps enemy Heroes hit for 2.5 seconds. When the wall expires, trapped Heroes are Slowed by 75%, decaying over 3 seconds.
+Level 13:
+  [T13.1] modifies W: While in her own [W], this hero gains 50% increased Attack Speed and [W]'s cooldown refreshes 125% faster. If this hero is in her own [W] when it ends, gain these bonuses for 3 additional seconds.
+  [T13.2] modifies Trait: While [D] is active, this hero's Basic Ability cooldowns recover 200% faster.  Passive: Basic Attacks Slow by 20% for 1.5 seconds.
+  [T13.3] modifies Passive: Using an ability causes this hero to deal 24 (+4% per level) damage a second to nearby enemies for 4 seconds. Enemy Heroes damaged by this effect also have their Movement Speed and Attack Speed Slowed by 20%.
+Level 16:
+  [T16.1] modifies Q: [Q] gains an additional charge and its range is increased by 33%.
+  [T16.2] modifies E: [E]'s Slow effect no longer decays over its duration. [E] deals 300% more damage to enemies very close to this hero.
+  [T16.3] modifies Passive: Each time this hero Stuns or Slows an enemy Hero, the damage she deals and healing she receives is increased by 1%, stacking up to 20 times. While at maximum stacks, this hero also gains 10 Armor. Lasts 8 seconds.
+Level 20:
+  [T20.1] modifies Heroic: While traveling, [R1] constantly launches a volley of untalented [Q] snowballs ahead of itself.  Passive: Reduce the cooldown of [R1] by 30 seconds.
+  [T20.2] modifies Heroic: When [R2] expires, trapped enemy Heroes hit take 210 (+4% per level) damage and have their Armor reduced by 25 for 5 seconds.
+  [T20.3] modifies Q: Every 15 seconds, the next [Q] you cast has 67% increased area and 200% increased damage.
+  [T20.4] modifies Trait: When this hero takes fatal damage she instantly gains [D]. This effect has a 180 second cooldown.
+
+----- K521 -----
+Hero code: K521
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 3, one attack every 0.9 s, 33 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 3 s, cost 75): Fire a burst of energy forward, dealing 142 (+5% per level) damage to all enemies it passes through.  Hitting the center of a [W] will cause it to explode, dealing additional damage.
+[W] basic (cooldown 6 s, cost 150): Open an unstable [W] at a location that takes 1.25 seconds to arm, which then Slows nearby enemies by 25% lasting 3 seconds.  Armed [W] explode when they expire or when hit by [Q], dealing 261 (+5% per level) damage to nearby enemies.
+[E] basic (cooldown 15 s): Warp in a [E] that deals 105 (+4% per level) damage. Lasts for 13 seconds.  While within a term F's term C, [E] gain 40% Attack Speed over 4 seconds and reveal nearby enemies.
+[R1] heroic (cooldown 80 s, cost 100): For 8 seconds, increase the size of term F term C and allow them to attack enemy Heroes within it for 96 (+4% per level) damage per second. term F are Invulnerable for the duration.
+[R2] heroic (cooldown 25 s, cost 100): Vector Targeting Project a barrier of negative energy in the target direction that lasts 4 seconds. Enemies who touch the barrier take 76 (+4% per level) damage per second and are Slowed by 80% for as long as they remain in contact with it.
+[D] trait (cooldown 14 s): Warp in a term F that generates a term C and grants vision of the surrounding area. this hero only regenerates mana while inside a term C. Enemy Heroes and Minions drop term E when killed. [T1.3] to reduce the cooldown of [D] by 0.75 seconds.  Up to 2 term F can be active at a time.
+[Z] mount (cooldown 30 s): Activate to gain an additional 60% Movement Speed for 5 seconds. Taking damage ends this effect early.  [Z] is always active while at the Hall of Storms.  Passive: this hero moves 10% faster by hovering over the ground.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: [Q] now returns to this hero 1.25 seconds after reaching its target, dealing 100% damage on the return trip.
+  [T1.2] modifies W: Quest: Hit Heroes with [W] explosions.  Reward: After hitting 8 Heroes with [W] explosions, increase the explosion damage by 120.  Reward: After hitting 16 Heroes with [W] explosions, [W] gains 1 additional charge.
+  [T1.3] modifies E: Quest: [T1.3] to increase the Health of [E] by 8, up to 560.  Reward: After collecting 70 term E, [E] deal 35% more damage.
+Level 4:
+  [T4.1] modifies E: While a [E] is alive and powered, this hero gains 40 Spell Armor.
+  [T4.2] modifies Z: [Z] grants an additional 10% passive Movement Speed while in a term C, and its cooldown is reduced by 14 seconds.
+  [T4.3] modifies Trait: this hero gains permanent Shields equal to 10% of his max Health. Shields regenerate quickly as long as he hasn't taken damage recently.
+Level 7:
+  [T7.1] modifies Q: After hitting 3 Heroes with [Q], the next [W] detonated by a [Q] fires 4 additional pulses that deal 78 (+5% per level) damage from the impact location in different directions.  Passive: Reduce the cooldown of [Q] by 0.5 seconds.
+  [T7.2] modifies W: Hitting a [W] with [Q] within 1 second of it arming deals 105 (+5% per level) damage over 3 seconds.
+  [T7.3] modifies E: Reduce [E]'s cooldown by 3.5 seconds when [Q] or [W] damages an enemy Hero.
+Level 10:
+  [R1] modifies Heroic (cooldown 80 s): For 8 seconds, increase the size of term F term C and allow them to attack enemy Heroes within it for 96 (+4% per level) damage per second. term F are Invulnerable for the duration.
+  [R2] modifies Heroic (cooldown 25 s): Vector Targeting Project a barrier of negative energy in the target direction that lasts 4 seconds. Enemies who touch the barrier take 76 (+4% per level) damage per second and are Slowed by 80% for as long as they remain in contact with it.
+Level 13:
+  [T13.1] modifies Trait: term F's term C grants allied Heroes 35% increased Attack Damage.
+  [T13.2] modifies Trait: term F's term C grants allied Heroes 10% increased Spell Power and 2 Mana per second.
+  [T13.3] modifies Trait: term F's term C grants allied Heroes 28 (+4% per level) Shields per second, up to 112 (+4% per level). Shields persist for 2 seconds after exiting a term F term C.
+Level 16:
+  [T16.1] modifies W: Enemies continue to be slowed for 3 seconds after their last contact with a [W].
+  [T16.2] modifies W: Enemies are slowed more the closer they are to the center of the [W], up to a maximum slow of 60%.
+  [T16.3] modifies W: Enemy Heroes hit by [W] explosions have their Spell Power reduced by 35% for 5 seconds.  Additionally, enemies hit by [W] explosions are knocked away from the center.
+Level 20:
+  [T20.1] modifies Heroic: this hero can now have up to 3 active term F, and increase the damage of [R1] by 25%.
+  [T20.2] modifies Heroic: [R2] lasts indefinitely if either end is within a term C.
+  [T20.3] modifies Q: Enemy Heroes hit by [Q] take a  bonus 2.5% of their maximum Health as damage.  Passive: Reduce the cooldown of [Q] by 0.5 seconds.
+  [T20.4] modifies W: Whenever a Rift explosion hits 1 or more enemy Heroes, create a new [W] in the same location.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+ARAM
+
+----- K939 -----
+Hero code: K939
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 6.5, one attack every 0.75 s, 30 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 2 s, cost 10): Fire a dart which heals the first allied Hero hit for 195 (+4% per level) Health. Does not affect full Health Heroes.
+[W] basic (cooldown 16 s, cost 50): Toss a grenade at the target area. Allied Heroes hit are healed for 152 (+4% per level) Health and receive 25% increased healing from this hero for 4 seconds. Enemies hit take 60 (+4% per level) damage and receive 100% less healing for 1.75 seconds.
+[E] basic (cooldown 14 s, cost 50): Fire a dart that puts the first enemy Hero hit to Sleep, Stunning them for 3 seconds. Sleep's effects end instantly if the target takes damage after the first 0.5 seconds.  Cannot be used on Vehicles.
+[R1] heroic (cooldown 70 s, cost 60): Instantly boost an allied Hero, restoring 200 Mana. For the next 8 seconds, they gain 30% Spell Power and their Basic Ability cooldowns recharge 150% faster.  Cannot be used on this hero.
+[R2] heroic (cooldown 60 s, cost 45): Assume a sniping position, gaining the ability to fire up to 6 specialized rounds with unlimited range. Rounds pierce allied and enemy Heroes but collide with enemy Structures in their path. Allies are healed for 225 (+4% per level) and enemies are damaged for 135 (+4% per level). Deals 50% less damage to Structures.  this hero is unable to move while [R2] is active.
+[D] trait (cooldown 4 s): Basic Attacks apply a Dose to enemies, dealing 40 (+4% per level) damage over 5 seconds, plus additional damage equal to the current number of stacks on the target, stacking up to 5 times. Every 0.5 seconds, this hero is healed for 60% of the damage dealt by [D].  term A  Activating [D] reduces your Movement Speed by 25%, but increases the Range of [Q] and [E] by 25% while also allowing them to pierce one Hero. Lasts until canceled.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Hitting Heroes with [W] increases its damage and healing by 30% per Hero hit.
+  [T1.2] modifies E: Reduce the cooldown of [E] by 2 seconds. Upon waking, enemy Heroes are Slowed by 25% for 3 seconds.
+  [T1.3] modifies Trait: Quest: Stack 5 Doses on an enemy Hero or Basic Attack a Hero with 5 Doses.  Reward: Stack 5 Doses to increase [D]'s healing by 1%.  Reward: Basic Attack a Hero with 5 Doses to increase [D]'s healing by 0.25%.
+Level 4:
+  [T4.1] modifies W: Increase the bonus healing duration of [W] by 50% and reduce its cooldown by 3 seconds.
+  [T4.2] modifies E: [E] applies 4 Doses.  While term A is active, [E] pierces all enemy Heroes.
+  [T4.3] modifies Active (cooldown 20 s): Fire a dart which Slows the Movement Speed and reduces the damage dealt by the first enemy Hero it hits by 50% for 4 seconds. If no Heroes are hit, reduce this cooldown by 8 seconds.
+Level 7:
+  [T7.1] modifies W: Increase the area of [W] by 25% and the duration of the healing reduction by 0.75 seconds.
+  [T7.2] modifies E: Gain 25% Movement Speed for 2 seconds for every Hero hit by [E]. Upon waking, enemy Heroes take 8% of their Maximum Health in damage.
+  [T7.3] modifies Trait: Every Dose a Hero has reduces their Spell Power by 10%.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): Instantly boost an allied Hero, restoring 200 Mana. For the next 8 seconds, they gain 30% Spell Power and their Basic Ability cooldowns recharge 150% faster.  Cannot be used on this hero.
+  [R2] modifies Heroic (cooldown 60 s): Assume a sniping position, gaining the ability to fire up to 6 specialized rounds with unlimited range. Rounds pierce allied and enemy Heroes but collide with enemy Structures in their path. Allies are healed for 225 (+4% per level) and enemies are damaged for 135 (+4% per level). Deals 50% less damage to Structures.  this hero is unable to move while [R2] is active.
+Level 13:
+  [T13.1] modifies Q: [Q] grants 25% Movement Speed to affected Heroes for 2 seconds.
+  [T13.2] modifies Q: [Q] removes Roots and Slows from the target, and heals for 20% more when doing so.
+  [T13.3] modifies Q: [Q] removes Stuns from the target, and grants them 50 Armor for 2 seconds when doing so.
+Level 16:
+  [T16.1] modifies Q: [Q]'s healing is increased by 5% if it heals a Hero, up to 50%. At maximum bonus, further increase its healing by 35%. This bonus is reset if [Q] fails to hit a Hero.
+  [T16.2] modifies Q: Increase [Q]'s healing by 12% for each Dose active on enemy Heroes.
+  [T16.3] modifies Active (cooldown 60 s): Activate to instantly gain 3 charges of [Q].
+Level 20:
+  [T20.1] modifies Heroic: Allies affected by [R1] heal for 50% of Spell Damage dealt.
+  [T20.2] modifies Heroic: Increase [R2]' healing and damage by 5% for every Hero hit. This bonus resets after all shots have been fired.
+  [T20.3] modifies Trait: Increase [D]'s damage by 50%. While term A is active, gain 25 Armor.
+  [T20.4] modifies Trait: Basic Attacks increase Attack Speed by 10% for 3 seconds, up to 100%. While term A is active, increase your Basic Attack Range by 4.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-05:
+Base
+[W] [W]
+ADDED FUNCTIONALITY: If [W] does not hit any enemies, its cooldown is reduced by 3 seconds.
+ADDED FUNCTIONALITY: If [W] only hits this hero, its cooldown is reduced by 2 seconds.
+Talents
+Level 1
+[D] now gives a 15% passive healing bonus.
+Level 20
+[T20.2]
+ADDED FUNCTIONALITY: [R2] can now be toggled On and Off.
+ADDED FUNCTIONALITY: [R2] rounds are regained once every 10 seconds.
+ADDED FUNCTIONALITY: [R2] cooldown is now 6 seconds.
+Bonuses acquired from [T20.2] now lasts 4 seconds.
+
+----- K100 -----
+Hero code: K100
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5, one attack every 1.35 s, 83 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s): Create a laser beam at the target point that circles around this hero twice, dealing 135 (+4% per level) damage to enemies hit and Slowing them by 25% for 4 seconds.
+[W] basic: Basic Attack speed increased by 150%.  Activate to change to [alt-W], increasing Basic Attack range and damage, and causing Basic Attacks to splash.
+[E] basic (cooldown 17 s): Warp to a targeted location, phasing out after 0.5 seconds, and arriving 0.75 seconds later.
+[R1] heroic (cooldown 100 s): After 0.5 seconds, Channel a powerful beam that spans across the battleground for 4 seconds, dealing 112 (+4% per level) damage every 0.25 seconds to non-Structure enemies hit.
+[R2] heroic (cooldown 90 s): Channel for 1.5 seconds, sweeping a laser in front of this hero that locks onto enemy Heroes. Once Channeling finishes, fire 5 missiles at each locked Hero, dealing 79 (+4% per level) damage each. Deals 50% increased damage to Slowed targets.
+[D] trait: this hero has a permanent 760 (+4% per level) Shield which regenerates at 10% per second after not taking damage for 5 seconds.
+Alternate form or second unit abilities:
+[alt-W] basic: Basic Attacks have 1.25 increased range, deal 25% more damage, and splash to nearby enemies.  Activate to change to [W], increasing Basic Attack speed.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Hitting enemy Heroes with [Q] permanently increases this hero's Basic Attack damage by 0.5, up to 60.  Reward: After hitting 30 Heroes, [Q] circles an additional time.
+  [T1.2] modifies W: After hitting enemy Heroes with Basic Attacks 3 times while term A is active, the next Basic Attack with term C deals 150% more damage and splashes in a 50% larger area.
+  [T1.3] modifies W: After moving, this hero's next Basic Attack deals 35% more damage to Heroes.
+Level 4:
+  [T4.1] modifies W: Basic Attacks against Slowed Heroes with term A active grant 10% Movement Speed for 4 seconds, up to 40%.
+  [T4.2] modifies W: Every 10 seconds, this hero's next Basic Attack with term C active Slows all enemies hit by 60%, decaying in strength over 1.5 seconds.
+  [T4.3] modifies Trait: While this hero has shields from [D], he gains 10% Movement Speed.  This bonus is increased to 15% when this hero loses shields from [D].
+Level 7:
+  [T7.1] modifies Q: [Q] deals 35% more damage to Slowed targets.
+  [T7.2] modifies E: After arriving with Warp, gain 175% Attack Speed for 4 seconds while in term A mode. Hero Takedowns reset Warp's cooldown.
+  [T7.3] modifies Active (cooldown 40 s): Activate to gain 40% Basic Attack damage for 5 seconds. Basic Attacking a Hero refreshes this duration. Once [T7.3] ends, drain all of [D]'s Shields.
+Level 10:
+  [R2] modifies Heroic (cooldown 90 s): Channel for 1.5 seconds, sweeping a laser in front of this hero that locks onto enemy Heroes. Once Channeling finishes, fire 5 missiles at each locked Hero, dealing 79 (+4% per level) damage each. Deals 50% increased damage to Slowed targets.
+  [R1] modifies Heroic (cooldown 100 s): After 0.5 seconds, Channel a powerful beam that spans across the battleground for 4 seconds, dealing 112 (+4% per level) damage every 0.25 seconds to non-Structure enemies hit.
+Level 13:
+  [T13.1] modifies E: After arriving with Warp, gain 50 Armor for 4 seconds.
+  [T13.2] modifies Trait: this hero gains 30 Spell Armor while he has a Shield from [D].
+  [T13.3] modifies Trait: The time before [D] begins regenerating after taking damage is reduced by 2 seconds. Whenever this hero is healed, [D]'s Shield recharges for 60% of the healing received.
+  [T13.4] modifies Trait: Permanently reduce this hero's maximum Health by 30% but increase [D]'s Shield by 40%. Basic Attacks regenerate Shields equal to 10% of the damage dealt.
+Level 16:
+  [T16.1] modifies W: Every 3rd Basic Attack against Heroes while term A is active deals an additional 6% of the target's maximum Health as damage.
+  [T16.2] modifies Trait: this hero deals 20% more damage while he has a Shield from [D].
+  [T16.3] modifies Passive: Basic Attacks with term A reduce Ability cooldowns by 0.5 seconds. Basic Attacks with term C active reduce Ability cooldowns by 0.5 seconds per Hero hit.
+Level 20:
+  [T20.1] modifies Heroic: [R1]'s width increases by 100% over 1.5 seconds.  Passive: Reduce [R1]'s cooldown by 40 seconds.
+  [T20.2] modifies Q: Hitting an enemy Hero with [Q] fires a [R2] missile at them after 0.5 seconds, dealing 79 (+4% per level) damage. Deals 50% increased damage to Slowed targets.
+  [T20.3] modifies W: term A grants 100% more Attack Speed, and term C grants 1.25 more range.
+  [T20.4] modifies Passive: Upon taking fatal damage, [D] regains 800 (+4% per level) Shields. This effect has a 120 second cooldown.
+
+----- K518 -----
+Hero code: K518
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.25, one attack every 1.05 s, 105 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 65): Charge an enemy, knocking them back, dealing 40 (+4% per level) damage and gaining 15% Movement Speed for 2 seconds. If the enemy hits terrain, they are Stunned for 1 second and take an additional 130 (+4% per level) damage.
+[W] basic (cooldown 8 s, cost 35): Unleashes fire waves toward the targeted area that deal 12 (+4% per level) damage each. Once they reach maximum range they return, dealing an additional 36 (+4% per level) damage. this hero heals for 130% of the damage dealt to Heroes.
+[E] basic (cooldown 12 s, cost 35): Grabs the target and slams it behind this hero, dealing 73 (+4% per level) damage and Stunning for 0.25 seconds.
+[R1] heroic (cooldown 90 s, cost 50): Create a demonic rune under each enemy Hero on the battleground. After 1.75 seconds the rune explodes dealing 137 (+4% per level) damage and Stunning them for 1.75 seconds.
+[R2] heroic (cooldown 90 s, cost 80): After 0.5 seconds, become Unstoppable and Channel for up to 4 seconds, dealing 50 (+4% per level) damage every 0.25 seconds to enemies in front of this hero. Enemies affected are Slowed by 4% for 2 seconds, up to 40%.  [R2]'s direction changes with your mouse cursor position.
+[D] trait: Repeatable Quest: Gain 10 Souls per Hero killed and 1 Soul per Minion, up to 100. For each Soul, gain 0.3% maximum Health. If this hero has 100 Souls upon dying, he will resurrect in 5 seconds but lose 100 Souls.  After reaching level 10, this hero only consumes 75 Souls when resurrecting.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Passive: Stunning an enemy Hero with [Q] or [E] heals this hero for 10% of his maximum Health over 3 seconds.
+  [T1.2] modifies Trait: [D] increases the effects of Regen Globes and Healing Fountains by 2.25% per Soul.
+  [T1.3] modifies Active (cooldown 45 s): Activate to gain 25 plus 50% of this hero's current Souls as Spell Armor for 4 seconds. Every time this hero damages an enemy Hero, reduce this cooldown by 1 second.
+Level 4:
+  [T4.1] modifies Q: Stunning a Hero with [Q] grants 10 Souls and 20 Armor for 3 seconds. While at 100 Souls, increase this Armor to 40.
+  [T4.2] modifies W: [W] grants 1 Soul every 3 times it damages an enemy Hero, and heals for an additional 1.3% of its damage dealt per Soul.
+  [T4.3] modifies Passive: this hero gains 1 Soul and heals for 1.75% of his maximum Health when Basic Attacking an enemy Hero. While at 100 Souls, increase this healing to 3.5% of his maximum Health.
+Level 7:
+  [T7.1] modifies W: Reduce the cooldown of [W] by 1 second. When this hero Stuns an enemy Hero with [Q] or [E], reset the cooldown of [W] and restore 45 Mana.
+  [T7.2] modifies Passive: Basic Abilities cause this hero's next Basic Attack within 6 seconds to deal an additional 100 (+4% per level) Spell Damage. Stores up to 2 charges.
+  [T7.3] modifies Passive: When this hero's Basic Attacks damage enemies, reduce the cooldown of [Q] and [E] by 1.5 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): Create a demonic rune under each enemy Hero on the battleground. After 1.75 seconds the rune explodes dealing 137 (+4% per level) damage and Stunning them for 1.75 seconds.
+  [R2] modifies Heroic (cooldown 90 s): After 0.5 seconds, become Unstoppable and Channel for up to 4 seconds, dealing 50 (+4% per level) damage every 0.25 seconds to enemies in front of this hero. Enemies affected are Slowed by 4% for 2 seconds, up to 40%.  [R2]'s direction changes with your mouse cursor position.
+Level 13:
+  [T13.1] modifies Q: Increase [Q]'s terrain collision damage by 50%.  Quest: Hit an enemy Hero against terrain 5 times.  Reward: Hitting enemy Heroes against terrain reduces their Armor by 20 for 4 seconds.
+  [T13.2] modifies W: Each enemy Hero hit by [W] grants 3% Spell Power for 10 seconds, up to 30%.  While at maximum stacks, this hero deals 33 (+4% per level) damage per second to nearby enemies.
+  [T13.3] modifies Passive: Stunning an enemy Hero with [Q] or [E] increases this hero's Attack Speed by 50% for 7 seconds, up to 100%.
+Level 16:
+  [T16.1] modifies Q: Casting [E] resets the cooldown of [Q].
+  [T16.2] modifies W: Enemy Heroes hit by [W] are Slowed by 6% for 4 seconds, up to 60%. Heroes Slowed by 24% or more by [T16.2] deal 50% less damage.
+  [T16.3] modifies E: Gain 2 additional charges of [E], with a 2 second cooldown between uses.
+Level 20:
+  [T20.1] modifies Heroic: [R1]'s cooldown is reduced by 25 seconds for every enemy Hero hit (to a minimum of 5 seconds) and is cast for free when this hero dies.
+  [T20.2] modifies Heroic: [R2] lasts 200% longer.
+  [T20.3] modifies Active (cooldown 60 s): Activate to steal 10% of the maximum Health of nearby enemy Heroes and gain 5 Souls per Hero hit.
+  [T20.4] modifies Active (cooldown 100 s): Teleport and place a demonic rune at target location. After 1.75 seconds the rune explodes dealing 137 (+4% per level) damage and stunning enemies for 1.75 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2026-07:
+Base
+[Q] [Q]
+Damage increased from 40 to 45.
+Terrain collision damage increased from 130 to 140.
+[W] [W]
+Damage reduced from 12 to 11.
+Return damage reduced from 36 to 34.
+[E] [E]
+Damage increased from 73 to 80.
+Talents
+Level 7
+[T7.3]
+Cooldown reduction per Basic Attack increased from 1.5 to 2 seconds.
+Level 20
+[T20.1]
+Cooldown reduction per Hero hit increased from 25 to 30 seconds.
+[T20.3]
+Health stolen increased from 10% to 12% maximum Health.
+
+----- K655 -----
+Hero code: K655
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1, one attack every 0.8 s, 95 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 15 s, cost 75): this hero lashes out his tongue, dealing 160 (+4% per level) damage to the first enemy hit, Stunning and dragging them with him for 1.75 seconds.  If this hero is Stunned or Silenced while using [Q], the effect ends.
+[W] basic (cooldown 10 s, cost 50): Deal 52 (+4% per level) damage every 0.5 seconds to nearby enemies for 3.5 seconds. While active, you are able to move through units. Can be cast during [Q] and Burrow.
+[E] basic (cooldown 20 s, cost 65): Burrow into the ground, entering Stasis and becoming Invulnerable for 2 seconds. While Burrowed, this hero can move at 50% movement speed.
+[R1] heroic (cooldown 60 s, cost 70): Launch biomass that hits the first enemy Hero dealing 200 (+4% per level) damage, revealing, Silencing, and Slowing them 30% for 3 seconds. Additionally, their vision radius is greatly reduced for 6 seconds.
+[R2] heroic (cooldown 60 s, cost 70): After 4 seconds, heal for 100% of the damage this hero took over this period.
+[D] trait (cooldown 5 s): Heal this hero for 29 (+4% per level) Health per stored term C over 5 seconds. Can be cast during [Q] and Burrow.  Passive: Gain 10 term C from Takedowns and 2 term C from nearby Minions dying. Maximum of 50 term C.
+[Z] mount (cooldown 75 s): Activate to burrow to a bush on the Battleground.  Passive: Gain 20% movement speed while in a bush and for 2 seconds after leaving.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: [W]'s duration is increased by 0.5 seconds and grants 50 Spell Armor while active.
+  [T1.2] modifies Trait: Regeneration Globes grant 10 term C.  Repeatable Quest: Every 50 term C collected permanently increases Health Regeneration by 4, up to 40, and maximum term C by 1, up to 10.
+  [T1.3] modifies Z: [Z]'s Movement Speed bonus now lasts for 5 seconds after leaving a bush.  Repeatable Quest: Every 50 term C collected permanently increases the Movement Speed bonus of [Z] by 2%, up to 20%.
+Level 4:
+  [T4.1] modifies E: Emerging from Burrow grants this hero Stealth for 3 seconds and knocks nearby enemies back, dealing 125 (+4% per level) damage and Slowing them by 30% for 3 seconds.  Passive: Reduce the cooldown of Burrow by 3 seconds.
+  [T4.2] modifies Trait: Increases term C collected from Minions by 50%. [W] deals 40% more damage to Mercenaries.
+  [T4.3] modifies Trait: Increases term C gained from Takedowns by 100%, and gain 1 term C each time an enemy Hero is hit by [W].
+Level 7:
+  [T7.1] modifies Q: Basic Attacks reduce [Q]'s cooldown by 1.5 seconds.  Passive: Increase [Q]'s duration by 0.5 seconds.
+  [T7.2] modifies Q: [Q] Slows enemies by 40% for 2 seconds after it ends.  Gambit: When [Q] ends, deal an additional 280 (+4% per level) damage to the target over 2 seconds. Every death reduces this damage by 40 (+4% per level), up to 5 times.
+  [T7.3] modifies W: Every time [W] damages an enemy Hero, reduce its cooldown by 0.4 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 60 s): Launch biomass that hits the first enemy Hero dealing 200 (+4% per level) damage, revealing, Silencing, and Slowing them 30% for 3 seconds. Additionally, their vision radius is greatly reduced for 6 seconds.
+  [R2] modifies Heroic (cooldown 60 s): After 4 seconds, heal for 100% of the damage this hero took over this period.
+Level 13:
+  [T13.1] modifies W: [W] Slows enemy Heroes by 15% for 0.75 seconds and deals 60% more damage while [Z]'s Movement Speed bonus is active.
+  [T13.2] modifies W: [W] causes enemies hit to lose 10 Armor for 0.75 seconds, causing them to take 10% extra damage.
+  [T13.3] modifies Trait: Gain 1.25% increased Attack Damage per term C stored.
+Level 16:
+  [T16.1] modifies Q: Increase [Q] range by 20%.
+  [T16.2] modifies E: Increase movement speed while Burrowing to 125%.
+  [T16.3] modifies Z: this hero gains 20 Armor and 15% increased Attack Speed while in a bush and for 5 seconds after leaving.
+Level 20:
+  [T20.1] modifies Heroic: Isolation hits all Heroes near the first target.
+  [T20.2] modifies Heroic: Increases [R2] healing to 200% of the damage received and reduces the cooldown by 40 seconds.
+  [T20.3] modifies Trait: this hero's Basic Attacks slow the target by 20% for 1 second. If the target is a Hero, this hero gains 5 term C.
+  [T20.4] modifies Z: Reduces [Z]'s cooldown by 50 seconds and the cast time by 0.5 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-03:
+Base
+[W] [W]
+Damage reduced from 52 to 48.
+Talents
+Level 4
+[T4.3]
+Hitting more than 3 Heroes at once no longer grants additional term C.
+[T4.1]
+Cooldown reduction bonus reduced from 3 seconds to 2 seconds.
+Level 7
+[T7.1]
+REWORK: Cooldown reduction is now a Gambit bonus, starting from 1.5 second cooldown reduction. Each death lowers this by 0.25, up to 3 times.
+[T7.2]
+REWORK: Gambit removed. Now reduces [Q]'s target's healing received by 40% while [Q] is active and for 2 seconds after.
+Level 13
+[T13.1]
+Damage bonus reduced from 60% to 50%.
+Level 16
+term B
+Movement speed reduced from 125% to 120%.
+Level 20
+[T20.1]
+Now also reduces the damage of Isolation by 60%.
+Change set 2025-07:
+Talents
+Level 1
+[T1.3]
+Reduced Movement Speed bonus from 5 seconds to 4 seconds.
+Level 7
+[T7.2]
+Basic Attacks now also sets the remaining duration to 2 seconds.
+Healing reduction increased from 40% to 50%.
+Level 16
+[T16.3]
+Reduced duration from 5 seconds to 4 seconds.
+Change set 2025-09:
+Base
+[Z] [ Z ]
+Cooldown increased from 75 seconds to 240 seconds.
+Cooldown is reduced by 40 seconds when a Regen Globe is picked up.
+Talents
+Level 20
+[T20.4]
+Cooldown reduction increased from 50 to 120 seconds.
+
+----- K920 -----
+Hero code: K920
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.6, one attack every 0.9 s, 90 damage per attack; range 5.5, one attack every 0.9 s, 90 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 60): After 0.5 seconds, cause an area to explode with pollen dealing 160 (+4% per level) damage.
+[W] basic (cooldown 10 s, cost 50): Enemies currently afflicted by [D] have its duration increased by 3 seconds and are Slowed by 40% decaying over 3 seconds.
+[E] basic (cooldown 30 s): Spawn a [E] to scout an area. Can be redirected once active. When the [E] is in a bush for more 2 seconds, its vision radius is increased by 75%.  Lasts 45 seconds.
+[R1] heroic (cooldown 15 s, cost 35): Send forth vines that deal 184 (+4% per level) damage to all enemies in a line.  Stores up to 3 charges.
+[R2] heroic (cooldown 20 s, cost 50): Leap over an enemy, Slowing them by 80% for 0.35 seconds and dealing 271 (+4% per level) damage.  Stores up to 2 charges.
+[D] trait: this hero's Basic Attacks and damaging Abilities poison their target, dealing 33 (+4% per level) damage a second for 3 seconds. Every additional application increases the duration by 3 seconds, up to a maximum of 9 seconds.
+[Z] mount: this hero moves 20% faster by leaping short distances.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies E: After remaining in a bush for 5 seconds, [E]'s vision radius is increased by 200% and reveals the surrounding area.
+  [T1.2] modifies Trait: [D] reveals enemies for its duration.
+  [T1.3] modifies Z: After not Basic Attacking or taking damage for 2 seconds, increase the Move Speed bonus of [Z] by 10%.
+Level 4:
+  [T4.1] modifies Q: Increases [Q]'s range by 25% and its radius by 20%.  [T4.1] applies 2 stacks of [D] to enemies hit.
+  [T4.2] modifies Trait: Increases [D]'s damage by 125% to non-Heroes.
+  [T4.3] modifies Trait: While at least one enemy is afflicted by [D], heal for 9 (+4% per level) per second.  When an enemy Hero has 3 stacks of [D], increase this healing by 19 (+4% per level) per second.
+Level 7:
+  [T7.1] modifies Q: Using [Q] causes this hero's next Basic Attack to hit up to 4 enemies. These extra attacks can apply [D].
+  [T7.2] modifies Q: [Q] deals 100% more damage to enemies afflicted by [D], increased to 175% against enemies with 3 stacks.
+  [T7.3] modifies W: Using [W] increases the damage of this hero's next 4 Basic Attacks by 70%.
+Level 10:
+  [R1] modifies Heroic (cooldown 15 s): Send forth vines that deal 184 (+4% per level) damage to all enemies in a line.  Stores up to 3 charges.
+  [R2] modifies Heroic (cooldown 20 s): Leap over an enemy, Slowing them by 80% for 0.35 seconds and dealing 271 (+4% per level) damage.  Stores up to 2 charges.
+Level 13:
+  [T13.1] modifies W: Casting [W] while at least 2 Heroes are afflicted by [D] reduces the cooldown by 4 seconds.
+  [T13.2] modifies W: Increases [W]' Slow duration by 1 second and causes it to no longer decay.
+  [T13.3] modifies Passive: Every 30 seconds, gain 75 Spell Armor against the next enemy Ability and subsequent Abilities for 3 seconds, reducing the damage taken by 75%.  Can be toggled to allow or prevent this talent from triggering automatically.
+  [T13.4] modifies Active (cooldown 20 s): Target an ally to remove all damage over time and disabling effects from them and this hero. For 2 seconds after, the duration of disabling effects is reduced by 50%.
+Level 16:
+  [T16.1] modifies Q: Reduce the Mana cost of [Q] from 60 to 40.  While at least 1 enemy Hero is afflicted with [D], [Q]'s cooldown recharges 75% faster.
+  [T16.2] modifies W: Increase this hero's Basic Attack range by 0.5.  Using [W] increases this hero's Basic Attack range by an additional 2.25 for 6 seconds.
+  [T16.3] modifies W: [W] grants 30% Attack Speed for 6 seconds.  Basic Attacks against enemy Heroes with 3 stacks of [D] deal damage equal to 1.5% of their maximum Health.
+  [T16.4] modifies Trait: [D] deals 60% more damage to Heroes that are Slowed, Rooted, or Stunned.
+Level 20:
+  [T20.1] modifies Heroic: [R1] now applies 2 stacks of [D].  Increase [R1]'s range by 30% and this hero's vision radius by 35%.
+  [T20.2] modifies Heroic: All [R2] charges are returned every 15 seconds. [R2] can be used on allies.
+  [T20.3] modifies Trait: At 3 stacks, [D] deals 40% more damage.
+  [T20.4] modifies Z (cooldown 30 s): Activate to increase the Movement Speed bonus of [Z] to 80% for 6 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-05:
+Talents
+Level 7
+[T7.1]
+ADDED FUNCTIONALITY: Now grants 3 stacks of [T7.1]. A stack is consumed when an extra target is attacked. Can have a maximum of 3 stacks and all stacks can be consumed in a single attack.
+Level 13
+[T13.1]
+Now also refunds 50 Mana.
+Level 20
+term A!
+NEW TALENT: [R1] now shoots out 4 additional Vines in an arc.
+[T20.1]
+Can now be selected with either Heroic.
+
+----- K117 -----
+Hero code: K117
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 6.5, one attack every 0.25 s, 14 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 7 s, cost 55): Channel a beam of Psionic energy, dealing 280 (+4% per level) damage and Slowing enemies in a line by 30% for 2 seconds.
+[W] basic (cooldown 8 s, cost 60): Create a [W] at the targeted location for 3 seconds. While in a storm, enemies take 38 (+4% per level) damage every 0.5 seconds, increasing by 20% for each consecutive instance of damage, up to 100%.
+[E] basic (cooldown 18 s, cost 65): After a 0.5 second delay, create a wall that blocks all units from moving through it for 2 seconds.
+[R1] heroic (cooldown 90 s, cost 100): this hero transforms into an [R1], gaining a Shield equal to 25% of his maximum Health and empowering [D]. Lasts for 12 seconds.  [D]: Deals 140 (+4% per level) damage to the target and splashes 70 (+4% per level) damage to nearby enemies. Heroes hit have their Spell Armor reduced by 20 for 2 seconds. [D] is fully charged while [R1] is active.
+[R2] heroic (cooldown 60 s, cost 60): After a 0.5 second cast, create a [R2] that travels in a long line. Enemy Heroes within the [R2]'s area are quickly pulled towards its center. Touching the center deals 310 (+4% per level) damage and Stuns the target for 1.25 seconds.
+[D] trait: this hero's Basic Attack is a Channeled beam that Slows by 15%. While Channeling, your Basic Attack damage and Mana regeneration increases by 25% a second, to a maximum of 100%. While at full charge, gain an extra 3 Mana every second.  This bonus is lost after 6 seconds of not Channeling.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Heroes hit by [Q] permanently increases its damage by 5 and grants 33% [D] charge.  Maximum of 200 bonus damage.
+  [T1.2] modifies W: Increases the range of [W] by 33%. Each non-Structure enemy hit by [W] restores 0.5 Mana, increased to 5 against Heroes.
+  [T1.3] modifies Trait: Quest: [D] charges 50% faster.  Reward: After [D] has been fully charged for 80 seconds, it bounces to hit 1 additional target for 75% damage, prioritizing Heroes.  Reward: After [D] has been fully charged for 160 seconds, it bounces to hit 2 additional targets for 75% damage, prioritizing Heroes.
+Level 4:
+  [T4.1] modifies Q: this hero gains 10% increased Movement Speed. Casting [Q] increases this bonus to 30% for 3 seconds.
+  [T4.2] modifies E: [E] deals 92 (+4% per level) damage a second to nearby enemies and Slows them by 35%.
+  [T4.3] modifies Trait: While [D] is fully charged, gain a Shield equal to 3% of max Health every second, stacking up to 12%.
+Level 7:
+  [T7.1] modifies Q: While [D] is fully charged, [Q]'s cooldown refreshes 100% faster and its Slow duration is increased to 4 seconds.  Passive: Reduce the Mana cost of [Q] from 55 to 40.
+  [T7.2] modifies W: Casting [W] causes your next [Q] within 3 seconds to only cost 30 Mana and create a [W] on the first enemy Hero hit.
+  [T7.3] modifies Trait: When [D] is fully charged, this hero's Basic Attack range is increased by 1 and its next instance of damage also creates a [W] on the target.  This effect has a 20 second cooldown that decays twice as fast while [D] is fully charged.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): this hero transforms into an [R1], gaining a Shield equal to 25% of his maximum Health and empowering [D]. Lasts for 12 seconds.  [D]: Deals 140 (+4% per level) damage to the target and splashes 70 (+4% per level) damage to nearby enemies. Heroes hit have their Spell Armor reduced by 20 for 2 seconds. [D] is fully charged while [R1] is active.
+  [R2] modifies Heroic (cooldown 60 s): After a 0.5 second cast, create a [R2] that travels in a long line. Enemy Heroes within the [R2]'s area are quickly pulled towards its center. Touching the center deals 310 (+4% per level) damage and Stuns the target for 1.25 seconds.
+Level 13:
+  [T13.1] modifies W: When an enemy Hero is affected by [W], [D]'s Slow is increased to 50% and it reduces Physical Armor by 25.
+  [T13.2] modifies Active (cooldown 60 s): this hero becomes Stealthed and Unrevealable, but cannot attack or use Abilities for 1.5 seconds. While this effect is active, gain 40% increased Movement Speed and 35 Armor.  Can be cast while Channeling [Q].
+  [T13.3] modifies Active (cooldown 45 s): Passive: While stationary, gain 30 Spell Armor for 0.75 seconds and restore 12 (+4% per level) Health a second.  Activate to Channel for up to 4 seconds, revealing a gradually increasing area anywhere on the map.
+Level 16:
+  [T16.1] modifies Q: [Q] deals an additional 8% of maximum Health as damage to the first Hero it hits.
+  [T16.2] modifies W: [W] deals damage 25% faster.
+  [T16.3] modifies Active (cooldown 40 s): Activate to gain full [D] charge, 20% Spell Power, and cause Basic and Heroic Ability cooldowns to regenerate 25% faster. This effect lasts as long as [D] remains at full charge.
+Level 20:
+  [T20.1] modifies Heroic: Basic Attacks while in [R1] form increase its duration by 2 seconds.
+  [T20.2] modifies Heroic: Enemy Heroes hit by [R2]'s center have their Armor reduced by 20 for 3 seconds and have a [W] created at their location.
+  [T20.3] modifies E: Increase the duration of [E] by 0.5 seconds, its range by 50%, and reduce its cooldown by 10 seconds.
+  [T20.4] modifies Passive: Gain 4% Spell Power for yourself and each nearby ally Hero, up to 20% total Spell Power. Your total bonus is shared with all contributing allies.
+
+----- K909 -----
+Hero code: K909
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 83 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 0.5 s, cost 6): Heal target allied Hero or Minion for 172 (+4% per level) Health per second as long as they are in range. After not channeling [Q] for 2 seconds, regenerate 6 Energy per second.  Reactivate to switch targets, or self-cast to cancel channeling.
+[W] basic (cooldown 11 s): Grant target ally Hero 35 Armor for 3 seconds.
+[E] basic (cooldown 12 s): Fire a grenade that can be manually detonated, dealing 208 (+4% per level) to nearby enemies and knocking them away.
+[R1] heroic (cooldown 70 s): Grant an allied Hero 75% Attack Speed and 25% Movement Speed for 10 seconds.
+[R2] heroic (cooldown 45 s): Target a location for a term A transport. For up to 10 seconds before takeoff, allies can right-click to enter the term A.
+[D] trait: While channeling [Q], this hero regenerates 2% of her maximum Health per second.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Passive: Increases Attack Range by 1.1 and Basic Attacks against Heroes generate 4 Energy.
+  [T1.2] modifies Q: During the first 2 seconds of Energy regeneration, [Q] regenerates 100% more Energy.  Passive: Increase your maximum Energy by 10.
+  [T1.3] modifies E: Quest: Each enemy Hero hit with [E] restores 3 Energy.  Reward: After hitting 15 Heroes, reduce the cooldown of [E] from 12 seconds to 9 seconds.  Reward: After hitting 30 Heroes, increase the detonation area of [E] by 25%.
+Level 4:
+  [T4.1] modifies Active (cooldown 20 s): Consume 30 Energy to heal this hero for 30% of her maximum Health over 3 seconds. [D] is disabled while this is active.  Passive: Generate 2 Energy each time [W] reduces damage, up to a maximum of 10 Energy per use.
+  [T4.2] modifies Passive: Taking damage while below 40% Health grants 40 Armor for 3 seconds. This effect has a 30 second cooldown.  Passive: Increase the healing provided by [D] from 2% to 4% of this hero's maximum Health per second.
+  [T4.3] modifies E: Enemy Heroes hit by [E] are Slowed by 50% for 1 second after being knocked away and grant this hero a Shield equal to 6% of her maximum Health. This shield stacks up to 5 times.
+Level 7:
+  [T7.1] modifies W: [W] removes all Slows from its target and its cooldown is reduced by 3 seconds.
+  [T7.2] modifies W: While an ally affected by [W] is Stunned or Rooted, [W] grants an additional 20 Armor.  Passive: Increase the duration of [W] by 1 second.
+  [T7.3] modifies W: Allies with [W] receive 75% of the healing done by [Q] on another ally.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): Grant an allied Hero 75% Attack Speed and 25% Movement Speed for 10 seconds.
+  [T10.2] modifies Heroic (cooldown 45 s): Unlock the [R2] and Reinforcements abilities. These abilities share a cooldown.  [R2] Target a location for a term A transport. For up to 10 seconds before takeoff, allies can right-click to enter the term A.  Reinforcements Call down a [R2] at your Hall of Storms for your allies. After 10 seconds, or when the Ability is activated again, the term A will travel to the original cast location to unload its passengers.
+Level 13:
+  [T13.1] modifies E: [E] deals an additional 96 (+4% per level) damage over 2 seconds, and up to 400 (+4% per level) bonus damage to Shields.
+  [T13.2] modifies E: Heroes hit by [E] deal 30% less damage for 3 seconds.
+  [T13.3] modifies E: Heroes hit by [E] will take an additional 6% of maximum Health as damage from this hero's next Basic Attack against them.  Passive: Basic Attacks against Heroes deal an additional 1% of maximum Health as damage.
+Level 16:
+  [T16.1] modifies Q: Channeling [Q] on a Hero for at least 3 seconds causes them to be healed for 258 (+4% per level) over 3 seconds when [Q] ends.  Passive: Increase the range of [Q] by 30%.
+  [T16.2] modifies Q: While above 60 Energy, [Q]'s healing is increased by 20% and both this hero and her [Q] target gain 15% Movement Speed.
+  [T16.3] modifies W: [W] gains a second charge and its range is increased by 60%.
+Level 20:
+  [T20.1] modifies Heroic: Reduce the cooldown of [R1] from 70 seconds to 35 seconds, and increase the Movement Speed bonus from 25% to 50%.
+  [T20.2] modifies Heroic: After exiting the term A, allies are Protected from all damage for 3 seconds.  Passive: Reduce the cooldown of [R2] abilities by 15 seconds.
+  [T20.3] modifies W: [W] grants its target Unkillable for 1 second. If the target is under 50% maximum Health when the Unkillable effect ends, they are healed for 8% of their maximum Health.
+  [T20.4] modifies E: Hitting 2 or more Heroes with [E] reduces its cooldown to 2 seconds.
+
+----- K482 -----
+Hero code: K482
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.75, one attack every 0.5 s, 64 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 25): Jump to an allied or enemy unit. Enemies are immediately hit with a Basic Attack.  Stores up to 2 charges.
+[W] basic (cooldown 10 s, cost 65): Heal nearby Heroes for 285 (+4% per level) and give them 15% Movement Speed for 3 seconds.
+[E] basic (cooldown 10 s, cost 45): this hero's next Basic Attack increases his Attack Speed and Attack Range by 100% for 2 seconds.
+[R1] heroic (cooldown 50 s, cost 77): Become Invulnerable and strike 7 times over 2 seconds. Each strike hits the highest Health nearby Hero for 7% of their maximum Health.
+[R2] heroic (cooldown 50 s, cost 50): Protect an allied Hero from death, causing them to be healed for 1200 (+4% per level) if they take fatal damage in the next 3 seconds.
+[D] trait: Choose between [T1.1], [T1.2], and [T1.3] from the Talents panel.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Trait: Every 3rd Basic Attack heals the lowest nearby allied Hero for 104 (+4% per level) and gives 25% increased Move Speed for 2.5 seconds.
+  [T1.2] modifies Trait: Every 3rd Basic Attack deals 110% bonus damage and gives 25% increased Move Speed for 2.5 seconds.
+  [T1.3] modifies Trait: Quest: Every 3rd Basic Attack restores 14 (+4% per level) Mana, grants a stack of [T1.3], and gives 25% increased Movement Speed for 2.5 seconds.  Reward: Upon getting 100 stacks of [T1.3], every 3rd attack also reduces Basic Ability cooldowns by 1.75 seconds.
+Level 4:
+  [T4.1] modifies Active (cooldown 45 s): Place a [T4.1] that heals allied Heroes in a large area around it for 2% of their maximum Health every second. Has 150 (+4% per level) Health and lasts 10 seconds. this hero can [Q] to Spirit Allies.
+  [T4.2] modifies Active (cooldown 45 s): Place an [T4.2] that grants nearby allied Heroes 50 Physical Armor against Heroic Basic Attacks, reducing damage taken by 50%. Has 400 (+4% per level) Health and lasts 10 seconds.  this hero can [Q] to Earth Allies.
+  [T4.3] modifies Active (cooldown 30 s): Place an [T4.3] that gives allied Heroes 15% Spell Power, grants vision, and reveals a large area around it. Has 200 (+4% per level) Health and lasts 10 seconds. this hero can [Q] to Air Allies.
+Level 7:
+  [T7.1] modifies Q: Decreases [Q]'s cooldown by 2 seconds and increases the maximum number of charges by 1.
+  [T7.2] modifies W: Increases [W]'s Movement Speed bonus to 30%.  Radiant Dashing to an ally increases the healing they receive from [W] by 50% for 3.5 seconds.
+  [T7.3] modifies E: Increase the duration of [E] by 100%.  Every 3rd Basic Attack reduces the cooldown of [E] by 0.75 seconds.
+Level 10:
+  [R2] modifies Heroic (cooldown 50 s): Protect an allied Hero from death, causing them to be healed for 1200 (+4% per level) if they take fatal damage in the next 3 seconds.
+  [R1] modifies Heroic (cooldown 50 s): Become Invulnerable and strike 7 times over 2 seconds. Each strike hits the highest Health nearby Hero for 7% of their maximum Health.
+Level 13:
+  [T13.1] modifies Q: Radiant Dashing to an ally gives this hero and the target 30% bonus Movement Speed for 3 seconds.
+  [T13.2] modifies Active: Every 30 seconds, gain 50 Spell Armor against the next enemy Ability and subsequent Abilities for 3 seconds, reducing the damage taken by 50%.  Can be toggled to allow or prevent this talent from triggering automatically.
+  [T13.3] modifies Passive: While Stunned or Rooted, gain 75 Physical Armor against Hero Basic Attacks for 4 seconds, reducing their damage by 75%.
+Level 16:
+  [T16.1] modifies Q: Radiant Dashing to an ally makes them Unstoppable for 1 second.
+  [T16.2] modifies Q: Radiant Dashing to an enemy launches a rapid volley of 6 Basic Attacks dealing 45% damage each.
+  [T16.3] modifies W: [W] heals 75% of its normal amount, but heals a second time 3 seconds later.
+Level 20:
+  [T20.1] modifies Heroic: [R2]'s healing amount is increased by 75% and its cooldown is set to 5 seconds if the Hero does not die.
+  [T20.2] modifies Heroic: [R1] hits 4 additional times.
+  [T20.3] modifies Trait: Gain 50% of the benefit from both level 1  talents that were not chosen.
+  [T20.4] modifies Active (cooldown 45 s): Activate to give all nearby allied Heroes a Shield for 20% of their max Health for 3 seconds.
+  [T20.5] modifies Active (cooldown 60 s): Activate to restore 33% of this hero's maximum Mana and refill 2 charges of [Q].
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-03:
+Base
+Health increased from 2027 to 2080.
+[W] [W]
+Healing increased from 285 to 295.
+Talents
+Level 4
+[T4.3]
+Health increased from 200 to 300.
+Spell Power increased from 15% to 20%.
+Level 10
+[R2]
+Duration increased from 3 to 4 seconds.
+Level 13
+[T13.3] now starts expiring after the Stun expires, instead of as soon as the Stun is applied.
+Level 20
+[T20.5]
+Cooldown increased from 60 to 70.
+Mana restored increased from 33% to 70%.
+
+----- K333 -----
+Hero code: K333
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.9 s, 88 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 40): Hurl a jar of spiders that deals 50 (+4% per level) damage. If it hits at least one enemy, create 3 [Q] that attack for 38 (+4% per level) damage. term D last for 4 seconds.
+[W] basic (cooldown 14 s, cost 70): After 1 second, create a ring of term E surrounding the target area that deal 28 (+4% per level) damage and last for 3 seconds.
+[E] basic (cooldown 8 s, cost 30): Create a wave of 3 term F that explode on contact, dealing 126 (+4% per level) damage over 6 seconds. This effect stacks.  Stores up to 2 charges.
+[R1] heroic (cooldown 70 s, cost 90): Summon a [R1] to guard an area for 20 seconds. Deals 100 (+4% per level) damage when summoned, attacks for 140 (+4% per level) damage, and can be ordered to stomp nearby enemies. The [R1]'s Stomp deals 140 (+4% per level) damage and Slows by 30% for 2 seconds.
+[R2] heroic (cooldown 90 s, cost 100): Channel a [R2] that deals 230 (+4% per level) damage per second. Cannot move while channeling. Lasts for 8 seconds.
+[D] trait: this hero's Basic Attacks and Abilities poison Non-Heroic enemies, causing them to take 67 (+4% per level) additional damage over 6 seconds.  Quest: If a Minion dies while poisoned by [D], this hero permanently gains 6 Health and 1 Mana.
+Alternate form or second unit abilities:
+[alt-R] subunit (cooldown 5 s): Order the [R1] to stomp, dealing 240 (+4% per level) damage to nearby enemies and Slowing them by 30% for 2 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Enemies hit by [Q]' jar are Slowed by 25% for 1 second.  Reward: After [Q] attack Heroes 100 times, their attack damage is increased by 25% and their duration is increased by 1 second.
+  [T1.2] modifies E: Quest: Hit Heroes with [E].  Reward: After hitting 35 Heroes with [E], it spawns 2 additional toads.  Reward: After hitting 70 Heroes with [E], it reduces the damage Heroes deal by 5%, stacking up to 25%.
+  [T1.3] modifies Passive: Increase the range of this hero's Basic Abilities by 20%.  Reward: After gaining 50 stacks of [D], gain 5% Spell Power.  Reward: After gaining 100 stacks of [D], gain an additional 5% Spell Power.
+Level 4:
+  [T4.1] modifies Q: [Q] restore 1% of this hero's maximum Health and Mana when they attack an enemy Hero.
+  [T4.2] modifies Trait: Increases the Health and Mana bonuses from [D] by 100%.
+  [T4.3] modifies Trait: If an enemy dies while poisoned by [D], restore 2% of this hero's maximum Health and Mana.  Passive: Takedowns grant 3 stacks of [D].
+Level 7:
+  [T7.1] modifies Q: The number of [Q] spawned is increased from 3 to 4. If [Q]' jar hits only one enemy, it creates an additional spider.
+  [T7.2] modifies W: [W] deals 100% more damage. When it expires up to 5 remaining term E uproot and attack nearby enemies for 3 seconds.
+  [T7.3] modifies E: Increase the damage and explosion radius of [E] by 25% after each hop, up to a maximum of 100%.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): Summon a [R1] to guard an area for 20 seconds. Deals 100 (+4% per level) damage when summoned, attacks for 140 (+4% per level) damage, and can be ordered to stomp nearby enemies. The [R1]'s Stomp deals 140 (+4% per level) damage and Slows by 30% for 2 seconds.
+  [R2] modifies Heroic (cooldown 90 s): Channel a [R2] that deals 230 (+4% per level) damage per second. Cannot move while channeling. Lasts for 8 seconds.
+Level 13:
+  [T13.1] modifies E: Hitting an enemy Hero with [E] grants 30 Armor for 3 seconds, stacking up to 6 seconds.
+  [T13.2] modifies Passive: Gain 40 Spell Armor. Heroic Basic Attacks against this hero remove this bonus for 3 seconds and spawn a term B to attack the Hero.
+  [T13.3] modifies Active (cooldown 60 s): Activate to place yourself in Stasis and gain Invulnerability for 3 seconds.
+Level 16:
+  [T16.1] modifies Q: term B Attacks against Heroes reduce the cooldown of this hero's Basic Abilities by 0.125 seconds.
+  [T16.2] modifies W: [W] lasts 1 second longer, and the center is filled with poison that deals a total of 319 (+4% per level) damage over 4 seconds. This damage starts small and increases over the duration.
+  [T16.3] modifies Active (cooldown 15 s): Activate to increase this hero's Health and Spell Power by 7% for each nearby enemy, up to a maximum of 35%. Lasts 15 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [alt-R]'s area is increased by 25% and its Slow amount is increased to 50%.  Passive: Reduce [R1]'s cooldown by 40 seconds and its Mana cost by 50%.
+  [T20.2] modifies Heroic: When [R2] damages an enemy Hero, reduce their healing received by 50% for 1 second and increase [R2]'s damage by 5% for the rest of its duration.  Passive: Increases the range of [R2] by 50%.
+  [T20.3] modifies Trait: Quest: Reach 175 stacks of [D].  Reward: After reaching 175 stacks of [D], it can also be applied to Heroes and its damage is increased from 67 (+4% per level) to 167 (+4% per level) over 6 seconds.
+  [T20.4] modifies Active (cooldown 30 s): Consume 5 stacks of [D] to become Unstoppable, gain 20% increased Movement Speed, and 50 Armor for 2 seconds.

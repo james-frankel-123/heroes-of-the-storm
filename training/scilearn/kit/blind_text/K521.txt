@@ -1,0 +1,46 @@
+Hero code: K521
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 3, one attack every 0.9 s, 33 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 3 s, cost 75): Fire a burst of energy forward, dealing 142 (+5% per level) damage to all enemies it passes through.  Hitting the center of a [W] will cause it to explode, dealing additional damage.
+[W] basic (cooldown 6 s, cost 150): Open an unstable [W] at a location that takes 1.25 seconds to arm, which then Slows nearby enemies by 25% lasting 3 seconds.  Armed [W] explode when they expire or when hit by [Q], dealing 261 (+5% per level) damage to nearby enemies.
+[E] basic (cooldown 15 s): Warp in a [E] that deals 105 (+4% per level) damage. Lasts for 13 seconds.  While within a term F's term C, [E] gain 40% Attack Speed over 4 seconds and reveal nearby enemies.
+[R1] heroic (cooldown 80 s, cost 100): For 8 seconds, increase the size of term F term C and allow them to attack enemy Heroes within it for 96 (+4% per level) damage per second. term F are Invulnerable for the duration.
+[R2] heroic (cooldown 25 s, cost 100): Vector Targeting Project a barrier of negative energy in the target direction that lasts 4 seconds. Enemies who touch the barrier take 76 (+4% per level) damage per second and are Slowed by 80% for as long as they remain in contact with it.
+[D] trait (cooldown 14 s): Warp in a term F that generates a term C and grants vision of the surrounding area. this hero only regenerates mana while inside a term C. Enemy Heroes and Minions drop term E when killed. [T1.3] to reduce the cooldown of [D] by 0.75 seconds.  Up to 2 term F can be active at a time.
+[Z] mount (cooldown 30 s): Activate to gain an additional 60% Movement Speed for 5 seconds. Taking damage ends this effect early.  [Z] is always active while at the Hall of Storms.  Passive: this hero moves 10% faster by hovering over the ground.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: [Q] now returns to this hero 1.25 seconds after reaching its target, dealing 100% damage on the return trip.
+  [T1.2] modifies W: Quest: Hit Heroes with [W] explosions.  Reward: After hitting 8 Heroes with [W] explosions, increase the explosion damage by 120.  Reward: After hitting 16 Heroes with [W] explosions, [W] gains 1 additional charge.
+  [T1.3] modifies E: Quest: [T1.3] to increase the Health of [E] by 8, up to 560.  Reward: After collecting 70 term E, [E] deal 35% more damage.
+Level 4:
+  [T4.1] modifies E: While a [E] is alive and powered, this hero gains 40 Spell Armor.
+  [T4.2] modifies Z: [Z] grants an additional 10% passive Movement Speed while in a term C, and its cooldown is reduced by 14 seconds.
+  [T4.3] modifies Trait: this hero gains permanent Shields equal to 10% of his max Health. Shields regenerate quickly as long as he hasn't taken damage recently.
+Level 7:
+  [T7.1] modifies Q: After hitting 3 Heroes with [Q], the next [W] detonated by a [Q] fires 4 additional pulses that deal 78 (+5% per level) damage from the impact location in different directions.  Passive: Reduce the cooldown of [Q] by 0.5 seconds.
+  [T7.2] modifies W: Hitting a [W] with [Q] within 1 second of it arming deals 105 (+5% per level) damage over 3 seconds.
+  [T7.3] modifies E: Reduce [E]'s cooldown by 3.5 seconds when [Q] or [W] damages an enemy Hero.
+Level 10:
+  [R1] modifies Heroic (cooldown 80 s): For 8 seconds, increase the size of term F term C and allow them to attack enemy Heroes within it for 96 (+4% per level) damage per second. term F are Invulnerable for the duration.
+  [R2] modifies Heroic (cooldown 25 s): Vector Targeting Project a barrier of negative energy in the target direction that lasts 4 seconds. Enemies who touch the barrier take 76 (+4% per level) damage per second and are Slowed by 80% for as long as they remain in contact with it.
+Level 13:
+  [T13.1] modifies Trait: term F's term C grants allied Heroes 35% increased Attack Damage.
+  [T13.2] modifies Trait: term F's term C grants allied Heroes 10% increased Spell Power and 2 Mana per second.
+  [T13.3] modifies Trait: term F's term C grants allied Heroes 28 (+4% per level) Shields per second, up to 112 (+4% per level). Shields persist for 2 seconds after exiting a term F term C.
+Level 16:
+  [T16.1] modifies W: Enemies continue to be slowed for 3 seconds after their last contact with a [W].
+  [T16.2] modifies W: Enemies are slowed more the closer they are to the center of the [W], up to a maximum slow of 60%.
+  [T16.3] modifies W: Enemy Heroes hit by [W] explosions have their Spell Power reduced by 35% for 5 seconds.  Additionally, enemies hit by [W] explosions are knocked away from the center.
+Level 20:
+  [T20.1] modifies Heroic: this hero can now have up to 3 active term F, and increase the damage of [R1] by 25%.
+  [T20.2] modifies Heroic: [R2] lasts indefinitely if either end is within a term C.
+  [T20.3] modifies Q: Enemy Heroes hit by [Q] take a  bonus 2.5% of their maximum Health as damage.  Passive: Reduce the cooldown of [Q] by 0.5 seconds.
+  [T20.4] modifies W: Whenever a Rift explosion hits 1 or more enemy Heroes, create a new [W] in the same location.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+ARAM

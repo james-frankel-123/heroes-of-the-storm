@@ -1,0 +1,49 @@
+Hero code: K288
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 3.75, one attack every 0.25 s, 22 damage per attack; range 5.5, one attack every 0.25 s, 55 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s): Increase this hero's Movement Speed by 115% for 1.75 seconds. Enemies that are hit take 135 (+4% per level) damage and are knocked away.  this hero cannot be Slowed while [Q] are active, and each enemy can only be hit once per use.
+[W] basic (cooldown 12 s): Project a defensive field in the target direction for 3 seconds, reducing the damage dealt by enemy Heroes inside it by 50%.  Activate again to change the angle of projection.  Damage dealt to the Mech from enemies within [W] still grants the same amount of [E] Charge.
+[E] basic: Eject from the Mech, setting it to self-destruct after 4 seconds. Deals 400 (+4% per level) to 1100 (+4% per level) damage in a large area, depending on distance from center. Deals 50% damage against Structures.  Gain 1% Charge for every 2 seconds spent Basic Attacking, and 25% Charge per 100% of Mech Health lost.
+[R1] heroic (cooldown 70 s): this hero's Mech becomes Unstoppable and stomps every 0.5 seconds, dealing 70 (+4% per level) damage in a large area. Every 4th consecutive hit on a Hero deals 100% more damage and Stuns them for 0.5 seconds.  Lasts for 4 seconds.  Requires [D].
+[R2] heroic (cooldown 20 s): After .375 seconds, Channel to launch a volley of 12 missiles in a target direction. Each missile impacts the first enemy in its path, dealing 40 (+4% per level) damage in a small area and Slowing by 30% for 2 seconds.  Stores 2 charges with a 5 second cooldown between each use.  Requires [D].
+[D] trait: When this hero's Mech dies, she is ejected out after 0.75 seconds and can continue to fight. this hero's Mech only awards 50% of a normal Hero's experience upon dying.  term A  this hero's Mech Basic Attacks deal 22 (+4% per level) damage in a large area every 0.25 seconds. Deals 40% bonus damage against enemies very close to the Mech.
+[Z] mount: this hero's Mech can shoot while moving. While shooting or channeling an ability, the Mech's Movement Speed is quickly reduced by 25%.
+Alternate form or second unit abilities:
+[alt-W] basic: [alt-W]
+[alt-E] basic (cooldown 45 s): Call a new Mech and enter [D].  Basic Attacks lower this cooldown by 0.5 seconds each.
+[alt-D] trait: Stop channeling [W]
+[alt-D#2] trait: Basic Attacks reduce the cooldown of [alt-E] by 0.5 seconds. As a Pilot, this hero only awards 50% of a normal Hero's experience upon dying.
+[alt-Q] basic (cooldown 10 s): Dash towards the target location, passing through enemies along the way.
+[alt-W#2] basic (cooldown 10 s): Deal 120 (+4% per level) damage to enemies in a cone and knock them back.
+[alt-R] heroic (cooldown 6 s): Deal 150 (+4% per level) damage to all enemies in a line. Heroes hit have their Movement Speed Slowed by 25% for 1.5 seconds. The cooldown of [alt-E] is reduced by 5 seconds for each enemy Hero hit.  Requires [alt-D#2].
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Trait: this hero's Mech gains 10% increased Health and its term A heal for 16% of the damage dealt to enemies in its bonus area.
+  [T1.2] modifies Trait: this hero's Mech gains 2% Movement Speed and 2 Armor every time it takes damage, stacking up to 15 times. Stacks of this effect decay every 0.5 seconds.  Basic Attacks against enemy Heroes in [alt-D#2] reduce the cooldown of [alt-E] by 1 additional second.
+  [T1.3] modifies Active (cooldown 50 s): Activate to gain the effects of Healing Fountain. Requires [D].  Passive: While in [D], Healing Fountain's cooldown is reduced to 50 seconds and its effects last 35% longer.
+Level 4:
+  [T4.1] modifies Q: [Q] deals an additional 2% of maximum Health as damage to Heroes and heals this hero's Mech for the damage dealt. [Q] deals 50% increased damage to non-Heroic enemies.
+  [T4.2] modifies W: Enemy Heroes within your [W] receive 35% less healing.  Passive: Basic Attacks against Heroes lower the cooldown of [W] by 0.1875 seconds.
+  [T4.3] modifies E: Hitting your self-destructing Mech with [alt-R] causes it to self-destruct 40% faster.  Passive: When term A deal bonus damage to an enemy Hero, gain 0.25 [E] Charge.
+Level 7:
+  [T7.1] modifies Q: Casting [Q] grants nearby allies 20% Movement Speed for 2 seconds.  Passive: If this hero has not taken damage in the last 3 seconds, [Q]' cooldown refreshes 100% faster.
+  [T7.2] modifies Q: The initial speed bonus of [Q] is increased to 300%, then decays to normal boost speed over 0.5 seconds. During this time, [Q] Stuns for 0.5 seconds.
+  [T7.3] modifies W: Every time an enemy Hero deals damage while inside [W], this hero's [E] Charge increases by 1%. Max of 20% Charge gained per use.  Passive: While at full [E] charge, term A' bonus damage is increased to 100%.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): this hero's Mech becomes Unstoppable and stomps every 0.5 seconds, dealing 70 (+4% per level) damage in a large area. Every 4th consecutive hit on a Hero deals 100% more damage and Stuns them for 0.5 seconds.  Lasts for 4 seconds.  Requires [D].
+  [R2] modifies Heroic (cooldown 20 s): After .375 seconds, Channel to launch a volley of 12 missiles in a target direction. Each missile impacts the first enemy in its path, dealing 40 (+4% per level) damage in a small area and Slowing by 30% for 2 seconds.  Stores 2 charges with a 5 second cooldown between each use.  Requires [D].
+Level 13:
+  [T13.1] modifies W: Enemy Heroes that remain in your [W] for 1 seconds have their Armor reduced by 15 and their Movement Speed reduced by 25% for 3 seconds.
+  [T13.2] modifies Trait: [alt-D#2]: Unlocks the [alt-Q] and [alt-W#2] abilities.  [alt-Q]: Dash a short distance. 10 second cooldown.  [alt-W#2]: Deal 120 (+4% per level) damage to enemies in a cone and knock them back. 10 second cooldown.
+  [T13.3] modifies Trait: [alt-D#2]: Instead of a single shot, [alt-R] fires 3 shots over 0.5 seconds. Each shot deals 75% damage.
+Level 16:
+  [T16.1] modifies Q: Casting [Q] grants a Shield equal to 10% of maximum life for 2.5 seconds. Each Enemy Hero hit by [Q] increases this hero's Mech's Basic Attack damage by 10% for 5 seconds, stacking up to 5 times.
+  [T16.2] modifies W: [W]'s area grows drastically in size and each time it reduces damage dealt to Heroes this hero's Mech is healed for 35 (+4% per level) Health.
+  [T16.3] modifies Trait: When this hero's Mech would be destroyed, it instead gains a Shield that absorbs 280 (+4% per level) damage over 4 seconds.  This effect has a 30 second cooldown.
+Level 20:
+  [T20.1] modifies Heroic: Increase [R1]'s duration by 4 seconds, and it does not decay while this hero's Mech is stationary.
+  [T20.2] modifies Heroic: [R2] gains an additional charge. Each time [R2] hits an enemy Hero, reduce its cooldown by 0.5 seconds and charge cooldown by 0.25 seconds.
+  [T20.3] modifies Trait: [alt-D#2]: Increase [alt-R]'s damage by 75% and reduce its cooldown by 2 seconds.
+  [T20.4] modifies Trait: 45% of Spell damage dealt to this hero's Mech is returned as healing over 4 seconds.

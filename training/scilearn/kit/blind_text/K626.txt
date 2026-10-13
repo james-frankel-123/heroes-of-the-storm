@@ -1,0 +1,92 @@
+Hero code: K626
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.3, one attack every 1.1 s, 96 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 45): Violently slash in the chosen direction, dealing 66 (+4% per level) damage to enemies.  Reactivate to slash up to 2 more times. The third slash Stuns enemies for 0.75 seconds.
+[W] basic (cooldown 8 s, cost 35): Desecrate the air, dealing 110 (+4% per level) damage to nearby enemies and gaining 25 Armor for 3 seconds.
+[E] basic (cooldown 14 s, cost 70): After 0.75 seconds, gain 50% Movement Speed for 2 seconds. While active, this hero can move through enemy Heroes and put them to Sleep for 2.5 seconds.
+[R1] heroic (cooldown 60 s, cost 60): Channel on an enemy Hero for 0.75 seconds, then swap Health percentages with the target over 3 seconds.
+[R2] heroic (cooldown 100 s, cost 70): After 1 second, disperse into an Invulnerable swarm of bats for 3 seconds, dealing 120 (+4% per level) damage per second to enemies.  [D] heals for 75% of [R2]'s damage to Heroes.
+[D] trait: this hero heals for 45% of damage dealt to enemy Heroes and 10% of damage dealt to non-Heroes.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Each time [W] hits an enemy Hero, gain 75 Physical Armor against the next enemy Hero Basic Attack.  If [T1.1] has no charges, this hero will gain 1 charge after 6 seconds.
+  [T1.2] modifies Trait: this hero heals for 30% of Physical Damage dealt, and nearby allied Heroes heal for 15% of Physical Damage dealt.
+  [T1.3] modifies Passive: this hero heals for 70 (+4% per level) when damaging a nearby enemy Hero. This can occur once every 6 seconds against each enemy Hero, but is also refreshed when they are Slept by [E].
+Level 4:
+  [T4.1] modifies W: While [W] is active, this hero heals for 12 (+4% per level) when damage is taken and [D] converts 20% more Hero damage into healing.
+  [T4.2] modifies W: [W]'s Armor is increased to 50.
+  [T4.3] modifies W: When [W] expires, it explodes again for 68 (+4% per level) damage.  For each enemy Hero hit, gain 5 Mana and reduce the cooldown of [W] by 0.75 seconds.  Does not wake Sleeping targets.
+Level 7:
+  [T7.1] modifies Q: After this hero hits an enemy Hero with [Q], his next Basic Attack deals 60% more damage and reduces the Armor of enemy Heroes by 15 for 2 seconds.
+  [T7.2] modifies Q: Each enemy Hero hit by the first 2 slashes of [Q] causes the final slash to steal 1% of maximum Health from enemy Heroes, up to 4%.  If at least 4 enemy Heroes are hit with the first 2 slashes of [Q], then the final slash Stuns enemies for an additional 0.5 seconds.
+  [T7.3] modifies E: After casting [E], deal 33 (+4% per level) damage per second to nearby enemies.  This effect lasts for 5 seconds and Basic Attacks against Heroes refresh its duration.  Does not wake Sleeping targets.
+Level 10:
+  [R2] modifies Heroic (cooldown 100 s): After 1 second, disperse into an Invulnerable swarm of bats for 3 seconds, dealing 120 (+4% per level) damage per second to enemies.  [D] heals for 75% of [R2]'s damage to Heroes.
+  [R1] modifies Heroic (cooldown 60 s): Channel on an enemy Hero for 0.75 seconds, then swap Health percentages with the target over 3 seconds.
+Level 13:
+  [T13.1] modifies E: Increase [E]'s Sleep duration by 0.75 seconds and its Movement Speed bonus by 10%.
+  [T13.2] modifies E: Basic Attacks deal 200% bonus damage to Sleeping enemies.  After [E]'s Sleep ends, targets are Slowed by 30% for 3 seconds.
+  [T13.3] modifies Trait: When this hero is healed by a Hero, he gains 1% Movement Speed for 6 seconds, up to 15%.
+Level 16:
+  [T16.1] modifies W: [W] unleashes a wave of bats in front of this hero, dealing 81 (+4% per level) damage.
+  [T16.2] modifies Passive: Basic Attacks against Heroes with a higher Health percentage heal for an additional 50% of damage dealt.  Basic Attacks against Heroes with a lower Health percentage grant 35% Attack Speed for 3 seconds.
+  [T16.3] modifies Active (cooldown 60 s): Activate to erupt with blind rage, removing the cooldown and Mana cost of [Q], but losing all vision. Lasts 6 seconds.   Enemy Heroes hit by the final slash of [Q] reduces the cooldown of this Ability by 4 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Upon expiring, [R2]'s bats seek nearby enemy Heroes, dealing 132 (+4% per level) damage and Sleeping them for 2.5 seconds.
+  [T20.2] modifies Heroic: Enemy Heroes near the target suffer 75% of the transferred Health as damage over 3 seconds.  Does not benefit from [D].
+  [T20.3] modifies Q: Damage from [Q] and Basic Attacks Slows enemies by 25% for 1.5 seconds, and [D] converts 10% more damage into healing versus Slowed Heroes.
+  [T20.4] modifies E: Reduce the cooldown of [E] by 4 seconds.  Enemy Heroes put to Sleep by [E] have their vision greatly reduced during the Sleep and for 2 seconds after.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2026-04:
+Base
+[W] [W]
+Now benefits double the amount from [D].
+Now provides 15 Spell Armor for 3 seconds.
+Damage increased from 110 to 121.
+Talents
+Level 1
+[T7.2]
+Moved from Level 7 to Level 1.
+REWORK: Hit Heroes with [Q] to gain 0.5 damage. Hit 4 Heroes in the first two swipes to cause the last wipe to provide 2 additional damage. Upon reaching 40 stacks, [Q] now steals 4% health from opponents and Stuns for an additional 0.5 seconds.
+Level 4
+[T1.2]
+Moved from Level 1 to Level 4.
+Self healing increased from 30% to 40% and healing of nearby Allies increased from 15% to 20%.
+[T4.2]
+Now provides 35 Armor for 3 seconds when using [W].
+Level 7
+[T4.1]
+Moved from Level 4 to Level 7.
+Now causes [W] to Slow by 25% for 3 seconds.
+Change set 2026-05:
+Talents
+Level 1
+[T7.2]
+Damage bonus per stack reduced from 0.5 to 0.25.
+Required damage to unlock quest reward decreased from 40 to 20.
+[T1.1]
+Stack generation reduced from once every 6 seconds to once every 5 seconds.
+Level 13
+[T13.1]
+Movespeed bonus increased from 10% to 15%.
+Level 20
+[T20.2]
+Transferred damage increased from 75% to 85%.
+Change set 2026-07:
+Talents
+Level 1
+[T7.2]
+Stun's duration increase reduced from 0.5 to 0.25 seconds.
+Level 16
+[T16.3]
+There is now a 0.2 second reactivation delay upon finishing 3 swipes of [Q]. This matches the time between other swipes.
+Change set 2026-09:
+Base
+[E] [E]
+Cast time reduced from 0.75 seconds to 0.625 seconds.
+[D] [D]
+Healing based on damage against Heroes increased from 45% to 50%.
+Healing based on damage against non-Heroes increased from 10% to 15%.

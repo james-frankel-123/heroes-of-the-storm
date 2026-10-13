@@ -1,0 +1,41 @@
+Hero code: K932
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 1.1 s, 71 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 16 s, cost 75): Pull the first enemy hit towards this hero and deal 91 (+4% per level) damage.  After reaching level 13, Hook's range is increased by 40%.
+[W] basic (cooldown 8 s, cost 35): Deal 104 (+4% per level) damage to enemies within the target area. Enemies in the inner impact take 50% more damage and are Slowed by 45% for 2 seconds.
+[E] basic (cooldown 20 s, cost 55): Deal 319 (+4% per level) damage to non-Heroic units, or 114 (+4% per level) damage to Heroes. Restores 20% of this hero's maximum Health.
+[R1] heroic (cooldown 75 s, cost 75): Emit bile that deals 37 (+4% per level) damage per second to enemies within, Slowing them by 35% for 1.5 seconds. Gain 20% Movement Speed while emitting bile. Lasts 8 seconds.
+[R2] heroic (cooldown 65 s, cost 70): Consume an enemy Hero, trapping them for 4 seconds. When [R2] ends, the enemy Hero takes 274 (+4% per level) damage. The trapped Hero cannot move or act and doesn't take damage from other sources.
+[D] trait (cooldown 60 s): Activate to spread term A in a large area every second and prevent your Movement Speed from being reduced below 110% for 4 seconds.  term A Hitting enemies with Basic Attacks or the inner area of Slam afflicts them with term A, dealing an additional 36 (+4% per level) damage over 4 seconds. Deals 150% more damage to Minions, Mercenaries, and Monsters.
+[1] activable (cooldown 16 s, cost 75): Activate to use Hook that can hit allied Heroes. Hitting an allied Hero this way reduces the cooldown of Hook by 8 seconds.  After reaching level 13, [1]'s range is increased by 40%.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Gain 3 Armor for every unit afflicted with term A, stacking up to 8 times. While [D] is active, this Armor amount is doubled.  Passive: Increase regeneration effects and all healing received by 15%.
+  [T1.2] modifies E: Quest: Hitting an enemy Hero with [E] increases this hero' Health Regeneration by 1.5 and the damage of term A by 2%, stacking up to 100 times.
+  [T1.3] modifies Passive: Gain 5% Movement Speed.  Quest: Gathering a Regeneration Globe increases this hero's maximum Health by 25.  Reward: Every 20 Globes gathered permanently increases this hero' Movement Speed by an additional 5%.
+Level 4:
+  [T4.1] modifies W: Basic Attacks reduce the cooldown of Slam by 0.75 seconds and restores 5 Mana. Hitting Heroes with the inner area of Slam reduces its cooldown by 1.5 seconds.
+  [T4.2] modifies Trait: Basic Attacks against enemies with term A deal 35% more damage and spreads term A to nearby enemies.  Passive: Slam applies term A to all targets hit.
+  [T4.3] modifies Passive: Basic Attacks against enemy Heroes Slow by 20% for 1.5 seconds and restore 1.75% of this hero' maximum Health.
+Level 7:
+  [T7.1] modifies Q: Hitting an enemy Hero with Hook deals bonus damage equal to 5% of their maximum Health, reduces Hook's cooldown by 4 seconds, and restores 35 Mana.
+  [T7.2] modifies E: [E] gains 1 additional charge with a 6 second cooldown between uses.  Gambit: If this hero is at max Health after using [E], he gains a Shield equal to 15% of his maximum Health for 10 seconds. Every death, reduce this Shield by 3%.
+  [T7.3] modifies Trait: While [D] is active, term A reduces healing received by 40%.  Passive: term A heals this hero for 75% of the damage dealt.
+Level 10:
+  [R1] modifies Heroic (cooldown 75 s): Emit bile that deals 37 (+4% per level) damage per second to enemies within, Slowing them by 35% for 1.5 seconds. Gain 20% Movement Speed while emitting bile. Lasts 8 seconds.
+  [R2] modifies Heroic (cooldown 65 s): Consume an enemy Hero, trapping them for 4 seconds. When [R2] ends, the enemy Hero takes 274 (+4% per level) damage. The trapped Hero cannot move or act and doesn't take damage from other sources.
+Level 13:
+  [T13.1] modifies Q: Hitting an enemy Hero with Hook heals this hero for 20% of his maximum Health over 5 seconds. While active, Basic Attacks against the Hero hit refresh the duration of this effect.
+  [T13.2] modifies W: Increase Slam's damage by 25.  Quest: After damaging Heroes with term A 6 times, permanently increase the damage of Slam by 1, to a maximum of 75 additional damage.
+  [T13.3] modifies Trait: Hitting an enemy Hero with Hook or activating [D] grants 40% increased Attack Speed for 4 seconds. Basic Attacks refresh the duration of this effect.
+Level 16:
+  [T16.1] modifies W: All enemies hit by Slam are Slowed by 70% for 0.75 seconds and Heroes have their Armor reduced by 10 for 3 seconds.
+  [T16.2] modifies E: [E] deals an additional 140 (+4% per level) damage over 5 seconds. When used on a Hero, its cooldown is reduced by 4 seconds and causes the Hero hit to deal 50% reduced damage for 4 seconds.
+  [T16.3] modifies Trait: Deals 15 (+4% per level) damage per second to nearby enemies. Hitting an enemy Hero with Hook or activating [D] increases this damage by 150% for 4 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R1] deals 100% more damage to Heroes.  Quest: Each time [R1] damages an enemy Hero, the duration of this hero' next death timer is reduced by 2%, to a maximum of 80% total reduction. All stacks of this effect are lost upon death.
+  [T20.2] modifies Heroic: For 4 seconds after using [R2], this hero can teleport a short distance to additional targets and [R2] them. Enemies are Slowed by 75% for 1 second after [R2] ends.
+  [T20.3] modifies Q: Reduce the cooldown of Hook by 4 seconds. Enemy Heroes hit by Hook have 75% reduced healing for 2 seconds. Allies hit by [1] are Unkillable for 2 seconds.
+  [T20.4] modifies Trait: Activating [D] grants Unstoppable for 3 seconds.  Passive: [D]'s cooldown is reduced by 20 seconds.

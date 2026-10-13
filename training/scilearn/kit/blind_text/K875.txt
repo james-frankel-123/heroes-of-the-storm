@@ -1,0 +1,50 @@
+Hero code: K875
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.25, one attack every 0.55 s, 78 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 6 s): Dive at the target, dealing 66 (+4% per level) damage and flipping to the other side of the target.
+[W] basic (cooldown 8 s): Dash towards target point, dealing 119 (+4% per level) damage to enemies along the way. Hitting an enemy increases this hero's Basic Attack damage by 35% for 3 seconds.
+[E] basic (cooldown 15 s): Evade enemy Basic Attacks for 2.5 seconds.
+[R1] heroic (cooldown 100 s): Charge to target unit, dealing 251 (+4% per level) damage on impact and stunning for 1 second.
+[R2] heroic (cooldown 120 s): Transform into term B at the target location, dealing 46 (+4% per level) damage in the area. Temporarily increases maximum Health by 220 (+4% per level) for each Hero hit by the initial impact. Lasts for 18 seconds.
+[D] trait: Basic Attacks heal for 30% of damage dealt and reduce Ability cooldowns by 1 second.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: After using [W], burn nearby enemies for 22 (+4% per level) damage a second for 4 seconds.
+  [T1.2] modifies W: Increase [W]'s Basic Attack damage bonus duration from 3 to 5 seconds. If [W] hits 2 Heroes its damage bonus is increased from 35% to 125%.
+  [T1.3] modifies Passive: Quest: Minion kills grant 0.2 Basic Attack Damage. Hero Takedowns grant 1 Basic Attack Damage.  Reward: After gaining 20 increased Basic Attack Damage, receive an additional 20 Basic Attack Damage.
+Level 4:
+  [T4.1] modifies Q: Using Dive grants 75 Physical Armor against the next 3 Hero Basic Attacks for 4 seconds, reducing the damage taken by 75%.
+  [T4.2] modifies Trait: [D]'s healing from Basic Attacks is increased from 30% to 50% while [W]'s damage bonus is active.
+  [T4.3] modifies Trait: Basic Abilities heal for 35% of the damage they deal. This bonus is doubled versus Heroes.
+Level 7:
+  [T7.1] modifies Q: Dive grants 20% Movement Speed for 3 seconds. If the target is an enemy Hero, reduce its cooldown by 1 second.
+  [T7.2] modifies Q: Increases the range of Dive by 20% and allows it to be used to dive to allied Heroes.
+  [T7.3] modifies W: [W] can go over walls and terrain.  Reward: After hitting 15 Heroes with [W], gain a second charge.
+Level 10:
+  [R2] modifies Heroic (cooldown 120 s): Transform into term B at the target location, dealing 46 (+4% per level) damage in the area. Temporarily increases maximum Health by 220 (+4% per level) for each Hero hit by the initial impact. Lasts for 18 seconds.
+  [R1] modifies Heroic (cooldown 100 s): Charge to target unit, dealing 251 (+4% per level) damage on impact and stunning for 1 second.
+Level 13:
+  [T13.1] modifies W: If [W] hits an enemy Hero, gain 25 Armor for 2 seconds, reducing damage taken by 25%.
+  [T13.2] modifies E: [W] reduces the cooldown of Evasion by 3 seconds every time it damages an enemy Hero.
+  [T13.3] modifies E: While active, Evasion grants this hero 75 Spell Armor against the next 2 sources of Spell Damage, reducing their damage by 75%.
+Level 16:
+  [T16.1] modifies Q: Dive deals an extra 180 (+4% per level) damage if used consecutively on a target within 10 seconds.
+  [T16.2] modifies Passive: Every 3rd attack against the same Hero deals an additional 7% of their maximum Health as damage.
+  [T16.3] modifies Active: Hitting 5 Heroes with [W] allows [T16.3] to be activated, increasing Basic Attack damage by 75% for 8 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Permanently remain in [T20.1]. [R2] also increases Attack Speed by 20% and reduces the duration of Stuns, Roots, and Slows by 50%. this hero can now mount in [T20.1].
+  [T20.2] modifies Heroic: [R1] gains unlimited range. this hero passively reveals enemy Heroes below 25% Health anywhere on the Battleground.
+  [T20.3] modifies Passive: Basic Attacks deal 20% more damage and Slow enemy Movement Speed by 20% for 1 second.
+  [T20.4] modifies Active (cooldown 70 s): Activate to teleport to a nearby location.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-09:
+Talents
+Level 16
+[T16.2]
+Attacking a different Hero from the last Hero attacked now resets progress on the previously attacked Hero.
+Blinds and Evasion now prevent any progress from being granted.
+If the target gains Stasis or Invulnerable, progress will be lost.
+Stacks now last 300 seconds.

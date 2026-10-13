@@ -1,0 +1,253 @@
+{
+ "coder": 3,
+ "batch": 3,
+ "codes": [
+  "K523",
+  "K666",
+  "K629",
+  "K554",
+  "K408",
+  "K495",
+  "K592",
+  "K932",
+  "K983",
+  "K255",
+  "K809",
+  "K488",
+  "K836"
+ ],
+ "prompt_file": "codings/prompts/coder3_batch3.txt",
+ "prompt_sha256": "d0a74ed61e8918bfe0fd363d9240971f459b37cb7fed2ed5530475748976bb75",
+ "model_requested": "claude-opus-5-5",
+ "models_reported": [
+  "claude-opus-5-5"
+ ],
+ "session_id": "67f07b8b-026d-42f7-b24f-d9cccbfa44dc",
+ "started": "2026-10-13T14:10:28Z",
+ "finished": "2026-10-13T14:11:21Z",
+ "attempts": [
+  {
+   "attempt": 1,
+   "started": "2026-10-13T14:10:28Z",
+   "error": null,
+   "models": [
+    "claude-opus-5-5"
+   ]
+  }
+ ],
+ "raw_result": "{\"K523\": {\"hard_cc\": 1, \"soft_cc_peel\": 2, \"healing_throughput\": 4, \"self_sustain_shields\": 2, \"burst\": 2, \"sustained_damage\": 2, \"range\": 2, \"mobility\": 1, \"waveclear\": 1, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 0, \"low_confidence\": [\"waveclear\", \"self_sustain_shields\"]}, \"K666\": {\"hard_cc\": 2, \"soft_cc_peel\": 2, \"healing_throughput\": 3, \"self_sustain_shields\": 1, \"burst\": 2, \"sustained_damage\": 1, \"range\": 2, \"mobility\": 0, \"waveclear\": 2, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 0, \"low_confidence\": [\"self_sustain_shields\"]}, \"K629\": {\"hard_cc\": 2, \"soft_cc_peel\": 2, \"healing_throughput\": 3, \"self_sustain_shields\": 2, \"burst\": 1, \"sustained_damage\": 0, \"range\": 1, \"mobility\": 3, \"waveclear\": 1, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 0, \"low_confidence\": []}, \"K554\": {\"hard_cc\": 2, \"soft_cc_peel\": 1, \"healing_throughput\": 0, \"self_sustain_shields\": 1, \"burst\": 3, \"sustained_damage\": 3, \"range\": 2, \"mobility\": 0, \"waveclear\": 3, \"siege\": 1, \"global_presence\": 0, \"early_vs_late\": 1, \"low_confidence\": []}, \"K408\": {\"hard_cc\": 1, \"soft_cc_peel\": 2, \"healing_throughput\": 0, \"self_sustain_shields\": 3, \"burst\": 2, \"sustained_damage\": 3, \"range\": 1, \"mobility\": 1, \"waveclear\": 3, \"siege\": 2, \"global_presence\": 2, \"early_vs_late\": 1, \"low_confidence\": [\"global_presence\"]}, \"K495\": {\"hard_cc\": 2, \"soft_cc_peel\": 1, \"healing_throughput\": 0, \"self_sustain_shields\": 3, \"burst\": 3, \"sustained_damage\": 3, \"range\": 1, \"mobility\": 2, \"waveclear\": 1, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 1, \"low_confidence\": []}, \"K592\": {\"hard_cc\": 2, \"soft_cc_peel\": 2, \"healing_throughput\": 0, \"self_sustain_shields\": 2, \"burst\": 3, \"sustained_damage\": 4, \"range\": 0, \"mobility\": 2, \"waveclear\": 2, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 1, \"low_confidence\": [\"early_vs_late\"]}, \"K932\": {\"hard_cc\": 2, \"soft_cc_peel\": 3, \"healing_throughput\": 0, \"self_sustain_shields\": 2, \"burst\": 2, \"sustained_damage\": 2, \"range\": 1, \"mobility\": 1, \"waveclear\": 2, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 0, \"low_confidence\": []}, \"K983\": {\"hard_cc\": 1, \"soft_cc_peel\": 2, \"healing_throughput\": 0, \"self_sustain_shields\": 1, \"burst\": 3, \"sustained_damage\": 2, \"range\": 2, \"mobility\": 1, \"waveclear\": 3, \"siege\": 0, \"global_presence\": 1, \"early_vs_late\": 0, \"low_confidence\": [\"self_sustain_shields\", \"mobility\", \"range\"]}, \"K255\": {\"hard_cc\": 1, \"soft_cc_peel\": 2, \"healing_throughput\": 4, \"self_sustain_shields\": 1, \"burst\": 2, \"sustained_damage\": 2, \"range\": 2, \"mobility\": 0, \"waveclear\": 1, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 0, \"low_confidence\": [\"self_sustain_shields\"]}, \"K809\": {\"hard_cc\": 2, \"soft_cc_peel\": 3, \"healing_throughput\": 0, \"self_sustain_shields\": 3, \"burst\": 2, \"sustained_damage\": 3, \"range\": 1, \"mobility\": 0, \"waveclear\": 2, \"siege\": 1, \"global_presence\": 0, \"early_vs_late\": 1, \"low_confidence\": []}, \"K488\": {\"hard_cc\": 0, \"soft_cc_peel\": 2, \"healing_throughput\": 0, \"self_sustain_shields\": 1, \"burst\": 3, \"sustained_damage\": 3, \"range\": 3, \"mobility\": 2, \"waveclear\": 0, \"siege\": 1, \"global_presence\": 2, \"early_vs_late\": 0, \"low_confidence\": [\"early_vs_late\"]}, \"K836\": {\"hard_cc\": 3, \"soft_cc_peel\": 2, \"healing_throughput\": 0, \"self_sustain_shields\": 3, \"burst\": 3, \"sustained_damage\": 2, \"range\": 1, \"mobility\": 2, \"waveclear\": 1, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 0, \"low_confidence\": []}}",
+ "codes_out": {
+  "K523": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 4,
+   "self_sustain_shields": 2,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 2,
+   "mobility": 1,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "waveclear",
+    "self_sustain_shields"
+   ]
+  },
+  "K666": {
+   "hard_cc": 2,
+   "soft_cc_peel": 2,
+   "healing_throughput": 3,
+   "self_sustain_shields": 1,
+   "burst": 2,
+   "sustained_damage": 1,
+   "range": 2,
+   "mobility": 0,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "self_sustain_shields"
+   ]
+  },
+  "K629": {
+   "hard_cc": 2,
+   "soft_cc_peel": 2,
+   "healing_throughput": 3,
+   "self_sustain_shields": 2,
+   "burst": 1,
+   "sustained_damage": 0,
+   "range": 1,
+   "mobility": 3,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K554": {
+   "hard_cc": 2,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 2,
+   "mobility": 0,
+   "waveclear": 3,
+   "siege": 1,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": []
+  },
+  "K408": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 2,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 1,
+   "waveclear": 3,
+   "siege": 2,
+   "global_presence": 2,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "global_presence"
+   ]
+  },
+  "K495": {
+   "hard_cc": 2,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": []
+  },
+  "K592": {
+   "hard_cc": 2,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 2,
+   "burst": 3,
+   "sustained_damage": 4,
+   "range": 0,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "early_vs_late"
+   ]
+  },
+  "K932": {
+   "hard_cc": 2,
+   "soft_cc_peel": 3,
+   "healing_throughput": 0,
+   "self_sustain_shields": 2,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 1,
+   "mobility": 1,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K983": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 2,
+   "range": 2,
+   "mobility": 1,
+   "waveclear": 3,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "self_sustain_shields",
+    "mobility",
+    "range"
+   ]
+  },
+  "K255": {
+   "hard_cc": 1,
+   "soft_cc_peel": 2,
+   "healing_throughput": 4,
+   "self_sustain_shields": 1,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 2,
+   "mobility": 0,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "self_sustain_shields"
+   ]
+  },
+  "K809": {
+   "hard_cc": 2,
+   "soft_cc_peel": 3,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 2,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 0,
+   "waveclear": 2,
+   "siege": 1,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": []
+  },
+  "K488": {
+   "hard_cc": 0,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 3,
+   "mobility": 2,
+   "waveclear": 0,
+   "siege": 1,
+   "global_presence": 2,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "early_vs_late"
+   ]
+  },
+  "K836": {
+   "hard_cc": 3,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 3,
+   "sustained_damage": 2,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  }
+ }
+}

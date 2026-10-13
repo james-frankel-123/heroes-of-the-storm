@@ -1,0 +1,60 @@
+Hero code: K569
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 140 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 14 s, cost 50): Create 3 mines that arm after 1.25 seconds. Mines detonate when an enemy comes in range, dealing 96 (+4% per level) damage to nearby enemies and Slowing them by 25% for 1.5 seconds.  [D]: Cast range increased by 100%.
+[W] basic (cooldown 12 s, cost 80): Deal 141 (+4% per level) damage to enemies in front of this hero and knock them back.  [D]: Radius increased by 50%.
+[E] basic (cooldown 16 s, cost 60): Gain 25 Armor for 2 seconds.  [D]: Grants 100% more Armor.
+[R1] heroic (cooldown 6 s, cost 35): Deals 164 (+4% per level) damage on impact, and leaves a napalm area that deals 50 (+4% per level) damage per second. Lasts for 4 seconds.
+[R2] heroic (cooldown 70 s, cost 100): Fire a missile across the battlefield, dealing 500 (+3% per level) damage to non-Structure enemies in its path.
+[D] trait (cooldown 2 s): Activate to enter [D]. While in [D], Basic Attacks deal 20% more damage, have 100% increased range, and deal 25% of their damage as splash damage around the target.
+[Z] mount (cooldown 30 s): Increase Movement Speed by 60% for 4 seconds. [Z] are always active while at the Hall of Storms. Activating [Z] cancels [D].
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Trait: Gain Stealth when entering [D] or after not taking or dealing damage for 3 seconds while in [D]. Basic Attacks while Stealthed deal 125% more damage.  Remaining stationary for at least 1.5 seconds while Stealthed grants Invisible.
+  [T1.2] modifies Trait: Increase [D]'s splash damage to 60% of Basic Attack damage, and increase its splash radius by 25%.
+  [T1.3] modifies Active (cooldown 80 s): Activate to increase Basic Attack damage dealt by 30% for 5 seconds. Hitting enemy Heroes or Structures with Basic Attacks while in [D] reduces the cooldown of [T1.3] by 5 seconds.  Stores up to 3 charges.
+Level 4:
+  [T4.1] modifies W: Reduce [W]'s cooldown by 4 seconds, its Mana cost by 40, and when cast create an impassable wall in front of this hero for 4 seconds.
+  [T4.2] modifies E: Using [E] while in [D] grants Unstoppable for 2 seconds, as long as she remains in [D].
+  [T4.3] modifies Trait: Basic Attacks while in [D] heal for 10% of the damage dealt.
+Level 7:
+  [T7.1] modifies Q: [Q] detonate 3 times over 3 seconds.  Basic Attacks against enemy Heroes grant 5 Mana and reduce the cooldown of [Q] by 1.5 seconds.  Increase this bonus to 2.5 seconds while in [D].
+  [T7.2] modifies Trait: this hero can move at 50% Movement Speed while in [D].
+  [T7.3] modifies Trait: While in [D], Basic Attack range is increased by 1 every 1.5 seconds, up to 3.
+Level 10:
+  [R2] modifies Heroic (cooldown 70 s): Fire a missile across the battlefield, dealing 500 (+3% per level) damage to non-Structure enemies in its path.
+  [R1] modifies Heroic (cooldown 6 s): Deals 164 (+4% per level) damage on impact, and leaves a napalm area that deals 50 (+4% per level) damage per second. Lasts for 4 seconds.
+Level 13:
+  [T13.1] modifies Q: Moving while [Z] is active leaves a trail of up to 5 [Q]. Additionally, increase the Slow of [Q] by 15%.
+  [T13.2] modifies W: While in [D], [W]'s damage and knockback distance are increased by 75%.
+  [T13.3] modifies Z: While in [D], hitting Heroes with Basic Attacks reduces the cooldown of [Z] by 5 seconds.
+Level 16:
+  [T16.1] modifies E: [E] grants 20% maximum Health as a Shield for 2 seconds and increases Basic Attack damage by 30% for 5 seconds.
+  [T16.2] modifies Passive: Attacking a Hero that is slowed, rooted, or stunned increases your Basic Attack damage by 30% for 3 seconds.
+  [T16.3] modifies Passive: Basic Attacks against enemy Heroes deal bonus damage equal to 1.5% of the Hero's maximum Health.
+Level 20:
+  [T20.1] modifies Heroic: [R2]'s missile orbits the planet every 5 seconds. Only the last missile fired orbits.
+  [T20.2] modifies Heroic: [R1]'s range is increased by 75% and its impact does 50% more damage.
+  [T20.3] modifies Q: Upon detonating, [Q] reduce the Armor of enemy Heroes hit by 10, up to 50, for 4 seconds.
+  [T20.4] modifies Trait: Hitting enemy Heroes with Basic Attacks while in [D] grants 10% Attack Speed for 5 seconds, up to 60%.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-07:
+Base
+[W] [W]
+Base duration reduced by 20%. Distance pushed back from blast is not reduced.
+Change set 2026-04:
+Talents
+Level 1
+[T1.3]
+Damage bonus increased from 30% to 40%.
+Level 13
+[T13.3]
+Cooldown reduction no longer triggers off of Splash damage, but now triggers off of Structures.
+Level 20
+[T20.2]
+Damage bonus increased from 50% to 65%.
+Ultra-Capacitors
+Cooldown reduction no longer triggers off of Splash damage, but now triggers off of Structures.

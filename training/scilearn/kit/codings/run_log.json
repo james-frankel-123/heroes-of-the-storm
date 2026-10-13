@@ -1,0 +1,121 @@
+{
+ "model": "claude-opus-5-5",
+ "coder_seeds": {
+  "1": 5701,
+  "2": 5702,
+  "3": 5703
+ },
+ "batch_size": 13,
+ "template_sha256": "d7bb453b2a93c3075929ad1f6645ac2839346f1ad0c68914b019dc0c05a32b67",
+ "rubric_sha256": "9dff6debe9db32a17d0f23daa8d90c1c7b1b13a709528e8c94f302f9d9d5e0df",
+ "cli": "CLAUDE_CONFIG_DIR=~/.claude-account-2 claude -p --model claude-opus-5-5 --tools '' --strict-mcp-config --no-session-persistence --output-format json (empty temp cwd)",
+ "started": "2026-10-13T14:07:37Z",
+ "results": [
+  {
+   "coder": 1,
+   "batch": 1,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 1,
+   "batch": 3,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 1,
+   "batch": 2,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 1,
+   "batch": 0,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 1,
+   "batch": 5,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 1,
+   "batch": 6,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 2,
+   "batch": 1,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 1,
+   "batch": 4,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 2,
+   "batch": 3,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 2,
+   "batch": 0,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 2,
+   "batch": 4,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 2,
+   "batch": 2,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 2,
+   "batch": 6,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 3,
+   "batch": 1,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 3,
+   "batch": 2,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 2,
+   "batch": 5,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 3,
+   "batch": 0,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 3,
+   "batch": 4,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 3,
+   "batch": 5,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 3,
+   "batch": 3,
+   "status": "ok after 1"
+  },
+  {
+   "coder": 3,
+   "batch": 6,
+   "status": "ok after 1"
+  }
+ ],
+ "finished": "2026-10-13T14:11:39Z"
+}

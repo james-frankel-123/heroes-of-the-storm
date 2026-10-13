@@ -1,2 +1,4 @@
 __pycache__/
 *.pyc
+kit/sources_2.57.json
+kit/__pycache__/

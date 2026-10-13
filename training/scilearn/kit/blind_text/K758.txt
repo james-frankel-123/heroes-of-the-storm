@@ -1,0 +1,64 @@
+Hero code: K758
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 60 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 1.5 s, cost 75): Release a wave of flame, dealing 210 (+4.5% per level) damage to enemies.
+[W] basic (cooldown 10 s): Drain the life from an enemy over 3 seconds, dealing 132 (+4% per level) damage per second and healing this hero for 188 (+4% per level) Health per second.
+[E] basic (cooldown 14 s, cost 80): Call forth three bursts of shadow energy, dealing 204 (+4.5% per level) damage over 6 seconds. [E] can stack up to 3 times on an enemy.
+[R1] heroic (cooldown 80 s, cost 90): After 0.5 seconds, deal 120 (+4% per level) damage to enemy Heroes in an area and Fear them for 2 seconds. While Feared, Heroes are Silenced and are forced to run away from [R1]'s center.
+[R2] heroic (cooldown 70 s, cost 80): After 1.5 seconds, summon a rain of meteors in an area for 7 seconds. Each meteor deals 165 (+4% per level) damage in a small area.
+[D] trait: this hero does not regenerate Mana.  Activate to restore 25% of this hero's Mana.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Hit 30 enemy Heroes with [Q].  Reward: [Q]'s radius is increased by 10%.
+  [T1.2] modifies W: Increases the cast range of [W] by 25% and the healing provided by Regen Globes by 50%.  Quest: Gather 15 Regen Globes.  Reward: Basic Ability Mana costs are permanently reduced by 20.
+  [T1.3] modifies E: Quest: Hit 40 enemy Heroes with [E].  Reward: After the third strike, [E] strikes 3 times in the opposite direction.
+Level 4:
+  [T4.1] modifies W: [W]'s cooldown recharges 100% faster while it is channeling. If an enemy dies while under the effect of [W], the cooldown is instantly refreshed.
+  [T4.2] modifies Trait: Increase the Mana restored by [D] to 40%.
+  [T4.3] modifies Active (cooldown 25 s): Instantly kill an enemy Minion and heal for 365 (+4% per level) Health.  Stores up to 3 charges.
+Level 7:
+  [T7.1] modifies Q: Each enemy Hero hit with [Q] reduces the cooldown of [E] by 1.75 seconds.
+  [T7.2] modifies W: [W] deals 50% more damage and Slows the target's Movement Speed by 40%.
+  [T7.3] modifies Passive: Increases Spell Power by 15% but reduces healing received from allies by 25%.
+Level 10:
+  [R1] modifies Heroic (cooldown 80 s): After 0.5 seconds, deal 120 (+4% per level) damage to enemy Heroes in an area and Fear them for 2 seconds. While Feared, Heroes are Silenced and are forced to run away from [R1]'s center.
+  [R2] modifies Heroic (cooldown 70 s): After 1.5 seconds, summon a rain of meteors in an area for 7 seconds. Each meteor deals 165 (+4% per level) damage in a small area.
+Level 13:
+  [T13.1] modifies Q: Hitting an enemy Hero with [Q] grants 50 Spell Armor for 2.5 seconds, reducing Ability Damage taken by 50%.
+  [T13.2] modifies W: [W] heals for 75% more Health when used on Heroes.
+  [T13.3] modifies Passive: this hero's maximum Health is permanently increased by 40% but his respawn time is increased by 10 seconds.
+  [T13.4] modifies Active (cooldown 45 s): Activate to heal for 25% of this hero's maximum Health.
+Level 16:
+  [T16.1] modifies Q: [Q]'s damage is increased by 12% for 5 seconds when hitting an enemy Hero. This can stack up to 5 times.
+  [T16.2] modifies E: [E] deals an additional 78 (+4% per level) damage on impact. If the enemy is hit by all three strikes, the third strike deals 268 (+4% per level) damage.
+  [T16.3] modifies Trait: Dealing 600 (+4% per level) damage to enemy Heroes causes the next cast of [D] to cost no Health and grant this hero 25% Spell Power for 5 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Increases the duration of [R1] by 1 second, and while Feared, enemies lose 20 Armor, causing them to take 20% increased damage.
+  [T20.2] modifies Heroic: [R2] slows enemies Movement Speed by 90% for 0.5 seconds.
+  [T20.3] modifies Active (cooldown 60 s): Summon a [T20.3] at this hero's location. Activate to teleport this hero to the [T20.3].
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-10:
+Updates
+ARAM
+Change set 2025-12:
+Talents
+Level 1
+[T1.3]
+Pinnacle Reward healing increased to 100%, up from 50%.
+Pinnacle Reward requirement reduced to 85, down from 100.
+Level 16
+[T16.2]
+Damage reduced by 10%.
+Change set 2025-12:
+Updates
+Talents
+Level 1
+[T1.3]
+Pinnacle Reward healing increased from 50% to 100%.
+Pinnacle Reward requirement reduced from 100 to 85.
+Level 16
+[T16.2]
+Damage reduced by 10%.

@@ -1,0 +1,55 @@
+Hero code: K958
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 2, one attack every 0.8 s, 98 damage per attack; range 6.5, one attack every 0.8 s, 98 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 9 s, cost 60): Deal 205 (+4% per level) damage, knock back, and Slow enemies in a line by 20% for 2 seconds. Enemies close to this hero are knocked back further.
+[W] basic (cooldown 12 s, cost 50): this hero and all nearby allied Minions and Mercenaries gain 30% Attack Speed and 10% Movement Speed for 4 seconds.  Casting Inspire resets this hero's Basic Attack cooldown.
+[E] basic (cooldown 45 s, cost 75): Heal this hero for 25% of his maximum Health over 1 second. this hero's Basic Attacks lower the cooldown of this by 0.5 seconds, doubled against Heroes.
+[R1] heroic (cooldown 100 s, cost 100): Order the [R1] to make a strafing run for 12 seconds, hitting up to 4 enemies for 66 (+4% per level) damage every second. Every 4 seconds, it can fire its term B at a Structure, dealing 794 (+4% per level) damage.
+[R2] heroic (cooldown 45 s): Summon a term D that assists this hero. The term D deals 84 (+4% per level) damage per second and regenerates 75 (+4% per level) Health per second if it hasn't taken damage in the last 4 seconds. Can reactivate to retarget or move the term D.  The term D respawns automatically after 45 seconds.
+[D] trait: Every 4th Basic Attack splashes in a small area and deals 125% more damage to the main target.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Basic Attacks deal 50% more damage to Minions, Mercenaries, and Monsters. This is increased to 125% while Inspire is active.  Passive: Inspire does not expire on friendly Minions and Mercenaries.
+  [T1.2] modifies Trait: Quest: Every time the primary target of [D] is a Hero, permanently increase its damage bonus by 0.75%.  Gambit: Gain 60% bonus [D] damage. Every death reduces this bonus by 15%.
+  [T1.3] modifies Passive: Deal 12% more damage to Stunned or Slowed Heroes.  Enemy Heroes hit by [D] are Slowed by 10% for 2.5 seconds.
+Level 4:
+  [T4.1] modifies E: Reduce [E]'s cooldown by 10 seconds. Casting [E] grants 25 Armor for 3 seconds.
+  [T4.2] modifies Trait: [D] heals this hero for 3% of his maximum Health, increased to 6% if the primary target is a Hero.
+  [T4.3] modifies Passive: Gain 200 bonus maximum Health.   Quest: Every time [D]'s primary target is a Hero, gain an additional 8 maximum Health.
+Level 7:
+  [T7.1] modifies Q: Increase [Q]'s Slow by 15% and its duration by 2 seconds.
+  [T7.2] modifies Passive: Reduce the Mana cost of [E] from 75 to 45. While Inspire is active, increase [E]'s cooldown reduction from Basic Attacks by 300%.
+  [T7.3] modifies Trait: Increase the area of [D] by 15%. Each enemy Hero hit by [D] grants this hero 10 Mana and reduces the cooldown of [Q] by 1.5 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 100 s): Order the [R1] to make a strafing run for 12 seconds, hitting up to 4 enemies for 66 (+4% per level) damage every second. Every 4 seconds, it can fire its term B at a Structure, dealing 794 (+4% per level) damage.
+  [R2] modifies Heroic (cooldown 45 s): Summon a term D that assists this hero. The term D deals 84 (+4% per level) damage per second and regenerates 75 (+4% per level) Health per second if it hasn't taken damage in the last 4 seconds. Can reactivate to retarget or move the term D.  The term D respawns automatically after 45 seconds.
+Level 13:
+  [T13.1] modifies Q: Reduce the cooldown of [Q] by 3 seconds. [Q] hitting two or more enemy Heroes reduces its cooldown by an additional 3 seconds.
+  [T13.2] modifies W: Gain 10% Movement Speed while mounted and unmounted. Inspire grants 10% more Movement Speed.
+  [T13.3] modifies E: Increase [E] healing by 50%. While Inspire is active, gain 1 Basic Attack range.
+Level 16:
+  [T16.1] modifies Q: Increase the damage of [Q] by 50% and heal for 90% of the damage [Q] deals to Heroes.
+  [T16.2] modifies W: Increase the Attack Speed bonus of Inspire by 20%.  Passive: After every 12 Basic Attacks, cast Inspire for free.
+  [T16.3] modifies Trait (cooldown 40 s): If [D]'s target is a Hero, it deals an additional 3% of their maximum Health as damage and grants this hero 10 Armor for 3 seconds.  Activate [D] to apply it to this hero's next Basic Attack.
+Level 20:
+  [T20.1] modifies Heroic: [D] lowers the cooldown of [R1] by 5 seconds if the primary target is a Hero. These Heroes are targeted by the [R1] for 100% increased damage for 6 seconds.
+  [T20.2] modifies Heroic: Increase the Health and leash range of [R2] by 100%. Its Basic Attack lowers enemy Hero Armor by 3 for 1 second, stacking up to 30.
+  [T20.3] modifies E: [E] grants Unstoppable and continues healing for an additional 2 seconds. The additional duration ends upon reaching 70% Health.
+  [T20.4] modifies Trait: [D] now activates every 3 Basic Attacks.
+  [T20.5] modifies Passive: Reduce this hero's death timer by 35 seconds. Upon death, the [R1] is cast towards the closest enemy Hero.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-08:
+Updates
+Talents
+Level 20
+[T20.5]
+Updated to only target Heroes, prioritizing ones with the lowest Health.
+Damage of term B reduced from 794 to 395 as it now targets only Heroes.
+Will no longer target enemy Heroes not visible or greater than 20 range away.
+Will now target enemy Heroes who are Invulnerable.
+Change set 2024-10:
+Updates
+ARAM

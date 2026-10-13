@@ -1,0 +1,109 @@
+Hero code: K989
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 2, one attack every 0.8 s, 115 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 20): Leap to a target, dealing 130 (+4% per level) damage. If the enemy dies within 1.5 seconds, restore 1 charge and refund 20 Mana.
+[W] basic (cooldown 12 s, cost 80): After 1.25 seconds, deal 165 (+4% per level) damage to enemies within the target area, Stunning them for 1 second.
+[E] basic (cooldown 10 s, cost 65): Pulls enemies within the target area towards this hero, dealing 25 (+4% per level) damage. After 2.5 seconds, an explosion occurs around this hero, dealing 195 (+4% per level) damage to nearby enemies.
+[R1] heroic (cooldown 80 s, cost 75): After 0.5 seconds, summon an term C that rushes forward upon spawning, dealing 250 (+4% per level) damage to the first enemy Hero hit and Stunning them for 0.5 seconds.  The term C's Basic Attacks deal 50% of their damage in an area around their target. Reactivate to retarget the term C.
+[R2] heroic (cooldown 90 s, cost 80): Deals 74 (+4% per level) damage per second to nearby enemies. Lasts for 7 seconds.
+[D] trait: Gain 10% of damage dealt from Basic Attacks and Abilities as Shields for 6 seconds. Shield amount gained doubled against Heroes.  Current maximum: 1004 (+4% per level)
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Hitting an enemy Hero with [Q] grants 100 (+4% per level) points of [D] Shields.
+  [T1.2] modifies Trait: Regeneration Globe healing grants 50 (+4% per level) points of [D] Shields per second while active. While [D] is active, this hero's Health and Mana regeneration is increased by 150%.
+  [T1.3] modifies Passive: Gain 10% more [D] Shields from Basic Attacks. After casting [Q], this hero's next Basic Attack within 3 seconds splashes for 100% damage around the target.
+Level 4:
+  [T4.1] modifies Q: Quest: Minions and Heroes that die within 1.5 seconds of being hit by [Q] increase its damage up to a maximum of 75.  Minions grant 1 increased damage and Heroes grant 5 increased damage.  Reward: After reaching a 75 damage increase, [Q] gains 50 additional damage.
+  [T4.2] modifies W: Damaging an enemy increases the damage of this hero's next [W] within 10 seconds by 10%, up to 100%.
+  [T4.3] modifies E: [E] explodes a second time 2 seconds after its first explosion.
+Level 7:
+  [T7.1] modifies Q: Reduce the cooldown of [Q] by 3 seconds and increase its damage to Minions and Mercenaries by 100%.
+  [T7.2] modifies Q: Hitting an enemy Hero with [Q] grants a charge of [Q]. Can only occur once every 10 seconds per Hero.
+  [T7.3] modifies Passive: Basic Attacks against enemy Heroes reduce the cooldown of this hero's Basic Abilities by 0.6 seconds.
+Level 10:
+  [R2] modifies Heroic (cooldown 90 s): Deals 74 (+4% per level) damage per second to nearby enemies. Lasts for 7 seconds.
+  [R1] modifies Heroic (cooldown 80 s): After 0.5 seconds, summon an term C that rushes forward upon spawning, dealing 250 (+4% per level) damage to the first enemy Hero hit and Stunning them for 0.5 seconds.  The term C's Basic Attacks deal 50% of their damage in an area around their target. Reactivate to retarget the term C.
+Level 13:
+  [T13.1] modifies E: Each enemy Hero hit by [E] grants 20 Spell Armor and 4% Movement Speed for 4 seconds, stacking up to 20% Movement Speed.
+  [T13.2] modifies Trait: Increase the amount of [D] Shields granted from damage dealt by 10%, but reduce duration of [D] by 3 seconds.
+  [T13.3] modifies Active (cooldown 90 s): Activate to place this hero in a [T13.3] with 750 (+4% per level) Health for 5 seconds. While inside, this hero regenerates 5% of her maximum Health per second.  Enemies can destroy the [T13.3] to end its effects early.
+Level 16:
+  [T16.1] modifies Q: [Q] grants 5% Spell Power for 5 seconds, up to 40%.
+  [T16.2] modifies W: Enemies hit by [W] take an additional 70 (+4% per level) damage the next 6 times this hero damages them within 5 seconds.
+  [T16.3] modifies Heroic: Damaging a Hero with a Heroic Ability grants 35% Spell Power for 4 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R2]'s duration is increased by 0.25 seconds every time it damages a Hero.
+  [T20.2] modifies Heroic: Increase the Health and Basic Attack damage of the term C by 20%.  The term C morphs into an egg when it dies. If the egg isn't killed within 4 seconds, a new term C is born.
+  [T20.3] modifies Passive: Damaging an enemy increases Basic Attack damage by 2% for 5 seconds, up to 40%.
+  [T20.4] modifies Active (cooldown 70 s): Activate to teleport to a nearby location, dealing 50 (+4% per level) damage to nearby enemies. Generates 300% increased [D] Shields from the damage dealt.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-12:
+Base
+[E] [E]
+Cooldown reduced from 10 to 8.
+Delayed damage reduced from 195 to 165.
+Initial damage increased from 25 to 40.
+[Q] [Q]
+Damage reduced from 130 to 115.
+Now includes a baseline quest: Kill enemies within 1.5 seconds of hitting them with [Q]. Minions grant 1 progress and Heroes grant 5. At 75 stacks, [Q] gains 125 damage. Pinnacle Reward: At 125 stacks, [Q] gains 200 additional damage.
+[W] [W]
+Cooldown reduced from 12 seconds to 9 seconds.
+Damage reduced from 165 to 140 .
+Radius increased from 1.5 to 1.65.
+Stun duration reduced from 1 second to .75 seconds.
+[D] [D]
+Increased the amount of shield gained from Basic Attacks from 10% to 20% of damage dealt.
+Talents
+Level 1
+[T1.3]
+No longer increases shields gained from Basic Attacks.
+Level 4
+[T4.1]
+Talent has been removed.
+term A
+NEW: Gain 25% attack speed for 3 seconds after using [Q].
+Level 7
+[T7.2]
+Cooldown increased from 10 seconds to 12 seconds.
+[T7.1]
+Cooldown reduction increased from 3 seconds to 4 seconds.
+Level 10
+[R1]
+Damage reduced from 250 to 225.
+Level 13
+[T13.3]
+HP lowered from 750 to 650.
+Reduced the amount of health regenerated from 5% max health per second to 4%.
+Level 16
+[T16.2]
+Damage reduced from 70 to 60.
+Level 20
+[T20.1]
+Increased extended duration from .25 seconds per hit to .4 seconds per hit.
+Change set 2025-12:
+Base
+[Q] [Q]
+Baseline quest now provides 7 stacks per kill, up from 5.
+Baseline quest requirements increased to 85/150, up from 75/125.
+Talents
+Level 7
+[T7.3]
+Cooldown reduction increased to .75 seconds, up from .6 seconds.
+Change set 2025-12:
+Updates
+Base
+[Q] [Q]
+Stacks per Hero kill increased from 5 to 7.
+Baseline Quest requirements increased from 75/125 to 85/150.
+Talents
+Level 7
+[T7.3]
+Cooldown reduction increased from .6 to .75 seconds.
+Change set 2026-02:
+Base
+[Q] [Q]
+UPDATED QUEST: Enemies killed in a narrow proximity of this hero provide stacks. Minion kills grant 1 stack. Hero kills grant 7 stacks. At 100 stacks, gain 125 [Q] damage, and Heroes now provide 14 stacks on kill. At 250 stacks, gain 200 [Q] damage.
+Kill window for receiving a free [Q] charge has been reduced from 1.5 seconds to 0.75 seconds.

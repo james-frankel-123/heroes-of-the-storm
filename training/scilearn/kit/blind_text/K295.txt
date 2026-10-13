@@ -1,0 +1,52 @@
+Hero code: K295
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 85 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 5 s, cost 20): Cast for 0.75 seconds to heal an allied Hero for 280 (+4% per level).
+[W] basic (cooldown 10 s, cost 50): Send light that deals 140 (+4% per level) damage to enemies and then returns to this hero, healing allied Heroes for 130 (+4% per level) in a wider path. Healing increases by 25% per enemy Hero hit.
+[E] basic (cooldown 9 s, cost 40): Shove a swell of light forward, dealing 175 (+4% per level) damage to the first enemy Hero hit and Rooting them for 1.25 seconds.
+[R1] heroic (cooldown 80 s, cost 70): After 0.5 seconds, Channel to invoke the Light for 3 seconds. While nearby, allied Heroes heal for up to 30% of their max Health and are Protected.
+[R2] heroic (cooldown 60 s, cost 70): Imbue an allied Hero with the Light. After 1.5 seconds, it explodes, dealing 150 (+4% per level) damage to enemies and Stunning them for 1.25 seconds.  The target gains a Shield that absorbs 165 (+4% per level) damage per enemy Hero hit. Lasts for 5 seconds.
+[D] trait (cooldown 70 s): Faith instantly pulls an allied Hero to this hero's location, granting them Unstoppable while they travel.  term A  Basic Attacks against enemy Heroes heal the lowest Health allied Hero near this hero for 32 (+4% per level).
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: If [Q] is cast on a different target from its last, increase its healing by 15% and refund 40% of its cooldown.
+  [T1.2] modifies W: While [W] is traveling out, allies in its path gain a Shield that absorbs 128 (+4% per level) damage for 4 seconds.  If [W] hits an enemy Hero, this hero gains a Shield that absorbs 185 (+4% per level) damage for 4 seconds.
+  [T1.3] modifies Active (cooldown 75 s): Summon a [T1.3] that periodically heals a nearby allied Hero for 50 (+4% per level). The well only fades after healing 15 times or when recast.  This cooldown is reduced by 1 second each time this hero heals an allied Hero.
+Level 4:
+  [T4.1] modifies W: [W] fires Basic Attacks at Heroes close to its apex.  Passive: Increase Attack Range by 1.1.
+  [T4.2] modifies E: Basic Attacks reduce the cooldown of [E] by 0.75 seconds. Basic Attacks against Heroes Rooted by [E] launch an additional Basic Attack and restore 25 Mana.
+  [T4.3] modifies E: [E] pierces to hit an additional Hero.  Quest: Hitting two Heroes with a single [E] permanently increases Spell Power by 1, to a maximum of 10.
+Level 7:
+  [T7.1] modifies Q: Casting [Q] on an ally heals this hero for 135 (+4% per level).
+  [T7.2] modifies Passive: If this hero loses more than 8% of his maximum Health at once, recover 15% Health over 3 seconds.  This effect has a 10 second cooldown.  Current Health required: 133 (+4% per level)
+  [T7.3] modifies Active (cooldown 35 s): Activate to instantly heal an allied Hero for 375 (+4% per level), but kneel for 2 seconds, unable to act.
+Level 10:
+  [R1] modifies Heroic (cooldown 80 s): After 0.5 seconds, Channel to invoke the Light for 3 seconds. While nearby, allied Heroes heal for up to 30% of their max Health and are Protected.
+  [R2] modifies Heroic (cooldown 60 s): Imbue an allied Hero with the Light. After 1.5 seconds, it explodes, dealing 150 (+4% per level) damage to enemies and Stunning them for 1.25 seconds.  The target gains a Shield that absorbs 165 (+4% per level) damage per enemy Hero hit. Lasts for 5 seconds.
+Level 13:
+  [T13.1] modifies W: While [W] is traveling, gain 30% Movement Speed.  Each allied Hero healed by [W] on its return to this hero reduces its cooldown by 1 second.
+  [T13.2] modifies Trait: Damaging an enemy Hero increases Movement Speed by 2.5% and the amount healed by term A by 5% for 6 seconds. These effects stack up to 8 times.
+  [T13.3] modifies Trait: Gain 5% Movement Speed. This bonus is quadrupled while [D]'s cooldown is available. Allies pulled by [D] are healed for 280 (+4% per level) over 4 seconds.
+Level 16:
+  [T16.1] modifies Q: [Q] heals an additional 180 (+4% per level) over 6 seconds. The duration of this heal is refreshed each time this hero hits an enemy Hero with a Basic Attack.
+  [T16.2] modifies W: After this hero catches [W], it explodes, healing nearby allied Heroes for 105 (+4% per level) and damaging enemies for 150 (+4% per level).
+  [T16.3] modifies Trait: [D] gains a 2nd charge.
+  [T16.4] modifies Active (cooldown 20 s): Activate to reset the cooldown of [Q] and its next cast heals for 25% more.  Damaging enemy Heroes reduces this cooldown by 1 second.
+Level 20:
+  [T20.1] modifies Heroic: [R1] grants allied Heroes Invulnerability instead of Protected. This does not affect this hero.  Channeling [R1] for its full duration reduces its cooldown by 60 seconds.
+  [T20.2] modifies Heroic: The target of term B gains 40% Move Speed and 50 Armor for 3 seconds.
+  [T20.3] modifies E: [E] Stuns for 0.75 seconds and its Root duration is increased by 0.5 seconds.
+  [T20.4] modifies Passive: Basic Attacks burn enemies for 87 (+4% per level) damage over 3 seconds and this hero heals for 50% of the damage dealt.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Talents
+Level 1
+[Active]
+Added a button indicator for remaining activations.
+Level 16
+[Q]
+Added a duration indicator.

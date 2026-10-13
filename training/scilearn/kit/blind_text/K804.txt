@@ -1,0 +1,85 @@
+Hero code: K804
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 4.5, one attack every 1 s, 60 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 4 s, cost 30): Fire two streams that deal 76 (+4% per level) damage to enemies hit, and an additional 120 (+4% per level) damage to enemies hit by both streams. [Q] Ignites [W] it comes in contact with.
+[W] basic (cooldown 12 s, cost 50): Vector Targeting Dispense a slick of oil that lasts for 5 seconds and Slows enemies that come in contact with it by 50%.  [W] are Ignited for 2.5 seconds when hit by [Q]. Ignited [W] no longer Slow enemies, but instead deal 16 (+4% per level) damage to them every 0.3 seconds. Additionally, this hero is healed for 49 (+4% per level) Health every 0.3 seconds while standing in Ignited [W].  Stores up to 2 charges.
+[E] basic (cooldown 10 s, cost 45): After 0.375 seconds, charge forward. Colliding with an enemy Hero deals 52 (+4% per level) damage to all nearby enemy Heroes and Stuns them for 1.25 seconds.
+[R1] heroic (cooldown 70 s, cost 70): After 0.5 seconds, deploy and enter a term C with 1435 (+4% per level) Health. this hero and his allies can enter and exit the term C at will. While in the term C, occupants gain access to term A, dealing 170 (+4% per level) damage to enemies in a line.  Exiting the term C grants 25 Armor for 2 seconds. term C last 10 seconds, or until destroyed.
+[R2] heroic (cooldown 80 s, cost 70): Channel for up to 2.6 seconds. Upon ending, Slow nearby enemies by 60% and deal 55 (+4% per level) damage to them every 0.5 seconds. [R2]'s Slow and damage over time duration is extended the longer this hero Channels, from 1 second up to 5 seconds.  this hero's Movement Speed is reduced by 40% while Channeling.
+[D] trait (cooldown 90 s): Gain 40 Armor and deal 40 (+4% per level) damage to nearby enemies every 0.5 seconds for 4 seconds.  Each Hero hit by [Q] reduces [D]'s cooldown by 4 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Active (cooldown 30 s): Passive: While over 80% Health, gain 25% bonus Attack Speed and 10% bonus Movement Speed.  Activate to gain 100% Attack Speed and 25% Movement Speed for 5 seconds.
+  [T1.2] modifies Active (cooldown 30 s): Activate to gain a Shield that absorbs 590 (+4% per level) damage over 5 seconds.  When taking damage while below 30% maximum Health, [T1.2] will automatically be cast if it is not on cooldown.
+  [T1.3] modifies Active (cooldown 30 s): Activate to gain 40 Mana and cause Basic Ability cooldowns to recharge 100% faster for 5 seconds.
+  [T1.4] modifies Trait: Collecting Regeneration Globes reduces the cooldown of [D] by 6 seconds.  Quest: Collect 15 Regeneration Globes.  Reward: [D] grants Unstoppable for 2 seconds.
+Level 4:
+  [T4.1] modifies W: Increase [W]'s area by 20%. Each enemy Hero hit by [Q] reduces the cooldown of [W] by 0.75 seconds and refunds 5 Mana.
+  [T4.2] modifies Trait: Hitting an enemy Hero with [D] reduces their damage dealt by 8% for 2.5 seconds, up to 40%.
+  [T4.3] modifies Passive: Increase Basic Attack area by 15%, and Basic Attack damage to Minions, Mercenaries, and Monsters by 50%.
+Level 7:
+  [T7.1] modifies Q: Each stream of [Q] reduces the Spell Power of Heroes hit by 25% for 4 seconds, up to 50%.
+  [T7.2] modifies W: Enemies standing in [W] and Ignited [W] have their Attack Speed reduced by 50% for 3 seconds.
+  [T7.3] modifies E: [E] creates [W] along this hero's path. If [E] impacts an enemy Hero, an additional [W] is created underneath them.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): After 0.5 seconds, deploy and enter a term C with 1435 (+4% per level) Health. this hero and his allies can enter and exit the term C at will. While in the term C, occupants gain access to term A, dealing 170 (+4% per level) damage to enemies in a line.  Exiting the term C grants 25 Armor for 2 seconds. term C last 10 seconds, or until destroyed.
+  [R2] modifies Heroic (cooldown 80 s): Channel for up to 2.6 seconds. Upon ending, Slow nearby enemies by 60% and deal 55 (+4% per level) damage to them every 0.5 seconds. [R2]'s Slow and damage over time duration is extended the longer this hero Channels, from 1 second up to 5 seconds.  this hero's Movement Speed is reduced by 40% while Channeling.
+Level 13:
+  [T13.1] modifies W: Increase Ignited [W] damage by 45%.  Quest: Damage enemy Heroes with Ignited [W] 30 times.  Reward: Increase [W]'s Ignite duration by 2.5 seconds.
+  [T13.2] modifies W: Enemies standing in [W] when it is Ignited are Slowed by 40% and take 35% more Basic Attack damage from this hero for 3 seconds. Additionally, Basic Attack splashes Ignite [W].
+  [T13.3] modifies E: [E]'s collision deals 275 (+4% per level) damage to the first enemy Hero hit.
+Level 16:
+  [T16.1] modifies E: Each enemy hit by [E] grants 10 Armor for 3 seconds and reduces its cooldown by 1.25 seconds.
+  [T16.2] modifies Trait: Heal for 75% of the damage dealt by [D].
+  [T16.3] modifies Active (cooldown 30 s): Activate to gain 50 Spell Armor for 3 seconds. Upon expiration, gain a Shield equal to 125% of the Spell Damage taken while [T16.3] was active.
+Level 20:
+  [T20.1] modifies Heroic: Occupants can cast [W] from [R1] every 6 seconds. Additionally, [R1]'s Armor bonus upon exiting is increased by 25, and its duration by 1 second.
+  [T20.2] modifies Heroic: While Channeling [R2], this hero's Movement Speed is no longer reduced, and nearby enemies are Slowed by 60%.
+  [T20.3] modifies Passive: Basic Attacks Slow enemies by 5% and deal an additional 18 (+4% per level) damage over 2.5 seconds. Stacks up to 5 times.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Base
+Quickcast Settings
+Added the term C's abilities.
+Talents
+Level 1
+[Active]
+Added a health threshold indicator.
+Change set 2024-10:
+Updates
+Base
+[Q] [Q]
+No longer able to deal additional damage to Structures.
+Talents
+Level 1
+[T1.1]
+Passive attack speed bonus reduced from 25% to 20%.
+Level 4
+[T4.3]
+Bonus damage reduced from 50% to 40%.
+Level 7
+[T7.2]
+Attack Speed reduction reduced from 50% to 35%.
+Duration increased from 3 seconds to 4 seconds.
+[T7.1]
+Reduced Spell Power reduction from 25% to 20% and from 50% to 40%.
+Level 10
+[R1]
+Cooldown increased from 70 to 80.
+term A damage reduced from 170 to 150.
+Mana cost increased from 70 to 80.
+Level 13
+[T13.3]
+Damage reduced from 275 to 260.
+Change set 2026-07:
+Talents
+Level 1
+[T1.1]
+Active Attack Speed bonus reduced from 100% to 85%.
+Level 10
+[R1]
+Cooldown increased from 80 to 85 seconds.

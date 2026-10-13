@@ -1,0 +1,492 @@
+{
+ "Abathur": [
+  "Locust",
+  "Monstrosity",
+  "Monstrosities",
+  "Evolved Monstrosity",
+  "Mule",
+  "Slapathur",
+  "Survival Intincts",
+  "Envenomed Nest",
+  "Toxic Nest",
+  "Symbiote"
+ ],
+ "Alarak": [
+  "Highlord"
+ ],
+ "Alexstrasza": [
+  "Dragonqueen",
+  "Draconic Dicipline",
+  "Fireball",
+  "Life-Binder"
+ ],
+ "Ana": [
+  "Eye of Horus",
+  "Aim Down Sights",
+  "Biotic Grenade",
+  "Sleep Dart",
+  "Shrike"
+ ],
+ "Anduin": [
+  "Light Bomb",
+  "Lightbomb",
+  "Pursued by Grace"
+ ],
+ "Anub'arak": [
+  "Beetle",
+  "Vampire Locust",
+  "Hardened Carapace"
+ ],
+ "Artanis": [
+  "Spear of Adun",
+  "Adun"
+ ],
+ "Arthas": [
+  "Ghoul",
+  "Sindragosa",
+  "Deathchill",
+  "Borean Winds",
+  "Death Pact",
+  "Frostmourne"
+ ],
+ "Auriel": [
+  "Bestow Hope",
+  "Hope"
+ ],
+ "Azmodan": [
+  "Demon Warrior",
+  "Demonic Grunt",
+  "Grunt",
+  "Demon Lieutenant",
+  "Lieutenant",
+  "Annihilation",
+  "Demonic Smite",
+  "Inescapable Annihilation",
+  "General of Hell"
+ ],
+ "Blaze": [
+  "Bunker",
+  "Oil Spill",
+  "Flamethrower"
+ ],
+ "Brightwing": [
+  "Phase Shifting",
+  "Phase Shift"
+ ],
+ "Chen": [
+  "Brew",
+  "Brew-soaked",
+  "Accumulating Flames",
+  "Storm, Earth, Fire"
+ ],
+ "Cho": [
+  "Dread Orb",
+  "Runic Blast",
+  "Ogre Rage",
+  "Shadowflame",
+  "Rune Bomb"
+ ],
+ "Gall": [
+  "Consuming Blaze",
+  "Surging Fist",
+  "Ogre Hide",
+  "Shadow Bolts",
+  "Rune Bomb",
+  "Upheaval"
+ ],
+ "Chromie": [
+  "Sand Blast",
+  "Time Trap",
+  "Once Again The First Time",
+  "Timewalker"
+ ],
+ "Deathwing": [
+  "Dragon Aspect",
+  "Armor Plate",
+  "Destroyers Rampage",
+  "Dragon Soul"
+ ],
+ "Deckard": [
+  "Lesser Healing Potion",
+  "Healing Potion",
+  "Potion",
+  "Scroll of Sealing",
+  "Horadric Cube",
+  "Horadric"
+ ],
+ "Dehaka": [
+  "Essence",
+  "Tunnelling Claws",
+  "Primal Aggression"
+ ],
+ "Diablo": [
+  "Black Soulstone",
+  "Soulstone"
+ ],
+ "D.Va": [
+  "Fusion Cannons",
+  "Self-Destruct",
+  "Call Mech"
+ ],
+ "E.T.C.": [
+  "Mosh Pit",
+  "Stage Dive"
+ ],
+ "Falstad": [
+  "Hinterland Blast",
+  "Barrel Roll"
+ ],
+ "Fenix": [
+  "Phase Bomb",
+  "Repeater Cannon",
+  "Planet Cracker"
+ ],
+ "Garrosh": [
+  "In For The Kill",
+  "Wrecking Ball"
+ ],
+ "Gazlowe": [
+  "Rock-it Turret",
+  "Rock-it! Turret",
+  "Robo-goblin",
+  "Robo-Goblin",
+  "Scrap",
+  "Xplodium Charge",
+  "Grav-O-Bomb"
+ ],
+ "Genji": [
+  "Dragonblade",
+  "Kunai"
+ ],
+ "Greymane": [
+  [
+   "Worgen Form",
+   "beast form"
+  ],
+  [
+   "Worgen",
+   "beast form"
+  ],
+  [
+   "Human",
+   "ranged form"
+  ],
+  "Go for the Throat",
+  "Lord of His Pack"
+ ],
+ "Hanzo": [
+  "Spirit Dragons",
+  "Dragon's Arrow",
+  "Storm Bow"
+ ],
+ "Hogger": [
+  "Hogg Wild"
+ ],
+ "Illidan": [
+  "Demon Form",
+  "Metamorphosis",
+  "The Hunt"
+ ],
+ "Imperius": [
+  "Molten Wrath",
+  "Wrath of the Angiris"
+ ],
+ "Jaina": [
+  "Water Elemental",
+  "Ice Block"
+ ],
+ "Junkrat": [
+  "Steel Trap",
+  "Detonate Mine",
+  "RIP-Tire",
+  "Concussion Mine",
+  "Frag Launcher"
+ ],
+ "Kael'thas": [
+  "Living Bomb",
+  "Arcane Barrier",
+  "Flamestrike",
+  "Verdant Spheres",
+  "Phoenix"
+ ],
+ "Kel'Thuzad": [
+  "Naxxramas",
+  "Phylactery",
+  "Chains of Kel'Thuzad",
+  "Frost Blast",
+  "Death and Decay"
+ ],
+ "Kerrigan": [
+  "Ultralisk",
+  "Ravaging Ferocity",
+  "Assimilation"
+ ],
+ "Leoric": [
+  "Wrath of the Bone King",
+  "Skeleton King",
+  "Entomb"
+ ],
+ "Li-Ming": [
+  "Archon",
+  "Magic Missile",
+  "Arcane Orb",
+  "Disintegrate"
+ ],
+ "Lt. Morales": [
+  "Medivac"
+ ],
+ "Lúcio": [
+  "Healing Boost",
+  "Speed Boost",
+  "Sound Barrier",
+  "Soundwave"
+ ],
+ "Lunara": [
+  "For the Wildlands",
+  "Wisp"
+ ],
+ "Maiev": [
+  "Warden Avatar",
+  "Shadow Orb",
+  "Containment Disc",
+  "Spirit of Vengeance"
+ ],
+ "Malfurion": [
+  "Treant",
+  "Regrowth",
+  "Moonfire",
+  "Tranquility"
+ ],
+ "Mal'Ganis": [
+  "Necrotic Embrace",
+  "Night Rush"
+ ],
+ "Malthael": [
+  "Reaper's Mark",
+  "Last Rites"
+ ],
+ "Medivh": [
+  "Raven",
+  "Portal Mastery",
+  "Force of Will"
+ ],
+ "Mephisto": [
+  "Lord of Hatred",
+  "Lightning Nova"
+ ],
+ "Muradin": [
+  "Stormbolt",
+  "Storm Bolt",
+  "Thunderclap",
+  "It's Hammer Time",
+  "Mountain King",
+  "Give 'Em the Axe",
+  "Avatar"
+ ],
+ "Murky": [
+  "Murloc",
+  "Egg",
+  "March of the Murlocs",
+  "Slime",
+  "Pufferfish",
+  "Octo-Grab"
+ ],
+ "Nazeebo": [
+  "Corpse Spider",
+  "Spider",
+  "Zombie",
+  "Toad",
+  "Gargantuan",
+  "Ravenous Spirit"
+ ],
+ "Nova": [
+  "Precision Sniper",
+  "Holo Decoy",
+  "Triple Tap"
+ ],
+ "Probius": [
+  "Pylon",
+  "Photon Cannon",
+  "Warp Rift",
+  "Armed Warp Rift",
+  "Power Field",
+  "Minerals"
+ ],
+ "Ragnaros": [
+  "Sulfuras",
+  "Hurl Sulfuras",
+  "Swing Sulfuras",
+  "Molten Core",
+  "Lava Wave"
+ ],
+ "Raynor": [
+  "Banshee",
+  "Yamato Cannon",
+  "Hyperion",
+  "Raynor's Raiders",
+  "Raider"
+ ],
+ "Rexxar": [
+  "Misha",
+  "Command Misha",
+  "Heal Misha"
+ ],
+ "Samuro": [
+  "Mirror Image",
+  "Image Transmission",
+  "Advancing Strikes",
+  "Bladestorm"
+ ],
+ "Stitches": [
+  "Vile Gas",
+  "Gorge"
+ ],
+ "Stukov": [
+  "Weighted Pustule",
+  "Healing Pathogen",
+  "Bio-Kill Switch"
+ ],
+ "Sylvanas": [
+  "Banshee's Curse",
+  "Haunting Arrows",
+  "Unrelenting Torment",
+  "Wailing Arrow",
+  "Mind Control",
+  "Black Arrows"
+ ],
+ "Tychus": [
+  "Odin",
+  "Laser Drill",
+  "Nuclear Missile",
+  "Minigun",
+  "Overkill"
+ ],
+ "Tyrael": [
+  "El'druin",
+  "Druin's Might",
+  "Throw El'druin",
+  "Sanctification",
+  "Judgment",
+  "Judgement"
+ ],
+ "Tyrande": [
+  "Elune's Gift",
+  "Owl",
+  "Sentinel",
+  "Starfall",
+  "Shadowstalk"
+ ],
+ "Uther": [
+  "Eternal Vanguard",
+  "Eternal Devotion",
+  "Divine Shield",
+  "Holy Light"
+ ],
+ "Valla": [
+  "Hungering Arrow",
+  "Shadow Beast",
+  "Strafe",
+  "Rain of Vengeance"
+ ],
+ "Whitemane": [
+  "Desperation",
+  "Zeal",
+  "Inquisition",
+  "Scarlet Aegis"
+ ],
+ "Xal'atath": [
+  [
+   "Void Minion",
+   "summon A"
+  ],
+  [
+   "Void Portal",
+   "summon B"
+  ],
+  [
+   "Dark Heart",
+   "summon C"
+  ],
+  [
+   "Void Orb",
+   "orb"
+  ],
+  [
+   "Void",
+   "shadow"
+  ]
+ ],
+ "Xul": [
+  "Skeletal Warrior",
+  "Skeletal Mage",
+  "Frost Mage",
+  "Bone Prison",
+  "Poison Nova"
+ ],
+ "Zagara": [
+  "Baneling",
+  "Hunter Killer",
+  "Hydralisk",
+  "Mutalisk",
+  "Nydus Worm",
+  "Nydus Network",
+  "Roachling",
+  "Roach",
+  "Creep Tumor",
+  "Creep",
+  "Zerg Drop Pod",
+  "Infested Drop",
+  "Devouring Maw"
+ ],
+ "Zul'jin": [
+  "Taz'dingo",
+  "You Want Axe",
+  "Guillotine"
+ ],
+ "The Lost Vikings": [
+  [
+   "Olaf",
+   "unit A"
+  ],
+  [
+   "Baleog",
+   "unit B"
+  ],
+  [
+   "Erik",
+   "unit C"
+  ],
+  [
+   "Longboat Raid",
+   "boat heroic"
+  ],
+  [
+   "Longboat",
+   "boat"
+  ]
+ ],
+ "Sgt. Hammer": [
+  "Siege Mode",
+  "Napalm Strike",
+  "Blunt Force Gun"
+ ],
+ "Qhira": [
+  "Grappling Hook",
+  "Revolving Sweep",
+  "Blades of the Infinite"
+ ],
+ "Varian": [
+  "Colossus Smash",
+  "Twin Blades of Fury",
+  "Lion's Fang"
+ ],
+ "Valeera": [
+  "Cheap Shot",
+  "Smoke Bomb"
+ ],
+ "Johanna": [
+  "Falling Sword",
+  "Blessed Shield",
+  "Condemn"
+ ]
+}

@@ -1,0 +1,252 @@
+{
+ "coder": 1,
+ "batch": 2,
+ "codes": [
+  "K925",
+  "K803",
+  "K688",
+  "K521",
+  "K939",
+  "K100",
+  "K518",
+  "K655",
+  "K920",
+  "K117",
+  "K909",
+  "K482",
+  "K333"
+ ],
+ "prompt_file": "codings/prompts/coder1_batch2.txt",
+ "prompt_sha256": "288296d224d1321929f49afd89cffeb1917da56ce9bcf50addc6e61d97493b28",
+ "model_requested": "claude-opus-5-5",
+ "models_reported": [
+  "claude-opus-5-5"
+ ],
+ "session_id": "87874510-d0b3-43ce-b630-2294d9f27804",
+ "started": "2026-10-13T14:07:37Z",
+ "finished": "2026-10-13T14:08:34Z",
+ "attempts": [
+  {
+   "attempt": 1,
+   "started": "2026-10-13T14:07:37Z",
+   "error": null,
+   "models": [
+    "claude-opus-5-5"
+   ]
+  }
+ ],
+ "raw_result": "{\"K925\": {\"hard_cc\": 2, \"soft_cc_peel\": 1, \"healing_throughput\": 0, \"self_sustain_shields\": 2, \"burst\": 3, \"sustained_damage\": 3, \"range\": 1, \"mobility\": 2, \"waveclear\": 3, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 1, \"low_confidence\": [\"mobility\", \"hard_cc\"]},\n\"K803\": {\"hard_cc\": 1, \"soft_cc_peel\": 1, \"healing_throughput\": 0, \"self_sustain_shields\": 1, \"burst\": 2, \"sustained_damage\": 4, \"range\": 2, \"mobility\": 3, \"waveclear\": 2, \"siege\": 1, \"global_presence\": 0, \"early_vs_late\": 1, \"low_confidence\": []},\n\"K688\": {\"hard_cc\": 3, \"soft_cc_peel\": 4, \"healing_throughput\": 0, \"self_sustain_shields\": 3, \"burst\": 1, \"sustained_damage\": 1, \"range\": 2, \"mobility\": 2, \"waveclear\": 2, \"siege\": 1, \"global_presence\": 0, \"early_vs_late\": 0, \"low_confidence\": []},\n\"K521\": {\"hard_cc\": 1, \"soft_cc_peel\": 3, \"healing_throughput\": 1, \"self_sustain_shields\": 1, \"burst\": 3, \"sustained_damage\": 3, \"range\": 2, \"mobility\": 1, \"waveclear\": 4, \"siege\": 2, \"global_presence\": 1, \"early_vs_late\": 1, \"low_confidence\": [\"range\", \"siege\"]},\n\"K939\": {\"hard_cc\": 2, \"soft_cc_peel\": 3, \"healing_throughput\": 4, \"self_sustain_shields\": 1, \"burst\": 0, \"sustained_damage\": 1, \"range\": 3, \"mobility\": 0, \"waveclear\": 1, \"siege\": 0, \"global_presence\": 1, \"early_vs_late\": 0, \"low_confidence\": []},\n\"K100\": {\"hard_cc\": 0, \"soft_cc_peel\": 2, \"healing_throughput\": 0, \"self_sustain_shields\": 3, \"burst\": 2, \"sustained_damage\": 3, \"range\": 2, \"mobility\": 2, \"waveclear\": 3, \"siege\": 1, \"global_presence\": 1, \"early_vs_late\": 0, \"low_confidence\": []},\n\"K518\": {\"hard_cc\": 3, \"soft_cc_peel\": 1, \"healing_throughput\": 0, \"self_sustain_shields\": 4, \"burst\": 2, \"sustained_damage\": 2, \"range\": 1, \"mobility\": 2, \"waveclear\": 2, \"siege\": 0, \"global_presence\": 1, \"early_vs_late\": 1, \"low_confidence\": []},\n\"K655\": {\"hard_cc\": 2, \"soft_cc_peel\": 1, \"healing_throughput\": 0, \"self_sustain_shields\": 4, \"burst\": 2, \"sustained_damage\": 3, \"range\": 0, \"mobility\": 2, \"waveclear\": 2, \"siege\": 0, \"global_presence\": 1, \"early_vs_late\": 0, \"low_confidence\": [\"mobility\"]},\n\"K920\": {\"hard_cc\": 0, \"soft_cc_peel\": 2, \"healing_throughput\": 0, \"self_sustain_shields\": 1, \"burst\": 3, \"sustained_damage\": 3, \"range\": 2, \"mobility\": 2, \"waveclear\": 3, \"siege\": 0, \"global_presence\": 1, \"early_vs_late\": 0, \"low_confidence\": []},\n\"K117\": {\"hard_cc\": 2, \"soft_cc_peel\": 3, \"healing_throughput\": 0, \"self_sustain_shields\": 1, \"burst\": 3, \"sustained_damage\": 3, \"range\": 2, \"mobility\": 1, \"waveclear\": 3, \"siege\": 0, \"global_presence\": 1, \"early_vs_late\": 1, \"low_confidence\": [\"range\", \"hard_cc\"]},\n\"K909\": {\"hard_cc\": 2, \"soft_cc_peel\": 3, \"healing_throughput\": 3, \"self_sustain_shields\": 2, \"burst\": 1, \"sustained_damage\": 1, \"range\": 2, \"mobility\": 1, \"waveclear\": 1, \"siege\": 0, \"global_presence\": 2, \"early_vs_late\": 0, \"low_confidence\": [\"healing_throughput\"]},\n\"K482\": {\"hard_cc\": 0, \"soft_cc_peel\": 2, \"healing_throughput\": 3, \"self_sustain_shields\": 1, \"burst\": 2, \"sustained_damage\": 3, \"range\": 1, \"mobility\": 3, \"waveclear\": 1, \"siege\": 0, \"global_presence\": 0, \"early_vs_late\": 0, \"low_confidence\": []},\n\"K333\": {\"hard_cc\": 0, \"soft_cc_peel\": 1, \"healing_throughput\": 0, \"self_sustain_shields\": 1, \"burst\": 1, \"sustained_damage\": 3, \"range\": 2, \"mobility\": 0, \"waveclear\": 4, \"siege\": 2, \"global_presence\": 0, \"early_vs_late\": 1, \"low_confidence\": [\"early_vs_late\", \"siege\"]}}",
+ "codes_out": {
+  "K925": {
+   "hard_cc": 2,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 2,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 3,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "mobility",
+    "hard_cc"
+   ]
+  },
+  "K803": {
+   "hard_cc": 1,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 2,
+   "sustained_damage": 4,
+   "range": 2,
+   "mobility": 3,
+   "waveclear": 2,
+   "siege": 1,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": []
+  },
+  "K688": {
+   "hard_cc": 3,
+   "soft_cc_peel": 4,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 1,
+   "sustained_damage": 1,
+   "range": 2,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 1,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K521": {
+   "hard_cc": 1,
+   "soft_cc_peel": 3,
+   "healing_throughput": 1,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 2,
+   "mobility": 1,
+   "waveclear": 4,
+   "siege": 2,
+   "global_presence": 1,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "range",
+    "siege"
+   ]
+  },
+  "K939": {
+   "hard_cc": 2,
+   "soft_cc_peel": 3,
+   "healing_throughput": 4,
+   "self_sustain_shields": 1,
+   "burst": 0,
+   "sustained_damage": 1,
+   "range": 3,
+   "mobility": 0,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K100": {
+   "hard_cc": 0,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 3,
+   "burst": 2,
+   "sustained_damage": 3,
+   "range": 2,
+   "mobility": 2,
+   "waveclear": 3,
+   "siege": 1,
+   "global_presence": 1,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K518": {
+   "hard_cc": 3,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 4,
+   "burst": 2,
+   "sustained_damage": 2,
+   "range": 1,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 1,
+   "low_confidence": []
+  },
+  "K655": {
+   "hard_cc": 2,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 4,
+   "burst": 2,
+   "sustained_damage": 3,
+   "range": 0,
+   "mobility": 2,
+   "waveclear": 2,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "mobility"
+   ]
+  },
+  "K920": {
+   "hard_cc": 0,
+   "soft_cc_peel": 2,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 2,
+   "mobility": 2,
+   "waveclear": 3,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K117": {
+   "hard_cc": 2,
+   "soft_cc_peel": 3,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 3,
+   "sustained_damage": 3,
+   "range": 2,
+   "mobility": 1,
+   "waveclear": 3,
+   "siege": 0,
+   "global_presence": 1,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "range",
+    "hard_cc"
+   ]
+  },
+  "K909": {
+   "hard_cc": 2,
+   "soft_cc_peel": 3,
+   "healing_throughput": 3,
+   "self_sustain_shields": 2,
+   "burst": 1,
+   "sustained_damage": 1,
+   "range": 2,
+   "mobility": 1,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 2,
+   "early_vs_late": 0,
+   "low_confidence": [
+    "healing_throughput"
+   ]
+  },
+  "K482": {
+   "hard_cc": 0,
+   "soft_cc_peel": 2,
+   "healing_throughput": 3,
+   "self_sustain_shields": 1,
+   "burst": 2,
+   "sustained_damage": 3,
+   "range": 1,
+   "mobility": 3,
+   "waveclear": 1,
+   "siege": 0,
+   "global_presence": 0,
+   "early_vs_late": 0,
+   "low_confidence": []
+  },
+  "K333": {
+   "hard_cc": 0,
+   "soft_cc_peel": 1,
+   "healing_throughput": 0,
+   "self_sustain_shields": 1,
+   "burst": 1,
+   "sustained_damage": 3,
+   "range": 2,
+   "mobility": 0,
+   "waveclear": 4,
+   "siege": 2,
+   "global_presence": 0,
+   "early_vs_late": 1,
+   "low_confidence": [
+    "early_vs_late",
+    "siege"
+   ]
+  }
+ }
+}

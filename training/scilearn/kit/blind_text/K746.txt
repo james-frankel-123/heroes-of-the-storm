@@ -1,0 +1,118 @@
+Hero code: K746
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 2.5, one attack every 1.5 s, 155 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 3 s, cost 10): After 1.5 seconds, this hero breathes a stream of flame, dealing 21 (+4% per level) damage every 0.125 seconds. Drains 30 Energy per second.
+[W] basic (cooldown 4 s, cost 20): After 0.75 seconds, this hero flaps his wings, dealing 65 (+4% per level) damage to nearby enemies.  [alt-W]: [alt-W#2] Create a lava pool that damages and Slows
+[E] basic (cooldown 5 s, cost 20): After 0.5 seconds, this hero lunges in a direction dealing 38 (+4% per level) damage to enemies and Slowing them by 35% for 2 seconds. this hero bites enemies at the end of the lunge, dealing an additional 72 (+4% per level) damage.  [alt-W]: [alt-E] Damage and Stun enemies in two lines
+[R1] heroic (cooldown 90 s): After 2 seconds, this hero flies in the targeted direction, dealing 90 (+4% per level) damage on impact and leaving scorched ground that deals 36 (+4% per level) damage a second. Lasts 6 seconds.
+[D] trait: this hero is fitted with 4 term C which grant 10 Armor each. Every 25% Health lost causes this hero to lose a plate. Plates are only restored when [Z] is used, based on the amount of Health this hero has when landing.  this hero is also a mighty term B who is permanently Unstoppable and deals 100% additional Spell Damage to Heroes, but views his allies with contempt and ignores any of their friendly effects.
+[Z] mount (cooldown 45 s): After 3 seconds, fly into the sky, becoming Immune to all effects and gaining 2.5% Health per second. Once cast, this ability cannot be interrupted. Cannot be cast for 4 seconds after taking damage, Basic Attacking or casting an Ability.
+[1] activable (cooldown 20 s): Switches this hero between [alt-Q] and [alt-W] forms, each granting access to two unique Basic Abilities.  [W] damages enemies around this hero and [E] allows him to lunge at enemies.  [alt-W#2] creates a Slowing area and [alt-E] Stuns enemies in two lines.
+Alternate form or second unit abilities:
+[alt-Q] basic (cooldown 8 s): After 1.75 seconds, this hero slams down to the ground, dealing 50 (+4% per level) damage to enemies in the area and landing in [alt-Q] form. this hero can begin to cast Abilities 3 seconds after landing.
+[alt-W] basic (cooldown 8 s): After 1.75 seconds, this hero slams down to the ground, dealing 50 (+4% per level) damage to enemies in the area and landing in [alt-W] form. this hero can begin to cast Abilities 3 seconds after landing.
+[alt-E] basic (cooldown 12 s, cost 25): Create a fissure of earth that deals 90 (+4% per level) damage to enemies hit and Stuns them for 0.75 seconds.  [alt-Q]: [E] Lunge in a direction
+[alt-W#2] basic (cooldown 6 s, cost 15): After a 1 second delay, deal 30 (+4% per level) damage to all enemies in an area and create a pool of magma that deals 24 (+4% per level) damage per second and Slows enemies by 35%. Lasts 6 seconds.  [alt-Q]: [W] Damage enemies near this hero
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: [alt-Q]: [W] heals this hero for 75% of the damage dealt to enemy Heroes.  [alt-W]: [alt-W#2]'s explosion damage heals this hero for 150% of the damage dealt to enemy Heroes.
+  [T1.2] modifies Trait: While this hero has 3 or more term C, he heals for 0.6% of his maximum Health per second.
+  [T1.3] modifies Trait: this hero's Basic Attacks against enemy Heroes heal him for 25% of the damage dealt. Upon losing an term C, this hero becomes Protected for 0.75 seconds.
+Level 4:
+  [T4.1] modifies Q: Increase the damage of [Q] against enemy Heroes by 25%.  Increase this damage bonus to 75% when [Q] is cast at 75 Energy or higher.
+  [T4.2] modifies W: [alt-Q]: After hitting an enemy Hero with [W], this hero deals 12 (+4% per level) damage per second to all nearby enemies for the next 8 seconds. Stacks up to 4 times.  [alt-W]: Increase the explosion damage of [alt-W#2] by 125%.
+  [T4.3] modifies Trait: While this hero has 3 or fewer term C, his damage is increased by 25%.
+Level 7:
+  [T7.1] modifies Z: Reduce the cooldown of this hero's landing Abilities by 2 seconds.  When this hero lands, he drops 7 meteors near the landing area, dealing 70 (+4% per level) damage to enemies hit. Heroes hit by the meteors reduce [Z]'s cooldown by 25 seconds.  Meteors prioritize landing on Heroes, otherwise they fall randomly in the area.
+  [T7.2] modifies Z: Hitting an enemy Hero with [alt-Q] or [alt-W]'s landing damage reduces their Spell Armor by 15 for 6 seconds and this hero's Basic Ability cooldowns by 2 seconds.
+  [T7.3] modifies E (cooldown 10 s): After using [Z], this hero can drop meteors anywhere within vision dealing 58 (+4% per level) damage to enemies in the area. Has 3 charges.  If a Hero is hit, this hero heals for 3% of his maximum Health.
+Level 10:
+  [T10.1] modifies Heroic: When an enemy Fort or Keep is destroyed the cooldown of [R1] is reset. [R1]'s periodic damage is increased by 80%.
+  [T10.2] modifies Active (cooldown 60 s): After 1 second, this hero unleashes a mighty roar, dealing 25 (+4% per level) damage to nearby Heroes and causing them to run in Fear for 1.5 seconds.
+Level 13:
+  [T13.1] modifies Q: [Q]'s Energy cost per second is reduced by 10.  After using [Q], this hero gains 15 Energy over 3 seconds.
+  [T13.2] modifies E: [alt-Q]: The bite from [E] now Slows by 60% for 1.5 seconds.  [alt-W]: Reduce [alt-E]'s cooldown by 6 seconds and its Energy cost by 10.
+  [T13.3] modifies Passive: Basic Attacks against Rooted, Slowed, or Stunned enemy Heroes deal 30% additional damage and reduce the cooldowns of this hero's Basic Abilities by 0.5 seconds.
+Level 16:
+  [T16.1] modifies Q: Dealing 320 (+4% per level) damage with [Q] to enemy Heroes within 4 seconds causes them to burn for an additional 100 (+4% per level) damage over 4 seconds. While burning, they explode every 1 second, dealing 80 (+4% per level) damage to all nearby enemies.
+  [T16.2] modifies Z: Hitting Heroes with [alt-Q] or [alt-W]'s landing causes their damage to be reduced by 75% and Slows them by 40% for 5 seconds.
+  [T16.3] modifies Active (cooldown 60 s): Activate to gain a Shield equal to 30% of this hero's missing Health for 8 seconds. While the Shield holds, this hero regenerates 2% of his maximum Health per second.  When the Shield expires or is destroyed, this hero regains term C appropriate for his new Health.  The Shield and effect end immediately if this hero uses [Z].
+Level 20:
+  [T20.1] modifies Heroic: Enemy Heroes are Slowed by 40% while standing in scorched ground, and its duration is increased by 50%.
+  [T20.2] modifies Z: [alt-Q] or [alt-W]'s landing damage is increased by 400%.  this hero also gains the benefits of all of his level 7 talents.
+  [T20.3] modifies Trait: For the next 6 seconds after landing in [alt-Q] form, this hero's damage is increased by 40% and his Basic Ability cooldowns recharge 50% faster.  Damaging Heroes refreshes this effect and switching to [alt-W] form removes the effect.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2026-02:
+Base
+Attack Damage decreased from 155 to 117 .
+[1] [1]
+Active ability removed. this hero now switches forms solely from landing.
+[Q] [Q]
+Base Damage per Second reduced from 21 to 19.
+[W] [W]
+Cooldown increased from 4 seconds to 6 seconds.
+Energy cost increased from 20 to 30.
+Damage increased fomr 65 to 100.
+[alt-W#2] [W]
+Cast time reduced from 1 second to .75 seconds.
+Cooldown increased from 6 seconds to 9 seconds.
+Energy cost increased from 15 to 25.
+Explosion Damage increased from 30 to 35.
+Explosion Damage over Time increased from 6 to 7.
+Slow increased from 35% to 45%.
+[E] [E]
+Bonus damage increased from 72 to 120.
+Damage increased from 38 to 60.
+[alt-E] [E]
+Projectile speed increased by 30%
+[R1] [R]
+NEW QUEST: Damage Heroes with [Q] to gain 1 stack. Gain 50 stacks for killing a Hero. Mythic Reward: Upon reaching 2,000 stacks, [R1] now deals 2,500% damage to Structures and Minions. "I AM THE CATACLYSM" .
+[Z] [Z]
+Cooldown delay after dealing or taking damage increased from 4 seconds to 6 seconds.
+Cooldown reduced from 45 seconds to 15 seconds.
+Talents
+Level 1
+[T1.1]
+Healing increased from 75%, 150% to 100%, 200%.
+Level 4
+[T4.2]
+Damage over Time increased from 6 to 9.
+Damage over Time stacks reduced from 4 to 3.
+Initial damage bonus increased from 125% to 150%.
+Level 7
+[T7.1]
+Damage increased from 70 to 77.
+Landing delay reduction increased from 2 seconds to 3 seconds.
+No longer reduces cooldown of [Z].
+Level 13
+[T13.3]
+Damage bonus increased from 30% to 40%.
+Change set 2026-02:
+Base
+[W] [W]
+Cooldown increased from 6 seconds to 7 seconds.
+Talents
+Level 7
+[T7.2]
+Duration of Spell Armor decreased from 6 seconds to 4 seconds.
+Change set 2026-04:
+Base
+[E] [E]
+Cooldown increased from 5 seconds to 6 seconds.
+[Z] [Z]
+Cooldown increased from 15 seconds to 20 seconds.
+Talents
+Level 16
+[T16.2]
+Duration reduced from 5 seconds to 3.5 seconds.
+Change set 2026-05:
+Base
+[Q]
+Damage per tick increased from 19 to 20.
+Talents
+Level 20
+[alt-Q] Rampage
+Duration reduced from 6 seconds to 4 seconds.

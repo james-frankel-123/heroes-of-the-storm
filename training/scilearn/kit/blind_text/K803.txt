@@ -1,0 +1,57 @@
+Hero code: K803
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.6 s, 70 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s, cost 60): Fire an arrow that deals 140 (+4% per level) damage to the first target hit, then seeks up to 2 additional enemies, prioritizing Heroes, dealing 80 (+4% per level) damage. Can hit an enemy multiple times.
+[W] basic (cooldown 13 s, cost 75): Deal 159 (+4% per level) damage to enemies within the target area.
+[E] basic (cooldown 10 s, cost 50): Dash to the target area. this hero's next Basic Attack within 2 seconds deals 6% increased damage per stack of [D].
+[R1] heroic (cooldown 60 s, cost 80): Rapidly attack enemies within 10 range for 60 (+4% per level) damage per hit, prioritizing Heroes over Minions. this hero is able to move and use [E] while strafing. Lasts for 4 seconds.
+[R2] heroic (cooldown 50 s, cost 50): Launch a wave of term C that deals 250 (+4% per level) damage and Stuns enemies in the target area for 0.5 seconds.  Stores up to 2 charges.
+[D] trait: Basic Attacks grant a stack of [D], up to 10. Each [D] stack increases Basic Attack damage by 8% and Movement Speed by 1%. Lasts 6 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Increase the number of [Q] bounces by 1.  Quest: Hitting an enemy Hero with the initial impact of [Q] refunds 40 Mana and permanently increases the damage of its initial impact by 6.
+  [T1.2] modifies W: Quest: Hitting a Hero with [W] grants 2 [D] and permanently increases its damage by 2.  Reward: After hitting 20 Heroes with [W], increase its damage by 40.
+  [T1.3] modifies Trait: Quest: Every 50 Basic Attacks against Heroes increases [D]'s damage bonus per stack by 1%, up to 6%.  Gambit: Gain 25% bonus Attack Speed. Every death reduces this bonus by 5%.
+Level 4:
+  [T4.1] modifies W: Increase the range of [W] by 20%. [W] also fires 3 grenades that deal 100 (+4% per level) damage and refund 25 Mana after hitting enemy Heroes.
+  [T4.2] modifies E: Increase [E] Basic Attack damage bonus from 6% to 15% per stack of [D]. If this attack kills its victim within 1.5 seconds, the Mana cost and cooldown of [E] are refunded.  Passive: Reduce the cooldown of [E] by 5 seconds.
+  [T4.3] modifies E: [E] no longer has a Mana cost. Casting [E] resets the cooldown of [Q].
+Level 7:
+  [T7.1] modifies Q: [Q] deals 150% additional damage to Minions, Mercenaries, and Monsters.
+  [T7.2] modifies Q: [W] Slows enemies by 20% for 2.5 seconds. [Q] deals 25% more damage to Slowed enemies.
+  [T7.3] modifies Trait: Increase the Movement Speed bonus of each stack of [D] to 2%.
+Level 10:
+  [R1] modifies Heroic (cooldown 60 s): Rapidly attack enemies within 10 range for 60 (+4% per level) damage per hit, prioritizing Heroes over Minions. this hero is able to move and use [E] while strafing. Lasts for 4 seconds.
+  [R2] modifies Heroic (cooldown 50 s): Launch a wave of term C that deals 250 (+4% per level) damage and Stuns enemies in the target area for 0.5 seconds.  Stores up to 2 charges.
+Level 13:
+  [T13.1] modifies Q: Hitting a Hero with [Q] heals this hero for 4% of her maximum Health, and [W] heals for 2%.
+  [T13.2] modifies Trait: Basic Attacks heal for 10% of the damage dealt, increased by 2% per [D] stack.
+  [T13.3] modifies Active (cooldown 5 s): Activate to consume all [D], granting 3 Spell Armor per [D] consumed for 5 seconds.  Passive: Gain 15 Spell Armor, and each stack of [D] heals for 1.2 (+4% per level) Health per second.
+Level 16:
+  [T16.1] modifies W: While at max [D], [W]'s cooldown recharges 50% faster.
+  [T16.2] modifies Trait: While at max [D], increase all damage dealt by 10%.
+  [T16.3] modifies Passive: Every 3rd Basic Attack against the same Hero deals an additional 5% of their maximum Health as damage.
+Level 20:
+  [T20.1] modifies Heroic: Hitting an enemy Hero with [R1] increases its duration by 0.125 seconds. [R1] also fires penetrating bolts in a line for 34 (+4% per level) damage every 0.25 seconds.
+  [T20.2] modifies Heroic: Basic Attacks against Heroes reduce the cooldown of [R2] by 5 seconds.  Passive: Each stack of [D] increases your Attack Speed by 2%. While at max [D], gain an additional 30% Attack Speed.
+  [T20.3] modifies E: Gain 2 additional charges of [E]. Drop 3 Caltrops while Vaulting that deal 60 (+4% per level) damage and Slow enemies by 40% for 1 second.
+  [T20.4] modifies Trait: Gain 20% Basic Attack range. While at max [D], gain an additional 30% Basic Attack range.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-10:
+Updates
+Base
+[D] [Trait]
+Duration reduced from 6 seconds to 5 seconds.
+Talents
+Level 10
+[R1]
+Damage per bolt increased from 60 to 70.
+Mana cost reduced from 80 to 60.
+Level 16
+[T16.3]
+Reduced bonus damage from 5% of maximum Health to 4% of maximum Health.
+[T16.1]
+Reduced the Mana cost of [W] by 20.

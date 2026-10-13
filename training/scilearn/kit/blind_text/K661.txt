@@ -1,0 +1,81 @@
+Hero code: K661
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 7, one attack every 1 s, 82 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 3 s, cost 20): After 0.5 seconds, fire a missile that deals 305 (+4% per level) damage to the first enemy hit. Deals 50% damage to Structures.  Casting [Q] leaves an Echo behind that mimics this hero's [Q] and Basic Attack, dealing 40% damage. Maximum of 1 Echo active at a time.
+[W] basic (cooldown 14 s, cost 65): Vector Targeting Launch 3 blasts into the air that land every 0.75 seconds towards the targeted direction, dealing 215 (+4% per level) damage each.
+[E] basic (cooldown 15 s, cost 20): Place a [E] that arms and Stealths after 2 seconds. this hero's Trait can be activated to detonate the trap, placing all nearby allied or enemy Heroes in Time Stop for 2 seconds. Maximum of 1 trap active at a time.
+[R1] heroic (cooldown 50 s, cost 60): Choose an enemy Hero. After 3 seconds, they are teleported back to the location where [R1] was cast on them.  Basic Abilities recharge 500% faster for 3 seconds after casting [R1].
+[R2] heroic (cooldown 5 s, cost 5): Summon a sand vortex that Slows enemies by 10% every 0.25 seconds, up to 70%.
+[D] trait: this hero has traveled to the future, and as such, will learn her Talents 2 levels earlier than her teammates!  Detonate [E]  Detonates active [E].
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Hit 40 Heroes with [Q] from this hero or her Echoes.  Reward: Increase the maximum number of active Echoes to 2, and increase Echo damage to 45%.
+  [T1.2] modifies W: Quest: Every time [W] hits a Hero increase its damage by 1%, up to 20%.  Reward: After hitting 20 Heroes, reduce the cooldown of [W] by 4 seconds and its Mana cost from 65 to 40.
+  [T1.3] modifies Active (cooldown 25 s): Gain 10% Spell Power and reduce the arming time of [E] by 0.75 seconds. Activate to reveal the targeted area for 4 seconds. Enemies seen are revealed for 4 seconds.
+Level 4:
+  [T4.1] modifies E: After its Time Stop ends, enemies affected by [E] are Slowed by 30% for 3 seconds and allies gain 30% Movement Speed for 3 seconds.
+  [T4.2] modifies E: After its Time Stop ends, enemies affected by [E] lose 15 Armor for 3 seconds and allies gain 30 Armor for 3 seconds.
+  [T4.3] modifies E: Increase the charges and maximum active [E] to 3, and reduce its cooldown by 8 seconds.
+Level 7:
+  [T7.1] modifies Q: Hitting a Hero with [Q] from this hero or her Echoes grants 50% additional Basic Attack damage for 5 seconds.
+  [T7.2] modifies W: [W] deals 30% bonus damage to enemies hit by its center.  Enemy Heroes hit by its center are Slowed by 60% for 0.75 seconds.
+  [T7.3] modifies Passive: Damaging a Stunned, Rooted, or Slowed enemy Hero grants 20% additional damage for 3 seconds.
+Level 10:
+  [R2] modifies Heroic (cooldown 5 s): Summon a sand vortex that Slows enemies by 10% every 0.25 seconds, up to 70%.
+  [R1] modifies Heroic (cooldown 50 s): Choose an enemy Hero. After 3 seconds, they are teleported back to the location where [R1] was cast on them.  Basic Abilities recharge 500% faster for 3 seconds after casting [R1].
+Level 13:
+  [T13.1] modifies Q: After casting [Q], this hero gains 20% Movement Speed and 200% increased Health Regeneration for 3 seconds.
+  [T13.2] modifies Active (cooldown 20 s): Activate to teleport to an area near an Echo, swapping it with this hero's previous location.
+  [T13.3] modifies Active (cooldown 60 s): Activate to place this hero in Stasis and gain Invulnerability for up to 5 seconds. Can be reactivated to end the effect early.
+Level 16:
+  [T16.1] modifies Q: Hitting an enemy Hero with this hero's primary [Q] grants 5% Spell Power for 8 seconds, up to a maximum of 50%. The duration is refreshed whenever an enemy is damaged by the primary [Q].
+  [T16.2] modifies Q: If this hero's primary [Q] travels at least 50% of its base distance and hits a Hero, its cooldown is reduced to 0.5 seconds and it refunds 10 Mana.
+  [T16.3] modifies Active (cooldown 45 s): Activate to increase Spell Power by 30% for 8 seconds. Hitting an enemy Hero with [Q] reduces this cooldown by 3 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Every 0.25 seconds, enemy Heroes Slowed by [R2] have their Spell Armor reduced by 10 up to 50. [R2] persists for 5 seconds after it is cancelled.
+  [T20.2] modifies Heroic: [R1] teleports the target a second time after the first, and Basic Abilities continue recharging for an additional 3 seconds. Increase the cooldown recharge rate from 500% to 700%.
+  [T20.3] modifies Q: [Q] cast from this hero and her Echoes now pierce all enemies hit.
+  [T20.4] modifies Active (cooldown 30 s): Activate to cause this hero and all allied Heroes to gain 20% Movement Speed and their Basic Abilities recharge 35% faster for 8 seconds.  Hitting an enemy Hero with [Q] from this hero or her Echoes reduces the cooldown of [T20.4] by 1 second.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-01:
+Talents
+Level 1
+[T1.3]
+Spell Power increased from 10% to 15%.
+Level 5
+[T7.2]
+Slow reduced from 60% to 40%.
+Level 18
+[T20.1]
+Lingering [R2] no longer consume Energy.
+Now also increases [R2] cast range by 50%.
+Change set 2026-07:
+Base
+[W] [W]
+Now shows a radius preview to enemies.
+[E] [E]
+Health reduced from 400 to 250.
+Talents
+Level 1
+[T1.1]
+Quest requirement reduced from 40 to 20 stacks.
+Quest must now be completed without dying.
+[T1.2]
+Damage per stack reduced from 1% to 0.5%.
+No longer has a cap on stacks.
+Level 2
+[T4.1]
+Now also causes [E] to activate automatically upon touching an enemy Hero.
+Slow reduced from 30% to 20%.
+Movement Speed bonus reduced from 30% to 20%.
+Level 11
+[T13.2]
+Range increased from 20 to 40.
+Snap targetting is now used. The Echo nearest the player's target position will be used.
+Change set 2026-07:
+[T4.1] · Level 4: tooltip now reads: [E] will activate on enemy Heroes automatically. After its Time Stop ends, enemies affected by [E] are Slowed by 25% for 3 seconds and allies gain 25% Movement Speed for 3 seconds.
+Change set 2026-08:
+[T1.1] · Level 1: tooltip now reads: Quest: Hit 20 Heroes with [Q] from this hero or her Echoes without dying. Reward: Increase the maximum number of active Echoes to 2, and increase Echo damage to 50%.

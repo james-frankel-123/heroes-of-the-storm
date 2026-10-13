@@ -21,7 +21,8 @@ import scipy.sparse as sp
 from training.scilearn import config as C
 
 TERM_TYPES = ("lookup", "state", "multiset", "indicator", "attr_sum", "bilinear", "product",
-              "pair_family", "cross_family", "decay", "rule")
+              "pair_family", "cross_family", "decay", "rule", "hash_null")
+HARNESS_ONLY = {"hash_null"}   # canary terms; the broker refuses them in session cards
 ALLOWED_FIELDS = {"hero", "map", "map_class", "tier", "build", "role_count", "kit_sum",
                   "hero_in_team", "party_max", "pick_position", "date"}
 FORBIDDEN_FIELDS = {"game_length", "avg_mmr", "player_mmr", "hero_mmr", "role_mmr", "scoreboard",
@@ -77,12 +78,13 @@ class Ctx:
             self._cache[k] = np.stack([(r == j).sum(1) for j in range(6)], 1)
         return self._cache[k]
 
-    def kit_sums(self, side):
+    def kit_sums(self, side, perm_key=None):
         if self.kit is None:
             raise TermError("term needs the kit table, which is not loaded")
-        k = ("ks", side)
+        k = ("ks", side, perm_key)
         if k not in self._cache:
-            self._cache[k] = self.kit[self.team(side)].sum(1)
+            kit = self.kit if perm_key is None else permuted_kit(self.kit, self.hero_roles, perm_key)
+            self._cache[k] = kit[self.team(side)].sum(1)
         return self._cache[k]
 
     def axis(self, name):
@@ -110,6 +112,18 @@ class Ctx:
             root._cache[key] = fn(root)
         v = root._cache[key]
         return v if self._idx is None else v[self._idx]
+
+
+def permuted_kit(kit, hero_roles, key):
+    """Kit table with every axis permuted among heroes of the same role (null canary)."""
+    import hashlib as _h
+    rng = np.random.default_rng(int(_h.sha256(str(key).encode()).hexdigest()[:12], 16))
+    out = kit.copy()
+    for r in np.unique(hero_roles):
+        idx = np.flatnonzero(hero_roles == r)
+        for k in range(kit.shape[1]):
+            out[idx, k] = kit[rng.permutation(idx), k]
+    return out
 
 
 # --------------------------------------------------------------------------- predicates
@@ -275,7 +289,8 @@ def compile_term(spec, ctx, state=None):
 
     if t == "attr_sum":
         k = ctx.axis(spec["axis"])
-        sA, sB = ctx.kit_sums(0)[:, k], ctx.kit_sums(1)[:, k]
+        pk = spec.get("_perm_key")
+        sA, sB = ctx.kit_sums(0, pk)[:, k], ctx.kit_sums(1, pk)[:, k]
         knots = state.get("knots")
         if knots is None:
             knots = list(np.quantile(np.concatenate([sA, sB]), np.linspace(0, 1, int(spec.get("n_knots", 5)))))
@@ -365,6 +380,17 @@ def compile_term(spec, ctx, state=None):
         names = [f"{name}[{ctx.meta['heroes'][c // H]}+{ctx.meta['heroes'][c % H]}]" for c in vocab]
         return Block(X, names, "ridge", lam0=float(spec.get("prior_precision", 50.0)),
                      interaction=True, state={"vocab": vocab})
+
+    if t == "hash_null":
+        # Null canary: a keyed-hash coin per (game, team), antisymmetric, outcome-blind.
+        import hashlib as _h
+        key = spec["_key"]
+        def coin(rid, team):
+            return int.from_bytes(_h.sha256(f"{key}:{rid}:{sorted(team.tolist())}".encode()).digest()[:4], "big")
+        a = np.array([coin(r, t) for r, t in zip(ctx.replay_id, A)])
+        b = np.array([coin(r, t) for r, t in zip(ctx.replay_id, Bt)])
+        X = sp.csr_matrix(np.sign(a.astype(np.int64) - b.astype(np.int64)).astype(float)[:, None])
+        return Block(X, [name], "ridge", lam0=lam)
 
     if t == "decay":
         from training.scilearn import features

@@ -1,0 +1,48 @@
+Hero code: K491
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.9 s, 81 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 6 s, cost 35): Shoot a flare dealing 75 (+4% per level) damage to enemies hit, and an additional 105 (+4% per level) damage to enemies in the center. If a Hero is hit by the center, [D]'s passive healing instantly activates.
+[W] basic (cooldown 12 s, cost 50): Polymorph a target for 1.5 seconds, Slowing their Movement Speed by 30% and Silencing them. Targets are not able to attack while Polymorphed.
+[E] basic (cooldown 10 s, cost 60): Increase target Hero's Movement Speed by 20%, and grant them 30 Spell Armor for 3 seconds, reducing Spell damage taken by 30%.
+[R1] heroic (cooldown 9 s, cost 40): Teleport to a nearby ally. When teleporting to a Hero, heal them for 200 (+4% per level).  Stores up to 2 charges.
+[R2] heroic (cooldown 50 s, cost 90): After 0.5 seconds, create an expanding nova of wind, dealing 225 (+4% per level) damage and pushing enemies away.
+[D] trait (cooldown 75 s): Activate to remove all Stun, Root, Slow, and Silence effects from nearby allied Heroes.  Passive: this hero heals nearby allied Heroes for 110 (+4% per level) every 4 seconds
+[Z] mount (cooldown 40 s): After 2 seconds, teleport to an allied Hero and heal them for 25% of their maximum Health.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Passive: Increase Polymorph's range by 30%.  If this hero hits an enemy Hero with [Q]'s center within 2 seconds of being Polymorphed, then reduce Polymorph's cooldown by 7 seconds and gain 50 Mana.
+  [T1.2] modifies Z: Increase [Z]'s healing by an additional 6% of the target's maximum Health. Nearby enemy Minion deaths reduce [Z]'s cooldown by 1 second.
+  [T1.3] modifies Active: Activate to consume 20 stacks of Bribe to instantly defeat an uncaptured non-Elite Mercenary.  Passive: Gain 1 stack of Bribe when a nearby enemy Minion dies, and 5 stacks when hitting an enemy Hero with [Q]'s center. Maximum 80 stacks.
+Level 4:
+  [T4.1] modifies Q: Increase [Q]'s range by 50%. Hitting a Hero with [Q]'s center reduces its cooldown to 2 seconds.
+  [T4.2] modifies W: Increase Polymorph's Slow by 15%. Upon expiration, Polymorph deals damage to nearby enemy Heroes equal to 2% of their maximum Health.
+  [T4.3] modifies Passive: Increase Basic Attack range by 1.1. Basic Attacks against Heroes reduce the cooldown of [D] by 4 seconds.
+Level 7:
+  [T7.1] modifies Q: Enemy Heroes hit by [Q] have their Movement Speed Slowed by 20% for 3 seconds. Increase the Slow to 40% if they are hit by the center portion.
+  [T7.2] modifies Z: term A to an ally grants both this hero and her target a 335 (+4% per level) Shield for 4 seconds and reveals a large area around them for 5 seconds.
+  [T7.3] modifies Trait: [D] heals allied Heroes for 165 (+4% per level). Increase this healing by 140% if [D] removed a disabling effect from that ally.
+Level 10:
+  [R1] modifies Heroic (cooldown 9 s): Teleport to a nearby ally. When teleporting to a Hero, heal them for 200 (+4% per level).  Stores up to 2 charges.
+  [R2] modifies Heroic (cooldown 50 s): After 0.5 seconds, create an expanding nova of wind, dealing 225 (+4% per level) damage and pushing enemies away.
+Level 13:
+  [T13.1] modifies E: [E] gives 50% bonus Movement Speed, decaying to 20% over 3 seconds.
+  [T13.2] modifies E: Increase [E]'s duration by 1 second. [D] and [R1] heal allies with an active [E] for 75% more.
+  [T13.3] modifies E: Reduce the cooldown of [E] by 3 seconds and increase the Spell Armor granted by 25.
+Level 16:
+  [T16.1] modifies Q: Enemy Heroes hit by the center of [Q] are Silenced for 1 second and deal 25% less damage for 3 seconds.
+  [T16.2] modifies W: While Polymorphed, the target's Armor is reduced by 25, increasing the damage they take by 25%.
+  [T16.3] modifies Active (cooldown 20 s): Activate to place this hero in Stasis for 0.75 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R1] grants Stealth to this hero and her Heroic targets for 9 seconds, and they are Unrevealable for the first 0.5 seconds. While Stealthed by [T20.1], Heroes heal for 25 (+4% per level) health per second.  Remaining stationary for at least 1.5 seconds while Stealthed grants Invisible.
+  [T20.2] modifies Heroic: Permanently reduce [R2]'s cooldown to 5 seconds.
+  [T20.3] modifies Z: Permanently gain 20% Movement Speed. Reduce [Z]'s cast time by 1 second.
+  [T20.4] modifies Active (cooldown 45 s): Activate to apply [E] to all nearby Heroes.  Passive: [E] always bounces back and applies to this hero.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-07:
+Talents
+Level 10
+[R2]
+Targets will now be knocked back over the entire duration of the expanding nova.

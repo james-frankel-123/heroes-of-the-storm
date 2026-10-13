@@ -1,0 +1,54 @@
+Hero code: K245
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.8 s, 60 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 4 s, cost 25): Heal the lowest Health allied Hero within 6 range for 175 (+4% per level) Health.
+[W] basic (cooldown 11 s, cost 35): Summon a [W] on an allied Hero that attacks nearby enemies every second. Each attack deals 26 (+4% per level) damage and heals the ally for 20 (+4% per level). Lasts for 8 seconds.
+[E] basic (cooldown 12 s, cost 30): Throw a cloud of wind at the 2 nearest enemies (prioritizing Heroes), dealing 133 (+4% per level) damage. Heroes hit are Blinded and Slowed by 15% for 1.5 seconds.
+[R1] heroic (cooldown 20 s, cost 80): Channel for up to 6 seconds. Every 0.25 seconds, increase the cooldown of [R1] by 2 seconds, up to 50 additional seconds, and heal the lowest Health nearby allied Hero for 66 (+4% per level) Health.
+[R2] heroic (cooldown 50 s, cost 60): this hero channels for 2 seconds, summoning a [R2] that hits the nearest enemy Hero within 12 range and all enemies near them, dealing 300 (+4% per level) damage and slowing their Movement Speed by 70% for 4 seconds.
+[D] trait: Upon taking damage, your Basic Ability cooldowns refresh 50% faster and you gain 10% Movement Speed for 1 second.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: [Q]'s cooldown is reduced by 1 second and its Mana cost is refunded if it heals a Hero under 50% Health.
+  [T1.2] modifies W: [W] no longer costs Mana and while [D] is active its cooldown refreshes an additional 75% faster.
+  [T1.3] modifies Trait: Increase [D]'s duration by 150% and increase Mana regeneration by 150% while [D] is active.
+Level 4:
+  [T4.1] modifies W: [W] grants its bearer 10% increased Movement Speed. Casting [E] increases this bonus to 20% for 3 seconds.  Passive: [W] attacks 25% faster.
+  [T4.2] modifies E: If [E] hits 2 Heroes, its cooldown is reduced by 2 seconds and this hero gains 10% Spell Power for 10 seconds.
+  [T4.3] modifies Trait (cooldown 30 s): Activate to gain [D], 30 Armor, and 30% Movement Speed for 3 seconds.  Passive: While [D] is active, this hero gains 10 Armor.
+Level 7:
+  [T7.1] modifies Q: [Q] heals for an additional 42 (+4% per level) over 3 seconds. While [D] is active, this heal amount is increased by 100%.
+  [T7.2] modifies E: Increase the number of enemies hit by [E] from 2 to 3. [E] deals 75% additional damage if all 3 enemies hit are Heroes.
+  [T7.3] modifies Active (cooldown 40 s): Activate to heal an allied Hero for 160 (+4% per level) and make them Unstoppable for 1 second. [T7.3]'s cooldown is affected by [D].  Cannot be used on this hero.
+Level 10:
+  [R1] modifies Heroic (cooldown 20 s): Channel for up to 6 seconds. Every 0.25 seconds, increase the cooldown of [R1] by 2 seconds, up to 50 additional seconds, and heal the lowest Health nearby allied Hero for 66 (+4% per level) Health.
+  [R2] modifies Heroic (cooldown 50 s): this hero channels for 2 seconds, summoning a [R2] that hits the nearest enemy Hero within 12 range and all enemies near them, dealing 300 (+4% per level) damage and slowing their Movement Speed by 70% for 4 seconds.
+Level 13:
+  [T13.1] modifies W: [W] attacks bounce to hit 2 additional targets for 13 (+4% per level) damage and 10 (+4% per level) healing.
+  [T13.2] modifies E: Increase [E]'s Blind duration by 0.75 seconds. this hero's Basic Attacks against Blinded Heroes deal 100% increased damage.
+  [T13.3] modifies E: Increase [E]'s Slow amount to 30% and its duration to 2 seconds.
+Level 16:
+  [T16.1] modifies Q: Increases the number of allies healed by [Q] to 2, but increases the cooldown by 1 second.
+  [T16.2] modifies Q: [Q]'s healing for Heroes is increased by 33% if they are under 50% Health.
+  [T16.3] modifies W: [W] grants its bearer 10% increased healing received and heals them for an additional 0.5% of their maximum Health each time it attacks.
+Level 20:
+  [T20.1] modifies Heroic: [R1] heals two allies at a time.
+  [T20.2] modifies Heroic: After hitting a target with [R2], another [R2] is summoned at the point of impact.
+  [T20.3] modifies Active (cooldown 30 s): Activate to heal nearby allied Heroes for 149 (+4% per level). Basic Attacks and [W] attacks reduce the cooldown of [T20.3] by 1 second.
+  [T20.4] modifies Trait: Gain 35 Armor while Stunned, Silenced, or Rooted.  Passive: Increase [D]'s cooldown refresh rate to 75%
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-12:
+Talents
+Level 1
+[T1.1]
+Can now reduce the cooldown multiple times per cast (Example: Combined with [T16.1]).
+Level 20
+[T20.4]
+Armor now persists for 2 seconds after Stun, Silence, or Root expires.
+Change set 2025-07:
+Base
+[Q] [Q]
+Healing amount increased from 175 to 210 .

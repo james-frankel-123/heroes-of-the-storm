@@ -1,0 +1,43 @@
+Hero code: K716
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 2, one attack every 1.3 s, 115 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 70): this hero swings his mace, dealing 150 (+4% per level) damage and Slowing enemies by 40% for 2.5 seconds. If an enemy Hero is hit, refund 50% of the cooldown and Mana cost. Deals 75% additional damage to Minions. Peasants!
+[W] basic (cooldown 10 s, cost 60): Grab an enemy Hero's soul, dealing up to 20% of their maximum Health as damage and healing this hero for up to 20% of his maximum Health while he is nearby, over 4 seconds. this hero's Movement Speed is reduced by 20% while this is active.
+[E] basic (cooldown 14 s, cost 50): this hero separates from his body, becoming Unstoppable and gaining Movement Speed accelerating up to 50% over 2.5 seconds. When [E] ends or is canceled, his body jumps to his wraith.
+[R1] heroic (cooldown 50 s, cost 90): Create an unpassable tomb for 4 seconds.
+[R2] heroic (cooldown 50 s, cost 75): this hero becomes Unstoppable and walks forward, swinging his mace 3 times. Enemies hit take 250 (+4% per level) damage, and Heroes hit heal this hero for 12% of his maximum Health.
+[D] trait: this hero becomes a ghost when he dies, and resurrects upon reaching full Health. this hero deals no damage while dead.  term A  this hero's first two Basic Attacks cleave for 100% damage, and his third Basic Attack deals 225% damage to a single target.
+Alternate form or second unit abilities:
+[alt-Q] basic (cooldown 8 s): Slow enemies by 40% for 2.5 seconds.
+[alt-W] basic (cooldown 9 s): Throw out a chain, attaching to the first enemy Hero hit, healing this hero for up to 10% of his maximum Health over 4 seconds as long as the enemy remains close.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: [Q]'s cooldown is reduced by 2 seconds. Enemy Heroes hit heal this hero for 4% of his maximum Health.
+  [T1.2] modifies Trait: When a nearby friendly or enemy Minion dies, this hero restores 1.25% of his maximum Health and 6 Mana.
+  [T1.3] modifies Active (cooldown 120 s): Activate to heal this hero for 30% of his maximum Health over 5 seconds. Regeneration Globes lower the cooldown of this Ability by 20 seconds.
+Level 4:
+  [T4.1] modifies Q: Increase the range of [Q] by 25%.
+  [T4.2] modifies Q: Increase the Slow of [Q] by 20%.
+  [T4.3] modifies Q: [Q] deals 75% additional damage to Mercenaries and Monsters, and hitting them activates [Q]'s cost and cooldown refund.
+Level 7:
+  [T7.1] modifies W: Increase the healing from [W] to 25% of this hero's maximum Health. If [W] lasts its full duration, this hero instantly heals for an additional 5% of his maximum Health.
+  [T7.2] modifies W: [W] no longer reduces this hero's Movement Speed. If [W] lasts its full duration, gain 30% Movement Speed for 4 seconds.
+  [T7.3] modifies W: Increase the range of [W] by 25%.
+Level 10:
+  [R1] modifies Heroic (cooldown 50 s): Create an unpassable tomb for 4 seconds.
+  [R2] modifies Heroic (cooldown 50 s): this hero becomes Unstoppable and walks forward, swinging his mace 3 times. Enemies hit take 250 (+4% per level) damage, and Heroes hit heal this hero for 12% of his maximum Health.
+Level 13:
+  [T13.1] modifies W: [W]'s cooldown is reduced by 0.75 seconds for every 1 second it is active. If [W] lasts its full duration, its cooldown is reduced by an additional 2 seconds.
+  [T13.2] modifies E: Increase [E]'s duration by 100%. Enemy Heroes that come in contact with the wraith deal 50% less damage for 4 seconds.
+  [T13.3] modifies Passive: Basic Attacks against enemy Heroes deal bonus damage equal to 2.5% of the Hero's maximum Health and heal this hero for twice that amount.
+Level 16:
+  [T16.1] modifies W: If [W] lasts its full duration, it instantly deals an additional 15% of the target's maximum Health as damage. This damage does not heal this hero.
+  [T16.2] modifies E: [E] increases the damage of the next [Q] within 5 seconds by 50%. Each enemy Hero hit by this [Q] reduces the cooldown of [E] by 7 seconds.
+  [T16.3] modifies Passive: Increase this hero's Attack Speed by 20%.  Repeatable Quest: Nearby enemy Minion deaths grant 0.3% permanent Attack Speed, and Takedowns grant 3% permanent Attack Speed, up to 30%.
+Level 20:
+  [T20.1] modifies Heroic: The duration of [R1] is lowered by 1 second, but enemies trapped inside are Silenced and take 50 (+4% per level) damage every 1 second.
+  [T20.2] modifies Heroic: The final swing of [R2] also applies [W] to nearby enemy Heroes.
+  [T20.3] modifies W: Deal 40 (+4% per level) damage per second to nearby enemies.  While [W] is active, gain 40 Armor and the damage and area is increased by 100%.
+  [T20.4] modifies Active (cooldown 25 s): Activate to become Protected for 3 seconds, preventing all damage.

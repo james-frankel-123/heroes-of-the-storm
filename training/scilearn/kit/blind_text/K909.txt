@@ -1,0 +1,40 @@
+Hero code: K909
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 83 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 0.5 s, cost 6): Heal target allied Hero or Minion for 172 (+4% per level) Health per second as long as they are in range. After not channeling [Q] for 2 seconds, regenerate 6 Energy per second.  Reactivate to switch targets, or self-cast to cancel channeling.
+[W] basic (cooldown 11 s): Grant target ally Hero 35 Armor for 3 seconds.
+[E] basic (cooldown 12 s): Fire a grenade that can be manually detonated, dealing 208 (+4% per level) to nearby enemies and knocking them away.
+[R1] heroic (cooldown 70 s): Grant an allied Hero 75% Attack Speed and 25% Movement Speed for 10 seconds.
+[R2] heroic (cooldown 45 s): Target a location for a term A transport. For up to 10 seconds before takeoff, allies can right-click to enter the term A.
+[D] trait: While channeling [Q], this hero regenerates 2% of her maximum Health per second.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Passive: Increases Attack Range by 1.1 and Basic Attacks against Heroes generate 4 Energy.
+  [T1.2] modifies Q: During the first 2 seconds of Energy regeneration, [Q] regenerates 100% more Energy.  Passive: Increase your maximum Energy by 10.
+  [T1.3] modifies E: Quest: Each enemy Hero hit with [E] restores 3 Energy.  Reward: After hitting 15 Heroes, reduce the cooldown of [E] from 12 seconds to 9 seconds.  Reward: After hitting 30 Heroes, increase the detonation area of [E] by 25%.
+Level 4:
+  [T4.1] modifies Active (cooldown 20 s): Consume 30 Energy to heal this hero for 30% of her maximum Health over 3 seconds. [D] is disabled while this is active.  Passive: Generate 2 Energy each time [W] reduces damage, up to a maximum of 10 Energy per use.
+  [T4.2] modifies Passive: Taking damage while below 40% Health grants 40 Armor for 3 seconds. This effect has a 30 second cooldown.  Passive: Increase the healing provided by [D] from 2% to 4% of this hero's maximum Health per second.
+  [T4.3] modifies E: Enemy Heroes hit by [E] are Slowed by 50% for 1 second after being knocked away and grant this hero a Shield equal to 6% of her maximum Health. This shield stacks up to 5 times.
+Level 7:
+  [T7.1] modifies W: [W] removes all Slows from its target and its cooldown is reduced by 3 seconds.
+  [T7.2] modifies W: While an ally affected by [W] is Stunned or Rooted, [W] grants an additional 20 Armor.  Passive: Increase the duration of [W] by 1 second.
+  [T7.3] modifies W: Allies with [W] receive 75% of the healing done by [Q] on another ally.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): Grant an allied Hero 75% Attack Speed and 25% Movement Speed for 10 seconds.
+  [T10.2] modifies Heroic (cooldown 45 s): Unlock the [R2] and Reinforcements abilities. These abilities share a cooldown.  [R2] Target a location for a term A transport. For up to 10 seconds before takeoff, allies can right-click to enter the term A.  Reinforcements Call down a [R2] at your Hall of Storms for your allies. After 10 seconds, or when the Ability is activated again, the term A will travel to the original cast location to unload its passengers.
+Level 13:
+  [T13.1] modifies E: [E] deals an additional 96 (+4% per level) damage over 2 seconds, and up to 400 (+4% per level) bonus damage to Shields.
+  [T13.2] modifies E: Heroes hit by [E] deal 30% less damage for 3 seconds.
+  [T13.3] modifies E: Heroes hit by [E] will take an additional 6% of maximum Health as damage from this hero's next Basic Attack against them.  Passive: Basic Attacks against Heroes deal an additional 1% of maximum Health as damage.
+Level 16:
+  [T16.1] modifies Q: Channeling [Q] on a Hero for at least 3 seconds causes them to be healed for 258 (+4% per level) over 3 seconds when [Q] ends.  Passive: Increase the range of [Q] by 30%.
+  [T16.2] modifies Q: While above 60 Energy, [Q]'s healing is increased by 20% and both this hero and her [Q] target gain 15% Movement Speed.
+  [T16.3] modifies W: [W] gains a second charge and its range is increased by 60%.
+Level 20:
+  [T20.1] modifies Heroic: Reduce the cooldown of [R1] from 70 seconds to 35 seconds, and increase the Movement Speed bonus from 25% to 50%.
+  [T20.2] modifies Heroic: After exiting the term A, allies are Protected from all damage for 3 seconds.  Passive: Reduce the cooldown of [R2] abilities by 15 seconds.
+  [T20.3] modifies W: [W] grants its target Unkillable for 1 second. If the target is under 50% maximum Health when the Unkillable effect ends, they are healed for 8% of their maximum Health.
+  [T20.4] modifies E: Hitting 2 or more Heroes with [E] reduces its cooldown to 2 seconds.

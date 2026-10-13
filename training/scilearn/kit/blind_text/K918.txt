@@ -1,0 +1,41 @@
+Hero code: K918
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 2, one attack every 0.6 s, 102 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 14 s): Teleport a short distance in the direction of the mouse cursor, creating 2 [Q] for 8 seconds with 100% of this hero's current Health that Basic Attack enemies for 11 (+4% per level) damage. Images have their duration increased by 1 second each time they or this hero use a Basic Attack against an enemy Hero. Whenever an Image takes damage, it deals that amount of damage to itself, effectively doubling the damage it takes.  Maximum 2 [Q] can be active at at time. Using [Q] removes most negative effects from this hero.
+[W] basic (cooldown 10 s): this hero's next Basic Attack within 8 seconds will be a [W], dealing 50% increased damage. This also applies to Images, and does not break [E].  Passive: this hero and his Images deal a [W] on every 4th Basic Attack.
+[E] basic (cooldown 15 s): Grant this hero Stealth for up to 10 seconds or until he attacks, uses an Ability, or takes damage.  While Stealthed, this hero heals for 3% of his maximum Health every second, his Movement Speed is increased by 20% and he can pass through other units. Remaining stationary for at least 1.5 seconds while Stealthed grants Invisible.  this hero is Unrevealable for the first 1 second of [E].
+[R1] heroic (cooldown 25 s): Cause a [R1] of destructive force around this hero for 3 seconds, granting him 25 Armor and dealing 180 (+4% per level) damage per second to nearby enemies.
+[R2] heroic (cooldown 8 s): [Q] can be controlled individually or as a group and their damage is increased by 100%.  Passive: term A's cooldown is reduced to 8 seconds.
+[1] activable: [1]  Issue orders to this hero only.
+[2] activable: [2]  Issue orders to this hero and all [Q].
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Every time a [Q] Critically Strikes a Hero, this hero gains 0.25 Attack Damage, up to 10.  Reward: After hitting 40 Heroes, this hero gains an additional 30 Attack Damage.
+  [T1.2] modifies W: [W] now happens for this hero and his [Q] every 3rd Basic Attack.   this hero and his [Q]' [W] against enemy Heroes reduce their Physical Armor by 5 for 2.25 seconds, stacking up to 3 times.
+  [T1.3] modifies E: Gain 40% Movement Speed for 3 seconds after entering or exiting [E].  Casting [E] heals this hero for 4% of his maximum Health.
+Level 4:
+  [T4.1] modifies Q: [Q] grants this hero and his Images 40 Spell Armor against the next 2 sources of Spell Damage, reducing their damage by 40%.
+  [T4.2] modifies E: While this hero has [E] active and for 3 seconds after breaking it, both he and his [Q] gain 30 Armor, taking 30% reduced damage from all sources.
+  [T4.3] modifies Passive: term B grants this hero and his [Q] 35 Physical Armor.
+Level 7:
+  [T7.1] modifies W: [W] from this hero and [Q] deal an additional 50% of their Basic Attack damage as Spell Damage to the target and nearby enemies.
+  [T7.2] modifies W: this hero's [W] against enemy Heroes deal an additional 35% of his Basic Attack damage for each [Q] that is active and reduce the cooldown of term A by 1 second.
+  [T7.3] modifies W: this hero's Basic Attacks against Heroes reduce the cooldown of [W] by 2 seconds.   [W] against enemy Heroes increase this hero's Basic Attack damage by 10% for 4 seconds, stacking up to 3 times.
+Level 10:
+  [R1] modifies Heroic (cooldown 25 s): Cause a [R1] of destructive force around this hero for 3 seconds, granting him 25 Armor and dealing 180 (+4% per level) damage per second to nearby enemies.
+  [R2] modifies Heroic (cooldown 8 s): [Q] can be controlled individually or as a group and their damage is increased by 100%.  Passive: term A's cooldown is reduced to 8 seconds.
+Level 13:
+  [T13.1] modifies Q: this hero's Basic Attacks against Heroes reduce the cooldown of [Q] by 0.75 seconds.
+  [T13.2] modifies E: [E] creates a [Q] at this hero's location that will continue whatever he was doing.
+  [T13.3] modifies E: [E] teleports this hero a short distance in the direction he's currently facing.
+Level 16:
+  [T16.1] modifies W: this hero's Basic Attacks against Stunned, Rooted, or Slowed enemies are always [W].
+  [T16.2] modifies E: Attacking a Hero during [E] causes them to take 30% increased damage from this hero for 3 seconds.
+  [T16.3] modifies Passive: While term B is active, this hero and his [Q] gain 10% Attack Speed every time they Basic Attack, up to 40%.
+Level 20:
+  [T20.1] modifies Heroic: [Q] use [R1] when this hero does, but for 45% damage.  If this hero hits at least 20 enemy Heroes with [R1], then reset its cooldown.
+  [T20.2] modifies Heroic: this hero's [Q] only deal half of the damage they take to themselves, effectively increasing their Health by 25% and their duration is increased to 16 seconds.
+  [T20.3] modifies E: [E]'s cooldown is reduced by 6 seconds.
+  [T20.4] modifies Passive: term B grants an additional 15% Movement Speed for this hero and his [Q], and its duration is increased by 2 seconds.

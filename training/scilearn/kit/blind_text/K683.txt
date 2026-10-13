@@ -1,0 +1,56 @@
+Hero code: K683
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 1 s, 148 damage per attack; range 5.5, one attack every 1 s, 148 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 9 s, cost 55): Hurl a flask that deals 55 (+4% per level) damage to the first enemy hit and explodes for 220 (+4% per level) damage to enemies in a cone behind them.  beast form: [alt-Q] Swipe forward, damaging enemies hit.
+[W] basic (cooldown 20 s, cost 70): Gain 50% Attack Speed for 3 seconds. Basic Attacks refresh this duration, and reduce the cooldown of [W] by 0.5 seconds.
+[E] basic (cooldown 5 s, cost 10): Shapeshift into a beast form and leap at an enemy dealing 88 (+4% per level) damage.  beast form: Disengage Roll away and shapeshift into a ranged form.
+[R1] heroic (cooldown 80 s, cost 90): Leap at an enemy Hero and shapeshift into a beast form, slashing for 355 (+4% per level) damage. If this kills them, the Ability can be used a second time within 10 seconds for free.
+[R2] heroic (cooldown 30 s, cost 50): this hero shapeshifts into a ranged form and fires a bullet that hits the first enemy Hero in its path, dealing 35% of their current Health in damage.  Does not affect Vehicles.
+[D] trait: this hero can use certain Abilities to shapeshift between a ranged form and a beast form.  While ranged form, this hero's Basic Attacks are ranged.  While beast form, this hero gains 10 Armor, and his Basic Attacks become melee but deal 40% more damage.
+Alternate form or second unit abilities:
+[alt-Q] basic (cooldown 4 s, cost 25): Swipe in the targeted direction, dealing 126 (+4% per level) damage to enemies hit.  ranged form: [Q] Damage the first enemy hit and deal heavy damage behind them.
+[alt-W] basic: Gain 50% Attack Speed for 3 seconds. Basic Attacks refresh this duration, and reduce the cooldown of [W] by 0.5 seconds.
+[alt-E] basic (cooldown 5 s): Roll away and shapeshift into a ranged form.  ranged form: [E] Leap at an enemy and shapeshift into a beast form.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Increase the cooldown reduction from Basic Attacks during [W] from 0.5 to 1.2 seconds.
+  [T1.2] modifies Q: Increases [Q]'s range by 30% and refunds 45 Mana if it hits an enemy Hero.
+  [T1.3] modifies W: Increases [W]'s duration to 4 seconds, and causes Ability damage to also refresh its duration.
+Level 4:
+  [T4.1] modifies E: Using [E] grants 50 Physical Armor against the next 2 Hero Basic Attacks while in beast form, reducing the damage taken by 50%.
+  [T4.2] modifies E: Disengage grants Stealth for 3 seconds.
+  [T4.3] modifies W: [W] causes Basic Attacks to restore 10 Mana, and reduce the cooldown of Healing Fountain by 0.5 seconds.
+Level 7:
+  [T7.1] modifies Trait: Increases this hero's ranged form Basic Attack range by 1.1.
+  [T7.2] modifies Q: Quest: Reduce the cooldown of [Q] by 2 seconds. Every time this hero hits an enemy Hero with the explosion damage from [Q], increase its explosion damage by 25, up to 375.  Reward: After hitting 15 Heroes, the cooldown is reduced by an additional 3 seconds.
+  [T7.3] modifies Trait: Quest: Every 6 ranged form Basic Attacks against Heroes increase Basic Attack damage by 1%, up to 30%. beast form Basic Attacks grant credit for 3 Basic Attacks. Half of this bonus is lost upon death.
+Level 10:
+  [R1] modifies Heroic (cooldown 80 s): Leap at an enemy Hero and shapeshift into a beast form, slashing for 355 (+4% per level) damage. If this kills them, the Ability can be used a second time within 10 seconds for free.
+  [R2] modifies Heroic (cooldown 30 s): this hero shapeshifts into a ranged form and fires a bullet that hits the first enemy Hero in its path, dealing 35% of their current Health in damage.  Does not affect Vehicles.
+Level 13:
+  [T13.1] modifies E: Increases [E] and Disengage's range by 35%, and reduce their cooldowns by 1 second.
+  [T13.2] modifies Q: Increases [alt-Q]'s lunge distance by 60%, and beast form Basic Attacks reduce [alt-Q]'s cooldown by 1.5 seconds.
+  [T13.3] modifies W: [W] increases Movement Speed by 30% once it has been active for 3 seconds.
+Level 16:
+  [T16.1] modifies W: Increases the Attack Speed bonus of [W] by an additional 40% after it has been active for 4 seconds.
+  [T16.2] modifies Passive: Attacking a Hero that is slowed, rooted, or stunned increases your Basic Attack damage by 30% for 3 seconds.
+  [T16.3] modifies Trait: beast form Basic Attacks against Heroes deal bonus damage equal to 3% of the Hero's maximum Health.
+Level 20:
+  [T20.1] modifies Heroic: Passive: [R1]'s damage is increased by 25%.  If [R1] kills its target, refund its Mana cost and reset the cooldowns of this hero's Abilities.
+  [T20.2] modifies Heroic: [R2]'s damage is reduced to 30% of current health but its cooldown is reduced by 24 seconds.
+  [T20.3] modifies Trait: ranged form Basic Attacks splash for 100% damage behind the target.
+  [T20.4] modifies Trait: beast form Basic Attacks cleave for 100% damage. Increase [alt-Q]'s damage by 100%.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-12:
+Talents
+Level 16
+term B
+New: Replaces [T16.2]. Basic Attacks against Slowed, Rooted or Stunned enemy Heroes deal 25% additional damage for 3 seconds, increased to 50% while in beast form.
+Change set 2025-03:
+Talents
+Level 1
+[T1.1]
+Rework: Now also increases Armor granted by beast form from 10 to 15.

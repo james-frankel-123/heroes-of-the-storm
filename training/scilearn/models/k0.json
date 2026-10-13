@@ -1,0 +1,140 @@
+{
+ "_doc": "K0: kit-anchored backbone (FRAMING 10.2 K) before any card. Hero strength per build, a free-shape function of each team kit sum, map class x four macro axes, player-hero experience. No role-structure terms: those are left for cards (family 1) and the known-true canaries.",
+ "terms": [
+  {
+   "type": "state",
+   "name": "hero_build",
+   "jump_precision": 400
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_hard_cc",
+   "axis": "hard_cc",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_soft_cc_peel",
+   "axis": "soft_cc_peel",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_healing_throughput",
+   "axis": "healing_throughput",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_self_sustain_shields",
+   "axis": "self_sustain_shields",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_burst",
+   "axis": "burst",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_sustained_damage",
+   "axis": "sustained_damage",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_range",
+   "axis": "range",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_mobility",
+   "axis": "mobility",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_waveclear",
+   "axis": "waveclear",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_siege",
+   "axis": "siege",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_global_presence",
+   "axis": "global_presence",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "attr_sum",
+   "name": "kit_early_vs_late",
+   "axis": "early_vs_late",
+   "shape": "free",
+   "n_knots": 5,
+   "prior_precision": 10
+  },
+  {
+   "type": "product",
+   "name": "mapclass_x_waveclear",
+   "axis": "waveclear",
+   "by": "map_class",
+   "prior_precision": 50
+  },
+  {
+   "type": "product",
+   "name": "mapclass_x_siege",
+   "axis": "siege",
+   "by": "map_class",
+   "prior_precision": 50
+  },
+  {
+   "type": "product",
+   "name": "mapclass_x_global_presence",
+   "axis": "global_presence",
+   "by": "map_class",
+   "prior_precision": 50
+  },
+  {
+   "type": "product",
+   "name": "mapclass_x_mobility",
+   "axis": "mobility",
+   "by": "map_class",
+   "prior_precision": 50
+  },
+  {
+   "type": "decay",
+   "name": "player_hero_exp",
+   "half_life_days": 180,
+   "sign": "+"
+  }
+ ]
+}

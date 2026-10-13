@@ -1,0 +1,62 @@
+Hero code: K882
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 4.5, one attack every 0.25 s, 20 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s): Launch a [Q] that deals 75 (+4% per level) damage to enemies within the area. Deals 50% damage to Structures.  Stores up to 4 charges.
+[W] basic (cooldown 10 s): Gain a Shield that absorbs 560 (+4% per level) damage for 3 seconds.
+[E] basic (cooldown 12 s): Grants an allied Hero a Shield that absorbs 420 (+4% per level) damage for 3 seconds.
+[R1] heroic (cooldown 60 s): Launch a gravity bomb that detonates after 1 second and draws enemy Heroes toward the center for 2.5 seconds. Affected Heroes take 30 (+4% per level) damage a second.
+[R2] heroic (cooldown 45 s): Launch a gravity bomb that deals 124 (+4% per level) damage and creates an [R2] for 3.5 seconds. Enemies who enter the affected area are knocked back and have their Movement Speed reduced by 50% for 1 second.
+[D] trait: Each time this hero's [W] or [E] absorbs 9 (+4% per level) damage, her Energy is increased by 1. Each point of Energy increases this hero's damage by 2%. After 0.5 seconds, Energy decays by 3 per second.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: For every 5 enemy Heroes hit by [Q], its recharge rate lowers by 0.4375 seconds, up to 3.5 seconds.  Reward: Once [Q] has hit 40 enemy Heroes, its radius is increased by 15%.
+  [T1.2] modifies E: For 3 seconds after gaining [E], every 5.35 (+4% per level) damage done by the bearer contributes 1 Energy to this hero, up to 40 Energy per Shield.
+  [T1.3] modifies Trait: this hero's Basic Attack deals 50% additional damage to enemies in melee range. While above 40 Energy, this hero's Basic Attack size is increased by 35%.
+  [T1.4] modifies Trait: Regen Globes now instantly grant 20 Energy.  Quest: Spend 150 seconds at or above 50 Energy.  Reward: Gain an additional 20 maximum Energy.
+Level 4:
+  [T4.1] modifies W: [W] absorbs an additional 140 (+4% per level) damage.  Passive: Damage absorbed by this hero's Shields contributes 20% more Energy.
+  [T4.2] modifies E: Quest: Regeneration Globes increase [E] absorb amount by 15, up to 300 permanently.  Reward: After collecting 20 Regen Globes, permanently reduce the cooldown of [E] by 2 seconds.
+  [T4.3] modifies E: [E] increases the allied Hero's Movement Speed by 50% for the duration.
+  [T4.4] modifies Passive: Upon expiration or breaking, [W] and [E] grant 75 Physical Armor against the next 2 Hero Basic Attacks for 6 seconds, reducing the damage taken by 75%.
+Level 7:
+  [T7.1] modifies Q: [Q] deals 30 (+4% per level) more damage and Slows Movement Speed by 25% for 2 seconds to enemies hit by the center of the blast.
+  [T7.2] modifies Q: Hitting a Hero with [Q] causes Basic Attacks against them to generate 2 Energy. Lasts 3 seconds.
+  [T7.3] modifies W: Upon expiration or breaking, [W] explodes, dealing 110 (+4% per level) damage to nearby enemies.
+Level 10:
+  [R1] modifies Heroic (cooldown 60 s): Launch a gravity bomb that detonates after 1 second and draws enemy Heroes toward the center for 2.5 seconds. Affected Heroes take 30 (+4% per level) damage a second.
+  [R2] modifies Heroic (cooldown 45 s): Launch a gravity bomb that deals 124 (+4% per level) damage and creates an [R2] for 3.5 seconds. Enemies who enter the affected area are knocked back and have their Movement Speed reduced by 50% for 1 second.
+Level 13:
+  [T13.1] modifies W: [W] makes this hero Unstoppable for up to 2 seconds.
+  [T13.2] modifies W: Upon expiration or breaking, [W] grants this hero 75 Spell Armor for 3 Seconds, reducing the damage taken from Abilities by 75%.
+  [T13.3] modifies Trait: While at or above 75 Energy, this hero gains 20 Armor, reducing all damage taken by 20%.
+  [T13.4] modifies Active (cooldown 30 s): Activate to consume all Energy and gain a Shield that absorbs 0.5% of this hero's maximum Health per Energy consumed and lasts for 3 seconds. this hero may only have one personal Shield active on herself at a time.
+Level 16:
+  [T16.1] modifies E: Causes [E] to remove all disabling effects and reduces its cooldown by 3 seconds.
+  [T16.2] modifies E: [E] now grants an untalented Shield to a nearby ally upon impact.
+  [T16.3] modifies Trait: While at or above 75 Energy, this hero's cooldowns regenerate 25% faster.
+Level 20:
+  [T20.1] modifies Heroic: Increases [R1]'s duration by 1 second and it Silences Heroes caught in its area.
+  [T20.2] modifies Heroic: Reduce [R2]'s cooldown by 25 seconds and increase its duration by 1.5 seconds.
+  [T20.3] modifies Q: All [Q] charges are returned at once.
+  [T20.4] modifies Active (cooldown 60 s): Activate to reset the cooldown of [W] and [E].
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+ARAM
+Change set 2024-08:
+Updates
+Base
+[Q] [Q]
+Damage increased from 75 to 80.
+[E] [E]
+Search radius increased from 8 to 10.
+Talents
+Level 7
+[T7.2]
+Duration increased from 3 to 4 seconds.
+Level 13
+[T13.4]
+Shielding increased from 0.48% of Max Health per Energy to 0.8% of Max Health per Energy.

@@ -1,0 +1,48 @@
+Hero code: K986
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.8332 s, 88 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 5 s, cost 35): After 0.5 seconds, deal 165 (+4% per level) damage to enemies in a line.  Hitting a Hero with [Q] sets its cooldown to 2 seconds, refunds 35 Mana, and causes this hero to dash a short distance upon moving.
+[W] basic (cooldown 10 s, cost 60): After 0.625 seconds, deal 305 (+4% per level) damage to nearby enemies in front of this hero.
+[E] basic (cooldown 14 s, cost 50): Release a wave of dread that deals 85 (+4% per level) damage to enemies hit.  [E] erupts 0.75 seconds after reaching the end of its path, dealing 175 (+4% per level) damage. Enemies hit by [E]'s wave or eruption are Slowed by 25% for 2 seconds.
+[R1] heroic (cooldown 70 s, cost 75): After 1.25 seconds, pull enemies in an area towards the center, dealing 250 (+4% per level) damage and Stunning them for 0.5 seconds.
+[R2] heroic (cooldown 50 s, cost 75): After 1.5 seconds, deal 210 (+4% per level) damage in an area. [R2] repeats every 1 second as long as it hits an enemy Hero.
+[D] trait: Hitting an enemy Hero with a Basic Ability grants 1 Chaos. Chaos can stack up to 3 times.  While this hero has Chaos, her Basic Attacks against Heroes consume all Chaos, dealing 50% increased damage per stack, and healing for 100% of the damage dealt.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: [Q] deals an increased 90% damage to enemies hit by its end and grants 1 additional Chaos.
+  [T1.2] modifies E: Increase [E]'s damage by 50%.   Quest: Hit 3 enemy Heroes with a single cast of [E]'s eruption.  Reward: Permanently increase [E]'s eruption damage by 50% and increase the Slow amount of [E]'s eruption by 15%.
+  [T1.3] modifies Trait: Non-Heroic Abilities deal 15% more damage to Stunned, Rooted, Silenced or Slowed enemies. Enemy Heroes who are hit with [D] are Slowed by 20% for 2.5 seconds.
+Level 4:
+  [T4.1] modifies Q: Reduce the cooldown of [Q] by 1 second.  Hitting Heroes with the end of [Q] sets its cooldown to 0.75 seconds.
+  [T4.2] modifies W: If [W] hits a Hero, this hero immediately dashes a short distance backwards.  Passive: Gain 15% maximum Health.
+  [T4.3] modifies Trait: Basic Attacks against enemy Heroes while having 3 stacks of Chaos deal an additional 75% bonus damage.
+Level 7:
+  [T7.1] modifies W: Hitting a Hero with [W] sets its cooldown to 2 seconds.
+  [T7.2] modifies W: Quest: Minions that die within 1.5 seconds of being hit by [W] permanently increase its damage by 2 and heal this hero for 60 (+4% per level).  Heroes that die increase its damage by 40 and heal this hero for 25% of her maximum Health.
+  [T7.3] modifies E: Quest: Hitting Heroes with [E] increases its damage by 5, up to 150.  Reward: After hitting 30 Heroes, hitting an enemy Hero with [E]'s eruption sets its cooldown to 6 seconds and refunds 50 Mana.
+Level 10:
+  [R2] modifies Heroic (cooldown 50 s): After 1.5 seconds, deal 210 (+4% per level) damage in an area. [R2] repeats every 1 second as long as it hits an enemy Hero.
+  [R1] modifies Heroic (cooldown 70 s): After 1.25 seconds, pull enemies in an area towards the center, dealing 250 (+4% per level) damage and Stunning them for 0.5 seconds.
+Level 13:
+  [T13.1] modifies Q: After dashing with [Q], this hero gains 50 Spell Armor against the next enemy Ability, stacking up to 2 times. While this hero has [T13.1], her Physical damage is increased by 15%.
+  [T13.2] modifies W: Hitting a Hero with [W] instantly grants this hero maximum Chaos and a 170 (+4% per level) Shield for 3 seconds.
+  [T13.3] modifies Trait (cooldown 10 s): Activate to deal 150 (+4% per level) damage to all nearby enemies after 2 seconds. For each Hero hit, heal for 182 (+4% per level) and gain 1 Chaos.
+Level 16:
+  [T16.1] modifies Q: [Q] deals bonus damage to Heroes equal to 3% of their maximum Health, healing this hero for 50% of damage dealt.
+  [T16.2] modifies Trait: Basic Attacks that consume Chaos ignore Armor and deal 90 (+4% per level) Spell Damage to the target and all enemies around them.
+  [T16.3] modifies Active (cooldown 10 s): After [E] erupts and for 2 seconds after, activate to cast [W] from the eruption area. Enemy Heroes hit by this [W] are Slowed by 70% for 1.5 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R2] grants 1 Chaos each time it hits a Hero. While [R2] is active and for 5 seconds afterwards, this hero's Basic Abilities recharge 150% faster.
+  [T20.2] modifies Heroic: [R1] reduces the Armor of Heroes hit by 50 for 3 seconds. Takedowns set its cooldown to 5 seconds.
+  [T20.3] modifies Trait: Each Chaos consumed increases this hero's Spell Power by 3%, up to 30%. After reaching the maximum bonus, the Spell Power is increased by an additional 30%. Lasts 10 seconds.
+  [T20.4] modifies Active (cooldown 20 s): Activate to instantly reset the cooldown of [Q]. For the next 5 seconds, dashing with [Q] resets its cooldown and increases the duration of [T20.4] by 1 second.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-07:
+Talents
+Level 4
+[T4.2]
+Duration reduced, but speed increased.
+Knockback is now instant.

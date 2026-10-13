@@ -1,0 +1,62 @@
+Hero code: K482
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.75, one attack every 0.5 s, 64 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 25): Jump to an allied or enemy unit. Enemies are immediately hit with a Basic Attack.  Stores up to 2 charges.
+[W] basic (cooldown 10 s, cost 65): Heal nearby Heroes for 285 (+4% per level) and give them 15% Movement Speed for 3 seconds.
+[E] basic (cooldown 10 s, cost 45): this hero's next Basic Attack increases his Attack Speed and Attack Range by 100% for 2 seconds.
+[R1] heroic (cooldown 50 s, cost 77): Become Invulnerable and strike 7 times over 2 seconds. Each strike hits the highest Health nearby Hero for 7% of their maximum Health.
+[R2] heroic (cooldown 50 s, cost 50): Protect an allied Hero from death, causing them to be healed for 1200 (+4% per level) if they take fatal damage in the next 3 seconds.
+[D] trait: Choose between [T1.1], [T1.2], and [T1.3] from the Talents panel.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Trait: Every 3rd Basic Attack heals the lowest nearby allied Hero for 104 (+4% per level) and gives 25% increased Move Speed for 2.5 seconds.
+  [T1.2] modifies Trait: Every 3rd Basic Attack deals 110% bonus damage and gives 25% increased Move Speed for 2.5 seconds.
+  [T1.3] modifies Trait: Quest: Every 3rd Basic Attack restores 14 (+4% per level) Mana, grants a stack of [T1.3], and gives 25% increased Movement Speed for 2.5 seconds.  Reward: Upon getting 100 stacks of [T1.3], every 3rd attack also reduces Basic Ability cooldowns by 1.75 seconds.
+Level 4:
+  [T4.1] modifies Active (cooldown 45 s): Place a [T4.1] that heals allied Heroes in a large area around it for 2% of their maximum Health every second. Has 150 (+4% per level) Health and lasts 10 seconds. this hero can [Q] to Spirit Allies.
+  [T4.2] modifies Active (cooldown 45 s): Place an [T4.2] that grants nearby allied Heroes 50 Physical Armor against Heroic Basic Attacks, reducing damage taken by 50%. Has 400 (+4% per level) Health and lasts 10 seconds.  this hero can [Q] to Earth Allies.
+  [T4.3] modifies Active (cooldown 30 s): Place an [T4.3] that gives allied Heroes 15% Spell Power, grants vision, and reveals a large area around it. Has 200 (+4% per level) Health and lasts 10 seconds. this hero can [Q] to Air Allies.
+Level 7:
+  [T7.1] modifies Q: Decreases [Q]'s cooldown by 2 seconds and increases the maximum number of charges by 1.
+  [T7.2] modifies W: Increases [W]'s Movement Speed bonus to 30%.  Radiant Dashing to an ally increases the healing they receive from [W] by 50% for 3.5 seconds.
+  [T7.3] modifies E: Increase the duration of [E] by 100%.  Every 3rd Basic Attack reduces the cooldown of [E] by 0.75 seconds.
+Level 10:
+  [R2] modifies Heroic (cooldown 50 s): Protect an allied Hero from death, causing them to be healed for 1200 (+4% per level) if they take fatal damage in the next 3 seconds.
+  [R1] modifies Heroic (cooldown 50 s): Become Invulnerable and strike 7 times over 2 seconds. Each strike hits the highest Health nearby Hero for 7% of their maximum Health.
+Level 13:
+  [T13.1] modifies Q: Radiant Dashing to an ally gives this hero and the target 30% bonus Movement Speed for 3 seconds.
+  [T13.2] modifies Active: Every 30 seconds, gain 50 Spell Armor against the next enemy Ability and subsequent Abilities for 3 seconds, reducing the damage taken by 50%.  Can be toggled to allow or prevent this talent from triggering automatically.
+  [T13.3] modifies Passive: While Stunned or Rooted, gain 75 Physical Armor against Hero Basic Attacks for 4 seconds, reducing their damage by 75%.
+Level 16:
+  [T16.1] modifies Q: Radiant Dashing to an ally makes them Unstoppable for 1 second.
+  [T16.2] modifies Q: Radiant Dashing to an enemy launches a rapid volley of 6 Basic Attacks dealing 45% damage each.
+  [T16.3] modifies W: [W] heals 75% of its normal amount, but heals a second time 3 seconds later.
+Level 20:
+  [T20.1] modifies Heroic: [R2]'s healing amount is increased by 75% and its cooldown is set to 5 seconds if the Hero does not die.
+  [T20.2] modifies Heroic: [R1] hits 4 additional times.
+  [T20.3] modifies Trait: Gain 50% of the benefit from both level 1  talents that were not chosen.
+  [T20.4] modifies Active (cooldown 45 s): Activate to give all nearby allied Heroes a Shield for 20% of their max Health for 3 seconds.
+  [T20.5] modifies Active (cooldown 60 s): Activate to restore 33% of this hero's maximum Mana and refill 2 charges of [Q].
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-03:
+Base
+Health increased from 2027 to 2080.
+[W] [W]
+Healing increased from 285 to 295.
+Talents
+Level 4
+[T4.3]
+Health increased from 200 to 300.
+Spell Power increased from 15% to 20%.
+Level 10
+[R2]
+Duration increased from 3 to 4 seconds.
+Level 13
+[T13.3] now starts expiring after the Stun expires, instead of as soon as the Stun is applied.
+Level 20
+[T20.5]
+Cooldown increased from 60 to 70.
+Mana restored increased from 33% to 70%.

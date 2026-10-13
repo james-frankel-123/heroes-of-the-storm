@@ -1,0 +1,65 @@
+Hero code: K983
+Basic attack: this hero has no basic attack of its own.
+
+ABILITIES
+[Q] basic (cooldown 3 s): Deal 135 (+5% per level) damage to enemies in the area.
+[W] basic (cooldown 6 s): Throw a bomb that will bounce three times, dealing 126 (+5% per level) damage to enemies.
+[E] basic: Detonate the partner hero's term E, dealing 210 (+4% per level) damage around it.
+[R1] heroic (cooldown 80 s): After 1 second, nearby enemies are slowed by 50% while this hero channels, up to 5 seconds. Activate to deal 353 (+5% per level) damage.
+[R2] heroic (cooldown 60 s): After 1 second, unleash 20 term C over 4 seconds, each dealing 87 (+4% per level) damage to the first target hit. The bolts fire towards your mouse.
+[D] trait (cooldown 5 s): Activate to increase this hero's damage by 25%, but reduce the partner hero's Armor by 25.  Passive: this hero is permanently immune to Stun and Silence effects.
+[Z] mount (cooldown 30 s): Nudge the partner hero a small distance and grant him 25% Movement Speed for 2 seconds.
+[1] activable (cooldown 45 s): Place an eye, granting vision of a large area around it for 45 seconds. The eye can be killed by enemies with 2 Basic Attacks. Stores up to 2 charges.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Z: Increases the Movement Speed bonus of Shove by 10% and its duration by 2 seconds.
+  [T1.2] modifies Z: Every time the partner hero is hit by a Hero Basic Attack, reduce the cooldown of Shove by 1 second.
+  [T1.3] modifies Passive: [1]'s cooldown is decreased by 25 seconds, its range is increased by 33%, and the number of Basic Attacks required to kill it is increased by 1.
+Level 4:
+  [T4.1] modifies W: Each bounce of [W] increases its radius by 25% and damage by 15%. Activate [W] before the second bounce ends to reverse the direction of the third bounce.
+  [T4.2] modifies E: [E] deals an additional 180 (+4% per level) damage over 3 seconds in an area around the detonation point.
+  [T4.3] modifies E: Quest: Damaging a Hero with [E] increases its damage by 5, up to 200.  Reward: After damaging 20 Heroes, the range and speed of the partner hero's term E is increased by 20%.
+Level 7:
+  [T7.1] modifies Q: Every subsequent hit of [Q] against the same enemy Hero deals an additional 12% damage, to a maximum of 60%. These bonuses are lost if the Hero has not been hit for 7 seconds.
+  [T7.2] modifies Q: Quest: If [Q] hits an enemy Hero that is afflicted by the partner hero's term A, its cooldown is reduced by 0.5 seconds.  Reward: After hitting 20 Heroes, [Q]'s cooldown is instead permanently reduced by 0.5 seconds.
+  [T7.3] modifies Trait: Increase the damage bonus of [D] by 5%. Each time this hero damages an enemy Hero this bonus increases by 1% for 4 seconds, up to an additional 10% bonus damage.
+Level 10:
+  [R2] modifies Heroic (cooldown 60 s): After 1 second, unleash 20 term C over 4 seconds, each dealing 87 (+4% per level) damage to the first target hit. The bolts fire towards your mouse.
+  [R1] modifies Heroic (cooldown 80 s): After 1 second, nearby enemies are slowed by 50% while this hero channels, up to 5 seconds. Activate to deal 353 (+5% per level) damage.
+Level 13:
+  [T13.1] modifies Q: Enemy Heroes hit by [Q] take an additional 2% of their maximum Health as damage.
+  [T13.2] modifies Passive: Increase this hero's damage to enemy Heroes by 10%. Upon dying, this hero gains [D] and can use Abilities for 10 seconds.
+  [T13.3] modifies W: After the first bounce of [W], 2 extra bombs bounce to the sides once.
+Level 16:
+  [T16.1] modifies W: [W] Stuns enemy Heroes for 0.75 seconds.
+  [T16.2] modifies E: [E] Silences enemy Heroes for 1.25 seconds.
+  [T16.3] modifies Passive: Enemy Heroes hit by your Basic Abilities are Slowed by 15% for 4 seconds. This effect can stack up to 2 times.
+Level 20:
+  [T20.1] modifies Heroic: [R2] hits all enemies in its path.
+  [T20.2] modifies Heroic: [R1] now teleports the partner hero to a targeted location before it begins Channeling.
+  [T20.3] modifies Trait: Takedowns permanently increase the bonus of [D] by 2%.
+  [T20.4] modifies Active (cooldown 30 s): Activate to reduce the cooldowns of [Q] and [W] to 2 seconds for the next 6 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Talents
+Level 7
+[D]
+Added to the Buff Bar.
+Change set 2026-07:
+Talents
+Level 4
+[T4.1]
+Bonus per bounce reduced from 25% to 20%.
+[T4.3]
+No longer has a cap on stacks.
+Damage bonus per stack lowered from 5 to 4.
+Level 7
+[Q]'s cooldown reduction from Quest Reward increased from 0.5 to 1 second.
+Level 16
+[T16.1]
+Stun duration reduced from 0.75 seconds to 0.6 seconds.
+Change set 2026-07:
+[T7.2] · Level 7: tooltip now reads: Quest: If [Q] hits an enemy Hero that is afflicted by the partner hero's term A, its cooldown is reduced by 0.5 seconds. Reward: After hitting 20 Heroes, [Q]'s cooldown is instead permanently reduced by 1 second.

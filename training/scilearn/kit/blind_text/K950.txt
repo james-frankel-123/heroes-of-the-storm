@@ -1,0 +1,47 @@
+Hero code: K950
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 1 s, 81 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 65): Deals 90 (+4% per level) damage. Stuns for 1 second.
+[W] basic (cooldown 7 s, cost 25): Gain a Shield that grants 40 Spell Armor and absorbs 340 (+4% per level) damage over 3 seconds.
+[E] basic (cooldown 14 s, cost 65): Burrow to the target location, dealing 91 (+4% per level) damage and briefly stunning enemies in a small area upon surfacing, slowing them by 25% for 2.5 seconds.  [E] can be reactivated to surface early.
+[R1] heroic (cooldown 100 s, cost 75): Deal 68 (+4% per level) damage per second to nearby enemies. Each enemy damaged restores 24 (+4% per level) Health. Lasts 6 seconds.
+[R2] heroic (cooldown 70 s, cost 70): Wraps target enemy Hero in a cocoon, rendering them unable to act or be targeted for 7 seconds. Allies of the Hero can attack the cocoon to break it and free them early.
+[D] trait (cooldown 8 s): Using an Ability spawns a term C which lasts for 8 seconds, attacking nearby enemies for 20 (+4% per level) damage.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Increase term A's Spell Armor by 25.
+  [T1.2] modifies Trait: term C have 30 Spell Armor. Automatically spawn a term C every 12 seconds. Can be toggled on and off.
+  [T1.3] modifies Passive: Quest: Gathering a Regeneration Globe increases your Health Regeneration by 1 per second, up to 30.  Reward: After gathering 30 Regeneration Globes, you also gain 500 Health.
+Level 4:
+  [T4.1] modifies Q: Create a bed of spikes along [Q]'s path that slows enemies by 25% and deals 21 (+4% per level) damage per second.  Spikes persist for 3.5 seconds.
+  [T4.2] modifies W: [W] grants 30% increased Movement Speed for 3 seconds.
+  [T4.3] modifies E: Increases [E] range by 20% and damage by 100%.
+Level 7:
+  [T7.1] modifies W: While [W] is active, taking damage from enemy Abilities reduces its cooldown by 1 second, up to 3 seconds.
+  [T7.2] modifies E: [E] also grants a 400 (+4% per level) point Shield for 5 seconds.
+  [T7.3] modifies Trait: term C gain 30% bonus attack damage and they heal this hero for 50% of their damage with each attack if he is nearby.
+Level 10:
+  [R1] modifies Heroic (cooldown 100 s): Deal 68 (+4% per level) damage per second to nearby enemies. Each enemy damaged restores 24 (+4% per level) Health. Lasts 6 seconds.
+  [R2] modifies Heroic (cooldown 70 s): Wraps target enemy Hero in a cocoon, rendering them unable to act or be targeted for 7 seconds. Allies of the Hero can attack the cocoon to break it and free them early.
+Level 13:
+  [T13.1] modifies W: Casting [W] will also deal 90 (+4% per level) damage to nearby enemies. Deals double damage against Heroes.
+  [T13.2] modifies Trait: Deal 21 (+4% per level) damage per second to nearby enemies. term C deal 6 (+4% per level) damage per second to nearby enemies.
+  [T13.3] modifies Passive: Attacking a Hero that is slowed, rooted, or stunned increases this hero's Basic Attack damage by 80% for 4 seconds.
+Level 16:
+  [T16.1] modifies E: Increases [E] impact area by 60% and lowers the cooldown by 1 second for each Hero hit.
+  [T16.2] modifies Passive: Enemy Heroes hit by [E] or [Q] have their Spell Power reduced by 50% for 4 seconds.
+  [T16.3] modifies Trait: Passive: term C gain 30% increased health.  Every 4th Basic Attack spawns a term C.
+Level 20:
+  [T20.1] modifies Heroic: Gain a permanent term B that attacks a nearby enemy every 3 seconds. The term B deals 165 (+4% per level) damage and returns to heal this hero for 80 (+4% per level) health.
+  [T20.2] modifies Heroic: Staying near the [R2] allows this hero to extend the duration by up to 6 seconds per [R2]. Upon exiting the [R2], enemies take 60 (+4% per level) damage over 4 seconds. This damage is increased by 100% for each second that they were inside.
+  [T20.3] modifies Active (cooldown 60 s): Gain 10% bonus maximum Health and 20 Spell Armor.  Activate to gain 75 Armor for 4 seconds.
+  [T20.4] modifies Active (cooldown 60 s): Activate to reset the cooldowns of your Basic Abilities.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-07:
+Talents
+Level 1
+[T1.3]
+The quest collection requirement has been reduced from 30 to 25.

@@ -1,0 +1,88 @@
+Hero code: K257
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 2, one attack every 0.9 s, 90 damage per attack; range 9.75, one attack every 0.8 s, 59 damage per attack; range 1, one attack every 1.5 s, 37 damage per attack; range 1, one attack every 0.6 s, 17 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 5 s, cost 10): Kick through target enemy, dealing 120 (+4% per level) damage.
+[W] basic (cooldown 5 s, cost 30): Deal 50 (+4% per level) damage and soak enemies in term D for 3 seconds, Slowing them by 10%. After 1.25 seconds, the Slow is increased to 40%.  After being used, this ability becomes [W#2].  [W#2] Deal damage and Ignite term C enemies.
+[E] basic (cooldown 18 s): Damage taken over the next 3 seconds is prevented.  Once this effect ends, this hero receives 75% of the damage taken over 5 seconds.  This damage cannot be modified.
+[R1] heroic (cooldown 120 s): After 1 second, this hero splits into three elemental spirits for 12 seconds, each with 70% of this hero's maximum Health and a unique Ability.  The last spirit Ability that is cast is empowered. If all three spirits are killed, this hero will die as well.  Storm can grant the spirits a Shield.  Earth can leap to an area and Slow enemies.  Fire can grant the spirits Attack Speed, damage.
+[R2] heroic (cooldown 50 s): Roll around inside an Unstoppable barrel with 70% increased Movement Speed and 25 Armor, dealing 59 (+4% per level) damage to enemies in the way and knocking them back. Lasts for 5 seconds.
+[D] trait (cooldown 7 s): this hero drinks from his keg, gaining 50 term D and 180 (+4% per level) temporary Shields per second, up to a maximum of 540 (+4% per level) while drinking. Shields persist for 4 seconds after he stops drinking.
+[W#2] basic (cost 10): Breathe a cone of flames, dealing 85 (+4% per level) damage. Enemies that are soaked in term D are Ignited, dealing 171 (+4% per level) additional damage over 3 seconds and adding 1.5 seconds to the duration of the Slow from [W].   After being used or after 6 seconds, this ability becomes [W].  [W] Damage and Slow enemies.
+Alternate form or second unit abilities:
+[alt-Q] basic: The spirits gain a Shield for 400 (+4% per level) over 3 seconds.  If this is the final Ability cast, the shield amount is increased to 750 (+4% per level) with no limited duration, and the duration of [R1] is increased by 5 seconds.
+[alt-W] basic: Fire and Earth leap to the target location, dealing 32 (+4% per level) damage and Slowing enemies in a large area by 70% for 1.5 seconds.  If this is the final Ability cast, increase the damage dealt by 300% and instead of Slowing, the leap Roots enemy Heroes hit for 1.75 seconds.
+[alt-E] basic: Increase the Attack Speed and Basic Attack damage of the spirits by 50% for 5 seconds.  If this is the final Ability cast, the Attack Speed and damage bonus is increased to 75% and the spirits gain 50% Movement Speed for its duration.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Basic Attacks against term C enemy Heroes deal 40% more damage and heal this hero for 40% of the damage done.
+  [T1.2] modifies Trait: Increase the healing duration of Regeneration Globes by 150%.  Quest: Gather 15 Regeneration Globes.  Reward: Reduce [D]'s cooldown by 2 seconds, and 50% of its Shield persists indefinitely after drinking.
+  [T1.3] modifies Passive: this hero heals for 3.5% of his maximum Health when his Basic Abilities hit an enemy Hero.
+Level 4:
+  [T4.1] modifies Q: [Q] no longer costs term D. Additionally, its damage is increased by 125% while this hero has Shields from [D].
+  [T4.2] modifies W: Increase Ignited damage by 20%.  Basic Attacks against enemy Heroes who are Ignited increase its duration by 0.75 seconds.
+  [T4.3] modifies W: Igniting an enemy Hero reduces their Spell Power by 60% for 4 seconds.
+Level 7:
+  [T7.1] modifies E: Increase the duration of [E]'s damage prevention by 1.5 seconds, and reduce the amount of damage taken over time to 50% of damage taken.
+  [T7.2] modifies Trait: While at or below 50 term D, gain 20% Movement Speed. While at or above 50 term D, regenerate an additional 18 (+4% per level) Health per second.
+  [T7.3] modifies Active (cooldown 25 s): Activate to gain 30% Movement Speed and Evade enemy Basic Attacks for 2 seconds. this hero's Basic Attacks reduce this cooldown by 2 seconds.
+Level 10:
+  [R2] modifies Heroic (cooldown 50 s): Roll around inside an Unstoppable barrel with 70% increased Movement Speed and 25 Armor, dealing 59 (+4% per level) damage to enemies in the way and knocking them back. Lasts for 5 seconds.
+  [R1] modifies Heroic (cooldown 120 s): After 1 second, this hero splits into three elemental spirits for 12 seconds, each with 70% of this hero's maximum Health and a unique Ability.  The last spirit Ability that is cast is empowered. If all three spirits are killed, this hero will die as well.  Storm can grant the spirits a Shield.  Earth can leap to an area and Slow enemies.  Fire can grant the spirits Attack Speed, damage.
+Level 13:
+  [T13.1] modifies Q: [Q] Slows the target enemy by 40% for 1 second, or by 80% if this hero has Shields from [D].
+  [T13.2] modifies W: Increase the Slows from [W] by 20% and its duration by 0.5 seconds.
+  [T13.3] modifies W: After Igniting an enemy, become bathed in a fiery aura, dealing 55 (+4% per level) damage every second to nearby enemies for 5 seconds.
+  [T13.4] modifies Trait: [D] instantly grants this hero a Shield that absorbs 180 (+4% per level) damage, and each second grants nearby allied Heroes a Shield that absorbs 140 (+4% per level) damage, up to 420 (+4% per level).
+Level 16:
+  [T16.1] modifies Q: Increase [Q]'s range by 15% and reduce its cooldown by 0.5 seconds each time an enemy Hero takes damage from being Ignited.
+  [T16.2] modifies E: Basic Attacks against Stunned, Rooted, or Slowed enemy Heroes reduce the cooldown of [E] by 2 seconds and grant this hero 30 Armor for 3 seconds.
+  [T16.3] modifies Trait: Every 3rd Basic Attack against the same target deals 75% bonus damage.  While this hero has Shields from [D] and for 2 seconds after, he gains 35% Attack Speed.
+Level 20:
+  [T20.1] modifies Heroic: Increase [R2]'s Movement Speed bonus from 70% to 125%, and its Armor bonus to 75 for its duration and 3 seconds afterwards.
+  [T20.2] modifies Heroic: Increase the spirits' Health to 100% of this hero's maximum Health and all of their Abilities are empowered.
+  [T20.3] modifies Trait: Casting [D] grants this hero Unstoppable for 1.5 seconds.
+  [T20.4] modifies Trait: If this hero Channels [D] for its full duration, then he gains 20% bonus Health and 20% bonus damage for 25 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2026-04:
+Base
+[W] [W]
+[W#2] initial decreased from 85 to 40.
+[W#2] duration increased from 3 seconds to 6 seconds.
+[W#2] no longer costs Energy.
+[W] energy cost increased to 40 from 30.
+[D] [D]
+Drinking now stops additional commands for a fraction of a second.
+Talents
+Level 1
+[T4.2]
+Moved from Level 4 to Level 1.
+REWORK: Quest: Gain stacks from hitting Heroes with DoT damage from [W#2]. Each stack provides 0.25 damage. At 20 damage, [W] becomes ranged. Mythic Reward: At 75 damage, [W#2] redcues enemy Armor by 20 and is refreshed from this hero's Basic Attacks.
+Level 4
+[T1.1]
+Moved from Level 1 to Level 4.
+Level 7
+[T7.3]
+Movement Speed reduced from 30% to 20%.
+Level 10
+[R2]
+Cooldown increased from 50 seconds to 60 seconds.
+Level 13
+[T13.1]
+Slow duration increased from 1 second to 1.5 seconds.
+Change set 2026-05:
+Base
+[Q] [Q]
+Damage increased from 120 to 130.
+[D] [D]
+Delay before being able to interrupt decreased slightly.
+Shields provided per tick increased from 90 to 95.
+Talents
+Level 1
+[T4.2]
+Initial hit now provides a quest stack.
+Stack requirements increased from 20/75 to 25/80.
+Change set 2026-07:
+[T13.2] · Level 13: tooltip now reads: Increase the Slows from [W] by 20% and its duration by 0.5 seconds.

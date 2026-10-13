@@ -1,0 +1,94 @@
+Hero code: K765
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 0.8 s, 78 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 45): term A to the target area, dealing 110 (+4% per level) damage to nearby enemies and Slowing them by 25% for 2.5 seconds. It can be reactivated within 5 seconds to teleport this hero to term E and Slow nearby enemies again.
+[W] basic (cooldown 9 s, cost 45): Shields this hero for 336 (+4% per level) damage and nearby allied Heroes and Minions for 40% as much for 4 seconds.
+[E] basic (cooldown 6 s, cost 45): Rake target area for 150 (+4% per level) damage. Allies moving through the targeted area gain 25% increased Movement Speed for 2 seconds.
+[R1] heroic (cooldown 70 s, cost 80): After 0.75 seconds, charge an enemy Hero, dealing 150 (+4% per level) damage and Stunning them for 1.5 seconds. Nearby enemies are knocked away and take 75 (+4% per level) damage.
+[R2] heroic (cooldown 90 s, cost 75): After 0.5 seconds create a field of holy energy that makes allied Heroes Invulnerable. Lasts 3 seconds.
+[D] trait: Upon dying, become Invulnerable and gain 20% Movement Speed for 4 seconds. Upon expiration, explode, dealing 450 (+4% per level) damage and reducing this hero's death timer by 10% per enemy Hero hit. [D] reduces nearby enemy Heroes' damage by  50% while active and for  3 seconds when it expires.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Increase the Shield amount this hero gains from [W] by 40% and heal this hero for 140 (+4% per level) Health if his Shield is destroyed. Does not increase the Shield amount gained by allies.
+  [T1.2] modifies W: Increase the Shield applied to allies by [W] to 80% of the Shield gained by this hero.
+  [T1.3] modifies Passive: Dealing damage to a Hero heals this hero for 20 (+4% per level) Health over 5 seconds. Dealing damage resets this timer, and the heal amount stacks up to 10 times.  Quest: Every Regeneration Globe gathered increases this heal amount by 1%.
+Level 4:
+  [T4.1] modifies Q: Gain 25 Armor while [Q] is active, and for 3 seconds after teleporting.
+  [T4.2] modifies Q: Heroes hit by [Q] heal this hero for 3% of his maximum Health. this hero's Basic Attacks against enemies Slowed by [Q] increase the Slow duration by 1 second, up to 4 seconds.
+  [T4.3] modifies E: If [E] hits an enemy, this hero's Basic Attacks within the next 4 seconds heal for 70% of the damage dealt.
+Level 7:
+  [T7.1] modifies W: When this hero's Shield from [W] expires or is destroyed, it deals 190 (+4% per level) damage to nearby enemies.
+  [T7.2] modifies E: Each enemy Hero hit by [E] increases this hero's Basic Attack damage by 60% for 4 seconds.
+  [T7.3] modifies E: [E] grants 20% more Movement Speed and also grants 25% Attack Speed for 2 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 70 s): After 0.75 seconds, charge an enemy Hero, dealing 150 (+4% per level) damage and Stunning them for 1.5 seconds. Nearby enemies are knocked away and take 75 (+4% per level) damage.
+  [R2] modifies Heroic (cooldown 90 s): After 0.5 seconds create a field of holy energy that makes allied Heroes Invulnerable. Lasts 3 seconds.
+Level 13:
+  [T13.1] modifies Q: Upon teleporting using [Q], term E swaps places with this hero, and [Q] can be reactivated to teleport an additional time.
+  [T13.2] modifies Q: Create a ring for 3 seconds that blocks enemies from entering the area teleported to using [Q].
+  [T13.3] modifies Passive: Each enemy Hero hit by [E] reduces the cooldown of [W] by 1 second. Each allied Hero Shielded by [W] increases the damage of the next [E] by 35%.
+Level 16:
+  [T16.1] modifies Q: this hero's Basic Attacks reduce the cooldown of [Q] by 2 seconds.
+  [T16.2] modifies Q: Both this hero and term E deal 18 (+4% per level) damage per second to nearby enemies. Teleporting increases this damage from this hero by 150% for 2 seconds.
+  [T16.3] modifies E: While [Q] is active, and for 2 seconds after teleporting, [E]'s cooldown recharges 125% faster.
+Level 20:
+  [T20.1] modifies Heroic: Increases the cast range of [R1] by 50%, and reduces the cooldown by 40 seconds.
+  [T20.2] modifies Heroic: Increase the duration of [R2] by 1 second and increase the damage of allies inside by 25%.
+  [T20.3] modifies Passive: Using a Basic Ability grants 50% Attack Speed for 3 seconds.
+  [T20.4] modifies Active (cooldown 60 s): Activate to gain 50 Armor for 3 seconds.  Each time this hero damages an enemy Hero with a Basic Attack or Basic Ability, increase the duration of this Armor bonus by 0.5 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-07:
+Base
+Basic Attack damage increased from 78 to 82.
+[E] [E]
+[Q] [Q]
+Slow increased from 25% to 30%.
+[W] [W]
+Shield increased from 336 to 350.
+Talents
+Level 1
+[T1.1]
+Healing increased from 140 to 150.
+Shield bonus reduced from 40% to 35%.
+Level 4
+[T4.2]
+Is now a Level 16 Talent.
+REWORK: [Q] now Slows targets by 65% for the first second, and then reduces to 30% over the remaining 1.5 seconds.
+Level 7
+[T7.1]
+Is now a Level 4 Talent.
+Explosion damage now only hits enemy Heroes and Summons.
+this hero is now healed for 3% of his maximum Health for each Hero hit by [T7.1] or [Q].
+Level 10
+term D
+Cast range is no longer increased by this hero's radius.
+Level 16
+[T16.2]
+Is now a Level 7 Talent.
+Damage bonus for teleporting with [Q] reduced from 150% to 125%.
+Damage reduced from 18 to 15.
+Level 20
+Aspect of Justice
+NEW: After channeling for 1.5 seconds, enter [D]. Cooldown is reduced by 10% for each enemy Hero it hits. 90 second cooldown.
+Change set 2025-12:
+Talents
+Level 1
+[T1.3]
+Maximum healing stacks reduced from 10 to 8.
+Level 4
+[T7.1]
+Damage reduced from 190 to 170.
+Level 7
+[T16.2]
+Damge per second reduced from 15 to 12.
+Level 10
+[R2]
+Cooldown reduced from 90 seconds to 85 seconds.
+Mana cost reduced from 75 to 70.
+Level 20
+Aspect of Justice
+Cast time reduced from 1.5 seconds to 1.25 seconds.
+Cooldown reduction per enemy Hero hit increased from 10% to 15%.

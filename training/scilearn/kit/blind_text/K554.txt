@@ -1,0 +1,57 @@
+Hero code: K554
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.9 s, 65 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 7 s, cost 70): After 1 second, deal 345 (+4% per level) damage in an area.  [D] increases the radius by 50%.
+[W] basic (cooldown 10 s, cost 50): Deal 126 (+4% per level) damage over 3 seconds to an enemy, then they explode dealing 215 (+4% per level) damage to all nearby enemies.  Other Heroes damaged by this explosion are also affected by [W], though the secondary explosions cannot spread.  [D] makes this Ability cost no Mana and have no cooldown.
+[E] basic (cooldown 12 s, cost 90): Stun the first enemy hit for 1 second.  [D] causes [E] to stun the first 3 enemies hit and increases the stun duration by 50%.
+[R1] heroic (cooldown 100 s, cost 80): After 1.5 seconds, cast a slow-moving fireball that deals 810 (+5% per level) damage to an enemy Hero and 405 (+5% per level) damage to enemies nearby.
+[R2] heroic (cooldown 60 s, cost 80): Launch a [R2] to an area, dealing 84 (+4% per level) damage to enemies along the way. The [R2] persists for 7 seconds, attacking enemies for 84 (+4% per level) damage and splashing for 42 (+4% per level) damage.
+[D] trait (cooldown 6 s): Activate to make this hero's next Basic Ability more powerful.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Damaging an enemy Hero with [Q] increase its damage by 5, up to 100. This bonus is lost on death.  Reward: After hitting 20 enemy Heroes, increase [Q] damage by an additional 100 and no longer lose any bonuses on death.
+  [T1.2] modifies Trait: Increases this hero's Spell Power by 4%. this hero heals for 94 (+4% per level) Health when activating [D].
+  [T1.3] modifies Passive: Quest: Gathering a Regeneration Globe increases this hero's maximum Mana by 15.  Reward: After gathering 20 Globes, this hero can activate term B to gain a Shield equal to 100% of his maximum Mana for 4 seconds. 45 second cooldown.
+Level 4:
+  [T4.1] modifies E: Increases [E]'s range by 30%. When [E] hits an enemy Hero, refund 80 Mana.
+  [T4.2] modifies E: Reduce the Mana cost of [E] by 70.  If [E] hits a Hero, reduce its cooldown by 8 seconds.
+  [T4.3] modifies Trait: Activating [D] restores 5% of this hero's maximum Mana.
+Level 7:
+  [T7.1] modifies Q: When [Q] damages 2 or more Heroes, they take additional damage equal to 8% of their maximum Health.
+  [T7.2] modifies W: [W] that spread to enemy Heroes deal 35% more damage.
+  [T7.3] modifies Trait: Activating [D] causes this hero's next 2 Basic Attacks to instead deal 115 (+4% per level) Spell Damage.  If both of these Attacks hit enemy Heroes, gain 15% Spell Power for 10 seconds.
+Level 10:
+  [R2] modifies Heroic (cooldown 60 s): Launch a [R2] to an area, dealing 84 (+4% per level) damage to enemies along the way. The [R2] persists for 7 seconds, attacking enemies for 84 (+4% per level) damage and splashing for 42 (+4% per level) damage.
+  [R1] modifies Heroic (cooldown 100 s): After 1.5 seconds, cast a slow-moving fireball that deals 810 (+5% per level) damage to an enemy Hero and 405 (+5% per level) damage to enemies nearby.
+Level 13:
+  [T13.1] modifies W: Each time [W] deals periodic damage, this hero's Basic Ability cooldowns are reduced by 0.5 seconds.
+  [T13.2] modifies W: [W]'s explosion slows enemy Movement Speed by 30% for 2 seconds.
+  [T13.3] modifies W: Increases [W]'s explosion radius by 20%.
+Level 16:
+  [T16.1] modifies Q: [Q] will explode a second time 1.5 seconds later.
+  [T16.2] modifies W: [Q] apply [W] to the enemy Hero closest to its center who is not currently affected by [W].
+  [T16.3] modifies Trait: [D] gains a second charge.  Passive: this hero benefits from all of his level 7 talents.
+Level 20:
+  [T20.1] modifies Heroic: Increases [R2] duration by 100%. While alive, the [R2] may be ordered to move to a different location.
+  [T20.2] modifies Heroic: Increases [R1]'s explosion radius by 50%. Heroes that are hit by [Q] or have [W] spread to them reduce the cooldown of [R1] by 10 seconds.
+  [T20.3] modifies W: [W]'s spread from explosions can now also spread [W].
+  [T20.4] modifies Q: Increases the cast range of [Q] by 40%. If [Q] hits 2 or more Heroes, its cooldown is reduced by 4 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-09:
+Talents
+Level 20
+[T20.1]
+Now has 3 charges.
+Change set 2025-12:
+Talents
+Level 1
+[T1.1]
+REWORK: Every 20th Hero hit permanently increases [Q] damage by 150 and this hero's maximum Health by 50.
+Change set 2026-02:
+Talents
+Level 1
+[T1.1]
+Increased reward damage and health from 150/50 to 200/100.

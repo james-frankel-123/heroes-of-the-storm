@@ -1,0 +1,97 @@
+Hero code: K824
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 4.5, one attack every 1 s, 44 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s, cost 20): Throw 3 [Q] in a spread pattern, each dealing 65 (+4% per level) damage to the first enemy hit.  Stores up to 3 charges.  [Q]'s cooldown replenishes all charges at the same time.
+[W] basic (cooldown 16 s, cost 70): Channel for 1.25 seconds, becoming Protected and blocking damage. Any damage blocked while channeling causes this hero to throw a term B toward the nearest enemy, prioritizing Heroes and dealing 55 (+4% per level) damage.  Total Damage Deflected: 0
+[E] basic (cooldown 12 s, cost 75): Dash forward, dealing 190 (+4% per level) damage to all enemies in a line. Enemy Heroes that die within 1.5 seconds of being hit with [E] cause the cooldown and mana cost to be refunded.
+[R1] heroic (cooldown 100 s, cost 75): Unleash the [R1] for 8 seconds. While active, [R1] can be reactivated to lunge forward and slash in a huge arc, dealing 240 (+4% per level) damage.
+[R2] heroic (cooldown 60 s, cost 70): Perform two slashes dealing 145 (+4% per level) damage. The slashes detonate after 1.25 seconds causing an additional 290 (+4% per level) damage to enemies in their area.
+[D] trait (cooldown 20 s): Activate to jump to the target area.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies E: Hitting an enemy Hero with [E] increases this hero's Movement Speed by 30% for 3 seconds.
+  [T1.2] modifies Trait: While mounted the range of [D] is increased by 70%, its cooldown is reduced by 14 seconds, and it Slows enemy Heroes in its landing area by 30% for 2 seconds.
+  [T1.3] modifies Trait: Jumping over terrain with [D] increases Movement Speed by 25%, and grants Stealth, for 4 seconds.
+Level 4:
+  [T4.1] modifies Q: Quest: Hit enemy Heroes with [Q].  Reward: After hitting 30 Heroes, [Q] damage is increased by 25.  Reward: After hitting 60 Heroes, [D] now refunds 3 charges of [Q].
+  [T4.2] modifies E: Enemies hit by the end of [E] take an additional 134 (+4% per level) damage after 1 second.
+  [T4.3] modifies Active: After this hero blocks 330 (+4% per level) damage with Deflect, activate to release a [T4.3], dealing 190 (+4% per level) damage to all nearby enemies.
+Level 7:
+  [T7.1] modifies W: When Deflect ends, this hero gains a Shield equal to 100% of the damage blocked for 4 seconds.
+  [T7.2] modifies W: Deflected damage reduces the cooldown of Deflect by 2 seconds, up to a maximum of 10 seconds.
+  [T7.3] modifies Trait: Using [D] grants 50 Spell Armor for 4 seconds.  Passive: this hero dodges 1 Heroic Basic Attack every 5 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 100 s): Unleash the [R1] for 8 seconds. While active, [R1] can be reactivated to lunge forward and slash in a huge arc, dealing 240 (+4% per level) damage.
+  [R2] modifies Heroic (cooldown 60 s): Perform two slashes dealing 145 (+4% per level) damage. The slashes detonate after 1.25 seconds causing an additional 290 (+4% per level) damage to enemies in their area.
+Level 13:
+  [T13.1] modifies Q: Hitting an enemy with all 3 [Q] deals 115 (+4% per level) bonus damage.
+  [T13.2] modifies E: Each enemy Hero hit with [E] reduces its cooldown by 3 seconds.
+  [T13.3] modifies Passive: Increase this hero's Basic Attack range by 1.  Each time this hero hits an enemy Hero with a Basic Attack, increase his Basic Attack damage by 1% for 3 seconds, stacking up to 15%.
+Level 16:
+  [T16.1] modifies W: Deflect also deals an additional 33% of the damage blocked.
+  [T16.2] modifies E: After 1 second, [E] deals an additional 125 (+4% per level) damage to all enemies in the area.
+  [T16.3] modifies E: Each enemy Hero hit by [E] increases the damage of the next [E] by 30%. This bonus stacks up to 3 times.
+Level 20:
+  [T20.1] modifies Heroic: Each time [R1] hits an enemy Hero, the duration of [R1] is increased by 0.5 seconds. If a Hero is killed within 1.5 seconds of being hit by [R1], [E]'s cooldown is reset.
+  [T20.2] modifies Heroic: Each enemy Hero hit by [R2] reduces its cooldown by 10 seconds.
+  [T20.3] modifies Q: [Q] now pierce all enemies hit. [E]'s refund grants 1 charge of [Q].
+  [T20.4] modifies W: Quest: Block 6500 damage with Deflect, including damage blocked so far.  Reward: Deflect hits all nearby enemy Heroes.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-08:
+Updates
+Talents
+Level 1
+[T1.2]
+Slow reduced from 30% to 25%.
+[T1.3]
+Movement Speed bonus increased from 25% to 30%.
+Level 7
+[T7.3]
+Armor bonus reduced from 50 to 40.
+Level 10
+[R2]
+Final damage reduced from 290 to 275.
+Initial damage reduced from 145 to 135.
+Level 13
+[T13.1]
+Damage reduced from 115 to 100.
+Change set 2025-05:
+Talents
+Level 1
+[T1.3]
+ADDED FUNCTIONALITY: Heroic Ability now heals this hero for 10% of the damage dealt to enemy Heroes, increased by up to 30% based on how low this hero's Health is.
+Level 10
+[R2]
+Cooldown increased from 60 seconds to 75 seconds.
+Detonation damage increased from 275 to 290.
+Slash damage increased from 135 to 145.
+Level 13
+[T13.1]
+Now does 40% less damage to Structures.
+Level 20
+[T20.2]
+Cooldown reduction increased from 10 seconds to 12.5 seconds.
+Change set 2026-07:
+Talents
+Level 1
+[T1.1]
+Movement Speed bonus increased from 30% to 40%.
+[T1.3]
+Movement Speed duration increased from 4 to 6 seconds.
+Level 4
+[T4.2]
+Damage increased from 134 to 142.
+Level 7
+[T7.2]
+Cooldown reduction per hit increased from 2 to 2.5 seconds.
+Level 13
+[T13.2]
+Cooldown reduction per hit increased from 3 to 4 seconds.
+Level 16
+[T16.2]
+Damage reduced from 125 to 115.
+Change set 2026-07:
+[T7.2] · Level 7: tooltip now reads: Deflected damage reduces the cooldown of Deflect by 2.5 seconds, up to a maximum of 12.5 seconds.

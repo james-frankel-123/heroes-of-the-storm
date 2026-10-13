@@ -1,0 +1,57 @@
+Hero code: K141
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 4.5, one attack every 1 s, 66 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 20): Conjure a skull that travels in the target direction after 0.625 seconds, dealing 127 (+4% per level) damage to enemies hit and Slowing Heroes hit by 25% for 2 seconds.
+[W] basic (cooldown 14 s, cost 50): A ring of lightning appears around this hero for 2.5 seconds. Enemies within the ring take 43 (+4% per level) damage every 0.25 seconds.  Each time a cast of [W] hits a Hero, its damage is increased by 3%, up to 30%.
+[E] basic (cooldown 18 s, cost 35): Teleport to a location, dealing 78 (+4% per level) damage to nearby enemies and leaving behind a [E] at this hero's original location.  After 2.5 seconds, this hero is teleported back to the Shade's location.
+[R1] heroic (cooldown 120 s, cost 80): Channel for 2.5 seconds, revealing all enemy Heroes. After the Channel completes, all enemy Heroes take 357 (+4% per level) damage and are Slowed by 25% for 2.5 seconds.
+[R2] heroic (cooldown 50 s, cost 50): After 1 second, unleash a wave of evil spirits that Root the first enemy Hero hit for 2.5 seconds and deal 250 (+4% per level) damage to them over the same duration.  [R2] spreads outwards from its initial target, Rooting and damaging additional nearby enemy Heroes.
+[D] trait: Hitting enemy Heroes with Basic Abilities reduces this hero's Basic Ability cooldowns.  [Q] and [E] grant 1.5 seconds of cooldown reduction per Hero hit, and [W] grants 0.3 seconds per Hero hit.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Hit Heroes with [Q].  Reward: After hitting 20 Heroes, increase [Q]'s damage by 100.  Reward: After hitting 40 Heroes, [Q] gains an additional charge.
+  [T1.2] modifies W: Every 3rd hit from [W] against the same target deals 65 (+4% per level) bonus damage and grants this hero 2 Mana.
+  [T1.3] modifies E: [E] grants 25% Spell Power while active and for 2.5 seconds after ending.  If this hero hits enemy Heroes at least 18 times with his Basic Abilities while [E] is active, then increase the duration of the Spell Power bonus to 10 seconds after it ends.
+Level 4:
+  [T4.1] modifies Q: [Q] grants 10 Mana and heals this hero for 70% of the damage it deals to Heroes.
+  [T4.2] modifies W: At the end of its duration, [W] grants this hero a Shield equal to 40% of the damage it dealt to Heroes. Lasts 5 seconds.
+  [T4.3] modifies Passive: Increase Regeneration Globe healing duration by 150%. Every tick of Regeneration Globe healing activates [D], reducing Basic Ability cooldowns by 1 second.
+Level 7:
+  [T7.1] modifies E: [E] grants 25 Armor while active and for 2.5 seconds after it ends.
+  [T7.2] modifies E: While [E] is active, enemies who are hit by [W] are Slowed by 15% for 1 second and the Slow from [Q] is increased to 50%.
+  [T7.3] modifies E: [E] grants 20% Movement Speed while active and for 2.5 seconds after it ends.  If this hero hits enemy Heroes at least 18 times with his Basic Abilities while [E] is active, then reset the cooldown of [E].
+Level 10:
+  [R1] modifies Heroic (cooldown 120 s): Channel for 2.5 seconds, revealing all enemy Heroes. After the Channel completes, all enemy Heroes take 357 (+4% per level) damage and are Slowed by 25% for 2.5 seconds.
+  [R2] modifies Heroic (cooldown 50 s): After 1 second, unleash a wave of evil spirits that Root the first enemy Hero hit for 2.5 seconds and deal 250 (+4% per level) damage to them over the same duration.  [R2] spreads outwards from its initial target, Rooting and damaging additional nearby enemy Heroes.
+Level 13:
+  [T13.1] modifies Q: Hitting a Hero with [Q] grants 25% Spell Power for 6 seconds. [Q] deals 40% more damage to Heroes under 50% Health.
+  [T13.2] modifies Trait: [D] also reduces the cooldown of this hero's Heroic Ability.  this hero is healed for 15% of his maximum Health and Mana when he casts his Heroic Ability.
+  [T13.3] modifies Passive: Basic Attacks hit enemies near the primary target and activate [D] against enemy Heroes, reducing Basic Ability cooldowns by 1 second per Hero hit.
+Level 16:
+  [T16.1] modifies Q: [Q] explodes on contact with [W], dealing 138 (+4% per level) damage to nearby enemies.
+  [T16.2] modifies W: When [W]'s damage bonus reaches 30%, enemy Heroes within its radius take damage equal to 10% of their maximum Health.
+  [T16.3] modifies W: Increase the duration of [W] by 1 second and the maximum amount of bonus damage it can deal from 30% to 42%.
+Level 20:
+  [T20.1] modifies Heroic: [R1] deals bonus damage equal to 10% of the target's missing Health. If [R1] initial cast kills a Hero it will cast 1 additional time.
+  [T20.2] modifies Heroic: [R2] Silences enemies while they are Rooted and for 3 seconds after its Root expires.
+  [T20.3] modifies W: While both [E] and [W] are active, [W] also casts from the Shade's location.
+  [T20.4] modifies Active (cooldown 20 s): Activate to swap locations with [E] and refresh its duration.  Passive: [E] benefits from all of this hero's level 7 Talents.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-08:
+Updates
+Talents
+Level 4
+[T4.3] has been disabled in ARAM.
+Change set 2024-10:
+Updates
+ARAM
+Talents
+Level 4
+[T4.3]
+Bonus duration reduced from 150% to 100%.
+Level 16
+[T16.1]
+Damage reduced from 138 to 120.

@@ -1,0 +1,43 @@
+Hero code: K100
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5, one attack every 1.35 s, 83 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s): Create a laser beam at the target point that circles around this hero twice, dealing 135 (+4% per level) damage to enemies hit and Slowing them by 25% for 4 seconds.
+[W] basic: Basic Attack speed increased by 150%.  Activate to change to [alt-W], increasing Basic Attack range and damage, and causing Basic Attacks to splash.
+[E] basic (cooldown 17 s): Warp to a targeted location, phasing out after 0.5 seconds, and arriving 0.75 seconds later.
+[R1] heroic (cooldown 100 s): After 0.5 seconds, Channel a powerful beam that spans across the battleground for 4 seconds, dealing 112 (+4% per level) damage every 0.25 seconds to non-Structure enemies hit.
+[R2] heroic (cooldown 90 s): Channel for 1.5 seconds, sweeping a laser in front of this hero that locks onto enemy Heroes. Once Channeling finishes, fire 5 missiles at each locked Hero, dealing 79 (+4% per level) damage each. Deals 50% increased damage to Slowed targets.
+[D] trait: this hero has a permanent 760 (+4% per level) Shield which regenerates at 10% per second after not taking damage for 5 seconds.
+Alternate form or second unit abilities:
+[alt-W] basic: Basic Attacks have 1.25 increased range, deal 25% more damage, and splash to nearby enemies.  Activate to change to [W], increasing Basic Attack speed.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Hitting enemy Heroes with [Q] permanently increases this hero's Basic Attack damage by 0.5, up to 60.  Reward: After hitting 30 Heroes, [Q] circles an additional time.
+  [T1.2] modifies W: After hitting enemy Heroes with Basic Attacks 3 times while term A is active, the next Basic Attack with term C deals 150% more damage and splashes in a 50% larger area.
+  [T1.3] modifies W: After moving, this hero's next Basic Attack deals 35% more damage to Heroes.
+Level 4:
+  [T4.1] modifies W: Basic Attacks against Slowed Heroes with term A active grant 10% Movement Speed for 4 seconds, up to 40%.
+  [T4.2] modifies W: Every 10 seconds, this hero's next Basic Attack with term C active Slows all enemies hit by 60%, decaying in strength over 1.5 seconds.
+  [T4.3] modifies Trait: While this hero has shields from [D], he gains 10% Movement Speed.  This bonus is increased to 15% when this hero loses shields from [D].
+Level 7:
+  [T7.1] modifies Q: [Q] deals 35% more damage to Slowed targets.
+  [T7.2] modifies E: After arriving with Warp, gain 175% Attack Speed for 4 seconds while in term A mode. Hero Takedowns reset Warp's cooldown.
+  [T7.3] modifies Active (cooldown 40 s): Activate to gain 40% Basic Attack damage for 5 seconds. Basic Attacking a Hero refreshes this duration. Once [T7.3] ends, drain all of [D]'s Shields.
+Level 10:
+  [R2] modifies Heroic (cooldown 90 s): Channel for 1.5 seconds, sweeping a laser in front of this hero that locks onto enemy Heroes. Once Channeling finishes, fire 5 missiles at each locked Hero, dealing 79 (+4% per level) damage each. Deals 50% increased damage to Slowed targets.
+  [R1] modifies Heroic (cooldown 100 s): After 0.5 seconds, Channel a powerful beam that spans across the battleground for 4 seconds, dealing 112 (+4% per level) damage every 0.25 seconds to non-Structure enemies hit.
+Level 13:
+  [T13.1] modifies E: After arriving with Warp, gain 50 Armor for 4 seconds.
+  [T13.2] modifies Trait: this hero gains 30 Spell Armor while he has a Shield from [D].
+  [T13.3] modifies Trait: The time before [D] begins regenerating after taking damage is reduced by 2 seconds. Whenever this hero is healed, [D]'s Shield recharges for 60% of the healing received.
+  [T13.4] modifies Trait: Permanently reduce this hero's maximum Health by 30% but increase [D]'s Shield by 40%. Basic Attacks regenerate Shields equal to 10% of the damage dealt.
+Level 16:
+  [T16.1] modifies W: Every 3rd Basic Attack against Heroes while term A is active deals an additional 6% of the target's maximum Health as damage.
+  [T16.2] modifies Trait: this hero deals 20% more damage while he has a Shield from [D].
+  [T16.3] modifies Passive: Basic Attacks with term A reduce Ability cooldowns by 0.5 seconds. Basic Attacks with term C active reduce Ability cooldowns by 0.5 seconds per Hero hit.
+Level 20:
+  [T20.1] modifies Heroic: [R1]'s width increases by 100% over 1.5 seconds.  Passive: Reduce [R1]'s cooldown by 40 seconds.
+  [T20.2] modifies Q: Hitting an enemy Hero with [Q] fires a [R2] missile at them after 0.5 seconds, dealing 79 (+4% per level) damage. Deals 50% increased damage to Slowed targets.
+  [T20.3] modifies W: term A grants 100% more Attack Speed, and term C grants 1.25 more range.
+  [T20.4] modifies Passive: Upon taking fatal damage, [D] regains 800 (+4% per level) Shields. This effect has a 120 second cooldown.

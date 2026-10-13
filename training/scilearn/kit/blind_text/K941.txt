@@ -1,0 +1,81 @@
+Hero code: K941
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 85 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s, cost 70): Shoot a globe of destruction, dealing 176 (+4% per level) damage on impact.  Quest: Hitting a Hero or killing a Minion within 1.5 seconds of being hit by [Q] grants 2 term G.  Reward: Each stack of term G increases the damage of [Q] by 1, up to 400.
+[W] basic (cooldown 10 s, cost 25): Spawn a term D that marches forward. Warriors deal 35 (+4% per level) damage per Attack and 18 (+4% per level) damage to nearby enemies every second. Lasts for 10 seconds.  Usable while Channeling [E].
+[E] basic (cooldown 6 s, cost 25): Channel a beam of death on an enemy, dealing 128 (+4% per level) damage per second for 2.5 seconds. If the Channel lasts its full duration, deal an extra 340 (+4% per level) damage to the target.  this hero's Movement Speed is reduced by 30% while Channeling.
+[R1] heroic (cooldown 100 s, cost 60): Rain a small army of term E down on enemies, dealing 85 (+4% per level) damage per impact. term I deal 39 (+4% per level) damage, have 750 (+4% per level) Health and last up to 10 seconds. When term I die they explode, dealing 40 (+4% per level) damage to nearby enemies, doubled against enemy Heroes.  Usable while Channeling [E].
+[R2] heroic (cooldown 20 s, cost 100): Activate to make the next [Q] cost no Mana and deal 50% more damage.  Usable while Channeling [E].
+[D] trait (cooldown 60 s): Summon a [D] at any allied Mercenary, Minion, or this hero Demon. The term H will cast term F every 7 seconds, instantly killing an enemy Minion. Lasts 20 seconds.  Usable while Channeling [E].
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: [Q] deals 15% more damage to non-Heroic targets.  Quest: After gaining 200 term G, increase the range of [E] by 25% and term D gain 20% Attack Speed and Movement Speed.
+  [T1.2] modifies Q: Increase the number of stacks of term G gained by hitting Heroes with [Q] from 2 to 4.  Quest: After gaining 200 term G, each enemy hit by [Q] reduces its cooldown by 0.25 seconds, doubled against Heroes.
+  [T1.3] modifies Q: Basic Attacks against Heroes under 75% Health grant 1 term G.  Quest: After gaining 200 term G, hitting a Hero with [Q] increases the damage of this hero's next Basic Attack against them within 3 seconds by 85% the amount of term G he has.
+Level 4:
+  [T4.1] modifies W: [W] spawns an additional Demon, but its cooldown is increased by 10 seconds.
+  [T4.2] modifies W: term D and term H gain 20 Armor and last 4 seconds longer.
+  [T4.3] modifies Passive: Reduce the Mana cost of [W] from 25 to 20.  this hero's Basic Attacks reduce the cooldown of [W] by 0.75 seconds and [D] by 1.5 seconds.
+Level 7:
+  [T7.1] modifies Q: If [Q] hits 2 or more Heroes, restore 40 Mana and gain an extra 4 term G.
+  [T7.2] modifies Q: After casting [Q], this hero's Basic Attacks within the next 4 seconds have an additional 1.5 range and can hit 3 additional targets. Hitting Heroes with Basic Attacks empowered by [T7.2] grant 1 term G.
+  [T7.3] modifies E: If [E]'s Channel kills or lasts its full duration, [E]'s final damage applies to all enemies in an area around the target and grants 2 term G per Hero hit.
+Level 10:
+  [R1] modifies Heroic (cooldown 100 s): Rain a small army of term E down on enemies, dealing 85 (+4% per level) damage per impact. term I deal 39 (+4% per level) damage, have 750 (+4% per level) Health and last up to 10 seconds. When term I die they explode, dealing 40 (+4% per level) damage to nearby enemies, doubled against enemy Heroes.  Usable while Channeling [E].
+  [R2] modifies Heroic (cooldown 20 s): Activate to make the next [Q] cost no Mana and deal 50% more damage.  Usable while Channeling [E].
+Level 13:
+  [T13.1] modifies W: term D and term H gain 25% increased Health. term D Slow nearby enemies by 20%.
+  [T13.2] modifies E: Reduces the Channel time of [E] by 0.5 seconds. If [E]'s Channel kills or lasts its full duration against a Hero, this hero is healed for 8% of his maximum Health.
+  [T13.3] modifies Trait: The cooldown of [D]' term F is reduced by 2 seconds and they grant 25% increased damage to nearby friendly Minions, Mercenaries, and this hero's summoned Demons.
+Level 16:
+  [T16.1] modifies Q: [Q] damages Heroes for an additional 4% of their maximum Health.
+  [T16.2] modifies E: If [E] Channels for its full duration or kills the target, a term D is summoned at the target's location and all term D deal 75% increased damage for 5 seconds.
+  [T16.3] modifies Active (cooldown 20 s): Activate to charge a short distance, dealing 275 (+4% per level) damage and Slowing enemies caught in the path by 60% for 1.25 second.
+Level 20:
+  [T20.1] modifies Heroic: this hero's Demons deal 40% increased damage to Structures.
+  [T20.2] modifies Heroic: Globes of term G empowered by [R2] also leave a [T20.2] at their impact location for 5 seconds. Enemies within the pool lose 8 Armor per second, up to 15, and take 56 (+4% per level) damage per second.
+  [T20.3] modifies Q: After gaining 400 term G, the area of [Q] is increased by 15% and it deals 125 additional damage.
+  [T20.4] modifies E: [E] Slows enemy Heroes by 15% during its Channel. If [E] Channels for its full duration or kills an enemy Hero, its cooldown is reduced by 50%, and the target is Slowed by 50% for 2.5 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-05:
+Talents
+Level 16
+[T16.3]
+ADDED FUNCTIONALITY: Now reduces Heroic cooldown by 25% if [T16.3] hits a Hero.
+Change set 2026-02:
+Base
+[Q] [Q]
+Now deals 50% damage to non-Heroes.
+Upon reaching 225 term G, [Q] no longer deals reduced damage to Minions and Mercs.
+Window to kill minions for term G increased from 1.5 seconds to 3 seconds.
+[W] [W]
+term D damage increased from 32 to 53 . Now deals double damage to Minions and Mercenaries.
+term D no longer have a duration, but lose 26 Health every second.
+term D no longer have Immolation.
+Now has 2 charges.
+Talents
+Level 1
+[T1.3]
+REWORK: Now provides 1 stack for every 2 Basic Attacks hit against a Structure or Hero.
+Level 7
+[T7.1]
+Extra term G amount reduced from 4 to 2.
+[T7.2]
+Amount of time [T7.2] lasts reduced from 4 seconds to 3 seconds.
+[T7.3]
+Amount of term G granted reduced from 2 to 1.
+Level 13
+[T13.1]
+Now slows the attacked target by 30%.
+Level 16
+[T16.2]
+Damage bonus reduced from 75% to 35%.
+Level 20
+term A
+NEW: [Q] has unlimited range.
+[T20.3]
+Moved to baseline. Now requires 450 stacks.
+Damage bonus increased from 125 to 150.

@@ -1,0 +1,51 @@
+Hero code: K383
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.9 s, 60 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 5 s, cost 35): Heal an allied Hero for 380 (+4% per level) Health over 20 seconds.
+[W] basic (cooldown 3 s, cost 10): Deal 90 (+4% per level) damage to enemies in an area and reveal them for 2 seconds.  Allies with an active [Q] are healed for 130 (+4% per level) Health for each enemy Hero hit by [W].
+[E] basic (cooldown 12 s, cost 65): Root enemy Heroes in an area for 1.25 seconds, and deal 117 (+4% per level) damage over the duration. Affected area grows over 3 seconds.
+[R1] heroic (cooldown 80 s, cost 80): Heal nearby allied Heroes for 80 (+4% per level) Health per second for 8 seconds. Allies affected by [Q] within [R1]'s area gain 10 Armor.
+[R2] heroic (cooldown 90 s, cost 100): After 0.5 seconds, deal 310 (+4% per level) damage in a large area around this hero, Silencing enemies making them unable to use Abilities for 3 seconds.
+[D] trait (cooldown 25 s): Grant an allied Hero 20% of their maximum Mana over 5 seconds. While affected by [D], their Basic Ability cooldowns recharge 50% faster.  Cannot be used on Heroes that do not use Mana.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies E: [E] grows 25% larger, and persist on the ground 40% longer.  Repeatable Quest: Every time an enemy Hero becomes Rooted, gain 14 Mana permanently.
+  [T1.2] modifies E: [E] spawns a term D that deals 58 damage per second and lasts 10 seconds.  Repeatable Quest: Hitting enemy Heroes with [E] permanently increases the term D's Basic Attack damage by 7.
+  [T1.3] modifies E: [E] Sleeps enemy Heroes for 2 seconds after its Root expires.
+Level 4:
+  [T4.1] modifies Q: Casting [Q] on an ally also grants this hero its effect for 50% normal duration.
+  [T4.2] modifies W: Increase [W]'s reveal duration by 3 seconds. this hero's Basic Attacks against Heroes revealed by [W] deal 85% more damage.
+  [T4.3] modifies Trait: Gain a second charge of [D]. Its cooldown recharges 25% faster per ally affected by [Q].
+Level 7:
+  [T7.1] modifies Passive: Each Hero hit by [W] extends the duration of currently active [Q] by 1 second.
+  [T7.2] modifies E: Increase the Root duration of [E] by 25%. When this hero is Stunned, the cooldown of [E] is instantly reset. This can only occur every 10 seconds.
+  [T7.3] modifies Active (cooldown 45 s): Activate to remove all Stuns, Roots, and Slows from allies affected by [Q].
+Level 10:
+  [R1] modifies Heroic (cooldown 80 s): Heal nearby allied Heroes for 80 (+4% per level) Health per second for 8 seconds. Allies affected by [Q] within [R1]'s area gain 10 Armor.
+  [R2] modifies Heroic (cooldown 90 s): After 0.5 seconds, deal 310 (+4% per level) damage in a large area around this hero, Silencing enemies making them unable to use Abilities for 3 seconds.
+Level 13:
+  [T13.1] modifies Q: this hero gains 6% Movement Speed for every active [Q].
+  [T13.2] modifies W: [W] Slows Heroes hit by 25% for 3 seconds.
+  [T13.3] modifies Trait: Using [D] also grants this hero 15% of his max Mana and causes his Basic Ability cooldowns to refresh 50% faster for 5 seconds.
+Level 16:
+  [T16.1] modifies Q: While this hero is above 75% Health, [Q]'s healing-over-time is increased by 75%.
+  [T16.2] modifies Passive: Increase [W]'s area by 25% and [Q]'s duration by 5 seconds.
+  [T16.3] modifies Passive: Increase [W]'s heal by 20%, and 15% per ally affected by [Q].
+Level 20:
+  [T20.1] modifies Heroic: Each enemy Hero hit by [W] reduces the cooldown of [R1] by 3 seconds. Increase [R1]'s healing by 25% and 10% per ally affected by [Q].
+  [T20.2] modifies Heroic: Activate to Channel for 1 second, and then instantly teleport and cast [R2] at the targeted location.  Cooldown is shared with [R2].  Passive: Increase [R2]'s Silence duration to 5 seconds.
+  [T20.3] modifies Q: Casting [Q] instantly heals its target for 10% of their missing Health.
+  [T20.4] modifies W: If [W] hits a Hero, its cooldown is reduced by 1 second and the next [W] within 6 seconds deals 20% more damage. This damage bonus stacks up to 60%.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Talents
+Level 16
+[Q]
+Added a health indicator.
+Level 20
+[W]
+Added to the Buff Bar.

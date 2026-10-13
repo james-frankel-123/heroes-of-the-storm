@@ -1,0 +1,77 @@
+Hero code: K666
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.8 s, 64 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s): Sweep the area with sacred power, dealing 40 (+4% per level) damage to enemies and an additional 160 (+4% per level) damage to enemies caught in the center.
+[W] basic (cooldown 4 s): Consume this hero's stored energy and heal allied Heroes in the area for the amount of energy consumed.
+[E] basic (cooldown 12 s): Deal 55 (+4% per level) damage to the first enemy Hero hit and knock them back. If they collide with terrain, they are also stunned for 1.25 seconds and take an additional 165 (+4% per level) damage.
+[R1] heroic (cooldown 100 s): Channel on the spirit of a dead ally for 1 second. After a 5 second delay, they are brought back to life with 100% of their maximum Health at the location where they died.  this hero can use this ability while dead to resurrect herself.
+[R2] heroic (cooldown 60 s): Place an allied Hero into Stasis for 2 seconds. Upon expiration, [R2] deals 255 (+4% per level) damage to all nearby enemies.
+[D] trait (cooldown 1.5 s): Passive: 60% of the damage this hero deals to Heroes and 20% dealt to non-Heroes is stored as energy.  Bestow an allied Hero with term B.  While they remain near this hero, 30% of their damage to Heroes and 10% of their damage to non-Heroes is converted to energy. this hero can only have [D] on 1 ally at a time.  this hero can store up to 475 (+4% per level) energy.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Every time [Q] hits a Hero in the center, increase the center damage by 2, up to 50.  Reward: After hitting 25 Heroes, this center damage bonus is increased to 180.
+  [T1.2] modifies Q: Reduces the cooldown of [Q] by 3 seconds for each enemy Hero hit by its center.
+  [T1.3] modifies W: [W] also deals damage to enemies in the area equal to 30% of the energy consumed.
+Level 4:
+  [T4.1] modifies Q: Increases the radius of [Q] by 15%.
+  [T4.2] modifies E: [E] Slows enemy Heroes by 20% for 2.5 seconds. Slow amount and duration doubled on enemies it Stuns.  Passive: Increase [E]' Stun duration by 0.25 seconds.
+  [T4.3] modifies E: Enemies hit by [E] are knocked back 25% farther.  Quest: Every time [E] stuns a Hero, increase the stun damage by 10, up to 60.  Reward: After stunning 6 Heroes, increase this damage bonus to 250.
+Level 7:
+  [T7.1] modifies W: Collecting a Regeneration Globe reduces the cost of this hero's next [W] by 75%.
+  [T7.2] modifies Trait: this hero stores 25% of damage taken by allies with [D].
+  [T7.3] modifies Trait: Increases the energy stored from this hero's Basic Attacks to 120% of the damage against Heroes and 55% of the damage against non-Heroes.  Does not affect this hero's [D] ally.
+Level 10:
+  [R1] modifies Heroic (cooldown 100 s): Channel on the spirit of a dead ally for 1 second. After a 5 second delay, they are brought back to life with 100% of their maximum Health at the location where they died.  this hero can use this ability while dead to resurrect herself.
+  [R2] modifies Heroic (cooldown 60 s): Place an allied Hero into Stasis for 2 seconds. Upon expiration, [R2] deals 255 (+4% per level) damage to all nearby enemies.
+Level 13:
+  [T13.1] modifies Q: Enemies hit by the center area of [Q] are blinded for 2 seconds.
+  [T13.2] modifies Q: Enemies hit by the outer area are pushed slightly toward the center.
+  [T13.3] modifies E: [E] now pierces and hits all enemy Heroes in a line, reducing the cooldown by 2 seconds for each Hero hit.
+Level 16:
+  [T16.1] modifies W: Quest: Each maximum energy [W] this hero casts increases the maximum amount of energy that can be stored by 75.
+  [T16.2] modifies Trait: Allies with [D] gain 20% Attack Speed.  Passive: this hero gains 10% increased Basic Attack Damage.
+  [T16.3] modifies Trait: Allies with [D] gain 10% Spell Power.  Enemy Heroes hit by the center area of [Q] or the terrain collision of [E] have their Spell Armor reduced by 10 for 3 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Resurrected allies gain 200% increased Movement Speed, decaying over 4 seconds.  While a resurrected ally remains alive, Resurrect's next cooldown recharges 100% faster.
+  [T20.2] modifies Heroic: When [R2] expires, it grants the target 75 Armor for 5 seconds, reducing damage taken by 75%.
+  [T20.3] modifies Active (cooldown 30 s): After 2 seconds, fly to a target location.
+  [T20.4] modifies Active (cooldown 60 s): Activate to grant all nearby allied Heroes a shield for 3 seconds equal to 50% of the amount of Health they are missing.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-01:
+Base
+[D] [Trait]
+Increased the amount of energy stored from 60% to 80% of damage to Heroes.
+Increased the amount of energy stored from 20% to 50% of damage to non-Heroes.
+Talents
+Level 1
+[T1.3]
+Now only deals damage to enemy Heroes.
+Level 7
+[T7.3]
+Now increases Basic Attack range by 1.1.
+Level 10
+Resurrect
+Delay before resurrection reduced from 5 seconds to 3 seconds.
+Level 16
+[T16.1]
+Quest bonus reduced from 75 to 55.
+[T16.3]
+Armor reduction increased from 10 to 20.
+Spell Power increased from 10% to 15%.
+Change set 2025-03:
+Base
+[D] [Trait]
+Decreased the amount of energy stored from 50% to 40% of damage to non-Heroes.
+Change set 2025-05:
+Base
+[D] [Trait D]
+Reduced amount of energy stored from 40% to 35% of damage to non-Heroes.
+Reduced amount of energy stored from 80% to 70% of damage to Heroes.
+Change set 2025-07:
+Talents
+Level 4
+[T4.3]
+Knockback strength increased from 28% to 30%.

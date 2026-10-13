@@ -1,0 +1,41 @@
+Hero code: K553
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 1.15 s, 134 damage per attack; range 5.5, one attack every 1.15 s, 134 damage per attack; range 1.5, one attack every 1.2 s, 50 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 7 s, cost 40): Deal 141 (+4% per level) damage to enemies in a line, slowing them by 30% for 2 seconds.
+[W] basic (cooldown 10 s, cost 45): term C charges in a line, dealing 150 (+4% per level) damage and stunning enemies for 1.25 seconds.
+[E] basic (cooldown 10 s, cost 70): term B for 714 (+4% per level) Health over 5 seconds.
+[R1] heroic (cooldown 60 s, cost 75): Release a herd of boars that track down all enemy Heroes in a direction, dealing 110 (+4% per level) damage, revealing, and slowing enemies by 40% for 5 seconds.
+[R2] heroic (cooldown 50 s, cost 75): Increases term C's Basic Attack damage by 200% for 12 seconds.
+[D] trait: Passive: term C gains 15% move speed.  term A to attack a specific enemy or move to a point and wait.  Targeting this hero commands term C to retreat to his position, gaining 30% move speed until she reaches this hero.  Targeting term C commands her to hold her current position.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Increases [Q]'s damage by 150% to Minions.
+  [T1.2] modifies Passive: Increases term C's basic attack damage to Minions and Mercenaries by 150%, and term C gains 50 Armor against Minions and Mercenaries, reducing damage taken by 50%.
+  [T1.3] modifies Active (cooldown 20 s): Fire a flare at an area, revealing it for 20 seconds.
+Level 4:
+  [T4.1] modifies Passive: term C's Basic Attacks heal her for 4.5% of her maximum Health.
+  [T4.2] modifies Passive: Quest: Gathering a Regeneration Globe increases this hero and term C's Health Regeneration by 1 per second, up to 25 per second.  Reward: After gathering 25 Globes, this hero and term C gain 15 Armor.
+  [T4.3] modifies Passive: Every 6 seconds, this hero and term C gain 75 Physical Armor against the next enemy Hero Basic Attack, reducing the damage taken by 75%.  Stores up to 2 charges. Both this hero and term C have their own charges.
+  [T4.4] modifies Passive: this hero and term C gain 2 Maximum Health every second this hero remains alive. These bonuses are lost on this hero's death.
+Level 7:
+  [T7.1] modifies Q: Increases [Q]'s slow amount to 50% and its duration to 3.5 seconds.
+  [T7.2] modifies Q: Increases [Q]'s range by 20%. If [Q] hits an enemy Hero, the Mana cost is refunded and its cooldown is reduced by 2 seconds.
+  [T7.3] modifies W: term C's Basic Attacks lower the cooldown of [W]! by 1 second.
+Level 10:
+  [R2] modifies Heroic (cooldown 50 s): Increases term C's Basic Attack damage by 200% for 12 seconds.
+  [R1] modifies Heroic (cooldown 60 s): Release a herd of boars that track down all enemy Heroes in a direction, dealing 110 (+4% per level) damage, revealing, and slowing enemies by 40% for 5 seconds.
+Level 13:
+  [T13.1] modifies Q: When [Q] hits an enemy Hero, this hero gains 125% Attack Speed for 4 seconds. term C's Basic Attacks increase the duration of this buff by 0.75 seconds.
+  [T13.2] modifies W: this hero and term C's Basic Attacks increase the damage of the next [W]! by 15%, stacking up to a 150% bonus.
+  [T13.3] modifies Passive: term C deals 28 (+4% per level) damage per second to nearby enemies.
+Level 16:
+  [T16.1] modifies Passive: this hero's Basic Attacks increase both his and term C's Movement Speed by 25% for 2 seconds.
+  [T16.2] modifies Active (cooldown 20 s): Activate to slow the Attack Speed by 50% and Movement Speed by 20% of Heroes and Summons near this hero and term C for 2.5 seconds.  Passive: Heroes and Summons that attack this hero or term C have their Attack Speed slowed by 20% for 2.5 seconds.
+  [T16.3] modifies Active (cooldown 35 s): this hero fakes his death, becoming Invulnerable and untargetable for 5 seconds. During this time you control term C.
+Level 20:
+  [T20.1] modifies Heroic: Increases the duration of [R2] by 50% and term C's Basic Attacks heal this hero for 50% of her damage dealt during [R2].
+  [T20.2] modifies Heroic: [R1] deals 50% more damage and roots for 1.5 seconds.
+  [T20.3] modifies Passive: this hero's Basic Attacks deal 10% more damage, and term C's Basic Attacks slow the target by 20% for 1.25 seconds.
+  [T20.4] modifies Active (cooldown 60 s): this hero and term C gain 75 Armor for 4 seconds, reducing damage taken by 75%.

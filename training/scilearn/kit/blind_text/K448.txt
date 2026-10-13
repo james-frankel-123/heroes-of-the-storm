@@ -1,0 +1,95 @@
+Hero code: K448
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 0.7 s, 104 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s, cost 60): Throw out a Hammer that returns to this hero, dealing 80 (+4% per level) damage and Slowing enemies hit by 25% for 2 seconds. Reactive to explode the Hammer, dealing 95 (+4% per level) damage to nearby enemies.
+[W] basic (cooldown 13 s, cost 60): Deal 107 (+4% per level) damage to an enemy, and an additional 75 (+4% per level) damage per second for 4 seconds while close to the target. Deals 100% increased damage to Minions and Mercenaries.
+[E] basic (cooldown 13 s, cost 70): Dashes forward and grants a 171 (+4% per level) point Shield for 3 seconds.
+[R1] heroic (cooldown 60 s, cost 70): Push enemies away, and slow their Movement Speed by 40% decaying over 4 seconds.
+[R2] heroic (cooldown 120 s, cost 80): After 1 second, deal 475 (+4.75% per level) damage to enemies within a long line. The cooldown is reduced by 30 seconds for every enemy Hero hit.
+[D] trait (cooldown 5 s): Gain 15% increased Movement Speed after not taking damage for 5 seconds.
+[Z] mount (cooldown 75 s): Instead of mounting, this hero can fly a great distance over terrain.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Every time [Q] hits a Hero increase its damage by 0.5% and refund 6 Mana.  Reward: After hitting 30 Heroes with [Q], increase its damage by 15%.
+  [T1.2] modifies W: Reduce [W]'s cooldown by 2 seconds.  Quest: After 3 [W] strikes, subsequent strikes on enemy Heroes increases its damage by 1%, up to 75%.  Reward: After 30 subsequent strikes, further reduce [W]'s cooldown by 2 seconds.  Reward: After 75 subsequent strikes, Takedowns reset [W]'s cooldown.
+  [T1.3] modifies Active (cooldown 45 s): Activate [T1.3] to gain 40% Attack Speed and [D] for 4 seconds.  Quest: Minion kills grant 0.2 Basic Attack Damage. Hero Takedowns grant 0.5 Basic Attack Damage.
+Level 4:
+  [T4.1] modifies W: [W] strikes grant a Shield equal to 4% of this hero's maximum Health, up to 28%, for 4 seconds.
+  [T4.2] modifies E: Increases [E]'s range by 40% and Shield amount by 70%, and its Shield now lasts indefinitely.
+  [T4.3] modifies Passive: Basic Attacks heal for 20% of the damage dealt to the primary target.
+Level 7:
+  [T7.1] modifies Q: Increases [Q]'s range by 30% and Basic Attacks deal 75% bonus damage while [Q] is in flight.
+  [T7.2] modifies Q: [Q]'s explosion deals 100% additional damage, and hitting enemy Heroes reduces their Spell Armor by 15 for 3 seconds.
+  [T7.3] modifies W: Increases the number of [W] strikes by 2 and its range by 25%.
+Level 10:
+  [R2] modifies Heroic (cooldown 120 s): After 1 second, deal 475 (+4.75% per level) damage to enemies within a long line. The cooldown is reduced by 30 seconds for every enemy Hero hit.
+  [R1] modifies Heroic (cooldown 60 s): Push enemies away, and slow their Movement Speed by 40% decaying over 4 seconds.
+Level 13:
+  [T13.1] modifies W: [W] deals 25% more damage each subsequent strike.
+  [T13.2] modifies Trait: While [D] is active, this hero's Basic Abilities recharge 100% faster.
+  [T13.3] modifies Trait: Basic Attacks against enemy Heroes deal bonus damage equal to 1.5% of the Hero's maximum Health, increased to 2% while [D] is active.
+Level 16:
+  [T16.1] modifies Q: Increase [Q]'s Slow from 25% to 50%, and [Q]'s explosion also Slows.
+  [T16.2] modifies Trait: Reduces the activation time for [D] from 5 to 3 seconds, and increases the Movement Speed bonus from 15% to 25%.
+  [T16.3] modifies E: [E] increases Movement Speed by 60%, decaying over 3 seconds.
+Level 20:
+  [T20.1] modifies Heroic: [R2] has double the range and deals 25% more damage.
+  [T20.2] modifies Heroic: [R1] creates a [T20.2] for 4 seconds. Enemies caught in the tunnel will periodically be pushed back.
+  [T20.3] modifies Passive: Increases Attack Speed by 20% and Attack Range by 1.1.
+  [T20.4] modifies Z: Reduce the cooldown of Flight by 50 seconds, reduce the cast time before flying to 0.5 seconds, and increase the speed by 50%.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-12:
+Base
+[W] [W]
+Cooldown reduced from 13 seconds to 12 seconds.
+Talents
+Level 1
+[T1.2]
+REWORK: No longer reduces CD. Bonuses are now provided at 20/45/75 hits. At 20 hits, gain 30% damage. At 45 hits, gain an additional 75% damage and reduce the cooldown by 2 seconds. Pinnacle Reward: At 75 hits, [W] provides 2 additional strikes and Stuns for 1.25s on its last strike.
+[T1.3]
+REWORK: Reduced attack speed bonus from 40% to 25%. Now provides 1 stack per minion and 5 stacks per Hero. At 50 stacks, gain 20 Attack Damage. At 125 stacks, gain an additional 50 Attack Damage. Pinnacle Reward: At 300 stacks, gain an additional 125 Attack Damage.
+[T1.1]
+REWORK: Bonuses are now provided at 30/80/150 stacks, rather than incremental gains. At 30 stacks, gain 30% damage. At 80 stacks, gain an additional 50% damage. Pinnacle Reward: At 150 stacks, gain an additional 70% damage.
+REWORK: Lose 8 stacks on death, but can not lose milestones that have already been completed.
+Level 7
+[T7.3]
+Moved to be a Level 13 Talent.
+No longer provides additional hits, but instead provides cooldown refresh on Hero takedowns.
+Level 13
+[T13.1]
+Moved to be a Level 7 Talent.
+Change set 2025-12:
+Base
+[W] [W]
+Now strikes every .8 seconds, down from 1 second. Total number of strikes stay the same.
+Range increased by 1.
+Talents
+Level 1
+[T1.3]
+Cooldown increased to 60 seconds, up from 45 seconds.
+Quest requirements increased to 60/150/300, up from 50/125/300.
+Change set 2025-12:
+Updates
+Base
+[W] [W]
+Now strikes more frequently, from every second to every .8 seconds. Total number of strikes stay the
+same.
+Cast range increased from 6.5 to 7.5.
+Talents
+Level 1
+[T1.3]
+Cooldown increased from 45 to 60 seconds.
+Quest requirements increased from 50/125/300 to 60/150/300.
+Change set 2026-02:
+Base
+[W] [W]
+Range reduced by .5.
+Time between strikes increased from .8 seconds to .9 seconds.
+Change set 2026-04:
+Talents
+Level 1
+[T1.3]
+Range to receive kill credit reduced from 14 to 8.5.

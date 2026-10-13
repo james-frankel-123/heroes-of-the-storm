@@ -1,0 +1,49 @@
+Hero code: K610
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.5, one attack every 0.8332 s, 95 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 8 s, cost 55): Summon a scythe that travels to this hero after 1 second, dealing 190 (+4% per level) damage to enemies and spawning a term A when hitting enemy Heroes.  These do not count towards this hero's [D] maximum.
+[W] basic (cooldown 16 s, cost 50): this hero's Basic Attacks deal damage in a wide area and reduce the Attack Speed of Heroes and Summons by 40% for 2 seconds. Lasts 4 seconds once triggered.
+[E] basic (cooldown 10 s, cost 70): After a 2 second delay, deal 80 (+4% per level) damage and Root the target enemy Hero for 1.75 seconds.  All nearby term A will fixate on the target for their duration.
+[R1] heroic (cooldown 90 s, cost 80): Vector Targeting Summon 4 term E in a line that attack nearby enemies for 47 (+4% per level) damage a second and Slow them by 30% for 2 seconds. Last up to 15 seconds.
+[R2] heroic (cooldown 90 s, cost 100): After 0.5 seconds, release poisonous missiles that deal 630 (+4% per level) damage to all enemies hit over 10 seconds.
+[D] trait: When a nearby enemy Minion dies, it becomes a term A with 240 (+4% per level) Health that attacks for 21 (+4% per level) damage and lasts up to 12 seconds. Upon death, term A deal 40 (+4% per level) damage to nearby enemies.  Up to 3 term A can be active at once when spawned in this way.
+[1] activable (cooldown 30 s): Activate to gain a Shield equal to 25% of this hero's maximum Health for 3 seconds.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Passive: When [1] expires, nearby enemy Heroes take damage equal to 12% of their maximum Health.
+  [T1.2] modifies Passive: While [1] is active, nearby enemies are Slowed by 35% for 1 second. Basic Attacks against Heroes that are Stunned, Rooted, or Slowed reduce the cooldown of [1] by 2 seconds.
+  [T1.3] modifies Passive: While [1] is active, this hero evades all Basic Attacks, but increases the cooldown of [1] by 10 seconds.
+Level 4:
+  [T4.1] modifies Q: Reduce the cooldown of [Q] by 2 seconds and its Mana cost by 15.
+  [T4.2] modifies W: Increase this hero's Basic Attack damage by 15%.  Each enemy hit by [W] reduces its cooldown by 1 second, up to 12 seconds.
+  [T4.3] modifies Trait: [E] spawns 2 term A.  These do not count towards this hero's [D] maximum.  Quest: Spawn 80 term A.  Reward: While fixating on an enemy, term A gain 25% Movement and Attack Speed.
+Level 7:
+  [T7.1] modifies W: [W] heals for 70% of the damage dealt to Heroes.
+  [T7.2] modifies Trait: Every time a term A attacks an enemy, restore 0.5% of this hero's maximum Health and 0.2% of his maximum Mana.
+  [T7.3] modifies Passive: Increase the Shield amount of [1] to 35% of this hero's maximum Health, and this hero gains 20 Spell Armor for its duration.
+Level 10:
+  [R2] modifies Heroic (cooldown 90 s): After 0.5 seconds, release poisonous missiles that deal 630 (+4% per level) damage to all enemies hit over 10 seconds.
+  [R1] modifies Heroic (cooldown 90 s): Vector Targeting Summon 4 term E in a line that attack nearby enemies for 47 (+4% per level) damage a second and Slow them by 30% for 2 seconds. Last up to 15 seconds.
+Level 13:
+  [T13.1] modifies Q: [Q] spawns 2 additional scythes next to the first after 1.5 seconds, dealing 40% damage.
+  [T13.2] modifies W: Gain 5% Attack Speed for 3 seconds each time [W] hits an enemy, up to 75%.
+  [T13.3] modifies E: Increase the Root duration of [E] by 0.25 seconds.  Enemies Rooted by [E] lose 25 Armor for 2 seconds.
+Level 16:
+  [T16.1] modifies Q: Enemy Heroes that are damaged by [Q] or term A are Slowed by 30% for 2.5 seconds.
+  [T16.2] modifies W: Enemy Heroes who are damaged by [W] or term A deal 35% less damage for 3 seconds.
+  [T16.3] modifies Active (cooldown 12 s): Deal 230 (+4% per level) damage to enemies in a line.
+Level 20:
+  [T20.1] modifies Heroic: [R2] heals for 50% of the damage dealt and its duration is increased by 50%.
+  [T20.2] modifies Heroic: Increase the Slow of term E by 20%.   Every 5th [Q] that hits enemy Heroes spawns a term E instead of a term A at their location.
+  [T20.3] modifies Q: Enemy Heroes hit by [Q] receive 75% less healing for 4 seconds.
+  [T20.4] modifies Trait: Each time term A deal damage, reduce the cooldown of [1] and this hero's Heroic Ability by 1.5%.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Talents
+Level 13
+[W]
+Added to the Buff Bar.

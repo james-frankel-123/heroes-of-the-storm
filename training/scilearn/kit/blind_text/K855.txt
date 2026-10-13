@@ -1,0 +1,68 @@
+Hero code: K855
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1 s, 120 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 12 s): Launch a grenade that explodes at the end of its path or upon hitting an enemy, dealing 124 (+4% per level) damage to nearby enemies. Grenades can ricochet off of terrain. Deals 50% less damage to Structures.  Stores up to 4 charges. [Q]'s cooldown replenishes all charges at the same time.
+[W] basic (cooldown 16 s): Place a mine on the ground. this hero's Trait can be activated to detonate the mine, dealing 180 (+4% per level) damage to nearby enemies and knocking them back. this hero can also be affected by [W], but takes no damage.  Limit 1 active mine.
+[E] basic (cooldown 12 s): Place a trap on the ground that arms after 2 seconds. Deals 130 (+4% per level) damage to the first enemy that walks over it and Roots them for 2 seconds.  Limit 1 active trap.
+[R1] heroic (cooldown 75 s): Create a motorized bomb with 530 (+4% per level) Health that lasts 15 seconds. While active, this hero is immobile but gains control of [R1]'s movement.  [R1] can be reactivated to detonate immediately, knocking nearby enemies back and dealing 720 (+4% per level) damage to enemies near the center gradually reduced to 445 (+4% per level) to enemies on the edge.
+[R2] heroic (cooldown 75 s): After 1.25 seconds, this hero launches into the air. While in the air, he can steer the landing location by moving.  After 3.75 seconds, this hero lands, dealing 935 (+4% per level) damage to nearby enemies and activating [D]. 5 seconds after landing, this hero reappears at the Hall of Storms and gains 150% additional Movement Speed until dismounted.
+[D] trait: Upon dying, drop 5 grenades that explode after 0.75 seconds, each dealing 250 (+4% per level) damage to nearby enemies. Deals 75% less damage to Structures.  term B  Detonate an active [W].
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: While [Q] has no charges left, this hero gains 10% Movement Speed and his Basic Attacks deal 15% bonus damage.
+  [T1.2] modifies Q: The final grenade launched from [Q] deals 120% bonus damage, and [Q] grenades last an additional 2 seconds before automatically detonating.
+  [T1.3] modifies Passive: Hitting an enemy Hero with [W] or [E] causes this hero to deal 25% more damage with Basic Attacks and Basic Abilities for 6 seconds.
+Level 4:
+  [T4.1] modifies Q: Quest: Hitting a Hero with [Q] increases its damage by 0.2%, up to 40%.
+  [T4.2] modifies W: Hitting an enemy Hero with [W] reduces its cooldown by 10 seconds.
+  [T4.3] modifies E: [E] will slowly chase nearby enemy Heroes.
+Level 7:
+  [T7.1] modifies W: Enemies launched by [W] are Slowed by 40% for 2.5 seconds upon landing.
+  [T7.2] modifies E: Enemy Heroes who are hit by [E] are Silenced for 2 seconds.
+  [T7.3] modifies Trait: Increase the explosion radius of [D] by 20%.  When this hero is Stunned, Rooted, or damaged by an enemy Hero while below 50% Health, he uses [D], dropping 5 grenades at his feet that explode.   This effect has a 12 second cooldown.
+Level 10:
+  [R1] modifies Heroic (cooldown 75 s): Create a motorized bomb with 530 (+4% per level) Health that lasts 15 seconds. While active, this hero is immobile but gains control of [R1]'s movement.  [R1] can be reactivated to detonate immediately, knocking nearby enemies back and dealing 720 (+4% per level) damage to enemies near the center gradually reduced to 445 (+4% per level) to enemies on the edge.
+  [R2] modifies Heroic (cooldown 75 s): After 1.25 seconds, this hero launches into the air. While in the air, he can steer the landing location by moving.  After 3.75 seconds, this hero lands, dealing 935 (+4% per level) damage to nearby enemies and activating [D]. 5 seconds after landing, this hero reappears at the Hall of Storms and gains 150% additional Movement Speed until dismounted.
+Level 13:
+  [T13.1] modifies Q: Increase this hero's Basic Attack range by 1.  [Q] grenades fired within 0.5 seconds of using a Basic Attack deal 30% bonus damage.
+  [T13.2] modifies W: this hero is knocked back 50% farther by [W]. Additionally, [W]'s cooldown is reduced by 12 seconds if only this hero is hit.
+  [T13.3] modifies E: Reduce [E]'s cooldown by 5 seconds and increase the maximum number of active traps to 2.
+  [T13.4] modifies E: [E] now only hits Heroes, and Heroes hit have their Armor reduced by 15 for 3 seconds. Increases [E]'s radius and damage by 50%.
+Level 16:
+  [T16.1] modifies Q: [Q] fires all of its charges in a continuous burst, its cooldown is reduced by 6 seconds, but it loses 1 maximum charge.
+  [T16.2] modifies Q: Hitting an enemy Hero with [Q] reduces its cooldown by 1.5 seconds.
+  [T16.3] modifies Active (cooldown 30 s): Activate to make [Q] fire 2 additional grenades in a spread. Works for up to 4 total charges, or until [Q] runs out of charges.
+Level 20:
+  [T20.1] modifies Heroic: Increase [R1]'s knockback distance by 50%, and its cooldown is reduced by 25 seconds for each enemy Hero hit.
+  [T20.2] modifies Heroic: this hero also gains the Ability [R1]. Each time he uses his Heroic, it swaps to the alternate ability.  Passive: Reduce both Heroic cooldowns by 20 seconds.
+  [T20.3] modifies Q: Increase the radius and explosion radius of grenades from Basic Attacks and [Q] by 50%.
+  [T20.4] modifies Z: this hero always rides his [R2] Mount, which grants 150% increased Movement Speed, but his Mount cooldown is increased to 8 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Base
+[E] [E]
+Cooldown increased from 12 seconds to 15 seconds.
+Talents
+Level 1
+[Q]
+Damage bonus reduced from 120% to 100%.
+Level 7
+[D]
+Cooldown increased from 12 seconds to 20 seconds.
+Base
+Quickcast Settings
+Removed term B.
+Removed [R1] abilities.
+[Q] [Q]
+Added a pulsing red/blue indicator to grenades empowered by [T1.2].
+Talents
+Level 10
+[R1] [R1]
+Added a range indicator for full damage.
+Change set 2024-10:
+Updates
+ARAM

@@ -311,8 +311,6 @@ class Broker:
             if norm["stat"] != "win_rate":
                 raise Refusal("Q1 stat: win_rate (residual tables open once the session has a fitted incumbent)")
             if len(cells) > C.Q1_MAX_CELLS:
-                self.log("refusal", template=cls, tranche=tr, params_json=canonical(norm), canonical_hash=ch,
-                         note=f"{len(cells)} cells > {C.Q1_MAX_CELLS}")
                 raise Refusal(f"{len(cells)} cells; Q1 allows at most {C.Q1_MAX_CELLS}. Coarsen or filter.")
             if tr == "S":
                 if b["sandbox_numbers"] + len(cells) > C.BUDGET["sandbox_numbers"]:
@@ -344,14 +342,10 @@ class Broker:
                     charges[g_] = charges.get(g_, 0) + per
                 bits = sum(charges.values())
                 if b["dev_bits"] + bits > C.BUDGET["dev_bits"]:
-                    self.log("refusal", template=cls, tranche=tr, params_json=canonical(norm), canonical_hash=ch,
-                             note="dev bit budget")
                     raise Refusal("dev bit budget exhausted for this cycle")
         ans = {"class": cls, "tranche": tr, "cells": released, "refused_cells": refused,
                "bits_charged": round(bits, 4)}
         if not released and refused:
-            self.log("refusal", template=cls, tranche=tr, params_json=canonical(norm), canonical_hash=ch,
-                     note=f"all {refused} cells below the release minimum or over group caps")
             raise Refusal(f"all {refused} cells refused (cells too small or groups over their bit cap). "
                           "Pool cells (e.g. a kit-level or role-level query) or explore on S.")
         params = dict(norm)
@@ -392,6 +386,8 @@ class Broker:
         if not isinstance(term, dict):
             raise Refusal("term must be a mapping")
         term = {k: v for k, v in term.items() if not str(k).startswith("_")}   # harness-only keys
+        if term.get("type") in TM.HARNESS_ONLY:
+            raise Refusal(f"term type {term['type']!r} is reserved for the harness")
         term = self.names.translate_term_in(term)
         term.setdefault("name", f"card_{cid}")
         term["name"] = f"card_{_slug(cid)}"
@@ -574,6 +570,15 @@ class Handler(socketserver.StreamRequestHandler):
                     resp = {"ok": True, "result": self.server.broker.handle(req)}
             except Refusal as e:
                 resp = {"ok": False, "refused": str(e)}
+                try:
+                    with self.server.broker.lock:
+                        q = req.get("query") if isinstance(req, dict) else None
+                        self.server.broker.log(
+                            "refusal", template=(q or {}).get("class") or req.get("op"),
+                            tranche=(q or {}).get("tranche"), card_id=req.get("card_id"),
+                            params_json=canonical(req)[:4000], note=str(e)[:300])
+                except Exception:
+                    traceback.print_exc()
             except Exception as e:
                 traceback.print_exc()
                 resp = {"ok": False, "error": f"{type(e).__name__}: {e}"[:500]}

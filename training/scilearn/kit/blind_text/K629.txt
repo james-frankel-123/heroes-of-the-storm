@@ -1,0 +1,75 @@
+Hero code: K629
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 5.5, one attack every 1.25 s, 23 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 7 s, cost 30): Deal 105 (+4% per level) damage to enemies in an area and knock them back.
+[W] basic: Currently playing term C, increasing the Movement Speed of this hero and nearby allied Heroes by 10%.  Toggle to play term A instead.
+[E] basic (cooldown 13 s, cost 90): Raise this hero's [W] track volume for 3 seconds, amping term A to 112 (+4% per level) Health per second and term C to 30% increased Movement Speed.
+[R1] heroic (cooldown 80 s, cost 100): After 1 second, this hero and nearby allied Heroes gain a 1296 (+4% per level) point Shield that rapidly decays over 6 seconds.
+[R2] heroic (cooldown 20 s, cost 30): Quickly skate to an allied Hero. Upon arrival the ally is healed for 230 (+4% per level), this hero is healed for 80 (+4% per level), and both gain Unstoppable for 1 second.
+[D] trait (cooldown 20 s): While moving alongside terrain, activate to slide towards a targeted location. Enemies hit take 100 (+4% per level) damage and are Slowed by 75% for 1 second.
+[Z] mount: When moving alongside terrain, this hero begins to [Z] for 2 seconds. While [Z] is active, this hero can walk through units and gains 20% Movement Speed that stacks with other bonuses.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies W: Quest: Play this hero's [W] tracks to nearby allies. Multiple allies provide additional time.  Reward: For every 1 Minute played, permanently increase this hero's maximum Mana by 10.  Reward: Once you have played for 8 minutes or more, permanently increase [W]'s range by 20%.
+  [T1.2] modifies Z: [Z]'s Movement Speed bonus gradually increases to 40% over 4 seconds while this hero maintains its effect.
+  [T1.3] modifies Z: While [Z] is active, Basic Attacks heal for 30% of the damage dealt and restore 0.5 Mana.  Passive: Increase [Z] duration by 1 second.
+Level 4:
+  [T4.1] modifies Q: Enemies within the first half of [Q]'s range are knocked back 75% further.  Quest: Hit 3 enemy Heroes with a single [Q].  Reward: Increase [Q]'s arc by 50% and its range by 20%.
+  [T4.2] modifies Q: Hitting an enemy with [Q] while [Z] is active reduces its cooldown by 3 seconds.
+  [T4.3] modifies Trait: While [Z] is active, [D]'s cooldown recharges 100% faster.
+Level 7:
+  [T7.1] modifies Q: Hitting an enemy with [Q] grants this hero a 38 (+4% per level) Shield for 7 seconds. Hitting enemy Heroes grants 3 times this amount.
+  [T7.2] modifies W: Blast this hero's active [W] track at enemy Heroes. While [E] is active, term A deals 50 (+4% per level) damage per second and term C Slows by 20%.  This ability is unaffected by [W] talents.
+  [T7.3] modifies Active (cooldown 20 s): Place a boombox that plays this hero's active [W] track. Its volume adjusts with [E]. Allied Heroes near the boombox gain 5 Armor.  [W] tracks do not stack.
+Level 10:
+  [R1] modifies Heroic (cooldown 80 s): After 1 second, this hero and nearby allied Heroes gain a 1296 (+4% per level) point Shield that rapidly decays over 6 seconds.
+  [R2] modifies Heroic (cooldown 20 s): Quickly skate to an allied Hero. Upon arrival the ally is healed for 230 (+4% per level), this hero is healed for 80 (+4% per level), and both gain Unstoppable for 1 second.
+Level 13:
+  [T13.1] modifies W: For each ally affected by [W], this hero gains 5% Movement Speed that stacks with other bonuses.
+  [T13.2] modifies Trait: [D] no longer Slows enemies, and instead Stuns them for 0.5 seconds.
+  [T13.3] modifies Z: While [Z] is active, passing near an enemy Hero increases its Movement Speed bonus to 40%, and grants 15 Armor, for 1 second.
+Level 16:
+  [T16.1] modifies E: While [E] is active, [W]'s term A heals for an additional 2.5% of the target's maximum Health each second.
+  [T16.2] modifies E: Hitting enemy Heroes with Basic Attacks reduces the cooldown of [E] by 0.4 seconds.  Passive: [Z] increases Basic Attack range by 2.2.
+  [T16.3] modifies E: Increase the duration of [E] by 1 second. While [E] is active, enemy Heroes hit by [Q] or Push-Off further increase its duration by 0.3 seconds.
+Level 20:
+  [T20.1] modifies Heroic: Reduce the cooldown of [R1] to 30 seconds, but the Shield now decays over 4 seconds.
+  [T20.2] modifies Heroic: [R2] can now be cast on enemy Heroes, dealing 160 (+4% per level) damage and reducing all healing received by 50% for 3 seconds.  Passive: Reduce the cost and cooldown of [R2] by 30%.
+  [T20.3] modifies W: For each ally affected by [W], this hero gains 8% increased healing.
+  [T20.4] modifies Active (cooldown 60 s): Activate for allies affected by [W] to become Unkillable for 1.5 seconds.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Base
+Quickcast Settings
+Attack now shares Quickcast settings with other Attack Quickcast settings.
+Change set 2025-03:
+Base
+[Q] [Q]
+Cooldown increased from 7 seconds to 8 seconds.
+Mana cost increased from 30 to 45.
+Talents
+Level 1
+[T1.2]
+Time to maximum increased from 4 seconds to 6 seconds.
+Level 4
+[T4.2]
+REWORK: Now also refunds 15 Mana when hitting an enemy with [Q] while [Z] is active.
+Level 7
+[T7.1]
+Duration of Shield increased from 7 seconds to 8.5 seconds.
+Level 10
+[R2]
+Cooldown increased from 20 to 25 seconds.
+Level 13
+[D] no longer Slows the first Hero hit and instead Stuns them for 0.5 seconds.
+Level 16
+[T16.2]
+Cooldown reduction reduced from 0.4 seconds to 0.3 seconds.
+[T16.3]
+Duration bonus from [D] increased from 0.3 seconds to 0.5 seconds.
+Duration bonus from [Q] reduced from 0.3 seconds to 0.25 seconds.
+REWORK: Hitting Heroes while [E] is not active increases the duration of the next [E] by up to 1.5 seconds. This does not limit the amount able to be gained while [E] is active.

@@ -1,0 +1,59 @@
+Hero code: K880
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 1.25, one attack every 0.9 s, 75 damage per attack; range 4, one attack every 0.9 s, 75 damage per attack; range 6.5, one attack every 0.7 s, 62 damage per attack; range 1.25, one attack every 1 s, 54 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 10 s): Activate to have each this hero deal 85 (+4% per level) damage to nearby enemies.  Deals 100% bonus damage to enemy Heroes.
+[W] basic (cooldown 30 s): Makes all this hero Invulnerable and able to pass over enemies for 1.5 seconds.
+[E] basic: Enemy Minions or captured Mercenaries killed near this hero grant stacks of Bribe. Use 40 stacks to bribe target Mercenary, instantly defeating them. Does not work on Elite Mercenaries. Maximum stacks available: 200.
+[R1] heroic (cooldown 90 s): Hop into an Unstoppable boat that fires at nearby enemies for 128 (+4% per level) damage per second and can fire a mortar that deals 228 (+4% per level) damage in an area.  The boat has increased Health for each this hero inside. If the boat is destroyed by enemies, all this hero are Stunned for 1 second. Lasts 15 seconds.  Requires all surviving this hero to be nearby.
+[R2] heroic (cooldown 100 s): Summon, fully heal, and revive all this hero at target location after a this hero channels for 2 seconds.  Only one this hero may attempt to summon at a time.
+[D] trait: Gathering a Regeneration Globe with a this hero permanently increases all their Health Regeneration by 0.5 per second.  Current Bonus: 0 Regen per second
+[Z] mount (cooldown 30 s): The this hero gain 30% increased Movement Speed for 4 seconds.
+[1] activable: unit A can charge enemies and slow their Movement Speed by 30% for 3 seconds by right-clicking on them. 8 second cooldown.  unit A gains increased Health Regeneration when out of combat for 4 seconds.
+[2] activable: unit B's Basic Attacks deal 50% splash damage to enemies behind his attack target.
+[3] activable: unit C moves faster than the other this hero and has increased Basic Attack range.
+[4] activable: this hero can be controlled individually or as a group. Each this hero has particular strengths.
+[Q#2] basic (cooldown 15 s): All this hero gain a 140 (+4% per level) to 308 (+4% per level) point Shield, increasing in strength for each this hero alive. Lasts 4 seconds.
+[W#2] basic (cooldown 20 s): While unit A, unit B, and unit C are near each of the other two this hero, their Basic Attacks deal bonus damage equal to 1.25% maximum Health to enemy Heroes.
+Alternate form or second unit abilities:
+[alt-Q] basic (cooldown 3 s): Fires a mortar at the targeted location, dealing 228 (+4% per level) damage in a large area.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Passive: Passive: unit A gains 20% bonus maximum Health.  Every 5 seconds, unit A gains 75 Physical Armor against the next enemy Hero Basic Attack, reducing the damage taken by 75%.  Stores up to 2 charges.
+  [T1.2] modifies Passive: After standing still for 3 seconds, unit C gains Stealth and his Sight Radius is increased by 75%. The Stealth persists for 3 seconds after moving and once removed, unit C gains 75% bonus Basic Attack damage for 6 seconds.
+  [T1.3] modifies Passive: Increases unit B's splash damage against non-Heroes to 100%.
+  [E] modifies Active: Enemy Minions or captured Mercenaries killed near this hero grant stacks of Bribe. Use 40 stacks to bribe target Mercenary, instantly defeating them. Does not work on Elite Mercenaries. Maximum stacks available: 200.
+Level 4:
+  [T4.1] modifies Passive: unit B's Basic Attacks and splash damage heal for 20% of the damage dealt. Healing is doubled against Heroes.
+  [T4.2] modifies Passive: Permanently increases unit C's base Movement Speed by 10%, and as long as unit C is moving he heals 34 (+4% per level) Health per second.
+  [T4.3] modifies Passive: unit C's Basic Attacks against Structures light them on fire for 3 seconds, causing 225 (+4% per level) damage.
+  [T4.4] modifies Passive: Friendly non-Boss Mercenaries near your Hero deal 50% more damage. Gain 50 Armor against Minions and Mercenaries, reducing the damage taken by 50%.
+Level 7:
+  [T7.1] modifies Passive: Increase unit B's attack range by 2.5.  While near unit A and unit C, he becomes inspired by the power of teamwork and his Attack Speed is increased by 50%.
+  [Q] modifies Active (cooldown 10 s): Activate to have each this hero deal 85 (+4% per level) damage to nearby enemies.  Deals 100% bonus damage to enemy Heroes.
+  [Q#2] modifies Active (cooldown 15 s): All this hero gain a 140 (+4% per level) to 308 (+4% per level) point Shield, increasing in strength for each this hero alive. Lasts 4 seconds.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): Hop into an Unstoppable boat that fires at nearby enemies for 128 (+4% per level) damage per second and can fire a mortar that deals 228 (+4% per level) damage in an area.  The boat has increased Health for each this hero inside. If the boat is destroyed by enemies, all this hero are Stunned for 1 second. Lasts 15 seconds.  Requires all surviving this hero to be nearby.
+  [R2] modifies Heroic (cooldown 100 s): Summon, fully heal, and revive all this hero at target location after a this hero channels for 2 seconds.  Only one this hero may attempt to summon at a time.
+Level 13:
+  [T13.1] modifies Passive: unit A deals 34 (+4% per level) damage every second to nearby enemies.
+  [W] modifies Active (cooldown 30 s): Makes all this hero Invulnerable and able to pass over enemies for 1.5 seconds.
+  [W#2] modifies Passive: While unit A, unit B, and unit C are near each of the other two this hero, their Basic Attacks deal bonus damage equal to 1.25% maximum Health to enemy Heroes.
+Level 16:
+  [T16.1] modifies Passive: When unit A charges enemies, they are stunned for 1 second.
+  [T16.2] modifies Passive: Enemies damaged by a this hero's Basic Attack reduce the cooldown of all this hero Abilities by 0.31 seconds.
+  [T16.3] modifies Z: Activating [Z]! grants an additional 40% Movement Speed and breaks the this hero out of Roots and Slows.
+  [T16.4] modifies Passive: Attacking a Hero that is slowed, rooted, or stunned increases your Basic Attack damage by 30% for 3 seconds.
+Level 20:
+  [T20.1] modifies Heroic: The boat can attack two targets at once and the range of its [alt-Q] is increased by 100%. Reduce [R1]!'s cooldown by 30 seconds.
+  [T20.2] modifies Heroic: 10 seconds after using [R2]!, any dead this hero are revived and summoned again, and all are healed to full.
+  [T20.3] modifies Trait: Reduces this hero's death timer by 50%.
+  [T20.4] modifies Passive: Every 5 seconds, the next Basic Attack will deal an additional 41 (+4% per level) damage to the target, and 105 (+4% per level) damage to all nearby Minions, Mercenaries and Monsters.  Each this hero has their own cooldown.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2025-09:
+Talents
+Level 10
+[R1]
+Decreased Move speed no longer decreases the [R1]'s starting speed and now reduces [R1] Move speed by 25%.

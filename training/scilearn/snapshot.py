@@ -2,6 +2,7 @@
 
   python -m training.scilearn.snapshot build [--as-of 2026-10-13]
   python -m training.scilearn.snapshot verify <snap_id>
+  python -m training.scilearn.snapshot first-seen      (daily cron: true first-seen times)
 
 Writes PRIVATE/snapshots/<snap_id>/:
   games.npz     draft-time covariates only (no winner, length or parse-time MMR)
@@ -72,6 +73,11 @@ def sha_file(p):
 def build(as_of):
     sealed = {int(x) for x in open(C.SEALED_IDS_FILE).read().split()}
     cohort_b = T.cohort_b_ids()
+    true_fs = {}
+    if FIRST_SEEN.exists():
+        f = np.load(FIRST_SEEN)
+        m = ~f["retrospective"]
+        true_fs = dict(zip(f["replay_id"][m].tolist(), f["first_seen_ts"][m].tolist()))
     keys = T.load_keys()
     conn = psycopg2.connect(research_dsn())
     conn.set_session(readonly=True)
@@ -121,8 +127,9 @@ def build(as_of):
         for i, (r, tr) in enumerate(items):
             a["replay_id"][i] = int(r[0])
             a["game_ts"][i] = int(r[3])
-            # Retrospective first-seen convention (P3): game date plus one day.
-            a["first_seen_ts"][i] = int(r[3]) + 86400
+            # Retrospective first-seen convention (P3): game date plus one day, unless the
+            # daily diff recorded a true first-seen time.
+            a["first_seen_ts"][i] = true_fs.get(int(r[0]), int(r[3]) + 86400)
             a["build"][i] = bidx[r[4]]
             a["map"][i] = midx[r[2]]
             a["tier"][i] = TIERS.index(r[6]) if r[6] in TIERS else 3
@@ -209,6 +216,35 @@ def build(as_of):
     return snap_id
 
 
+FIRST_SEEN = C.PRIVATE / "first_seen.npz"
+
+
+def first_seen_diff():
+    """Daily: record the first time each replay_id is seen in the DB (FRAMING 6.3 rule 1).
+    The first run seeds every existing row as retrospective (game date + 1 day)."""
+    conn = psycopg2.connect(research_dsn())
+    conn.set_session(readonly=True)
+    cur = conn.cursor()
+    rows = np.array([(int(a), int(b)) for a, b in copy_rows(
+        cur, "SELECT replay_id, extract(epoch from game_date)::bigint FROM replay_draft_data")], np.int64)
+    conn.close()
+    now = int(dt.datetime.now(dt.timezone.utc).timestamp())
+    if FIRST_SEEN.exists():
+        old = dict(np.load(FIRST_SEEN))
+        new = ~np.isin(rows[:, 0], old["replay_id"])
+        rid = np.concatenate([old["replay_id"], rows[new, 0]])
+        fs = np.concatenate([old["first_seen_ts"], np.full(new.sum(), now)])
+        retro = np.concatenate([old["retrospective"], np.zeros(new.sum(), bool)])
+    else:
+        rid, fs, retro = rows[:, 0], rows[:, 1] + 86400, np.ones(len(rows), bool)
+        new = np.ones(len(rows), bool)
+    o = np.argsort(rid)
+    tmp = FIRST_SEEN.with_suffix(".tmp.npz")
+    np.savez(tmp, replay_id=rid[o], first_seen_ts=fs[o], retrospective=retro[o])
+    os.replace(tmp, FIRST_SEEN)
+    print(json.dumps({"rows": int(len(rid)), "new_today": int(new.sum()), "at": now}))
+
+
 def verify(snap_id):
     d = C.SNAPSHOTS / snap_id
     m = json.loads((d / "manifest.json").read_text())
@@ -227,10 +263,13 @@ if __name__ == "__main__":
     sp = ap.add_subparsers(dest="cmd", required=True)
     b = sp.add_parser("build")
     b.add_argument("--as-of", default=C.SNAPSHOT_AS_OF)
+    sp.add_parser("first-seen")
     v = sp.add_parser("verify")
     v.add_argument("snap_id")
     a = ap.parse_args()
     if a.cmd == "build":
         build(a.as_of)
+    elif a.cmd == "first-seen":
+        first_seen_diff()
     else:
         sys.exit(0 if verify(a.snap_id) else 1)

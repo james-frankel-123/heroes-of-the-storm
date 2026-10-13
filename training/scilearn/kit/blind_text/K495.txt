@@ -1,0 +1,105 @@
+Hero code: K495
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 2.25, one attack every 1 s, 100 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 6 s, cost 40): Unleash your sword in the target direction, continuously dealing 30 (+4% per level) damage to enemies caught in its path.
+[W] basic (cooldown 8 s, cost 35): Passive: Basic Attack and Ability damage cause enemies to bleed for 44 (+4% per level) damage over 4 seconds. Stacks 5 times.  Active: this hero deals 32 (+4% per level) damage and heals for 85 (+4% per level) Health per enemy Hero affected. Damage and healing is increased by 50% per each additional stack on that Hero.
+[E] basic (cooldown 16 s, cost 70): Attach your sword on the first enemy Hero hit, dealing 96 (+4% per level) damage and Stunning them for 0.25 seconds. Once attached, this hero becomes Immune to all effects, swinging around the target for 2.75 seconds and dealing 105 (+4% per level) damage to enemies between you and the target.  Re-activate to send you to the target's location knocking them away, dealing 108 (+4% per level) damage and Stunning them for 0.75 seconds.
+[R1] heroic (cooldown 60 s, cost 50): Deal 44 (+4% per level) damage to nearby enemies every 0.5 seconds for 2.5 seconds as your sword grows outward. Upon expiring, deal 160 (+4% per level) damage to nearby enemy Heroes and Stun them for 1.5 seconds.
+[R2] heroic (cooldown 40 s, cost 45): After 1 second, deal 395 (+4% per level) damage to enemies in a line. This damage is increased by 25% against enemy Heroes who are below 50% Health.
+[D] trait (cooldown 25 s): this hero fires a [D] that pulls her to terrain it contacts. If an enemy Hero is hit, they take 35 (+4% per level) damage and this hero launches at them, kicking them for an additional 108 (+4% per level) damage.  Can be used while [E] is active.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: If [Q] damages the same enemy Hero 3 times it deals an additional 108 (+4% per level) damage and Slows by 25% for 2.5 seconds.
+  [T1.2] modifies W: While at maximum stacks, [W]'s bleed deals 30% additional damage to enemy Heroes under 50% Health.  Quest: Damage enemy Heroes with [W]'s bleed damage.  Reward: After damaging Heroes with [W]'s bleed damage 150 times, [W]'s duration is increased by 2 seconds.
+  [T1.3] modifies Passive: Gain 20% Basic Attack damage. When this hero Basic Attacks an enemy Hero below 50% Health it deals 20% additional damage, and she gains 35% Attack Speed for 3 seconds.
+Level 4:
+  [T4.1] modifies W: Damaging at least 2 Heroes with [W] causes this hero to Evade the next 4 Heroic Basic Attacks within 12 seconds.
+  [T4.2] modifies E: The primary target of [E] is Slowed by 60% while this hero is attached to them. Secondary targets hit by [E]'s swing are Slowed by 40% for 3 seconds.
+  [T4.3] modifies Passive: Basic Attacking an enemy Hero causes this hero to gain 10 Armor for 3 seconds. Stacks 3 times.
+Level 7:
+  [T7.1] modifies Q: [Q] heals for 50% of the damage dealt to enemy Heroes. Anytime [Q] damages an enemy Hero, this hero's next Basic Attack within 4 seconds against an enemy Hero deals 15% additional damage, stacking up to 10 times.
+  [T7.2] modifies W: If [W] damages an enemy Hero below 50% Health, it heals for an additional 190 (+4% per level) Health.
+  [T7.3] modifies E: Damaging an enemy Hero with [E]'s initial impact or swing causes this hero to regenerate 96 (+4% per level) Health over 4 seconds. Stacks up to 4 times.  Passive: Basic Attacks heal for 20% of the damage dealt.
+Level 10:
+  [R1] modifies Heroic (cooldown 60 s): Deal 44 (+4% per level) damage to nearby enemies every 0.5 seconds for 2.5 seconds as your sword grows outward. Upon expiring, deal 160 (+4% per level) damage to nearby enemy Heroes and Stun them for 1.5 seconds.
+  [R2] modifies Heroic (cooldown 40 s): After 1 second, deal 395 (+4% per level) damage to enemies in a line. This damage is increased by 25% against enemy Heroes who are below 50% Health.
+Level 13:
+  [T13.1] modifies Q: [Q]'s cooldown recharges 100% faster while an enemy Hero has maximum [W] stacks.
+  [T13.2] modifies E: Each additional enemy Hero hit by [E] causes the primary target to take an additional 135 (+4% per level) damage.
+  [T13.3] modifies Passive: Basic Attacking an enemy Hero increases your Basic Attack damage against that Hero by 25%. Stacks up to 4 times and lasts 4 seconds. Bonus is reset if a different Hero is attacked.
+Level 16:
+  [T16.1] modifies E: Increase the Stun duration of [E]'s re-activation by 0.25 seconds. Enemy Heroes around the primary target are also affected by [E]'s re-activation.
+  [T16.2] modifies E: Enemy Heroes hit by [E] or by [D] have their Armor reduced by 25 for 3 seconds.
+  [T16.3] modifies E: [E]'s cooldown recharges 250% faster while this hero is swinging around her target. She also gains 60 Spell Armor for 5 seconds after the re-activation impact.
+Level 20:
+  [T20.1] modifies Heroic: Hitting enemy Heroes with [R1] Silences them for 0.5 seconds and reduces its cooldown by 3 seconds.
+  [T20.2] modifies Heroic: Increase the damage to enemy Heroes under 50% Health from 25% to 50%.  If an enemy Hero dies within 1.5 seconds of being hit by [R2], then reset the cooldowns of [R2] and all of this hero's Basic Abilities.
+  [T20.3] modifies Trait: [D]'s cooldown is reset when hitting an enemy Hero with the initial impact of [E] and recharges 900% faster if this hero hasn't taken damage within the last 2 seconds.
+  [T20.4] modifies Passive: Nearby enemy Heroes below 50% Health are revealed and you gain 20% Movement Speed while an enemy Hero is revealed by you in this way.  Additionally, you deal 20% increased damage to these revealed enemies.
+
+LATER PATCH CHANGES (oldest first; they update the text above to the current version)
+Change set 2024-05:
+Updates
+Base
+Talents are now sorted in tier order in the Buff Bar.
+[W] [W]
+Added UI indicator for [W]'s heal value.
+Talents
+Level 13
+[Q]
+Added to the Buff Bar.
+[Passive]
+Added to the Buff Bar.
+Change set 2024-08:
+Updates
+Base
+[D] [Trait]
+Cooldown reduced from 25 to 20 seconds.
+[Q] [Q]
+Can now hit targets immune to skill shots (Example: another hero's Creep Tumors).
+[W] [W]
+Cooldown reduced from 8 to 7 seconds.
+Healing increased from 85 to 90.
+[E] [E]
+[E]'s Chain Link can now hit targets immune to skill shots (Example: another hero's Creep
+Tumors).
+Talents
+Level 7
+[T7.2]
+Healing increased from 190 to 210.
+Level 10
+[R2]
+Damage increased from 395 to 410.
+Level 16
+[T16.2]
+Armor reduction increased from 25 to 35 .
+Duration increased from 3 to 4 seconds.
+Change set 2026-07:
+Base
+[W] [W]
+NEW BASELINE QUEST: Deal damage to enemy Heroes with [W]'s bleed to permanently increase its damage by 0.25% per stack.
+[W]'s bleed damage reduced from 11 to 8.
+[E] [E]
+Once attached, [E] can no longer be detached by the target becoming Unstoppable.
+Talents
+Level 1
+[T1.2]
+Damage bonus against low Health targets increased from 30% to 50%.
+Quest removed.
+Change set 2026-09:
+Base
+[W] [W]
+Damage bonus per stack decreased from 0.25% to 0.2%.
+[W] base damage per tick lowered from 8 to 7.
+Talents
+Level 1
+[T1.2]
+Damage bonus against low Health targets increased from 50% to 70%.
+Level 13
+[T13.2]
+Damage increased from 135 to 150.
+Level 16
+[T16.2]
+Armor reduction decreased from -35 to -25.

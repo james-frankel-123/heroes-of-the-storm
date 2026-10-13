@@ -1,0 +1,40 @@
+Hero code: K117
+Basic attack (level 1 values; several entries mean alternate forms, units or attack modes): range 6.5, one attack every 0.25 s, 14 damage per attack.
+
+ABILITIES
+[Q] basic (cooldown 7 s, cost 55): Channel a beam of Psionic energy, dealing 280 (+4% per level) damage and Slowing enemies in a line by 30% for 2 seconds.
+[W] basic (cooldown 8 s, cost 60): Create a [W] at the targeted location for 3 seconds. While in a storm, enemies take 38 (+4% per level) damage every 0.5 seconds, increasing by 20% for each consecutive instance of damage, up to 100%.
+[E] basic (cooldown 18 s, cost 65): After a 0.5 second delay, create a wall that blocks all units from moving through it for 2 seconds.
+[R1] heroic (cooldown 90 s, cost 100): this hero transforms into an [R1], gaining a Shield equal to 25% of his maximum Health and empowering [D]. Lasts for 12 seconds.  [D]: Deals 140 (+4% per level) damage to the target and splashes 70 (+4% per level) damage to nearby enemies. Heroes hit have their Spell Armor reduced by 20 for 2 seconds. [D] is fully charged while [R1] is active.
+[R2] heroic (cooldown 60 s, cost 60): After a 0.5 second cast, create a [R2] that travels in a long line. Enemy Heroes within the [R2]'s area are quickly pulled towards its center. Touching the center deals 310 (+4% per level) damage and Stuns the target for 1.25 seconds.
+[D] trait: this hero's Basic Attack is a Channeled beam that Slows by 15%. While Channeling, your Basic Attack damage and Mana regeneration increases by 25% a second, to a maximum of 100%. While at full charge, gain an extra 3 Mana every second.  This bonus is lost after 6 seconds of not Channeling.
+
+TALENTS (one is chosen per level)
+Level 1:
+  [T1.1] modifies Q: Quest: Heroes hit by [Q] permanently increases its damage by 5 and grants 33% [D] charge.  Maximum of 200 bonus damage.
+  [T1.2] modifies W: Increases the range of [W] by 33%. Each non-Structure enemy hit by [W] restores 0.5 Mana, increased to 5 against Heroes.
+  [T1.3] modifies Trait: Quest: [D] charges 50% faster.  Reward: After [D] has been fully charged for 80 seconds, it bounces to hit 1 additional target for 75% damage, prioritizing Heroes.  Reward: After [D] has been fully charged for 160 seconds, it bounces to hit 2 additional targets for 75% damage, prioritizing Heroes.
+Level 4:
+  [T4.1] modifies Q: this hero gains 10% increased Movement Speed. Casting [Q] increases this bonus to 30% for 3 seconds.
+  [T4.2] modifies E: [E] deals 92 (+4% per level) damage a second to nearby enemies and Slows them by 35%.
+  [T4.3] modifies Trait: While [D] is fully charged, gain a Shield equal to 3% of max Health every second, stacking up to 12%.
+Level 7:
+  [T7.1] modifies Q: While [D] is fully charged, [Q]'s cooldown refreshes 100% faster and its Slow duration is increased to 4 seconds.  Passive: Reduce the Mana cost of [Q] from 55 to 40.
+  [T7.2] modifies W: Casting [W] causes your next [Q] within 3 seconds to only cost 30 Mana and create a [W] on the first enemy Hero hit.
+  [T7.3] modifies Trait: When [D] is fully charged, this hero's Basic Attack range is increased by 1 and its next instance of damage also creates a [W] on the target.  This effect has a 20 second cooldown that decays twice as fast while [D] is fully charged.
+Level 10:
+  [R1] modifies Heroic (cooldown 90 s): this hero transforms into an [R1], gaining a Shield equal to 25% of his maximum Health and empowering [D]. Lasts for 12 seconds.  [D]: Deals 140 (+4% per level) damage to the target and splashes 70 (+4% per level) damage to nearby enemies. Heroes hit have their Spell Armor reduced by 20 for 2 seconds. [D] is fully charged while [R1] is active.
+  [R2] modifies Heroic (cooldown 60 s): After a 0.5 second cast, create a [R2] that travels in a long line. Enemy Heroes within the [R2]'s area are quickly pulled towards its center. Touching the center deals 310 (+4% per level) damage and Stuns the target for 1.25 seconds.
+Level 13:
+  [T13.1] modifies W: When an enemy Hero is affected by [W], [D]'s Slow is increased to 50% and it reduces Physical Armor by 25.
+  [T13.2] modifies Active (cooldown 60 s): this hero becomes Stealthed and Unrevealable, but cannot attack or use Abilities for 1.5 seconds. While this effect is active, gain 40% increased Movement Speed and 35 Armor.  Can be cast while Channeling [Q].
+  [T13.3] modifies Active (cooldown 45 s): Passive: While stationary, gain 30 Spell Armor for 0.75 seconds and restore 12 (+4% per level) Health a second.  Activate to Channel for up to 4 seconds, revealing a gradually increasing area anywhere on the map.
+Level 16:
+  [T16.1] modifies Q: [Q] deals an additional 8% of maximum Health as damage to the first Hero it hits.
+  [T16.2] modifies W: [W] deals damage 25% faster.
+  [T16.3] modifies Active (cooldown 40 s): Activate to gain full [D] charge, 20% Spell Power, and cause Basic and Heroic Ability cooldowns to regenerate 25% faster. This effect lasts as long as [D] remains at full charge.
+Level 20:
+  [T20.1] modifies Heroic: Basic Attacks while in [R1] form increase its duration by 2 seconds.
+  [T20.2] modifies Heroic: Enemy Heroes hit by [R2]'s center have their Armor reduced by 20 for 3 seconds and have a [W] created at their location.
+  [T20.3] modifies E: Increase the duration of [E] by 0.5 seconds, its range by 50%, and reduce its cooldown by 10 seconds.
+  [T20.4] modifies Passive: Gain 4% Spell Power for yourself and each nearby ally Hero, up to 20% total Spell Power. Your total bonus is shared with all contributing allies.
