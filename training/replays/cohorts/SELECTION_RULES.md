@@ -108,3 +108,47 @@ or, for a fixed list:
   downloaded again: the manifest gets a `linked` row, so cohort membership stays exact and
   overlap with B is measurable.
 - Write the criteria into this file (new subsection, dated) before the cohort's first fetch.
+
+### C.1 `surprise_v1`: two-phase surprise sample from the interesting pool (2026-10-13)
+
+Written and committed before the draw and before the cohort's first fetch. Spec: FRAMING
+§9.4 (`paper/hypothesis_system/FRAMING.md`). Builder: `training/replays/build_interesting.py`,
+which imports the scilearn harness read-only.
+
+1. **Population (phase 1).** The scilearn interesting pool: non-sealed 2.57 games whose keyed
+   hash falls under 10% (`training/scilearn/tranches.py`, `assign() == "pool"`, harness commit
+   ae8e6d0). Read from the tranche manager's snapshot `snap_20261013` (`pool.npz`, games
+   played before 2026-10-13, sha256 `9e6294a4...7b80`), then recomputed from the research DB
+   with the same `assign()`; the two must match exactly or the build stops. The key stays in
+   the harness's private store. Nothing from C, F or R is drawn. Sealed IDs are excluded in
+   SQL and never read.
+2. **Prior.** Frozen NN-free A0 (`training/scilearn/models/a0.json`), harness job `a0_fitSDG`,
+   model hash `48c81aabd50e4efb9126312107a61860f5fae2dfd8ec3ab663c86d8b6eb68e7b`, logged per
+   game as `A0@a0_fitSDG:48c81aabd50e4efb`. It is fit on tranches S, Dpre and G, so its data
+   ends at 2.55.16.97039 (2026-07-20). FRAMING asks for A0 through 2.55.17; the harness has
+   not fit that version yet, and this cohort does not fit its own. Selection validity does
+   not depend on which frozen model is used, because every π is recorded; a staler prior only
+   costs efficiency. Player-history inputs (the decay term) are computed as-of from snapshot
+   draft-time columns, never labels.
+3. **Surprise.** p0 = A0's P(team 0 wins) from the draft.
+   - *Trajectory surprise* when Heroes Profile's per-minute XP curve has a periodic minute-10
+     sample (x-axis label 10, replay time 10:38) that is not the game's last sample, and the
+     DB game length is at least 720 s: s = −logit(p0) × r10, where r10 = (team-0 total XP −
+     team-1 total XP) / mean team total XP at that sample. Large s means the draft favourite
+     is behind on XP at minute 10. HP team 0 equals `team0_heroes` (checked on 2,980 player
+     rows, 100%).
+   - *Outcome surprise* otherwise: s = −log P_A0(actual winner).
+4. **Two-phase rule.** Top quintile = s at or above the 80th percentile within its surprise
+   type. π_i = 0.2 + 0.4·1[top quintile], so 0.6 for the top quintile and 0.2 for the rest.
+5. **Draw.** Independent per game: u_i = first 8 bytes of sha256("<seed>:<replay_id>") / 2^64,
+   selected when u_i < π_i. **Seed 1722864024**, drawn once with `secrets.randbits(31)`
+   before any surprise score was computed.
+6. **Outputs.** `interesting/surprise_v1.txt` (selected IDs, oldest replayID first, since files
+   expire in upload order) and `interesting/surprise_v1_design.tsv` (every pool game: π,
+   selected, surprise type and score, quintile flag, r10, A0 logit, model version, seed).
+   Horvitz-Thompson weight = 1/π; report n_eff.
+7. **Use.** M-explore reading only (FRAMING §9.4 item 5). Games already fetched for cohort B
+   are linked, not downloaded again.
+8. **Volume.** At most 3,000 downloads in the window ending 2026-10-20 and 6,000 in the week
+   of 2026-10-20 to 10-27 (`cohorts.json`). The rule self-limits to about 0.28 × pool size.
+   Later pool games need a new cohort version under the same rule with a new seed.
