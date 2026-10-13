@@ -70,6 +70,7 @@ def main():
     talent_miss_examples = Counter()
     hero_miss = Counter()
     map_pairs = defaultdict(Counter)
+    id_to_db = defaultdict(Counter)   # internal talent id -> DB display names seen at that tier
     for rid in ids:
         with gzip.open(files[rid], "rt") as f:
             tl = json.load(f)
@@ -107,13 +108,14 @@ def main():
             c["player_hero_agree"] += norm(d["hero"]) == norm(p["hero"])
             c["player_team_agree"] += d["team"] == p["team"]
             c["player_win_agree"] += bool(d["win"]) == p["win"]
-            dt = d["talents"] or {}
+            dt = {k: v for k, v in (d["talents"] or {}).items() if v}   # DB stores '' for unknown
             c["talents_db_count"] += len(dt)
             c["talents_tl_count"] += len(p["talents"])
             c["talent_count_agree"] += len(dt) == len(p["talents"])
             for t in p["talents"]:
                 lvl = str(LEVELS[t["tier"] - 1]) if t["tier"] <= 7 else None
                 if lvl in dt:
+                    id_to_db[t["id"]][dt[lvl]] += 1
                     k = talent_match(t, dt[lvl])
                     talent_kinds[k] += 1
                     if k == "miss":
@@ -122,8 +124,11 @@ def main():
     def pct(n, d):
         return round(100.0 * n / d, 2) if d else None
 
-    abs_len = [abs(x) for x in len_diff]
-    abs_gate = [abs(x) for x in len_diff_gates]
+    # Heroes Profile's game_length is the replay length minus a fixed offset (70 s observed).
+    off = statistics.median(len_diff) if len_diff else 0
+    abs_len = [abs(x - off) for x in len_diff]
+    consistent = sum(cn.most_common(1)[0][1] for cn in id_to_db.values())
+    total_pairs = sum(sum(cn.values()) for cn in id_to_db.values())
     tk = sum(talent_kinds.values())
     out = {
         "timelines": c["timelines"], "in_db": c["in_db"], "not_in_db": c["not_in_db"],
@@ -141,13 +146,13 @@ def main():
         "talent_match_kinds": dict(talent_kinds),
         "talent_miss_top": talent_miss_examples.most_common(15),
         "hero_mismatch_top": hero_miss.most_common(10),
-        "length_vs_db_total": {
-            "median_abs_s": statistics.median(abs_len) if abs_len else None,
-            "within_2s_pct": pct(sum(x <= 2 for x in abs_len), len(abs_len)),
-            "median_signed_s": statistics.median(len_diff) if len_diff else None},
-        "length_vs_db_from_gates": {
-            "median_abs_s": statistics.median(abs_gate) if abs_gate else None,
-            "within_2s_pct": pct(sum(x <= 2 for x in abs_gate), len(abs_gate))},
+        "talent_id_to_db_name_consistency_pct": pct(consistent, total_pairs),
+        "talent_ids_seen": len(id_to_db),
+        "length_vs_db": {
+            "offset_s (replay length - db game_length, median)": off,
+            "min_offset_s": min(len_diff) if len_diff else None,
+            "max_offset_s": max(len_diff) if len_diff else None,
+            "within_1s_of_offset_pct": pct(sum(x <= 1 for x in abs_len), len(abs_len))},
         "map_id_consistency": {m: dict(v) for m, v in map_pairs.items()},
     }
     with open(os.path.join(a.root, "timelines", "validation.json"), "w") as f:

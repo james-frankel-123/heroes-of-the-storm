@@ -109,9 +109,13 @@ def norm(x):
     return re.sub(r"[^a-z0-9]", "", (x or "").lower())
 
 
+HERO_ALIASES = {"HeroDVaPilot": "D.Va", "HeroDVaMech": "D.Va", "HeroBaleog": "The Lost Vikings",
+                "HeroErik": "The Lost Vikings", "HeroOlaf": "The Lost Vikings", "HeroXalatath": "Xal'atath"}
+
+
 def hero_name(unit_id):
     """'HeroAnubarak' -> "Anub'arak" via the reference, else strip 'Hero'."""
-    h = ref()["heroes"].get(unit_id)
+    h = HERO_ALIASES.get(unit_id) or ref()["heroes"].get(unit_id)
     if h:
         return h
     return unit_id[4:] if unit_id and unit_id.startswith("Hero") else unit_id
