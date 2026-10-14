@@ -26,9 +26,10 @@ interface MetaData {
 interface DashboardClientProps {
   metaByTier: Record<SkillTier, MetaData>
   personalData: { battletag: TrackedBattletag; heroStats: PlayerHeroStats[] }[]
+  mapRotation: string[]
 }
 
-export function DashboardClient({ metaByTier, personalData }: DashboardClientProps) {
+export function DashboardClient({ metaByTier, personalData, mapRotation }: DashboardClientProps) {
   const [tier, setTier] = useState<SkillTier>('mid')
   const meta = metaByTier[tier]
 
@@ -51,7 +52,7 @@ export function DashboardClient({ metaByTier, personalData }: DashboardClientPro
         <div className="space-y-4">
           <MetaHeroes topHeroes={meta.topHeroes} bottomHeroes={meta.bottomHeroes} />
           <MetaPairwise synergies={meta.synergies} counters={meta.counters} />
-          <PowerPicks picks={meta.powerPicks} />
+          <PowerPicks picks={meta.powerPicks} rotation={mapRotation} />
         </div>
       </section>
 

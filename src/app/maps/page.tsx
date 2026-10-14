@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic'
+// Stats only change when the nightly sync runs — cache, re-render hourly.
+export const revalidate = 3600
 
 import { MapsClient } from './maps-client'
 import {
@@ -7,26 +8,28 @@ import {
   getTrackedBattletags,
   getPlayerMapStats,
   getPlayerMatchHistory,
-  getAllMaps,
+  getMapRotation,
 } from '@/lib/data/queries'
+import { filterToRotation } from '@/lib/data/map-rotation'
 import type { SkillTier, HeroMapStats } from '@/lib/types'
 
 const TIERS: SkillTier[] = ['low', 'mid', 'high']
 
 export default async function MapsPage() {
   // Pre-fetch map stats for all tiers
-  const [mapStatsLow, mapStatsMid, mapStatsHigh, trackedBattletags] =
+  const [mapStatsLow, mapStatsMid, mapStatsHigh, trackedBattletags, rotation] =
     await Promise.all([
       getMapStats('low'),
       getMapStats('mid'),
       getMapStats('high'),
       getTrackedBattletags(),
+      getMapRotation(),
     ])
 
   const mapStatsByTier = {
-    low: mapStatsLow,
-    mid: mapStatsMid,
-    high: mapStatsHigh,
+    low: filterToRotation(mapStatsLow, rotation),
+    mid: filterToRotation(mapStatsMid, rotation),
+    high: filterToRotation(mapStatsHigh, rotation),
   }
 
   // Pre-fetch hero performance per map per tier
@@ -45,7 +48,7 @@ export default async function MapsPage() {
 
   for (const { tier, data } of allHeroMapData) {
     const byMap: Record<string, HeroMapStats[]> = {}
-    for (const d of data) {
+    for (const d of filterToRotation(data, rotation)) {
       if (!byMap[d.map]) byMap[d.map] = []
       byMap[d.map].push(d)
     }
@@ -56,8 +59,9 @@ export default async function MapsPage() {
   const personalData = await Promise.all(
     trackedBattletags.map(async (bt) => ({
       battletag: bt.battletag,
-      mapStats: await getPlayerMapStats(bt.battletag),
-      matches: await getPlayerMatchHistory(bt.battletag, 200),
+      mapStats: await getPlayerMapStats(bt.battletag, rotation),
+      // Only shown per selected map, so off-rotation games are never displayed
+      matches: filterToRotation(await getPlayerMatchHistory(bt.battletag, 200), rotation),
     }))
   )
 

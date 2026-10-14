@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic'
+// Stats only change when the nightly sync runs — cache, re-render hourly.
+export const revalidate = 3600
 
 import { HeroesClient } from './heroes-client'
 import {
@@ -13,7 +14,9 @@ import {
   getPlayerHeroStatsSince,
   getPlayerMapStatsSince,
   getPlayerSeasonBreakdown,
+  getMapRotation,
 } from '@/lib/data/queries'
+import { filterToRotation } from '@/lib/data/map-rotation'
 import type { SkillTier, HeroStats, HeroMapStats } from '@/lib/types'
 
 const TIERS: SkillTier[] = ['low', 'mid', 'high']
@@ -28,7 +31,7 @@ const TIERS: SkillTier[] = ['low', 'mid', 'high']
  */
 export default async function HeroesPage() {
   // Parallel: hero stats for all tiers + tracked battletags
-  const [heroStatsByTier, trackedBattletags] = await Promise.all([
+  const [heroStatsByTier, trackedBattletags, rotation] = await Promise.all([
     (async () => {
       const [low, mid, high] = await Promise.all(
         TIERS.map((tier) => getHeroStats(tier))
@@ -36,6 +39,7 @@ export default async function HeroesPage() {
       return { low, mid, high } as Record<SkillTier, HeroStats[]>
     })(),
     getTrackedBattletags(),
+    getMapRotation(),
   ])
 
   // Parallel: bulk talent + pairwise + hero-map for all tiers + personal data
@@ -102,7 +106,9 @@ export default async function HeroesPage() {
         high: {},
       }
       for (const { tier, data } of results) {
-        out[tier] = data
+        for (const [hero, rows] of Object.entries(data)) {
+          out[tier][hero] = filterToRotation(rows, rotation)
+        }
       }
       return out
     })(),
@@ -117,12 +123,12 @@ export default async function HeroesPage() {
           battletag: bt.battletag,
           heroStats: await getPlayerHeroStats(bt.battletag),
           matches: await getPlayerMatchHistory(bt.battletag, 100),
-          mapStats: await getPlayerMapStats(bt.battletag),
+          mapStats: await getPlayerMapStats(bt.battletag, rotation),
           seasonHeroStats: await getPlayerHeroStatsSince(bt.battletag, seasonStart),
-          seasonMapStats: await getPlayerMapStatsSince(bt.battletag, seasonStart),
+          seasonMapStats: await getPlayerMapStatsSince(bt.battletag, seasonStart, rotation),
           threeSeasonHeroStats: await getPlayerHeroStatsSince(bt.battletag, threeSeasonStart),
-          threeSeasonMapStats: await getPlayerMapStatsSince(bt.battletag, threeSeasonStart),
-          seasonBreakdown: await getPlayerSeasonBreakdown(bt.battletag),
+          threeSeasonMapStats: await getPlayerMapStatsSince(bt.battletag, threeSeasonStart, rotation),
+          seasonBreakdown: await getPlayerSeasonBreakdown(bt.battletag, rotation),
         }
       })
     ),

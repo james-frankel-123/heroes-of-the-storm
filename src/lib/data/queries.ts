@@ -44,6 +44,7 @@ import compositionsJson from '@/lib/data/compositions.json'
 import modelCompositionsJson from '@/lib/data/model-compositions.json'
 import draftStatsDecayed from '@/lib/data/draft-stats-decayed.json'
 import { computeBaselineCompWR } from '@/lib/draft/composition'
+import { resolveRotation } from '@/lib/data/map-rotation'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -179,6 +180,15 @@ export async function getAllMaps(): Promise<string[]> {
     .orderBy(asc(mapStatsAggregate.map))
 
   return rows.map((r) => r.map)
+}
+
+/**
+ * Current Storm League map rotation: the maps in map_stats_aggregate (rebuilt
+ * nightly from current-patch games), or a static fallback if that is empty.
+ * Per-player map queries take this list so retired maps stay out of the UI.
+ */
+export async function getMapRotation(): Promise<string[]> {
+  return resolveRotation(await getAllMaps())
 }
 
 /** Hero performance on a specific map for a tier */
@@ -599,9 +609,14 @@ export async function getPlayerHeroStats(
 /** Per-hero-per-map stats for a battletag */
 export async function getPlayerHeroMapStats(
   battletag: string,
+  rotation: readonly string[],
   hero?: string
 ): Promise<PlayerHeroMapStats[]> {
-  const conditions = [eq(playerHeroMapStatsTable.battletag, battletag)]
+  if (rotation.length === 0) return []
+  const conditions = [
+    eq(playerHeroMapStatsTable.battletag, battletag),
+    inArray(playerHeroMapStatsTable.map, [...rotation]),
+  ]
   if (hero) conditions.push(eq(playerHeroMapStatsTable.hero, hero))
 
   const rows = await db
@@ -692,10 +707,12 @@ export async function getPlayersStrongOnHero(
 // Map-level personal queries
 // ---------------------------------------------------------------------------
 
-/** Aggregate a player's win rate per map (across all heroes) */
+/** Aggregate a player's win rate per rotation map (across all heroes) */
 export async function getPlayerMapStats(
-  battletag: string
+  battletag: string,
+  rotation: readonly string[]
 ): Promise<{ map: string; games: number; wins: number; winRate: number }[]> {
+  if (rotation.length === 0) return []
   const rows = await db
     .select({
       map: playerMatchHistoryTable.map,
@@ -703,7 +720,10 @@ export async function getPlayerMapStats(
       wins: sql<number>`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::int`,
     })
     .from(playerMatchHistoryTable)
-    .where(eq(playerMatchHistoryTable.battletag, battletag))
+    .where(and(
+      eq(playerMatchHistoryTable.battletag, battletag),
+      inArray(playerMatchHistoryTable.map, [...rotation]),
+    ))
     .groupBy(playerMatchHistoryTable.map)
     .orderBy(desc(sql`count(*)`))
 
@@ -737,9 +757,10 @@ export async function getPlayerHeroStatsSince(
   return rows.map((r) => ({ hero: r.hero, games: r.games, wins: r.wins }))
 }
 
-/** Per-year breakdown of hero and map stats for a battletag */
+/** Per-year breakdown of hero stats and rotation-map stats for a battletag */
 export async function getPlayerSeasonBreakdown(
   battletag: string,
+  rotation: readonly string[],
 ): Promise<{
   year: number
   heroStats: { hero: string; games: number; wins: number; winRate: number }[]
@@ -765,7 +786,12 @@ export async function getPlayerSeasonBreakdown(
       wins: sql<number>`sum(case when ${playerMatchHistoryTable.win} then 1 else 0 end)::int`,
     })
     .from(playerMatchHistoryTable)
-    .where(eq(playerMatchHistoryTable.battletag, battletag))
+    .where(and(
+      eq(playerMatchHistoryTable.battletag, battletag),
+      rotation.length > 0
+        ? inArray(playerMatchHistoryTable.map, [...rotation])
+        : sql`false`,
+    ))
     .groupBy(sql`1`, playerMatchHistoryTable.map)
     .orderBy(desc(sql`1`), desc(sql`count(*)`))
 
@@ -787,11 +813,13 @@ export async function getPlayerSeasonBreakdown(
   }))
 }
 
-/** Per-map aggregate stats for a battletag since a given date (season snapshot) */
+/** Per-rotation-map aggregate stats for a battletag since a given date (season snapshot) */
 export async function getPlayerMapStatsSince(
   battletag: string,
   since: Date,
+  rotation: readonly string[],
 ): Promise<{ map: string; games: number; wins: number; winRate: number }[]> {
+  if (rotation.length === 0) return []
   const rows = await db
     .select({
       map: playerMatchHistoryTable.map,
@@ -802,6 +830,7 @@ export async function getPlayerMapStatsSince(
     .where(and(
       eq(playerMatchHistoryTable.battletag, battletag),
       gte(playerMatchHistoryTable.gameDate, since),
+      inArray(playerMatchHistoryTable.map, [...rotation]),
     ))
     .groupBy(playerMatchHistoryTable.map)
     .orderBy(desc(sql`count(*)`))
@@ -861,7 +890,8 @@ export async function getPlayerMatchesOnMap(
 export async function getDraftData(
   tier: SkillTier,
   map: string,
-  battletags: string[]
+  battletags: string[],
+  rotation: readonly string[]
 ): Promise<DraftData> {
   // Model-feeding stats come from the decayed-aggregate artifact generated by
   // training/production_refresh/refresh.py — the SAME statistics the deployed
@@ -895,7 +925,7 @@ export async function getDraftData(
       }
     }
 
-    const heroMapForPlayer = await getPlayerHeroMapStats(bt, undefined)
+    const heroMapForPlayer = await getPlayerHeroMapStats(bt, rotation)
     playerMapStats[bt] = {}
     for (const h of heroMapForPlayer) {
       if (!playerMapStats[bt][h.map]) playerMapStats[bt][h.map] = {}

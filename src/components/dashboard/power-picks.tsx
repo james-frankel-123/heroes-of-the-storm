@@ -6,18 +6,20 @@ import { Badge } from '@/components/ui/badge'
 import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { mapImageSrc } from '@/lib/data/map-images'
-import { CURRENT_MAP_ROTATION, isInRotation } from '@/lib/data/map-rotation'
+import { filterToRotation } from '@/lib/data/map-rotation'
 import { formatPercent, getWinRateColor, formatNumber } from '@/lib/utils'
 import type { HeroMapStats } from '@/lib/types'
 
 interface PowerPicksProps {
   picks: HeroMapStats[]
+  /** Current SL rotation from the server (getMapRotation) */
+  rotation: string[]
 }
 
-export function PowerPicks({ picks }: PowerPicksProps) {
+export function PowerPicks({ picks, rotation }: PowerPicksProps) {
   const filtered = useMemo(
-    () => picks.filter((p) => isInRotation(p.map)),
-    [picks]
+    () => filterToRotation(picks, rotation),
+    [picks, rotation]
   )
 
   if (filtered.length === 0) {
@@ -41,7 +43,7 @@ export function PowerPicks({ picks }: PowerPicksProps) {
             Current Map Rotation
           </p>
           <div className="flex flex-wrap gap-2">
-            {CURRENT_MAP_ROTATION.map((map) => {
+            {rotation.map((map) => {
               const img = mapImageSrc(map)
               return (
                 <div key={map} className="flex flex-col items-center gap-0.5 w-16">

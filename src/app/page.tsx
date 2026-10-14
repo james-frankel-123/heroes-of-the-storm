@@ -1,4 +1,6 @@
-export const dynamic = 'force-dynamic'
+// Stats only change when the nightly sync runs — serve a cached page and
+// re-render at most hourly instead of ~50 DB queries per page view.
+export const revalidate = 3600
 
 import { DashboardClient } from './dashboard-client'
 import {
@@ -9,11 +11,13 @@ import {
   getPowerPicks,
   getTrackedBattletags,
   getPlayerHeroStats,
+  getMapRotation,
 } from '@/lib/data/queries'
+import { filterToRotation } from '@/lib/data/map-rotation'
 import type { SkillTier, PlayerHeroStats, TrackedBattletag } from '@/lib/types'
 
 // Pre-fetch data for all tiers so tier switching is instant (no round-trip)
-async function fetchMetaData(tier: SkillTier) {
+async function fetchMetaData(tier: SkillTier, rotation: string[]) {
   const [topHeroes, bottomHeroes, synergies, counters, powerPicks] =
     await Promise.all([
       getTopHeroes(tier, 10),
@@ -22,15 +26,24 @@ async function fetchMetaData(tier: SkillTier) {
       getTopCounters(tier, 100),
       getPowerPicks(tier, 55, 500),
     ])
-  return { topHeroes, bottomHeroes, synergies, counters, powerPicks }
+  return {
+    topHeroes,
+    bottomHeroes,
+    synergies,
+    counters,
+    powerPicks: filterToRotation(powerPicks, rotation),
+  }
 }
 
 export default async function DashboardPage() {
-  const [lowMeta, midMeta, highMeta, trackedBattletags] = await Promise.all([
-    fetchMetaData('low'),
-    fetchMetaData('mid'),
-    fetchMetaData('high'),
+  const [rotation, trackedBattletags] = await Promise.all([
+    getMapRotation(),
     getTrackedBattletags(),
+  ])
+  const [lowMeta, midMeta, highMeta] = await Promise.all([
+    fetchMetaData('low', rotation),
+    fetchMetaData('mid', rotation),
+    fetchMetaData('high', rotation),
   ])
 
   // Fetch personal stats for each tracked battletag
@@ -50,6 +63,7 @@ export default async function DashboardPage() {
         high: highMeta,
       }}
       personalData={personalData}
+      mapRotation={rotation}
     />
   )
 }

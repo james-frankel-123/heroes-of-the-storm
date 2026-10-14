@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { playerMatchHistory } from '@/lib/db/schema'
-import { sql, desc, and, gte, eq } from 'drizzle-orm'
-import { getPlayerSeasonBreakdown } from '@/lib/data/queries'
+import { sql, desc, and, gte, inArray } from 'drizzle-orm'
+import { getPlayerSeasonBreakdown, getMapRotation } from '@/lib/data/queries'
 
 /**
  * GET /api/player-search?q=SirWatsonII
  *
  * Searches player_match_history for battletags matching the query, then
  * returns hero stats, map stats, and season stats for the first match.
+ * Map stats cover only the current Storm League rotation.
  * Used by the Heroes tab "Search" feature for non-tracked players.
  */
 export async function GET(request: Request) {
@@ -41,6 +42,9 @@ export async function GET(request: Request) {
     })
   }
 
+  const rotation = await getMapRotation()
+  const inRotation = inArray(playerMatchHistory.map, rotation)
+
   // Fetch hero stats (career)
   const heroStats = await db
     .select({
@@ -61,7 +65,7 @@ export async function GET(request: Request) {
       wins: sql<number>`sum(case when ${playerMatchHistory.win} then 1 else 0 end)::int`,
     })
     .from(playerMatchHistory)
-    .where(sql`${playerMatchHistory.battletag} = ${battletag}`)
+    .where(and(sql`${playerMatchHistory.battletag} = ${battletag}`, inRotation))
     .groupBy(playerMatchHistory.map)
     .orderBy(desc(sql`count(*)`))
 
@@ -94,6 +98,7 @@ export async function GET(request: Request) {
     .where(and(
       sql`${playerMatchHistory.battletag} = ${battletag}`,
       gte(playerMatchHistory.gameDate, seasonStart),
+      inRotation,
     ))
     .groupBy(playerMatchHistory.map)
     .orderBy(desc(sql`count(*)`))
@@ -150,6 +155,7 @@ export async function GET(request: Request) {
         .where(and(
           sql`${playerMatchHistory.battletag} = ${battletag}`,
           gte(playerMatchHistory.gameDate, threeSeasonStart),
+          inRotation,
         ))
         .groupBy(playerMatchHistory.map)
         .orderBy(desc(sql`count(*)`))
@@ -158,6 +164,6 @@ export async function GET(request: Request) {
         winRate: m.games > 0 ? Math.round((m.wins / m.games) * 1000) / 10 : 0,
       }))
     })(),
-    seasonBreakdown: await getPlayerSeasonBreakdown(battletag),
+    seasonBreakdown: await getPlayerSeasonBreakdown(battletag, rotation),
   })
 }
