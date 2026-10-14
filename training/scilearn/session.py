@@ -46,12 +46,58 @@ def public_kit(names):
 
 
 def prepare(sid, arm, variant="K", cycle=1, predecessor=None):
-    st = BR.open_session(sid, arm, variant, cycle, predecessor=predecessor)
+    BR.open_session(sid, arm, variant, cycle, predecessor=predecessor)
+    prompt = build_view_and_prompt(sid)
+    print(json.dumps({"session": sid, "arm": arm, "dir": str(C.SESSIONS / sid), "prompt": str(prompt)}, indent=1))
+
+
+def previous_cycle_digest(st, names):
+    """Plain list of what the predecessor session tested, in this session's labels."""
+    from training.scilearn import harness
+    tables = st.get("inherited_tables") or {}
+    L = ["", "## Your previous cycle, as recorded by the harness", "",
+         "Accepted terms now in your incumbent (card id, term):"]
+    acc = [t.get("name") for t in st.get("accepted_terms", [])]
+    for cid, c in (st.get("inherited_cards") or {}).items():
+        if c["status"] == "accepted":
+            t = {k: v for k, v in (c["term"] or {}).items() if k != "name"}
+            g = (c.get("released") or {}).get("gain")
+            L.append(f"- {cid}: {names.term_name_out(json.dumps(t))}; released dev gain {_g(g)}"
+                     + ("; explainable table" if cid in tables else ""))
+    if not any(c["status"] == "accepted" for c in (st.get("inherited_cards") or {}).values()):
+        L.append("- none: your incumbent is the K0 backbone")
+    L += ["", "Not accepted:"]
+    for cid, c in (st.get("inherited_cards") or {}).items():
+        if c["status"] != "accepted":
+            t = {k: v for k, v in (c["term"] or {}).items() if k != "name"} if c.get("term") else {}
+            g = (c.get("released") or {}).get("gain")
+            st_ = {"error": "harness error, never tested, no bits charged; the harness bug is fixed",
+                   "near_miss": "near miss"}.get(c["status"], c["status"])
+            L.append(f"- {cid} ({st_}): {names.term_name_out(json.dumps(t))}"
+                     + (f"; released gain {_g(g)}" if g is not None else ""))
+    L += ["", "Bits you spent on cell groups of the dev tranche last cycle still count toward each group's "
+          "threshold (same data). `hyp budget` shows them.", ""]
+    return "\n".join(L)
+
+
+def _g(x):
+    return "n/a" if x is None else f"{x:.4f}"
+
+
+def build_view_and_prompt(sid):
+    """(Re)write the session's read-only view and prompt from the current session kit.
+    Used by prepare, and by `reprompt` for a session that has not been launched."""
+    st = json.loads((BR.private_session_dir(sid) / "state.json").read_text())
     from training.scilearn import data as D
     _, meta, _, _ = D.load(st["snapshot"], ["Dpre"])
+    arm, predecessor = st["arm"], st.get("predecessor")
     names = BR.Names(meta, st.get("blind_key") if not BR.ARMS[arm]["names"] else None)
     sdir = C.SESSIONS / sid
     view = sdir / "view"
+    if view.exists():
+        for p in sorted(view.rglob("*"), reverse=True):
+            p.chmod(0o755 if p.is_dir() else 0o644)
+        shutil.rmtree(view)
     for d in ("view/bin", "work/cards", "logs"):
         (sdir / d).mkdir(parents=True, exist_ok=True)
     shutil.copy2(KITDIR / "bin" / "hyp", view / "bin" / "hyp")
@@ -71,37 +117,10 @@ def prepare(sid, arm, variant="K", cycle=1, predecessor=None):
         prompt += (KITDIR / "prompts" / "arm_c_extra.md").read_text()
     if arm == "blinded":
         prompt += (KITDIR / "prompts" / "blinded_extra.md").read_text()
-    priv = BR.private_session_dir(sid)
-    (priv / "prompt.md").write_text(prompt)
+    (BR.private_session_dir(sid) / "prompt.md").write_text(prompt)
     for p in view.rglob("*"):
         p.chmod(0o555 if p.is_dir() or p.name == "hyp" else 0o444)
-    print(json.dumps({"session": sid, "arm": arm, "dir": str(sdir), "prompt": str(priv / "prompt.md")}, indent=1))
-
-
-def previous_cycle_digest(st, names):
-    """Plain list of what the predecessor session tested, in this session's labels."""
-    from training.scilearn import harness
-    tables = st.get("inherited_tables") or {}
-    L = ["", "## Your previous cycle, as recorded by the harness", "",
-         "Accepted terms now in your incumbent (card id, term):"]
-    acc = [t.get("name") for t in st.get("accepted_terms", [])]
-    for cid, c in (st.get("inherited_cards") or {}).items():
-        if c["status"] == "accepted":
-            t = {k: v for k, v in (c["term"] or {}).items() if k != "name"}
-            g = (c.get("released") or {}).get("gain")
-            L.append(f"- {cid}: {names.term_name_out(json.dumps(t))}; released dev gain {g}"
-                     + ("; explainable table" if cid in tables else ""))
-    if not any(c["status"] == "accepted" for c in (st.get("inherited_cards") or {}).values()):
-        L.append("- none: your incumbent is the K0 backbone")
-    L += ["", "Not accepted:"]
-    for cid, c in (st.get("inherited_cards") or {}).items():
-        if c["status"] != "accepted":
-            t = {k: v for k, v in (c["term"] or {}).items() if k != "name"} if c.get("term") else {}
-            g = (c.get("released") or {}).get("gain")
-            L.append(f"- {cid} ({c['status']}): {names.term_name_out(json.dumps(t))}; released gain {g}")
-    L += ["", "Bits you spent on cell groups of the dev tranche last cycle still count toward each group's "
-          "threshold (same data). `hyp budget` shows them.", ""]
-    return "\n".join(L)
+    return BR.private_session_dir(sid) / "prompt.md"
 
 
 def prefit(sid):
@@ -152,7 +171,7 @@ if __name__ == "__main__":
     p = sp.add_parser("prepare"); p.add_argument("sid"); p.add_argument("--arm", required=True, choices=sorted(BR.ARMS))
     p.add_argument("--variant", default="K"); p.add_argument("--cycle", type=int, default=1)
     p.add_argument("--from", dest="predecessor", help="closed session whose incumbent and group bits carry over")
-    for name in ("prefit", "broker", "stop", "canaries", "explain-canaries"):
+    for name in ("prefit", "broker", "stop", "canaries", "explain-canaries", "reprompt"):
         q = sp.add_parser(name); q.add_argument("sid")
     l = sp.add_parser("launch"); l.add_argument("sid"); l.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
@@ -164,6 +183,10 @@ if __name__ == "__main__":
         start_broker(a.sid)
     elif a.cmd == "stop":
         stop(a.sid)
+    elif a.cmd == "reprompt":
+        if list((C.SESSIONS / a.sid / "logs").glob("claude-*.stream.jsonl")):
+            sys.exit(f"{a.sid} has been launched; its prompt is part of the record")
+        print(build_view_and_prompt(a.sid))
     elif a.cmd == "explain-canaries":
         from training.scilearn import harness
         st = json.loads((BR.private_session_dir(a.sid) / "state.json").read_text())
