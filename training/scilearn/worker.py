@@ -148,7 +148,8 @@ def run_explain(spec, job_dir, games, meta, y, full, kit):
     o0, o1 = int(inc.offs[i]), int(inc.offs[i + 1])
     eta0 = Xd @ inc.beta
     prior = X.theory_prior_for(cells_inc, theory, res["coefs"], kit, axes, hero_roles, meta["roles"], H, lanes2=lanes2)
-    blocks = E.clusters(games["game_ts"][sl10], np.full((len(sl10), 10), -1))
+    pk = full.players["player_key"][sl10] if full.players is not None else np.full((len(sl10), 10), -1)
+    blocks = E.clusters(games["game_ts"][sl10], pk)
     on = X.onset_gain(Xd[:, o0:o1], inc.beta[o0:o1], cells_inc, prior, eta0, y[sl10], blocks)
     m1 = np.isin(sl10, sl1)
     on1 = X.onset_gain(Xd[m1][:, o0:o1], inc.beta[o0:o1], cells_inc, prior, eta0[m1], y[sl10][m1], blocks[m1])
