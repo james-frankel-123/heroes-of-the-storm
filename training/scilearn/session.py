@@ -45,8 +45,8 @@ def public_kit(names):
     return out
 
 
-def prepare(sid, arm, variant="K", cycle=1):
-    st = BR.open_session(sid, arm, variant, cycle)
+def prepare(sid, arm, variant="K", cycle=1, predecessor=None):
+    st = BR.open_session(sid, arm, variant, cycle, predecessor=predecessor)
     from training.scilearn import data as D
     _, meta, _, _ = D.load(st["snapshot"], ["Dpre"])
     names = BR.Names(meta, st.get("blind_key") if not BR.ARMS[arm]["names"] else None)
@@ -61,6 +61,12 @@ def prepare(sid, arm, variant="K", cycle=1):
     if kit:
         (view / "kit.json").write_text(json.dumps(kit, indent=1))
     prompt = (KITDIR / "prompts" / "standard.md").read_text()
+    if predecessor:
+        prompt += (KITDIR / "prompts" / "cycle2.md").read_text()
+        prompt += previous_cycle_digest(st, names)
+        prev_sum = C.SESSIONS / predecessor / "work" / "summary.md"
+        if prev_sum.exists():
+            shutil.copy2(prev_sum, view / "previous_cycle_summary.md")
     if arm == "c":
         prompt += (KITDIR / "prompts" / "arm_c_extra.md").read_text()
     if arm == "blinded":
@@ -72,11 +78,42 @@ def prepare(sid, arm, variant="K", cycle=1):
     print(json.dumps({"session": sid, "arm": arm, "dir": str(sdir), "prompt": str(priv / "prompt.md")}, indent=1))
 
 
+def previous_cycle_digest(st, names):
+    """Plain list of what the predecessor session tested, in this session's labels."""
+    from training.scilearn import harness
+    tables = st.get("inherited_tables") or {}
+    L = ["", "## Your previous cycle, as recorded by the harness", "",
+         "Accepted terms now in your incumbent (card id, term):"]
+    acc = [t.get("name") for t in st.get("accepted_terms", [])]
+    for cid, c in (st.get("inherited_cards") or {}).items():
+        if c["status"] == "accepted":
+            t = {k: v for k, v in (c["term"] or {}).items() if k != "name"}
+            g = (c.get("released") or {}).get("gain")
+            L.append(f"- {cid}: {names.term_name_out(json.dumps(t))}; released dev gain {g}"
+                     + ("; explainable table" if cid in tables else ""))
+    if not any(c["status"] == "accepted" for c in (st.get("inherited_cards") or {}).values()):
+        L.append("- none: your incumbent is the K0 backbone")
+    L += ["", "Not accepted:"]
+    for cid, c in (st.get("inherited_cards") or {}).items():
+        if c["status"] != "accepted":
+            t = {k: v for k, v in (c["term"] or {}).items() if k != "name"} if c.get("term") else {}
+            g = (c.get("released") or {}).get("gain")
+            L.append(f"- {cid} ({c['status']}): {names.term_name_out(json.dumps(t))}; released gain {g}")
+    L += ["", "Bits you spent on cell groups of the dev tranche last cycle still count toward each group's "
+          "threshold (same data). `hyp budget` shows them.", ""]
+    return "\n".join(L)
+
+
 def prefit(sid):
+    """Incumbent fit, plus the explore (S) and confirm (Dpre+G) fits when it holds tables."""
     from training.scilearn import harness
     st = json.loads((BR.private_session_dir(sid) / "state.json").read_text())
-    inc = harness.ensure_incumbent(st, BR.ARMS[st["arm"]]["dev"])
-    print(json.dumps({"incumbent_job": inc["job"]}))
+    dev = BR.ARMS[st["arm"]]["dev"]
+    out = {"incumbent_job": harness.ensure_incumbent(st, dev)["job"]}
+    if harness.accepted_tables(st):
+        out["explore_job"] = harness.ensure_fit(st, dev, fit=harness.EXPLORE_FIT)["job"]
+        out["confirm_job"] = harness.ensure_fit(st, dev, fit=harness.CONFIRM_FIT[dev])["job"]
+    print(json.dumps(out))
 
 
 def start_broker(sid):
@@ -114,18 +151,23 @@ if __name__ == "__main__":
     sp = ap.add_subparsers(dest="cmd", required=True)
     p = sp.add_parser("prepare"); p.add_argument("sid"); p.add_argument("--arm", required=True, choices=sorted(BR.ARMS))
     p.add_argument("--variant", default="K"); p.add_argument("--cycle", type=int, default=1)
-    for name in ("prefit", "broker", "stop", "canaries"):
+    p.add_argument("--from", dest="predecessor", help="closed session whose incumbent and group bits carry over")
+    for name in ("prefit", "broker", "stop", "canaries", "explain-canaries"):
         q = sp.add_parser(name); q.add_argument("sid")
     l = sp.add_parser("launch"); l.add_argument("sid"); l.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     if a.cmd == "prepare":
-        prepare(a.sid, a.arm, a.variant, a.cycle)
+        prepare(a.sid, a.arm, a.variant, a.cycle, a.predecessor)
     elif a.cmd == "prefit":
         prefit(a.sid)
     elif a.cmd == "broker":
         start_broker(a.sid)
     elif a.cmd == "stop":
         stop(a.sid)
+    elif a.cmd == "explain-canaries":
+        from training.scilearn import harness
+        st = json.loads((BR.private_session_dir(a.sid) / "state.json").read_text())
+        print(json.dumps(harness.run_explain_canaries(st, BR.ARMS[st["arm"]]["dev"]), indent=1))
     elif a.cmd == "canaries":
         from training.scilearn import harness
         print(json.dumps(harness.run_canaries(BR.Broker(a.sid)), indent=1))

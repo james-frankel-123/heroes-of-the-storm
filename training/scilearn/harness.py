@@ -294,13 +294,17 @@ def run_canaries(broker, wait=True):
     st = broker.state
     dev = broker.dev
     inc = ensure_incumbent(st, dev)
+    # Known-true canaries are scored against the starting backbone, which lacks them; against a
+    # cycle-2 incumbent that already holds role-multiset and pair terms they would be redundant.
+    inc_true = ensure_incumbent({**st, "accepted_terms": []}, dev)
     hl = Ledger("harness")
     out = []
     jobs = []
     for kind, term in canary_cards(broker.sid, broker.axes):
         job = f"canary_{broker.sid}_{term['name']}"
+        ref = inc_true if kind == "true" else inc
         spec = {"job_id": job, "kind": "q2", "fit_tranches": fit_tranches(dev), "eval_tranches": [],
-                "models": {}, "incumbent_job": inc["job"], "incumbent": inc["name"], "term": term,
+                "models": {}, "incumbent_job": ref["job"], "incumbent": ref["name"], "term": term,
                 "dev_tranche": dev, "recent_s_builds": recent_s_builds(broker.meta)}
         jobs.append((kind, term, job, spec))
     for kind, term, job, spec in jobs:
@@ -320,4 +324,255 @@ def run_canaries(broker, wait=True):
                   note=f"{kind} canary")
         out.append({"canary": term["name"], "kind": kind, "z": pr["z"], "gain": pr["gain"],
                     "invariance_ok": inv.get("ok"), "accept": accept})
+    return out
+
+
+# --------------------------------------------------------------------------- cycle 2: tables
+
+# Table fits for explanation cards. Sessions explore on an S-only fit of their incumbent
+# (`hyp table`); explanation cards are scored on a confirm fit on data disjoint from S and
+# from the session's dev tranche.
+EXPLORE_FIT = ["S"]
+CONFIRM_FIT = {"Dpost": ["Dpre", "G"], "Dpre": ["G"]}
+
+
+def table_term_name(card_id):
+    return "card_" + "".join(ch if ch.isalnum() else "_" for ch in str(card_id))[:40]
+
+
+def accepted_tables(state):
+    """{card_id: term spec} for accepted cards whose term is an explainable table."""
+    from training.scilearn import explain as X
+    names = {t.get("name"): t for t in state.get("accepted_terms", [])}
+    out = {}
+    for cid, c in state.get("cards", {}).items():
+        t = names.get(table_term_name(cid))
+        if c.get("status") == "accepted" and t is not None:
+            try:
+                X.table_kind(t)
+                out[cid] = t
+            except X.ExplainError:
+                pass
+    for cid, t in (state.get("inherited_tables") or {}).items():
+        if t.get("name") in names:
+            out.setdefault(cid, t)
+    return out
+
+
+def _derived_key(*parts):
+    from training.scilearn import tranches as T
+    k = T.load_keys()
+    return hashlib.sha256(":".join([k["canary"], *map(str, parts)]).encode()).hexdigest()[:32]
+
+
+def finish_explain(broker, cid):
+    from training.scilearn import tranches as T
+    with broker.lock:
+        st = json.loads(json.dumps(broker.state))
+    card = st["cards"][cid]
+    dev = broker.dev
+    inc = ensure_incumbent(st, dev)
+    conf = ensure_fit(st, dev, fit=CONFIRM_FIT[dev])
+    term = card["term"]
+    spec = {"job_id": card["job"], "kind": "explain", "fit_tranches": [], "eval_tranches": [], "models": {},
+            "inc_job": inc["job"], "confirm_job": conf["job"], "table_name": table_term_name(term["table"]),
+            "theory": {"features": term["features"]}, "dev_tranche": dev,
+            "fold_key": _derived_key("explain-fold"), "perm_key": _derived_key("explain-perm", card["hash"]),
+            "o3_key": T.load_keys()["o3_heroes"], "n_perm": 200, "lanes2": sorted(TM.LANES2)}
+    with remote_slot():
+        R.submit(spec, HOST, label_mode=label_mode(st))
+        res = R.wait(card["job"], HOST)
+    with broker.lock:
+        apply_explain_gate(broker, cid, res["explain_result"])
+
+
+def apply_explain_gate(broker, cid, res):
+    from training.scilearn import explain as X
+    st = broker.state
+    card = st["cards"][cid]
+    b = broker.budget()
+    groups = card["groups"]
+    I_g = max([b["groups"].get(g, 0.0) for g in groups] + [0.0])
+    accept, reasons, thr = X.gate(res, I_g)
+    rng = np.random.default_rng(int(hashlib.sha256(f"{broker.keys['noise']}:{card['hash']}".encode()).hexdigest()[:12], 16))
+    ex, tr, on, pm = res["explain"], res.get("transfer") or {}, res.get("onset") or {}, res.get("permutation") or {}
+
+    def noisy(v, se, step):
+        if v is None or not np.isfinite(v):
+            return None
+        return round(round((v + rng.normal(0, se if np.isfinite(se) else 0)) / step) * step, 4)
+    released = {
+        "card_id": cid, "decision": "accept" if accept else "reject",
+        "explained_share": noisy(ex["share"], ex.get("share_se", 0.0), 0.01),
+        "transfer_share": noisy(tr.get("share"), (tr.get("se", 0) / max(abs(tr.get("sum_d", 1e-9)), 1e-9)) * abs(tr.get("share", 0) or 0), 0.01),
+        "compresses": bool(ex["bits_saved"] > ex["param_bits"]),
+        "onset_gain": noisy(on.get("gain"), on.get("se", 0.0), C.Q2_ROUND),
+        "beats_kit_permutations": (None if pm.get("p") is None else bool(pm["p"] <= X.GATE["p_perm"])),
+        "reasons": reasons,
+    }
+    cost = C.Q2_BITS
+    charges = {g: cost for g in groups}
+    broker.log("test", card_id=cid, family=card["family"], template="Q2E", tranche=broker.dev,
+               params_json=canonical({"_group_charges": charges, "term": card["term"]}),
+               canonical_hash=card["hash"], released=released, raw_ref=f"jobs/{card['job']}/out/result.json",
+               bits_charged=cost, group_bits_after={g: round(b["groups"].get(g, 0) + cost, 3) for g in groups},
+               session_bits_after=round(b["dev_bits"] + cost, 3), gate_z=round(ex["z"], 3),
+               threshold=round(thr, 3), decision=released["decision"],
+               alt_decisions={"explain": ex, "transfer": tr, "onset": on, "permutation": pm,
+                              "coefs": res.get("coefs"), "k": res.get("k"), "cells": res.get("cells"),
+                              "signal_ss": res.get("signal_ss"), "reasons": reasons})
+    broker.log("accept" if accept else "reject", card_id=cid, family=card["family"],
+               canonical_hash=card["hash"], decision=released["decision"],
+               note=("; ".join(reasons) if reasons else "accepted explanation") + f" table={card['term']['table']}")
+    card["released"] = released
+    card["status"] = "accepted" if accept else "rejected"
+    if accept:
+        st.setdefault("explanations", []).append({"card_id": cid, "table": card["term"]["table"],
+                                                  "features": card["term"]["features"],
+                                                  "coefs": res.get("coefs"), "share": ex["share"],
+                                                  "transfer_share": tr.get("share")})
+    broker.save_state()
+
+
+# --------------------------------------------------------------------------- cycle 2: mechanisms
+
+MTEST_BITS = 1.5           # mediator bits per mechanism test (FRAMING 5.3: 60 per cycle)
+M_TEST_MIN_GAMES = 2000    # below this M-test is too small for a mechanism test
+
+
+def m_extract_name():
+    from training.scilearn import replay_features as RF
+    man = json.loads((RF.STORE / RF.VERSION / "manifest.json").read_text())
+    return f"M_{RF.VERSION}_{man['code_hash']}_{man['n_games']}.npz", man
+
+
+def ship_m_extract(host=HOST):
+    """Mediators and draft covariates for M games. No outcomes are shipped: a mechanism
+    test regresses mediators on draft-time term values only."""
+    from training.scilearn import replay_features as RF
+    name, man = m_extract_name()
+    p = C.PRIVATE / "extracts" / name
+    if not p.exists():
+        f = dict(np.load(RF.STORE / RF.VERSION / "features.npz"))
+        np.savez(p, **f)
+    R.rsync_to(host, p, f"{C.REMOTE_ROOT}/data/")
+    return name, man
+
+
+def finish_mtest(broker, cid):
+    with broker.lock:
+        st = json.loads(json.dumps(broker.state))
+    card = st["cards"][cid]
+    mech = card["mechanism"]
+    dev = broker.dev
+    ms = card["mtest_source"]
+    if ms["kind"] == "incumbent":
+        inc = ensure_incumbent(st, dev)
+        src = {"job": inc["job"], "model": "INC", "term_name": ms["term_name"]}
+    else:
+        src = {"job": card["job"], "model": "term", "term_name": ms["term_name"]}
+    name, _ = ship_m_extract()
+    job = f"mtest_{broker.sid}_{cid}_{hashlib.sha256(canonical(mech).encode()).hexdigest()[:6]}"
+    spec = {"job_id": job, "kind": "mtest", "fit_tranches": [], "eval_tranches": [], "models": {},
+            "m_data": name, "term_source": src, "mediator": mech["mediator"],
+            "negative_control": mech.get("negative_control"),
+            "shuffle_key": st.get("label_key") if st["arm"] == "shuffled" else None}
+    with remote_slot():
+        R.submit(spec, HOST, label_mode=label_mode(st))
+        res = R.wait(job, HOST)
+    with broker.lock:
+        apply_mtest_gate(broker, cid, res["mtest_result"], job)
+
+
+def apply_mtest_gate(broker, cid, res, job):
+    st = broker.state
+    card = st["cards"][cid]
+    mech = card["mechanism"]
+    b = broker.budget()
+    group = f"mech:{mech['mediator']}"
+    I_g = b["groups"].get(group, 0.0)
+    thr = E.threshold(I_g)
+    md, nc = res.get("mediator", {}), res.get("negative_control")
+    direction = str(mech.get("direction", "+")).strip()
+    z = float(md.get("z", 0.0))
+    signed = z if direction == "+" else -z
+    reasons = []
+    if signed < thr:
+        reasons.append(f"mediator z {signed:.2f} (in the declared direction) below {thr:.2f}")
+    if nc is not None and abs(nc.get("z", 0.0)) >= 2.0:
+        reasons.append(f"negative control moved (|z| {abs(nc['z']):.2f} >= 2)")
+    ok = not reasons
+    rng = np.random.default_rng(int(hashlib.sha256(f"{broker.keys['noise']}:mtest:{card['hash']}".encode()).hexdigest()[:12], 16))
+    se_std = abs(md.get("std_effect", 0.0)) / max(abs(z), 1.0)
+    released = {"card_id": cid, "decision": "mechanism_ok" if ok else "mechanism_not_shown",
+                "mediator": mech["mediator"], "n_m_test": res.get("n_m_test"),
+                "std_effect": round(round((md.get("std_effect", 0.0) + rng.normal(0, se_std)) / 0.01) * 0.01, 2),
+                "negative_control_ok": None if nc is None else bool(abs(nc.get("z", 0.0)) < 2.0),
+                "reasons": reasons}
+    broker.log("test", card_id=cid, family=card["family"], template="Q3T", tranche="M-test",
+               params_json=canonical({"_group_charges": {group: MTEST_BITS}, "_budget": "mediator",
+                                      "mechanism": mech}),
+               canonical_hash=card["hash"], released=released, raw_ref=f"jobs/{job}/out/result.json",
+               bits_charged=MTEST_BITS, gate_z=round(signed, 3), threshold=round(thr, 3),
+               decision=released["decision"], alt_decisions=res)
+    card["mtest"] = released
+    prev = card.pop("status_for_mtest", card.get("status"))
+    if card["term"].get("type") == "mechanism":
+        card["status"] = released["decision"]
+        target = st["cards"].get(card["term"]["of"])
+        st.setdefault("mechanism_results", []).append({"card_id": cid, "of": card["term"]["of"], **released})
+    else:
+        card["status"] = prev
+        target = card
+    if ok and target is not None and target.get("status") == "accepted" and target.get("released"):
+        fl = [f for f in target["released"].get("flags", []) if f != "unexplained"]
+        target["released"]["flags"] = fl + ["mechanism_ok"]
+    broker.save_state()
+
+
+# --------------------------------------------------------------------------- cycle 2: canaries
+
+# One fixed kit theory per table type; the canary runs it on a within-role permuted kit
+# against the session's real table. It must be rejected (FRAMING 8, null canaries).
+CANARY_THEORIES = {
+    ("hero_ctx", "map"): [{"kit": "waveclear", "by": "map_class"}, {"kit": "global_presence", "by": "map_class"}],
+    ("hero_ctx", "map_class"): [{"kit": "waveclear", "by": "map_class"}],
+    ("hero_ctx", "tier"): [{"kit": "early_vs_late", "by": "tier"}],
+    ("pair", None): [{"kit_pair": ["hard_cc", "burst"]}, {"kit_sum": "healing_throughput"}],
+    ("cross", None): [{"kit_pair": ["hard_cc", "mobility"]}, {"kit_pair": ["burst", "self_sustain_shields"]}],
+}
+
+
+def run_explain_canaries(state, dev, n_per_table=1):
+    from training.scilearn import explain as X
+    from training.scilearn import tranches as T
+    sid = state["session_id"]
+    inc = ensure_incumbent(state, dev)
+    conf = ensure_fit(state, dev, fit=CONFIRM_FIT[dev])
+    out = []
+    for cid, t in sorted(accepted_tables(state).items()):
+        kind = X.table_kind(t)
+        theory = {"features": CANARY_THEORIES[(kind, t["keys"][1] if kind == "hero_ctx" else None)]}
+        for i in range(n_per_table):
+            job = f"xcanary_{sid}_{cid}_{i}"
+            spec = {"job_id": job, "kind": "explain", "fit_tranches": [], "eval_tranches": [], "models": {},
+                    "inc_job": inc["job"], "confirm_job": conf["job"], "table_name": t["name"],
+                    "theory": theory, "dev_tranche": dev, "fold_key": _derived_key("explain-fold"),
+                    "perm_key": _derived_key("xcanary-perm", sid, cid, i), "o3_key": T.load_keys()["o3_heroes"],
+                    "n_perm": 200, "lanes2": sorted(TM.LANES2),
+                    "kit_perm_key": _derived_key("xcanary-kit", sid, cid, i)}
+            with remote_slot():
+                R.submit(spec, HOST, label_mode=label_mode(state))
+                res = R.wait(job, HOST)["explain_result"]
+            accept, reasons, thr = X.gate(res, 0.0)
+            Ledger("harness").append(
+                "canary", session_id=sid, arm=state["arm"], variant=state["variant"], card_id=f"xcanary_{cid}_{i}",
+                tranche=dev, snapshot_id=state["snapshot"], gate_z=round(res["explain"]["z"], 3),
+                threshold=round(thr, 3), decision="accept" if accept else "reject",
+                alt_decisions={"explain": res["explain"], "transfer": res.get("transfer"), "onset": res.get("onset"),
+                               "permutation": res.get("permutation"), "reasons": reasons, "theory": theory},
+                note="null explain canary (within-role permuted kit)")
+            out.append({"canary": f"xcanary_{cid}_{i}", "z": res["explain"]["z"], "share": res["explain"]["share"],
+                        "transfer_z": (res.get("transfer") or {}).get("z"), "perm_p": res["permutation"].get("p"),
+                        "onset_z": (res.get("onset") or {}).get("z"), "accept": accept})
     return out

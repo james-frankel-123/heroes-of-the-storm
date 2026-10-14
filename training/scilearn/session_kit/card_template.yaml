@@ -4,10 +4,10 @@ tag: structural              # structural | meta
 theory: >
   Two to five sentences: why this should change who wins, from mechanics.
 mechanism:
-  intermediate: early isolated deaths of the backline
-  direction: more for the team without peel
-  window: minutes 0 to 10
-  negative_control: minion XP share
+  intermediate: early isolated deaths of the backline   # free text
+  mediator: isolated_deaths_10          # a mediator name from `hyp meta`, for `hyp mtest`
+  direction: "-"                        # sign for the team the term favours
+  negative_control: minion_xp_share_10  # must not move
 expected_effect:
   sign: "-"                  # sign of the term for the team that has the feature
   pp: 1.0                    # win probability shift on affected games
@@ -20,3 +20,10 @@ term:
   sign: "-"
 sources: ["ledger seq 12 (S query)", "kit axis healing_throughput"]
 alternatives_considered: ["a concave healing_throughput sum instead of a flag"]
+
+# An explanation card (cycle 2) has the same header fields and this term instead:
+# term:
+#   type: explain
+#   table: c04_hero_map                 # an accepted table in your incumbent
+#   features:
+#     - {kit: waveclear, by: lanes2, sign: "-"}

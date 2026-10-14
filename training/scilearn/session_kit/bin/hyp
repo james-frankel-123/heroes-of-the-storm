@@ -9,6 +9,15 @@
   hyp test <card_id>               Q2 nested test on your dev tranche (1.5 bits)
   hyp test-status
   hyp ledger --mine                your released answers
+
+Cycle 2:
+  hyp table <card_id> [--hero H] [--top N]   cells of an accepted table, from an S-only fit
+                                   of your incumbent (1 sandbox number per cell shown)
+  hyp query '{"class":"Q3","mediator":"level_lead_10","group_by":["map_class"]}'
+                                   mediator cell means on M-test (mediator bits)
+  hyp inspect [--hero H] [--map M] [--interesting|--random]
+                                   one M-explore game record (1 of 300 inspection slots)
+  hyp mtest <card_id>              mechanism test of a fitted card on M-test (1.5 mediator bits)
 """
 import json
 import os
@@ -32,6 +41,20 @@ def call(req):
     return json.loads(buf)
 
 
+def _opts(args):
+    out, i = {}, 0
+    while i < len(args):
+        a = args[i]
+        if a.startswith("--"):
+            if i + 1 < len(args) and not args[i + 1].startswith("--"):
+                out[a[2:]] = args[i + 1]
+                i += 2
+                continue
+            out[a[2:]] = True
+        i += 1
+    return out
+
+
 def main(argv):
     if not argv or argv[0] in ("-h", "--help", "help"):
         print(__doc__)
@@ -53,6 +76,23 @@ def main(argv):
         req = {"op": "test", "card_id": rest[0]}
     elif cmd == "ledger":
         req = {"op": "ledger_mine"}
+    elif cmd == "table":
+        req = {"op": "table", "card_id": rest[0]}
+        opts = _opts(rest[1:])
+        if "hero" in opts:
+            req["hero"] = opts["hero"]
+        if "top" in opts:
+            req["top"] = int(opts["top"])
+    elif cmd == "inspect":
+        opts = _opts(rest)
+        flt = {k: opts[k] for k in ("hero", "map") if k in opts}
+        if "interesting" in opts:
+            flt["cohort"] = "interesting"
+        if "random" in opts:
+            flt["cohort"] = "random"
+        req = {"op": "inspect", "filter": flt}
+    elif cmd == "mtest":
+        req = {"op": "mtest", "card_id": rest[0]}
     else:
         print(__doc__)
         return 2

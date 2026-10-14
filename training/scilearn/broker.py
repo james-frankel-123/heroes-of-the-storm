@@ -130,6 +130,8 @@ class Broker:
         self.cache_path = self.priv / "cache.json"
         self.cache = json.loads(self.cache_path.read_text()) if self.cache_path.exists() else {}
         self.code_hash = code_hash()
+        self.m = None              # M feature store, loaded on first Q3 / inspect / mtest
+        self.preparing = set()     # background table fits started by `table`
 
     # ---- budget, recomputed from the ledger (single source of truth)
     def budget(self):
@@ -139,18 +141,28 @@ class Broker:
         for r in self.ledger.records():
             if r.get("note") and f"cycle={cyc}" not in r["note"]:
                 continue
-            if r["kind"] == "query" and r.get("template") == "Q1" and r.get("tranche") == "S":
+            if r["kind"] == "query" and r.get("template") in ("Q1", "Q6T") and r.get("tranche") == "S":
                 b["sandbox_numbers"] += len(r.get("cells") or [])
             if r.get("bits_charged"):
-                b["dev_bits"] += r["bits_charged"]
-                for gname, bits in (json.loads(r.get("params_json") or "{}").get("_group_charges") or {}).items():
+                pj = json.loads(r.get("params_json") or "{}")
+                if pj.get("_budget") == "mediator":
+                    b["mediator_bits"] += r["bits_charged"]
+                else:
+                    b["dev_bits"] += r["bits_charged"]
+                for gname, bits in (pj.get("_group_charges") or {}).items():
                     b["groups"][gname] = b["groups"].get(gname, 0.0) + bits
+            if r["kind"] == "inspect":
+                b["inspect"] += 1
             if r["kind"] == "card":
                 b["cards"] += 1
             if r["kind"] == "query" and r.get("template") == "Q4":
                 b["q4"] += 1
             if r["kind"] == "fit":
                 b["q6"] += 1
+        # Bits a predecessor session already spent on the same dev tranche stay on its groups:
+        # the tranche is the same data, so the gate keeps paying for them (CYCLE2_PREP.md).
+        for gname, bits in (self.state.get("prior_group_bits") or {}).items():
+            b["groups"][gname] = b["groups"].get(gname, 0.0) + bits
         return b
 
     def log(self, kind, **kw):
@@ -182,8 +194,8 @@ class Broker:
         return self.tables[tr]
 
     # ---- Q0 / Q1
-    def run_cells(self, q, tr):
-        t = self.team_table(tr)
+    def run_cells(self, q, tr, table=None):
+        t = table if table is not None else self.team_table(tr)
         f = q.get("filter", {}) or {}
         allowed_f = {"hero", "ally", "enemy", "map", "tier", "build", "role_count"}
         bad = set(f) - allowed_f
@@ -277,8 +289,11 @@ class Broker:
     def query(self, q):
         cls = q.get("class")
         tr = q.get("tranche")
+        if cls == "Q3":
+            return self.query_q3(q)
         if cls not in ("Q0", "Q1", "Q4"):
-            raise Refusal(f"query class {cls!r} not available here (Q2 is `test`, Q3/Q5 need parsed replays, Q6 is `fit_sandbox`)")
+            raise Refusal(f"query class {cls!r} not available here (Q2 is `test`, Q3 is a query on M-test, "
+                          "Q5 is `inspect`, fitted tables are `table`)")
         if tr not in QUERYABLE:
             raise Refusal(f"tranche {tr!r} has no query class (queryable: S, Dpre, Dpost)")
         if cls != "Q0" and tr in ("Dpre", "Dpost") and tr != self.dev:
@@ -378,14 +393,18 @@ class Broker:
             raise Refusal(f"family must be one of {sorted(FAMILIES)}")
         cid = str(card["id"])
         cards = self.state.setdefault("cards", {})
-        if cid in cards:
-            raise Refusal(f"card id {cid} already registered; use a new id")
+        if cid in cards or cid in (self.state.get("inherited_cards") or {}):
+            raise Refusal(f"card id {cid} already registered (this cycle or the previous one); use a new id")
         if len(cards) >= C.BUDGET["cards"]:
             raise Refusal("card budget (40 per cycle) exhausted")
         term = card["term"]
         if not isinstance(term, dict):
             raise Refusal("term must be a mapping")
         term = {k: v for k, v in term.items() if not str(k).startswith("_")}   # harness-only keys
+        if term.get("type") == "explain":
+            return self.explain_submit(card, cid, cards, term)
+        if term.get("type") == "mechanism":
+            return self.mechanism_submit(card, cid, cards, term)
         if term.get("type") in TM.HARNESS_ONLY:
             raise Refusal(f"term type {term['type']!r} is reserved for the harness")
         term = self.names.translate_term_in(term)
@@ -405,7 +424,8 @@ class Broker:
         self.log("card", card_id=cid, family=card["family"], canonical_hash=h,
                  params_json=canonical({"card": card, "compiled_term": term, "groups": groups}))
         cards[cid] = {"status": "registered", "hash": h, "family": card["family"], "term": term,
-                      "groups": groups, "expected": card.get("expected_effect"), "tag": card.get("tag")}
+                      "groups": groups, "expected": card.get("expected_effect"), "tag": card.get("tag"),
+                      "mechanism": card.get("mechanism")}
         self.save_state()
         return {"card_id": cid, "status": "registered", "hash": h, "cell_groups": groups}
 
@@ -439,7 +459,10 @@ class Broker:
     def _finish_test(self, cid):
         from training.scilearn import harness
         try:
-            harness.finish_q2(self, cid)
+            if self.state["cards"][cid]["term"].get("type") == "explain":
+                harness.finish_explain(self, cid)
+            else:
+                harness.finish_q2(self, cid)
         except Exception as e:
             with self.lock:
                 c = self.state["cards"][cid]
@@ -459,7 +482,7 @@ class Broker:
     def test_status(self):
         out = {}
         for cid, c in self.state.get("cards", {}).items():
-            out[cid] = {k: c.get(k) for k in ("status", "released", "reason")}
+            out[cid] = {k: c.get(k) for k in ("status", "released", "reason", "mtest") if c.get(k) is not None}
             if c.get("status") == "error":
                 out[cid]["reason"] = "harness error (not your card); no bits charged; `hyp test` it again"
         return out
@@ -477,11 +500,390 @@ class Broker:
             raise Refusal("Q4 budget (3 per cycle) exhausted")
         raise Refusal("Q4 opens once the session's incumbent has changed from the backbone")
 
+    # ---- cycle 2: explanation cards
+    def explain_submit(self, card, cid, cards, term):
+        from training.scilearn import explain as X
+        from training.scilearn import harness
+        tables = harness.accepted_tables(self.state)
+        tid = str(term.get("table", ""))
+        if tid not in tables:
+            raise Refusal(f"explain term needs `table: <card id>` of an accepted table in your incumbent; "
+                          f"tables: {sorted(tables)}")
+        tspec = tables[tid]
+        kind = X.table_kind(tspec)
+        feats = self.names.translate_term_in(term.get("features"))
+        ctx = tspec["keys"][1] if kind == "hero_ctx" else None
+        try:
+            k = X.validate_theory({"features": feats}, kind, self.axes, self.meta["roles"], ctx=ctx)
+        except X.ExplainError as e:
+            raise Refusal(f"explain term: {e}")
+        term = {"type": "explain", "table": tid, "features": feats, "name": f"card_{_slug(cid)}"}
+        h = hashlib.sha256(canonical(card).encode()).hexdigest()
+        groups = [f"explain:{tid}"]
+        self.log("card", card_id=cid, family=card["family"], canonical_hash=h,
+                 params_json=canonical({"card": card, "compiled_term": term, "groups": groups, "max_params": k}))
+        cards[cid] = {"status": "registered", "hash": h, "family": card["family"], "term": term,
+                      "groups": groups, "expected": card.get("expected_effect"), "tag": card.get("tag"),
+                      "mechanism": card.get("mechanism")}
+        self.save_state()
+        return {"card_id": cid, "status": "registered", "hash": h, "cell_groups": groups,
+                "table_kind": kind, "max_params": k}
+
+    def accepted_term_names(self):
+        """{card id: term name} for every term in the incumbent that came from a card."""
+        from training.scilearn import harness
+        names = {t.get("name") for t in self.state.get("accepted_terms", [])}
+        out = {}
+        for cid in list(self.state.get("inherited_cards") or {}) + list(self.state.get("cards", {})):
+            n = harness.table_term_name(cid)
+            if n in names:
+                out[cid] = n
+        return out
+
+    def mechanism_submit(self, card, cid, cards, term):
+        """A mechanism card: a declared mediator claim about a term already in the incumbent."""
+        from training.scilearn import replay_features as RF
+        acc = self.accepted_term_names()
+        of = str(term.get("of", ""))
+        if of not in acc:
+            raise Refusal(f"mechanism term needs `of: <card id>` of a term in your incumbent; options: {sorted(acc)}")
+        mech = card.get("mechanism") or {}
+        if mech.get("mediator") not in RF.MEDIATORS or mech.get("negative_control") not in RF.MEDIATORS:
+            raise Refusal(f"a mechanism card needs mechanism.mediator and mechanism.negative_control from {RF.MED_NAMES}")
+        if str(mech.get("direction", "+")).strip() not in ("+", "-"):
+            raise Refusal("mechanism.direction is + or -")
+        term = {"type": "mechanism", "of": of, "name": acc[of]}
+        h = hashlib.sha256(canonical(card).encode()).hexdigest()
+        self.log("card", card_id=cid, family=card["family"], canonical_hash=h,
+                 params_json=canonical({"card": card, "compiled_term": term, "groups": [f"mech:{mech['mediator']}"]}))
+        cards[cid] = {"status": "registered", "hash": h, "family": card["family"], "term": term,
+                      "groups": [f"mech:{mech['mediator']}"], "expected": card.get("expected_effect"),
+                      "tag": card.get("tag"), "mechanism": mech}
+        self.save_state()
+        return {"card_id": cid, "status": "registered", "hash": h, "next": f"hyp mtest {cid}"}
+
+    # ---- cycle 2: the M tranche (parsed replays)
+    def m_data(self):
+        from training.scilearn import replay_features as RF
+        mp = RF.STORE / RF.VERSION / "manifest.json"
+        if not mp.exists():
+            raise Refusal("no parsed replays yet: M is empty")
+        man = json.loads(mp.read_text())
+        if self.m is None or self.m["man"]["built"] != man["built"]:
+            f, y, man = RF.load()
+            perm = np.arange(len(y))
+            if self.arm["labels"] == "shuffled":
+                # whole records (trajectory plus outcome) permuted within map x tier x build
+                perm = RF.shuffle_index(f["map"], f["tier"], f["build"], self.state["label_key"])
+                f["med"], y = f["med"][perm], y[perm]
+            f["traj_index"] = perm
+            self.m = {"f": f, "y": y, "man": man,
+                      "paths": json.loads((RF.STORE / RF.VERSION / "paths.json").read_text())}
+        return self.m
+
+    def m_team_table(self, mediator, power=1):
+        from training.scilearn import replay_features as RF
+        m = self.m_data()
+        f = m["f"]
+        test = f["side"] == RF.SIDES["M-test"]
+        j = RF.MED_NAMES.index(mediator)
+        h = f["heroes"][test]
+        med = f["med"][test][:, :, j]
+        x = np.concatenate([med[:, 0], med[:, 1]])
+        keep = ~np.isnan(x)
+        return {"team": np.concatenate([h[:, :5], h[:, 5:]])[keep], "opp": np.concatenate([h[:, 5:], h[:, :5]])[keep],
+                "win": (x ** power)[keep], "map": np.tile(f["map"][test], 2)[keep],
+                "tier": np.tile(f["tier"][test], 2)[keep], "build": np.tile(f["build"][test], 2)[keep],
+                "first_pick": np.zeros(int(keep.sum()), np.int64), "n_games": int(test.sum())}
+
+    def query_q3(self, q):
+        """Q3 mediator cells on M-test (FRAMING 5.2): cells of 200+ team rows, noise sd = 2 SE,
+        0.16 rho^2 bits per number from the mediator budget, 8 bits per cell group."""
+        from training.scilearn import replay_features as RF
+        med = q.get("mediator")
+        if med not in RF.MEDIATORS:
+            raise Refusal(f"Q3 needs `mediator`, one of {RF.MED_NAMES}")
+        if q.get("tranche", "M-test") not in ("M", "M-test"):
+            raise Refusal("Q3 runs on M-test only (M-explore is for `inspect`)")
+        gb = q.get("group_by") or []
+        if "first_pick" in gb or "build" in gb:
+            raise Refusal("Q3 group_by takes map, tier, map_class, hero, enemy_hero or role_count:<Role>")
+        norm = {"class": "Q3", "tranche": "M-test", "mediator": med, "filter": q.get("filter") or {}, "group_by": gb}
+        ch = hashlib.sha256((self.sid + canonical(norm)).encode()).hexdigest()
+        m = self.m_data()
+        ckey = ch + ":" + m["man"]["built"]
+        if ckey in self.cache:
+            ans = self.cache[ckey]
+            self.log("query", template="Q3", tranche="M-test", params_json=canonical(norm), canonical_hash=ch,
+                     released=ans, bits_charged=0.0, note="cache hit")
+            return {"cached": True, **ans}
+        c1 = self.run_cells(norm, "M", table=self.m_team_table(med, 1))
+        c2 = self.run_cells(norm, "M", table=self.m_team_table(med, 2))
+        if len(c1) > C.Q1_MAX_CELLS:
+            raise Refusal(f"{len(c1)} cells; Q3 allows at most {C.Q1_MAX_CELLS}")
+        rho = float(m["man"]["rho"].get(med, 0.5))
+        per = 0.5 * math.log2(1 + 1 / C.Q1_DEV_KAPPA ** 2) * rho ** 2
+        step = 0.001 if RF.MEDIATORS[med][0] in ("share", "flag") else 0.01
+        b = self.budget()
+        rng = np.random.default_rng(int(hashlib.sha256(f"{self.keys['noise']}:{ckey}".encode()).hexdigest()[:12], 16))
+        released, charges, refused = [], {}, 0
+        for a, a2 in zip(c1, c2):
+            g_ = f"med:{med}|{a['group']}"
+            if a["n"] < C.Q3_MIN_CELL or b["groups"].get(g_, 0) + charges.get(g_, 0) + per > C.BUDGET["group_bits"]:
+                refused += 1
+                continue
+            mean = a["wins"] / a["n"]
+            var = max(a2["wins"] / a2["n"] - mean ** 2, 1e-12)
+            se = math.sqrt(var / a["n"])
+            noisy = mean + rng.normal(0, C.Q1_DEV_KAPPA * se)
+            released.append({**a["cell"], "teams": a["n"], "mean": round(round(noisy / step) * step, 4),
+                             "noise_sd": round(C.Q1_DEV_KAPPA * se, 4)})
+            charges[g_] = charges.get(g_, 0) + per
+        bits = sum(charges.values())
+        if b["mediator_bits"] + bits > C.BUDGET["mediator_bits"]:
+            raise Refusal("mediator bit budget exhausted for this cycle")
+        if not released:
+            raise Refusal(f"all {refused} cells refused (cells under {C.Q3_MIN_CELL} team rows, or groups over "
+                          f"their bit cap). M-test has {self.m_team_table(med)['n_games']} games; pool cells.")
+        ans = {"class": "Q3", "tranche": "M-test", "mediator": med, "cells": released, "refused_cells": refused,
+               "bits_charged": round(bits, 4), "m_test_games": self.m_team_table(med)["n_games"]}
+        self.log("query", template="Q3", tranche="M-test",
+                 params_json=canonical({**norm, "_group_charges": charges, "_budget": "mediator"}),
+                 canonical_hash=ch, cells=[[f"med:{med}|{a['group']}", a["n"]] for a in c1], released=ans,
+                 noise_seed=ch[:12], bits_charged=round(bits, 4))
+        self.cache[ckey] = ans
+        self.cache_path.write_text(json.dumps(self.cache))
+        return ans
+
+    def inspect(self, req):
+        """Q5: one M-explore game's record. The game is spent; it never enters a test."""
+        from training.scilearn import replay_features as RF
+        import gzip
+        b = self.budget()
+        if b["inspect"] >= C.BUDGET["inspect"]:
+            raise Refusal("inspection budget (300 games per cycle) exhausted")
+        m = self.m_data()
+        f = m["f"]
+        flt = req.get("filter") or {}
+        cand = f["side"] == RF.SIDES["M-explore"]
+        if flt.get("hero"):
+            hi = self.names.hero_idx(flt["hero"])
+            cand &= (f["heroes"] == hi).any(1)
+        if flt.get("map"):
+            cand &= f["map"] == self.names.map_idx(flt["map"])
+        if flt.get("cohort") in ("interesting", "random"):
+            cand &= f["cohort"] == (RF.COHORT_CODES["surprise_v1"] if flt["cohort"] == "interesting" else RF.COHORT_CODES["stratified_b"])
+        spent = set(self.state.get("spent_games", []))
+        idx = [i for i in np.flatnonzero(cand) if int(f["replay_id"][i]) not in spent]
+        if not idx:
+            raise Refusal("no unspent M-explore game matches that filter")
+        idx.sort(key=lambda i: T.khash(self.keys["noise"], int(f["replay_id"][i])))
+        i = idx[0]
+        traj = int(f["traj_index"][i])
+        rid_traj = int(f["replay_id"][traj])
+        d = json.load(gzip.open(C.REPLAYS_ROOT / m["paths"][str(rid_traj)]))
+        rec = self.sanitize_record(d, f["heroes"][i], int(f["map"][i]), shuffled=(traj != i))
+        token = "G" + hashlib.sha256(f"{self.keys['noise']}:{int(f['replay_id'][i])}".encode()).hexdigest()[:10]
+        rec["game"] = token
+        rec["cohort"] = "interesting" if int(f["cohort"][i]) == RF.COHORT_CODES["surprise_v1"] else "random"
+        self.state.setdefault("spent_games", []).append(int(f["replay_id"][i]))
+        self.save_state()
+        self.log("inspect", template="Q5", tranche="M-explore", params_json=canonical({"filter": flt}),
+                 raw_ref=f"replay:{int(f['replay_id'][i])} traj:{rid_traj}", released={"game": token},
+                 note=f"game spent {token}")
+        return rec
+
+    def sanitize_record(self, d, draft_heroes, map_idx, shuffled=False):
+        """No player identifiers, no action rates. Blinded: labels only, no talent, map-event or
+        unit names. Shuffled: the trajectory of another game in the same map x tier x build
+        block, shown with this game's draft."""
+        blind = self.names.blind
+        players = sorted(d["players"], key=lambda p: (int(p["team"]), int(p["pid"])))
+        slot = {int(p["pid"]): k for k, p in enumerate(players)}
+        out = {"map": self.names.m_out[self.meta["maps"][map_idx]], "length_s": d["length_s"],
+               "gates_open_s": d.get("gates_open_s"), "winner_team": d["winner_team"],
+               "team_levels": d["team_levels"], "xp_periodic": d["xp_periodic"], "deaths": d["deaths"],
+               "structures": d["structures"], "mercs": d["mercs"], "players": []}
+        if not blind:
+            out["build"] = d.get("version")
+        for p in players:
+            k = slot[int(p["pid"])]
+            hero = self.meta["heroes"][int(draft_heroes[k])]
+            q = {"pid": p["pid"], "team": p["team"], "hero": self.names.h_out[hero], "win": p.get("win"),
+                 "levels": p.get("levels"), "positions": p.get("positions")}
+            if not (blind or shuffled):
+                q["talents"] = [{"tier": t.get("tier"), "name": t.get("name"), "t": t.get("t")} for t in p.get("talents", [])]
+                q["end"] = p.get("end")
+            else:
+                q["talents"] = [{"tier": t.get("tier"), "t": t.get("t")} for t in p.get("talents", [])]
+                q["end"] = {k2: v for k2, v in (p.get("end") or {}).items() if k2 != "talent_choices"}
+            out["players"].append(q)
+        if not (blind or shuffled):
+            out["map_events"] = d.get("map_events")
+            out["notable_units"] = d.get("notable_units")
+            out["picks"] = d.get("picks")
+            out["bans"] = d.get("bans")
+        return out
+
+    # ---- cycle 2: fitted tables (an S-only fit of the session's incumbent; Q6-style release)
+    def table_view(self, req):
+        from training.scilearn import explain as X
+        from training.scilearn import fit as F
+        from training.scilearn import harness
+        cid = str(req.get("card_id"))
+        tables = harness.accepted_tables(self.state)
+        if cid not in tables:
+            raise Refusal(f"no accepted table {cid!r}; tables: {sorted(tables)}")
+        key = harness.incumbent_key(self.state, self.dev, harness.EXPLORE_FIT)
+        reg = harness._registry()
+        if key not in reg:
+            if key not in self.preparing:
+                self.preparing.add(key)
+                st = json.loads(json.dumps(self.state))
+                threading.Thread(target=self._prepare_explore, args=(st, key), daemon=True).start()
+            return {"status": "preparing", "note": "the S-only fit of your incumbent is running (30 to 90 min); "
+                    "ask again later. Nothing was charged."}
+        top = max(1, min(int(req.get("top", 40)), 200))
+        flt = req.get("hero")
+        norm = {"op": "table", "card_id": cid, "top": top, "hero": flt}
+        ch = hashlib.sha256((self.sid + canonical(norm) + key).encode()).hexdigest()
+        if ch in self.cache:
+            return {"cached": True, **self.cache[ch]}
+        meta = dict(self.meta)
+        meta["kit_axes"] = self.axes
+        model = F.Model.load(C.PRIVATE / "jobs" / reg[key]["job"] / "out" / "INC", meta)
+        tname = tables[cid]["name"]
+        cells = X.table_cells(model, tname, meta)
+        P = X.Projector(X.nuisance_design(cells, len(meta["heroes"])), cells["w"])
+        r = P(cells["y"])
+        se = np.sqrt(cells["s"])
+        S = X.signal_ss(r, cells["w"], P.rank)
+        tot = float((cells["w"] * r ** 2).sum())
+        idx = np.arange(len(r))
+        if flt:
+            hi = self.names.hero_idx(flt)
+            idx = idx[(cells["a"][idx] == hi) | ((cells["kind"] != "hero_ctx") & (cells["b"][idx] == hi))]
+        idx = idx[np.argsort(-np.abs(r[idx]) / se[idx])][:top]
+        H = self.meta["heroes"]
+        out = []
+        for j in idx:
+            a = self.names.h_out[H[int(cells["a"][j])]]
+            if cells["kind"] == "hero_ctx":
+                lab = cells["ctx_labels"][int(cells["b"][j])]
+                lab = self.names.m_out.get(lab, lab)
+                key_ = {"hero": a, cells["ctx"]: lab}
+            elif cells["kind"] == "pair":
+                key_ = {"pair": [a, self.names.h_out[H[int(cells["b"][j])]]]}
+            else:
+                key_ = {"team_with": a, "against": self.names.h_out[H[int(cells["b"][j])]]}
+            out.append({**key_, "value": round(float(r[j]), 3), "se": round(float(se[j]), 3)})
+        ans = {"table": cid, "kind": cells["kind"], "fit": "S only", "n_cells": int(len(r)),
+               "signal_share_of_weighted_ss": round(S / tot, 3) if tot > 0 else None,
+               "values": "interaction part: hero and context main effects projected out (logit units)",
+               "cells": out}
+        b = self.budget()
+        if b["sandbox_numbers"] + len(out) > C.BUDGET["sandbox_numbers"]:
+            raise Refusal("sandbox number budget exhausted for this cycle")
+        self.log("query", template="Q6T", tranche="S", params_json=canonical(norm), canonical_hash=ch,
+                 cells=[[f"table:{cid}", 1] for _ in out], released={"n": len(out)}, bits_charged=0.0,
+                 raw_ref=reg[key]["job"])
+        self.cache[ch] = ans
+        self.cache_path.write_text(json.dumps(self.cache))
+        return ans
+
+    def _prepare_explore(self, st, key):
+        from training.scilearn import harness
+        try:
+            harness.ensure_fit(st, self.dev, fit=harness.EXPLORE_FIT)
+        except Exception:
+            traceback.print_exc()
+        finally:
+            self.preparing.discard(key)
+
+    # ---- cycle 2: mechanism tests on M-test
+    def mtest(self, cid):
+        from training.scilearn import harness
+        from training.scilearn import replay_features as RF
+        cards = self.state.get("cards", {})
+        if cid not in cards:
+            raise Refusal(f"unknown card {cid}")
+        c = cards[cid]
+        t = c.get("term") or {}
+        if t.get("type") == "mechanism":
+            if c.get("status") != "registered":
+                raise Refusal(f"card {cid} is {c.get('status')}")
+            src = {"kind": "incumbent", "term_name": t["name"]}
+        elif c.get("status") in ("accepted", "rejected", "near_miss") and c.get("job"):
+            if t.get("type") in ("explain", "decay"):
+                raise Refusal("mechanism tests take draft-composition terms (not explain or decay cards)")
+            src = {"kind": "incumbent" if c["status"] == "accepted" else "q2", "term_name": t["name"]}
+        else:
+            raise Refusal("`hyp mtest` takes a mechanism card, or a card whose term `hyp test` has fitted")
+        if c.get("mtest"):
+            raise Refusal("one mechanism test per card per cycle")
+        mech = c.get("mechanism") or {}
+        if mech.get("mediator") not in RF.MEDIATORS or mech.get("negative_control") not in RF.MEDIATORS:
+            raise Refusal(f"the card's `mechanism` needs `mediator` and `negative_control` from {RF.MED_NAMES}")
+        if str(mech.get("direction", "+")).strip() not in ("+", "-"):
+            raise Refusal("mechanism.direction is + or -")
+        m = self.m_data()
+        n_test = int((m["f"]["side"] == RF.SIDES["M-test"]).sum())
+        if n_test < harness.M_TEST_MIN_GAMES:
+            raise Refusal(f"M-test has {n_test} parsed games; mechanism tests open at {harness.M_TEST_MIN_GAMES}")
+        b = self.budget()
+        if b["mediator_bits"] + harness.MTEST_BITS > C.BUDGET["mediator_bits"]:
+            raise Refusal("mediator bit budget exhausted for this cycle")
+        c["status_for_mtest"] = c["status"]
+        c["mtest_source"] = src
+        c["status"] = "mtesting"
+        self.save_state()
+        threading.Thread(target=self._finish_mtest, args=(cid,), daemon=True).start()
+        return {"card_id": cid, "status": "mtesting", "m_test_games": n_test}
+
+    def _finish_mtest(self, cid):
+        from training.scilearn import harness
+        try:
+            harness.finish_mtest(self, cid)
+        except Exception as e:
+            with self.lock:
+                c = self.state["cards"][cid]
+                c["status"] = c.pop("status_for_mtest", "rejected")
+                self.save_state()
+                self.log("error", card_id=cid, bits_charged=0.0,
+                         note=f"mechanism test harness error, nothing charged: {str(e)[:200]}")
+            traceback.print_exc()
+
+    def incumbent_summary(self):
+        from training.scilearn import harness
+        base = json.loads((C.CODE / "models" / f"{self.state['incumbent'].lower()}.json").read_text())
+        tables = harness.accepted_tables(self.state)
+        by_name = {harness.table_term_name(c): c for c in
+                   list(self.state.get("inherited_cards") or {}) + list(self.state.get("cards", {}))}
+        terms = []
+        for t in self.state.get("accepted_terms", []):
+            cid = by_name.get(t.get("name"))
+            terms.append({"card_id": cid, "type": t["type"],
+                          **{k: v for k, v in t.items() if k in ("keys", "min_games", "min_teams", "axis", "by")},
+                          "table": cid in tables})
+        return {"backbone": self.state["incumbent"], "backbone_doc": base.get("_doc"), "accepted_terms": terms,
+                "explanations": [{k: e[k] for k in ("card_id", "table", "features")}
+                                 for e in self.state.get("explanations", [])]}
+
+    def mediator_summary(self):
+        from training.scilearn import replay_features as RF
+        try:
+            m = self.m_data()
+            f = m["f"]
+            n = {s: int((f["side"] == c).sum()) for s, c in RF.SIDES.items()}
+        except Refusal:
+            n = {"M-explore": 0, "M-test": 0}
+        return {"games": n, "definitions": {k: v[1] for k, v in RF.MEDIATORS.items()}}
+
     def handle(self, req):
         op = req.get("op")
         if op == "help":
             return {"ops": ["budget", "query", "card_submit", "card_list", "test", "test_status",
-                            "ledger_mine", "meta"], "dev_tranche": self.dev}
+                            "ledger_mine", "meta", "table", "inspect", "mtest"], "dev_tranche": self.dev}
         if op == "meta":
             return {"heroes": [self.names.h_out[h] for h in self.meta["heroes"]],
                     "maps": [self.names.m_out[m] for m in self.meta["maps"]],
@@ -489,8 +891,9 @@ class Broker:
                     "hero_roles": {self.names.h_out[h]: self.meta["roles"][r] for h, r in zip(self.meta["heroes"], self.meta["hero_roles"])},
                     "builds": {tr: sorted({self.meta["builds"][b] for b in np.unique(self.g["build"][self.g["tranche"] == T.CODES[tr]])})
                                for tr in ("S", "Dpre", "Dpost")} if self.arm["names"] else "withheld",
-                    "kit_axes": self.axes, "dev_tranche": self.dev,
-                    "term_types": list(TM.TERM_TYPES)}
+                    "kit_axes": self.axes, "dev_tranche": self.dev, "cycle": self.state["cycle"],
+                    "term_types": [t for t in TM.TERM_TYPES if t not in TM.HARNESS_ONLY] + ["explain (card only)"],
+                    "incumbent": self.incumbent_summary(), "mediators": self.mediator_summary()}
         if op == "budget":
             b = self.budget()
             return {k: (round(v, 3) if isinstance(v, float) else v) for k, v in b.items() if k != "groups"} | {
@@ -508,6 +911,12 @@ class Broker:
             return self.test_status()
         if op == "ledger_mine":
             return self.ledger_mine()
+        if op == "table":
+            return self.table_view(req)
+        if op == "inspect":
+            return self.inspect(req)
+        if op == "mtest":
+            return self.mtest(str(req.get("card_id")))
         raise Refusal(f"unknown op {op!r}")
 
 
@@ -614,7 +1023,20 @@ class Server(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
     daemon_threads = True
 
 
-def open_session(sid, arm, variant, cycle=1, incumbent="K0", snapshot=None):
+def ledger_group_bits(sid):
+    """Bits charged to each cell group in a session's ledger (all cycles)."""
+    out = {}
+    for r in Ledger(sid).records():
+        if r.get("bits_charged"):
+            pj = json.loads(r.get("params_json") or "{}")
+            for g, bits in (pj.get("_group_charges") or {}).items():
+                out[g] = out.get(g, 0.0) + bits
+    return out
+
+
+def open_session(sid, arm, variant, cycle=1, incumbent="K0", snapshot=None, predecessor=None):
+    """predecessor: a closed session of the same arm and dev tranche whose incumbent, shuffle
+    and blinding keys, and per-group bits carry over (cycle 2 continues on the same Dpost)."""
     keys = T.load_keys()
     priv = private_session_dir(sid)
     if (priv / "state.json").exists():
@@ -626,9 +1048,27 @@ def open_session(sid, arm, variant, cycle=1, incumbent="K0", snapshot=None):
         st["label_key"] = hashlib.sha256(f"{keys['canary']}:shuffle:{sid}".encode()).hexdigest()
     if arm == "blinded":
         st["blind_key"] = hashlib.sha256(f"{keys['blind']}:{sid}".encode()).hexdigest()
+    if predecessor:
+        prev = json.loads((private_session_dir(predecessor) / "state.json").read_text())
+        if prev["arm"] != arm or prev["snapshot"] != st["snapshot"] or prev["incumbent"] != incumbent:
+            raise SystemExit("predecessor must share arm, snapshot and backbone")
+        from training.scilearn import harness
+        st["predecessor"] = predecessor
+        st["accepted_terms"] = list(prev.get("accepted_terms", []))
+        st["inherited_tables"] = harness.accepted_tables(prev)
+        st["inherited_cards"] = {cid: {"status": c.get("status"), "family": c.get("family"),
+                                       "term": c.get("term"), "released": c.get("released")}
+                                 for cid, c in prev.get("cards", {}).items()}
+        st["prior_group_bits"] = ledger_group_bits(predecessor)
+        for k in ("label_key", "blind_key"):
+            if k in prev:
+                st[k] = prev[k]
     (priv / "state.json").write_text(json.dumps(st, indent=1))
     Ledger(sid).append("session_open", session_id=sid, arm=arm, variant=variant,
                        snapshot_id=st["snapshot"], code_hash=code_hash(),
+                       params_json=canonical({"predecessor": predecessor,
+                                              "accepted_terms": [t.get("name") for t in st["accepted_terms"]],
+                                              "prior_group_bits": st.get("prior_group_bits", {})}),
                        note=f"cycle={cycle} incumbent={incumbent} budget={json.dumps(C.BUDGET)}")
     (C.SESSIONS / sid).mkdir(parents=True, exist_ok=True)
     return st
@@ -653,9 +1093,9 @@ if __name__ == "__main__":
     s = sp.add_parser("serve"); s.add_argument("sid")
     o = sp.add_parser("open"); o.add_argument("sid"); o.add_argument("--arm", required=True, choices=sorted(ARMS))
     o.add_argument("--variant", default="K"); o.add_argument("--cycle", type=int, default=1)
-    o.add_argument("--incumbent", default="K0")
+    o.add_argument("--incumbent", default="K0"); o.add_argument("--from", dest="predecessor")
     a = ap.parse_args()
     if a.cmd == "serve":
         serve(a.sid)
     else:
-        print(json.dumps(open_session(a.sid, a.arm, a.variant, a.cycle, a.incumbent), indent=1))
+        print(json.dumps(open_session(a.sid, a.arm, a.variant, a.cycle, a.incumbent, predecessor=a.predecessor), indent=1))
