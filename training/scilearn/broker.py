@@ -420,13 +420,16 @@ class Broker:
         if cid not in cards:
             raise Refusal(f"unknown card {cid}")
         c = cards[cid]
-        if c["status"] not in ("registered", "near_miss"):
+        if c["status"] not in ("registered", "near_miss", "error"):
             raise Refusal(f"card {cid} is {c['status']}")
+        if c["status"] == "error":
+            c["status"] = c.pop("status_before_error", "registered")   # a harness error charged nothing
         b = self.budget()
         cost = C.Q2_BITS * (2 if c["status"] == "near_miss" else 1)
         if b["dev_bits"] + cost > C.BUDGET["dev_bits"]:
             raise Refusal("dev bit budget exhausted for this cycle")
         job = harness.submit_q2(self, cid)
+        c["status_before_test"] = c["status"]
         c["status"] = "testing"
         c["job"] = job
         self.save_state()
@@ -439,15 +442,26 @@ class Broker:
             harness.finish_q2(self, cid)
         except Exception as e:
             with self.lock:
-                self.state["cards"][cid]["status"] = "error"
-                self.state["cards"][cid]["error"] = str(e)[:500]
+                c = self.state["cards"][cid]
+                if c["status"] == "testing":
+                    c["status_before_error"] = c.get("status_before_test", "registered")
+                c["status"] = "error"
+                c["error"] = str(e)[:500]
                 self.save_state()
+                try:
+                    self.log("error", card_id=cid, family=c.get("family"), canonical_hash=c.get("hash"),
+                             bits_charged=0.0, raw_ref=c.get("job"),
+                             note=f"harness error, no bits charged, card may be retested: {str(e)[:200]}")
+                except Exception:
+                    traceback.print_exc()
             traceback.print_exc()
 
     def test_status(self):
         out = {}
         for cid, c in self.state.get("cards", {}).items():
             out[cid] = {k: c.get(k) for k in ("status", "released", "reason")}
+            if c.get("status") == "error":
+                out[cid]["reason"] = "harness error (not your card); no bits charged; `hyp test` it again"
         return out
 
     def ledger_mine(self):

@@ -125,6 +125,14 @@ def submit(spec, host="max-windows-3090", label_mode="real", module="training.sc
            f"{ROOT}/jobs/{job_id}/spec.json")
     if host == "windows-5090-wsl":
         cmd = cmd.replace("CUDA_VISIBLE_DEVICES= ", "")  # leave the GPU env alone there
+    # Idempotent: a job that is already running (another broker thread or process launched
+    # it) is attached to, and a completed one with a result is reused, never relaunched.
+    st = state(job_id, host)
+    if st in ("running", "pausing"):
+        (ldir / "attached").write_text(time.strftime("%Y-%m-%dT%H:%M:%S"))
+        return job_id
+    if st == "completed" and rsh(host, f"test -f {ROOT}/jobs/{job_id}/out/result.json && echo yes || true").strip() == "yes":
+        return job_id
     hotsjob(host, "launch", f"scilearn_{job_id}", cmd, "--mem-max", hc["mem_max"])
     return job_id
 

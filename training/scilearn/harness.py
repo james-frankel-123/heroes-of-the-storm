@@ -58,32 +58,86 @@ def incumbent_specs(state):
     return base + list(state.get("accepted_terms", []))
 
 
+LOCKS = C.PRIVATE / "locks"
+
+
+class key_lock:
+    """Exclusive flock on LOCKS/<name>.lock. Blocks across threads (each acquisition opens
+    its own file description) and across broker processes."""
+
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        import fcntl
+        LOCKS.mkdir(parents=True, exist_ok=True)
+        self.f = open(LOCKS / f"{self.name}.lock", "w")
+        fcntl.flock(self.f, fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, *exc):
+        import fcntl
+        fcntl.flock(self.f, fcntl.LOCK_UN)
+        self.f.close()
+
+
 def _registry():
     return json.loads(REGISTRY.read_text()) if REGISTRY.exists() else {}
 
 
-def ensure_incumbent(state, dev, wait=True):
-    """Fit (once) the session's incumbent on its fit tranches under its label mode."""
-    specs = incumbent_specs(state)
+def _registry_put(key, entry):
+    """Read-modify-write of the shared registry under its own lock, atomic replace."""
+    import os
+    with key_lock("registry"):
+        reg = _registry()
+        reg[key] = entry
+        tmp = REGISTRY.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(reg, indent=1))
+        os.replace(tmp, REGISTRY)
+
+
+def incumbent_key(state, dev, fit=None):
+    return hashlib.sha256(canonical({"specs": incumbent_specs(state), "fit": fit or fit_tranches(dev),
+                                     "labels": label_mode(state), "snap": state["snapshot"]}).encode()).hexdigest()[:16]
+
+
+def ensure_fit(state, dev, fit=None, prefix="inc"):
+    """Fit (once) the session's incumbent on `fit` tranches (default: its fit tranches) under
+    its label mode, and register it.
+
+    Concurrency: wave 1 lost three cards (w1-K-blinded c03, c05, c13) because two test
+    threads that finished after an accept both found the new incumbent missing from the
+    registry and both launched `inc_<key>`; hotsjob refused the second launch ("already
+    running") and the card ended in "error". Now one fitter per key holds a lock while it
+    fits; everyone else waits on the lock and then reads the registry. remote.submit also
+    attaches to a job that is already running or finished instead of failing."""
+    fit = fit or fit_tranches(dev)
     lm = label_mode(state)
-    key = hashlib.sha256(canonical({"specs": specs, "fit": fit_tranches(dev), "labels": lm,
-                                    "snap": state["snapshot"]}).encode()).hexdigest()[:16]
+    key = incumbent_key(state, dev, fit)
     reg = _registry()
     if key in reg:
         return reg[key]
-    job = f"inc_{key}"
-    with remote_slot():
-        R.submit({"job_id": job, "kind": "fit_eval", "fit_tranches": fit_tranches(dev), "eval_tranches": [dev],
-                  "models": {"INC": specs}}, HOST, label_mode=lm)
-        res = R.wait(job, HOST) if wait else None
-    reg = _registry()
-    reg[key] = {"job": job, "name": "INC", "labels": lm, "dev": dev,
-                "dev_metrics_private": res["models"]["INC"]["eval"].get(dev) if res else None}
-    REGISTRY.write_text(json.dumps(reg, indent=1))
-    Ledger("harness").append("fit", session_id=state["session_id"], tranche=",".join(fit_tranches(dev)),
-                             snapshot_id=state["snapshot"], canonical_hash=key,
-                             note=f"incumbent fit {job} labels={lm.split(':')[0]}")
-    return reg[key]
+    with key_lock(f"{prefix}_{key}"):
+        reg = _registry()
+        if key in reg:
+            return reg[key]
+        job = f"{prefix}_{key}"
+        evals = [dev] if fit == fit_tranches(dev) else []
+        with remote_slot():
+            R.submit({"job_id": job, "kind": "fit_eval", "fit_tranches": fit, "eval_tranches": evals,
+                      "models": {"INC": incumbent_specs(state)}}, HOST, label_mode=lm)
+            res = R.wait(job, HOST)
+        entry = {"job": job, "name": "INC", "labels": lm, "dev": dev, "fit": fit,
+                 "dev_metrics_private": res["models"]["INC"]["eval"].get(dev)}
+        _registry_put(key, entry)
+        Ledger("harness").append("fit", session_id=state["session_id"], tranche=",".join(fit),
+                                 snapshot_id=state["snapshot"], canonical_hash=key,
+                                 note=f"{prefix} fit {job} labels={lm.split(':')[0]}")
+    return entry
+
+
+def ensure_incumbent(state, dev):
+    return ensure_fit(state, dev)
 
 
 def recent_s_builds(meta, k=6):
@@ -100,7 +154,8 @@ def submit_q2(broker, cid):
 
 
 def finish_q2(broker, cid):
-    st = broker.state
+    with broker.lock:   # a stable copy: other test threads may append accepted terms
+        st = json.loads(json.dumps(broker.state))
     card = st["cards"][cid]
     dev = broker.dev
     inc = ensure_incumbent(st, dev)
@@ -155,6 +210,8 @@ def apply_gate(broker, cid, res, inc):
     pr = res["paired"]
     k = int(res.get("term_k", 1))
     decision, thr, alt, near = E.gate_decisions(pr["z"], I_g, k_params=k, sum2=pr["sum2"])
+    # card["status"] is "testing" here; the retry rule needs the status before the test
+    retry = card.get("status_before_test") == "near_miss"
     reasons = []
     if not decision:
         reasons.append("z below threshold")
@@ -190,9 +247,9 @@ def apply_gate(broker, cid, res, inc):
     rng = np.random.default_rng(int(hashlib.sha256(f"{broker.keys['noise']}:{card['hash']}".encode()).hexdigest()[:12], 16))
     released = {"card_id": cid, "decision": "accept" if accept else "reject",
                 "gain": round((pr["gain"] + rng.normal(0, pr["se"])) / C.Q2_ROUND) * C.Q2_ROUND,
-                "near_miss": bool(near and not accept and card["status"] != "near_miss"),
+                "near_miss": bool(near and not accept and not retry),
                 "flags": flags if accept else []}
-    cost = C.Q2_BITS * (2 if card["status"] == "near_miss" else 1)
+    cost = C.Q2_BITS * (2 if retry else 1)
     charges = {g: cost for g in groups}
     broker.log("test", card_id=cid, family=card["family"], template="Q2", tranche=broker.dev,
                params_json=canonical({"_group_charges": charges, "term": card["term"]}),

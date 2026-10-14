@@ -17,7 +17,8 @@ import sys
 from training.scilearn import config as C
 
 KINDS = {"query", "refusal", "fit", "test", "inspect", "narrate", "canary", "accept", "reject",
-         "freeze", "unlock", "budget_reset", "card", "session_open", "baseline", "fixture"}
+         "freeze", "unlock", "budget_reset", "card", "session_open", "baseline", "fixture",
+         "error", "closeout"}
 FIELDS = ["session_id", "arm", "variant", "family", "card_id", "kind", "tranche", "snapshot_id",
           "code_hash", "template", "params_json", "canonical_hash", "cells", "released", "raw_ref",
           "noise_seed", "bits_charged", "group_bits_after", "session_bits_after", "gate_z",
