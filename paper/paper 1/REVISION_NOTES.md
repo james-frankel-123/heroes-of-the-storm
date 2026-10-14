@@ -1443,7 +1443,10 @@ rebuild before it takes paper-1 MCTS slots again.
   (new supplement section; replaces the dual-snapshot table).
 - **Manuscript**: main paper and supplement renumbered from these results
   (commits 5b13eaf, 4163770); 9 + 6 pages, no overfull boxes.
-- **Pending**: the within-snapshot split experiment (5090, `overfit2026/
+- **Split experiment (done 2026-10-13)**: rerun on site tiers (5090, `overfit2026/
   site_split_queue.py`; BC prior and self-play GD now trained on half A only,
-  self-play runs to the full 300K episodes); main Sec. III-B paragraph and the
-  supplement section follow its results.
+  self-play runs to the full 300K episodes). Held-out slope 0.62 (in-sample, 952K
+  games) vs 1.02 (out-of-fold); search 1,024 -> 16,384 sims: in-sample own +0.080,
+  half-B judges +0.027; out-of-fold +0.060 / +0.061. Self-play 200 -> 800 sims:
+  in-sample half-B judges -0.079 and 75% degenerate; out-of-fold +0.016. Main
+  Sec. III-B and the supplement section updated.

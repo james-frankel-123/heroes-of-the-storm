@@ -166,30 +166,32 @@ The operating-point agent's benchmark drafts draw near-human disagreement (1.24$
 \section{Leakage Mechanism: A Within-Snapshot Split Experiment}
 \label{sec:split}
 
-To isolate how in-sample statistics affect a value function and the search that optimizes it, without any balance drift, we split the pinned snapshot by a salted replay-level hash into halves A and B. Proxies, their statistics, their early stopping, and any search against them use only half A; references are built only from half B (three out-of-fold enriched judges, a hero-identity judge, and a cross-fitted realized-outcome index), plus the post-snapshot index and the Quick Match judge.
+To isolate how in-sample statistics affect a value function and the search that optimizes it, without any balance drift, we split the ranked snapshot by a salted replay-level hash into halves A and B. Proxies, their statistics, their early stopping, the behavioral-cloning prior and opponent of the search, and any search against them use only half A; references are built only from half B (three out-of-fold enriched judges, a hero-identity judge, and a cross-fitted realized-outcome index), plus the post-snapshot index and the Quick Match judge.
 
 \begin{table}[t]
 \centering
-\caption{Held-out quality on half B of value functions trained on half A. ``Own-split val.'': what a leaky pipeline reports about itself.}
+\caption{Held-out quality on half B of value functions trained on half A. ``Own-split val.'': what a leaky pipeline reports about itself (last epoch).}
 \label{tab:split}
 \setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{lcccc}
 \toprule
 Proxy statistics & Games & Own-split val. & Held-out & Slope \\
 \midrule
-in-sample, 1/8 of A & 122K & 68.4\% & 53.2\% & 0.17 \\
-in-sample, all of A & 975K & 59.4\% & 56.1\% & 0.61 \\
-out-of-fold, all of A & 975K & 56.3\% & 57.0\% & 1.10 \\
-hero identity only & 975K & 56.5\% & 57.1\% & 1.05 \\
+in-sample, 1/8 of A & 119K & 67.8\% & 53.3\% & 0.17 \\
+in-sample, all of A & 952K & 59.7\% & 56.2\% & 0.62 \\
+out-of-fold, all of A & 952K & 56.2\% & 57.0\% & 1.02 \\
+hero identity only & 952K & 56.5\% & 57.1\% & 1.04 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:split} shows the mechanism. In-sample statistics make the value function overconfident on games outside them (slope 0.61 at 975K games, 0.17 at 122K) and less accurate, while reporting inflated accuracy on its own validation rows. Out-of-fold statistics remove the effect. Width, depth, dropout, weight decay, and training length each move held-out accuracy by less than 0.2pp, with one exception: 40 epochs with no regularization (slope 0.40). Leakage dominates every capacity knob. ``Own-split'' accuracy is that of the last epoch.
+Table~\ref{tab:split} shows the mechanism. In-sample statistics make the value function overconfident on games outside them (slope 0.62 at 952K games, 0.17 at 119K) and less accurate, while reporting inflated accuracy on its own validation rows. Out-of-fold statistics remove the effect. Width, depth, dropout, weight decay, and training length each move held-out accuracy by at most 0.1pp, except training without regularization for 10 or 40 epochs ($-$0.3pp and $-$1.0pp; slope 0.57 and 0.40). Leakage dominates every capacity knob.
 
-Search then exploits the error. With a behavioral-cloning prior and argmax root selection, raising search from 1,024 to 16,384 simulations lifts the in-sample proxy's own score from 0.780 to 0.848 and its half-B judges from 0.631 to 0.666; the out-of-fold proxy, whose own score (0.673 $\to$ 0.734) tracks the judges almost one for one, reaches 0.661 $\to$ 0.713 on the same judges and higher values on every realized index. A small in-sample proxy (1/8 of A) shows classic over-optimization: its own score climbs to 0.932 while the half-B judges stop improving after 4,096 simulations (0.009 and 0.004 lower at 16,384, about two standard errors or less). A leak-free proxy trained on 1/8 of the data beats an in-sample proxy with 8$\times$ the data on both realized indices. In the paper's own self-play pipeline on half A (2 seeds per cell; the 800-simulation runs stopped at about 30\% of training; the behavioral-cloning prior and GD bootstrap were trained on the full snapshot, so they saw half B), raising training simulations from 200 to 800 at matched episodes moves the in-sample proxy's references down by 0.02--0.05 and the out-of-fold proxy's references up by 0.01--0.03.
+Search then exploits the error. With a behavioral-cloning prior and argmax root selection, raising search from 1,024 to 16,384 simulations lifts the in-sample proxy's own score from 0.754 to 0.834 and its half-B judges from 0.644 to 0.671; the out-of-fold proxy, whose own score (0.680 $\to$ 0.740) tracks the judges almost one for one, reaches 0.660 $\to$ 0.721 on the same judges and higher values on every realized index (half-B index 0.659 vs.\ 0.628, post-snapshot index 0.619 vs.\ 0.592). A small in-sample proxy (1/8 of A) shows classic over-optimization: its own score climbs to 0.941 while the half-B judges stop improving after 4,096 simulations (0.611, then 0.610). A leak-free proxy trained on 1/8 of the data beats an in-sample proxy with 8$\times$ the data on both realized indices (0.668 vs.\ 0.628 and 0.637 vs.\ 0.592 at 16,384 simulations).
 
-Two diagnostics that did not detect the problem: the per-draft disagreement of a 4-seed ensemble trained on the same statistics stays between 0.005 and 0.007 at every search pressure (seeds share the leak), and pessimistic lower-confidence-bound search using that disagreement moves the references by at most 0.007. Held-out calibration slope did detect it, which is why the main paper reports it for every value function and judge.
+The paper's own self-play pipeline on half A (2 seeds per cell, 300K episodes each, the behavioral-cloning bootstrap and the GD opponent trained on half A) shows the same split. Raising training simulations from 200 to 800 moves the in-sample agents' half-B judges from 0.686 to 0.607 and their degenerate rate from 27\% to 75\%, and lowers both realized indices by 0.03; the out-of-fold agents gain 0.016 under the same judges at a 3--4\% degenerate rate.
+
+Two diagnostics that did not detect the problem: the per-draft disagreement of a 4-seed ensemble trained on the same statistics stays between 0.005 and 0.007 at every search pressure (seeds share the leak), and pessimistic lower-confidence-bound search using that disagreement lifts the in-sample ensemble's half-B judges by at most 0.012 (0.639 $\to$ 0.651), well short of the out-of-fold ensemble (0.661). Held-out calibration slope did detect it, which is why the main paper reports it for every value function and judge.
 
 \section{Calibration of the Independent References}
 \label{sec:refcal}
