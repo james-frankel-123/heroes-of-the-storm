@@ -101,7 +101,7 @@ def incumbent_key(state, dev, fit=None):
                                      "labels": label_mode(state), "snap": state["snapshot"]}).encode()).hexdigest()[:16]
 
 
-def ensure_fit(state, dev, fit=None, prefix="inc"):
+def ensure_fit(state, dev, fit=None, prefix="inc", host=None):
     """Fit (once) the session's incumbent on `fit` tranches (default: its fit tranches) under
     its label mode, and register it.
 
@@ -123,10 +123,20 @@ def ensure_fit(state, dev, fit=None, prefix="inc"):
             return reg[key]
         job = f"{prefix}_{key}"
         evals = [dev] if fit == fit_tranches(dev) else []
-        with remote_slot():
-            R.submit({"job_id": job, "kind": "fit_eval", "fit_tranches": fit, "eval_tranches": evals,
-                      "models": {"INC": incumbent_specs(state)}}, HOST, label_mode=lm)
-            res = R.wait(job, HOST)
+        host = host or HOST
+        spec = {"job_id": job, "kind": "fit_eval", "fit_tranches": fit, "eval_tranches": evals,
+                "models": {"INC": incumbent_specs(state)}}
+        if host == HOST:
+            with remote_slot():
+                R.submit(spec, host, label_mode=lm)
+                res = R.wait(job, host)
+        else:
+            # small fits (Dpre+G) may run on the 5090's CPU; the outputs are then copied to
+            # the 3090, where explanation and Q2 jobs read their incumbents
+            R.submit(spec, host, label_mode=lm)
+            res = R.wait(job, host)
+            R.rsh(HOST, f"mkdir -p {C.REMOTE_ROOT}/jobs/{job}")
+            R.rsync_to(HOST, str(C.PRIVATE / "jobs" / job / "out"), f"{C.REMOTE_ROOT}/jobs/{job}/")
         entry = {"job": job, "name": "INC", "labels": lm, "dev": dev, "fit": fit,
                  "dev_metrics_private": res["models"]["INC"]["eval"].get(dev)}
         _registry_put(key, entry)
