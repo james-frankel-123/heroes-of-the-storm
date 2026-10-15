@@ -96,8 +96,28 @@ def _registry_put(key, entry):
         os.replace(tmp, REGISTRY)
 
 
+def confirm_specs(state, dev):
+    """Incumbent specs for the confirm table fit, with every family's cell vocabulary frozen
+    to the incumbent fit's, so the confirm table has exactly the incumbent table's cells
+    (a min_games rule recomputed on Dpre+G alone would keep far fewer cells)."""
+    from training.scilearn import fit as F
+    inc = ensure_incumbent(state, dev)
+    model = F.Model.load(C.PRIVATE / "jobs" / inc["job"] / "out" / inc["name"], {"heroes": []})
+    out = []
+    for spec, st_ in zip(model.specs, model.states):
+        spec = dict(spec)
+        if spec.get("type") in ("pair_family", "cross_family", "multiset") and (st_ or {}).get("vocab") is not None:
+            spec["_vocab"] = st_["vocab"]
+        out.append(spec)
+    return out
+
+
 def incumbent_key(state, dev, fit=None):
-    return hashlib.sha256(canonical({"specs": incumbent_specs(state), "fit": fit or fit_tranches(dev),
+    if fit is not None and fit == CONFIRM_FIT.get(dev):
+        specs = confirm_specs(state, dev)
+    else:
+        specs = incumbent_specs(state)
+    return hashlib.sha256(canonical({"specs": specs, "fit": fit or fit_tranches(dev),
                                      "labels": label_mode(state), "snap": state["snapshot"]}).encode()).hexdigest()[:16]
 
 
@@ -124,8 +144,9 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None):
         job = f"{prefix}_{key}"
         evals = [dev] if fit == fit_tranches(dev) else []
         host = host or HOST
+        specs = confirm_specs(state, dev) if fit == CONFIRM_FIT.get(dev) else incumbent_specs(state)
         spec = {"job_id": job, "kind": "fit_eval", "fit_tranches": fit, "eval_tranches": evals,
-                "models": {"INC": incumbent_specs(state)}}
+                "models": {"INC": specs}}
         if host == HOST:
             with remote_slot():
                 R.submit(spec, host, label_mode=lm)
@@ -564,7 +585,7 @@ def run_explain_canaries(state, dev, n_per_table=1):
         kind = X.table_kind(t)
         theory = {"features": CANARY_THEORIES[(kind, t["keys"][1] if kind == "hero_ctx" else None)]}
         for i in range(n_per_table):
-            job = f"xcanary_{sid}_{cid}_{i}"
+            job = f"xcanary_{sid}_{cid}_{i}_{conf['job'][-8:]}"   # new id when the confirm table changes
             spec = {"job_id": job, "kind": "explain", "fit_tranches": [], "eval_tranches": [], "models": {},
                     "inc_job": inc["job"], "confirm_job": conf["job"], "table_name": t["name"],
                     "theory": theory, "dev_tranche": dev, "fold_key": _derived_key("explain-fold"),

@@ -263,7 +263,7 @@ def compile_term(spec, ctx, state=None):
         rcA, rcB = ctx.role_counts(0), ctx.role_counts(1)
         codeA = (rcA * (6 ** np.arange(6))).sum(1)
         codeB = (rcB * (6 ** np.arange(6))).sum(1)
-        vocab = state.get("vocab")
+        vocab = state.get("vocab") or spec.get("_vocab")   # _vocab: harness-frozen cells
         if vocab is None:
             u, cnt = np.unique(np.concatenate([codeA, codeB]), return_counts=True)
             vocab = [int(x) for x, c in zip(u, cnt) if c >= int(spec.get("min_teams", 200))]
@@ -348,7 +348,7 @@ def compile_term(spec, ctx, state=None):
 
     if t in ("pair_family", "cross_family"):
         within = t == "pair_family"
-        vocab = state.get("vocab")
+        vocab = state.get("vocab") or spec.get("_vocab")   # _vocab: harness-frozen cells
         if within:
             ia, ib = np.triu_indices(5, 1)
             pa = np.sort(np.stack([A[:, ia], A[:, ib]], -1), -1)
