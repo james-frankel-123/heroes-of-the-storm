@@ -102,6 +102,12 @@ in a materially different form at double charge. Accepted terms carry an `unexpl
 until a mechanism test passes (below). If a test ends in `error`, the harness failed, nothing
 was charged, and you can run `hyp test` on the same card again.
 
+Timing: a test takes 1 to 4 minutes once it runs. After an accept, the incumbent is refit
+(about 100 minutes), and every test or mechanism test you start after the accept waits for
+that refit. `hyp test-status` shows a `stage` for each pending card (waiting for a refit,
+queued for a slot, or running). A pending test is never lost: its result and charge land in
+your ledger when it finishes, so wait for it rather than stopping.
+
 ## Explanation cards (cycle 2)
 
 A lookup table (hero x map, hero x tier, ally pairs, hero-vs-hero counters) predicts well and

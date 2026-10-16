@@ -18,6 +18,13 @@ from training.scilearn.ledger import Ledger, canonical
 REGISTRY = C.PRIVATE / "incumbents.json"
 HOST = "max-windows-3090"
 REMOTE_SLOTS = 2      # concurrent scilearn jobs on the 3090 (about 16 GB peak each; our share is 60 GB)
+REFIT_SLOTS = 1       # of those, incumbent refits (about 100 min each) may hold at most one
+SLOT_POLL = 10        # seconds between tries for a free slot
+
+
+class Superseded(Exception):
+    """The session accepted another term while this caller waited to launch a refit of its
+    (now older) incumbent. The caller re-reads the session state and asks again."""
 
 
 class remote_slot:
@@ -26,8 +33,8 @@ class remote_slot:
     def __enter__(self):
         import fcntl
         import time as _t
-        d = C.PRIVATE / "locks"
-        d.mkdir(exist_ok=True)
+        d = LOCKS
+        d.mkdir(parents=True, exist_ok=True)
         while True:
             for i in range(REMOTE_SLOTS):
                 f = open(d / f"remote_slot_{i}", "w")
@@ -37,7 +44,7 @@ class remote_slot:
                     return self
                 except BlockingIOError:
                     f.close()
-            _t.sleep(10)
+            _t.sleep(SLOT_POLL)
 
     def __exit__(self, *exc):
         import fcntl
@@ -121,7 +128,7 @@ def incumbent_key(state, dev, fit=None):
                                      "labels": label_mode(state), "snap": state["snapshot"]}).encode()).hexdigest()[:16]
 
 
-def ensure_fit(state, dev, fit=None, prefix="inc", host=None):
+def ensure_fit(state, dev, fit=None, prefix="inc", host=None, current=None, on_stage=None):
     """Fit (once) the session's incumbent on `fit` tranches (default: its fit tranches) under
     its label mode, and register it.
 
@@ -130,13 +137,24 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None):
     registry and both launched `inc_<key>`; hotsjob refused the second launch ("already
     running") and the card ended in "error". Now one fitter per key holds a lock while it
     fits; everyone else waits on the lock and then reads the registry. remote.submit also
-    attaches to a job that is already running or finished instead of failing."""
+    attaches to a job that is already running or finished instead of failing.
+
+    Scheduling (cycle 2 stall): a full refit runs about 100 minutes. In cycle 2, w2-K-blinded
+    accepted p01 and p02 seven minutes apart; refits of K+p01 and K+p01+p02 then held both
+    3090 slots for 1 h 50 min and no test of any session could run. Now
+      - a refit on the 3090 first takes the single refit token, so one slot always serves
+        tests (1 to 4 minutes each);
+      - `current` (a callable returning the session's live state) is checked once the token
+        is held and before launching: if the session has accepted more terms meanwhile, the
+        refit is skipped and Superseded raised, and the caller retries with the newer state.
+        Only the newest incumbent is ever fitted."""
     fit = fit or fit_tranches(dev)
     lm = label_mode(state)
     key = incumbent_key(state, dev, fit)
     reg = _registry()
     if key in reg:
         return reg[key]
+    stage = on_stage or (lambda msg: None)
     with key_lock(f"{prefix}_{key}"):
         reg = _registry()
         if key in reg:
@@ -148,12 +166,22 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None):
         spec = {"job_id": job, "kind": "fit_eval", "fit_tranches": fit, "eval_tranches": evals,
                 "models": {"INC": specs}}
         if host == HOST:
-            with remote_slot():
-                R.submit(spec, host, label_mode=lm)
-                res = R.wait(job, host)
+            dur = "about 100 minutes" if evals else "about 15 minutes"
+            stage(f"waiting to fit the incumbent ({job}); this fit takes {dur}")
+            with key_lock("refit_slot"):
+                # compare accepted terms only: a confirm key would call confirm_specs, which
+                # may need a refit itself, under the token this thread already holds
+                if current is not None and _terms_key(current()) != _terms_key(state):
+                    raise Superseded(job)
+                stage(f"waiting for a remote slot to fit the incumbent ({job})")
+                with remote_slot():
+                    stage(f"fitting the incumbent ({job}) since {_now()}; {dur}")
+                    R.submit(spec, host, label_mode=lm)
+                    res = R.wait(job, host)
         else:
             # small fits (Dpre+G) may run on the 5090's CPU; the outputs are then copied to
             # the 3090, where explanation and Q2 jobs read their incumbents
+            stage(f"fitting {job} on the 5090 since {_now()}")
             R.submit(spec, host, label_mode=lm)
             res = R.wait(job, host)
             R.rsh(HOST, f"mkdir -p {C.REMOTE_ROOT}/jobs/{job}")
@@ -167,8 +195,42 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None):
     return entry
 
 
-def ensure_incumbent(state, dev):
-    return ensure_fit(state, dev)
+def _terms_key(state):
+    return canonical({"specs": incumbent_specs(state), "labels": label_mode(state)})
+
+
+def _now():
+    import time as _t
+    return _t.strftime("%H:%M UTC", _t.gmtime())
+
+
+def _snapshot(broker):
+    with broker.lock:   # a stable copy: other test threads may append accepted terms
+        return json.loads(json.dumps(broker.state))
+
+
+def _stager(broker, cid):
+    def stage(msg):
+        st = getattr(broker, "stages", None)
+        if st is not None:
+            st[cid] = msg
+    return stage
+
+
+def with_current_incumbent(broker, cid, body):
+    """Run body(st, stage) on a fresh copy of the session state; if a refit it needs was
+    superseded by a later accept, take a new copy and run it again."""
+    stage = _stager(broker, cid)
+    while True:
+        st = _snapshot(broker)
+        try:
+            return body(st, stage)
+        except Superseded:
+            stage("the incumbent changed while waiting; moving to the newest incumbent")
+
+
+def ensure_incumbent(state, dev, current=None, on_stage=None):
+    return ensure_fit(state, dev, current=current, on_stage=on_stage)
 
 
 def recent_s_builds(meta, k=6):
@@ -185,18 +247,21 @@ def submit_q2(broker, cid):
 
 
 def finish_q2(broker, cid):
-    with broker.lock:   # a stable copy: other test threads may append accepted terms
-        st = json.loads(json.dumps(broker.state))
-    card = st["cards"][cid]
     dev = broker.dev
-    inc = ensure_incumbent(st, dev)
-    job = card["job"]
-    spec = {"job_id": job, "kind": "q2", "fit_tranches": fit_tranches(dev), "eval_tranches": [],
-            "models": {}, "incumbent_job": inc["job"], "incumbent": inc["name"], "term": card["term"],
-            "dev_tranche": dev, "recent_s_builds": recent_s_builds(broker.meta)}
-    with remote_slot():
-        R.submit(spec, HOST, label_mode=label_mode(st))
-        res = R.wait(job, HOST)
+
+    def body(st, stage):
+        card = st["cards"][cid]
+        inc = ensure_incumbent(st, dev, current=lambda: _snapshot(broker), on_stage=stage)
+        job = card["job"]
+        spec = {"job_id": job, "kind": "q2", "fit_tranches": fit_tranches(dev), "eval_tranches": [],
+                "models": {}, "incumbent_job": inc["job"], "incumbent": inc["name"], "term": card["term"],
+                "dev_tranche": dev, "recent_s_builds": recent_s_builds(broker.meta)}
+        stage("queued for a remote slot")
+        with remote_slot():
+            stage(f"running remotely since {_now()}")
+            R.submit(spec, HOST, label_mode=label_mode(st))
+            return R.wait(job, HOST), inc
+    res, inc = with_current_incumbent(broker, cid, body)
     with broker.lock:
         apply_gate(broker, cid, res, inc)
 
@@ -398,21 +463,25 @@ def _derived_key(*parts):
 
 def finish_explain(broker, cid):
     from training.scilearn import tranches as T
-    with broker.lock:
-        st = json.loads(json.dumps(broker.state))
-    card = st["cards"][cid]
     dev = broker.dev
-    inc = ensure_incumbent(st, dev)
-    conf = ensure_fit(st, dev, fit=CONFIRM_FIT[dev])
-    term = card["term"]
-    spec = {"job_id": card["job"], "kind": "explain", "fit_tranches": [], "eval_tranches": [], "models": {},
-            "inc_job": inc["job"], "confirm_job": conf["job"], "table_name": table_term_name(term["table"]),
-            "theory": {"features": term["features"]}, "dev_tranche": dev,
-            "fold_key": _derived_key("explain-fold"), "perm_key": _derived_key("explain-perm", card["hash"]),
-            "o3_key": T.load_keys()["o3_heroes"], "n_perm": 200, "lanes2": sorted(TM.LANES2)}
-    with remote_slot():
-        R.submit(spec, HOST, label_mode=label_mode(st))
-        res = R.wait(card["job"], HOST)
+
+    def body(st, stage):
+        card = st["cards"][cid]
+        cur = lambda: _snapshot(broker)
+        inc = ensure_incumbent(st, dev, current=cur, on_stage=stage)
+        conf = ensure_fit(st, dev, fit=CONFIRM_FIT[dev], current=cur, on_stage=stage)
+        term = card["term"]
+        spec = {"job_id": card["job"], "kind": "explain", "fit_tranches": [], "eval_tranches": [], "models": {},
+                "inc_job": inc["job"], "confirm_job": conf["job"], "table_name": table_term_name(term["table"]),
+                "theory": {"features": term["features"]}, "dev_tranche": dev,
+                "fold_key": _derived_key("explain-fold"), "perm_key": _derived_key("explain-perm", card["hash"]),
+                "o3_key": T.load_keys()["o3_heroes"], "n_perm": 200, "lanes2": sorted(TM.LANES2)}
+        stage("queued for a remote slot")
+        with remote_slot():
+            stage(f"running remotely since {_now()}")
+            R.submit(spec, HOST, label_mode=label_mode(st))
+            return R.wait(card["job"], HOST)
+    res = with_current_incumbent(broker, cid, body)
     with broker.lock:
         apply_explain_gate(broker, cid, res["explain_result"])
 
@@ -491,26 +560,29 @@ def ship_m_extract(host=HOST):
 
 
 def finish_mtest(broker, cid):
-    with broker.lock:
-        st = json.loads(json.dumps(broker.state))
-    card = st["cards"][cid]
-    mech = card["mechanism"]
     dev = broker.dev
-    ms = card["mtest_source"]
-    if ms["kind"] == "incumbent":
-        inc = ensure_incumbent(st, dev)
-        src = {"job": inc["job"], "model": "INC", "term_name": ms["term_name"]}
-    else:
-        src = {"job": card["job"], "model": "term", "term_name": ms["term_name"]}
-    name, _ = ship_m_extract()
-    job = f"mtest_{broker.sid}_{cid}_{hashlib.sha256(canonical(mech).encode()).hexdigest()[:6]}"
-    spec = {"job_id": job, "kind": "mtest", "fit_tranches": [], "eval_tranches": [], "models": {},
-            "m_data": name, "term_source": src, "mediator": mech["mediator"],
-            "negative_control": mech.get("negative_control"),
-            "shuffle_key": st.get("label_key") if st["arm"] == "shuffled" else None}
-    with remote_slot():
-        R.submit(spec, HOST, label_mode=label_mode(st))
-        res = R.wait(job, HOST)
+
+    def body(st, stage):
+        card = st["cards"][cid]
+        mech = card["mechanism"]
+        ms = card["mtest_source"]
+        if ms["kind"] == "incumbent":
+            inc = ensure_incumbent(st, dev, current=lambda: _snapshot(broker), on_stage=stage)
+            src = {"job": inc["job"], "model": "INC", "term_name": ms["term_name"]}
+        else:
+            src = {"job": card["job"], "model": "term", "term_name": ms["term_name"]}
+        name, _ = ship_m_extract()
+        job = f"mtest_{broker.sid}_{cid}_{hashlib.sha256(canonical(mech).encode()).hexdigest()[:6]}"
+        spec = {"job_id": job, "kind": "mtest", "fit_tranches": [], "eval_tranches": [], "models": {},
+                "m_data": name, "term_source": src, "mediator": mech["mediator"],
+                "negative_control": mech.get("negative_control"),
+                "shuffle_key": st.get("label_key") if st["arm"] == "shuffled" else None}
+        stage("queued for a remote slot")
+        with remote_slot():
+            stage(f"running remotely since {_now()}")
+            R.submit(spec, HOST, label_mode=label_mode(st))
+            return R.wait(job, HOST), job
+    res, job = with_current_incumbent(broker, cid, body)
     with broker.lock:
         apply_mtest_gate(broker, cid, res["mtest_result"], job)
 

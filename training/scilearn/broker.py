@@ -132,6 +132,7 @@ class Broker:
         self.code_hash = code_hash()
         self.m = None              # M feature store, loaded on first Q3 / inspect / mtest
         self.preparing = set()     # background table fits started by `table`
+        self.stages = {}           # card id -> where its test is waiting (shown by test-status)
 
     # ---- budget, recomputed from the ledger (single source of truth)
     def budget(self):
@@ -478,11 +479,15 @@ class Broker:
                 except Exception:
                     traceback.print_exc()
             traceback.print_exc()
+        finally:
+            self.stages.pop(cid, None)
 
     def test_status(self):
         out = {}
         for cid, c in self.state.get("cards", {}).items():
             out[cid] = {k: c.get(k) for k in ("status", "released", "reason", "mtest") if c.get(k) is not None}
+            if c.get("status") in ("testing", "mtesting") and self.stages.get(cid):
+                out[cid]["stage"] = self.stages[cid]
             if c.get("status") == "error":
                 out[cid]["reason"] = "harness error (not your card); no bits charged; `hyp test` it again"
         return out
@@ -852,6 +857,8 @@ class Broker:
                 self.log("error", card_id=cid, bits_charged=0.0,
                          note=f"mechanism test harness error, nothing charged: {str(e)[:200]}")
             traceback.print_exc()
+        finally:
+            self.stages.pop(cid, None)
 
     def incumbent_summary(self):
         from training.scilearn import harness
