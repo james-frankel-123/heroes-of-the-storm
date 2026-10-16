@@ -25,6 +25,10 @@ TRAINING = os.path.dirname(HERE)
 PY = sys.executable
 P = "personalization/"
 TAG = os.environ.get("P3_EXPORT_TAG", "oct05")
+# merged chain: the store and the extra-row file it writes into $P3_CACHE
+STORE = os.environ.get("P3_STORE", os.path.join(HERE, "cache", "full_history", "oct05", "history.npz"))
+ROWS = os.path.join(os.environ.get("P3_CACHE") or os.path.join(HERE, "cache"),
+                    f"merged_rows_{os.path.basename(os.path.dirname(STORE))}.npz")
 
 
 def s(name, *argv):
@@ -94,6 +98,22 @@ CHAINS = {
         s("x_oot", "p3_x_oot.py"),
         s("x_newacct", "p3_x_newacct.py"),
         s("c_lifetime", "p3_c_lifetime.py"),
+    ],
+    # A2: the merged as-of history (p3_c_merged.py) on cache_full after the
+    # full chain; run with P3_CACHE=<cache_full>, P3_STORE=<history.npz>,
+    # P3_RESULTS=<results dir holding A0's p3c/A0.npz>
+    "merged": [
+        s("c_rows", "p3_c_merged.py", "rows", "--store", STORE),
+        s("c_A1", "p3_c_tests.py", "predict", "--arm", "A1", "--rows", ROWS),
+        s("c_A2", "p3_c_tests.py", "predict", "--arm", "A2", "--history", "merged", "--rows", ROWS),
+        s("c_A2seen", "p3_c_tests.py", "predict", "--arm", "A2seen", "--history", "merged", "--rule", "seen",
+          "--rows", ROWS),
+        s("c_A2S", "p3_c_tests.py", "predict", "--arm", "A2S", "--history", "merged", "--exp-counts", "slots",
+          "--rows", ROWS),
+        s("c_A2Sseen", "p3_c_tests.py", "predict", "--arm", "A2Sseen", "--history", "merged", "--exp-counts",
+          "slots", "--rule", "seen", "--rows", ROWS),
+        s("c_report", "p3_c_tests.py", "report", "--arms", "A0,A1,A2seen,A2,A2Sseen,A2S", "--ref", "A2S",
+          "--name", "full"),
     ],
     # #2 on the window caches (run after the fixes chain)
     "lifetime": [

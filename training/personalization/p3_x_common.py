@@ -107,12 +107,14 @@ def kernels():
 
 
 def online_predict(d, add_mask, query_mask, K, r_adj, lag=1, freeze_day=None,
-                   extra=None):
+                   extra=None, half_life=None):
     """Causal per-query GP posterior (mean, var) at the query's own hero, plus
     the query's lagged counts (games on hero, games overall), without storing
     the (nq, 90) state for all queries. State holds add_mask rows with
     day <= query day - lag (and day <= freeze_day if given).
     extra: optional list of kernels to evaluate at the same state.
+    half_life: optional recency weight (days) on S and P, as
+    p3_hs_core.online_state; None = no decay (counts are never decayed).
     Returns qidx, mean, var, Nh, Np, [extra means]."""
     H = K.shape[0]
     day = d["day"]
@@ -129,6 +131,8 @@ def online_predict(d, add_mask, query_mask, K, r_adj, lag=1, freeze_day=None,
     ex = [np.empty(nq) for _ in (extra or [])]
     add_idx = np.flatnonzero(add_mask)
     add_day = day[add_idx]
+    lam = 0.0 if half_life is None else np.log(2) / half_life
+    d0 = int(day.min()) if len(day) else 0
     ap = 0
     ud, qs = np.unique(day[qidx], return_index=True)
     qe = np.r_[qs[1:], nq]
@@ -138,14 +142,19 @@ def online_predict(d, add_mask, query_mask, K, r_adj, lag=1, freeze_day=None,
         if e > ap:
             rr = add_idx[ap:e]
             pi, hi = d["pid"][rr], d["hero"][rr]
-            np.add.at(Sst, (pi, hi), r_adj[rr] / d["v"][rr])
-            np.add.at(Pst, (pi, hi), 1.0 / d["v"][rr])
+            sc = 1.0 if half_life is None else np.exp(lam * (day[rr] - d0))
+            np.add.at(Sst, (pi, hi), sc * r_adj[rr] / d["v"][rr])
+            np.add.at(Pst, (pi, hi), sc / d["v"][rr])
             np.add.at(Nst, (pi, hi), 1.0)
             ap = e
         q = qidx[a:b]
         pq, hq = d["pid"][q], d["hero"][q]
         Sq = np.ascontiguousarray(Sst[pq])
         Pq = np.ascontiguousarray(Pst[pq])
+        if half_life is not None:
+            dec = np.exp(-lam * (t - d0))
+            Sq *= dec
+            Pq *= dec
         mean[a:b], var[a:b] = C.gp_query(Sq, Pq, hq, K)
         for k, K2 in enumerate(extra or []):
             ex[k][a:b] = C.gp_query(Sq, Pq, hq, K2)[0]
