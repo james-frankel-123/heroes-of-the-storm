@@ -16,6 +16,16 @@ Usage (from training/, needs psycopg2 and DATABASE_URL):
   python3 personalization/p3_mmr_panel.py [--min-games 100]
 Output: personalization/cache/mmr_history/panel.tsv
   columns: order, region, blizz_id, battletag, n_games
+
+Tranche 2 (--tranche2, 2026-10-16): accounts NOT yet pulled (not in
+panel.tsv nor done.jsonl) with >= 20 SL games since 2025-01-01, ordered by
+last game, most recent first, so a partial pull covers the players most
+likely to appear in eval lobbies and future tranches. Reads the local store
+through DATABASE_URL_RESEARCH (read-only; Neon refused).
+  nice -n 19 python3 personalization/p3_mmr_panel.py --tranche2
+Output: personalization/cache/mmr_history/panel2.tsv
+  columns: order, region, blizz_id, battletag, n_games, last_game
+The panels hold battletags: cache/ is gitignored, never commit them.
 """
 import argparse
 import hashlib
@@ -27,12 +37,84 @@ CACHE = os.path.join(HERE, "cache")
 OUT_DIR = os.path.join(CACHE, "mmr_history")
 
 
+def tranche2(min_games, since, out_name):
+    import json
+    url = os.environ.get("DATABASE_URL_RESEARCH")
+    if not url:
+        raise SystemExit("DATABASE_URL_RESEARCH is not set (local read-only role)")
+    if "neon" in url.lower():
+        raise SystemExit("refusing a Neon URL: P3 reads the local store only")
+    pulled = set()
+    with open(os.path.join(OUT_DIR, "panel.tsv")) as f:
+        next(f)
+        for line in f:
+            c = line.split("\t")
+            pulled.add((int(c[1]), int(c[2])))
+    done_file = os.path.join(OUT_DIR, "done.jsonl")
+    if os.path.exists(done_file):
+        for line in open(done_file):
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            pulled.add((int(d["region"]), int(d["blizz_id"])))
+    import psycopg2
+    conn = psycopg2.connect(url)
+    conn.set_session(readonly=True)
+    cur = conn.cursor()
+    cur.execute("SET statement_timeout='60min'")
+    # latest battletag and last game per account in one pass; region from
+    # the draft row (replay_players.region is NULL on some early rows)
+    cur.execute(f"""
+        SELECT blizz_id, region, n, last_ts, tag FROM (
+          SELECT rp.blizz_id, d.region,
+                 count(*) OVER w AS n,
+                 EXTRACT(EPOCH FROM max(d.game_date) OVER w)::bigint AS last_ts,
+                 rp.battletag AS tag,
+                 row_number() OVER (PARTITION BY rp.blizz_id, d.region ORDER BY d.game_date DESC) AS k
+          FROM replay_players rp JOIN replay_draft_data d USING (replay_id)
+          WHERE d.game_date >= %s
+          WINDOW w AS (PARTITION BY rp.blizz_id, d.region)) x
+        WHERE k = 1 AND n >= %s""", (since, int(min_games)))
+    got = cur.fetchall()
+    print(f"accounts with >= {min_games} SL games since {since}: {len(got):,}")
+    rows, skipped_pulled, skipped_tag = [], 0, 0
+    for b, r, n, last_ts, t in got:
+        if (int(r), int(b)) in pulled:
+            skipped_pulled += 1
+            continue
+        if not t or "#" not in t:
+            skipped_tag += 1
+            continue
+        rows.append((-int(last_ts), -int(n), int(r), int(b), t, int(n), int(last_ts)))
+    rows.sort()
+    out = os.path.join(OUT_DIR, out_name)
+    import datetime
+    with open(out + ".tmp", "w") as f:
+        f.write("order\tregion\tblizz_id\tbattletag\tn_games\tlast_game\n")
+        for i, (_, _, r, b, t, n, ts) in enumerate(rows):
+            day = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc).strftime("%Y-%m-%d")
+            f.write(f"{i}\t{r}\t{b}\t{t}\t{n}\t{day}\n")
+    os.replace(out + ".tmp", out)
+    n_arr = np.array([x[5] for x in rows])
+    print(f"wrote {out}: {len(rows):,} accounts (skipped {skipped_pulled:,} already pulled, "
+          f"{skipped_tag} without a usable battletag); games since {since}: median {np.median(n_arr):.0f}, "
+          f"p90 {np.percentile(n_arr, 90):.0f}; regions "
+          f"{dict(zip(*[u.tolist() for u in np.unique([x[2] for x in rows], return_counts=True)]))}")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--min-games", type=int, default=100)
+    ap.add_argument("--tranche2", action="store_true",
+                    help="build panel2.tsv: unpulled accounts, >= 20 SL games since 2025-01-01, recent first")
+    ap.add_argument("--since", default="2025-01-01")
+    ap.add_argument("--min-games", type=int, default=None)
     ap.add_argument("--start", default="2024-04-01")
     ap.add_argument("--end", default="2026-05-23")  # exclusive; snapshot ends 2026-05-22
     a = ap.parse_args()
+    if a.tranche2:
+        return tranche2(a.min_games or 20, a.since, "panel2.tsv")
+    a.min_games = a.min_games or 100
     import psycopg2
     conn = psycopg2.connect(os.environ["DATABASE_URL"])
     cur = conn.cursor()

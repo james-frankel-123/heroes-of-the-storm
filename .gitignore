@@ -56,6 +56,9 @@ training/cuda_mcts/build_h91/
 training/cuda_mcts/h91/
 training/cuda_mcts/*.so
 training/cuda_mcts/__pycache__/
+# P3 personalization caches: exports, HP MMR histories and panels (battletags), merged history store
+training/personalization/cache/
+training/personalization/cache_full/
 wandb/
 
 # experiment result data files (large, regenerable)

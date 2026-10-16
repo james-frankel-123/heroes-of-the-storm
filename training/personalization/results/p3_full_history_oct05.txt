@@ -1,0 +1,140 @@
+{
+ "tag": "oct05",
+ "pulled_players": 29577,
+ "career_games_full": {
+  "median": 712.0,
+  "p10": 245.0,
+  "p90": 2503.4000000000015,
+  "total": 33700780
+ },
+ "career_games_corpus": {
+  "median": 267.0,
+  "total": 11190248
+ },
+ "ratio_full_to_corpus": {
+  "median": 2.4722222222222223,
+  "p25": 1.744047619047619,
+  "p75": 3.5454545454545454,
+  "pooled": 3.0116204752566698
+ },
+ "corpus_share_of_career": {
+  "median": 0.4044943820224719,
+  "before_2025_pooled": 0.16096263274026248,
+  "since_2025_pooled": 0.6853911756161284
+ },
+ "pulled_rows_by_year": {
+  "2019": {
+   "full": 2011857,
+   "corpus": 1062
+  },
+  "2020": {
+   "full": 3479058,
+   "corpus": 4806
+  },
+  "2021": {
+   "full": 3618337,
+   "corpus": 30058
+  },
+  "2022": {
+   "full": 3699370,
+   "corpus": 507362
+  },
+  "2023": {
+   "full": 4043195,
+   "corpus": 1188612
+  },
+  "2024": {
+   "full": 5854745,
+   "corpus": 1923008
+  },
+  "2025": {
+   "full": 7220507,
+   "corpus": 4267175
+  },
+  "2026": {
+   "full": 3773711,
+   "corpus": 3268165
+  }
+ },
+ "upload_lag_days": {
+  "replays": 9838758,
+  "median": 10.984768518518518,
+  "share_over_1d": 0.6724133269666761,
+  "share_over_7d": 0.538366224679985,
+  "share_over_30d": 0.4024290464304539,
+  "share_over_365d": 0.11076326910368159,
+  "by_year_share_over_7d": {
+   "2019": 0.7134162876295295,
+   "2020": 0.5720293935995122,
+   "2021": 0.5533385066802834,
+   "2022": 0.5187828358887047,
+   "2023": 0.53953097067826,
+   "2024": 0.5007946560605561,
+   "2025": 0.44978727843919175,
+   "2026": 0.37163423568436016
+  },
+  "corpus_replays": {
+   "replays": 2147284,
+   "median": 9.192864583333332,
+   "share_over_1d": 0.6567603540099959,
+   "share_over_7d": 0.5227571201573709,
+   "share_over_30d": 0.39504648663148423,
+   "share_over_365d": 0.1288576639140421
+  },
+  "hp_only_replays": {
+   "replays": 7691474,
+   "median": 11.434276620370369,
+   "share_over_1d": 0.6767832797718617,
+   "share_over_7d": 0.5427239304195789,
+   "share_over_30d": 0.4044900886358063,
+   "share_over_365d": 0.10571172703697626
+  }
+ }
+}
+{
+ "scored_slots": 10822691,
+ "scored_slots_pulled_share": 0.6298878901744492,
+ "asof_pulled_slots": {
+  "sampled": 2000000,
+  "games_before_median_full": 824.0,
+  "games_before_median_corpus": 214.0,
+  "ratio_median_(n+1)/(corpus+1)": 3.4338235294117645,
+  "hero_games_before_median_full": 38.0,
+  "hero_games_before_median_corpus": 12.0,
+  "hero_ratio_median": 2.75,
+  "share_with_50plus_hero_games_full": 0.438167,
+  "share_with_50plus_hero_games_corpus": 0.1851735,
+  "late_share_of_history_rows_(game rule rows not yet uploaded at start)": 0.07321812676096316,
+  "share_of_slots_with_any_late_row": 0.9870785,
+  "late_share_over_1d_of_history_rows": 0.07267733740386109,
+  "late_share_over_1d_of_hero_rows": 0.09387629795568364,
+  "share_of_slots_with_any_late_row_over_1d": 0.965395,
+  "corpus_late_share_over_1d": 0.20227372004098698
+ },
+ "lobbies": {
+  "scored": 1082432,
+  "all10_pulled": 67990,
+  "all10_pulled_by_year": {
+   "2024": 5541,
+   "2025": 43844,
+   "2026": 18605
+  },
+  "8plus_pulled": 360411
+ },
+ "lobbies_after_panel2": {
+  "all10": 429190,
+  "all10_by_year": {
+   "2024": 20404,
+   "2025": 284297,
+   "2026": 124489
+  },
+  "slots_pulled_share": 0.8641426610073225
+ }
+}
+{
+ "replays": 1933383,
+ "id_estimate_share_over_7d": 0.5211512669760725,
+ "parse_stamp_share_over_7d": 0.5806935304593037,
+ "agree_on_over_7d": 0.934878914317546,
+ "spearman_like_corr": 0.8511523356836818
+}

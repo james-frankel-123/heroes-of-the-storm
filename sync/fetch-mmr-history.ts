@@ -25,6 +25,9 @@
  *
  * Files (training/personalization/cache/mmr_history/):
  *   panel.tsv              input, from training/personalization/p3_mmr_panel.py
+ *   panel2.tsv, panel3.tsv later tranches (p3_mmr_panel.py --tranche2): read
+ *                          after panel.tsv, in file order; an account in two
+ *                          panels is fetched once (first panel wins)
  *   shards/<run>.jsonl.gz  one JSON record per account (rows in compact columns);
  *                          sync-flushed after each record, so a killed run's
  *                          shard is readable up to its last record
@@ -40,6 +43,11 @@
  *   npx tsx sync/fetch-mmr-history.ts --dry-run --limit 3 --out /tmp/x
  *        (fixture allowed; writes only under --out)
  *   --retry-errors   re-attempt accounts marked status=error
+ *   --panel a.tsv,b.tsv  panel files (relative to the cache dir, or absolute);
+ *                    default: every panel.tsv / panelN.tsv in the cache dir,
+ *                    panel.tsv first, then N ascending (so the hourly cron
+ *                    picks up a new tranche file with no crontab change)
+ * Accounts already in done.jsonl (any status) are never refetched.
  */
 import 'dotenv/config'
 import * as fs from 'fs'
@@ -67,7 +75,7 @@ const COLS = [
 ] as const
 const KNOWN = new Set<string>([...COLS, 'hero'])
 
-interface PanelRow { order: number; region: number; blizzId: number; battletag: string; nGames: number }
+interface PanelRow { order: number; region: number; blizzId: number; battletag: string; nGames: number; panel: string }
 interface Done { region: number; blizz_id: number; status: 'ok' | 'not_found' | 'error'; rows: number; calls: number; pages: number; at: string; err?: string }
 
 function arg(name: string): string | undefined {
@@ -76,13 +84,29 @@ function arg(name: string): string | undefined {
 }
 const flag = (name: string) => process.argv.includes(name)
 
+function panelFiles(dir: string): string[] {
+  const given = arg('--panel')
+  if (given) return given.split(',').map(f => path.isAbsolute(f) ? f : path.join(dir, f))
+  const num = (f: string) => Number(f.match(/^panel(\d*)\.tsv$/)![1] || 1)
+  return fs.readdirSync(dir).filter(f => /^panel\d*\.tsv$/.test(f))
+    .sort((a, b) => num(a) - num(b)).map(f => path.join(dir, f))
+}
+
+/** Panel rows of every panel file in order, deduped on (region, blizz_id). */
 function readPanel(dir: string): PanelRow[] {
-  const file = path.join(dir, 'panel.tsv')
-  const lines = fs.readFileSync(file, 'utf8').trim().split('\n').slice(1)
-  return lines.map(l => {
-    const [order, region, blizz, tag, n] = l.split('\t')
-    return { order: +order, region: +region, blizzId: +blizz, battletag: tag, nGames: +n }
-  })
+  const seen = new Set<string>()
+  const out: PanelRow[] = []
+  for (const file of panelFiles(dir)) {
+    const lines = fs.readFileSync(file, 'utf8').trim().split('\n').slice(1)
+    for (const l of lines) {
+      const [order, region, blizz, tag, n] = l.split('\t')
+      const k = `${+region}:${+blizz}`
+      if (seen.has(k)) continue
+      seen.add(k)
+      out.push({ order: +order, region: +region, blizzId: +blizz, battletag: tag, nGames: +n, panel: path.basename(file) })
+    }
+  }
+  return out
 }
 
 function readDone(dir: string): Map<string, Done> {
@@ -171,6 +195,12 @@ async function status(dir: string) {
   const bench = path.join(dir, 'bench.json')
   const perDay = Math.min(RATE * 1440, WEEKLY_BUDGET / 7)
   console.log(`panel ${panel.length.toLocaleString()} | done ${done.size.toLocaleString()} ${JSON.stringify(by)} | left ${left.toLocaleString()}`)
+  const files = [...new Set(panel.map(p => p.panel))]
+  for (const f of files) {
+    const rows = panel.filter(p => p.panel === f)
+    const l = rows.filter(p => !done.has(`${p.region}:${p.blizzId}`)).length
+    console.log(`  ${f}: ${rows.length.toLocaleString()} accounts, ${(rows.length - l).toLocaleString()} done, ${l.toLocaleString()} left`)
+  }
   console.log(`history rows stored ${rows.toLocaleString()} | calls last 7d ${ledger.lastWeek().toLocaleString()} / budget ${WEEKLY_BUDGET.toLocaleString()}`)
   if (fs.existsSync(bench)) console.log(`benched: ${fs.readFileSync(bench, 'utf8')}`)
   console.log(`ETA at ~${Math.round(perDay).toLocaleString()} calls/day: ${(left / perDay).toFixed(1)} days of live pulling`)
@@ -205,7 +235,7 @@ async function main() {
     const d = done.get(`${p.region}:${p.blizzId}`)
     return !d || (retryErrors && d.status === 'error')
   }).slice(0, limit)
-  log.info(`mmr-history: panel ${panel.length}, done ${done.size}, todo ${todo.length}, rate ${RATE}/min, ` +
+  log.info(`mmr-history: panel ${panel.length} (${panelFiles(dir).map(f => path.basename(f)).join(',')}), done ${done.size}, todo ${todo.length}, rate ${RATE}/min, ` +
     `week budget ${WEEKLY_BUDGET} (used ${ledger.lastWeek()})${dryRun ? ' [DRY RUN]' : ''}`)
   if (todo.length === 0) return
 
