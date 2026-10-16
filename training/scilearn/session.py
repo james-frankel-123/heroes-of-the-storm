@@ -6,6 +6,7 @@
   python -m training.scilearn.session launch <sid> [--dry-run]   run claude -p in the sandbox
   python -m training.scilearn.session stop <sid>
   python -m training.scilearn.session canaries <sid>       6 harness canaries (harness ledger only)
+  python -m training.scilearn.session closeout <sid>       final record, after `stop` and the final refit
 
 One budget per session (its own ledger), one working directory (SESSIONS/<sid>/work), one
 broker socket bound only into that session's container.
@@ -155,6 +156,47 @@ def stop(sid):
         pf.unlink()
 
 
+def closeout(sid):
+    """Append the cycle's closeout record: final status of every card, the accepted terms and
+    the registered incumbent that holds all of them. Refuses while the broker runs, while a
+    test is pending, or before that incumbent is fitted."""
+    from training.scilearn import harness
+    from training.scilearn.ledger import Ledger
+    priv = BR.private_session_dir(sid)
+    if (priv / "broker.pid").exists():
+        sys.exit(f"{sid}: broker still running; `session stop {sid}` first")
+    st = json.loads((priv / "state.json").read_text())
+    pending = sorted(c for c, v in st["cards"].items() if v.get("status") in ("testing", "mtesting"))
+    if pending:
+        sys.exit(f"{sid}: tests still pending: {pending}")
+    dev = BR.ARMS[st["arm"]]["dev"]
+    key = harness.incumbent_key(st, dev)
+    inc = harness._registry().get(key)
+    if inc is None:
+        sys.exit(f"{sid}: final incumbent inc_{key} is not fitted; run ensure_incumbent first")
+    led = Ledger(sid)
+    cyc = st["cycle"]
+    recs = list(led.records())
+    if any(r["kind"] == "closeout" and f"cycle={cyc}" in (r.get("note") or "") for r in recs):
+        sys.exit(f"{sid}: cycle {cyc} already closed")
+    dev_bits = med_bits = 0.0
+    for r in recs:
+        if r.get("bits_charged") and f"cycle={cyc}" in (r.get("note") or ""):
+            if json.loads(r.get("params_json") or "{}").get("_budget") == "mediator":
+                med_bits += r["bits_charged"]
+            else:
+                dev_bits += r["bits_charged"]
+    names = [t["name"] for t in st.get("accepted_terms", [])]
+    led.append("closeout", session_id=sid, arm=st["arm"], variant=st["variant"], snapshot_id=st["snapshot"],
+               params_json=json.dumps({"accepted_terms": names,
+                                       "cards": {c: v.get("status") for c, v in st["cards"].items()},
+                                       "incumbent_job": inc["job"]}),
+               note=(f"cycle-{cyc} close: broker stopped; {len(st['cards'])} cards; dev bits charged "
+                     f"{dev_bits:.2f}; mediator bits {med_bits:.2f}; no test pending; incumbent {inc['job']} "
+                     f"holds all {len(names)} accepted terms cycle={cyc}"))
+    print(f"{sid}: closed; incumbent {inc['job']}; {len(names)} accepted terms")
+
+
 def launch(sid, dry_run=False, extra=()):
     prompt = BR.private_session_dir(sid) / "prompt.md"
     cmd = [sys.executable, str(C.CODE / "sandbox" / "launch_session.py"), sid, "--prompt-file", str(prompt),
@@ -171,7 +213,7 @@ if __name__ == "__main__":
     p = sp.add_parser("prepare"); p.add_argument("sid"); p.add_argument("--arm", required=True, choices=sorted(BR.ARMS))
     p.add_argument("--variant", default="K"); p.add_argument("--cycle", type=int, default=1)
     p.add_argument("--from", dest="predecessor", help="closed session whose incumbent and group bits carry over")
-    for name in ("prefit", "broker", "stop", "canaries", "explain-canaries", "reprompt"):
+    for name in ("prefit", "broker", "stop", "canaries", "explain-canaries", "reprompt", "closeout"):
         q = sp.add_parser(name); q.add_argument("sid")
     l = sp.add_parser("launch"); l.add_argument("sid"); l.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
@@ -183,6 +225,8 @@ if __name__ == "__main__":
         start_broker(a.sid)
     elif a.cmd == "stop":
         stop(a.sid)
+    elif a.cmd == "closeout":
+        closeout(a.sid)
     elif a.cmd == "reprompt":
         if list((C.SESSIONS / a.sid / "logs").glob("claude-*.stream.jsonl")):
             sys.exit(f"{a.sid} has been launched; its prompt is part of the record")
