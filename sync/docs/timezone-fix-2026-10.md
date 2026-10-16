@@ -82,7 +82,7 @@ Ground truth is HP's per-player MMR-history pull
 `player_match_history`: 16,031 of 26,425 rows were wrong.
 - 15,914 take HP's time.
 - 17 take the corrected corpus time.
-- 100 rows (aaron#12738, 2019 to 2021, not in HP or the corpus) came from one write batch.
+- 100 rows (one tracked account, 2019 to 2021, not in HP or the corpus) came from one write batch.
   Its 826 HP-checked rows were all shifted, so these 100 got the reversal.
 - 2 rows from a batch whose HP-checked rows were all correct were left as they were.
 
