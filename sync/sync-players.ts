@@ -2,6 +2,7 @@ import { sql, eq, desc } from 'drizzle-orm'
 import { playerMatchHistory, trackedBattletags } from '../src/lib/db/schema'
 import { HpApi } from './hp-api'
 import { SyncDb } from './db'
+import { parseUtcDate } from './hp-dates'
 import { log } from './logger'
 
 /** Battletag config for sync. */
@@ -105,7 +106,7 @@ function parseReplays(data: any, battletag: string): Array<{
       else if (typeof winField === 'string') win = winField.toLowerCase() === 'win' || winField === '1' || winField.toLowerCase() === 'true'
 
       const dateStr = r.game_date ?? r.gameDate ?? r.date ?? ''
-      const gameDate = dateStr ? new Date(dateStr) : new Date()
+      const gameDate = parseUtcDate(dateStr) ?? new Date()
 
       // Build talent data from level_X fields (actual API format)
       const talents: Record<string, string | null> = {}

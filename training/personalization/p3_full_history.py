@@ -70,8 +70,13 @@ SRC_CORPUS, SRC_HP = 1, 2
 # offset on every pair, and our own fetch time precedes the corpus end on
 # 20.6% of those rows (0.03% against the HP time), so HP's game_date is the
 # right clock. The store uses HP's time for pairs and shifts corpus-only rows
-# from this id on. The DB itself is not changed here.
-CLOCK_FIX_RID = 64264402
+# from this id on.
+# DB corrected 2026-10-16 (sync/docs/timezone-fix-2026-10.md): the bug follows
+# the fetch time (daemon restart 2026-07-09 20:22:44 UTC), so the first shifted
+# id is 64264412 (64264402..64264408 were stored by the old process and are
+# right). Exports made after the correction are already UTC; merge() checks the
+# pairs and shifts only when the export still carries the offset.
+CLOCK_FIX_RID = 64264412
 SEEN_BIN = 2000          # replay ids per upload-time bin
 SEEN_Q = 95              # percentile of game end within a bin = upload time
 LOG = []
@@ -274,6 +279,12 @@ def merge(corpus, hp):
     m["end_ts"][both] = hp["end"][hi]
     m["hp_map"][both] = hp["map"][hi] if "map" in hp else -1
     fix = (bits == SRC_CORPUS) & (m["replay_id"] >= CLOCK_FIX_RID)
+    hp_new_pairs = hp["rid"][hi] >= CLOCK_FIX_RID
+    export_shifted = bool(hp_new_pairs.any() and
+                          (hp["end"][hi][hp_new_pairs] != corpus["end"][ci][hp_new_pairs]).mean() > 0.5)
+    agree["export_clock_shifted"] = export_shifted
+    if not export_shifted:
+        fix[:] = False
     if fix.any():
         e = m["end_ts"][fix]
         m["end_ts"][fix] = e - eastern_offset(e - 14400)
@@ -556,6 +567,7 @@ def scored_stats(st, out, slots_path=None):
     j = np.minimum(np.searchsorted(g["replay_ids"][o], z["replay_id"]), len(o) - 1)
     okt = g["replay_ids"][o][j] == z["replay_id"]
     end = np.where(okt, g["ts"][o][j], z["day"].astype(np.int64) * 86400 + 43200)
+    # gametime_2024q2.npz was built 2026-09-30, before the DB correction, so it still carries the offset
     late_clock = okt & (z["replay_id"] >= CLOCK_FIX_RID)       # corpus clock bug
     end[late_clock] -= eastern_offset(end[late_clock] - 14400)
     gl = np.where(okt, g["game_length"][o][j], -1)

@@ -18,6 +18,7 @@ import {
 import { ReplayApiPool } from './api-client'
 import { HeroesProfileApiV2 } from './api-client-v2'
 import { createDb, SyncDb } from './db'
+import { requireUtcDate } from './hp-dates'
 import { isHpAccessPaused } from './hp-errors'
 import { deriveListingFields } from './listing-fields'
 import { log } from './logger'
@@ -431,7 +432,7 @@ export async function fetchReplayData(
           replayId,
           region: replay.region || 0,
           gameMap: replay.game_map,
-          gameDate: new Date(replay.game_date),
+          gameDate: requireUtcDate(replay.game_date),
           gameLength: replay.game_length || null,
           // v1 replay detail has no game_version; the listing row does.
           gameVersion: replay.game_version || queueItem.gameVersion || '',

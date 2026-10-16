@@ -41,6 +41,7 @@ import { HeroesProfileApiV2 } from './api-client-v2'
 import { createHpApi } from './hp-api'
 import { deriveListingFields } from './listing-fields'
 import { createDb, SyncDb } from './db'
+import { parseUtcDate } from './hp-dates'
 import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
 import { storeReplayPlayers } from './player-store'
@@ -170,7 +171,7 @@ async function versionDateMap(db: SyncDb): Promise<Map<string, [number, number]>
   ).then(r => r.rows)
   return new Map(rows.map(r => [
     String(r.v),
-    [new Date(String(r.a)).getTime(), new Date(String(r.b)).getTime()],
+    [parseUtcDate(r.a)?.getTime() ?? NaN, parseUtcDate(r.b)?.getTime() ?? NaN],
   ]))
 }
 
@@ -383,12 +384,12 @@ async function main() {
           const listing = api instanceof HeroesProfileApiV2 && row.avg_mmr == null && row.league_tier == null
             ? await deriveListingFields(api, replay, 'qm')
             : { avgMmr: row.avg_mmr, leagueTier: row.league_tier }
-          const gameDate = replay.game_date ? new Date(replay.game_date) : null
+          const gameDate = parseUtcDate(replay.game_date)
           await db.insert(qmGames).values({
             replayId: row.replayID,
             region: row.region ?? (Number.isFinite(Number(replay.region)) ? Number(replay.region) : null),
             gameMap: String(replay.game_map ?? row.game_map ?? 'unknown').slice(0, 80),
-            gameDate: gameDate && !isNaN(gameDate.getTime()) ? gameDate : null,
+            gameDate,
             gameLength: Number.isFinite(Number(replay.game_length)) ? Number(replay.game_length) : null,
             gameVersion: String(replay.game_version ?? row.game_version ?? '').slice(0, 40) || null,
             gameType: String(replay.game_type ?? 'Quick Match').slice(0, 40),

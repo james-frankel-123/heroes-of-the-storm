@@ -52,6 +52,8 @@ Note that the 20-game threshold counts games in our corpus. At 69% corpus covera
 
 **1. Corpus clock bug.** This is fixed in the store but not in the DB.
 
+**Update 2026-10-16:** the DB is now corrected and the parse is fixed (`sync/docs/timezone-fix-2026-10.md`). The bug follows the fetch time, not the id: the first shifted row is 64,264,412 (64,264,402 to 64,264,408 were stored by the old daemon and are right). Exports made after 2026-10-16 11:09 UTC are already UTC, and `p3_full_history.merge()` now shifts corpus-only rows only when the pairs show the export still carries the offset. `p3_export.py` needs no shift.
+
 For replay ids from 64,264,402 on (games from about 2026-07-09), `replay_draft_data.game_date` is the true UTC end plus the US Eastern offset: 4 h in summer, 5 h in winter. Evidence:
 - On the 11.16M (player, match) pairs in both sources, the HP and corpus times agree exactly on every pair below that id.
 - From that id on, they differ by exactly the Eastern offset on 99.98% of pairs.
@@ -124,7 +126,7 @@ nice -n 19 taskset -c 48-51 python3 personalization/p3_full_history.py build --t
 nice -n 19 taskset -c 48-51 python3 personalization/p3_full_history.py stats --tag oct05
 ```
 
-**1. Clock fix before any rerun** (sync lane, about 1 h). Fix the `game_date` parse (UTC, not local) and correct stored rows from replay id 64,264,402 on. The research role cannot write, so the sync owner runs it. Until it is fixed, `p3_export.py` must apply the same shift as `p3_full_history.CLOCK_FIX_RID`. Add that to the stamps and games queries.
+**1. Clock fix before any rerun** (DONE 2026-10-16, see the update above) (sync lane, about 1 h). Fix the `game_date` parse (UTC, not local) and correct stored rows from replay id 64,264,402 on. The research role cannot write, so the sync owner runs it. Until it is fixed, `p3_export.py` must apply the same shift as `p3_full_history.CLOCK_FIX_RID`. Add that to the stamps and games queries.
 
 Check: re-export and confirm that fetched_ts < end_ts is about 0% in every id band.
 ```
