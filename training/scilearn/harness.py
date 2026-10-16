@@ -23,6 +23,11 @@ SLOT_POLL = 10        # seconds between tries for a free slot
 SMALL_FIT_HOST = "windows-5090-wsl"   # confirm fits (Dpre+G, about 3 min, under 11 GB) run here
 
 
+class ReplacedGone(Exception):
+    """A replacement card's target left the incumbent (another card replaced it) before the
+    test ran. A harness-side condition: logged free, the card can be resubmitted."""
+
+
 class Superseded(Exception):
     """The session accepted another term while this caller waited to launch a refit of its
     (now older) incumbent. The caller re-reads the session state and asks again."""
@@ -120,16 +125,101 @@ def confirm_specs(state, dev):
     return out
 
 
-def incumbent_key(state, dev, fit=None):
+# Fit modes (Max, 2026-10-15; CYCLE3_PREP.md section 1).
+#   legacy  the wave-0 to cycle-2 fits: 4 EB updates, 400 L-BFGS iterations each, never
+#           converged. Sessions without a `fit_policy` keep it, so their registry keys and
+#           cached fits are unchanged.
+#   cold    from zero, EB to a fixed point, every inner solve to the convergence criterion
+#           (fit.PGTOL, fit.EB_TOL) with no practical iteration cap. A session's starting
+#           incumbent and every end-of-cycle refit.
+#   warm    during a cycle: start from the newest registered fit of the same session lineage
+#           (same labels, snapshot and fit tranches), new terms at their Q2 offset-fit values
+#           or 0, same criterion, capped at WARM_MAX_ITER iterations so a refit after an
+#           accept stays short. Its registry entry says whether it converged.
+WARM_MAX_ITER = 6000
+COLD_TIMEOUT = 72 * 3600
+WARM_TIMEOUT = 12 * 3600
+
+
+def fit_mode(state, dev, fit=None):
+    """legacy | cold | warm for the session's fit on `fit` tranches (default: incumbent fit)."""
+    pol = state.get("fit_policy")
+    if not pol:
+        return "legacy"
+    fit = fit or fit_tranches(dev)
+    if fit == fit_tranches(dev) and _terms_key(state) == pol.get("start_terms_key"):
+        return "cold"
+    return "warm"
+
+
+def incumbent_key(state, dev, fit=None, mode=None):
     if fit is not None and fit == CONFIRM_FIT.get(dev):
         specs = confirm_specs(state, dev)
     else:
         specs = incumbent_specs(state)
-    return hashlib.sha256(canonical({"specs": specs, "fit": fit or fit_tranches(dev),
-                                     "labels": label_mode(state), "snap": state["snapshot"]}).encode()).hexdigest()[:16]
+    mode = mode or fit_mode(state, dev, fit)
+    obj = {"specs": specs, "fit": fit or fit_tranches(dev), "labels": label_mode(state), "snap": state["snapshot"]}
+    if mode != "legacy":
+        obj["mode"] = mode       # legacy keys stay exactly as they were
+    return hashlib.sha256(canonical(obj).encode()).hexdigest()[:16]
 
 
-def ensure_fit(state, dev, fit=None, prefix="inc", host=None, current=None, on_stage=None):
+def fit_options(mode):
+    if mode == "cold":
+        return {"mode": "cold", "max_iter_round": 200000, "max_eb_rounds": 200}
+    if mode == "warm":
+        return {"mode": "warm", "max_iter_total": WARM_MAX_ITER}
+    return None
+
+
+def _job_spec(job):
+    """The local copy of a fit job's spec (fit tranches, extract name, model specs), if the
+    job finished and its outputs were pulled back."""
+    d = R.JOBS_LOCAL / job
+    if not (d / "spec.json").exists() or not (d / "out" / "INC.npz").exists():
+        return None
+    try:
+        return json.loads((d / "spec.json").read_text())
+    except ValueError:
+        return None
+
+
+def warm_sources(state, dev, fit, specs):
+    """Start points for a warm fit: the registered fit of the same labels, snapshot and fit
+    tranches that shares the most terms with `specs` (newest first on ties), then the Q2
+    offset fits of terms that fit lacks. Returns [{"job", "name", "tag"}]."""
+    lm = label_mode(state)
+    want = {canonical(s) for s in specs}
+    best, best_n, best_t, best_specs = None, 0, (False, -1.0), []
+    for key, e in _registry().items():
+        if e.get("labels") != lm:
+            continue
+        js = _job_spec(e["job"])
+        if js is None or js.get("fit_tranches") != fit or not str(js.get("data", "")).startswith(state["snapshot"]):
+            continue
+        sp_ = (js.get("models") or {}).get("INC") or []
+        n = len(want & {canonical(s) for s in sp_})
+        # ties: a converged fit (cold or warm mode) before a legacy one, then the newest
+        t = (e.get("fit_mode") in ("cold", "warm"), (R.JOBS_LOCAL / e["job"] / "out" / "INC.npz").stat().st_mtime)
+        if n > best_n or (n == best_n and n > 0 and t > best_t):
+            best, best_n, best_t, best_specs = e, n, t, sp_
+    out = []
+    covered = set()
+    if best is not None:
+        out.append({"job": best["job"], "name": best.get("name", "INC"), "tag": f"incumbent {best['job']}"})
+        covered = want & {canonical(s) for s in best_specs}
+    for cid, c in (state.get("cards") or {}).items():
+        t = c.get("term")
+        if not t or not c.get("job") or canonical(t) not in want or canonical(t) in covered:
+            continue
+        if (R.JOBS_LOCAL / c["job"] / "out" / "term.npz").exists():
+            out.append({"job": c["job"], "name": "term", "tag": f"Q2 offset fit of {cid}"})
+            covered.add(canonical(t))
+    return out
+
+
+def ensure_fit(state, dev, fit=None, prefix="inc", host=None, current=None, on_stage=None, mode=None,
+               sources=None):
     """Fit (once) the session's incumbent on `fit` tranches (default: its fit tranches) under
     its label mode, and register it.
 
@@ -148,10 +238,14 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None, current=None, on_s
       - `current` (a callable returning the session's live state) is checked once the token
         is held and before launching: if the session has accepted more terms meanwhile, the
         refit is skipped and Superseded raised, and the caller retries with the newer state.
-        Only the newest incumbent is ever fitted."""
+        Only the newest incumbent is ever fitted.
+
+    mode: legacy | cold | warm (see fit_mode); default from the session's fit policy. Cold and
+    warm fits record their convergence status in the registry entry and in INC.json."""
     fit = fit or fit_tranches(dev)
     lm = label_mode(state)
-    key = incumbent_key(state, dev, fit)
+    mode = mode or fit_mode(state, dev, fit)
+    key = incumbent_key(state, dev, fit, mode=mode)
     reg = _registry()
     if key in reg:
         return reg[key]
@@ -166,8 +260,17 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None, current=None, on_s
         specs = confirm_specs(state, dev) if fit == CONFIRM_FIT.get(dev) else incumbent_specs(state)
         spec = {"job_id": job, "kind": "fit_eval", "fit_tranches": fit, "eval_tranches": evals,
                 "models": {"INC": specs}}
+        srcs = []
+        if mode != "legacy":
+            spec["fit_options"] = fit_options(mode)
+            if mode == "warm":
+                srcs = sources if sources is not None else warm_sources(state, dev, fit, specs)
+                spec["warm_from"] = srcs
+        timeout = {"cold": COLD_TIMEOUT, "warm": WARM_TIMEOUT}.get(mode, 6 * 3600)
         if host == HOST:
-            dur = "about 100 minutes" if evals else "about 15 minutes"
+            dur = {"cold": "several hours (cold fit to convergence)",
+                   "warm": "about 15 to 60 minutes (warm start)"}.get(mode) or (
+                "about 100 minutes" if evals else "about 15 minutes")
             stage(f"waiting to fit the incumbent ({job}); this fit takes {dur}")
             with key_lock("refit_slot"):
                 # compare accepted terms only: a confirm key would call confirm_specs, which
@@ -177,8 +280,10 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None, current=None, on_s
                 stage(f"waiting for a remote slot to fit the incumbent ({job})")
                 with remote_slot():
                     stage(f"fitting the incumbent ({job}) since {_now()}; {dur}")
+                    if srcs:
+                        _ship_sources(srcs, host)
                     R.submit(spec, host, label_mode=lm)
-                    res = R.wait(job, host)
+                    res = R.wait(job, host, timeout=timeout)
         else:
             # small fits (Dpre+G) may run on the 5090's CPU, one at a time (each needs close
             # to its 11 GB cap); the outputs are then copied to the 3090, where explanation
@@ -187,18 +292,47 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None, current=None, on_s
             with key_lock(f"slot_{host}"):
                 if current is not None and _terms_key(current()) != _terms_key(state):
                     raise Superseded(job)
-                stage(f"fitting {job} on the 5090 since {_now()}; about 3 minutes")
+                stage(f"fitting {job} on the 5090 since {_now()}")
+                if srcs:
+                    _ship_sources(srcs, host)
                 R.submit(spec, host, label_mode=lm)
-                res = R.wait(job, host)
+                res = R.wait(job, host, timeout=timeout)
             R.rsh(HOST, f"mkdir -p {C.REMOTE_ROOT}/jobs/{job}")
             R.rsync_to(HOST, str(C.PRIVATE / "jobs" / job / "out"), f"{C.REMOTE_ROOT}/jobs/{job}/")
+        mres = res["models"]["INC"]
         entry = {"job": job, "name": "INC", "labels": lm, "dev": dev, "fit": fit,
-                 "dev_metrics_private": res["models"]["INC"]["eval"].get(dev)}
+                 "dev_metrics_private": mres["eval"].get(dev)}
+        if mode != "legacy":
+            entry.update({"fit_mode": mode, "fit_status": mres.get("fit_status"), "snap": state["snapshot"],
+                          "session_id": state["session_id"], "warm_from": [s["job"] for s in srcs],
+                          "warm_start": mres.get("warm_start")})
         _registry_put(key, entry)
+        st_ = mres.get("fit_status") or {}
         Ledger("harness").append("fit", session_id=state["session_id"], tranche=",".join(fit),
                                  snapshot_id=state["snapshot"], canonical_hash=key,
-                                 note=f"{prefix} fit {job} labels={lm.split(':')[0]}")
+                                 note=(f"{prefix} fit {job} labels={lm.split(':')[0]} mode={mode}"
+                                       + (f" converged={st_.get('converged')} iterations={st_.get('iterations')}"
+                                          f" eb_rounds={st_.get('eb_rounds')}" if mode != "legacy" else "")
+                                       + (f" warm_from={','.join(s['job'] for s in srcs)}" if srcs else "")))
     return entry
+
+
+def _ship_sources(srcs, host):
+    """Warm-start sources must be on the fitting host. Incumbents fit on the 5090 were copied
+    to the 3090; Q2 jobs ran on the 3090. Copy whatever the host lacks from the local store."""
+    for s in srcs:
+        d = R.JOBS_LOCAL / s["job"] / "out"
+        have = R.rsh(host, f"test -f {C.REMOTE_ROOT}/jobs/{s['job']}/out/{s['name']}.npz && echo yes || true").strip()
+        if have != "yes" and d.exists():
+            R.rsh(host, f"mkdir -p {C.REMOTE_ROOT}/jobs/{s['job']}/out")
+            for ext in ("npz", "json"):
+                R.rsync_to(host, d / f"{s['name']}.{ext}", f"{C.REMOTE_ROOT}/jobs/{s['job']}/out/")
+
+
+def cold_refit(state, dev, on_stage=None):
+    """End-of-cycle refit of the session's final incumbent: cold, to convergence. Takes the
+    refit token like any 3090 refit, so one slot stays free for tests."""
+    return ensure_fit(state, dev, mode="cold", on_stage=on_stage)
 
 
 def _terms_key(state):
@@ -262,6 +396,16 @@ def finish_q2(broker, cid):
         spec = {"job_id": job, "kind": "q2", "fit_tranches": fit_tranches(dev), "eval_tranches": [],
                 "models": {}, "incumbent_job": inc["job"], "incumbent": inc["name"], "term": card["term"],
                 "dev_tranche": dev, "recent_s_builds": recent_s_builds(broker.meta)}
+        if st.get("fit_policy"):
+            # incumbents are converged from cycle 3 on, so the term is fit to convergence too;
+            # an under-fit term against a converged incumbent would bias every test (and a
+            # replacement most: its old term was fit jointly to convergence)
+            spec["term_fit_options"] = {"mode": "cold"}
+        rep = card.get("replaces")
+        if rep:
+            if rep["term_name"] not in {t.get("name") for t in st.get("accepted_terms", [])}:
+                raise ReplacedGone(f"the term this card replaces ({rep['card_id']}) is no longer in the incumbent")
+            spec["replaces"] = rep["term_name"]
         stage("queued for a remote slot")
         with remote_slot():
             stage(f"running remotely since {_now()}")
@@ -272,8 +416,9 @@ def finish_q2(broker, cid):
         apply_gate(broker, cid, res, inc)
 
 
-def safety_probes(model_inc, term_model, meta, kit=None, n=400, seed=7):
-    """Five-tank and no-healer probes (read no outcomes). Returns P(probe team wins)."""
+def safety_probes(model_inc, term_model, meta, kit=None, n=400, seed=7, drop=None):
+    """Five-tank and no-healer probes (read no outcomes). Returns P(probe team wins).
+    drop: for a replacement card, the incumbent term the new term replaces."""
     rng = np.random.default_rng(seed)
     roles = np.asarray(meta["hero_roles"])
     by = {r: np.flatnonzero(roles == i) for i, r in enumerate(meta["roles"])}
@@ -299,6 +444,8 @@ def safety_probes(model_inc, term_model, meta, kit=None, n=400, seed=7):
         ctx = TM.Ctx(g, m, kit=kit, players={"player_key": np.full((n, 10), -1), "party": np.zeros((n, 10), np.int64)})
         e0 = model_inc.logit(ctx)
         e1 = e0 + (term_model.logit(TM.Ctx(g, m, kit=kit, players=ctx.players)) if term_model is not None else 0)
+        if drop is not None:
+            e1 = e1 - model_inc.term_contrib(ctx)[drop]
         out[probe] = (float(expit(e0).mean()), float(expit(e1).mean()))
     return out
 
@@ -312,15 +459,28 @@ def apply_gate(broker, cid, res, inc):
     st = broker.state
     card = st["cards"][cid]
     k = int(res.get("term_k", 1))
+    rep = card.get("replaces")
+    k_old = int((res.get("replaced") or {}).get("k", 0)) if rep else 0
     # FRAMING 6.1 caps the model at 20K parameters. The Q2 job fits the term against the
     # incumbent's frozen logit, so the joint size is first known here. In cycle 2,
     # w2-K-blinded p03 (2,553 parameters on an incumbent of 17,668) was accepted and its
     # incumbent then could not be compiled. A term the incumbent cannot hold is refused,
-    # free, before any gate result is computed or released.
-    inc_p = incumbent_params(inc)
-    if inc_p + k > C.MAX_PARAMS:
+    # free, before any gate result is computed or released. A replacement card is checked on
+    # the result: the incumbent minus the replaced term plus the new one.
+    if rep and rep["term_name"] not in {t.get("name") for t in st.get("accepted_terms", [])}:
         card["status"] = card.pop("status_before_test", "registered")
-        card["refusal"] = (f"the incumbent ({inc_p} parameters) plus this term ({k}) would exceed the "
+        card["refusal"] = (f"the term this card replaces ({rep['card_id']}) left the incumbent while the test ran; "
+                           "nothing charged")
+        broker.log("refusal", card_id=cid, family=card["family"], canonical_hash=card["hash"], bits_charged=0.0,
+                   raw_ref=f"jobs/{card['job']}/out/result.json", note=card["refusal"])
+        broker.save_state()
+        return
+    inc_p = incumbent_params(inc)
+    if inc_p - k_old + k > C.MAX_PARAMS:
+        card["status"] = card.pop("status_before_test", "registered")
+        card["refusal"] = (f"the incumbent ({inc_p} parameters"
+                           + (f", {k_old} of them in the replaced term" if rep else "")
+                           + f") plus this term ({k}) would exceed the "
                            f"{C.MAX_PARAMS}-parameter cap; nothing charged; a smaller form can be tested")
         broker.log("refusal", card_id=cid, family=card["family"], canonical_hash=card["hash"], bits_charged=0.0,
                    raw_ref=f"jobs/{card['job']}/out/result.json", note=card["refusal"])
@@ -355,7 +515,7 @@ def apply_gate(broker, cid, res, inc):
         meta["kit_axes"] = axes
         inc_m = F.Model.load(C.PRIVATE / "jobs" / inc["job"] / "out" / inc["name"], meta)
         term_m = F.Model.load(C.PRIVATE / "jobs" / card["job"] / "out" / "term", meta)
-        probes = safety_probes(inc_m, term_m, meta, kit)
+        probes = safety_probes(inc_m, term_m, meta, kit, drop=rep["term_name"] if rep else None)
         for pname, (p0, p1) in probes.items():
             if p1 > p0 + 0.01:
                 reasons.append(f"safety probe {pname} worse ({p0:.3f} -> {p1:.3f})")
@@ -370,6 +530,9 @@ def apply_gate(broker, cid, res, inc):
                 "gain": round((pr["gain"] + rng.normal(0, pr["se"])) / C.Q2_ROUND) * C.Q2_ROUND,
                 "near_miss": bool(near and not accept and not retry),
                 "flags": flags if accept else []}
+    if rep:
+        released["replaces"] = rep["card_id"]
+        released["parameters_after"] = inc_p - k_old + k if accept else None
     cost = C.Q2_BITS * (2 if retry else 1)
     charges = {g: cost for g in groups}
     broker.log("test", card_id=cid, family=card["family"], template="Q2", tranche=broker.dev,
@@ -378,14 +541,20 @@ def apply_gate(broker, cid, res, inc):
                bits_charged=cost, group_bits_after={g: round(b["groups"].get(g, 0) + cost, 3) for g in groups},
                session_bits_after=round(b["dev_bits"] + cost, 3), gate_z=round(pr["z"], 3),
                threshold=round(thr, 3), decision=released["decision"],
-               alt_decisions={**alt, "invariance": inv, "probes": probes, "reasons": reasons, "k": k})
+               alt_decisions={**alt, "invariance": inv, "probes": probes, "reasons": reasons, "k": k,
+                              **({"replaces": rep, "k_replaced": k_old} if rep else {})})
     broker.log("accept" if accept else "reject", card_id=cid, family=card["family"],
                canonical_hash=card["hash"], decision=released["decision"],
-               note="; ".join(reasons) if reasons else "accepted (unexplained: no mechanism data)")
+               note=("; ".join(reasons) if reasons else "accepted (unexplained: no mechanism data)")
+               + (f"; replaces {rep['card_id']} ({rep['term_name']})" if rep else ""))
     card["released"] = released
     card["status"] = "accepted" if accept else ("near_miss" if released["near_miss"] else "rejected")
     if accept:
-        st.setdefault("accepted_terms", []).append(card["term"])
+        terms = st.setdefault("accepted_terms", [])
+        if rep:
+            terms[:] = [t for t in terms if t.get("name") != rep["term_name"]]
+            st.setdefault("replaced", {})[rep["card_id"]] = cid
+        terms.append(card["term"])
     broker.save_state()
 
 
@@ -417,7 +586,9 @@ def run_canaries(broker, wait=True):
     inc = ensure_incumbent(st, dev)
     # Known-true canaries are scored against the starting backbone, which lacks them; against a
     # cycle-2 incumbent that already holds role-multiset and pair terms they would be redundant.
-    inc_true = ensure_incumbent({**st, "accepted_terms": []}, dev)
+    # The K0 reference stays the fit every earlier cycle used (legacy mode), so known-true
+    # canaries are the same test in every cycle.
+    inc_true = ensure_incumbent({**{k: v for k, v in st.items() if k != "fit_policy"}, "accepted_terms": []}, dev)
     hl = Ledger("harness")
     out = []
     jobs = []

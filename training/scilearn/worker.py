@@ -54,13 +54,25 @@ def main(spec_path):
 
     # Features that need history (decay) are computed on the full context, then subset.
     fitted = {}
+    fopts = spec.get("fit_options")
+    warm = []
+    for src in spec.get("warm_from") or []:
+        p = job_dir.parent / src["job"] / "out" / src["name"]
+        if p.with_suffix(".npz").exists():
+            wm = F.Model.load(p, meta)
+            wm.tag = src.get("tag", src["job"])
+            warm.append(wm)
+        else:
+            print(f"warm source missing: {p}", flush=True)
     for name, specs in spec["models"].items():
         ctx_fit = full.subset(fit_idx)
-        m = F.fit(specs, ctx_fit, y[fit_idx], verbose=True)
+        m = F.fit(specs, ctx_fit, y[fit_idx], verbose=True, converge=fopts, warm_from=warm)
         m.save(out / name)
         fitted[name] = m
         result["models"][name] = {"p": m.fit_info["p"], "seconds": m.fit_info["seconds"],
-                                  "model_hash": m.model_hash(), "lam": m.lam.tolist(), "eval": {}}
+                                  "model_hash": m.model_hash(), "lam": m.lam.tolist(), "eval": {},
+                                  "fit_status": m.fit_info.get("fit_status"),
+                                  "warm_start": m.fit_info.get("warm_start")}
         for tr in spec.get("eval_tranches", []):
             ev = np.flatnonzero(trc == T.CODES[tr])
             E.check_disjoint(games["replay_id"][ev], games["replay_id"][fit_idx])
@@ -74,29 +86,7 @@ def main(spec_path):
         # incumbent's logit as offset; the gain is scored on the session's dev tranche.
         inc_dir = job_dir.parent / spec["incumbent_job"] / "out"
         inc = F.Model.load(inc_dir / spec["incumbent"], meta)
-        ctx_fit = full.subset(fit_idx)
-        off_fit = inc.logit(ctx_fit)
-        term = spec["term"]
-        cand = F.fit([term], ctx_fit, y[fit_idx], offset=off_fit)
-        cand.save(out / "term")
-        dev = spec["dev_tranche"]
-        ev = np.flatnonzero(trc == T.CODES[dev])
-        E.check_disjoint(games["replay_id"][ev], games["replay_id"][fit_idx])
-        ctx_dev = full.subset(ev)
-        e0 = inc.logit(ctx_dev)
-        e1 = e0 + cand.logit(ctx_dev)
-        pk = players["player_key"][ev] if players is not None else np.full((len(ev), 10), -1)
-        blocks = E.clusters(games["game_ts"][ev], pk)
-        result["paired"] = E.paired_gain(e0, e1, y[ev], blocks)
-        np.savez(out / "dev_delta.npz", replay_id=games["replay_id"][ev], e0=e0, e1=e1)
-        rb = spec.get("recent_s_builds", [])
-        s_idx = np.flatnonzero((trc == T.CODES["S"]) & np.isin(games["build"], rb))
-        ctx_s = full.subset(s_idx)
-        score = np.asarray(cand.logit(ctx_s))
-        result["invariance"] = E.invariance(score, inc.logit(ctx_s), y[s_idx], games["build"][s_idx], rb)
-        result["term_coefs"] = {n: float(b) for n, b in list(zip(cand.names, cand.beta))[:200]}
-        result["term_k"] = int(cand.fit_info["p"])
-        result["frac_games_touched"] = float((np.abs(cand.logit(ctx_dev)) > 1e-9).mean())
+        result.update(run_q2(spec, out, inc, full, fit_idx, trc, games, y, players))
     if spec["kind"] == "explain":
         result.update(run_explain(spec, job_dir, games, meta, y, full, kit))
     if spec["kind"] == "mtest":
@@ -104,6 +94,60 @@ def main(spec_path):
     result["seconds"] = round(time.time() - t0, 1)
     (out / "result.json").write_text(json.dumps(result, indent=1, default=float))
     print("DONE", result["seconds"], flush=True)
+
+
+def incumbent_parts(inc, ctx, drop=None):
+    """(full incumbent logit, contribution of term `drop` or 0) on ctx, from one design."""
+    X = inc.design(ctx)
+    eta = np.asarray(X @ inc.beta).ravel()
+    if drop is None:
+        return eta, np.zeros_like(eta)
+    names = [s.get("name") for s in inc.specs]
+    if drop not in names:
+        raise ValueError(f"replaced term {drop!r} is not in the incumbent")
+    i = names.index(drop)
+    o0, o1 = int(inc.offs[i]), int(inc.offs[i + 1])
+    return eta, np.asarray(X[:, o0:o1] @ inc.beta[o0:o1]).ravel()
+
+
+def run_q2(spec, out, inc, full, fit_idx, trc, games, y, players):
+    """Screening fit: the card's term is fit on the fit tranches with the frozen incumbent's
+    logit as offset; the gain is scored on the session's dev tranche.
+
+    Replacement card (spec["replaces"] = a term name in the incumbent): the offset is the
+    incumbent without that term, the new term is fit on it, and the dev comparison is the
+    incumbent as it is (e0) against the incumbent with the old term swapped for the new one
+    (e1). The comparison is held out, so it is valid although the models are not nested."""
+    drop = spec.get("replaces")
+    ctx_fit = full.subset(fit_idx)
+    eta_fit, old_fit = incumbent_parts(inc, ctx_fit, drop)
+    term = spec["term"]
+    cand = F.fit([term], ctx_fit, y[fit_idx], offset=eta_fit - old_fit, converge=spec.get("term_fit_options"))
+    cand.save(out / "term")
+    dev = spec["dev_tranche"]
+    ev = np.flatnonzero(trc == T.CODES[dev])
+    E.check_disjoint(games["replay_id"][ev], games["replay_id"][fit_idx])
+    ctx_dev = full.subset(ev)
+    e0, old_dev = incumbent_parts(inc, ctx_dev, drop)
+    new_dev = np.asarray(cand.logit(ctx_dev)).ravel()
+    e1 = e0 - old_dev + new_dev
+    pk = players["player_key"][ev] if players is not None else np.full((len(ev), 10), -1)
+    blocks = E.clusters(games["game_ts"][ev], pk)
+    r = {"paired": E.paired_gain(e0, e1, y[ev], blocks)}
+    np.savez(out / "dev_delta.npz", replay_id=games["replay_id"][ev], e0=e0, e1=e1)
+    rb = spec.get("recent_s_builds", [])
+    s_idx = np.flatnonzero((trc == T.CODES["S"]) & np.isin(games["build"], rb))
+    ctx_s = full.subset(s_idx)
+    eta_s, old_s = incumbent_parts(inc, ctx_s, drop)
+    score = np.asarray(cand.logit(ctx_s)).ravel() - old_s
+    r["invariance"] = E.invariance(score, eta_s, y[s_idx], games["build"][s_idx], rb)
+    r["term_coefs"] = {n: float(b) for n, b in list(zip(cand.names, cand.beta))[:200]}
+    r["term_k"] = int(cand.fit_info["p"])
+    r["frac_games_touched"] = float((np.abs(new_dev - old_dev) > 1e-9).mean())
+    if drop is not None:
+        i = [s.get("name") for s in inc.specs].index(drop)
+        r["replaced"] = {"term": drop, "k": int(inc.offs[i + 1] - inc.offs[i])}
+    return r
 
 
 def run_explain(spec, job_dir, games, meta, y, full, kit):

@@ -40,7 +40,7 @@ ARMS = {
 QUERYABLE = {"S", "Dpre", "Dpost"}
 GROUP_BY = {"map", "tier", "build", "map_class", "hero", "enemy_hero", "first_pick"}
 CARD_FIELDS = {"id", "family", "tag", "theory", "mechanism", "expected_effect", "term", "sources",
-               "alternatives_considered"}
+               "alternatives_considered", "replaces"}
 FAMILIES = {"composition", "strength", "solo_lane", "macro", "team_fight", "ganking", "scaling", "others"}
 
 
@@ -402,12 +402,18 @@ class Broker:
         if not isinstance(term, dict):
             raise Refusal("term must be a mapping")
         term = {k: v for k, v in term.items() if not str(k).startswith("_")}   # harness-only keys
+        if card.get("replaces") is not None and term.get("type") in ("explain", "mechanism"):
+            raise Refusal("replaces: only a predictive term can replace a term in the incumbent")
         if term.get("type") == "explain":
             return self.explain_submit(card, cid, cards, term)
         if term.get("type") == "mechanism":
             return self.mechanism_submit(card, cid, cards, term)
         if term.get("type") in TM.HARNESS_ONLY:
             raise Refusal(f"term type {term['type']!r} is reserved for the harness")
+        rep = None
+        if card.get("replaces") is not None:
+            rep = resolve_replacement(self.accepted_term_names(), self.state.get("accepted_terms", []),
+                                      card["replaces"])
         term = self.names.translate_term_in(term)
         term.setdefault("name", f"card_{cid}")
         term["name"] = f"card_{_slug(cid)}"
@@ -416,6 +422,9 @@ class Broker:
         fx = fixtures.check_term(term, self.meta, self.kit, self.axes)
         h = hashlib.sha256(canonical(card).encode()).hexdigest()
         groups = term_groups(term)
+        if rep:
+            # one card, one charge: the test touches the new term's groups and the old one's
+            groups = sorted(set(groups) | set(term_groups(rep["term"])))
         if not fx["ok"]:
             self.log("reject", card_id=cid, family=card["family"], canonical_hash=h,
                      decision="reject", note=f"fixture: {fx['reason']}")
@@ -427,8 +436,12 @@ class Broker:
         cards[cid] = {"status": "registered", "hash": h, "family": card["family"], "term": term,
                       "groups": groups, "expected": card.get("expected_effect"), "tag": card.get("tag"),
                       "mechanism": card.get("mechanism")}
+        out = {"card_id": cid, "status": "registered", "hash": h, "cell_groups": groups}
+        if rep:
+            cards[cid]["replaces"] = {"card_id": rep["card_id"], "term_name": rep["term_name"]}
+            out["replaces"] = rep["card_id"]
         self.save_state()
-        return {"card_id": cid, "status": "registered", "hash": h, "cell_groups": groups}
+        return out
 
     def save_state(self):
         tmp = self.priv / "state.json.tmp"
@@ -927,6 +940,20 @@ class Broker:
         raise Refusal(f"unknown op {op!r}")
 
 
+def resolve_replacement(term_names, accepted_terms, target):
+    """A replacement card names the card id of a term now in the incumbent. Returns
+    {"card_id", "term_name", "term"}; refuses anything else (backbone terms, explanations,
+    mechanism cards, terms already replaced)."""
+    rid = str(target)
+    if rid not in term_names:
+        raise Refusal(f"replaces: needs the card id of a term in your incumbent; options: {sorted(term_names)}")
+    name = term_names[rid]
+    spec = next((t for t in accepted_terms if t.get("name") == name), None)
+    if spec is None:
+        raise Refusal(f"replaces: {rid} is not in your incumbent")
+    return {"card_id": rid, "term_name": name, "term": spec}
+
+
 def _aslist(v):
     if v is None:
         return []
@@ -1041,7 +1068,7 @@ def ledger_group_bits(sid):
     return out
 
 
-def open_session(sid, arm, variant, cycle=1, incumbent="K0", snapshot=None, predecessor=None):
+def open_session(sid, arm, variant, cycle=1, incumbent="K0", snapshot=None, predecessor=None, fit_policy=None):
     """predecessor: a closed session of the same arm and dev tranche whose incumbent, shuffle
     and blinding keys, and per-group bits carry over (cycle 2 continues on the same Dpost)."""
     keys = T.load_keys()
@@ -1063,19 +1090,46 @@ def open_session(sid, arm, variant, cycle=1, incumbent="K0", snapshot=None, pred
         st["predecessor"] = predecessor
         st["accepted_terms"] = list(prev.get("accepted_terms", []))
         st["inherited_tables"] = harness.accepted_tables(prev)
-        st["inherited_cards"] = {cid: {"status": c.get("status"), "family": c.get("family"),
-                                       "term": c.get("term"), "released": c.get("released")}
-                                 for cid, c in prev.get("cards", {}).items()}
-        st["prior_group_bits"] = ledger_group_bits(predecessor)
+        # Cards of every earlier cycle: their ids stay reserved, their accepted terms stay
+        # addressable (mechanism and replacement cards name them by card id).
+        inh = {cid: dict(c, cycle=c.get("cycle", prev["cycle"] - 1))
+               for cid, c in (prev.get("inherited_cards") or {}).items()}
+        for cid, c in prev.get("cards", {}).items():
+            inh[cid] = {"status": c.get("status"), "family": c.get("family"), "term": c.get("term"),
+                        "released": c.get("released"), "cycle": prev["cycle"],
+                        **({"voided_release": c["voided_release"]} if c.get("voided_release") else {}),
+                        **({"replaces": c["replaces"]} if c.get("replaces") else {})}
+        st["inherited_cards"] = inh
+        # Bits on the same dev tranche from every earlier cycle stay on their groups.
+        pg = dict(prev.get("prior_group_bits") or {})
+        for g, bits in ledger_group_bits(predecessor).items():
+            pg[g] = pg.get(g, 0.0) + bits
+        st["prior_group_bits"] = pg
         for k in ("label_key", "blind_key"):
             if k in prev:
                 st[k] = prev[k]
+        # inspected games stay spent; replacements and earlier results stay on record
+        if prev.get("spent_games"):
+            st["spent_games"] = list(prev["spent_games"])
+        if prev.get("replaced"):
+            st["replaced"] = dict(prev["replaced"])
+        for k in ("explanations", "mechanism_results"):
+            old_ = list(prev.get("inherited_" + k, [])) + list(prev.get(k, []))
+            if old_:
+                st["inherited_" + k] = old_
+    if fit_policy if fit_policy is not None else cycle >= 3:
+        # Max, 2026-10-15: the session starts from a cold fit to convergence of its incumbent;
+        # refits after an accept are warm; the end-of-cycle refit is cold (CYCLE3_PREP.md).
+        from training.scilearn import harness
+        st["fit_policy"] = {"start": "cold", "mid_cycle": "warm", "end_of_cycle": "cold",
+                            "start_terms_key": harness._terms_key(st)}
     (priv / "state.json").write_text(json.dumps(st, indent=1))
     Ledger(sid).append("session_open", session_id=sid, arm=arm, variant=variant,
                        snapshot_id=st["snapshot"], code_hash=code_hash(),
                        params_json=canonical({"predecessor": predecessor,
                                               "accepted_terms": [t.get("name") for t in st["accepted_terms"]],
-                                              "prior_group_bits": st.get("prior_group_bits", {})}),
+                                              "prior_group_bits": st.get("prior_group_bits", {}),
+                                              "fit_policy": st.get("fit_policy")}),
                        note=f"cycle={cycle} incumbent={incumbent} budget={json.dumps(C.BUDGET)}")
     (C.SESSIONS / sid).mkdir(parents=True, exist_ok=True)
     return st

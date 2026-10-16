@@ -201,6 +201,36 @@ Mediators (team perspective; `lead` is own minus opponent): `level_lead_5`, `lev
   Submit it, then `hyp mtest <id>`. No dev bits; 1.5 mediator bits. M-test is small (see
   `hyp meta`); a mechanism test needs at least 2,000 M-test games and is refused before.
 
+## Replacement cards (cycle 3)
+
+A predictive card may replace a term already in your incumbent, for example a pair table with
+a different support floor. Add `replaces:` with the card id of that term:
+
+```yaml
+id: r01
+family: composition
+theory: >
+  ...
+expected_effect: {sign: "+", pp: 0.3, logloss: 0.0001, frac_games: 0.3}
+replaces: c05_pair_family          # card id of a term in your incumbent (`hyp meta` lists them)
+term: {type: pair_family, min_games: 2000}
+```
+
+- **One test, one card.** `hyp test r01` costs 1.5 dev bits, like any predictive card, charged
+  to the cell groups of both the new and the replaced term. The gate is the usual one, on the
+  groups' bits so far.
+- **What is compared.** The new term is fit with the rest of your incumbent fixed and the old
+  term removed. The dev comparison is your incumbent as it is against your incumbent with the
+  old term swapped for the new one. The gain can be negative: a replacement that predicts
+  worse than what it replaces is rejected.
+- **Parameter cap.** The 20,000-parameter cap is checked on the result (incumbent minus the old
+  term plus the new one). A replacement that would exceed it is refused before any result is
+  computed, and nothing is charged.
+- **If accepted,** the old term leaves your incumbent and the new one joins it. A table that
+  was replaced can no longer be named by explanation or mechanism cards; the new one can.
+- Only predictive terms can replace, and only terms that came from a card (not the K0
+  backbone).
+
 ## Rules
 
 - Meta facts ("hero X is strong this patch") are parameter values. Do not submit them as cards.
