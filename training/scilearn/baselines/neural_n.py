@@ -200,8 +200,11 @@ def _drift_models():
         from drift2026 import common
         from drift2026.train_drift_wp import enriched_cols
         ms = []
+        # NEURAL_N_DRIFT_CKPT: a checkpoint pattern with {seed}, for the matched-cutoff
+        # retrain (compare/n_matched.py); default is the frozen N
+        pat = os.environ.get("NEURAL_N_DRIFT_CKPT") or os.path.join(common.MODELS_DIR, "d2c_cumprev_s{seed}.pt")
         for s in DRIFT_SEEDS:
-            ck = torch.load(os.path.join(common.MODELS_DIR, f"d2c_cumprev_s{s}.pt"),
+            ck = torch.load(pat.format(seed=s),
                             map_location="cpu", weights_only=False)
             m = WinProbEnrichedModel(ck["input_dim"], ck["arch"], dropout=ck["dropout"])
             m.load_state_dict(ck["state_dict"])
