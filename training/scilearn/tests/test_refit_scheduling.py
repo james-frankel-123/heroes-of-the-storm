@@ -13,6 +13,9 @@ fake host whose jobs take time (refit 1.2 s, test 0.1 s), with two sessions:
      its refit can launch; a second test thread starts after it.
   B: needs its own refit, and has a short test against an incumbent already fitted.
 
+Also covers the parameter cap found at closeout: w2-K-blinded p03 was accepted although the
+incumbent plus the term (20,221 parameters) exceeds the 20,000 cap; the gate now refuses it.
+
   PYTHONPATH=. python -m training.scilearn.tests.test_refit_scheduling
 """
 import json
@@ -202,8 +205,49 @@ def _short_test(broker, cid, st):
     broker.gated[cid] = (inc["job"], time.time())
 
 
+def cap_case():
+    """w2-K-blinded p03: incumbent 17,668 parameters + term 2,553 = 20,221 > 20,000. The gate
+    must refuse it, free, and leave the card testable; a term that fits is gated as usual."""
+    out = []
+    saved = HN.incumbent_params
+    try:
+        HN.incumbent_params = lambda inc: 17668
+
+        class B:
+            def __init__(self):
+                self.recs, self.saved = [], 0
+                self.state = {"cards": {"p03": {"family": "pairs", "hash": "h", "job": "q2_p03",
+                                                "status": "testing", "status_before_test": "registered",
+                                                "groups": ["family:pair_family:"]}}}
+
+            def log(self, kind, **kw):
+                self.recs.append((kind, kw))
+
+            def save_state(self):
+                self.saved += 1
+
+            def budget(self):
+                raise RuntimeError("gate reached")
+        b = B()
+        HN.apply_gate(b, "p03", {"term_k": 2553, "paired": {}}, {"job": "inc_x", "name": "INC"})
+        c = b.state["cards"]["p03"]
+        out.append(("cap: p03 (17,668 + 2,553 parameters) is refused, not accepted",
+                    [r[0] for r in b.recs] == ["refusal"] and c["status"] == "registered"))
+        out.append(("cap: the refusal charges nothing", b.recs[0][1].get("bits_charged") == 0.0))
+        b2 = B()
+        try:
+            HN.apply_gate(b2, "p03", {"term_k": 2332, "paired": {}}, {"job": "inc_x", "name": "INC"})
+            reached = False
+        except RuntimeError as e:
+            reached = "gate reached" in str(e)
+        out.append(("cap: a term that fits (17,668 + 2,332 = 20,000) goes on to the gate", reached and not b2.recs))
+    finally:
+        HN.incumbent_params = saved
+    return out
+
+
 def run():
-    res = []
+    res = cap_case()
     fake, A, B, t_short, t_rel, stage_seen = scenario(old_code=False)
     refits = [n for n in fake.launches if n.startswith("scilearn_inc_")]
     newest_A = "inc_" + HN.incumbent_key(A.state, "Dpost")

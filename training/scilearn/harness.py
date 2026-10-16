@@ -20,6 +20,7 @@ HOST = "max-windows-3090"
 REMOTE_SLOTS = 2      # concurrent scilearn jobs on the 3090 (about 16 GB peak each; our share is 60 GB)
 REFIT_SLOTS = 1       # of those, incumbent refits (about 100 min each) may hold at most one
 SLOT_POLL = 10        # seconds between tries for a free slot
+SMALL_FIT_HOST = "windows-5090-wsl"   # confirm fits (Dpre+G, about 3 min, under 11 GB) run here
 
 
 class Superseded(Exception):
@@ -179,11 +180,16 @@ def ensure_fit(state, dev, fit=None, prefix="inc", host=None, current=None, on_s
                     R.submit(spec, host, label_mode=lm)
                     res = R.wait(job, host)
         else:
-            # small fits (Dpre+G) may run on the 5090's CPU; the outputs are then copied to
-            # the 3090, where explanation and Q2 jobs read their incumbents
-            stage(f"fitting {job} on the 5090 since {_now()}")
-            R.submit(spec, host, label_mode=lm)
-            res = R.wait(job, host)
+            # small fits (Dpre+G) may run on the 5090's CPU, one at a time (each needs close
+            # to its 11 GB cap); the outputs are then copied to the 3090, where explanation
+            # and Q2 jobs read their incumbents
+            stage(f"waiting for the 5090 to fit {job}")
+            with key_lock(f"slot_{host}"):
+                if current is not None and _terms_key(current()) != _terms_key(state):
+                    raise Superseded(job)
+                stage(f"fitting {job} on the 5090 since {_now()}; about 3 minutes")
+                R.submit(spec, host, label_mode=lm)
+                res = R.wait(job, host)
             R.rsh(HOST, f"mkdir -p {C.REMOTE_ROOT}/jobs/{job}")
             R.rsync_to(HOST, str(C.PRIVATE / "jobs" / job / "out"), f"{C.REMOTE_ROOT}/jobs/{job}/")
         entry = {"job": job, "name": "INC", "labels": lm, "dev": dev, "fit": fit,
@@ -297,14 +303,33 @@ def safety_probes(model_inc, term_model, meta, kit=None, n=400, seed=7):
     return out
 
 
+def incumbent_params(inc):
+    import numpy as _np
+    return int(_np.load(C.PRIVATE / "jobs" / inc["job"] / "out" / f"{inc['name']}.npz")["offs"][-1])
+
+
 def apply_gate(broker, cid, res, inc):
     st = broker.state
     card = st["cards"][cid]
+    k = int(res.get("term_k", 1))
+    # FRAMING 6.1 caps the model at 20K parameters. The Q2 job fits the term against the
+    # incumbent's frozen logit, so the joint size is first known here. In cycle 2,
+    # w2-K-blinded p03 (2,553 parameters on an incumbent of 17,668) was accepted and its
+    # incumbent then could not be compiled. A term the incumbent cannot hold is refused,
+    # free, before any gate result is computed or released.
+    inc_p = incumbent_params(inc)
+    if inc_p + k > C.MAX_PARAMS:
+        card["status"] = card.pop("status_before_test", "registered")
+        card["refusal"] = (f"the incumbent ({inc_p} parameters) plus this term ({k}) would exceed the "
+                           f"{C.MAX_PARAMS}-parameter cap; nothing charged; a smaller form can be tested")
+        broker.log("refusal", card_id=cid, family=card["family"], canonical_hash=card["hash"], bits_charged=0.0,
+                   raw_ref=f"jobs/{card['job']}/out/result.json", note=card["refusal"])
+        broker.save_state()
+        return
     b = broker.budget()
     groups = card["groups"]
     I_g = max([b["groups"].get(g, 0.0) for g in groups] + [0.0])
     pr = res["paired"]
-    k = int(res.get("term_k", 1))
     decision, thr, alt, near = E.gate_decisions(pr["z"], I_g, k_params=k, sum2=pr["sum2"])
     # card["status"] is "testing" here; the retry rule needs the status before the test
     retry = card.get("status_before_test") == "near_miss"
@@ -469,7 +494,7 @@ def finish_explain(broker, cid):
         card = st["cards"][cid]
         cur = lambda: _snapshot(broker)
         inc = ensure_incumbent(st, dev, current=cur, on_stage=stage)
-        conf = ensure_fit(st, dev, fit=CONFIRM_FIT[dev], current=cur, on_stage=stage)
+        conf = ensure_fit(st, dev, fit=CONFIRM_FIT[dev], host=SMALL_FIT_HOST, current=cur, on_stage=stage)
         term = card["term"]
         spec = {"job_id": card["job"], "kind": "explain", "fit_tranches": [], "eval_tranches": [], "models": {},
                 "inc_job": inc["job"], "confirm_job": conf["job"], "table_name": table_term_name(term["table"]),
@@ -651,7 +676,7 @@ def run_explain_canaries(state, dev, n_per_table=1):
     from training.scilearn import tranches as T
     sid = state["session_id"]
     inc = ensure_incumbent(state, dev)
-    conf = ensure_fit(state, dev, fit=CONFIRM_FIT[dev])
+    conf = ensure_fit(state, dev, fit=CONFIRM_FIT[dev], host=SMALL_FIT_HOST)
     out = []
     for cid, t in sorted(accepted_tables(state).items()):
         kind = X.table_kind(t)

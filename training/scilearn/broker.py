@@ -485,7 +485,7 @@ class Broker:
     def test_status(self):
         out = {}
         for cid, c in self.state.get("cards", {}).items():
-            out[cid] = {k: c.get(k) for k in ("status", "released", "reason", "mtest") if c.get(k) is not None}
+            out[cid] = {k: c.get(k) for k in ("status", "released", "reason", "refusal", "mtest") if c.get(k) is not None}
             if c.get("status") in ("testing", "mtesting") and self.stages.get(cid):
                 out[cid]["stage"] = self.stages[cid]
             if c.get("status") == "error":
