@@ -40,4 +40,5 @@
 + *.toml
 + *.cfg
 + *.service
++ derived_caches.txt
 - *
