@@ -302,3 +302,18 @@ Plainly: kit axes explain about 0 to 5% of what the hero x map, hero x tier, pai
 Across both cycles it has tested 32 cards with no accept. The gate and the mechanism tests found nothing in label noise after 32 cards and 4 mechanism tests, so the real arms' 4 predictive accepts and 4 mechanisms are unlikely to come from how much the sessions searched.
 
 **Predictive.** Both real arms accepted a short-memory practice term (a decayed count of the player's recent games on the hero, with a half-life of 4 to 5 days). They passed at z 3.77 and 3.79 against 3.72, each gaining about 0.0001 per game. Lower support floors for counters paid most: w2-K-blinded p01, 5K games, gained 0.0006 at z 12.15. Pooled kit-by-context products and kit-conjunction indicators gained nothing in any arm.
+
+## 8. Addendum (2026-10-17): official numbers from cold refits
+
+The incumbents in section 5 stopped at 400 L-BFGS iterations in each of 5 EB rounds and never met their stopping rule. Each cycle-2 final incumbent was refit cold, to convergence: every coefficient within 0.001 posterior SD of its stationary point, and EB precisions at a fixed point (no block moving more than 0.01 in log10). Code: commit d145e9a, `training/scilearn/cycle_refits.py`. These are the official cycle-2 numbers. Sections 0 to 7 are unchanged.
+
+| Session | Cold refit | Iterations (EB rounds) | Fit time | Log loss | Acc. | Slope | vs legacy fit | vs K0 | vs A0 |
+|---|---|---|---|---|---|---|---|---|---|
+| w2-K-b | inc_ff820fcca10b247f | 3,505 (16) | 141 min | 0.67219 | 58.25% | 0.884 | -0.00004 (0.00001) | -0.00866 (0.00033) | **-0.00034 (0.00006)** |
+| w2-K-blinded | inc_377ca3fb446b1275 | 3,743 (16) | 122 min | 0.67300 | 58.12% | 0.885 | -0.00003 (0.00001) | -0.00786 (0.00032) | **+0.00047 (0.00012)** |
+| w2-K-shuffled | inc_7f4b9cd10f5a23e2 | 1,371 (30) | 13 min | 0.69331 | 50.14% | 0.132 | on its own shuffled labels | | |
+
+- Differences are paired Dpost log loss (negative means the cold refit is better), with the week x player-cluster block SE. Dpost is these arms' dev tranche, so the caveat in section 5 still applies.
+- The conclusions of section 5 do not change. w2-K-b beats A0 by 0.00034 (about 6 SE), and w2-K-blinded trails it by 0.00047.
+- **What convergence needs.** On the full 2.28M fit games, plain L-BFGS at the old settings did not converge in 2,000 iterations. With diagonal preconditioning it needs 1,000 to 1,100 iterations for the first EB round, 3,400 to 3,700 in total over 16 EB rounds, and 2 to 2.4 hours on 3090 cores 24 to 35 (about 2.6 s per iteration while the 3090 was shared). The EB loop, not the inner solve, sets the total: 4 EB updates are not enough, and some precisions moved 8x in the 4th update. The legacy fits sat up to 9 posterior SD from the optimum on individual coefficients, but only 0.00003 to 0.00004 log loss away.
+- **Warm against cold, measured on w2-K-blinded.** A warm refit of the final terms, started from a cold fit of the cycle-start terms plus the Q2 offset fits of p01 and p02, took 2,998 iterations and 100 minutes, against 3,743 iterations and 122 minutes cold. It reached the same optimum: log loss 0.67299 against 0.67300 (paired difference -0.00001, SE under 0.00001). Warm starting saves about 20%, not more, because the EB rounds still have to settle.
