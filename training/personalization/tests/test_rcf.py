@@ -6,6 +6,10 @@
      own outcome, and changed own metrics change no prediction; a lag-0 walk
      is caught (it does change)
   R4 the predictive log likelihood equals a brute-force Gaussian computation
+  R5 the same as R3 with evidence weights and win / metric half-lives
+  R6 temporal layer statistics (drift, early-game learning) for a game do
+     not change when its own residual or any same-day or later residual of
+     the player changes; a reader that includes same-day rows is caught
 Run: python3 personalization/tests/test_rcf.py"""
 import os
 import sys
@@ -123,7 +127,54 @@ def test_r4_predictive_ll():
         assert abs(ref - ll[i]) < 1e-6 * max(1, abs(ref)), (i, ref, ll[i])
 
 
+def test_r5_asof_weighted_decay():
+    rng = np.random.default_rng(3)
+    par = rand_params(rng)
+    aug, Z, wp, y = walk_fixture(rng)
+    W = (0.5 + rng.random(len(aug["day"]))).astype(np.float32)
+    q = rng.choice(np.flatnonzero(aug["day"] > 1100), 20, replace=False)
+    kw = dict(metrics=Z, mweights=W, hl_win=30.0, hl_met=60.0)
+    base = R.online_walk(aug, q, par, **kw)
+    for j, i in enumerate(q):
+        a2 = {k: (v.copy() if isinstance(v, np.ndarray) else v) for k, v in aug.items()}
+        Z2, W2 = Z.copy(), W.copy()
+        later = (aug["day"] >= aug["day"][i]) & (aug["pid"] == aug["pid"][i])
+        a2["r_adj"][later] = -0.9
+        Z2[later] = 3.0
+        W2[later] = 5.0
+        r2 = R.online_walk(a2, np.array([i]), par, metrics=Z2, mweights=W2, hl_win=30.0, hl_met=60.0)
+        assert abs(r2["mean"][0] - base["mean"][j]) < 1e-10
+
+
+def test_r6_layer_asof():
+    rng = np.random.default_rng(4)
+    n = 3000
+    day = np.sort(rng.integers(0, 300, n))
+    d = {"day": day, "pid": rng.integers(0, 30, n)}
+    u = rng.standard_normal(n)
+    early = rng.random(n) < 0.3
+    base = R.layer_stats(d, u, early, 30)
+    q = rng.choice(np.flatnonzero(day > 50), 25, replace=False)
+    for i in q:
+        u2 = u.copy()
+        later = (day >= day[i]) & (d["pid"] == d["pid"][i])
+        u2[later] = 10.0
+        st = R.layer_stats(d, u2, early, 30)
+        for a_, b_ in zip(base, st):
+            assert abs(a_[i] - b_[i]) < 1e-9
+    # a leaky reader (rows on the same day count) is caught: flipping the
+    # game's own residual moves it
+    caught = 0
+    for i in q:
+        m = (d["pid"] == d["pid"][i]) & (day <= day[i])
+        u2 = u.copy()
+        u2[i] += 5.0
+        caught += abs(u2[m].sum() - u[m].sum()) > 1e-9
+    assert caught == 25
+
+
 if __name__ == "__main__":
-    for t in (test_r1_equals_gp, test_r2_today_kernel, test_r3_asof, test_r4_predictive_ll):
+    for t in (test_r1_equals_gp, test_r2_today_kernel, test_r3_asof, test_r4_predictive_ll,
+              test_r5_asof_weighted_decay, test_r6_layer_asof):
         t()
         print(f"{t.__name__}: pass")

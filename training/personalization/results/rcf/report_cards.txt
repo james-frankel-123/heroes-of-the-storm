@@ -1,0 +1,27 @@
+# rich CF cards; reference sb_base:merged
+
+variant | eff. rank | held-out pred. LL vs ref (SE) | V2 lift (SE) | V2 vs ref (SE) | V2 all-10 vs ref (SE) | OOT lift (SE) | OOT vs ref (SE) | OOT all-10 vs ref (SE) | Cassia R2 (vs ref, SE) | adopt bias pp | adopt LL vs ref x1000 (SE) | cover80 | var ratio
+today:merged |  | -2011.5 (80.9) | +17.12 (0.67) | -8.16 (0.50) | -5.58 (1.90) | +16.87 (0.33) | -8.46 (0.25) | -5.25 (1.96) | 0.380 (+0.141, 0.074) | -0.33 | -1.34 (0.22) | 0.787 | 2.05
+met2_hs2:merged | 2 | -286.3 (35.2) | +23.48 (0.78) | -1.80 (0.24) | -1.23 (0.97) | +23.72 (0.39) | -1.61 (0.12) | -2.49 (0.99) | 0.362 (+0.124, 0.032) | +0.81 | -0.31 (0.09) | 0.779 | 2.58
+sb_base:merged | 2 | +0.0 (0.0) | +25.28 (0.80) | +0.00 (0.00) | +0.00 (0.00) | +25.34 (0.40) | +0.00 (0.00) | +0.00 (0.00) | 0.238 (+0.000, 0.000) | +0.61 | +0.00 (0.00) | 0.779 | 2.49
+sb_a_shrink:merged | 2 | +3.1 (16.1) | +25.34 (0.80) | +0.07 (0.14) | +0.15 (0.52) | +25.38 (0.40) | +0.05 (0.07) | +0.50 (0.56) | 0.351 (+0.113, 0.017) | +0.66 | +0.00 (0.05) | 0.780 | 2.40
+sb_a_tier:merged | 2 | -16.3 (23.6) | +24.83 (0.80) | -0.45 (0.20) | +0.25 (0.70) | +24.86 (0.40) | -0.48 (0.10) | +0.97 (0.76) | 0.310 (+0.072, 0.026) | +0.64 | -0.10 (0.07) | 0.779 | 2.41
+sb_b_len:merged | 2 | +17.1 (22.9) | +25.04 (0.80) | -0.24 (0.20) | -0.28 (0.72) | +24.97 (0.40) | -0.37 (0.10) | +0.95 (0.79) | 0.322 (+0.084, 0.027) | +0.68 | -0.05 (0.07) | 0.781 | 2.39
+sb_c_share:merged | 2 | -62.1 (27.7) | +24.83 (0.80) | -0.44 (0.24) | -0.49 (0.72) | +24.58 (0.40) | -0.76 (0.12) | -1.93 (0.72) | 0.323 (+0.085, 0.022) | +0.66 | -0.09 (0.08) | 0.782 | 2.36
+sb_c_opp:merged | 2 | -101.0 (26.1) | +23.86 (0.79) | -1.42 (0.23) | -0.74 (0.60) | +23.99 (0.40) | -1.34 (0.11) | -1.75 (0.63) | 0.273 (+0.035, 0.017) | +0.60 | -0.13 (0.08) | 0.778 | 2.39
+sb_d_rank:merged | 2 | -1.3 (14.2) | +25.59 (0.81) | +0.32 (0.12) | +0.58 (0.35) | +25.61 (0.40) | +0.27 (0.06) | -0.33 (0.36) | 0.173 (-0.065, 0.011) | +0.53 | +0.04 (0.04) | 0.780 | 2.47
+sb_d_wins:merged | 2 | +20.4 (10.1) | +25.46 (0.80) | +0.18 (0.09) | +0.07 (0.32) | +25.51 (0.40) | +0.17 (0.05) | +0.80 (0.35) | 0.288 (+0.050, 0.011) | +0.64 | +0.01 (0.03) | 0.779 | 2.45
+sb_e_weight:merged | 2 | -2.2 (15.5) | +25.41 (0.80) | +0.13 (0.13) | +0.36 (0.41) | +25.24 (0.40) | -0.10 (0.06) | -0.40 (0.43) | 0.202 (-0.036, 0.014) | +0.51 | +0.05 (0.05) | 0.778 | 2.52
+
+Cassia R2 by role:
+today:merged | Tank -3.63 | Bruiser +0.29 | Healer +0.27 | Ranged Assassin +0.35 | Melee Assassin +0.34 | Support +0.06
+met2_hs2:merged | Tank -5.18 | Bruiser +0.14 | Healer +0.16 | Ranged Assassin +0.40 | Melee Assassin +0.29 | Support -0.04
+sb_base:merged | Tank -5.32 | Bruiser +0.07 | Healer -0.00 | Ranged Assassin +0.23 | Melee Assassin +0.37 | Support -0.08
+sb_a_shrink:merged | Tank -6.37 | Bruiser +0.13 | Healer +0.08 | Ranged Assassin +0.35 | Melee Assassin +0.43 | Support +0.01
+sb_a_tier:merged | Tank -5.50 | Bruiser +0.05 | Healer +0.09 | Ranged Assassin +0.31 | Melee Assassin +0.56 | Support +0.06
+sb_b_len:merged | Tank -5.88 | Bruiser +0.07 | Healer +0.09 | Ranged Assassin +0.32 | Melee Assassin +0.56 | Support +0.06
+sb_c_share:merged | Tank -5.30 | Bruiser +0.18 | Healer +0.15 | Ranged Assassin +0.28 | Melee Assassin +0.48 | Support -0.15
+sb_c_opp:merged | Tank -5.55 | Bruiser +0.13 | Healer +0.03 | Ranged Assassin +0.24 | Melee Assassin +0.41 | Support -0.05
+sb_d_rank:merged | Tank -4.68 | Bruiser +0.02 | Healer -0.11 | Ranged Assassin +0.19 | Melee Assassin +0.38 | Support -0.09
+sb_d_wins:merged | Tank -5.98 | Bruiser +0.10 | Healer +0.05 | Ranged Assassin +0.27 | Melee Assassin +0.39 | Support -0.07
+sb_e_weight:merged | Tank -4.80 | Bruiser +0.03 | Healer -0.08 | Ranged Assassin +0.22 | Melee Assassin +0.43 | Support -0.03
