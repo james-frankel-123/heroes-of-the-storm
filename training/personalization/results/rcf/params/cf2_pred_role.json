@@ -1,0 +1,23 @@
+{
+ "tag": "cf2_pred_role",
+ "hist": "merged",
+ "kmax": 2,
+ "ard": false,
+ "role": true,
+ "implicit": false,
+ "metrics": false,
+ "objective": "predictive",
+ "hero_s2": false,
+ "fit_ll": -303160.16597004933,
+ "heldout_ll": -303193.0185423626,
+ "v_sd_pp": [
+  3.1156453434076585,
+  2.843023699527194
+ ],
+ "effective_rank": 2,
+ "overall_sd_pp": 1.5626852547942205,
+ "hero_sd_pp": 2.6325803456115473,
+ "seconds": 23,
+ "n_fit": 105175,
+ "n_heldout": 105597
+}

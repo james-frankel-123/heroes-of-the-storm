@@ -1,0 +1,955 @@
+"""
+P3 rich CF (results/P3_RICH_CF.md): richer player x hero skill models than
+the rank-2 CF kernel, all in one factor form so that every variant runs
+through the same as-of state, fit and tests.
+
+Model. For player p and hero h, skill theta_ph (detrended residual units,
+as P3_HERO_STRENGTH):
+
+    theta_ph = U_h . a_p + e_ph,   a_p ~ N(W z_p, I_K),  e_ph ~ N(0, s2_h)
+
+U (H x K) holds the hero loadings: an overall-skill column (all ones times a
+scale), optional hand-made role / fine-role / melee indicator columns (each
+group with one scale), and the learned CF factors V. This is the same model
+as the phase-1 GP kernel K = U U^T + diag(s2): today's "+CF rank 2" kernel is
+the special case with role, fine and melee columns, V of rank 2 and one
+shared s2.
+
+Win channel: per hero, the as-of sufficient statistics S = sum r_adj / v and
+P = sum 1 / v (P3_HERO_STRENGTH), i.e. a cell mean S / P with noise 1 / P.
+Implicit feedback (variant 3, SVD++ style): z_p is the player's as-of play
+preference (log1p game counts per hero as shares of the player's total,
+standardized per hero, plus log volume); W (K x Dz) maps it to the prior
+mean of a_p. Counts never contain outcomes.
+Multi-target (variant 4): for metric m, the cell mean of the standardized
+per-game performance (p3_rcf_data.py) is G_m,h . a_p + f + noise with
+cell-specific variance rho2_m and per-game noise eps2_m, sharing a_p with the
+win channel.
+
+Everything reduces to K x K algebra per player (Woodbury), so the posterior
+of a_p given win stats, metrics and z is exact:
+    Lam = I + sum_h w_h U_h U_h^T + sum_m,h wm_h G_mh G_mh^T
+    eta = W z + sum_h w_h ybar_h U_h + sum_m,h wm_h (xbar_mh - c_mh) G_mh
+with w_h = P_h / (1 + s2_h P_h). At hero h:
+    E[theta_h] = (1 - s2_h w_h) U_h a_hat + s2_h w_h ybar_h
+    Var        = (1 - s2_h w_h)^2 U_h Lam^-1 U_h^T + s2_h (1 - s2_h w_h)
+
+Fit objective (as-of by construction): split E at TZ. For each player the
+conditioning set is every history row before TZ (window rows, plus Heroes
+Profile rows for "merged"), its metrics and its play counts; the target is
+the player's E slot rows from TZ on (win channel only). The objective is the
+predictive log likelihood of the target cell means given the conditioning
+set, summed over the fit half of players (same random half as phase 1). ARD
+(hierarchical shrinkage per factor, Bayesian PCA with the column scale
+profiled out) lets the data switch factors off. The same predictive log
+likelihood on the held-out half is test 1.
+
+Stages (from training/):
+  prep   --hist window|merged                       cache/rcf/fit_<hist>.npz
+  fit    --hist ... --tag ... [--kmax --ard --role --implicit --metrics]
+                                                     results/rcf/params/<tag>.npz
+  online --tag ...                                   results/rcf/p3c/<tag>.npz
+  cassia --tag ...  / cover --tag ...                results/rcf/{cassia,cover}_<tag>.json
+"""
+import argparse
+import json
+import os
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import numpy as np
+
+import p3_hs_core as C
+
+RCF_CACHE = os.path.join(C.CACHE, "rcf")
+RCF_RES = os.path.join(C.RESULTS, "rcf")
+TZ = C.day_of("2025-03-01")
+ROWS = os.environ.get("P3_RCF_ROWS") or os.path.join(RCF_CACHE, "merged_rows_oct05.npz")
+KERN = os.environ.get("P3_RCF_KERNELS") or os.path.join(RCF_CACHE, "hs_kernels.npz")
+H = 90
+HERE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def fit_half(n_players):
+    """The phase-1 random half (p3_hs_fit: RandomState(7)); the snapshot
+    players keep their phase-1 assignment."""
+    return np.random.RandomState(7).rand(int(n_players)) < 0.5
+
+
+# ------------------------------------------------------------------ rows
+
+def load_aug(hist):
+    """Slot rows plus (merged) the Heroes Profile rows as one day-sorted row
+    set, with r_adj (experience offset from slot-row counts, p3_c_merged
+    exp_counts="slots") and the slot index of each row (-1 for HP rows)."""
+    import p3_x_common as X
+    import p3_c_merged as M
+    d = X.load_ext()
+    ex = None
+    if hist == "merged":
+        ex, _ = M.load_rows(ROWS, d)
+    n = len(d["pid"])
+    q = np.zeros(n, bool)
+    A = M.merged_predict(d, ex, None, q, exp_counts="slots", aug_only=True)
+    o = A["order"]
+    aug = A["aug"]
+    aug["r_adj"] = A["r_adj"]
+    aug["slot"] = np.where(o < n, o, -1)
+    aug["table"] = A["table"]
+    return d, aug
+
+
+def slot_metrics():
+    z = np.load(os.path.join(RCF_CACHE, "sb_z.npz"))
+    return z["Z"], [str(m) for m in z["metrics"]]
+
+
+def z_features(N, mean=None, sd=None):
+    """Play preference from counts (n, H): log1p shares standardized per
+    hero, plus standardized log volume. Players without history get 0."""
+    L = np.log1p(N)
+    tot = L.sum(1, keepdims=True)
+    s = np.where(tot > 0, L / np.maximum(tot, 1e-9), 0.0)
+    vol = np.log1p(N.sum(1, keepdims=True))
+    F = np.concatenate([s, vol], 1)
+    if mean is None:
+        has = tot[:, 0] > 0
+        mean, sd = F[has].mean(0), F[has].std(0) + 1e-6
+    Z = (F - mean) / sd
+    Z[tot[:, 0] <= 0] = 0.0
+    return Z.astype(np.float32), mean, sd
+
+
+# ------------------------------------------------------------------ prep
+
+def prep(hist):
+    """Static fit arrays for players with E target rows (day >= TZ):
+    S1, P1, N1 and metric sums X1, C1 (rows before TZ); S2, P2 (target E slot
+    rows from TZ on); SE, PE (all E slot rows: the phase-1 marginal test)."""
+    t0 = time.time()
+    d, aug = load_aug(hist)
+    Z, mets = slot_metrics()
+    M = len(mets)
+    npl = int(d["n_players"])
+    e_start = C.day_of(C.E_START)
+    e_last = int(d["day"][d["in_sample"]].max())
+    slot = aug["slot"]
+    is_slot = slot >= 0
+    ins = np.zeros(len(slot), bool)
+    ins[is_slot] = d["in_sample"][slot[is_slot]]
+    day, pid, hero = aug["day"], aug["pid"], aug["hero"]
+    r_adj, v = aug["r_adj"], aug["v"]
+    e_slot = is_slot & ins & (day >= e_start) & (day <= e_last)
+    tgt = e_slot & (day >= TZ)
+    cond = (day < TZ)
+    players = np.unique(pid[tgt])
+    pos = np.full(npl, -1, np.int64)
+    pos[players] = np.arange(len(players))
+    n = len(players)
+    print(f"[prep {hist}] rows {len(day):,}; target rows {tgt.sum():,}; cond rows {cond.sum():,}; "
+          f"players {n:,}", flush=True)
+
+    def acc(mask, w):
+        idx = pos[pid[mask]] * H + hero[mask]
+        ok = pos[pid[mask]] >= 0
+        return np.bincount(idx[ok], weights=w[ok] if w is not None else None,
+                           minlength=n * H).reshape(n, H)
+    out = {"players": players, "fit": fit_half(npl)[players]}
+    out["S1"] = acc(cond, r_adj[cond] / v[cond]).astype(np.float32)
+    out["P1"] = acc(cond, 1.0 / v[cond]).astype(np.float32)
+    out["N1"] = acc(cond, None).astype(np.float32)
+    out["S2"] = acc(tgt, r_adj[tgt] / v[tgt]).astype(np.float32)
+    out["P2"] = acc(tgt, 1.0 / v[tgt]).astype(np.float32)
+    out["SE"] = acc(e_slot, r_adj[e_slot] / v[e_slot]).astype(np.float32)
+    out["PE"] = acc(e_slot, 1.0 / v[e_slot]).astype(np.float32)
+    # metrics of conditioning slot rows
+    cm = cond & is_slot
+    rows = slot[cm]
+    ok = pos[pid[cm]] >= 0
+    rows, pp, hh = rows[ok], pos[pid[cm]][ok], hero[cm][ok]
+    X1 = np.zeros((n * H, M), np.float32)
+    C1 = np.zeros((n * H, M), np.float32)
+    cell = pp * H + hh
+    for k in range(M):
+        x = Z[rows, k].astype(np.float32)
+        g = ~np.isnan(x)
+        X1[:, k] = np.bincount(cell[g], weights=x[g], minlength=n * H)
+        C1[:, k] = np.bincount(cell[g], minlength=n * H)
+    out["X1"] = X1.reshape(n, H, M)
+    out["C1"] = C1.reshape(n, H, M)
+    out["metrics"] = np.array(mets)
+    out["hero_names"] = d["hero_names"]
+    out["tz"] = np.int64(TZ)
+    out["hist"] = np.array(hist)
+    os.makedirs(RCF_CACHE, exist_ok=True)
+    p = os.path.join(RCF_CACHE, f"fit_{hist}.npz")
+    np.savez(p, **out)
+    f = out["fit"]
+    print(f"[prep {hist}] wrote {p}: players {n:,} (fit {f.sum():,}, held-out {(~f).sum():,}); "
+          f"median cond games {np.median(out['N1'].sum(1)):.0f}; {time.time() - t0:.0f}s", flush=True)
+
+
+# ------------------------------------------------------------------ model (numpy posterior)
+
+class Params:
+    """Fitted variant: U (H, K), s2 (H,), optional W (K, Dz) with z mean/sd,
+    optional metric loadings G (M, H, K), intercepts c (M, H), rho2, eps2 (M)."""
+
+    def __init__(self, U, s2, W=None, zmean=None, zsd=None, G=None, c=None, rho2=None, eps2=None, meta=None):
+        self.U = np.asarray(U, np.float64)
+        self.s2 = np.broadcast_to(np.asarray(s2, np.float64), (self.U.shape[0],)).copy()
+        self.W, self.zmean, self.zsd = W, zmean, zsd
+        self.G, self.c, self.rho2, self.eps2 = G, c, rho2, eps2
+        self.meta = meta or {}
+
+    @property
+    def K(self):
+        return self.U.shape[1]
+
+    def kernel(self):
+        return self.U @ self.U.T + np.diag(self.s2)
+
+    def save(self, path):
+        d = {"U": self.U, "s2": self.s2, "meta": np.array(json.dumps(self.meta))}
+        for k in ("W", "zmean", "zsd", "G", "c", "rho2", "eps2"):
+            if getattr(self, k) is not None:
+                d[k] = getattr(self, k)
+        np.savez(path, **d)
+
+    @staticmethod
+    def load(path):
+        z = np.load(path)
+        g = lambda k: z[k] if k in z.files else None
+        return Params(z["U"], z["s2"], g("W"), g("zmean"), g("zsd"), g("G"), g("c"), g("rho2"), g("eps2"),
+                      json.loads(str(z["meta"])))
+
+    @staticmethod
+    def from_kernel_file(path, name="+CF rank 2", drop=()):
+        """Today's phase-1 kernel in factor form (exact: every structural
+        basis is low rank plus the identity)."""
+        from p3_hs_fit import KERNELS
+        kz = np.load(path)
+        bases = {k[6:]: kz[k] for k in kz.files if k.startswith("basis_")}
+        th = kz["theta_" + name]
+        cols, s2 = [], 0.0
+        for b, t in zip(KERNELS[name], th):
+            if b in drop:
+                continue
+            var = np.exp(t)
+            if b == "hero":
+                s2 = var
+            elif b.startswith("cf"):
+                V = kz["V_" + b] if ("V_" + b) in kz.files else None
+                cols.append(np.sqrt(var) * V)
+            else:
+                B = bases[b]
+                # B is a same-group indicator matrix: one column per group
+                _, grp = np.unique(B, axis=0, return_inverse=True)
+                ind = np.eye(grp.max() + 1)[grp.ravel()]
+                assert np.allclose(ind @ ind.T, B)
+                cols.append(np.sqrt(var) * ind)
+        return Params(np.concatenate(cols, 1), s2, meta={"source": path, "name": name, "drop": list(drop)})
+
+
+def posterior(par, S, P, h, N=None, X=None, Cm=None, want_all=False):
+    """Posterior mean and variance of theta at hero h[i] for each row i
+    given win stats S, P (n, H), counts N (n, H) for z, metric sums X and
+    counts Cm (n, H, M). Batched K x K algebra (float64)."""
+    U, s2 = par.U, par.s2
+    n, K = S.shape[0], par.K
+    S = S.astype(np.float64)
+    P = P.astype(np.float64)
+    den = 1.0 + s2[None, :] * P
+    w = P / den
+    wy = S / den
+    UU = (U[:, :, None] * U[:, None, :]).reshape(H, K * K)
+    Lam = (w @ UU).reshape(n, K, K) + np.eye(K)[None]
+    eta = wy @ U
+    if par.W is not None and N is not None:
+        zf, _, _ = z_features(N, par.zmean, par.zsd)
+        eta += zf.astype(np.float64) @ par.W.T
+    if par.G is not None and X is not None:
+        Mn = par.G.shape[0]
+        Cm = Cm.astype(np.float64)
+        wm = Cm / (par.rho2[None, None, :] * Cm + par.eps2[None, None, :])     # (n, H, M)
+        xb = np.where(Cm > 0, X / np.maximum(Cm, 1e-9), 0.0) - par.c.T[None]   # (n, H, M)
+        Gt = np.transpose(par.G, (1, 0, 2)).reshape(H * Mn, K)                   # (H*M, K)
+        GG = (Gt[:, :, None] * Gt[:, None, :]).reshape(H * Mn, K * K)
+        Lam += (wm.reshape(n, H * Mn) @ GG).reshape(n, K, K)
+        eta += (wm * xb).reshape(n, H * Mn) @ Gt
+    L = np.linalg.cholesky(Lam)
+    ahat = np.linalg.solve(Lam, eta[:, :, None])[:, :, 0]
+    if want_all:
+        a = 1.0 - s2[None, :] * w
+        mean = a * (ahat @ U.T) + s2[None, :] * wy
+        Linv = np.linalg.inv(L)                                    # (n, K, K)
+        Q = np.einsum("nkl,hl->nhk", Linv, U)
+        var = a ** 2 * (Q ** 2).sum(2) + s2[None, :] * a
+        return mean, var
+    Uh = U[h]                                                      # (n, K)
+    ah = 1.0 - s2[h] * w[np.arange(n), h]
+    mean = ah * (Uh * ahat).sum(1) + s2[h] * wy[np.arange(n), h]
+    q = np.linalg.solve(L, Uh[:, :, None])[:, :, 0]
+    var = ah ** 2 * (q ** 2).sum(1) + s2[h] * ah
+    return mean, var
+
+
+# ------------------------------------------------------------------ fit (torch)
+
+def fit(a):
+    import torch
+    dev = torch.device("cuda" if torch.cuda.is_available() and not a.cpu else "cpu")
+    torch.manual_seed(a.seed)
+    z = np.load(os.path.join(RCF_CACHE, f"fit_{a.hist}.npz"))
+    fitm = z["fit"]
+    use_m = a.metrics
+    mets = [str(m) for m in z["metrics"]]
+    Mn = len(mets)
+    N1 = z["N1"]
+    zf, zmean, zsd = z_features(N1[fitm])
+    Dz = zf.shape[1]
+    meta_h = C.hero_meta(z["hero_names"]) if a.role else None
+
+    def tens(sel):
+        g = lambda x: torch.from_numpy(np.ascontiguousarray(x)).to(dev)
+        T = {k: g(z[k][sel]) for k in ("S1", "P1", "S2", "P2")}
+        T["Z"] = g(z_features(N1[sel], zmean, zsd)[0])
+        if use_m:
+            T["X1"] = g(z["X1"][sel])
+            T["C1"] = g(z["C1"][sel])
+        return T
+    if a.objective == "marginal":
+        # phase-1 style: marginal likelihood of all E slot rows, no conditioning
+        def tens(sel):  # noqa: F811
+            n = int(sel.sum())
+            T = {"S1": torch.zeros(n, H, device=dev), "P1": torch.zeros(n, H, device=dev),
+                 "S2": torch.from_numpy(z["SE"][sel]).to(dev), "P2": torch.from_numpy(z["PE"][sel]).to(dev),
+                 "Z": torch.zeros(n, Dz, device=dev)}
+            if use_m:
+                T["X1"] = torch.zeros(n, H, Mn, device=dev)
+                T["C1"] = torch.zeros(n, H, Mn, device=dev)
+            return T
+    if a.val:
+        # inner validation: 20% of the fit half plays the held-out role; the
+        # real held-out half is not touched (used to choose lam and kmax)
+        rv = np.random.RandomState(11).rand(len(fitm)) < 0.2
+        hold_sel, fitm = fitm & rv, fitm & ~rv
+    else:
+        hold_sel = ~fitm
+    Tf, Th = tens(fitm), tens(hold_sel)
+    nf, nh = int(fitm.sum()), int(hold_sel.sum())
+    print(f"[fit {a.tag}] {a.hist}, fit players {nf:,}, held-out {nh:,}, device {dev}", flush=True)
+    dt = torch.float64 if a.f64 else torch.float32
+    K = a.kmax
+    # parameters
+    p = {}
+    p["log_sp"] = torch.tensor(np.log(0.017), dtype=dt)
+    p["V"] = torch.tensor(0.005 * np.random.RandomState(a.seed).randn(H, K), dtype=dt)
+    p["log_s2"] = torch.full((H,) if a.hero_s2 else (1,), np.log(0.022 ** 2), dtype=dt)
+    groups = []
+    if a.role:
+        for nm, lab in (("role", meta_h["blizz"]), ("fine", meta_h["fine"]), ("melee", meta_h["melee"].astype(int))):
+            ind = np.eye(lab.max() + 1)[lab]
+            groups.append((nm, torch.tensor(ind, dtype=dt)))
+            p["log_s_" + nm] = torch.tensor(np.log(0.01), dtype=dt)
+    if use_m:
+        p["c"] = torch.zeros(Mn, H, dtype=dt)
+        p["log_rho2"] = torch.full((Mn,), np.log(0.1), dtype=dt)
+        p["log_eps2"] = torch.full((Mn,), np.log(0.8), dtype=dt)
+    for k in p:
+        p[k] = p[k].to(dev).requires_grad_(True)
+
+    def build_U():
+        cols = [torch.exp(p["log_sp"]) * torch.ones(H, 1, dtype=dt, device=dev), p["V"]]
+        for nm, ind in groups:
+            cols.append(torch.exp(p["log_s_" + nm]) * ind.to(dev))
+        return torch.cat(cols, 1)
+    nU = 1 + K + sum(g[1].shape[1] for g in groups)
+    if a.kit:
+        import json as _j
+        kj = _j.load(open(os.path.join(os.path.dirname(HERE_DIR), "scilearn", "kit", "kit_2.57.json")))
+        names = [str(x) for x in z["hero_names"]]
+        miss = [n for n in names if n not in kj["heroes"]]
+        assert not miss, f"kit file misses {miss}"
+        A = np.array([[kj["heroes"][n]["values"][ax] for ax in kj["axes"]] for n in names], float)
+        A = (A - A.mean(0)) / (A.std(0) + 1e-9)
+        for j, ax in enumerate(kj["axes"]):
+            groups.append(("kit_" + ax, torch.tensor(A[:, j:j + 1], dtype=dt)))
+            p["log_s_kit_" + ax] = torch.tensor(np.log(0.003), dtype=dt, device=dev, requires_grad=True)
+        nU = 1 + K + sum(g[1].shape[1] for g in groups)
+    if a.implicit:
+        p["W"] = torch.zeros(nU, Dz, dtype=dt, device=dev, requires_grad=True)
+    if use_m:
+        # G = shared loadings per metric (B, broadcast over heroes) + hero deviations D (L2, sd gsd)
+        if a.grole:
+            role_idx = torch.tensor(C.hero_meta(z["hero_names"])["blizz"], device=dev)
+        shape = (Mn, 6, nU) if a.grole else (Mn, 1, nU) if a.gshare else (Mn, H, nU)
+        p["G"] = torch.tensor(0.01 * np.random.RandomState(a.seed + 1).randn(*shape), dtype=dt, device=dev,
+                              requires_grad=True)
+        if (a.gshare or a.grole) and a.gsd > 0:
+            p["D"] = torch.zeros(Mn, H, nU, dtype=dt, device=dev, requires_grad=True)
+    # metric availability per (hero, metric): never-informative pairs are fixed at 0
+    if use_m:
+        avail = torch.tensor((z["C1"][fitm].sum(0) > 0).T.astype(np.float64), dtype=dt, device=dev)  # (M, H)
+
+    def Geff():
+        G = p["G"][:, role_idx] if a.grole else p["G"].expand(Mn, H, nU)
+        return G + p["D"] if "D" in p else G
+
+    def batch_ll(T, i0, i1):
+        U = build_U()
+        s2 = torch.exp(p["log_s2"]).expand(H)
+        S1 = T["S1"][i0:i1].to(dev, dt)
+        P1 = T["P1"][i0:i1].to(dev, dt)
+        S2 = T["S2"][i0:i1].to(dev, dt)
+        P2 = T["P2"][i0:i1].to(dev, dt)
+        B = S1.shape[0]
+        den = 1 + s2 * P1
+        w1 = P1 / den
+        wy1 = S1 / den
+        UU = (U[:, :, None] * U[:, None, :]).reshape(H, nU * nU)
+        Lam = (w1 @ UU).reshape(B, nU, nU) + torch.eye(nU, dtype=dt, device=dev)
+        eta = wy1 @ U
+        if a.implicit:
+            eta = eta + T["Z"][i0:i1].to(dev, dt) @ p["W"].T
+        if use_m:
+            X1 = T["X1"][i0:i1].to(dev, dt)
+            C1 = T["C1"][i0:i1].to(dev, dt)
+            G = Geff() * avail[:, :, None]
+            rho2 = torch.exp(p["log_rho2"])
+            eps2 = torch.exp(p["log_eps2"])
+            wm = C1 / (rho2 * C1 + eps2)                                  # (B, H, M)
+            xb = torch.where(C1 > 0, X1 / C1.clamp_min(1e-9), torch.zeros_like(X1)) - p["c"].T
+            Gt = G.permute(1, 0, 2).reshape(H * Mn, nU)
+            GG = (Gt[:, :, None] * Gt[:, None, :]).reshape(H * Mn, nU * nU)
+            Lam = Lam + (wm.reshape(B, H * Mn) @ GG).reshape(B, nU, nU)
+            eta = eta + (wm * xb).reshape(B, H * Mn) @ Gt
+        L = torch.linalg.cholesky(Lam)
+        ahat = torch.cholesky_solve(eta[:, :, None], L)[:, :, 0]
+        m2 = P2 > 0
+        aa = 1 - s2 * w1
+        cc = s2 * wy1
+        Up = aa[:, :, None] * U[None]                                    # (B, H, nU)
+        t = torch.where(m2, s2 * aa + 1 / P2.clamp_min(1e-9), torch.ones_like(P2))
+        invt = torch.where(m2, 1 / t, torch.zeros_like(t))
+        y2 = torch.where(m2, S2 / P2.clamp_min(1e-9), torch.zeros_like(S2))
+        r = torch.where(m2, y2 - cc - (Up @ ahat[:, :, None])[:, :, 0], torch.zeros_like(y2))
+        Lam2 = Lam + torch.einsum("bhk,bh,bhl->bkl", Up, invt, Up)
+        beta = torch.einsum("bhk,bh->bk", Up, invt * r)
+        L2 = torch.linalg.cholesky(Lam2)
+        sol = torch.cholesky_solve(beta[:, :, None], L2)[:, :, 0]
+        quad = (invt * r * r).sum(1) - (beta * sol).sum(1)
+        ld = (torch.where(m2, torch.log(t), torch.zeros_like(t))).sum(1) \
+            + 2 * torch.log(torch.diagonal(L2, dim1=1, dim2=2)).sum(1) \
+            - 2 * torch.log(torch.diagonal(L, dim1=1, dim2=2)).sum(1)
+        mcount = m2.sum(1).to(dt)
+        out = -0.5 * (quad + ld + mcount * np.log(2 * np.pi))
+        if a.joint and joint_on[0]:
+            # + log p(conditioning set | z): every conditioning win cell and metric
+            # cell, so the metric loadings are a generative factor model of
+            # the performance data (Woodbury with the same Lam, eta)
+            o1 = P1 > 0
+            q1 = torch.where(o1, S1 * S1 / (P1.clamp_min(1e-9) * den), torch.zeros_like(S1)).sum(1)
+            lw = torch.where(o1, torch.log(w1.clamp_min(1e-30)), torch.zeros_like(w1)).sum(1)
+            n1 = o1.sum(1).to(dt)
+            mu0 = T["Z"][i0:i1].to(dev, dt) @ p["W"].T if a.implicit else torch.zeros_like(eta)
+            if use_m:
+                om = C1 > 0
+                q1 = q1 + torch.where(om, wm * xb * xb, torch.zeros_like(wm)).sum((1, 2))
+                lw = lw + torch.where(om, torch.log(wm.clamp_min(1e-30)), torch.zeros_like(wm)).sum((1, 2))
+                n1 = n1 + om.sum((1, 2)).to(dt)
+            ldL = 2 * torch.log(torch.diagonal(L, dim1=1, dim2=2)).sum(1)
+            ll1 = -0.5 * (q1 + (mu0 * mu0).sum(1) - (eta * ahat).sum(1) + ldL - lw + n1 * np.log(2 * np.pi))
+            out = out + ll1
+        return out
+
+    def glasso(x, dims, size):
+        # group lasso: lam * sqrt(group size) * ||group||, one group per factor
+        # (a Laplace scale-mixture prior per factor: whole factors switch off)
+        return a.lam * np.sqrt(size) * torch.sqrt((x ** 2).sum(dims) + 1e-12).sum()
+
+    def penalty():
+        pen = torch.zeros((), dtype=dt, device=dev)
+        if a.lam > 0:
+            pen = pen + glasso(p["V"], 0, H)
+        else:
+            pen = pen + (p["V"] ** 2).sum() / (2 * 0.05 ** 2)
+        if a.implicit:
+            pen = pen + (p["W"] ** 2).sum() / (2 * a.wsd ** 2)
+        if use_m:
+            pen = pen + (p["G"] ** 2).sum() / (2 * 0.3 ** 2)
+            if "D" in p:
+                pen = pen + (p["D"] ** 2).sum() / (2 * a.gsd ** 2)
+            pen = pen + (p["c"] ** 2).sum() / (2 * 0.3 ** 2)
+        if a.hero_s2:
+            ls = p["log_s2"]
+            pen = pen + ((ls - ls.mean()) ** 2).sum() / (2 * 0.5 ** 2)
+        return pen
+
+    CH = a.chunk
+    joint_on = [True]
+
+    def total_ll(T, n, grad=False):
+        tot = 0.0
+        for i0 in range(0, n, CH):
+            ll = batch_ll(T, i0, min(n, i0 + CH)).sum()
+            if grad:
+                (-ll).backward()
+            tot += float(ll.detach())
+        return tot
+
+    params = list(p.values())
+    opt = torch.optim.LBFGS(params, lr=1, max_iter=a.iters, history_size=20, line_search_fn="strong_wolfe",
+                            tolerance_grad=1e-7, tolerance_change=1e-10)
+    it = [0]
+    t0 = time.time()
+
+    def closure():
+        opt.zero_grad()
+        pen = penalty()
+        pen.backward()
+        ll = total_ll(Tf, nf, grad=True)
+        it[0] += 1
+        if it[0] % 25 == 1:
+            print(f"  eval {it[0]}: fit ll {ll:.1f} pen {float(pen):.1f} ({time.time() - t0:.0f}s)", flush=True)
+        return torch.tensor(-ll + float(pen))
+    for rnd in range(a.rounds):
+        opt.step(closure)
+    joint_on[0] = False
+    with torch.no_grad():
+        llf = total_ll(Tf, nf)
+        # per-player held-out ll
+        hl = []
+        for i0 in range(0, nh, CH):
+            hl.append(batch_ll(Th, i0, min(nh, i0 + CH)).double().cpu().numpy())
+        hl = np.concatenate(hl)
+        U = build_U().double().cpu().numpy()
+        s2 = torch.exp(p["log_s2"]).expand(H).double().cpu().numpy()
+    colsd = 100 * np.sqrt((U ** 2).mean(0))
+    vsd = colsd[1:1 + K]
+    eff = int((vsd > 0.3).sum())
+    print(f"[fit {a.tag}] fit ll {llf:.1f}; held-out ll {hl.sum():.1f}; V column sd (pp) "
+          f"{np.round(np.sort(vsd)[::-1], 2).tolist()}; effective rank {eff}; "
+          f"overall sd {colsd[0]:.2f}pp; hero sd {100 * np.sqrt(s2.mean()):.2f}pp; {time.time() - t0:.0f}s", flush=True)
+    meta = {"tag": a.tag, "hist": a.hist, "kmax": K, "ard": a.ard, "role": a.role, "implicit": a.implicit,
+            "metrics": use_m, "wsd": a.wsd, "gshare": a.gshare, "grole": a.grole, "kit": a.kit, "joint": a.joint, "gsd": a.gsd, "objective": a.objective, "hero_s2": a.hero_s2, "fit_ll": llf,
+            "heldout_ll": float(hl.sum()), "val": bool(a.val), "lam": a.lam, "v_sd_pp": vsd.tolist(), "effective_rank": eff,
+            "overall_sd_pp": float(colsd[0]), "hero_sd_pp": float(100 * np.sqrt(s2.mean())),
+            "seconds": round(time.time() - t0), "n_fit": nf, "n_heldout": nh}
+    kw = {}
+    if a.implicit:
+        kw.update(W=p["W"].detach().double().cpu().numpy(), zmean=zmean, zsd=zsd)
+    if use_m:
+        G = (Geff() * avail[:, :, None]).detach().double().cpu().numpy()
+        kw.update(G=G, c=p["c"].detach().double().cpu().numpy(),
+                  rho2=torch.exp(p["log_rho2"]).detach().double().cpu().numpy(),
+                  eps2=torch.exp(p["log_eps2"]).detach().double().cpu().numpy())
+        meta["metric_loading_norm"] = dict(zip(mets, np.sqrt((G ** 2).sum((1, 2))).round(4).tolist()))
+        meta["rho2"] = dict(zip(mets, kw["rho2"].round(4).tolist()))
+        meta["eps2"] = dict(zip(mets, kw["eps2"].round(4).tolist()))
+    if a.implicit:
+        meta["W_row_norm"] = np.sqrt((kw["W"] ** 2).sum(1)).round(4).tolist()
+    par = Params(U, s2, meta=meta, **kw)
+    os.makedirs(os.path.join(RCF_RES, "params"), exist_ok=True)
+    par.save(os.path.join(RCF_RES, "params", f"{a.tag}.npz"))
+    np.savez(os.path.join(RCF_RES, "params", f"{a.tag}_heldout.npz"), ll=hl,
+             players=z["players"][hold_sel])
+    with open(os.path.join(RCF_RES, "params", f"{a.tag}.json"), "w") as f:
+        json.dump(meta, f, indent=1)
+
+
+def heldout_fixed(a):
+    """Held-out predictive ll of a fixed parameter file (e.g. today's kernel
+    in factor form), numpy, same arrays as fit()."""
+    z = np.load(os.path.join(RCF_CACHE, f"fit_{a.hist}.npz"))
+    par = Params.from_kernel_file(KERN, drop=tuple(a.drop.split(",")) if a.drop else ()) \
+        if a.tag.startswith("today") else Params.load(os.path.join(RCF_RES, "params", f"{a.tag}.npz"))
+    sel = ~z["fit"]
+    if a.objective == "marginal":
+        S1 = np.zeros((sel.sum(), H)); P1 = S1; S2, P2 = z["SE"][sel], z["PE"][sel]
+    else:
+        S1, P1, S2, P2 = z["S1"][sel], z["P1"][sel], z["S2"][sel], z["P2"][sel]
+    ll = pred_ll_np(par, S1, P1, S2, P2)
+    out = a.tag + ("_" + a.hist) + ("_marg" if a.objective == "marginal" else "")
+    os.makedirs(os.path.join(RCF_RES, "params"), exist_ok=True)
+    np.savez(os.path.join(RCF_RES, "params", f"{out}_heldout.npz"), ll=ll, players=z["players"][sel])
+    print(f"[heldout {out}] {ll.sum():.1f} over {sel.sum():,} players")
+
+
+def pred_ll_np(par, S1, P1, S2, P2, chunk=20000):
+    """Numpy predictive ll (win channel only, no z or metrics)."""
+    U, s2 = par.U, par.s2
+    K = U.shape[1]
+    out = []
+    for i0 in range(0, len(S1), chunk):
+        s1, p1 = S1[i0:i0 + chunk].astype(np.float64), P1[i0:i0 + chunk].astype(np.float64)
+        sv, pv = S2[i0:i0 + chunk].astype(np.float64), P2[i0:i0 + chunk].astype(np.float64)
+        B = len(s1)
+        den = 1 + s2 * p1
+        w1, wy1 = p1 / den, s1 / den
+        UU = (U[:, :, None] * U[:, None, :]).reshape(H, K * K)
+        Lam = (w1 @ UU).reshape(B, K, K) + np.eye(K)
+        ah = np.linalg.solve(Lam, (wy1 @ U)[:, :, None])[:, :, 0]
+        m2 = pv > 0
+        aa = 1 - s2 * w1
+        Up = aa[:, :, None] * U[None]
+        t = np.where(m2, s2 * aa + 1 / np.maximum(pv, 1e-9), 1.0)
+        invt = np.where(m2, 1 / t, 0.0)
+        y2 = np.where(m2, sv / np.maximum(pv, 1e-9), 0.0)
+        r = np.where(m2, y2 - s2 * wy1 - np.einsum("bhk,bk->bh", Up, ah), 0.0)
+        Lam2 = Lam + np.einsum("bhk,bh,bhl->bkl", Up, invt, Up)
+        beta = np.einsum("bhk,bh->bk", Up, invt * r)
+        sol = np.linalg.solve(Lam2, beta[:, :, None])[:, :, 0]
+        quad = (invt * r * r).sum(1) - (beta * sol).sum(1)
+        ld = np.where(m2, np.log(t), 0).sum(1) + np.linalg.slogdet(Lam2)[1] - np.linalg.slogdet(Lam)[1]
+        out.append(-0.5 * (quad + ld + m2.sum(1) * np.log(2 * np.pi)))
+    return np.concatenate(out)
+
+
+# ------------------------------------------------------------------ online
+
+def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True):
+    """As-of posterior for each query slot row (indices into the slot table,
+    any order). State holds aug rows with day <= query day - lag; every
+    query sees only rows on earlier days, so its own row (same day) and its
+    own metrics never enter. Returns dict over query slots in the given
+    order: mean, var, nh, np (counts in the state, all rows)."""
+    day, pid, hero = aug["day"], aug["pid"], aug["hero"]
+    slot = aug["slot"]
+    npl = int(aug["n_players"])
+    use_m = par.G is not None and metrics is not None
+    Mn = par.G.shape[0] if use_m else 0
+    Sst = np.zeros((npl, H))
+    Pst = np.zeros((npl, H))
+    Nst = np.zeros((npl, H), np.float32)
+    if use_m:
+        Xst = np.zeros((npl, H, Mn), np.float32)
+        Cst = np.zeros((npl, H, Mn), np.float32)
+    # query rows in the aug order
+    inv = np.full(int(slot.max()) + 1, -1, np.int64)
+    inv[slot[slot >= 0]] = np.flatnonzero(slot >= 0)
+    qa = inv[query_slots]
+    assert (qa >= 0).all()
+    oq = np.argsort(qa, kind="stable")
+    qa_s = qa[oq]
+    nq = len(qa)
+    mean = np.empty(nq)
+    var = np.empty(nq)
+    Nh = np.empty(nq, np.float32)
+    Np = np.empty(nq, np.float32)
+    qd = day[qa_s]
+    ud, qs = np.unique(qd, return_index=True)
+    qe = np.r_[qs[1:], nq]
+    ap = 0
+    t0 = time.time()
+    for t, a_, b_ in zip(ud, qs, qe):
+        e = np.searchsorted(day, t - lag, side="right")
+        if e > ap:
+            rr = np.arange(ap, e)
+            pi, hi = pid[rr], hero[rr]
+            np.add.at(Sst, (pi, hi), aug["r_adj"][rr] / aug["v"][rr])
+            np.add.at(Pst, (pi, hi), 1.0 / aug["v"][rr])
+            np.add.at(Nst, (pi, hi), 1.0)
+            if use_m:
+                sr = slot[rr]
+                ok = sr >= 0
+                Xm = metrics[sr[ok]].astype(np.float32)
+                g = ~np.isnan(Xm)
+                np.add.at(Xst, (pi[ok], hi[ok]), np.where(g, Xm, 0))
+                np.add.at(Cst, (pi[ok], hi[ok]), g.astype(np.float32))
+            ap = e
+        q = qa_s[a_:b_]
+        pq, hq = pid[q], hero[q]
+        kw = {}
+        if use_z and par.W is not None:
+            kw["N"] = Nst[pq].astype(np.float64)
+        if use_m:
+            kw["X"], kw["Cm"] = Xst[pq], Cst[pq]
+        mean[a_:b_], var[a_:b_] = posterior(par, Sst[pq], Pst[pq], hq, **kw)
+        Nh[a_:b_] = Nst[pq, hq]
+        Np[a_:b_] = Nst[pq].sum(1)
+    back = np.empty(nq, np.int64)
+    back[oq] = np.arange(nq)
+    print(f"  online walk: {nq:,} queries, {time.time() - t0:.0f}s", flush=True)
+    return {"mean": mean[back], "var": var[back], "nh": Nh[back], "np": Np[back]}
+
+
+def get_params(tag):
+    if tag.startswith("today"):
+        drop = ("role", "fine", "melee") if tag == "today_norole" else ()
+        return Params.from_kernel_file(KERN, drop=drop)
+    return Params.load(os.path.join(RCF_RES, "params", f"{tag}.npz"))
+
+
+def online(a):
+    """One arm on V1, V2 and OOT slots (as p3_c_tests.predict): combiner fit on V1."""
+    import p3_x_common as X
+    import p3_c_tests as T
+    import p3_c_merged as M
+    t0 = time.time()
+    par = get_params(a.tag)
+    d, aug = load_aug(a.hist)
+    w, med = T.windows(d)
+    qi = np.flatnonzero(w > 0)
+    mets = slot_metrics()[0] if par.G is not None else None
+    res = online_walk(aug, qi, par, metrics=mets)
+    table = aug["table"]
+    # experience offset from slot-row lag-1 counts (A2wS)
+    from p3_heroes import HKEY
+    np_s = M.lag1_key_sums(d["day"], d["pid"].astype(np.int64)).astype(np.int64)
+    nph_s = M.lag1_key_sums(d["day"], d["pid"].astype(np.int64) * HKEY + d["hero"]).astype(np.int64)
+    mu = table[C.exp_bins(np_s[qi], nph_s[qi])]
+    pred = mu + res["mean"]
+    n_games, y, wp0, cnt, gday = X.game_arrays(d)
+    lo = np.log(wp0 / (1 - wp0))
+    pr = np.zeros(len(d["pid"]))
+    pr[qi] = pred
+    D = X.team_diff(pr, d["g"], d["team"], n_games)
+    gw = np.zeros(n_games, np.int8)
+    gw[d["g"][qi]] = w[qi]
+    full = cnt == 10
+    fitg = (gw == 1) & full
+    wc = C.fit_logistic(np.column_stack([lo, D])[fitg], y[fitg])
+    w0 = C.fit_logistic(lo[fitg][:, None], y[fitg])
+    p = C.predict(wc, np.column_stack([lo, D]))
+    p0 = C.predict(w0, lo[:, None])
+    gsel = (gw > 0) & full
+    grid = np.zeros(n_games, np.int64)
+    grid[d["g"]] = d["replay_id"]
+    pulled_pid = np.load(ROWS)["pulled_pid"]
+    pulled = np.isin(d["pid"], pulled_pid)
+    n_pull = np.bincount(d["g"], weights=pulled, minlength=n_games)
+    rec_slot = M.lag1_key_sums(d["day"], d["pid"].astype(np.int64) * HKEY + d["hero"], d["r"])[qi]
+    out = {"s_replay_id": d["replay_id"][qi], "s_key": d["player_keys"][d["pid"][qi]], "s_pid": d["pid"][qi],
+           "s_team": d["team"][qi], "s_hero": d["hero"][qi].astype(np.int16), "s_day": d["day"][qi],
+           "s_win": w[qi], "s_r": d["r"][qi].astype(np.float32), "s_wp": d["wp"][qi].astype(np.float32),
+           "s_pred": pred.astype(np.float32), "s_mean": res["mean"].astype(np.float32),
+           "s_var": res["var"].astype(np.float32), "s_mu": mu.astype(np.float32),
+           "s_nh": res["nh"], "s_np": res["np"], "s_nh_slot": nph_s[qi].astype(np.float32),
+           "s_np_slot": np_s[qi].astype(np.float32), "s_rec_slot": rec_slot.astype(np.float32),
+           "s_pulled": pulled[qi],
+           "g_replay_id": grid[gsel], "g_win": gw[gsel], "g_y": y[gsel], "g_lo": lo[gsel], "g_D": D[gsel],
+           "g_p": p[gsel], "g_p0": p0[gsel], "g_day": gday[gsel], "g_all10_pulled": (n_pull[gsel] == 10),
+           "coef": wc, "coef0": w0}
+    ll = X.logloss(p, y)
+    ll0 = X.logloss(p0, y)
+    summ = {nm: {"games": int(((gw == k) & full).sum()),
+                 "gain": float((ll0 - ll)[(gw == k) & full].mean())} for k, nm in T.WIN.items()}
+    print(f"[online {a.tag} {a.hist}] {json.dumps(summ)} ({time.time() - t0:.0f}s)", flush=True)
+    os.makedirs(os.path.join(RCF_RES, "p3c"), exist_ok=True)
+    np.savez(os.path.join(RCF_RES, "p3c", f"{a.tag}__{a.hist}.npz"), **out,
+             meta=np.array(json.dumps({"tag": a.tag, "hist": a.hist, "summary": summ, "split_day": med})))
+
+
+# ------------------------------------------------------------------ cassia
+
+def cassia(a):
+    """Masked cold start (P3_HERO_STRENGTH section 4) on the static E state
+    (plus, for merged, every HP row up to the end of E): held-out players with
+    300+ E slot games, target cells with 10-60 E slot games on the hero and at
+    most 5% of their E games. All of the target cell's rows (slot and HP),
+    its counts and its metrics are hidden."""
+    from p3_hs_cassia import score
+    par = get_params(a.tag)
+    d, aug = load_aug(a.hist)
+    npl = int(d["n_players"])
+    e_last = int(d["day"][d["in_sample"]].max())
+    slot = aug["slot"]
+    is_slot = slot >= 0
+    ins = np.zeros(len(slot), bool)
+    ins[is_slot] = d["in_sample"][slot[is_slot]]
+    day, pid, hero = aug["day"], aug["pid"], aug["hero"]
+    e_slot = is_slot & ins & (day >= C.day_of(C.E_START))
+    state = (day <= e_last)
+    if a.hist == "window":
+        state &= e_slot
+    cnt = np.bincount(pid[e_slot] * H + hero[e_slot], minlength=npl * H).reshape(npl, H)
+    tot = cnt.sum(1)
+    hold = ~fit_half(npl)
+    deep = hold & (tot >= 300)
+    pi, hi = np.nonzero((cnt >= 10) & (cnt <= 60) & (cnt <= 0.05 * tot[:, None]) & deep[:, None])
+    up = np.unique(pi)
+    pos = np.full(npl, -1, np.int64)
+    pos[up] = np.arange(len(up))
+    sel = state & (pos[pid] >= 0)
+    idx = pos[pid[sel]] * H + hero[sel]
+    S = np.bincount(idx, weights=aug["r_adj"][sel] / aug["v"][sel], minlength=len(up) * H).reshape(-1, H)
+    P = np.bincount(idx, weights=1 / aug["v"][sel], minlength=len(up) * H).reshape(-1, H)
+    N = np.bincount(idx, minlength=len(up) * H).reshape(-1, H).astype(np.float64)
+    kw = {}
+    tg = np.arange(len(pi))
+    rows_p = pos[pi]
+    Sm, Pm, Nm = S[rows_p].copy(), P[rows_p].copy(), N[rows_p].copy()
+    Sm[tg, hi] = 0
+    Pm[tg, hi] = 0
+    Nm[tg, hi] = 0
+    if par.W is not None:
+        kw["N"] = Nm
+    if par.G is not None:
+        Z, _ = slot_metrics()
+        Mn = Z.shape[1]
+        ss = sel & is_slot
+        cell = pos[pid[ss]] * H + hero[ss]
+        Xm = Z[slot[ss]].astype(np.float32)
+        g = ~np.isnan(Xm)
+        Xs = np.zeros((len(up) * H, Mn), np.float32)
+        Cs = np.zeros((len(up) * H, Mn), np.float32)
+        for k in range(Mn):
+            Xs[:, k] = np.bincount(cell[g[:, k]], weights=Xm[g[:, k], k], minlength=len(up) * H)
+            Cs[:, k] = np.bincount(cell[g[:, k]], minlength=len(up) * H)
+        Xs = Xs.reshape(-1, H, Mn)[rows_p]
+        Cs = Cs.reshape(-1, H, Mn)[rows_p]
+        Xs[tg, hi] = 0
+        Cs[tg, hi] = 0
+        kw["X"], kw["Cm"] = Xs, Cs
+    m, s2 = [], []
+    for i0 in range(0, len(pi), 20000):
+        sl = slice(i0, i0 + 20000)
+        mm, vv = posterior(par, Sm[sl], Pm[sl], hi[sl], **{k: v[sl] for k, v in kw.items()})
+        m.append(mm)
+        s2.append(vv)
+    m, s2 = np.concatenate(m), np.concatenate(s2)
+    # targets: cell mean of r_adj over E slot rows
+    tk = pi * H + hi
+    key = pid * H + hero
+    sel_t = e_slot & np.isin(key, tk)
+    o = np.argsort(tk)
+    ci = o[np.searchsorted(tk[o], key[sel_t])]
+    ns = np.bincount(ci, minlength=len(tk))
+    rbar = np.bincount(ci, weights=aug["r_adj"][sel_t], minlength=len(tk)) / ns
+    noise = np.bincount(ci, weights=aug["v"][sel_t], minlength=len(tk)) / ns ** 2
+    meta = C.hero_meta(d["hero_names"])
+    roles = meta["blizz"][hi]
+    out = {"tag": a.tag, "hist": a.hist, "cells": int(len(pi)), "players": int(len(up)),
+           "all": score(rbar, noise, m, s2),
+           "by_role": {C.BLIZZ_ROLES[r]: score(rbar[roles == r], noise[roles == r], m[roles == r], s2[roles == r])
+                       for r in range(6) if (roles == r).sum() > 200}}
+    print(f"[cassia {a.tag} {a.hist}] R2 {out['all']['latent_R2']:+.3f}; " + ", ".join(
+        f"{k} {v['latent_R2']:+.2f}" for k, v in out["by_role"].items()), flush=True)
+    os.makedirs(RCF_RES, exist_ok=True)
+    np.savez(os.path.join(RCF_RES, f"cassia_{a.tag}__{a.hist}.npz"), pi=pi, hi=hi, m=m, s2=s2, rbar=rbar,
+             noise=noise, roles=roles)
+    with open(os.path.join(RCF_RES, f"cassia_{a.tag}__{a.hist}.json"), "w") as f:
+        json.dump(out, f, indent=1)
+
+
+# ------------------------------------------------------------------ coverage
+
+def cover(a):
+    """Interval coverage (P3_HERO_STRENGTH section 5): the posterior as of
+    the V1/V2 split vs the mean r_adj of the same cell over its V2 slot
+    games, for cells with 10+ V2 games. 80% interval m +- 1.28 sqrt(s2 +
+    noise / n)."""
+    import p3_c_tests as T
+    par = get_params(a.tag)
+    d, aug = load_aug(a.hist)
+    w, med = T.windows(d)
+    day, pid, hero, slot = aug["day"], aug["pid"], aug["hero"], aug["slot"]
+    npl = int(d["n_players"])
+    sw = np.zeros(len(slot), np.int8)
+    sw[slot >= 0] = w[slot[slot >= 0]]
+    fut = sw == 2
+    key = pid * H + hero
+    fk, fc = np.unique(key[fut], return_counts=True)
+    cells = fk[fc >= 10]
+    cp = cells // H
+    up = np.unique(cp)
+    pos = np.full(npl, -1, np.int64)
+    pos[up] = np.arange(len(up))
+    st = (day <= med - 1) & (pos[pid] >= 0)
+    idx = pos[pid[st]] * H + hero[st]
+    S = np.bincount(idx, weights=aug["r_adj"][st] / aug["v"][st], minlength=len(up) * H).reshape(-1, H)
+    P = np.bincount(idx, weights=1 / aug["v"][st], minlength=len(up) * H).reshape(-1, H)
+    N = np.bincount(idx, minlength=len(up) * H).reshape(-1, H).astype(np.float64)
+    kw = {}
+    rows_p = pos[cp]
+    hq = cells % H
+    if par.W is not None:
+        kw["N"] = N[rows_p]
+    if par.G is not None:
+        Z, _ = slot_metrics()
+        Mn = Z.shape[1]
+        ss = st & (slot >= 0)
+        cell = pos[pid[ss]] * H + hero[ss]
+        Xm = Z[slot[ss]].astype(np.float32)
+        g = ~np.isnan(Xm)
+        Xs = np.zeros((len(up) * H, Mn), np.float32)
+        Cs = np.zeros((len(up) * H, Mn), np.float32)
+        for k in range(Mn):
+            Xs[:, k] = np.bincount(cell[g[:, k]], weights=Xm[g[:, k], k], minlength=len(up) * H)
+            Cs[:, k] = np.bincount(cell[g[:, k]], minlength=len(up) * H)
+        kw["X"] = Xs.reshape(-1, H, Mn)[rows_p]
+        kw["Cm"] = Cs.reshape(-1, H, Mn)[rows_p]
+    m, s2 = [], []
+    for i0 in range(0, len(cells), 20000):
+        sl = slice(i0, i0 + 20000)
+        mm, vv = posterior(par, S[rows_p][sl], P[rows_p][sl], hq[sl], **{k: v[sl] for k, v in kw.items()})
+        m.append(mm)
+        s2.append(vv)
+    m, s2 = np.concatenate(m), np.concatenate(s2)
+    ci = np.searchsorted(cells, key[fut])
+    okc = (ci < len(cells)) & (cells[np.minimum(ci, len(cells) - 1)] == key[fut])
+    ci = ci[okc]
+    rf = aug["r_adj"][fut][okc]
+    vf = aug["v"][fut][okc]
+    nf = np.bincount(ci, minlength=len(cells))
+    rbar = np.bincount(ci, weights=rf, minlength=len(cells)) / nf
+    noise = np.bincount(ci, weights=vf, minlength=len(cells)) / nf ** 2
+    n_at = N[rows_p, hq]
+    z = np.abs(rbar - m) / np.sqrt(s2 + noise)
+    z125 = np.abs(rbar - m) / np.sqrt(1.25 * s2 + noise)
+    bins = [(0, 0), (1, 5), (6, 20), (21, 100), (101, 10 ** 9)]
+    out = {"tag": a.tag, "hist": a.hist, "cells": int(len(cells)), "cover80": float((z < 1.2816).mean()),
+           "cover80_scaled_1.25": float((z125 < 1.2816).mean()),
+           "var_ratio": float((((rbar - m) ** 2).mean() - noise.mean()) / s2.mean()), "by_n": {}}
+    for lo_, hi_ in bins:
+        s = (n_at >= lo_) & (n_at <= hi_)
+        out["by_n"][f"{lo_}-{hi_ if hi_ < 10 ** 9 else ''}"] = {
+            "cells": int(s.sum()), "cover80": float((z[s] < 1.2816).mean()),
+            "var_ratio": float((((rbar[s] - m[s]) ** 2).mean() - noise[s].mean()) / s2[s].mean())}
+    print(f"[cover {a.tag} {a.hist}] cells {len(cells):,} cover80 {out['cover80']:.3f} "
+          f"var_ratio {out['var_ratio']:.2f}; " + ", ".join(f"{k}: {v['cover80']:.2f}" for k, v in out["by_n"].items()),
+          flush=True)
+    with open(os.path.join(RCF_RES, f"cover_{a.tag}__{a.hist}.json"), "w") as f:
+        json.dump(out, f, indent=1)
+
+
+# ------------------------------------------------------------------ CLI
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("stage", choices=["prep", "fit", "heldout", "online", "cassia", "cover"])
+    ap.add_argument("--hist", default="merged", choices=["window", "merged"])
+    ap.add_argument("--tag", default="v")
+    ap.add_argument("--kmax", type=int, default=2)
+    ap.add_argument("--ard", action="store_true", help="(kept for old specs) same as --lam 1")
+    ap.add_argument("--lam", type=float, default=0.0, help="group-lasso weight per factor (0: Gaussian prior)")
+    ap.add_argument("--kit", action="store_true", help="kit-axis columns (scilearn kit_2.57.json), one scale each")
+    ap.add_argument("--joint", action="store_true", help="add log p(conditioning set): generative metric factors")
+    ap.add_argument("--wsd", type=float, default=0.3, help="prior sd of the implicit map W")
+    ap.add_argument("--gshare", action="store_true", help="metric loadings shared across heroes (+ deviations)")
+    ap.add_argument("--grole", action="store_true", help="metric loadings shared within Blizzard role")
+    ap.add_argument("--gsd", type=float, default=0.0, help="prior sd of hero deviations of metric loadings")
+    ap.add_argument("--val", action="store_true", help="inner validation split of the fit half")
+    ap.add_argument("--role", action="store_true", help="hand-made role, fine-role and melee columns")
+    ap.add_argument("--implicit", action="store_true")
+    ap.add_argument("--metrics", action="store_true")
+    ap.add_argument("--hero-s2", action="store_true", help="per-hero hero-specific variance")
+    ap.add_argument("--objective", default="predictive", choices=["predictive", "marginal"])
+    ap.add_argument("--iters", type=int, default=300)
+    ap.add_argument("--rounds", type=int, default=1)
+    ap.add_argument("--chunk", type=int, default=40000)
+    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--f64", action="store_true")
+    ap.add_argument("--cpu", action="store_true")
+    ap.add_argument("--drop", default="")
+    a = ap.parse_args()
+    if a.ard and a.lam == 0:
+        a.lam = 1.0
+    {"prep": lambda: prep(a.hist), "fit": lambda: fit(a), "heldout": lambda: heldout_fixed(a),
+     "online": lambda: online(a), "cassia": lambda: cassia(a), "cover": lambda: cover(a)}[a.stage]()
+
+
+if __name__ == "__main__":
+    main()

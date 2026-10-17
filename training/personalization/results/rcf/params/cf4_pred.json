@@ -1,0 +1,31 @@
+{
+ "tag": "cf4_pred",
+ "hist": "merged",
+ "kmax": 4,
+ "ard": false,
+ "role": false,
+ "implicit": false,
+ "metrics": false,
+ "wsd": 0.3,
+ "gshare": false,
+ "grole": false,
+ "gsd": 0.0,
+ "objective": "predictive",
+ "hero_s2": false,
+ "fit_ll": -302935.39264653344,
+ "heldout_ll": -303260.93920107384,
+ "val": false,
+ "lam": 0.0,
+ "v_sd_pp": [
+  2.1802502961047283,
+  2.739967861658996,
+  2.75892245258544,
+  2.2213868917030126
+ ],
+ "effective_rank": 4,
+ "overall_sd_pp": 0.8950153314198733,
+ "hero_sd_pp": 2.442061229986496,
+ "seconds": 10,
+ "n_fit": 105175,
+ "n_heldout": 105597
+}

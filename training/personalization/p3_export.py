@@ -51,6 +51,19 @@ QUERIES = {
                d.team0_heroes, d.team1_heroes, d.team0_bans, d.team1_bans, d.winner,
                d.avg_mmr, d.draft_order, EXTRACT(EPOCH FROM d.fetched_at)::bigint AS fetched_ts
         FROM replay_draft_data d WHERE {WHERE}""",
+    # per-player scoreboard stats for the rich-CF multi-target model
+    # (P3_RICH_CF.md); games from 2024-04-01 (the window cache) on
+    "scoreboard": f"""
+        SELECT rp.replay_id, rp.blizz_id, d.game_map, d.game_length,
+               {", ".join(f"(rp.scoreboard->>'{k}')::real AS {k}" for k in (
+                   "hero_damage", "siege_damage", "structure_damage", "minion_damage", "healing",
+                   "self_healing", "protection_allies", "damage_taken", "deaths", "time_spent_dead",
+                   "kills", "assists", "takedowns", "experience_contribution", "merc_camp_captures",
+                   "time_cc_enemy_heroes", "regen_globes", "escapes", "teamfight_hero_damage",
+                   "teamfight_damage_taken", "outnumbered_deaths", "watch_tower_captures",
+                   "clutch_heals", "highest_kill_streak"))}
+        FROM replay_players rp JOIN replay_draft_data d USING (replay_id)
+        WHERE {WHERE} AND d.game_date >= '2024-04-01'""",
 }
 
 

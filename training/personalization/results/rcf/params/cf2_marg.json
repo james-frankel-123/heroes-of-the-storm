@@ -1,0 +1,23 @@
+{
+ "tag": "cf2_marg",
+ "hist": "merged",
+ "kmax": 2,
+ "ard": false,
+ "role": false,
+ "implicit": false,
+ "metrics": false,
+ "objective": "marginal",
+ "hero_s2": false,
+ "fit_ll": -337692.8686760102,
+ "heldout_ll": -337498.5746030797,
+ "v_sd_pp": [
+  2.4138288609184047,
+  2.355056682683053
+ ],
+ "effective_rank": 2,
+ "overall_sd_pp": 1.926957743031051,
+ "hero_sd_pp": 2.654192121632146,
+ "seconds": 6,
+ "n_fit": 105175,
+ "n_heldout": 105597
+}

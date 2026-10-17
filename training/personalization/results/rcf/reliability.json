@@ -1,0 +1,98 @@
+{
+ "win residual (y - WP)": {
+  "per_game_var": 0.23822905123233795,
+  "reliability_player_hero": 0.01328419244949166,
+  "reliability_player": 0.004947795783335135,
+  "rows": 9386114
+ },
+ "hero_damage": {
+  "per_game_var": 0.9983096122741699,
+  "reliability_player_hero": 0.22928708588540603,
+  "reliability_player": 0.12152005062471463,
+  "rows": 9386044
+ },
+ "siege_damage": {
+  "per_game_var": 0.9975085258483887,
+  "reliability_player_hero": 0.27546309988970025,
+  "reliability_player": 0.14257934275941153,
+  "rows": 9386044
+ },
+ "structure_damage": {
+  "per_game_var": 0.9939062595367432,
+  "reliability_player_hero": 0.13582529666670318,
+  "reliability_player": 0.07446538534519616,
+  "rows": 9386044
+ },
+ "healing": {
+  "per_game_var": 0.9931390285491943,
+  "reliability_player_hero": 0.2262987385501613,
+  "reliability_player": 0.12280523867349383,
+  "rows": 2744363
+ },
+ "self_healing": {
+  "per_game_var": 0.9860240817070007,
+  "reliability_player_hero": 0.38692624704943634,
+  "reliability_player": 0.1138381847597992,
+  "rows": 7838676
+ },
+ "protection_allies": {
+  "per_game_var": 0.9177456498146057,
+  "reliability_player_hero": 0.3968174137446734,
+  "reliability_player": 0.1805037934487326,
+  "rows": 1876315
+ },
+ "damage_taken": {
+  "per_game_var": 0.9979065656661987,
+  "reliability_player_hero": 0.2811177949381828,
+  "reliability_player": 0.16941316012609225,
+  "rows": 9340137
+ },
+ "deaths": {
+  "per_game_var": 0.9994302988052368,
+  "reliability_player_hero": 0.171385321824191,
+  "reliability_player": 0.12292235273177257,
+  "rows": 9386044
+ },
+ "kills": {
+  "per_game_var": 0.9994168877601624,
+  "reliability_player_hero": 0.06725404793996577,
+  "reliability_player": 0.034611591014867736,
+  "rows": 9386044
+ },
+ "assists": {
+  "per_game_var": 0.9998348355293274,
+  "reliability_player_hero": 0.04206644481344002,
+  "reliability_player": 0.025047157560332076,
+  "rows": 9386044
+ },
+ "experience_contribution": {
+  "per_game_var": 0.994713306427002,
+  "reliability_player_hero": 0.208437837821624,
+  "reliability_player": 0.11259104924229293,
+  "rows": 9386044
+ },
+ "merc_camp_captures": {
+  "per_game_var": 1.00032377243042,
+  "reliability_player_hero": 0.16232009256363364,
+  "reliability_player": 0.09982093515321895,
+  "rows": 9302182
+ },
+ "outnumbered_deaths": {
+  "per_game_var": 0.99940025806427,
+  "reliability_player_hero": 0.09199584523665903,
+  "reliability_player": 0.0663650240105174,
+  "rows": 9386044
+ },
+ "escapes": {
+  "per_game_var": 0.9996402859687805,
+  "reliability_player_hero": 0.05645710029493651,
+  "reliability_player": 0.03668524655393656,
+  "rows": 9302182
+ },
+ "regen_globes": {
+  "per_game_var": 0.9980214834213257,
+  "reliability_player_hero": 0.1966893637103953,
+  "reliability_player": 0.14098395324562465,
+  "rows": 9366542
+ }
+}
