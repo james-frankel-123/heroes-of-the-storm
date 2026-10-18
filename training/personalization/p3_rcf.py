@@ -182,7 +182,10 @@ def prep(hist, card="legacy"):
     rows from TZ on); SE, PE (all E slot rows: the phase-1 marginal test)."""
     t0 = time.time()
     d, aug = load_aug(hist)
-    mets = slot_metrics()[1]
+    if card == "legacy":
+        mets = slot_metrics()[1]
+    else:
+        mets = [str(m) for m in np.load(os.path.join(RCF_CACHE, f"sb_{card}.npz"))["metrics"]]
     M = len(mets)
     npl = int(d["n_players"])
     e_start = C.day_of(C.E_START)
@@ -223,7 +226,8 @@ def prep(hist, card="legacy"):
         p = os.path.join(RCF_CACHE, f"fitm_{hist}_{card}.npz")
         np.savez_compressed(p, X1=X1, C1=C1, players=players)
         print(f"[prep {hist} {card}] wrote {p} ({time.time() - t0:.0f}s)", flush=True)
-        return
+        if os.path.exists(os.path.join(RCF_CACHE, f"fit_{hist}.npz")):
+            return
     out["X1"] = X1
     out["C1"] = C1
     out["metrics"] = np.array(mets)
@@ -232,7 +236,7 @@ def prep(hist, card="legacy"):
     out["hist"] = np.array(hist)
     os.makedirs(RCF_CACHE, exist_ok=True)
     p = os.path.join(RCF_CACHE, f"fit_{hist}.npz")
-    np.savez(p, **out)
+    np.savez_compressed(p, **out)
     f = out["fit"]
     print(f"[prep {hist}] wrote {p}: players {n:,} (fit {f.sum():,}, held-out {(~f).sum():,}); "
           f"median cond games {np.median(out['N1'].sum(1)):.0f}; {time.time() - t0:.0f}s", flush=True)
@@ -661,7 +665,8 @@ def pred_ll_np(par, S1, P1, S2, P2, chunk=20000):
 
 # ------------------------------------------------------------------ online
 
-def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights=None, hl_win=None, hl_met=None):
+def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights=None, hl_win=None, hl_met=None,
+                parts=False, want_all=False):
     """As-of posterior for each query slot row (indices into the slot table,
     any order). State holds aug rows with day <= query day - lag; every
     query sees only rows on earlier days, so its own row (same day) and its
@@ -697,6 +702,17 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
     var = np.empty(nq)
     Nh = np.empty(nq, np.float32)
     Np = np.empty(nq, np.float32)
+    if want_all:
+        mall = np.empty((nq, H), np.float32)
+        vall = np.empty((nq, H), np.float32)
+        nall = np.empty((nq, H), np.float32)
+    if parts:
+        # the prior for theta at the query hero from everything except that
+        # hero's own win evidence (m0, v0), and the own evidence (Sh, Ph)
+        m0 = np.empty(nq)
+        v0 = np.empty(nq)
+        Sh = np.empty(nq)
+        Ph = np.empty(nq)
     qd = day[qa_s]
     ud, qs = np.unique(qd, return_index=True)
     qe = np.r_[qs[1:], nq]
@@ -729,13 +745,28 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
             fm = np.exp(-lm * (t - d0))
             kw["X"], kw["Cm"] = Xst[pq] * fm, Cst[pq] * fm
         fw = np.exp(-lw * (t - d0))
-        mean[a_:b_], var[a_:b_] = posterior(par, Sst[pq] * fw, Pst[pq] * fw, hq, **kw)
+        Sq, Pq = Sst[pq] * fw, Pst[pq] * fw
+        mean[a_:b_], var[a_:b_] = posterior(par, Sq, Pq, hq, **kw)
+        if want_all:
+            ma, va = posterior(par, Sq, Pq, hq, want_all=True, **kw)
+            mall[a_:b_], vall[a_:b_], nall[a_:b_] = ma, va, Nst[pq]
+        if parts:
+            ar = np.arange(len(q))
+            Sh[a_:b_], Ph[a_:b_] = Sq[ar, hq], Pq[ar, hq]
+            Sq[ar, hq] = 0.0
+            Pq[ar, hq] = 0.0
+            m0[a_:b_], v0[a_:b_] = posterior(par, Sq, Pq, hq, **kw)
         Nh[a_:b_] = Nst[pq, hq]
         Np[a_:b_] = Nst[pq].sum(1)
     back = np.empty(nq, np.int64)
     back[oq] = np.arange(nq)
     print(f"  online walk: {nq:,} queries, {time.time() - t0:.0f}s", flush=True)
-    return {"mean": mean[back], "var": var[back], "nh": Nh[back], "np": Np[back]}
+    out = {"mean": mean[back], "var": var[back], "nh": Nh[back], "np": Np[back]}
+    if parts:
+        out.update(m0=m0[back], v0=v0[back], Sh=Sh[back], Ph=Ph[back])
+    if want_all:
+        out.update(mean_all=mall[back], var_all=vall[back], n_all=nall[back])
+    return out
 
 
 def get_params(tag):
@@ -757,15 +788,31 @@ def online(a):
     qi = np.flatnonzero(w > 0)
     layer = getattr(a, "layer", False)
     qwalk = np.arange(len(d["pid"])) if layer else qi
-    mets, mw = aug_metrics(aug, par.meta.get("sb", "legacy")) if par.G is not None else (None, None)
-    res = online_walk(aug, qwalk, par, metrics=mets, mweights=mw, hl_win=getattr(a, "hl_win", None),
-                      hl_met=getattr(a, "hl_met", None))
+    tail = getattr(a, "tail", None)
+    ppath = getattr(a, "parts", None)
+    if ppath and os.path.exists(ppath):
+        z = np.load(ppath)
+        assert np.array_equal(z["qwalk"], qwalk)
+        res = {k: z[k] for k in z.files if k != "qwalk"}
+        print(f"  loaded walk parts {ppath}", flush=True)
+    else:
+        mets, mw = aug_metrics(aug, par.meta.get("sb", "legacy")) if par.G is not None else (None, None)
+        res = online_walk(aug, qwalk, par, metrics=mets, mweights=mw, hl_win=getattr(a, "hl_win", None),
+                          hl_met=getattr(a, "hl_met", None), parts=bool(ppath or tail))
+        if ppath:
+            np.savez(ppath, qwalk=qwalk, **res)
     table = aug["table"]
     # experience offset from slot-row lag-1 counts (A2wS)
     from p3_heroes import HKEY
     np_s = M.lag1_key_sums(d["day"], d["pid"].astype(np.int64)).astype(np.int64)
     nph_s = M.lag1_key_sums(d["day"], d["pid"].astype(np.int64) * HKEY + d["hero"]).astype(np.int64)
     mu_all = table[C.exp_bins(np_s[qwalk], nph_s[qwalk])]
+    tail_meta = None
+    if tail and tail != "gauss_ref":
+        import p3_rcf_tails as TL
+        res["mean"], res["var"], tail_meta = TL.apply(tail, res, d["r"][qwalk] - mu_all, d["v"][qwalk] if "v" in d else
+                                                      d["wp"][qwalk] * (1 - d["wp"][qwalk]),
+                                                      w[qwalk] == 1, getattr(a, "tail_args", None))
     pred_all = mu_all + res["mean"]
     n_games, y, wp0, cnt, gday = X.game_arrays(d)
     lo = np.log(wp0 / (1 - wp0))
@@ -794,6 +841,11 @@ def online(a):
     pulled = np.isin(d["pid"], pulled_pid)
     n_pull = np.bincount(d["g"], weights=pulled, minlength=n_games)
     rec_slot = M.lag1_key_sums(d["day"], d["pid"].astype(np.int64) * HKEY + d["hero"], d["r"])[qi]
+    # record to date over every history row (slot rows: y - WP; HP rows: y - proxy), lag 1 day
+    rec_aug = M.lag1_key_sums(aug["day"], aug["pid"].astype(np.int64) * HKEY + aug["hero"], aug["r"])
+    inv_slot = np.full(len(d["pid"]), -1, np.int64)
+    inv_slot[aug["slot"][aug["slot"] >= 0]] = np.flatnonzero(aug["slot"] >= 0)
+    rec_full = rec_aug[inv_slot[qi]]
     out = {"s_replay_id": d["replay_id"][qi], "s_key": d["player_keys"][d["pid"][qi]], "s_pid": d["pid"][qi],
            "s_team": d["team"][qi], "s_hero": d["hero"][qi].astype(np.int16), "s_day": d["day"][qi],
            "s_win": w[qi], "s_r": d["r"][qi].astype(np.float32), "s_wp": d["wp"][qi].astype(np.float32),
@@ -801,7 +853,9 @@ def online(a):
            "s_var": res["var"].astype(np.float32), "s_mu": mu.astype(np.float32),
            "s_nh": res["nh"], "s_np": res["np"], "s_nh_slot": nph_s[qi].astype(np.float32),
            "s_np_slot": np_s[qi].astype(np.float32), "s_rec_slot": rec_slot.astype(np.float32),
-           "s_pulled": pulled[qi],
+           "s_pulled": pulled[qi], "s_rec": rec_full.astype(np.float32),
+           "s_kdiag": np.diag(par.kernel())[d["hero"][qi]].astype(np.float32),
+           "kernel_hero_sd_pp": 100 * np.sqrt(np.diag(par.kernel())),
            "g_replay_id": grid[gsel], "g_win": gw[gsel], "g_y": y[gsel], "g_lo": lo[gsel], "g_D": D[gsel],
            "g_p": p[gsel], "g_p0": p0[gsel], "g_day": gday[gsel], "g_all10_pulled": (n_pull[gsel] == 10),
            "coef": wc, "coef0": w0}
@@ -815,7 +869,7 @@ def online(a):
     np.savez(os.path.join(RCF_RES, "p3c", f"{name}__{a.hist}.npz"), **out,
              meta=np.array(json.dumps({"tag": a.tag, "hist": a.hist, "summary": summ, "split_day": med,
                                        "hl_win": getattr(a, "hl_win", None), "hl_met": getattr(a, "hl_met", None),
-                                       "layer": lay_meta})))
+                                       "layer": lay_meta, "tail": tail_meta})))
 
 
 def layer_stats(d, u, early, hl_d):
@@ -975,6 +1029,31 @@ def cassia(a):
 
 # ------------------------------------------------------------------ coverage
 
+def layer_shift_at(d, lay, as_of, cells):
+    """The temporal layer's shift for each cell (pid * H + hero) as of a day:
+    drift_scale * decayed mean of u + learn_scale * early-game mean of u (if
+    the cell had fewer than 5 games), from slot games on days <= as_of.
+    lay: dict with u (per slot, NaN where unknown), early (per slot), nh_cell
+    (games on the hero at as_of per cell) and the arm's layer meta."""
+    m = lay["meta"]
+    day = d["day"].astype(np.int64)
+    ok = (day <= as_of) & np.isfinite(lay["u"])
+    pid = d["pid"].astype(np.int64)
+    npl = int(d["n_players"])
+    lam = np.log(2) / m["hl_d"]
+    w = np.exp(-lam * (as_of + 1 - day[ok]))
+    u = lay["u"][ok]
+    Sd = np.bincount(pid[ok], weights=w * u, minlength=npl)
+    Nd = np.bincount(pid[ok], weights=w, minlength=npl)
+    e = lay["early"][ok]
+    Se = np.bincount(pid[ok], weights=np.where(e, u, 0.0), minlength=npl)
+    Ne = np.bincount(pid[ok], weights=e.astype(float), minlength=npl)
+    cp = cells // H
+    rho = Sd[cp] / (Nd[cp] + m["kd"])
+    nu = Se[cp] / (Ne[cp] + m["ke"])
+    return m["drift_scale"] * rho + m["learn_scale"] * nu * (lay["nh_cell"] < 5)
+
+
 def cells_at(par, d, aug, as_of, target, min_games, Zaug=None, Waug=None):
     """Posterior as of day `as_of` (rows with day <= as_of) for every cell
     with min_games+ slot games in target (bool over aug rows), and the
@@ -1014,7 +1093,7 @@ def cells_at(par, d, aug, as_of, target, min_games, Zaug=None, Waug=None):
     nf = np.bincount(ci, minlength=len(cells))
     rbar = np.bincount(ci, weights=aug["r_adj"][target][okc], minlength=len(cells)) / nf
     noise = np.bincount(ci, weights=aug["v"][target][okc], minlength=len(cells)) / nf ** 2
-    return m, s2, rbar, noise, N[rows_p, hq]
+    return m, s2, rbar, noise, N[rows_p, hq], cells
 
 
 def fit_scale(m, s2, rbar, noise):
@@ -1045,13 +1124,30 @@ def cover(a):
     sw[slot >= 0] = w[slot[slot >= 0]]
     Zaug, Waug = aug_metrics(aug, par.meta.get("sb", "legacy")) if par.G is not None else (None, None)
     e_last = int(d["day"][d["in_sample"]].max())
-    m1, v1, r1, n1, _ = cells_at(par, d, aug, e_last, sw == 1, 5, Zaug, Waug)
+    m1, v1, r1, n1, nat1, cells1 = cells_at(par, d, aug, e_last, sw == 1, 5, Zaug, Waug)
+    m, s2, rbar, noise, n_at, cells2 = cells_at(par, d, aug, med - 1, sw == 2, 10, Zaug, Waug)
+    lay_arm = getattr(a, "layer_arm", None)
+    if lay_arm:
+        # the temporal layer of an arm (online --layer --parts): its shift
+        # as of each date is added to the cell mean before fitting the scale
+        za = np.load(os.path.join(RCF_RES, "p3c", f"{lay_arm}__{a.hist}.npz"))
+        meta = json.loads(str(za["meta"]))["layer"]
+        zp = np.load(a.parts)
+        assert len(zp["qwalk"]) == len(d["pid"])
+        from p3_heroes import HKEY
+        import p3_c_merged as M
+        np_s = M.lag1_key_sums(d["day"], d["pid"].astype(np.int64)).astype(np.int64)
+        nph_s = M.lag1_key_sums(d["day"], d["pid"].astype(np.int64) * HKEY + d["hero"]).astype(np.int64)
+        mu_all = aug["table"][C.exp_bins(np_s, nph_s)]
+        u = d["r"] - (mu_all + zp["mean"])
+        lay = {"u": u, "early": zp["nh"] < 5, "meta": meta}
+        m1 = m1 + layer_shift_at(d, dict(lay, nh_cell=nat1), e_last, cells1)
+        m = m + layer_shift_at(d, dict(lay, nh_cell=n_at), med - 1, cells2)
     c, k0 = fit_scale(m1, v1, r1, n1)
-    m, s2, rbar, noise, n_at = cells_at(par, d, aug, med - 1, sw == 2, 10, Zaug, Waug)
     z = np.abs(rbar - m) / np.sqrt(s2 + noise)
     zc = np.abs(rbar - m) / np.sqrt(c * s2 + k0 + noise)
     bins = [(0, 0), (1, 5), (6, 20), (21, 100), (101, 10 ** 9)]
-    out = {"tag": a.tag, "hist": a.hist, "cells": int(len(m)), "cover80": float((z < 1.2816).mean()),
+    out = {"tag": a.tag, "hist": a.hist, "layer_arm": lay_arm, "cells": int(len(m)), "cover80": float((z < 1.2816).mean()),
            "v1_cells": int(len(m1)), "scale_c": c, "scale_k0_sd_pp": 100 * float(np.sqrt(k0)),
            "cover80_scaled": float((zc < 1.2816).mean()),
            "var_ratio": float((((rbar - m) ** 2).mean() - noise.mean()) / s2.mean()),
@@ -1068,7 +1164,7 @@ def cover(a):
           f"cover80 raw {out['cover80']:.3f} scaled {out['cover80_scaled']:.3f}; var_ratio {out['var_ratio']:.2f} -> "
           f"{out['var_ratio_scaled']:.2f}; " + ", ".join(f"{k}: {v['cover80_scaled']:.2f}" for k, v in out["by_n"].items()),
           flush=True)
-    with open(os.path.join(RCF_RES, f"cover_{a.tag}__{a.hist}.json"), "w") as f:
+    with open(os.path.join(RCF_RES, f"cover_{lay_arm or a.tag}__{a.hist}.json"), "w") as f:
         json.dump(out, f, indent=1)
 
 
@@ -1086,6 +1182,10 @@ def main():
     ap.add_argument("--hl-met", type=float, help="online: recency half-life on the metric evidence (days)")
     ap.add_argument("--layer", action="store_true", help="online: per-player drift and new-hero learning layer")
     ap.add_argument("--out", help="online: arm name (default the tag)")
+    ap.add_argument("--parts", help="online: cache file for the walk (with leave-own-hero-out parts)")
+    ap.add_argument("--tail", help="online: tail card (p3_rcf_tails.py), fit on V1 slots")
+    ap.add_argument("--layer-arm", help="cover: add this online arm's temporal layer (needs --parts)")
+    ap.add_argument("--tail-args", help="online: tail card options (json)")
     ap.add_argument("--sb", default="legacy", help="scoreboard card (p3_rcf_cards.py); legacy = sb_z.npz")
     ap.add_argument("--kit", action="store_true", help="kit-axis columns (scilearn kit_2.57.json), one scale each")
     ap.add_argument("--joint", action="store_true", help="add log p(conditioning set): generative metric factors")

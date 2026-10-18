@@ -1,0 +1,145 @@
+{
+ "tag": "full_ms",
+ "slots": 1436108,
+ "players": 95084,
+ "definition": "30+ earlier games on the hero and estimate 3pp+ below the player's mean over their 30+ game heroes (3+ such heroes), as of the day before",
+ "share_of_slots_known_bad_pick": {
+  "n": 1436108,
+  "rate": 0.014608232807003373,
+  "se": 0.00027939064288189005
+ },
+ "share_of_slots_player_has_known_bad": {
+  "n": 1436108,
+  "rate": 0.3403476618750122,
+  "se": 0.0042362990707240315
+ },
+ "known_bad_pick_rate_given_player_has_one": {
+  "n": 488776,
+  "rate": 0.0429215018740691,
+  "se": 0.0006798964328759614
+ },
+ "mean_known_bad_heroes_when_any": 2.753101625284384,
+ "by_situation": {
+  "main banned before the pick": {
+   "with": {
+    "n": 48654,
+    "rate": 0.04856743535988819,
+    "se": 0.0015708793441977862
+   },
+   "without": {
+    "n": 440122,
+    "rate": 0.042297363003894375,
+    "se": 0.0006989315039320772
+   },
+   "share_of_known_bad_picks_in_situation": 0.1126364459697793
+  },
+  "main banned by the enemy": {
+   "with": {
+    "n": 30991,
+    "rate": 0.049562776289890614,
+    "se": 0.0019879833220348806
+   },
+   "without": {
+    "n": 457785,
+    "rate": 0.042471902749107115,
+    "se": 0.0006465241621945401
+   },
+   "share_of_known_bad_picks_in_situation": 0.07321607321607322
+  },
+  "main picked earlier by another player": {
+   "with": {
+    "n": 36311,
+    "rate": 0.05171986450386935,
+    "se": 0.001303671133808023
+   },
+   "without": {
+    "n": 452465,
+    "rate": 0.04221541997723581,
+    "se": 0.0007147810475040508
+   },
+   "share_of_known_bad_picks_in_situation": 0.08951808951808952
+  },
+  "three most-played heroes unavailable": {
+   "with": {
+    "n": 3137,
+    "rate": 0.050685368186165126,
+    "se": 0.004086521452711841
+   },
+   "without": {
+    "n": 485639,
+    "rate": 0.04287135094174891,
+    "se": 0.0007131133098141324
+   },
+   "share_of_known_bad_picks_in_situation": 0.007579007579007579
+  },
+  "team's last pick": {
+   "with": {
+    "n": 102366,
+    "rate": 0.05061250805931657,
+    "se": 0.0011480222768576567
+   },
+   "without": {
+    "n": 386410,
+    "rate": 0.04088403509225952,
+    "se": 0.0007101442673210786
+   },
+   "share_of_known_bad_picks_in_situation": 0.24696124696124697
+  },
+  "role fill (<10% of games in the role)": {
+   "with": {
+    "n": 43318,
+    "rate": 0.056466134170552656,
+    "se": 0.00242815155684931
+   },
+   "without": {
+    "n": 445458,
+    "rate": 0.04160437123140678,
+    "se": 0.0007515210879509273
+   },
+   "share_of_known_bad_picks_in_situation": 0.11659278325944993
+  }
+ },
+ "realized": {
+  "known_bad_picks": 20979,
+  "realized_r_pp": -4.687744916235448,
+  "realized_r_se_pp": 0.34137376899110045,
+  "predicted_est_pp": -5.425254028499419,
+  "realized_minus_predicted_pp": 0.7375091122639706,
+  "same_players_other_picks_r_pp": -0.013105287934399305,
+  "best_available_alternative_est_pp": 3.962045271517236,
+  "expected_cost_vs_best_available_pp": 9.389365258495738,
+  "share_with_a_better_available_deep_hero": 0.9971876638543306
+ },
+ "main_ban_effect_within_player": {
+  "players": 6573,
+  "slots_main_banned": 48547,
+  "slots_not": 350830,
+  "rate_main_banned": 0.0484684944486786,
+  "rate_not_banned": 0.04044123934669213,
+  "within_player_diff": 0.010845570744768454,
+  "se": 0.0013701120254684303,
+  "realized_r_diff_pp": -1.7598276241277546,
+  "realized_r_diff_se_pp": 0.2666935115879881
+ },
+ "known_bad_pick_rate_by_pick_rank": {
+  "0": 0.037807591764426295,
+  "1": 0.03720678845530213,
+  "2": 0.03717387714663144,
+  "3": 0.03791772452370632,
+  "4": 0.04130606619509921,
+  "5": 0.041764778782996656,
+  "6": 0.04708109185096633,
+  "7": 0.04608821668401608,
+  "8": 0.04999412984776738,
+  "9": 0.05137019747250816
+ },
+ "known_bad_pick_rate_by_role": {
+  "Tank": 0.029744435284418797,
+  "Bruiser": 0.024950791804598728,
+  "Healer": 0.019748234332743156,
+  "Ranged Assassin": 0.06701120321875759,
+  "Melee Assassin": 0.0698356110120816,
+  "Support": 0.08926630434782609
+ },
+ "seconds": 287
+}

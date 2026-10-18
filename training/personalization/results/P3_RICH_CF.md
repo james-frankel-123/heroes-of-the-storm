@@ -14,6 +14,8 @@ All numbers use the window cache (A0) plus the oct05 merged store. That is the s
 - **Kit axes add nothing.** They add +0.1 to the win-only model, which is within noise, and cost 0.8 on the metric model.
 - **Recommendation:** use the metric model (`met2_hs2`) for the Oct 28 rerun, with a refit display scale for its intervals. Use the implicit-feedback model (`imp2`) only for ranking never-played heroes. Details are in the last section.
 
+Next round (full_1017 panel: combined main model, tail priors, known-bad heroes): see `P3_TAILS.md`.
+
 ## Update 2026-10-17: scoreboard cards, display scale, temporal dynamics
 
 Max's decisions after the interim report:

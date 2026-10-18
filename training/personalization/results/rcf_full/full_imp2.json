@@ -1,0 +1,37 @@
+{
+ "tag": "full_imp2",
+ "hist": "merged",
+ "kmax": 2,
+ "ard": false,
+ "role": false,
+ "implicit": true,
+ "metrics": false,
+ "wsd": 0.1,
+ "gshare": false,
+ "grole": false,
+ "kit": false,
+ "joint": false,
+ "sb": "legacy",
+ "gsd": 0.0,
+ "objective": "predictive",
+ "hero_s2": false,
+ "fit_ll": -301744.3936118381,
+ "heldout_ll": -303654.0305579046,
+ "val": false,
+ "lam": 0.0,
+ "v_sd_pp": [
+  1.8643556681964233,
+  2.9511634917023244
+ ],
+ "effective_rank": 2,
+ "overall_sd_pp": 2.4373097213398567,
+ "hero_sd_pp": 2.8576527730231582,
+ "seconds": 7,
+ "n_fit": 105319,
+ "n_heldout": 105453,
+ "W_row_norm": [
+  0.4058,
+  0.7063,
+  0.3093
+ ]
+}

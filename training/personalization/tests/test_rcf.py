@@ -173,8 +173,31 @@ def test_r6_layer_asof():
     assert caught == 25
 
 
+def test_r7_parts_and_tails():
+    import p3_rcf_tails as TL
+    rng = np.random.default_rng(5)
+    par = rand_params(rng)
+    aug, Z, wp, y = walk_fixture(rng)
+    q = rng.choice(np.flatnonzero(aug["day"] > 1100), 60, replace=False)
+    res = R.online_walk(aug, q, par, metrics=Z, parts=True)
+    m0, v0, Sh, Ph = res["m0"], res["v0"], res["Sh"], res["Ph"]
+    comb_v = 1 / (1 / v0 + Ph)
+    comb_m = comb_v * (m0 / v0 + Sh)
+    assert np.allclose(comb_m, res["mean"], atol=1e-9), np.abs(comb_m - res["mean"]).max()
+    assert np.allclose(comb_v, res["var"], atol=1e-9)
+    mq, vq = TL.post("scale", [0.0, 0.0], m0, v0, Sh, Ph, {})
+    assert np.allclose(mq, res["mean"], atol=1e-6 * 0 + 1e-7), np.abs(mq - res["mean"]).max()
+    for j, i in enumerate(q[:20]):
+        a2 = {k: (v.copy() if isinstance(v, np.ndarray) else v) for k, v in aug.items()}
+        later = (aug["day"] >= aug["day"][i]) & (aug["pid"] == aug["pid"][i])
+        a2["r_adj"][later] = 0.8
+        r2 = R.online_walk(a2, np.array([i]), par, metrics=Z, parts=True)
+        for k in ("m0", "v0", "Sh", "Ph"):
+            assert abs(r2[k][0] - res[k][j]) < 1e-10
+
+
 if __name__ == "__main__":
     for t in (test_r1_equals_gp, test_r2_today_kernel, test_r3_asof, test_r4_predictive_ll,
-              test_r5_asof_weighted_decay, test_r6_layer_asof):
+              test_r5_asof_weighted_decay, test_r6_layer_asof, test_r7_parts_and_tails):
         t()
         print(f"{t.__name__}: pass")

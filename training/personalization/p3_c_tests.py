@@ -406,7 +406,7 @@ def report(a):
             lines.append(f"{nl} | {n} | {rec_['slots']:,} | {rec_['median_prior_share']:.3f} | "
                          f"{rec_['median_abs_mean_pp']:.2f} | {slope:.3f} | {rec_['median_nh_seen']:.0f}")
     lines.append("")
-    out["kernel_hero_sd_pp"] = {n: float(np.median(arms[n]["kernel_hero_sd_pp"])) for n in names}
+    out["kernel_hero_sd_pp"] = {n: float(np.median(arms[n].get("kernel_hero_sd_pp", np.nan))) for n in names}
     lines.append("prior sd at a hero (median over heroes, pp): " + json.dumps(
         {k: round(v, 2) for k, v in out["kernel_hero_sd_pp"].items()}))
     # coverage of history: what the reference arm adds

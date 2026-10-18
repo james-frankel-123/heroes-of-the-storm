@@ -1,0 +1,145 @@
+{
+ "tag": "full_ms",
+ "slots": 1436108,
+ "players": 95084,
+ "definition": "30+ earlier games on the hero (full history) and estimate < -3pp, as of the day before",
+ "share_of_slots_known_bad_pick": {
+  "n": 1436108,
+  "rate": 0.04391243555498611,
+  "se": 0.0007566501322537627
+ },
+ "share_of_slots_player_has_known_bad": {
+  "n": 1436108,
+  "rate": 0.37202912315786835,
+  "se": 0.00414893990463033
+ },
+ "known_bad_pick_rate_given_player_has_one": {
+  "n": 534274,
+  "rate": 0.11803494087303519,
+  "se": 0.0014883598201802543
+ },
+ "mean_known_bad_heroes_when_any": 5.555385438932084,
+ "by_situation": {
+  "main banned before the pick": {
+   "with": {
+    "n": 52385,
+    "rate": 0.14284623460914384,
+    "se": 0.003788579911622228
+   },
+   "without": {
+    "n": 481889,
+    "rate": 0.11533776450593394,
+    "se": 0.0014067395602058957
+   },
+   "share_of_known_bad_picks_in_situation": 0.11865911865911866
+  },
+  "main banned by the enemy": {
+   "with": {
+    "n": 33191,
+    "rate": 0.15007080232593173,
+    "se": 0.004241519224181029
+   },
+   "without": {
+    "n": 501083,
+    "rate": 0.11591293258801436,
+    "se": 0.0014602278787968865
+   },
+   "share_of_known_bad_picks_in_situation": 0.07898450755593613
+  },
+  "main picked earlier by another player": {
+   "with": {
+    "n": 39136,
+    "rate": 0.1418642681929681,
+    "se": 0.002904837928167225
+   },
+   "without": {
+    "n": 495138,
+    "rate": 0.11615145676558858,
+    "se": 0.0014737139376085322
+   },
+   "share_of_known_bad_picks_in_situation": 0.08803894518180233
+  },
+  "three most-played heroes unavailable": {
+   "with": {
+    "n": 3325,
+    "rate": 0.1455639097744361,
+    "se": 0.0068375175572911685
+   },
+   "without": {
+    "n": 530949,
+    "rate": 0.11786254423682878,
+    "se": 0.0013795819065749995
+   },
+   "share_of_known_bad_picks_in_situation": 0.0076748648177219604
+  },
+  "team's last pick": {
+   "with": {
+    "n": 110280,
+    "rate": 0.12604280014508523,
+    "se": 0.0019748529713722327
+   },
+   "without": {
+    "n": 423994,
+    "rate": 0.11595211252989429,
+    "se": 0.0015918506334307745
+   },
+   "share_of_known_bad_picks_in_situation": 0.22041450612879185
+  },
+  "role fill (<10% of games in the role)": {
+   "with": {
+    "n": 46260,
+    "rate": 0.15778210116731517,
+    "se": 0.004814053187514226
+   },
+   "without": {
+    "n": 488014,
+    "rate": 0.11426721364551017,
+    "se": 0.0014974391642936988
+   },
+   "share_of_known_bad_picks_in_situation": 0.11574140145568718
+  }
+ },
+ "realized": {
+  "known_bad_picks": 63063,
+  "realized_r_pp": -3.8050724314404776,
+  "realized_r_se_pp": 0.2023881311696396,
+  "predicted_est_pp": -4.64779326214228,
+  "realized_minus_predicted_pp": 0.8427208307018029,
+  "same_players_other_picks_r_pp": -0.15758952213871055,
+  "best_available_alternative_est_pp": 2.9054513899743006,
+  "expected_cost_vs_best_available_pp": 7.560906860384477,
+  "share_with_a_better_available_deep_hero": 0.9618159618159619
+ },
+ "main_ban_effect_within_player": {
+  "players": 7524,
+  "slots_main_banned": 52275,
+  "slots_not": 381947,
+  "rate_main_banned": 0.14282161645145863,
+  "rate_not_banned": 0.11319633352271388,
+  "within_player_diff": 0.03950608640590998,
+  "se": 0.002791148163480229,
+  "realized_r_diff_pp": -1.732801527638793,
+  "realized_r_diff_se_pp": 0.27458879436444533
+ },
+ "known_bad_pick_rate_by_pick_rank": {
+  "0": 0.1140499115739831,
+  "1": 0.11318843966658877,
+  "2": 0.11086234560991082,
+  "3": 0.1114202487209172,
+  "4": 0.11506768142510601,
+  "5": 0.11763595878778729,
+  "6": 0.12558054153281323,
+  "7": 0.1193512536025769,
+  "8": 0.1265005621441265,
+  "9": 0.12571947344530185
+ },
+ "known_bad_pick_rate_by_role": {
+  "Tank": 0.0986587032444197,
+  "Bruiser": 0.08910695947137477,
+  "Healer": 0.09393899725094908,
+  "Ranged Assassin": 0.15357719345289736,
+  "Melee Assassin": 0.13585340469818613,
+  "Support": 0.14835313174946005
+ },
+ "seconds": 293
+}
