@@ -152,3 +152,66 @@ which imports the scilearn harness read-only.
 8. **Volume.** At most 3,000 downloads in the window ending 2026-10-20 and 6,000 in the week
    of 2026-10-20 to 10-27 (`cohorts.json`). The rule self-limits to about 0.28 × pool size.
    Later pool games need a new cohort version under the same rule with a new seed.
+
+## D. Paper 3 cancelled (2026-10-18)
+
+Paper 3 (the hypothesis-driven win-probability system) was cancelled on 2026-10-17. What
+changes:
+
+- Cohorts `stratified_b` and `surprise_v1` are closed: their caps in `cohorts.json` are 0.
+  Their files and timelines stay on the RAID and remain valid data.
+- The scilearn tranche rules (M-explore, M-test, pool, C, F, audit) no longer restrict
+  anything. Every non-sealed timeline is open to paper 2 (personalization).
+- The sealed set (section A) stays sealed. It is now paper 2's final holdout, under the
+  same handling rules: fetched and checksummed only, never parsed, opened, summarized,
+  joined or selected on, until Max Segan unlocks it in writing in
+  `/home/max/hots-replays/sealed/README.md`.
+
+### C.2 `p2_panel_v1`: panel-coverage cohort for personalization (2026-10-18)
+
+Written and committed before the cohort's first fetch. Builder:
+`training/replays/build_p2_panel.py`, run once a day by cron. Output:
+`interesting/p2_panel_v1.txt` (ids file, read by the downloader in file order) and
+`interesting/p2_panel_v1_batches.jsonl` (one line per batch: pool size, k histograms,
+panel counts and the sha256 of the covered-player set; no battletags).
+
+Purpose: per-player replay timelines (deaths before 10:00, death positions, early takedown
+participation, APM) for a prospective personalization test. The games are a source of
+as-of features for panel players, so the rule maximizes covered players per download.
+
+1. **Covered player.** A `(region, blizz_id)` that is listed in any
+   `training/personalization/cache/mmr_history/panel*.tsv` and has a `status: "ok"` row in
+   `done.jsonl` there (full Heroes Profile history pulled), read at build time.
+2. **Pool for batch day d** (UTC date of the build). Rows of `replay_draft_data` in the
+   local research DB with `game_version` 2.57 or later (major.minor), `game_date` in
+   `[d - 21 days, d)`, and at least one `replay_players` row, minus the sealed IDs (excluded
+   inside the SQL, so their rows are never read), minus every ID already in the manifest as
+   `ok`, `linked`, `http_403` or `http_404` (any cohort), minus IDs selected by earlier
+   batches. The 21-day window keeps at least 7 days of the 28-day retention for the fetch.
+   Storm League only: `replay_draft_data` holds only Storm League games.
+3. **Score.** k = number of the game's player rows that are covered players (0 to 10).
+   Nothing else is read: no outcome, MMR, tier, map, hero, length or region mix.
+4. **Selection.** Keep games with k >= 3. Order by k descending, then replayID ascending
+   (oldest upload first, since files expire in upload order). Take the first n.
+5. **Batch size.** n = 2,400 for the first batch (it uses what is left of the quota window
+   ending 2026-10-20, about 2,490 under its 23,000 cap). After that n = 1,140 per day
+   since the last batch, at most 3 days' worth (catch-up after a missed day). One batch per
+   UTC day. 1,140 a day is about 8,000 a week, which is also the cohort's window cap in
+   `cohorts.json`.
+6. **Order of fetching.** The downloader walks the ids file top to bottom, so batches are
+   fetched in the order they were built, and within a batch by rank.
+7. **Known selection notes.**
+   - The set of covered players grows while `fetch-mmr-history.ts` pulls the panels (49,255
+     of 106,540 panel accounts on 2026-10-18, about 7,000 more a day), so k for the same
+     game rises over time. Each batch logs the covered-set size and hash, so any batch's
+     ranking can be recomputed.
+   - Panels were drawn from active players (`p3_mmr_panel.py`), so the cohort leans toward
+     frequent players and higher-coverage lobbies. That is the intent. Do not use it for
+     population estimates without reweighting against the pool k histograms in the batch log.
+   - The pool inherits the DB's coverage (about 84% of listed games, see A). Games only in
+     the Heroes Profile listing have no player rows and cannot be scored, so they are never
+     picked.
+   - Late uploads of games played more than 21 days before the batch day are excluded by
+     the `game_date` window.
+8. **Use.** Paper 2 only. Timeline features enter personalization as as-of features from
+   games before the scored game's day, never from the scored game itself.
