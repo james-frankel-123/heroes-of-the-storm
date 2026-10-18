@@ -89,6 +89,19 @@ export function normalizeRater(rater: string): string {
   return rater.trim().toLowerCase()
 }
 
+/**
+ * Invite links withdrawn by the study lead (slot refill, prereg §2). A revoked
+ * code name can neither load items nor submit ratings; its slot is reassigned
+ * to a new code name via ?slot=.
+ */
+export const REVOKED_RATERS: ReadonlySet<string> = new Set(['rater05'])
+
+export function isRevokedRater(rater: string): boolean {
+  return REVOKED_RATERS.has(normalizeRater(rater))
+}
+
+export const REVOKED_MESSAGE = 'This rating link is no longer active. Please contact the study team.'
+
 export function isTestRater(rater: string): boolean {
   return normalizeRater(rater).startsWith('test')
 }

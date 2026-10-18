@@ -3,6 +3,8 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { draftRatings, ratingItems } from '@/lib/db/schema'
 import {
+  isRevokedRater,
+  REVOKED_MESSAGE,
   fullSequence,
   isTestRater,
   normalizeRater,
@@ -41,6 +43,9 @@ export async function POST(req: Request) {
   const rater = typeof body.rater === 'string' ? body.rater.trim() : ''
   if (!rater || rater.length > 100) {
     return NextResponse.json({ error: 'rater required (1-100 chars)' }, { status: 400 })
+  }
+  if (isRevokedRater(rater)) {
+    return NextResponse.json({ error: REVOKED_MESSAGE }, { status: 403 })
   }
 
   let slotOverride: number | undefined

@@ -3,6 +3,8 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { draftRatings, ratingItems } from '@/lib/db/schema'
 import {
+  isRevokedRater,
+  REVOKED_MESSAGE,
   fullSequence,
   isTestRater,
   normalizeRater,
@@ -33,6 +35,9 @@ export async function GET(req: Request) {
   const rater = (url.searchParams.get('rater') ?? '').trim()
   if (!rater || rater.length > 100) {
     return NextResponse.json({ error: 'rater query param required (1-100 chars)' }, { status: 400 })
+  }
+  if (isRevokedRater(rater)) {
+    return NextResponse.json({ error: REVOKED_MESSAGE }, { status: 403 })
   }
   const slotParam = url.searchParams.get('slot')
   let slotOverride: number | undefined
