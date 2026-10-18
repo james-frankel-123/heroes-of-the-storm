@@ -9,16 +9,16 @@
 #   training/replays/remote_parse.sh pull   [host]            timelines back to the RAID
 #   training/replays/remote_parse.sh cycle  [host] [cohort]   all of the above, then validate
 #
-# Cron (daily, after most downloads):
+# Cron (daily, after most downloads; cohort p2_panel_v1 since 2026-10-18, B and surprise_v1 are fully parsed):
 #   40 22 * * * flock -n /home/max/heroes-of-the-storm/sync/.replay-parse.lock \
-#     /home/max/heroes-of-the-storm/training/replays/remote_parse.sh cycle >> /home/max/heroes-of-the-storm/sync/logs/replay-parse.log 2>&1
+#     /home/max/heroes-of-the-storm/training/replays/remote_parse.sh cycle max-windows-3090 p2_panel_v1 >> /home/max/heroes-of-the-storm/sync/logs/replay-parse.log 2>&1
 #
 # Sealed files never leave this box: the push list comes from the manifest with the
 # sealed cohort and sealed IDs removed, and the parser refuses them again on the worker.
 set -euo pipefail
 CMD=${1:?usage: remote_parse.sh setup|push|run|status|pull|cycle [host] [cohort]}
 HOST=${2:-max-windows-3090}
-COHORT=${3:-stratified_b}
+COHORT=${3:-p2_panel_v1}
 CORES=${HOTS_PARSE_CORES:-24-35}
 WORKERS=${HOTS_PARSE_WORKERS:-12}
 ROOT=/home/max/hots-replays
