@@ -28,7 +28,8 @@ import time
 import psycopg2
 
 BUCKET = 100000
-SKIP_DEFAULT = {"rating_items", "draft_ratings"}  # study tables: Neon only
+SKIP_DEFAULT = {"rating_items", "draft_ratings",  # study tables: Neon only
+                "personal_profiles", "personal_metric_evidence", "personal_api_usage"}  # lookup cache: Neon only
 
 
 def connect(dsn):

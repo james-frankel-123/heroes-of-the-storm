@@ -17,5 +17,12 @@ export const SITE_TABLES = [
 /** Live expert study: Neon is the only home. Never published over, never dropped. */
 export const STUDY_TABLES = ['rating_items', 'draft_ratings'] as const
 
+/**
+ * Player lookup cache (docs/personalization-site-design.md): written by the
+ * deployed site on Neon, bounded and disposable. Never published over, not
+ * backed up, never on the local store.
+ */
+export const PERSONAL_TABLES = ['personal_profiles', 'personal_metric_evidence', 'personal_api_usage'] as const
+
 /** Every table Neon keeps. drizzle.config.ts (Neon) only ever sees these. */
-export const NEON_TABLES = [...SITE_TABLES, ...STUDY_TABLES] as const
+export const NEON_TABLES = [...SITE_TABLES, ...STUDY_TABLES, ...PERSONAL_TABLES] as const

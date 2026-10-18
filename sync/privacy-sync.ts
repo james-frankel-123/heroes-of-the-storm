@@ -34,7 +34,7 @@
 import { randomInt } from 'crypto'
 import { sql } from 'drizzle-orm'
 import { HeroesProfileApiV2 } from './api-client-v2'
-import { createDb, SyncDb } from './db'
+import { createDb, createPool, SyncDb } from './db'
 import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
 
@@ -224,6 +224,39 @@ async function main(): Promise<void> {
     UPDATE player_privacy SET applied_at = now(), applied_mode = 'public'
     WHERE state = 'public' AND applied_at IS NULL`)
   log.info(`purged ${pending.length} private player(s); research rows ${mode === 'retain' ? 'retained' : `pseudonymized: ${rows}`}`)
+  await purgeLookupCache(db)
+}
+
+/**
+ * The site's player-lookup cache lives only on Neon (personal_profiles,
+ * personal_metric_evidence; docs/personalization-site-design.md). Drop every
+ * cached account that is private here. Reads at most PERSONAL_MAX_PROFILES
+ * (battletag, region) pairs from Neon; deletes only matching rows.
+ */
+async function purgeLookupCache(db: SyncDb): Promise<void> {
+  const neonUrl = process.env.NEON_DATABASE_URL
+  if (!neonUrl) return
+  const neon = createPool(neonUrl, 1)
+  try {
+    const exists = await neon.query(`SELECT to_regclass('public.personal_profiles') IS NOT NULL AS ok`)
+    if (!exists.rows[0]?.ok) return
+    const cached = (await neon.query('SELECT battletag, region, blizz_id FROM personal_profiles')).rows
+    if (cached.length === 0) return
+    const priv = (await db.execute(sql`
+      SELECT battletag, region FROM player_privacy WHERE state = 'private'
+        AND battletag IN (${sql.join(cached.map((r: any) => sql`${r.battletag}`), sql`, `)})`)).rows as any[]
+    const isPriv = new Set(priv.map(p => `${p.region}:${p.battletag}`))
+    const drop = cached.filter((r: any) => isPriv.has(`${r.region}:${r.battletag}`))
+    for (const r of drop) {
+      await neon.query('DELETE FROM personal_metric_evidence WHERE region = $1 AND blizz_id = $2', [r.region, r.blizz_id])
+      await neon.query('DELETE FROM personal_profiles WHERE region = $1 AND blizz_id = $2', [r.region, r.blizz_id])
+    }
+    log.info(`lookup cache: ${cached.length} cached account(s), ${drop.length} private dropped`)
+  } catch (err) {
+    log.warn(`lookup cache purge skipped: ${String(err)}`)
+  } finally {
+    await neon.end()
+  }
 }
 
 main().then(() => process.exit(0)).catch(err => {
