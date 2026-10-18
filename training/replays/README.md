@@ -1,12 +1,16 @@
 # Replay files: download, cohorts, timelines
 
-Full `.StormReplay` files from Heroes Profile feed a future hypothesis-driven,
-interpretable win-probability system. The pipeline has four parts.
+Full `.StormReplay` files from Heroes Profile, parsed into per-game timelines. Since
+2026-10-18 they feed personalization (paper 2): per-player timeline features such as deaths
+before 10:00, death positions, early takedown participation and APM. They were first
+collected for the hypothesis-driven win-probability system (paper 3), which was cancelled
+on 2026-10-17. The pipeline has five parts.
 
 | part | file | runs on |
 |---|---|---|
 | downloader, cohorts, NAS backup, retention probe | `sync/fetch-replay-files.py`, `sync/run-replay-files.sh` | this box, cron, nice 19, cores 48-63 |
 | selection rules (frozen) and cohort config | `training/replays/cohorts/` | - |
+| daily ids batch for cohort `p2_panel_v1` | `build_p2_panel.py` | this box, cron 07:45, nice 19, cores 48-51 |
 | parser to per-game timelines | `parse_replay.py`, `run_parse.py` | 3090 cores 24-35 (`remote_parse.sh`), or locally |
 | validation against our DB | `validate_timelines.py` | this box (local research role) |
 
@@ -18,7 +22,7 @@ bundle style), needs only `requests` and `psycopg2`, and the parser is Python an
 Everything lives on the RAID under `/home/max/hots-replays/` (never in git):
 
 ```
-raw/<build>/<replayID>.StormReplay          cohorts b, c, ...
+raw/<build>/<replayID>.StormReplay          every non-sealed cohort (B, surprise_v1, p2_panel_v1, ...)
 sealed/files/<build>/<replayID>.StormReplay cohort a (fetch + checksum only)
 sealed/{README.md, sealed_rule.json, sealed_ids.txt, universe.jsonl}
 manifest.jsonl     one line per download attempt or cohort link
@@ -40,11 +44,41 @@ cohort, so cohort membership is exact without a second download.
   from the manifest.
 - 403 (outside retention) and 404 are recorded and never retried; neither was charged in
   testing.
-- Caps per window are in `cohorts/cohorts.json`. Week 1 (to 2026-10-20): sealed 5,000,
-  then cohort b up to 20,000 in total. From week 2: cohort b 8,300 per week, 24,000 total,
-  leaving the rest for "interesting" cohorts.
+- Caps per window are in `cohorts/cohorts.json`. Week 1 (window ending 2026-10-20 13:04
+  UTC): sealed 5,000, cohort B 15,000, surprise_v1 508, then p2_panel_v1 takes what is left
+  under 23,000 (about 2,490). From 2026-10-20: p2_panel_v1 8,000 per week, B and
+  surprise_v1 0, 24,000 total with the 1,000 margin, so about 16,000 a week is headroom
+  for ad hoc cohorts (add a cohort and a cap to `cohorts.json`, and a dated rule to
+  `SELECTION_RULES.md` before its first fetch).
 - Cron: `run-replay-files.sh run` every 2 hours (`flock -n`, 115-minute timeout), and
   `run-replay-files.sh backup` on Sundays at 06:00 (bundle, then a retention probe).
+  `build_p2_panel.py` runs daily at 07:45 and appends one batch to
+  `cohorts/interesting/p2_panel_v1.txt`, which the next download run fetches.
+
+## Cohorts
+
+| cohort | rule | status (2026-10-18) |
+|---|---|---|
+| `sealed` | `SELECTION_RULES.md` A | 5,000 fetched. Paper 2's final holdout: never parsed, opened or selected on |
+| `stratified_b` | B | 15,000 fetched and parsed; closed (cap 0) |
+| `surprise_v1` | C.1 | 895 (508 fetched, 387 linked to B), parsed; closed |
+| `p2_panel_v1` | C.2 | about 1,140 a day from 2026-10-18 (first batch 2,400) |
+
+`p2_panel_v1` picks new 2.57+ Storm League games from our DB (played in the last 21 days,
+not yet on disk, not sealed) with the most players whose full Heroes Profile history is
+pulled (`training/personalization/cache/mmr_history/panel*.tsv` plus `done.jsonl`), k of
+10, at least 3, highest k first, oldest upload first among ties. It reads no outcomes.
+Every batch is logged with its pool and k histograms in `p2_panel_v1_batches.jsonl`.
+
+With paper 3 gone, its tranche rules (M-explore, M-test, pool, C, F) no longer restrict
+anything: every non-sealed timeline is open to personalization. The timeline files are
+plain files under `timelines/`; nothing in `training/scilearn` gates reading them (its
+quarantine lives in the broker and its private store). One thing to change when timeline
+features are built: `training/personalization/p3_full_history.py` drops every row with a
+game end on or after 2026-09-28 (`CAP_TS`), which keeps all 2.57 games out of the history
+store. That cap was there for paper 3's tranches. A timeline channel must read timelines
+directly, or the cap must become a sealed-ID filter (the HP shards hold rows for sealed
+games, which must stay out).
 
 ## Backups
 
@@ -111,15 +145,17 @@ Hero and talent display names come from `ref/heroes_talents_ref.json`, built by
 
 ```bash
 training/replays/remote_parse.sh setup            # once: venv with heroprotocol on the 3090
-training/replays/remote_parse.sh push             # code + cohort b files (rsync)
+training/replays/remote_parse.sh push             # code + cohort files (default p2_panel_v1)
 training/replays/remote_parse.sh run              # taskset 24-35, nice 19, 12 workers
 training/replays/remote_parse.sh status
 training/replays/remote_parse.sh pull             # timelines back to the RAID
 set -a; . ./.env; set +a; python3 training/replays/validate_timelines.py
 ```
 
-`remote_parse.sh cycle` does all of that; cron runs it daily at 22:40 (`flock`,
-`sync/logs/replay-parse.log`). On the 3090's cores 24-35 a game takes about 7 s per worker
+`remote_parse.sh cycle` does all of that; cron runs it daily at 22:40 for cohort
+`p2_panel_v1` (`flock`, `sync/logs/replay-parse.log`). B and surprise_v1 are fully parsed
+(15,508 timelines), so their cycles were dropped on 2026-10-18; `run` still re-lists every
+pushed cohort and skips files already parsed. On the 3090's cores 24-35 a game takes about 7 s per worker
 (those are busy SMT siblings), so 12 workers do about 6,000 games per hour.
 
 Each worker holds one replay at a time (about 25 MB). Locally:
