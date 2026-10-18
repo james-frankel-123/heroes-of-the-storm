@@ -131,7 +131,7 @@ Code:
 
 The next view of that player then upgrades from `imp2` to the main model. Measured: a dry run for one account took 6.5 s including the one-time index build.
 
-Example, tracked account Django#1458 (dry run): 1,244 corpus games, 661 with a scoreboard row in the export.
+Example, one tracked account (dry run): 1,244 corpus games, 661 with a scoreboard row in the export.
 
 It is not in cron yet. Proposed line, after privacy-sync, with the same flock style:
 `45 */6 * * *` … `&& /home/linuxbrew/.linuxbrew/bin/python3 training/personalization/p3_site_enrich.py`
