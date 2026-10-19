@@ -21,6 +21,29 @@ import xv_cases as XC
 import xv_ref as R
 
 BASE_SEED = 1000003
+# kernel seeding: "plus_i" curand_init(base + i, 0, 0) (builds before 2026-10-19 evening);
+# "subseq" curand_init(base, i, 0); "splitmix" the P3 RNG fix of 2026-10-19 (hashed seed per
+# episode, subsequence 0; the paper-1 kernel keeps base + i)
+SEEDING = os.environ.get("XV_SEEDING", "plus_i")
+
+
+def splitmix_seed(base, i):
+    """P3 kernels after the 2026-10-19 RNG fix: curand_init(splitmix64(base + golden * (i + 1)), 0, 0)."""
+    M = (1 << 64) - 1
+    z = (base + 0x9E3779B97F4A7C15 * (i + 1)) & M
+    z = ((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9) & M
+    z = ((z ^ (z >> 27)) * 0x94D049BB133111EB) & M
+    return z ^ (z >> 31)
+
+
+def seed_of(i, kernel="p3"):
+    if SEEDING == "splitmix" and kernel == "p3":
+        return splitmix_seed(BASE_SEED, i), 0
+    if SEEDING == "subseq":
+        return BASE_SEED, i
+    return BASE_SEED + i, 0
+
+
 TIE = 1e-5          # float near-tie: GPU and CPU numerics differ at about this level
 Q_TOL = 2e-4        # root Q agreement while trees agree (leaf parity is ~1e-5; float32 sums of 400 values)
 _NETS = {}
@@ -42,7 +65,8 @@ def inputs(fl, z, i, coefs, vnet):
 def _grid_one(args):
     fl, z, i, coefs, vnet, grid, pol, q, prior, c_puct, pw_k, pw_alpha, sims_max = args
     e = inputs(fl, z, i, coefs, vnet)
-    out = R.decide_p3(nets(), e, sims_max, c_puct, BASE_SEED + i, pw_k=pw_k, pw_alpha=pw_alpha, snap=grid)
+    sd, sub = seed_of(i)
+    out = R.decide_p3(nets(), e, sims_max, c_puct, sd, pw_k=pw_k, pw_alpha=pw_alpha, snap=grid, subsequence=sub)
     rep = {"i": i, "cat": str(z["cat"][i]), "k": int(z["cfg"][i, 4]), "cfg7": int(z["cfg"][i, 7]),
            "cfg56": int(z["cfg"][i, 56]), "cfg57": int(z["cfg"][i, 57]), "cfg6": int(z["cfg"][i, 6]),
            "assign": int(z["cfg"][i, 58])}
@@ -165,7 +189,8 @@ def compare_variants(gdir, procs):
 
 def _p1_one(args):
     i, cfg, sims, temp, pol_g, term_g, wp_g = args
-    o = R.episode_paper1(nets(), int(cfg[0]), int(cfg[1]), int(cfg[2]), sims, 2.0, BASE_SEED + i, root_temp=temp)
+    sd, sub = seed_of(i, "paper1")
+    o = R.episode_paper1(nets(), int(cfg[0]), int(cfg[1]), int(cfg[2]), sims, 2.0, sd, root_temp=temp, subsequence=sub)
     P = np.zeros((8, 90), np.float32)
     for t, p in enumerate(o["policies"]):
         P[t] = p

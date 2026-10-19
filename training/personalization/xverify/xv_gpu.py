@@ -15,6 +15,7 @@ Usage (from training/, worker env):
   XV_BUILD=~/hots/xv/build XV_OUT=~/hots/xv/out python <this> [stage ...]
 """
 import importlib.util
+import json
 import os
 import sys
 import threading
@@ -41,7 +42,8 @@ BASE_SEED = 1000003
 FSEED = {"personal": 101, "prior": 202, "pvnet": 303, "explore": 404}   # case seeds per flavor
 MODS = {"personal": ("cuda_personal", "personal_kernel"), "prior": ("cuda_prior", "prior_kernel"),
         "pvnet": ("cuda_pvnet", "pvnet_kernel"), "explore": ("cuda_explore", "explore_kernel"),
-        "popref": ("cuda_personal/ref", "pop_ref_kernel"), "paper1": ("cuda_mcts", "cuda_mcts_kernel")}
+        "popref": ("cuda_personal/ref", "pop_ref_kernel"),
+        "paper1": (os.environ.get("XV_PAPER1_DIR", "cuda_mcts"), "cuda_mcts_kernel")}
 _K = {}
 
 
@@ -211,6 +213,7 @@ def stage_identity():
                     T2[i, (90 if XC.TEAM[k] else 0) + h] = 1
                 else:
                     T2[i, 180 + h] = 1
+        res[f"s{sims}_P1"], res[f"s{sims}_P2"], res[f"s{sims}_T1"], res[f"s{sims}_T2"] = P1, P2, T1, T2
         res[f"s{sims}_pol_equal"] = np.array(P1.tobytes() == np.ascontiguousarray(P2).tobytes())
         res[f"s{sims}_draft_equal"] = np.array(np.array_equal(T1[:, :270], T2[:, :270]))
         res[f"s{sims}_pol_maxdiff"] = np.array(np.abs(P1 - P2).max())
@@ -245,7 +248,7 @@ def stage_identity():
     res["blind_tables_invariant"] = np.array(all(np.asarray(a).tobytes() == np.asarray(b).tobytes()
                                                  for a, b in zip(rp[:7], rb[:7])))
     np.savez(p, **res)
-    print("identity", {k: v.tolist() for k, v in res.items()}, flush=True)
+    print("identity", {k: v.tolist() for k, v in res.items() if v.size == 1}, flush=True)
 
 
 def leaf_args(flavor, cfg, s, off, imit, pools, coefs, bias, feat, vnet):
@@ -606,6 +609,185 @@ def stage_race():
 
 
 STAGES["race"] = stage_race
+
+
+def stage_p1race():
+    """paper-1 engine (per-engine non-blocking stream): first run right after
+    construction vs a second run on the same engine vs a run after a pause, with
+    other engines' allocations freed in between."""
+    n = 64
+    c3 = paper1_cfg(n, 11)
+    flat = lambda res: [np.asarray(r[2], np.float32).tobytes() + b"".join(np.asarray(x[1], np.float32).tobytes()
+                                                                        for x in r[1]) for r in res]
+    z = XC.make_cases("personal", n, seed=4242)
+    ref = None
+    rows = []
+    for trial in range(8):
+        if trial % 2 == 0:
+            run_p3("personal", z, XC.COEFS["personal"], None, 200)          # dirty the allocator
+        e = engine("paper1", n)
+        a = flat(e.run_episodes(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1))
+        b = flat(e.run_episodes(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1))
+        del e
+        e = engine("paper1", n)
+        time.sleep(1.0)
+        c = flat(e.run_episodes(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1))
+        del e
+        ref = ref or b
+        row = [sum(x != y for x, y in zip(a, ref)), sum(x != y for x, y in zip(b, ref)), sum(x != y for x, y in zip(c, ref))]
+        rows.append(row)
+        print("p1race trial", trial, "episodes differing from reference: first run", row[0], "second run", row[1],
+              "after 1 s", row[2], flush=True)
+    np.savez(os.path.join(OUT, "p1race.npz"), rows=np.array(rows))
+
+
+STAGES["p1race"] = stage_p1race
+
+
+def stage_p1diag():
+    """paper-1 engine: first engine in the process vs later engines, with the
+    device allocator dirtied by a torch tensor of garbage in between."""
+    n = 64
+    c3 = paper1_cfg(n, 11)
+    flat = lambda res: [np.asarray(r[2], np.float32).tobytes() + b"".join(np.asarray(x[1], np.float32).tobytes()
+                                                                        for x in r[1]) for r in res]
+    run = lambda: flat(engine("paper1", n).run_episodes(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1))
+    A = run()
+    out = {"second_engine": sum(x != y for x, y in zip(A, run()))}
+    for name, val in (("garbage_0x55", 0x55), ("garbage_zero", 0), ("garbage_0xff", 0xFF)):
+        t = torch.full((3 * 2 ** 30,), val, dtype=torch.uint8, device="cuda")
+        torch.cuda.synchronize()
+        del t
+        torch.cuda.empty_cache()
+        out[name] = sum(x != y for x, y in zip(A, run()))
+    print("p1diag", os.environ.get("XV_PAPER1_DIR"), json.dumps(out), flush=True)
+    np.savez(os.path.join(OUT, f"p1diag_{os.path.basename(os.path.dirname(os.environ.get('XV_PAPER1_DIR', 'x/x')))}.npz"),
+             **{k: np.array(v) for k, v in out.items()})
+
+
+STAGES["p1diag"] = stage_p1diag
+
+
+def stage_p1diag2():
+    """where does the paper-1 first-engine/later-engine difference live?"""
+    n = 64
+    c3 = paper1_cfg(n, 11)
+    flat = lambda res: [np.asarray(r[2], np.float32).tobytes() + b"".join(np.asarray(x[1], np.float32).tobytes()
+                                                                        for x in r[1]) for r in res]
+    run = lambda e: flat(e.run_episodes(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1))
+    diff = lambda a, b: sum(x != y for x, y in zip(a, b))
+    out = {}
+    e1 = engine("paper1", n)
+    A = run(e1)
+    z = XC.make_cases("personal", n, seed=4242)
+    run_p3("personal", z, XC.COEFS["personal"], None, 200)
+    out["e1_after_p3_kernel"] = diff(A, run(e1))
+    e2 = engine("paper1", n)                 # e1 still alive
+    out["e2_while_e1_alive"] = diff(A, run(e2))
+    out["e1_after_e2"] = diff(A, run(e1))
+    e3 = engine("paper1", n // 2)            # different size
+    B = flat(e3.run_episodes(np.ascontiguousarray(c3[: n // 2]), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1))
+    out["e3_half_batch"] = diff(A[: n // 2], B)
+    e4 = engine("paper1", n)
+    e4.run_episodes(np.ascontiguousarray(c3), 1, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1)   # warm with a 1-sim run
+    out["e4_after_1sim_run"] = diff(A, run(e4))
+    e5 = engine("paper1", n)
+    out["e5_sims_400_then_200"] = None
+    e5.run_episodes(np.ascontiguousarray(c3), 400, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1)
+    out["e5_sims_400_then_200"] = diff(A, run(e5))
+    print("p1diag2", json.dumps(out), flush=True)
+
+
+STAGES["p1diag2"] = stage_p1diag2
+
+
+def stage_p1dbg():
+    """instrumented paper-1 build: out-of-range arena reads (stats[19]) in clean and dirty runs."""
+    n = 64
+    c3 = paper1_cfg(n, 11)
+    flat = lambda res: [np.asarray(r[2], np.float32).tobytes() + b"".join(np.asarray(x[1], np.float32).tobytes()
+                                                                        for x in r[1]) for r in res]
+    e = engine("paper1", n)
+    A = flat(e.run_episodes(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1))
+    st = np.asarray(e.last_stats())
+    print("p1dbg clean run: bad reads by check 12..19", st[:, 12:20].sum(0).tolist(), flush=True)
+    e.run_episodes(np.ascontiguousarray(c3), 400, 2.0, BASE_SEED + 5, 0.0, 0.3, 0.0, 1)
+    st = np.asarray(e.last_stats())
+    print("p1dbg 400-sim run: bad reads by check", st[:, 12:20].sum(0).tolist(), flush=True)
+    B = flat(e.run_episodes(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1))
+    st = np.asarray(e.last_stats())
+    print("p1dbg dirty 200-sim run: differs", sum(x != y for x, y in zip(A, B)), "bad reads by check",
+          st[:, 12:20].sum(0).tolist(), flush=True)
+
+
+STAGES["p1dbg"] = stage_p1dbg
+
+
+def stage_p1tree():
+    """paper-1 engine trees, first engine vs a later engine (allocator dirtied), same inputs:
+    first node where they differ and which field."""
+    n = 8
+    c3 = paper1_cfg(64, 11)[:n]
+    out = {}
+    e = engine("paper1", n)
+    t1 = e.debug_tree(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0, 1, 1.0, 0.5, 0.0, 0.3, 0.0)
+    del e
+    z = XC.make_cases("personal", 64, seed=4242)
+    run_p3("personal", z, XC.COEFS["personal"], None, 200)
+    e = engine("paper1", 64)
+    e.run_episodes(np.ascontiguousarray(paper1_cfg(64, 11)), 400, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1)
+    del e
+    e = engine("paper1", n)
+    t2 = e.debug_tree(np.ascontiguousarray(c3), 200, 2.0, BASE_SEED, 0, 1, 1.0, 0.5, 0.0, 0.3, 0.0)
+    for i, (a, b) in enumerate(zip(t1, t2)):
+        rep = {}
+        for f in ("parent", "action", "visits", "slot", "n_kids", "step", "kind", "value_sum"):
+            x, y = np.asarray(a[f]), np.asarray(b[f])
+            m = min(len(x), len(y))
+            d = np.flatnonzero(x[:m] != y[:m])
+            rep[f] = int(d[0]) if len(d) else (None if len(x) == len(y) else f"len {len(x)} vs {len(y)}")
+        sp1, sp2 = np.asarray(a["slot_p"]), np.asarray(b["slot_p"])
+        m = min(len(sp1), len(sp2))
+        d = np.flatnonzero(np.abs(sp1[:m] - sp2[:m]).max(1) > 0)
+        rep["slot_p_first"] = int(d[0]) if len(d) else None
+        if len(d):
+            k = int(d[0])
+            rep["slot_p_maxdiff"] = float(np.abs(sp1[k] - sp2[k]).max())
+            rep["slot_p_sum"] = [float(sp1[k].sum()), float(sp2[k].sum())]
+            owner = [j for j in range(len(a["slot"])) if a["slot"][j] == k]
+            rep["slot_owner_kind_step"] = [(int(a["kind"][j]), int(a["step"][j])) for j in owner]
+        out[i] = rep
+        print("p1tree ep", i, json.dumps(rep), flush=True)
+    np.savez(os.path.join(OUT, "p1tree.npz"), t1=np.array(t1, dtype=object), t2=np.array(t2, dtype=object), allow_pickle=True)
+
+
+STAGES["p1tree"] = stage_p1tree
+
+
+def stage_p1host():
+    """device weight buffers of the paper-1 engine read back and compared with the host arrays,
+    for the first engine and for later engines, plus the root Q of a search."""
+    n = 64
+    c3 = paper1_cfg(n, 11)
+    (pf, po), (gf, go), (wf, wo, lut) = weights()
+    host = (np.asarray(pf, np.float32).tobytes(), np.asarray(wf, np.float32).tobytes(), np.asarray(lut).tobytes(),
+            np.asarray(gf, np.float32).tobytes())
+    z = XC.make_cases("personal", n, seed=4242)
+    for k in range(4):
+        if k:
+            run_p3("personal", z, XC.COEFS["personal"], None, 200)
+        e = engine("paper1", n)
+        rb = e.read_back()
+        same = [np.asarray(x).tobytes() == h for x, h in zip(rb, host)]
+        res = e.run_episodes(np.ascontiguousarray(c3[:8]), 200, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1)
+        rb2 = e.read_back()
+        same2 = [np.asarray(x).tobytes() == h for x, h in zip(rb2, host)]
+        print("p1host engine", k, "policy/wp/lut/gd equal to host before run", same, "after run", same2,
+              "wp mean terminal", float(np.mean([r[0] for r in res])), flush=True)
+        del e
+
+
+STAGES["p1host"] = stage_p1host
 
 
 if __name__ == "__main__":

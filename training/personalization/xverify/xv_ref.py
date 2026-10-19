@@ -69,10 +69,50 @@ _C = F32(2.3283064e-10)
 _C2 = F32(_C / F32(2.0))
 
 
-class XorWow:
-    """curandStateXORWOW_t with curand_init(seed, 0, 0, &s) (no skipahead)."""
+_JUMP = {}
 
-    def __init__(self, seed, fma=True):
+
+def _xorwow_matrix():
+    """160 x 160 GF(2) matrix of one XORWOW step on v[0..4] (bit 32 j + b = bit b of v[j])."""
+    T = np.zeros((160, 160), np.uint8)
+    I32 = np.eye(32, dtype=np.uint8)
+    sh = lambda k: np.eye(32, k=-k, dtype=np.uint8) if k > 0 else np.eye(32, k=-k, dtype=np.uint8)
+    # x << k: out bit b = in bit b - k ; x >> k: out bit b = in bit b + k
+    L = lambda k: np.eye(32, k=-k, dtype=np.uint8)
+    Rr = lambda k: np.eye(32, k=k, dtype=np.uint8)
+    for j in range(4):                     # v[j] <- v[j + 1]
+        T[32 * j:32 * j + 32, 32 * (j + 1):32 * (j + 2)] = I32
+    t = (I32 + Rr(2)) % 2                  # t = v0 ^ (v0 >> 2)
+    tt = (t + L(1) @ t) % 2                # t ^ (t << 1)
+    v4 = (I32 + L(4)) % 2                  # v4 ^ (v4 << 4)
+    T[128:160, 0:32] = tt
+    T[128:160, 128:160] = v4
+    del sh
+    return T
+
+
+def _matpow2(M, k):
+    for _ in range(k):
+        M = (M.astype(np.int64) @ M.astype(np.int64) % 2).astype(np.uint8)
+    return M
+
+
+def _jump(kind, j):
+    """M^(2^j) for kind 'seq' (M = T^(2^67), one subsequence) or 'off' (M = T)."""
+    key = (kind, j)
+    if key not in _JUMP:
+        if j == 0:
+            T = _xorwow_matrix()
+            _JUMP[key] = _matpow2(T, 67) if kind == "seq" else T
+        else:
+            _JUMP[key] = _matpow2(_jump(kind, j - 1), 1)
+    return _JUMP[key]
+
+
+class XorWow:
+    """curandStateXORWOW_t with curand_init(seed, subsequence, offset, &s)."""
+
+    def __init__(self, seed, fma=True, subsequence=0, offset=0):
         seed = int(seed) & 0xFFFFFFFFFFFFFFFF
         s0 = (seed & M32) ^ 0xAAD26B49
         s1 = ((seed >> 32) & M32) ^ 0xF7DCEFDD
@@ -83,6 +123,19 @@ class XorWow:
                   (5783321 + t0) & M32]
         self.fma = fma
         self.n = 0
+        for kind, x in (("seq", int(subsequence)), ("off", int(offset))):
+            if not x:
+                continue
+            bits = np.array([(self.v[i // 32] >> (i % 32)) & 1 for i in range(160)], np.int64)
+            j = 0
+            while x:
+                if x & 1:
+                    bits = _jump(kind, j).astype(np.int64) @ bits % 2
+                x >>= 1
+                j += 1
+            self.v = [int(sum(int(bits[32 * w + b]) << b for b in range(32))) for w in range(5)]
+            if kind == "off":
+                self.d = (self.d + 362437 * (int(offset) & M32)) & M32
 
     def next_u32(self):
         v = self.v
@@ -470,10 +523,10 @@ class Node:
 class Search:
     """One kernel episode block. e: P3Inputs or None (paper-1 kernel: no hooks)."""
 
-    def __init__(self, nets, e=None, c_puct=2.0, pw_k=1.0, pw_alpha=0.5, seed=0, fma=True):
+    def __init__(self, nets, e=None, c_puct=2.0, pw_k=1.0, pw_alpha=0.5, seed=0, fma=True, subsequence=0):
         self.nets, self.e = nets, e
         self.c, self.k, self.alpha = c_puct, pw_k, pw_alpha
-        self.rng = XorWow(seed, fma=fma)
+        self.rng = XorWow(seed, fma=fma, subsequence=subsequence)
 
     # hooks ---------------------------------------------------------
     def mask(self, s):
@@ -620,7 +673,7 @@ class Search:
 
 # ------------------------------------------------------------------ whole episodes
 
-def decide_p3(nets, e, sims, c_puct, seed, pw_k=1.0, pw_alpha=0.5, snap=None, fma=True):
+def decide_p3(nets, e, sims, c_puct, seed, pw_k=1.0, pw_alpha=0.5, snap=None, fma=True, subsequence=0):
     """P3 kernel decide-only episode (cfg[4] = decide step): replay the prefix,
     search once for the acting team. Returns the Search result plus the root
     prior and the executed action (argmax rule of the P3 main loop, root_temp 0)."""
@@ -635,7 +688,7 @@ def decide_p3(nets, e, sims, c_puct, seed, pw_k=1.0, pw_alpha=0.5, snap=None, fm
     if fa >= 0:
         return None
     s.our = s.team()
-    S = Search(nets, e, c_puct, pw_k, pw_alpha, seed, fma=fma)
+    S = Search(nets, e, c_puct, pw_k, pw_alpha, seed, fma=fma, subsequence=subsequence)
     out = S.search(s, sims, snap)
     vis, q = out["root"]
     pol = vis / max(vis.sum(), 1)
@@ -647,11 +700,12 @@ def decide_p3(nets, e, sims, c_puct, seed, pw_k=1.0, pw_alpha=0.5, snap=None, fm
     return out
 
 
-def episode_paper1(nets, mp, tier, our, sims, c_puct, seed, root_temp=0.0, pw_k=1.0, pw_alpha=0.5, fma=True):
+def episode_paper1(nets, mp, tier, our, sims, c_puct, seed, root_temp=0.0, pw_k=1.0, pw_alpha=0.5, fma=True,
+                   subsequence=0):
     """paper-1 kernel (search_v2.cuh, mode 1) full episode with dir_eps = 0.
     Returns per-turn visit fractions, executed actions and the terminal WP."""
     s = Draft(mp, tier, our)
-    S = Search(nets, None, c_puct, pw_k, pw_alpha, seed, fma=fma)
+    S = Search(nets, None, c_puct, pw_k, pw_alpha, seed, fma=fma, subsequence=subsequence)
     pols, acts, margins = [], [], []
     while not s.terminal():
         team = s.team()
