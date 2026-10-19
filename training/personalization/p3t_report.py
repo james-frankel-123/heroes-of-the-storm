@@ -79,6 +79,47 @@ def main():
                 vl = 1 - lift(P_[v][f"V_ll_state_{v}"]) / lift(P_["cur"]["V_ll_state_cur"])
                 L.append(f"| prediction: WP only | {lag} | log loss | | {100 * wl:.0f} (lift lost) |")
                 L.append(f"| prediction: WP + player state | {lag} | log loss | | {100 * vl:.0f} (lift lost) |")
+    if A:
+        def get(a_, b_):
+            v = A["h2h"].get(f"{a_} vs {b_}")
+            if v:
+                return v, False
+            v = A["h2h"].get(f"{b_} vs {a_}")
+            return v, True
+
+        def w(v, rev, key):
+            x = v[key]
+            return (100 - x[0], 100 - x[2], 100 - x[1]) if rev else tuple(x[:3])
+        T = j("analysis_tune.json") or {}
+        TM = j("timing.json") or {}
+        L += ["", "## Exploration design study: each component against aMCTS-pp (tournament lobbies)", "",
+              "J and CONS: the row's win % against aMCTS-pp, both seats, 95% CI. Tune J: the selection score on the tune lobbies "
+              "(mean J against pMCTS-cur and aMCTS-pp; aMCTS-pp itself scores about 54.8).", "",
+              "| design | J vs aMCTS-pp | CONS vs aMCTS-pp | tune J |", "|---|---|---|---|"]
+        abl = ["x-combo3", "x-combo1", "x-pp-ban3", "x-pp-opp2", "x-pp-as1", "x-pp-vn2", "x-pp-apos", "x-pp-s1600", "x-pp-c4",
+               "x-pp-c1", "x-pp-b05", "x-pp-b2", "x-pp-a03", "x-pp-a0", "x-pp-opt05", "x-pp-opt1", "x-rich-search",
+               "x-rich-bcow", "x-rich-onestep", "aPol-rich-search", "aPol-rich-bcow", "aPol-rich-onestep", "x-pp"]
+        for x in abl:
+            v, rev = get(x, "aMCTS-pp")
+            if not v:
+                continue
+            tj = T.get("tune", {}).get(x, {}).get("judge_personal", "")
+            L.append(f"| {x} | {ci(w(v, rev, 'judge_personal'))} | {ci(w(v, rev, 'consensus'))} | {tj} |")
+    S_ = j("analysis_split.json")
+    if S_:
+        L += ["", "## Split-history judge (drafter state from odd days, judge from even days; valid contrasts only)", "",
+              f"Attenuation slope of this judge on real teams: {S_.get('attenuation_lambda')}.", "",
+              "| matchup | J split-history | J window (same drafts) | CONS |", "|---|---|---|---|"]
+        for a_, b_ in (("x-combo3-split", "pMCTS-cur"), ("x-combo3-split", "pMCTS-bc"), ("x-pp-split", "pMCTS-cur"),
+                       ("x-pp-split", "pMCTS-bc"), ("aMCTS-bc@split", "pMCTS-bc"), ("a1step@split", "p1step-cur")):
+            vs_ = S_["h2h"].get(f"{a_} vs {b_}")
+            rs = False
+            if not vs_:
+                vs_, rs = S_["h2h"].get(f"{b_} vs {a_}"), True
+            vw_, rw = get(a_, b_) if A else (None, False)
+            if vs_:
+                L.append(f"| {a_} vs {b_} | {ci(w(vs_, rs, 'judge_personal'))} | {ci(w(vw_, rw, 'judge_personal')) if vw_ else ''} | "
+                         f"{ci(w(vs_, rs, 'consensus'))} |")
     D = j("diag.json")
     if D:
         L += ["", "## Diagnostics: drafter's own personal sum vs the judge's", "",

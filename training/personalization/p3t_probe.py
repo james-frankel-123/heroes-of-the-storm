@@ -153,12 +153,17 @@ def timing(systems, reps=2, device=0):
                     SY.act_mcts(v, ctx, spec["aware"], device=device, pp=True, prior=spec["prior"])
                 elif spec["kind"] == "mcts_vn":
                     SY.act_mcts(v, ctx, spec["aware"], device=device, vn=True)
+                elif spec["kind"] == "mcts_x":
+                    ctx.setdefault("sd", np.zeros_like(ctx["s"]))
+                    SY.act_mcts_x(v, ctx, spec["x"], device=device)
                 secs += time.time() - t0
                 nd += n
         out[name] = {"ms_per_decision": round(1000 * secs / nd, 3), "ms_per_draft_8_decisions": round(8000 * secs / nd, 2)}
         print(name, out[name], flush=True)
     p = os.path.join(C.RESULTS, "p3t", "timing.json")
-    json.dump(out, open(p, "w"), indent=1)
+    old = json.load(open(p)) if os.path.exists(p) else {}
+    old.update(out)
+    json.dump(old, open(p, "w"), indent=1)
 
 
 def main():
