@@ -80,11 +80,11 @@ def kernel_lobbies(gi):
             "tier": np.array([SKILL_TIERS.index(str(L["tier"][g])) for g in gi], np.int32), "src": src}
 
 
-def agree(n_games, device=0):
+def agree(n_games, device=0, vint="cur_bc"):
     import p3t_systems as SY
     import torch
     torch.set_num_threads(2)
-    out_p = os.path.join(TD.OUT, f"agree_{n_games}.npz")
+    out_p = os.path.join(TD.OUT, f"agree_{vint}_{n_games}.npz" if vint != "cur" else f"agree_{n_games}.npz")
     L = TD.load_lobbies()
     z = np.load(os.path.join(TD.OUT, "state_cur.npz"))
     from shared import MAPS
@@ -93,7 +93,7 @@ def agree(n_games, device=0):
     cand = np.flatnonzero(rich)
     rng = np.random.RandomState(31)
     gi = np.sort(rng.choice(cand, min(n_games, len(cand)), replace=False))
-    v = SY.vintage("cur")
+    v = SY.vintage(vint)
     part = out_p + ".partial.npz"
     done = dict(np.load(part)) if os.path.exists(part) else {}
     rec = {"aware": done.get("aware", np.full((len(gi), 16), -1, np.int64)),
@@ -134,12 +134,29 @@ def cluster2_se(X, e, g1, g2):
     return np.sqrt(np.diag(V))
 
 
-def agree_analyze(n_games):
+def causal_mmr(d, rows):
+    """Causal player MMR (P3_MMR_AT_GAME: latest stamp parsed before the game
+    started) for slot rows; NaN where unknown. The slot table's player_mmr is
+    the post-game rating (it contains the game's own result)."""
+    from p3_keys import key_blizz
+    z = np.load(os.path.join(C.CACHE, "mmr_at_game.npz"))
+    key = (z["replay_ids"].astype(np.int64) << 40) | z["blizz_ids"].astype(np.int64)
+    o = np.argsort(key)
+    ks = key[o]
+    bl = key_blizz(d["player_keys"])[d["pid"][rows]].astype(np.int64)
+    q = (d["replay_id"][rows].astype(np.int64) << 40) | bl
+    j = np.minimum(np.searchsorted(ks, q), len(ks) - 1)
+    hit = ks[j] == q
+    v = z["player_mmr_causal"][o][j].astype(np.float64)
+    return np.where(hit & np.isfinite(v), v, np.nan)
+
+
+def agree_analyze(n_games, vint="cur_bc"):
     """Pick-level linear probability models of the picking team's win."""
     import p3_x_common as X
     import p3t_systems as SY
     from shared import HEROES
-    z = np.load(os.path.join(TD.OUT, f"agree_{n_games}.npz"))
+    z = np.load(os.path.join(TD.OUT, f"agree_{vint}_{n_games}.npz" if vint != "cur" else f"agree_{n_games}.npz"))
     gi = z["gi"]
     L = TD.load_lobbies()
     d = X.load_ext()
@@ -154,10 +171,11 @@ def agree_analyze(n_games):
     wp0 = np.concatenate([v.wp_drafts(rows[i:i + 5000]) for i in range(0, len(rows), 5000)])
     comb = v.spec["combiner"]
     R = {k: [] for k in ("y", "lo", "dmmr", "m_aw", "m_bl", "m_pers", "dS", "pid", "game", "aw_eq_bl")}
+    cm = causal_mmr(d, L["slot_rows"][gi].ravel()).reshape(len(gi), 10)
     for i, g in enumerate(gi):
         steps = L["steps"][g]
         prow = L["slot_rows"][g]
-        mmr = d["player_mmr"][prow]
+        mmr = cm[i]
         team = steps[:, 2][steps[:, 1] == 1]
         y0 = 1.0 if L["winner"][g] == 0 else 0.0
         mm = [np.nanmean(np.where(team == t, mmr, np.nan)) for t in (0, 1)]
@@ -211,7 +229,9 @@ def agree_analyze(n_games):
         out["models"][nm] = {c: [round(100 * float(b), 2), round(100 * float(s), 2)]
                              for c, b, s in zip(["const"] + cols, beta, se)}
     out["note"] = "linear probability model of the picking team's win, coefficients in pp (SE two-way clustered by player and game); lo and dS per unit"
-    json.dump(out, open(os.path.join(RES, "backtest_agree.json"), "w"), indent=1)
+    out["drafter"] = {"cur": "aMCTS-cur vs pMCTS-cur (F prior)", "cur_bc": "aMCTS-bc vs pMCTS-bc (behavioral prior)"}.get(vint, vint)
+    out["mmr"] = "causal player MMR (mmr_at_game.npz player_mmr_causal), team mean over players with a known value"
+    json.dump(out, open(os.path.join(RES, f"backtest_agree_{vint}.json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
 
 
@@ -301,11 +321,12 @@ def main():
     ap.add_argument("stage", choices=["agree", "agree_analyze", "forced"])
     ap.add_argument("--games", type=int, default=20000)
     ap.add_argument("--device", type=int, default=0)
+    ap.add_argument("--vintage", default="cur_bc")
     a = ap.parse_args()
     if a.stage == "agree":
-        agree(a.games, a.device)
+        agree(a.games, a.device, a.vintage)
     elif a.stage == "agree_analyze":
-        agree_analyze(a.games)
+        agree_analyze(a.games, a.vintage)
     else:
         forced()
 

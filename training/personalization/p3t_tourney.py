@@ -71,7 +71,8 @@ class Lobbies:
         self.gi = np.load(os.path.join(TDIR, "lobbies.npz"))["gi"]
         win = np.flatnonzero(self.L["day"] <= TD.LOBBY_END)
         wpos = {int(g): i for i, g in enumerate(win)}
-        st = {v: np.load(os.path.join(TD.OUT, f"state_{v}.npz")) for v in ("cur", "s4m", "s1y", "judge")}
+        st = {v: np.load(os.path.join(TD.OUT, f"state_{v}.npz")) for v in ("cur", "s4m", "s1y", "judge", "splitd", "splitj")
+              if os.path.exists(os.path.join(TD.OUT, f"state_{v}.npz"))}
         n = len(self.gi)
         self.map = np.array([MAPS.index(str(self.L["map"][g])) for g in self.gi], np.int32)
         self.tier = np.array([SKILL_TIERS.index(str(self.L["tier"][g])) for g in self.gi], np.int32)
@@ -98,7 +99,7 @@ class Lobbies:
             rows = base[:, None] + self.src
             ent = {"s": z["s"][rows.ravel()].astype(np.float32).reshape(n, 10, 90),
                    "off": z["off"][rows.ravel()].reshape(n, 10, 90)}
-            if v == "judge":
+            if v == "judge" and "rec_sum" in z.files:
                 ent["rec_sum"] = z["rec_sum"][rows.ravel()].reshape(n, 10, 90)
                 ent["rec_n"] = z["rec_n"][rows.ravel()].astype(np.float32).reshape(n, 10, 90)
             if v == "cur":
@@ -134,6 +135,8 @@ def act(sysname, ctx, LB, idx, device):
         return SY.act_policy(v, ctx)
     if kind == "mcts_pp":
         return SY.act_mcts(v, ctx, spec["aware"], device=device, pp=True, prior=spec["prior"])
+    if kind == "mcts_vn":
+        return SY.act_mcts(v, ctx, spec["aware"], device=device, vn=True)
     if kind == "policy_pp":
         return SY.act_policy_pp(v, ctx, prior=spec["prior"])
     if kind == "gd":
@@ -192,6 +195,9 @@ SPOKES = {
     # prior trained with player features
     "aMCTS-pp": ["aMCTS-bc", "pMCTS-bc"], "aPol-pp": ["pPol-cur"],
     "aMCTS-sp": ["aMCTS-bc", "pMCTS-bc", "aMCTS-pp"], "aPol-sp": ["pPol-cur", "aPol-pp"],
+    "aMCTS-vn": ["aMCTS-bc", "pMCTS-bc"],
+    # split-history robustness (drafter state from odd days only)
+    "aMCTS-bc@split": ["pMCTS-bc", "aMCTS-bc"], "a1step@split": ["p1step-cur", "a1step-cur"],
     # drift, population side: stale all / refreshed stats / fine-tune ; full retrain = pMCTS-cur
     "pMCTS-s4m": ["pMCTS-cur", "aMCTS-s4m"], "pMCTS-s1y": ["pMCTS-cur", "aMCTS-s1y"],
     "pMCTS-s4m-rs": ["pMCTS-s4m"], "pMCTS-s1y-rs": ["pMCTS-s1y"],
@@ -237,6 +243,7 @@ def main():
     ap.add_argument("--device", type=int, default=0)
     ap.add_argument("--kind", choices=["all", "onestep", "no-onestep"], default="all",
                     help="onestep: only pairs with a one-step system (CPU pool); no-onestep: the others")
+    ap.add_argument("--systems", default="", help="comma list: keep pairs with at least one of these systems")
     ap.add_argument("--only-ready", action="store_true", help="skip pairs whose vintages are not in p3t_vintages.json yet")
     a = ap.parse_args()
     if a.stage == "select":
@@ -247,6 +254,9 @@ def main():
         vs = json.load(open(SY.VFILE))
         pairs = [p for p in pairs if all(SY.SYSTEMS[s]["vint"] in vs and vs[SY.SYSTEMS[s]["vint"]].get("combiner")
                                          for s in p)]
+    if a.systems:
+        keep = set(a.systems.split(","))
+        pairs = [p for p in pairs if keep & set(p)]
     has1 = lambda p: any(SY.SYSTEMS[x]["kind"] == "onestep" for x in p)
     if a.kind == "onestep":
         pairs = [p for p in pairs if has1(p)]

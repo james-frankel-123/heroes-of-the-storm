@@ -155,7 +155,7 @@ def load_lobbies():
 
 # ------------------------------------------------------------------ walk
 
-def walk(aug, par, mets, mw, q_pid, q_day, ev_lo=None, q_hero=None, want_all=True):
+def walk(aug, par, mets, mw, q_pid, q_day, ev_lo=None, q_hero=None, want_all=True, ev_ok=None):
     """As-of posterior for (player, day) queries: evidence rows with
     ev_lo <= day <= q_day - 1 (ev_lo None: from the start); merged counts
     (all rows) and slot-row counts with day <= q_day - 1. State is kept only
@@ -208,6 +208,8 @@ def walk(aug, par, mets, mw, q_pid, q_day, ev_lo=None, q_hero=None, want_all=Tru
             isl = aug["slot"][sel[rr]] >= 0
             np.add.at(Nsl, (pi[isl], hi[isl]), 1.0)
             ev = rr if ev_lo is None else rr[sday[rr] >= ev_lo]
+            if ev_ok is not None:
+                ev = ev[ev_ok(sday[ev])]
             if len(ev):
                 ai = sel[ev]
                 pe, he = sp[ev], shero[ev]
@@ -417,6 +419,59 @@ def judgefit(tag="full_ms_flip"):
     print(f"judgefit: {len(q):,} slots ({time.time() - t0:.0f}s)", flush=True)
 
 
+# split-history robustness: the drafter and the judge see disjoint halves of
+# every player's history (odd and even days), so both have years of evidence
+SPLIT_D = lambda day: (day % 2) == 1                                    # drafter: odd days
+SPLIT_J = lambda day: ((day % 2) == 0) & ((day < OOT_START) | (day > LOBBY_END))   # judge: even days, never the tournament window
+
+
+def split_states(judge_tag="full_ms_flip"):
+    """state_splitd (drafter, odd-day evidence before the lobby day, full_ms,
+    no layer) and state_splitj (judge, even-day evidence outside the
+    tournament window through J1, the other-half fit), tournament-window lobbies."""
+    t0 = time.time()
+    par, d, aug, mets, mw = load_model()
+    jpar = _jpar(judge_tag)
+    sh = to_shared(d["hero_names"])
+    L = load_lobbies()
+    gsel = np.flatnonzero(L["day"] <= LOBBY_END)
+    rows = L["slot_rows"][gsel].ravel()
+    qpid = d["pid"][rows].astype(np.int64)
+    for v, pr, ok, qday in (("splitd", par, SPLIT_D, np.repeat(L["day"][gsel], 10).astype(np.int64)),
+                            ("splitj", jpar, SPLIT_J, np.full(len(rows), J1 + 1, np.int64))):
+        ukey, inv = np.unique(qpid * 100000 + qday, return_inverse=True)
+        upid, uday = ukey // 100000, ukey % 100000
+        res = walk(aug, pr, mets, mw, upid, uday, ev_ok=ok)
+        s = offset(aug["table"], res["n_slot"]) + res["mean_all"]
+        np.savez(os.path.join(OUT, f"state_{v}.npz"), gsel=gsel, s=s[inv][:, sh_inv(sh)].astype(np.float32),
+                 sd=np.sqrt(res["var_all"])[inv][:, sh_inv(sh)].astype(np.float16),
+                 n=res["n_all"][inv][:, sh_inv(sh)].astype(np.uint16),
+                 off=off_role(d, res["n_all"])[inv][:, sh_inv(sh)], qday=qday.astype(np.int32))
+        print(f"state {v}: {len(rows):,} slots ({time.time() - t0:.0f}s)", flush=True)
+
+
+def split_judgefit(tag="full_ms_flip"):
+    """judgefit with the judge's split evidence (even days outside the tournament window)."""
+    t0 = time.time()
+    par, d, aug, mets, mw = load_model(tag)
+    sv = _vidx(d, SEALED)
+    q = np.flatnonzero(d["post"] & (d["day"] >= J0) & (d["day"] <= J1) & (d["version"] != sv))
+    res = walk(aug, par, mets, mw, d["pid"][q].astype(np.int64), d["day"][q].astype(np.int64),
+               q_hero=d["hero"][q].astype(np.int64), want_all=False, ev_ok=SPLIT_J)
+    hq = d["hero"][q]
+    ns = res["n_slot"]
+    nb = len(C.NPH_EDGES)
+    bp = np.searchsorted(C.NP_EDGES, ns.sum(1), side="right") - 1
+    bh = np.searchsorted(C.NPH_EDGES, ns[np.arange(len(q)), hq], side="right") - 1
+    mu = aug["table"][bp * nb + bh]
+    off = off_role(d, res["n_all"])[np.arange(len(q)), hq]
+    np.savez(os.path.join(OUT, "judgefit_split.npz"), replay_id=d["replay_id"][q], g=d["g"][q], team=d["team"][q],
+             hero=to_shared(d["hero_names"])[hq], pred=(mu + res["mean"]).astype(np.float32),
+             var=res["var"].astype(np.float32), off=off, y=d["y"][q], wp=d["wp"][q].astype(np.float32),
+             day=d["day"][q], mmr=d["player_mmr"][q])
+    print(f"judgefit split: {len(q):,} slots ({time.time() - t0:.0f}s)", flush=True)
+
+
 ROSTER_WIN = ("2026-03-29", "2026-05-22")
 
 
@@ -468,7 +523,7 @@ def rosters(n_max=20000):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["lobbies", "states", "judgefit", "rosters"])
+    ap.add_argument("stage", choices=["lobbies", "states", "judgefit", "rosters", "split_states", "split_judgefit"])
     ap.add_argument("--vintages", default="cur,s4m,s1y,judge")
     ap.add_argument("--judge-params", default="full_ms_flip")
     a = ap.parse_args()
@@ -479,6 +534,10 @@ def main():
         states(a.vintages.split(","), a.judge_params)
     elif a.stage == "rosters":
         rosters()
+    elif a.stage == "split_states":
+        split_states(a.judge_params)
+    elif a.stage == "split_judgefit":
+        split_judgefit(a.judge_params)
     else:
         judgefit(a.judge_params)
 

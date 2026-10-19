@@ -75,7 +75,12 @@ def system_table():
     # prior trained by self-play with sampled real rosters (p3t_selfplay)
     S["aMCTS-sp"] = dict(kind="mcts_pp", vint="cur", aware=1, prior="selfplay_prior")
     S["aPol-sp"] = dict(kind="policy_pp", vint="cur", aware=1, prior="selfplay_prior")
+    # value net with per-lobby player features (p3t_vnet; cuda_pvnet), behavioral prior
+    S["aMCTS-vn"] = dict(kind="mcts_vn", vint="cur_bc_vn", aware=1)
     S["pMCTS-bc"] = dict(kind="mcts", vint="cur_bc", aware=0)
+    # split-history robustness: drafter state from odd-day evidence only (judge: even days)
+    S["aMCTS-bc@split"] = dict(kind="mcts", vint="cur_bc_split", aware=1, state="splitd")
+    S["a1step@split"] = dict(kind="onestep", vint="cur_split", aware=1, state="splitd")
     S["aMCTS-bc"] = dict(kind="mcts", vint="cur_bc", aware=1)
     for v in ("s4m", "s1y"):
         # upkeep options of the player-blind search drafter under drift
@@ -376,7 +381,7 @@ def act_policy_pp(vint, ctx, prior="pprior"):
     return np.where(m, u, -1e30).argmax(1)
 
 
-def act_mcts(vint, ctx, aware, device=0, kmod=None, pp=False, prior="pprior"):
+def act_mcts(vint, ctx, aware, device=0, kmod=None, pp=False, prior="pprior", vn=False):
     """Decide-only search at step k for each draft (grouped by prior seed)."""
     import p3_mcts_core as M
     kmod = kmod or kernel_module()
@@ -402,6 +407,15 @@ def act_mcts(vint, ctx, aware, device=0, kmod=None, pp=False, prior="pprior"):
         bias, alpha = PP.bias_for(s, off, ctx["n"], float(vint.spec["combiner"][2]), prior_path(prior))
         coefs = np.array(list(vint.spec["combiner"]) + [0.0, alpha], np.float32)
         cfg[:, 56] = 1
+    if vn:
+        import p3_mcts_core as M2
+        kmod = M2.load_module("pvnet_kernel", os.path.join(HERE, "cuda_pvnet"))
+        cfg[:, 57] = 1
+        feat = np.log1p(ctx["n"].astype(np.float32))
+        vnet = np.asarray(vint.spec["vnet"], np.float32)
+        cb = list(vint.spec["combiner"])
+        coefs = np.array([0.0, vint.spec["vnet_b1"], cb[2], cb[3], 0.0, 1.0], np.float32)
+        bias = np.zeros_like(s)
     out = np.empty(B, np.int64)
     wf, wo, lut = vint.wcfg()
     seeds = ctx["seed_i"] % vint.n_seeds
@@ -413,6 +427,8 @@ def act_mcts(vint, ctx, aware, device=0, kmod=None, pp=False, prior="pprior"):
             ii = sel[b0:b0 + 256]
             eng = (getattr(kmod, "PersonalEngine", None) or kmod.PriorEngine)(pf, gf, wf, po, go, wo, lut, max_concurrent=len(ii), device_id=device)
             extra = (np.ascontiguousarray(bias[ii]),) if pp else ()
+            if vn:
+                extra = (np.ascontiguousarray(bias[ii]), np.ascontiguousarray(feat[ii]), vnet)
             r = eng.run(np.ascontiguousarray(cfg[ii]), np.ascontiguousarray(s[ii]), np.ascontiguousarray(off[ii]),
                         np.ascontiguousarray(imit[ii]), np.ascontiguousarray(pool[ii]), coefs, *extra, SIMS, 2.0,
                         int(ctx["kseed"] + 7919 * k + b0 + 104729 * int(i)), 0.0, 0.3, 0.0, 1,

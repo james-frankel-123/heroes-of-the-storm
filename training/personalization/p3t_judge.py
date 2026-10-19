@@ -39,7 +39,7 @@ import p3_hs_core as C
 import p3t_data as TD
 
 RES = os.path.join(C.RESULTS, "p3t")
-SDIR = os.path.join(TD.OUT, "scores")
+SDIR = os.path.join(TD.OUT, "scores_split" if os.environ.get("P3T_SPLIT") == "1" else "scores")
 os.makedirs(SDIR, exist_ok=True)
 PERMS = np.array(list(itertools.permutations(range(5))), np.int64)
 MIN_G = 30
@@ -92,10 +92,15 @@ def fit_offset_logistic(off, X, y, iters=50):
     return w, np.sqrt(np.diag(cov))
 
 
+SPLIT = os.environ.get("P3T_SPLIT") == "1"   # split-history robustness: judge state splitj, judge_split.json
+JNAME = "judge_split.json" if SPLIT else "judge.json"
+JSTATE = "splitj" if SPLIT else "judge"
+
+
 def fit():
     import p3_x_common as XC
     t0 = time.time()
-    z = np.load(os.path.join(TD.OUT, "judgefit.npz"))
+    z = np.load(os.path.join(TD.OUT, "judgefit_split.npz" if SPLIT else "judgefit.npz"))
     gw = window_games()
     rid_meta = {g[0]: g for g in gw}
     rid = z["replay_id"]
@@ -135,7 +140,8 @@ def fit():
     for k in ("gN", "gN_naive", "RN", "QM2026"):
         pk = np.clip(cons[k], 1e-6, 1 - 1e-6)
         out[f"ll_{k}"] = float(XC.logloss(pk, y).mean())
-    json.dump(out, open(os.path.join(RES, "judge.json"), "w"), indent=1)
+    out["evidence"] = "even days outside the tournament window (split-history robustness)" if SPLIT else "judge window only"
+    json.dump(out, open(os.path.join(RES, JNAME), "w"), indent=1)
     np.savez(os.path.join(TD.OUT, "judge_window_cons.npz"), rid=rid[first], y=y, cons=pc, dS=dS, dO=dO)
     print(json.dumps(out, indent=1), flush=True)
 
@@ -203,7 +209,7 @@ def score_drafts(LB, acts, judge, truth):
              SKILL_TIERS[LB.tier[i]]) for i in range(n)]
     cons = consensus(rows)
     out = {k: v for k, v in cons.items()}
-    js, jn = LB.state["judge"]["s"], LB.state["judge"]["off"].astype(np.float64)
+    js, jn = LB.state[JSTATE]["s"], LB.state[JSTATE]["off"].astype(np.float64)
     rs, rn = LB.state["judge"]["rec_sum"], LB.state["judge"]["rec_n"]
     ncur = LB.state["cur"]["n"]
     c2, c3 = judge["c2_skill"], judge["c3_offrole"]
@@ -283,7 +289,7 @@ def own_values(LB, acts, sysname):
 def score_all():
     import p3t_tourney as TT
     LB = TT.Lobbies()
-    judge = json.load(open(os.path.join(RES, "judge.json")))
+    judge = json.load(open(os.path.join(RES, JNAME)))
     truth = Truth()
     files = sorted(f for f in os.listdir(TT.TDIR) if "__" in f and f.endswith(".npz") and ".tmp" not in f)
     todo = [("real", LB.real_acts, None, None)]

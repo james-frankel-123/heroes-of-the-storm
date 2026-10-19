@@ -34,10 +34,11 @@ import p3_hs_core as C
 import p3t_data as TD
 
 TDIR = os.path.join(TD.OUT, "tourney")
-SDIR = os.path.join(TD.OUT, "scores")
+SPLIT = os.environ.get("P3T_SPLIT") == "1"
+SDIR = os.path.join(TD.OUT, "scores_split" if SPLIT else "scores")
 RES = os.path.join(C.RESULTS, "p3t")
 B = 2000
-WIN = ["judge_personal", "consensus", "gN", "gN_naive", "RN", "QM2026"]
+WIN = ["judge_personal", "judge_corr", "consensus", "gN", "gN_naive", "RN", "QM2026"]
 SIDE = {"rec_mean": "personal realized record (pp, judge-free)", "rec_pool": "personal realized record, game-weighted",
         "truth_hero": "future hero WR", "truth_syn": "future synergy", "truth_ctr": "future counter",
         "degen": "degenerate", "healer": "has healer", "offrole": "off-role players", "rec_cov": "record coverage"}
@@ -51,8 +52,19 @@ def n_seeds(sysname):
     return 1
 
 
+def attenuation():
+    """lambda: slope of the judge's personal sum on the drafter's, real teams
+    (p3t_diag). The judge sees only 2.5 months of later games, so its skill
+    estimates are shrunk harder than the drafter's; a calibrated judge then
+    credits about lambda of a true personal difference."""
+    p = os.path.join(RES, "diag.json")
+    return json.load(open(p))["real"]["slope_SJ_on_SD"] if os.path.exists(p) else None
+
+
 def load():
     P = {}
+    lam = attenuation()
+    judge = json.load(open(os.path.join(RES, "judge_split.json" if SPLIT else "judge.json")))
     for f in sorted(os.listdir(SDIR)):
         if "__" not in f or not f.endswith(".npz"):
             continue
@@ -63,6 +75,14 @@ def load():
         tr = e.pop("truth")
         for j, nm in enumerate(("truth_hero", "truth_syn", "truth_ctr")):
             e[nm] = tr[:, :, j]
+        if lam:
+            # attenuation-corrected J (model-based sensitivity, not a judge): the
+            # personal skill part divided by lambda
+            pc = np.clip(e["consensus"], 1e-6, 1 - 1e-6)
+            e["judge_corr"] = 1 / (1 + np.exp(-(np.log(pc / (1 - pc)) + judge["c2_skill"] * e["dS_judge"] / lam
+                                                 + judge["c3_offrole"] * e["dO_judge"])))
+        else:
+            e["judge_corr"] = e["judge_personal"]
         e["secs"] = t["secs"]
         e["fallback"] = t["fallback"]
         e["acts"] = t["acts"]
@@ -215,7 +235,7 @@ def analyze(contrasts_extra=()):
     n = len(next(iter(P.values()))["consensus"])
     idxs = boot_idx(n, B)
     systems = sorted({s for p in P for s in p})
-    out = {"lobbies": n, "pairs": len(P), "systems": systems}
+    out = {"lobbies": n, "pairs": len(P), "systems": systems, "attenuation_lambda": attenuation()}
     # --- head-to-heads of interest
     H = [("aMCTS-cur", "pMCTS-cur"), ("a1step-cur", "p1step-cur"), ("aMCTS-cur", "a1step-cur"),
          ("pMCTS-cur", "pPol-cur"), ("aMCTS-cur", "Real"), ("pMCTS-cur", "Real"), ("aMCTS-cur", "GD"),
@@ -235,7 +255,8 @@ def analyze(contrasts_extra=()):
          ("aMCTS-sp", "aMCTS-cur"), ("aMCTS-sp", "pMCTS-cur"), ("aMCTS-sp", "aMCTS-pp"), ("aMCTS-sp", "Real"),
          ("aPol-pp", "pPol-cur"), ("aPol-sp", "pPol-cur"), ("aMCTS-vn", "aMCTS-bc"), ("aMCTS-vn", "pMCTS-bc"),
          ("DraftRec", "aMCTS-bc"), ("DraftRec", "a1step-cur"), ("DraftRec", "GD"), ("DraftRec", "Real"),
-         ("DraftRec", "pMCTS-cur")] + list(contrasts_extra)
+         ("DraftRec", "pMCTS-cur"), ("aMCTS-bc@split", "pMCTS-bc"), ("a1step@split", "p1step-cur"),
+         ("aMCTS-bc@split", "aMCTS-bc"), ("a1step@split", "a1step-cur")] + list(contrasts_extra)
     h2h = {}
     for a, b in H:
         if not ((a, b) in P or (b, a) in P):
@@ -314,7 +335,7 @@ def analyze(contrasts_extra=()):
         bt[key] = {"seat_first_pick": round(h, 3),
                    "theta": {s: [round(th[s], 3), round(float(l), 3), round(float(u), 3)] for s, l, u in zip(systems, lo, hi)}}
     out["bt"] = bt
-    json.dump(out, open(os.path.join(RES, "analysis.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(RES, "analysis_split.json" if SPLIT else "analysis.json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
 
 

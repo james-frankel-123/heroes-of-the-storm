@@ -36,7 +36,7 @@ import p3_hs_core as C
 import p3t_data as TD
 
 FIT_WIN = {"cur": ("2026-02-11", "2026-05-22"), "s4m": ("2025-11-01", "2026-02-10"),
-           "s1y": ("2025-03-01", "2025-06-02")}
+           "s1y": ("2025-03-01", "2025-06-02"), "split": ("2026-02-11", "2026-05-22")}
 RES = os.path.join(C.RESULTS, "p3t")
 os.makedirs(RES, exist_ok=True)
 
@@ -79,10 +79,10 @@ def wp_real(vint, d, q, inv, ngames, first, meta_rid):
     return out
 
 
-def slot_skill(d, aug, par, mets, mw, lay, q):
-    """As-of s and off-role at the played hero for slot rows q."""
+def slot_skill(d, aug, par, mets, mw, lay, q, ev_ok=None):
+    """As-of s and off-role at the played hero for slot rows q (lay None: no layer)."""
     res = TD.walk(aug, par, mets, mw, d["pid"][q].astype(np.int64), d["day"][q].astype(np.int64),
-                  q_hero=d["hero"][q].astype(np.int64), want_all=False)
+                  q_hero=d["hero"][q].astype(np.int64), want_all=False, ev_ok=ev_ok)
     hq = d["hero"][q]
     ns = res["n_slot"]
     n_p = ns.sum(1)
@@ -90,7 +90,8 @@ def slot_skill(d, aug, par, mets, mw, lay, q):
     bp = np.searchsorted(C.NP_EDGES, n_p, side="right") - 1
     bh = np.searchsorted(C.NPH_EDGES, ns[np.arange(len(q)), hq], side="right") - 1
     s = aug["table"][bp * nb + bh] + res["mean"]
-    s = s + lay.at(d["pid"][q].astype(np.int64), d["day"][q].astype(np.int64), res["n_all"])[np.arange(len(q)), hq]
+    if lay is not None:
+        s = s + lay.at(d["pid"][q].astype(np.int64), d["day"][q].astype(np.int64), res["n_all"])[np.arange(len(q)), hq]
     off = TD.off_role(d, res["n_all"])[np.arange(len(q)), hq]
     return s, off
 
@@ -113,7 +114,10 @@ def combfit(vintages):
         q = q[np.isin(rid[q], np.fromiter(meta_rid.keys(), np.int64))]
         cnt = np.bincount(d["g"][q], minlength=int(d["g"].max()) + 1)
         q = q[cnt[d["g"][q]] == 10]
-        s, off = slot_skill(d, aug, par, mets, mw, lay, q)
+        if v == "split":
+            s, off = slot_skill(d, aug, par, mets, mw, None, q, ev_ok=TD.SPLIT_D)
+        else:
+            s, off = slot_skill(d, aug, par, mets, mw, lay, q)
         sign = np.where(d["team"][q] == 0, 1.0, -1.0)
         gi, inv = np.unique(d["g"][q], return_inverse=True)
         dS = np.bincount(inv, weights=sign * s)
@@ -121,7 +125,7 @@ def combfit(vintages):
         first = np.zeros(len(gi), np.int64)
         first[inv[::-1]] = q[::-1]
         y = np.where(d["team"][first] == 0, d["y"][first], 1 - d["y"][first])
-        vint = SY.vintage(v)
+        vint = SY.vintage("cur" if v == "split" else v)
         wp = wp_real(vint, d, q, inv, len(gi), first, meta_rid)
         lo = np.log(np.clip(wp, 1e-6, 1 - 1e-6) / np.clip(1 - wp, 1e-6, 1 - 1e-6))
         X = np.column_stack([lo, dS, dO])
@@ -155,8 +159,9 @@ def write_combiner(v, fit):
     import p3t_systems as SY
     vs = json.load(open(SY.VFILE))
     b = [0.0] + list(fit["coef"][1:])
+    targets = {"split": ("cur_split", "cur_bc_split")}.get(v, (v, f"{v}_bc", f"{v}_bc_vn"))
     for name, spec in vs.items():
-        if name == v or (name.startswith(v + "_") and name.endswith("_bc")):
+        if name in targets:
             spec["combiner"] = b
             spec["combiner_note"] = (f"p3t_value combfit: {fit['games']:,} held-out games {fit['window'][0]}..{fit['window'][1]}; "
                                      f"b0 set to 0 (fitted {fit['coef'][0]:.4f})")
