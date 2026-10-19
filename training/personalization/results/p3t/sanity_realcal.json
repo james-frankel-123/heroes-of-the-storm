@@ -1,0 +1,36 @@
+{
+ "all_window": {
+  "CONS": {
+   "games": 60500,
+   "log_loss": 0.67096,
+   "acc": 0.5909,
+   "slope": 1.733,
+   "auc": 0.6293
+  },
+  "J": {
+   "games": 60500,
+   "log_loss": 0.65644,
+   "acc": 0.6106,
+   "slope": 1.296,
+   "auc": 0.6548
+  },
+  "coin_log_loss": 0.69315
+ },
+ "tournament_300": {
+  "CONS": {
+   "games": 300,
+   "log_loss": 0.68338,
+   "acc": 0.56,
+   "slope": 1.038,
+   "auc": 0.5874
+  },
+  "J": {
+   "games": 300,
+   "log_loss": 0.67816,
+   "acc": 0.58,
+   "slope": 0.8,
+   "auc": 0.6054
+  },
+  "coin_log_loss": 0.69315
+ }
+}
