@@ -54,6 +54,11 @@ async function main() {
   let gated = 0
   for (const table of SITE_TABLES) {
     const cols = await columnsOf(neon, table)
+    if (cols.length === 0) {
+      // a new site table not created on Neon yet (e.g. personal_accounts before its migration)
+      log.warn(`${table}: not on Neon; skipped (create it from drizzle/ first)`)
+      continue
+    }
     const localCols = new Set(await columnsOf(local, table))
     const missing = cols.filter(c => !localCols.has(c))
     if (missing.length) throw new Error(`${table}: local store lacks columns ${missing.join(', ')}`)

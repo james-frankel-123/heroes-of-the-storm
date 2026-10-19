@@ -11,6 +11,8 @@ import { HeroPicker } from '@/components/draft/hero-picker'
 import { SearchRecommendationPanel, type OpponentPredictionRow, type OurTurnRow } from '@/components/draft/search-recommendation-panel'
 import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, getPartialProjection } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
+import { InGamePlayers, type PersonalDraftState } from '@/components/draft/in-game-players'
+import { banGain, personalValue } from '@/lib/personal/draft-personal'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
 import type { DraftState, DraftPhase, DraftData, Team } from '@/lib/draft/types'
@@ -494,6 +496,70 @@ export function DraftClient({
       ? DRAFT_SEQUENCE[state.currentStep]
       : null
 
+  // In-game mode: matched players' skill on top of the search's values
+  // (docs/personalization-site-design.md, "Draft page"). Unmatched players count as average.
+  const [personal, setPersonal] = useState<PersonalDraftState | null>(null)
+  const partyTags = useMemo(
+    () => state.playerSlots.map(s => s.battletag).filter((bt): bt is string => bt !== null),
+    [state.playerSlots],
+  )
+  const personalView = useMemo(() => {
+    const step = currentStep
+    if (!personal || !step || step.team !== state.ourTeam || searchProjNow === null || searchResults.length === 0) {
+      return { rows: searchResults, summary: null as string | null }
+    }
+    const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
+    const c = personal.coefs
+    const fixed: Record<string, string> = {}
+    ourPicks.forEach((h, i) => {
+      const bt = ourPlayerMap[i]
+      if (bt) fixed[h] = bt.split('#')[0]
+    })
+    const heroes = Object.keys((personal.ours[0] ?? personal.theirs[0]).s)
+    const available = heroes.filter(h => !unavailableHeroes.has(h))
+    const now = personalValue(searchProjNow / 100, ourPicks, enemyPicks, personal.ours, personal.theirs, c, fixed)
+    const nowPct = now.value * 100
+    const isBan = step.type === 'ban'
+    const pp = (x: number) => `${x >= 0 ? '+' : ''}${(100 * x).toFixed(1)} pp`
+    const logit = (p: number) => Math.log(p / (1 - p))
+    const enemyAssigned = new Set(Object.values(now.theirs.who))
+    const rowFor = (hero: string, q: number, isGreedyPad: boolean, isAiTop?: boolean): OurTurnRow => {
+      let winPct: number
+      let personalNote: string | undefined
+      if (isBan) {
+        const g = banGain(hero, available, personal.theirs, enemyAssigned, c)
+        const qq = Math.min(Math.max(q, 1e-4), 1 - 1e-4)
+        winPct = 100 / (1 + Math.exp(-(c.b0 + c.b1 * logit(qq) + now.ours.value - now.theirs.value + g.gain)))
+        if (g.who && g.gain > 0.01) personalNote = `Takes away ${g.who}'s best option`
+      } else {
+        const v = personalValue(q, [...ourPicks, hero], enemyPicks, personal.ours, personal.theirs, c, fixed)
+        winPct = v.value * 100
+        const who = v.ours.who[hero]
+        const p = personal.ours.find(x => x.label === who)
+        if (p) personalNote = `${who}: ${pp(p.s[hero] ?? 0)} on ${hero}${p.offRole[hero] ? ' (off-role)' : ''}`
+      }
+      return { hero, isGreedyPad, isAiTop, winPct, deltaPp: winPct - nowPct, personalNote }
+    }
+    const rows: OurTurnRow[] = searchResults.map(r => rowFor(r.hero, r.winPct / 100, r.isGreedyPad, r.isAiTop))
+    // add each unassigned matched player's own best heroes (not searched: the current value stands in for Q)
+    const shown = new Set(rows.map(r => r.hero))
+    const pool = isBan ? personal.theirs.filter(p => !enemyAssigned.has(p.label)) : personal.ours.filter(p => !Object.values(now.ours.who).includes(p.label))
+    for (const p of pool) {
+      const top = available.filter(h => !shown.has(h)).sort((a, b) => (p.s[b] ?? 0) - (p.s[a] ?? 0)).slice(0, isBan ? 2 : 3)
+      for (const h of top) {
+        rows.push(rowFor(h, searchProjNow / 100, true))
+        shown.add(h)
+      }
+    }
+    rows.sort((a, b) => b.winPct - a.winPct)
+    const n = personal.ours.length + personal.theirs.length
+    return {
+      rows,
+      summary: `With player skill for ${n} matched player${n === 1 ? '' : 's'}: ${nowPct.toFixed(1)}% now (search alone ${searchProjNow.toFixed(1)}%). Rows from a player's own pool were not searched.`,
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personal, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
+
   // ---------------------------------------------------------------------------
   // Setup phase
   // ---------------------------------------------------------------------------
@@ -715,7 +781,8 @@ export function DraftClient({
             {currentStep?.team === state.ourTeam ? (
               // Our turn: MCTS recommendations, padded with greedy to 10
               <SearchRecommendationPanel
-                ourRows={searchResults}
+                ourRows={personalView.rows}
+                personalSummary={personalView.summary}
                 searchInfo={searchInfo}
                 searching={searching}
                 statusText={searchStatus}
@@ -755,6 +822,8 @@ export function DraftClient({
 
       </div>
       {/* End HotS arena wrapper */}
+
+      {state.phase !== 'complete' && <InGamePlayers partyTags={partyTags} onChange={setPersonal} />}
 
       {/* Detailed draft board (keeps player-assignment controls) */}
       <DraftBoard

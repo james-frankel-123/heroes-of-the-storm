@@ -10,7 +10,7 @@ const SCHEMA_TABLES = [
   'player_match_history', 'player_hero_stats', 'player_hero_map_stats',
   'replay_draft_data', 'replay_players', 'replay_extras', 'player_refetch_state',
   'qm_games', 'player_fetch_queue', 'qm_fetch_state', 'replay_sync_state',
-  'replay_fetch_queue', 'rating_items', 'draft_ratings', 'sync_log',
+  'replay_fetch_queue', 'rating_items', 'draft_ratings', 'sync_log', 'personal_accounts',
 ]
 
 export default defineConfig({

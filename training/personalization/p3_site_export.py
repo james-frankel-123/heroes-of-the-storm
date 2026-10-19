@@ -1,10 +1,10 @@
 """
 Site export for personalization (docs/personalization-site-design.md).
 
-The website runs a TypeScript port of the skill posterior
-(src/lib/personal/model.ts). This script writes what the port needs and the
-reference outputs the port is tested against. Nothing here is per-player
-data except the de-identified fixture (no ids, no battletags, days shifted).
+The site's player cards are computed offline by p3_site_publish.py from the
+constants this script exports (src/lib/personal/model-artifact.json). The
+page itself only decodes published cards (src/lib/personal/card.ts). Nothing
+here is per-player data.
 
 Stages (from training/):
   tables    on the 3090, with the full_1017 env (remote/run_rcf_full.sh env):
@@ -16,10 +16,11 @@ Stages (from training/):
             arm's own per-slot offsets.
   artifact  local: params (results/rcf_full/params/full_{ms,imp2}.npz),
             site_tables.json and the cover JSONs -> src/lib/personal/model-artifact.json
-  fixture   local: reference outputs for de-identified players
-            -> src/lib/personal/__tests__/fixtures/reference.json
 
-Live semantics (the port and reference() below implement the same thing):
+reference() below is the research-function reference that
+p3_site_publish.py check compares the batched card build against.
+
+Card semantics (p3_site_publish.py and reference() below implement the same thing):
   rows      every Storm League game the player has: hero, win, day
   counts    n_p, n_ph at a row = the player's games (all rows) on EARLIER days
   r         y - proxy(hero, quarter), v = proxy (1 - proxy)
@@ -30,9 +31,10 @@ Live semantics (the port and reference() below implement the same thing):
   imp2      posterior with play preference z(N); used when there is no
             corpus metric evidence, and for the never-played ranking
   main      full_ms posterior with metric evidence; displayed through the
-            volume card (P3_TAILS) plus the volume arm's temporal layer
+            volume card (P3_TAILS); the published cards use no temporal
+            layer (reference() also returns the layer terms)
   band      80% = mean +- 1.2816 sqrt(c var_gauss + k0^2), with c, k0 the
-            V1-fit display scale of the model (main: layer arm)
+            V1-fit display scale of the model (main: the no-layer arm)
 """
 import argparse
 import json
@@ -259,7 +261,10 @@ def r6(x):
 
 
 def artifact(_a):
+    sys.path.insert(0, os.path.dirname(HERE))
+    from shared import FINE_ROLE_NAMES, HERO_ROLE_FINE
     T, ms, imp, consts, cov_ms, cov_imp = load_inputs()
+    cov_ms0 = json.load(open(os.path.join(HERE, "results", "rcf_full", "cover_full_ms__merged.json")))
     assert ms.W is None and ms.G is not None and imp.W is not None and imp.G is None
     out = {
         "version": "full_1017-2026-10-18",
@@ -272,16 +277,26 @@ def artifact(_a):
         "main": {"U": r6(ms.U), "s2": r6(ms.s2), "scale": consts["scale_main"],
                  "layer": consts["vol_layer"], "gaussLayer": consts["main_layer"],
                  "volParams": r6(consts["vol_params"]), "volEdges": [0, 1, 10, 30, 100], "volSpecialist": 0.2,
-                 "combiner": T["arms"]["full_ms_layer"]["coef"]},
+                 "combiner": T["arms"]["full_ms_layer"]["coef"],
+                 # the published cards use no temporal layer: display band from the no-layer arm's V1 scale
+                 "scaleNoLayer": {"c": cov_ms0["scale_c"], "k0": cov_ms0["scale_k0_sd_pp"] / 100}},
         "imp2": {"U": r6(imp.U), "s2": r6(imp.s2), "W": r6(imp.W), "zmean": r6(imp.zmean), "zsd": r6(imp.zsd),
                  "scale": consts["scale_imp2"]},
         "grid": {"lo": -10, "hi": 10, "n": 401},
+        # draft value V = sigmoid(b0 + b1 logit WP + b2 (S_ours - S_theirs) + b3 (O_ours - O_theirs))
+        # (P3_DRAFTER): b0..b2 are each model's own V1 combiner (no layer); b3, the off-role
+        # term, is P3_DRAFTER's fit with the phase-1 kernel (not refit for these models)
+        "draft": {"main": T["arms"]["full_ms"]["coef"], "imp2": T["arms"]["full_imp2"]["coef"],
+                  "offRole": -0.055, "offRoleShare": 0.10, "offRoleMinGames": 50},
+        "fineRoles": FINE_ROLE_NAMES,
+        "heroFineRole": [FINE_ROLE_NAMES.index(HERO_ROLE_FINE[h]) for h in T["hero_names"]],
         "validation": {
             # results/rcf_full/p3_c_tests_main.txt, "all" rows: share of held-out games whose winner the
             # draft WP plus all ten players' estimates called correctly (A2S = the old win-only model)
-            "accuracy": {"v2": {"a2s": 0.6035, "imp2": 0.6079, "main": 0.6200},
-                         "oot": {"a2s": 0.6014, "imp2": 0.6044, "main": 0.6166}},
-            "cover80": {"main": round(cov_ms["cover80_scaled"], 3), "imp2": round(cov_imp["cover80_scaled"], 3)},
+            "accuracy": {"v2": {"a2s": 0.6035, "imp2": 0.6079, "main": 0.6176, "mainLayer": 0.6200},
+                         "oot": {"a2s": 0.6014, "imp2": 0.6044, "main": 0.6150, "mainLayer": 0.6166}},
+            "cover80": {"main": round(cov_ms0["cover80_scaled"], 3), "mainLayer": round(cov_ms["cover80_scaled"], 3),
+                        "imp2": round(cov_imp["cover80_scaled"], 3)},
         },
     }
     os.makedirs(SITE_DIR, exist_ok=True)
@@ -291,138 +306,12 @@ def artifact(_a):
     print(f"wrote {p} ({os.path.getsize(p) / 1024:.0f} KB)")
 
 
-# ------------------------------------------------------------------ fixture
-
-def _shards():
-    import glob
-    import gzip
-    for f in sorted(glob.glob(os.path.join(HERE, "cache", "mmr_history", "shards", "*.jsonl.gz"))):
-        with gzip.open(f, "rt") as fh:
-            for line in fh:
-                try:
-                    yield json.loads(line)
-                except json.JSONDecodeError:
-                    break
-
-
-def fixture(a):
-    """De-identified reference cases: a few real Heroes Profile histories
-    (no ids, no battletags, days shifted by a random per-player offset that
-    keeps the quarter grid; only the last 600 games) with their corpus
-    metric evidence, plus synthetic edge cases. Expected outputs come from
-    reference()."""
-    import datetime
-    T, ms, imp, consts, _, _ = load_inputs()
-    names = T["hero_names"]
-    hidx = {n: i for i, n in enumerate(names)}
-    rng = np.random.default_rng(a.seed)
-    # corpus scoreboard (a_shrink card) by blizz_id
-    sb = np.load(os.path.join(HERE, "cache", "rcf", "sb_a_shrink.npz"))
-    sb_bl = sb["blizz_id"]
-    want = {"thin": (30, 80), "mid": (300, 700), "heavy": (1500, 4000)}
-    picked = {}
-    cand = 0
-    for rec in _shards():
-        if len(picked) == len(want):
-            break
-        n = len(rec["rows"])
-        for lab, (lo, hi) in want.items():
-            if lab in picked or not (lo <= n <= hi):
-                continue
-            cand += 1
-            if rng.random() > 0.02:
-                continue
-            bl = rec["blizz_id"]
-            if (sb_bl == bl).sum() < 10:
-                continue
-            picked[lab] = rec
-    cases = []
-    for lab, rec in picked.items():
-        cols = rec["cols"]
-        ci = {c: i for i, c in enumerate(cols)}
-        rows = [(hidx.get(r[ci["hero"]]), int(str(r[ci["winner"]]).lower() in ("1", "true")),
-                 r[ci["game_date"]], int(r[ci["replayID"]])) for r in rec["rows"]]
-        rows = [x for x in rows if x[0] is not None and x[2]]
-        day = np.array([(datetime.date.fromisoformat(x[2][:10]) - datetime.date(1970, 1, 1)).days for x in rows])
-        o = np.argsort(day, kind="stable")
-        hero = np.array([rows[i][0] for i in o], np.int64)
-        y = np.array([rows[i][1] for i in o], np.int64)
-        rid = np.array([rows[i][3] for i in o], np.int64)
-        day = day[o]
-        keep = slice(max(0, len(day) - 600), None)
-        hero, y, day, rid = hero[keep], y[keep], day[keep], rid[keep]
-        # corpus metric sums for this player (all corpus rows: the live summary)
-        msk = sb_bl == rec["blizz_id"]
-        Zp = sb["Z"][msk].astype(np.float64)
-        Wp = sb["W"][msk].astype(np.float64)
-        rid_sb = sb["replay_id"][msk]
-        # hero of each corpus row from the player's HP history (same replay ids)
-        h_of = {int(r): int(h) for r, h in zip(rid, hero)}
-        hh = np.array([h_of.get(int(r), -1) for r in rid_sb])
-        g = hh >= 0
-        X = np.zeros((H, Zp.shape[1]))
-        Cm = np.zeros((H, Zp.shape[1]))
-        for k in range(Zp.shape[1]):
-            x = Zp[g, k]
-            ok = ~np.isnan(x)
-            X[:, k] = np.bincount(hh[g][ok], weights=(Wp[g] * x)[ok], minlength=H)
-            Cm[:, k] = np.bincount(hh[g][ok], weights=Wp[g][ok], minlength=H)
-        # de-identify: shift every day by one random offset (the expected
-        # outputs are computed on the shifted rows)
-        day = day + int(rng.integers(-60, 61))
-        as_of = int(day.max()) + 1
-        ref = reference(T, ms, imp, consts, {"hero": hero, "y": y, "day": day}, X, Cm, as_of)
-        Lm, em = evidence(ms, X, Cm)
-        cases.append({"label": f"real_{lab}", "rows": {"hero": hero.tolist(), "y": y.tolist(), "day": day.tolist()},
-                      "metric": {"Lam": Lm.tolist(), "eta": em.tolist(), "n_rows": int(g.sum())},
-                      "as_of": as_of, "expected": ref})
-        print(f"case real_{lab}: {len(hero)} games, {int(g.sum())} corpus scoreboard rows", flush=True)
-    # synthetic edge cases
-    d0 = int((np.datetime64("2026-08-01") - np.datetime64("1970-01-01")).astype(int))
-    syn = {
-        "empty": {"hero": [], "y": [], "day": []},
-        "one_game": {"hero": [hidx["Ana"]], "y": [1], "day": [d0]},
-        "one_trick": {"hero": [hidx["Murky"]] * 220, "y": (rng.random(220) < 0.6).astype(int).tolist(),
-                      "day": sorted((d0 - rng.integers(0, 400, 220)).tolist())},
-        "same_day_burst": {"hero": rng.integers(0, H, 40).tolist(), "y": rng.integers(0, 2, 40).tolist(),
-                           "day": [d0] * 20 + [d0 + 1] * 20},
-        "old_games": {"hero": rng.integers(0, H, 60).tolist(), "y": rng.integers(0, 2, 60).tolist(),
-                      "day": sorted((d0 - 3000 - rng.integers(0, 300, 60)).tolist())},
-    }
-    for lab, rr in syn.items():
-        rows = {k: np.asarray(v, np.int64) for k, v in rr.items()}
-        as_of = int(rows["day"].max()) + 1 if len(rows["day"]) else d0
-        withm = lab in ("one_trick", "same_day_burst")
-        X = Cm = None
-        if withm:
-            X = rng.normal(0, 0.4, (H, 15)) * 5
-            Cm = np.zeros((H, 15))
-            for h in np.unique(rows["hero"]):
-                Cm[h] = (rows["hero"] == h).sum() * 0.5
-            X = X * (Cm > 0)
-        ref = reference(T, ms, imp, consts, rows, X, Cm, as_of)
-        case = {"label": f"syn_{lab}", "rows": {k: v.tolist() for k, v in rows.items()}, "as_of": as_of,
-                "expected": ref}
-        if withm:
-            Lm, em = evidence(ms, X, Cm)
-            case["metric"] = {"Lam": Lm.tolist(), "eta": em.tolist(), "n_rows": int(Cm.sum())}
-        cases.append(case)
-    p = os.path.join(SITE_DIR, "__tests__", "fixtures", "reference.json")
-    os.makedirs(os.path.dirname(p), exist_ok=True)
-    with open(p, "w") as f:
-        json.dump({"note": "De-identified reference cases for src/lib/personal/model.ts (no ids, no battletags; "
-                           "real cases keep only the last 600 games with days shifted). Generated by "
-                           "training/personalization/p3_site_export.py fixture.",
-                   "cases": cases}, f, separators=(",", ":"))
-    print(f"wrote {p} ({os.path.getsize(p) / 1024:.0f} KB), {len(cases)} cases")
-
-
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["tables", "artifact", "fixture"])
+    ap.add_argument("stage", choices=["tables", "artifact"])
     ap.add_argument("--seed", type=int, default=17)
     a = ap.parse_args()
-    {"tables": tables, "artifact": artifact, "fixture": fixture}[a.stage](a)
+    {"tables": tables, "artifact": artifact}[a.stage](a)
 
 
 if __name__ == "__main__":

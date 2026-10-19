@@ -1,271 +1,184 @@
-# Personalization on HotS Fever: design (2026-10-18)
+# Personalization on HotS Fever: design (2026-10-19)
 
-Status: phase 1 is built (commit on `main`, not pushed or deployed). Phase 2, the draft page, is a plan below.
+Status: built on branch `personal-site`, not merged or deployed. This version replaces the 2026-10-18 design, which looked players up live through the Heroes Profile (HP) API.
 
-This page covers what we put on the site from paper 2's personalization work (`training/personalization/`, results in `results/P3_RICH_CF.md`, `P3_TAILS.md` and `P3_DRAFTER.md`), how it runs, and what it costs. Max asked for lookups of any player, not just the tracked party.
+## 0. What changed and why
 
-## 1. What a visitor sees
+**The website never calls Heroes Profile.** HP's terms allow offline use only. So the HP key stays off Vercel, and the site has no HP client, no quota guard and no route that calls HP. Max asked why we would need to pull players in real time at all; we don't.
 
-### Player lookup (`/players`, new nav item "Players")
+**Every player number is computed offline.** A weekly job on the main box builds the numbers from our research store: our corpus plus the HP history pull. It publishes them to Neon as one compact table, and the site only reads that table.
 
-1. **Search.** Heroes Profile (HP) has no search by name: `/players` needs the full BattleTag and a region, and a name alone returns 404 or 422 (checked live on 2026-10-18). So the box asks for `Name#1234`.
-   - With a `#number`, we try all four regions (Americas, Europe, Asia, China) in parallel. A miss is a 404 and seems not to count against the allowance (the remaining count did not move). A hit costs one call from the Player pool.
-   - Without a `#number`, we search only accounts someone has looked up here before (our cache, by name). The page says to add the number to find anyone else.
-2. **Disambiguation.** Every match is a card showing BattleTag, region, Storm League games and win rate, rank, last played date, and the three most played heroes with game counts. All of it comes from one `/players` call per account. Cards are sorted by last played. Regions where the account is private on HP are named, and nothing else is shown for them.
-3. **Skill cards.** One card per hero played, sorted by games. Each card shows:
-   - the estimate, for example "+3.1 pp" on Ana: how many percentage points more games we expect this player to win on the hero than an average player would in the same draft;
-   - "29 games, 55% won, last 2026-09-22";
-   - the 80% range, for example "−3.4 to +9.6";
-   - a verdict: "Above average" if the whole range is above 0, "Below average" if it is all below 0, otherwise "Not clearly different from average".
+What ships:
+- **`/players`:** lookup by full BattleTag from the published data. If an account isn't in our data, the page says so plainly.
+- **In-game mode on `/draft`:** type the visible names of the other players, without the #number. We match each name against the published index using the party's region and MMR. A clear winner is selected; otherwise 2 to 4 candidates are shown. Matched players' skill feeds the draft suggestions through the P3_DRAFTER value term.
 
-   The first 18 cards show, with a button for the rest.
-4. **Heroes you might be good at.** The top 5 heroes the player has never played, ranked by the `imp2` model's estimate, each with its 80% range and the words "once learned". The copy says first games on a new hero usually run about 3 points worse (realized −3.19 pp in P3_RICH_CF).
-5. **How far to trust this.** A short plain section on the page:
-   - one game is mostly noise;
-   - the ranges are 80% ranges, and on games the model never saw they held the true value about 81% of the time (main model, 0.806) or 80% (`imp2`, 0.805), so about one range in five misses;
-   - combined with the draft, estimates for all ten players called the winner of 62.0% of held-out games with scoreboard stats (main model), and 60.8% with wins and losses only (`imp2`). The old win-only model, A2S, called 60.35%. These are real gains, and a reminder that the draft and the players leave most of a game unexplained;
-   - private accounts are never shown;
-   - "Data provided by Heroes Profile".
+## 1. Data and the publish job
 
-### As-of note
+**Inputs**, all local:
+- the merged history store `training/personalization/cache/full_history/<tag>/history.npz` (corpus rows plus the HP per-match history pull, deduplicated);
+- the corpus scoreboard card `cache/rcf/sb_a_shrink.npz`;
+- names, discriminators and privacy states from the local research DB (`replay_players`, `player_privacy`, read-only role).
 
-The research numbers are strictly as-of: each prediction used only games from earlier days, and the scored game never fed its own prediction. Live use is prospective by construction: we estimate from past games for games not yet played, so there is no leakage question. The live card includes games played earlier today, since it predicts the next game, not one of today's.
+**The data cap.** The store holds no game from 2026-09-28 on, which is the P3 snapshot rule. So no 2.57 game enters the cards or the index. That keeps out:
+- the sealed R replays, whose rows must stay out of every view and cache;
+- the scilearn C, F and pool tranches.
 
-What the UI must not overstate:
-- **Accuracy (main):** +11.0 log-loss points (x1000) over A2S on V2; 60.35% to 62.00% correct on V2 and 60.14% to 61.66% on OOT.
-- **Accuracy (`imp2`):** 60.79% on V2 and 60.44% on OOT.
-- **Band calibration:** 0.806 coverage at nominal 80% for the main model, 0.805 for `imp2`.
+The price is freshness: cards are as of 2026-09-27, and the page says "estimates as of 2026-09-27". Opening 2.57 data to the site is open question 1.
 
-Both are for the research setting, and live inputs differ a little (section 6), so the copy says "about".
+**Who gets a card:**
+- any account with at least one game in the 180 days before the cap and a visible name: 159,814 accounts;
+- of those, 114,005 have 3 or more games in the window, and they are the default load (`--min-recent 3`);
+- 712 private accounts in `player_privacy` are dropped.
 
-## 2. Models
+**Model, per account:**
+- **Displayed per-hero number:** the main model (`full_ms`, the `met2_hs2` structure with the `a_shrink` scoreboard card) through the play-volume card (P3_TAILS), plus the experience offset. It applies wherever the account has corpus scoreboard rows: 159,809 of 159,814 accounts. The rest get `imp2` (wins and losses only).
+- **Band:** ±1.2816·√(c·var + k0²), with the no-layer main arm's V1 scale (c 2.23, k0 2.29 pp; 80% coverage on V2: 0.808) or `imp2`'s (c 2.19, k0 0.43 pp; 0.805).
+- **Draft term s(p, h):** the main model's Gaussian posterior mean plus the offset. This is the quantity its V1 combiner was fit on.
+- **Never-played suggestions:** the top 5 by `imp2`.
+- **No temporal layer in the cards.** The layer needs a per-game walk with as-of scoreboard evidence. It is worth +1.1 log-loss points of the main model's +11 over A2S, and it moves a card by about 0.1 pp. Section 6 has the details.
 
-| use | model | source | display scale (V1 fit) | validated |
-|---|---|---|---|---|
-| per-hero cards, when we hold corpus scoreboard stats for the player | main: `full_ms` (`met2_hs2` structure, full scoreboard export, `a_shrink` normalization), shown through the play-volume card plus the volume arm's temporal layer | P3_TAILS §1-2 | 2.18·var + (2.27 pp)² | V2 cover80 0.806; V2 +28.65 lift; accuracy 62.00% V2, 61.66% OOT |
-| per-hero cards without scoreboard stats; never-played ranking | `imp2` (`full_imp2`: rank 2 plus play preference) | P3_RICH_CF variant 3, P3_TAILS §1 | 2.19·var + (0.43 pp)² | V2 cover80 0.805; V2 +19.77 lift; accuracy 60.79% V2, 60.44% OOT; Cassia R² 0.46 |
-| draft value (phase 2) | V = sigmoid(b0 + b1·logit WP_pop + b2·(S0 − S1) + b3·(O0 − O1)) | P3_DRAFTER | | |
+**Card format.** One bytea per account, 212 B on average and 610 B at the 95th percentile:
+- a header with the model, the game count and the 3-number factor mean â of the draft model;
+- per played hero, 10 B: hero, games, last played, display mean, display sd and draft s;
+- 5 suggestions.
 
-The displayed number for a played hero is:
-- **with scoreboard stats:** experience offset + volume-card posterior mean + layer shift;
-- **without them:** experience offset + `imp2` posterior mean.
+For a never-played hero the page computes s = offset(games, 0) + U_h·â from the bundled artifact. That is exact, because with no own games the posterior mean at h is U_h·â.
 
-The band is ±1.2816·√(c·var + k0²):
-- with scoreboard stats, var is the main model's Gaussian posterior variance, the quantity the 0.806 coverage was measured on;
-- without them, var is the `imp2` posterior variance.
+**Name index columns:** region, visible name (no #), discriminator, MMR (HP post-game MMR of the last game in the store), last played, games in our data, games in the window, top 3 heroes. They share the row with the card: table `personal_accounts`, primary key (region, blizz_id), index on lower(name). blizz_id never leaves the server.
 
-Volume card and layer constants:
-- volume card: 10 cells of (prior mean, log sd), from `full_ms_tail_vol`;
-- layer: half-life 45 days, k_d 160, k_e 5, drift scale −0.077, learn scale 0.127, from the volume arm's V1 choice.
+**Code:**
+- `training/personalization/p3_site_publish.py`, with stages:
+  - `build`: about 3 minutes on 4 cores, numpy only;
+  - `check`;
+  - `load`;
+  - `simulate`;
+  - `fixture`;
+- `training/personalization/run_site_publish.sh`, the weekly job: `build` → `check` → `load` → `sync/publish-site.ts`.
+- `personal_accounts` is in `SITE_TABLES`, so the existing publish-site flow pushes it to Neon:
+  - it is pushed only when its content hash changes;
+  - it is gated against a drop of over 20% in row count;
+  - it swaps in one transaction.
 
-Why `imp2` and not the main model without scoreboard stats:
-- `full_ms` was fit with the scoreboard channel pinning down general level. Its overall-skill prior sd is 5.6 pp, against 1.7 pp for win-only fits.
-- Run on wins alone, that prior trusts win records too much, and nothing validated it.
-- `imp2` is a complete win-only model with its own validated band.
+  publish-site now skips, with a warning, a site table that does not exist on Neon yet, so the merge cannot break the other tables' publish.
+- **Privacy:** `sync/privacy-sync.ts` now also deletes a newly private account from `personal_accounts`. The publish after it carries the delete to Neon. The build also drops accounts already private.
 
-## 3. Architecture
+**Schedule.** Weekly. While the store is capped the cards cannot change except when the store is rebuilt, and an unchanged table is not re-sent. Cron line for the coordinator (not installed):
 
-### Where the math runs: a TypeScript port, on Vercel, from static artifacts
+```
+15 23 * * 0 flock -n /home/max/heroes-of-the-storm/sync/.site-publish.lock sh -c 'cd /home/max/heroes-of-the-storm && set -a && . ./.env && set +a && nice -n 19 ionice -c3 taskset -c 48-51 training/personalization/run_site_publish.sh' >> /home/max/heroes-of-the-storm/sync/logs/site-publish.log 2>&1
+```
 
-| option | for | against | verdict |
+The scoreboard enrichment from the previous design is folded into `build`: scoreboard evidence is computed for every account in one pass. There is no separate enrich job and no queue.
+
+**Store refresh.** Point `SITE_STORE` at a newer store tag when research builds one, for example after the Oct 28 rerun. Also refresh the artifact then: `p3_site_export.py tables` on the 3090, then `artifact`.
+
+## 2. Sizes
+
+Measured on the local store after `VACUUM FULL`; Neon will be close:
+
+| `--min-recent` (games in the 180-day window) | accounts | table + indexes | lobby players findable (simulation) |
 |---|---|---|---|
-| **TS port of the posterior** | the math is small: K = 3, so every posterior is a 3×3 Cholesky; the volume card is a 401-point quadrature; the layer is one pass over the player's games. A 2,400-game player computes in milliseconds in a serverless function. No new service to run. Testable against the Python functions. | the scoreboard channel needs corpus data that Vercel cannot read | **chosen** for everything the site computes |
-| small Python service | runs the research code itself | the box is not reachable from Vercel; it would need a tunnel, uptime and auth. Nothing in the math needs Python. | no |
-| precompute for every player | no live compute | only covers corpus players (620,893 accounts, 185,467 with 20+ games). Per-player rows on Neon would be tens of MB. Stale between refreshes. | no, except for the 9-number scoreboard summary below, which is precomputed only for looked-up accounts |
+| 1 | 159,814 | 54.5 MB | 78% |
+| **3 (default)** | **114,005** | **43.6 MB** | **74%** |
+| 5 | 92,953 | 38.0 MB | 71% |
+| 10 | 67,529 | 30.3 MB | 66% |
 
-The one piece that needs the corpus is scoreboard evidence. Metrics enter the posterior only through two sums: Λ_m (3×3) and η_m (3). That holds because the metric loadings act on the player factor a_p, never on the hero-specific term. So the corpus part of a player is exactly 6 + 3 numbers for a fixed model. A local job computes them for accounts the site has looked up and writes one small row to Neon: the enrichment job (section 3, Enrichment).
+Neon holds about 40 MB today, so the default roughly doubles it. publish-site replaces rows with DELETE plus INSERT. Until autovacuum reuses the space, a changed publish can briefly hold two copies, but with a capped store that happens only on a store refresh.
 
-### Static artifacts (exported from training)
+**Egress:**
+- a lookup reads at most a few rows of about 350 B;
+- a name match reads the small columns of the same-name rows, then the cards of at most 4;
+- responses carry a 1-hour CDN cache (`s-maxage=3600`), so repeats skip Neon;
+- publish-site computes its fingerprint on Neon and sends back one row.
 
-`src/lib/personal/model-artifact.json` (60 KB, in the server bundle only), written by `training/personalization/p3_site_export.py artifact`:
-- 90 hero names in model order (HP spells them the same way);
-- main model U (90×3) and s² (90);
-- `imp2` U, s², W (3×91), z mean and sd;
-- the experience-offset table (8×8 bins);
-- the hero × quarter win-rate proxy (90 × 18 quarters, prior 200 games, clipped to 0.2-0.8);
-- the volume-card cells and the layer constants;
-- the display scales;
-- the V1 combiner, kept for phase 2;
-- the validation numbers the UI quotes.
+There are no bulk reads.
 
-The offset and proxy tables come from the full_1017 panel on the 3090 (`p3_site_export.py tables`). They were checked against the main arm's own per-slot offsets: max error 1.5e-9 over 4.3M slots.
+## 3. The players page (`/players`)
 
-Refresh: after each research refit (the Oct 28 rerun), rerun `tables` on the 3090, then `artifact` and `fixture` locally. Then bump the artifact `version`. That invalidates cached cards, and the enrichment job republishes evidence under the new version.
+- **Lookup.** Full BattleTag, `Name#1234`. The page reads every account with that name and discriminator: one per region it exists in. If there are several, the visitor picks the region.
+- **Not in our data.** "Name#1234 is not in our data. We have cards for accounts with at least 3 Storm League games in our replay data in the 180 days up to 2026-09-27."
+- **Profile:**
+  - per-hero cards: estimate, n games, last played, 80% range, verdict;
+  - "Heroes you might be good at";
+  - a plain "How far to trust this" section quoting the coverage (0.81 main, 0.80 `imp2`) and the held-out accuracy: 61.8% of winners called with scoreboard stats (main, no layer) and 60.8% with wins and losses only, against 60.35% for the old A2S;
+  - "Data provided by Heroes Profile".
+- **No name-only search on this page.** Max approved the name index for the draft's in-game matching. A browse-by-name page would also be possible, but it was not asked for.
 
-### Request flow and API routes
+## 4. In-game mode on the draft page
 
-- `GET /api/personal/search?q=Name#1234`:
-  1. cached summary if it is under 24 h old;
-  2. else `/players` per region.
+**Flow:**
+1. Party members come from the existing tracked-battletag slots.
+2. The "In-game players" panel takes up to 4 teammate names (5 minus the party) and 5 enemy names, plus an optional region override.
+3. "Match players" calls `GET /api/personal/match?names=…&party=…`.
 
-  It returns the candidates, the private regions, and an unavailable message if the guard refused.
-- `GET /api/personal/player?tag=Name#1234&region=1`:
-  1. a cached card under 24 h old is served, unless enrichment has since arrived;
-  2. otherwise refresh the summary if it is stale (`/players`);
-  3. fetch the history:
-     - `/players/mmr/history` when its budget is above 0: full history, normally one call;
-     - otherwise `/players/matches`: 100 games a page, 3 pages, so the 300 most recent games;
-  4. compute the profile with any enrichment evidence;
-  5. store the profile and set `wants_metric` when no evidence exists.
+**Matching:**
+1. **Candidates:** every published account with the same visible name, ignoring case.
+2. **Context:** the party's region (the most common among party accounts found by full tag) and the party's mean MMR.
+3. **Score:** 10 for the same region, minus |MMR − party MMR|/300 (1 if either MMR is unknown), plus exp(−days since last played / 30) as the recency tiebreak.
+4. **Selected:** the top candidate when its score is at least 9.5 and it leads the next by 1.5. Otherwise the panel shows up to 4 candidates (region, MMR, last played, games, top heroes) to pick from, or "leave as average".
+5. **Unmatched or unpicked players** add nothing, so they count at population values.
 
-  A private account (403 `player_unavailable`) deletes our cache rows for it and shows a private message. When HP or the guard refuses, a stale cached card is served with a note.
-- Per-IP soft limit: 20 HP-touching requests per 10 minutes per serverless instance. The real protection is the global guard.
+**Accuracy (simulation).** `p3_site_publish.py simulate`, in `results/site_match_sim.json`:
+- **Setup:**
+  - the index was built as of 2026-09-13 from the 180 days before;
+  - the test lobbies are 20,000 corpus games from Sep 13 to 27;
+  - in each lobby one random player is the party, and the other nine are matched by visible name only.
+- **Tuning:** thresholds were tuned on half of the lobbies; the other half is reported, 89,883 players.
 
-Code:
-- `src/lib/personal/model.ts`: the port;
-- `hp.ts`: HP calls and the quota guard;
-- `store.ts`: the Neon cache;
-- `lookup.ts`: the flow;
-- `src/app/api/personal/*`;
-- `src/app/players/*`.
+| default index (3+ games) | share of lobby players |
+|---|---|
+| true account in the index | 73.8% |
+| …of those, ranked first / in the top 3 | 93.8% / 98.5% |
+| selected automatically | 54.5% (correct 53.5%, wrong 1.1%; precision 98.1%) |
+| shown as 2 to 4 choices | 23.7% (true account among them 80.8%) |
+| no account with that name | 21.3% |
 
-### Enrichment (corpus scoreboard evidence)
+Most wrong automatic picks are players missing from the index who share a name with someone of similar MMR in the same region. Coverage will fall the longer the cap stays: live lobbies are further from the index date than this 2-week test.
 
-`training/personalization/p3_site_enrich.py` runs on the main box, after privacy-sync:
-1. It reads up to 200 accounts with `wants_metric` from Neon.
-2. It skips any account private in the local `player_privacy` table.
-3. It reads the account's corpus games from the local store: `replay_players` by (blizz_id, region), through the existing index.
-4. It joins them to the `a_shrink` scoreboard rows through a blizz-sorted memory-mapped copy, built once in 6 s, in the gitignored cache.
-5. It reduces them to Λ_m and η_m and upserts one `personal_metric_evidence` row.
-6. It clears `wants_metric`, also when the account has no corpus rows, so it is not retried.
+**Personal value** (P3_DRAFTER), V = sigmoid(b0 + b1·logit Q + Σ_ours b2·s(p, h) − Σ_theirs b2·s(p, h) + b3·(O_ours − O_theirs)):
+- **Inputs:**
+  - Q is the page's own search value for the row;
+  - b0, b1 and b2 are the main model's V1 combiner (0.0012, 0.982, 4.74; `imp2` players use b2 = 3.84);
+  - b3 = −0.055 per off-role player, P3_DRAFTER's fit with the phase-1 kernel. It has not been refit for the main model (open question 5). Off-role means fine role under 10% of 50 or more games, from the card's hero counts.
+- **Who plays which hero.** That is unknown during a draft, so each team's term is its best assignment of picked heroes to its matched players, with unmatched players at 0. A pick the user has assigned to a tracked player stays pinned.
+- **Our picks:** each row's value is recomputed with the candidate added, and the row says who would play it ("Name: +3.1 pp on Ana").
+- **Our bans:** the row gains the drop in an unassigned matched enemy's best available option ("Takes away Name's best option").
+- **Extra candidates.** Each unassigned matched player's top heroes are added as rows. They were not searched, so the current value stands in for Q, and the panel says so.
+- **The header.** It keeps the search value. The panel adds one line: "With player skill for N matched players: x% now (search alone y%)".
+- **Scope.** This is a re-ranking on top of the search, not inside it. Putting the personal term in the MCTS leaf evaluation is the follow-up, since it is additive in logit and needs no retraining.
 
-The next view of that player then upgrades from `imp2` to the main model. Measured: a dry run for one account took 6.5 s including the one-time index build.
+## 5. Tests
 
-Example, one tracked account (dry run): 1,244 corpus games, 661 with a scoreboard row in the export.
-
-It is not in cron yet. Proposed line, after privacy-sync, with the same flock style:
-`45 */6 * * *` … `&& /home/linuxbrew/.linuxbrew/bin/python3 training/personalization/p3_site_enrich.py`
-
-Running it on the existing 6-hourly Neon touch means no extra Neon wakeups. Copy promises "within a day".
-
-### Quota guard
-
-Pools seen in live response headers on 2026-10-18:
-
-| pool | endpoint | allowance per week | other users of the pool | site budget per week (env) | hourly cap | floor on HP's remaining count |
-|---|---|---|---|---|---|---|
-| Player | `/players` | 50,000 | none (49,999 left) | 3,000 (`PERSONAL_HP_PLAYER_WEEKLY`) | 120 | 5,000 |
-| Player/Match/History | `/players/matches` | 5,000 | tracked-player sync, about 1,100/wk (3,911 left mid-window) | 1,500 (`PERSONAL_HP_MATCHES_WEEKLY`) | 60 | 1,500 |
-| Player/MMR | `/players/mmr/history` | 50,000 | tranche-2 pull, at its ledger cap of 49,800/wk, 57,166 accounts left, about 8 days | **0 until Max raises it** (`PERSONAL_HP_MMR_WEEKLY`) | 60 | 2,000 |
-
-How the guard works:
-- Every site call is counted in `personal_api_usage`, by pool and hour, with HP's `x-hp-quota-remaining`.
-- A call is refused when either holds:
-  - the site's own 7-day sum or this hour's sum would pass the budget;
-  - HP's last reported remaining count, minus the call, is below the floor.
-
-  The floor protects the sync jobs that share the key even if the site's count drifts.
-- On refusal the page says new lookups are paused, and players looked up recently still work.
-- 429s and HP outages map to the same state.
-
-What the budgets buy:
-- **While the MMR pool is off (until about Oct 26):** a new lookup costs up to 4 Player calls for the search (misses look free), 1 Player call for the summary, and up to 3 match pages. That is about 500 new players a week, capped by the 1,500 match-page budget.
-- **After tranche 2, with MMR at for example 5,000/week:** a lookup is 1 MMR call for the full history, so about 3,000 new players a week, capped by the Player budget.
-- **Repeat views:** within 24 h they are free.
-
-### Neon footprint
-
-| table | row | cap | worst case |
-|---|---|---|---|
-| `personal_profiles` | summary JSON about 350 B plus profile JSON 1.1 to 4.4 KB (measured on the fixture players; skill values rounded to 1e-5; 0.4 to 1.3 KB deflated) | 2,000 rows (`PERSONAL_MAX_PROFILES`), oldest summaries evicted on insert | about 6 MB |
-| `personal_metric_evidence` | 9 reals plus keys, about 100 B | follows profiles (evicted with them) | 0.2 MB |
-| `personal_api_usage` | about 50 B | 3 pools × 336 hours (rows over 14 days deleted) | 0.05 MB |
-
-The total stays under about 6.5 MB on top of today's 40 MB, and is probably 1 to 3 MB in practice.
-
-Egress:
-- one lookup reads a few KB;
-- privacy-sync reads at most 2,000 (battletag, region) pairs from Neon every 6 h, about 40 KB.
-
-No bulk table, no match rows and no history are stored on Neon. Only the computed cards are.
-
-Tables are created by `drizzle/0001_personal_lookup.sql`. It is additive and creates no index on the existing tables. They are listed in `sync/table-groups.ts` as `PERSONAL_TABLES`, so `drizzle.config.ts` sees them and `publish-site.ts` never touches them. `verify_store.py` skips them.
-
-### Privacy and terms
-
-- **HP is the gate.** Any 403 `player_unavailable` drops our rows for that account and shows nothing.
-- **privacy-sync** now also deletes cached lookup rows for any account that is private in `player_privacy`, every 6 hours (`purgeLookupCache` in `sync/privacy-sync.ts`).
-- **The enrichment job** skips private accounts.
-- **Public data only.** Lookups show only what HP's public data shows:
-  - counts, dates and heroes from HP;
-  - model estimates from HP data plus corpus games that are themselves HP public replay data.
-
-  Nothing from the research store is displayed raw.
-- **Public repo.** No battletags are committed. The test fixture has no ids at all: three real Heroes Profile histories, the last 600 games each, days shifted by a random offset, plus synthetic cases.
-- **Attribution.** "Data provided by Heroes Profile" is in the site footer and on the lookup page. The Terms page already binds users to the licence terms.
-- **The expert study is untouched.** Its tables, routes and `/rate` are unchanged.
-
-## 4. Tests
-
-`src/lib/personal/__tests__/model.test.ts` checks 8 reference cases, against outputs from the Python functions themselves (`p3_rcf.posterior`, `p3_rcf_tails.post`, and the layer formula of `temporal_layer`):
-- 3 de-identified real players: 40, 600 and 600 games, with 21 to 549 corpus scoreboard rows;
-- 5 synthetic cases:
-  - empty;
-  - one game;
-  - a 220-game one-trick;
-  - a same-day burst;
-  - games older than the proxy table.
-
-What is checked:
-- counts, offsets and the `imp2` posterior, for every case;
-- the main Gaussian posterior, the leave-own-hero-out prior, the volume card and the layer terms, for cases with scoreboard evidence;
-- all to 1e-7 in win-probability units (0.00001 pp), and 1e-9 on variances.
-
-The TS side takes the 9-number evidence while the Python side takes the raw metric sums, so the test also proves the reduction exact.
-
-Plus 5 behaviour tests:
-- the band is the 80% interval;
-- the main model is used only with evidence;
-- games on the request day are dropped, as are unknown heroes;
-- offsets and proxies follow their bins.
-
-## 5. Phase 2: the draft page (plan only)
-
-Goal: in `/draft`, add teammates and opponents beyond the tracked party, and let personal terms change the suggestions.
-
-1. **Adding players.**
-   - Each of the 10 player slots gets a "link player" control: it opens the same search and disambiguation, and stores (region, battletag) for the slot.
-   - The draft client fetches each linked player's cached profile from `/api/personal/player`; a new lookup costs the same quota.
-   - Tracked players keep their current one-click entries.
-2. **Personal tables.**
-   - For each linked player the API returns s(p, h) for all 90 heroes, not only played ones: offset plus posterior mean plus layer shift, under the main model when evidence exists, else `imp2`.
-   - It also returns the off-role flag O(p, h): fine role under 10% of 50 or more games.
-   - That is 90 × 2 numbers per player. Add it to the cached profile as one compact array, about 1 KB.
-3. **Value.** V = sigmoid(b0 + b1·logit WP_pop + b2·(S_ours − S_theirs) + b3·(O_ours − O_theirs)).
-   - With the main model use its own V1 combiner: b0 0.0015, b1 0.985, b2 4.58, from `full_ms_layer`. The layer is already folded into s.
-   - The off-role term b3 −0.055 was fit with the phase-1 kernel. Refit it with the main model before launch; that is one logistic fit on V1 on the 3090.
-   - Unlinked slots have s = 0 and O = 0, so a draft with nobody linked is the population draft.
-4. **Search.** The browser MCTS and greedy suggestion code calls the ONNX WP. Add the personal term as a post-WP logit shift in the leaf evaluation; it is additive, so no retraining.
-   - Candidates for a linked player: the union of the top 15 by population prior and the top 15 by s(p, h), as P3_DRAFTER did.
-   - Bans: show "banning their main costs them about 1.7 points" only as a note (P3_TAILS §3). The number is observational.
-5. **UI.**
-   - A small "+x pp for this player" tag on suggested heroes.
-   - A per-player chip with their top 3 heroes.
-   - One line of copy: personal terms move about half of the recommendations in simulation (P3_DRAFTER: 51 to 52% of picks differ, +3.4 to +3.6 pp in V when they differ). That is model-internal, not a measured win-rate gain.
-6. **Tests.** Port the combiner and check it against `p3_dr_core` on a few lobbies, from a fixture exported as in phase 1.
+- **`p3_site_publish.py check`** (in the weekly job): on 40 random active accounts, the batched card build equals the research reference within 1.2e-16 in win-probability units. The reference is `p3_site_export.reference`, which calls `p3_rcf.posterior` and `p3_rcf_tails.post`. It checks the draft term, display mean, display sd and `imp2`. Output: `results/site_publish_check.json`.
+- **`src/lib/personal/__tests__/personal.test.ts`**, 13 tests:
+  - card decoding and the all-hero draft term, on synthetic cards encoded by the Python job: no real accounts in the repo;
+  - match scores equal to the Python rule;
+  - the clear-winner rule;
+  - the best assignment, with pins and off-role;
+  - "no matched players equals the population value";
+  - the ban gain.
+- Type-check, lint, the full Vitest suite and `next build` pass.
 
 ## 6. Known differences from the research setting
 
-1. **Every live game uses the win-rate proxy.** In research, corpus games used the draft-aware WP and only extra HP rows used the hero-by-quarter proxy. Live history from HP has no draft, so every game uses the proxy, and quarters after the table's last one (2026 Q1) reuse it. The residuals are noisier, so expect slightly less sharp estimates than the validation numbers. The band includes the model's own variance, not this extra noise.
-2. **Experience counts use all games.** Research offsets used corpus-game counts only (`exp_counts="slots"`). Live offsets count every HP game the player has. For regular players both are in the top bins (300+ games, 50+ on the hero).
-3. **The layer walk uses the current metric summary.** The research layer computed each past residual with the scoreboard evidence as of that day. Live, the walk uses the current summary throughout. The layer terms are small: the drift scale −0.077 times a shrunk mean residual moves cards by about 0.1 pp. The new-hero term moves heroes with under 5 games by up to about 1 pp.
-4. **The band under the volume card.** The displayed mean comes from the volume card, but the band uses the Gaussian variance with the V1 scale. That band is validated at 0.806; no coverage test was run for the volume card itself. P3_TAILS found the volume prior's never-played spread is about a third of the model's, so on thin heroes our band is, if anything, wide.
-5. **Truncated history while the MMR pool is off.** `/players/matches` serves the 300 most recent games. The page says so ("these estimates use the 300 most recent").
-6. **No search by name only.** HP has none, and we do not publish a name index.
+1. **Every row uses the hero-by-quarter win-rate proxy**, including corpus games, which have a draft. Research used the draft-aware WP for corpus rows. Expect slightly less sharp estimates than the validation numbers. Using the stored WP for corpus rows is a possible follow-up, at the cost of reading the slot WP caches in the job.
+2. **Experience counts use all games in the store**, corpus and HP. Research offsets counted corpus slot rows only.
+3. **No temporal layer** (section 1).
+4. **The band under the volume card.** The displayed mean is the volume card's; the band is the Gaussian variance with the validated scale. No coverage test was run for the volume card itself.
+5. **Freshness.** Data through 2026-09-27 until 2.57 data is opened.
 
-## 7. Deploy checklist (coordinator)
+## 7. Before launch (coordinator)
 
-1. Create the Neon tables: run `drizzle/0001_personal_lookup.sql` on Neon. It is additive only.
-2. Set `HEROES_PROFILE_V2_API_KEY` in Vercel (server env only). Optionally set the `PERSONAL_*` budgets; the defaults are in `hp.ts`, `store.ts` and `lookup.ts`.
-3. Add the enrichment cron line (section 3, Enrichment) after Max agrees.
-4. After about Oct 26, when tranche 2 is done, set `PERSONAL_HP_MMR_WEEKLY`, for example to 5,000.
-5. After the Oct 28 rerun, refresh the artifact (section 3, Static artifacts).
+1. Create the table on Neon: `drizzle/0001_personal_accounts.sql`. It is additive. Max approved creating it.
+2. Merge `personal-site`.
+3. Run `training/personalization/run_site_publish.sh` once by hand: about 4 minutes, and it pushes the table with publish-site. Then install the cron line from section 1.
+4. No new Vercel env is needed. `PERSONAL_DATA_THROUGH` (default `2026-09-27`) sets the date the pages show; change it when the store moves.
+5. `/rate` and the study tables are untouched.
 
 ## 8. Open questions for Max
 
-1. **MMR budget after tranche 2.** How much of the 50K Player/MMR pool goes to the site? 5,000 a week gives full histories for about 3,000 new players a week. Until then lookups use the 300 most recent games.
-2. **Name-only search.** Should we publish a small name index, so "Name" without the number finds people? For example, active public accounts with 50+ corpus games in the last 6 months: about 30K rows, about 2 to 3 MB on Neon. HP has no name search, and this would list players who never asked to be listed.
-3. **Who sees what.** Any visitor can look up any public account. HP's own site does the same, but our cards rate skill per hero, which is more pointed. Fine as is, or add a "hide me" request link?
-4. **Enrichment cron.** OK to run `p3_site_enrich.py` every 6 hours after privacy-sync? It reads the research store, read-only, and writes 9 numbers per looked-up account to Neon.
-5. **The band under the volume card.** Keep the validated Gaussian band (current), or run a coverage test of the volume card's own posterior on the 3090 and switch if it holds?
-6. **Phase 2 off-role refit.** Refit b3 with the main model on V1 before the draft integration?
+1. **2.57 data on the site.** Cards stop at 2026-09-27 because the store excludes every 2.57 game: the sealed R set plus the C, F and pool tranches. Should the site job read post-cap games? It would always exclude the sealed R ids, which stay quarantined. The cost is that per-player aggregates of C and F outcomes would be public before those tranches are scored.
+2. **Index threshold.** 3+ games in 180 days (43.6 MB, 74% of lobby players findable) or 1+ (54.5 MB, 78%)?
+3. **Wrong automatic matches.** At 1.1% of players they are rare. Is that acceptable, or should the bar rise, trading automatic picks for more choice lists?
+4. **Name-only browsing on `/players`.** The index supports it. Add it?
+5. **Off-role term.** Refit b3 with the main model on V1 (a 3090 job), or keep P3_DRAFTER's −0.055?

@@ -1,0 +1,43 @@
+{
+ "cut": "2026-09-13",
+ "test_days": 14,
+ "lobbies": 20000,
+ "params": {
+  "region": 10.0,
+  "mmr_scale": 300.0,
+  "mmr_unknown": 1.0,
+  "recency": 1.0,
+  "recency_days": 30.0,
+  "margin": 1.5,
+  "min_score": 9.5
+ },
+ "min_recent": 3,
+ "tune": {
+  "players": 89897,
+  "share_in_index": 0.7354861675028088,
+  "indexed_top1": 0.9371426842917209,
+  "indexed_top3": 0.9846789074079676,
+  "indexed_unique_name": 0.7571009407423092,
+  "auto_selected": 0.5414863677319599,
+  "auto_correct": 0.5315639009088179,
+  "auto_wrong": 0.00992246682314204,
+  "auto_precision": 0.9816755002259747,
+  "choices_shown": 0.23919596871975707,
+  "choices_contain_true_top3": 0.8024461703018183,
+  "no_candidate": 0.21482363148937117
+ },
+ "report": {
+  "players": 89883,
+  "share_in_index": 0.7381262307666633,
+  "indexed_top1": 0.9383676237847615,
+  "indexed_top3": 0.9847464013866908,
+  "indexed_unique_name": 0.754887331373879,
+  "auto_selected": 0.545242148125897,
+  "auto_correct": 0.5346283501885785,
+  "auto_wrong": 0.010613797937318514,
+  "auto_precision": 0.9805337904015671,
+  "choices_shown": 0.2369302315232024,
+  "choices_contain_true_top3": 0.8083677685950413,
+  "no_candidate": 0.21346639520265234
+ }
+}

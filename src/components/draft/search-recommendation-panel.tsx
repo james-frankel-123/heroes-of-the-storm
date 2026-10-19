@@ -34,6 +34,8 @@ export interface OurTurnRow {
   isGreedyPad: boolean
   /** True for the MCTS search's own top choice (shown as a subtle badge) */
   isAiTop?: boolean
+  /** In-game mode: what the matched players' skill did to this row (shown under it) */
+  personalNote?: string
 }
 
 /** A row shown on opponent turns: how likely they take the hero + what it does to us. */
@@ -63,6 +65,8 @@ interface SearchRecommendationPanelProps {
   availableBattletags?: string[]
   /** Current map — enables map-specific (≥25-game) override in byline */
   map?: string | null
+  /** In-game mode: one line on how player skill entered the rows */
+  personalSummary?: string | null
 }
 
 export function SearchRecommendationPanel({
@@ -78,6 +82,7 @@ export function SearchRecommendationPanel({
   draftData,
   availableBattletags,
   map,
+  personalSummary,
 }: SearchRecommendationPanelProps) {
   const canShowPlayerByline =
     isOurTurn && !isBanPhase && !!draftData && !!availableBattletags && availableBattletags.length > 0
@@ -164,6 +169,7 @@ export function SearchRecommendationPanel({
         ) : null}
       </div>
       <p className="text-[10px] text-[#8b9bc8]">{subtitle}</p>
+      {personalSummary && isOurTurn && <p className="text-[10px] text-gaming-success">{personalSummary}</p>}
 
       {isEmpty ? (
         <div className="space-y-2">
@@ -226,7 +232,11 @@ export function SearchRecommendationPanel({
                   )}
                 </div>
               </div>
-              {playerByline(rec.hero)}
+              {rec.personalNote ? (
+                <p className="mt-1 text-[10px] text-gaming-success">{rec.personalNote}</p>
+              ) : (
+                playerByline(rec.hero)
+              )}
             </button>
           ))}
 

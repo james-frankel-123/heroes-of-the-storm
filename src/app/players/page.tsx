@@ -4,7 +4,7 @@ import { PlayersClient } from './players-client'
 
 export const metadata: Metadata = {
   title: 'Player Lookup | HotS Fever',
-  description: 'Per-hero skill estimates for any public Heroes Profile account.',
+  description: 'Per-hero skill estimates for accounts in our replay data.',
 }
 
 export default function PlayersPage() {

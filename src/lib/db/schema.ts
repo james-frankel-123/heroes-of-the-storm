@@ -14,7 +14,16 @@ import {
   index,
   jsonb,
   primaryKey,
+  date,
+  customType,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return 'bytea'
+  },
+})
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -552,65 +561,31 @@ export const syncLog = pgTable('sync_log', {
 
 // ---------------------------------------------------------------------------
 // Player lookup (personalization, docs/personalization-site-design.md)
-// Neon only, written by the site itself (never published over by
-// sync/publish-site.ts). A bounded cache: rows are evicted by age.
+// Built offline by training/personalization/p3_site_publish.py into the local
+// store, pushed to Neon by sync/publish-site.ts (a SITE_TABLES member).
 // ---------------------------------------------------------------------------
 
 /**
- * One looked-up Heroes Profile account. `summary` is the disambiguation card
- * (games, last played, most played heroes); `profile` is the computed skill
- * cards (src/lib/personal/model.ts Profile), never the raw match history.
+ * One account with games in our data: the name index (visible name,
+ * discriminator, region, MMR, last played, top heroes) and its skill card
+ * (bytea, decoded by src/lib/personal/card.ts).
  */
-export const personalProfiles = pgTable(
-  'personal_profiles',
+export const personalAccounts = pgTable(
+  'personal_accounts',
   {
     region: smallint('region').notNull(),
     blizzId: integer('blizz_id').notNull(),
-    battletag: varchar('battletag', { length: 64 }).notNull(),
-    nameLower: varchar('name_lower', { length: 32 }).notNull(),
-    summary: jsonb('summary').notNull(),
-    summaryAt: timestamp('summary_at', { withTimezone: true }).notNull(),
-    profile: jsonb('profile'),
-    profileAt: timestamp('profile_at', { withTimezone: true }),
-    // 'mmr' (full history) or 'matches:<n>' (the n most recent games)
-    historySource: varchar('history_source', { length: 16 }),
-    // set when a lookup found no corpus scoreboard evidence; the local
-    // enrichment job (training/personalization/p3_site_enrich.py) clears it
-    wantsMetric: boolean('wants_metric').notNull().default(false),
+    name: varchar('name', { length: 24 }).notNull(),
+    discriminator: integer('discriminator').notNull(),
+    mmr: smallint('mmr'),
+    lastPlayed: date('last_played', { mode: 'string' }).notNull(),
+    games: integer('games').notNull(),
+    recentGames: integer('recent_games').notNull(),
+    topHeroes: bytea('top_heroes').notNull(),
+    card: bytea('card').notNull(),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.region, t.blizzId] }),
-    nameIdx: index('personal_profiles_name_idx').on(t.nameLower),
+    nameIdx: index('personal_accounts_name_idx').using('btree', sql`lower(${t.name})`),
   })
-)
-
-/**
- * Corpus scoreboard evidence for a looked-up account, reduced to the model's
- * factor space (6 + 3 numbers; training/personalization/p3_site_export.py
- * `evidence`). Published by the local enrichment job.
- */
-export const personalMetricEvidence = pgTable(
-  'personal_metric_evidence',
-  {
-    region: smallint('region').notNull(),
-    blizzId: integer('blizz_id').notNull(),
-    lam: real('lam').array().notNull(), // upper triangle of Lam_m: 00 01 02 11 12 22
-    eta: real('eta').array().notNull(),
-    nRows: integer('n_rows').notNull(),
-    modelVersion: varchar('model_version', { length: 40 }).notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  },
-  (t) => ({ pk: primaryKey({ columns: [t.region, t.blizzId] }) })
-)
-
-/** Heroes Profile calls made by the site, per quota pool and hour (the quota guard). */
-export const personalApiUsage = pgTable(
-  'personal_api_usage',
-  {
-    pool: varchar('pool', { length: 16 }).notNull(),
-    hour: timestamp('hour', { withTimezone: true }).notNull(),
-    calls: integer('calls').notNull().default(0),
-    lastRemaining: integer('last_remaining'),
-  },
-  (t) => ({ pk: primaryKey({ columns: [t.pool, t.hour] }) })
 )
