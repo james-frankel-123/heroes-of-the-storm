@@ -37,6 +37,8 @@ import torch.nn as nn
 import p3_hs_core as C
 import p3t_data as TD
 
+ASSIGN = os.environ.get("P3T_VSTUDY_ASSIGN", "real")   # real: who actually played what; best: the leaf's assignment
+
 
 def load():
     L = dict(np.load(os.path.join(TD.OUT, "pre_lobbies.npz")))
@@ -51,6 +53,24 @@ def load():
     team = st[:, :, 2][st[:, :, 1] == 1].reshape(G, 10)
     ar = np.arange(G)[:, None]
     jj = np.arange(10)[None, :]
+    if ASSIGN == "best":
+        # what a drafter can know: each team's heroes assigned to its players by
+        # the best b2 S + b3 O permutation (as the leaf does), not who really played what
+        import itertools
+        import p3t_systems as SY
+        b = SY.vintage("cur").spec["combiner"]
+        P = np.array(list(itertools.permutations(range(5))), np.int64)
+        hero = hero.copy()
+        for t in (0, 1):
+            m = team == t
+            idx = np.argsort(~m, axis=1, kind="stable")[:, :5]          # the team's 5 slots
+            hs = np.take_along_axis(hero, idx, 1)                     # their heroes
+            ar3 = np.arange(G)[:, None, None]
+            S5 = s[ar3, idx[:, :, None], hs[:, None, :]]              # (G, player, hero)
+            O5 = off[ar3, idx[:, :, None], hs[:, None, :]]
+            sc = b[2] * S5[:, np.arange(5)[None, :], P].sum(-1) + b[3] * O5[:, np.arange(5)[None, :], P].sum(-1)
+            best = P[np.argmax(sc, 1)]                                # player i takes hero best[i]
+            np.put_along_axis(hero, idx, np.take_along_axis(hs, best, 1), 1)
     sp, sdp, np_, op = s[ar, jj, hero], sd[ar, jj, hero], n[ar, jj, hero], off[ar, jj, hero]
     pool = n > 0
     best = np.where(pool, s, -9).max(-1)
@@ -134,7 +154,8 @@ def main():
                      "acc": float(((p > 0.5) == (y == 1)).mean())}
     wp = 1 / (1 + np.exp(-D["lo"][va]))
     out["wp_only_test_ll"] = float(XC.logloss(wp, y).mean())
-    json.dump(out, open(os.path.join(C.RESULTS, "p3t", "vstudy.json"), "w"), indent=1)
+    out["assignment"] = ASSIGN
+    json.dump(out, open(os.path.join(C.RESULTS, "p3t", f"vstudy_{ASSIGN}.json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
 
 

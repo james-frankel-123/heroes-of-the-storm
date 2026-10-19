@@ -228,12 +228,29 @@ SPOKES = {
 
 
 TUNE_OPP = ["pMCTS-cur", "aMCTS-pp"]
+TUNE_EXTRA = ["aPol-rich-bcow", "aPol-rich-onestep", "aPol-rich-search", "aPol-pp", "aMCTS-sp", "aPol-sp", "a1step-cur",
+              "aMCTS-bc", "aMCTS-cur"]
+
+
+ABL = ["x-pp", "x-combo3", "x-combo1", "x-pp-ban3", "x-pp-opp2", "x-pp-as1", "x-pp-vn2", "x-pp-apos", "x-pp-s1600",
+       "x-pp-c1", "x-pp-c4", "x-pp-b05", "x-pp-b2", "x-pp-a03", "x-pp-a0", "x-pp-opt05", "x-pp-opt1",
+       "x-rich-search", "x-rich-bcow", "x-rich-onestep", "aPol-rich-search", "aPol-rich-bcow", "aPol-rich-onestep"]
 
 
 def schedule(name):
     pairs = []
+    if name == "ablation":
+        # the design study on the tournament lobbies: every component against aMCTS-pp;
+        # the selected design also against the panel; split-history versions against the blind drafters
+        for x in ABL:
+            pairs += [(x, "aMCTS-pp"), ("aMCTS-pp", x)]
+        for o in PANEL + ["aMCTS-bc", "a1step-cur", "DraftRec-pv", "aMCTS-sp"]:
+            pairs += [("x-combo3", o), (o, "x-combo3")]
+        for x in ("x-combo3-split", "x-pp-split"):
+            for o in ("pMCTS-cur", "pMCTS-bc"):
+                pairs += [(x, o), (o, x)]
     if name == "tune":
-        for x in SY.explore_systems():
+        for x in list(SY.explore_systems()) + TUNE_EXTRA:
             for o in TUNE_OPP:
                 pairs += [(x, o), (o, x)]
     if name in ("core", "all"):

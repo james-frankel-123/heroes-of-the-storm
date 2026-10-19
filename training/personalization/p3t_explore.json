@@ -80,5 +80,106 @@
   "base": "cur_bc",
   "prior": "pprior",
   "alpha": 1.0
- }
+ },
+ "x-pp-opp": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": 1.0
+ },
+ "x-pp-opp2": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": 2.0
+ },
+ "x-pp-ban1": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 1.0
+ },
+ "x-pp-ban3": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0
+ },
+ "x-rich-search": {
+  "base": "cur",
+  "rich": "search"
+ },
+ "x-rich-bcow": {
+  "base": "cur",
+  "rich": "bcow"
+ },
+ "x-rich-onestep": {
+  "base": "cur",
+  "rich": "onestep"
+ },
+ "x-rich-search-opp": {
+  "base": "cur",
+  "rich": "search",
+  "opp": 1.0
+ },
+ "x-pp-vn2": {
+  "base": "cur",
+  "prior": "pprior",
+  "vnet": "cur_bc_vn2"
+ },
+ "x-bc-vn2": {
+  "base": "cur_bc",
+  "vnet": "cur_bc_vn2"
+ },
+ "x-pp-ban5": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 5.0
+ },
+ "x-pp-opp3": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": 3.0
+ },
+ "x-combo1": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": 2.0,
+  "assign_bias": 1.0
+ },
+ "x-combo2": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": 2.0,
+  "assign_bias": 1.0,
+  "alpha": {
+   "4": 0.5,
+   "5": 0.5,
+   "6": 0.5,
+   "7": 0.3,
+   "8": 0.3,
+   "default": 0.156
+  }
+ },
+ "x-combo3": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": 2.0,
+  "assign_bias": 1.0,
+  "sims": 1600
+ },
+ "x-combo3-split": {
+  "base": "cur_split",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": 2.0,
+  "assign_bias": 1.0,
+  "sims": 1600,
+  "state": "splitd"
+ },
+ "x-pp-split": {
+  "base": "cur_split",
+  "state": "splitd",
+  "prior": "pprior"
+ },
+ "_best_design": "x-combo3 (selected on the tune lobbies by the pre-stated rule: highest mean J win probability against pMCTS-cur and aMCTS-pp, 55.78%)"
 }

@@ -1,0 +1,26 @@
+{
+ "search": {
+  "signal": "search",
+  "states": 30000,
+  "val_states": 3080,
+  "val_loss": 2.9966061115264893,
+  "val_top1_vs_target": 0.3808441460132599,
+  "F_prior_top1_vs_target": 0.20000000298023224
+ },
+ "bcow": {
+  "signal": "bcow",
+  "states": 330562,
+  "val_states": 34107,
+  "val_loss": 3.2342827320098877,
+  "val_top1_vs_target": 0.16389597952365875,
+  "F_prior_top1_vs_target": 0.03377605602145195
+ },
+ "onestep": {
+  "signal": "onestep",
+  "states": 30000,
+  "val_states": 3080,
+  "val_loss": 2.9835715293884277,
+  "val_top1_vs_target": 0.23116883635520935,
+  "F_prior_top1_vs_target": 0.08571428805589676
+ }
+}

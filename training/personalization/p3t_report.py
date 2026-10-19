@@ -47,6 +47,38 @@ def main():
             L.append(f"| {s} | {tj[0]:.3f} ({tj[1]:.3f}, {tj[2]:.3f}) | {tc[0]:.3f} ({tc[1]:.3f}, {tc[2]:.3f}) | "
                      f"{st['judge_personal']} | {st['consensus']} | {st['degen']} | {st['healer']} | {st['offrole']} | {st['sec_per_draft']} |")
         L.append(f"\nSeat (first pick) term: J {A['bt']['judge_personal']['seat_first_pick']}, CONS {A['bt']['consensus']['seat_first_pick']}.")
+    if A:
+        L += ["", "## Drift: drafters vs the prediction model at the same staleness", "",
+              "Drafter loss = current twin's head-to-head win % over the stale version minus 50 (pp). Edge lost = "
+              "BT logit gap current minus stale, as a share of the current drafter's BT edge over GD. "
+              "Prediction lift lost = share of the log-loss lift over a coin flip lost at that staleness (tournament-window games).", "",
+              "| family | staleness | judge | drafter loss pp (CI) | edge lost % |", "|---|---|---|---|---|"]
+        fam = [("pMCTS", "pMCTS-cur", {"4m": "pMCTS-s4m", "1y": "pMCTS-s1y"}),
+               ("aMCTS", "aMCTS-cur", {"4m": "aMCTS-s4m", "1y": "aMCTS-s1y"}),
+               ("pPol", "pPol-cur", {"4m": "pPol-s4m", "1y": "pPol-s1y"}),
+               ("p1step", "p1step-cur", {"1y": "p1step-s1y"}),
+               ("a1step", "a1step-cur", {"1y": "a1step-s1y"}),
+               ("aMCTS player state only", "aMCTS-cur", {"4m": "aMCTS-cur@s4m", "1y": "aMCTS-cur@s1y"})]
+        for name, cur, st in fam:
+            for lag, stale in st.items():
+                hk = f"{cur} vs {stale}"
+                if hk not in A["h2h"]:
+                    continue
+                for key, lab in (("consensus", "CONS"), ("judge_personal", "J")):
+                    v = A["h2h"][hk][key]
+                    th = A["bt"][key]["theta"]
+                    edge = th[cur][0] - th.get("GD", [0])[0]
+                    lost = (th[cur][0] - th[stale][0]) / edge if stale in th and abs(edge) > 1e-6 else float("nan")
+                    L.append(f"| {name} | {lag} | {lab} | {v[0] - 50:.1f} ({v[1] - 50:.1f}, {v[2] - 50:.1f}) | {100 * lost:.0f} |")
+        P_ = j("predeval.json")
+        if P_:
+            coin = P_["coin_ll"]
+            lift = lambda ll: coin - ll
+            for lag, v in (("4m", "s4m"), ("1y", "s1y")):
+                wl = 1 - lift(P_[v]["wp_ll"]) / lift(P_["cur"]["wp_ll"])
+                vl = 1 - lift(P_[v][f"V_ll_state_{v}"]) / lift(P_["cur"]["V_ll_state_cur"])
+                L.append(f"| prediction: WP only | {lag} | log loss | | {100 * wl:.0f} (lift lost) |")
+                L.append(f"| prediction: WP + player state | {lag} | log loss | | {100 * vl:.0f} (lift lost) |")
     D = j("diag.json")
     if D:
         L += ["", "## Diagnostics: drafter's own personal sum vs the judge's", "",

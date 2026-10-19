@@ -116,8 +116,14 @@ def explore_systems():
     if not os.path.exists(XFILE):
         return {}
     cf = json.load(open(XFILE))
-    return {n: dict(kind="mcts_x", vint=c.get("base", "cur"), aware=1, x=c) for n, c in cf.items()
-            if not n.startswith("_")}
+    out = {}
+    for n, c in cf.items():
+        if n.startswith("_"):
+            continue
+        out[n] = dict(kind="mcts_x", vint=c.get("base", "cur"), aware=1, x=c)
+        if c.get("state"):
+            out[n]["state"] = c["state"]
+    return out
 
 
 SYSTEMS = system_table()
@@ -512,6 +518,13 @@ def act_mcts_x(vint, ctx, x, device=0):
         cfg[:, 56] = 2
     feat = np.zeros((B, 10, H), np.float32)
     vnet = np.zeros(0, np.float32)
+    if x.get("vnet"):
+        # value net leaf with player features (cuda_pvnet / cuda_explore cfg[57] = 1)
+        vs_ = vintage(x["vnet"]).spec
+        vnet = np.asarray(vs_["vnet"], np.float32)
+        feat = np.log1p(ctx["n"].astype(np.float32))
+        coefs[1] = vs_["vnet_b1"]
+        cfg[:, 57] = 1
     sims = int(x.get("sims", SIMS))
     cp = float(x.get("c_puct", 2.0))
     out = np.empty(B, np.int64)

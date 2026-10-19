@@ -8,26 +8,75 @@
   "corr": 0.541
  },
  "systems": {
+  "DraftRec-pv": {
+   "S_D_pp": 0.342,
+   "S_J_pp": -1.89,
+   "S_D_minus_real_pp": -0.667,
+   "S_J_minus_real_pp": -1.323,
+   "slope_SJ_on_SD": 0.454
+  },
+  "DraftRec": {
+   "S_D_pp": 4.357,
+   "S_J_pp": 1.163,
+   "S_D_minus_real_pp": 3.348,
+   "S_J_minus_real_pp": 1.73,
+   "slope_SJ_on_SD": 0.341
+  },
   "GD": {
-   "S_D_pp": -6.62,
-   "S_J_pp": -7.09,
-   "S_D_minus_real_pp": -7.629,
-   "S_J_minus_real_pp": -6.522,
-   "slope_SJ_on_SD": 0.626
+   "S_D_pp": -6.549,
+   "S_J_pp": -7.036,
+   "S_D_minus_real_pp": -7.558,
+   "S_J_minus_real_pp": -6.469,
+   "slope_SJ_on_SD": 0.625
   },
   "Real": {
-   "S_D_pp": -0.111,
-   "S_J_pp": -1.63,
-   "S_D_minus_real_pp": -1.12,
-   "S_J_minus_real_pp": -1.063,
+   "S_D_pp": -0.076,
+   "S_J_pp": -1.605,
+   "S_D_minus_real_pp": -1.085,
+   "S_J_minus_real_pp": -1.038,
    "slope_SJ_on_SD": 0.469
   },
   "a1step-cur": {
-   "S_D_pp": 7.162,
-   "S_J_pp": -1.314,
-   "S_D_minus_real_pp": 6.153,
-   "S_J_minus_real_pp": -0.747,
-   "slope_SJ_on_SD": 0.44
+   "S_D_pp": 7.161,
+   "S_J_pp": -1.325,
+   "S_D_minus_real_pp": 6.152,
+   "S_J_minus_real_pp": -0.757,
+   "slope_SJ_on_SD": 0.441
+  },
+  "aMCTS-bc": {
+   "S_D_pp": 3.129,
+   "S_J_pp": -2.214,
+   "S_D_minus_real_pp": 2.12,
+   "S_J_minus_real_pp": -1.647,
+   "slope_SJ_on_SD": 0.508
+  },
+  "aMCTS-cur": {
+   "S_D_pp": -13.572,
+   "S_J_pp": -12.823,
+   "S_D_minus_real_pp": -14.58,
+   "S_J_minus_real_pp": -12.256,
+   "slope_SJ_on_SD": 0.643
+  },
+  "aMCTS-pp": {
+   "S_D_pp": 8.863,
+   "S_J_pp": 0.074,
+   "S_D_minus_real_pp": 7.854,
+   "S_J_minus_real_pp": 0.641,
+   "slope_SJ_on_SD": 0.425
+  },
+  "pMCTS-cur": {
+   "S_D_pp": -14.569,
+   "S_J_pp": -13.503,
+   "S_D_minus_real_pp": -15.578,
+   "S_J_minus_real_pp": -12.936,
+   "slope_SJ_on_SD": 0.643
+  },
+  "pPol-cur": {
+   "S_D_pp": -14.692,
+   "S_J_pp": -13.498,
+   "S_D_minus_real_pp": -15.701,
+   "S_J_minus_real_pp": -12.931,
+   "slope_SJ_on_SD": 0.645
   },
   "a1step-s1y": {
    "S_D_pp": 2.59,
@@ -43,26 +92,12 @@
    "S_J_minus_real_pp": -0.581,
    "slope_SJ_on_SD": 0.453
   },
-  "aMCTS-bc": {
-   "S_D_pp": 3.096,
-   "S_J_pp": -2.257,
-   "S_D_minus_real_pp": 2.087,
-   "S_J_minus_real_pp": -1.69,
-   "slope_SJ_on_SD": 0.508
-  },
   "aMCTS-bc@split": {
    "S_D_pp": 2.059,
    "S_J_pp": -2.257,
    "S_D_minus_real_pp": 1.05,
    "S_J_minus_real_pp": -1.69,
    "slope_SJ_on_SD": 0.497
-  },
-  "aMCTS-cur": {
-   "S_D_pp": -13.586,
-   "S_J_pp": -12.788,
-   "S_D_minus_real_pp": -14.595,
-   "S_J_minus_real_pp": -12.22,
-   "slope_SJ_on_SD": 0.644
   },
   "aMCTS-cur@s1y": {
    "S_D_pp": -13.451,
@@ -78,12 +113,12 @@
    "S_J_minus_real_pp": -12.014,
    "slope_SJ_on_SD": 0.652
   },
-  "aMCTS-pp": {
-   "S_D_pp": 8.95,
-   "S_J_pp": 0.145,
-   "S_D_minus_real_pp": 7.941,
-   "S_J_minus_real_pp": 0.713,
-   "slope_SJ_on_SD": 0.425
+  "aMCTS-sp": {
+   "S_D_pp": -4.951,
+   "S_J_pp": -8.247,
+   "S_D_minus_real_pp": -5.96,
+   "S_J_minus_real_pp": -7.679,
+   "slope_SJ_on_SD": 0.545
   },
   "aMCTS-vn": {
    "S_D_pp": 3.905,
@@ -93,11 +128,18 @@
    "slope_SJ_on_SD": 0.487
   },
   "aPol-pp": {
-   "S_D_pp": 6.368,
-   "S_J_pp": -0.683,
-   "S_D_minus_real_pp": 5.359,
-   "S_J_minus_real_pp": -0.116,
-   "slope_SJ_on_SD": 0.463
+   "S_D_pp": 6.493,
+   "S_J_pp": -0.619,
+   "S_D_minus_real_pp": 5.484,
+   "S_J_minus_real_pp": -0.052,
+   "slope_SJ_on_SD": 0.462
+  },
+  "aPol-sp": {
+   "S_D_pp": -7.854,
+   "S_J_pp": -9.695,
+   "S_D_minus_real_pp": -8.863,
+   "S_J_minus_real_pp": -9.128,
+   "slope_SJ_on_SD": 0.576
   },
   "p1step-cur": {
    "S_D_pp": -5.131,
@@ -114,25 +156,11 @@
    "slope_SJ_on_SD": 0.585
   },
   "pMCTS-bc": {
-   "S_D_pp": -8.859,
-   "S_J_pp": -9.099,
-   "S_D_minus_real_pp": -9.868,
-   "S_J_minus_real_pp": -8.532,
-   "slope_SJ_on_SD": 0.621
-  },
-  "pMCTS-cur": {
-   "S_D_pp": -14.595,
-   "S_J_pp": -13.496,
-   "S_D_minus_real_pp": -15.604,
-   "S_J_minus_real_pp": -12.929,
-   "slope_SJ_on_SD": 0.646
-  },
-  "pPol-cur": {
-   "S_D_pp": -14.698,
-   "S_J_pp": -13.471,
-   "S_D_minus_real_pp": -15.707,
-   "S_J_minus_real_pp": -12.903,
-   "slope_SJ_on_SD": 0.645
+   "S_D_pp": -8.87,
+   "S_J_pp": -9.126,
+   "S_D_minus_real_pp": -9.879,
+   "S_J_minus_real_pp": -8.558,
+   "slope_SJ_on_SD": 0.624
   }
  },
  "team_pool_size": {

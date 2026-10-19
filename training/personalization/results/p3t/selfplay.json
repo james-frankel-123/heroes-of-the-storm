@@ -41,6 +41,19 @@
    "kl_to_targets_fit": 0.6090337038040161,
    "top1_matches_target_F": 0.6787072420120239,
    "top1_matches_target_fit": 0.7333333492279053
+  },
+  {
+   "iter": 3,
+   "gpu_seconds": 676.988655090332,
+   "picks_equal_F_argmax": 0.46328125,
+   "root_visit_entropy": 1.3404556512832642,
+   "states": 81920,
+   "val_states": 7890,
+   "alpha": 0.5066936016082764,
+   "kl_to_targets_F_prior": 1.9989359378814697,
+   "kl_to_targets_fit": 0.5966216921806335,
+   "top1_matches_target_F": 0.6242078542709351,
+   "top1_matches_target_fit": 0.7162230610847473
   }
  ]
 }

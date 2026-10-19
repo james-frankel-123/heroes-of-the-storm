@@ -191,11 +191,70 @@ def train():
     print(json.dumps({k: v for k, v in out.items() if k != "vnet"}, indent=1))
 
 
+def train_pre():
+    """The kernel-form value net (A) refit on the 112K pre-tournament games of
+    the value study (p3t_vstudy, best assignment, paper 2's causal WP as the
+    offset; the drafter keeps its own b1 on the paper-1 WP). Writes vintages
+    cur_bc_vn2 (behavioral prior) for the leaf."""
+    os.environ["P3T_VSTUDY_ASSIGN"] = "best"
+    import importlib
+    import p3t_vstudy as VS
+    importlib.reload(VS)
+    import p3t_systems as SY
+    import p3_x_common as XC
+    D = VS.load()
+    cut = np.quantile(D["day"], 0.85)
+    tr, te = np.flatnonzero(D["day"] < cut), np.flatnonzero(D["day"] >= cut)
+    cut2 = np.quantile(D["day"][tr], 0.85)
+    tr_in, va_in = tr[D["day"][tr] < cut2], tr[D["day"][tr] >= cut2]
+    torch.manual_seed(0)
+    net = VS.Net("A")
+    T = {k: torch.from_numpy(D[k]) for k in ("X", "s", "sign", "y", "lo")}
+    T["hero"] = torch.from_numpy(D["hero"]).long()
+    sub = lambda idx: {k: v[idx] for k, v in T.items()}
+    opt = torch.optim.AdamW(net.parameters(), lr=2e-3, weight_decay=1e-4)
+    best, bad = (1e9, None), 0
+    for ep in range(80):
+        perm = torch.from_numpy(tr_in)[torch.randperm(len(tr_in))]
+        for b0 in range(0, len(perm), 4096):
+            B = sub(perm[b0:b0 + 4096])
+            opt.zero_grad()
+            nn.functional.binary_cross_entropy_with_logits(net(B), B["y"]).backward()
+            opt.step()
+        with torch.no_grad():
+            B = sub(torch.from_numpy(va_in))
+            lv = nn.functional.binary_cross_entropy_with_logits(net(B), B["y"]).item()
+        if lv < best[0] - 1e-6:
+            best, bad = (lv, {k: v.clone() for k, v in net.state_dict().items()}), 0
+        else:
+            bad += 1
+            if bad >= 8:
+                break
+    net.load_state_dict(best[1])
+    with torch.no_grad():
+        p = torch.sigmoid(net(sub(torch.from_numpy(te)))).numpy()
+    h = net.h
+    vnet = np.concatenate([h[0].weight.detach().numpy().ravel(), h[0].bias.detach().numpy(),
+                           h[2].weight.detach().numpy().ravel(), h[2].bias.detach().numpy()]).astype(np.float32)
+    assert len(vnet) == 225
+    vs = json.load(open(SY.VFILE))
+    spec = dict(vs["cur_bc"])
+    spec["note"] = "cur_bc with the value-net leaf refit on 112K pre-tournament games (p3t_vnet train_pre)"
+    spec["vnet"] = vnet.tolist()
+    spec["vnet_b1"] = float(vs["cur"]["combiner"][1])
+    vs["cur_bc_vn2"] = spec
+    json.dump(vs, open(SY.VFILE, "w"), indent=1)
+    out = {"games": int(D["G"]), "test": int(len(te)), "test_ll": float(XC.logloss(p, D["y"][te]).mean()),
+           "fitted_b1_on_paper2_wp": float(net.b1), "vnet": vnet.tolist()}
+    json.dump(out, open(os.path.join(C.RESULTS, "p3t", "vnet2.json"), "w"), indent=1)
+    print({k: v for k, v in out.items() if k != "vnet"})
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["data", "train"])
+    ap.add_argument("stage", choices=["data", "train", "train_pre"])
     a = ap.parse_args()
-    data() if a.stage == "data" else train()
+    {"data": data, "train": train, "train_pre": train_pre}[a.stage]()
 
 
 if __name__ == "__main__":

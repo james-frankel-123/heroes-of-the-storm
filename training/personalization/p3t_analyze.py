@@ -258,6 +258,12 @@ def analyze(contrasts_extra=()):
          ("DraftRec", "aMCTS-bc"), ("DraftRec", "a1step-cur"), ("DraftRec", "GD"), ("DraftRec", "Real"),
          ("DraftRec", "pMCTS-cur"), ("aMCTS-bc@split", "pMCTS-bc"), ("a1step@split", "p1step-cur"),
          ("aMCTS-bc@split", "aMCTS-bc"), ("a1step@split", "a1step-cur")] + list(contrasts_extra)
+    # every unordered pair that was played (both seatings), listed after the named contrasts
+    seen = {frozenset(x) for x in H}
+    for (x, y) in sorted(P):
+        if frozenset((x, y)) not in seen and (y, x) in P:
+            seen.add(frozenset((x, y)))
+            H.append((x, y))
     h2h = {}
     for a, b in H:
         if not ((a, b) in P or (b, a) in P):
@@ -336,6 +342,21 @@ def analyze(contrasts_extra=()):
         bt[key] = {"seat_first_pick": round(h, 3),
                    "theta": {s: [round(th[s], 3), round(float(l), 3), round(float(u), 3)] for s, l, u in zip(systems, lo, hi)}}
     out["bt"] = bt
+    if _LS == "tune":
+        # selection score of the exploration study: mean J (and CONS) win probability against the tune opponents
+        tune = {}
+        for x in systems:
+            if x in TT.TUNE_OPP:
+                continue
+            row = {}
+            for key in ("judge_personal", "consensus", "judge_corr"):
+                vals = [pair_win(P, x, o, key) for o in TT.TUNE_OPP if (x, o) in P or (o, x) in P]
+                if len(vals) == len(TT.TUNE_OPP):
+                    row[key] = round(100 * float(np.mean(vals)), 2)
+                    row[key + "_by_opp"] = {o: round(100 * float(v), 2) for o, v in zip(TT.TUNE_OPP, vals)}
+            if row:
+                tune[x] = row
+        out["tune"] = dict(sorted(tune.items(), key=lambda kv: -kv[1].get("judge_personal", 0)))
     name = ("analysis_split" if SPLIT else "analysis") + (f"_{_LS}" if _LS else "")
     json.dump(out, open(os.path.join(RES, name + ".json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
