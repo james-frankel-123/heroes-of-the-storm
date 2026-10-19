@@ -61,6 +61,8 @@ F32 = np.float32
 CHILD_NONE, CHILD_LAZY = -2, -1
 KIND_DECISION, KIND_CHANCE, KIND_TERMINAL = 0, 1, 2
 CFG_LEN, CFG_ASSIGN = 59, 58
+# kernel revision: XV_KREV=2ad31c1 selects the prior floor of 2ad31c1 (default: the earlier rule)
+PRIOR_FLOOR = os.environ.get("XV_KREV", "") == "2ad31c1"
 
 
 # ------------------------------------------------------------------ curand XORWOW
@@ -417,8 +419,13 @@ def prior_bias(pri, mask, step, e):
     slot = int(e.cfg[24 + step])
     if slot < 0:
         return pri
-    ok = mask & (pri > 0)
-    u = np.where(ok, e.alpha * np.log(np.where(ok, pri, 1.0)) + e.bias[slot], -np.inf)
+    if PRIOR_FLOOR:
+        # 2ad31c1: every valid hero, prior floored at 1e-30 before the log
+        ok = mask.copy()
+        u = np.where(ok, e.alpha * np.log(np.maximum(pri.astype(np.float64), 1e-30)) + e.bias[slot], -np.inf)
+    else:
+        ok = mask & (pri > 0)
+        u = np.where(ok, e.alpha * np.log(np.where(ok, pri, 1.0)) + e.bias[slot], -np.inf)
     mx = u[ok].max()
     w = np.where(ok, np.exp(u - mx), 0.0)
     return (w / w.sum()).astype(np.float32)

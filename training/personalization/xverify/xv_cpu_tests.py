@@ -225,10 +225,17 @@ def test_opp_and_prior_transforms():
     pri[5] = 0.0
     e2.bias[:] = 0
     e2.bias[int(e2.cfg[24 + 4]), 5] = 50.0
+    floor = R.PRIOR_FLOOR
+    R.PRIOR_FLOOR = False
     out = R.prior_bias(pri, np.ones(90, bool), 4, e2)
     assert out[5] == 0.0 and abs(out.sum() - 1) < 1e-5
+    R.PRIOR_FLOOR = True          # 2ad31c1: the bias revives it
+    out = R.prior_bias(pri, np.ones(90, bool), 4, e2)
+    assert out[5] > 0.99 and abs(out.sum() - 1) < 1e-5
+    R.PRIOR_FLOOR = floor
     REPORT["opp_prior_transforms"] = {"max_dev_vs_formula": worst,
-                                      "alpha0_zero_prior_hero_stays_zero": True}
+                                      "alpha0_zero_prior_hero_stays_zero_before_2ad31c1": True,
+                                      "revived_after_2ad31c1": True}
 
 
 # ------------------------------------------------------------------ harness

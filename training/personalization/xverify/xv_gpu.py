@@ -790,6 +790,56 @@ def stage_p1host():
 STAGES["p1host"] = stage_p1host
 
 
+def stage_identity2():
+    """2ad31c1 builds (hashed seeds in both): the P3 personal kernel with population
+    settings == pop_ref_kernel (P3_HASHED_SEED), full episodes, byte for byte; plus
+    aware-with-zero-tables == blind and blind invariant to the tables."""
+    n = 64
+    c3 = paper1_cfg(n, 11)
+    res = {}
+    flat = lambda res_: b"".join(np.asarray(r[2], np.float32).tobytes() + b"".join(
+        np.asarray(x[1], np.float32).tobytes() for x in r[1]) for r in res_)
+    for sims in (50, 200):
+        e2 = engine("popref", n)
+        rb_ = e2.run_episodes(np.ascontiguousarray(c3), sims, 2.0, BASE_SEED, 0.0, 0.3, 0.0, 1, 1)
+        del e2
+        PR = np.zeros((n, 8, 90), np.float32)
+        for i, r in enumerate(rb_):
+            for t, (s_, pol, m_) in enumerate(r[1]):
+                PR[i, t] = pol
+        cfg = np.full((n, 59), -1, np.int32)
+        cfg[:, 0:3] = c3
+        cfg[:, 3:8] = 0
+        cfg[:, 4] = -1
+        cfg[:, 56:59] = 0
+        zz = dict(cfg=cfg, s=np.zeros((n, 10, 90), np.float32), off=np.zeros((n, 10, 90), np.float32),
+                  imit=np.zeros((n, 10, 90), np.float32), pools=np.ones((n, 10, 90), bool))
+        r2 = run_p3("personal", zz, [0, 1, 0, 0, 0], None, sims)
+        P2 = np.ascontiguousarray(np.asarray(r2[5])[:, :8])
+        res[f"s{sims}_p3_eq_popref"] = np.array(PR.tobytes() == P2.tobytes())
+        zz2 = dict(zz)
+        zz2["cfg"] = cfg.copy()
+        zz2["cfg"][:, 7] = 1
+        zz2["cfg"][:, 58] = 1
+        r3 = run_p3("personal", zz2, [0, 1, 4.5, -0.05, 0], None, sims)
+        res[f"s{sims}_zero_tables_equal"] = np.array(all(np.asarray(a).tobytes() == np.asarray(b).tobytes()
+                                                         for a, b in zip(r2[:7], r3[:7])))
+    z = XC.make_cases("personal", 64, seed=4242)
+    z["cfg"][:, 7] = 0
+    rp = run_p3("personal", z, XC.COEFS["personal"], None, 200)
+    z2 = dict(z)
+    z2["s"] = z["s"] * 7 + 1
+    z2["off"] = 1 - z["off"]
+    rb = run_p3("personal", z2, XC.COEFS["personal"], None, 200)
+    res["blind_tables_invariant"] = np.array(all(np.asarray(a).tobytes() == np.asarray(b).tobytes()
+                                                 for a, b in zip(rp[5:7], rb[5:7])))
+    np.savez(os.path.join(OUT, "identity2.npz"), **res)
+    print("identity2", {k: bool(v) for k, v in res.items()}, flush=True)
+
+
+STAGES["identity2"] = stage_identity2
+
+
 if __name__ == "__main__":
     want = sys.argv[1:] or list(STAGES)
     t0 = time.time()
