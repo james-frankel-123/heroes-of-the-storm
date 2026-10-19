@@ -7,10 +7,13 @@ Runs on the main box: ssh + rsync only, no compute.
                                    the 3090 (where they were built) to this box
   push <vintage> <host>            copy the MCTS inputs from this box to a worker
   launch <vintage> <seed> <host>   start the hotsjob MCTS job p1vint_<vintage>_F_s<seed>
-  queue <vintage>:<seed>[,...]     waiter: launches the listed runs, in order of
-                                   readiness, each on the first worker GPU with no
-                                   MCTS job (running, pausing, or one of ours
-                                   paused). A fine-tune run (<base>_ft) is ready
+  queue <vintage>:<seed>[,...]     waiter: launches the listed runs, in list order
+                                   among the ready ones, each on the first of
+                                   QUEUE_HOSTS with no running MCTS job. A listed
+                                   run whose job exists and is paused is resumed,
+                                   on its own host only. A host with a paused
+                                   p1vint job that is not in the list is held
+                                   (someone paused it). A fine-tune run (<base>_ft) is ready
                                    once p1vint_<base>_F_s<seed> has completed and
                                    site/vint/<base>_ft/models/enriched.json exists
                                    on the 3090. Polls `hotsjob.py state` every
@@ -43,6 +46,9 @@ from paper1_revision import vintage  # noqa: E402
 
 BUILD_HOST = "max-windows-3090"
 HOSTS = ["max-windows-3090", "windows-5090-wsl", "3080-gaming-desktop"]
+# MCTS training of this lane runs on these GPUs only (the 5090 is kept for
+# tournament searches, coordinator 2026-10-19)
+QUEUE_HOSTS = ["max-windows-3090", "3080-gaming-desktop"]
 REMOTE = "/home/max/hots/repo/"
 # per-process data limit (ulimit -d) of an MCTS job; the measured VmData peak of
 # an MCTS run is ~7 GB. The 5090 has 35 GB in all (<= 12 GB per process).
@@ -212,7 +218,7 @@ def queue(items):
                         fetched.add(n)
                     except subprocess.CalledProcessError as e:
                         log(f"fetch {n} failed: {e}")
-        pending = [(v, s) for v, s in items if where(job_name(v, s), snap)[1] == "none"]
+        pending = [(v, s) for v, s in items if where(job_name(v, s), snap)[1] in ("none", "paused")]
         if not pending:
             log("queue done: every run launched")
             compute()
@@ -223,13 +229,23 @@ def queue(items):
         if any(js is None for js in snap.values()):
             time.sleep(600)       # a host whose jobs are unknown: launch nothing anywhere
             continue
-        free = [h for h in HOSTS if not any(
+        mine = {job_name(v, s) for v, s in items}
+        free = [h for h in QUEUE_HOSTS if not any(
             kind == "mcts" and (st in ("running", "pausing", "starting")
-                                or (st == "paused" and n.startswith("p1vint_")))
+                                or (st == "paused" and n.startswith("p1vint_") and n not in mine))
             for n, (st, kind) in snap[h].items())]
         for v, s in pending:
             if not free:
                 break
+            jh, jst = where(job_name(v, s), snap)
+            if jst == "paused":
+                if jh not in free:
+                    continue
+                free.remove(jh)
+                out = rsh(jh, f"python3 ~/hots/repo/training/remote_workers/hotsjob.py resume {job_name(v, s)}")
+                log(f"resume {job_name(v, s)} on {jh}: {(out or 'no answer').strip()[-300:]}")
+                compute()
+                continue
             if is_ft(v):
                 bh, bst = where(job_name(base_of(v), s), snap)
                 if bst != "completed" or job_name(base_of(v), s) not in fetched:
@@ -312,7 +328,8 @@ def compute():
                                                            "ep_per_s": float(m.group(3))})
     rows["_notes"] = {
         "wall_h": "sum of runner start->exit segments (pauses excluded); gpu_h = wall_h for GPU jobs "
-                  "(one GPU each; MCTS jobs share no GPU with another MCTS job)",
+                  "(one GPU each). This lane runs one MCTS job per GPU; the original p1site F s1 and s2 shared "
+                  "the 3090 with each other (4.1 ep/s each vs 10.2 ep/s alone on the 3080)",
         "p1site_builds": "original site rebuild (site/logs/site_rebuild.log, local box): stats 7.0 min "
                          "CPU, features 9.7 min CPU (6 procs), wp_table1 37.3 min GPU for 11 Table-I specs; "
                          "enriched alone 241 s (wp_table1.log)",

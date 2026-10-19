@@ -6,10 +6,13 @@ train games played AFTER its cutoff (through the snapshot end, 2026-05-22).
   rows      current site train_oof features (paper-1 out-of-fold statistics:
             a fold-k row uses oof{k} of the CURRENT corpus), only games on
             builds after the base cutoff
-  stopping  current site val split (deploy statistics), as in train_wp.py
+  stopping  the post-cutoff games of the current site val split (deploy
+            statistics): the arm adapts to recent games, so recent games judge
+            it. At least one epoch is taken (the arm never equals the stale WP).
   optimizer AdamW lr 1e-4, wd 5e-3 (train_wp.py's), batch 4096, constant lr,
             <= 30 epochs, patience 5
-  eval      current site test and NODRIFT features (train_wp.evaluate)
+  eval      current site test and NODRIFT features (train_wp.evaluate), and
+            the post-cutoff val and test games, before and after
 
 Output (train_wp.py schema, so train_mcts.py reads it unchanged):
   site/vint/<name>/models/enriched.json, enriched_s<seed>.pt
@@ -29,6 +32,23 @@ from overfit2026 import data as odata  # noqa: E402
 import numpy as np  # noqa: E402
 
 LR, MAX_EPOCHS, PATIENCE, BATCH = 1e-4, 30, 5, 4096
+
+
+def eval_arrays(model, Xf, Xs, y, cols, device):
+    """train_wp.evaluate on in-memory rows (both team orders, symmetrized)."""
+    import torch
+    out = []
+    with torch.no_grad():
+        for X in (Xf, Xs):
+            ps = [model(torch.tensor(X[i:i + 65536][:, cols], device=device)).float().view(-1).cpu().numpy()
+                  for i in range(0, len(X), 65536)]
+            out.append(np.concatenate(ps))
+    pf, ps_ = out
+    acc_both = float(0.5 * (np.mean((pf > .5) == (y > .5)) + np.mean((ps_ > .5) == (y < .5))))
+    p = np.clip(0.5 * (pf + 1 - ps_), 1e-6, 1 - 1e-6)
+    return {"n": int(len(y)), "acc": acc_both, "acc_sym": float(np.mean((p > .5) == (y > .5))),
+            "ll": float(-np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))),
+            "slope": train_wp.fit_slope(p, y)}
 
 
 def main():
@@ -58,10 +78,20 @@ def main():
     tX = torch.tensor(np.concatenate([Xf[sel][:, cols], Xs[sel][:, cols]]), device=dev)
     tY = torch.tensor(np.concatenate([y[sel], 1 - y[sel]]), device=dev)
     del Xf, Xs
-    vXf, vXs, vy, _, _ = core.load_features("val")
+    vXf, vXs, vy, vrid, _ = core.load_features("val")
+    vsel = np.where(vintage.build_info(vrid)[0] > cut)[0]
+    vXf, vXs, vy = vXf[vsel], vXs[vsel], vy[vsel]
     vX = torch.tensor(np.concatenate([vXf[:, cols], vXs[:, cols]]), device=dev)
     vY = torch.tensor(np.concatenate([vy, 1 - vy]), device=dev)
-    del vXf, vXs
+    tXf, tXs, ty, trid, _ = core.load_features("test")
+    tsel = np.where(vintage.build_info(trid)[0] > cut)[0]
+    tXf, tXs, ty = tXf[tsel], tXs[tsel], ty[tsel]
+    print(f"stopping on {len(vsel):,} post-cutoff val games; post-cutoff test games {len(tsel):,}", flush=True)
+
+    def post_metrics():
+        model.eval()
+        return {"val_post": eval_arrays(model, vXf, vXs, vy, cols, dev),
+                "test_post": eval_arrays(model, tXf, tXs, ty, cols, dev)}
 
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -78,18 +108,21 @@ def main():
     res = {"name": "enriched", "spec": bmeta["spec"], "input_dim": int(len(cols)),
            "fine_tune": {"base": base, "base_wp": bpt, "lr": LR, "max_epochs": MAX_EPOCHS,
                          "patience": PATIENCE, "batch": BATCH, "after_build": vintage.spec(base)["cutoff"],
-                         "n_games": int(len(sel)), "stats": "current site deploy/oof"},
+                         "n_games": int(len(sel)), "stats": "current site deploy/oof",
+                         "stopping": "post-cutoff games of the current val split, >= 1 epoch",
+                         "n_val_post_games": int(len(vsel)), "n_test_post_games": int(len(tsel))},
            "n_train_rows": int(len(tX)), "n_val_rows": int(len(vX))}
     r0 = {"val_loss": val_loss()[0]}
     for fs in ("test", "NODRIFT"):
         r0[fs] = train_wp.evaluate(model, cols, fs, dev)
+    r0.update(post_metrics())
     res["before"] = r0
-    print(f"before: val_ll={r0['val_loss']:.5f} test acc={r0['test']['acc']:.4f} "
+    print(f"before: val_post ll={r0['val_post']['ll']:.5f} acc={r0['val_post']['acc']:.4f} | test_post "
+          f"ll={r0['test_post']['ll']:.5f} acc={r0['test_post']['acc']:.4f} | test acc={r0['test']['acc']:.4f} "
           f"slope={r0['test']['slope']:.3f}", flush=True)
 
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=5e-3)
-    best, best_state, pat, hist = r0["val_loss"], {k: v.detach().cpu().clone()
-                                                    for k, v in model.state_dict().items()}, 0, []
+    best, best_state, pat, hist = float("inf"), None, 0, []
     n = len(tX)
     t0 = time.time()
     for ep in range(MAX_EPOCHS):
@@ -116,13 +149,16 @@ def main():
     train_s = time.time() - t0
     torch.save(model.state_dict(), os.path.join(core.MODEL_DIR, f"enriched_s{seed}.pt"))
     r = {"val_loss": best, "epochs": len(hist), "history": hist,
-         "best_epoch": int(min(hist, key=lambda h: h[1])[0]) if best < r0["val_loss"] else 0}
+         "best_epoch": int(min(hist, key=lambda h: h[1])[0])}
     for fs in ("test", "NODRIFT"):
         r[fs] = train_wp.evaluate(model, cols, fs, dev)
+    r.update(post_metrics())
     res["seeds"] = {str(seed): r}
     res["selected_seed"] = seed
     res["wall_s"] = {"total": round(time.time() - t_start, 1), "train_loop": round(train_s, 1)}
     json.dump(res, open(out_json, "w"), indent=1)
+    print(f"after: val_post ll={r['val_post']['ll']:.5f} acc={r['val_post']['acc']:.4f} | test_post "
+          f"ll={r['test_post']['ll']:.5f} acc={r['test_post']['acc']:.4f}", flush=True)
     print(f"after: ep={len(hist)} best_ep={r['best_epoch']} val_ll={best:.5f} test acc={r['test']['acc']:.4f} "
           f"slope={r['test']['slope']:.3f} | NODRIFT acc={r['NODRIFT']['acc']:.4f} "
           f"slope={r['NODRIFT']['slope']:.3f} (train {train_s:.0f}s, total {time.time() - t_start:.0f}s)",
