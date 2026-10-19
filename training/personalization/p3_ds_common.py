@@ -36,7 +36,10 @@ import p3_mcts_core as M
 MODEL = os.path.join(C.CACHE, "ds_prior.pt")
 if os.environ.get("P3_SEARCH_MODE"):
     # distilled from the fixed-kernel targets of this search / assign mode
-    _sfx = "" if os.environ.get("P3_ASSIGN", "team") == "slot" else "_assign-" + os.environ.get("P3_ASSIGN", "team")
+    # P3_DS_PRIOR_ASSIGN picks the prior of another assign mode (the slot-mode
+    # collapse probe uses the prior distilled from the team-mode targets)
+    _am = os.environ.get("P3_DS_PRIOR_ASSIGN") or os.environ.get("P3_ASSIGN", "team")
+    _sfx = "" if _am == "slot" else "_assign-" + _am
     MODEL = os.path.join(C.CACHE, "mcts_v2", os.environ["P3_SEARCH_MODE"], f"ds_prior{_sfx}.pt")
 FEATS = ["b2_s", "off_role", "log1p_n", "never_n", "ewma20", "ewma100", "log1p_days_since", "never_played",
          "log_fine_share"]

@@ -214,6 +214,18 @@ def team_mixture(x):
     return out
 
 
+def jobs_digest(arrays):
+    """Short content hash of a run's inputs (cfg rows, personal tensors). It
+    goes into the BatchCache tag so two runs that share seed and size but
+    differ in their flags (personalized vs population, opponent model,
+    self-play) never resume each other's batches."""
+    import hashlib
+    h = hashlib.sha1()
+    for a in arrays:
+        h.update(np.ascontiguousarray(a).tobytes())
+    return h.hexdigest()[:12]
+
+
 def clear_partials(tag):
     """Remove a finished run's batch caches (a later run must not reuse them)."""
     d = os.path.dirname(out_path("x"))

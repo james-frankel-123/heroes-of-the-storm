@@ -81,7 +81,8 @@ class PriorSetup(Setup):
             by_key.setdefault(lb["key"], []).append(i)
         a = self.alpha if alpha is None else alpha
         coefs = np.r_[self.coefs, np.float32(a)].astype(np.float32)
-        bc = M.BatchCache(f"{getattr(self, 'tag', 'dsmcts')}_{kernel}_p{use_prior}_z{int(zero_bias)}_a{a:.4f}_s{sims}_seed{seed}_n{len(jobs)}")
+        dig = M.jobs_digest([a for lb, c in jobs for a in (c, lb["s"], lb["off"], lb["imit"], lb["pool"])])
+        bc = M.BatchCache(f"{getattr(self, 'tag', 'dsmcts')}_{kernel}_p{use_prior}_z{int(zero_bias)}_a{a:.4f}_s{sims}_seed{seed}_n{len(jobs)}_{dig}")
         for key, idx in by_key.items():
             for bs in range(0, len(idx), BATCH):
                 ii = idx[bs:bs + BATCH]
