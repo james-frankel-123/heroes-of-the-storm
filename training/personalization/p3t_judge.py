@@ -300,13 +300,17 @@ def score_all():
     for name, acts, a, b in todo:
         p = os.path.join(SDIR, f"{name}.npz")
         if os.path.exists(p):
-            continue
+            # recompute scores written under another judge fit (e.g. before a judge refit)
+            old = np.load(p)
+            if "judge_c2" in old.files and abs(float(old["judge_c2"]) - judge["c2_skill"]) < 1e-9:
+                continue
         t0 = time.time()
         sc = score_drafts(LB, acts, judge, truth)
         if a is not None:
             for side, s_ in (("a", a), ("b", b)):
                 wp, V = own_values(LB, acts, s_)
                 sc[f"own_wp_{side}"], sc[f"own_V_{side}"] = wp, V
+        sc["judge_c2"] = np.array(judge["c2_skill"])
         np.savez(p, **sc)
         print(f"scored {name} ({time.time() - t0:.0f}s)", flush=True)
 

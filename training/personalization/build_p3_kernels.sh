@@ -7,6 +7,7 @@
 #   (learned personal value net); the other builds are left untouched.
 #   bash personalization/build_p3_kernels.sh explore builds only cuda_explore
 #   (ban-step prior bias, player-aware opponent in the search).
+#   bash personalization/build_p3_kernels.sh ref     builds only the population reference.
 #   TORCH_CUDA_ARCH_LIST from the env (8.6 default; the 5090's env.sh: 12.0).
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -19,7 +20,8 @@ case "$TARGET" in
        MODS="cuda_personal:personal_kernel cuda_personal/ref:pop_ref_kernel cuda_prior:prior_kernel cuda_pgd:pgd_kernel" ;;
   pvnet) DIRS="cuda_pvnet"; MODS="cuda_pvnet:pvnet_kernel" ;;
   explore) DIRS="cuda_explore"; MODS="cuda_explore:explore_kernel" ;;
-  *) echo "usage: build_p3_kernels.sh [all|pvnet|explore]" >&2; exit 2 ;;
+  ref) DIRS="cuda_personal/ref"; MODS="cuda_personal/ref:pop_ref_kernel" ;;
+  *) echo "usage: build_p3_kernels.sh [all|pvnet|explore|ref]" >&2; exit 2 ;;
 esac
 echo "arch $TORCH_CUDA_ARCH_LIST target $TARGET"
 for d in $DIRS; do

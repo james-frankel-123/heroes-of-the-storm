@@ -110,7 +110,8 @@ class Lobbies:
             if v == "judge" and "rec_sum" in z.files:
                 ent["rec_sum"] = z["rec_sum"][rows.ravel()].reshape(n, 10, 90)
                 ent["rec_n"] = z["rec_n"][rows.ravel()].astype(np.float32).reshape(n, 10, 90)
-            if v == "cur":
+            if "n" in z.files:
+                # play counts as the state knows them (frozen states: at the cutoff); pools always use cur
                 ent["n"] = z["n"][rows.ravel()].astype(np.float32).reshape(n, 10, 90)
             self.state[v] = ent
         pool = self.state["cur"]["n"] > 0                 # environment: heroes played before the lobby
@@ -127,7 +128,7 @@ def ctx_for(LB, idx, acts, k, sysname, kseed):
     return {"acts": acts[idx], "k": k, "map": LB.map[idx], "tier": LB.tier[idx], "team_pool": LB.team_pool[idx],
             "pool_bits": LB.pool_bits[idx], "slot_of": LB.slot_of[idx], "s": st["s"][idx], "off": st["off"][idx],
             "real_acts": LB.real_acts[idx], "seed_i": idx.astype(np.int64), "kseed": kseed,
-            "n": LB.state["cur"]["n"][idx], "gi": LB.gi[idx], "src": LB.src[idx], "sd": st["sd"][idx]}
+            "n": st.get("n", LB.state["cur"]["n"])[idx], "gi": LB.gi[idx], "src": LB.src[idx], "sd": st["sd"][idx]}
 
 
 _ONESTEP = {}
@@ -221,6 +222,7 @@ SPOKES = {
     # drift, player-aware: stale all / player state frozen only
     "aMCTS-s4m": ["aMCTS-cur"], "aMCTS-s1y": ["aMCTS-cur"],
     "aMCTS-cur@s4m": ["aMCTS-cur"], "aMCTS-cur@s1y": ["aMCTS-cur"],
+    "aMCTS-pp@s4m": ["aMCTS-pp"], "aMCTS-pp@s1y": ["aMCTS-pp"],
     # less optimizing drafters under drift
     "pPol-s4m": ["pPol-cur"], "pPol-s1y": ["pPol-cur"],
     "a1step-s1y": ["a1step-cur", "p1step-s1y"], "p1step-s1y": ["p1step-cur"],
@@ -253,6 +255,8 @@ def schedule(name):
         for x in list(SY.explore_systems()) + TUNE_EXTRA:
             for o in TUNE_OPP:
                 pairs += [(x, o), (o, x)]
+    if name == "all":
+        pairs += schedule("ablation")
     if name in ("core", "all"):
         pairs += [(x, y) for x in CORE for y in CORE if x != y]
     if name in ("spokes", "all"):
@@ -284,6 +288,7 @@ def main():
     ap.add_argument("--kind", choices=["all", "onestep", "no-onestep"], default="all",
                     help="onestep: only pairs with a one-step system (CPU pool); no-onestep: the others")
     ap.add_argument("--systems", default="", help="comma list: keep pairs with at least one of these systems")
+    ap.add_argument("--exclude", default="", help="comma list of systems, or prefixes ending in *: drop pairs that use any")
     ap.add_argument("--only-ready", action="store_true", help="skip pairs whose vintages are not in p3t_vintages.json yet")
     a = ap.parse_args()
     if a.stage == "select":
@@ -297,6 +302,10 @@ def main():
     if a.systems:
         keep = set(a.systems.split(","))
         pairs = [p for p in pairs if keep & set(p)]
+    if a.exclude:
+        ex = a.exclude.split(",")
+        hit = lambda x: any(x == e or (e.endswith("*") and x.startswith(e[:-1])) for e in ex)
+        pairs = [p for p in pairs if not (hit(p[0]) or hit(p[1]))]
     has1 = lambda p: any(SY.SYSTEMS[x]["kind"] == "onestep" for x in p)
     if a.kind == "onestep":
         pairs = [p for p in pairs if has1(p)]

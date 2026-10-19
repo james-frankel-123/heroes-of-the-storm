@@ -400,7 +400,15 @@ extern "C" __global__ void mcts_episodes_kernel(
 
     // Thread-local RNG (only thread 0 uses it)
     curandState rng;
-    if (tid == 0) curand_init(base_seed + ep_idx, 0, 0, &rng);
+    // RNG fix (2026-10-19): a hashed per-episode seed (splitmix64) instead of base_seed + ep_idx
+    // with subsequence 0, whose neighbouring seeds give correlated first draws.
+    if (tid == 0) {
+        unsigned long long z = (unsigned long long)base_seed + 0x9E3779B97F4A7C15ULL * (unsigned long long)(ep_idx + 1);
+        z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+        z = z ^ (z >> 31);
+        curand_init(z, 0, 0, &rng);
+    }
 
     // Init draft state
     __shared__ DraftStateGPU main_state;
@@ -446,8 +454,15 @@ extern "C" __global__ void mcts_episodes_kernel(
             }
         }
         __syncthreads();
-        if (s_skip) continue;
-        if (s_team < 0) break;
+        // Race fix (2026-10-19): copy the flags, then a barrier, before branching. Without it
+        // thread 0 could rewrite s_skip/s_team for the next step (after a `continue`) before
+        // slower warps read them, putting warps one __syncthreads() out of step.
+        {
+            int l_skip = s_skip, l_team = s_team;
+            __syncthreads();
+            if (l_skip) continue;
+            if (l_team < 0) break;
+        }
 
         if (s_team == s_our_team) {
             // ═══ OUR TURN: MCTS SEARCH ═══

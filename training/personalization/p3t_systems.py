@@ -71,6 +71,9 @@ def system_table():
     # search over the behavioral (BC) prior: same leaf WP, statistics, GD and sims; only the prior differs
     # prior trained with player features (p3t_pprior): search and prior-only
     S["aMCTS-pp"] = dict(kind="mcts_pp", vint="cur", aware=1, prior="pprior")
+    # player-state upkeep for the strong player-aware drafter: state frozen at the vintage cutoff
+    S["aMCTS-pp@s4m"] = dict(kind="mcts_pp", vint="cur", aware=1, prior="pprior", state="s4m")
+    S["aMCTS-pp@s1y"] = dict(kind="mcts_pp", vint="cur", aware=1, prior="pprior", state="s1y")
     S["aPol-pp"] = dict(kind="policy_pp", vint="cur", aware=1, prior="pprior")
     # prior trained by self-play with sampled real rosters (p3t_selfplay)
     S["aMCTS-sp"] = dict(kind="mcts_pp", vint="cur", aware=1, prior="selfplay_prior")
@@ -511,7 +514,7 @@ def act_mcts_x(vint, ctx, x, device=0):
         # our bans: denial bias in the (otherwise unused) first row of the opponent team:
         # their best player's personal term on each hero (b2 * max_i s_ih)
         r = 5 * (1 - t)
-        bias[:, r] = lb * float(b[2]) * ctx["s"][:, 5 * (1 - t):5 * (1 - t) + 5].max(1)
+        bias[:, r] += lb * float(b[2]) * ctx["s"][:, 5 * (1 - t):5 * (1 - t) + 5].max(1)   # adds to a rich ban bias
         for j in range(16):
             if not IS_PICK[j] and DRAFT_TEAM[j] == t:
                 cfg[:, 24 + j] = r

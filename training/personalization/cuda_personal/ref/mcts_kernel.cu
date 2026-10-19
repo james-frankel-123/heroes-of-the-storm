@@ -204,7 +204,19 @@ extern "C" __global__ void mcts_episodes_kernel(
 
     // Thread-local RNG (only thread 0 uses it)
     curandState rng;
+#ifdef P3_HASHED_SEED
+    // Built for the P3 identity checks with the P3 kernels' hashed per-episode seed
+    // (splitmix64, 2026-10-19); otherwise unmodified.
+    if (tid == 0) {
+        unsigned long long z = (unsigned long long)base_seed + 0x9E3779B97F4A7C15ULL * (unsigned long long)(ep_idx + 1);
+        z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+        z = z ^ (z >> 31);
+        curand_init(z, 0, 0, &rng);
+    }
+#else
     if (tid == 0) curand_init(base_seed + ep_idx, 0, 0, &rng);
+#endif
 
     // Init draft state
     __shared__ DraftStateGPU main_state;

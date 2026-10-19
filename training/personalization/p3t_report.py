@@ -58,7 +58,10 @@ def main():
                ("pPol", "pPol-cur", {"4m": "pPol-s4m", "1y": "pPol-s1y"}),
                ("p1step", "p1step-cur", {"1y": "p1step-s1y"}),
                ("a1step", "a1step-cur", {"1y": "a1step-s1y"}),
-               ("aMCTS player state only", "aMCTS-cur", {"4m": "aMCTS-cur@s4m", "1y": "aMCTS-cur@s1y"})]
+               ("aMCTS player state only", "aMCTS-cur", {"4m": "aMCTS-cur@s4m", "1y": "aMCTS-cur@s1y"}),
+               ("aMCTS-pp player state only", "aMCTS-pp", {"4m": "aMCTS-pp@s4m", "1y": "aMCTS-pp@s1y"}),
+               ("pMCTS refreshed statistics", "pMCTS-cur", {"4m": "pMCTS-s4m-rs", "1y": "pMCTS-s1y-rs"}),
+               ("pMCTS fine-tuned", "pMCTS-cur", {"4m": "pMCTS-s4m-ft", "1y": "pMCTS-s1y-ft"})]
         for name, cur, st in fam:
             for lag, stale in st.items():
                 hk = f"{cur} vs {stale}"

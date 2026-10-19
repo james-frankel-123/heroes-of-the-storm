@@ -64,6 +64,10 @@ fetch_vintages() {
 
 for h in $CPU $GPU; do training/personalization/remote/p3t_sync.sh $h; done
 
+# 0. rebuild every P3 kernel (race-fixed 2026-10-19) and gate on determinism and parity (5090)
+run_gpu build bash personalization/remote/p3t_build_all.sh
+run_gpu determ $STEP p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py
+
 # 1. judge skill model: the main fit's settings on the other player half (5090 GPU, ~3 min)
 run_gpu flipfit env P3_CACHE=$B/cache_full P3_RESULTS=$B/results/rcf_full python -u personalization/p3_rcf.py fit \
   --tag full_ms_flip --hist merged --kmax 2 --metrics --gshare --hero-s2 --sb a_shrink --f64 --rounds 3 --iters 500 --flip-half
