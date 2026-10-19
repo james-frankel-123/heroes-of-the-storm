@@ -1,0 +1,25 @@
+{
+ "cur": {
+  "note": "paper 1's best MCTS (config F, 5 seeds, P1_TIERS=site), leaf WP enriched (selected seed), deploy stats + own composition table, p1site GD pool; population data through 2026-05-22",
+  "cutoff": "2026-05-22",
+  "policies": [
+   "paper1_revision/site/mcts_runs/F_oof_s0/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_oof_s1/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_oof_s2/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_oof_s3/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_oof_s4/draft_policy.pt"
+  ],
+  "wp_json": "paper1_revision/site/models/enriched.json",
+  "stats": "paper1_revision/site/cache/stats/deploy.json",
+  "comps": "paper1_revision/site/cache/stats/deploy_compositions.json",
+  "gds": [
+   "rerun2026/ns/p1site/models/generic_draft_0.pt",
+   "rerun2026/ns/p1site/models/generic_draft_1.pt",
+   "rerun2026/ns/p1site/models/generic_draft_2.pt",
+   "rerun2026/ns/p1site/models/generic_draft_3.pt",
+   "rerun2026/ns/p1site/models/generic_draft_4.pt"
+  ],
+  "state": "cur",
+  "combiner": null
+ }
+}

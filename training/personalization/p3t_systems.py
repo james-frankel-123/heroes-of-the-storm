@@ -1,0 +1,445 @@
+"""
+P3 tournament: drafting systems (actors) on real lobbies.
+
+Conventions (cuda_personal / p3_mcts_core): kernel team 0 is the real
+first-pick team; Storm League order (bans 0,1,0,1; picks 0,1,1,0,0; bans 1,0;
+picks 1,1,0,0,1); hero indices in shared.HEROES order. A draft is 16
+actions `acts` (kernel order, -1 = not yet taken).
+
+Lobby rules, the same for every system:
+  - a pick by team t must be in the union of its five players' pools
+    (heroes each played before the lobby day); if that leaves nothing, any
+    free hero; bans are free;
+  - the team picks; personal values use each team's best assignment of its
+    five heroes to its five players (team mode), so the real pick order
+    (who picked what) is never used.
+
+Vintages (p3t_vintages.json): the population side of a drafter (MCTS prior
+policy seeds, leaf WP with its statistics, GD opponent models) and the
+player state it reads (p3t_data state_<v>) plus its combiner
+V = sigmoid(b0 + b1 logit WP + b2 (S_ours - S_theirs) + b3 (O_ours - O_theirs)).
+
+Systems (SYSTEMS): kind x vintage x player-aware flag
+  mcts    decision-time search in the personal kernel (leaf = vintage WP,
+          plus the personal terms when aware), prior = the vintage's
+          paper-1 F policy (seed by draft), root argmax of visits
+  policy  the F policy argmax, no search (paper 1's tournament agent)
+  onestep p3_dr_drafter's one-step search (top 15 GD + top 15 personal
+          candidates, 4 GD rollouts each), WP = the vintage WP; bans GD argmax
+  gd      GD argmax (5-model average): behavioral cloning
+  real    the real lobby's actions, replayed when still legal (else GD argmax)
+"""
+import json
+import os
+import sys
+
+os.environ.setdefault("P1_TIERS", "site")   # paper-1 artifacts of the site-tier rebuild
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+TRAINING = os.path.dirname(HERE)
+sys.path.insert(0, TRAINING)
+sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(TRAINING, "cuda_mcts"))
+sys.path.insert(0, os.path.join(TRAINING, "overfit2026"))
+import numpy as np
+import torch
+
+H = 90
+DRAFT_TEAM = [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1]
+IS_PICK = [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1]
+SIMS = int(os.environ.get("P3T_SIMS", "400"))
+VFILE = os.path.join(HERE, "p3t_vintages.json")
+
+
+def tpath(p):
+    return p if os.path.isabs(p) else os.path.join(TRAINING, p)
+
+
+# ------------------------------------------------------------------ systems
+
+def system_table():
+    """name -> kind, vint (population side), aware, state (player state read
+    by the personal terms; default the vintage's own)."""
+    S = {}
+    for v in ("cur", "s4m", "s1y"):
+        S[f"pMCTS-{v}"] = dict(kind="mcts", vint=v, aware=0)
+        S[f"aMCTS-{v}"] = dict(kind="mcts", vint=v, aware=1)
+        S[f"pPol-{v}"] = dict(kind="policy", vint=v, aware=0)
+    for v in ("s4m", "s1y"):
+        # upkeep options of the player-blind search drafter under drift
+        S[f"pMCTS-{v}-rs"] = dict(kind="mcts", vint=f"{v}_rs", aware=0)   # stale weights, current stats tables
+        S[f"pMCTS-{v}-ft"] = dict(kind="mcts", vint=f"{v}_ft", aware=0)   # fine-tuned from the stale weights
+        # player-state upkeep: current population side, player state frozen at the vintage cutoff
+        S[f"aMCTS-cur@{v}"] = dict(kind="mcts", vint="cur", aware=1, state=v)
+    for v in ("cur", "s1y"):
+        S[f"a1step-{v}"] = dict(kind="onestep", vint=v, aware=1)
+        S[f"p1step-{v}"] = dict(kind="onestep", vint=v, aware=0)
+    S["GD"] = dict(kind="gd", vint="cur", aware=0)
+    S["Real"] = dict(kind="real", vint="cur", aware=0)
+    return S
+
+
+def vintage_state(v):
+    """The player state a vintage reads: its own cutoff (s4m_rs -> s4m)."""
+    return v.split("_")[0]
+
+
+SYSTEMS = system_table()
+
+
+# ------------------------------------------------------------------ vintages
+
+class Vintage:
+    """Population resources of one vintage (lazy)."""
+
+    def __init__(self, name, spec):
+        self.name, self.spec = name, spec
+        self._pol_flat, self._pol_net, self._gd, self._gd_flat = {}, {}, None, None
+        self._wp = None
+
+    @property
+    def n_seeds(self):
+        return len(self.spec["policies"])
+
+    def stats(self):
+        if not hasattr(self, "_st"):
+            from overfit2026 import feats
+            from paper1_revision import core
+            st = feats.stats_from_json(tpath(self.spec["stats"]), compositions=False)
+            st.comp_data = core.comps_from_json(tpath(self.spec["comps"]))
+            self._st = st
+        return self._st
+
+    def wp_model(self):
+        if self._wp is None:
+            from sweep_enriched_wp import WinProbEnrichedModel
+            from paper1_revision import core
+            meta = json.load(open(tpath(self.spec["wp_json"])))
+            cols = core.group_cols(meta["spec"]["groups"])
+            m = WinProbEnrichedModel(len(cols), meta["spec"]["arch"], dropout=0.3)
+            wdir = os.path.dirname(tpath(self.spec["wp_json"]))
+            name = os.path.basename(self.spec["wp_json"])[:-5]
+            m.load_state_dict(torch.load(os.path.join(wdir, f"{name}_s{meta['selected_seed']}.pt"),
+                                         map_location="cpu", weights_only=True))
+            m.eval()
+            self._wp = (m, np.asarray(cols))
+        return self._wp
+
+    def wcfg(self):
+        if not hasattr(self, "_wcfg"):
+            from extract_weights import extract_wp_weights, build_wp_net_offsets, extract_lookup_tables
+            m, cols = self.wp_model()
+            assert len(cols) == 283
+            wf, wn = extract_wp_weights(m)
+            wo = build_wp_net_offsets(m, wn, 283, use_enriched=True)
+            self._wcfg = (wf, wo, extract_lookup_tables(self.stats()))
+        return self._wcfg
+
+    def policy_flat(self, i):
+        if i not in self._pol_flat:
+            import search as S
+            self._pol_flat[i] = S.policy_flat("path:" + tpath(self.spec["policies"][i]))
+        return self._pol_flat[i]
+
+    def policy_net(self, i):
+        if i not in self._pol_net:
+            import search as S
+            self._pol_net[i] = S.policy_net("path:" + tpath(self.spec["policies"][i]))
+        return self._pol_net[i]
+
+    def gds(self):
+        if self._gd is None:
+            from train_generic_draft import GenericDraftModel
+            from extract_weights import extract_gd_weights
+            self._gd, self._gd_flat = [], []
+            for p in self.spec["gds"]:
+                g = GenericDraftModel()
+                g.load_state_dict(torch.load(tpath(p), weights_only=True, map_location="cpu"))
+                g.eval()
+                self._gd.append(g)
+                self._gd_flat.append(extract_gd_weights(g))
+        return self._gd
+
+    def gd_flat(self, i):
+        self.gds()
+        return self._gd_flat[i % len(self._gd_flat)]
+
+    def wp_drafts(self, rows):
+        """Symmetrized P(team0 wins) for rows [(team0 names, team1 names, map, tier)]."""
+        from paper1_revision import core
+        m, cols = self.wp_model()
+        sd = core.stats_dict(self.stats())
+        Xf, Xs = core._chunk((rows, sd))
+        with torch.no_grad():
+            a = m(torch.tensor(Xf[:, cols])).view(-1).numpy()
+            b = m(torch.tensor(Xs[:, cols])).view(-1).numpy()
+        return 0.5 * (a + 1 - b)
+
+
+_VINT = {}
+
+
+def vintage(name):
+    if name not in _VINT:
+        spec = json.load(open(VFILE))[name]
+        _VINT[name] = Vintage(name, spec)
+    return _VINT[name]
+
+
+# ------------------------------------------------------------------ state features
+
+def features(acts, k, map_i, tier_i, our_team):
+    """AlphaZeroDraftNet / GD input (290-d) at step k for drafts (B,16)."""
+    B = len(acts)
+    X = np.zeros((B, 290), np.float32)
+    for j in range(k):
+        h = acts[:, j]
+        if IS_PICK[j]:
+            X[np.arange(B), (H if DRAFT_TEAM[j] else 0) + h] = 1
+        else:
+            X[np.arange(B), 2 * H + h] = 1
+    X[np.arange(B), 3 * H + map_i] = 1
+    X[np.arange(B), 3 * H + 14 + tier_i] = 1
+    X[:, 287] = k / 15.0
+    X[:, 288] = float(IS_PICK[k])
+    X[:, 289] = our_team
+    return X
+
+
+def legal_mask(acts, k, team_pool):
+    """(B, H) legal actions at step k; team_pool (B, 2, H) bool."""
+    B = len(acts)
+    free = np.ones((B, H), bool)
+    for j in range(k):
+        free[np.arange(B), acts[:, j]] = False
+    if not IS_PICK[k]:
+        return free
+    m = free & team_pool[:, DRAFT_TEAM[k]]
+    empty = ~m.any(1)
+    m[empty] = free[empty]
+    return m
+
+
+def gd_probs(vint, X289, mask):
+    with torch.no_grad():
+        xt = torch.from_numpy(X289)
+        p = sum(torch.softmax(g(xt), 1) for g in vint.gds()) / len(vint.gds())
+    p = p.numpy() * mask
+    tot = p.sum(1, keepdims=True)
+    return np.where(tot > 0, p / np.maximum(tot, 1e-12), mask / mask.sum(1, keepdims=True))
+
+
+# ------------------------------------------------------------------ actors
+
+def act_gd(vint, ctx):
+    k = ctx["k"]
+    X = features(ctx["acts"], k, ctx["map"], ctx["tier"], DRAFT_TEAM[k])
+    m = legal_mask(ctx["acts"], k, ctx["team_pool"])
+    return gd_probs(vint, X[:, :289], m).argmax(1)
+
+
+def act_policy(vint, ctx):
+    k = ctx["k"]
+    X = features(ctx["acts"], k, ctx["map"], ctx["tier"], DRAFT_TEAM[k])
+    m = legal_mask(ctx["acts"], k, ctx["team_pool"])
+    out = np.empty(len(X), np.int64)
+    for i in np.unique(ctx["seed_i"] % vint.n_seeds):
+        sel = np.flatnonzero(ctx["seed_i"] % vint.n_seeds == i)
+        net = vint.policy_net(int(i))
+        with torch.no_grad():
+            logits, _ = net(torch.from_numpy(X[sel]), torch.from_numpy(m[sel].astype(np.float32)))
+        lg = logits.numpy()
+        out[sel] = np.where(m[sel], lg, -1e30).argmax(1)
+    return out
+
+
+def act_real(vint, ctx):
+    k = ctx["k"]
+    real = ctx["real_acts"][:, k]
+    m = legal_mask(ctx["acts"], k, np.ones_like(ctx["team_pool"]))
+    ok = m[np.arange(len(real)), real]
+    out = real.copy()
+    if (~ok).any():
+        sub = {kk: (v[~ok] if isinstance(v, np.ndarray) and v.shape[:1] == ok.shape else v) for kk, v in ctx.items()}
+        out[~ok] = act_gd(vint, sub)
+    ctx.setdefault("fallback", np.zeros(len(real), bool))[:] = ~ok
+    return out
+
+
+def kernel_module():
+    import p3_mcts_core as M
+    return M.personal_kernel()
+
+
+def act_mcts(vint, ctx, aware, device=0, kmod=None):
+    """Decide-only search at step k for each draft (grouped by prior seed)."""
+    import p3_mcts_core as M
+    kmod = kmod or kernel_module()
+    k = ctx["k"]
+    t = DRAFT_TEAM[k]
+    B = len(ctx["acts"])
+    cfg = np.full((B, M.CFG_LEN), -1, np.int32)
+    cfg[:, 0], cfg[:, 1], cfg[:, 2] = ctx["map"], ctx["tier"], t
+    cfg[:, 3], cfg[:, 4], cfg[:, 5], cfg[:, 6], cfg[:, 7] = 0, k, 1, 0, aware
+    cfg[:, 8:24] = np.where(np.arange(16)[None] < k, ctx["acts"], -1)
+    cfg[:, 24:40] = ctx["slot_of"]
+    cfg[:, 40:56] = -1
+    cfg[:, 56:M.CFG_LEN] = 0
+    cfg[:, M.CFG_ASSIGN] = 1
+    s, off = ctx["s"].astype(np.float32), ctx["off"].astype(np.float32)
+    imit = np.zeros_like(s)
+    pool = ctx["pool_bits"]
+    coefs = np.array(list(vint.spec["combiner"]) + [0.0], np.float32)
+    out = np.empty(B, np.int64)
+    wf, wo, lut = vint.wcfg()
+    seeds = ctx["seed_i"] % vint.n_seeds
+    for i in np.unique(seeds):
+        sel = np.flatnonzero(seeds == i)
+        pf, po = vint.policy_flat(int(i))
+        gf, go = vint.gd_flat(int(i))
+        for b0 in range(0, len(sel), 256):
+            ii = sel[b0:b0 + 256]
+            eng = kmod.PersonalEngine(pf, gf, wf, po, go, wo, lut, max_concurrent=len(ii), device_id=device)
+            r = eng.run(np.ascontiguousarray(cfg[ii]), np.ascontiguousarray(s[ii]), np.ascontiguousarray(off[ii]),
+                        np.ascontiguousarray(imit[ii]), np.ascontiguousarray(pool[ii]), coefs, SIMS, 2.0,
+                        int(ctx["kseed"] + 7919 * k + b0 + 104729 * int(i)), 0.0, 0.3, 0.0, 1,
+                        search_mode=1)
+            del eng
+            pol = r[5][:, 0, :]
+            legal = legal_mask(ctx["acts"][ii], k, ctx["team_pool"][ii])
+            out[ii] = np.where(legal, pol, -1.0).argmax(1)
+            bad = ~legal[np.arange(len(ii)), out[ii]]
+            assert not bad.any(), "kernel chose an illegal action"
+    return out
+
+
+class OneStep:
+    """p3_dr_drafter's one-step search with the vintage WP and GD (CPU pool)."""
+
+    def __init__(self, vint_name, procs):
+        self.v = vint_name
+        self.procs = procs
+        self.pool = None
+
+    def start(self):
+        import multiprocessing as mp
+        if self.pool is None:
+            self.pool = mp.get_context("fork").Pool(self.procs, initializer=_os_init, initargs=(self.v,))
+
+    def act(self, ctx, aware):
+        self.start()
+        k = ctx["k"]
+        if not IS_PICK[k]:
+            return act_gd(vintage(self.v), ctx)
+        tasks = [(ctx["dr_lob"][i], ctx["acts"][i], k, int(ctx["kseed"] + 31 * k + i), aware)
+                 for i in range(len(ctx["acts"]))]
+        return np.array(self.pool.map(_os_decide, tasks, chunksize=2), np.int64)
+
+    def close(self):
+        if self.pool is not None:
+            self.pool.close()
+            self.pool.join()
+            self.pool = None
+
+
+_OS = {}
+
+
+class _GDPol:
+    """GDPolicy interface of p3_dr_core over the vintage's GD models (shared order)."""
+
+    def __init__(self, vint):
+        self.models = vint.gds()
+        self.to_shared = np.arange(H)
+
+    def logprobs(self, t0, t1, bans, map_oh, tier_oh, step_num, step_type, avail):
+        B = t0.shape[0]
+        X = np.zeros((B, 289), np.float32)
+        X[:, :H], X[:, H:2 * H], X[:, 2 * H:3 * H] = t0, t1, bans
+        X[:, 3 * H:3 * H + 14] = map_oh
+        X[:, 284:287] = tier_oh
+        X[:, 287] = step_num / 15.0
+        X[:, 288] = step_type
+        with torch.no_grad():
+            p = sum(torch.softmax(m(torch.from_numpy(X)), 1) for m in self.models) / len(self.models)
+        p = np.where(avail, p.numpy(), 0.0)
+        tot = p.sum(1, keepdims=True)
+        p = np.where(tot > 0, p / np.maximum(tot, 1e-12), avail / np.maximum(avail.sum(1, keepdims=True), 1))
+        return np.log(np.maximum(p, 1e-12))
+
+
+class _WPv:
+    """WPEval interface of p3_dr_core over the vintage WP (shared order), cached."""
+
+    def __init__(self, vint):
+        from shared import HEROES
+        self.v = vint
+        self.names = HEROES
+        self.cache = {}
+
+    def wp(self, drafts, bidx, game_map, tier):
+        out = np.empty(len(drafts))
+        todo, idx = [], []
+        for i, (a, b) in enumerate(drafts):
+            ck = (game_map, tier, tuple(sorted(a)), tuple(sorted(b)))
+            v = self.cache.get(ck)
+            if v is None:
+                todo.append(ck)
+                idx.append(i)
+            else:
+                out[i] = v
+        if todo:
+            rows = [([self.names[h] for h in ck[2]], [self.names[h] for h in ck[3]], game_map, tier) for ck in todo]
+            p = self.v.wp_drafts(rows)
+            for ck, i, pv in zip(todo, idx, p):
+                self.cache[ck] = float(pv)
+                out[i] = pv
+            if len(self.cache) > 300000:
+                self.cache.clear()
+        return out
+
+
+def _os_init(vname):
+    torch.set_num_threads(1)
+    import p3_dr_drafter as DR
+    v = vintage(vname)
+    DR._W.update({"gd": _GDPol(v), "wp": _WPv(v), "iw0": 0.0})
+    DR.ASSIGN = "team"
+    _OS["DR"] = DR
+
+
+def _os_decide(task):
+    lob, acts, k, seed, aware = task
+    DR = _OS["DR"]
+    DR._W["b"] = np.asarray(lob["b"], float)
+    st = {"t0": {}, "t1": {}, "bans": set(), "taken": np.zeros(H, bool)}
+    for j in range(k):
+        st = DR._apply_ban(st, int(acts[j])) if not IS_PICK[j] else DR._apply(st, j, int(acts[j]), lob)
+    rng = np.random.RandomState(seed)
+    dd = DR._decide(st, k, lob, rng, "gd")
+    return int(dd["pers"] if aware else dd["pop"])
+
+
+def dr_lobby(kl, s, off, pool, b):
+    """p3_dr_drafter lobby payload in KERNEL team labels (team 0 = first pick).
+    Rows are kernel slots 0-9 (team t: 5t .. 5t+4; each pick step gets the
+    next slot of its team, a placeholder: team mode never uses it)."""
+    from shared import MAPS, SKILL_TIERS
+    steps, cnt = [], [0, 0]
+    for k in range(16):
+        t = DRAFT_TEAM[k]
+        if IS_PICK[k]:
+            steps.append((-1, 1, t, 5 * t + cnt[t]))
+            cnt[t] += 1
+        else:
+            steps.append((-1, 0, t, -1))
+    mo = np.zeros(14, np.float32)
+    mo[kl["map"]] = 1
+    to = np.zeros(3, np.float32)
+    to[kl["tier"]] = 1
+    team_rows = {t: list(range(5 * t, 5 * t + 5)) for t in (0, 1)}
+    return {"steps": steps, "map": MAPS[kl["map"]], "tier": SKILL_TIERS[kl["tier"]], "bidx": 0,
+            "mo": mo, "to": to, "s": {r: s[r] for r in range(10)},
+            "off": {r: off[r].astype(float) for r in range(10)},
+            "pool": {r: pool[r] for r in range(10)}, "team_rows": team_rows,
+            "team_pool": {t: np.any(pool[5 * t:5 * t + 5], axis=0) for t in (0, 1)}, "b": list(b)}

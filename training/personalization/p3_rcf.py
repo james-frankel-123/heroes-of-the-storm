@@ -359,6 +359,9 @@ def fit(a):
         assert np.array_equal(zm["players"], z["players"])
         z["X1"], z["C1"] = zm["X1"], zm["C1"]
     fitm = z["fit"]
+    if getattr(a, "flip_half", False):
+        # judges for the P3 tournament: the same fit on the OTHER player half
+        fitm = ~fitm
     use_m = a.metrics
     mets = [str(m) for m in z["metrics"]]
     Mn = len(mets)
@@ -1206,6 +1209,8 @@ def main():
     ap.add_argument("--f64", action="store_true")
     ap.add_argument("--cpu", action="store_true")
     ap.add_argument("--drop", default="")
+    ap.add_argument("--flip-half", action="store_true",
+                    help="fit on the phase-1 held-out half of players (the tournament judge's fit)")
     a = ap.parse_args()
     if a.ard and a.lam == 0:
         a.lam = 1.0
