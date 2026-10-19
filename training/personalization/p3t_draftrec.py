@@ -21,10 +21,13 @@ Architecture (as the paper and its released code, templates/draftrec.yaml):
   loss            per match, the 10 pick turns plus the two post-draft states
                   (one per team's perspective, value only):
                   lambda * CE(pick) + (1 - lambda) * BCE(outcome), lambda 0.1
-  training        Adam (lr 1e-3, L2 1e-5), grad-norm clip 5, cosine annealing
+  training        Adam (lr 2e-3, L2 1e-5), grad-norm clip 5, cosine annealing
                   over 10 epochs, dropout 0.1, d 128, 2 blocks per network,
-                  2 heads (head dim 64), FF 4d, pre-LN, GELU, ~512 samples
-                  per batch (43 matches x 12 states)
+                  2 heads (head dim 64), FF 4d, pre-LN, GELU; batch 512
+                  matches x 12 states = 6,144 samples (paper: 256 or 512
+                  samples, lr 1e-3; larger here because the shared GPU
+                  time-slices every kernel, so a step costs 0.1-0.4 s
+                  whatever its size; lr scaled by sqrt(batch) to 2e-3)
 Storm League adaptations (deviations, stated in the report):
   - no pre-draft role token in the match network (HotS has no assigned
     positions; the paper drops roles for Dota2 for the same reason); the hero's
@@ -89,8 +92,8 @@ BAN_TEAM = [DRAFT_TEAM[k] for k in BAN_STEPS]            # 0,1,0,1,1,0
 NB_BEFORE = [4] * 5 + [6] * 5                            # bans made before pick turn j
 NM = 15                                                  # scoreboard metrics
 
-CFG = dict(L=50, D=128, blocks=2, heads=2, dropout=0.1, lr=1e-3, wd=1e-5, lmbda=0.1, clip=5.0,
-           epochs=10, batch_matches=43, seed=0)
+CFG = dict(L=50, D=128, blocks=2, heads=2, dropout=0.1, lr=2e-3, wd=1e-5, lmbda=0.1, clip=5.0,
+           epochs=10, batch_matches=512, seed=0)
 
 
 def _dr_file(name):
@@ -236,10 +239,14 @@ def snapshot_games(d, sh):
     oko = (T_p == exp_p).all(1) & (B_t == exp_b).all(1)
     day = d["day"][np.maximum(P_row[:, 0], 0)]
     vs = [str(x) for x in d["versions"]]
-    keep = okp & okb & oks & okt_ & oko & (mp >= 0) & (tier >= 0) & (day >= TRAIN_START) & (day <= POP_END)
+    # 16 distinct heroes (a few source drafts list one hero twice)
+    allh = np.concatenate([np.maximum(P_h, 0), np.maximum(B_h, 0).astype(np.int64)], 1)
+    srt = np.sort(allh, 1)
+    okd = (srt[:, 1:] != srt[:, :-1]).all(1)
+    keep = okp & okb & oks & okt_ & oko & okd & (mp >= 0) & (tier >= 0) & (day >= TRAIN_START) & (day <= POP_END)
     print(f"snapshot: {len(rid):,} games with 10 ranked picks; kept {keep.sum():,} (picks {okp.mean():.3f}, "
-          f"bans {okb.mean():.3f}, map {oks.mean():.3f}, tier {okt_.mean():.3f}, order {oko[okp & okb].mean():.4f})",
-          flush=True)
+          f"bans {okb.mean():.3f}, map {oks.mean():.3f}, tier {okt_.mean():.3f}, order {oko[okp & okb].mean():.4f}, "
+          f"repeated hero {(~okd & okp & okb).sum():,} games dropped)", flush=True)
     assert SEALED not in vs or not (d["version"][P_row[keep].ravel()] == vs.index(SEALED)).any()
     rows = P_row[keep]
     y0 = (d["y"][rows[:, 0]] > 0.5).astype(np.int8)          # pick 0 is the first-pick team
@@ -261,7 +268,11 @@ def oot_games(d):
     kt = pk[:, :, 2] ^ first[:, None]
     assert (kt == np.array(PICK_TEAM)[None]).all()
     rows = pk[:, :, 3]
-    return dict(gi=gi, rid=L["replay_id"][gi], rows=rows, picks=pk[:, :, 0].astype(np.uint8),
+    srt = np.sort(st[:, :, 0], 1)
+    ok = (srt[:, 1:] != srt[:, :-1]).all(1)            # a few source drafts list one hero twice: not evaluated
+    print(f"OOT window: {len(gi):,} games, {int((~ok).sum())} with a repeated hero (kept for histories, not scored)",
+          flush=True)
+    return dict(gi=gi, ok=ok, rid=L["replay_id"][gi], rows=rows, picks=pk[:, :, 0].astype(np.uint8),
                 bans=st[:, BAN_STEPS, 0].astype(np.uint8),
                 map=np.array([MAPS.index(str(m)) for m in L["map"][gi]], np.int8),
                 tier=np.array([SKILL_TIERS.index(str(t)) for t in L["tier"][gi]], np.int8),
@@ -414,6 +425,8 @@ def build_model(cfg, n_roles):
             self.tier = nn.Embedding(3, D)
             self.register_buffer("pe_user", sinus(cfg["L"], D))
             self.register_buffer("pe_match", sinus(10, D))
+            self.register_buffer("pick_team", torch.tensor(PICK_TEAM), persistent=False)
+            self.register_buffer("persp12", torch.tensor(PICK_TEAM + [0, 1]), persistent=False)
             self.drop = nn.Dropout(p)
             self.ublocks = nn.ModuleList([Block(D, cfg["heads"], p) for _ in range(cfg["blocks"])])
             self.mblocks = nn.ModuleList([Block(D, cfg["heads"], p) for _ in range(cfg["blocks"])])
@@ -444,8 +457,7 @@ def build_model(cfg, n_roles):
             """U (B, 10, D) player representations in turn order; champ (B, 10)
             0 = masked / not yet picked else hero + 1; umask (B, 10) 1 = hide
             the history; mp, tr (B,). Returns final tokens (B, 10, D)."""
-            team = torch.tensor(PICK_TEAM, device=U.device)
-            x = self.hero(champ) + self.team(team)[None] + U * (1 - umask.unsqueeze(-1).to(U.dtype))
+            x = self.hero(champ) + self.team(self.pick_team)[None] + U * (1 - umask.unsqueeze(-1).to(U.dtype))
             x = x + (self.map(mp) + self.tier(tr)).unsqueeze(1)
             x = self.drop(x + self.pe_match[None])
             for b in self.mblocks:
@@ -457,7 +469,7 @@ def build_model(cfg, n_roles):
             return gelu(self.pol(q)) @ self.hero.weight[1:].T + self.pol_bias
 
         def value_logit(self, P):
-            t0 = (torch.tensor(PICK_TEAM, device=P.device) == 0).to(P.dtype)[None, :, None]
+            t0 = (self.pick_team == 0).to(P.dtype)[None, :, None]
             diff = (P * t0).sum(1) / 10 - (P * (1 - t0)).sum(1) / 10
             return self.v2(gelu(self.v1(diff))).squeeze(-1)
 
@@ -498,7 +510,7 @@ def to_device(G, device):
     return {k: torch.from_numpy(G[k].astype(np.float32 if k == "y0" else np.int64)).to(device) for k in keys}
 
 
-def match_states(Gt, b):
+def match_states(Gt, b, model):
     """The 12 training states of each match in batch rows b (tensor): turns
     1..10 (pick query at turn s) and the two post-draft states (perspective
     team 0, team 1). Returns tensors for model.match plus targets."""
@@ -511,8 +523,8 @@ def match_states(Gt, b):
     turn = torch.arange(12, device=device)
     vis = (j[None, :] < torch.clamp(turn, max=10)[:, None])                      # (12, 10) visible champions
     champ = torch.where(vis[None], picks[:, None, :] + 1, 0)                     # (B, 12, 10)
-    pt = torch.tensor(PICK_TEAM, device=device)
-    persp = torch.cat([pt, torch.tensor([0, 1], device=device)])                 # (12,)
+    pt = model.pick_team
+    persp = model.persp12                                                        # (12,)
     umask = (pt[None, :] != persp[:, None]).long()                               # (12, 10) hide the other team
     unav = torch.zeros(B, 10, H, dtype=torch.bool, device=device)
     for s in range(10):
@@ -530,7 +542,7 @@ def forward_batch(model, ts, Gt, b):
     B = len(b)
     hh, rr, ww, Z, zf = ts.gather(Gt["he"][b].view(-1), Gt["hn"][b].view(-1))
     U = model.players(hh, rr, ww, Z, zf).view(B, 10, -1)
-    S = match_states(Gt, b)
+    S = match_states(Gt, b, model)
     U12 = U.unsqueeze(1).expand(B, 12, 10, U.shape[-1]).reshape(B * 12, 10, -1)
     P = model.match(U12, S["champ"].reshape(B * 12, 10), S["umask"][None].expand(B, 12, 10).reshape(B * 12, 10),
                     Gt["map"][b].repeat_interleave(12), Gt["tier"][b].repeat_interleave(12))
@@ -599,7 +611,7 @@ def evaluate(model, ts, G, Gt, idx, device, bs=512):
     return out
 
 
-def pop_baseline(G, tr_idx, ev_idx):
+def pop_baseline(G, tr_idx, E, ev_idx):
     """Popularity (the paper's POP over all training picks) for scale."""
     cnt = np.bincount(G["picks"][tr_idx].ravel().astype(np.int64), minlength=H).astype(float)
     order = np.argsort(-cnt)
@@ -608,17 +620,17 @@ def pop_baseline(G, tr_idx, ev_idx):
     n = 0
     for g in ev_idx:
         av = np.ones(H, bool)
-        av[G["bans"][g][:4]] = False
+        av[E["bans"][g][:4]] = False
         for j in range(10):
             if j == 5:
-                av[G["bans"][g][4:]] = False
+                av[E["bans"][g][4:]] = False
             o = order[av[order]]
             rank_of[o] = np.arange(1, len(o) + 1)
-            r = rank_of[G["picks"][g][j]]
+            r = rank_of[E["picks"][g][j]]
             top1 += r == 1
             top5 += r <= 5
             n += 1
-            av[G["picks"][g][j]] = False
+            av[E["picks"][g][j]] = False
     return {"pick_top1": top1 / n, "pick_top5": top5 / n}
 
 
@@ -644,41 +656,47 @@ def stage_train(final=False, epochs=None, keep_epoch=None, max_games=None, devic
     tr = np.arange(len(G["day"])) if final else np.flatnonzero(G["day"] < VAL_START)
     if max_games:
         tr = tr[-max_games:]
-    oot = np.arange(len(O["day"]))
+    oot = np.flatnonzero(O["ok"])
     ts = TokStore(device, cfg["L"])
     Gt, Ot = to_device(G, device), to_device(O, device)
     print(f"tokens on {device} ({time.time() - t0:.0f}s); train {len(tr):,} games, val {len(val):,}, "
           f"OOT window {len(oot):,}", flush=True)
     model = build_model(cfg, int(fine_roles_shared().max()) + 1).to(device)
     nparam = sum(p.numel() for p in model.parameters())
-    opt = torch.optim.Adam(model.parameters(), lr=cfg["lr"], betas=(0.9, 0.999), weight_decay=cfg["wd"])
+    opt = torch.optim.Adam(model.parameters(), lr=cfg["lr"], betas=(0.9, 0.999), weight_decay=cfg["wd"],
+                           fused=device.type == "cuda")
+    lam = cfg["lmbda"]
+
+    def loss_fn(b):
+        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
+            lg, tgt, v = forward_batch(model, ts, Gt, b)
+        lp = torch.nn.functional.cross_entropy(lg.reshape(-1, H), tgt.reshape(-1))
+        lv = torch.nn.functional.binary_cross_entropy_with_logits(v, Gt["y0"][b][:, None].expand_as(v))
+        return lam * lp + (1 - lam) * lv, lp, lv
+
+    # few large fused kernels: the shared GPU time-slices each kernel launch
+    step_loss = torch.compile(loss_fn) if device.type == "cuda" else loss_fn
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=cfg["epochs"])
     tag = "final" if final else "val"
     res = {"cfg": cfg, "n_params": nparam, "train_games": int(len(tr)), "val_games": int(len(val)),
            "oot_games": int(len(oot)), "final": final, "epochs": []}
     best = (np.inf, -1)
     bm = cfg["batch_matches"]
-    lam = cfg["lmbda"]
     for ep in range(cfg["epochs"]):
         te = time.time()
-        perm = tr[rng.permutation(len(tr))]
+        perm = torch.as_tensor(tr[rng.permutation(len(tr))], device=device)
         tot = np.zeros(3)
         nb = 0
         for s in range(0, len(perm) - bm + 1, bm):
-            b = torch.as_tensor(perm[s:s + bm], device=device)
-            with torch.autocast("cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
-                lg, tgt, v = forward_batch(model, ts, Gt, b)
-            y = Gt["y0"][b]
-            lp = torch.nn.functional.cross_entropy(lg.reshape(-1, H), tgt.reshape(-1))
-            lv = torch.nn.functional.binary_cross_entropy_with_logits(v, y[:, None].expand_as(v))
-            loss = lam * lp + (1 - lam) * lv
+            b = perm[s:s + bm]
+            loss, lp, lv = step_loss(b)
             opt.zero_grad(set_to_none=True)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), cfg["clip"])
+            torch.nn.utils.clip_grad_norm_(model.parameters(), cfg["clip"], foreach=True)
             opt.step()
             tot += [loss.item(), lp.item(), lv.item()] if nb % 50 == 0 else 0
             nb += 1
-            if nb % 5000 == 0:
+            if nb % 500 == 0 or nb == 50:
                 print(f"  ep {ep} step {nb}: {(time.time() - te) / nb * 1000:.1f} ms/step", flush=True)
         sched.step()
         ent = {"epoch": ep + 1, "train_loss_sampled": (tot / max(1, (nb + 49) // 50)).round(4).tolist(),
@@ -702,7 +720,7 @@ def stage_train(final=False, epochs=None, keep_epoch=None, max_games=None, devic
     res["kept_epoch"] = keep
     import shutil
     shutil.copy(_dr_file(f"draftrec_{tag}_ep{keep}.pt"), _dr_file(f"draftrec_{tag}.pt"))
-    res["pop_baseline"] = {"val": pop_baseline(G, tr, val[:20000]), "oot": pop_baseline(G, tr, oot[:20000])}
+    res["pop_baseline"] = {"val": pop_baseline(G, tr, G, val[:20000]), "oot": pop_baseline(G, tr, O, oot[:20000])}
     res["gpu_hours"] = (time.time() - t0) / 3600
     json.dump(res, open(_dr_file(f"train_{tag}.json"), "w"), indent=1)
     print(f"TRAIN DONE {tag}: kept epoch {keep}; {res['gpu_hours']:.2f} h", flush=True)
@@ -970,7 +988,8 @@ def stage_teameval(n_games=20000, seed=0, gd=True):
     t0 = time.time()
     O = load_games("oot")
     rng = np.random.RandomState(seed)
-    sel = np.sort(rng.choice(len(O["day"]), min(n_games, len(O["day"])), replace=False))
+    okg = np.flatnonzero(O["ok"])
+    sel = np.sort(rng.choice(okg, min(n_games, len(okg)), replace=False))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     import p3t_data as TD
     inf = load_inference(device, hist_file="none")
@@ -1044,7 +1063,7 @@ def stage_gdplayer(n_games=20000, seed=0):
     out = {}
     for name in ("train", "oot"):
         G = load_games(name)
-        idx = np.flatnonzero(G["day"] >= VAL_START) if name == "train" else np.arange(len(G["day"]))
+        idx = np.flatnonzero(G["day"] >= VAL_START) if name == "train" else np.flatnonzero(G["ok"])
         rng = np.random.RandomState(seed)
         idx = np.sort(rng.choice(idx, min(n_games, len(idx)), replace=False))
         acts = np.zeros((len(idx), 16), np.int64)
