@@ -1,0 +1,112 @@
+{
+ "games": 60500,
+ "slots": 605000,
+ "share_slots": {
+  "a new to us": 0.26882314049586775,
+  "b new hero": 0.12675537190082645,
+  "established": 0.6044214876033058
+ },
+ "established_by_stale_n": {
+  "<10 (and still <10)": 0.24804793388429752,
+  "10-49": 0.16421487603305784,
+  "50-199": 0.12067438016528925,
+  "200+": 0.07148429752066116
+ },
+ "check_offset_reconstructs": null,
+ "established_no_new_games_on_hero_share": 0.1069702479338843,
+ "steps_forward": [
+  {
+   "step": "all stale (current draft model, year-old player state)",
+   "acc": 0.5835702479338843,
+   "ll_gain_vs_wp_x1000": 3.8336405609844526
+  },
+  {
+   "step": "+ (a) players new to us brought current",
+   "acc": 0.6055702479338843,
+   "ll_gain_vs_wp_x1000": 18.340711436826584
+  },
+  {
+   "step": "+ (b) heroes newly picked up brought current",
+   "acc": 0.6098677685950413,
+   "ll_gain_vs_wp_x1000": 22.974851931344297
+  },
+  {
+   "step": "+ (d) established cells: game counts (offset, off-role flag) current, no outcomes",
+   "acc": 0.6123801652892562,
+   "ll_gain_vs_wp_x1000": 25.056108661357435
+  },
+  {
+   "step": "+ (c) established cells, stale n 10-49: estimates current",
+   "acc": 0.6127272727272727,
+   "ll_gain_vs_wp_x1000": 25.47489789801638
+  },
+  {
+   "step": "+ (c) established cells, stale n <10, still thin: estimates current",
+   "acc": 0.6156198347107438,
+   "ll_gain_vs_wp_x1000": 28.079585299643163
+  },
+  {
+   "step": "+ (c) established cells, stale n 50-199: estimates current",
+   "acc": 0.6157685950413223,
+   "ll_gain_vs_wp_x1000": 28.40421577923602
+  },
+  {
+   "step": "+ (c) established cells, stale n 200+: estimates current",
+   "acc": 0.6151074380165289,
+   "ll_gain_vs_wp_x1000": 28.601180914851977
+  },
+  {
+   "step": "all current",
+   "acc": 0.6151074380165289,
+   "ll_gain_vs_wp_x1000": 28.601180914851977
+  }
+ ],
+ "steps_reverse": [
+  {
+   "step": "all stale",
+   "acc": 0.5835702479338843,
+   "ll_gain_vs_wp_x1000": 3.8336405609844526
+  },
+  {
+   "step": "+ (c) established estimates current, counts stale",
+   "acc": 0.5882479338842975,
+   "ll_gain_vs_wp_x1000": 8.038571592391186
+  },
+  {
+   "step": "+ (d) established counts current",
+   "acc": 0.5897520661157025,
+   "ll_gain_vs_wp_x1000": 9.365931775484615
+  },
+  {
+   "step": "+ (b) new heroes",
+   "acc": 0.5935206611570248,
+   "ll_gain_vs_wp_x1000": 13.591343248688602
+  },
+  {
+   "step": "+ (a) new to us",
+   "acc": 0.6151074380165289,
+   "ll_gain_vs_wp_x1000": 28.601180914851977
+  }
+ ],
+ "established_estimate_corr": {
+  "10-49": {
+   "corr_rest": 0.8576296821779391,
+   "sd_rest_old_pp": 2.4772815414372165,
+   "sd_rest_cur_pp": 2.4441613390280406,
+   "median_new_games_on_hero": 11.0
+  },
+  "50-199": {
+   "corr_rest": 0.9164325638972454,
+   "sd_rest_old_pp": 2.625620979370489,
+   "sd_rest_cur_pp": 2.6433898768918875,
+   "median_new_games_on_hero": 28.0
+  },
+  "200+": {
+   "corr_rest": 0.9612134392272746,
+   "sd_rest_old_pp": 3.0157608102865994,
+   "sd_rest_cur_pp": 3.012212185547374,
+   "median_new_games_on_hero": 101.0
+  }
+ },
+ "median_games_new_to_us_players_by_game": 37.0
+}

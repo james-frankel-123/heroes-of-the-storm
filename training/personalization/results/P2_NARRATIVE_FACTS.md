@@ -426,7 +426,7 @@ What we cannot say from this data:
 - **Player state frozen a year:** the full model drops from 61.5% to 58.4%. That is 3.2 points, two thirds of the 4.7 points the players add. In log loss it keeps only 13% of the player gain.
 - **Both a year stale:** 57.5%, a loss of 4.0 of the 11.5-point edge (35%).
 
-So on one clock, the player side goes stale much faster than the draft side. That is because a frozen player state misses new games, new heroes and new accounts. It is not mainly because skill changes (section 2).
+So on one clock, the player side goes stale much faster than the draft side. The decomposition below shows why: about 80% of the player-side loss is players and heroes the year-old state had never seen. Real changes in known players' skill cost almost nothing at one year.
 
 **Method.** This reuses the tournament agent's fixed vintages and models (`P3_TOURNAMENT.md`, "Vintages for drift"; `p3t_value.py predeval`). It adds the one combination that run did not score: current draft model with year-old player state. That cell was computed on the 3090 CPU from the tournament's saved state files; nothing was retrained.
 - **Games:** 60,500 real ranked games from 2026-05-23 to 06-30. The players are tournament-eligible: all ten have 50+ earlier games. That makes the personal gain a little larger than on V2.
@@ -462,6 +462,71 @@ Notes:
 - The fair player-side figure, holding the draft model current, is 33% in accuracy and 13% in log loss.
 - These are one vintage each, scored on one window, and the eligible players are heavier than average.
 - The drift paper's replay (section 1) averages over 2.8 years of builds; this table is one snapshot one year out. They agree on size: about a point of draft edge per year without retraining.
+
+### Why the player side loses more: a decomposition
+
+**Plain answer.** The player model's year-old state loses mostly because it does not know who is playing, not because known skills changed.
+- A quarter of the players in these games (27% of slots) had no games at all in our data a year earlier. Bringing only them up to date recovers 2.2 of the 3.2 points (about 70%).
+- Heroes players newly picked up (13% of slots) are worth another 0.4 points.
+- Updated game counts on already-known cells are worth 0.15 to 0.25.
+- Updated estimates on cells we already knew are worth 0.3 to 0.5, and nearly all of that is on cells with under 10 games a year earlier. On cells with 50 or more games a year earlier, a year of new results changes accuracy by −0.07 to +0.01 points: nothing measurable.
+
+The draft model has no such coverage gap:
+- all 90 heroes were known a year earlier;
+- every hero × tier cell already had at least 3,779 games, with a median of 37,919;
+- so its 1.2-point loss is all real change in quantities it already knew.
+
+**For the paper:** "The correlations measure how stable an effect is once it is known. On that score the two halves are similar. The accuracy lost by a stale model mostly measures coverage. The draft model's units are 90 heroes that never change and are measured on tens of thousands of games, so everything it loses is genuine drift. The player model's units are player-hero pairs, and those turn over: a quarter of the players in a typical game were not in the data a year earlier, and others have picked up new heroes. A year-old player model loses about two thirds of its value, and about 80% of that loss is people and heroes it has never seen. Real changes in known players' skill cost almost nothing at one year."
+
+**Method** (`p2f_stale_decomp.py`, 3090 CPU, hotsjob `p2f_stale_decomp`):
+- **Data:** the same 60,500 games as above, the current draft model and its combiner, and the tournament's saved player states (year-old and current).
+- **Swaps:** each slot's played-hero value is swapped from year-old to current in steps.
+- **Categories,** taken from the year-old state's history (corpus plus Heroes Profile rows):
+  - (a) the player had no games at all;
+  - (b) the player had history but under 10 games on this hero, and 10 or more by the game;
+  - otherwise "established".
+- **For established cells,** the value is split into:
+  - (d) the experience offset, which depends only on game counts and is recomputed at the current counts, with the off-role flag updated;
+  - (c) the rest: the skill estimate and layer, i.e. new evidence on known cells, which includes any real drift.
+- **Order:** both orders are reported, since the order shifts credit a little.
+
+| step (cumulative) | share of slots | accuracy | gain, points: forward order | gain, points: reverse order |
+|---|---|---|---|---|
+| all year-old (current draft model) | | 58.36% | | |
+| (a) players new to us | 26.9% | | **+2.20** | **+2.16** |
+| (b) heroes newly picked up | 12.7% | | +0.43 | +0.38 |
+| (d) established cells: counts only | 60.4% | | +0.25 | +0.15 |
+| (c) established cells: estimates | 60.4% | | +0.27 | +0.47 |
+| all current | | 61.51% | total +3.15 | total +3.15 |
+
+Step (c), forward order, split by the cell's games a year earlier:
+
+| games on the hero a year earlier | share of slots | gain, points | correlation of year-old vs current estimate | median new games on the hero |
+|---|---|---|---|---|
+| under 10, still under 10 | 24.8% | +0.29 | | |
+| 10-49 | 16.4% | +0.03 | 0.86 | 11 |
+| 50-199 | 12.1% | +0.01 | 0.92 | 28 |
+| 200+ | 7.1% | −0.07 | 0.96 | 101 |
+
+In log loss (gain over the draft model, ×1000; current state 28.6, year-old 3.8):
+- (a) is worth +14.5 (forward) or +15.0 (reverse);
+- (b) +4.6 or +4.2;
+- (d) +2.1 or +1.3;
+- (c) +3.5 or +4.2.
+
+The picture is the same.
+
+**The same accounting for the draft side.** Year-old draft model: 55.62% against 56.84% current, 1.22 points.
+
+| possible source | draft side | player side |
+|---|---|---|
+| units unknown to the stale model | 0 of 90 heroes; the pool has been fixed since December 2021 | 27% of slots are players with no history; 13% are newly picked-up heroes |
+| sample size a year earlier | every hero × tier cell 3,779+ games, median 37,919 (median 11,390 in the last year alone; sampling sd about 0.5 points) | under 10 games on the hero for 64% of slots (including the 27% with no history) |
+| real change in known units | all of the 1.22-point loss: hero win rates keep 0.85 correlation over a year (section 2) | about 0 on cells with 50+ games; at most 0.3 to 0.5 points over all known cells, mixed with sharper estimates |
+
+How the draft side's own 1.22 points splits between stale statistics and stale weights is in the drift paper's replay: refreshing statistics alone recovers about a third of the loss, and retraining recovers the rest. All of it is change in known quantities.
+
+Caveat: "new to us" means no games in our data before 2025-06-02. That covers new accounts, players who only appeared in our corpus later, and players whose full Heroes Profile history was not pulled. For a deployed system with full histories, part of (a) would be known. So (a) is partly a coverage problem of our data, not only of the world.
 
 ---
 
@@ -578,7 +643,7 @@ By depth bin, gain in points (SE):
 
 ## Files
 
-- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`, `p2f_more.py` (sections 8 to 10), `p2f_ladder.py` (the two new ladder arms, run on the 3090 CPU) and `p2f_stale_cell.py` (the year-stale table of section 7, run on the 3090 CPU against the tournament's saved states).
+- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`, `p2f_more.py` (sections 8 to 10), `p2f_ladder.py` (the two new ladder arms, run on the 3090 CPU), `p2f_stale_decomp.py` (section 7's decomposition, 3090 CPU) and `p2f_stale_cell.py` (the year-stale table of section 7, run on the 3090 CPU against the tournament's saved states).
 - Results: `training/personalization/results/p2f/*.json`.
 - Large inputs, all gitignored:
   - `cache/p2f_snapshot_games.npz`, a compact copy of the snapshot built by the game-clock script;
