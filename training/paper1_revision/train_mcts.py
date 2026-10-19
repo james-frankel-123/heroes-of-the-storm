@@ -39,7 +39,7 @@ def exclude_path():
     sys.path.insert(0, TRAINING_DIR)
     from paper1_revision import core
     p = os.path.join(core.CACHE, "mcts_pretrain_exclude.json")
-    if core.VINTAGE:
+    if core.VINT_FILTER:
         if not os.path.exists(p):
             vintage_exclude(p)
         return p
@@ -141,10 +141,20 @@ def main():
         if order != "mid_high_low":
             raise SystemExit(f"cuda_mcts kernel composition fallback is {order}; rebuild with "
                              "HOTS_COMP_FALLBACK_MID_HIGH_LOW=1 (remote_workers/build_ext.sh)")
+    init_policy = None
     if core.VINTAGE:
-        # stale vintage: the GD opponent trained on games at or before its cutoff
         from paper1_revision import vintage
-        GD_PATH = vintage.gd_path()
+        if vintage.is_ft():
+            # fine-tune continuation: current stats/GD, start from the vintage's policy
+            vs = vintage.spec()
+            episodes = vs["episodes"]
+            init_policy = odata.art(HERE, "vint", vs["base"], "mcts_runs", f"{a.config}_oof_s{a.seed}",
+                                    "draft_policy.pt")
+            if not a.resume and not os.path.exists(init_policy):
+                raise SystemExit(f"missing initial policy {init_policy}")
+        else:
+            # stale vintage: the GD opponent trained on games at or before its cutoff
+            GD_PATH = vintage.gd_path()
     if a.wp is None:
         a.wp = "naive" if a.config == "K" else "enriched"
     meta = json.load(open(os.path.join(core.MODEL_DIR, f"{a.wp}.json")))
@@ -177,6 +187,8 @@ def main():
         "PYTHONHASHSEED": str(a.seed),
         "P1R_RUN_SEED": str(a.seed),
     })
+    if init_policy:
+        env["MCTS_INIT_POLICY"] = init_policy
     if a.print_env:
         print(json.dumps({"name": name, "log": os.path.join(core.LOGS, f"mcts_{name}.log"),
                           "env": {k: v for k, v in env.items()
@@ -186,7 +198,8 @@ def main():
         return
     json.dump({"config": a.config, "sims": sims, "episodes": episodes, "seed": a.seed,
                "wp": wp, "stats": core.stats_path("deploy"),
-               **({"vintage": core.VINTAGE, "gd": GD_PATH} if core.VINTAGE else {})},
+               **({"vintage": core.VINTAGE, "gd": GD_PATH, "init_policy": init_policy}
+                  if core.VINTAGE else {})},
               open(os.path.join(save, "run_meta.json" if not a.resume else "run_meta_resume.json"), "w"),
               indent=1)
     log = open(os.path.join(core.LOGS, f"mcts_{name}.log"), "a" if a.resume else "w")

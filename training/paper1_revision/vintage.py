@@ -30,6 +30,14 @@ VINTAGES = {
     # 1 year stale (last game 2025-06-02)
     "s1y": {"cutoff": "2.55.10.94189", "last_game": "2025-06-02",
             "gd": "drift_v2/models/gd_era_2.55.10.94189/generic_draft_0.pt"},
+    # upkeep option (c), fine-tune: the vintage's WP fine-tuned on the train
+    # games after its cutoff, then MCTS continued from its s<seed> policy for
+    # `episodes` against that WP with the CURRENT site stats LUT + comps and
+    # the current p1site GD. Stats/features are the current site ones
+    # (core.CACHE unchanged, no split filter); models, runs and logs go to
+    # site/vint/<name>/.
+    "s4m_ft": {"ft": True, "base": "s4m", "episodes": 60000},
+    "s1y_ft": {"ft": True, "base": "s1y", "episodes": 60000},
 }
 
 NAME = os.environ.get("P1_VINTAGE", "")
@@ -43,6 +51,10 @@ _SC = None
 
 def spec(name=None):
     return VINTAGES[name or NAME]
+
+
+def is_ft(name=None):
+    return bool(spec(name).get("ft"))
 
 
 def gd_path(name=None):

@@ -60,13 +60,17 @@ if VINTAGE:
     if odata.TIER_SCHEME != "site":
         raise SystemExit("P1_VINTAGE needs P1_TIERS=site")
     from paper1_revision import vintage as _vint
-    CACHE = odata.art(HERE, "vint", VINTAGE, "cache")
-    STATS_DIR = os.path.join(CACHE, "stats")
-    FEAT_DIR = os.path.join(CACHE, "feats")
+    if not _vint.is_ft(VINTAGE):
+        CACHE = odata.art(HERE, "vint", VINTAGE, "cache")
+        STATS_DIR = os.path.join(CACHE, "stats")
+        FEAT_DIR = os.path.join(CACHE, "feats")
     MODEL_DIR = odata.art(HERE, "vint", VINTAGE, "models")
     RESULTS = odata.art(HERE, "vint", VINTAGE, "results")
     LOGS = odata.art(HERE, "vint", VINTAGE, "logs")
     MCTS_RUNS = odata.art(HERE, "vint", VINTAGE, "mcts_runs")
+# train/val restricted to builds <= the cutoff (a fine-tune vintage reads the
+# current site stats and features: no filter)
+VINT_FILTER = bool(VINTAGE) and not _vint.is_ft(VINTAGE)
 
 N_FOLDS = 5
 COMP_MIN_GAMES = 50       # own role-composition cell admitted at >= 50 games
@@ -112,7 +116,7 @@ def split_games():
             out["val"].append(g)
         else:
             out["train"].append(g)
-    if VINTAGE:
+    if VINT_FILTER:
         for k in ("train", "val"):
             out[k] = _vint.keep(out[k])
             _vint.check([g[0] for g in out[k]], f"split {k}")
@@ -169,7 +173,7 @@ def build_stats():
     for name, games in jobs.items():
         if os.path.exists(stats_path(name)):
             continue
-        if VINTAGE:
+        if VINT_FILTER:
             _vint.check([g[0] for g in games], f"stats {name}")
         t0 = time.time()
         js = stats_json(counts_for(games), {"subset": name, "games_used": len(games)})
@@ -297,7 +301,7 @@ def build_features(which=("train_oof", "train_leak", "val", "test", "test_hp",
             Xf, Xs = featurize(rows_of(games), load_stats("hp"))
         else:
             raise ValueError(name)
-        if VINTAGE and name in ("train_oof", "train_leak", "val"):
+        if VINT_FILTER and name in ("train_oof", "train_leak", "val"):
             _vint.check([g[0] for g in games], f"features {name}")
         np.savez(path, Xf=Xf, Xs=Xs, y=labels(games),
                  rid=np.array([g[0] for g in games]),

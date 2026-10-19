@@ -86,6 +86,9 @@ WP_PATH_OVERRIDE = os.environ.get("MCTS_WP_PATH", "")
 GD_PATH_OVERRIDE = os.environ.get("MCTS_GD_PATH", "")
 WP_ZERO_GROUPS = [g for g in os.environ.get("MCTS_WP_ZERO_GROUPS", "").split(",") if g]
 EXCLUDE_IDS_PATH = os.environ.get("MCTS_EXCLUDE_IDS", "")
+# MCTS_INIT_POLICY=<draft_policy.pt>: a fresh run starts from these policy
+# weights (no GD bootstrap, no value pretraining). Unset = historical behavior.
+INIT_POLICY = os.environ.get("MCTS_INIT_POLICY", "")
 # MCTS_VALUE_PRETRAIN=0 skips value-head pretraining on replay outcomes (default 1,
 # historical behavior). Production sets 0: with the backbone frozen at random init
 # the head collapses to a constant 0.5 (loss 0.2500, measured 2026-10-03), and the
@@ -293,6 +296,12 @@ def main():
         start_episode = ckpt.get('episode', 0)
         best_eval_wp = ckpt.get('best_eval_wp', 0.0)
         print(f"Resumed: episode {start_episode}, best_wp={best_eval_wp:.4f}")
+    elif INIT_POLICY:
+        # continuation (fine-tune) run: start from a trained policy's weights
+        # instead of the GD bootstrap + value pretraining; fresh optimizer,
+        # schedule and replay buffer
+        network.load_state_dict(torch.load(INIT_POLICY, map_location=device, weights_only=True))
+        print(f"Initial policy weights from {INIT_POLICY} (no GD bootstrap, no value pretraining)")
     else:
         if EXCLUDE_IDS_PATH:
             # rerun2026: pin value-head pretraining to the 2.55-filtered snapshot
