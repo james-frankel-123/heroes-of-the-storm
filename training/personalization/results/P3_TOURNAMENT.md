@@ -17,6 +17,10 @@ Status: in progress. This first version records the design and the primary compa
   - the drafters' own valuations (model-internal).
   - Every number is labeled as model-judged, judge-free (realized later outcomes) or model-internal.
 
+**Secondary comparison** (added before the tournament ran, after a decision probe; see "Search prior" below):
+- Contrast: `aMCTS-bc` against `pMCTS-bc`, the same search over the behavioral (BC) prior.
+- Metric, judge and interval: as for the primary comparison.
+
 ## Design (fixed before the tournament)
 
 **Windows.**
@@ -51,6 +55,7 @@ Lobby rules, the same for every system:
 |---|---|
 | `pMCTS-cur` | paper 1's best MCTS (config F, 5 seeds, leak-free enriched WP, deploy statistics, chance-node search, mid_high_low composition fallback), searching at decision time (400 sims) with the population leaf |
 | `aMCTS-cur` | the same search with the personal leaf V = sigmoid(b0 + b1 logit WP + b2 (S_ours − S_theirs) + b3 (O_ours − O_theirs)). The term sits inside the CUDA kernel (`cuda_personal`, assign mode): a per-lobby leaf adjustment, with no retraining |
+| `pMCTS-bc`, `aMCTS-bc` | the same search with the outcome-free behavioral prior (train-window BC policy) in place of the F policy |
 | `pPol-cur` | the F policy argmax, no search (paper 1's tournament agent) |
 | `a1step-cur`, `p1step-cur` | the one-step drafter (top 15 GD plus top 15 personal candidates, 4 GD rollouts each), aware and blind, with the same WP |
 | `GD` | behavioral cloning, argmax |
@@ -81,3 +86,19 @@ Player-state upkeep: `aMCTS-cur@s4m` and `aMCTS-cur@s1y` use the current populat
 - Bradley–Terry strengths on all pairs with bootstrap CIs;
 - crossed random effects for the two sides' seeds;
 - degenerate-team, healer and off-role rates.
+
+## Search prior: a player-blind trained prior hides the personal leaf (probe, before the tournament)
+
+Probe setup (`p3t_probe.py`): 500 tournament-window lobbies outside the tournament set, all 10 real pick states each (5,000 decisions). At each state two decide-only searches run with the same seeds, personal leaf on and off. The table is model-internal.
+
+| search prior | sims | picks where aware and blind differ | aware search's own Q gain when they differ (pp) | root visit entropy, blind (nats) | GPU seconds per 1,000 decisions (5090) |
+|---|---|---|---|---|---|
+| paper-1 F policy | 400 | 4.4% | +5.1 | 0.44 | 4.3 |
+| paper-1 F policy | 1,600 | 8.6% | +5.0 | 0.43 | 15.4 |
+| behavioral (BC) | 400 | 59.9% | +6.6 | 2.69 | 3.7 |
+| behavioral (BC) | 1,600 | 64.8% | +6.7 | 2.79 | 14.0 |
+
+- The F policy was trained by self-play against a player-blind value. It is sharp: the blind search puts almost all visits on one or two heroes. A personal term added only at the leaf moves 4 to 9% of picks.
+- Over a flat behavioral prior the same leaf moves about 60% of picks.
+- So "train player-blind, add the personal term at the leaf" works only when the prior leaves room for search.
+- The tournament therefore carries both priors. A third arm, a prior trained with player features (`aMCTS-pp`), follows when its training finishes.

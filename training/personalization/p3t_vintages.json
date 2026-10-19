@@ -20,6 +20,37 @@
    "rerun2026/ns/p1site/models/generic_draft_4.pt"
   ],
   "state": "cur",
-  "combiner": null
+  "combiner": [
+   0.0,
+   1.2015651731611285,
+   4.540632118348097,
+   -0.01470161729888318
+  ],
+  "combiner_note": "p3t_value combfit: 5,397 held-out games 2026-02-11..05-22 (paper-1 test/val splits + post-snapshot uploads), b0 set to 0 (side constant, no effect on decisions); fitted b0 -0.029"
+ },
+ "cur_bc": {
+  "note": "cur with the behavioral prior: the train-window BC policy (games before 2026-02-10, outcome-free) as the search prior; leaf WP, statistics, GD and combiner of cur",
+  "cutoff": "2026-05-22",
+  "policies": [
+   "personalization/cache/gd_trainonly/bc_prior.pt"
+  ],
+  "wp_json": "paper1_revision/site/models/enriched.json",
+  "stats": "paper1_revision/site/cache/stats/deploy.json",
+  "comps": "paper1_revision/site/cache/stats/deploy_compositions.json",
+  "gds": [
+   "rerun2026/ns/p1site/models/generic_draft_0.pt",
+   "rerun2026/ns/p1site/models/generic_draft_1.pt",
+   "rerun2026/ns/p1site/models/generic_draft_2.pt",
+   "rerun2026/ns/p1site/models/generic_draft_3.pt",
+   "rerun2026/ns/p1site/models/generic_draft_4.pt"
+  ],
+  "state": "cur",
+  "combiner": [
+   0.0,
+   1.2015651731611285,
+   4.540632118348097,
+   -0.01470161729888318
+  ],
+  "combiner_note": "p3t_value combfit: 5,397 held-out games 2026-02-11..05-22 (paper-1 test/val splits + post-snapshot uploads), b0 set to 0 (side constant, no effect on decisions); fitted b0 -0.029"
  }
 }

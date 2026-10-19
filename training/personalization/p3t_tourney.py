@@ -181,7 +181,7 @@ def play(LB, a, b, device=0):
 
 # ------------------------------------------------------------------ schedules
 
-CORE = ["aMCTS-cur", "pMCTS-cur", "pPol-cur", "a1step-cur", "p1step-cur", "GD", "Real"]
+CORE = ["aMCTS-cur", "pMCTS-cur", "aMCTS-bc", "pMCTS-bc", "pPol-cur", "a1step-cur", "p1step-cur", "GD", "Real"]
 PANEL = ["aMCTS-cur", "pMCTS-cur", "pPol-cur", "GD", "Real"]
 SPOKES = {
     # drift, population side: stale all / refreshed stats / fine-tune ; full retrain = pMCTS-cur

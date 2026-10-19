@@ -65,6 +65,9 @@ def system_table():
         S[f"pMCTS-{v}"] = dict(kind="mcts", vint=v, aware=0)
         S[f"aMCTS-{v}"] = dict(kind="mcts", vint=v, aware=1)
         S[f"pPol-{v}"] = dict(kind="policy", vint=v, aware=0)
+    # search over the behavioral (BC) prior: same leaf WP, statistics, GD and sims; only the prior differs
+    S["pMCTS-bc"] = dict(kind="mcts", vint="cur_bc", aware=0)
+    S["aMCTS-bc"] = dict(kind="mcts", vint="cur_bc", aware=1)
     for v in ("s4m", "s1y"):
         # upkeep options of the player-blind search drafter under drift
         S[f"pMCTS-{v}-rs"] = dict(kind="mcts", vint=f"{v}_rs", aware=0)   # stale weights, current stats tables
@@ -80,7 +83,7 @@ def system_table():
 
 
 def vintage_state(v):
-    """The player state a vintage reads: its own cutoff (s4m_rs -> s4m)."""
+    """The player state a vintage reads: its own cutoff (s4m_rs -> s4m; cur_bc -> cur)."""
     return v.split("_")[0]
 
 
