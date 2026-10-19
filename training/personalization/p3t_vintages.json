@@ -443,5 +443,59 @@
    0.0,
    0.0
   ]
+ },
+ "cur_split": {
+  "note": "cur with the split-history drafter state (odd-day evidence only, no layer); combiner refit on that state",
+  "cutoff": "2026-05-22",
+  "policies": [
+   "paper1_revision/site/mcts_runs/F_oof_s0/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_oof_s1/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_oof_s2/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_oof_s3/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_oof_s4/draft_policy.pt"
+  ],
+  "wp_json": "paper1_revision/site/models/enriched.json",
+  "stats": "paper1_revision/site/cache/stats/deploy.json",
+  "comps": "paper1_revision/site/cache/stats/deploy_compositions.json",
+  "gds": [
+   "rerun2026/ns/p1site/models/generic_draft_0.pt",
+   "rerun2026/ns/p1site/models/generic_draft_1.pt",
+   "rerun2026/ns/p1site/models/generic_draft_2.pt",
+   "rerun2026/ns/p1site/models/generic_draft_3.pt",
+   "rerun2026/ns/p1site/models/generic_draft_4.pt"
+  ],
+  "state": "cur",
+  "combiner": [
+   0.0,
+   1.2022820610144296,
+   4.696019773212882,
+   -0.023128494827192935
+  ],
+  "combiner_note": "p3t_value combfit split: 5397 games; b0 0 (fitted -0.0282)"
+ },
+ "cur_bc_split": {
+  "note": "cur_bc with the split-history drafter state (odd-day evidence only, no layer); combiner refit on that state",
+  "cutoff": "2026-05-22",
+  "policies": [
+   "personalization/cache/gd_trainonly/bc_prior.pt"
+  ],
+  "wp_json": "paper1_revision/site/models/enriched.json",
+  "stats": "paper1_revision/site/cache/stats/deploy.json",
+  "comps": "paper1_revision/site/cache/stats/deploy_compositions.json",
+  "gds": [
+   "rerun2026/ns/p1site/models/generic_draft_0.pt",
+   "rerun2026/ns/p1site/models/generic_draft_1.pt",
+   "rerun2026/ns/p1site/models/generic_draft_2.pt",
+   "rerun2026/ns/p1site/models/generic_draft_3.pt",
+   "rerun2026/ns/p1site/models/generic_draft_4.pt"
+  ],
+  "state": "cur",
+  "combiner": [
+   0.0,
+   1.2022820610144296,
+   4.696019773212882,
+   -0.023128494827192935
+  ],
+  "combiner_note": "p3t_value combfit split: 5397 games; b0 0 (fitted -0.0282)"
  }
 }

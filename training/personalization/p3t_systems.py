@@ -91,6 +91,9 @@ def system_table():
     for v in ("cur", "s1y"):
         S[f"a1step-{v}"] = dict(kind="onestep", vint=v, aware=1)
         S[f"p1step-{v}"] = dict(kind="onestep", vint=v, aware=0)
+    # DraftRec (Lee et al. 2022) reimplemented on our data (p3t_draftrec): pick head, and the paper's p+v rule
+    S["DraftRec"] = dict(kind="draftrec", vint="cur", aware=1, mode="p")
+    S["DraftRec-pv"] = dict(kind="draftrec", vint="cur", aware=1, mode="pv")
     S["GD"] = dict(kind="gd", vint="cur", aware=0)
     S["Real"] = dict(kind="real", vint="cur", aware=0)
     return S

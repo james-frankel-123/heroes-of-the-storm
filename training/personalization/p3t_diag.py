@@ -32,12 +32,16 @@ PICK_T = [(k, t) for k, t in zip(range(16), [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1,
           if k in (4, 5, 6, 7, 8, 11, 12, 13, 14, 15)]
 
 
+SPLIT = os.environ.get("P3T_SPLIT") == "1"
+DST, JST = ("splitd", "splitj") if SPLIT else ("cur", "judge")
+
+
 def side_sums(LB, acts, b2, b3, c2, c3):
     n = len(acts)
     SD = np.zeros((n, 2))
     SJ = np.zeros((n, 2))
-    sd, od = LB.state["cur"]["s"], LB.state["cur"]["off"].astype(float)
-    sj, oj = LB.state["judge"]["s"], LB.state["judge"]["off"].astype(float)
+    sd, od = LB.state[DST]["s"], LB.state[DST]["off"].astype(float)
+    sj, oj = LB.state[JST]["s"], LB.state[JST]["off"].astype(float)
     for i in range(n):
         for t in (0, 1):
             hs = [acts[i, k] for k, tt in PICK_T if tt == t]
@@ -56,9 +60,9 @@ def main():
     import p3t_systems as SY
     import p3t_tourney as TT
     LB = TT.Lobbies()
-    judge = json.load(open(os.path.join(C.RESULTS, "p3t", "judge.json")))
+    judge = json.load(open(os.path.join(C.RESULTS, "p3t", "judge_split.json" if SPLIT else "judge.json")))
     c2, c3 = judge["c2_skill"], judge["c3_offrole"]
-    b = SY.vintage("cur").spec["combiner"]
+    b = SY.vintage("cur_split" if SPLIT else "cur").spec["combiner"]
     out = {"b2_drafter": b[2], "c2_judge": c2}
     SDr, SJr = side_sums(LB, LB.real_acts, b[2], b[3], c2, c3)
     out["real"] = {"S_D_pp": round(100 * SDr.mean(), 3), "S_J_pp": round(100 * SJr.mean(), 3),
@@ -92,7 +96,7 @@ def main():
             inpool.append(bool(LB.team_pool[i, t, LB.real_acts[i, k]]))
     out["real_picks_in_team_pool"] = float(np.mean(inpool))
     print(json.dumps({k: v for k, v in out.items() if k != "systems"}, indent=1))
-    json.dump(out, open(os.path.join(C.RESULTS, "p3t", "diag.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(C.RESULTS, "p3t", "diag_split.json" if SPLIT else "diag.json"), "w"), indent=1)
 
 
 if __name__ == "__main__":

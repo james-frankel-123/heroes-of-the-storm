@@ -57,7 +57,7 @@ def attenuation():
     (p3t_diag). The judge sees only 2.5 months of later games, so its skill
     estimates are shrunk harder than the drafter's; a calibrated judge then
     credits about lambda of a true personal difference."""
-    p = os.path.join(RES, "diag.json")
+    p = os.path.join(RES, "diag_split.json" if SPLIT else "diag.json")
     return json.load(open(p))["real"]["slope_SJ_on_SD"] if os.path.exists(p) else None
 
 

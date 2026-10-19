@@ -1,0 +1,144 @@
+{
+ "b2_drafter": 4.696019773212882,
+ "c2_judge": 4.4151033397055555,
+ "real": {
+  "S_D_pp": 1.332,
+  "S_J_pp": 2.318,
+  "slope_SJ_on_SD": 0.712,
+  "corr": 0.722
+ },
+ "systems": {
+  "GD": {
+   "S_D_pp": -5.537,
+   "S_J_pp": -5.522,
+   "S_D_minus_real_pp": -6.868,
+   "S_J_minus_real_pp": -7.84,
+   "slope_SJ_on_SD": 0.869
+  },
+  "Real": {
+   "S_D_pp": 0.331,
+   "S_J_pp": 1.066,
+   "S_D_minus_real_pp": -1.001,
+   "S_J_minus_real_pp": -1.251,
+   "slope_SJ_on_SD": 0.761
+  },
+  "a1step-cur": {
+   "S_D_pp": 5.959,
+   "S_J_pp": 4.921,
+   "S_D_minus_real_pp": 4.628,
+   "S_J_minus_real_pp": 2.603,
+   "slope_SJ_on_SD": 0.834
+  },
+  "a1step-s1y": {
+   "S_D_pp": 1.7,
+   "S_J_pp": 1.012,
+   "S_D_minus_real_pp": 0.368,
+   "S_J_minus_real_pp": -1.306,
+   "slope_SJ_on_SD": 0.875
+  },
+  "a1step@split": {
+   "S_D_pp": 6.269,
+   "S_J_pp": 3.437,
+   "S_D_minus_real_pp": 4.937,
+   "S_J_minus_real_pp": 1.119,
+   "slope_SJ_on_SD": 0.828
+  },
+  "aMCTS-bc": {
+   "S_D_pp": 2.678,
+   "S_J_pp": 2.097,
+   "S_D_minus_real_pp": 1.346,
+   "S_J_minus_real_pp": -0.221,
+   "slope_SJ_on_SD": 0.82
+  },
+  "aMCTS-bc@split": {
+   "S_D_pp": 2.797,
+   "S_J_pp": 1.092,
+   "S_D_minus_real_pp": 1.465,
+   "S_J_minus_real_pp": -1.226,
+   "slope_SJ_on_SD": 0.806
+  },
+  "aMCTS-cur": {
+   "S_D_pp": -12.544,
+   "S_J_pp": -11.945,
+   "S_D_minus_real_pp": -13.876,
+   "S_J_minus_real_pp": -14.262,
+   "slope_SJ_on_SD": 0.881
+  },
+  "aMCTS-cur@s1y": {
+   "S_D_pp": -12.399,
+   "S_J_pp": -11.842,
+   "S_D_minus_real_pp": -13.731,
+   "S_J_minus_real_pp": -14.159,
+   "slope_SJ_on_SD": 0.894
+  },
+  "aMCTS-cur@s4m": {
+   "S_D_pp": -12.222,
+   "S_J_pp": -11.654,
+   "S_D_minus_real_pp": -13.554,
+   "S_J_minus_real_pp": -13.972,
+   "slope_SJ_on_SD": 0.894
+  },
+  "aMCTS-pp": {
+   "S_D_pp": 7.441,
+   "S_J_pp": 6.959,
+   "S_D_minus_real_pp": 6.109,
+   "S_J_minus_real_pp": 4.641,
+   "slope_SJ_on_SD": 0.806
+  },
+  "aMCTS-vn": {
+   "S_D_pp": 3.455,
+   "S_J_pp": 2.826,
+   "S_D_minus_real_pp": 2.123,
+   "S_J_minus_real_pp": 0.508,
+   "slope_SJ_on_SD": 0.818
+  },
+  "aPol-pp": {
+   "S_D_pp": 5.415,
+   "S_J_pp": 5.357,
+   "S_D_minus_real_pp": 4.083,
+   "S_J_minus_real_pp": 3.04,
+   "slope_SJ_on_SD": 0.779
+  },
+  "p1step-cur": {
+   "S_D_pp": -4.615,
+   "S_J_pp": -4.933,
+   "S_D_minus_real_pp": -5.946,
+   "S_J_minus_real_pp": -7.251,
+   "slope_SJ_on_SD": 0.866
+  },
+  "p1step-s1y": {
+   "S_D_pp": -6.756,
+   "S_J_pp": -7.034,
+   "S_D_minus_real_pp": -8.088,
+   "S_J_minus_real_pp": -9.352,
+   "slope_SJ_on_SD": 0.879
+  },
+  "pMCTS-bc": {
+   "S_D_pp": -7.773,
+   "S_J_pp": -7.662,
+   "S_D_minus_real_pp": -9.104,
+   "S_J_minus_real_pp": -9.98,
+   "slope_SJ_on_SD": 0.869
+  },
+  "pMCTS-cur": {
+   "S_D_pp": -13.465,
+   "S_J_pp": -12.854,
+   "S_D_minus_real_pp": -14.797,
+   "S_J_minus_real_pp": -15.172,
+   "slope_SJ_on_SD": 0.882
+  },
+  "pPol-cur": {
+   "S_D_pp": -13.568,
+   "S_J_pp": -12.846,
+   "S_D_minus_real_pp": -14.9,
+   "S_J_minus_real_pp": -15.164,
+   "slope_SJ_on_SD": 0.881
+  }
+ },
+ "team_pool_size": {
+  "median": 87.0,
+  "p10": 76.0,
+  "p90": 90.0
+ },
+ "real_picks_in_team_pool": 0.9993333333333333
+}

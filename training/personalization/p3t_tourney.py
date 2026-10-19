@@ -119,7 +119,7 @@ def ctx_for(LB, idx, acts, k, sysname, kseed):
     return {"acts": acts[idx], "k": k, "map": LB.map[idx], "tier": LB.tier[idx], "team_pool": LB.team_pool[idx],
             "pool_bits": LB.pool_bits[idx], "slot_of": LB.slot_of[idx], "s": st["s"][idx], "off": st["off"][idx],
             "real_acts": LB.real_acts[idx], "seed_i": idx.astype(np.int64), "kseed": kseed,
-            "n": LB.state["cur"]["n"][idx]}
+            "n": LB.state["cur"]["n"][idx], "gi": LB.gi[idx], "src": LB.src[idx]}
 
 
 _ONESTEP = {}
@@ -135,6 +135,9 @@ def act(sysname, ctx, LB, idx, device):
         return SY.act_policy(v, ctx)
     if kind == "mcts_pp":
         return SY.act_mcts(v, ctx, spec["aware"], device=device, pp=True, prior=spec["prior"])
+    if kind == "draftrec":
+        import p3t_draftrec as DRC
+        return DRC.act_draftrec(ctx, mode=spec["mode"])
     if kind == "mcts_vn":
         return SY.act_mcts(v, ctx, spec["aware"], device=device, vn=True)
     if kind == "policy_pp":
@@ -198,6 +201,7 @@ SPOKES = {
     "aMCTS-vn": ["aMCTS-bc", "pMCTS-bc"],
     # split-history robustness (drafter state from odd days only)
     "aMCTS-bc@split": ["pMCTS-bc", "aMCTS-bc"], "a1step@split": ["p1step-cur", "a1step-cur"],
+    "DraftRec": ["aMCTS-bc", "a1step-cur", "aMCTS-pp", "DraftRec-pv"], "DraftRec-pv": ["aMCTS-bc", "a1step-cur", "aMCTS-pp"],
     # drift, population side: stale all / refreshed stats / fine-tune ; full retrain = pMCTS-cur
     "pMCTS-s4m": ["pMCTS-cur", "aMCTS-s4m"], "pMCTS-s1y": ["pMCTS-cur", "aMCTS-s1y"],
     "pMCTS-s4m-rs": ["pMCTS-s4m"], "pMCTS-s1y-rs": ["pMCTS-s1y"],

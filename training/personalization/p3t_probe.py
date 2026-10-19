@@ -125,14 +125,53 @@ def _search(SY, M, kmod, v, ctx, aware, device):
     return {"visits": vis, "q": q}
 
 
+def timing(systems, reps=2, device=0):
+    """GPU wall seconds per decide-only search for each search system, alone on
+    the GPU: all 10 pick states of the probe lobbies, 400 sims, repeated."""
+    import torch
+    import p3t_systems as SY
+    import p3t_tourney as TT
+    torch.set_num_threads(2)
+    K = dict(np.load(os.path.join(TD.OUT, "probe_lobbies.npz")))
+    n = len(K["gi"])
+    out = {"lobbies": n, "sims": SY.SIMS}
+    for name in systems:
+        spec = SY.SYSTEMS[name]
+        v = SY.vintage(spec["vint"])
+        secs, nd = 0.0, 0
+        for r in range(reps):
+            for k in PICKS:
+                ctx = {"acts": K["acts"], "k": k, "map": K["map"], "tier": K["tier"], "team_pool": K["team_pool"],
+                       "pool_bits": K["pool_bits"], "slot_of": K["slot_of"], "s": K["s"], "off": K["off"],
+                       "seed_i": np.arange(n), "kseed": 77 + k + 1000 * r,
+                       "n": np.zeros((n, 10, 90), np.float32) if "n" not in K else K["n"]}
+                torch.cuda.synchronize() if torch.cuda.is_available() else None
+                t0 = time.time()
+                if spec["kind"] == "mcts":
+                    SY.act_mcts(v, ctx, spec["aware"], device=device)
+                elif spec["kind"] == "mcts_pp":
+                    SY.act_mcts(v, ctx, spec["aware"], device=device, pp=True, prior=spec["prior"])
+                elif spec["kind"] == "mcts_vn":
+                    SY.act_mcts(v, ctx, spec["aware"], device=device, vn=True)
+                secs += time.time() - t0
+                nd += n
+        out[name] = {"ms_per_decision": round(1000 * secs / nd, 3), "ms_per_draft_8_decisions": round(8000 * secs / nd, 2)}
+        print(name, out[name], flush=True)
+    p = os.path.join(C.RESULTS, "p3t", "timing.json")
+    json.dump(out, open(p, "w"), indent=1)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["extract", "run"])
+    ap.add_argument("stage", choices=["extract", "run", "timing"])
+    ap.add_argument("--systems", default="pMCTS-cur,aMCTS-cur,pMCTS-bc,aMCTS-bc,aMCTS-pp,aMCTS-sp,aMCTS-vn")
     ap.add_argument("--n", type=int, default=500)
     ap.add_argument("--configs", default="F:400,F:1600,BC:400,BC:1600")
     a = ap.parse_args()
     if a.stage == "extract":
         extract(a.n)
+    elif a.stage == "timing":
+        timing(a.systems.split(","))
     else:
         run(a.configs.split(","))
 
