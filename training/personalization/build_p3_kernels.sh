@@ -3,20 +3,31 @@
 # prior, pgd) with the composition fallback in the WP's tier order, then
 # check each module's COMP_FALLBACK_ORDER. Remote workers: sm_86.
 # Usage (from training/): bash personalization/build_p3_kernels.sh
+#   bash personalization/build_p3_kernels.sh pvnet   builds only cuda_pvnet
+#   (learned personal value net); the other builds are left untouched.
+#   TORCH_CUDA_ARCH_LIST from the env (8.6 default; the 5090's env.sh: 12.0).
 set -euo pipefail
 cd "$(dirname "$0")"
 export HOTS_COMP_FALLBACK_MID_HIGH_LOW=1
 export TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST:-8.6}
 export MAX_JOBS=${MAX_JOBS:-2}
-for d in cuda_personal cuda_personal/ref cuda_prior cuda_pgd; do
+TARGET=${1:-all}
+case "$TARGET" in
+  all) DIRS="cuda_personal cuda_personal/ref cuda_prior cuda_pgd"
+       MODS="cuda_personal:personal_kernel cuda_personal/ref:pop_ref_kernel cuda_prior:prior_kernel cuda_pgd:pgd_kernel" ;;
+  pvnet) DIRS="cuda_pvnet"; MODS="cuda_pvnet:pvnet_kernel" ;;
+  *) echo "usage: build_p3_kernels.sh [all|pvnet]" >&2; exit 2 ;;
+esac
+echo "arch $TORCH_CUDA_ARCH_LIST target $TARGET"
+for d in $DIRS; do
   echo "== build $d"
   (cd "$d" && rm -rf build && python setup.py build_ext --inplace > build.log 2>&1) || { tail -30 "$d/build.log"; exit 1; }
 done
-python - <<'PY'
+P3_MODS="$MODS" python - <<'PY'
 import importlib.util, os, sys
 bad = []
-for d, name in (("cuda_personal", "personal_kernel"), ("cuda_personal/ref", "pop_ref_kernel"),
-                ("cuda_prior", "prior_kernel"), ("cuda_pgd", "pgd_kernel")):
+for dm in os.environ["P3_MODS"].split():
+    d, name = dm.split(":")
     so = [f for f in os.listdir(d) if f.startswith(name) and f.endswith(".so")]
     import torch  # noqa: F401  (loads the CUDA runtime the extension links)
     spec = importlib.util.spec_from_file_location(name, os.path.join(d, so[0]))
