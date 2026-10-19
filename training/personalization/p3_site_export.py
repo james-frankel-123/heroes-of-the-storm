@@ -265,6 +265,7 @@ def artifact(_a):
     from shared import FINE_ROLE_NAMES, HERO_ROLE_FINE
     T, ms, imp, consts, cov_ms, cov_imp = load_inputs()
     cov_ms0 = json.load(open(os.path.join(HERE, "results", "rcf_full", "cover_full_ms__merged.json")))
+    orf = json.load(open(os.path.join(HERE, "results", "rcf_full", "site", "offrole_refit.json")))
     assert ms.W is None and ms.G is not None and imp.W is not None and imp.G is None
     out = {
         "version": "full_1017-2026-10-18",
@@ -284,10 +285,11 @@ def artifact(_a):
                  "scale": consts["scale_imp2"]},
         "grid": {"lo": -10, "hi": 10, "n": 401},
         # draft value V = sigmoid(b0 + b1 logit WP + b2 (S_ours - S_theirs) + b3 (O_ours - O_theirs))
-        # (P3_DRAFTER): b0..b2 are each model's own V1 combiner (no layer); b3, the off-role
-        # term, is P3_DRAFTER's fit with the phase-1 kernel (not refit for these models)
-        "draft": {"main": T["arms"]["full_ms"]["coef"], "imp2": T["arms"]["full_imp2"]["coef"],
-                  "offRole": -0.055, "offRoleShare": 0.10, "offRoleMinGames": 50},
+        # (P3_DRAFTER): each model's own V1 combiner (no layer) refit with the off-role
+        # count by p3_site_offrole.py on the 3090 (results/rcf_full/site/offrole_refit.json)
+        "draft": {"main": orf["full_ms"]["coef_with"][:3], "imp2": orf["full_imp2"]["coef_with"][:3],
+                  "offRole": orf["full_ms"]["b3"], "offRoleImp2": orf["full_imp2"]["b3"],
+                  "offRoleShare": 0.10, "offRoleMinGames": 50},
         "fineRoles": FINE_ROLE_NAMES,
         "heroFineRole": [FINE_ROLE_NAMES.index(HERO_ROLE_FINE[h]) for h in T["hero_names"]],
         "validation": {

@@ -90,12 +90,13 @@ describe('name matching (same rule as the simulation)', () => {
 })
 
 describe('personal draft terms', () => {
-  const c = { b0: 0, b1: 1, b3: -0.055 }
+  const c = { b0: 0, b1: 1 }
   const p = (label: string, s: Record<string, number>, off: Record<string, boolean> = {}): PersonalPlayer => ({
     label,
     s,
     offRole: off,
     b2: 4,
+    b3: -0.055,
   })
 
   it('assigns heroes to the players best at them', () => {
@@ -116,7 +117,7 @@ describe('personal draft terms', () => {
   })
 
   it('equals the population value with nobody matched', () => {
-    const v = personalValue(0.53, ['Ana'], ['Muradin'], [], [], { b0: 0, b1: 1, b3: -0.055 })
+    const v = personalValue(0.53, ['Ana'], ['Muradin'], [], [], { b0: 0, b1: 1 })
     expect(v.value).toBeCloseTo(0.53, 12)
   })
 

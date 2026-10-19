@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { cn } from '@/lib/utils'
-import type { AccountWithCard } from '@/lib/personal/accounts'
+import type { AccountSummary, AccountWithCard } from '@/lib/personal/accounts'
 import type { PlayedHero, SuggestedHero } from '@/lib/personal/card'
 
 interface Validation {
@@ -47,7 +47,7 @@ function HeroIcon({ hero, size = 40 }: { hero: string; size?: number }) {
   )
 }
 
-export function AccountChoice({ a, onPick }: { a: AccountWithCard | Omit<AccountWithCard, 'card'>; onPick?: () => void }) {
+function AccountChoice({ a, onPick }: { a: AccountSummary; onPick?: () => void }) {
   return (
     <button onClick={onPick} className="w-full text-left" type="button">
       <Card className="p-3 hover:border-primary/60">
@@ -189,34 +189,48 @@ function Profile({ a, through, val }: { a: AccountWithCard; through: string; val
   )
 }
 
+interface NameResponse {
+  through: string
+  matches: AccountSummary[]
+  error?: string
+}
+
 export function PlayersClient() {
   const router = useRouter()
   const params = useSearchParams()
   const tagParam = params.get('tag') ?? ''
+  const nameParam = params.get('name') ?? ''
   const regionParam = Number(params.get('region'))
-  const [q, setQ] = useState(tagParam)
+  const [q, setQ] = useState(tagParam || nameParam)
   const [res, setRes] = useState<AccountResponse | null>(null)
+  const [names, setNames] = useState<NameResponse | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!tagParam) return
+    if (!tagParam && !nameParam) return
     let cancelled = false
     setBusy(true)
     setError(null)
-    fetch(`/api/personal/account?tag=${encodeURIComponent(tagParam)}`)
+    setRes(null)
+    setNames(null)
+    const url = tagParam
+      ? `/api/personal/account?tag=${encodeURIComponent(tagParam)}`
+      : `/api/personal/account?name=${encodeURIComponent(nameParam)}`
+    fetch(url)
       .then(r => r.json())
-      .then((body: AccountResponse) => {
+      .then((body: AccountResponse & NameResponse) => {
         if (cancelled) return
         if (body.error) setError(body.error)
-        else setRes(body)
+        else if (tagParam) setRes(body)
+        else setNames(body)
       })
       .catch(() => !cancelled && setError('Lookup failed. Try again.'))
       .finally(() => !cancelled && setBusy(false))
     return () => {
       cancelled = true
     }
-  }, [tagParam])
+  }, [tagParam, nameParam])
 
   const shown = res?.accounts.filter(a => !regionParam || a.region === regionParam) ?? []
   const one = shown.length === 1 ? shown[0] : null
@@ -226,23 +240,47 @@ export function PlayersClient() {
       <div>
         <h1 className="text-3xl font-bold">Player lookup</h1>
         <p className="text-muted-foreground">
-          Per-hero skill estimates for accounts in our replay data. Enter a full BattleTag, like Name#1234.
+          Per-hero skill estimates for accounts in our replay data. Enter a BattleTag like Name#1234, or just the
+          name to see every account that uses it.
         </p>
       </div>
       <form
         className="flex gap-2"
         onSubmit={e => {
           e.preventDefault()
-          if (q.trim()) router.push(`/players?tag=${encodeURIComponent(q.trim())}`)
+          const v = q.trim()
+          if (!v) return
+          router.push(v.includes('#') ? `/players?tag=${encodeURIComponent(v)}` : `/players?name=${encodeURIComponent(v)}`)
         }}
       >
-        <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Name#1234" maxLength={24} aria-label="BattleTag" />
+        <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Name#1234 or Name" maxLength={24} aria-label="BattleTag or name" />
         <Button type="submit" disabled={busy}>
           {busy ? 'Looking up...' : 'Look up'}
         </Button>
       </form>
 
       {error && <p className="text-sm text-gaming-danger">{error}</p>}
+
+      {names && !busy && (
+        <section className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {names.matches.length === 0
+              ? `No account named ${nameParam} in our data (accounts with at least 3 Storm League games in the 180 days up to ${names.through}).`
+              : `${names.matches.length === 50 ? 'The 50 most recently active' : names.matches.length} account${names.matches.length === 1 ? '' : 's'} named ${nameParam}, most recently active first:`}
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {names.matches.map(a => (
+              <AccountChoice
+                key={`${a.region}:${a.discriminator}`}
+                a={a}
+                onPick={() =>
+                  router.push(`/players?tag=${encodeURIComponent(`${a.name}#${a.discriminator}`)}&region=${a.region}`)
+                }
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {res && !busy && res.accounts.length === 0 && (
         <p className="text-sm text-muted-foreground">

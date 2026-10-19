@@ -37,7 +37,7 @@ const REGION_OPTIONS: [string, string][] = [
 ]
 
 function toPlayer(label: string, d: DraftTerms): PersonalPlayer {
-  return { label, s: d.s, offRole: d.offRole, b2: d.b2 }
+  return { label, s: d.s, offRole: d.offRole, b2: d.b2, b3: d.b3 }
 }
 
 function CandidateLine({ c, onPick, selected }: { c: Candidate; onPick?: () => void; selected?: boolean }) {

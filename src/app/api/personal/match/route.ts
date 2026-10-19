@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { DATA_THROUGH, matchName, partyContext, REGIONS } from '@/lib/personal/accounts'
+import { dataThrough, matchName, partyContext, REGIONS } from '@/lib/personal/accounts'
 import { draftCoefs } from '@/lib/personal/card'
 
 export const runtime = 'nodejs'
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   if (REGIONS[region]) ctx.region = region
   const results = await Promise.all(names.map(n => matchName(n, ctx)))
   return NextResponse.json(
-    { through: DATA_THROUGH, context: ctx, party, results, coefs: draftCoefs() },
+    { through: await dataThrough(), context: ctx, party, results, coefs: draftCoefs() },
     { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } },
   )
 }

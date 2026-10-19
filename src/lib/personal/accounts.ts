@@ -10,8 +10,15 @@ import { rankCandidates, type MatchContext } from './match'
 
 export const REGIONS: Record<number, string> = { 1: 'Americas', 2: 'Europe', 3: 'Asia', 5: 'China' }
 
-/** The data's last day: cards and the name index are as of this date (the research store cap). */
-export const DATA_THROUGH = process.env.PERSONAL_DATA_THROUGH ?? '2026-09-27'
+let through: { value: string; at: number } | null = null
+
+/** The data's last day (latest last_played in the table), cached for an hour per instance. */
+export async function dataThrough(): Promise<string> {
+  if (through && Date.now() - through.at < 3_600_000) return through.value
+  const r = rowsOf<{ d: string | null }>(await db.execute(sql`SELECT max(last_played)::text AS d FROM personal_accounts`))[0]
+  through = { value: r?.d ?? new Date().toISOString().slice(0, 10), at: Date.now() }
+  return through.value
+}
 
 export interface AccountSummary {
   /** Visible name + #number + region identify the account to the page; blizz ids never leave the server. */
@@ -84,6 +91,15 @@ export interface MatchResult {
   candidates: (AccountSummary & { draft: DraftTerms })[]
 }
 
+/** Every published account with this visible name, most recently active first (name-only search). */
+export async function byName(name: string, limit = 50): Promise<AccountSummary[]> {
+  if (!/^[^\s#]{2,12}$/u.test(name.trim())) return []
+  const res = await db.execute(sql`
+    SELECT ${COLS} FROM personal_accounts WHERE lower(name) = lower(${name.trim()})
+    ORDER BY last_played DESC, games DESC LIMIT ${limit}`)
+  return rowsOf<any>(res).map(toSummary)
+}
+
 /** Match a visible name (no #number) given the party's context. */
 export async function matchName(query: string, ctx: MatchContext): Promise<MatchResult> {
   const name = query.trim()
@@ -131,5 +147,5 @@ export async function partyContext(
   const region = [...counts.entries()].sort((x, y) => y[1] - x[1])[0]?.[0] ?? null
   const mmrs = party.map(a => a.mmr).filter((x): x is number => x !== null)
   const mmr = mmrs.length ? mmrs.reduce((a, b) => a + b, 0) / mmrs.length : null
-  return { ctx: { region, mmr, asOf: DATA_THROUGH }, party }
+  return { ctx: { region, mmr, asOf: await dataThrough() }, party }
 }

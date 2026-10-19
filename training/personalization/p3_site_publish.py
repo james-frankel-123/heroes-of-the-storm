@@ -5,8 +5,9 @@ The website never calls Heroes Profile. Everything it shows about a player is
 computed here, on the main box, from our research store, then published:
 
   build     read the merged history store (corpus plus the Heroes Profile
-            history pull: cache/full_history/<tag>/history.npz), pick every
-            account with a game in the last WINDOW days of the store, compute
+            history pull: cache/full_history/<tag>/history.npz) plus the
+            site's post-cap corpus rows (below), pick every account with a
+            game in the last WINDOW days of that data, compute
             its per-hero estimates with the exported model
             (src/lib/personal/model-artifact.json; the main model where the
             account has corpus scoreboard rows, else imp2), read its latest
@@ -16,13 +17,18 @@ computed here, on the main box, from our research store, then published:
   load      replace the local table personal_accounts with the build (one
             transaction). sync/publish-site.ts then pushes it to Neon with
             the other site tables (it is in SITE_TABLES).
-  simulate  name-matching accuracy on held-out lobbies (see match_sim).
+  simulate  name-matching accuracy on held-out lobbies (store data only).
+  check     the batched build against the research reference functions.
 
-Data rules. The store holds no game from 2026-09-28 on (the P3 snapshot cap:
-no 2.57 game, so the sealed replays and the scilearn C, F and pool tranches
-never enter). The cards are therefore as of the store cap. Battletags are
-read from the local store at build time and go only to the local table and
-Neon, never to the repo.
+Data rules. The research store holds no game from 2026-09-28 on (the P3
+snapshot cap, which the research reruns keep). The site adds, here only, the
+corpus games from that date on (the 2.57 builds), read from the local DB with
+the 5,000 sealed replays (training/replays/cohorts/sealed_ids.txt) excluded
+at the query; every other row set is filtered against the same list. Post-cap
+rows carry no scoreboard (the a_shrink card covers the capped export), so they
+enter the win channel and the counts only. --research-cap builds without
+them. Battletags are read from the local store at build time and go only to
+the local table and Neon, never to the repo.
 
 Card format (bytea, little endian), version 1:
   u8 version, u8 model (1 main, 2 imp2), u32 games,
@@ -195,26 +201,85 @@ def load_store(tag):
     return z, meta
 
 
-def active_rows(z, cap_ts, window_days, M):
-    """Rows of every account with a game in [cap - window, cap), known heroes only."""
+SEALED = os.path.join(os.path.dirname(HERE), "replays", "cohorts", "sealed_ids.txt")
+
+
+def sealed_ids():
+    """The 5,000 sealed replays (training/replays/cohorts/sealed_rule.json): never read."""
+    ids = np.array(sorted(int(x) for x in open(SEALED).read().split()), np.int64)
+    assert len(ids) == 5000, f"sealed list has {len(ids)} ids"
+    return ids
+
+
+def post_cap_rows(cap_ts, sealed, M):
+    """Site only: corpus Storm League rows of games from the store cap on (the 2.57 builds),
+    excluding the sealed replays at the query. The research store and its cap are untouched.
+    No scoreboard for these rows (the a_shrink card covers the capped export only), so they
+    feed the win channel and counts. replay_draft_data.game_date is UTC (timezone fix of
+    2026-10-16, sync/docs/timezone-fix-2026-10.md)."""
+    import psycopg2
+    con = psycopg2.connect(os.environ["DATABASE_URL_RESEARCH"])
+    con.set_session(readonly=True, autocommit=True)
+    cur = con.cursor()
+    hi = datetime.datetime.fromtimestamp(cap_ts, datetime.timezone.utc).replace(tzinfo=None)
+    t0 = time.time()
+    cur.execute("""
+        SELECT rp.replay_id, rp.blizz_id, COALESCE(rp.region, d.region), rp.hero, rp.winner::int,
+               EXTRACT(EPOCH FROM d.game_date)::bigint, rp.player_mmr
+        FROM replay_draft_data d JOIN replay_players rp USING (replay_id)
+        WHERE d.game_date >= %s AND rp.blizz_id > 0 AND rp.hero IS NOT NULL AND rp.winner IS NOT NULL
+          AND NOT (d.replay_id = ANY(%s))""", (hi, [int(x) for x in sealed]))
+    rows = cur.fetchall()
+    con.close()
+    hidx = {n: i for i, n in enumerate(M.names)}
+    rid = np.array([r[0] for r in rows], np.int64)
+    key = np.array([(int(r[2] or 0) << REGION_SHIFT) | int(r[1]) for r in rows], np.int64)
+    hero = np.array([hidx.get(r[3], -1) for r in rows], np.int64)
+    ok = (hero >= 0) & np.array([r[2] is not None for r in rows], bool)
+    out = {"key": key[ok], "rid": rid[ok], "hero": hero[ok],
+           "win": np.array([r[4] for r in rows], np.float64)[ok],
+           "end": np.array([r[5] for r in rows], np.int64)[ok],
+           "mmr": np.array([np.nan if r[6] is None else r[6] for r in rows], np.float64)[ok],
+           "src": np.ones(int(ok.sum()), np.int8)}
+    assert not np.isin(out["rid"], sealed).any()
+    log(f"post-cap corpus rows: {len(out['rid']):,} ({time.time() - t0:.0f}s), last game "
+        f"{datetime.datetime.fromtimestamp(int(out['end'].max()), datetime.timezone.utc):%Y-%m-%d}")
+    return out
+
+
+def site_rows(z, cap_ts, window_days, M, post=None, sealed=None):
+    """Store rows (before the research cap) plus the site's post-cap rows; accounts with a game
+    in the last window_days of the combined data; known heroes only."""
     ptr = z["ptr"]
     keys = z["keys"]
-    end = z["end_ts"]
-    nk = len(keys)
-    kidx = np.repeat(np.arange(nk), np.diff(ptr))
-    recent = np.bincount(kidx, weights=(end >= cap_ts - window_days * DAY) & (end < cap_ts), minlength=nk)
-    act = np.flatnonzero(recent > 0)
-    pos = np.full(nk, -1, np.int64)
-    pos[act] = np.arange(len(act))
-    rows = np.flatnonzero(pos[kidx] >= 0)
+    kidx = np.repeat(np.arange(len(keys)), np.diff(ptr))
     hmap = np.array([M.names.index(str(h)) if str(h) in M.names else -1 for h in z["hero_names"]])
-    hero = np.where(z["hero"][rows] >= 0, hmap[np.maximum(z["hero"][rows], 0)], -1)
-    keep = (hero >= 0) & (end[rows] < cap_ts)
-    rows = rows[keep]
-    return {"keys": keys[act], "recent": recent[act].astype(np.int64),
-            "acct": pos[kidx[rows]], "hero": hero[keep], "win": z["win"][rows].astype(np.float64),
-            "day": (end[rows] // DAY).astype(np.int64), "rid": z["replay_id"][rows].astype(np.int64),
-            "src": z["src"][rows], "mmr": z["post_mmr"][rows]}
+    h0 = z["hero"]
+    hero = np.where(h0 >= 0, hmap[np.maximum(h0, 0)], -1)
+    end = z["end_ts"]
+    rid = z["replay_id"]
+    keep = (hero >= 0) & (end < cap_ts)
+    if sealed is not None:
+        keep &= ~np.isin(rid, sealed)
+    A = {"key": keys[kidx[keep]], "rid": rid[keep].astype(np.int64), "hero": hero[keep],
+         "win": z["win"][keep].astype(np.float64), "end": end[keep].astype(np.int64),
+         "mmr": z["post_mmr"][keep].astype(np.float64), "src": z["src"][keep]}
+    if post is not None and len(post["rid"]):
+        A = {k: np.r_[A[k], post[k]] for k in A}
+    end_max = int(A["end"].max())
+    lo = end_max - window_days * DAY
+    uk, inv = np.unique(A["key"], return_inverse=True)
+    recent = np.bincount(inv, weights=A["end"] >= lo, minlength=len(uk))
+    act = np.flatnonzero(recent > 0)
+    pos = np.full(len(uk), -1, np.int64)
+    pos[act] = np.arange(len(act))
+    pa = pos[inv]
+    m = pa >= 0
+    o = np.lexsort((A["end"][m], pa[m]))
+    sel = np.flatnonzero(m)[o]
+    return {"keys": uk[act], "recent": recent[act].astype(np.int64), "acct": pa[sel],
+            "hero": A["hero"][sel], "win": A["win"][sel], "day": A["end"][sel] // DAY, "rid": A["rid"][sel],
+            "src": A["src"][sel], "mmr": A["mmr"][sel], "end_max": end_max}
 
 
 # ------------------------------------------------------------------ build
@@ -352,9 +417,10 @@ def encode_card(Cd, i, n_sugg=5):
     return bytes(b)
 
 
-def read_names(keys, cap_ts, window_days):
+def read_names(keys, cap_ts, window_days, sealed):
     """Latest battletag, region and player MMR per account from the local
-    research DB, over corpus rows of games in the window (before the cap)."""
+    research DB, over corpus rows of games in the window ending at cap_ts (sealed
+    replays excluded)."""
     import psycopg2
     con = psycopg2.connect(os.environ["DATABASE_URL_RESEARCH"])
     con.set_session(readonly=True, autocommit=True)
@@ -369,8 +435,8 @@ def read_names(keys, cap_ts, window_days):
         SELECT DISTINCT ON (r, rp.blizz_id) COALESCE(rp.region, d.region) AS r, rp.blizz_id, rp.battletag
         FROM replay_players rp JOIN replay_draft_data d USING (replay_id)
         WHERE rp.replay_id BETWEEN %s AND %s AND rp.blizz_id > 0 AND rp.battletag LIKE '%%#%%'
-          AND d.game_date < %s
-        ORDER BY r, rp.blizz_id, rp.replay_id DESC""", (rlo, rhi, hi))
+          AND d.game_date < %s AND NOT (rp.replay_id = ANY(%s))
+        ORDER BY r, rp.blizz_id, rp.replay_id DESC""", (rlo, rhi, hi, [int(x) for x in sealed]))
     names = {}
     for reg, bl, tag in cur:
         if reg is None:
@@ -393,9 +459,13 @@ def build(a):
     M = Model()
     z, meta = load_store(a.store)
     cap = int(meta["cap_ts"])
-    R = active_rows(z, cap, a.window, M)
+    sealed = sealed_ids()
+    post = None if a.research_cap else post_cap_rows(cap, sealed, M)
+    R = site_rows(z, cap, a.window, M, post, sealed)
+    through = datetime.datetime.fromtimestamp(R["end_max"], datetime.timezone.utc).date()
+    log(f"data through {through}")
     Cd = compute_cards(M, R)
-    tags, n_private = read_names(R["keys"], cap, a.window)
+    tags, n_private = read_names(R["keys"], R["end_max"] + 1, a.window, sealed)
     keys = R["keys"]
     n = len(keys)
     # latest MMR per account (HP post-game rating of its last row)
@@ -432,7 +502,9 @@ def build(a):
     # (pk ~ 24 B per row, lower(name) ~ 16 B + name per row)
     heap = 28 + 24 + (names_len + 1) + (3 + 1) + (sizes + 4)
     idx = 24 + 16 + names_len
-    rep = {"store": a.store, "cap": datetime.date.fromtimestamp(cap).isoformat(), "window_days": a.window,
+    rep = {"store": a.store, "research_cap": datetime.date.fromtimestamp(cap).isoformat(),
+           "through": through.isoformat(), "post_cap_rows": 0 if post is None else int(len(post["rid"])),
+           "window_days": a.window,
            "accounts": len(rows), "main_model": int(sum(r[9][1] == 1 for r in rows)),
            "card_bytes_mean": float(sizes.mean()), "card_bytes_p95": float(np.quantile(sizes, 0.95)),
            "neon_estimate_mb": float((heap.sum() * 1.12 + idx.sum() * 1.3) / 1e6),
@@ -631,14 +703,14 @@ def check(a):
     M = Model()
     T, ms, imp, consts, _, _ = load_inputs()
     z, meta = load_store(a.store)
-    R = active_rows(z, int(meta["cap_ts"]), a.window, M)
+    R = site_rows(z, int(meta["cap_ts"]), a.window, M, None, sealed_ids())
     cnt = np.bincount(R["acct"], minlength=len(R["keys"]))
     rng = np.random.default_rng(a.seed)
     pick = rng.choice(np.flatnonzero((cnt >= 5) & (cnt <= 400)), a.n_check, replace=False)
     sel = np.isin(R["acct"], pick)
     remap = np.full(len(R["keys"]), -1, np.int64)
     remap[pick] = np.arange(len(pick))
-    Rs = {k: (v[sel] if k not in ("keys", "recent") else v[pick]) for k, v in R.items()}
+    Rs = {k: (v[sel] if k not in ("keys", "recent") else v[pick]) for k, v in R.items() if k != "end_max"}
     Rs["acct"] = remap[R["acct"][sel]]
     Cd = compute_cards(M, Rs, chunk=len(pick))
     # the same corpus scoreboard rows, as per-hero metric sums, for the reference
@@ -744,6 +816,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=["build", "load", "simulate", "check", "fixture"])
     ap.add_argument("--n-check", type=int, default=40)
+    ap.add_argument("--research-cap", action="store_true",
+                    help="build: stop at the research store cap (no 2.57 rows)")
     ap.add_argument("--store", default="full_1017")
     ap.add_argument("--window", type=int, default=180, help="days before the store cap that make an account active")
     ap.add_argument("--min-recent", type=int, default=3, help="load and simulate: minimum games in the window")

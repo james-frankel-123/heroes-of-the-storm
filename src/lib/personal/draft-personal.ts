@@ -6,14 +6,14 @@
  *
  * WP is the page's own search value. Which player takes which hero is not known, so each
  * team's term is its best assignment of its picked heroes to its players (unmatched players
- * add 0: population values). b0..b2 are the model's V1 combiner, b3 the off-role weight.
+ * add 0: population values). b0, b1 are the main model's V1 combiner; b2 and b3 come with
+ * each player's model (refit with the off-role count, p3_site_offrole.py).
  * Pure functions; client safe (no model artifact import).
  */
 
 export interface DraftCoefs {
   b0: number
   b1: number
-  b3: number
 }
 
 export interface PersonalPlayer {
@@ -25,6 +25,8 @@ export interface PersonalPlayer {
   offRole: Record<string, boolean>
   /** Weight on s (b2 of the player's model) */
   b2: number
+  /** Off-role weight (b3 of the player's model, refit by p3_site_offrole.py) */
+  b3: number
 }
 
 export interface Assignment {
@@ -33,8 +35,8 @@ export interface Assignment {
   who: Record<string, string>
 }
 
-function playerValue(p: PersonalPlayer, hero: string, c: DraftCoefs): number {
-  return p.b2 * (p.s[hero] ?? 0) + (p.offRole[hero] ? c.b3 : 0)
+function playerValue(p: PersonalPlayer, hero: string): number {
+  return p.b2 * (p.s[hero] ?? 0) + (p.offRole[hero] ? p.b3 : 0)
 }
 
 /**
@@ -72,7 +74,7 @@ export function bestAssignment(
       if (pin !== undefined && p?.label !== pin) continue
       used[slot] = true
       cur.push(slot)
-      rec(i + 1, acc + (p ? playerValue(p, heroes[i], c) : 0))
+      rec(i + 1, acc + (p ? playerValue(p, heroes[i]) : 0))
       cur.pop()
       used[slot] = false
     }
@@ -119,7 +121,7 @@ export function banGain(
     let best = -Infinity
     let without = -Infinity
     for (const h of available) {
-      const v = playerValue(p, h, c)
+      const v = playerValue(p, h)
       best = Math.max(best, v)
       if (h !== hero) without = Math.max(without, v)
     }

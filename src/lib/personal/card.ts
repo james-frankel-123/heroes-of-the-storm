@@ -16,7 +16,7 @@ interface Artifact {
   expTable: number[]
   main: { U: number[][] }
   imp2: { U: number[][] }
-  draft: { main: number[]; imp2: number[]; offRole: number; offRoleShare: number; offRoleMinGames: number }
+  draft: { main: number[]; imp2: number[]; offRole: number; offRoleImp2: number; offRoleShare: number; offRoleMinGames: number }
   heroFineRole: number[]
   validation: {
     accuracy: { v2: Record<string, number>; oot: Record<string, number> }
@@ -112,6 +112,8 @@ export interface DraftProfile {
   offRole: boolean[]
   /** This player's combiner weight on S (b2 of its model). */
   b2: number
+  /** This player's off-role weight (b3 of its model). */
+  b3: number
 }
 
 /**
@@ -136,11 +138,18 @@ export function draftProfile(card: Card): DraftProfile {
     total >= A.draft.offRoleMinGames && roleGames[A.heroFineRole[h]] < A.draft.offRoleShare * total,
   )
   const b2 = (card.model === 'main' ? A.draft.main : A.draft.imp2)[2]
-  return { model: card.model, s, offRole, b2 }
+  const b3 = card.model === 'main' ? A.draft.offRole : A.draft.offRoleImp2
+  return { model: card.model, s, offRole, b2, b3 }
 }
 
 /** The draft term keyed by hero name (what the page's draft code consumes). */
-export function draftByName(card: Card): { model: Card['model']; s: Record<string, number>; offRole: Record<string, boolean>; b2: number } {
+export function draftByName(card: Card): {
+  model: Card['model']
+  s: Record<string, number>
+  offRole: Record<string, boolean>
+  b2: number
+  b3: number
+} {
   const d = draftProfile(card)
   const s: Record<string, number> = {}
   const offRole: Record<string, boolean> = {}
@@ -148,10 +157,10 @@ export function draftByName(card: Card): { model: Card['model']; s: Record<strin
     s[n] = Math.round(d.s[h] * 1e5) / 1e5
     if (d.offRole[h]) offRole[n] = true
   })
-  return { model: d.model, s, offRole, b2: d.b2 }
+  return { model: d.model, s, offRole, b2: d.b2, b3: d.b3 }
 }
 
-/** b0, b1 of the main model's combiner and the off-role weight b3 (P3_DRAFTER). */
-export function draftCoefs(): { b0: number; b1: number; b3: number } {
-  return { b0: ARTIFACT.draft.main[0], b1: ARTIFACT.draft.main[1], b3: ARTIFACT.draft.offRole }
+/** b0, b1 of the main model's combiner (b2 and b3 travel with each player). */
+export function draftCoefs(): { b0: number; b1: number } {
+  return { b0: ARTIFACT.draft.main[0], b1: ARTIFACT.draft.main[1] }
 }

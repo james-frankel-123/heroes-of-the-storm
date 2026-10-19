@@ -1,0 +1,10 @@
+{
+ "accounts": 40,
+ "max_abs_error": {
+  "draft_s": 1.249000902703301e-16,
+  "disp_mean_played": 1.1796119636642288e-16,
+  "imp2": 2.7755575615628914e-17,
+  "gauss_var_sd": 2.7755575615628914e-17
+ },
+ "note": "win-probability units; reference = p3_site_export.reference (research functions)"
+}

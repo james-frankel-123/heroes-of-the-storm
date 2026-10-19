@@ -1,6 +1,6 @@
 # Personalization on HotS Fever: design (2026-10-19)
 
-Status: built on branch `personal-site`, not merged or deployed. This version replaces the 2026-10-18 design, which looked players up live through the Heroes Profile (HP) API.
+Status: built on branch `personal-site`, not merged or deployed. Launch is after the Oct 28 rerun: the coordinator creates the Neon table and runs the first publish. This version replaces the 2026-10-18 design, which looked players up live through the Heroes Profile (HP) API. Max's decisions of 2026-10-19 are in: 2.57 games on the site (sealed replays excluded), name-only search, the 3+ games threshold, and the off-role refit.
 
 ## 0. What changed and why
 
@@ -9,35 +9,38 @@ Status: built on branch `personal-site`, not merged or deployed. This version re
 **Every player number is computed offline.** A weekly job on the main box builds the numbers from our research store: our corpus plus the HP history pull. It publishes them to Neon as one compact table, and the site only reads that table.
 
 What ships:
-- **`/players`:** lookup by full BattleTag from the published data. If an account isn't in our data, the page says so plainly.
+- **`/players`:** lookup by full BattleTag, or by visible name alone, from the published data. If an account isn't in our data, the page says so plainly.
 - **In-game mode on `/draft`:** type the visible names of the other players, without the #number. We match each name against the published index using the party's region and MMR. A clear winner is selected; otherwise 2 to 4 candidates are shown. Matched players' skill feeds the draft suggestions through the P3_DRAFTER value term.
 
 ## 1. Data and the publish job
 
 **Inputs**, all local:
-- the merged history store `training/personalization/cache/full_history/<tag>/history.npz` (corpus rows plus the HP per-match history pull, deduplicated);
+- the merged history store `training/personalization/cache/full_history/<tag>/history.npz` (corpus rows plus the HP per-match history pull, deduplicated), which stops at the research cap (no game from 2026-09-28 on);
+- **site only:** the corpus games from 2026-09-28 on (the 2.57 builds), read from the local DB at build time;
 - the corpus scoreboard card `cache/rcf/sb_a_shrink.npz`;
 - names, discriminators and privacy states from the local research DB (`replay_players`, `player_privacy`, read-only role).
 
-**The data cap.** The store holds no game from 2026-09-28 on, which is the P3 snapshot rule. So no 2.57 game enters the cards or the index. That keeps out:
-- the sealed R replays, whose rows must stay out of every view and cache;
-- the scilearn C, F and pool tranches.
+**2.57 games and the sealed replays.** Max decided on 2026-10-19 to include 2.57 games so the cards stay fresh; paper 3 is cancelled, so the C, F and pool tranches no longer matter.
+- The 5,000 sealed replays (`training/replays/cohorts/sealed_ids.txt`, rule in `sealed_rule.json`) are always excluded. The post-cap query filters them in SQL (`NOT (replay_id = ANY(sealed))`), the store rows and the name query are filtered against the same list, and the job asserts none got through.
+- This is a site-only addition in `p3_site_publish.py`. `p3_full_history.py` and its `CAP_TS` are unchanged, because the Oct 28 personalization rerun is defined with them. `--research-cap` builds without post-cap rows.
+- **Post-cap rows have no scoreboard.** The `a_shrink` card covers the capped export only, so post-cap games enter the win channel and the counts, not the metric channel.
+- `replay_draft_data.game_date` is UTC since the 2026-10-16 timezone fix (`sync/docs/timezone-fix-2026-10.md`).
+- Build of 2026-10-19: 600,115 post-cap player rows; data through 2026-10-19.
 
-The price is freshness: cards are as of 2026-09-27, and the page says "estimates as of 2026-09-27". Opening 2.57 data to the site is open question 1.
-
-**Who gets a card:**
-- any account with at least one game in the 180 days before the cap and a visible name: 159,814 accounts;
-- of those, 114,005 have 3 or more games in the window, and they are the default load (`--min-recent 3`);
-- 712 private accounts in `player_privacy` are dropped.
+**Who gets a card** (build of 2026-10-19):
+- any account with at least one game in the 180 days before the latest game and a visible name: 182,400 accounts;
+- of those, 128,357 have 3 or more games in the window, and they are the default load (`--min-recent 3`, Max's decision);
+- 712 private accounts in `player_privacy` are dropped;
+- 15,603 accounts have no corpus scoreboard rows (mostly new since the cap) and get `imp2` cards.
 
 **Model, per account:**
-- **Displayed per-hero number:** the main model (`full_ms`, the `met2_hs2` structure with the `a_shrink` scoreboard card) through the play-volume card (P3_TAILS), plus the experience offset. It applies wherever the account has corpus scoreboard rows: 159,809 of 159,814 accounts. The rest get `imp2` (wins and losses only).
+- **Displayed per-hero number:** the main model (`full_ms`, the `met2_hs2` structure with the `a_shrink` scoreboard card) through the play-volume card (P3_TAILS), plus the experience offset. It applies wherever the account has corpus scoreboard rows: 166,797 of 182,400 accounts. The rest get `imp2` (wins and losses only).
 - **Band:** ±1.2816·√(c·var + k0²), with the no-layer main arm's V1 scale (c 2.23, k0 2.29 pp; 80% coverage on V2: 0.808) or `imp2`'s (c 2.19, k0 0.43 pp; 0.805).
 - **Draft term s(p, h):** the main model's Gaussian posterior mean plus the offset. This is the quantity its V1 combiner was fit on.
 - **Never-played suggestions:** the top 5 by `imp2`.
 - **No temporal layer in the cards.** The layer needs a per-game walk with as-of scoreboard evidence. It is worth +1.1 log-loss points of the main model's +11 over A2S, and it moves a card by about 0.1 pp. Section 6 has the details.
 
-**Card format.** One bytea per account, 212 B on average and 610 B at the 95th percentile:
+**Card format.** One bytea per account, 201 B on average and 590 B at the 95th percentile:
 - a header with the model, the game count and the 3-number factor mean â of the draft model;
 - per played hero, 10 B: hero, games, last played, display mean, display sd and draft s;
 - 5 suggestions.
@@ -62,7 +65,7 @@ For a never-played hero the page computes s = offset(games, 0) + U_h·â from th
   publish-site now skips, with a warning, a site table that does not exist on Neon yet, so the merge cannot break the other tables' publish.
 - **Privacy:** `sync/privacy-sync.ts` now also deletes a newly private account from `personal_accounts`. The publish after it carries the delete to Neon. The build also drops accounts already private.
 
-**Schedule.** Weekly. While the store is capped the cards cannot change except when the store is rebuilt, and an unchanged table is not re-sent. Cron line for the coordinator (not installed):
+**Schedule.** Weekly. With 2.57 games the table changes every run, and publish-site replaces it whole (about 48 MB written to Neon, plus dead rows until autovacuum), so weekly keeps Neon churn low. Daily works too if fresher cards are worth the writes. Cron line for the coordinator (not installed):
 
 ```
 15 23 * * 0 flock -n /home/max/heroes-of-the-storm/sync/.site-publish.lock sh -c 'cd /home/max/heroes-of-the-storm && set -a && . ./.env && set +a && nice -n 19 ionice -c3 taskset -c 48-51 training/personalization/run_site_publish.sh' >> /home/max/heroes-of-the-storm/sync/logs/site-publish.log 2>&1
@@ -70,11 +73,17 @@ For a never-played hero the page computes s = offset(games, 0) + U_h·â from th
 
 The scoreboard enrichment from the previous design is folded into `build`: scoreboard evidence is computed for every account in one pass. There is no separate enrich job and no queue.
 
-**Store refresh.** Point `SITE_STORE` at a newer store tag when research builds one, for example after the Oct 28 rerun. Also refresh the artifact then: `p3_site_export.py tables` on the 3090, then `artifact`.
+**Store refresh.** Point `SITE_STORE` at a newer store tag when research builds one, for example after the Oct 28 rerun. Also refresh the artifact then: `p3_site_export.py tables` on the 3090, then `artifact`. The post-cap rows keep the cards fresh between store refreshes.
+
+**The date the pages show** is the latest `last_played` in the table, cached for an hour per server instance. There is no env setting.
 
 ## 2. Sizes
 
-Measured on the local store after `VACUUM FULL`; Neon will be close:
+Measured on the local store after `VACUUM FULL`; Neon will be close.
+
+**Default, build of 2026-10-19 with 2.57 games:** 128,357 accounts, **47.7 MB** (table plus indexes). Max approved about +44 MB at the 3+ threshold; the 2.57 games add 14,352 accounts and about 4 MB.
+
+The thresholds as measured on the capped build of the same day (the lobby share comes from the simulation):
 
 | `--min-recent` (games in the 180-day window) | accounts | table + indexes | lobby players findable (simulation) |
 |---|---|---|---|
@@ -95,14 +104,14 @@ There are no bulk reads.
 
 ## 3. The players page (`/players`)
 
-- **Lookup.** Full BattleTag, `Name#1234`. The page reads every account with that name and discriminator: one per region it exists in. If there are several, the visitor picks the region.
-- **Not in our data.** "Name#1234 is not in our data. We have cards for accounts with at least 3 Storm League games in our replay data in the 180 days up to 2026-09-27."
+- **Lookup by full BattleTag,** `Name#1234`. The page reads every account with that name and discriminator: one per region it exists in. If there are several, the visitor picks the region.
+- **Search by name alone** (Max's decision; same open privacy stance as in-game). `Name` lists every published account with that visible name, up to 50, most recently active first, each with region, discriminator, MMR, last played, games and top heroes. Picking one opens its profile.
+- **Not in our data.** "Name#1234 is not in our data. We have cards for accounts with at least 3 Storm League games in our replay data in the 180 days up to <date>."
 - **Profile:**
   - per-hero cards: estimate, n games, last played, 80% range, verdict;
   - "Heroes you might be good at";
   - a plain "How far to trust this" section quoting the coverage (0.81 main, 0.80 `imp2`) and the held-out accuracy: 61.8% of winners called with scoreboard stats (main, no layer) and 60.8% with wins and losses only, against 60.35% for the old A2S;
   - "Data provided by Heroes Profile".
-- **No name-only search on this page.** Max approved the name index for the draft's in-game matching. A browse-by-name page would also be possible, but it was not asked for.
 
 ## 4. In-game mode on the draft page
 
@@ -118,7 +127,7 @@ There are no bulk reads.
 4. **Selected:** the top candidate when its score is at least 9.5 and it leads the next by 1.5. Otherwise the panel shows up to 4 candidates (region, MMR, last played, games, top heroes) to pick from, or "leave as average".
 5. **Unmatched or unpicked players** add nothing, so they count at population values.
 
-**Accuracy (simulation).** `p3_site_publish.py simulate`, in `results/site_match_sim.json`:
+**Accuracy (simulation).** `p3_site_publish.py simulate`, in `results/site_match_sim.json`. It runs on the research store only, so it predates the 2.57 games:
 - **Setup:**
   - the index was built as of 2026-09-13 from the 180 days before;
   - the test lobbies are 20,000 corpus games from Sep 13 to 27;
@@ -128,18 +137,25 @@ There are no bulk reads.
 | default index (3+ games) | share of lobby players |
 |---|---|
 | true account in the index | 73.8% |
-| …of those, ranked first / in the top 3 | 93.8% / 98.5% |
-| selected automatically | 54.5% (correct 53.5%, wrong 1.1%; precision 98.1%) |
-| shown as 2 to 4 choices | 23.7% (true account among them 80.8%) |
-| no account with that name | 21.3% |
+| …of those, ranked first / in the top 3 | 93.9% / 98.5% |
+| selected automatically | 54.7% (correct 53.6%, wrong 1.1%; precision 98.0%) |
+| shown as 2 to 4 choices | 23.5% (true account among them 80.8%) |
+| no account with that name | 21.4% |
 
-Most wrong automatic picks are players missing from the index who share a name with someone of similar MMR in the same region. Coverage will fall the longer the cap stays: live lobbies are further from the index date than this 2-week test.
+Most wrong automatic picks are players missing from the index who share a name with someone of similar MMR in the same region. With 2.57 games the published index is at most a week old at each run, closer to this 2-week test than the capped design was.
 
 **Personal value** (P3_DRAFTER), V = sigmoid(b0 + b1·logit Q + Σ_ours b2·s(p, h) − Σ_theirs b2·s(p, h) + b3·(O_ours − O_theirs)):
 - **Inputs:**
   - Q is the page's own search value for the row;
-  - b0, b1 and b2 are the main model's V1 combiner (0.0012, 0.982, 4.74; `imp2` players use b2 = 3.84);
-  - b3 = −0.055 per off-role player, P3_DRAFTER's fit with the phase-1 kernel. It has not been refit for the main model (open question 5). Off-role means fine role under 10% of 50 or more games, from the card's hero counts.
+  - b0, b1 and b2 are each model's V1 combiner, refit with the off-role count: main 0.0011, 0.982, 4.69; `imp2` players use b2 = 3.74;
+  - b3 is the off-role weight per off-role player, refit on the 3090 (`p3_site_offrole.py`, `results/rcf_full/site/offrole_refit.json`). Off-role means the hero's fine role is under 10% of the player's 50 or more earlier games; it holds on 10.2% of slots. Each player carries their own model's b3.
+
+    | model | b3 (was −0.055) | log-loss gain from the term, x1000, V1 / V2 / OOT (SE) |
+    |---|---|---|
+    | main | −0.020 | +0.05 (0.04) / +0.09 (0.04) / +0.02 (0.02) |
+    | `imp2` | −0.043 | +0.22 (0.08) / +0.37 (0.08) / +0.18 (0.04) |
+
+    With the main model the off-role term is nearly absorbed: its skill estimates already price heroes a player rarely plays. It stays in, small. On the site, off-role uses the card's hero counts (all games); the refit used the slot table's counts, as P3_DRAFTER did.
 - **Who plays which hero.** That is unknown during a draft, so each team's term is its best assignment of picked heroes to its matched players, with unmatched players at 0. A pick the user has assigned to a tracked player stays pinned.
 - **Our picks:** each row's value is recomputed with the candidate added, and the row says who would play it ("Name: +3.1 pp on Ana").
 - **Our bans:** the row gains the drop in an unassigned matched enemy's best available option ("Takes away Name's best option").
@@ -165,20 +181,24 @@ Most wrong automatic picks are players missing from the index who share a name w
 2. **Experience counts use all games in the store**, corpus and HP. Research offsets counted corpus slot rows only.
 3. **No temporal layer** (section 1).
 4. **The band under the volume card.** The displayed mean is the volume card's; the band is the Gaussian variance with the validated scale. No coverage test was run for the volume card itself.
-5. **Freshness.** Data through 2026-09-27 until 2.57 data is opened.
+5. **Post-cap games have no scoreboard,** so for players active mostly since 2026-09-28 the metric channel is older than their win record. Exporting the scoreboard for 2.57 games through the `a_shrink` card is a possible follow-up.
 
 ## 7. Before launch (coordinator)
 
 1. Create the table on Neon: `drizzle/0001_personal_accounts.sql`. It is additive. Max approved creating it.
 2. Merge `personal-site`.
 3. Run `training/personalization/run_site_publish.sh` once by hand: about 4 minutes, and it pushes the table with publish-site. Then install the cron line from section 1.
-4. No new Vercel env is needed. `PERSONAL_DATA_THROUGH` (default `2026-09-27`) sets the date the pages show; change it when the store moves.
+4. No new Vercel env is needed.
 5. `/rate` and the study tables are untouched.
 
-## 8. Open questions for Max
+## 8. Decisions (2026-10-19) and what is still open
 
-1. **2.57 data on the site.** Cards stop at 2026-09-27 because the store excludes every 2.57 game: the sealed R set plus the C, F and pool tranches. Should the site job read post-cap games? It would always exclude the sealed R ids, which stay quarantined. The cost is that per-player aggregates of C and F outcomes would be public before those tranches are scored.
-2. **Index threshold.** 3+ games in 180 days (43.6 MB, 74% of lobby players findable) or 1+ (54.5 MB, 78%)?
-3. **Wrong automatic matches.** At 1.1% of players they are rare. Is that acceptable, or should the bar rise, trading automatic picks for more choice lists?
-4. **Name-only browsing on `/players`.** The index supports it. Add it?
-5. **Off-role term.** Refit b3 with the main model on V1 (a 3090 job), or keep P3_DRAFTER's −0.055?
+Decided by Max:
+- +44 MB on Neon is fine at the 3+ games threshold. The build of 2026-10-19 measures 47.7 MB with the 2.57 games.
+- Name-only search on `/players`, with the same open privacy stance as in-game.
+- 2.57 games on the site, with the sealed replays always excluded.
+- The off-role weight is refit with the main model.
+
+Still open:
+1. Wrong automatic matches are 1.1% of players in the simulation. Keep the current bar, or raise it and show more choice lists?
+2. Should the 2.57 scoreboard be exported so post-cap games also feed the metric channel?
