@@ -1,0 +1,1022 @@
+{
+ "method": "score the same games: logit p = c0 + c1 logit(WP) + c2 D, with D the\nteam difference of the slot estimates s_pred, combiner fit on V1. Test games\nare V2 (72,474) and OOT (286,016), all ten players labeled.\n\nQ3, persistence of a player's record on a hero (A2S slots of V2 + OOT):\n  x = record to date on the hero = mean of (y - WP) on corpus games and\n  (y - hero-quarter win rate) on Heroes Profile rows, over the full history\n  through the previous day; n = games on the hero in that history. The\n  outcome is the scored game's residual r = y - WP (WP sees the draft and the\n  lobby's MMR). Per n bin, the OLS slope of r on x is the share of a past\n  record that shows up in the next game (\"keep\"). Shrinkage formula:\n  keep = tau^2 / (tau^2 + sigma^2 / n). tau^2 is measured in each bin as\n  var(x) - mean(sigma^2 / n) (method of moments, sigma^2 = 0.245), so the\n  formula's prediction uses no outcome after the record.\nQ5, by region (1 Americas, 2 Europe, 3 Korea; region of the game).\nQ6, by real league tier, plus the top 1% of games by lobby MMR, and\n  counterfactual concentration: keep s_pred only on a chosen set of slots\n  (others 0 = population expectation), recompute p with the same combiner,\n  and compare the log-loss gain with the full model's.",
+ "q3": {
+  "by_games_on_hero": {
+   "30-59": {
+    "slots": 402186,
+    "median_n": 42.0,
+    "slope_keep": 0.2428277863439368,
+    "se": 0.007875216691001928,
+    "record_sd_pp": 9.275347823267998,
+    "tau_pp": 5.105931161212504,
+    "formula_keep_measured_tau": 0.30898351351247866,
+    "formula_keep_k150": 0.21945820903184032,
+    "persistent_sd_pp": 4.570670718296869
+   },
+   "60-119": {
+    "slots": 345652,
+    "median_n": 83.0,
+    "slope_keep": 0.29954512959024393,
+    "se": 0.009979709033897747,
+    "record_sd_pp": 6.94609548873643,
+    "tau_pp": 4.269716651182336,
+    "formula_keep_measured_tau": 0.38365373780468826,
+    "formula_keep_k150": 0.3582586444779152,
+    "persistent_sd_pp": 3.801653308262259
+   },
+   "120-249": {
+    "slots": 273574,
+    "median_n": 167.0,
+    "slope_keep": 0.427752446511066,
+    "se": 0.02024881638284604,
+    "record_sd_pp": 5.455482207804988,
+    "tau_pp": 3.8627560565085153,
+    "formula_keep_measured_tau": 0.506684446866709,
+    "formula_keep_k150": 0.5290180860834733,
+    "persistent_sd_pp": 3.5680438950606623
+   },
+   "250+": {
+    "slots": 303380,
+    "median_n": 466.0,
+    "slope_keep": 0.5678854676317876,
+    "se": 0.021508070364628235,
+    "record_sd_pp": 3.9443117914126935,
+    "tau_pp": 3.206775390593444,
+    "formula_keep_measured_tau": 0.6797493690586328,
+    "formula_keep_k150": 0.7667598413506894,
+    "persistent_sd_pp": 2.9723663169238645
+   }
+  },
+  "worked_examples": {
+   "70-90 games, record +10 to +14pp": {
+    "slots": 9516,
+    "record_pp": 11.697262902326878,
+    "realized_pp": 3.788847456200376,
+    "realized_se_pp": 0.5023986934379886,
+    "keep": 0.32390889115150856
+   },
+   "70-90 games, record -14 to -10pp": {
+    "slots": 4528,
+    "record_pp": -11.661555234954486,
+    "realized_pp": -3.5181898603959554,
+    "realized_se_pp": 0.7274103743867036,
+    "keep": 0.3016913087073061
+   },
+   "200-260 games, record +10 to +14pp": {
+    "slots": 3538,
+    "record_pp": 11.584131853438421,
+    "realized_pp": 6.631969737174351,
+    "realized_se_pp": 0.8189355709019853,
+    "keep": 0.5725046832237013
+   },
+   "200-260 games, record -14 to -10pp": {
+    "slots": 500,
+    "record_pp": -11.53572623353755,
+    "realized_pp": -6.93456454873085,
+    "realized_se_pp": 2.172831480391375,
+    "keep": 0.6011380998770715
+   },
+   "60-119 games, record +10 to +14pp": {
+    "slots": 23198,
+    "record_pp": 11.686207763093039,
+    "realized_pp": 3.563295140816216,
+    "realized_se_pp": 0.32160837064754993,
+    "keep": 0.30491458076500116
+   },
+   "60-119 games, record -14 to -10pp": {
+    "slots": 11254,
+    "record_pp": -11.65362814523735,
+    "realized_pp": -3.3733117971281312,
+    "realized_se_pp": 0.462755669132068,
+    "keep": 0.28946451311875343
+   },
+   "120-249 games, record +10 to +14pp": {
+    "slots": 12891,
+    "record_pp": 11.57370725635928,
+    "realized_pp": 5.2178856054470195,
+    "realized_se_pp": 0.4308227511919103,
+    "keep": 0.45083960479301083
+   },
+   "120-249 games, record -14 to -10pp": {
+    "slots": 2803,
+    "record_pp": -11.483808726134741,
+    "realized_pp": -4.894225092028619,
+    "realized_se_pp": 0.9267042451638712,
+    "keep": 0.4261848319443347
+   }
+  },
+  "by_tier_n30plus": {
+   "Bronze": {
+    "slots": 135795,
+    "median_n": 83.0,
+    "slope_keep": 0.3068646139481087,
+    "se": 0.02590626906222805,
+    "record_sd_pp": 6.9484953442602055,
+    "tau_pp": 3.8133474103515987,
+    "formula_keep_measured_tau": 0.3883878478216647,
+    "formula_keep_k150": 0.41149718427335097,
+    "persistent_sd_pp": 3.849158327462257
+   },
+   "Silver": {
+    "slots": 218577,
+    "median_n": 88.0,
+    "slope_keep": 0.29063348710431675,
+    "se": 0.022675940628013317,
+    "record_sd_pp": 6.780307651501073,
+    "tau_pp": 3.672413693918136,
+    "formula_keep_measured_tau": 0.38398292463259076,
+    "formula_keep_k150": 0.42197034512742,
+    "persistent_sd_pp": 3.6553016285775994
+   },
+   "Gold": {
+    "slots": 276975,
+    "median_n": 94.0,
+    "slope_keep": 0.30132057542326013,
+    "se": 0.011009215609041468,
+    "record_sd_pp": 6.835889764966588,
+    "tau_pp": 3.941208224196593,
+    "formula_keep_measured_tau": 0.42505314101620245,
+    "formula_keep_k150": 0.435139669043199,
+    "persistent_sd_pp": 3.752409516980596
+   },
+   "Platinum": {
+    "slots": 298132,
+    "median_n": 105.0,
+    "slope_keep": 0.3347817236789318,
+    "se": 0.011941687624876133,
+    "record_sd_pp": 6.8962431530947566,
+    "tau_pp": 4.266444408098928,
+    "formula_keep_measured_tau": 0.4765265328143584,
+    "formula_keep_k150": 0.45465641668708157,
+    "persistent_sd_pp": 3.9901954096687757
+   },
+   "Diamond": {
+    "slots": 225533,
+    "median_n": 116.0,
+    "slope_keep": 0.3567178514645805,
+    "se": 0.013647697614438417,
+    "record_sd_pp": 7.006374160398774,
+    "tau_pp": 4.631428950787851,
+    "formula_keep_measured_tau": 0.5269714748514807,
+    "formula_keep_k150": 0.4718974820003056,
+    "persistent_sd_pp": 4.184626594284981
+   },
+   "Master": {
+    "slots": 169780,
+    "median_n": 110.0,
+    "slope_keep": 0.3389396727579307,
+    "se": 0.021454947676208064,
+    "record_sd_pp": 7.216403491410858,
+    "tau_pp": 4.852775864805322,
+    "formula_keep_measured_tau": 0.5382378994520676,
+    "formula_keep_k150": 0.46430596691982934,
+    "persistent_sd_pp": 4.201296089644213
+   }
+  },
+  "k_fit": 180.0,
+  "keep_at_80_fit": 0.3076923076923077,
+  "keep_at_230_fit": 0.5609756097560976,
+  "keep_at_80_k150": 0.34782608695652173,
+  "keep_at_230_k150": 0.6052631578947368
+ },
+ "full_ms_layer": {
+  "V2": {
+   "all": {
+    "games": 72474,
+    "acc_draft": 0.5718602533322295,
+    "acc_full": 0.6199878577144907,
+    "ll_gain_x1000": 28.647160118190147
+   },
+   "region Americas": {
+    "games": 22332,
+    "acc_draft": 0.5742432384022926,
+    "acc_full": 0.6231416801003045,
+    "ll_gain_x1000": 31.039151213885283
+   },
+   "region Europe": {
+    "games": 46820,
+    "acc_draft": 0.5711661683041436,
+    "acc_full": 0.6193720632208458,
+    "ll_gain_x1000": 27.97105827891314
+   },
+   "region Korea": {
+    "games": 3322,
+    "acc_draft": 0.5656231186032511,
+    "acc_full": 0.6074653822998194,
+    "ll_gain_x1000": 22.09602916270741
+   },
+   "region unknown": 0,
+   "tier Bronze": {
+    "games": 13140,
+    "acc_draft": 0.5799847792998478,
+    "acc_full": 0.6117199391171994,
+    "ll_gain_x1000": 19.11571921697865
+   },
+   "tier Silver": {
+    "games": 15489,
+    "acc_draft": 0.5733100910323455,
+    "acc_full": 0.6155336044935116,
+    "ll_gain_x1000": 24.066414039903865
+   },
+   "tier Gold": {
+    "games": 14771,
+    "acc_draft": 0.5696973800013541,
+    "acc_full": 0.628461173921874,
+    "ll_gain_x1000": 33.5412539259966
+   },
+   "tier Platinum": {
+    "games": 13409,
+    "acc_draft": 0.5690208069207249,
+    "acc_full": 0.6210753971213364,
+    "ll_gain_x1000": 34.91779388816886
+   },
+   "tier Diamond": {
+    "games": 9188,
+    "acc_draft": 0.5715063125816282,
+    "acc_full": 0.6298432738354375,
+    "ll_gain_x1000": 34.868718510128765
+   },
+   "tier Master": {
+    "games": 6477,
+    "acc_draft": 0.5632237146827235,
+    "acc_full": 0.6118573413617415,
+    "ll_gain_x1000": 25.969538238710477
+   },
+   "top 1% lobby MMR": {
+    "games": 696,
+    "acc_draft": 0.5603448275862069,
+    "acc_full": 0.6307471264367817,
+    "ll_gain_x1000": 37.065058757376875,
+    "mmr_cut": 3103.577890625
+   },
+   "spread": {
+    "Bronze": {
+     "sd_team_diff_pp": 9.827668099523159,
+     "sd_slot_estimate_pp": 3.0679612159729004,
+     "p90_abs_slot_estimate_pp": 5.595238208770752
+    },
+    "Silver": {
+     "sd_team_diff_pp": 10.058141832923662,
+     "sd_slot_estimate_pp": 3.1436986923217773,
+     "p90_abs_slot_estimate_pp": 5.339592933654785
+    },
+    "Gold": {
+     "sd_team_diff_pp": 10.759454648460094,
+     "sd_slot_estimate_pp": 3.2780635356903076,
+     "p90_abs_slot_estimate_pp": 5.402835845947266
+    },
+    "Platinum": {
+     "sd_team_diff_pp": 11.517246628671003,
+     "sd_slot_estimate_pp": 3.477358102798462,
+     "p90_abs_slot_estimate_pp": 5.689544677734375
+    },
+    "Diamond": {
+     "sd_team_diff_pp": 12.010726130520293,
+     "sd_slot_estimate_pp": 3.5934410095214844,
+     "p90_abs_slot_estimate_pp": 5.8663835525512695
+    },
+    "Master": {
+     "sd_team_diff_pp": 11.368955106505553,
+     "sd_slot_estimate_pp": 3.6375679969787598,
+     "p90_abs_slot_estimate_pp": 5.9660749435424805
+    },
+    "top 1% lobby MMR": {
+     "sd_team_diff_pp": 12.161310933411933,
+     "sd_slot_estimate_pp": 3.8237788677215576,
+     "p90_abs_slot_estimate_pp": 7.012549877166748
+    }
+   },
+   "concentration": {
+    "top 1% of slots by games on the hero (>= 1267)": {
+     "share_of_slots": 0.010000606180840277,
+     "share_of_games_touched": 0.09319204128377073,
+     "gain_only_these_x1000": 0.31280727479521353,
+     "share_of_full_gain_only_these": 0.010919311844687517,
+     "gain_without_these_x1000": 28.293231304785266,
+     "share_lost_without_these": 0.012354760888851457,
+     "mean_realized_r_pp": 2.635444402694702,
+     "mean_estimate_pp": 3.0017142295837402
+    },
+    "top 1% of slots by share of the player's games on the hero (>= 66%)": {
+     "share_of_slots": 0.010001983864568178,
+     "share_of_games_touched": 0.09482021138615228,
+     "gain_only_these_x1000": 0.20726966705561656,
+     "share_of_full_gain_only_these": 0.00723526053544156,
+     "gain_without_these_x1000": 28.43868746675722,
+     "share_lost_without_these": 0.007277253681440943,
+     "mean_realized_r_pp": 2.3957204818725586,
+     "mean_estimate_pp": 1.6068212985992432
+    },
+    "top 1% of slots by size of the personal estimate (>= 9.9pp)": {
+     "share_of_slots": 0.010000606180840277,
+     "share_of_games_touched": 0.09366117504208406,
+     "gain_only_these_x1000": 3.964915382188802,
+     "share_of_full_gain_only_these": 0.13840518103123217,
+     "gain_without_these_x1000": 24.913859875541142,
+     "share_lost_without_these": 0.13032008154548147,
+     "mean_realized_r_pp": 0.48982807993888855,
+     "mean_estimate_pp": -1.7912451028823853
+    },
+    "top 5% of slots by games on the hero (>= 419)": {
+     "share_of_slots": 0.050114623286161446,
+     "share_of_games_touched": 0.3759003228744101,
+     "gain_only_these_x1000": 1.3858644870046162,
+     "share_of_full_gain_only_these": 0.04837702869278938,
+     "gain_without_these_x1000": 27.155750266074335,
+     "share_lost_without_these": 0.05206135079228358,
+     "mean_realized_r_pp": 2.765444755554199,
+     "mean_estimate_pp": 2.360650062561035
+    },
+    "top 5% of slots by share of the player's games on the hero (>= 31%)": {
+     "share_of_slots": 0.05000165322047348,
+     "share_of_games_touched": 0.39314788751828245,
+     "gain_only_these_x1000": 1.3333820068887419,
+     "share_of_full_gain_only_these": 0.046544997877192074,
+     "gain_without_these_x1000": 27.335496903376054,
+     "share_lost_without_these": 0.045786849705260035,
+     "mean_realized_r_pp": 2.909123182296753,
+     "mean_estimate_pp": 2.050550937652588
+    },
+    "top 5% of slots by size of the personal estimate (>= 6.9pp)": {
+     "share_of_slots": 0.05000027553674558,
+     "share_of_games_touched": 0.39490024008609986,
+     "gain_only_these_x1000": 10.788428582856577,
+     "share_of_full_gain_only_these": 0.37659679138687907,
+     "gain_without_these_x1000": 17.602291032244125,
+     "share_lost_without_these": 0.3855484816078798,
+     "mean_realized_r_pp": -1.0772887468338013,
+     "mean_estimate_pp": -2.2504303455352783
+    },
+    "top 20% of slots by games on the hero (>= 96)": {
+     "share_of_slots": 0.20050808975885023,
+     "share_of_games_touched": 0.8313602119380743,
+     "gain_only_these_x1000": 3.7902492995931194,
+     "share_of_full_gain_only_these": 0.1323080292760474,
+     "gain_without_these_x1000": 24.95353307027453,
+     "share_lost_without_these": 0.12893519052767344,
+     "mean_realized_r_pp": 1.643484115600586,
+     "mean_estimate_pp": 1.2417131662368774
+    },
+    "top 20% of slots by share of the player's games on the hero (>= 10%)": {
+     "share_of_slots": 0.2001306044174051,
+     "share_of_games_touched": 0.8747412865303419,
+     "gain_only_these_x1000": 4.116793425874531,
+     "share_of_full_gain_only_these": 0.14370685990826998,
+     "gain_without_these_x1000": 25.01260469295151,
+     "share_lost_without_these": 0.12687314938875205,
+     "mean_realized_r_pp": 2.2913193702697754,
+     "mean_estimate_pp": 1.5326035022735596
+    },
+    "top 20% of slots by size of the personal estimate (>= 4.2pp)": {
+     "share_of_slots": 0.20000110214698233,
+     "share_of_games_touched": 0.8861384772470127,
+     "gain_only_these_x1000": 21.373661283779022,
+     "share_of_full_gain_only_these": 0.7461005277869531,
+     "gain_without_these_x1000": 6.485711147687463,
+     "share_lost_without_these": 0.7736002060612905,
+     "mean_realized_r_pp": -0.8039027452468872,
+     "mean_estimate_pp": -1.5968618392944336
+    },
+    "specialist: 100+ games on the hero and 20%+ of the player's games": {
+     "share_of_slots": 0.06880841379006304,
+     "share_of_games_touched": 0.4962331318817783,
+     "gain_only_these_x1000": 1.6797851456871007,
+     "share_of_full_gain_only_these": 0.05863705647459568,
+     "gain_without_these_x1000": 26.911884278827916,
+     "share_lost_without_these": 0.0605740964271142,
+     "mean_realized_r_pp": 3.028278350830078,
+     "mean_estimate_pp": 2.100375175476074
+    }
+   }
+  },
+  "OOT": {
+   "all": {
+    "games": 286016,
+    "acc_draft": 0.5694226896397404,
+    "acc_full": 0.6165773942716491,
+    "ll_gain_x1000": 27.80077846648877
+   },
+   "region Americas": {
+    "games": 91555,
+    "acc_draft": 0.568150292174103,
+    "acc_full": 0.6180001092239638,
+    "ll_gain_x1000": 29.695092289666906
+   },
+   "region Europe": {
+    "games": 180669,
+    "acc_draft": 0.569655004455662,
+    "acc_full": 0.616519712845037,
+    "ll_gain_x1000": 27.736438760144303
+   },
+   "region Korea": {
+    "games": 13792,
+    "acc_draft": 0.5748259860788864,
+    "acc_full": 0.6078886310904872,
+    "ll_gain_x1000": 16.068635798599715
+   },
+   "region unknown": 0,
+   "tier Bronze": {
+    "games": 52738,
+    "acc_draft": 0.5693996738594562,
+    "acc_full": 0.6088020023512458,
+    "ll_gain_x1000": 21.140961116402313
+   },
+   "tier Silver": {
+    "games": 59442,
+    "acc_draft": 0.5662999226136401,
+    "acc_full": 0.6082399650079069,
+    "ll_gain_x1000": 22.826118546758945
+   },
+   "tier Gold": {
+    "games": 59666,
+    "acc_draft": 0.5710790064693461,
+    "acc_full": 0.6196661415211343,
+    "ll_gain_x1000": 30.21088312154203
+   },
+   "tier Platinum": {
+    "games": 51135,
+    "acc_draft": 0.5705094358071771,
+    "acc_full": 0.6258922460154493,
+    "ll_gain_x1000": 34.24682617339096
+   },
+   "tier Diamond": {
+    "games": 33192,
+    "acc_draft": 0.5722764521571463,
+    "acc_full": 0.6207519884309473,
+    "ll_gain_x1000": 31.703320751379216
+   },
+   "tier Master": {
+    "games": 29843,
+    "acc_draft": 0.5673357236202795,
+    "acc_full": 0.6201454277384981,
+    "ll_gain_x1000": 29.27435836785608
+   },
+   "top 1% lobby MMR": {
+    "games": 2689,
+    "acc_draft": 0.5526217924879138,
+    "acc_full": 0.6180736333209371,
+    "ll_gain_x1000": 26.45115030828493,
+    "mmr_cut": 3089.86394
+   },
+   "spread": {
+    "Bronze": {
+     "sd_team_diff_pp": 10.104484094755241,
+     "sd_slot_estimate_pp": 3.1088452339172363,
+     "p90_abs_slot_estimate_pp": 5.643383502960205
+    },
+    "Silver": {
+     "sd_team_diff_pp": 10.252846063475177,
+     "sd_slot_estimate_pp": 3.157170534133911,
+     "p90_abs_slot_estimate_pp": 5.326728820800781
+    },
+    "Gold": {
+     "sd_team_diff_pp": 10.817068192545893,
+     "sd_slot_estimate_pp": 3.300071954727173,
+     "p90_abs_slot_estimate_pp": 5.41895866394043
+    },
+    "Platinum": {
+     "sd_team_diff_pp": 11.207812397096419,
+     "sd_slot_estimate_pp": 3.430229902267456,
+     "p90_abs_slot_estimate_pp": 5.5811944007873535
+    },
+    "Diamond": {
+     "sd_team_diff_pp": 11.634068743353328,
+     "sd_slot_estimate_pp": 3.552215576171875,
+     "p90_abs_slot_estimate_pp": 5.7736430168151855
+    },
+    "Master": {
+     "sd_team_diff_pp": 11.028294972736894,
+     "sd_slot_estimate_pp": 3.5857605934143066,
+     "p90_abs_slot_estimate_pp": 5.853008270263672
+    },
+    "top 1% lobby MMR": {
+     "sd_team_diff_pp": 11.642265820336634,
+     "sd_slot_estimate_pp": 3.794370651245117,
+     "p90_abs_slot_estimate_pp": 6.799019813537598
+    }
+   },
+   "concentration": {
+    "top 1% of slots by games on the hero (>= 1245)": {
+     "share_of_slots": 0.010009230252852988,
+     "share_of_games_touched": 0.09311017565450884,
+     "gain_only_these_x1000": 0.3162225977442943,
+     "share_of_full_gain_only_these": 0.01137459507205782,
+     "gain_without_these_x1000": 27.483355208373453,
+     "share_lost_without_these": 0.011417783084669342,
+     "mean_realized_r_pp": 3.3500478267669678,
+     "mean_estimate_pp": 2.9363908767700195
+    },
+    "top 1% of slots by share of the player's games on the hero (>= 64%)": {
+     "share_of_slots": 0.010000139852315954,
+     "share_of_games_touched": 0.0949457373014097,
+     "gain_only_these_x1000": 0.16982736261361112,
+     "share_of_full_gain_only_these": 0.0061087268767787235,
+     "gain_without_these_x1000": 27.629881378905967,
+     "share_lost_without_these": 0.006147205114734544,
+     "mean_realized_r_pp": 1.7554842233657837,
+     "mean_estimate_pp": 1.2247437238693237
+    },
+    "top 1% of slots by size of the personal estimate (>= 9.8pp)": {
+     "share_of_slots": 0.010000139852315954,
+     "share_of_games_touched": 0.0942849351085254,
+     "gain_only_these_x1000": 4.14585649587788,
+     "share_of_full_gain_only_these": 0.1491273527061597,
+     "gain_without_these_x1000": 23.751334876854482,
+     "share_lost_without_these": 0.14565935966561194,
+     "mean_realized_r_pp": 0.44027453660964966,
+     "mean_estimate_pp": -1.7994651794433594
+    },
+    "top 5% of slots by games on the hero (>= 400)": {
+     "share_of_slots": 0.05012446856119937,
+     "share_of_games_touched": 0.3764020194674424,
+     "gain_only_these_x1000": 1.0164537544744416,
+     "share_of_full_gain_only_these": 0.036562060868176094,
+     "gain_without_these_x1000": 26.737571801664256,
+     "share_lost_without_these": 0.03824377314132077,
+     "mean_realized_r_pp": 2.4685471057891846,
+     "mean_estimate_pp": 2.2190685272216797
+    },
+    "top 5% of slots by share of the player's games on the hero (>= 31%)": {
+     "share_of_slots": 0.05,
+     "share_of_games_touched": 0.3945793242336093,
+     "gain_only_these_x1000": 1.1824952865335623,
+     "share_of_full_gain_only_these": 0.042534610603042984,
+     "gain_without_these_x1000": 26.666282674623755,
+     "share_lost_without_these": 0.040808058422987736,
+     "mean_realized_r_pp": 2.8336563110351562,
+     "mean_estimate_pp": 1.842051386833191
+    },
+    "top 5% of slots by size of the personal estimate (>= 6.9pp)": {
+     "share_of_slots": 0.050000349630789885,
+     "share_of_games_touched": 0.3962016110986798,
+     "gain_only_these_x1000": 10.571295366606321,
+     "share_of_full_gain_only_these": 0.3802517753000703,
+     "gain_without_these_x1000": 16.948057397680827,
+     "share_lost_without_these": 0.390374718531349,
+     "mean_realized_r_pp": -1.1372971534729004,
+     "mean_estimate_pp": -2.524780750274658
+    },
+    "top 20% of slots by games on the hero (>= 87)": {
+     "share_of_slots": 0.2001314611769971,
+     "share_of_games_touched": 0.8305689192213023,
+     "gain_only_these_x1000": 3.1527964504659893,
+     "share_of_full_gain_only_these": 0.11340676860061275,
+     "gain_without_these_x1000": 24.721906774129284,
+     "share_lost_without_these": 0.11074767910081285,
+     "mean_realized_r_pp": 1.5715669393539429,
+     "mean_estimate_pp": 1.094935655593872
+    },
+    "top 20% of slots by share of the player's games on the hero (>= 9%)": {
+     "share_of_slots": 0.2000027970463191,
+     "share_of_games_touched": 0.8727273998657418,
+     "gain_only_these_x1000": 4.089411969581978,
+     "share_of_full_gain_only_these": 0.14709703091628823,
+     "gain_without_these_x1000": 24.15775816468112,
+     "share_lost_without_these": 0.13104022630873335,
+     "mean_realized_r_pp": 2.338007926940918,
+     "mean_estimate_pp": 1.3988876342773438
+    },
+    "top 20% of slots by size of the personal estimate (>= 4.1pp)": {
+     "share_of_slots": 0.20000104889236966,
+     "share_of_games_touched": 0.8879048724546879,
+     "gain_only_these_x1000": 20.366562378296084,
+     "share_of_full_gain_only_these": 0.7325896432305328,
+     "gain_without_these_x1000": 6.812925447204986,
+     "share_lost_without_these": 0.7549376016424386,
+     "mean_realized_r_pp": -0.7631411552429199,
+     "mean_estimate_pp": -1.7215585708618164
+    },
+    "specialist: 100+ games on the hero and 20%+ of the player's games": {
+     "share_of_slots": 0.06421948422465876,
+     "share_of_games_touched": 0.4735329492056388,
+     "gain_only_these_x1000": 1.3569847705507847,
+     "share_of_full_gain_only_these": 0.04881103499265327,
+     "gain_without_these_x1000": 26.540471401385872,
+     "share_lost_without_these": 0.04533351706759137,
+     "mean_realized_r_pp": 2.7971484661102295,
+     "mean_estimate_pp": 1.9318488836288452
+    }
+   }
+  }
+ },
+ "A2S": {
+  "V2": {
+   "all": {
+    "games": 72474,
+    "acc_draft": 0.5718602533322295,
+    "acc_full": 0.6034715898115186,
+    "ll_gain_x1000": 17.684995793391096
+   },
+   "region Americas": {
+    "games": 22332,
+    "acc_draft": 0.5742432384022926,
+    "acc_full": 0.6036181264553108,
+    "ll_gain_x1000": 18.766777481040197
+   },
+   "region Europe": {
+    "games": 46820,
+    "acc_draft": 0.5711661683041436,
+    "acc_full": 0.6040794532251175,
+    "ll_gain_x1000": 17.60933103305318
+   },
+   "region Korea": {
+    "games": 3322,
+    "acc_draft": 0.5656231186032511,
+    "acc_full": 0.5939193257074051,
+    "ll_gain_x1000": 11.479178644216292
+   },
+   "region unknown": 0,
+   "tier Bronze": {
+    "games": 13140,
+    "acc_draft": 0.5799847792998478,
+    "acc_full": 0.5910958904109589,
+    "ll_gain_x1000": 8.063770732416616
+   },
+   "tier Silver": {
+    "games": 15489,
+    "acc_draft": 0.5733100910323455,
+    "acc_full": 0.596875201756085,
+    "ll_gain_x1000": 12.751112550260238
+   },
+   "tier Gold": {
+    "games": 14771,
+    "acc_draft": 0.5696973800013541,
+    "acc_full": 0.6054430979622233,
+    "ll_gain_x1000": 19.981843098723232
+   },
+   "tier Platinum": {
+    "games": 13409,
+    "acc_draft": 0.5690208069207249,
+    "acc_full": 0.6107092251472891,
+    "ll_gain_x1000": 22.745958871734743
+   },
+   "tier Diamond": {
+    "games": 9188,
+    "acc_draft": 0.5715063125816282,
+    "acc_full": 0.6180888114932521,
+    "ll_gain_x1000": 26.51381360371914
+   },
+   "tier Master": {
+    "games": 6477,
+    "acc_draft": 0.5632237146827235,
+    "acc_full": 0.6041377180793577,
+    "ll_gain_x1000": 20.762879280837968
+   },
+   "top 1% lobby MMR": {
+    "games": 696,
+    "acc_draft": 0.5603448275862069,
+    "acc_full": 0.617816091954023,
+    "ll_gain_x1000": 39.29561649184597,
+    "mmr_cut": 3103.577890625
+   },
+   "spread": {
+    "Bronze": {
+     "sd_team_diff_pp": 7.605004594700829,
+     "sd_slot_estimate_pp": 2.39878511428833,
+     "p90_abs_slot_estimate_pp": 3.917405843734741
+    },
+    "Silver": {
+     "sd_team_diff_pp": 8.61166995885406,
+     "sd_slot_estimate_pp": 2.6777966022491455,
+     "p90_abs_slot_estimate_pp": 4.319711208343506
+    },
+    "Gold": {
+     "sd_team_diff_pp": 9.651950569637627,
+     "sd_slot_estimate_pp": 2.9326164722442627,
+     "p90_abs_slot_estimate_pp": 4.742624759674072
+    },
+    "Platinum": {
+     "sd_team_diff_pp": 10.65314848650259,
+     "sd_slot_estimate_pp": 3.2120306491851807,
+     "p90_abs_slot_estimate_pp": 5.291315078735352
+    },
+    "Diamond": {
+     "sd_team_diff_pp": 11.728589028590276,
+     "sd_slot_estimate_pp": 3.5039544105529785,
+     "p90_abs_slot_estimate_pp": 6.104020595550537
+    },
+    "Master": {
+     "sd_team_diff_pp": 11.212991412684929,
+     "sd_slot_estimate_pp": 3.696688652038574,
+     "p90_abs_slot_estimate_pp": 6.614221096038818
+    },
+    "top 1% lobby MMR": {
+     "sd_team_diff_pp": 12.77712724014167,
+     "sd_slot_estimate_pp": 4.135406970977783,
+     "p90_abs_slot_estimate_pp": 8.941410064697266
+    }
+   },
+   "concentration": {
+    "top 1% of slots by games on the hero (>= 1267)": {
+     "share_of_slots": 0.010000606180840277,
+     "share_of_games_touched": 0.09319204128377073,
+     "gain_only_these_x1000": 0.3244340182309095,
+     "share_of_full_gain_only_these": 0.018345156652632675,
+     "gain_without_these_x1000": 17.199892326480057,
+     "share_lost_without_these": 0.02743022800674466,
+     "mean_realized_r_pp": 2.635444402694702,
+     "mean_estimate_pp": 3.404292106628418
+    },
+    "top 1% of slots by share of the player's games on the hero (>= 66%)": {
+     "share_of_slots": 0.010001983864568178,
+     "share_of_games_touched": 0.09482021138615228,
+     "gain_only_these_x1000": 0.19147193250327654,
+     "share_of_full_gain_only_these": 0.010826801133581827,
+     "gain_without_these_x1000": 17.424923762243235,
+     "share_lost_without_these": 0.01470580113143427,
+     "mean_realized_r_pp": 2.3957204818725586,
+     "mean_estimate_pp": 2.769103527069092
+    },
+    "top 1% of slots by size of the personal estimate (>= 9.3pp)": {
+     "share_of_slots": 0.010000606180840277,
+     "share_of_games_touched": 0.0889146452520904,
+     "gain_only_these_x1000": 2.5244406668838595,
+     "share_of_full_gain_only_these": 0.14274477056009513,
+     "gain_without_these_x1000": 15.060181174818364,
+     "share_lost_without_these": 0.14842042651509302,
+     "mean_realized_r_pp": 5.65469217300415,
+     "mean_estimate_pp": 7.017734527587891
+    },
+    "top 5% of slots by games on the hero (>= 419)": {
+     "share_of_slots": 0.050114623286161446,
+     "share_of_games_touched": 0.3759003228744101,
+     "gain_only_these_x1000": 1.4299693261732904,
+     "share_of_full_gain_only_these": 0.0808577702182814,
+     "gain_without_these_x1000": 15.662600704624952,
+     "share_lost_without_these": 0.1143565490426588,
+     "mean_realized_r_pp": 2.765444755554199,
+     "mean_estimate_pp": 3.0317888259887695
+    },
+    "top 5% of slots by share of the player's games on the hero (>= 31%)": {
+     "share_of_slots": 0.05000165322047348,
+     "share_of_games_touched": 0.39314788751828245,
+     "gain_only_these_x1000": 1.4337969367775465,
+     "share_of_full_gain_only_these": 0.08107420287390502,
+     "gain_without_these_x1000": 15.853774178829331,
+     "share_lost_without_these": 0.10354662426587025,
+     "mean_realized_r_pp": 2.909123182296753,
+     "mean_estimate_pp": 3.1284923553466797
+    },
+    "top 5% of slots by size of the personal estimate (>= 6.3pp)": {
+     "share_of_slots": 0.05000027553674558,
+     "share_of_games_touched": 0.3619918867455915,
+     "gain_only_these_x1000": 6.101301816038291,
+     "share_of_full_gain_only_these": 0.3449987711231661,
+     "gain_without_these_x1000": 11.152993458948062,
+     "share_lost_without_these": 0.3693527785222347,
+     "mean_realized_r_pp": 2.779832363128662,
+     "mean_estimate_pp": 3.5720760822296143
+    },
+    "top 20% of slots by games on the hero (>= 96)": {
+     "share_of_slots": 0.20050808975885023,
+     "share_of_games_touched": 0.8313602119380743,
+     "gain_only_these_x1000": 3.8671736877307312,
+     "share_of_full_gain_only_these": 0.21866975445795123,
+     "gain_without_these_x1000": 13.077945145499099,
+     "share_lost_without_these": 0.2605061771976026,
+     "mean_realized_r_pp": 1.643484115600586,
+     "mean_estimate_pp": 2.342527151107788
+    },
+    "top 20% of slots by share of the player's games on the hero (>= 10%)": {
+     "share_of_slots": 0.2001306044174051,
+     "share_of_games_touched": 0.8747412865303419,
+     "gain_only_these_x1000": 4.295162177981828,
+     "share_of_full_gain_only_these": 0.24287040993173067,
+     "gain_without_these_x1000": 13.0912451296911,
+     "share_lost_without_these": 0.25975412815289933,
+     "mean_realized_r_pp": 2.2913193702697754,
+     "mean_estimate_pp": 2.6508536338806152
+    },
+    "top 20% of slots by size of the personal estimate (>= 3.7pp)": {
+     "share_of_slots": 0.20000110214698233,
+     "share_of_games_touched": 0.8529817589756327,
+     "gain_only_these_x1000": 12.289571953413935,
+     "share_of_full_gain_only_these": 0.69491517538311,
+     "gain_without_these_x1000": 5.02368683118264,
+     "share_lost_without_these": 0.7159350847535968,
+     "mean_realized_r_pp": 1.1013424396514893,
+     "mean_estimate_pp": 1.7403911352157593
+    },
+    "specialist: 100+ games on the hero and 20%+ of the player's games": {
+     "share_of_slots": 0.06880841379006304,
+     "share_of_games_touched": 0.4962331318817783,
+     "gain_only_these_x1000": 1.855919795112299,
+     "share_of_full_gain_only_these": 0.10494318555653027,
+     "gain_without_these_x1000": 15.267533785962879,
+     "share_lost_without_these": 0.13669565069004008,
+     "mean_realized_r_pp": 3.028278350830078,
+     "mean_estimate_pp": 3.0569887161254883
+    }
+   }
+  },
+  "OOT": {
+   "all": {
+    "games": 286016,
+    "acc_draft": 0.5694226896397404,
+    "acc_full": 0.6014139069142985,
+    "ll_gain_x1000": 17.439728722455897
+   },
+   "region Americas": {
+    "games": 91555,
+    "acc_draft": 0.568150292174103,
+    "acc_full": 0.6010485500518814,
+    "ll_gain_x1000": 18.811386272378925
+   },
+   "region Europe": {
+    "games": 180669,
+    "acc_draft": 0.569655004455662,
+    "acc_full": 0.6024608538266111,
+    "ll_gain_x1000": 17.540530431887028
+   },
+   "region Korea": {
+    "games": 13792,
+    "acc_draft": 0.5748259860788864,
+    "acc_full": 0.5901247099767981,
+    "ll_gain_x1000": 7.013840452124123
+   },
+   "region unknown": 0,
+   "tier Bronze": {
+    "games": 52738,
+    "acc_draft": 0.5693996738594562,
+    "acc_full": 0.5918123554173461,
+    "ll_gain_x1000": 10.965536177989971
+   },
+   "tier Silver": {
+    "games": 59442,
+    "acc_draft": 0.5662999226136401,
+    "acc_full": 0.594344066484977,
+    "ll_gain_x1000": 13.436408905670232
+   },
+   "tier Gold": {
+    "games": 59666,
+    "acc_draft": 0.5710790064693461,
+    "acc_full": 0.6021519793517246,
+    "ll_gain_x1000": 17.75597619975415
+   },
+   "tier Platinum": {
+    "games": 51135,
+    "acc_draft": 0.5705094358071771,
+    "acc_full": 0.6110100713796812,
+    "ll_gain_x1000": 22.64150195403691
+   },
+   "tier Diamond": {
+    "games": 33192,
+    "acc_draft": 0.5722764521571463,
+    "acc_full": 0.6076162930826705,
+    "ll_gain_x1000": 22.773723521351872
+   },
+   "tier Master": {
+    "games": 29843,
+    "acc_draft": 0.5673357236202795,
+    "acc_full": 0.6076466843145797,
+    "ll_gain_x1000": 21.376781009997014
+   },
+   "top 1% lobby MMR": {
+    "games": 2689,
+    "acc_draft": 0.5526217924879138,
+    "acc_full": 0.6113796950539234,
+    "ll_gain_x1000": 25.89511152845627,
+    "mmr_cut": 3089.86394
+   },
+   "spread": {
+    "Bronze": {
+     "sd_team_diff_pp": 7.92397382250255,
+     "sd_slot_estimate_pp": 2.454226016998291,
+     "p90_abs_slot_estimate_pp": 3.9224295616149902
+    },
+    "Silver": {
+     "sd_team_diff_pp": 8.801791677139645,
+     "sd_slot_estimate_pp": 2.6941840648651123,
+     "p90_abs_slot_estimate_pp": 4.310913562774658
+    },
+    "Gold": {
+     "sd_team_diff_pp": 9.68933924661707,
+     "sd_slot_estimate_pp": 2.9451591968536377,
+     "p90_abs_slot_estimate_pp": 4.754108905792236
+    },
+    "Platinum": {
+     "sd_team_diff_pp": 10.42721150108561,
+     "sd_slot_estimate_pp": 3.1733696460723877,
+     "p90_abs_slot_estimate_pp": 5.241245269775391
+    },
+    "Diamond": {
+     "sd_team_diff_pp": 11.234698725848716,
+     "sd_slot_estimate_pp": 3.4321959018707275,
+     "p90_abs_slot_estimate_pp": 5.935303688049316
+    },
+    "Master": {
+     "sd_team_diff_pp": 10.663086681793885,
+     "sd_slot_estimate_pp": 3.5835635662078857,
+     "p90_abs_slot_estimate_pp": 6.1866631507873535
+    },
+    "top 1% lobby MMR": {
+     "sd_team_diff_pp": 12.381707825240442,
+     "sd_slot_estimate_pp": 4.149661540985107,
+     "p90_abs_slot_estimate_pp": 8.859345436096191
+    }
+   },
+   "concentration": {
+    "top 1% of slots by games on the hero (>= 1245)": {
+     "share_of_slots": 0.010009230252852988,
+     "share_of_games_touched": 0.09311017565450884,
+     "gain_only_these_x1000": 0.27066357965630355,
+     "share_of_full_gain_only_these": 0.015519942079591486,
+     "gain_without_these_x1000": 17.00715240941093,
+     "share_lost_without_these": 0.024804073499604784,
+     "mean_realized_r_pp": 3.3500478267669678,
+     "mean_estimate_pp": 3.310436487197876
+    },
+    "top 1% of slots by share of the player's games on the hero (>= 64%)": {
+     "share_of_slots": 0.010000139852315954,
+     "share_of_games_touched": 0.0949457373014097,
+     "gain_only_these_x1000": 0.1112207292736139,
+     "share_of_full_gain_only_these": 0.0063774345945188295,
+     "gain_without_these_x1000": 17.206937045970193,
+     "share_lost_without_these": 0.013348354219865466,
+     "mean_realized_r_pp": 1.7554842233657837,
+     "mean_estimate_pp": 2.4524335861206055
+    },
+    "top 1% of slots by size of the personal estimate (>= 9.2pp)": {
+     "share_of_slots": 0.01000048948310584,
+     "share_of_games_touched": 0.08863839785186843,
+     "gain_only_these_x1000": 2.6627356661490675,
+     "share_of_full_gain_only_these": 0.15268217232762643,
+     "gain_without_these_x1000": 14.58597152028553,
+     "share_lost_without_these": 0.16363541243022817,
+     "mean_realized_r_pp": 6.798404693603516,
+     "mean_estimate_pp": 7.021494388580322
+    },
+    "top 5% of slots by games on the hero (>= 400)": {
+     "share_of_slots": 0.05012446856119937,
+     "share_of_games_touched": 0.3764020194674424,
+     "gain_only_these_x1000": 1.0067737765355764,
+     "share_of_full_gain_only_these": 0.057728752124408075,
+     "gain_without_these_x1000": 15.905683064372525,
+     "share_lost_without_these": 0.08796270185717336,
+     "mean_realized_r_pp": 2.4685471057891846,
+     "mean_estimate_pp": 2.921473741531372
+    },
+    "top 5% of slots by share of the player's games on the hero (>= 31%)": {
+     "share_of_slots": 0.05,
+     "share_of_games_touched": 0.3945793242336093,
+     "gain_only_these_x1000": 1.2412203278509846,
+     "share_of_full_gain_only_these": 0.07117199743209042,
+     "gain_without_these_x1000": 15.826675747164245,
+     "share_lost_without_these": 0.092493008404118,
+     "mean_realized_r_pp": 2.8336563110351562,
+     "mean_estimate_pp": 2.942814350128174
+    },
+    "top 5% of slots by size of the personal estimate (>= 6.2pp)": {
+     "share_of_slots": 0.05,
+     "share_of_games_touched": 0.3684933710002238,
+     "gain_only_these_x1000": 6.64080935355302,
+     "share_of_full_gain_only_these": 0.3807862759357101,
+     "gain_without_these_x1000": 10.35547501378625,
+     "share_lost_without_these": 0.4062135266787583,
+     "mean_realized_r_pp": 2.8355884552001953,
+     "mean_estimate_pp": 3.279650926589966
+    },
+    "top 20% of slots by games on the hero (>= 87)": {
+     "share_of_slots": 0.2001314611769971,
+     "share_of_games_touched": 0.8305689192213023,
+     "gain_only_these_x1000": 3.2865164491296257,
+     "share_of_full_gain_only_these": 0.1884499754229441,
+     "gain_without_these_x1000": 13.444331293685137,
+     "share_lost_without_these": 0.22909745285350513,
+     "mean_realized_r_pp": 1.5715669393539429,
+     "mean_estimate_pp": 2.2412240505218506
+    },
+    "top 20% of slots by share of the player's games on the hero (>= 9%)": {
+     "share_of_slots": 0.2000027970463191,
+     "share_of_games_touched": 0.8727273998657418,
+     "gain_only_these_x1000": 4.41326712046559,
+     "share_of_full_gain_only_these": 0.253058243663099,
+     "gain_without_these_x1000": 12.667953756075581,
+     "share_lost_without_these": 0.2736152059656777,
+     "mean_realized_r_pp": 2.338007926940918,
+     "mean_estimate_pp": 2.530095100402832
+    },
+    "top 20% of slots by size of the personal estimate (>= 3.7pp)": {
+     "share_of_slots": 0.2,
+     "share_of_games_touched": 0.8553507496084135,
+     "gain_only_these_x1000": 12.399871225792632,
+     "share_of_full_gain_only_these": 0.7110128502071366,
+     "gain_without_these_x1000": 4.679448880865074,
+     "share_lost_without_these": 0.7316788033038792,
+     "mean_realized_r_pp": 1.2524553537368774,
+     "mean_estimate_pp": 1.6467684507369995
+    },
+    "specialist: 100+ games on the hero and 20%+ of the player's games": {
+     "share_of_slots": 0.06421948422465876,
+     "share_of_games_touched": 0.4735329492056388,
+     "gain_only_these_x1000": 1.4675621328793558,
+     "share_of_full_gain_only_these": 0.08415051382018807,
+     "gain_without_these_x1000": 15.54078564756233,
+     "share_lost_without_these": 0.10888604433671223,
+     "mean_realized_r_pp": 2.7971484661102295,
+     "mean_estimate_pp": 2.9019615650177
+    }
+   }
+  }
+ }
+}

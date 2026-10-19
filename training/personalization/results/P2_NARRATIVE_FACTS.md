@@ -1,0 +1,427 @@
+# Paper 2 narrative facts (2026-10-19)
+
+Answers to Max's questions on `NARRATIVE_v2.md`. Each section starts with a short plain answer, then gives the numbers and how they were made.
+
+**Units.** "Edge" means accuracy minus 50, in points. On the V2 test window (72,474 games, 2026-03-29 to 2026-05-22):
+- draft only: 57.19%, an edge of 7.19;
+- draft plus players (main model on the full_1017 panel, `P3_TAILS.md`): 62.00%, an edge of 12.00.
+
+So knowing the players adds 4.81 points, the "personal gain". These are the current panel numbers. The definitive rerun (about Oct 28) will move them a little.
+
+**New code** (all in `training/personalization/`, run on this box at nice 19 on cores 48-51; no GPU, no Neon, no 2.57 or sealed games):
+- `p2f_game_clock.py`: the game's clock;
+- `p2f_player_clock.py`: the players' clock;
+- `p2f_clocks.py`: both clocks with one measurement-error estimator, the primary result of section 2;
+- `p2f_arms.py`: shrinkage, regions, top tiers and specialists, from the scored arms of the full-history panel. Those arms and the full slot table were copied from the 3090. No job ran there.
+
+Outputs are in `results/p2f/`: `clocks.json`, `game_clock.json`, `player_clock_history.json`, `player_clock_slots.json` and `arms.json`.
+
+Two corrections to the narrative come out of this work. Both are in section 2:
+1. The "410 days" label is wrong. The drift paper's 16-build lag counts sizable builds only, and those builds are spread out: 16 of them span a median of 954 days, about 2.6 years.
+2. When both clocks are measured the same way, the game is not faster than the players. On heavily played heroes, players' relative skill moves somewhat faster over one to two years.
+
+---
+
+## 1. Drift in edge-over-chance units
+
+**Plain answer.** Yes, drift matters, but the two halves differ in why.
+- **Draft model.** Never updating it for 2.8 years costs about 1 point of a 6.9-point edge, roughly a seventh. Any retraining schedule up to every six builds (about every six months) wins almost all of that back.
+- **Player model.** Freezing it costs more, and sooner. Four months frozen loses about 1.6 points, which is 59% of what the players add in accuracy (70% in log loss). That is more than the draft model loses in 2.8 years.
+
+The player loss is mostly not skill changing. It comes from new games, new heroes and new accounts that a frozen model cannot see. Keeping game counts current recovers most of it.
+
+### Draft side (maintenance replay, drift paper Table 3; `training/drift_v2/results/R9_REPLAY.md`)
+
+The reference is "retrain every build", which averages 56.87% over the 2.8-year deployment, weighting each build by its games. That is an edge of 6.87.
+
+| policy | accuracy cost vs reference (points) | share of the 6.87 edge | share of the 4.81 personal gain |
+|---|---|---|---|
+| never retrain, never refresh | 1.02 | 14.9% | 21% |
+| refresh statistics every build, never retrain | 0.66 (recovers 0.36, 35% of the loss) | 9.6% (recovers 5.2%) | 14% |
+| retrain every 3 builds, refresh between | 0.00 (recovers 1.02, all of it) | 0% | 0% |
+| retrain every 3 builds, no refresh between | 0.03 (recovers 0.99, 97%) | 0.4% | 0.6% |
+| retrain every 6 builds, refresh between | 0.08 | 1.2% | 1.7% |
+| retrain every 9 / 12 builds, refresh between | 0.17 / 0.20 | 2.5% / 2.9% | |
+
+- On the deployed V2 unit the same 1.02 points is 14% of the 7.19 draft edge and 8.5% of the 12.00 total edge.
+- On the main split, freezing statistics for one quarter costs 0.035 points, 0.5% of the edge.
+- The 1.02 is an average over the 2.8 years, not the loss at the end. The loss grows with time.
+
+### Player side
+
+These numbers come from the phase-1 player model (win-only CF), where the frozen and lagged arms were run. Sources: `P3_HERO_STRENGTH.md` section 2 and `P3_EXTENSIONS.md` section 1.
+
+V2 window: draft only 57.19%; phase-1 player model 60.02%, an edge of 10.02 and a personal gain of 2.83 points. Log-loss gain 0.0142.
+
+| arm | accuracy | points lost | share of personal gain lost (accuracy / log loss) | share of the 10.02 edge |
+|---|---|---|---|---|
+| updated nightly (reference) | 60.02% | | | |
+| state and counts 7 days old | 59.48% | 0.54 | 19% / 21% | 5% |
+| state and counts 30 days old | 58.92% | 1.10 | 39% / 42% | 11% |
+| frozen at the Feb 10 cutoff (V2 is 7 to 15 weeks later) | 58.39% | 1.63 | 58% / 58% | 16% |
+| skill frozen at cutoff, game counts current | 59.32% | 0.70 | 25% / 25% | 7% |
+
+Out-of-time window, June to September 2026 (286,016 games, four months after the May snapshot): draft only 56.94%, nightly model 59.70% (edge 9.70, personal gain 2.76, log-loss gain 0.0149).
+
+| arm | accuracy | points lost | share of personal gain lost (accuracy / log loss) | share of the 9.70 edge |
+|---|---|---|---|---|
+| frozen in May, state and counts | 58.06% | 1.64 | 59% / 70% | 17% |
+| frozen in May, counts current | 59.10% | 0.60 | 22% / 28% | 6% |
+
+By month, the frozen model keeps this share of the log-loss gain:
+
+| period | share kept |
+|---|---|
+| first five weeks | 49% |
+| July | 29% |
+| August | 16% |
+| September | 23% |
+
+**The main model.** It has a larger personal gain (4.81 points), and its lagged and frozen arms have not been run. If it lost the same shares, the costs would be about:
+- 1 point at a 7-day lag;
+- 2 points at a 30-day lag;
+- 2.8 to 3.4 points frozen for four months.
+
+This is an extrapolation, labeled as such. A direct run needs a `--lag` and a freeze option in `p3_rcf.py online`, which is about an hour on the 3090.
+
+### Does drift matter?
+
+| what goes stale | cost | relative to the edge | relative to the personal gain |
+|---|---|---|---|
+| draft model, never maintained, 2.8 years | 1.02 points | 15% of 6.87 | 21% of 4.81 |
+| draft statistics frozen one quarter (model retrained) | 0.035 points | 0.5% | 1% |
+| player model frozen four months | 1.64 points | 17% of 9.70 | 59% (70% in log loss) |
+| player model one week behind | 0.54 points | 5% | 19% |
+
+The cheap fixes are different for each half:
+- **Draft side:** retrain a few times a year. Nightly refresh adds little.
+- **Player side:** keep the game counts and skill state current every day. This is bookkeeping, not refitting. The May hyperparameters still worked in September.
+
+---
+
+## 2. The two clocks, at 3 months, 6 months, 1 year and 2 years
+
+**Plain answer.** Measured the same way, in the same units, on the same games, the game does not drift faster than the players.
+- **A hero's win rate in a tier** keeps a true correlation with itself of 0.93 after 3 months, 0.90 after 6 months, 0.85 after 1 year and 0.77 after 2 years. This does not depend on any cutoff. Heroes the patch notes left untouched keep 0.91 to 0.95; heroes changed twice or more keep 0.75 to 0.80.
+- **A player's skill on a hero, relative to their own average,** keeps 0.91, 0.85, 0.90 and 0.86 when every player-hero cell with play in both windows is used. The confidence intervals are wide (about ±0.15), and the value depends on the cutoff. Restricted to heroes played 20+ times in each 90-day window, it is 0.83, 0.79, 0.74 and 0.57.
+
+So within the uncertainty the two clocks overlap. On heroes a player plays a lot, the players' clock looks *faster* than the game's over one to two years. The narrative's "game much faster than players" is not supported and should be dropped or reversed.
+
+Two things made the old contrast (0.62 against 0.90 to 0.93) look large:
+- **The game number was a 2.6-year lag, not 410 days.** The drift paper's lag of 16 *sizable* builds spans 765 to 1,097 days (median 954).
+- **The player number came from the drift model's fitted parameters, not from measured records.**
+
+### Method in plain words (`p2f_clocks.py`)
+
+- **One table, one estimator for both sides.** All 22.4M player slots of every ranked game from December 2021 to September 2026, each with the draft-only win probability (WP) of its game.
+- **Independent windows with new games only.**
+  - Window A is 90 days. Window B is 90 days and starts h days after A *ends* (h = 3 months, 6 months, 1 year, 2 years).
+  - Every cell is estimated twice, once from the games inside A and once from the games inside B. Nothing carries over.
+  - A player who does not play a hero in B has no B value for it. They cannot "trivially not change"; they enter only the selection check below.
+  - A new A starts every 30 days, and all window pairs are pooled (50 pairs at 3 months, 29 at 2 years).
+- **Same unit: points of win probability.**
+  - **Game cell:** hero × tier group (Bronze-Silver, Gold-Platinum, Diamond-Master). The value is the hero's win rate minus 50, in points.
+  - **Player cell:** player × hero. The value is the player's average result on the hero minus the draft-only WP, in points. That is how much better or worse than the draft predicts they do. Primary is the *hero-specific* version: the same minus the player's own average over all heroes in that window. The raw cell also contains the player's overall level, which matchmaking keeps pulling back toward 50% and which MMR already tracks; it is reported but cannot be read as skill drift (see the flags).
+- **Measurement-error model instead of cutoffs.**
+  - Each cell's window value = its true value + luck. The luck has a known variance:
+    - game cells: binomial, p(1 - p)/n;
+    - player cells: the spread of that cell's own game residuals divided by n ("residual-based"). This needs 2+ games in the window.
+  - Pooling all cells, weighted by how much each tells us (inverse variance), we estimate the true variance in A, the true variance in B, and the true covariance between them. Luck in A and luck in B are independent, so only the variances need correcting.
+  - Stability = true covariance / sqrt(true variance A × true variance B): the correlation of the true values, also called the disattenuated correlation.
+  - 95% CIs come from 200 bootstrap draws over heroes (game side) or over players (player side, 200 player groups).
+- **Sensitivity curves** repeat the estimate with a minimum of 5, 10, 20, 50 and 100 games per cell in each window, and on the game side with a minimum pick rate from 0.25% to 5%. If the noise model is right, the value should stay roughly flat.
+
+### Primary table
+
+True-effect correlation (95% CI). Every cell with play in both windows: game cells with any games, player cells with 2+ games.
+
+| horizon (gap between windows) | game: hero × tier | player: hero-specific | player: hero-specific, 20+ games in each window |
+|---|---|---|---|
+| 3 months | **0.93** (0.90, 0.95) | **0.91** (0.80, 1.04) | 0.83 (0.76, 0.93) |
+| 6 months | **0.90** (0.87, 0.93) | **0.85** (0.75, 0.98) | 0.79 (0.68, 0.92) |
+| 1 year | **0.85** (0.79, 0.89) | **0.90** (0.78, 1.08) | 0.74 (0.61, 0.90) |
+| 2 years | **0.77** (0.69, 0.83) | **0.86** (0.67, 1.11) | 0.57 (0.38, 0.84) |
+| cell pairs, 3 months / 2 years | 13,500 / 7,830 | 5.3M / 1.7M | |
+
+Spread of the true values, in points of win probability:
+
+| horizon | game: true sd in A / B | game: part carried to B | player: true sd in A / B | player: part carried to B |
+|---|---|---|---|---|
+| 3 months | 2.4 / 2.4 | 2.3 | 3.3 / 3.5 | 3.3 |
+| 2 years | 2.5 / 2.3 | 2.1 | 3.0 / 3.3 | 2.9 |
+
+The "part carried to B" is sqrt(true covariance). A player's edge on a hero, relative to their own average, is a somewhat larger effect than a hero's tier win-rate edge, and in absolute points about as much of it carries forward.
+
+### Sensitivity curves
+
+True-effect correlation by the minimum games per cell in each window:
+
+| side, horizon | 1 | 2 | 5 | 10 | 20 | 50 | 100 |
+|---|---|---|---|---|---|---|---|
+| game, 3 months | 0.93 | 0.93 | 0.93 | 0.93 | 0.93 | 0.93 | 0.93 |
+| game, 1 year | 0.85 | 0.85 | 0.85 | 0.85 | 0.85 | 0.85 | 0.85 |
+| game, 2 years | 0.77 | 0.77 | 0.77 | 0.77 | 0.77 | 0.77 | 0.77 |
+| player hero-specific, 3 months | | 0.91 | 0.90 | 0.88 | 0.83 | 0.89 | 1.10 (CI 0.79 to 2.7) |
+| player hero-specific, 6 months | | 0.85 | 0.86 | 0.80 | 0.79 | 0.81 | 0.92 (very wide) |
+| player hero-specific, 1 year | | 0.90 | 0.85 | 0.80 | 0.74 | 0.66 (CI 0.50 to 1.07) | too few |
+| player hero-specific, 2 years | | 0.86 | 0.63 | 0.62 | 0.57 | 0.65 (very wide) | too few |
+
+Game side by minimum pick rate (share of the tier group's games, in both windows):
+
+| horizon | 0.25% | 0.5% | 1% | 2% | 5% |
+|---|---|---|---|---|---|
+| 3 months | 0.93 | 0.93 | 0.93 | 0.92 | 0.92 |
+| 1 year | 0.85 | 0.85 | 0.85 | 0.85 | 0.82 |
+| 2 years | 0.77 | 0.77 | 0.77 | 0.76 | 0.71 |
+
+**Flags.**
+1. **The game side is flat.** Every hero × tier cell has hundreds of games a quarter, so the binomial noise model holds and no cutoff matters. Rarely picked heroes do not drag it down.
+2. **The player side is not flat at 1 and 2 years.** It falls from 0.90 to 0.74 at 1 year and from 0.86 to 0.57 at 2 years as the minimum rises from 2 to 20 games. The noise model is an unlikely cause. A single-window check, by games per cell, shows the residual-based noise at 2 games is if anything slightly *too small*, which would pull the all-cells value down, not up. The more likely reading is selection: the cells with 20+ games are heavy players' main heroes, and their relative skill on those heroes moves more over one to two years than a light player's skill on a hero. The defensible player number for meaningfully played heroes is therefore **0.74 at 1 year and 0.57 at 2 years**; the all-cells value describes the average cell, most of which are light. Our corpus sees only part of each player's games, so cells with 50+ and 100+ games are too few at long horizons.
+3. **The WP-based noise model fails on the player side.** Using the WP's own p(1 - p) as luck gives true correlations of 2 to 10 at low cutoffs. A single-game check shows why: one game's residual varies 2.5% less than the WP says. That error is 60 points² per game, about four times a player-hero cell's whole true variance. We therefore use the cells' own residual spread as their noise, and need 2+ games per window.
+4. **The raw player cell (overall level included) comes out at or above 1** at most cutoffs with either noise model, so it is not a usable stability measure. Matchmaking moves a player's rating after every game, which ties consecutive results together within a window. Overall level is MMR's job and is out of scope here.
+
+### Selection checks
+
+**Player side: who keeps playing?** Only a minority of player-hero cells with 2+ games in A also have 2+ games in B:
+
+| horizon | share of A cells continuing | A value of continuers / stoppers (hero-specific, points) | true sd in A, continuers / all | correlation, both windows active (equal weights) | intent-to-treat bound |
+|---|---|---|---|---|---|
+| 3 months | 21% | +1.16 / +0.31 | 3.4 / 3.1 | 1.01 | 0.24 |
+| 6 months | 19% | +1.10 / +0.48 | 3.4 / 3.1 | 0.93 | 0.19 |
+| 1 year | 15% | +1.15 / +0.66 | 3.4 / 3.0 | 1.06 | 0.18 |
+| 2 years | 12% | +1.07 / +0.79 | 2.7 / 2.9 | 1.23 | 0.14 |
+
+- Players keep the heroes they do well on: continuers were about +1.1 points over their own average in A, against +0.3 to +0.8 for those who stopped. That is selection on performance, mild in size.
+- The intent-to-treat bound sets every stopper's B value to the population mean, as if nothing persisted for them. It is only a floor (0.14 to 0.24), because most cells simply stop, which says nothing about skill.
+- The equal-weight values above 1 are the low-game cells again (flag 2); the weighted primary is the better estimate.
+
+**Game side: reworked heroes.** Cells are split by how many Live patches published between the end of A and the end of B list the hero with a balance or rework section (`drift_v2/patch_notes_ground_truth.json`; bug-fix-only and ARAM-only mentions excluded):
+
+| horizon | no listed change | changed once | changed 2+ times |
+|---|---|---|---|
+| 3 months | 0.95 (0.93, 0.97), 9,336 cell pairs | 0.92 (0.88, 0.96), 3,711 | 0.75 (0.61, 0.87), 453 |
+| 6 months | 0.94 (0.91, 0.96), 7,230 | 0.90 (0.85, 0.94), 4,323 | 0.80 (0.68, 0.90), 1,137 |
+| 1 year | 0.91 (0.86, 0.95), 3,792 | 0.86 (0.82, 0.90), 4,563 | 0.79 (0.66, 0.86), 2,715 |
+| 2 years | 0.71 (0.53, 0.89), 405 | 0.82 (0.74, 0.90), 2,310 | 0.78 (0.71, 0.84), 5,115 |
+
+Patches drive the game's clock: untouched heroes barely move within a year. By 2 years almost every hero has been touched, and the few untouched cells are noisy.
+
+### Earlier, simpler measurements (kept for the record)
+
+These used start-to-start horizons and fixed cutoffs; `p2f_game_clock.py` and `p2f_player_clock.py`, in `game_clock.json` and `player_clock_*.json`. They agree in direction:
+- **Hero win rate, quarter windows, 2022 to 2026:** 0.97, 0.93, 0.87, 0.77. A 1% or 2% pick-rate floor changes nothing.
+- **The drift paper's build pairs, grouped by real day gap:** 0.89, 0.83, 0.78, 0.72.
+- **Hero-specific player skill from 42K full Heroes Profile histories** (split-half correction; residual against the hero's quarterly win rate, not the WP):
+  - 20+ games in each quarter: 0.99, 0.96, 0.93, 0.72;
+  - 50+ games: 0.98, 0.97, 0.87, 0.73;
+  - any play: 1.02, 1.01, 0.91, 0.80.
+- **Values implied by the drift model's fitted parameters** (hero-specific part): 0.98, 0.97, 0.94, 0.88. These are too high at 2 years.
+
+**For the paper.**
+- Say "both halves keep most of their information for about a year and lose a quarter to a half of it over two years; the game's changes come in patches".
+- Do not claim the players' clock is slower.
+- The upkeep conclusions still stand, for these reasons:
+  - the draft side needs retraining a few times a year, because patches move hero strength;
+  - the player side needs daily bookkeeping (new games, heroes and accounts);
+  - player records are best read over the last year or two. Old history still helps (`P3_FULL_HISTORY_EARLY.md`), but it should not be treated as permanent.
+
+---
+
+## 3. Empirical justification for shrinkage
+
+**Plain answer.** Take a player's record on a hero (how far above or below the draft's prediction they have done) and see how much of it shows up in their next games:
+- about a quarter at 30 to 59 games;
+- about 30% at 60 to 119;
+- about 43% at 120 to 249;
+- about 57% at 250+.
+
+That is the shrinkage rule's shape. One curve, keep = n / (n + 180), fits all four bins, where n is games on the hero.
+
+**Worked example, measured directly:**
+- Records of +10 to +14 points (mean +11.7) over 70 to 90 games realize +3.8 points in the next game (SE 0.5). That keeps 32%, about a third.
+- Over 200 to 260 games the same records (mean +11.6) realize +6.6 (SE 0.8). That keeps 57%, about 60%.
+- Losing records behave the same way: −11.7 over 70 to 90 games realizes −3.5 (keeps 30%), and −11.5 over 200 to 260 realizes −6.9 (keeps 60%).
+
+So "12 points over 80 games keeps about a third; over 230 games about 60%" holds as measured.
+
+### Data and method (`p2f_arms.py`, arm A2S)
+
+- **Slots:** every slot of V2 and the out-of-time window (4.3M slots). Each player's record comes from their full history in the full_1017 store, the merged corpus plus Heroes Profile rows, through the day before.
+- **Record x:** the mean residual on the hero to date. That is win minus WP on our games, where WP sees the draft and the lobby's average MMR, and win minus the hero's quarterly win rate on Heroes Profile rows.
+- **n:** games on the hero in that history.
+- **Outcome:** the scored game's residual, win minus WP, which is adjusted for the lobby's MMR.
+- **Keep:** the slope of outcome on record within each n bin (ordinary least squares). SEs come from a jackknife over 20 player groups.
+- **Formula:** keep = τ²/(τ² + σ²/n), with σ² = 0.245, the variance of one game. τ² is measured in each bin as the variance of records minus their average luck variance. That uses no future games, so the formula's prediction is a fair test.
+
+| games on hero | slots | median n | measured keep (SE) | formula, τ measured | formula, k = 150 | spread of records (sd) | real spread τ | persistent spread |
+|---|---|---|---|---|---|---|---|---|
+| 30-59 | 402,186 | 42 | 0.24 (0.01) | 0.31 | 0.22 | 9.3 pts | 5.1 pts | 4.6 pts |
+| 60-119 | 345,652 | 83 | 0.30 (0.01) | 0.38 | 0.36 | 6.9 | 4.3 | 3.8 |
+| 120-249 | 273,574 | 167 | 0.43 (0.02) | 0.51 | 0.53 | 5.5 | 3.9 | 3.6 |
+| 250+ | 303,380 | 466 | 0.57 (0.02) | 0.68 | 0.77 | 3.9 | 3.2 | 3.0 |
+
+- **Persistent spread** is the square root of the covariance between record and next-game outcome: the part of a player-hero difference that carries forward.
+- The measured keep rises with n the way the formula says. It sits at about 0.8 times the formula with the measured τ, because part of a record's real spread does not carry into the future: drift, and old Heroes Profile rows scored against a coarser baseline.
+- The best single k is 180, which gives 31% at 80 games and 56% at 230.
+- The production prior (k about 150) is close. It trusts very deep records slightly too much, which matches the tail finding in `P3_TAILS.md`.
+
+---
+
+## 4. "How they played": scoreboard reliability
+
+**Plain answer.** One game's win or loss says very little about a player's level on a hero. Only 1.3% of its variance is a stable player-on-hero effect, so it takes about 74 games before half of a record is real. One game's damage, healing, deaths or XP share carries 3 to 30 times as much stable signal, and reaches the same point in 2 to 6 games for most metrics.
+
+The model learns which of these stable traits go with winning. Using them is the single biggest step in the player model: +8 log-loss points (×1000) over win/loss alone.
+
+**Tennis analogy.** A match is one win or loss, but the share of points won and break points saved in that match tell you far more about how well each player played. Scoreboards are our points-won count.
+
+| per-game measure | stable share of one game, player × hero | times the win/loss | games until half is real |
+|---|---|---|---|
+| win or loss, beyond the draft | 0.013 | 1 | 74 |
+| protection given to allies (17 heroes) | 0.40 | 30 | 1.5 |
+| self-healing | 0.39 | 29 | 1.6 |
+| damage taken | 0.28 | 21 | 2.6 |
+| siege damage | 0.28 | 21 | 2.6 |
+| hero damage | 0.23 | 17 | 3.4 |
+| healing (35 heroes) | 0.23 | 17 | 3.4 |
+| XP contribution | 0.21 | 16 | 3.8 |
+| regen globes | 0.20 | 15 | 4.1 |
+| deaths | 0.17 | 13 | 4.8 |
+| merc captures | 0.16 | 12 | 5.2 |
+| structure damage | 0.14 | 10 | 6.4 |
+| outnumbered deaths | 0.09 | 7 | 9.9 |
+| kills | 0.07 | 5 | 14 |
+| escapes | 0.06 | 4 | 17 |
+| assists | 0.04 | 3 | 23 |
+
+How the table was made:
+- **Stable share** is split-half reliability on estimation-window games (`results/rcf/reliability.json`, 9.4M rows).
+- **Games until half is real** is (1 - r)/r, the Spearman-Brown rule.
+- **Caveat for the text.** Reliability is how consistent a metric is, not how much it matters for winning. Most of the stable variation in scoreboards is play style. The model's win-relevant direction loads mostly on hero damage, self-healing and low damage taken (`P3_RICH_CF.md`, "Supported dimensionality"). So the honest sentence is "a single game's scoreboard pins down a player's stable traits far faster than wins do, and the model learns which traits win". "Tells us 3 to 30 times more about skill" overstates it.
+
+### How the per-game scoreboard stats are normalized
+
+This is `p3_rcf_data.py`, the `a_shrink` card used by the main model. Each step has a reason.
+
+1. **Per minute.** rate = value / game minutes. Long games inflate every total; a 30-minute game has more damage than a 15-minute one for the same player.
+2. **A log-like transform.** t = asinh(rate / s), where s is the median positive rate on estimation rows. Scoreboard numbers are heavily skewed (a few huge damage games). The transform compresses the tail like a log but keeps zeros, for example a game with no healing.
+3. **Standardize within hero × map × game-length band × outcome.** z = (t - cell mean) / cell sd, with five length bands (under 14, 14-17, 17-20, 20-24, 24+ minutes). Each part removes something that is not the player:
+   - **hero:** healers heal and tanks take damage;
+   - **map:** maps differ in fights, objectives and lanes;
+   - **length band:** per-minute rates still shift with game length, because late games are teamfight-heavy;
+   - **outcome:** winners' stats look better because they won. Comparing a game only with games of the same result means z carries no information about its own game's result. That is what makes it safe to combine with win/loss.
+
+   Cell means and sds come from estimation-window rows only. Thin hero × map cells are shrunk toward the hero's all-map cell with 100 pseudo-games, so a rarely played hero-map pair does not get a noisy baseline. This replaced a hard fallback at 50 rows.
+4. **Clip at ±5**, so one broken game (a disconnect or an AFK teammate) cannot dominate.
+5. **Quarter-by-hero adjustment.** Subtract the (hero, calendar quarter) mean of estimation rows; later quarters use the last estimation quarter. Balance patches change what a hero's numbers look like (a damage buff raises everyone's damage), and this keeps a patch from looking like a change in the player.
+6. **Mask uninformative metrics per hero:** fewer than 5% nonzero rows, or a cell sd of 0.02 or less, for example healing on a hero with no heals.
+
+Only games on earlier days enter a prediction. Leak tests R1 to R7 in `tests/test_rcf.py` pass.
+
+**The choices were tested** (`P3_RICH_CF.md`, "Scoreboard cards"). Each alternative was refit and scored against the base normalization on V1 (choice), V2 and the out-of-time window (test), cold start and coverage. Lift is log-loss ×1000.
+
+| card | change | V2 / OOT lift vs base | cold-start R² (base 0.24) | verdict |
+|---|---|---|---|---|
+| hero × map shrinkage (`a_shrink`) | shrink thin cells toward the hero | +0.07 / +0.05 | **0.35** | adopted: same lift, much better cold start |
+| tier cells | hero × map × 5 tier groups, shrunk | −0.45 / −0.48 | 0.31 | worse: the outcome-conditioned cell already absorbs tier, and tier cells are thin |
+| smooth length curves | expected value by length within hero | −0.24 / −0.37 | 0.32 | worse: per-minute rates in five bands are enough |
+| team share | stat as a share of the team total | −0.44 / −0.76 | 0.32 | worse: removes the player's absolute level, the part that carries to the next game |
+| opponent difference | minus same-role opponents | −1.42 / −1.34 | 0.27 | clearly worse, for the same reason |
+| ranks | normal scores of the rank within the cell | +0.32 / +0.27 | 0.17 | small lift, worse cold start; not adopted |
+| winsorize at ±2.5 | tighter clip | +0.18 / +0.17 | 0.29 | small; not adopted |
+| informativeness weighting | weight games by kill margin | +0.13 / −0.10 | 0.20 | weights came out flat (0.98 to 1.01); not justified |
+
+### The draft model's hero statistics
+
+The draft model's win-rate features (hero, hero on map, hero pairs with and against, role compositions) are computed per skill tier from our own corpus (`drift2026/build_patch_stats.py`).
+- **Thresholds:** a hero needs 20 games in a tier, otherwise it gets 50%. A hero-on-map rate is used only with 50+ games, otherwise the hero's tier rate. Pairs need 30+ games.
+- **Leak-free.** The WP behind every residual in P3 (`d2c_cumprev`) uses statistics accumulated through each game's previous build, so no game's own build, and hence never the game itself, enters its features. When statistics frozen at a cutoff are given to training rows, they are computed out of fold: five hash folds, with each row's own fold removed. Without that, the old leaky recipe inflated validation accuracy by 1.7 points and wrecked calibration (drift paper, Section 2).
+- **Tiers.** The P3 WP uses the snapshot's original tier grouping, which was later found mislabeled. Rebuilding the features with corrected tiers changed future accuracy by under 0.05 points (`drift_rebuild/results/r14_tierfix.json`: 57.11% corrected against 57.09%, three seeds).
+
+So both sides are normalized the same way in spirit: by tier and map, against a baseline built only from earlier games.
+
+---
+
+## 5. Regions
+
+**Plain answer.** The draft alone is equally predictive in the Americas and Europe (57.4% and 57.1% on V2), and the players add the same amount in both (+4.9 and +4.8 points). Korea is a small slice (3 to 5% of games). It gains less from players (+4.2 on V2, +3.3 out of time), most likely because the panel holds few deep Korean histories. Hero win rates drift at the same pace in all three regions. China is not in the data.
+
+Main model (`full_ms_layer`) and win-only full-history model (A2S), by the game's region:
+
+| window | region | games | draft only | + players, main | personal gain | log-loss gain ×1000, main | + players, win-only |
+|---|---|---|---|---|---|---|---|
+| V2 | Americas | 22,332 | 57.42% | 62.31% | +4.89 | 31.0 | 60.36% |
+| V2 | Europe | 46,820 | 57.12% | 61.94% | +4.82 | 28.0 | 60.41% |
+| V2 | Korea | 3,322 | 56.56% (SE 0.9) | 60.75% | +4.18 | 22.1 | 59.39% |
+| OOT | Americas | 91,555 | 56.82% | 61.80% | +4.98 | 29.7 | 60.10% |
+| OOT | Europe | 180,669 | 56.97% | 61.65% | +4.69 | 27.7 | 60.25% |
+| OOT | Korea | 13,792 | 57.48% (SE 0.4) | 60.79% | +3.31 | 16.1 | 59.01% |
+
+**Drift by region.** These are quarter windows, noise-corrected, 2024-04 to 2026-05 only, because region is known only from 2024 on.
+
+| region | games | 3 months | 6 months | 1 year |
+|---|---|---|---|---|
+| Americas | 357,900 | 0.93 | 0.85 | 0.73 |
+| Europe | 692,099 | 0.94 | 0.87 | 0.76 |
+| Korea (heroes with 30+ games) | 32,433 | 0.88 | 0.84 | 0.77 |
+
+Draft-only accuracy from V2 to the out-of-time window falls 0.6 points in the Americas and 0.15 in Europe. In Korea it rises 0.9, which is within its noise. Per-region player-model staleness was not run.
+
+---
+
+## 6. The professional drafting angle
+
+**Plain answer, kept to what the data show:**
+- **Personal hero edges are a little larger at the top.** The part of a player-hero record that carries into the next game has a spread of 4.2 points in Diamond and Master, against 3.7 to 3.9 in Bronze to Gold. The model's per-slot estimates spread 3.6 points in Master against 3.1 in Bronze, and 3.8 in the top 1% of lobbies by MMR. Players add the most in Gold to Diamond (+5.2 to +6.0 points of accuracy) and still +4.9 in Master. In the top 1% of lobbies by MMR they add +7.0 points on V2 (696 games) and +6.6 out of time (2,689 games).
+- **The lift does not come from one-trick specialists.** Slots where the player is on a hero with 100+ games that makes up 20%+ of their play are 6 to 7% of slots. Those players realize about +3 points on that hero, a real but modest edge, and they account for only 5 to 6% of the main model's gain (8 to 11% of the win-only model's). The top 1% and 5% of slots by games on the hero carry about 1% and 4 to 5% of the gain.
+- **What carries the lift is a minority of large personal signals, mostly negative.**
+  - The 1% of slots with the largest personal estimates carry 14 to 15% of the gain. The top 5% carry 38%, and the top 20% carry 73 to 75%.
+  - About 60% of those largest signals are negative: a player on a hero they have barely played (median 1 to 2 games). In the top 1% such slots realize −11.4 points, exactly as predicted.
+  - The large positive signals realize even more than predicted (+17.7 against +12.2), likely strong players on new or thin accounts.
+- **For scouting:** what pros say matters, knowing an opponent's pool, does show up. It shows up mainly as knowing when someone is off their pool, and in bans. Banning a player's main costs that player about 1.8 points in that game (`P3_TAILS.md` section 3). One player's best hero is worth about +3 points to their team.
+
+### By real league tier
+
+Real tier = stored league tier minus 1; NULL = Master. Grandmaster is inside Master. The "top 1% lobby MMR" row stands in for it.
+
+| tier | V2 games | draft only | + players (main) | gain, points | log-loss gain ×1000 (V2 / OOT) | persistent spread of player-hero records (30+ games) | keep at median n | sd of slot estimates | sd of team difference |
+|---|---|---|---|---|---|---|---|---|---|
+| Bronze | 13,140 | 58.00% | 61.17% | +3.2 | 19.1 / 21.1 | 3.85 pts | 0.31 (n 83) | 3.07 pts | 9.8 pts |
+| Silver | 15,489 | 57.33% | 61.55% | +4.2 | 24.1 / 22.8 | 3.66 | 0.29 (n 88) | 3.14 | 10.1 |
+| Gold | 14,771 | 56.97% | 62.85% | +5.9 | 33.5 / 30.2 | 3.75 | 0.30 (n 94) | 3.28 | 10.8 |
+| Platinum | 13,409 | 56.90% | 62.11% | +5.2 | 34.9 / 34.2 | 3.99 | 0.34 (n 105) | 3.48 | 11.5 |
+| Diamond | 9,188 | 57.15% | 62.98% | +5.8 | 34.9 / 31.7 | 4.19 | 0.36 (n 116) | 3.59 | 12.0 |
+| Master | 6,477 | 56.32% | 61.19% | +4.9 | 26.0 / 29.3 | 4.20 | 0.34 (n 110) | 3.64 | 11.4 |
+| top 1% lobby MMR (≥ 3,104) | 696 | 56.03% | 63.07% | +7.0 | 37.1 / 26.5 | | | 3.82 | 12.2 |
+
+Persistent spread = sqrt(cov(record, next-game outcome)), from the A2S full-history slots of V2 and OOT.
+
+### Where the gain comes from
+
+V2 shown; OOT within a point. The counterfactual keeps the model's personal estimate only on the chosen slots, sets the rest to the population expectation, and rescores with the same combiner.
+
+| slots kept | share of slots | share of games touched | share of the main model's gain | realized residual on those slots |
+|---|---|---|---|---|
+| specialists: 100+ games on the hero and 20%+ of the player's games | 6.9% | 50% | 5.9% | +3.0 pts |
+| top 1% by games on the hero (≥ 1,267) | 1% | 9% | 1.1% | +2.6 |
+| top 5% by games on the hero (≥ 419) | 5% | 38% | 4.8% | +2.8 |
+| top 1% by share of the player's games (≥ 66%) | 1% | 10% | 0.7% | +2.4 |
+| top 5% by share of the player's games (≥ 31%) | 5% | 39% | 4.7% | +2.9 |
+| top 1% by size of the estimate (≥ 9.9 pts) | 1% | 9% | 13.8% | 59% negative: −11.4 realized |
+| top 5% by size of the estimate (≥ 6.9 pts) | 5% | 40% | 37.7% | 65% negative: −8.4 realized |
+| top 20% by size of the estimate (≥ 4.2 pts) | 20% | 89% | 74.6% | |
+
+What we cannot say from this data:
+- **Professional play.** Pro play is a different setting: scheduled opponents, coordinated teams and prepared strategies. These are ranked solo-queue games.
+- **Pre-scouted drafts.** We do not observe drafts made with scouting, so we cannot say what scouting is worth beyond what our model already infers from history.
+
+---
+
+## Files
+
+- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`.
+- Results: `training/personalization/results/p2f/*.json`.
+- Large inputs, all gitignored:
+  - `cache/p2f_snapshot_games.npz`, a compact copy of the snapshot built by the game-clock script;
+  - the A2S and `full_ms_layer` arms (`results/rcf_full/p3c/`) and the full slot table (`cache_full/x_slots_ext.npz`) from the 3090, copied to a scratch directory and not committed. They hold player keys only.
+- Compute: this box, cores 48-51, nice 19, about 30 minutes in total. The 3090 was used only for a read-only copy. The GPUs and the tournament jobs were not touched.

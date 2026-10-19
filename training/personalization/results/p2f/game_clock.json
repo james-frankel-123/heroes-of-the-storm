@@ -1,0 +1,2015 @@
+{
+ "games": 1949087,
+ "first_day": "2021-12-07",
+ "last_day": "2026-05-22",
+ "horizons_days": {
+  "3 months": 91,
+  "6 months": 182,
+  "1 year": 365,
+  "2 years": 730
+ },
+ "method": "(the drift paper's D2a method on calendar windows instead of builds):\n  * Tile time into windows of W days (default 91), one window start every 30 days.\n  * For each pair of windows whose starts are h days apart, take the cells\n    (hero, hero x tier group, or hero x map) that pass a filter in BOTH\n    windows (all heroes with 30+ games; pick rate 1%+ and 100+ games; pick\n    rate 2%+ and 300+ games; pick rate = share of the group's games with the\n    hero), and and compute the games-weighted Pearson r of the two win rates\n    (weight = min of the two game counts).\n  * Disattenuate: each window's reliability = (observed weighted variance -\n    weighted mean binomial variance p(1-p)/n) / observed variance;\n    r_adj = r / sqrt(rel_a rel_b). Pairs with a reliability under 0.15 are dropped.\n  * Report the mean r and r_adj over window pairs at each horizon.\n  * W = 30 days is close to one balance build (the drift paper's unit);\n    W = 91 is a quarter. With W = 182 the 3-month pairs overlap, so that\n    cell is not a clean lag and is not reported.",
+ "W30": {
+  "hero": {
+   "all heroes, 30+ games": {
+    "3 months": {
+     "window_pairs": 51,
+     "r": 0.8101685973226777,
+     "r_adj": 0.9461834498249422,
+     "r_adj_sd_over_pairs": 0.054019644360126656,
+     "pairs_with_rel": 51,
+     "median_cells": 90.0
+    },
+    "6 months": {
+     "window_pairs": 48,
+     "r": 0.7779377114664504,
+     "r_adj": 0.9110938396691427,
+     "r_adj_sd_over_pairs": 0.08122037818504914,
+     "pairs_with_rel": 48,
+     "median_cells": 90.0
+    },
+    "1 year": {
+     "window_pairs": 42,
+     "r": 0.7304418913997696,
+     "r_adj": 0.8617253084548774,
+     "r_adj_sd_over_pairs": 0.11754689889695277,
+     "pairs_with_rel": 42,
+     "median_cells": 90.0
+    },
+    "2 years": {
+     "window_pairs": 29,
+     "r": 0.6436862970017819,
+     "r_adj": 0.7518578115674921,
+     "r_adj_sd_over_pairs": 0.13128386495068328,
+     "pairs_with_rel": 29,
+     "median_cells": 90.0
+    }
+   },
+   "pick rate 1%+ and 100+ games": {
+    "3 months": {
+     "window_pairs": 51,
+     "r": 0.8101685973226777,
+     "r_adj": 0.9461834498249422,
+     "r_adj_sd_over_pairs": 0.054019644360126656,
+     "pairs_with_rel": 51,
+     "median_cells": 90.0
+    },
+    "6 months": {
+     "window_pairs": 48,
+     "r": 0.7779377114664504,
+     "r_adj": 0.9110938396691427,
+     "r_adj_sd_over_pairs": 0.08122037818504914,
+     "pairs_with_rel": 48,
+     "median_cells": 90.0
+    },
+    "1 year": {
+     "window_pairs": 42,
+     "r": 0.7304418913997696,
+     "r_adj": 0.8617253084548774,
+     "r_adj_sd_over_pairs": 0.11754689889695277,
+     "pairs_with_rel": 42,
+     "median_cells": 90.0
+    },
+    "2 years": {
+     "window_pairs": 29,
+     "r": 0.6436862970017819,
+     "r_adj": 0.7518578115674921,
+     "r_adj_sd_over_pairs": 0.13128386495068328,
+     "pairs_with_rel": 29,
+     "median_cells": 90.0
+    }
+   },
+   "pick rate 2%+ and 300+ games": {
+    "3 months": {
+     "window_pairs": 51,
+     "r": 0.813823214478043,
+     "r_adj": 0.9469478950989871,
+     "r_adj_sd_over_pairs": 0.054199103088511336,
+     "pairs_with_rel": 51,
+     "median_cells": 87.0
+    },
+    "6 months": {
+     "window_pairs": 48,
+     "r": 0.7812697239506113,
+     "r_adj": 0.911920867436605,
+     "r_adj_sd_over_pairs": 0.08044599763817428,
+     "pairs_with_rel": 48,
+     "median_cells": 87.0
+    },
+    "1 year": {
+     "window_pairs": 42,
+     "r": 0.7335039808234788,
+     "r_adj": 0.8615152046773685,
+     "r_adj_sd_over_pairs": 0.11798122040621249,
+     "pairs_with_rel": 42,
+     "median_cells": 87.0
+    },
+    "2 years": {
+     "window_pairs": 29,
+     "r": 0.6489071613633821,
+     "r_adj": 0.755482466382638,
+     "r_adj_sd_over_pairs": 0.1346974351899904,
+     "pairs_with_rel": 29,
+     "median_cells": 87.0
+    }
+   }
+  },
+  "hero_x_tier_group": {
+   "Bronze-Silver": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.7033351664270854,
+      "r_adj": 0.9484394243932183,
+      "r_adj_sd_over_pairs": 0.0474549585709822,
+      "pairs_with_rel": 51,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.6937844712238883,
+      "r_adj": 0.9392989200067525,
+      "r_adj_sd_over_pairs": 0.06465795666287476,
+      "pairs_with_rel": 48,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.6542150714669932,
+      "r_adj": 0.8981561591091349,
+      "r_adj_sd_over_pairs": 0.09422417262530543,
+      "pairs_with_rel": 42,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.5924769358969579,
+      "r_adj": 0.8021305767671558,
+      "r_adj_sd_over_pairs": 0.1357416690256642,
+      "pairs_with_rel": 29,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.7033351664270854,
+      "r_adj": 0.9484394243932183,
+      "r_adj_sd_over_pairs": 0.0474549585709822,
+      "pairs_with_rel": 51,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.6937844712238883,
+      "r_adj": 0.9392989200067525,
+      "r_adj_sd_over_pairs": 0.06465795666287476,
+      "pairs_with_rel": 48,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.6542150714669932,
+      "r_adj": 0.8981561591091349,
+      "r_adj_sd_over_pairs": 0.09422417262530543,
+      "pairs_with_rel": 42,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.5924769358969579,
+      "r_adj": 0.8021305767671558,
+      "r_adj_sd_over_pairs": 0.1357416690256642,
+      "pairs_with_rel": 29,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.7109511415199762,
+      "r_adj": 0.9495760928626749,
+      "r_adj_sd_over_pairs": 0.04941634748115588,
+      "pairs_with_rel": 51,
+      "median_cells": 85.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.6997867289637362,
+      "r_adj": 0.940968200351545,
+      "r_adj_sd_over_pairs": 0.06124039480777213,
+      "pairs_with_rel": 48,
+      "median_cells": 85.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.6611139668199328,
+      "r_adj": 0.8979477038119926,
+      "r_adj_sd_over_pairs": 0.09584985105681881,
+      "pairs_with_rel": 42,
+      "median_cells": 84.0
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.5963330220728834,
+      "r_adj": 0.800798994331634,
+      "r_adj_sd_over_pairs": 0.13326533813291638,
+      "pairs_with_rel": 29,
+      "median_cells": 84.0
+     }
+    }
+   },
+   "Gold-Platinum": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.6977398841073664,
+      "r_adj": 0.9403419911563166,
+      "r_adj_sd_over_pairs": 0.06565236253191824,
+      "pairs_with_rel": 51,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.662903972951446,
+      "r_adj": 0.9061098152581909,
+      "r_adj_sd_over_pairs": 0.09382591087243963,
+      "pairs_with_rel": 48,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.6315994214103721,
+      "r_adj": 0.8668841564815816,
+      "r_adj_sd_over_pairs": 0.10353443149445961,
+      "pairs_with_rel": 42,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.5582781646069391,
+      "r_adj": 0.7625061449580504,
+      "r_adj_sd_over_pairs": 0.13732832804787445,
+      "pairs_with_rel": 29,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.6977537167873842,
+      "r_adj": 0.9402075184196762,
+      "r_adj_sd_over_pairs": 0.06564315941836517,
+      "pairs_with_rel": 51,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.6629390803755307,
+      "r_adj": 0.9060230185423617,
+      "r_adj_sd_over_pairs": 0.09376103850198803,
+      "pairs_with_rel": 48,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.6315973390226918,
+      "r_adj": 0.8668841564815816,
+      "r_adj_sd_over_pairs": 0.10353443149445961,
+      "pairs_with_rel": 42,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.5583292178399013,
+      "r_adj": 0.7624977098992405,
+      "r_adj_sd_over_pairs": 0.13732810871559942,
+      "pairs_with_rel": 29,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.7016395317914137,
+      "r_adj": 0.9395463200056662,
+      "r_adj_sd_over_pairs": 0.0661335203443024,
+      "pairs_with_rel": 51,
+      "median_cells": 86.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.6681224186266791,
+      "r_adj": 0.9041971449378936,
+      "r_adj_sd_over_pairs": 0.09109844915367614,
+      "pairs_with_rel": 48,
+      "median_cells": 86.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.6396743860455795,
+      "r_adj": 0.8716944126337274,
+      "r_adj_sd_over_pairs": 0.10339610992854976,
+      "pairs_with_rel": 42,
+      "median_cells": 85.0
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.5604655178392643,
+      "r_adj": 0.7605357996530405,
+      "r_adj_sd_over_pairs": 0.14370267603369355,
+      "pairs_with_rel": 29,
+      "median_cells": 85.0
+     }
+    }
+   },
+   "Diamond-Master": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.5608081661698431,
+      "r_adj": 0.9266878191678776,
+      "r_adj_sd_over_pairs": 0.08701978778906233,
+      "pairs_with_rel": 51,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.507717990432841,
+      "r_adj": 0.8668959776926304,
+      "r_adj_sd_over_pairs": 0.12489213824707796,
+      "pairs_with_rel": 48,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.47084059916895155,
+      "r_adj": 0.8160277989926021,
+      "r_adj_sd_over_pairs": 0.1608803109796444,
+      "pairs_with_rel": 42,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.4455357939811232,
+      "r_adj": 0.7528581385203459,
+      "r_adj_sd_over_pairs": 0.15251658233516022,
+      "pairs_with_rel": 29,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.5673597849893631,
+      "r_adj": 0.9306693643869317,
+      "r_adj_sd_over_pairs": 0.08368390044656691,
+      "pairs_with_rel": 51,
+      "median_cells": 87.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.5108933813724396,
+      "r_adj": 0.8686878030783346,
+      "r_adj_sd_over_pairs": 0.12219806608428765,
+      "pairs_with_rel": 48,
+      "median_cells": 87.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.4739251163355628,
+      "r_adj": 0.8163891761617466,
+      "r_adj_sd_over_pairs": 0.15757168858034412,
+      "pairs_with_rel": 42,
+      "median_cells": 87.0
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.4505192384212122,
+      "r_adj": 0.7542123041721011,
+      "r_adj_sd_over_pairs": 0.15257508575255732,
+      "pairs_with_rel": 29,
+      "median_cells": 87.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 51,
+      "r": 0.577915525561585,
+      "r_adj": 0.9159939926865032,
+      "r_adj_sd_over_pairs": 0.10205698482837289,
+      "pairs_with_rel": 51,
+      "median_cells": 62.0
+     },
+     "6 months": {
+      "window_pairs": 48,
+      "r": 0.5262480979450822,
+      "r_adj": 0.8667018670916545,
+      "r_adj_sd_over_pairs": 0.11103741400141824,
+      "pairs_with_rel": 48,
+      "median_cells": 61.0
+     },
+     "1 year": {
+      "window_pairs": 42,
+      "r": 0.48203259024025435,
+      "r_adj": 0.7950664531055797,
+      "r_adj_sd_over_pairs": 0.18294219514885965,
+      "pairs_with_rel": 42,
+      "median_cells": 60.5
+     },
+     "2 years": {
+      "window_pairs": 29,
+      "r": 0.45719594813453024,
+      "r_adj": 0.7395020330122126,
+      "r_adj_sd_over_pairs": 0.17375209371589465,
+      "pairs_with_rel": 29,
+      "median_cells": 61.0
+     }
+    }
+   }
+  },
+  "hero_x_map": {
+   "all heroes, 30+ games": {
+    "3 months": {
+     "window_pairs": 51,
+     "r": 0.4110916102588669,
+     "r_adj": 0.9365099536876794,
+     "r_adj_sd_over_pairs": 0.05879158697496734,
+     "pairs_with_rel": 51,
+     "median_cells": 985.0
+    },
+    "6 months": {
+     "window_pairs": 48,
+     "r": 0.3891205345228208,
+     "r_adj": 0.9105303861860303,
+     "r_adj_sd_over_pairs": 0.0770391441858623,
+     "pairs_with_rel": 48,
+     "median_cells": 984.5
+    },
+    "1 year": {
+     "window_pairs": 42,
+     "r": 0.3673135944326545,
+     "r_adj": 0.8769904458284856,
+     "r_adj_sd_over_pairs": 0.09278471409525575,
+     "pairs_with_rel": 42,
+     "median_cells": 982.0
+    },
+    "2 years": {
+     "window_pairs": 29,
+     "r": 0.3436688326162346,
+     "r_adj": 0.7998447143977967,
+     "r_adj_sd_over_pairs": 0.12356231466119512,
+     "pairs_with_rel": 29,
+     "median_cells": 897.0
+    }
+   },
+   "pick rate 1%+ and 100+ games": {
+    "3 months": {
+     "window_pairs": 51,
+     "r": 0.4224179709474797,
+     "r_adj": 0.9373591192675158,
+     "r_adj_sd_over_pairs": 0.060456633312713524,
+     "pairs_with_rel": 51,
+     "median_cells": 862.0
+    },
+    "6 months": {
+     "window_pairs": 48,
+     "r": 0.3993969843275124,
+     "r_adj": 0.9071890341129452,
+     "r_adj_sd_over_pairs": 0.07779143075096899,
+     "pairs_with_rel": 48,
+     "median_cells": 853.5
+    },
+    "1 year": {
+     "window_pairs": 42,
+     "r": 0.3776721961501832,
+     "r_adj": 0.8754110659473523,
+     "r_adj_sd_over_pairs": 0.0995937038055603,
+     "pairs_with_rel": 42,
+     "median_cells": 839.0
+    },
+    "2 years": {
+     "window_pairs": 29,
+     "r": 0.3512988157035411,
+     "r_adj": 0.7934746437978607,
+     "r_adj_sd_over_pairs": 0.1280266743587993,
+     "pairs_with_rel": 29,
+     "median_cells": 788.0
+    }
+   },
+   "pick rate 2%+ and 300+ games": {
+    "3 months": {
+     "window_pairs": 51,
+     "r": 0.5015666491070806,
+     "r_adj": 0.9393144094312886,
+     "r_adj_sd_over_pairs": 0.061443877641667005,
+     "pairs_with_rel": 51,
+     "median_cells": 340.0
+    },
+    "6 months": {
+     "window_pairs": 48,
+     "r": 0.4827128111950579,
+     "r_adj": 0.9158083835706146,
+     "r_adj_sd_over_pairs": 0.0784544662864016,
+     "pairs_with_rel": 48,
+     "median_cells": 328.0
+    },
+    "1 year": {
+     "window_pairs": 42,
+     "r": 0.4683148564310695,
+     "r_adj": 0.894171862812796,
+     "r_adj_sd_over_pairs": 0.11300544949774514,
+     "pairs_with_rel": 42,
+     "median_cells": 319.5
+    },
+    "2 years": {
+     "window_pairs": 29,
+     "r": 0.4346582789273768,
+     "r_adj": 0.8166309322666477,
+     "r_adj_sd_over_pairs": 0.13946274247455925,
+     "pairs_with_rel": 29,
+     "median_cells": 297.0
+    }
+   }
+  }
+ },
+ "W91": {
+  "hero": {
+   "all heroes, 30+ games": {
+    "3 months": {
+     "window_pairs": 49,
+     "r": 0.912671697784782,
+     "r_adj": 0.9651527227648634,
+     "r_adj_sd_over_pairs": 0.0372456253758963,
+     "pairs_with_rel": 49,
+     "median_cells": 90.0
+    },
+    "6 months": {
+     "window_pairs": 46,
+     "r": 0.8771912962493065,
+     "r_adj": 0.9293355747267229,
+     "r_adj_sd_over_pairs": 0.06394100789485309,
+     "pairs_with_rel": 46,
+     "median_cells": 90.0
+    },
+    "1 year": {
+     "window_pairs": 40,
+     "r": 0.8216578807793417,
+     "r_adj": 0.8712943920473688,
+     "r_adj_sd_over_pairs": 0.09823261544880013,
+     "pairs_with_rel": 40,
+     "median_cells": 90.0
+    },
+    "2 years": {
+     "window_pairs": 27,
+     "r": 0.7315640172467409,
+     "r_adj": 0.7734076933914866,
+     "r_adj_sd_over_pairs": 0.11161096085279995,
+     "pairs_with_rel": 27,
+     "median_cells": 90.0
+    }
+   },
+   "pick rate 1%+ and 100+ games": {
+    "3 months": {
+     "window_pairs": 49,
+     "r": 0.912671697784782,
+     "r_adj": 0.9651527227648634,
+     "r_adj_sd_over_pairs": 0.0372456253758963,
+     "pairs_with_rel": 49,
+     "median_cells": 90.0
+    },
+    "6 months": {
+     "window_pairs": 46,
+     "r": 0.8771912962493065,
+     "r_adj": 0.9293355747267229,
+     "r_adj_sd_over_pairs": 0.06394100789485309,
+     "pairs_with_rel": 46,
+     "median_cells": 90.0
+    },
+    "1 year": {
+     "window_pairs": 40,
+     "r": 0.8216578807793417,
+     "r_adj": 0.8712943920473688,
+     "r_adj_sd_over_pairs": 0.09823261544880013,
+     "pairs_with_rel": 40,
+     "median_cells": 90.0
+    },
+    "2 years": {
+     "window_pairs": 27,
+     "r": 0.7315640172467409,
+     "r_adj": 0.7734076933914866,
+     "r_adj_sd_over_pairs": 0.11161096085279995,
+     "pairs_with_rel": 27,
+     "median_cells": 90.0
+    }
+   },
+   "pick rate 2%+ and 300+ games": {
+    "3 months": {
+     "window_pairs": 49,
+     "r": 0.91389010671275,
+     "r_adj": 0.9654016755904345,
+     "r_adj_sd_over_pairs": 0.03781858333845934,
+     "pairs_with_rel": 49,
+     "median_cells": 87.0
+    },
+    "6 months": {
+     "window_pairs": 46,
+     "r": 0.8780388302809833,
+     "r_adj": 0.9292556698719991,
+     "r_adj_sd_over_pairs": 0.06426515605421045,
+     "pairs_with_rel": 46,
+     "median_cells": 87.0
+    },
+    "1 year": {
+     "window_pairs": 40,
+     "r": 0.8226902156196833,
+     "r_adj": 0.8713397620952563,
+     "r_adj_sd_over_pairs": 0.09893130806841759,
+     "pairs_with_rel": 40,
+     "median_cells": 87.0
+    },
+    "2 years": {
+     "window_pairs": 27,
+     "r": 0.7327213912961997,
+     "r_adj": 0.773572181045414,
+     "r_adj_sd_over_pairs": 0.1126733060344632,
+     "pairs_with_rel": 27,
+     "median_cells": 87.0
+    }
+   }
+  },
+  "hero_x_tier_group": {
+   "Bronze-Silver": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.8688911340196697,
+      "r_adj": 0.9722282693957238,
+      "r_adj_sd_over_pairs": 0.023684343210171273,
+      "pairs_with_rel": 49,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.8525697288914467,
+      "r_adj": 0.955795466566414,
+      "r_adj_sd_over_pairs": 0.04630034117256057,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.8056404618037358,
+      "r_adj": 0.9069413720218804,
+      "r_adj_sd_over_pairs": 0.07356663370490446,
+      "pairs_with_rel": 40,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.7332207260549177,
+      "r_adj": 0.8207985582780846,
+      "r_adj_sd_over_pairs": 0.09873489989143538,
+      "pairs_with_rel": 27,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.8688911340196697,
+      "r_adj": 0.9722282693957238,
+      "r_adj_sd_over_pairs": 0.023684343210171273,
+      "pairs_with_rel": 49,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.8525697288914467,
+      "r_adj": 0.955795466566414,
+      "r_adj_sd_over_pairs": 0.04630034117256057,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.8056404618037358,
+      "r_adj": 0.9069413720218804,
+      "r_adj_sd_over_pairs": 0.07356663370490446,
+      "pairs_with_rel": 40,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.7332207260549177,
+      "r_adj": 0.8207985582780846,
+      "r_adj_sd_over_pairs": 0.09873489989143538,
+      "pairs_with_rel": 27,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.8713324921341925,
+      "r_adj": 0.9720192427168006,
+      "r_adj_sd_over_pairs": 0.02385861495886793,
+      "pairs_with_rel": 49,
+      "median_cells": 87.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.8547151847276611,
+      "r_adj": 0.95531187387863,
+      "r_adj_sd_over_pairs": 0.04626114241319808,
+      "pairs_with_rel": 46,
+      "median_cells": 86.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.8094088060900575,
+      "r_adj": 0.9084115497928679,
+      "r_adj_sd_over_pairs": 0.07500652663976735,
+      "pairs_with_rel": 40,
+      "median_cells": 87.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.7359528839343064,
+      "r_adj": 0.821319200965833,
+      "r_adj_sd_over_pairs": 0.0999585256149953,
+      "pairs_with_rel": 27,
+      "median_cells": 86.0
+     }
+    }
+   },
+   "Gold-Platinum": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.8593625356124216,
+      "r_adj": 0.9637186602987815,
+      "r_adj_sd_over_pairs": 0.04249017716688011,
+      "pairs_with_rel": 49,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.8234002353601008,
+      "r_adj": 0.9272702637198319,
+      "r_adj_sd_over_pairs": 0.06807621282526947,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.7787952293277154,
+      "r_adj": 0.8787461755061117,
+      "r_adj_sd_over_pairs": 0.08571469793505343,
+      "pairs_with_rel": 40,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.6969941363387346,
+      "r_adj": 0.7827170687005982,
+      "r_adj_sd_over_pairs": 0.10919892024308714,
+      "pairs_with_rel": 27,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.8593625356124216,
+      "r_adj": 0.9637186602987815,
+      "r_adj_sd_over_pairs": 0.04249017716688011,
+      "pairs_with_rel": 49,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.8234002353601008,
+      "r_adj": 0.9272702637198319,
+      "r_adj_sd_over_pairs": 0.06807621282526947,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.7787952293277154,
+      "r_adj": 0.8787461755061117,
+      "r_adj_sd_over_pairs": 0.08571469793505343,
+      "pairs_with_rel": 40,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.6969941363387346,
+      "r_adj": 0.7827170687005982,
+      "r_adj_sd_over_pairs": 0.10919892024308714,
+      "pairs_with_rel": 27,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.8598176036884347,
+      "r_adj": 0.9620722276905667,
+      "r_adj_sd_over_pairs": 0.04364032347878371,
+      "pairs_with_rel": 49,
+      "median_cells": 86.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.824015668800938,
+      "r_adj": 0.9256017108615858,
+      "r_adj_sd_over_pairs": 0.06879429441490538,
+      "pairs_with_rel": 46,
+      "median_cells": 86.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.780315169128348,
+      "r_adj": 0.8785082523518917,
+      "r_adj_sd_over_pairs": 0.08686995888010998,
+      "pairs_with_rel": 40,
+      "median_cells": 86.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.6960474392618183,
+      "r_adj": 0.7802405982963103,
+      "r_adj_sd_over_pairs": 0.109196421924613,
+      "pairs_with_rel": 27,
+      "median_cells": 86.0
+     }
+    }
+   },
+   "Diamond-Master": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.776126772337801,
+      "r_adj": 0.9568718254348989,
+      "r_adj_sd_over_pairs": 0.05152859110480003,
+      "pairs_with_rel": 49,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.724265114972951,
+      "r_adj": 0.905402816579155,
+      "r_adj_sd_over_pairs": 0.07991923529625554,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.6789962494598476,
+      "r_adj": 0.8491665239388257,
+      "r_adj_sd_over_pairs": 0.11948770745023603,
+      "pairs_with_rel": 40,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.6213019105827319,
+      "r_adj": 0.7699649015109626,
+      "r_adj_sd_over_pairs": 0.10306195295821119,
+      "pairs_with_rel": 27,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.7762959595702943,
+      "r_adj": 0.9570352782563853,
+      "r_adj_sd_over_pairs": 0.05130814164944349,
+      "pairs_with_rel": 49,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.7244134232220397,
+      "r_adj": 0.9055615511485055,
+      "r_adj_sd_over_pairs": 0.07982848587824347,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.6790336727012246,
+      "r_adj": 0.8491162118411353,
+      "r_adj_sd_over_pairs": 0.11946130292353287,
+      "pairs_with_rel": 40,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.6214359603066375,
+      "r_adj": 0.7700272727148953,
+      "r_adj_sd_over_pairs": 0.10309510272321808,
+      "pairs_with_rel": 27,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 49,
+      "r": 0.7802329953255461,
+      "r_adj": 0.9581125832047103,
+      "r_adj_sd_over_pairs": 0.051358980802031856,
+      "pairs_with_rel": 49,
+      "median_cells": 87.0
+     },
+     "6 months": {
+      "window_pairs": 46,
+      "r": 0.7275938998333267,
+      "r_adj": 0.9058135658708225,
+      "r_adj_sd_over_pairs": 0.07930538836753757,
+      "pairs_with_rel": 46,
+      "median_cells": 87.0
+     },
+     "1 year": {
+      "window_pairs": 40,
+      "r": 0.6815292582821373,
+      "r_adj": 0.8484069813689423,
+      "r_adj_sd_over_pairs": 0.11856399312887259,
+      "pairs_with_rel": 40,
+      "median_cells": 87.0
+     },
+     "2 years": {
+      "window_pairs": 27,
+      "r": 0.625568722217841,
+      "r_adj": 0.7721021569610074,
+      "r_adj_sd_over_pairs": 0.10508245716778138,
+      "pairs_with_rel": 27,
+      "median_cells": 87.0
+     }
+    }
+   }
+  },
+  "hero_x_map": {
+   "all heroes, 30+ games": {
+    "3 months": {
+     "window_pairs": 49,
+     "r": 0.6673014252110707,
+     "r_adj": 0.9706522793541297,
+     "r_adj_sd_over_pairs": 0.03174932199649603,
+     "pairs_with_rel": 49,
+     "median_cells": 990.0
+    },
+    "6 months": {
+     "window_pairs": 46,
+     "r": 0.6397121132524087,
+     "r_adj": 0.9384092335015365,
+     "r_adj_sd_over_pairs": 0.05002226556303534,
+     "pairs_with_rel": 46,
+     "median_cells": 990.0
+    },
+    "1 year": {
+     "window_pairs": 40,
+     "r": 0.6078181098758275,
+     "r_adj": 0.8980654277525412,
+     "r_adj_sd_over_pairs": 0.07411330971375872,
+     "pairs_with_rel": 40,
+     "median_cells": 990.0
+    },
+    "2 years": {
+     "window_pairs": 27,
+     "r": 0.5702910754852527,
+     "r_adj": 0.8333871411095293,
+     "r_adj_sd_over_pairs": 0.09999073601745415,
+     "pairs_with_rel": 27,
+     "median_cells": 978.0
+    }
+   },
+   "pick rate 1%+ and 100+ games": {
+    "3 months": {
+     "window_pairs": 49,
+     "r": 0.6689281046762686,
+     "r_adj": 0.9712391433874256,
+     "r_adj_sd_over_pairs": 0.03156734176169456,
+     "pairs_with_rel": 49,
+     "median_cells": 986.0
+    },
+    "6 months": {
+     "window_pairs": 46,
+     "r": 0.6412245146785697,
+     "r_adj": 0.9386708214974321,
+     "r_adj_sd_over_pairs": 0.05048366616572053,
+     "pairs_with_rel": 46,
+     "median_cells": 985.0
+    },
+    "1 year": {
+     "window_pairs": 40,
+     "r": 0.608742945453004,
+     "r_adj": 0.8985257525399535,
+     "r_adj_sd_over_pairs": 0.07456253739937163,
+     "pairs_with_rel": 40,
+     "median_cells": 981.0
+    },
+    "2 years": {
+     "window_pairs": 27,
+     "r": 0.5707295791982281,
+     "r_adj": 0.8328423523161265,
+     "r_adj_sd_over_pairs": 0.10098731879033951,
+     "pairs_with_rel": 27,
+     "median_cells": 930.0
+    }
+   },
+   "pick rate 2%+ and 300+ games": {
+    "3 months": {
+     "window_pairs": 49,
+     "r": 0.678571520604235,
+     "r_adj": 0.9705562215843234,
+     "r_adj_sd_over_pairs": 0.03237580214015725,
+     "pairs_with_rel": 49,
+     "median_cells": 878.0
+    },
+    "6 months": {
+     "window_pairs": 46,
+     "r": 0.6496184633831232,
+     "r_adj": 0.9372321666122035,
+     "r_adj_sd_over_pairs": 0.049793669614338315,
+     "pairs_with_rel": 46,
+     "median_cells": 862.0
+    },
+    "1 year": {
+     "window_pairs": 40,
+     "r": 0.615388629294327,
+     "r_adj": 0.8929670343751157,
+     "r_adj_sd_over_pairs": 0.075328433285453,
+     "pairs_with_rel": 40,
+     "median_cells": 837.5
+    },
+    "2 years": {
+     "window_pairs": 27,
+     "r": 0.5749350183222556,
+     "r_adj": 0.8258964009369161,
+     "r_adj_sd_over_pairs": 0.1050086312043441,
+     "pairs_with_rel": 27,
+     "median_cells": 790.0
+    }
+   }
+  }
+ },
+ "W182": {
+  "hero": {
+   "all heroes, 30+ games": {
+    "3 months": {
+     "window_pairs": 46,
+     "r": 0.9668556777899554,
+     "r_adj": 0.9903293106061792,
+     "r_adj_sd_over_pairs": 0.015219194909218603,
+     "pairs_with_rel": 46,
+     "median_cells": 90.0
+    },
+    "6 months": {
+     "window_pairs": 43,
+     "r": 0.9171052232743317,
+     "r_adj": 0.945165738884461,
+     "r_adj_sd_over_pairs": 0.04940322326853641,
+     "pairs_with_rel": 43,
+     "median_cells": 90.0
+    },
+    "1 year": {
+     "window_pairs": 37,
+     "r": 0.8572202617109452,
+     "r_adj": 0.8836659704727484,
+     "r_adj_sd_over_pairs": 0.08662632068898796,
+     "pairs_with_rel": 37,
+     "median_cells": 90.0
+    },
+    "2 years": {
+     "window_pairs": 24,
+     "r": 0.762866339610606,
+     "r_adj": 0.7855018035107224,
+     "r_adj_sd_over_pairs": 0.0999260812627965,
+     "pairs_with_rel": 24,
+     "median_cells": 90.0
+    }
+   },
+   "pick rate 1%+ and 100+ games": {
+    "3 months": {
+     "window_pairs": 46,
+     "r": 0.9668556777899554,
+     "r_adj": 0.9903293106061792,
+     "r_adj_sd_over_pairs": 0.015219194909218603,
+     "pairs_with_rel": 46,
+     "median_cells": 90.0
+    },
+    "6 months": {
+     "window_pairs": 43,
+     "r": 0.9171052232743317,
+     "r_adj": 0.945165738884461,
+     "r_adj_sd_over_pairs": 0.04940322326853641,
+     "pairs_with_rel": 43,
+     "median_cells": 90.0
+    },
+    "1 year": {
+     "window_pairs": 37,
+     "r": 0.8572202617109452,
+     "r_adj": 0.8836659704727484,
+     "r_adj_sd_over_pairs": 0.08662632068898796,
+     "pairs_with_rel": 37,
+     "median_cells": 90.0
+    },
+    "2 years": {
+     "window_pairs": 24,
+     "r": 0.762866339610606,
+     "r_adj": 0.7855018035107224,
+     "r_adj_sd_over_pairs": 0.0999260812627965,
+     "pairs_with_rel": 24,
+     "median_cells": 90.0
+    }
+   },
+   "pick rate 2%+ and 300+ games": {
+    "3 months": {
+     "window_pairs": 46,
+     "r": 0.9670635676640483,
+     "r_adj": 0.9901920642854549,
+     "r_adj_sd_over_pairs": 0.01539887976345961,
+     "pairs_with_rel": 46,
+     "median_cells": 87.0
+    },
+    "6 months": {
+     "window_pairs": 43,
+     "r": 0.9173386042625048,
+     "r_adj": 0.9448866321302838,
+     "r_adj_sd_over_pairs": 0.049492155894483865,
+     "pairs_with_rel": 43,
+     "median_cells": 87.0
+    },
+    "1 year": {
+     "window_pairs": 37,
+     "r": 0.8577052731389876,
+     "r_adj": 0.8836585565227992,
+     "r_adj_sd_over_pairs": 0.08721400396495987,
+     "pairs_with_rel": 37,
+     "median_cells": 87.0
+    },
+    "2 years": {
+     "window_pairs": 24,
+     "r": 0.7631585338344653,
+     "r_adj": 0.7852746895660664,
+     "r_adj_sd_over_pairs": 0.10093010006891608,
+     "pairs_with_rel": 24,
+     "median_cells": 87.0
+    }
+   }
+  },
+  "hero_x_tier_group": {
+   "Bronze-Silver": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9601808756616963,
+      "r_adj": 0.9979402489115812,
+      "r_adj_sd_over_pairs": 0.005537397663210471,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.9099081174443351,
+      "r_adj": 0.9661923736467019,
+      "r_adj_sd_over_pairs": 0.032435117169611324,
+      "pairs_with_rel": 43,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.862535117997277,
+      "r_adj": 0.9182006742632983,
+      "r_adj_sd_over_pairs": 0.06225449523296308,
+      "pairs_with_rel": 37,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.7866298151913785,
+      "r_adj": 0.8349625944909228,
+      "r_adj_sd_over_pairs": 0.08409377963049612,
+      "pairs_with_rel": 24,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9601808756616963,
+      "r_adj": 0.9979402489115812,
+      "r_adj_sd_over_pairs": 0.005537397663210471,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.9099081174443351,
+      "r_adj": 0.9661923736467019,
+      "r_adj_sd_over_pairs": 0.032435117169611324,
+      "pairs_with_rel": 43,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.862535117997277,
+      "r_adj": 0.9182006742632983,
+      "r_adj_sd_over_pairs": 0.06225449523296308,
+      "pairs_with_rel": 37,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.7866298151913785,
+      "r_adj": 0.8349625944909228,
+      "r_adj_sd_over_pairs": 0.08409377963049612,
+      "pairs_with_rel": 24,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9607728573697376,
+      "r_adj": 0.9977811976270423,
+      "r_adj_sd_over_pairs": 0.0058795628902114025,
+      "pairs_with_rel": 46,
+      "median_cells": 88.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.9109177433953805,
+      "r_adj": 0.9657209186474922,
+      "r_adj_sd_over_pairs": 0.032767141356192776,
+      "pairs_with_rel": 43,
+      "median_cells": 88.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.864769377230638,
+      "r_adj": 0.9190922093154715,
+      "r_adj_sd_over_pairs": 0.06392644244882423,
+      "pairs_with_rel": 37,
+      "median_cells": 88.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.789156090978345,
+      "r_adj": 0.8361601146976544,
+      "r_adj_sd_over_pairs": 0.08567818804692322,
+      "pairs_with_rel": 24,
+      "median_cells": 86.0
+     }
+    }
+   },
+   "Gold-Platinum": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9514341331080208,
+      "r_adj": 0.995181191549445,
+      "r_adj_sd_over_pairs": 0.012676875812253467,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.8880596178348229,
+      "r_adj": 0.9455970923290608,
+      "r_adj_sd_over_pairs": 0.05105751427006883,
+      "pairs_with_rel": 43,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.8376138706577843,
+      "r_adj": 0.8926827249980726,
+      "r_adj_sd_over_pairs": 0.07405166818223757,
+      "pairs_with_rel": 37,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.746981028128252,
+      "r_adj": 0.7944399588297774,
+      "r_adj_sd_over_pairs": 0.09112673673812184,
+      "pairs_with_rel": 24,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9514341331080208,
+      "r_adj": 0.995181191549445,
+      "r_adj_sd_over_pairs": 0.012676875812253467,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.8880596178348229,
+      "r_adj": 0.9455970923290608,
+      "r_adj_sd_over_pairs": 0.05105751427006883,
+      "pairs_with_rel": 43,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.8376138706577843,
+      "r_adj": 0.8926827249980726,
+      "r_adj_sd_over_pairs": 0.07405166818223757,
+      "pairs_with_rel": 37,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.746981028128252,
+      "r_adj": 0.7944399588297774,
+      "r_adj_sd_over_pairs": 0.09112673673812184,
+      "pairs_with_rel": 24,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9516691593233667,
+      "r_adj": 0.9951243659731527,
+      "r_adj_sd_over_pairs": 0.01304401188009128,
+      "pairs_with_rel": 46,
+      "median_cells": 86.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.888444897619117,
+      "r_adj": 0.9447244527394584,
+      "r_adj_sd_over_pairs": 0.0515433325216096,
+      "pairs_with_rel": 43,
+      "median_cells": 86.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.8385389537822517,
+      "r_adj": 0.892609942086315,
+      "r_adj_sd_over_pairs": 0.07573498551732802,
+      "pairs_with_rel": 37,
+      "median_cells": 86.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.744934103892691,
+      "r_adj": 0.7915652000453051,
+      "r_adj_sd_over_pairs": 0.09190154273890495,
+      "pairs_with_rel": 24,
+      "median_cells": 86.0
+     }
+    }
+   },
+   "Diamond-Master": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9213103194380005,
+      "r_adj": 0.9978855554120581,
+      "r_adj_sd_over_pairs": 0.008737316430880174,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.822131818302368,
+      "r_adj": 0.9279742761931575,
+      "r_adj_sd_over_pairs": 0.058390282260889104,
+      "pairs_with_rel": 43,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.7656088471058456,
+      "r_adj": 0.8645087532099787,
+      "r_adj_sd_over_pairs": 0.10145153564974749,
+      "pairs_with_rel": 37,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.6963631525044082,
+      "r_adj": 0.7833935318083839,
+      "r_adj_sd_over_pairs": 0.08621978476374163,
+      "pairs_with_rel": 24,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9213103194380005,
+      "r_adj": 0.9978855554120581,
+      "r_adj_sd_over_pairs": 0.008737316430880174,
+      "pairs_with_rel": 46,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.822131818302368,
+      "r_adj": 0.9279742761931575,
+      "r_adj_sd_over_pairs": 0.058390282260889104,
+      "pairs_with_rel": 43,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.7656088471058456,
+      "r_adj": 0.8645087532099787,
+      "r_adj_sd_over_pairs": 0.10145153564974749,
+      "pairs_with_rel": 37,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.6963631525044082,
+      "r_adj": 0.7833935318083839,
+      "r_adj_sd_over_pairs": 0.08621978476374163,
+      "pairs_with_rel": 24,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 46,
+      "r": 0.9225204064583515,
+      "r_adj": 0.9979148111044177,
+      "r_adj_sd_over_pairs": 0.008543275422124906,
+      "pairs_with_rel": 46,
+      "median_cells": 87.0
+     },
+     "6 months": {
+      "window_pairs": 43,
+      "r": 0.8241173082502301,
+      "r_adj": 0.9280230299868775,
+      "r_adj_sd_over_pairs": 0.05655744531512523,
+      "pairs_with_rel": 43,
+      "median_cells": 87.0
+     },
+     "1 year": {
+      "window_pairs": 37,
+      "r": 0.7673687637547327,
+      "r_adj": 0.8643826365964706,
+      "r_adj_sd_over_pairs": 0.09956918092258621,
+      "pairs_with_rel": 37,
+      "median_cells": 87.0
+     },
+     "2 years": {
+      "window_pairs": 24,
+      "r": 0.6992283566302567,
+      "r_adj": 0.7847553287848842,
+      "r_adj_sd_over_pairs": 0.08670679409405795,
+      "pairs_with_rel": 24,
+      "median_cells": 87.0
+     }
+    }
+   }
+  },
+  "hero_x_map": {
+   "all heroes, 30+ games": {
+    "3 months": {
+     "window_pairs": 46,
+     "r": 0.8914495710037211,
+     "r_adj": 1.0,
+     "r_adj_sd_over_pairs": 0.0,
+     "pairs_with_rel": 46,
+     "median_cells": 990.0
+    },
+    "6 months": {
+     "window_pairs": 43,
+     "r": 0.7703988196170691,
+     "r_adj": 0.9571844914988672,
+     "r_adj_sd_over_pairs": 0.03624211392023187,
+     "pairs_with_rel": 43,
+     "median_cells": 990.0
+    },
+    "1 year": {
+     "window_pairs": 37,
+     "r": 0.7328715126200407,
+     "r_adj": 0.9129515107789787,
+     "r_adj_sd_over_pairs": 0.06134637502725586,
+     "pairs_with_rel": 37,
+     "median_cells": 990.0
+    },
+    "2 years": {
+     "window_pairs": 24,
+     "r": 0.6848053433102118,
+     "r_adj": 0.8484143812471968,
+     "r_adj_sd_over_pairs": 0.08661876358410558,
+     "pairs_with_rel": 24,
+     "median_cells": 990.0
+    }
+   },
+   "pick rate 1%+ and 100+ games": {
+    "3 months": {
+     "window_pairs": 46,
+     "r": 0.8918915849668076,
+     "r_adj": 1.0,
+     "r_adj_sd_over_pairs": 0.0,
+     "pairs_with_rel": 46,
+     "median_cells": 987.0
+    },
+    "6 months": {
+     "window_pairs": 43,
+     "r": 0.7708401548709262,
+     "r_adj": 0.9570077052662564,
+     "r_adj_sd_over_pairs": 0.03640276818391095,
+     "pairs_with_rel": 43,
+     "median_cells": 987.0
+    },
+    "1 year": {
+     "window_pairs": 37,
+     "r": 0.7331185805880528,
+     "r_adj": 0.9129916065183052,
+     "r_adj_sd_over_pairs": 0.06182440296328086,
+     "pairs_with_rel": 37,
+     "median_cells": 987.0
+    },
+    "2 years": {
+     "window_pairs": 24,
+     "r": 0.6848295830151473,
+     "r_adj": 0.8482362799830971,
+     "r_adj_sd_over_pairs": 0.0869930730471302,
+     "pairs_with_rel": 24,
+     "median_cells": 986.0
+    }
+   },
+   "pick rate 2%+ and 300+ games": {
+    "3 months": {
+     "window_pairs": 46,
+     "r": 0.8937459626459097,
+     "r_adj": 1.0,
+     "r_adj_sd_over_pairs": 0.0,
+     "pairs_with_rel": 46,
+     "median_cells": 963.5
+    },
+    "6 months": {
+     "window_pairs": 43,
+     "r": 0.7740680287234626,
+     "r_adj": 0.9564821535438276,
+     "r_adj_sd_over_pairs": 0.03598721470581757,
+     "pairs_with_rel": 43,
+     "median_cells": 960.0
+    },
+    "1 year": {
+     "window_pairs": 37,
+     "r": 0.7364387279334185,
+     "r_adj": 0.9123329303973128,
+     "r_adj_sd_over_pairs": 0.06182920174738425,
+     "pairs_with_rel": 37,
+     "median_cells": 951.0
+    },
+    "2 years": {
+     "window_pairs": 24,
+     "r": 0.6873088102941868,
+     "r_adj": 0.847288492230443,
+     "r_adj_sd_over_pairs": 0.08743112255346076,
+     "pairs_with_rel": 24,
+     "median_cells": 946.0
+    }
+   }
+  }
+ },
+ "W91_by_region": {
+  "note": "games from 2024-04-01 on only (region known); 2 years not reachable",
+  "Americas": {
+   "games": 357900,
+   "hero": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.7935184183807201,
+      "r_adj": 0.9286730153812366,
+      "r_adj_sd_over_pairs": 0.04963384781239143,
+      "pairs_with_rel": 23,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.7190881654062387,
+      "r_adj": 0.8453836061447257,
+      "r_adj_sd_over_pairs": 0.06486287663954968,
+      "pairs_with_rel": 20,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.6204228710064458,
+      "r_adj": 0.7296016182552095,
+      "r_adj_sd_over_pairs": 0.05584387948751206,
+      "pairs_with_rel": 14,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.4086468655906244,
+      "r_adj": 0.5343171189731231,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.7935184183807201,
+      "r_adj": 0.9286730153812366,
+      "r_adj_sd_over_pairs": 0.04963384781239143,
+      "pairs_with_rel": 23,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.7190881654062387,
+      "r_adj": 0.8453836061447257,
+      "r_adj_sd_over_pairs": 0.06486287663954968,
+      "pairs_with_rel": 20,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.6204228710064458,
+      "r_adj": 0.7296016182552095,
+      "r_adj_sd_over_pairs": 0.05584387948751206,
+      "pairs_with_rel": 14,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.4086468655906244,
+      "r_adj": 0.5343171189731231,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.7944393614534463,
+      "r_adj": 0.9285623103363335,
+      "r_adj_sd_over_pairs": 0.04934235178439523,
+      "pairs_with_rel": 23,
+      "median_cells": 89.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.7217265791304928,
+      "r_adj": 0.8472901179313933,
+      "r_adj_sd_over_pairs": 0.06619212236511769,
+      "pairs_with_rel": 20,
+      "median_cells": 89.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.6218710278673683,
+      "r_adj": 0.7298613134703092,
+      "r_adj_sd_over_pairs": 0.05797547739751124,
+      "pairs_with_rel": 14,
+      "median_cells": 89.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.37763290584766324,
+      "r_adj": 0.49002561854282256,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 79.0
+     }
+    }
+   }
+  },
+  "Europe": {
+   "games": 692099,
+   "hero": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.8590695702312622,
+      "r_adj": 0.9398984519542184,
+      "r_adj_sd_over_pairs": 0.04554347074143679,
+      "pairs_with_rel": 23,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.7947318518824877,
+      "r_adj": 0.871685399763933,
+      "r_adj_sd_over_pairs": 0.05603163289083356,
+      "pairs_with_rel": 20,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.6888848039357516,
+      "r_adj": 0.7555277671531445,
+      "r_adj_sd_over_pairs": 0.052941878312570675,
+      "pairs_with_rel": 14,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.42597646129206823,
+      "r_adj": 0.49827543269887087,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.8590695702312622,
+      "r_adj": 0.9398984519542184,
+      "r_adj_sd_over_pairs": 0.04554347074143679,
+      "pairs_with_rel": 23,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.7947318518824877,
+      "r_adj": 0.871685399763933,
+      "r_adj_sd_over_pairs": 0.05603163289083356,
+      "pairs_with_rel": 20,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.6888848039357516,
+      "r_adj": 0.7555277671531445,
+      "r_adj_sd_over_pairs": 0.052941878312570675,
+      "pairs_with_rel": 14,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.42597646129206823,
+      "r_adj": 0.49827543269887087,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.8599706163282245,
+      "r_adj": 0.9392467884155944,
+      "r_adj_sd_over_pairs": 0.04575589265712992,
+      "pairs_with_rel": 23,
+      "median_cells": 88.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.7963526991039401,
+      "r_adj": 0.8720364772738044,
+      "r_adj_sd_over_pairs": 0.05561760260936864,
+      "pairs_with_rel": 20,
+      "median_cells": 88.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.688586229501354,
+      "r_adj": 0.7537307212309844,
+      "r_adj_sd_over_pairs": 0.05244191712031677,
+      "pairs_with_rel": 14,
+      "median_cells": 86.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.4180928227826248,
+      "r_adj": 0.48711424819436105,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 87.0
+     }
+    }
+   }
+  },
+  "Korea": {
+   "games": 32433,
+   "hero": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.4343127610119534,
+      "r_adj": 0.8836634583947168,
+      "r_adj_sd_over_pairs": 0.13164411399374853,
+      "pairs_with_rel": 23,
+      "median_cells": 89.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.39337226750180687,
+      "r_adj": 0.8396125553238768,
+      "r_adj_sd_over_pairs": 0.14644231369200836,
+      "pairs_with_rel": 20,
+      "median_cells": 87.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.35261752678162755,
+      "r_adj": 0.7709143700093588,
+      "r_adj_sd_over_pairs": 0.23561876162850162,
+      "pairs_with_rel": 14,
+      "median_cells": 87.5
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.11166406714674679,
+      "r_adj": 0.2791524299707046,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 35.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 22,
+      "r": 0.4476369514184972,
+      "r_adj": 0.8808624420863719,
+      "r_adj_sd_over_pairs": 0.14700200421705373,
+      "pairs_with_rel": 22,
+      "median_cells": 75.5
+     },
+     "6 months": {
+      "window_pairs": 19,
+      "r": 0.4007584063618183,
+      "r_adj": 0.8133676143894893,
+      "r_adj_sd_over_pairs": 0.18032383090586399,
+      "pairs_with_rel": 19,
+      "median_cells": 70.0
+     },
+     "1 year": {
+      "window_pairs": 13,
+      "r": 0.3559207530728806,
+      "r_adj": 0.71426782689161,
+      "r_adj_sd_over_pairs": 0.26818880525616207,
+      "pairs_with_rel": 13,
+      "median_cells": 70.0
+     },
+     "2 years": {
+      "window_pairs": 0,
+      "r": null,
+      "r_adj": null,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 0,
+      "median_cells": null
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 21,
+      "r": 0.48993373981411076,
+      "r_adj": 0.8543485587776958,
+      "r_adj_sd_over_pairs": 0.2620140320278227,
+      "pairs_with_rel": 21,
+      "median_cells": 32.0
+     },
+     "6 months": {
+      "window_pairs": 18,
+      "r": 0.3237742984431794,
+      "r_adj": 0.7008359928607543,
+      "r_adj_sd_over_pairs": 0.37714145048018505,
+      "pairs_with_rel": 16,
+      "median_cells": 22.5
+     },
+     "1 year": {
+      "window_pairs": 12,
+      "r": 0.28410422001998253,
+      "r_adj": 0.6322999734001358,
+      "r_adj_sd_over_pairs": 0.32265203172509693,
+      "pairs_with_rel": 12,
+      "median_cells": 24.5
+     },
+     "2 years": {
+      "window_pairs": 0,
+      "r": null,
+      "r_adj": null,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 0,
+      "median_cells": null
+     }
+    }
+   }
+  },
+  "all regions, same period": {
+   "games": 1082432,
+   "hero": {
+    "all heroes, 30+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.8863081910847957,
+      "r_adj": 0.9403963776253282,
+      "r_adj_sd_over_pairs": 0.03892395499194705,
+      "pairs_with_rel": 23,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.8191581254583026,
+      "r_adj": 0.8705337452667251,
+      "r_adj_sd_over_pairs": 0.04947144104617183,
+      "pairs_with_rel": 20,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.7060969554030608,
+      "r_adj": 0.7504019924355125,
+      "r_adj_sd_over_pairs": 0.04048415529762318,
+      "pairs_with_rel": 14,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.4627709410829537,
+      "r_adj": 0.5133782715325196,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 1%+ and 100+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.8863081910847957,
+      "r_adj": 0.9403963776253282,
+      "r_adj_sd_over_pairs": 0.03892395499194705,
+      "pairs_with_rel": 23,
+      "median_cells": 90.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.8191581254583026,
+      "r_adj": 0.8705337452667251,
+      "r_adj_sd_over_pairs": 0.04947144104617183,
+      "pairs_with_rel": 20,
+      "median_cells": 90.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.7060969554030608,
+      "r_adj": 0.7504019924355125,
+      "r_adj_sd_over_pairs": 0.04048415529762318,
+      "pairs_with_rel": 14,
+      "median_cells": 90.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.4627709410829537,
+      "r_adj": 0.5133782715325196,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 90.0
+     }
+    },
+    "pick rate 2%+ and 300+ games": {
+     "3 months": {
+      "window_pairs": 23,
+      "r": 0.8865322655557021,
+      "r_adj": 0.9400188285286587,
+      "r_adj_sd_over_pairs": 0.03951722646644254,
+      "pairs_with_rel": 23,
+      "median_cells": 89.0
+     },
+     "6 months": {
+      "window_pairs": 20,
+      "r": 0.8194679025817979,
+      "r_adj": 0.8703092385122367,
+      "r_adj_sd_over_pairs": 0.05006121476120974,
+      "pairs_with_rel": 20,
+      "median_cells": 89.0
+     },
+     "1 year": {
+      "window_pairs": 14,
+      "r": 0.7062664501410617,
+      "r_adj": 0.7499837854735577,
+      "r_adj_sd_over_pairs": 0.04114593811034933,
+      "pairs_with_rel": 14,
+      "median_cells": 87.0
+     },
+     "2 years": {
+      "window_pairs": 1,
+      "r": 0.46308787774770427,
+      "r_adj": 0.5118739611948496,
+      "r_adj_sd_over_pairs": null,
+      "pairs_with_rel": 1,
+      "median_cells": 87.0
+     }
+    }
+   }
+  }
+ }
+}
