@@ -8,6 +8,8 @@ Answers to Max's questions on `NARRATIVE_v2.md`. Each section starts with a shor
 
 So knowing the players adds 4.81 points, the "personal gain". These are the current panel numbers. The definitive rerun (about Oct 28) will move them a little.
 
+**Sections 7 to 10** (added 2026-10-19 for REMAINING_WORK.md items 6, 7, 9 and 11): drift on one horizon, the player-model ladder, normalization in edge points, and Korea.
+
 **New code** (all in `training/personalization/`, run on this box at nice 19 on cores 48-51; no GPU, no Neon, no 2.57 or sealed games):
 - `p2f_game_clock.py`: the game's clock;
 - `p2f_player_clock.py`: the players' clock;
@@ -417,11 +419,169 @@ What we cannot say from this data:
 
 ---
 
+## 7. Drift on one horizon: a year without updates
+
+**Plain answer.** Leave each half alone for a year and score it on the same games:
+- **Draft model a year stale:** the draft alone drops from 56.8% to 55.6%. That is 1.2 of its 6.8 points of edge (18%). With the players included, the full model loses only 0.45 points, because the player terms make up for part of it.
+- **Player state frozen a year:** the full model drops from 61.5% to 58.4%. That is 3.2 points, two thirds of the 4.7 points the players add. In log loss it keeps only 13% of the player gain.
+- **Both a year stale:** 57.5%, a loss of 4.0 of the 11.5-point edge (35%).
+
+So on one clock, the player side goes stale much faster than the draft side. That is because a frozen player state misses new games, new heroes and new accounts. It is not mainly because skill changes (section 2).
+
+**Method.** This reuses the tournament agent's fixed vintages and models (`P3_TOURNAMENT.md`, "Vintages for drift"; `p3t_value.py predeval`). It adds the one combination that run did not score: current draft model with year-old player state. That cell was computed on the 3090 CPU from the tournament's saved state files; nothing was retrained.
+- **Games:** 60,500 real ranked games from 2026-05-23 to 06-30. The players are tournament-eligible: all ten have 50+ earlier games. That makes the personal gain a little larger than on V2.
+- **Draft side:** "current" is the population model and statistics through the May 22 snapshot. "A year stale" (`s1y`) is the same recipe through build 2.55.10.94189 (2025-06-02), about 12 to 13 months before these games.
+- **Player side:** player state is the main skill model's state through the day before ("current"), or frozen at 2025-06-02.
+- **Combiner:** each draft-model vintage has its own combiner, fit on the 3 months before its cutoff. This mimics a model frozen at that date.
+
+Accuracy, with the edge in points in brackets:
+
+| draft model \ player state | none | current | 4 months old | 1 year old |
+|---|---|---|---|---|
+| current | 56.84% (6.84) | **61.51% (11.51)** | 58.87% (8.87) | 58.36% (8.36) |
+| 4 months old | 56.34% (6.34) | 61.54% (11.54) | 58.54% (8.54) | 57.98% (7.98) |
+| 1 year old | 55.62% (5.62) | 61.06% (11.06) | 58.14% (8.14) | 57.51% (7.51) |
+
+Log-loss gain over a coin flip (×1000):
+
+| draft model \ player state | none | current | 1 year old |
+|---|---|---|---|
+| current | 14.4 | 43.0 | 18.2 |
+| 1 year old | 10.3 | 38.8 | 12.9 |
+
+What is kept after a year without updates:
+
+| part | accuracy edge kept | log-loss gain kept |
+|---|---|---|
+| draft model alone | 5.62 of 6.84 points (82%) | 72% |
+| player gain, with the current draft model | 1.52 of 4.67 points (33%) | 13% |
+| whole model, both a year stale | 7.51 of 11.51 points (65%) | 30% |
+
+Notes:
+- The "about 72%" and "about 30%" in the coordinator's note are the log-loss figures in the first and last rows.
+- The fair player-side figure, holding the draft model current, is 33% in accuracy and 13% in log loss.
+- These are one vintage each, scored on one window, and the eligible players are heavier than average.
+- The drift paper's replay (section 1) averages over 2.8 years of builds; this table is one snapshot one year out. They agree on size: about a point of draft edge per year without retraining.
+
+---
+
+## 8. What each player-model step adds, in edge
+
+**Plain answer.** The 7.2 to 12.0 gain builds up in four steps of real size:
+- how many games each player has on each hero, with no results at all: +1.9 points;
+- their actual win records, trusted in proportion to sample size: +0.8;
+- borrowing from the player's other heroes: +0.5;
+- per-game scoreboard performance: +1.4.
+
+The per-player learning speed and drift layer adds the last +0.2. Learned hero traits are worth almost nothing in accuracy once the player's overall level is borrowed, though they help in log loss and on cold start.
+
+**Method.** Every rung is a model scored on the same games, full histories (full_1017 panel), with its own combiner fit on V1:
+- **draft only:** the draft-only WP;
+- **experience:** the offset by games played (overall and on this hero), no outcomes;
+- **win records, no borrowing:** each player-hero cell shrunk toward the offset on its own, with sample-size weighting (prior sd 3.9 points, the phase-1 no-pooling fit);
+- **borrowing, overall level:** the player-plus-hero kernel;
+- **learned hero traits:** the rank-2 CF kernel, arm A2S;
+- **scoreboard:** the main model without its layer;
+- **layer:** the main model.
+
+The "experience" and "no borrowing" arms are new runs of `p3_c_tests.predict` with the A2S settings and only the kernel changed (`p2f_ladder.py`, 3090 CPU, about 3 minutes each). Step SEs are paired by game.
+
+| step | V2 accuracy (edge) | step, points (SE) | OOT accuracy (edge) | step, points (SE) | V2 / OOT log-loss gain ×1000 |
+|---|---|---|---|---|---|
+| draft only | 57.19% (7.19) | | 56.94% (6.94) | | 0 / 0 |
+| + experience (games played, no results) | 59.07% (9.07) | +1.88 (0.17) | 58.67% (8.67) | +1.73 (0.08) | 8.6 / 8.2 |
+| + win records, sample-size weighted, no borrowing | 59.91% (9.91) | +0.84 (0.13) | 59.48% (9.48) | +0.81 (0.06) | 13.8 / 13.1 |
+| + borrowing: the player's overall level | 60.36% (10.36) | +0.45 (0.11) | 59.99% (9.99) | +0.50 (0.06) | 17.0 / 16.7 |
+| + borrowing: learned hero traits (win-only model) | 60.35% (10.35) | −0.01 (0.10) | 60.14% (10.14) | +0.16 (0.05) | 17.7 / 17.4 |
+| + scoreboard performance | 61.76% (11.76) | +1.41 (0.14) | 61.50% (11.50) | +1.36 (0.07) | 27.5 / 26.5 |
+| + per-player learning speed and drift layer | **62.00% (12.00)** | +0.24 (0.08) | **61.66% (11.66)** | +0.16 (0.04) | 28.6 / 27.8 |
+
+Notes:
+- **The experience step is large because the offset is large.** Veterans do about 7 points worse than the draft predicts on heroes they have never played, and 2 to 3 better on heroes they play a lot (`P3_HERO_STRENGTH.md` section 7). It uses no results, only what players chose to play.
+- **The order matters for how credit is split.** Each step is measured with all earlier steps in place. Scoreboard first would take some credit from win records.
+- **On the first panel (oct05) the scoreboard step was +1.4 to +1.6 points over the win-only model** (`P3_RICH_CF.md`), the same size.
+
+**Cold start: share of real variation explained.** For heroes a player barely plays, with that hero's games hidden, the share of the true player-on-hero effect predicted from their other heroes (latent R², 19,264 cells, 2,320 held-out players, full-history panel unless noted):
+
+| model | share explained |
+|---|---|
+| no borrowing (nothing to go on once the hero's own games are hidden) | 0 by construction |
+| borrowing, win-only model (oct05 panel; `P3_RICH_CF.md`) | 0.38 |
+| borrowing, main model with scoreboard | 0.30 |
+| borrowing plus play preference (`imp2`) | 0.46 |
+
+Borrowing is what makes any prediction on an unplayed hero possible. Play preference (which heroes a player chooses) is the best signal for it. The scoreboard sharpens a player's general level more than their hero-specific skill.
+
+---
+
+## 9. Normalization alternatives, in edge points
+
+**Plain answer.** Every tested normalization choice moves accuracy by at most about 0.2 points, usually under 0.1. That is within noise on the spring test set (SE about 0.08) and at most 0.2 on the later set. The choice of normalization is not where the scoreboard's value comes from.
+
+**Method.** The arms are the scored card arms of `P3_RICH_CF.md` (oct05 panel), each paired by game against the base card. The log-loss differences are those reported there.
+
+| card | change | V2 accuracy diff, points (SE) | OOT accuracy diff, points (SE) | V2 / OOT log-loss diff ×1000 |
+|---|---|---|---|---|
+| base | the normalization of section 4 without shrinkage (61.60% / 61.35%) | 0 | 0 | 0 / 0 |
+| **hero × map shrinkage (adopted)** | thin cells shrunk toward the hero | +0.06 (0.08) | −0.02 (0.04) | +0.07 / +0.05 |
+| tier cells | hero × map × tier, shrunk | −0.04 (0.09) | −0.06 (0.05) | −0.45 / −0.48 |
+| smooth length curves | | +0.08 (0.09) | −0.10 (0.05) | −0.24 / −0.37 |
+| team share | | −0.05 (0.10) | −0.15 (0.05) | −0.44 / −0.76 |
+| opponent difference | | −0.09 (0.10) | −0.21 (0.05) | −1.42 / −1.34 |
+| ranks | | +0.06 (0.07) | 0.00 (0.03) | +0.32 / +0.27 |
+| winsorize at ±2.5 | | +0.08 (0.06) | +0.01 (0.03) | +0.18 / +0.17 |
+| informativeness weighting | | +0.10 (0.07) | −0.00 (0.04) | +0.13 / −0.10 |
+| for scale: the first scoreboard export (`met2_hs2`, slot rows only) | | −0.43 (0.10) | −0.24 (0.05) | −1.80 / −1.61 |
+| for scale: no scoreboard at all (win-only, `today`) | | −1.26 (0.15) | −1.40 (0.07) | −8.16 / −8.46 |
+
+Accuracy moves less than log loss: on this panel about 0.15 points of accuracy per log-loss point (×1000).
+
+---
+
+## 10. Korea's smaller gain
+
+**Plain answer.** Partly thin histories, but not only.
+- Korean games have much shallower histories in our data: the median player in a Korean game has 58 earlier games, against 300 to 400 in the Americas and Europe. Only about 4 of the 10 players have pulled full histories, against 6 to 7.
+- The main model's gain is 3.5 points in Korea against 5.0 (Americas) and 4.7 (Europe). Re-weighted to Korea's depth mix, the Americas and Europe gain 5.3 and 4.3: matching depth narrows the gap to Europe a little and does not narrow the gap to the Americas.
+- Within the thinnest-history games (players' median under 100 games), Korea still gains less: 3.5 points against 5.3 and 4.2.
+- So depth explains some of the gap for Europe and none for the Americas.
+- The rest is unexplained with this data. Korea is small (17K test games), its player pool is small, and the draft model and statistics are dominated by Western games.
+
+**Method.**
+- **Games:** V2 and OOT pooled, main model (`full_ms_layer`).
+- **History depth of a game:** the median, over its ten players, of games seen in the full history as of the day before.
+- **Gain:** full model accuracy minus draft-only accuracy, on the same games.
+- **Matched depth:** the Americas and Europe re-weighted to Korea's mix of depth bins.
+
+| region | games | median depth | players with full history (of 10) | slots with 50+ games on the hero | gain, points | log-loss gain ×1000 | gain at Korea's depth mix | log-loss at Korea's mix |
+|---|---|---|---|---|---|---|---|---|
+| Americas | 113,887 | 396 | 6.6 | 3.2 | 4.97 | 30.0 | 5.25 | 30.9 |
+| Europe | 227,489 | 315 | 6.3 | 2.8 | 4.71 | 27.8 | 4.34 | 26.0 |
+| Korea | 17,114 | 58 | 3.9 | 1.1 | 3.48 | 17.2 | (3.48) | (17.2) |
+
+By depth bin, gain in points (SE):
+
+| median depth | Korea share | Korea | Americas | Europe |
+|---|---|---|---|---|
+| under 100 | 75% | 3.50 (0.45) | 5.31 (0.39) | 4.20 (0.22) |
+| 100-299 | 22% | 3.28 (0.83) | 5.09 (0.31) | 4.71 (0.22) |
+| 300-999 | 3% | 4.23 (2.22) | 4.97 (0.25) | 5.02 (0.19) |
+
+**The win-only model (A2S) shows depth mattering more.**
+- Korea gains 1.8 points.
+- The Americas and Europe gain 3.2 to 3.3 overall, falling to 2.8 and 2.6 at Korea's depth mix.
+- So about half of the win-only gap is depth. With the scoreboard added, depth matters less everywhere, and the remaining Korea gap is mostly not depth.
+
+**For the paper:** "Korea gains less (3.5 against 4.7 to 5.0 points). Its players have far shorter histories in our data, which explains part of the gap. At equal history depth Korea still gains about a point less, which we leave open."
+
+---
+
 ## Files
 
-- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`.
+- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`, `p2f_more.py` (sections 8 to 10), `p2f_ladder.py` (the two new ladder arms, run on the 3090 CPU) and `p2f_stale_cell.py` (the year-stale table of section 7, run on the 3090 CPU against the tournament's saved states).
 - Results: `training/personalization/results/p2f/*.json`.
 - Large inputs, all gitignored:
   - `cache/p2f_snapshot_games.npz`, a compact copy of the snapshot built by the game-clock script;
   - the A2S and `full_ms_layer` arms (`results/rcf_full/p3c/`) and the full slot table (`cache_full/x_slots_ext.npz`) from the 3090, copied to a scratch directory and not committed. They hold player keys only.
-- Compute: this box, cores 48-51, nice 19, about 30 minutes in total. The 3090 was used only for a read-only copy. The GPUs and the tournament jobs were not touched.
+- Compute: this box, cores 48-51, nice 19, about an hour in total. The 3090 ran only CPU work (cores 24-31, nice 19, hotsjob jobs `p2f_ladder_*`, about 10 minutes). No GPU was used, and the tournament's jobs and files were only read.
+- One reliability note: two 3090 runs started outside hotsjob, and one inside it, failed with impossible array indices in code that had just run cleanly. Each succeeded on rerun with identical code. If this recurs, the 3090's memory should be checked.
