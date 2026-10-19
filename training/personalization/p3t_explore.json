@@ -1,0 +1,84 @@
+{
+ "_note": "exploration design study: aMCTS-pp-like searches with one knob changed (tuned on the tune lobby set, never the tournament lobbies)",
+ "x-pp": {
+  "base": "cur",
+  "prior": "pprior"
+ },
+ "x-pp-c1": {
+  "base": "cur",
+  "prior": "pprior",
+  "c_puct": 1.0
+ },
+ "x-pp-c4": {
+  "base": "cur",
+  "prior": "pprior",
+  "c_puct": 4.0
+ },
+ "x-pp-b05": {
+  "base": "cur",
+  "prior": "pprior",
+  "bias_scale": 0.5
+ },
+ "x-pp-b2": {
+  "base": "cur",
+  "prior": "pprior",
+  "bias_scale": 2.0
+ },
+ "x-pp-a0": {
+  "base": "cur",
+  "prior": "pprior",
+  "alpha": 0.0
+ },
+ "x-pp-a03": {
+  "base": "cur",
+  "prior": "pprior",
+  "alpha": 0.3
+ },
+ "x-pp-a06": {
+  "base": "cur",
+  "prior": "pprior",
+  "alpha": 0.6
+ },
+ "x-pp-apos": {
+  "base": "cur",
+  "prior": "pprior",
+  "alpha": {
+   "4": 0.5,
+   "5": 0.5,
+   "6": 0.5,
+   "7": 0.3,
+   "8": 0.3,
+   "default": 0.156
+  }
+ },
+ "x-pp-opt05": {
+  "base": "cur",
+  "prior": "pprior",
+  "optimism": 0.5
+ },
+ "x-pp-opt1": {
+  "base": "cur",
+  "prior": "pprior",
+  "optimism": 1.0
+ },
+ "x-pp-as1": {
+  "base": "cur",
+  "prior": "pprior",
+  "assign_bias": 1.0
+ },
+ "x-pp-as3": {
+  "base": "cur",
+  "prior": "pprior",
+  "assign_bias": 3.0
+ },
+ "x-pp-s1600": {
+  "base": "cur",
+  "prior": "pprior",
+  "sims": 1600
+ },
+ "x-bc-pp": {
+  "base": "cur_bc",
+  "prior": "pprior",
+  "alpha": 1.0
+ }
+}

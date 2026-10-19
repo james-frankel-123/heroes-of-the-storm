@@ -33,9 +33,10 @@ import numpy as np
 import p3_hs_core as C
 import p3t_data as TD
 
-TDIR = os.path.join(TD.OUT, "tourney")
+_LS = os.environ.get("P3T_LOBBYSET", "")
+TDIR = os.path.join(TD.OUT, "tourney" + (f"_{_LS}" if _LS else ""))
 SPLIT = os.environ.get("P3T_SPLIT") == "1"
-SDIR = os.path.join(TD.OUT, "scores_split" if SPLIT else "scores")
+SDIR = os.path.join(TD.OUT, ("scores_split" if SPLIT else "scores") + (f"_{_LS}" if _LS else ""))
 RES = os.path.join(C.RESULTS, "p3t")
 B = 2000
 WIN = ["judge_personal", "judge_corr", "consensus", "gN", "gN_naive", "RN", "QM2026"]
@@ -335,7 +336,8 @@ def analyze(contrasts_extra=()):
         bt[key] = {"seat_first_pick": round(h, 3),
                    "theta": {s: [round(th[s], 3), round(float(l), 3), round(float(u), 3)] for s, l, u in zip(systems, lo, hi)}}
     out["bt"] = bt
-    json.dump(out, open(os.path.join(RES, "analysis_split.json" if SPLIT else "analysis.json"), "w"), indent=1)
+    name = ("analysis_split" if SPLIT else "analysis") + (f"_{_LS}" if _LS else "")
+    json.dump(out, open(os.path.join(RES, name + ".json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
 
 

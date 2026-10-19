@@ -6,5 +6,5 @@ HOST=${1:?host}
 cd "$(dirname "$0")/../../.."
 source training/remote_workers/_remote.sh
 training/remote_workers/sync.sh "$HOST" code | tail -1
-nice -n 19 rsync -t --rsync-path="$(remote_rsync "$HOST")" training/personalization/p3t_vintages.json \
+nice -n 19 rsync -t --rsync-path="$(remote_rsync "$HOST")" training/personalization/p3t_vintages.json training/personalization/p3t_explore.json \
   "$HOST:/home/max/hots/repo/training/personalization/"

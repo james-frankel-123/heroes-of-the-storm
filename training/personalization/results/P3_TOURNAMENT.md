@@ -21,6 +21,15 @@ Status: in progress. This first version records the design and the primary compa
 - Contrast: `aMCTS-bc` against `pMCTS-bc`, the same search over the behavioral (BC) prior.
 - Metric, judge and interval: as for the primary comparison.
 
+**Exploration design study** (stated before any design-study system played a tournament lobby):
+- **Tuning.** Every knob is tuned on a separate set of 300 tune lobbies, never the tournament lobbies. These are tournament-window lobbies that meet the same eligibility rules.
+  - Each configuration plays `pMCTS-cur` and `aMCTS-pp` on both seats.
+  - The selection score is its mean J win probability over those four matchups.
+- **Primary design comparison.** The selected design ("best design") against `aMCTS-pp` on the 300 tournament lobbies, with J and the same interval rule as above.
+- **Ablation table.** Each component added to `aMCTS-pp` alone: c_puct, prior mixing weight per pick position, personal bias scale, optimism and pessimism from posterior sd, assignment-aware root bias, opponent personal model inside the search, ban denial bias, and the rich learned prior by training signal.
+  - Each row reports judged win rate against `aMCTS-pp` with CI, compute per draft, and training GPU-hours.
+- **Split-history judge.** Versions using a drafter state built from odd days only are also scored by the split-history judge (even days).
+
 ## Design (fixed before the tournament)
 
 **Windows.**

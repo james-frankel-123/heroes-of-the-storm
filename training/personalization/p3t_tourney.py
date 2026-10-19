@@ -35,7 +35,9 @@ import p3_hs_core as C
 import p3t_data as TD
 import p3t_systems as SY
 
-TDIR = os.path.join(TD.OUT, "tourney")
+# P3T_LOBBYSET=tune: a separate lobby set for tuning the exploration design (never the tournament lobbies)
+LOBBYSET = os.environ.get("P3T_LOBBYSET", "")
+TDIR = os.path.join(TD.OUT, "tourney" + (f"_{LOBBYSET}" if LOBBYSET else ""))
 os.makedirs(TDIR, exist_ok=True)
 N_LOBBIES = int(os.environ.get("P3T_LOBBIES", "300"))
 J_MIN = 10
@@ -54,6 +56,10 @@ def select():
     ok = rich & (jn >= J_MIN).all(1)
     cand = win[ok]
     rng = np.random.RandomState(20261019)
+    if LOBBYSET:
+        test = set(np.load(os.path.join(TD.OUT, "tourney", "lobbies.npz"))["gi"].tolist())
+        cand = np.array([g for g in cand if g not in test])
+        rng = np.random.RandomState(20261020)
     sel = np.sort(rng.choice(cand, N_LOBBIES, replace=False))
     np.savez(os.path.join(TDIR, "lobbies.npz"), gi=sel)
     print(f"tournament-window lobbies {len(win):,}; all ten 50+ earlier games {int(rich.sum()):,}; "
@@ -98,6 +104,8 @@ class Lobbies:
             base = (self.gi * 10) if v == "cur" else np.array([wpos[int(g)] * 10 for g in self.gi])
             rows = base[:, None] + self.src
             ent = {"s": z["s"][rows.ravel()].astype(np.float32).reshape(n, 10, 90),
+                   "sd": (z["sd"][rows.ravel()].astype(np.float32).reshape(n, 10, 90) if "sd" in z.files
+                          else np.zeros((n, 10, 90), np.float32)),
                    "off": z["off"][rows.ravel()].reshape(n, 10, 90)}
             if v == "judge" and "rec_sum" in z.files:
                 ent["rec_sum"] = z["rec_sum"][rows.ravel()].reshape(n, 10, 90)
@@ -119,7 +127,7 @@ def ctx_for(LB, idx, acts, k, sysname, kseed):
     return {"acts": acts[idx], "k": k, "map": LB.map[idx], "tier": LB.tier[idx], "team_pool": LB.team_pool[idx],
             "pool_bits": LB.pool_bits[idx], "slot_of": LB.slot_of[idx], "s": st["s"][idx], "off": st["off"][idx],
             "real_acts": LB.real_acts[idx], "seed_i": idx.astype(np.int64), "kseed": kseed,
-            "n": LB.state["cur"]["n"][idx], "gi": LB.gi[idx], "src": LB.src[idx]}
+            "n": LB.state["cur"]["n"][idx], "gi": LB.gi[idx], "src": LB.src[idx], "sd": st["sd"][idx]}
 
 
 _ONESTEP = {}
@@ -135,6 +143,10 @@ def act(sysname, ctx, LB, idx, device):
         return SY.act_policy(v, ctx)
     if kind == "mcts_pp":
         return SY.act_mcts(v, ctx, spec["aware"], device=device, pp=True, prior=spec["prior"])
+    if kind == "policy_rich":
+        return SY.act_policy_rich(v, ctx, spec["signal"])
+    if kind == "mcts_x":
+        return SY.act_mcts_x(v, ctx, spec["x"], device=device)
     if kind == "draftrec":
         import p3t_draftrec as DRC
         return DRC.act_draftrec(ctx, mode=spec["mode"])
@@ -215,8 +227,15 @@ SPOKES = {
 }
 
 
+TUNE_OPP = ["pMCTS-cur", "aMCTS-pp"]
+
+
 def schedule(name):
     pairs = []
+    if name == "tune":
+        for x in SY.explore_systems():
+            for o in TUNE_OPP:
+                pairs += [(x, o), (o, x)]
     if name in ("core", "all"):
         pairs += [(x, y) for x in CORE for y in CORE if x != y]
     if name in ("spokes", "all"):

@@ -94,6 +94,9 @@ def system_table():
     # DraftRec (Lee et al. 2022) reimplemented on our data (p3t_draftrec): pick head, and the paper's p+v rule
     S["DraftRec"] = dict(kind="draftrec", vint="cur", aware=1, mode="p")
     S["DraftRec-pv"] = dict(kind="draftrec", vint="cur", aware=1, mode="pv")
+    # rich learned prior (p3t_rprior) by training signal: prior only
+    for sig in ("bcow", "onestep", "search"):
+        S[f"aPol-rich-{sig}"] = dict(kind="policy_rich", vint="cur", aware=1, signal=sig)
     S["GD"] = dict(kind="gd", vint="cur", aware=0)
     S["Real"] = dict(kind="real", vint="cur", aware=0)
     return S
@@ -104,7 +107,21 @@ def vintage_state(v):
     return v.split("_")[0]
 
 
+XFILE = os.path.join(HERE, "p3t_explore.json")
+
+
+def explore_systems():
+    """Exploration-design systems (kind mcts_x) from p3t_explore.json:
+    name -> {base, prior, bias_scale, alpha, c_puct, opp, ban_bias, optimism, assign_bias, sims}."""
+    if not os.path.exists(XFILE):
+        return {}
+    cf = json.load(open(XFILE))
+    return {n: dict(kind="mcts_x", vint=c.get("base", "cur"), aware=1, x=c) for n, c in cf.items()
+            if not n.startswith("_")}
+
+
 SYSTEMS = system_table()
+SYSTEMS.update(explore_systems())
 
 
 # ------------------------------------------------------------------ vintages
@@ -382,6 +399,155 @@ def act_policy_pp(vint, ctx, prior="pprior"):
     bias, alpha = PP.bias_for(ctx["s"], ctx["off"], ctx["n"], float(vint.spec["combiner"][2]), prior_path(prior))
     u = alpha * lp + bias[:, 5 * DRAFT_TEAM[k]]
     return np.where(m, u, -1e30).argmax(1)
+
+
+def _assign_gain(s5, own_heroes, b2):
+    """b2 * (best assignment value of the team with hero h added minus without),
+    for every hero h (90,); s5 (5, 90) the team's players, own_heroes the team's picks so far."""
+    import itertools
+    m = len(own_heroes)
+    best0 = 0.0
+    if m:
+        best0 = max(sum(s5[p[i], own_heroes[i]] for i in range(m)) for p in itertools.permutations(range(5), m))
+    perms = np.array(list(itertools.permutations(range(5), m + 1)), np.int64)        # (P, m+1)
+    base = np.zeros(len(perms))
+    for i, h in enumerate(own_heroes):
+        base += s5[perms[:, i], h]
+    tot = base[:, None] + s5[perms[:, m], :]                                          # (P, 90)
+    return b2 * (tot.max(0) - best0)
+
+
+def opp_model_path():
+    import p3_hs_core as C
+    return os.path.join(C.RESULTS, "p3t", "opp_model.json")
+
+
+def opp_bias(n5, w):
+    """Opponent pick propensity bias (90,) for a team's 5 players: log mean_i
+    exp(w1 log1p n_ih + w2 [n_ih == 0]); the team mixture (who picks is unknown)."""
+    u = w["w1"] * np.log1p(n5) + w["w2"] * (n5 == 0)
+    m = u.max(0)
+    return m + np.log(np.exp(u - m).mean(0))
+
+
+def act_mcts_x(vint, ctx, x, device=0):
+    """Decide-only search with the exploration design x (see explore_systems)."""
+    import p3_mcts_core as M
+    k = ctx["k"]
+    t = DRAFT_TEAM[k]
+    B = len(ctx["acts"])
+    use_ex = bool(x.get("opp")) or bool(x.get("ban_bias")) or (bool(x.get("rich")) and not IS_PICK[k])
+    kmod = M.load_module("explore_kernel" if use_ex else "pvnet_kernel",
+                         os.path.join(HERE, "cuda_explore" if use_ex else "cuda_pvnet"))
+    cfg = np.full((B, M.CFG_LEN), -1, np.int32)
+    cfg[:, 0], cfg[:, 1], cfg[:, 2] = ctx["map"], ctx["tier"], t
+    cfg[:, 3], cfg[:, 4], cfg[:, 5], cfg[:, 6], cfg[:, 7] = 0, k, 1, 0, 1
+    cfg[:, 8:24] = np.where(np.arange(16)[None] < k, ctx["acts"], -1)
+    cfg[:, 24:40] = ctx["slot_of"]
+    cfg[:, 40:56] = -1
+    cfg[:, 56:M.CFG_LEN] = 0
+    cfg[:, M.CFG_ASSIGN] = 1
+    s = ctx["s"].astype(np.float32).copy()
+    off = ctx["off"].astype(np.float32)
+    b = list(vint.spec["combiner"])
+    # (e) uncertainty-aware value: optimism on our cells, pessimism on theirs
+    ku = float(x.get("optimism", 0.0))
+    if ku:
+        sd = ctx["sd"].astype(np.float32)
+        s[:, 5 * t:5 * t + 5] += ku * sd[:, 5 * t:5 * t + 5]
+        s[:, 5 * (1 - t):5 * (1 - t) + 5] -= ku * sd[:, 5 * (1 - t):5 * (1 - t) + 5]
+    bias = np.zeros((B, 10, H), np.float32)
+    alpha = x.get("alpha", 1.0)
+    if isinstance(alpha, dict):
+        alpha = float(alpha.get(str(k), alpha.get("default", 1.0)))
+    if x.get("prior"):
+        import p3t_pprior as PP
+        pb, a_fit = PP.bias_for(ctx["s"], ctx["off"], ctx["n"], float(b[2]), prior_path(x["prior"]))
+        bias += float(x.get("bias_scale", 1.0)) * pb
+        if x.get("alpha") is None:
+            alpha = a_fit
+    la = float(x.get("assign_bias", 0.0))
+    if la and IS_PICK[k]:
+        for i in range(B):
+            own = [int(ctx["acts"][i, j]) for j in range(k) if IS_PICK[j] and DRAFT_TEAM[j] == t]
+            g = _assign_gain(ctx["s"][i, 5 * t:5 * t + 5].astype(np.float64), own, float(b[2]))
+            bias[i, 5 * t:5 * t + 5] += la * g[None, :].astype(np.float32)
+    rich = x.get("rich")
+    use_rich_ban = False
+    if rich:
+        import p3t_rprior as RP
+        u, lpF, msk = RP.logits(rich, ctx["acts"], k, ctx["map"], ctx["tier"], ctx["s"].astype(np.float32),
+                                ctx["sd"].astype(np.float32), ctx["n"].astype(np.float32), ctx["seed_i"], float(b[2]))
+        rb = np.where(msk, u - lpF, 0.0).astype(np.float32)
+        alpha = 1.0                                    # root prior = softmax(rich logits) exactly
+        if IS_PICK[k]:
+            bias[:, 5 * t:5 * t + 5] += rb[:, None, :]
+        else:
+            use_rich_ban = True
+            r = 5 * (1 - t)
+            bias[:, r] += rb
+            cfg[:, 24 + k] = r
+    if x.get("prior") or la or (rich and IS_PICK[k]):
+        cfg[:, 56] = 1
+    if use_rich_ban:
+        cfg[:, 56] = 2
+    imit = np.zeros((B, 10, H), np.float32)
+    coefs = np.array(b + [1.0, alpha], np.float32)
+    if x.get("opp"):
+        w = json.load(open(opp_model_path()))           # p3t_oppmodel.py; fails loudly if missing
+        for i in range(B):
+            ob = opp_bias(ctx["n"][i, 5 * (1 - t):5 * (1 - t) + 5].astype(np.float32), w)
+            imit[i, 5 * (1 - t):5 * (1 - t) + 5] = float(x["opp"]) * ob[None, :]
+        cfg[:, 6] = 2
+        coefs[4] = w["w0"]
+    lb = float(x.get("ban_bias", 0.0))
+    if lb:
+        # our bans: denial bias in the (otherwise unused) first row of the opponent team:
+        # their best player's personal term on each hero (b2 * max_i s_ih)
+        r = 5 * (1 - t)
+        bias[:, r] = lb * float(b[2]) * ctx["s"][:, 5 * (1 - t):5 * (1 - t) + 5].max(1)
+        for j in range(16):
+            if not IS_PICK[j] and DRAFT_TEAM[j] == t:
+                cfg[:, 24 + j] = r
+        cfg[:, 56] = 2
+    feat = np.zeros((B, 10, H), np.float32)
+    vnet = np.zeros(0, np.float32)
+    sims = int(x.get("sims", SIMS))
+    cp = float(x.get("c_puct", 2.0))
+    out = np.empty(B, np.int64)
+    wf, wo, lut = vint.wcfg()
+    seeds = ctx["seed_i"] % vint.n_seeds
+    Eng = getattr(kmod, "PersonalEngine", None) or getattr(kmod, "PriorEngine")
+    for i in np.unique(seeds):
+        sel = np.flatnonzero(seeds == i)
+        pf, po = vint.policy_flat(int(i))
+        gf, go = vint.gd_flat(int(i))
+        for b0 in range(0, len(sel), 256):
+            ii = sel[b0:b0 + 256]
+            eng = Eng(pf, gf, wf, po, go, wo, lut, max_concurrent=len(ii), device_id=device)
+            r_ = eng.run(np.ascontiguousarray(cfg[ii]), np.ascontiguousarray(s[ii]), np.ascontiguousarray(off[ii]),
+                         np.ascontiguousarray(imit[ii]), np.ascontiguousarray(ctx["pool_bits"][ii]), coefs,
+                         np.ascontiguousarray(bias[ii]), np.ascontiguousarray(feat[ii]), vnet, sims, cp,
+                         int(ctx["kseed"] + 7919 * k + b0 + 104729 * int(i)), 0.0, 0.3, 0.0, 1, search_mode=1)
+            del eng
+            pol = r_[5][:, 0, :]
+            q = np.nan_to_num(r_[6][:, 0, :], nan=-1.0)
+            legal = legal_mask(ctx["acts"][ii], k, ctx["team_pool"][ii])
+            sm = struct_mask(ctx["acts"][ii], k, legal)
+            out[ii] = np.where(sm, pol + 1e-6 * q, -1e30).argmax(1)
+            assert legal[np.arange(len(ii)), out[ii]].all(), "illegal action"
+    return out
+
+
+def act_policy_rich(vint, ctx, signal):
+    """argmax of the rich prior (structural mask at picks)."""
+    import p3t_rprior as RP
+    k = ctx["k"]
+    b2 = float(vint.spec["combiner"][2])
+    u, _, msk = RP.logits(signal, ctx["acts"], k, ctx["map"], ctx["tier"], ctx["s"].astype(np.float32),
+                          ctx["sd"].astype(np.float32), ctx["n"].astype(np.float32), ctx["seed_i"], b2)
+    m = struct_mask(ctx["acts"], k, legal_mask(ctx["acts"], k, ctx["team_pool"]))
+    return np.where(m & msk, u, -1e30).argmax(1)
 
 
 def act_mcts(vint, ctx, aware, device=0, kmod=None, pp=False, prior="pprior", vn=False):

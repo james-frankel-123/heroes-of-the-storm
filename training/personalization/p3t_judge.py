@@ -39,7 +39,8 @@ import p3_hs_core as C
 import p3t_data as TD
 
 RES = os.path.join(C.RESULTS, "p3t")
-SDIR = os.path.join(TD.OUT, "scores_split" if os.environ.get("P3T_SPLIT") == "1" else "scores")
+_LS = os.environ.get("P3T_LOBBYSET", "")
+SDIR = os.path.join(TD.OUT, ("scores_split" if os.environ.get("P3T_SPLIT") == "1" else "scores") + (f"_{_LS}" if _LS else ""))
 os.makedirs(SDIR, exist_ok=True)
 PERMS = np.array(list(itertools.permutations(range(5))), np.int64)
 MIN_G = 30

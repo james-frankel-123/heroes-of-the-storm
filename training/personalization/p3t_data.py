@@ -472,6 +472,73 @@ def split_judgefit(tag="full_ms_flip"):
     print(f"judgefit split: {len(q):,} slots ({time.time() - t0:.0f}s)", flush=True)
 
 
+def prelobbies():
+    """Snapshot-era lobbies with full draft orders (cache/drafts_post.json.gz,
+    2026-02-11 to 05-22, before every tournament lobby) and their as-of
+    player states, for training draft priors: pre_lobbies.npz (same fields as
+    lobbies.npz, plus wp = the slot table's causal WP for team 0) and
+    pre_state.npz (s, sd, n, off per slot in pick order, shared hero order)."""
+    from shared import MAPS
+    from overfit2026 import data as odata
+    t0 = time.time()
+    par, d, aug, mets, mw = load_model()
+    sh = to_shared(d["hero_names"])
+    names = [str(x) for x in d["hero_names"]]
+    hidx = {n_: i for i, n_ in enumerate(names)}
+    site = odata.site_tiers()
+    pre = np.flatnonzero(~d["in_sample"] & (d["day"] <= C.day_of("2026-05-22")))
+    key = {(int(d["replay_id"][i]), int(d["hero"][i])): int(i) for i in pre}
+    dr = json.load(gzip.open(os.path.join(C.CACHE, "drafts_post.json.gz"), "rt"))
+    keep, steps = [], []
+    for rid, g in dr.items():
+        o = g["order"]
+        tier = site.get(int(rid), "unknown")
+        if len(o) != 16 or tier == "unknown" or g["map"] not in MAPS:
+            continue
+        st, ok = [], True
+        for h, ty, pn, sl in o:
+            if h not in hidx:
+                ok = False
+                break
+            if ty == 1:
+                row = key.get((int(rid), hidx[h]))
+                if row is None:
+                    ok = False
+                    break
+                st.append((int(sh[hidx[h]]), 1, int(d["team"][row]), row))
+            else:
+                st.append((int(sh[hidx[h]]), 0, 0 if sl == 1 else 1, -1))
+        if not ok or [x[1] for x in st] != [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1]:
+            continue
+        ft = st[4][2]
+        exp = [ft, 1 - ft, ft, 1 - ft, ft, 1 - ft, 1 - ft, ft, ft, 1 - ft, ft, 1 - ft, 1 - ft, ft, ft, 1 - ft]
+        if [x[2] for x in st] != exp:
+            continue
+        keep.append((int(rid), g["map"], tier))
+        steps.append(st)
+    steps = np.array(steps, np.int64)
+    prow = steps[:, :, 3][steps[:, :, 1] == 1].reshape(len(keep), 10)
+    r0 = prow[:, 0]
+    y0 = np.where(d["team"][r0] == 0, d["y"][r0], 1 - d["y"][r0])
+    wp0 = np.where(d["team"][r0] == 0, d["wp"][r0], 1 - d["wp"][r0])
+    np.savez(os.path.join(OUT, "pre_lobbies.npz"), replay_id=np.array([k_[0] for k_ in keep], np.int64),
+             map=np.array([k_[1] for k_ in keep]), tier=np.array([k_[2] for k_ in keep]), steps=steps, slot_rows=prow,
+             day=d["day"][r0], first_team=steps[:, 4, 2].astype(np.int8), winner=(1 - y0).astype(np.int8),
+             wp=wp0.astype(np.float32))
+    rows = prow.ravel()
+    qpid, qday = d["pid"][rows].astype(np.int64), d["day"][rows].astype(np.int64)
+    ukey, inv = np.unique(qpid * 100000 + qday, return_inverse=True)
+    upid, uday = ukey // 100000, ukey % 100000
+    res = walk(aug, par, mets, mw, upid, uday)
+    lay = Layer(d, aug, layer_meta())
+    s_ = offset(aug["table"], res["n_slot"]) + res["mean_all"] + lay.at(upid, uday, res["n_all"])
+    si = sh_inv(sh)
+    np.savez(os.path.join(OUT, "pre_state.npz"), s=s_[inv][:, si].astype(np.float16),
+             sd=np.sqrt(res["var_all"])[inv][:, si].astype(np.float16), n=res["n_all"][inv][:, si].astype(np.uint16),
+             off=off_role(d, res["n_all"])[inv][:, si])
+    print(f"pre-lobbies: {len(keep):,} games ({time.time() - t0:.0f}s)", flush=True)
+
+
 ROSTER_WIN = ("2026-03-29", "2026-05-22")
 
 
@@ -523,7 +590,7 @@ def rosters(n_max=20000):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["lobbies", "states", "judgefit", "rosters", "split_states", "split_judgefit"])
+    ap.add_argument("stage", choices=["lobbies", "states", "judgefit", "rosters", "split_states", "split_judgefit", "prelobbies"])
     ap.add_argument("--vintages", default="cur,s4m,s1y,judge")
     ap.add_argument("--judge-params", default="full_ms_flip")
     a = ap.parse_args()
@@ -534,6 +601,8 @@ def main():
         states(a.vintages.split(","), a.judge_params)
     elif a.stage == "rosters":
         rosters()
+    elif a.stage == "prelobbies":
+        prelobbies()
     elif a.stage == "split_states":
         split_states(a.judge_params)
     elif a.stage == "split_judgefit":
