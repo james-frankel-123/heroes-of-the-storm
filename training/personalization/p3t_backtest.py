@@ -87,7 +87,9 @@ def agree(n_games, device=0):
     out_p = os.path.join(TD.OUT, f"agree_{n_games}.npz")
     L = TD.load_lobbies()
     z = np.load(os.path.join(TD.OUT, "state_cur.npz"))
+    from shared import MAPS
     rich = (z["n"].astype(np.float64).sum(1) >= 20).reshape(-1, 10).all(1)
+    rich &= np.isin(L["map"], MAPS)
     cand = np.flatnonzero(rich)
     rng = np.random.RandomState(31)
     gi = np.sort(rng.choice(cand, min(n_games, len(cand)), replace=False))
@@ -220,9 +222,13 @@ def forced():
     z = np.load(os.path.join(TD.OUT, "state_cur.npz"))
     s = z["s"]
     n = z["n"]
+    from shared import MAPS
     G = len(L["replay_id"])
+    okmap = np.isin(L["map"], MAPS)
     recs = []
     for g in range(G):
+        if not okmap[g]:
+            continue
         steps = L["steps"][g]
         prow = L["slot_rows"][g]
         j = 0

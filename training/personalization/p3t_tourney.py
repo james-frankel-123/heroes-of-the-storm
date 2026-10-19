@@ -117,7 +117,8 @@ def ctx_for(LB, idx, acts, k, sysname, kseed):
     st = LB.state[spec.get("state", SY.vintage_state(spec["vint"]))]
     return {"acts": acts[idx], "k": k, "map": LB.map[idx], "tier": LB.tier[idx], "team_pool": LB.team_pool[idx],
             "pool_bits": LB.pool_bits[idx], "slot_of": LB.slot_of[idx], "s": st["s"][idx], "off": st["off"][idx],
-            "real_acts": LB.real_acts[idx], "seed_i": idx.astype(np.int64), "kseed": kseed}
+            "real_acts": LB.real_acts[idx], "seed_i": idx.astype(np.int64), "kseed": kseed,
+            "n": LB.state["cur"]["n"][idx]}
 
 
 _ONESTEP = {}
@@ -131,6 +132,10 @@ def act(sysname, ctx, LB, idx, device):
         return SY.act_mcts(v, ctx, spec["aware"], device=device)
     if kind == "policy":
         return SY.act_policy(v, ctx)
+    if kind == "mcts_pp":
+        return SY.act_mcts(v, ctx, spec["aware"], device=device, pp=True, prior=spec["prior"])
+    if kind == "policy_pp":
+        return SY.act_policy_pp(v, ctx, prior=spec["prior"])
     if kind == "gd":
         return SY.act_gd(v, ctx)
     if kind == "real":
@@ -184,6 +189,9 @@ def play(LB, a, b, device=0):
 CORE = ["aMCTS-cur", "pMCTS-cur", "aMCTS-bc", "pMCTS-bc", "pPol-cur", "a1step-cur", "p1step-cur", "GD", "Real"]
 PANEL = ["aMCTS-cur", "pMCTS-cur", "pPol-cur", "GD", "Real"]
 SPOKES = {
+    # prior trained with player features
+    "aMCTS-pp": ["aMCTS-bc", "pMCTS-bc"], "aPol-pp": ["pPol-cur"],
+    "aMCTS-sp": ["aMCTS-bc", "pMCTS-bc", "aMCTS-pp"], "aPol-sp": ["pPol-cur", "aPol-pp"],
     # drift, population side: stale all / refreshed stats / fine-tune ; full retrain = pMCTS-cur
     "pMCTS-s4m": ["pMCTS-cur", "aMCTS-s4m"], "pMCTS-s1y": ["pMCTS-cur", "aMCTS-s1y"],
     "pMCTS-s4m-rs": ["pMCTS-s4m"], "pMCTS-s1y-rs": ["pMCTS-s1y"],
@@ -227,6 +235,8 @@ def main():
     ap.add_argument("--pairs", default="")
     ap.add_argument("--shard", default="0/1")
     ap.add_argument("--device", type=int, default=0)
+    ap.add_argument("--kind", choices=["all", "onestep", "no-onestep"], default="all",
+                    help="onestep: only pairs with a one-step system (CPU pool); no-onestep: the others")
     ap.add_argument("--only-ready", action="store_true", help="skip pairs whose vintages are not in p3t_vintages.json yet")
     a = ap.parse_args()
     if a.stage == "select":
@@ -237,6 +247,11 @@ def main():
         vs = json.load(open(SY.VFILE))
         pairs = [p for p in pairs if all(SY.SYSTEMS[s]["vint"] in vs and vs[SY.SYSTEMS[s]["vint"]].get("combiner")
                                          for s in p)]
+    has1 = lambda p: any(SY.SYSTEMS[x]["kind"] == "onestep" for x in p)
+    if a.kind == "onestep":
+        pairs = [p for p in pairs if has1(p)]
+    elif a.kind == "no-onestep":
+        pairs = [p for p in pairs if not has1(p)]
     i, n = (int(x) for x in a.shard.split("/"))
     pairs = pairs[i::n]
     if a.stage == "list":

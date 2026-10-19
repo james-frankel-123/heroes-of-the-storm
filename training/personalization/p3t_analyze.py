@@ -101,6 +101,16 @@ def pair_diff(P, a, b, key, idx=None):
     return np.mean(out) if out else None
 
 
+def pair_signed(P, a, b, key, idx=None):
+    """seat-averaged per-draft quantity that is team0-minus-team1 (sign flips with the seat)."""
+    out = []
+    for (x, y), sg in (((a, b), 1), ((b, a), -1)):
+        if (x, y) in P:
+            v = P[(x, y)][key].astype(float) * sg
+            out.append(np.nanmean(v if idx is None else v[idx]))
+    return np.mean(out) if out else None
+
+
 def side_mean(P, s, key, idx=None):
     """mean of system s's own side over all its drafts."""
     vals = []
@@ -217,7 +227,15 @@ def analyze(contrasts_extra=()):
          ("aMCTS-cur", "aMCTS-cur@s4m"), ("aMCTS-cur", "aMCTS-cur@s1y"),
          ("aMCTS-s4m", "pMCTS-s4m"), ("aMCTS-s1y", "pMCTS-s1y"),
          ("pPol-cur", "pPol-s4m"), ("pPol-cur", "pPol-s1y"),
-         ("a1step-cur", "a1step-s1y"), ("p1step-cur", "p1step-s1y"), ("a1step-s1y", "p1step-s1y")] + list(contrasts_extra)
+         ("a1step-cur", "a1step-s1y"), ("p1step-cur", "p1step-s1y"), ("a1step-s1y", "p1step-s1y"),
+         ("aMCTS-bc", "pMCTS-bc"), ("aMCTS-bc", "aMCTS-cur"), ("a1step-cur", "aMCTS-bc"), ("a1step-cur", "pMCTS-cur"),
+         ("aMCTS-bc", "pMCTS-cur"), ("pMCTS-bc", "pMCTS-cur"), ("a1step-cur", "GD"), ("aMCTS-bc", "Real"),
+         ("p1step-cur", "Real"), ("Real", "GD"), ("pPol-cur", "Real"),
+         ("aMCTS-pp", "aMCTS-cur"), ("aMCTS-pp", "pMCTS-cur"), ("aMCTS-pp", "aMCTS-bc"), ("aMCTS-pp", "Real"),
+         ("aMCTS-sp", "aMCTS-cur"), ("aMCTS-sp", "pMCTS-cur"), ("aMCTS-sp", "aMCTS-pp"), ("aMCTS-sp", "Real"),
+         ("aPol-pp", "pPol-cur"), ("aPol-sp", "pPol-cur"), ("aMCTS-vn", "aMCTS-bc"), ("aMCTS-vn", "pMCTS-bc"),
+         ("DraftRec", "aMCTS-bc"), ("DraftRec", "a1step-cur"), ("DraftRec", "GD"), ("DraftRec", "Real"),
+         ("DraftRec", "pMCTS-cur")] + list(contrasts_extra)
     h2h = {}
     for a, b in H:
         if not ((a, b) in P or (b, a) in P):
@@ -230,6 +248,11 @@ def analyze(contrasts_extra=()):
             se = max(se_b, se_s)
             r[key] = [round(100 * pt, 2), round(100 * (pt - 1.96 * se), 2), round(100 * (pt + 1.96 * se), 2),
                       round(100 * se_b, 2), round(100 * se_s, 2)]
+        for key in ("dS_judge",):
+            # personal part of J: the judge's personal-sum difference (logit units = c2 * dS), seat-averaged
+            pt = pair_signed(P, a, b, key)
+            _, se_b = ci(lambda ix: pair_signed(P, a, b, key, ix), idxs[:500], pt)
+            r["dS_judge_pp"] = [round(100 * pt, 2), round(100 * (pt - 1.96 * se_b), 2), round(100 * (pt + 1.96 * se_b), 2)]
         for key in ("rec_mean", "rec_pool", "truth_hero", "truth_syn", "truth_ctr", "degen", "offrole"):
             pt = pair_diff(P, a, b, key)
             _, se_b = ci(lambda ix: pair_diff(P, a, b, key, ix), idxs[:500], pt)

@@ -114,7 +114,7 @@ def _search(SY, M, kmod, v, ctx, aware, device):
         gf, go = v.gd_flat(i)
         for b0 in range(0, len(sel), 256):
             ii = sel[b0:b0 + 256]
-            eng = kmod.PersonalEngine(pf, gf, wf, po, go, wo, lut, max_concurrent=len(ii), device_id=device)
+            eng = (getattr(kmod, "PersonalEngine", None) or kmod.PriorEngine)(pf, gf, wf, po, go, wo, lut, max_concurrent=len(ii), device_id=device)
             r = eng.run(np.ascontiguousarray(cfg[ii]), np.ascontiguousarray(ctx["s"][ii].astype(np.float32)),
                         np.ascontiguousarray(ctx["off"][ii].astype(np.float32)),
                         np.zeros((len(ii), 10, 90), np.float32), np.ascontiguousarray(ctx["pool_bits"][ii]),

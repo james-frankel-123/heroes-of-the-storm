@@ -22,10 +22,13 @@ V = sigmoid(b0 + b1 logit WP + b2 (S_ours - S_theirs) + b3 (O_ours - O_theirs)).
 Systems (SYSTEMS): kind x vintage x player-aware flag
   mcts    decision-time search in the personal kernel (leaf = vintage WP,
           plus the personal terms when aware), prior = the vintage's
-          paper-1 F policy (seed by draft), root argmax of visits
-  policy  the F policy argmax, no search (paper 1's tournament agent)
+          paper-1 F policy (seed by draft), root argmax of visits among the
+          heroes paper 1's structural constraint allows (constrained MCTS)
+  policy  the F policy argmax under the structural constraint, no search
+          (paper 1's constrained MCTS tournament agent)
   onestep p3_dr_drafter's one-step search (top 15 GD + top 15 personal
-          candidates, 4 GD rollouts each), WP = the vintage WP; bans GD argmax
+          candidates, 4 GD rollouts each), WP = the vintage WP; picks under
+          the structural constraint; bans GD argmax
   gd      GD argmax (5-model average): behavioral cloning
   real    the real lobby's actions, replayed when still legal (else GD argmax)
 """
@@ -66,6 +69,12 @@ def system_table():
         S[f"aMCTS-{v}"] = dict(kind="mcts", vint=v, aware=1)
         S[f"pPol-{v}"] = dict(kind="policy", vint=v, aware=0)
     # search over the behavioral (BC) prior: same leaf WP, statistics, GD and sims; only the prior differs
+    # prior trained with player features (p3t_pprior): search and prior-only
+    S["aMCTS-pp"] = dict(kind="mcts_pp", vint="cur", aware=1, prior="pprior")
+    S["aPol-pp"] = dict(kind="policy_pp", vint="cur", aware=1, prior="pprior")
+    # prior trained by self-play with sampled real rosters (p3t_selfplay)
+    S["aMCTS-sp"] = dict(kind="mcts_pp", vint="cur", aware=1, prior="selfplay_prior")
+    S["aPol-sp"] = dict(kind="policy_pp", vint="cur", aware=1, prior="selfplay_prior")
     S["pMCTS-bc"] = dict(kind="mcts", vint="cur_bc", aware=0)
     S["aMCTS-bc"] = dict(kind="mcts", vint="cur_bc", aware=1)
     for v in ("s4m", "s1y"):
@@ -223,6 +232,81 @@ def legal_mask(acts, k, team_pool):
     return m
 
 
+# ------------------------------------------------------------------ structural mask (paper 1's constraint)
+
+from functools import lru_cache
+
+_BLIZZ = ("Tank", "Bruiser", "Healer", "Ranged Assassin", "Melee Assassin", "Support")
+_STACK = {"Tank", "Melee Assassin", "Support", "Healer"}
+_CAP = tuple(2 if r in _STACK else 5 for r in _BLIZZ)
+
+
+def _hero_role():
+    from shared import HEROES, HERO_ROLE_FINE, FINE_TO_BLIZZ_ROLE
+    return np.array([_BLIZZ.index(FINE_TO_BLIZZ_ROLE.get(HERO_ROLE_FINE.get(h, ""), "Ranged Assassin"))
+                     for h in HEROES], np.int64)
+
+
+HROLE = _hero_role()
+
+
+def _valid_final(c):
+    if any(x > cap for x, cap in zip(c, _CAP)):
+        return False
+    return c[2] >= 1 and c[0] + c[1] >= 1 and c[3] >= 1
+
+
+@lru_cache(maxsize=None)
+def _feasible(cur, avail, k):
+    """rerun2026.constrained_search._feasible (exact, memoized)."""
+    if any(c > cap for c, cap in zip(cur, _CAP)):
+        return False
+    if k == 0:
+        return _valid_final(cur)
+    for i in range(6):
+        if avail[i] == 0 or cur[i] + 1 > _CAP[i]:
+            continue
+        c = list(cur)
+        c[i] += 1
+        a = list(avail)
+        a[i] -= 1
+        a = [min(x, k - 1) for x in a]
+        if _feasible(tuple(c), tuple(a), k - 1):
+            return True
+    return False
+
+
+def struct_mask(acts, k, legal):
+    """Paper 1's structural constraint at pick step k: a candidate is kept iff
+    the team can still complete >= 1 healer, >= 1 frontline, >= 1 ranged and
+    <= 2 of each stacking role from its legal heroes (team pools, free). Falls
+    back to `legal` where nothing is feasible. (B, H) bool."""
+    if not IS_PICK[k]:
+        return legal
+    t = DRAFT_TEAM[k]
+    out = np.zeros_like(legal)
+    for i in range(len(acts)):
+        cur = [0] * 6
+        nown = 0
+        for j in range(k):
+            if IS_PICK[j] and DRAFT_TEAM[j] == t:
+                cur[HROLE[acts[i, j]]] += 1
+                nown += 1
+        after = 5 - nown - 1
+        av = np.bincount(HROLE[legal[i]], minlength=6)
+        for h in np.flatnonzero(legal[i]):
+            r = HROLE[h]
+            c = list(cur)
+            c[r] += 1
+            a = list(av)
+            a[r] -= 1
+            a = [min(x, after) for x in a]
+            out[i, h] = _feasible(tuple(c), tuple(a), after)
+        if not out[i].any():
+            out[i] = legal[i]
+    return out
+
+
 def gd_probs(vint, X289, mask):
     with torch.no_grad():
         xt = torch.from_numpy(X289)
@@ -244,7 +328,7 @@ def act_gd(vint, ctx):
 def act_policy(vint, ctx):
     k = ctx["k"]
     X = features(ctx["acts"], k, ctx["map"], ctx["tier"], DRAFT_TEAM[k])
-    m = legal_mask(ctx["acts"], k, ctx["team_pool"])
+    m = struct_mask(ctx["acts"], k, legal_mask(ctx["acts"], k, ctx["team_pool"]))
     out = np.empty(len(X), np.int64)
     for i in np.unique(ctx["seed_i"] % vint.n_seeds):
         sel = np.flatnonzero(ctx["seed_i"] % vint.n_seeds == i)
@@ -274,7 +358,25 @@ def kernel_module():
     return M.personal_kernel()
 
 
-def act_mcts(vint, ctx, aware, device=0, kmod=None):
+def prior_path(name):
+    import p3t_data as TD
+    return os.path.join(TD.OUT, f"{name}.pt")
+
+
+def act_policy_pp(vint, ctx, prior="pprior"):
+    """argmax of the player-feature prior alpha log p_F + team bias (no search)."""
+    import p3t_pprior as PP
+    k = ctx["k"]
+    if not IS_PICK[k]:
+        return act_policy(vint, ctx)
+    lp, m = PP.f_logp(ctx["acts"], k, ctx["map"], ctx["tier"], ctx["team_pool"], ctx["seed_i"])
+    m = struct_mask(ctx["acts"], k, m)
+    bias, alpha = PP.bias_for(ctx["s"], ctx["off"], ctx["n"], float(vint.spec["combiner"][2]), prior_path(prior))
+    u = alpha * lp + bias[:, 5 * DRAFT_TEAM[k]]
+    return np.where(m, u, -1e30).argmax(1)
+
+
+def act_mcts(vint, ctx, aware, device=0, kmod=None, pp=False, prior="pprior"):
     """Decide-only search at step k for each draft (grouped by prior seed)."""
     import p3_mcts_core as M
     kmod = kmod or kernel_module()
@@ -293,6 +395,13 @@ def act_mcts(vint, ctx, aware, device=0, kmod=None):
     imit = np.zeros_like(s)
     pool = ctx["pool_bits"]
     coefs = np.array(list(vint.spec["combiner"]) + [0.0], np.float32)
+    if pp:
+        import p3t_pprior as PP
+        import p3_mcts_core as M2
+        kmod = M2.load_module("prior_kernel", os.path.join(HERE, "cuda_prior"))
+        bias, alpha = PP.bias_for(s, off, ctx["n"], float(vint.spec["combiner"][2]), prior_path(prior))
+        coefs = np.array(list(vint.spec["combiner"]) + [0.0, alpha], np.float32)
+        cfg[:, 56] = 1
     out = np.empty(B, np.int64)
     wf, wo, lut = vint.wcfg()
     seeds = ctx["seed_i"] % vint.n_seeds
@@ -302,17 +411,24 @@ def act_mcts(vint, ctx, aware, device=0, kmod=None):
         gf, go = vint.gd_flat(int(i))
         for b0 in range(0, len(sel), 256):
             ii = sel[b0:b0 + 256]
-            eng = kmod.PersonalEngine(pf, gf, wf, po, go, wo, lut, max_concurrent=len(ii), device_id=device)
+            eng = (getattr(kmod, "PersonalEngine", None) or kmod.PriorEngine)(pf, gf, wf, po, go, wo, lut, max_concurrent=len(ii), device_id=device)
+            extra = (np.ascontiguousarray(bias[ii]),) if pp else ()
             r = eng.run(np.ascontiguousarray(cfg[ii]), np.ascontiguousarray(s[ii]), np.ascontiguousarray(off[ii]),
-                        np.ascontiguousarray(imit[ii]), np.ascontiguousarray(pool[ii]), coefs, SIMS, 2.0,
+                        np.ascontiguousarray(imit[ii]), np.ascontiguousarray(pool[ii]), coefs, *extra, SIMS, 2.0,
                         int(ctx["kseed"] + 7919 * k + b0 + 104729 * int(i)), 0.0, 0.3, 0.0, 1,
                         search_mode=1)
             del eng
             pol = r[5][:, 0, :]
+            q = np.nan_to_num(r[6][:, 0, :], nan=-1.0)
             legal = legal_mask(ctx["acts"][ii], k, ctx["team_pool"][ii])
-            out[ii] = np.where(legal, pol, -1.0).argmax(1)
+            sm = struct_mask(ctx["acts"][ii], k, legal)
+            # root choice under paper 1's constraint: most visits among allowed
+            # heroes; ties and unvisited allowed heroes broken by Q
+            score = np.where(sm, pol + 1e-6 * q, -1e30)
+            out[ii] = score.argmax(1)
             bad = ~legal[np.arange(len(ii)), out[ii]]
-            assert not bad.any(), "kernel chose an illegal action"
+            assert not bad.any(), "illegal action"
+            ctx.setdefault("root_changed_by_mask", np.zeros(B, bool))[ii] = out[ii] != np.where(legal, pol, -1.0).argmax(1)
     return out
 
 
@@ -420,7 +536,13 @@ def _os_decide(task):
         st = DR._apply_ban(st, int(acts[j])) if not IS_PICK[j] else DR._apply(st, j, int(acts[j]), lob)
     rng = np.random.RandomState(seed)
     dd = DR._decide(st, k, lob, rng, "gd")
-    return int(dd["pers"] if aware else dd["pop"])
+    legal = legal_mask(np.asarray(acts)[None], k, np.stack([lob["team_pool"][0], lob["team_pool"][1]])[None])
+    sm = struct_mask(np.asarray(acts)[None], k, legal)[0]
+    ok = sm[dd["cand"]]
+    val = np.asarray(dd["V"] if aware else dd["wp"], float)
+    if ok.any():
+        val = np.where(ok, val, -1e9)
+    return int(dd["cand"][int(np.argmax(val))])
 
 
 def dr_lobby(kl, s, off, pool, b):

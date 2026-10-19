@@ -46,6 +46,7 @@ MIN_G = 30
 
 
 def window_games():
+    from shared import MAPS
     games = json.load(gzip.open(os.path.join(C.CACHE, "x_post_games.json.gz"), "rt"))
     out = []
     for g in games:
@@ -55,7 +56,7 @@ def window_games():
         if not (TD.J0 <= day <= TD.J1):
             continue
         tier = TD.site_tier(g.get("league_tier"), g.get("avg_mmr"))
-        if tier == "unknown" or len(g["team0_heroes"]) != 5 or len(g["team1_heroes"]) != 5:
+        if tier == "unknown" or len(g["team0_heroes"]) != 5 or len(g["team1_heroes"]) != 5 or g["game_map"] not in MAPS:
             continue
         out.append((int(g["replay_id"]), tuple(g["team0_heroes"]), tuple(g["team1_heroes"]), g["game_map"], tier,
                     int(g["winner"])))

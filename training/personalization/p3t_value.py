@@ -145,6 +145,22 @@ def combfit(vintages):
                   "wp_acc": float(((wp > 0.5) == (y == 1)).mean())}
         print(f"combiner {v}: {json.dumps(out[v])} ({time.time() - t0:.0f}s)", flush=True)
         json.dump(out, open(os.path.join(RES, "combiner.json"), "w"), indent=1)
+        write_combiner(v, out[v])
+
+
+def write_combiner(v, fit):
+    """Copy a fitted combiner into p3t_vintages.json (b0 set to 0: a side
+    constant that never changes a decision) for the vintage and the arms that
+    share its player side (cur -> cur_bc)."""
+    import p3t_systems as SY
+    vs = json.load(open(SY.VFILE))
+    b = [0.0] + list(fit["coef"][1:])
+    for name, spec in vs.items():
+        if name == v or (name.startswith(v + "_") and name.endswith("_bc")):
+            spec["combiner"] = b
+            spec["combiner_note"] = (f"p3t_value combfit: {fit['games']:,} held-out games {fit['window'][0]}..{fit['window'][1]}; "
+                                     f"b0 set to 0 (fitted {fit['coef'][0]:.4f})")
+    json.dump(vs, open(SY.VFILE, "w"), indent=1)
 
 
 def predeval():

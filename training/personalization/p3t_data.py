@@ -37,6 +37,8 @@ import os
 import sys
 import time
 
+os.environ.setdefault("P1_TIERS", "site")   # paper-1 site tiers for every slim-table read
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
@@ -72,6 +74,7 @@ def build_lobbies(d):
     """Every OOT game (2026-05-23 to 09-11, not the sealed build) with a
     16-step draft whose 10 picks all join to slot rows. steps (G, 16, 4):
     shared hero index, type (0 ban, 1 pick), real team, slot row (-1 bans)."""
+    from shared import MAPS
     names = [str(x) for x in d["hero_names"]]
     hidx = {n: i for i, n in enumerate(names)}
     sh = to_shared(names)
@@ -90,6 +93,10 @@ def build_lobbies(d):
         tier = site_tier(g.get("league_tier"), g.get("avg_mmr"))
         if tier == "unknown":
             skip["tier"] = skip.get("tier", 0) + 1
+            continue
+        if g["game_map"] not in MAPS:
+            # Haunted Mines returned in 2.55.17: no model or judge has seen it
+            skip["map"] = skip.get("map", 0) + 1
             continue
         b0 = set(g["team0_bans"])
         b1 = set(g["team1_bans"])
@@ -410,9 +417,58 @@ def judgefit(tag="full_ms_flip"):
     print(f"judgefit: {len(q):,} slots ({time.time() - t0:.0f}s)", flush=True)
 
 
+ROSTER_WIN = ("2026-03-29", "2026-05-22")
+
+
+def rosters(n_max=20000):
+    """Training rosters for self-play (no draft order, no outcome used):
+    snapshot-era games 2026-03-29 to 05-22 (before every lobby) with all ten
+    players known and 50+ earlier games each; player state as of the day
+    before the game (offset + posterior + layer), pools = heroes played before.
+    Map and tier come from the slim snapshot or backfill tables (site tiers)."""
+    from shared import MAPS, SKILL_TIERS
+    import p3t_value as PV
+    t0 = time.time()
+    par, d, aug, mets, mw = load_model()
+    sh = to_shared(d["hero_names"])
+    meta = PV.game_meta()
+    lo, hi = (C.day_of(x) for x in ROSTER_WIN)
+    q = np.flatnonzero((d["day"] >= lo) & (d["day"] <= hi))
+    cnt = np.bincount(d["g"][q], minlength=int(d["g"].max()) + 1)
+    q = q[cnt[d["g"][q]] == 10]
+    q = q[np.isin(d["replay_id"][q], np.fromiter(meta.keys(), np.int64))]
+    o = np.lexsort((d["team"][q], d["g"][q]))
+    q = q[o].reshape(-1, 10)                      # 10 slots per game, team 0 first
+    assert (d["team"][q[:, :5]] == 0).all() and (d["team"][q[:, 5:]] == 1).all()
+    rng = np.random.RandomState(12)
+    if len(q) > 3 * n_max:
+        q = q[np.sort(rng.choice(len(q), 3 * n_max, replace=False))]
+    flat = q.ravel()
+    res = walk(aug, par, mets, mw, d["pid"][flat].astype(np.int64), d["day"][flat].astype(np.int64))
+    rich = (res["n_all"].sum(1) >= 50).reshape(-1, 10).all(1)
+    lay = Layer(d, aug, layer_meta())
+    s = offset(aug["table"], res["n_slot"]) + res["mean_all"] + lay.at(d["pid"][flat].astype(np.int64),
+                                                                        d["day"][flat].astype(np.int64), res["n_all"])
+    inv = sh_inv(sh)
+    keep = np.flatnonzero(rich)[:n_max]
+    sel = (keep[:, None] * 10 + np.arange(10)[None]).ravel()
+    tm = [meta[int(r)] for r in d["replay_id"][q[keep, 0]]]
+    ok = np.array([t[1] in MAPS and t[0] in SKILL_TIERS for t in tm])
+    keep, sel = keep[ok], (keep[ok][:, None] * 10 + np.arange(10)[None]).ravel()
+    tm = [t for t, k in zip(tm, ok) if k]
+    np.savez(os.path.join(OUT, "rosters.npz"),
+             s=s[sel][:, inv].astype(np.float32).reshape(-1, 10, H),
+             off=off_role(d, res["n_all"][sel])[:, inv].reshape(-1, 10, H),
+             n=res["n_all"][sel][:, inv].astype(np.uint16).reshape(-1, 10, H),
+             map=np.array([MAPS.index(t[1]) for t in tm], np.int32),
+             tier=np.array([SKILL_TIERS.index(t[0]) for t in tm], np.int32),
+             replay_id=d["replay_id"][q[keep, 0]])
+    print(f"rosters: {len(keep):,} games ({time.time() - t0:.0f}s)", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["lobbies", "states", "judgefit"])
+    ap.add_argument("stage", choices=["lobbies", "states", "judgefit", "rosters"])
     ap.add_argument("--vintages", default="cur,s4m,s1y,judge")
     ap.add_argument("--judge-params", default="full_ms_flip")
     a = ap.parse_args()
@@ -421,6 +477,8 @@ def main():
         build_lobbies(X.load_ext())
     elif a.stage == "states":
         states(a.vintages.split(","), a.judge_params)
+    elif a.stage == "rosters":
+        rosters()
     else:
         judgefit(a.judge_params)
 
