@@ -39,6 +39,10 @@ def exclude_path():
     sys.path.insert(0, TRAINING_DIR)
     from paper1_revision import core
     p = os.path.join(core.CACHE, "mcts_pretrain_exclude.json")
+    if core.VINTAGE:
+        if not os.path.exists(p):
+            vintage_exclude(p)
+        return p
     if not os.path.exists(p):
         ids = set(json.load(open(os.path.join(TRAINING_DIR, "rerun2026", "pre255_exclude_ids.json"))))
         ids |= core.test_ids()
@@ -48,6 +52,22 @@ def exclude_path():
             ids |= {r for r, t in odata.site_tiers().items() if t == "unknown"}
         json.dump(sorted(ids), open(p, "w"))
     return p
+
+
+def vintage_exclude(p):
+    """Stale vintage: value pretraining may read only the vintage's train split
+    (paper-1 train games on builds <= the cutoff), so the exclude list is every
+    other row of the snapshot file the worker loads."""
+    from paper1_revision import core, vintage
+    snap = os.path.join(TRAINING_DIR, "snapshots", "replay_snapshot_2026-05-22_1956753_p1site_lite.json")
+    all_ids = {int(r["replay_id"]) for r in json.load(open(snap))}
+    train = {g[0] for g in core.split_games()["train"]}
+    assert train <= all_ids
+    vintage.check(sorted(train), "mcts value pretrain pool")
+    json.dump(sorted(all_ids - train), open(p + ".tmp", "w"))
+    os.replace(p + ".tmp", p)
+    print(f"pretrain exclude ({core.VINTAGE}): {len(all_ids):,} snapshot rows, {len(train):,} kept, "
+          f"{len(all_ids) - len(train):,} excluded -> {p}", flush=True)
 
 
 def kernel_fallback_order():
@@ -121,6 +141,10 @@ def main():
         if order != "mid_high_low":
             raise SystemExit(f"cuda_mcts kernel composition fallback is {order}; rebuild with "
                              "HOTS_COMP_FALLBACK_MID_HIGH_LOW=1 (remote_workers/build_ext.sh)")
+    if core.VINTAGE:
+        # stale vintage: the GD opponent trained on games at or before its cutoff
+        from paper1_revision import vintage
+        GD_PATH = vintage.gd_path()
     if a.wp is None:
         a.wp = "naive" if a.config == "K" else "enriched"
     meta = json.load(open(os.path.join(core.MODEL_DIR, f"{a.wp}.json")))
@@ -149,7 +173,7 @@ def main():
         "REPLAY_SNAPSHOT": "1",
         "MCTS_SEARCH_MODE": os.environ.get("MCTS_SEARCH_MODE", "chance"),
         "WANDB_MODE": "disabled",
-        "WANDB_RUN_NAME": f"paper1_revision_{name}",
+        "WANDB_RUN_NAME": f"paper1_revision_{name}" + (f"_vint_{core.VINTAGE}" if core.VINTAGE else ""),
         "PYTHONHASHSEED": str(a.seed),
         "P1R_RUN_SEED": str(a.seed),
     })
@@ -158,10 +182,11 @@ def main():
                           "env": {k: v for k, v in env.items()
                                   if k == "REPLAY_SNAPSHOT_PATH" or k.startswith(("MCTS_", "P1R_", "WP_"))
                                   or k in ("CUDA_VISIBLE_DEVICES", "REPLAY_SNAPSHOT", "WANDB_MODE",
-                                           "WANDB_RUN_NAME", "PYTHONHASHSEED", "P1_TIERS")}}))
+                                           "WANDB_RUN_NAME", "PYTHONHASHSEED", "P1_TIERS", "P1_VINTAGE")}}))
         return
     json.dump({"config": a.config, "sims": sims, "episodes": episodes, "seed": a.seed,
-               "wp": wp, "stats": core.stats_path("deploy")},
+               "wp": wp, "stats": core.stats_path("deploy"),
+               **({"vintage": core.VINTAGE, "gd": GD_PATH} if core.VINTAGE else {})},
               open(os.path.join(save, "run_meta.json" if not a.resume else "run_meta_resume.json"), "w"),
               indent=1)
     log = open(os.path.join(core.LOGS, f"mcts_{name}.log"), "a" if a.resume else "w")
