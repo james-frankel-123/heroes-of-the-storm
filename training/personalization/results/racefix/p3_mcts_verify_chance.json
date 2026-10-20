@@ -1,0 +1,98 @@
+{
+ "coefs": [
+  0.0,
+  1.0004663467407227,
+  3.594439744949341,
+  -0.05567239597439766,
+  0.800000011920929
+ ],
+ "leaf": {
+  "drafts": 2000,
+  "max_abs_diff_wp": 6.650525758988834e-07,
+  "mean_abs_diff_wp": 1.171558113723381e-07,
+  "max_abs_diff_personal_value": 6.024056273812306e-07,
+  "mean_abs_diff_personal_value": 1.164514857565635e-07,
+  "assign_mode_max_abs_diff_personal_value": 6.457634356138442e-07,
+  "assign_mode_mean_abs_diff_personal_value": 1.1937158874217313e-07,
+  "assign_mode_drafts_with_non_identity_assignment": 983,
+  "mean_logit_vs_mean_prob_ensemble_max_gap": 0.00194621350709423,
+  "mean_logit_vs_mean_prob_ensemble_mean_gap": 0.00014616730500925662
+ },
+ "population_identity": {
+  "personal terms zeroed | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 186,
+   "capacity_hits": 0
+  },
+  "personal valuation off | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 186,
+   "capacity_hits": 0
+  },
+  "personal terms zeroed | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 722,
+   "capacity_hits": 0
+  },
+  "personal valuation off | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 722,
+   "capacity_hits": 0
+  }
+ },
+ "guard": {
+  "sims 1000": {
+   "max_nodes_used": 1774,
+   "capacity_hits_total": 0,
+   "episodes_with_hits": 0
+  },
+  "sims 3000": {
+   "max_nodes_used": 5265,
+   "capacity_hits_total": 0,
+   "episodes_with_hits": 0
+  }
+ },
+ "depth": {
+  "sims 100": {
+   "max_depth_steps": 11,
+   "mean_own_decisions_ahead_per_sim": 1.648671875,
+   "later_own_steps_reached": [
+    7,
+    8,
+    10,
+    13,
+    14
+   ]
+  },
+  "sims 400": {
+   "max_depth_steps": 12,
+   "mean_own_decisions_ahead_per_sim": 1.7837890625,
+   "later_own_steps_reached": [
+    7,
+    8,
+    10,
+    13,
+    14
+   ]
+  }
+ },
+ "search_mode": "chance",
+ "comp_fallback_order": {
+  "personal": "mid_high_low",
+  "ref": "mid_high_low"
+ },
+ "gates_failed": [],
+ "ok": true
+}
