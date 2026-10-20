@@ -99,6 +99,10 @@ relay $CPU $GPU
 push_results
 run_gpu draftrec $STEP p3t_draftrec.py:train p3t_draftrec.py:train:--final:--keep-epoch:auto p3t_draftrec.py:hist \
   p3t_probe.py:timing
+# DraftRec opponent inside the search (p3t_oppdr.py): fit lobbies and histories (3090), the fit (5090)
+run_cpu oppdrhist $STEP p3t_oppdr.py:lobbies p3t_oppdr.py:hist
+relay $CPU $GPU
+run_gpu oppdrfit $STEP p3t_oppdr.py:fit
 
 # 4. the tournament (every ready pair), the tune set, the design ablation (5090)
 run_gpu tourney $STEP p3t_tourney.py:run:--schedule:all:--only-ready

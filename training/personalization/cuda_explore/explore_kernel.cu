@@ -11,6 +11,8 @@
  *    nodes (GD cache), open-loop GD steps (rollfwd) and rollouts. Our-side
  *    rollout steps keep plain GD. See opp_personalize. cfg[6] in {0, 1} is
  *    the pvnet kernel unchanged.
+ *  - cfg[6] = 3 (2026-10-20): as 2 at chance nodes, open-loop steps and the main
+ *    loop, but rollouts keep plain GD for the opponent (P3_OPP_ROLL).
  * Original header (cuda_pvnet):
  * P3 learned personal value net variant (copy of cuda_prior/prior_kernel.cu,
  * option (c): a value net with per-lobby player features). Per episode a
@@ -263,7 +265,7 @@ __device__ void apply_prior_bias(float* pri, const float* mask, int step, const 
 // untouched (exact, avoids rounding from the log/exp round trip).
 __device__ __forceinline__ void opp_personalize(float* p, const float* mask, int step, int our,
                                                 const int* ecfg, const float* eimit, float w0) {
-    if (ecfg[6] != 2 || step < 0 || step >= 16 || c_draft_team[step] == our) return;
+    if ((ecfg[6] != 2 && ecfg[6] != 3) || step < 0 || step >= 16 || c_draft_team[step] == our) return;
     int row = ecfg[24 + step];
     if (row < 0 || row >= NUM_SLOTS) return;
     const float* b = eimit + row * NUM_HEROES;
@@ -496,6 +498,8 @@ __device__ float personal_value(float p_our, const DraftStateGPU& s, int our,
 #define P3_VALUE(V, ST) personal_value(V, ST, (ST).our_team, ecfg, epers, eoff, efeat, pa)
 // thread 0, after the GD softmax at an opponent step (chance cache, open-loop step, rollout)
 #define P3_OPP(ST, P) opp_personalize(P, mask_buf, (ST).step, (ST).our_team, ecfg, eimit, pa.imit_w0)
+// rollout steps: cfg[6] = 3 keeps the player-aware opponent at chance nodes and the main loop only
+#define P3_OPP_ROLL(ST, P) do { if (ecfg[6] != 3) P3_OPP(ST, P); } while (0)
 
 // ── Gamma / Dirichlet sampling (root exploration noise) ────────────
 // Marsaglia-Tsang with the alpha<1 boost. Only thread 0 calls this.
@@ -906,7 +910,7 @@ extern "C" __global__ void mcts_episodes_kernel(
                             sm += priors_buf[i];
                         }
                         if (sm > 0) for (int i = 0; i < NUM_HEROES; i++) priors_buf[i] /= sm;
-                        P3_OPP(scratch, priors_buf);   // opponent rollout steps only
+                        P3_OPP_ROLL(scratch, priors_buf);   // opponent rollout steps only
                         float r = curand_uniform(&rng);
                         float cum = 0;
                         int action = 0;

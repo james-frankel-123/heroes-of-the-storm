@@ -181,5 +181,39 @@
   "state": "splitd",
   "prior": "pprior"
  },
- "_best_design": "x-combo1 (the pre-stated rule, highest mean J win probability against pMCTS-cur and aMCTS-pp on the tune lobbies, on the race-fixed rerun: 56.07%; x-combo3, the same design at 1,600 sims, 55.84%, was picked before the 2026-10-19 kernel fix and is reported next to it)"
+ "_best_design": "x-combo1 (the pre-stated rule, highest mean J win probability against pMCTS-cur and aMCTS-pp on the tune lobbies, on the race-fixed rerun: 56.07%; x-combo3, the same design at 1,600 sims, 55.84%, was picked before the 2026-10-19 kernel fix and is reported next to it)",
+ "x-pp-dr": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": "dr"
+ },
+ "x-pp-dr-chance": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": "dr",
+  "opp_chance_only": true
+ },
+ "x-combo1-dr": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "assign_bias": 1.0
+ },
+ "x-combo1-dr-chance": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0
+ },
+ "x-combo1-dr-drban": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_dr": 1.0,
+  "opp": "dr",
+  "assign_bias": 1.0
+ },
+ "_dr_rule": "DraftRec opponent variants (added 2026-10-20, stated before any of them played): x-pp-dr = aMCTS-pp's design with the DraftRec opponent at chance nodes and in rollouts; -chance = chance nodes only, rollouts keep GD; x-combo1-dr = x-combo1 with the DraftRec opponent in place of the comfort opponent; -drban = denial bans aimed by DraftRec (lambda 1 on its log-probability of the opponent's next pick) in place of the skill-based ones. Selection: the same rule on the tune lobbies (highest mean J against pMCTS-cur and aMCTS-pp). The best DraftRec variant replaces x-combo1 as the selected design only if its tune score is higher than x-combo1's (56.07)."
 }

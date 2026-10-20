@@ -234,7 +234,12 @@ TUNE_EXTRA = ["aPol-rich-bcow", "aPol-rich-onestep", "aPol-rich-search", "aPol-p
               "aMCTS-bc", "aMCTS-cur"]
 
 
-ABL = ["x-pp", "x-combo3", "x-combo1", "x-pp-ban3", "x-pp-opp2", "x-pp-as1", "x-pp-vn2", "x-pp-apos", "x-pp-s1600",
+# the complete head-to-head matrix (coordinator 2026-10-20): every ordered pair among the main systems
+MAIN = ["x-combo1", "x-combo3", "x-combo1-dr", "x-pp-dr", "aMCTS-pp", "aMCTS-cur", "pMCTS-cur", "a1step-cur",
+        "p1step-cur", "DraftRec", "DraftRec-pv", "Real", "GD"]
+DR_X = ["x-pp-dr", "x-pp-dr-chance", "x-combo1-dr", "x-combo1-dr-chance", "x-combo1-dr-drban"]
+
+ABL = DR_X + ["x-pp", "x-combo3", "x-combo1", "x-pp-ban3", "x-pp-opp2", "x-pp-as1", "x-pp-vn2", "x-pp-apos", "x-pp-s1600",
        "x-pp-c1", "x-pp-c4", "x-pp-b05", "x-pp-b2", "x-pp-a03", "x-pp-a0", "x-pp-opt05", "x-pp-opt1",
        "x-rich-search", "x-rich-bcow", "x-rich-onestep", "aPol-rich-search", "aPol-rich-bcow", "aPol-rich-onestep"]
 
@@ -258,6 +263,8 @@ def schedule(name):
         for x in list(SY.explore_systems()) + TUNE_EXTRA:
             for o in TUNE_OPP:
                 pairs += [(x, o), (o, x)]
+    if name in ("matrix", "all"):
+        pairs += [(x, y) for x in MAIN for y in MAIN if x != y]
     if name == "all":
         pairs += schedule("ablation")
     if name in ("core", "all"):

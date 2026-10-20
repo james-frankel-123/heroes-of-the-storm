@@ -445,7 +445,8 @@ def act_mcts_x(vint, ctx, x, device=0):
     k = ctx["k"]
     t = DRAFT_TEAM[k]
     B = len(ctx["acts"])
-    use_ex = bool(x.get("opp")) or bool(x.get("ban_bias")) or (bool(x.get("rich")) and not IS_PICK[k])
+    use_ex = (bool(x.get("opp")) or bool(x.get("ban_bias")) or bool(x.get("ban_dr"))
+              or (bool(x.get("rich")) and not IS_PICK[k]))
     kmod = M.load_module("explore_kernel" if use_ex else "pvnet_kernel",
                          os.path.join(HERE, "cuda_explore" if use_ex else "cuda_pvnet"))
     cfg = np.full((B, M.CFG_LEN), -1, np.int32)
@@ -502,13 +503,36 @@ def act_mcts_x(vint, ctx, x, device=0):
         cfg[:, 56] = 2
     imit = np.zeros((B, 10, H), np.float32)
     coefs = np.array(b + [1.0, alpha], np.float32)
-    if x.get("opp"):
+    dr_deny = None
+    if x.get("opp") == "dr":
+        # DraftRec opponent (p3t_oppdr.py): static per-decision rows read at the root;
+        # opponent picks on their kernel slot rows, opponent bans on rows of our team
+        import p3t_oppdr as OD
+        w = json.load(open(OD.out_file()))               # fails loudly if the fit is missing
+        imit, ban_rows, dr_deny = OD.rows(ctx, t, k, w)
+        for s_, r_ in ban_rows.items():
+            cfg[:, 24 + s_] = r_
+        cfg[:, 6] = 3 if x.get("opp_chance_only") else 2
+        coefs[4] = w["w0"]
+    elif x.get("opp"):
         w = json.load(open(opp_model_path()))           # p3t_oppmodel.py; fails loudly if missing
         for i in range(B):
             ob = opp_bias(ctx["n"][i, 5 * (1 - t):5 * (1 - t) + 5].astype(np.float32), w)
             imit[i, 5 * (1 - t):5 * (1 - t) + 5] = float(x["opp"]) * ob[None, :]
-        cfg[:, 6] = 2
+        cfg[:, 6] = 3 if x.get("opp_chance_only") else 2
         coefs[4] = w["w0"]
+    lbd = float(x.get("ban_dr", 0.0))
+    if lbd and dr_deny is None:
+        import p3t_oppdr as OD
+        _, _, dr_deny = OD.rows(ctx, t, k, {"lp": 0.0, "lb": 0.0})
+    if lbd and dr_deny is not None:
+        # denial bans aimed by DraftRec: log-probability of the opponent's next pick (read at the root)
+        r = 5 * (1 - t)
+        bias[:, r] += lbd * dr_deny
+        for j in range(16):
+            if not IS_PICK[j] and DRAFT_TEAM[j] == t:
+                cfg[:, 24 + j] = r
+        cfg[:, 56] = 2
     lb = float(x.get("ban_bias", 0.0))
     if lb:
         # our bans: denial bias in the (otherwise unused) first row of the opponent team:

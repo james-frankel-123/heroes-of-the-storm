@@ -262,7 +262,7 @@
             P3_GD(scratch);
             if (tid == 0) {
                 v2_softmax90(priors_buf);
-                P3_OPP(scratch, priors_buf);   // explore: opponent rollout steps only
+                P3_OPP_ROLL(scratch, priors_buf);   // explore: opponent rollout steps only (not cfg[6] = 3)
                 int a = v2_sample(priors_buf, curand_uniform(&rng));
                 scratch.apply_action(a, scratch.current_team(), scratch.current_is_pick());
             }
