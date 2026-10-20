@@ -1,6 +1,6 @@
 {
  "lobbies": 300,
- "pairs": 164,
+ "pairs": 184,
  "systems": [
   "a1step-cur",
   "aMCTS-bc",
@@ -16,6 +16,9 @@
   "x-bc-pp",
   "x-bc-vn2",
   "x-combo1",
+  "x-combo1-dr",
+  "x-combo1-dr-chance",
+  "x-combo1-dr-drban",
   "x-combo2",
   "x-combo3",
   "x-combo3-split",
@@ -33,6 +36,8 @@
   "x-pp-ban5",
   "x-pp-c1",
   "x-pp-c4",
+  "x-pp-dr",
+  "x-pp-dr-chance",
   "x-pp-opp",
   "x-pp-opp2",
   "x-pp-opp3",
@@ -1567,6 +1572,291 @@
    "own_V[x-combo1]": 53.95,
    "own_wp[aMCTS-pp]": 52.06,
    "own_wp[x-combo1]": 47.94
+  },
+  "aMCTS-pp vs x-combo1-dr": {
+   "judge_personal": [
+    48.22,
+    47.66,
+    48.77,
+    0.28,
+    0.0
+   ],
+   "judge_corr": [
+    45.77,
+    44.73,
+    46.81,
+    0.53,
+    0.0
+   ],
+   "consensus": [
+    50.57,
+    50.16,
+    50.98,
+    0.21,
+    0.0
+   ],
+   "gN": [
+    50.38,
+    49.91,
+    50.84,
+    0.24,
+    0.0
+   ],
+   "gN_naive": [
+    50.54,
+    50.03,
+    51.05,
+    0.26,
+    0.0
+   ],
+   "RN": [
+    50.36,
+    49.99,
+    50.73,
+    0.19,
+    0.0
+   ],
+   "QM2026": [
+    50.99,
+    50.37,
+    51.61,
+    0.32,
+    0.0
+   ],
+   "dS_judge_pp": [
+    -2.06,
+    -2.52,
+    -1.6
+   ],
+   "diff_rec_mean": [
+    -1.249,
+    -2.735,
+    0.237
+   ],
+   "diff_rec_pool": [
+    -1.679,
+    -2.792,
+    -0.567
+   ],
+   "diff_truth_hero": [
+    -0.048,
+    -0.151,
+    0.055
+   ],
+   "diff_truth_syn": [
+    0.159,
+    0.033,
+    0.284
+   ],
+   "diff_truth_ctr": [
+    0.015,
+    -0.082,
+    0.112
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    0.193,
+    0.124,
+    0.262
+   ],
+   "own_V[aMCTS-pp]": 45.62,
+   "own_V[x-combo1-dr]": 54.38,
+   "own_wp[aMCTS-pp]": 51.38,
+   "own_wp[x-combo1-dr]": 48.62
+  },
+  "aMCTS-pp vs x-combo1-dr-chance": {
+   "judge_personal": [
+    48.04,
+    47.55,
+    48.52,
+    0.25,
+    0.0
+   ],
+   "judge_corr": [
+    45.34,
+    44.51,
+    46.18,
+    0.42,
+    0.0
+   ],
+   "consensus": [
+    50.57,
+    50.18,
+    50.97,
+    0.2,
+    0.0
+   ],
+   "gN": [
+    50.43,
+    50.01,
+    50.85,
+    0.22,
+    0.0
+   ],
+   "gN_naive": [
+    50.51,
+    50.06,
+    50.95,
+    0.23,
+    0.0
+   ],
+   "RN": [
+    50.31,
+    49.94,
+    50.68,
+    0.19,
+    0.0
+   ],
+   "QM2026": [
+    51.04,
+    50.4,
+    51.68,
+    0.33,
+    0.0
+   ],
+   "dS_judge_pp": [
+    -2.18,
+    -2.55,
+    -1.8
+   ],
+   "diff_rec_mean": [
+    -1.144,
+    -2.434,
+    0.147
+   ],
+   "diff_rec_pool": [
+    -0.655,
+    -1.654,
+    0.343
+   ],
+   "diff_truth_hero": [
+    -0.006,
+    -0.106,
+    0.094
+   ],
+   "diff_truth_syn": [
+    -0.007,
+    -0.133,
+    0.12
+   ],
+   "diff_truth_ctr": [
+    -0.104,
+    -0.196,
+    -0.013
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    0.24,
+    0.172,
+    0.308
+   ],
+   "own_V[aMCTS-pp]": 45.4,
+   "own_V[x-combo1-dr-chance]": 54.6,
+   "own_wp[aMCTS-pp]": 51.42,
+   "own_wp[x-combo1-dr-chance]": 48.58
+  },
+  "aMCTS-pp vs x-combo1-dr-drban": {
+   "judge_personal": [
+    48.08,
+    47.55,
+    48.62,
+    0.27,
+    0.0
+   ],
+   "judge_corr": [
+    45.12,
+    44.18,
+    46.07,
+    0.48,
+    0.0
+   ],
+   "consensus": [
+    50.78,
+    50.36,
+    51.2,
+    0.21,
+    0.0
+   ],
+   "gN": [
+    50.65,
+    50.2,
+    51.09,
+    0.23,
+    0.0
+   ],
+   "gN_naive": [
+    50.76,
+    50.26,
+    51.26,
+    0.25,
+    0.0
+   ],
+   "RN": [
+    50.52,
+    50.16,
+    50.87,
+    0.18,
+    0.0
+   ],
+   "QM2026": [
+    51.2,
+    50.56,
+    51.83,
+    0.32,
+    0.0
+   ],
+   "dS_judge_pp": [
+    -2.29,
+    -2.7,
+    -1.88
+   ],
+   "diff_rec_mean": [
+    -1.433,
+    -2.784,
+    -0.082
+   ],
+   "diff_rec_pool": [
+    -0.731,
+    -1.633,
+    0.171
+   ],
+   "diff_truth_hero": [
+    -0.044,
+    -0.146,
+    0.058
+   ],
+   "diff_truth_syn": [
+    0.07,
+    -0.059,
+    0.199
+   ],
+   "diff_truth_ctr": [
+    0.045,
+    -0.054,
+    0.144
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    0.265,
+    0.191,
+    0.339
+   ],
+   "own_V[aMCTS-pp]": 46.39,
+   "own_V[x-combo1-dr-drban]": 53.61,
+   "own_wp[aMCTS-pp]": 51.26,
+   "own_wp[x-combo1-dr-drban]": 48.74
   },
   "aMCTS-pp vs x-combo2": {
    "judge_personal": [
@@ -3182,6 +3472,196 @@
    "own_V[x-pp-c4]": 46.95,
    "own_wp[aMCTS-pp]": 51.77,
    "own_wp[x-pp-c4]": 48.23
+  },
+  "aMCTS-pp vs x-pp-dr": {
+   "judge_personal": [
+    49.46,
+    49.02,
+    49.91,
+    0.23,
+    0.0
+   ],
+   "judge_corr": [
+    49.24,
+    48.43,
+    50.05,
+    0.41,
+    0.0
+   ],
+   "consensus": [
+    49.72,
+    49.4,
+    50.03,
+    0.16,
+    0.0
+   ],
+   "gN": [
+    49.61,
+    49.27,
+    49.96,
+    0.17,
+    0.0
+   ],
+   "gN_naive": [
+    49.57,
+    49.2,
+    49.94,
+    0.19,
+    0.0
+   ],
+   "RN": [
+    49.72,
+    49.43,
+    50.0,
+    0.14,
+    0.0
+   ],
+   "QM2026": [
+    49.97,
+    49.44,
+    50.51,
+    0.27,
+    0.0
+   ],
+   "dS_judge_pp": [
+    -0.25,
+    -0.59,
+    0.1
+   ],
+   "diff_rec_mean": [
+    0.407,
+    -0.797,
+    1.612
+   ],
+   "diff_rec_pool": [
+    0.558,
+    -0.245,
+    1.36
+   ],
+   "diff_truth_hero": [
+    -0.06,
+    -0.141,
+    0.021
+   ],
+   "diff_truth_syn": [
+    -0.093,
+    -0.212,
+    0.025
+   ],
+   "diff_truth_ctr": [
+    0.02,
+    -0.062,
+    0.102
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    -0.007,
+    -0.065,
+    0.051
+   ],
+   "own_V[aMCTS-pp]": 49.24,
+   "own_V[x-pp-dr]": 50.76,
+   "own_wp[aMCTS-pp]": 49.53,
+   "own_wp[x-pp-dr]": 50.47
+  },
+  "aMCTS-pp vs x-pp-dr-chance": {
+   "judge_personal": [
+    49.59,
+    49.16,
+    50.02,
+    0.22,
+    0.0
+   ],
+   "judge_corr": [
+    49.29,
+    48.47,
+    50.1,
+    0.42,
+    0.0
+   ],
+   "consensus": [
+    49.89,
+    49.54,
+    50.24,
+    0.18,
+    0.0
+   ],
+   "gN": [
+    49.63,
+    49.25,
+    50.01,
+    0.19,
+    0.0
+   ],
+   "gN_naive": [
+    49.72,
+    49.33,
+    50.12,
+    0.2,
+    0.0
+   ],
+   "RN": [
+    49.87,
+    49.55,
+    50.18,
+    0.16,
+    0.0
+   ],
+   "QM2026": [
+    50.33,
+    49.77,
+    50.9,
+    0.29,
+    0.0
+   ],
+   "dS_judge_pp": [
+    -0.23,
+    -0.59,
+    0.14
+   ],
+   "diff_rec_mean": [
+    -0.086,
+    -1.249,
+    1.078
+   ],
+   "diff_rec_pool": [
+    0.111,
+    -0.661,
+    0.883
+   ],
+   "diff_truth_hero": [
+    -0.013,
+    -0.095,
+    0.069
+   ],
+   "diff_truth_syn": [
+    -0.093,
+    -0.204,
+    0.019
+   ],
+   "diff_truth_ctr": [
+    -0.016,
+    -0.099,
+    0.067
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    0.052,
+    -0.009,
+    0.113
+   ],
+   "own_V[aMCTS-pp]": 50.37,
+   "own_V[x-pp-dr-chance]": 49.63,
+   "own_wp[aMCTS-pp]": 50.43,
+   "own_wp[x-pp-dr-chance]": 49.57
   },
   "aMCTS-pp vs x-pp-opp": {
    "judge_personal": [
@@ -5083,6 +5563,291 @@
    "own_wp[pMCTS-cur]": 56.4,
    "own_wp[x-combo1]": 43.6
   },
+  "pMCTS-cur vs x-combo1-dr": {
+   "judge_personal": [
+    39.55,
+    38.65,
+    40.45,
+    0.33,
+    0.46
+   ],
+   "judge_corr": [
+    24.0,
+    22.51,
+    25.49,
+    0.52,
+    0.76
+   ],
+   "consensus": [
+    56.29,
+    55.76,
+    56.81,
+    0.23,
+    0.27
+   ],
+   "gN": [
+    56.23,
+    55.72,
+    56.73,
+    0.24,
+    0.26
+   ],
+   "gN_naive": [
+    56.36,
+    55.48,
+    57.24,
+    0.29,
+    0.45
+   ],
+   "RN": [
+    55.11,
+    54.66,
+    55.56,
+    0.23,
+    0.19
+   ],
+   "QM2026": [
+    57.45,
+    56.79,
+    58.1,
+    0.33,
+    0.23
+   ],
+   "dS_judge_pp": [
+    -14.86,
+    -15.47,
+    -14.25
+   ],
+   "diff_rec_mean": [
+    -3.393,
+    -5.587,
+    -1.199
+   ],
+   "diff_rec_pool": [
+    -4.392,
+    -6.2,
+    -2.583
+   ],
+   "diff_truth_hero": [
+    0.898,
+    0.764,
+    1.031
+   ],
+   "diff_truth_syn": [
+    0.392,
+    0.249,
+    0.535
+   ],
+   "diff_truth_ctr": [
+    -0.079,
+    -0.193,
+    0.035
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    1.04,
+    0.947,
+    1.133
+   ],
+   "own_V[pMCTS-cur]": 29.68,
+   "own_V[x-combo1-dr]": 70.32,
+   "own_wp[pMCTS-cur]": 56.52,
+   "own_wp[x-combo1-dr]": 43.48
+  },
+  "pMCTS-cur vs x-combo1-dr-chance": {
+   "judge_personal": [
+    39.43,
+    38.81,
+    40.05,
+    0.32,
+    0.26
+   ],
+   "judge_corr": [
+    23.71,
+    22.54,
+    24.89,
+    0.49,
+    0.6
+   ],
+   "consensus": [
+    56.32,
+    55.77,
+    56.88,
+    0.22,
+    0.28
+   ],
+   "gN": [
+    56.27,
+    55.72,
+    56.83,
+    0.23,
+    0.28
+   ],
+   "gN_naive": [
+    56.35,
+    55.28,
+    57.42,
+    0.27,
+    0.55
+   ],
+   "RN": [
+    55.34,
+    54.91,
+    55.77,
+    0.22,
+    0.22
+   ],
+   "QM2026": [
+    57.33,
+    56.65,
+    58.01,
+    0.35,
+    0.17
+   ],
+   "dS_judge_pp": [
+    -14.96,
+    -15.5,
+    -14.43
+   ],
+   "diff_rec_mean": [
+    -3.069,
+    -5.173,
+    -0.965
+   ],
+   "diff_rec_pool": [
+    -4.309,
+    -5.958,
+    -2.659
+   ],
+   "diff_truth_hero": [
+    0.964,
+    0.833,
+    1.096
+   ],
+   "diff_truth_syn": [
+    0.37,
+    0.233,
+    0.507
+   ],
+   "diff_truth_ctr": [
+    -0.06,
+    -0.182,
+    0.062
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    1.042,
+    0.952,
+    1.132
+   ],
+   "own_V[pMCTS-cur]": 29.91,
+   "own_V[x-combo1-dr-chance]": 70.09,
+   "own_wp[pMCTS-cur]": 56.48,
+   "own_wp[x-combo1-dr-chance]": 43.52
+  },
+  "pMCTS-cur vs x-combo1-dr-drban": {
+   "judge_personal": [
+    39.42,
+    38.8,
+    40.03,
+    0.32,
+    0.27
+   ],
+   "judge_corr": [
+    23.9,
+    22.91,
+    24.89,
+    0.51,
+    0.49
+   ],
+   "consensus": [
+    56.47,
+    56.05,
+    56.9,
+    0.22,
+    0.12
+   ],
+   "gN": [
+    56.46,
+    56.01,
+    56.91,
+    0.23,
+    0.11
+   ],
+   "gN_naive": [
+    56.48,
+    55.95,
+    57.0,
+    0.27,
+    0.25
+   ],
+   "RN": [
+    55.53,
+    55.1,
+    55.96,
+    0.22,
+    0.2
+   ],
+   "QM2026": [
+    57.42,
+    56.75,
+    58.09,
+    0.34,
+    0.1
+   ],
+   "dS_judge_pp": [
+    -15.14,
+    -15.71,
+    -14.57
+   ],
+   "diff_rec_mean": [
+    -3.424,
+    -5.552,
+    -1.296
+   ],
+   "diff_rec_pool": [
+    -4.25,
+    -6.149,
+    -2.351
+   ],
+   "diff_truth_hero": [
+    1.013,
+    0.889,
+    1.136
+   ],
+   "diff_truth_syn": [
+    0.442,
+    0.292,
+    0.592
+   ],
+   "diff_truth_ctr": [
+    -0.148,
+    -0.261,
+    -0.035
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    1.083,
+    0.989,
+    1.178
+   ],
+   "own_V[pMCTS-cur]": 30.32,
+   "own_V[x-combo1-dr-drban]": 69.68,
+   "own_wp[pMCTS-cur]": 56.74,
+   "own_wp[x-combo1-dr-drban]": 43.26
+  },
   "pMCTS-cur vs x-combo2": {
    "judge_personal": [
     39.26,
@@ -6698,6 +7463,196 @@
    "own_wp[pMCTS-cur]": 57.29,
    "own_wp[x-pp-c4]": 42.71
   },
+  "pMCTS-cur vs x-pp-dr": {
+   "judge_personal": [
+    40.38,
+    39.71,
+    41.05,
+    0.33,
+    0.34
+   ],
+   "judge_corr": [
+    25.65,
+    24.6,
+    26.71,
+    0.54,
+    0.48
+   ],
+   "consensus": [
+    55.86,
+    55.36,
+    56.36,
+    0.23,
+    0.26
+   ],
+   "gN": [
+    55.94,
+    55.46,
+    56.42,
+    0.25,
+    0.24
+   ],
+   "gN_naive": [
+    55.84,
+    54.66,
+    57.02,
+    0.28,
+    0.6
+   ],
+   "RN": [
+    54.97,
+    54.55,
+    55.39,
+    0.21,
+    0.18
+   ],
+   "QM2026": [
+    56.69,
+    55.95,
+    57.42,
+    0.38,
+    0.26
+   ],
+   "dS_judge_pp": [
+    -13.71,
+    -14.3,
+    -13.11
+   ],
+   "diff_rec_mean": [
+    -2.387,
+    -4.299,
+    -0.475
+   ],
+   "diff_rec_pool": [
+    -2.915,
+    -4.608,
+    -1.222
+   ],
+   "diff_truth_hero": [
+    0.91,
+    0.777,
+    1.043
+   ],
+   "diff_truth_syn": [
+    0.5,
+    0.364,
+    0.637
+   ],
+   "diff_truth_ctr": [
+    -0.16,
+    -0.287,
+    -0.033
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    0.958,
+    0.865,
+    1.052
+   ],
+   "own_V[pMCTS-cur]": 30.92,
+   "own_V[x-pp-dr]": 69.08,
+   "own_wp[pMCTS-cur]": 55.48,
+   "own_wp[x-pp-dr]": 44.52
+  },
+  "pMCTS-cur vs x-pp-dr-chance": {
+   "judge_personal": [
+    40.22,
+    39.58,
+    40.87,
+    0.33,
+    0.31
+   ],
+   "judge_corr": [
+    25.18,
+    24.17,
+    26.19,
+    0.52,
+    0.35
+   ],
+   "consensus": [
+    56.13,
+    55.56,
+    56.71,
+    0.23,
+    0.29
+   ],
+   "gN": [
+    56.08,
+    55.42,
+    56.74,
+    0.25,
+    0.34
+   ],
+   "gN_naive": [
+    56.26,
+    55.2,
+    57.33,
+    0.3,
+    0.54
+   ],
+   "RN": [
+    55.18,
+    54.74,
+    55.61,
+    0.21,
+    0.22
+   ],
+   "QM2026": [
+    57.01,
+    56.26,
+    57.75,
+    0.36,
+    0.38
+   ],
+   "dS_judge_pp": [
+    -14.1,
+    -14.68,
+    -13.52
+   ],
+   "diff_rec_mean": [
+    -2.793,
+    -4.633,
+    -0.953
+   ],
+   "diff_rec_pool": [
+    -3.734,
+    -5.329,
+    -2.14
+   ],
+   "diff_truth_hero": [
+    0.916,
+    0.786,
+    1.046
+   ],
+   "diff_truth_syn": [
+    0.53,
+    0.387,
+    0.674
+   ],
+   "diff_truth_ctr": [
+    -0.15,
+    -0.278,
+    -0.023
+   ],
+   "diff_degen": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "diff_offrole": [
+    0.962,
+    0.876,
+    1.047
+   ],
+   "own_V[pMCTS-cur]": 30.99,
+   "own_V[x-pp-dr-chance]": 69.01,
+   "own_wp[pMCTS-cur]": 55.91,
+   "own_wp[x-pp-dr-chance]": 44.09
+  },
   "pMCTS-cur vs x-pp-opp": {
    "judge_personal": [
     40.3,
@@ -7881,10 +8836,10 @@
    "consensus": 50.5,
    "degen": 0.0,
    "healer": 100.0,
-   "offrole": 0.59,
-   "rec_mean": 0.481,
-   "rec_cov": 76.404,
-   "truth_hero": 51.197,
+   "offrole": 0.601,
+   "rec_mean": 0.466,
+   "rec_cov": 76.186,
+   "truth_hero": 51.194,
    "sec_per_draft": 0.076,
    "opponents_in_core": 3
   },
@@ -7965,10 +8920,10 @@
    "consensus": 55.81,
    "degen": 0.0,
    "healer": 100.0,
-   "offrole": 1.491,
-   "rec_mean": -2.671,
-   "rec_cov": 46.472,
-   "truth_hero": 51.976,
+   "offrole": 1.493,
+   "rec_mean": -2.647,
+   "rec_cov": 46.312,
+   "truth_hero": 51.973,
    "sec_per_draft": 0.068,
    "opponents_in_core": 3
   },
@@ -8006,6 +8961,42 @@
    "rec_cov": 79.733,
    "truth_hero": 51.073,
    "sec_per_draft": 0.079,
+   "opponents_in_core": 1
+  },
+  "x-combo1-dr": {
+   "judge_personal": 60.45,
+   "consensus": 43.71,
+   "degen": 0.0,
+   "healer": 100.0,
+   "offrole": 0.517,
+   "rec_mean": 0.665,
+   "rec_cov": 79.183,
+   "truth_hero": 51.105,
+   "sec_per_draft": 0.083,
+   "opponents_in_core": 1
+  },
+  "x-combo1-dr-chance": {
+   "judge_personal": 60.57,
+   "consensus": 43.68,
+   "degen": 0.0,
+   "healer": 100.0,
+   "offrole": 0.493,
+   "rec_mean": 0.68,
+   "rec_cov": 79.4,
+   "truth_hero": 51.103,
+   "sec_per_draft": 0.082,
+   "opponents_in_core": 1
+  },
+  "x-combo1-dr-drban": {
+   "judge_personal": 60.58,
+   "consensus": 43.53,
+   "degen": 0.0,
+   "healer": 100.0,
+   "offrole": 0.495,
+   "rec_mean": 0.859,
+   "rec_cov": 78.683,
+   "truth_hero": 51.031,
+   "sec_per_draft": 0.082,
    "opponents_in_core": 1
   },
   "x-combo2": {
@@ -8212,6 +9203,30 @@
    "sec_per_draft": 0.078,
    "opponents_in_core": 1
   },
+  "x-pp-dr": {
+   "judge_personal": 59.62,
+   "consensus": 44.14,
+   "degen": 0.0,
+   "healer": 100.0,
+   "offrole": 0.542,
+   "rec_mean": 0.589,
+   "rec_cov": 78.35,
+   "truth_hero": 51.143,
+   "sec_per_draft": 0.081,
+   "opponents_in_core": 1
+  },
+  "x-pp-dr-chance": {
+   "judge_personal": 59.78,
+   "consensus": 43.87,
+   "degen": 0.0,
+   "healer": 100.0,
+   "offrole": 0.55,
+   "rec_mean": 0.952,
+   "rec_cov": 78.35,
+   "truth_hero": 51.127,
+   "sec_per_draft": 0.079,
+   "opponents_in_core": 1
+  },
   "x-pp-opp": {
    "judge_personal": 59.7,
    "consensus": 44.14,
@@ -8377,9 +9392,9 @@
      -0.107
     ],
     "aMCTS-pp": [
-     0.205,
-     0.185,
-     0.228
+     0.204,
+     0.184,
+     0.227
     ],
     "aMCTS-sp": [
      0.057,
@@ -8412,9 +9427,9 @@
      0.017
     ],
     "pMCTS-cur": [
-     -0.172,
-     -0.195,
-     -0.146
+     -0.171,
+     -0.194,
+     -0.145
     ],
     "x-bc-pp": [
      0.04,
@@ -8430,6 +9445,21 @@
      0.263,
      0.235,
      0.287
+    ],
+    "x-combo1-dr": [
+     0.265,
+     0.238,
+     0.289
+    ],
+    "x-combo1-dr-chance": [
+     0.271,
+     0.249,
+     0.296
+    ],
+    "x-combo1-dr-drban": [
+     0.27,
+     0.244,
+     0.294
     ],
     "x-combo2": [
      0.254,
@@ -8516,6 +9546,16 @@
      0.167,
      0.217
     ],
+    "x-pp-dr": [
+     0.222,
+     0.197,
+     0.248
+    ],
+    "x-pp-dr-chance": [
+     0.223,
+     0.197,
+     0.249
+    ],
     "x-pp-opp": [
      0.219,
      0.195,
@@ -8597,9 +9637,9 @@
      0.399
     ],
     "aMCTS-pp": [
-     0.138,
-     0.122,
-     0.153
+     0.137,
+     0.121,
+     0.152
     ],
     "aMCTS-sp": [
      0.346,
@@ -8633,8 +9673,8 @@
     ],
     "pMCTS-cur": [
      0.367,
-     0.351,
-     0.383
+     0.352,
+     0.384
     ],
     "x-bc-pp": [
      -0.075,
@@ -8650,6 +9690,21 @@
      0.103,
      0.084,
      0.122
+    ],
+    "x-combo1-dr": [
+     0.115,
+     0.094,
+     0.134
+    ],
+    "x-combo1-dr-chance": [
+     0.114,
+     0.095,
+     0.131
+    ],
+    "x-combo1-dr-drban": [
+     0.107,
+     0.089,
+     0.124
     ],
     "x-combo2": [
      0.195,
@@ -8736,6 +9791,16 @@
      0.101,
      0.136
     ],
+    "x-pp-dr": [
+     0.14,
+     0.122,
+     0.161
+    ],
+    "x-pp-dr-chance": [
+     0.131,
+     0.113,
+     0.15
+    ],
     "x-pp-opp": [
      0.135,
      0.116,
@@ -8815,6 +9880,57 @@
    "judge_corr_by_opp": {
     "pMCTS-cur": 75.19,
     "aMCTS-pp": 54.37
+   }
+  },
+  "x-combo1-dr-chance": {
+   "judge_personal": 56.27,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 60.57,
+    "aMCTS-pp": 51.96
+   },
+   "consensus": 46.55,
+   "consensus_by_opp": {
+    "pMCTS-cur": 43.68,
+    "aMCTS-pp": 49.43
+   },
+   "judge_corr": 65.47,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 76.29,
+    "aMCTS-pp": 54.66
+   }
+  },
+  "x-combo1-dr-drban": {
+   "judge_personal": 56.25,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 60.58,
+    "aMCTS-pp": 51.92
+   },
+   "consensus": 46.37,
+   "consensus_by_opp": {
+    "pMCTS-cur": 43.53,
+    "aMCTS-pp": 49.22
+   },
+   "judge_corr": 65.49,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 76.1,
+    "aMCTS-pp": 54.88
+   }
+  },
+  "x-combo1-dr": {
+   "judge_personal": 56.12,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 60.45,
+    "aMCTS-pp": 51.78
+   },
+   "consensus": 46.57,
+   "consensus_by_opp": {
+    "pMCTS-cur": 43.71,
+    "aMCTS-pp": 49.43
+   },
+   "judge_corr": 65.12,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 76.0,
+    "aMCTS-pp": 54.23
    }
   },
   "x-combo1": {
@@ -8917,6 +10033,40 @@
    "judge_corr_by_opp": {
     "pMCTS-cur": 75.17,
     "aMCTS-pp": 52.88
+   }
+  },
+  "x-pp-dr-chance": {
+   "judge_personal": 55.09,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 59.78,
+    "aMCTS-pp": 50.41
+   },
+   "consensus": 46.99,
+   "consensus_by_opp": {
+    "pMCTS-cur": 43.87,
+    "aMCTS-pp": 50.11
+   },
+   "judge_corr": 62.77,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 74.82,
+    "aMCTS-pp": 50.71
+   }
+  },
+  "x-pp-dr": {
+   "judge_personal": 55.08,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 59.62,
+    "aMCTS-pp": 50.54
+   },
+   "consensus": 47.21,
+   "consensus_by_opp": {
+    "pMCTS-cur": 44.14,
+    "aMCTS-pp": 50.28
+   },
+   "judge_corr": 62.55,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 74.35,
+    "aMCTS-pp": 50.76
    }
   },
   "x-pp": {

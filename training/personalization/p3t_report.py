@@ -21,7 +21,7 @@ def ci(v):
     return f"{v[0]:.1f} ({v[1]:.1f}, {v[2]:.1f})" if v else ""
 
 
-MAIN = ["x-combo1", "x-combo3", "x-combo1-dr", "x-pp-dr", "aMCTS-pp", "aMCTS-cur", "pMCTS-cur", "a1step-cur",
+MAIN = ["x-combo1-dr-chance", "x-combo1", "x-combo3", "x-combo1-dr", "x-pp-dr", "aMCTS-pp", "aMCTS-cur", "pMCTS-cur", "a1step-cur",
         "p1step-cur", "DraftRec", "DraftRec-pv", "Real", "GD"]
 
 

@@ -38,25 +38,27 @@ Status: results on current data (store full_1017, CAP_TS 2026-09-28), all from t
 
 ## Summary
 
-- **How much better is player-aware drafting?** On 300 real lobbies (May 23 to June 30, 2026), the selected player-aware search drafter (`x-combo1`) beats paper 1's player-blind MCTS 60.8% of the time (60.2, 61.5) under the player-aware judge J. It beats the real human drafts of the same lobbies 61.8% (61.1, 62.5).
-  - The same design at 1,600 simulations (`x-combo3`, selected before the kernel fix) scores the same: 60.7% (60.1, 61.3) and 62.6% (62.0, 63.2).
+- **How much better is player-aware drafting?** On 300 real lobbies (May 23 to June 30, 2026), the selected player-aware search drafter (`x-combo1-dr-chance`) beats paper 1's player-blind MCTS 60.9% of the time (60.3, 61.6) under the player-aware judge J. It beats the real human drafts of the same lobbies 62.1% (61.5, 62.8), and GD 66.9% (66.3, 67.5).
+  - Two other versions of the same design tie with it: `x-combo1` (the comfort opponent instead of DraftRec; 60.8% and 61.8%) and `x-combo3` (1,600 simulations, selected before the kernel fix; 60.7% and 62.6%). Against each other they score 49.5 to 50.5%.
+  - The direct match against GD is 54.8% for paper 1's MCTS and 55.2% for real drafts.
   - These are model-judged and conservative. J sees players only through 2.5 months of later games, so it credits about 0.42 of a true personal difference.
   - A judge built from years of disjoint history (split-history, attenuation 0.71) puts `x-combo3`, run on half of each player's history, at 65.7% (65.0, 66.4) against paper 1's MCTS.
-  - The judge-free check agrees: the players `x-combo1` puts on heroes later win more on those heroes than the players paper 1's MCTS assigns, +4.7pp per player (2.7, 6.6).
-  - Under paper 1's own judges (CONS), the selected design beats real drafts 58.7% and paper 1's MCTS beats them 63.5%, a figure that reproduces paper 1.
+  - The judge-free check agrees: the players the selected design puts on heroes later win more on those heroes than the players paper 1's MCTS assigns, +3.7pp per player (1.6, 5.8), and more than the real drafts' players, +2.7pp (1.0, 4.3).
+  - Under paper 1's own judges (CONS), the selected design beats real drafts 59.1% and paper 1's MCTS beats them 63.5%, a figure that reproduces paper 1.
 - **Adding the personal term to the leaf of a blind-trained search does almost nothing.** The pre-stated primary, `aMCTS-cur` vs `pMCTS-cur`, comes in at 51.4% (50.8, 52.0).
   - Paper 1's F policy is so sharp that the leaf moves 4% of picks.
   - The players have to shape the exploration (the prior), not only the scoring:
     - BC prior with a personal leaf: 57.6% (57.0, 58.2) over its blind twin (the pre-stated secondary);
     - player-feature prior distilled from aware search: 60.4% over paper-1 MCTS;
-    - ten-player exploration on top (opponent comfort inside the tree, denial bans, assignment-aware root): +1.6pp against that prior on the tournament lobbies (51.6%, CI 51.0 to 52.1).
+    - ten-player exploration on top (an opponent model inside the tree, denial bans, assignment-aware root): +1.6 to 1.9pp against that prior on the tournament lobbies (51.9%, CI 51.4 to 52.4, for the selected design).
 - **Population vs personal.** Paper 1's blind MCTS gains 13pp of population win probability over real drafts (consensus 63.5%). It gives almost all of that back by putting players on heroes they are bad at: J has it at 50.5% against real drafts.
   - The best player-aware drafters keep a population edge over real drafts (consensus 55 to 60%) and add the personal edge.
 - **Drift.**
   - Prediction: a 1-year-stale WP keeps 72% of its log-loss lift. A frozen player state is far costlier: the full value keeps 30% of its lift with player state frozen 1 year, and 43% at 4 months.
   - Drafters: a 1-year-stale paper-1 MCTS loses 2.2pp (CONS) and 3.4pp (J) to its retrained twin. Refreshing its statistics tables recovers nothing; a 2 GPU-hour fine-tune leaves 1.7 and 1.3pp. Freezing the player state costs the distilled-prior drafter 1.7pp (J) at 4 months and 3.8pp at a year, with no population cost, and updating the state is CPU-cheap.
   - The drafters lose a smaller share of their edge than the prediction models lose of their lift at the same staleness.
-- **DraftRec**, rebuilt on our data as a reviewer baseline, is strong: 36% top-1 pick accuracy against 9% for GD. Its paper's p+v rule ranks just below the distilled-prior drafters under J (BT 0.57 vs 0.69 for `aMCTS-pp` and 0.74 for `x-combo1`).
+- **DraftRec**, rebuilt on our data as a reviewer baseline, is strong: 36% top-1 pick accuracy against 9% for GD. Its paper's p+v rule ranks just below the distilled-prior drafters under J (BT 0.56 vs 0.68 for `aMCTS-pp` and 0.74 for the selected design).
+- **DraftRec as the opponent model inside the search** doubles the opponent's predicted top-1 in team mode (9.6% to 19.9%) but moves the drafts by at most 0.5pp of J, inside the noise. By the pre-stated rule it still becomes part of the selected design (tune J 56.27 vs 56.07).
 - **Backtests on real games:**
   - Teams whose real pick matched the player-aware search's recommendation won 0.9pp more (SE 0.4), with draft-only WP and causal MMR controlled. That is what the skill model predicts: with its predicted gap added, the residual is −0.5 (0.4).
   - When a player's best hero is banned, the realized cost is −2.1pp (0.2) against −1.3pp predicted. Forced switches cost more than the model says.
@@ -118,7 +120,9 @@ Paper 1's headline 0.61 is a mean over a field of ten agents, and paper 1 made n
 | aMCTS-sp vs aMCTS-pp | 44.9 (44.4, 45.5) | 55.1 (54.8, 55.5) | −9.0 | −0.9 | +1.0 |
 | aMCTS-vn vs aMCTS-bc | 51.1 (50.6, 51.6) | 49.8 (49.4, 50.1) | +1.2 | +0.6 | −0.0 |
 | aPol-pp vs pPol-cur (no search) | 57.7 (57.0, 58.4) | 42.3 (41.7, 42.8) | +13.6 | +4.2 (2.3, 6.0) | −1.1 |
-| x-combo1 vs pMCTS-cur (selected design) | 60.8 (60.2, 61.5) | 43.8 (43.1, 44.4) | +15.2 | +4.7 (2.7, 6.6) | −1.0 |
+| **x-combo1-dr-chance vs pMCTS-cur (selected design)** | **60.9 (60.3, 61.6)** | 43.8 (43.3, 44.3) | +15.2 | +3.7 (1.6, 5.8) | −1.0 |
+| x-combo1-dr-chance vs Real | 62.1 (61.5, 62.8) | 59.1 (58.6, 59.6) | +3.0 | +2.7 (1.0, 4.3) | +1.5 |
+| x-combo1 vs pMCTS-cur | 60.8 (60.2, 61.5) | 43.8 (43.1, 44.4) | +15.2 | +4.7 (2.7, 6.6) | −1.0 |
 | x-combo1 vs Real | 61.8 (61.1, 62.5) | 58.7 (58.2, 59.2) | +3.0 | +0.9 (−0.6, 2.4) | +1.5 |
 | x-combo3 vs pMCTS-cur | 60.7 (60.1, 61.3) | 44.3 (43.8, 44.8) | +14.6 | +4.4 (2.4, 6.5) | −1.1 |
 | x-combo3 vs Real | 62.6 (62.0, 63.2) | 59.5 (59.0, 60.0) | +3.2 | +1.3 (−0.3, 2.9) | +1.5 |
@@ -138,31 +142,94 @@ Paper 1's headline 0.61 is a mean over a field of ten agents, and paper 1 made n
 
 | system | BT under J (logit, GD = 0) | BT under CONS | degenerate % | off-role players per team | record coverage % |
 |---|---|---|---|---|---|
-| x-combo3 | 0.75 (0.73, 0.77) | 0.40 (0.38, 0.41) | 0.0 | 0.62 | 77 |
-| x-combo1 (selected) | 0.74 (0.72, 0.76) | 0.37 (0.35, 0.38) | 0.0 | 0.55 | 78 |
-| x-pp-ban3 | 0.72 (0.69, 0.75) | 0.36 (0.34, 0.38) | 0.0 | 0.59 | 77 |
-| aMCTS-pp | 0.69 (0.67, 0.70) | 0.39 (0.38, 0.41) | 0.0 | 0.62 | 76 |
+| x-combo1-dr | 0.75 (0.72, 0.77) | 0.38 (0.37, 0.40) | 0.0 | 0.60 | 77 |
+| x-combo1-dr-chance (selected) | 0.74 (0.72, 0.76) | 0.38 (0.37, 0.40) | 0.0 | 0.60 | 77 |
+| x-combo3 | 0.74 (0.72, 0.76) | 0.39 (0.38, 0.41) | 0.0 | 0.66 | 76 |
+| x-combo1 | 0.74 (0.71, 0.76) | 0.37 (0.36, 0.39) | 0.0 | 0.60 | 77 |
+| x-pp-ban3 | 0.72 (0.69, 0.74) | 0.36 (0.34, 0.38) | 0.0 | 0.59 | 77 |
+| x-pp-dr | 0.69 (0.67, 0.71) | 0.41 (0.40, 0.43) | 0.0 | 0.66 | 75 |
+| aMCTS-pp | 0.68 (0.66, 0.69) | 0.40 (0.38, 0.41) | 0.0 | 0.62 | 76 |
 | aPol-pp | 0.59 (0.57, 0.61) | 0.32 (0.30, 0.34) | 0.0 | 0.60 | 75 |
-| DraftRec-pv | 0.57 (0.56, 0.60) | 0.37 (0.36, 0.39) | 0.4 | 0.79 | 72 |
-| DraftRec | 0.51 (0.49, 0.53) | 0.16 (0.15, 0.17) | 0.5 | 0.50 | 86 |
-| a1step-cur | 0.49 (0.47, 0.51) | 0.27 (0.26, 0.28) | 0.0 | 0.77 | 72 |
-| aMCTS-sp | 0.49 (0.47, 0.51) | 0.59 (0.57, 0.60) | 0.0 | 1.16 | 57 |
+| DraftRec-pv | 0.56 (0.55, 0.58) | 0.37 (0.35, 0.38) | 0.4 | 0.80 | 72 |
+| DraftRec | 0.49 (0.47, 0.52) | 0.14 (0.13, 0.16) | 0.4 | 0.53 | 85 |
+| a1step-cur | 0.49 (0.47, 0.51) | 0.27 (0.26, 0.27) | 0.0 | 0.79 | 71 |
+| aMCTS-sp | 0.48 (0.47, 0.51) | 0.58 (0.57, 0.60) | 0.0 | 1.16 | 57 |
 | aMCTS-vn | 0.47 (0.45, 0.49) | 0.23 (0.22, 0.24) | 0.0 | 0.76 | 72 |
 | aMCTS-bc | 0.43 (0.42, 0.45) | 0.23 (0.22, 0.24) | 0.0 | 0.82 | 70 |
-| aMCTS-cur | 0.31 (0.29, 0.33) | 0.61 (0.60, 0.62) | 0.0 | 1.47 | 48 |
-| pPol-cur | 0.29 (0.27, 0.31) | 0.62 (0.60, 0.63) | 0.0 | 1.44 | 47 |
-| pMCTS-cur | 0.27 (0.25, 0.30) | 0.61 (0.59, 0.62) | 0.0 | 1.52 | 46 |
-| Real | 0.25 (0.23, 0.28) | 0.04 (0.02, 0.05) | 8.7 | 0.81 | 77 |
-| p1step-cur | 0.26 (0.24, 0.27) | 0.34 (0.33, 0.34) | 0.0 | 1.15 | 57 |
-| pMCTS-bc | 0.15 (0.14, 0.17) | 0.26 (0.25, 0.27) | 0.0 | 1.13 | 55 |
-| GD | 0.00 (0.00, 0.00) | 0.00 (0.00, 0.00) | 2.7 | 0.97 | 61 |
+| aMCTS-cur | 0.31 (0.29, 0.33) | 0.61 (0.60, 0.62) | 0.0 | 1.48 | 48 |
+| pPol-cur | 0.28 (0.26, 0.31) | 0.61 (0.60, 0.63) | 0.0 | 1.44 | 47 |
+| pMCTS-cur | 0.27 (0.25, 0.29) | 0.61 (0.59, 0.62) | 0.0 | 1.52 | 46 |
+| p1step-cur | 0.26 (0.24, 0.27) | 0.32 (0.32, 0.33) | 0.0 | 1.15 | 56 |
+| Real | 0.25 (0.22, 0.27) | 0.03 (0.02, 0.05) | 8.4 | 0.82 | 77 |
+| pMCTS-bc | 0.15 (0.14, 0.16) | 0.26 (0.25, 0.26) | 0.0 | 1.13 | 55 |
+| GD | 0.00 (0.00, 0.00) | 0.00 (0.00, 0.00) | 2.5 | 0.97 | 61 |
 
-All 59 systems, with standings: `P3_TOURNAMENT_TABLES.md`.
+All 64 systems, with standings: `P3_TOURNAMENT_TABLES.md`. Ablation arms that played only `aMCTS-pp` (such as `x-combo1-dr-drban`, BT 0.77) have wide, schedule-dependent strengths and are left out here.
 
 - Seat (first pick) term: about +0.02 logit; the seat does not matter here.
-- Every search drafter fields 0% degenerate teams (structural mask). `Real` is degenerate by paper 1's rule in 8.7% of its tournament drafts (8.5% of the lobbies' own drafts; replaying against other drafters forces some GD fallbacks), GD 2.7%, DraftRec 0.5%.
+- Every search drafter fields 0% degenerate teams (structural mask). `Real` is degenerate by paper 1's rule in 8.4% of its tournament drafts (8.5% of the lobbies' own drafts; replaying against other drafters forces some GD fallbacks), GD 2.5%, DraftRec 0.4%.
 - Off-role players per team: 1.5 for paper 1's blind searches, 0.8 for real teams, 0.55 to 0.62 for the distilled-prior drafters.
 
+
+### Direct matches against GD (no Bradley–Terry conversion)
+
+Every main system played GD on the 300 lobbies, both seats.
+
+| system | J vs GD | CONS vs GD | judge-free: realized record diff per player (pp) | judge-free: future hero WR diff |
+|---|---|---|---|---|
+| x-combo1-dr-chance (selected) | 66.9 (66.3, 67.5) | 59.0 (58.6, 59.5) | +4.2 (2.2, 6.2) | +2.1 |
+| x-combo1 | 66.9 (66.3, 67.5) | 58.8 (58.4, 59.3) | +3.1 (1.1, 5.1) | +2.1 |
+| x-combo3 | 67.5 (66.9, 68.2) | 59.7 (59.2, 60.1) | +2.7 (0.6, 4.7) | +2.1 |
+| x-combo1-dr | 67.2 (66.6, 67.7) | 58.9 (58.4, 59.4) | +4.1 (2.2, 6.0) | +2.1 |
+| x-pp-dr | 65.7 (65.1, 66.4) | 59.4 (58.9, 59.9) | +1.7 (−0.2, 3.6) | +2.1 |
+| aMCTS-pp | 65.9 (65.3, 66.6) | 59.4 (58.9, 59.9) | +3.6 (1.7, 5.5) | +2.2 |
+| aMCTS-cur | 55.7 (53.8, 57.6) | 63.1 (61.9, 64.3) | −1.4 (−3.7, 1.0) | +3.0 |
+| pMCTS-cur (paper 1's MCTS) | 54.8 (52.9, 56.6) | 63.0 (61.7, 64.2) | −1.9 (−4.3, 0.5) | +2.9 |
+| a1step-cur | 63.6 (63.0, 64.3) | 58.0 (57.6, 58.5) | +0.9 (−1.3, 3.1) | +1.7 |
+| p1step-cur | 56.6 (55.9, 57.4) | 58.6 (58.1, 59.0) | −0.5 (−2.8, 1.8) | +1.8 |
+| DraftRec | 63.7 (63.1, 64.4) | 55.1 (54.6, 55.6) | +1.7 (0.0, 3.4) | +1.5 |
+| DraftRec-pv | 64.4 (63.7, 65.0) | 60.0 (59.6, 60.4) | +0.3 (−1.5, 2.0) | +2.5 |
+| Real | 55.2 (54.4, 56.0) | 50.2 (49.7, 50.7) | +1.9 (0.2, 3.6) | +0.4 |
+
+- Under J, the distilled-prior drafters beat GD by 16 to 17.5pp; paper 1's MCTS beats it by 4.8pp, and the real human drafts by 5.2pp.
+- Under CONS the order flips at the top: paper 1's MCTS beats GD by 13pp and the player-aware designs by 9 to 10pp. Real drafts tie GD (50.2%), as paper 1 found.
+
+### The head-to-head matrix
+
+Every ordered pair among the 14 main systems was played (`P3_TOURNAMENT_TABLES.md` has the full 14 × 14 matrices under J and CONS with 95% CIs). Ten of them, row's win % against column, both seats:
+
+Under J:
+
+| row vs column | sel | xc1 | xc3 | pp | aMC | pMC | a1s | DRpv | Real | GD |
+|---|---|---|---|---|---|---|---|---|---|---|
+| sel (x-combo1-dr-chance) |  | 50.5 | 50.0 | 51.9 | 60.4 | 60.9 | 56.8 | 55.4 | 62.1 | 66.9 |
+| xc1 (x-combo1) | 49.5 |  | 50.0 | 51.6 | 60.5 | 60.8 | 56.5 | 54.5 | 61.8 | 66.9 |
+| xc3 (x-combo3) | 50.0 | 50.0 |  | 51.6 | 60.2 | 60.7 | 56.9 | 55.3 | 62.6 | 67.5 |
+| pp (aMCTS-pp) | 48.1 | 48.4 | 48.4 |  | 59.3 | 60.4 | 54.2 | 53.1 | 59.8 | 65.9 |
+| aMC (aMCTS-cur) | 39.6 | 39.5 | 39.8 | 40.7 |  | 51.4 | 45.8 | 43.3 | 51.1 | 55.7 |
+| pMC (pMCTS-cur) | 39.1 | 39.2 | 39.3 | 39.6 | 48.6 |  | 45.1 | 42.6 | 50.5 | 54.8 |
+| a1s (a1step-cur) | 43.2 | 43.5 | 43.1 | 45.8 | 54.2 | 54.9 |  | 48.1 | 56.3 | 63.6 |
+| DRpv (DraftRec-pv) | 44.6 | 45.5 | 44.7 | 46.9 | 56.7 | 57.4 | 51.9 |  | 57.9 | 64.4 |
+| Real (Real) | 37.9 | 38.2 | 37.4 | 40.2 | 48.9 | 49.5 | 43.7 | 42.1 |  | 55.2 |
+| GD (GD) | 33.1 | 33.1 | 32.5 | 34.1 | 44.3 | 45.2 | 36.4 | 35.6 | 44.8 |  |
+
+Under CONS:
+
+| row vs column | sel | xc1 | xc3 | pp | aMC | pMC | a1s | DRpv | Real | GD |
+|---|---|---|---|---|---|---|---|---|---|---|
+| sel (x-combo1-dr-chance) |  | 50.2 | 49.7 | 49.0 | 43.8 | 43.8 | 53.5 | 51.1 | 59.1 | 59.0 |
+| xc1 (x-combo1) | 49.8 |  | 49.7 | 49.1 | 43.9 | 43.8 | 53.2 | 50.5 | 58.7 | 58.8 |
+| xc3 (x-combo3) | 50.3 | 50.3 |  | 49.4 | 44.4 | 44.3 | 54.0 | 51.3 | 59.5 | 59.7 |
+| pp (aMCTS-pp) | 51.0 | 50.9 | 50.6 |  | 44.1 | 44.2 | 53.3 | 51.5 | 59.1 | 59.4 |
+| aMC (aMCTS-cur) | 56.2 | 56.1 | 55.6 | 55.9 |  | 49.9 | 59.0 | 55.9 | 63.5 | 63.1 |
+| pMC (pMCTS-cur) | 56.2 | 56.2 | 55.7 | 55.8 | 50.1 |  | 58.5 | 55.8 | 63.5 | 63.0 |
+| a1s (a1step-cur) | 46.5 | 46.8 | 46.0 | 46.7 | 41.0 | 41.5 |  | 47.4 | 55.6 | 58.0 |
+| DRpv (DraftRec-pv) | 48.9 | 49.5 | 48.7 | 48.5 | 44.1 | 44.2 | 52.6 |  | 58.5 | 60.0 |
+| Real (Real) | 40.9 | 41.3 | 40.5 | 40.9 | 36.5 | 36.5 | 44.4 | 41.5 |  | 50.2 |
+| GD (GD) | 41.0 | 41.2 | 40.3 | 40.6 | 36.9 | 37.0 | 42.0 | 40.0 | 49.8 |  |
+
+- The matrix is consistent with the Bradley–Terry order: under J the three versions of the selected design tie with each other (49.5 to 50.5) and beat every other system; `aMCTS-pp` is next, then DraftRec-pv and the aware one-step drafter; paper 1's MCTS, real drafts and GD are last.
+- No three systems form a cycle in which each beats the next with its CI above 50%, under either judge.
 
 ### Why the judged gain is below the drafter's own estimate (diagnosis)
 
@@ -200,23 +267,25 @@ What does cost the aware drafters is population win probability.
 | (b) player-feature prior (distilled) | aMCTS-pp | **60.4** | | 44.2 | 40.6 | 0.4 GPU-h targets + 1 CPU-min fit |
 | (c) value net with player features | aMCTS-vn | 54.5 | 58.8 (vs pMCTS-bc) | 41.0 | 31.2 | CPU minutes |
 | (d) self-play with real rosters | aMCTS-sp | 57.4 | | 49.3 | 38.2 | 1.1 GPU-h (4 iterations × 4,096 rosters, 800 sims) |
-| (b) + ten-player exploration (selected design) | x-combo1 | **60.8** | | 43.8 | 41.3 | as (b), plus the opponent model fit (CPU) |
+| (b) + ten-player exploration, DraftRec opponent at chance nodes (selected design) | x-combo1-dr-chance | **60.9** | | 43.8 | 41 + about 30 ms of host DraftRec inference | as (b), plus the DraftRec opponent fit (GPU seconds) |
+| the same with the comfort opponent | x-combo1 | 60.8 | | 43.8 | 41.3 | as (b), plus the opponent model fit (CPU) |
 | the same at 1,600 sims | x-combo3 | 60.7 | | 44.3 | 148 | as (b) |
 
 - Computing the ten players' states costs about 0.1 ms per player-day (one walk for all players of a lobby).
 - The F policy itself took 8.3 GPU-hours per seed (3080).
 
 **Design study.** Tune lobbies first (300, never the tournament lobbies; selection score = mean J against pMCTS-cur and aMCTS-pp). The design is the distilled player-feature prior + denial bans (λ 3) + opponent comfort model inside the tree (×2) + assignment-aware root bias (×1).
-- Before the kernel fix the rule picked it at 1,600 sims (`x-combo3`). On the rerun tune lobbies the rule picks the same design at 400 sims (`x-combo1`, tune J 56.07 against 55.84 for `x-combo3`; the gap is inside the noise). `x-combo1` is reported as the selected design and `x-combo3` next to it; on the tournament lobbies they tie.
+- Before the kernel fix the rule picked it at 1,600 sims (`x-combo3`). On the rerun tune lobbies the rule picks the same design at 400 sims (`x-combo1`, tune J 56.07 against 55.84 for `x-combo3`). With the DraftRec opponent variants added on 2026-10-20 (rule stated before they played), `x-combo1-dr-chance` scores 56.27 and becomes the selected design. All three gaps are inside the noise, and on the tournament lobbies the three versions tie (49.5 to 50.5% against each other).
 - A split-history version (`x-combo3-split`, drafter state from odd days) also played the tune lobbies (56.39); it is a robustness arm for the split judge, not a candidate.
 
-**Pre-stated design comparison:** the selected design against `aMCTS-pp` on the tournament lobbies is **51.6% under J (51.0, 52.1)** for `x-combo1`, with CONS 49.1 (48.7, 49.5). `x-combo3`: 51.6% (51.1, 52.1), CONS 49.4 (49.0, 49.8).
+**Pre-stated design comparison:** the selected design against `aMCTS-pp` on the tournament lobbies is **51.9% under J (51.4, 52.4)** for `x-combo1-dr-chance`, with CONS 49.0 (48.6, 49.4). `x-combo1`: 51.6% (51.0, 52.1), CONS 49.1; `x-combo3`: 51.6% (51.1, 52.1), CONS 49.4.
 
 Each component added alone to `aMCTS-pp`, against `aMCTS-pp`:
 
 | design | J vs aMCTS-pp (CI) | CONS vs aMCTS-pp (CI) | tune-set J | GPU ms per draft |
 |---|---|---|---|---|
-| x-combo1 (selected) | 51.6 (51.0, 52.1) | 49.1 (48.7, 49.5) | 56.1 | 41 |
+| x-combo1-dr-chance (selected) | 51.9 (51.4, 52.4) | 49.0 (48.6, 49.4) | 56.3 | about 70 |
+| x-combo1 (comfort opponent) | 51.6 (51.0, 52.1) | 49.1 (48.7, 49.5) | 56.1 | 41 |
 | x-combo3 (same, 1,600 sims) | 51.6 (51.1, 52.1) | 49.4 (49.0, 49.8) | 55.8 | 148 |
 | denial bans (λ 3) | 51.0 (50.4, 51.5) | 49.1 (48.7, 49.5) | 55.5 | 41 |
 | opponent comfort model (×2) | 50.4 (50.0, 50.8) | 50.2 (49.8, 50.5) | 54.9 | 41 |
@@ -269,9 +338,50 @@ Each component added alone to `aMCTS-pp`, against `aMCTS-pp`:
 - Rebuilt from the paper and its released code (player transformer over the last 50 games with scoreboard stats; draft transformer; pick and win heads, λ 0.1). Trained on 862,604 drafts through 2026-05-22 (1.2 GPU-hours).
 - OOT accuracy: pick top-1 36.0%, top-5 68.5%; post-draft win AUC 0.654.
 - Tournament results:
-  - BT under J: the pick head 0.51 and the paper's p+v rule 0.57, against 0.69 for `aMCTS-pp`, 0.74 for `x-combo1`, 0.49 for `a1step-cur` and 0.27 for paper-1 MCTS.
+  - BT under J: the pick head 0.50 and the paper's p+v rule 0.56, against 0.68 for `aMCTS-pp`, 0.74 for the selected design, 0.49 for `a1step-cur` and 0.27 for paper-1 MCTS.
   - Head to head: DraftRec vs real drafts 54.9% (J), vs a1step 50.4%.
-  - Under CONS the pick head is weak (BT 0.16): it imitates comfortable picks.
+  - Under CONS the pick head is weak (BT 0.14): it imitates comfortable picks.
+
+### DraftRec as the opponent inside the search (added 2026-10-20)
+
+The search's opponent (chance nodes and rollouts) was GD, or GD times the opponents' comfort. DraftRec predicts real picks far better, so a distilled version of its pick head became a third opponent model (`p3t_oppdr.py`).
+- **How it enters the kernel.** A transformer cannot run inside the CUDA search, so DraftRec runs once on the host at the decision state. Each later opponent step gets one static bias row in the kernel's opponent tensor:
+  - opponent pick: softmax(w0 log p_GD(in-tree state) + lp log q), q = DraftRec's mixture over the opponent's not-yet-assigned players for that pick turn, each read from his own history;
+  - opponent ban: the same with lb log r, r = DraftRec's mixture for our team's next pick (bans aimed at what we would pick).
+  - Fitted on 3,000 tournament-window lobbies outside the tournament, probe and tune sets (real actions only, no outcomes, nothing from the judge window): w0 0.52, lp 0.79, lb 0.35.
+  - `cfg[6] = 3` (new, kernel gate) keeps the model at chance nodes and gives rollouts plain GD. Determinism and parity gates pass with it (byte-identical reruns; identity rows reproduce the existing path; real rows change the search).
+- **Prediction quality** on 300 held-out fit lobbies (team mode: who picks is unknown, the tournament's rule), next real action:
+
+| opponent model | picks top-1 | picks NLL | bans top-1 | bans NLL |
+|---|---|---|---|---|
+| GD | 9.6% | 3.72 | 16.7% | 3.46 |
+| GD × comfort (the opponent of `x-combo1`, fitted scale) | 12.5% | 3.51 | (GD) | (GD) |
+| DraftRec opponent, as used in the kernel (bias read at the root) | **19.9%** | **3.18** | 16.8% | 3.42 |
+| DraftRec mixture alone, read at the root | 20.2% | 3.20 | 8.5% | 3.98 |
+| DraftRec mixture alone, exact state | 22.3% | 3.08 | | |
+| GD + DraftRec, exact state (not usable in the kernel) | 22.3% | 3.07 | | |
+
+  - DraftRec's 36% top-1 is in player mode (it knows which player picks). In team mode it is 21 to 22%. Reading it once at the decision state costs about 2 points of top-1.
+  - DraftRec says little about bans: the ban model is barely better than GD.
+- **Variants** (stated before they played, `p3t_explore.json`): `x-pp-dr` (`aMCTS-pp`'s design with the DraftRec opponent), `x-combo1-dr` (in place of the comfort opponent), each with a chance-node-only version (`-chance`), and `x-combo1-dr-drban` (denial bans aimed by DraftRec in place of the skill-based ones).
+
+**Results** (J and CONS on the 300 tournament lobbies, 95% CI; tune J = the selection score on the tune lobbies):
+
+| design | J vs aMCTS-pp | CONS vs aMCTS-pp | J vs its comfort-opponent twin | tune J | GPU+CPU s per draft |
+|---|---|---|---|---|---|
+| `x-pp-dr` (DraftRec opponent, chance nodes and rollouts) | 50.1 (49.7, 50.5) | 50.0 (49.7, 50.4) | vs `aMCTS-pp`: 50.1 | 55.08 | 0.11 |
+| `x-pp-dr-chance` (chance nodes only) | 50.7 (50.3, 51.1) | 50.4 (50.0, 50.7) | | 55.09 | 0.10 |
+| `x-combo1-dr` | 51.8 (51.3, 52.3) | 48.9 (48.6, 49.3) | vs `x-combo1`: 50.0 (49.5, 50.5) | 56.12 | 0.10 |
+| `x-combo1-dr-chance` (**selected**) | 51.9 (51.4, 52.4) | 49.0 (48.6, 49.4) | vs `x-combo1`: 50.5 (50.0, 51.0) | **56.27** | 0.11 |
+| `x-combo1-dr-drban` (denial bans aimed by DraftRec) | 52.3 (51.8, 52.8) | 49.4 (49.1, 49.8) | | 56.25 | 0.11 |
+| `x-combo1` (comfort opponent, for reference) | 51.6 (51.0, 52.1) | 49.1 (48.7, 49.5) | | 56.07 | 0.08 |
+
+- **A much better opponent model barely changes the drafts.** DraftRec doubles the opponent's predicted top-1 (9.6% to 19.9%), yet swapping it in moves J by 0.0 to 0.5pp against the same design with the old opponent, inside the search's own run-to-run noise (about 0.4pp). Three reasons fit the data:
+  - the bias is read once at the root, so deeper chance nodes see a stale prediction;
+  - the decide-only search spends 400 simulations over a few dozen of our candidates, and the opponent's reply mostly shifts all of them alike;
+  - the judges score the final teams, and a better guess of the opponent's next pick rarely changes which hero is best for us.
+- Chance nodes only and DraftRec-aimed denial bans are each a few tenths of a point better than the full version, again within noise.
+- **Selection.** By the pre-stated rule, `x-combo1-dr-chance` (tune J 56.27) replaces `x-combo1` (56.07) as the selected design. The margin is 0.2pp, smaller than the noise; the honest reading is that the three versions of this design tie, and DraftRec in the chance nodes costs about 30 ms of host inference per draft.
 
 ### Drift
 
@@ -386,7 +496,7 @@ Picking team's win, linear probability model, pp, SE clustered by player and gam
 - one-step about 40 ms of CPU across 12 processes;
 - policy-only drafters about 2 ms.
 
-**Tournament compute.** The 300-lobby round robin, spokes and design ablation are 472 ordered pairs, 4.7 hours of drafting time (5090 searches plus the one-step CPU pool); the tune set is 164 pairs, 2.1 hours. Scoring is CPU minutes.
+**Tournament compute.** The 300-lobby round robin, spokes, design ablation and the full matrix of main systems are 566 ordered pairs, about 6.2 hours of drafting time (5090 and 3090 searches plus the one-step CPU pool); the tune set is 184 pairs, 2.3 hours. Scoring is CPU minutes. The DraftRec opponent fit took seconds of GPU time after 3 CPU-minutes of history tensors.
 
 ## Design (fixed before the tournament)
 
@@ -555,7 +665,7 @@ Player-state upkeep: `aMCTS-cur@s4m` and `aMCTS-cur@s1y` use the current populat
   - **Value net v2**: the leaf's value net refit on 112K pre-tournament games.
   - **Rich prior**: at the decision state the prior becomes softmax(rich logits). It is applied as a static bias for our later in-tree picks.
   - **Sims**: 400 or 1,600.
-- **Selected design `x-combo3`** (pre-stated rule): the distilled prior + denial bans λ 3 + opponent model scale 2 + assignment bias ×1, at 1,600 sims. `x-combo1` is the same at 400 sims.
+- **Selected design** (pre-stated rule): `x-combo1-dr-chance`, the distilled prior + denial bans λ 3 + the DraftRec opponent at chance nodes (rollouts keep GD) + assignment bias ×1, at 400 sims. `x-combo1` is the same with the comfort opponent (×2) at chance nodes and in rollouts; `x-combo3` is `x-combo1` at 1,600 sims (the rule's pick before the kernel fix).
 
 ## Search prior: a player-blind trained prior hides the personal leaf (probe, before the tournament)
 
@@ -593,6 +703,7 @@ In `training/personalization/`:
 | `p3t_probe.py` | decision probe and timing |
 | `p3t_pprior.py`, `p3t_selfplay.py`, `p3t_vnet.py`, `p3t_vstudy.py`, `p3t_rprior.py`, `p3t_oppmodel.py` | design options and the design study |
 | `p3t_draftrec.py` | the DraftRec baseline |
+| `p3t_oppdr.py` | DraftRec as the opponent inside the search (fit lobbies, histories, fit, kernel rows) |
 | `p3t_verify.py`, `p3t_pvnet_verify.py`, `p3t_explore_verify.py`, `p3t_determinism.py` | kernel parity and determinism checks |
 | `p3t_vintages.json`, `p3t_explore.json` | the drafter configurations |
 
@@ -601,4 +712,4 @@ In `training/personalization/`:
 - Results: `results/p3t/*.json` (small JSON, no player keys) and `results/P3_TOURNAMENT_TABLES.md` (generated). Caches stay in `cache_full/p3t/` on the workers.
 - **Rerun:** `nohup nice -n 19 taskset -c 48-51 training/personalization/remote/p3t_pipeline.sh > training/personalization/logs/p3t_pipeline.log 2>&1 &`, after the personalization rerun has refit `full_ms` on the new store. It refits the judge on the other player half and runs every stage above in order.
   - The pipeline first rebuilds every P3 kernel and stops unless the determinism and parity checks pass.
-  - The exploration design is the one the rule picked on the rerun tune lobbies (`x-combo1`, with `x-combo3` reported next to it). The full-data rerun re-reports the tune table and keeps that choice.
+  - The exploration design is the one the rule picked on the tune lobbies (`x-combo1-dr-chance`, with `x-combo1` and `x-combo3` reported next to it). The full-data rerun re-reports the tune table and keeps that choice.

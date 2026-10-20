@@ -235,7 +235,7 @@ TUNE_EXTRA = ["aPol-rich-bcow", "aPol-rich-onestep", "aPol-rich-search", "aPol-p
 
 
 # the complete head-to-head matrix (coordinator 2026-10-20): every ordered pair among the main systems
-MAIN = ["x-combo1", "x-combo3", "x-combo1-dr", "x-pp-dr", "aMCTS-pp", "aMCTS-cur", "pMCTS-cur", "a1step-cur",
+MAIN = ["x-combo1-dr-chance", "x-combo1", "x-combo3", "x-combo1-dr", "x-pp-dr", "aMCTS-pp", "aMCTS-cur", "pMCTS-cur", "a1step-cur",
         "p1step-cur", "DraftRec", "DraftRec-pv", "Real", "GD"]
 DR_X = ["x-pp-dr", "x-pp-dr-chance", "x-combo1-dr", "x-combo1-dr-chance", "x-combo1-dr-drban"]
 
