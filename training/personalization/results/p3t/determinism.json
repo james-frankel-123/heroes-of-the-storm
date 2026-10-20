@@ -1,0 +1,43 @@
+{
+ "personal": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "prior": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "pvnet": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "explore": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "pass": true
+}

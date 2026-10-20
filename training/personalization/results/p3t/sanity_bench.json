@@ -1,25 +1,25 @@
 {
  "paper1_protocol": {
-  "gN": 0.6553,
+  "gN": 0.6551,
   "gN_naive": 0.674,
-  "RN": 0.6363,
-  "QM2026": 0.6653,
-  "consensus": 0.6577,
-  "gN_raw": 0.6532,
-  "RN_raw": 0.6323,
-  "QM2026_raw": 0.6612,
-  "degenerate_pct": 5.0
+  "RN": 0.6362,
+  "QM2026": 0.6651,
+  "consensus": 0.6576,
+  "gN_raw": 0.653,
+  "RN_raw": 0.6322,
+  "QM2026_raw": 0.661,
+  "degenerate_pct": 5.2
  },
  "tournament_settings": {
   "gN": 0.6667,
-  "gN_naive": 0.6692,
-  "RN": 0.6358,
-  "QM2026": 0.6527,
-  "consensus": 0.6561,
-  "gN_raw": 0.6633,
+  "gN_naive": 0.6691,
+  "RN": 0.6354,
+  "QM2026": 0.6517,
+  "consensus": 0.6557,
+  "gN_raw": 0.6635,
   "RN_raw": 0.6287,
-  "QM2026_raw": 0.6456,
-  "degenerate_pct": 1.4
+  "QM2026_raw": 0.645,
+  "degenerate_pct": 1.6
  },
  "paper1_table_F": {
   "gN": 0.662,

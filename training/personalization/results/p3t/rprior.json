@@ -3,9 +3,9 @@
   "signal": "search",
   "states": 30000,
   "val_states": 3080,
-  "val_loss": 2.9966061115264893,
-  "val_top1_vs_target": 0.3808441460132599,
-  "F_prior_top1_vs_target": 0.20000000298023224
+  "val_loss": 3.0004777908325195,
+  "val_top1_vs_target": 0.3769480586051941,
+  "F_prior_top1_vs_target": 0.20227272808551788
  },
  "bcow": {
   "signal": "bcow",

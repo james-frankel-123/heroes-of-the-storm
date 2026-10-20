@@ -302,7 +302,10 @@ def score_all():
         if os.path.exists(p):
             # recompute scores written under another judge fit (e.g. before a judge refit)
             old = np.load(p)
-            if "judge_c2" in old.files and abs(float(old["judge_c2"]) - judge["c2_skill"]) < 1e-9:
+            # and scores older than their drafts (a rerun pair)
+            src = os.path.join(TT.TDIR, f"{name}.npz")
+            fresh = not os.path.exists(src) or os.path.getmtime(src) <= os.path.getmtime(p)
+            if fresh and "judge_c2" in old.files and abs(float(old["judge_c2"]) - judge["c2_skill"]) < 1e-9:
                 continue
         t0 = time.time()
         sc = score_drafts(LB, acts, judge, truth)

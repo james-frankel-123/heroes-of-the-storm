@@ -2,32 +2,32 @@
  "vintage": "cur",
  "leaf": {
   "drafts": 256,
-  "max_abs_diff_wp": 6.556510925292969e-07,
-  "mean_abs_diff_wp": 1.394655555486679e-07,
-  "max_abs_diff_value": 6.854534149169922e-07,
-  "mean_abs_diff_value": 1.392909325659275e-07,
+  "max_abs_diff_wp": 5.364418029785156e-07,
+  "mean_abs_diff_wp": 1.3771932572126389e-07,
+  "max_abs_diff_value": 5.960464477539062e-07,
+  "mean_abs_diff_value": 1.3748649507761002e-07,
   "mean_abs_personal_shift": 0.08557605743408203
  },
  "decide": {
   "2": {
-   "agree_aware_blind": 0.99609375,
+   "agree_aware_blind": 0.984375,
    "blind_invariant_to_tensors": 1.0,
-   "sec_per_decision_aware": 0.034851349890232086,
-   "sec_per_decision_blind": 0.03240389097481966,
+   "sec_per_decision_aware": 0.015759045258164406,
+   "sec_per_decision_blind": 0.014927334152162075,
    "sims": 400
   },
   "7": {
-   "agree_aware_blind": 0.98046875,
+   "agree_aware_blind": 0.96484375,
    "blind_invariant_to_tensors": 1.0,
-   "sec_per_decision_aware": 0.028459767811000347,
-   "sec_per_decision_blind": 0.029339204542338848,
+   "sec_per_decision_aware": 0.01299264281988144,
+   "sec_per_decision_blind": 0.012667166069149971,
    "sims": 400
   },
   "13": {
-   "agree_aware_blind": 0.95703125,
+   "agree_aware_blind": 0.96875,
    "blind_invariant_to_tensors": 1.0,
-   "sec_per_decision_aware": 0.003362886607646942,
-   "sec_per_decision_blind": 0.0025348952040076256,
+   "sec_per_decision_aware": 0.001721666194498539,
+   "sec_per_decision_blind": 0.0013771727681159973,
    "sims": 400
   }
  },

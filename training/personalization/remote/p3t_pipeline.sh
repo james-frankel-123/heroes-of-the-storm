@@ -17,8 +17,8 @@
 # Every stage writes outputs atomically and skips finished outputs, so a rerun after a pause
 # continues. Delete $B/cache_full/p3t (both hosts) to start over. p3t_vintages.json is written
 # only on the 3090 (combfit, vnet) and fetched back right after; do not edit it while this runs.
-# The exploration design is the one selected on the tune lobbies on 2026-10-19 (x-combo3); the
-# rerun re-reports the tune table but keeps that choice, as stated in P3_TOURNAMENT.md.
+# The exploration design is the one the rule picked on the race-fixed tune rerun (x-combo1, with x-combo3
+# reported next to it); the rerun re-reports the tune table but keeps that choice (P3_TOURNAMENT.md).
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
 source training/remote_workers/_remote.sh

@@ -8,30 +8,30 @@
  ],
  "F:400": {
   "decisions": 5000,
-  "share_differ": 0.0442,
-  "own_q_gain_when_differ_pp": 5.087967446217171,
-  "root_visit_entropy_blind": 0.4372341189906001,
-  "gpu_sec": 43.38384175300598
+  "share_differ": 0.0438,
+  "own_q_gain_when_differ_pp": 5.19896068665535,
+  "root_visit_entropy_blind": 0.4372032026186585,
+  "gpu_sec": 116.26756262779236
  },
  "F:1600": {
   "decisions": 5000,
-  "share_differ": 0.0862,
-  "own_q_gain_when_differ_pp": 5.013259474335027,
-  "root_visit_entropy_blind": 0.433092319034785,
-  "gpu_sec": 154.12673377990723
+  "share_differ": 0.0826,
+  "own_q_gain_when_differ_pp": 4.967054966431264,
+  "root_visit_entropy_blind": 0.4334442128781229,
+  "gpu_sec": 451.3818075656891
  },
  "BC:400": {
   "decisions": 5000,
-  "share_differ": 0.5992,
-  "own_q_gain_when_differ_pp": 6.6231569998931175,
-  "root_visit_entropy_blind": 2.6870635484904053,
-  "gpu_sec": 37.328763008117676
+  "share_differ": 0.5904,
+  "own_q_gain_when_differ_pp": 6.413145736869434,
+  "root_visit_entropy_blind": 2.686364084099233,
+  "gpu_sec": 163.5895676612854
  },
  "BC:1600": {
   "decisions": 5000,
-  "share_differ": 0.648,
-  "own_q_gain_when_differ_pp": 6.73066516717275,
-  "root_visit_entropy_blind": 2.7872781540811062,
-  "gpu_sec": 139.85998344421387
+  "share_differ": 0.6512,
+  "own_q_gain_when_differ_pp": 6.667731711938428,
+  "root_visit_entropy_blind": 2.783250518900156,
+  "gpu_sec": 615.7091953754425
  }
 }

@@ -181,5 +181,5 @@
   "state": "splitd",
   "prior": "pprior"
  },
- "_best_design": "x-combo3 (selected on the tune lobbies by the pre-stated rule: highest mean J win probability against pMCTS-cur and aMCTS-pp, 55.78%)"
+ "_best_design": "x-combo1 (the pre-stated rule, highest mean J win probability against pMCTS-cur and aMCTS-pp on the tune lobbies, on the race-fixed rerun: 56.07%; x-combo3, the same design at 1,600 sims, 55.84%, was picked before the 2026-10-19 kernel fix and is reported next to it)"
 }

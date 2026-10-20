@@ -246,8 +246,11 @@ def schedule(name):
         # the selected design also against the panel; split-history versions against the blind drafters
         for x in ABL:
             pairs += [(x, "aMCTS-pp"), ("aMCTS-pp", x)]
-        for o in PANEL + ["aMCTS-bc", "a1step-cur", "DraftRec-pv", "aMCTS-sp"]:
-            pairs += [("x-combo3", o), (o, "x-combo3")]
+        # x-combo3 was selected on the tune lobbies before the 2026-10-19 kernel fix; after it the
+        # same rule picks x-combo1 (the same design at 400 sims), so both play the panel
+        for x in ("x-combo3", "x-combo1"):
+            for o in PANEL + ["aMCTS-bc", "a1step-cur", "DraftRec-pv", "aMCTS-sp"]:
+                pairs += [(x, o), (o, x)]
         for x in ("x-combo3-split", "x-pp-split"):
             for o in ("pMCTS-cur", "pMCTS-bc"):
                 pairs += [(x, o), (o, x)]
@@ -289,7 +292,7 @@ def main():
                     help="onestep: only pairs with a one-step system (CPU pool); no-onestep: the others")
     ap.add_argument("--systems", default="", help="comma list: keep pairs with at least one of these systems")
     ap.add_argument("--exclude", default="", help="comma list of systems, or prefixes ending in *: drop pairs that use any")
-    ap.add_argument("--only-ready", action="store_true", help="skip pairs whose vintages are not in p3t_vintages.json yet")
+    ap.add_argument("--only-ready", action="store_true", help="skip pairs whose vintages are not in p3t_vintages.json yet or lack a policy file")
     a = ap.parse_args()
     if a.stage == "select":
         select()
@@ -297,8 +300,9 @@ def main():
     pairs = [tuple(x.split("__")) for x in a.pairs.split(",")] if a.pairs else schedule(a.schedule)
     if a.only_ready:
         vs = json.load(open(SY.VFILE))
-        pairs = [p for p in pairs if all(SY.SYSTEMS[s]["vint"] in vs and vs[SY.SYSTEMS[s]["vint"]].get("combiner")
-                                         for s in p)]
+        ok = lambda v: (v in vs and vs[v].get("combiner")
+                        and all(os.path.exists(SY.tpath(q)) for q in vs[v].get("policies") or []))
+        pairs = [p for p in pairs if all(ok(SY.SYSTEMS[s]["vint"]) for s in p)]
     if a.systems:
         keep = set(a.systems.split(","))
         pairs = [p for p in pairs if keep & set(p)]

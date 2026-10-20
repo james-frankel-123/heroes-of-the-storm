@@ -2,8 +2,8 @@
  "lobbies": 500,
  "sims": 400,
  "pMCTS-cur": {
-  "ms_per_decision": 4.276,
-  "ms_per_draft_8_decisions": 34.21
+  "ms_per_decision": 4.275,
+  "ms_per_draft_8_decisions": 34.2
  },
  "aMCTS-cur": {
   "ms_per_decision": 4.468,
@@ -30,27 +30,27 @@
   "ms_per_draft_8_decisions": 31.2
  },
  "x-combo3": {
-  "ms_per_decision": 18.417,
-  "ms_per_draft_8_decisions": 147.33
+  "ms_per_decision": 18.516,
+  "ms_per_draft_8_decisions": 148.13
  },
  "x-combo1": {
-  "ms_per_decision": 5.171,
-  "ms_per_draft_8_decisions": 41.37
+  "ms_per_decision": 5.166,
+  "ms_per_draft_8_decisions": 41.33
  },
  "x-pp-ban3": {
-  "ms_per_decision": 5.069,
-  "ms_per_draft_8_decisions": 40.55
+  "ms_per_decision": 5.078,
+  "ms_per_draft_8_decisions": 40.62
  },
  "x-pp-opp2": {
-  "ms_per_decision": 5.125,
-  "ms_per_draft_8_decisions": 41.0
+  "ms_per_decision": 5.128,
+  "ms_per_draft_8_decisions": 41.02
  },
  "x-pp-as1": {
   "ms_per_decision": 5.104,
   "ms_per_draft_8_decisions": 40.83
  },
  "x-pp": {
-  "ms_per_decision": 5.065,
-  "ms_per_draft_8_decisions": 40.52
+  "ms_per_decision": 5.059,
+  "ms_per_draft_8_decisions": 40.47
  }
 }

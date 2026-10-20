@@ -83,7 +83,7 @@
    "identical_win_prob": true,
    "identical_drafts": true,
    "identical_root_visit_distributions": true,
-   "max_nodes_used": 181,
+   "max_nodes_used": 179,
    "capacity_hits": 0
   },
   "valuation off, cfg57=1 assign, random tensors | sims 100": {
@@ -91,7 +91,7 @@
    "identical_win_prob": true,
    "identical_drafts": true,
    "identical_root_visit_distributions": true,
-   "max_nodes_used": 181,
+   "max_nodes_used": 179,
    "capacity_hits": 0
   },
   "personal terms zeroed | sims 100": {
@@ -99,7 +99,7 @@
    "identical_win_prob": true,
    "identical_drafts": true,
    "identical_root_visit_distributions": true,
-   "max_nodes_used": 181,
+   "max_nodes_used": 179,
    "capacity_hits": 0
   },
   "valuation off | sims 400": {
@@ -107,7 +107,7 @@
    "identical_win_prob": true,
    "identical_drafts": true,
    "identical_root_visit_distributions": true,
-   "max_nodes_used": 676,
+   "max_nodes_used": 684,
    "capacity_hits": 0
   },
   "valuation off, cfg57=1 assign, random tensors | sims 400": {
@@ -115,7 +115,7 @@
    "identical_win_prob": true,
    "identical_drafts": true,
    "identical_root_visit_distributions": true,
-   "max_nodes_used": 676,
+   "max_nodes_used": 684,
    "capacity_hits": 0
   },
   "personal terms zeroed | sims 400": {
@@ -123,7 +123,7 @@
    "identical_win_prob": true,
    "identical_drafts": true,
    "identical_root_visit_distributions": true,
-   "max_nodes_used": 676,
+   "max_nodes_used": 684,
    "capacity_hits": 0
   }
  },
@@ -133,5 +133,5 @@
   "c_population_identity": true
  },
  "pass": true,
- "seconds": 210.5
+ "seconds": 282.4
 }
