@@ -10,17 +10,19 @@
 - **Clusters do not buy anything measurable.** At 1 to 20 games, the cluster version has log loss 2.996 against 3.004 without clusters (top-1 29.5% vs 29.7%). At 0 games there is no history to place a player in a cluster, so both fall back to the population. Overall the no-cluster variant is slightly better (2.556 vs 2.573).
 - **Bans: identity barely improves prediction.** V2 top-1 is 16.5% vs 16.4% for the meta GD (log loss 3.468 vs 3.482). With a one-trick opponent still to pick: 15.6% vs 15.4%. Real teams target mains, but such bans are a small share of all bans, and most bans follow the meta.
 - **In the drafter (MCTS, 400 sims, 2,000 held-out lobbies):**
-  - Modeling opponents as themselves changes 24% of personalized pick recommendations and 29% of ban recommendations.
-  - The predicted V of the controlled team falls from 0.687 to 0.610, because opponents get their comfort heroes. The predicted gain over the population drafter under the same opponent model rises from +6.2 to +7.2pp per draft.
+  - Modeling opponents as themselves changes 29% of personalized pick recommendations and 35% of ban recommendations.
+  - The predicted V of the controlled team falls from 0.690 to 0.608, because opponents get their comfort heroes. The predicted gain over the population drafter under the same opponent model rises from +6.4 to +8.2pp per draft.
 - **Redone ban value inside MCTS** (personalized vs population ban at the same real state, personalized tree's Q):
-  - with GD opponents: +0.51pp per ban decision (+0.62 with a one-trick opponent still to pick);
-  - with personal-GD opponents: +0.62pp (+0.78);
-  - adding the personal-GD prior: +0.82pp (+1.49).
+  - with GD opponents: +0.88pp per ban decision (+0.92 with a one-trick opponent still to pick);
+  - with personal-GD opponents: +0.86pp (+1.01);
+  - adding the personal-GD prior: +1.10pp (+1.67).
 
-  These are a fifth to a quarter of the +3.4pp from the closed-form ban model (P3_EXTENSIONS section 8). The search finds part of that value. The share of recommended bans that hit a remaining opponent's main rises from 10.7% to 20.0% (real teams: 13.3%).
-- **A personal-GD prior for our own picks makes self-play much broader.** It gives 61.1 effective heroes (BC prior 41.3, population 38.6, real 73.5), correlation with real hero shares 0.77 (vs 0.65), and off-role picks of 7.5% (vs 20.5%).
+  These are a quarter to a third of the +3.4pp from the closed-form ban model (P3_EXTENSIONS section 8). The search finds part of that value. The share of recommended bans that hit a remaining opponent's main rises from 10.2% to 19.0% (real teams: 13.3%).
+- **A personal-GD prior for our own picks makes self-play much broader.** It gives 64.3 effective heroes (BC prior 41.9, population 38.9, real 73.5), correlation with real hero shares 0.73 (vs 0.65), and off-role picks of 7.6% (vs 20.1%).
 
 Revised 2026-10-01 after the consolidated audit (combiner and personal tables on counts from earlier days); changes are logged in `P3_AUDIT_FIXES.md`.
+
+**Section 3 rerun 2026-10-19 on race-fixed kernels.** The P3 kernels had a race in the main draft loop that mattered when steps were skipped (decide-only searches at real states, forced bans). Every MCTS number in section 3 and in the summary above was rerun on the fixed kernels, with the v2 search (opponent turns as chance nodes), slot assignment and the training-window GD pool and BC prior, as in P3_DRAFTER. Paired personalized and population runs also no longer share a batch-cache key. Largest changes: the personal-GD opponent model no longer adds ban value over GD opponents (only the personal-GD prior does), and the predicted edge with personal-GD opponents and with the personal-GD prior grew.
 
 Drafter values are model-based. The realized-agreement check re-tests the skill model (P3_DRAFTER, team-level calibration) and is not used as evidence here. The non-circular evidence is the prediction accuracy of real opponent actions on held-out drafts in part 1.
 
@@ -138,7 +140,7 @@ Type definitions (players with 30+ games): one-trick = main ≥ 50% of games, sp
 
 - **Picks.** Identity is worth 21 to 25 points of top-1 at 1+ games of history and 62 points for one-tricks. Most of the gain is already in the imitation model; the personal GD adds 0.5 to 1 point and calibrates mains (0.69 vs 0.68 real).
 - **Clusters.** The ablation shows the preference clusters and embedding do not help where they were meant to. Even at 1 to 20 games the player's own counts and recency carry the signal (cluster gain: −0.2 points of top-1, +0.008 log loss). With no history there is nothing to place a player in a cluster with. Real cold start (0 games) is about 1.5% of slots; for those, both variants equal the population model. Preference structure is very stable across players (split-half 0.98), but for an individual its information is already in his own few games.
-- **Bans.** They are mostly meta. The personal ban head improves log loss by only 0.014 to 0.018 over the meta GD and does not reach the paper-1 GD's ban log loss (3.41 on V2, in sample; 3.69 on post), which has much more training data. Targeting mains is real (13.3% of real bans hit a remaining opponent's main, against 10.4% for the population ban choice in MCTS) but too rare to move accuracy.
+- **Bans.** They are mostly meta. The personal ban head improves log loss by only 0.014 to 0.018 over the meta GD and does not reach the paper-1 GD's ban log loss (3.41 on V2, in sample; 3.69 on post), which has much more training data. Targeting mains is real (13.3% of real bans hit a remaining opponent's main, against 9.7% for the population ban choice in MCTS) but too rare to move accuracy.
 - **Base model.** The causal meta GD is a little worse than the paper-1 GD even out of sample (post log loss 3.85 vs 3.82 for picks, 3.73 vs 3.69 for bans). The meta-rate inputs do not make up for less training data. A personal head on the paper-1 GD would likely be slightly more accurate; for V2 it would be in sample.
 
 ## 3. The personalized GD as the opponent model in the personalized MCTS
@@ -152,34 +154,35 @@ Type definitions (players with 30+ games): one-trick = main ≥ 50% of games, sp
 **Verification** (`p3_pgd_verify.json`):
 
 - With both flags off, it is identical to the personal kernel (actions, WP and root visits on 64 episodes).
-- The kernel's personal-GD probabilities match Python to 3.3e-7 over 336 real pick and ban states.
+- The kernel's personal-GD probabilities match Python to 4.2e-7 over 336 real pick and ban states (race-fixed sm_86 build, `results/racefix/p3_pgd_verify.json`).
+- The sm_120 (RTX 5090) build of this kernel fails with an illegal memory access on the first launch, with or without the race fix; the personal and prior kernels run there without error. The runs below used the 3090 and 3080.
 
-**Protocol.** The P3_DRAFTER protocol: pools are the heroes played before the game day, no real bans are forced (our bans are searched; the other team's come from the GD), and the value uses the combiner and personal tables on counts from earlier days (b2 = 3.61). 400 sims, argmax root, same lobbies and seeds as the other MCTS runs (`p3_fix_drafters.py pgd`, `results/fix/p3_pgd_mcts.json`).
+**Protocol.** The P3_DRAFTER protocol: pools are the heroes played before the game day, no real bans are forced (our bans are searched; the other team's come from the GD), and the value uses the combiner and personal tables on counts from earlier days (b2 = 3.61). 400 sims, v2 search with opponent turns as chance nodes, argmax root, same lobbies and seeds as the other MCTS runs (`p3_pgd_mcts.py`, `results/racefix/p3_pgd_mcts.json`; commands in `remote/p3_racefix_queue.json`).
 
 | configuration | value | prior | opponent, in-tree and rollout model |
 |---|---|---|---|
-| R1 | personal | BC | paper-1 GD (previous model, new protocol) |
+| R1 | personal | BC | training-window GD (the P3_DRAFTER model) |
 | R2 | personal | BC | personal GD |
 | R3 | personal | personal GD | personal GD |
-| P1 | population | BC | paper-1 GD |
+| P1 | population | BC | training-window GD |
 | P2 | population | BC | personal GD |
 
 **Recommendation changes at real states** (2,000 lobbies, 20,000 pick and 12,000 ban states):
 
 | | picks | bans |
 |---|---|---|
-| R2 vs R1: recommendation differs | 23.9% | 29.2% |
-| R3 vs R1: recommendation differs | 65.5% | 57.9% |
-| P2 vs P1 (population drafter) | 22.3% | 24.1% |
-| recommendation equals the real action: R1 / R2 / R3 | 19.4 / 19.6 / 33.7% | 15.2 / 15.2 / 15.6% |
+| R2 vs R1: recommendation differs | 28.7% | 35.2% |
+| R3 vs R1: recommendation differs | 69.1% | 66.7% |
+| P2 vs P1 (population drafter) | 28.3% | 30.3% |
+| recommendation equals the real action: R1 / R2 / R3 | 18.8 / 18.8 / 33.6% | 13.3 / 13.3 / 15.4% |
 
 **Personal gain per decision** (Q in the personalized tree, personalized choice minus the population choice under the same opponent model):
 
 | | picks | bans | bans, one-trick opponent with main free (20% of states) | bans, otherwise | recommended ban hits a remaining opponent's main |
 |---|---|---|---|---|---|
-| R1 vs P1 (GD opponents) | +1.57pp (1.52, 1.62) | +0.51 (0.49, 0.54) | +0.62 (0.57, 0.68) | +0.49 | 10.7% (population 10.0%) |
-| R2 vs P2 (personal-GD opponents) | +1.60 (1.55, 1.65) | **+0.62** (0.59, 0.64) | **+0.78** (0.69, 0.86) | +0.57 | 12.7% (population 10.4%) |
-| R3 vs P2 (+ personal-GD prior) | +1.91 (1.83, 1.98) | **+0.82** (0.78, 0.87) | **+1.49** (1.35, 1.64) | +0.65 | 20.0% |
+| R1 vs P1 (GD opponents) | +1.96pp (1.91, 2.02) | +0.88 (0.85, 0.92) | +0.92 (0.85, 0.99) | +0.87 | 10.2% (population 9.5%) |
+| R2 vs P2 (personal-GD opponents) | +1.82 (1.76, 1.87) | **+0.86** (0.83, 0.90) | **+1.01** (0.92, 1.10) | +0.83 | 12.1% (population 9.7%) |
+| R3 vs P2 (+ personal-GD prior) | +2.32 (2.24, 2.40) | **+1.10** (1.05, 1.15) | **+1.67** (1.53, 1.82) | +0.96 | 19.0% |
 
 Real bans hit a remaining opponent's main 13.3% of the time.
 
@@ -187,28 +190,28 @@ Real bans hit a remaining opponent's main 13.3% of the time.
 
 | | gain in V | change in WP_pop | mean V of the controlled team |
 |---|---|---|---|
-| R1 vs P1 | +6.2pp (5.5, 6.9) | −1.1 | 0.687 |
-| R2 vs P2 | +7.2pp (6.3, 8.1) | −0.2 | 0.610 |
-| R3 vs P2 | +12.1pp (11.2, 13.0) | −3.8 | 0.658 |
+| R1 vs P1 | +6.4pp (5.5, 7.2) | −0.9 | 0.690 |
+| R2 vs P2 | +8.2pp (7.3, 9.2) | −0.3 | 0.608 |
+| R3 vs P2 | +13.7pp (12.7, 14.7) | −2.9 | 0.662 |
 
 **Self-play meta:**
 
 | | R1 | R2 | R3 | P1 | P2 | real |
 |---|---|---|---|---|---|---|
-| effective heroes | 41.3 | 42.1 | **61.1** | 38.6 | 38.7 | 73.5 |
-| share of the 10 most-picked heroes | 50.2% | 48.7% | 37.0% | 52.0% | 51.5% | 25.7% |
-| correlation with real hero shares | 0.65 | 0.66 | **0.77** | 0.62 | 0.62 | |
-| off-role picks | 20.5% | 19.8% | **7.5%** | 33.6% | 33.6% | 15.8% |
+| effective heroes | 41.9 | 41.7 | **64.3** | 38.9 | 38.6 | 73.5 |
+| share of the 10 most-picked heroes | 48.4% | 48.7% | 34.7% | 51.0% | 50.4% | 25.7% |
+| correlation with real hero shares | 0.65 | 0.65 | **0.73** | 0.60 | 0.61 | |
+| off-role picks | 20.1% | 21.0% | **7.6%** | 33.9% | 34.6% | 15.8% |
 
 **Reading:**
 
-- **Opponents as themselves.** About a quarter of pick and a third of ban recommendations change. Predicted absolute value is more realistic: the controlled team's V drops 7.7pp because opponents now play their comfort heroes. Relative to a population drafter facing the same opponents, the personalized drafter's predicted edge grows (+7.2 vs +6.2pp per draft), because it can plan around who the opponents are.
-- **Ban value under MCTS is much smaller than the closed-form +3.4pp.** It is +0.62pp per ban with personal-GD opponents and +0.82 to +1.49pp (one-trick opponents) with the personal prior. Two reasons:
+- **Opponents as themselves.** About 29% of pick and 35% of ban recommendations change. Predicted absolute value is more realistic: the controlled team's V drops 8.2pp because opponents now play their comfort heroes. Relative to a population drafter facing the same opponents, the personalized drafter's predicted edge grows (+8.2 vs +6.4pp per draft), because it can plan around who the opponents are.
+- **Ban value under MCTS is much smaller than the closed-form +3.4pp.** It is +0.86pp per ban with personal-GD opponents, no more than with GD opponents (+0.88pp), and +1.10 to +1.67pp (one-trick opponents) with the personal prior. Two reasons:
   - The search compares two complete bans inside a model where the replacement pick is also searched and opponents re-optimize. The closed form assumed no adaptation beyond the next pick.
-  - With the BC prior, main bans get little prior mass, so search rarely explores them. The personal-GD prior doubles the one-trick case.
-  
+  - With the BC prior, main bans get little prior mass, so search rarely explores them. The personal-GD prior raises the one-trick case by two thirds (+1.67 vs +1.01pp) and nearly doubles how often the recommended ban hits a remaining opponent's main (19.0% vs 10.2%).
+
   So the ban value is real but smaller once opponents adapt. A 400-sim search still under-explores it.
-- **A personal prior fixes the narrow meta.** With priors from the personal GD (R3), self-play uses 61 effective heroes, tracks real hero shares (0.77) and puts fewer players off role than real drafts do (7.5% vs 15.8%). R3's recommendations also match real picks 34% of the time (vs 20%), as expected from a behavioral prior. Its larger predicted gain (+12.1pp at −3.8pp WP_pop) leans more on the personal value model. At the real states, the team-level calibration of P3_DRAFTER for R2 gives realized +6.5pp, predicted +4.5pp, remainder +2.0pp (−2.6, +6.9) for personalized agreement: the realized spread is what the skill model predicts.
+- **A personal prior fixes the narrow meta.** With priors from the personal GD (R3), self-play uses 64 effective heroes, tracks real hero shares (0.73) and puts fewer players off role than real drafts do (7.6% vs 15.8%). R3's recommendations also match real picks 34% of the time (vs 19%), as expected from a behavioral prior. Its larger predicted gain (+13.7pp at −2.9pp WP_pop) leans more on the personal value model. At the real states, the team-level calibration of P3_DRAFTER for R2 gives realized +1.1pp, predicted +2.0pp, remainder −1.0pp (−5.7, +3.4) for personalized agreement: the realized spread is what the skill model predicts.
 
 ## Caveats
 
@@ -226,7 +229,7 @@ Real bans hit a remaining opponent's main 13.3% of the time.
 - `p3_pgd_feats.py`: player-context walker (exact MAWP), preference embedding and clusters.
 - `p3_pgd_model.py`: personal pick and ban heads, ablation, breakdowns (`cache/pgd_personal.pt`, `results/p3_pgd_model.json`).
 - `cuda_pgd/`: kernel copy with the personalized GD.
-- `p3_pgd_mcts.py`: verification and MCTS runs (`results/p3_pgd_verify.json`, `cache/pgdmcts_*.pkl.gz`).
-- `p3_pgd_analyze.py`: MCTS tables (`results/p3_pgd_mcts.json`).
+- `p3_pgd_mcts.py`: verification and MCTS runs (`results/racefix/p3_pgd_verify.json`, `cache/mcts_v2/chance/pgdmcts_*.pkl.gz` on the workers).
+- `p3_pgd_analyze.py`: MCTS tables (`results/racefix/p3_pgd_mcts.json`).
 
-To rerun, from `training/` with `/usr/bin/python3`, 4 threads, `nice -n 19 taskset -c 48-63`, in this order: data (1 min), gd (18 min), model (80 min), mcts verify, real and full (1 GPU process, 16 min), analyze.
+To rerun, from `training/` with `/usr/bin/python3`, 4 threads, `nice -n 19 taskset -c 48-63`, in this order: data (1 min), gd (18 min), model (80 min), mcts verify, real and full (1 GPU process on an sm_86 card, 40 to 70 minutes each on a 3090 or 3080; commands in `remote/p3_racefix_queue.json`), analyze.

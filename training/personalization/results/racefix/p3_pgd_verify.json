@@ -1,0 +1,13 @@
+{
+ "flags_off_vs_personal_kernel": {
+  "episodes": 64,
+  "identical_actions": true,
+  "identical_wp": true,
+  "identical_root_visits": true
+ },
+ "kernel_pgd_vs_python": {
+  "states": 336,
+  "max_abs_diff": 4.172325134277344e-07,
+  "mean_max_abs_diff": 7.80481599349514e-08
+ }
+}
