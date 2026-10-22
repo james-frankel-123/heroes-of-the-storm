@@ -45,6 +45,10 @@ The dry-run manifest holds 107 files: 39 personalization, 11 upstream and the to
   - The tournament records its walk queries (`P3T_WALK_RECORD`), and this lane answers them (`p3_def.sh <D> answer <qdir> <adir>`).
   - Each answer gives s, sd and n over 90 heroes, in fractions of win probability. The MMR term is excluded and the layer is included.
   - Self-check: at the played hero, the state equals the chosen arm's own slot prediction to 1.5e-08 on 3,000 random V2 slots.
+  - Columns are in shared.HEROES order. n is the full-history merged count, checked by brute force.
+  - The evidence filter (ev_lo, parity, exclude window) applies to the state-space record, the shrinkage features, the direct scoreboard channel and the layer's residual terms.
+  - Full-history counts drive the experience offset, the new-hero flag and n.
+  - The tournament's format check caught two bugs in the first answer file: slot-table hero order and windowed n. Both are fixed, and its replay now refuses any n mismatch.
   - The dry-run query files are answered on the 3080 in `/home/max/hots/p3t_dry/walk_answers/`.
 
 ## Dry-run numbers (build dry1022, current panel)

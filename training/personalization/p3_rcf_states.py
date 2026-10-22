@@ -46,6 +46,16 @@ if os.environ.get("P3_RCF_STATE_ARMS"):
 QFIELDS = ("player_key", "as_of_day", "ev_lo", "ev_parity", "exclude_lo", "exclude_hi", "half", "hero")
 
 
+def sh_perm(hero_names):
+    """column permutation: shared.HEROES index i -> slot-table hero index"""
+    from shared import HEROES
+    s = {h: i for i, h in enumerate(HEROES)}
+    to_sh = np.array([s[str(h)] for h in hero_names], np.int64)
+    inv = np.empty(H, np.int64)
+    inv[to_sh] = np.arange(H)
+    return inv
+
+
 def arm_meta(name):
     z = np.load(os.path.join(R.RCF_RES, "p3c", f"{name}__merged.npz"))
     return json.loads(str(z["meta"]))
@@ -77,13 +87,14 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
     cmap = np.full(int(aug["n_players"]), -1, np.int64)
     cmap[up] = np.arange(len(up))
     pid = cmap[pid0]
-    act = (pid >= 0) & row_mask
+    act = pid >= 0                                           # rows of queried players (counts use all of them)
     npl = len(up)
     Mn = par.G.shape[0]
     Sst = np.zeros((npl, H))
     Pst = np.zeros((npl, H))
-    Nst = np.zeros((npl, H), np.float32)
-    Nsl = np.zeros((npl, H), np.float32)
+    Nst = np.zeros((npl, H), np.float32)                     # evidence rows (inside the filter)
+    Nfull = np.zeros((npl, H), np.float32)                   # every history row (full-history counts)
+    Nslf = np.zeros((npl, H), np.float32)                    # every slot row (experience offset)
     Xst = np.zeros((npl, H, Mn), np.float32)
     Cst = np.zeros((npl, H, Mn), np.float32)
     Lst = np.full((npl, H), -1, np.int32)
@@ -91,7 +102,7 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
     beta, mF, sF = (np.asarray(statlin["beta"]), np.asarray(statlin["mean"]), np.asarray(statlin["sd"]))
     nq = len(qpid)
     out = {k: np.empty((nq, H), np.float64) for k in ("mean", "var", "S", "P")}
-    out.update({k: np.empty((nq, H), np.float32) for k in ("n", "nsl", "stat")})
+    out.update({k: np.empty((nq, H), np.float32) for k in ("n", "nfull", "nslf", "stat")})
     out["last"] = np.empty((nq, H), np.int32)
     o = np.argsort(qday, kind="stable")
     ud, qs = np.unique(qday[o], return_index=True)
@@ -102,6 +113,10 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
         if e > ap:
             rr_all = np.arange(ap, e)
             rr_all = rr_all[act[rr_all]]
+            np.add.at(Nfull, (pid[rr_all], hero[rr_all]), 1.0)
+            slr = rr_all[slot[rr_all] >= 0]
+            np.add.at(Nslf, (pid[slr], hero[slr]), 1.0)
+            rr_all = rr_all[row_mask[rr_all]]
             dd_all = day[rr_all]
             ub, bs = np.unique(dd_all, return_index=True)
             be = np.r_[bs[1:], len(rr_all)]
@@ -121,8 +136,6 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
                 np.add.at(Sst, (pi, hi), aug["r_adj"][rr] / aug["v"][rr])
                 np.add.at(Pst, (pi, hi), 1.0 / aug["v"][rr])
                 np.add.at(Nst, (pi, hi), 1.0)
-                sl = slot[rr] >= 0
-                np.add.at(Nsl, (pi[sl], hi[sl]), 1.0)
                 Xm = metrics[rr].astype(np.float32)
                 g = ~np.isnan(Xm)
                 wr = mweights[rr].astype(np.float32)
@@ -142,7 +155,7 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
         m, v = R.posterior(par, Sq, Pq, hq, X=Xq, Cm=Cq, want_all=True)
         out["mean"][q], out["var"][q] = m, v
         out["S"][q], out["P"][q] = Sq, Pq
-        out["n"][q], out["nsl"][q] = Nst[pq], Nsl[pq]
+        out["n"][q], out["nfull"][q], out["nslf"][q] = Nst[pq], Nfull[pq], Nslf[pq]
         out["last"][q] = Lst[pq]
         Fh = Xq / (Cq + 5.0)                                 # (b, H, M)
         Fa = Xq.sum(1) / (Cq.sum(1) + 5.0)                   # (b, M)
@@ -226,12 +239,15 @@ def answer(qdir, adir, only=None):
             st = state_walk(aug, par, qpid[idx], Q["as_of_day"][idx].astype(np.int64), rm, mets, mw,
                             meta["q_win"], meta["q_met"], meta["statlin"])
             tq = Q["as_of_day"][idx].astype(np.int64) + 1
+            # n_all / np_all: evidence-window counts (the record the shrinkage and calibration describe);
+            # n_full: every history row (output n, the new-hero flag); slot counts for the offset
             n_all, np_all = st["n"].astype(np.float64), st["n"].sum(1, keepdims=True).astype(np.float64)
+            n_full = st["nfull"].astype(np.float64)
             # experience offset from slot-row counts
             table = aug["table"]
             nb = len(C.NPH_EDGES)
-            bp = np.searchsorted(C.NP_EDGES, st["nsl"].sum(1), side="right") - 1
-            bh = np.searchsorted(C.NPH_EDGES, st["nsl"], side="right") - 1
+            bp = np.searchsorted(C.NP_EDGES, st["nslf"].sum(1), side="right") - 1
+            bh = np.searchsorted(C.NPH_EDGES, st["nslf"], side="right") - 1
             mu = table[bp[:, None] * nb + bh]
             # shrinkage function on the own-hero record (closed-form leave-own-out)
             var = st["var"].astype(np.float64)
@@ -255,16 +271,18 @@ def answer(qdir, adir, only=None):
             lm = meta["layer"]
             rho, nu = layer_terms(d, lay, lm, qpid[idx], Q["as_of_day"][idx].astype(np.int64), filt)
             est = est.reshape(len(idx), H) + lm["drift_scale"] * rho[:, None] \
-                + lm["learn_scale"] * nu[:, None] * (n_all < 5)
+                + lm["learn_scale"] * nu[:, None] * (n_full < 5)
             # direct scoreboard channel, then the smooth calibration
             est = est + st["stat"]
             B2 = TL.shrink_basis(res, rich=2 if "rich=2" in meta["postcal"]["basis"] else True)
             est = est * (B2 @ np.asarray(meta["postcal"]["coef"])).reshape(len(idx), H)
             S_out[idx] = est
-            SD_out[idx] = np.sqrt(var * (1 + np.exp(-n_all / 10.0)))
-            N_out[idx] = n_all
+            SD_out[idx] = np.sqrt(var * (1 + np.exp(-n_full / 10.0)))
+            N_out[idx] = n_full
+        # columns in shared.HEROES order (column i = shared.HEROES[i])
+        perm = sh_perm(d["hero_names"])
         outp = {k: Q[k] for k in QFIELDS}
-        outp.update(s=S_out, sd=SD_out, n=N_out, known=qpid >= 0)
+        outp.update(s=S_out[:, perm], sd=SD_out[:, perm], n=N_out[:, perm], known=qpid >= 0)
         np.savez(os.path.join(adir, os.path.basename(fq)), **outp)
         print(f"answered {os.path.basename(fq)}: {nq:,} queries, {int((qpid >= 0).sum()):,} known players "
               f"({time.time() - t0:.0f}s)", flush=True)
@@ -285,10 +303,13 @@ def selfcheck(arm=None, n=3000, seed=0):
         np.savez(os.path.join(qd, "check.npz"), player_key=z["s_key"][i].astype(np.int64),
                  as_of_day=(z["s_day"][i] - 1).astype(np.int32), ev_lo=np.full(n, -1, np.int32),
                  ev_parity=np.zeros(n, np.int8), exclude_lo=np.full(n, -1, np.int32),
-                 exclude_hi=np.full(n, -1, np.int32), half=np.zeros(n, np.int8), hero=z["s_hero"][i].astype(np.int16))
+                 exclude_hi=np.full(n, -1, np.int32), half=np.zeros(n, np.int8), hero=np.full(n, -1, np.int16))
         answer(qd, ad)
         a = np.load(os.path.join(ad, "check.npz"))
-        s = a["s"][np.arange(n), z["s_hero"][i]]
+        from shared import HEROES
+        names = [str(h) for h in np.load(os.path.join(R.C.CACHE, "x_slots_ext.npz"), mmap_mode="r")["hero_names"]]
+        to_sh = np.array([HEROES.index(h) for h in names])
+        s = a["s"][np.arange(n), to_sh[z["s_hero"][i]]]
         diff = np.abs(s - z["s_pred"][i])
         print(f"selfcheck {arm}: max |state - arm prediction| {diff.max():.2e}, median {np.median(diff):.2e}")
         return diff
