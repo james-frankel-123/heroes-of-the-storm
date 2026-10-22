@@ -143,7 +143,7 @@
                     if (scratch.is_terminal()) { v2_done = 1; break; }
                     int team = scratch.current_team();
                     TreeNodeV2& nd = nodes[node_idx];
-                    if (team == scratch.our_team) {
+                    if (team == scratch.our_team && !P3_STRANGER(scratch.step)) {
                         if (v2_puct_node != node_idx) {
                             if (node_idx != 0) {
                                 own_ahead++;
@@ -175,7 +175,7 @@
                         int fa;
                         while (!scratch.is_terminal() && (fa = P3_FORCED(scratch)) >= 0)
                             scratch.apply_action(fa, scratch.current_team(), 0);
-                        nodes[ci].kind = v2_kind_of(scratch, mode);
+                        nodes[ci].kind = (!scratch.is_terminal() && P3_STRANGER(scratch.step)) ? KIND_CHANCE : v2_kind_of(scratch, mode);
                         node_idx = ci;
                         if (v2_path_len < MAX_PATH_DEPTH) v2_path[v2_path_len++] = node_idx;
                     } else if (mode == SEARCH_ROLLFWD) {
@@ -208,7 +208,7 @@
                         int fa;
                         while (!scratch.is_terminal() && (fa = P3_FORCED(scratch)) >= 0)
                             scratch.apply_action(fa, scratch.current_team(), 0);
-                        nodes[ci].kind = v2_kind_of(scratch, mode);
+                        nodes[ci].kind = (!scratch.is_terminal() && P3_STRANGER(scratch.step)) ? KIND_CHANCE : v2_kind_of(scratch, mode);
                         node_idx = ci;
                         if (v2_path_len < MAX_PATH_DEPTH) v2_path[v2_path_len++] = node_idx;
                     }

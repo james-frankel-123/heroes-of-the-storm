@@ -446,7 +446,7 @@ def act_mcts_x(vint, ctx, x, device=0):
     t = DRAFT_TEAM[k]
     B = len(ctx["acts"])
     use_ex = (bool(x.get("opp")) or bool(x.get("ban_bias")) or bool(x.get("ban_dr"))
-              or (bool(x.get("rich")) and not IS_PICK[k]))
+              or (bool(x.get("rich")) and not IS_PICK[k]) or "stranger" in ctx)
     kmod = M.load_module("explore_kernel" if use_ex else "pvnet_kernel",
                          os.path.join(HERE, "cuda_explore" if use_ex else "cuda_pvnet"))
     cfg = np.full((B, M.CFG_LEN), -1, np.int32)
@@ -455,6 +455,9 @@ def act_mcts_x(vint, ctx, x, device=0):
     cfg[:, 8:24] = np.where(np.arange(16)[None] < k, ctx["acts"], -1)
     cfg[:, 24:40] = ctx["slot_of"]
     cfg[:, 40:56] = -1
+    if "stranger" in ctx:
+        # party mode (p3t_party.py): our steps taken by stranger teammates are chance nodes
+        cfg[:, 40:56] = np.where(ctx["stranger"], -2, -1)
     cfg[:, 56:M.CFG_LEN] = 0
     cfg[:, M.CFG_ASSIGN] = 1
     s = ctx["s"].astype(np.float32).copy()
@@ -504,7 +507,13 @@ def act_mcts_x(vint, ctx, x, device=0):
     imit = np.zeros((B, 10, H), np.float32)
     coefs = np.array(b + [1.0, alpha], np.float32)
     dr_deny = None
-    if x.get("opp") == "dr":
+    if x.get("opp") and ctx.get("imit_override") is not None:
+        # party mode: per-player DraftRec rows for the opponents and the stranger teammates (p3t_party.py)
+        imit, w0 = ctx["imit_override"]
+        imit = np.ascontiguousarray(imit, np.float32)
+        cfg[:, 6] = 3 if x.get("opp_chance_only") else 2
+        coefs[4] = w0
+    elif x.get("opp") == "dr":
         # DraftRec opponent (p3t_oppdr.py): static per-decision rows read at the root;
         # opponent picks on their kernel slot rows, opponent bans on rows of our team
         import p3t_oppdr as OD

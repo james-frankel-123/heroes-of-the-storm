@@ -139,6 +139,45 @@ def main():
     ok &= res["pass"]
     out["explore_cfg6_3_gate"] = res
     print("explore cfg6=3 gate", json.dumps(res), flush=True)
+    # party mode (2026-10-22): cfg[40 + step] = -2 on our later steps = stranger chance nodes.
+    # Gates: reruns identical; flags on past steps only = no flags (no side effect); flags on
+    # future steps change the search (live); every decision stays legal.
+    pres = {}
+    k = 7
+    t = SY.DRAFT_TEAM[k]
+    ours_future = [s_ for s_ in range(k + 1, 16) if SY.DRAFT_TEAM[s_] == t]
+    ours_past = [s_ for s_ in range(0, k) if SY.DRAFT_TEAM[s_] == t]
+
+    def party_run(flag_steps):
+        cfg = np.full((n, M.CFG_LEN), -1, np.int32)
+        cfg[:, 0], cfg[:, 1], cfg[:, 2] = K["map"][:n], K["tier"][:n], t
+        cfg[:, 3], cfg[:, 4], cfg[:, 5], cfg[:, 6], cfg[:, 7] = 0, k, 1, 3, 1
+        cfg[:, 8:24] = np.where(np.arange(16)[None] < k, K["acts"][:n], -1)
+        cfg[:, 24:40] = K["slot_of"][:n]
+        cfg[:, 40:56] = -1
+        for s_ in flag_steps:
+            cfg[:, 40 + s_] = -2
+        cfg[:, 56:M.CFG_LEN] = 0
+        cfg[:, M.CFG_ASSIGN] = 1
+        cfg[:, 56] = 1
+        coefs = np.array([0, 1.2, 4.5, -0.02, 0.8, 0.3], np.float32)
+        args = [cfg, K["s"][:n].astype(np.float32), K["off"][:n].astype(np.float32), bias * 0.5, K["pool_bits"][:n],
+                coefs, bias, feat, vnet]
+        eng = (getattr(km, "PersonalEngine", None) or km.PriorEngine)(pf, gf, wf, po, go, wo, lut, max_concurrent=n,
+                                                                       device_id=0)
+        r = eng.run(*[np.ascontiguousarray(a) for a in args], 400, 2.0, 5151, 0.0, 0.3, 0.0, 1, search_mode=1)
+        del eng
+        return r[5][:, 0, :].copy()
+    base = party_run([])
+    fut1, fut2 = party_run(ours_future), party_run(ours_future)
+    past = party_run(ours_past)
+    pres["reruns_identical"] = bool(np.array_equal(fut1, fut2))
+    pres["past_flags_equal_no_flags"] = bool(np.array_equal(past, base))
+    pres["future_flags_change_search"] = bool(not np.array_equal(fut1, base))
+    pres["pass"] = pres["reruns_identical"] and pres["past_flags_equal_no_flags"] and pres["future_flags_change_search"]
+    ok &= pres["pass"]
+    out["explore_party_gate"] = pres
+    print("explore party gate", json.dumps(pres), flush=True)
     out["pass"] = bool(ok)
     os.makedirs(os.path.join(C.RESULTS, "p3t"), exist_ok=True)
     json.dump(out, open(os.path.join(C.RESULTS, "p3t", "determinism.json"), "w"), indent=1)

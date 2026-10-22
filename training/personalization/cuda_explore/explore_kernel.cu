@@ -13,6 +13,8 @@
  *    the pvnet kernel unchanged.
  *  - cfg[6] = 3 (2026-10-20): as 2 at chance nodes, open-loop steps and the main
  *    loop, but rollouts keep plain GD for the opponent (P3_OPP_ROLL).
+ *  - party mode (2026-10-22): cfg[40 + step] = -2 on our steps = a stranger teammate's step,
+ *    searched as a chance node (P3_STRANGER); see p3_search_v2.inc. v2 search only.
  * Original header (cuda_pvnet):
  * P3 learned personal value net variant (copy of cuda_prior/prior_kernel.cu,
  * option (c): a value net with per-lobby player features). Per episode a
@@ -265,7 +267,8 @@ __device__ void apply_prior_bias(float* pri, const float* mask, int step, const 
 // untouched (exact, avoids rounding from the log/exp round trip).
 __device__ __forceinline__ void opp_personalize(float* p, const float* mask, int step, int our,
                                                 const int* ecfg, const float* eimit, float w0) {
-    if ((ecfg[6] != 2 && ecfg[6] != 3) || step < 0 || step >= 16 || c_draft_team[step] == our) return;
+    if ((ecfg[6] != 2 && ecfg[6] != 3) || step < 0 || step >= 16) return;
+    if (c_draft_team[step] == our && ecfg[40 + step] != -2) return;   // our steps: only stranger steps (party mode)
     int row = ecfg[24 + step];
     if (row < 0 || row >= NUM_SLOTS) return;
     const float* b = eimit + row * NUM_HEROES;
@@ -498,6 +501,10 @@ __device__ float personal_value(float p_our, const DraftStateGPU& s, int our,
 #define P3_VALUE(V, ST) personal_value(V, ST, (ST).our_team, ecfg, epers, eoff, efeat, pa)
 // thread 0, after the GD softmax at an opponent step (chance cache, open-loop step, rollout)
 #define P3_OPP(ST, P) opp_personalize(P, mask_buf, (ST).step, (ST).our_team, ecfg, eimit, pa.imit_w0)
+// party mode (2026-10-22): cfg[40 + step] = -2 on one of OUR steps marks it as a stranger's
+// step (a chance node like an opponent step, distribution GD x row ecfg[24 + step]); -1 / >= 0 keep
+// their meaning (no forced ban / forced ban hero). Without -2 flags every path is unchanged.
+#define P3_STRANGER(st) ((st) >= 0 && (st) < 16 && ecfg[40 + (st)] == -2)
 // rollout steps: cfg[6] = 3 keeps the player-aware opponent at chance nodes and the main loop only
 #define P3_OPP_ROLL(ST, P) do { if (ecfg[6] != 3) P3_OPP(ST, P); } while (0)
 
