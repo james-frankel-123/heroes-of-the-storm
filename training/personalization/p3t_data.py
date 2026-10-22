@@ -322,7 +322,7 @@ def load_model(tag="full_ms"):
     import p3_rcf as R
     par = R.get_params(tag)
     d, aug = R.load_aug("merged")
-    mets, mw = R.aug_metrics(aug, par.meta.get("sb", "legacy")) if par.G is not None else (None, None)
+    mets, mw = R.aug_metrics(aug, par.meta.get("sb", "legacy"), d) if par.G is not None else (None, None)
     return par, d, aug, mets, mw
 
 
