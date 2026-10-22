@@ -29,6 +29,7 @@ GPU=${P3T_GPU_HOST:-windows-5090-wsl}
 GPU2=${P3T_GPU2_HOST:-3080-gaming-desktop}
 CPU_CORES=${P3T_CPU_CORES:-0-3,16-19}   # 3080: the nightly replay parse uses cores 4-15 from 22:40
 CPU_MEM=${P3T_CPU_MEM:-20G}          # 3080: lean jobs, at most 20 GB per lane
+GPU2_CORES=${P3T_GPU2_CORES:-16-19}  # 3080 tournament lane of run_gpu_pair (0-3 is the personalization agent's)
 B=/home/max/hots/repo/training/personalization
 # Input roots (2026-10-22): the definitive build is versioned by tag D (personalization lane):
 #   P3T_BUILD=<D>  ->  cache  $B/cache_def_<D>, results $B/results/def_<D>, merged rows from P3T_RCF_ROWS
@@ -67,7 +68,7 @@ run_gpu() { local n="p3t_${1}_$STAMP"; shift
 run_gpu_pair() {   # name step-args...: the same tournament step on both GPU hosts, shards 0/2 and 1/2
   local n="p3t_${1}_$STAMP"; shift
   P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "${n}_a" env P3T_PROCS=4 $ROOTENV "$@":--shard:0/2
-  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "${n}_b" env P3T_PROCS=4 $ROOTENV "$@":--shard:1/2
+  P3_CORES=$GPU2_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "${n}_b" env P3T_PROCS=4 $ROOTENV "$@":--shard:1/2
   wait_job $GPU "${n}_a"; wait_job $GPU2 "${n}_b"
   relay $GPU2 $GPU; }
 STEP="bash personalization/remote/p3t_run.sh"
@@ -172,7 +173,7 @@ run_cpu score $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py p3t_backtest.p
 run_cpu scoresplit env P3T_SPLIT=1 $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py
 run_cpu scoretune env P3T_LOBBYSET=tune $STEP p3t_judge.py:score p3t_analyze.py
 
-# 5b. the party drafter (P3_PARTY_DRAFTER.md) on its own lobby set (about 1,800 lobbies): party sizes
+# 5b. the party drafter (P3_PARTY_DRAFTER.md) on its own lobby set (up to 1,800 lobbies, 10-game rule): party sizes
 # 1-5 with random seats (4 arms), and the full slot grid (every turn set, both sides, with and without
 # the bans; aware and generic). Configurations sharded across both GPUs; scored on the 5090.
 relay $GPU $GPU2

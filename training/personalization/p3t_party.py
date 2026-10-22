@@ -68,9 +68,11 @@ BLIND = "x-blind-s400"
 LS = os.environ.get("P3T_LOBBYSET", "")
 OUT = os.path.join(TD.OUT, "party" + (f"_{LS}" if LS else ""))
 RES_NAME = "party" + (f"_{LS}" if LS else "")
-# the party study's own lobby set (P3T_LOBBYSET=party), sized for slot-level CIs (2026-10-22):
-N_PARTY = 1800            # target lobbies
-J_STRICT, J_FILL = 10, 5  # judge-window games per player: strict, then the fill-up threshold
+# the party study's own lobby set (P3T_LOBBYSET=party), sized for slot-level CIs with both team
+# sides pooled (coordinator, 2026-10-22): up to 1,800 lobbies, the tournament's strict judge rule only
+N_PARTY = 1800            # target lobbies; fewer if fewer meet the rule (all of them are used)
+N_PARTY_FLOOR = 1500      # below this, select flags the set for the coordinator
+J_STRICT = 10             # judge-window games per player (the tournament's rule)
 
 
 def plan(name):
@@ -328,11 +330,11 @@ def stage_run(plan_name, only=None, device=0, shard="0/1"):
 
 def stage_select():
     """The party study's lobby set: real tournament-window lobbies (2026-05-23 to 06-30, never the
-    sealed build) whose ten players all have 50+ earlier games. First every lobby whose players
-    all have J_STRICT+ judge-window games (the tournament's rule), then, if fewer than N_PARTY, lobbies
-    with J_FILL+ each in a fixed random order. The tune lobbies are left out (they chose the design);
-    the tournament lobbies may be included. Written before the probe, player-prior and opponent-model
-    lobbies are drawn, which then avoid this set (p3t_data.eval_lobbies)."""
+    sealed build) whose ten players all have 50+ earlier games and J_STRICT+ judge-window games (the
+    tournament's rule). N_PARTY drawn in a fixed random order, or every eligible lobby if fewer. The
+    tune lobbies are left out (they chose the design); the tournament lobbies may be included.
+    Written before the probe, player-prior and opponent-model lobbies are drawn, which then avoid
+    this set (p3t_data.eval_lobbies)."""
     from shared import MAPS
     L = TD.load_lobbies()
     cur = np.load(os.path.join(TD.OUT, "state_cur.npz"))
@@ -345,19 +347,16 @@ def stage_select():
     excl = set(np.load(tune)["gi"].tolist()) if os.path.exists(tune) else set()
     keep = np.array([g not in excl for g in win])
     strict = win[rich & keep & (jn >= J_STRICT)]
-    fill = win[rich & keep & (jn >= J_FILL) & (jn < J_STRICT)]
-    rng = np.random.RandomState(20261022)
-    sel = strict if len(strict) >= N_PARTY else np.r_[strict, rng.permutation(fill)[:N_PARTY - len(strict)]]
-    if len(sel) > N_PARTY:
-        sel = rng.permutation(sel)[:N_PARTY]
-    sel = np.sort(sel)
+    sel = np.sort(np.random.RandomState(20261022).permutation(strict)[:N_PARTY])
     d = os.path.join(TD.OUT, "tourney_party")
     os.makedirs(d, exist_ok=True)
     np.savez(os.path.join(d, "lobbies.npz"), gi=sel)
-    info = {"strict_available": int(len(strict)), "fill_available": int(len(fill)), "selected": int(len(sel)),
-            "from_fill": int(max(0, len(sel) - len(strict))), "target": N_PARTY}
+    info = {"strict_available": int(len(strict)), "selected": int(len(sel)), "target": N_PARTY,
+            "below_floor": bool(len(sel) < N_PARTY_FLOOR), "floor": N_PARTY_FLOOR}
     json.dump(info, open(os.path.join(d, "select.json"), "w"))
     print(f"party lobbies: {info}", flush=True)
+    if info["below_floor"]:
+        print(f"WARNING party lobby set below {N_PARTY_FLOOR}: report to the coordinator", flush=True)
 
 
 # ------------------------------------------------------------------ scoring
