@@ -18,7 +18,11 @@ q_day = Q["as_of_day"].astype(np.int64) + 1
 sh = np.asarray(TD.to_shared(d["hero_names"]))
 want = TD._merged_counts(aug, q_pid, q_day)            # d order
 n_d = A["n"][:, sh]                                     # answer is shared order; d hero i = shared sh[i]
+echo_bad = [k for k in Q.files if not np.array_equal(Q[k], A[k])]
+ok = np.array_equal(n_d, want) and not echo_bad
 print("merged-count guard:", "PASS" if np.array_equal(n_d, want) else f"FAIL ({float((n_d == want).mean()):.4f} of cells agree)")
+if not ok:
+    sys.exit(1)
 # reference: the old-model state's n for the same players (state_judge, shared order -> d order)
 L = TD.load_lobbies()
 sj = os.path.join(TD.OUT, "state_judge.npz")
