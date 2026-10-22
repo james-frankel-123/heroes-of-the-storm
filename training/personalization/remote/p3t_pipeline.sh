@@ -46,7 +46,7 @@ wait_job() {   # host name: poll hotsjob state until the job ends; fail on anyth
   done
 }
 run_cpu() { local n="p3t_${1}_$STAMP"; shift
-  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=6 $JOB $CPU "$n" env P3T_PROCS=6 "$@"
+  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=6 $JOB $CPU "$n" env P3T_PROCS=6 $WALKENV "$@"
   wait_job $CPU "$n"; }
 run_gpu() { local n="p3t_${1}_$STAMP"; shift
   P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "$n" env P3T_PROCS=4 "$@"
@@ -58,6 +58,7 @@ run_gpu_pair() {   # name step-args...: the same tournament step on both GPU hos
   wait_job $GPU "${n}_a"; wait_job $GPU2 "${n}_b"
   relay $GPU2 $GPU; }
 STEP="bash personalization/remote/p3t_run.sh"
+
 relay() {      # from-host to-host: cache_full/p3t (scores stay on the CPU host)
   mkdir -p "$RELAY"
   nice -n 19 rsync -rt --rsync-path="$(remote_rsync "$1")" --exclude 'scores*' --exclude 'premature' \
@@ -74,6 +75,24 @@ fetch_vintages() {
 }
 
 for h in $CPU $GPU; do training/personalization/remote/p3t_sync.sh $h; done
+
+# Inputs (2026-10-22): the pipeline refuses to start unless the definitive input manifest
+# (personalization/p3_manifest.py, shared with the personalization lane) verifies on both hosts.
+MANIFEST=${P3T_MANIFEST:?set P3T_MANIFEST to the definitive manifest (path relative to training/)}
+for h in $CPU $GPU; do
+  P3_CORES=0-3 P3_MEM=4G P3_THREADS=1 $JOB $h "p3t_manifest_$STAMP" python personalization/p3_manifest.py verify "$MANIFEST"
+  wait_job $h "p3t_manifest_$STAMP" || { echo "manifest does not verify on $h: refusing to start"; exit 1; }
+done
+# Player states (coordinator, 2026-10-22): the definitive tournament uses the personalization
+# lane's chosen model; the old full_ms states are the sensitivity. Two passes of this script:
+#   P3T_STATES=record  full_ms states, every walk's query list written to $B/cache_full/p3t_walk_queries
+#                      (archive cache_full/p3t and results/rcf_full/p3t as *_oldmodel afterwards)
+#   P3T_STATES=replay  P3T_WALK_ANSWERS=<dir>: the lane's answers to those queries replace the walk
+case "${P3T_STATES:-record}" in
+  record) WALKENV="P3T_WALK_RECORD=$B/cache_full/p3t_walk_queries" ;;
+  replay) WALKENV="P3T_WALK_REPLAY=${P3T_WALK_ANSWERS:?set P3T_WALK_ANSWERS for the replay pass}" ;;
+  *) echo "P3T_STATES must be record or replay"; exit 2 ;;
+esac
 
 # 0. rebuild every P3 kernel (race-fixed 2026-10-19) and gate on determinism and parity (5090)
 # (the 5090's compile needs about 20 GB for the nvcc step: run its build with P3T_BUILD_MEM, default 20G)
