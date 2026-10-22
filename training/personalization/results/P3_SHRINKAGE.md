@@ -182,6 +182,47 @@ If the tournament report wants a calibrated default that moves, it is logit J_ca
 
 Caveat: the judge components were produced on the 3090 on 2026-10-19 (values finite, c2 and c3 refit to within 0.01). They should be rechecked after the memory test.
 
+## 6. Display band for the chosen model
+
+**Band.** The per-hero number is shown as estimate ± 1.28 √D at 80%, with D = s² (1 + exp(−games on the hero / 10)):
+- s² is the state-space walk's posterior variance at the hero, as of the day before;
+- the extra term doubles the variance for a never-played hero, adds 37% at 10 games and fades out by 30.
+
+Median display sd on V2 + OOT slots:
+
+| games on the hero | 0 | 1-9 | 10-29 | 30-99 | 100-299 | 300+ |
+|---|---|---|---|---|---|---|
+| display sd | 5.7pp | 4.5pp | 3.4pp | 2.8pp | 2.5pp | 2.1pp |
+| 80% half-width | ±7.3pp | ±5.7pp | ±4.3pp | ±3.6pp | ±3.2pp | ±2.7pp |
+
+**Method** (`p3_rcf_band.py`).
+- Cells: player × hero with 10+ slot games in a window.
+- Error: e = the mean over the cell's games of (r − online prediction).
+- Game noise of e: s_w² / n, taken from the spread of the cell's own errors. This avoids the WP noise model, which is about 5% off (fitted scale 0.95) and moves every variance ratio by more than the band itself.
+- Tests: the moment ratio (mean e² − noise) / mean D, with player-bootstrap CIs, and 80% coverage.
+
+**Results.** The raw posterior variance s² is close:
+
+| window | moment ratio (realized / claimed) | 80% coverage |
+|---|---|---|
+| V1 | 1.07 (0.43-1.70) | 0.78 |
+| V2 | 0.82 (0.25-1.45) | 0.79 |
+| OOT | 0.34 (0.11-0.57) | 0.80 |
+
+**Thin records.** Cells with 0-9 games on the hero are the exception. Their moment ratio is 2.26 (1.16-3.44) on V1, 1.37 (0.35-2.27) on V2 and 0.74 (0.48-1.01) on OOT, and coverage is 0.76-0.79.
+- The V1 estimate alone (a factor of about 2 at 0-9 games) is not stable across windows.
+- I took the middle: A = 1 in D = s² (1 + A exp(−games / 10)).
+- With it, coverage at 0-9 games is 0.77 / 0.78 / 0.80 on V1 / V2 / OOT, and 0.78-0.81 elsewhere.
+
+**What did not work.**
+- **A V1-fitted smooth multiplier.** It wants 7x at 0 games and 0.12x at 300. It does not hold on V2 or OOT: thin-cell ratio 0.58 and 0.32.
+- **A coverage-matched thin inflation.** It needs 7x and over-covers OOT (0.85).
+- **Coverage as the fitting target.** With 10+ games per cell, the game noise of the cell mean (about 0.24 / n) is several times the band's own variance, so coverage hardly moves: doubling thin-cell variance moves it by 0.01. The moment ratios are the informative test, and they have wide CIs.
+
+**What the band claims.** It is honest to within these CIs. If anything it is too wide for records of 30+ games: the moment ratios there are near 0, which is within noise of the claimed variance. Nothing here supports narrowing it.
+
+Numbers: `results/rcf_shrink/rcf/band_chosen.json` and `band_moments.json`.
+
 ## Leak checks
 
 `tests/test_rcf.py`, 9 of 9 pass. New this round:
@@ -212,7 +253,7 @@ The layer's statistics and the walk use games on earlier days only (R3, R5, R6).
    - the temporal layer.
 
    It meets Max's criterion on held-out games: slope within about ±0.07 of 1 across 0 to 300 games, all shares and up to a year unplayed. It never shrinks a record harder than the data supports; where it is off, it trusts records slightly too much.
-2. The display band needs a refit for the new structure. The V1 scale fit (`cover`) assumes the Gaussian posterior and was not rerun for this model.
+2. Use the display band of section 6: D = s² (1 + exp(−games / 10)).
 3. For players' per-hero numbers, the shrinkage function's multipliers are the honest statement: a hero with 1-9 games deserves about twice the weight today's model shows.
 
 ## Files
