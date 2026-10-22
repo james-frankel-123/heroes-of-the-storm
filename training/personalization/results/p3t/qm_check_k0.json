@@ -1,0 +1,47 @@
+{
+ "qm_games_with_10_rows_from_2026_09_12": 35011,
+ "min_known_players_per_team": 0,
+ "games_used": 13669,
+ "unknown_hero_names": [
+  "Xal'atath"
+ ],
+ "known_players_per_game_mean": 1.68,
+ "games_by_known_players": [
+  0,
+  7867,
+  3474,
+  1495,
+  541,
+  219,
+  54,
+  11,
+  7,
+  1,
+  0
+ ],
+ "fit": {
+  "a_QM2026": [
+   0.839,
+   0.044
+  ],
+  "c2_skill": [
+   2.546,
+   0.385
+  ],
+  "c3_offrole": [
+   0.1957,
+   0.0323
+  ]
+ },
+ "sl_judge": {
+  "c2_skill": 4.528,
+  "c3_offrole": -0.0298
+ },
+ "log_loss": {
+  "coin": 0.69315,
+  "QM2026 alone (refit scale)": 0.67897,
+  "QM2026 + personal (refit)": 0.67708,
+  "QM2026 (refit scale) + SL judge's personal coefficients": 0.68336
+ },
+ "dS_sd": 0.0552
+}

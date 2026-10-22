@@ -215,5 +215,67 @@
   "opp": "dr",
   "assign_bias": 1.0
  },
- "_dr_rule": "DraftRec opponent variants (added 2026-10-20, stated before any of them played): x-pp-dr = aMCTS-pp's design with the DraftRec opponent at chance nodes and in rollouts; -chance = chance nodes only, rollouts keep GD; x-combo1-dr = x-combo1 with the DraftRec opponent in place of the comfort opponent; -drban = denial bans aimed by DraftRec (lambda 1 on its log-probability of the opponent's next pick) in place of the skill-based ones. Selection: the same rule on the tune lobbies (highest mean J against pMCTS-cur and aMCTS-pp). The best DraftRec variant replaces x-combo1 as the selected design only if its tune score is higher than x-combo1's (56.07)."
+ "_dr_rule": "DraftRec opponent variants (added 2026-10-20, stated before any of them played): x-pp-dr = aMCTS-pp's design with the DraftRec opponent at chance nodes and in rollouts; -chance = chance nodes only, rollouts keep GD; x-combo1-dr = x-combo1 with the DraftRec opponent in place of the comfort opponent; -drban = denial bans aimed by DraftRec (lambda 1 on its log-probability of the opponent's next pick) in place of the skill-based ones. Selection: the same rule on the tune lobbies (highest mean J against pMCTS-cur and aMCTS-pp). The best DraftRec variant replaces x-combo1 as the selected design only if its tune score is higher than x-combo1's (56.07).",
+ "x-sel-s100": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "sims": 100
+ },
+ "x-sel-s200": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "sims": 200
+ },
+ "x-sel-s800": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "sims": 800
+ },
+ "x-sel-s1600": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "sims": 1600
+ },
+ "x-blind-s100": {
+  "base": "cur",
+  "blind": true,
+  "sims": 100
+ },
+ "x-blind-s200": {
+  "base": "cur",
+  "blind": true,
+  "sims": 200
+ },
+ "x-blind-s400": {
+  "base": "cur",
+  "blind": true,
+  "sims": 400
+ },
+ "x-blind-s800": {
+  "base": "cur",
+  "blind": true,
+  "sims": 800
+ },
+ "x-blind-s1600": {
+  "base": "cur",
+  "blind": true,
+  "sims": 1600
+ },
+ "_sims_curve": "Search-budget curve (2026-10-21): x-sel-sN = the selected design x-combo1-dr-chance at N sims; x-blind-sN = the population-only search (pMCTS-cur's leaf and F prior) at N sims; each against pMCTS-cur at 400 sims on the tune lobbies."
 }

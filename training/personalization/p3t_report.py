@@ -64,6 +64,76 @@ def matrix(A):
     return L
 
 
+def validation():
+    """Paper-1 style validation tables (p3t_extra.py, p3t_qm.py, the sims curve and repeated runs)."""
+    L = []
+    W, Bh = j("wpseeds.json"), j("behavior.json")
+    if W and Bh:
+        L += ["", "## WP-seed rescoring and behavior (all tournament drafts of each system)", "",
+              f"WP by seed: mean P(win) of the system's drafts against its opponents under paper 1's enriched WP, seeds "
+              f"{', '.join(map(str, W['seeds']))} (the drafters' leaf is seed {W['leaf_seed']}); LCB = mean over drafts of the "
+              "minimum over seeds. Opponent sets differ by system, so compare spread and LCB gap, not levels. GD similarity: share "
+              "of the system's picks equal to GD's argmax at that state. Resilience: paper 1's, judge-window statistics.", "",
+              "| system | WP s42 | WP s123 | WP s777 | seed spread pp | LCB | distinct heroes | pick entropy (bits) | top-10 share "
+              "| GD similarity, picks | GD log-lik, picks | GD similarity, bans | resilience |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+        for s_ in sorted(W["systems"], key=lambda x: -W["systems"][x]["wp_by_seed"][str(W["leaf_seed"])]):
+            w, b = W["systems"][s_], Bh.get(s_, {})
+            ws = w["wp_by_seed"]
+            L.append(f"| {s_} | {ws['42']} | {ws['123']} | {ws['777']} | {w['spread_pp']} | {w['lcb_mean_min_over_seeds']} | "
+                     f"{b.get('distinct_heroes')} | {b.get('pick_entropy_bits')} | {b.get('top10_share')} | "
+                     f"{b.get('gd_similarity_picks')} | {b.get('gd_loglik_picks')} | {b.get('gd_similarity_bans')} | {b.get('resilience')} |")
+    P = j("probes.json")
+    if P:
+        L += ["", "## Personal probes on the 300 real drafts", "",
+              "| probe | lobbies | J change pp | share J ranks below real | CONS change pp | share CONS ranks below real | population WR change pp |",
+              "|---|---|---|---|---|---|---|"]
+        for k, v in P.items():
+            if isinstance(v, dict):
+                L.append(f"| {k} | {v['lobbies_with_probe']} | {v['judge_personal']['mean_change_pp']} | "
+                         f"{v['judge_personal']['share_ranked_below_real']} | {v['consensus']['mean_change_pp']} | "
+                         f"{v['consensus']['share_ranked_below_real']} | {v['population_wr_change_pp']} |")
+    Qs = [(k, j(f"qm_check_k{k}.json")) for k in (0, 1)]
+    if any(q for _, q in Qs):
+        L += ["", "## Quick Match check of the personal term", "",
+              "| games | known SL players per game | a (QM2026 logit) | c2 (SE) | c3 (SE) | SL judge c2 | log loss QM2026 | + personal (refit) | + SL coefficients |",
+              "|---|---|---|---|---|---|---|---|---|"]
+        for k, q in Qs:
+            if q:
+                f = q["fit"]
+                L.append(f"| {q['games_used']:,} ({'at least one per team' if k else 'at least one'}) | {q['known_players_per_game_mean']} | "
+                         f"{f['a_QM2026'][0]} | {f['c2_skill'][0]} ({f['c2_skill'][1]}) | {f['c3_offrole'][0]} ({f['c3_offrole'][1]}) | "
+                         f"{q['sl_judge']['c2_skill']} | {q['log_loss']['QM2026 alone (refit scale)']} | "
+                         f"{q['log_loss']['QM2026 + personal (refit)']} | {q['log_loss']['QM2026 (refit scale) + SL judge' + chr(39) + 's personal coefficients']} |")
+    T = j("analysis_tune.json")
+    if T and any("x-sel-s100" in k for k in T["h2h"]):
+        L += ["", "## Search-budget curve (tune lobbies, against pMCTS-cur at 400 sims)", "",
+              "| sims | selected design, J | selected design, CONS | blind search, J | blind search, CONS |", "|---|---|---|---|---|"]
+        def tc(a, m):
+            v = T["h2h"].get(f"{a} vs pMCTS-cur")
+            if v:
+                return v[m][:3]
+            v = T["h2h"].get(f"pMCTS-cur vs {a}")
+            return [100 - v[m][0], 100 - v[m][2], 100 - v[m][1]] if v else None
+        for n in (100, 200, 400, 800, 1600):
+            sel = "x-combo1-dr-chance" if n == 400 else f"x-sel-s{n}"
+            L.append(f"| {n} | {ci(tc(sel, 'judge_personal'))} | {ci(tc(sel, 'consensus'))} | "
+                     f"{ci(tc(f'x-blind-s{n}', 'judge_personal'))} | {ci(tc(f'x-blind-s{n}', 'consensus'))} |")
+    reps = [j(f"analysis_rep{n}.json") for n in (1, 2, 3)]
+    A = j("analysis.json")
+    if A and all(reps):
+        import statistics
+        L += ["", "## Repeated runs: the search's own noise (three extra kernel-seed offsets, same lobbies)", "",
+              "| matchup | J, original | J, reruns | SD of the four J values | CONS SD |", "|---|---|---|---|---|"]
+        for k in reps[0]["h2h"]:
+            if k not in A["h2h"]:
+                continue
+            vals = [A["h2h"][k]["judge_personal"][0]] + [r["h2h"][k]["judge_personal"][0] for r in reps]
+            cv = [A["h2h"][k]["consensus"][0]] + [r["h2h"][k]["consensus"][0] for r in reps]
+            L.append(f"| {k} | {vals[0]:.2f} | {', '.join(f'{x:.2f}' for x in vals[1:])} | {statistics.stdev(vals):.2f} | {statistics.stdev(cv):.2f} |")
+    return L
+
+
 def main():
     L = ["# P3 tournament tables (generated by p3t_report.py)", ""]
     A = j("analysis.json")
@@ -207,6 +277,7 @@ def main():
             if isinstance(v, dict):
                 L.append(f"| {k} | {100 * v['share_of_slots']:.1f}% | {v['players']:,} | {v['realized_pp']} ({v['realized_se']}) | "
                          f"{v['predicted_pp']} | {v['realized_minus_predicted_pp']} ({v['realized_minus_predicted_se']}) |")
+    L += validation()
     open(OUT, "w").write("\n".join(L) + "\n")
     print(f"wrote {OUT}")
 

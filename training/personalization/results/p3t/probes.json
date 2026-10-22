@@ -1,0 +1,39 @@
+{
+ "lobbies": 300,
+ "one hero -> never": {
+  "lobbies_with_probe": 214,
+  "judge_personal": {
+   "mean_change_pp": -7.69,
+   "share_ranked_below_real": 0.953
+  },
+  "consensus": {
+   "mean_change_pp": 1.02,
+   "share_ranked_below_real": 0.369
+  },
+  "population_wr_change_pp": 0.1
+ },
+ "one hero -> worst": {
+  "lobbies_with_probe": 300,
+  "judge_personal": {
+   "mean_change_pp": -9.35,
+   "share_ranked_below_real": 0.99
+  },
+  "consensus": {
+   "mean_change_pp": 0.04,
+   "share_ranked_below_real": 0.5
+  },
+  "population_wr_change_pp": -0.03
+ },
+ "all five -> never played": {
+  "lobbies_with_probe": 24,
+  "judge_personal": {
+   "mean_change_pp": -30.5,
+   "share_ranked_below_real": 1.0
+  },
+  "consensus": {
+   "mean_change_pp": 0.5,
+   "share_ranked_below_real": 0.5
+  },
+  "population_wr_change_pp": -0.14
+ }
+}

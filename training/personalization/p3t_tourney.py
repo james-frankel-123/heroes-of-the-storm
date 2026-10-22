@@ -186,6 +186,8 @@ def play(LB, a, b, device=0):
     secs = {a: 0.0, b: 0.0}
     fallback = np.zeros((n, 16), bool)
     h = int(hashlib.md5(f"{a}|{b}".encode()).hexdigest()[:7], 16)
+    # repeated runs (search noise): P3T_SEED_OFFSET shifts every kernel seed of the pair
+    h += 7919 * 1000 * int(os.environ.get("P3T_SEED_OFFSET", "0"))
     for k in range(16):
         s = a if SY.DRAFT_TEAM[k] == 0 else b
         ctx = ctx_for(LB, idx, acts, k, s, kseed=h + 1000 * k)
@@ -237,6 +239,11 @@ TUNE_EXTRA = ["aPol-rich-bcow", "aPol-rich-onestep", "aPol-rich-search", "aPol-p
 # the complete head-to-head matrix (coordinator 2026-10-20): every ordered pair among the main systems
 MAIN = ["x-combo1-dr-chance", "x-combo1", "x-combo3", "x-combo1-dr", "x-pp-dr", "aMCTS-pp", "aMCTS-cur", "pMCTS-cur", "a1step-cur",
         "p1step-cur", "DraftRec", "DraftRec-pv", "Real", "GD"]
+# repeated runs for search noise (2026-10-21): the search drafters of the main matrix with Real and GD
+REP = ["x-combo1-dr-chance", "x-combo1", "aMCTS-pp", "aMCTS-cur", "pMCTS-cur", "Real", "GD"]
+# search-budget curve on the tune lobbies: the selected design and a blind search, against pMCTS-cur (400 sims)
+SIMS_CURVE = [f"x-sel-s{n}" for n in (100, 200, 800, 1600)] + [f"x-blind-s{n}" for n in (100, 200, 400, 800, 1600)]
+
 DR_X = ["x-pp-dr", "x-pp-dr-chance", "x-combo1-dr", "x-combo1-dr-chance", "x-combo1-dr-drban"]
 
 ABL = DR_X + ["x-pp", "x-combo3", "x-combo1", "x-pp-ban3", "x-pp-opp2", "x-pp-as1", "x-pp-vn2", "x-pp-apos", "x-pp-s1600",
@@ -263,6 +270,11 @@ def schedule(name):
         for x in list(SY.explore_systems()) + TUNE_EXTRA:
             for o in TUNE_OPP:
                 pairs += [(x, o), (o, x)]
+    if name == "rep":
+        pairs += [(x, y) for x in REP for y in REP if x != y and not {x, y} <= {"Real", "GD"}]
+    if name == "simscurve":
+        for x in SIMS_CURVE + ["x-combo1-dr-chance"]:
+            pairs += [(x, "pMCTS-cur"), ("pMCTS-cur", x)]
     if name in ("matrix", "all"):
         pairs += [(x, y) for x in MAIN for y in MAIN if x != y]
     if name == "all":

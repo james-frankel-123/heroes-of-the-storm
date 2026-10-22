@@ -552,6 +552,8 @@ def act_mcts_x(vint, ctx, x, device=0):
         feat = np.log1p(ctx["n"].astype(np.float32))
         coefs[1] = vs_["vnet_b1"]
         cfg[:, 57] = 1
+    if x.get("blind"):
+        cfg[:, 7] = 0                                    # population leaf only (the pMCTS-cur search through this kernel)
     sims = int(x.get("sims", SIMS))
     cp = float(x.get("c_puct", 2.0))
     out = np.empty(B, np.int64)
