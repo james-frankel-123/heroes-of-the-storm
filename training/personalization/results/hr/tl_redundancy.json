@@ -1,0 +1,96 @@
+{
+ "players": 8874,
+ "min_games": 6,
+ "features": {
+  "deaths_pre10": {
+   "r2_from_scoreboard": 0.14527120017941852,
+   "half_mean_reliability": 0.31106247325790864,
+   "share_of_stable_part_explained": 0.46701615485121867
+  },
+  "deaths_pre_obj": {
+   "r2_from_scoreboard": 0.04925664771788407,
+   "half_mean_reliability": 0.10723757292350274,
+   "share_of_stable_part_explained": 0.4593226643894766
+  },
+  "death_enemy_half": {
+   "r2_from_scoreboard": 0.12742007551765155,
+   "half_mean_reliability": 0.2809166977494887,
+   "share_of_stable_part_explained": 0.4535866914941459
+  },
+  "death_isolated": {
+   "r2_from_scoreboard": 0.13050288596099247,
+   "half_mean_reliability": 0.29273423242706315,
+   "share_of_stable_part_explained": 0.4458067130686815
+  },
+  "death_overext": {
+   "r2_from_scoreboard": 0.08943329534394895,
+   "half_mean_reliability": 0.23624665767547595,
+   "share_of_stable_part_explained": 0.3785589867129483
+  },
+  "early_kp": {
+   "r2_from_scoreboard": 0.029165958757764843,
+   "half_mean_reliability": 0.1211801993426722,
+   "share_of_stable_part_explained": 0.2406825448049448
+  },
+  "obj_kp": {
+   "r2_from_scoreboard": 0.006367836338323163,
+   "half_mean_reliability": 0.07028259292961654,
+   "share_of_stable_part_explained": 0.09060332114809905
+  },
+  "enemy_half_share": {
+   "r2_from_scoreboard": 0.06263990482704274,
+   "half_mean_reliability": 0.21737289278951125,
+   "share_of_stable_part_explained": 0.2881679680625995
+  },
+  "move_per_min": {
+   "r2_from_scoreboard": 0.013144775188779101,
+   "half_mean_reliability": 0.30315735968234864,
+   "share_of_stable_part_explained": 0.043359578017674816
+  },
+  "merc_part": {
+   "r2_from_scoreboard": 0.08507613468223307,
+   "half_mean_reliability": 0.26675256668211983,
+   "share_of_stable_part_explained": 0.3189327688217354
+  },
+  "apm_cmd": {
+   "r2_from_scoreboard": 0.006932843538542732,
+   "half_mean_reliability": 0.9646388456492712,
+   "share_of_stable_part_explained": 0.007186983574019799
+  },
+  "apm_key": {
+   "r2_from_scoreboard": 0.01170401883610761,
+   "half_mean_reliability": 0.9425247502413885,
+   "share_of_stable_part_explained": 0.01241773102840017
+  },
+  "apm_camera": {
+   "r2_from_scoreboard": 0.004124896433782443,
+   "half_mean_reliability": 0.9886124841774192,
+   "share_of_stable_part_explained": 0.004172409816587121
+  },
+  "time_dead_share": {
+   "r2_from_scoreboard": 0.183972482723613,
+   "half_mean_reliability": 0.3779122962307393,
+   "share_of_stable_part_explained": 0.4868126402833058
+  },
+  "first_death_min": {
+   "r2_from_scoreboard": 0.11098886368145666,
+   "half_mean_reliability": 0.23049708008401032,
+   "share_of_stable_part_explained": 0.4815196081486327
+  },
+  "xp_lead10": {
+   "r2_from_scoreboard": -0.001754298114156283,
+   "half_mean_reliability": 0.032757893503742704,
+   "share_of_stable_part_explained": -0.05355344701746003
+  },
+  "level_lead10": {
+   "r2_from_scoreboard": -0.002600386934066945,
+   "half_mean_reliability": 0.03386020015819736,
+   "share_of_stable_part_explained": -0.07679774253896153
+  },
+  "first_merc_lead": {
+   "r2_from_scoreboard": 0.002192332854473844,
+   "half_mean_reliability": 0.029482239716859586,
+   "share_of_stable_part_explained": 0.07436113658692443
+  }
+ }
+}

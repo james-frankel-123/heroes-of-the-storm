@@ -1,0 +1,965 @@
+{
+ "lam": 1.0,
+ "nfold": 10,
+ "history_cohorts": [
+  3
+ ],
+ "state_0928_used": true,
+ "slots_with_state": 0.6006830167580881,
+ "unmatched_heroes": [
+  "Xal'atath"
+ ],
+ "target_slots": 661770,
+ "target_games": 66177,
+ "slots_with_tl_history": 226556,
+ "players_with_tl_history": 13321,
+ "slots_with_db_history": 514998,
+ "median_tl_history_games": 2.0,
+ "median_db_history_games": 8.0,
+ "games_by_players_with_tl_history": {
+  "0": 15124,
+  "1": 8865,
+  "2": 6557,
+  "3": 6038,
+  "4": 5753,
+  "5": 5457,
+  "6": 5458,
+  "7": 4982,
+  "8": 4067,
+  "9": 2752,
+  "10": 1124
+ },
+ "forward_split_day": 20735.0,
+ "coef_full_fit": {
+  "a_base": {
+   "hero_wr": 0.27808,
+   "win_rec_257": 0.08372,
+   "model": 0.30276
+  },
+  "b_sb_tlgames": {
+   "hero_wr": 0.27901,
+   "win_rec_257": 0.07374,
+   "model": 0.30111,
+   "hero_damage": 0.04405,
+   "siege_damage": 0.00936,
+   "structure_damage": -0.00393,
+   "healing": 0.01639,
+   "self_healing": -0.00475,
+   "protection_allies": -0.01283,
+   "damage_taken": 0.01096,
+   "deaths": -0.02825,
+   "kills": 0.03817,
+   "assists": 0.00254,
+   "experience_contribution": 0.01186,
+   "merc_camp_captures": -0.02321,
+   "outnumbered_deaths": -0.00278,
+   "escapes": -0.00744,
+   "regen_globes": 0.02176
+  },
+  "c_sb_tl_tlgames": {
+   "hero_wr": 0.27871,
+   "win_rec_257": 0.07209,
+   "model": 0.30176,
+   "hero_damage": 0.04218,
+   "siege_damage": 0.00353,
+   "structure_damage": -0.00182,
+   "healing": 0.01683,
+   "self_healing": -0.00619,
+   "protection_allies": -0.01233,
+   "damage_taken": 0.01851,
+   "deaths": 0.02584,
+   "kills": 0.04009,
+   "assists": 0.00322,
+   "experience_contribution": 0.0109,
+   "merc_camp_captures": -0.02222,
+   "outnumbered_deaths": -0.00446,
+   "escapes": -0.00893,
+   "regen_globes": 0.02259,
+   "deaths_pre10": 0.00504,
+   "deaths_pre_obj": -0.0088,
+   "death_enemy_half": -0.02346,
+   "death_isolated": -0.00412,
+   "death_overext": 0.01779,
+   "early_kp": 0.00476,
+   "obj_kp": -0.01343,
+   "enemy_half_share": 0.00188,
+   "move_per_min": 0.02207,
+   "merc_part": -0.00639,
+   "apm_cmd": -0.00034,
+   "apm_key": 0.02785,
+   "apm_camera": 0.01823,
+   "time_dead_share": -0.04974,
+   "first_death_min": -0.00123
+  },
+  "b_sb_all": {
+   "hero_wr": 0.28489,
+   "win_rec_257": 0.03914,
+   "model": 0.29122,
+   "db_hero_damage": 0.17033,
+   "db_siege_damage": 0.04952,
+   "db_structure_damage": 0.02539,
+   "db_healing": 0.03218,
+   "db_self_healing": 0.03048,
+   "db_protection_allies": -0.02874,
+   "db_damage_taken": -0.05823,
+   "db_deaths": -0.03476,
+   "db_kills": 0.08204,
+   "db_assists": 0.00366,
+   "db_experience_contribution": 0.02203,
+   "db_merc_camp_captures": -0.01084,
+   "db_outnumbered_deaths": -0.01473,
+   "db_escapes": 0.00316,
+   "db_regen_globes": 0.07419
+  },
+  "b2_sb_extra_all": {
+   "hero_wr": 0.28458,
+   "win_rec_257": 0.0363,
+   "model": 0.2913,
+   "db_hero_damage": 0.12267,
+   "db_siege_damage": 0.04474,
+   "db_structure_damage": 0.02617,
+   "db_healing": 0.03142,
+   "db_self_healing": 0.02747,
+   "db_protection_allies": -0.02746,
+   "db_damage_taken": -0.05189,
+   "db_deaths": -0.03501,
+   "db_kills": 0.08036,
+   "db_assists": -0.00307,
+   "db_experience_contribution": 0.02353,
+   "db_merc_camp_captures": -0.03805,
+   "db_outnumbered_deaths": -0.01522,
+   "db_escapes": 0.00184,
+   "db_regen_globes": 0.07478,
+   "db_stun_time": 0.01949,
+   "db_root_time": 0.00356,
+   "db_silence_time": 0.03033,
+   "db_tf_hero_damage": 0.05953,
+   "db_tf_damage_taken": -0.02126,
+   "db_tf_healing": 0.00232,
+   "db_minion_damage": 0.00275,
+   "db_creep_damage": 0.03035
+  },
+  "d_sb_all_tl": {
+   "hero_wr": 0.28482,
+   "win_rec_257": 0.03816,
+   "model": 0.29189,
+   "db_hero_damage": 0.16875,
+   "db_siege_damage": 0.04667,
+   "db_structure_damage": 0.02715,
+   "db_healing": 0.03272,
+   "db_self_healing": 0.03057,
+   "db_protection_allies": -0.02851,
+   "db_damage_taken": -0.05775,
+   "db_deaths": -0.03248,
+   "db_kills": 0.08376,
+   "db_assists": 0.00333,
+   "db_experience_contribution": 0.02145,
+   "db_merc_camp_captures": -0.00997,
+   "db_outnumbered_deaths": -0.01194,
+   "db_escapes": 0.00411,
+   "db_regen_globes": 0.07561,
+   "deaths_pre10": 0.01368,
+   "deaths_pre_obj": -0.0053,
+   "death_enemy_half": -0.01617,
+   "death_isolated": -0.00959,
+   "death_overext": 0.00954,
+   "early_kp": 0.00416,
+   "obj_kp": -0.00484,
+   "enemy_half_share": -0.00561,
+   "move_per_min": 0.01992,
+   "merc_part": -0.0123,
+   "apm_cmd": -0.00444,
+   "apm_key": 0.02203,
+   "apm_camera": 0.01645,
+   "time_dead_share": -0.00624,
+   "first_death_min": -0.00329
+  },
+  "d2_sb_extra_all_tl": {
+   "hero_wr": 0.28455,
+   "win_rec_257": 0.03534,
+   "model": 0.29204,
+   "db_hero_damage": 0.12197,
+   "db_siege_damage": 0.0414,
+   "db_structure_damage": 0.0282,
+   "db_healing": 0.03137,
+   "db_self_healing": 0.0276,
+   "db_protection_allies": -0.02712,
+   "db_damage_taken": -0.05164,
+   "db_deaths": -0.03215,
+   "db_kills": 0.08226,
+   "db_assists": -0.00288,
+   "db_experience_contribution": 0.02229,
+   "db_merc_camp_captures": -0.03606,
+   "db_outnumbered_deaths": -0.01264,
+   "db_escapes": 0.00293,
+   "db_regen_globes": 0.07641,
+   "db_stun_time": 0.01882,
+   "db_root_time": 0.00337,
+   "db_silence_time": 0.0309,
+   "db_tf_hero_damage": 0.05835,
+   "db_tf_damage_taken": -0.02071,
+   "db_tf_healing": 0.00348,
+   "db_minion_damage": 0.00368,
+   "db_creep_damage": 0.03062,
+   "deaths_pre10": 0.01558,
+   "deaths_pre_obj": -0.00461,
+   "death_enemy_half": -0.0175,
+   "death_isolated": -0.00832,
+   "death_overext": 0.01006,
+   "early_kp": 0.00276,
+   "obj_kp": -0.00481,
+   "enemy_half_share": -0.00596,
+   "move_per_min": 0.01933,
+   "merc_part": -0.01581,
+   "apm_cmd": -0.00351,
+   "apm_key": 0.01938,
+   "apm_camera": 0.01644,
+   "time_dead_share": -0.00875,
+   "first_death_min": -0.00201
+  },
+  "d3_all_with_team": {
+   "hero_wr": 0.28457,
+   "win_rec_257": 0.03495,
+   "model": 0.29199,
+   "db_hero_damage": 0.12261,
+   "db_siege_damage": 0.04166,
+   "db_structure_damage": 0.02869,
+   "db_healing": 0.03193,
+   "db_self_healing": 0.02794,
+   "db_protection_allies": -0.02755,
+   "db_damage_taken": -0.05195,
+   "db_deaths": -0.03196,
+   "db_kills": 0.08174,
+   "db_assists": -0.00282,
+   "db_experience_contribution": 0.02292,
+   "db_merc_camp_captures": -0.03689,
+   "db_outnumbered_deaths": -0.01314,
+   "db_escapes": 0.00288,
+   "db_regen_globes": 0.07653,
+   "db_stun_time": 0.01904,
+   "db_root_time": 0.00304,
+   "db_silence_time": 0.03083,
+   "db_tf_hero_damage": 0.05822,
+   "db_tf_damage_taken": -0.0205,
+   "db_tf_healing": 0.0031,
+   "db_minion_damage": 0.00276,
+   "db_creep_damage": 0.02958,
+   "deaths_pre10": 0.02117,
+   "deaths_pre_obj": -0.00488,
+   "death_enemy_half": -0.0178,
+   "death_isolated": -0.00699,
+   "death_overext": 0.00977,
+   "early_kp": 0.00271,
+   "obj_kp": -0.00442,
+   "enemy_half_share": -0.01142,
+   "move_per_min": 0.01931,
+   "merc_part": -0.01626,
+   "apm_cmd": -0.00366,
+   "apm_key": 0.01919,
+   "apm_camera": 0.01597,
+   "time_dead_share": -0.01024,
+   "first_death_min": -0.00044,
+   "xp_lead10": 0.00548,
+   "level_lead10": 0.00311,
+   "first_merc_lead": 0.01134
+  },
+  "d_plus_deaths_pre10": {
+   "hero_wr": 0.28488,
+   "win_rec_257": 0.0391,
+   "model": 0.29122,
+   "db_hero_damage": 0.17034,
+   "db_siege_damage": 0.04957,
+   "db_structure_damage": 0.0254,
+   "db_healing": 0.03217,
+   "db_self_healing": 0.03046,
+   "db_protection_allies": -0.0287,
+   "db_damage_taken": -0.05826,
+   "db_deaths": -0.03429,
+   "db_kills": 0.08209,
+   "db_assists": 0.00371,
+   "db_experience_contribution": 0.02199,
+   "db_merc_camp_captures": -0.01085,
+   "db_outnumbered_deaths": -0.01456,
+   "db_escapes": 0.00324,
+   "db_regen_globes": 0.07423,
+   "deaths_pre10": -0.00147
+  },
+  "d_plus_deaths_pre_obj": {
+   "hero_wr": 0.28488,
+   "win_rec_257": 0.03904,
+   "model": 0.29121,
+   "db_hero_damage": 0.17033,
+   "db_siege_damage": 0.04955,
+   "db_structure_damage": 0.0254,
+   "db_healing": 0.03214,
+   "db_self_healing": 0.03045,
+   "db_protection_allies": -0.02875,
+   "db_damage_taken": -0.05824,
+   "db_deaths": -0.03422,
+   "db_kills": 0.08216,
+   "db_assists": 0.00371,
+   "db_experience_contribution": 0.02197,
+   "db_merc_camp_captures": -0.01086,
+   "db_outnumbered_deaths": -0.0145,
+   "db_escapes": 0.0033,
+   "db_regen_globes": 0.07429,
+   "deaths_pre_obj": -0.00296
+  },
+  "d_plus_death_enemy_half": {
+   "hero_wr": 0.28499,
+   "win_rec_257": 0.03882,
+   "model": 0.29135,
+   "db_hero_damage": 0.17041,
+   "db_siege_damage": 0.04903,
+   "db_structure_damage": 0.02634,
+   "db_healing": 0.03217,
+   "db_self_healing": 0.03069,
+   "db_protection_allies": -0.02853,
+   "db_damage_taken": -0.05835,
+   "db_deaths": -0.03231,
+   "db_kills": 0.08266,
+   "db_assists": 0.00387,
+   "db_experience_contribution": 0.02229,
+   "db_merc_camp_captures": -0.01098,
+   "db_outnumbered_deaths": -0.01309,
+   "db_escapes": 0.00361,
+   "db_regen_globes": 0.07428,
+   "death_enemy_half": -0.01119
+  },
+  "d_plus_death_isolated": {
+   "hero_wr": 0.2849,
+   "win_rec_257": 0.03907,
+   "model": 0.29127,
+   "db_hero_damage": 0.1704,
+   "db_siege_damage": 0.0495,
+   "db_structure_damage": 0.0256,
+   "db_healing": 0.03199,
+   "db_self_healing": 0.03054,
+   "db_protection_allies": -0.02852,
+   "db_damage_taken": -0.05837,
+   "db_deaths": -0.03399,
+   "db_kills": 0.08223,
+   "db_assists": 0.00356,
+   "db_experience_contribution": 0.0223,
+   "db_merc_camp_captures": -0.01102,
+   "db_outnumbered_deaths": -0.01303,
+   "db_escapes": 0.00351,
+   "db_regen_globes": 0.07399,
+   "death_isolated": -0.00662
+  },
+  "d_plus_death_overext": {
+   "hero_wr": 0.28495,
+   "win_rec_257": 0.03912,
+   "model": 0.29124,
+   "db_hero_damage": 0.17043,
+   "db_siege_damage": 0.0493,
+   "db_structure_damage": 0.02587,
+   "db_healing": 0.03212,
+   "db_self_healing": 0.03061,
+   "db_protection_allies": -0.02861,
+   "db_damage_taken": -0.05839,
+   "db_deaths": -0.03438,
+   "db_kills": 0.08228,
+   "db_assists": 0.00356,
+   "db_experience_contribution": 0.02226,
+   "db_merc_camp_captures": -0.01106,
+   "db_outnumbered_deaths": -0.0136,
+   "db_escapes": 0.00326,
+   "db_regen_globes": 0.07411,
+   "death_overext": -0.00522
+  },
+  "d_plus_early_kp": {
+   "hero_wr": 0.2849,
+   "win_rec_257": 0.03903,
+   "model": 0.29123,
+   "db_hero_damage": 0.17036,
+   "db_siege_damage": 0.04948,
+   "db_structure_damage": 0.02537,
+   "db_healing": 0.03213,
+   "db_self_healing": 0.03045,
+   "db_protection_allies": -0.02866,
+   "db_damage_taken": -0.05827,
+   "db_deaths": -0.03465,
+   "db_kills": 0.08186,
+   "db_assists": 0.00317,
+   "db_experience_contribution": 0.02236,
+   "db_merc_camp_captures": -0.01088,
+   "db_outnumbered_deaths": -0.01467,
+   "db_escapes": 0.00314,
+   "db_regen_globes": 0.07404,
+   "early_kp": 0.00315
+  },
+  "d_plus_obj_kp": {
+   "hero_wr": 0.28489,
+   "win_rec_257": 0.03917,
+   "model": 0.29122,
+   "db_hero_damage": 0.17032,
+   "db_siege_damage": 0.04951,
+   "db_structure_damage": 0.02536,
+   "db_healing": 0.03218,
+   "db_self_healing": 0.03048,
+   "db_protection_allies": -0.02871,
+   "db_damage_taken": -0.0582,
+   "db_deaths": -0.0348,
+   "db_kills": 0.08205,
+   "db_assists": 0.00376,
+   "db_experience_contribution": 0.02199,
+   "db_merc_camp_captures": -0.01084,
+   "db_outnumbered_deaths": -0.01475,
+   "db_escapes": 0.00313,
+   "db_regen_globes": 0.0742,
+   "obj_kp": -0.00086
+  },
+  "d_plus_enemy_half_share": {
+   "hero_wr": 0.28493,
+   "win_rec_257": 0.03911,
+   "model": 0.29132,
+   "db_hero_damage": 0.17021,
+   "db_siege_damage": 0.04895,
+   "db_structure_damage": 0.027,
+   "db_healing": 0.03219,
+   "db_self_healing": 0.03073,
+   "db_protection_allies": -0.02883,
+   "db_damage_taken": -0.05788,
+   "db_deaths": -0.03454,
+   "db_kills": 0.0829,
+   "db_assists": 0.00429,
+   "db_experience_contribution": 0.02196,
+   "db_merc_camp_captures": -0.0112,
+   "db_outnumbered_deaths": -0.01406,
+   "db_escapes": 0.00334,
+   "db_regen_globes": 0.0744,
+   "enemy_half_share": -0.0078
+  },
+  "d_plus_move_per_min": {
+   "hero_wr": 0.2847,
+   "win_rec_257": 0.03865,
+   "model": 0.2916,
+   "db_hero_damage": 0.17094,
+   "db_siege_damage": 0.04858,
+   "db_structure_damage": 0.02574,
+   "db_healing": 0.03276,
+   "db_self_healing": 0.03045,
+   "db_protection_allies": -0.02897,
+   "db_damage_taken": -0.05824,
+   "db_deaths": -0.0342,
+   "db_kills": 0.08228,
+   "db_assists": 0.00321,
+   "db_experience_contribution": 0.02085,
+   "db_merc_camp_captures": -0.01251,
+   "db_outnumbered_deaths": -0.01506,
+   "db_escapes": 0.00333,
+   "db_regen_globes": 0.07575,
+   "move_per_min": 0.02178
+  },
+  "d_plus_merc_part": {
+   "hero_wr": 0.28492,
+   "win_rec_257": 0.03921,
+   "model": 0.2913,
+   "db_hero_damage": 0.17031,
+   "db_siege_damage": 0.04991,
+   "db_structure_damage": 0.0253,
+   "db_healing": 0.03222,
+   "db_self_healing": 0.03052,
+   "db_protection_allies": -0.02872,
+   "db_damage_taken": -0.05839,
+   "db_deaths": -0.03434,
+   "db_kills": 0.08199,
+   "db_assists": 0.0037,
+   "db_experience_contribution": 0.02159,
+   "db_merc_camp_captures": -0.00836,
+   "db_outnumbered_deaths": -0.01498,
+   "db_escapes": 0.00333,
+   "db_regen_globes": 0.07442,
+   "merc_part": -0.00816
+  },
+  "d_plus_apm_cmd": {
+   "hero_wr": 0.2848,
+   "win_rec_257": 0.03894,
+   "model": 0.29116,
+   "db_hero_damage": 0.16981,
+   "db_siege_damage": 0.04956,
+   "db_structure_damage": 0.02556,
+   "db_healing": 0.03248,
+   "db_self_healing": 0.03033,
+   "db_protection_allies": -0.0289,
+   "db_damage_taken": -0.05838,
+   "db_deaths": -0.0346,
+   "db_kills": 0.08212,
+   "db_assists": 0.00351,
+   "db_experience_contribution": 0.02194,
+   "db_merc_camp_captures": -0.01115,
+   "db_outnumbered_deaths": -0.0142,
+   "db_escapes": 0.00336,
+   "db_regen_globes": 0.07404,
+   "apm_cmd": 0.00873
+  },
+  "d_plus_apm_key": {
+   "hero_wr": 0.28475,
+   "win_rec_257": 0.039,
+   "model": 0.29107,
+   "db_hero_damage": 0.16848,
+   "db_siege_damage": 0.04737,
+   "db_structure_damage": 0.02554,
+   "db_healing": 0.03236,
+   "db_self_healing": 0.03021,
+   "db_protection_allies": -0.02867,
+   "db_damage_taken": -0.05856,
+   "db_deaths": -0.03486,
+   "db_kills": 0.08296,
+   "db_assists": 0.00337,
+   "db_experience_contribution": 0.02294,
+   "db_merc_camp_captures": -0.01247,
+   "db_outnumbered_deaths": -0.0134,
+   "db_escapes": 0.00345,
+   "db_regen_globes": 0.07411,
+   "apm_key": 0.02517
+  },
+  "d_plus_apm_camera": {
+   "hero_wr": 0.28488,
+   "win_rec_257": 0.03889,
+   "model": 0.29118,
+   "db_hero_damage": 0.16958,
+   "db_siege_damage": 0.05023,
+   "db_structure_damage": 0.02509,
+   "db_healing": 0.03232,
+   "db_self_healing": 0.03042,
+   "db_protection_allies": -0.02888,
+   "db_damage_taken": -0.05788,
+   "db_deaths": -0.03504,
+   "db_kills": 0.08173,
+   "db_assists": 0.00352,
+   "db_experience_contribution": 0.02139,
+   "db_merc_camp_captures": -0.01073,
+   "db_outnumbered_deaths": -0.0148,
+   "db_escapes": 0.0029,
+   "db_regen_globes": 0.07429,
+   "apm_camera": 0.02003
+  },
+  "d_plus_time_dead_share": {
+   "hero_wr": 0.28494,
+   "win_rec_257": 0.03882,
+   "model": 0.29132,
+   "db_hero_damage": 0.17034,
+   "db_siege_damage": 0.04956,
+   "db_structure_damage": 0.02553,
+   "db_healing": 0.03219,
+   "db_self_healing": 0.03039,
+   "db_protection_allies": -0.02843,
+   "db_damage_taken": -0.0581,
+   "db_deaths": -0.03173,
+   "db_kills": 0.08241,
+   "db_assists": 0.00387,
+   "db_experience_contribution": 0.02212,
+   "db_merc_camp_captures": -0.0106,
+   "db_outnumbered_deaths": -0.01329,
+   "db_escapes": 0.0037,
+   "db_regen_globes": 0.074,
+   "time_dead_share": -0.01027
+  },
+  "d_plus_first_death_min": {
+   "hero_wr": 0.28489,
+   "win_rec_257": 0.03912,
+   "model": 0.29123,
+   "db_hero_damage": 0.17033,
+   "db_siege_damage": 0.04953,
+   "db_structure_damage": 0.0254,
+   "db_healing": 0.03217,
+   "db_self_healing": 0.03049,
+   "db_protection_allies": -0.02873,
+   "db_damage_taken": -0.05825,
+   "db_deaths": -0.03451,
+   "db_kills": 0.08206,
+   "db_assists": 0.0037,
+   "db_experience_contribution": 0.02202,
+   "db_merc_camp_captures": -0.01086,
+   "db_outnumbered_deaths": -0.01465,
+   "db_escapes": 0.0032,
+   "db_regen_globes": 0.07424,
+   "first_death_min": 0.00083
+  }
+ },
+ "results": {
+  "all games": {
+   "games": 66177,
+   "base_ll": 0.6720156220668971,
+   "b_sb_tlgames vs a_base": {
+    "gain_x1000": 0.7268373653764564,
+    "se_game_x1000": 0.1729075605900647,
+    "se_dayblock_x1000": 0.16400756599001665
+   },
+   "c_sb_tl_tlgames vs b_sb_tlgames": {
+    "gain_x1000": 0.05051948401761182,
+    "se_game_x1000": 0.09570828442654421,
+    "se_dayblock_x1000": 0.08089735358827778
+   },
+   "b_sb_all vs a_base": {
+    "gain_x1000": 7.608004592287014,
+    "se_game_x1000": 0.4827499176996565,
+    "se_dayblock_x1000": 0.6724678013135065
+   },
+   "b2_sb_extra_all vs b_sb_all": {
+    "gain_x1000": 0.12487309350987279,
+    "se_game_x1000": 0.09070920853886294,
+    "se_dayblock_x1000": 0.10050866821094222
+   },
+   "d_sb_all_tl vs b_sb_all": {
+    "gain_x1000": -0.03993858204950726,
+    "se_game_x1000": 0.07760822096717195,
+    "se_dayblock_x1000": 0.07134322432987243
+   },
+   "d2_sb_extra_all_tl vs b2_sb_extra_all": {
+    "gain_x1000": -0.04010930147972543,
+    "se_game_x1000": 0.07693967308178232,
+    "se_dayblock_x1000": 0.06799861484901756
+   },
+   "d3_all_with_team vs d2_sb_extra_all_tl": {
+    "gain_x1000": -0.0224548937931858,
+    "se_game_x1000": 0.026611336955874615,
+    "se_dayblock_x1000": 0.024264575703305296
+   },
+   "d_plus_deaths_pre10 vs b_sb_all": {
+    "gain_x1000": -0.019644993439343218,
+    "se_game_x1000": 0.006152782560157752,
+    "se_dayblock_x1000": 0.007251069951757401
+   },
+   "d_plus_deaths_pre_obj vs b_sb_all": {
+    "gain_x1000": -0.016934189276866286,
+    "se_game_x1000": 0.007633879976774575,
+    "se_dayblock_x1000": 0.007684448554783714
+   },
+   "d_plus_death_enemy_half vs b_sb_all": {
+    "gain_x1000": 0.008061193236896498,
+    "se_game_x1000": 0.01958832551623095,
+    "se_dayblock_x1000": 0.018637329256200038
+   },
+   "d_plus_death_isolated vs b_sb_all": {
+    "gain_x1000": -0.019041910769130387,
+    "se_game_x1000": 0.01292952475652094,
+    "se_dayblock_x1000": 0.015578015848984583
+   },
+   "d_plus_death_overext vs b_sb_all": {
+    "gain_x1000": -0.0004194262097025413,
+    "se_game_x1000": 0.009548937571765611,
+    "se_dayblock_x1000": 0.01078761651504779
+   },
+   "d_plus_early_kp vs b_sb_all": {
+    "gain_x1000": -0.01120219892487511,
+    "se_game_x1000": 0.007301833067329917,
+    "se_dayblock_x1000": 0.005460811194805178
+   },
+   "d_plus_obj_kp vs b_sb_all": {
+    "gain_x1000": -0.01207088824229953,
+    "se_game_x1000": 0.004643801802592681,
+    "se_dayblock_x1000": 0.005570943299294947
+   },
+   "d_plus_enemy_half_share vs b_sb_all": {
+    "gain_x1000": -0.004509725535517893,
+    "se_game_x1000": 0.014521940234433055,
+    "se_dayblock_x1000": 0.011421200066276957
+   },
+   "d_plus_move_per_min vs b_sb_all": {
+    "gain_x1000": 0.04483323047927903,
+    "se_game_x1000": 0.04057801644673746,
+    "se_dayblock_x1000": 0.035684048932056456
+   },
+   "d_plus_merc_part vs b_sb_all": {
+    "gain_x1000": -0.005929410500504088,
+    "se_game_x1000": 0.015083199295434129,
+    "se_dayblock_x1000": 0.015022184533195431
+   },
+   "d_plus_apm_cmd vs b_sb_all": {
+    "gain_x1000": -0.015231296269309202,
+    "se_game_x1000": 0.017447546590348716,
+    "se_dayblock_x1000": 0.016966523736098676
+   },
+   "d_plus_apm_key vs b_sb_all": {
+    "gain_x1000": 0.05910496012093798,
+    "se_game_x1000": 0.047039741588160676,
+    "se_dayblock_x1000": 0.040777788142003356
+   },
+   "d_plus_apm_camera vs b_sb_all": {
+    "gain_x1000": 0.034346195470768344,
+    "se_game_x1000": 0.03775269592065383,
+    "se_dayblock_x1000": 0.038703005062997065
+   },
+   "d_plus_time_dead_share vs b_sb_all": {
+    "gain_x1000": -0.0026962358721750335,
+    "se_game_x1000": 0.01774013265693897,
+    "se_dayblock_x1000": 0.018043594221509796
+   },
+   "d_plus_first_death_min vs b_sb_all": {
+    "gain_x1000": -0.020280957724684457,
+    "se_game_x1000": 0.005858747707623612,
+    "se_dayblock_x1000": 0.007713943018936773
+   }
+  },
+  "3+ players with timeline history": {
+   "games": 35631,
+   "base_ll": 0.6677412009741545,
+   "b_sb_tlgames vs a_base": {
+    "gain_x1000": 1.4183953983698838,
+    "se_game_x1000": 0.30921609271119327,
+    "se_dayblock_x1000": 0.3075919762094928
+   },
+   "c_sb_tl_tlgames vs b_sb_tlgames": {
+    "gain_x1000": 0.2212584896431729,
+    "se_game_x1000": 0.16979623101686445,
+    "se_dayblock_x1000": 0.15167799700492685
+   },
+   "b_sb_all vs a_base": {
+    "gain_x1000": 8.749994653265727,
+    "se_game_x1000": 0.7255165811525455,
+    "se_dayblock_x1000": 0.5285378470365966
+   },
+   "b2_sb_extra_all vs b_sb_all": {
+    "gain_x1000": 0.1319947199373273,
+    "se_game_x1000": 0.141286357708452,
+    "se_dayblock_x1000": 0.16525534004626108
+   },
+   "d_sb_all_tl vs b_sb_all": {
+    "gain_x1000": 0.008110192240155469,
+    "se_game_x1000": 0.13729008255453848,
+    "se_dayblock_x1000": 0.13655647711509913
+   },
+   "d2_sb_extra_all_tl vs b2_sb_extra_all": {
+    "gain_x1000": 0.006575421256281279,
+    "se_game_x1000": 0.13620191868357268,
+    "se_dayblock_x1000": 0.13070165880802928
+   },
+   "d3_all_with_team vs d2_sb_extra_all_tl": {
+    "gain_x1000": -0.05025329811588998,
+    "se_game_x1000": 0.048245888770249365,
+    "se_dayblock_x1000": 0.04354929694441072
+   },
+   "d_plus_deaths_pre10 vs b_sb_all": {
+    "gain_x1000": -0.03540964221207955,
+    "se_game_x1000": 0.010754919490615805,
+    "se_dayblock_x1000": 0.011701280765212358
+   },
+   "d_plus_deaths_pre_obj vs b_sb_all": {
+    "gain_x1000": -0.028261020944407477,
+    "se_game_x1000": 0.013682109853141963,
+    "se_dayblock_x1000": 0.014765812594375132
+   },
+   "d_plus_death_enemy_half vs b_sb_all": {
+    "gain_x1000": 0.010593577254968341,
+    "se_game_x1000": 0.0345531952164898,
+    "se_dayblock_x1000": 0.038290724225331224
+   },
+   "d_plus_death_isolated vs b_sb_all": {
+    "gain_x1000": -0.04855167332897072,
+    "se_game_x1000": 0.022744644631684175,
+    "se_dayblock_x1000": 0.028266292907727017
+   },
+   "d_plus_death_overext vs b_sb_all": {
+    "gain_x1000": -0.013480345943922098,
+    "se_game_x1000": 0.01701611717518092,
+    "se_dayblock_x1000": 0.021121729966550633
+   },
+   "d_plus_early_kp vs b_sb_all": {
+    "gain_x1000": -0.018298898137153918,
+    "se_game_x1000": 0.013038987465913966,
+    "se_dayblock_x1000": 0.009518601639983896
+   },
+   "d_plus_obj_kp vs b_sb_all": {
+    "gain_x1000": -0.021178557275271678,
+    "se_game_x1000": 0.008365713937486731,
+    "se_dayblock_x1000": 0.00975264547611289
+   },
+   "d_plus_enemy_half_share vs b_sb_all": {
+    "gain_x1000": -0.023875330911303245,
+    "se_game_x1000": 0.025921529500111336,
+    "se_dayblock_x1000": 0.020382476838357255
+   },
+   "d_plus_move_per_min vs b_sb_all": {
+    "gain_x1000": 0.13184561909858694,
+    "se_game_x1000": 0.072652717159824,
+    "se_dayblock_x1000": 0.06222319223818444
+   },
+   "d_plus_merc_part vs b_sb_all": {
+    "gain_x1000": -0.006034231128033993,
+    "se_game_x1000": 0.026686033856674164,
+    "se_dayblock_x1000": 0.026877470512146017
+   },
+   "d_plus_apm_cmd vs b_sb_all": {
+    "gain_x1000": -0.024080623410455172,
+    "se_game_x1000": 0.0306378043122529,
+    "se_dayblock_x1000": 0.02981735644811297
+   },
+   "d_plus_apm_key vs b_sb_all": {
+    "gain_x1000": 0.12003119462800273,
+    "se_game_x1000": 0.08269091062962014,
+    "se_dayblock_x1000": 0.07563313128122837
+   },
+   "d_plus_apm_camera vs b_sb_all": {
+    "gain_x1000": 0.09286259218473604,
+    "se_game_x1000": 0.06664663469380981,
+    "se_dayblock_x1000": 0.06959702644063916
+   },
+   "d_plus_time_dead_share vs b_sb_all": {
+    "gain_x1000": -0.012735591594435726,
+    "se_game_x1000": 0.03077354782937001,
+    "se_dayblock_x1000": 0.030858038233473085
+   },
+   "d_plus_first_death_min vs b_sb_all": {
+    "gain_x1000": -0.03663537231795739,
+    "se_game_x1000": 0.010316122749237234,
+    "se_dayblock_x1000": 0.012695539250630201
+   }
+  },
+  "6+ players with timeline history": {
+   "games": 18383,
+   "base_ll": 0.6638034146214579,
+   "b_sb_tlgames vs a_base": {
+    "gain_x1000": 2.1897448100664065,
+    "se_game_x1000": 0.5084598271196635,
+    "se_dayblock_x1000": 0.4648060990558632
+   },
+   "c_sb_tl_tlgames vs b_sb_tlgames": {
+    "gain_x1000": 0.05691414470837569,
+    "se_game_x1000": 0.27351449628561947,
+    "se_dayblock_x1000": 0.23713319847321934
+   },
+   "b_sb_all vs a_base": {
+    "gain_x1000": 9.738463119417599,
+    "se_game_x1000": 1.0711918118056207,
+    "se_dayblock_x1000": 0.9510732172042495
+   },
+   "b2_sb_extra_all vs b_sb_all": {
+    "gain_x1000": -0.08647479991270686,
+    "se_game_x1000": 0.21112648546720753,
+    "se_dayblock_x1000": 0.250039866444448
+   },
+   "d_sb_all_tl vs b_sb_all": {
+    "gain_x1000": -0.11040787042988079,
+    "se_game_x1000": 0.22218692271007143,
+    "se_dayblock_x1000": 0.21655502123615078
+   },
+   "d2_sb_extra_all_tl vs b2_sb_extra_all": {
+    "gain_x1000": -0.09906069354530132,
+    "se_game_x1000": 0.22093533457431805,
+    "se_dayblock_x1000": 0.2069847706049745
+   },
+   "d3_all_with_team vs d2_sb_extra_all_tl": {
+    "gain_x1000": -0.16061620976286967,
+    "se_game_x1000": 0.0823279021230331,
+    "se_dayblock_x1000": 0.06924879824392631
+   },
+   "d_plus_deaths_pre10 vs b_sb_all": {
+    "gain_x1000": -0.05927136575367593,
+    "se_game_x1000": 0.01753168523525952,
+    "se_dayblock_x1000": 0.01914651074251791
+   },
+   "d_plus_deaths_pre_obj vs b_sb_all": {
+    "gain_x1000": -0.047598758653195156,
+    "se_game_x1000": 0.023076443299410065,
+    "se_dayblock_x1000": 0.025943683692159786
+   },
+   "d_plus_death_enemy_half vs b_sb_all": {
+    "gain_x1000": -0.0015749946747624902,
+    "se_game_x1000": 0.057148089993282115,
+    "se_dayblock_x1000": 0.06262570613003277
+   },
+   "d_plus_death_isolated vs b_sb_all": {
+    "gain_x1000": -0.06343059117137759,
+    "se_game_x1000": 0.03759071926121979,
+    "se_dayblock_x1000": 0.036800194606494606
+   },
+   "d_plus_death_overext vs b_sb_all": {
+    "gain_x1000": -0.024700828249612866,
+    "se_game_x1000": 0.028344617282891855,
+    "se_dayblock_x1000": 0.032519610949882455
+   },
+   "d_plus_early_kp vs b_sb_all": {
+    "gain_x1000": -0.03564472463849482,
+    "se_game_x1000": 0.02204077078525225,
+    "se_dayblock_x1000": 0.017353528536357275
+   },
+   "d_plus_obj_kp vs b_sb_all": {
+    "gain_x1000": -0.03232957331267932,
+    "se_game_x1000": 0.014076059379765887,
+    "se_dayblock_x1000": 0.013814831999852846
+   },
+   "d_plus_enemy_half_share vs b_sb_all": {
+    "gain_x1000": -0.05065097515391197,
+    "se_game_x1000": 0.043108817021116554,
+    "se_dayblock_x1000": 0.026690628721511105
+   },
+   "d_plus_move_per_min vs b_sb_all": {
+    "gain_x1000": 0.1625741440933925,
+    "se_game_x1000": 0.11923856143424069,
+    "se_dayblock_x1000": 0.1383549312490196
+   },
+   "d_plus_merc_part vs b_sb_all": {
+    "gain_x1000": -0.007641614150122836,
+    "se_game_x1000": 0.044108721433581397,
+    "se_dayblock_x1000": 0.04680909859254482
+   },
+   "d_plus_apm_cmd vs b_sb_all": {
+    "gain_x1000": -0.07394757400538306,
+    "se_game_x1000": 0.04836747750815046,
+    "se_dayblock_x1000": 0.050598844229494615
+   },
+   "d_plus_apm_key vs b_sb_all": {
+    "gain_x1000": 0.08358838906017994,
+    "se_game_x1000": 0.12907262197319153,
+    "se_dayblock_x1000": 0.11087464525865907
+   },
+   "d_plus_apm_camera vs b_sb_all": {
+    "gain_x1000": 0.09627377284961339,
+    "se_game_x1000": 0.10580490206241534,
+    "se_dayblock_x1000": 0.13151233615977648
+   },
+   "d_plus_time_dead_share vs b_sb_all": {
+    "gain_x1000": 0.004854331360427866,
+    "se_game_x1000": 0.049946014686109076,
+    "se_dayblock_x1000": 0.03289634380085906
+   },
+   "d_plus_first_death_min vs b_sb_all": {
+    "gain_x1000": -0.06502720428164525,
+    "se_game_x1000": 0.017022376073629858,
+    "se_dayblock_x1000": 0.017863468853909346
+   }
+  }
+ },
+ "forward": {
+  "test_games": 35317,
+  "b_sb_tlgames vs a_base": {
+   "gain_x1000": 0.667297470267739,
+   "se_dayblock_x1000": 0.22499013850560032
+  },
+  "c_sb_tl_tlgames vs b_sb_tlgames": {
+   "gain_x1000": -0.8365421993388741,
+   "se_dayblock_x1000": 0.14683155036319107
+  },
+  "b_sb_all vs a_base": {
+   "gain_x1000": 9.37583412701263,
+   "se_dayblock_x1000": 0.5785001069600565
+  },
+  "b2_sb_extra_all vs b_sb_all": {
+   "gain_x1000": -0.05225774833304116,
+   "se_dayblock_x1000": 0.24438526982340933
+  },
+  "d_sb_all_tl vs b_sb_all": {
+   "gain_x1000": -0.6168327625688915,
+   "se_dayblock_x1000": 0.13775504758614493
+  },
+  "d2_sb_extra_all_tl vs b2_sb_extra_all": {
+   "gain_x1000": -0.6769610195516015,
+   "se_dayblock_x1000": 0.13817329219027805
+  },
+  "d3_all_with_team vs d2_sb_extra_all_tl": {
+   "gain_x1000": -0.44719871366537867,
+   "se_dayblock_x1000": 0.14943580987289357
+  }
+ },
+ "history_days": [
+  20724.0,
+  20741.0
+ ],
+ "target_days": [
+  20724.0,
+  20748.0
+ ]
+}

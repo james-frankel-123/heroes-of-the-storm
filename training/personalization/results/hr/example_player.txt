@@ -1,0 +1,17 @@
+games before cutoff 5531, heroes with 20+ games 28, candidates 52
+most played: Hogger 1028 g, model -2.3pp; Orphea 882 g, model -3.7pp; Abathur 612 g, model +2.5pp; Gazlowe 551 g, model -0.6pp; Samuro 512 g, model -1.3pp; Malfurion 323 g, model +1.1pp
+top-5 main: Li Li (-0.9); Leoric (-1.8); Probius (-2.3); D.Va (-2.4); Sgt. Hammer (-2.5)
+top-5 pref: Lunara (+1.7); E.T.C. (+1.6); Arthas (+1.0); Thrall (+1.0); Whitemane (+1.0)
+top-5 imp2: Probius (+1.3); Li Li (-0.1); Leoric (-0.2); Arthas (-0.6); Kharazim (-0.6)
+top-5 sbsim: Gall (+7.0); Cho (+4.0); Rexxar (+3.6); Lunara (+3.0); Arthas (+3.0)
+taken up after cutoff (games after; early 1-10; later 11-50; rank pct main / pref / imp2):
+  Sylvanas: 25 g, early -35.6, later -13.3, pct main 0.80 pref 0.76 imp2 0.78, main score -5.8, before 0 g
+  Stitches: 15 g, early -5.0, later +nan, pct main 0.22 pref 0.25 imp2 0.14, main score -2.8, before 0 g
+  Kerrigan: 13 g, early -19.0, later +nan, pct main 0.82 pref 0.88 imp2 0.96, main score -5.9, before 1 g
+  Thrall: 62 g, early -45.1, later +1.4, pct main 0.49 pref 0.06 imp2 0.41, main score -3.6, before 0 g
+  Zagara: 25 g, early +10.3, later -30.2, pct main 0.27 pref 0.10 imp2 0.27, main score -3.0, before 0 g
+  Deathwing: 169 g, early -8.9, later -11.5, pct main 0.16 pref 0.37 imp2 0.10, main score -2.6, before 0 g
+  Chen: 25 g, early +40.8, later -4.4, pct main 0.90 pref 0.78 imp2 0.82, main score -6.2, before 0 g
+  Chromie: 14 g, early -33.3, later +nan, pct main 0.76 pref 0.63 imp2 0.65, main score -5.1, before 0 g
+  Qhira: 85 g, early -10.1, later +19.2, pct main 0.25 pref 0.35 imp2 0.20, main score -2.8, before 0 g
+  Genji: 34 g, early -38.5, later -29.3, pct main 0.98 pref 0.98 imp2 0.98, main score -7.3, before 0 g
