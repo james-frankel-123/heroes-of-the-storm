@@ -190,26 +190,39 @@ def shrink_basis(res, rich=False):
     return np.column_stack(cols)
 
 
-def shrinkfn(res, r_target, v, v1_mask, rich=False):
+def shrinkfn(res, r_target, v, v1_mask, rich=False, chunk=2_000_000):
     m0, v0, Sh, Ph = res["m0"], np.maximum(res["v0"], 1e-10), res["Sh"], res["Ph"]
-    w = Ph / (Ph + 1.0 / v0)
-    yb = np.where(Ph > 0, Sh / np.maximum(Ph, 1e-12), m0)
-    own = w * (yb - m0)
-    B = shrink_basis(res, rich)
-    feats = [m0, own, res["mu"]]
-    X = np.column_stack([B * f[:, None] for f in feats])
-    i = v1_mask
-    wt = 1.0 / v[i]
-    XtW = X[i].T * wt
-    beta = np.linalg.solve(XtW @ X[i] + 1e-9 * np.eye(X.shape[1]), XtW @ r_target[i])
-    mean = X @ beta
-    nb = B.shape[1]
-    bo = B @ beta[nb:2 * nb]
-    out = {"beta_prior": beta[:nb].tolist(), "beta_own": beta[nb:2 * nb].tolist(), "beta_offset": beta[2 * nb:].tolist()}
+
+    def design(ix):
+        sub = {k: res[k][ix] for k in ("nh", "np", "gap")}
+        B = shrink_basis(sub, rich)
+        w = Ph[ix] / (Ph[ix] + 1.0 / v0[ix])
+        yb = np.where(Ph[ix] > 0, Sh[ix] / np.maximum(Ph[ix], 1e-12), m0[ix])
+        own = w * (yb - m0[ix])
+        return np.column_stack([B * f[:, None] for f in (m0[ix], own, res["mu"][ix])]), B, w
+    i1 = np.flatnonzero(v1_mask)
+    X, _, _ = design(i1)
+    wt = 1.0 / v[i1]
+    XtW = X.T * wt
+    beta = np.linalg.solve(XtW @ X + 1e-9 * np.eye(X.shape[1]), XtW @ r_target[i1])
+    del X, XtW
+    n = len(m0)
+    mean = np.empty(n)
+    nb = shrink_basis({k: res[k][:1] for k in ("nh", "np", "gap")}, rich).shape[1]
+    bo = np.empty(n)
+    wg = np.empty(n)
+    for c0 in range(0, n, chunk):
+        ix = np.arange(c0, min(n, c0 + chunk))
+        Xc, Bc, wc = design(ix)
+        mean[ix] = Xc @ beta
+        bo[ix] = Bc @ beta[nb:2 * nb]
+        wg[ix] = wc
+    out = {"beta_prior": beta[:nb].tolist(), "beta_own": beta[nb:2 * nb].tolist(), "beta_offset": beta[2 * nb:].tolist(),
+           "basis": f"shrink_basis(rich={rich})"}
     for lo_, hi_ in ((0, 0), (1, 9), (10, 29), (30, 99), (100, 299), (300, 10 ** 9)):
         m = v1_mask & (res["nh"] >= lo_) & (res["nh"] <= hi_)
         out[f"own_multiplier_games_{lo_}_{hi_ if hi_ < 10 ** 9 else ''}"] = float(np.mean(bo[m])) if m.any() else None
-        out[f"data_weight_gauss_{lo_}_{hi_ if hi_ < 10 ** 9 else ''}"] = float(np.mean(w[m])) if m.any() else None
+        out[f"data_weight_gauss_{lo_}_{hi_ if hi_ < 10 ** 9 else ''}"] = float(np.mean(wg[m])) if m.any() else None
     var = res.get("var", np.zeros(len(mean)))
     return mean, var, out
 

@@ -770,7 +770,7 @@ def pred_ll_np(par, S1, P1, S2, P2, chunk=20000):
 # ------------------------------------------------------------------ online
 
 def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights=None, hl_win=None, hl_met=None,
-                parts=False, want_all=False, q_win=None, q_met=None, metric_feats=False):
+                parts=False, want_all=False, q_win=None, q_met=None, metric_feats=False, feat_mask=None):
     """As-of posterior for each query slot row (indices into the slot table,
     any order). State holds aug rows with day <= query day - lag; every
     query sees only rows on earlier days, so its own row (same day) and its
@@ -834,8 +834,13 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
         nall = np.empty((nq, H), np.float32)
     if metric_feats and use_m:
         # direct metric features of the query: the player's mean z on the
-        # query hero and over all heroes (shrunk with 5 pseudo-games), as-of
-        mfeat = np.empty((nq, 2 * Mn), np.float32)
+        # query hero and over all heroes (shrunk with 5 pseudo-games), as-of;
+        # stored only for queries in feat_mask (default all), in query order
+        fm_q = np.ones(nq, bool) if feat_mask is None else np.asarray(feat_mask, bool)
+        fpos = np.full(nq, -1, np.int64)
+        fpos[np.flatnonzero(fm_q)] = np.arange(int(fm_q.sum()))
+        fpos_s = fpos[oq]                                   # in the walk's sorted order
+        mfeat = np.empty((int(fm_q.sum()), 2 * Mn), np.float32)
     if parts:
         # the prior for theta at the query hero from everything except that
         # hero's own win evidence (m0, v0), and the own evidence (Sh, Ph)
@@ -933,10 +938,13 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
             Pq[ar, hq] = 0.0
             m0[a_:b_], v0[a_:b_] = posterior(par, Sq, Pq, hq, **kw)
         if metric_feats and use_m:
-            ar_ = np.arange(len(q))
-            Xq, Cq_ = kw["X"], kw["Cm"]
-            mfeat[a_:b_, :Mn] = Xq[ar_, hq] / (Cq_[ar_, hq] + 5.0)
-            mfeat[a_:b_, Mn:] = Xq.sum(1) / (Cq_.sum(1) + 5.0)
+            fp = fpos_s[a_:b_]
+            sel = fp >= 0
+            if sel.any():
+                ar_ = np.flatnonzero(sel)
+                Xq, Cq_ = kw["X"], kw["Cm"]
+                mfeat[fp[sel], :Mn] = Xq[ar_, hq[ar_]] / (Cq_[ar_, hq[ar_]] + 5.0)
+                mfeat[fp[sel], Mn:] = Xq[ar_].sum(1) / (Cq_[ar_].sum(1) + 5.0)
         Nh[a_:b_] = Nst[pq, hq]
         Np[a_:b_] = Nst[pq].sum(1)
     back = np.empty(nq, np.int64)
@@ -948,7 +956,7 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
     if want_all:
         out.update(mean_all=mall[back], var_all=vall[back], n_all=nall[back])
     if metric_feats and use_m:
-        out["mfeat"] = mfeat[back]
+        out["mfeat"] = mfeat                                 # rows = queries in feat_mask, in query order
     return out
 
 
@@ -1003,10 +1011,33 @@ def online(a):
         print(f"  loaded walk parts {ppath}", flush=True)
     else:
         mets, mw = aug_metrics(aug, par.meta.get("sb", "legacy"), d) if par.G is not None else (None, None)
-        res = online_walk(aug, qwalk, par, metrics=mets, mweights=mw, hl_win=getattr(a, "hl_win", None),
-                          hl_met=getattr(a, "hl_met", None), parts=bool(ppath or tail),
-                          q_win=getattr(a, "q_win", None), q_met=getattr(a, "q_met", None),
-                          metric_feats=bool(getattr(a, "statlin", False)))
+        fmask = (w[qwalk] > 0) if getattr(a, "statlin", False) else None
+        kw_walk = dict(metrics=mets, mweights=mw, hl_win=getattr(a, "hl_win", None),
+                       hl_met=getattr(a, "hl_met", None), parts=bool(ppath or tail),
+                       q_win=getattr(a, "q_win", None), q_met=getattr(a, "q_met", None),
+                       metric_feats=bool(getattr(a, "statlin", False)))
+        nsh = int(os.environ.get("P3_RCF_SHARDS", "1"))
+        if nsh <= 1:
+            res = online_walk(aug, qwalk, par, feat_mask=fmask, **kw_walk)
+        else:
+            # players are independent in the walk: shard them to bound the state's memory (exact)
+            res = {}
+            fidx = None if fmask is None else np.cumsum(fmask) - 1
+            for s_ in range(nsh):
+                sel = np.flatnonzero(d["pid"][qwalk] % nsh == s_)
+                r_ = online_walk(aug, qwalk[sel], par, feat_mask=None if fmask is None else fmask[sel], **kw_walk)
+                for k, v in r_.items():
+                    if k == "mfeat":
+                        if k not in res:
+                            res[k] = np.empty((int(fmask.sum()), v.shape[1]), v.dtype)
+                        res[k][fidx[sel][fmask[sel]]] = v
+                    else:
+                        if k not in res:
+                            res[k] = np.empty((len(qwalk),) + v.shape[1:], v.dtype)
+                        res[k][sel] = v
+                del r_
+                import gc
+                gc.collect()
         if ppath:
             np.savez(ppath, qwalk=qwalk, **res)
         del mets, mw
@@ -1035,8 +1066,10 @@ def online(a):
     fitg = (gw == 1) & full
     lay_meta = None
     if layer:
+        if ppath:
+            os.environ.setdefault("P3_RCF_LAYER_SAVE", ppath.replace(".npz", "_layer.npz"))
         pred, lay_meta, extra_cols = temporal_layer(d, pred_all, res["nh"], qi, gw * full, fitg, lo, y, n_games)
-        res = {k: v[qi] for k, v in res.items()}
+        res = {k: (v if k == "mfeat" else v[qi]) for k, v in res.items()}
     else:
         pred, extra_cols = pred_all, []
     mu = mu_all if not layer else mu_all[qi]
@@ -1044,7 +1077,7 @@ def online(a):
     if getattr(a, "statlin", False):
         # direct linear metric channel: ridge of the remaining residual on the
         # 30 metric features, fit on V1 slots (weights 1 / v), applied to all
-        F = res["mfeat"] if not layer else res["mfeat"]
+        F = res["mfeat"]                                     # already restricted to qi (w > 0)
         F = np.nan_to_num(F.astype(np.float64))
         wv = (d["wp_pop"] * (1 - d["wp_pop"]))[qi]
         tgt = d["r"][qi] - pred
@@ -1067,7 +1100,8 @@ def online(a):
         lam = best[1]
         beta = np.linalg.solve(A + lam * np.eye(F.shape[1]), (Fz[v1].T / wv[v1]) @ tgt[v1])
         pred = pred + Fz @ beta
-        stat_meta = {"ridge": lam, "beta": beta.tolist()}
+        stat_meta = {"ridge": lam, "beta": beta.tolist(), "mean": mF.tolist(), "sd": sF.tolist(),
+                     "features": "per metric: X_hero / (C_hero + 5), then X_all / (C_all + 5), as-of walk state"}
         del F, Fz, A
         res.pop("mfeat", None)
         import gc
@@ -1088,7 +1122,8 @@ def online(a):
         cpar = np.linalg.solve((Xp[v1].T * wv) @ Xp[v1] + 1e-9 * np.eye(B.shape[1]), (Xp[v1].T * wv) @ d["r"][qi][v1])
         mult = B @ cpar
         pred = pred * mult
-        post_meta = {"coef": cpar.tolist(), "multiplier_quantiles": np.percentile(mult, [5, 25, 50, 75, 95]).tolist()}
+        post_meta = {"coef": cpar.tolist(), "multiplier_quantiles": np.percentile(mult, [5, 25, 50, 75, 95]).tolist(),
+                     "basis": "p3_rcf_tails.shrink_basis(rich=%s)" % (2 if os.environ.get("P3_RCF_POSTCAL") == "2" else True)}
         print(f"  post-calibration multiplier, 5/50/95%: {np.round(np.percentile(mult, [5, 50, 95]), 3).tolist()}", flush=True)
     pr = np.zeros(len(d["pid"]))
     pr[qi] = pred
@@ -1185,6 +1220,10 @@ def temporal_layer(d, pred_all, nh_all, qi, gw, fitg, lo, y, n_games):
     import p3_x_common as X
     u = d["r"] - pred_all
     early = nh_all < 5
+    lp = os.environ.get("P3_RCF_LAYER_SAVE")
+    if lp:
+        # the layer's inputs for every slot (state writers rebuild the per-player terms from them)
+        np.savez(lp, u=u.astype(np.float32), early=early)
     best = None
     qm = np.zeros(len(u), bool)
     qm[qi] = True
