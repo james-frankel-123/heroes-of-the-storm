@@ -207,7 +207,8 @@ def answer(qdir, adir, only=None):
         files = [os.path.join(qdir, f) for f in only]
     cache = {}
     for fq in files:
-        Q = np.load(fq)
+        Qz = np.load(fq)
+        Q = {k: Qz[k] for k in Qz.files}                       # read once (npz access re-reads the zip)
         qk = Q["player_key"].astype(np.int64)
         j = np.minimum(np.searchsorted(keys[ko], qk), len(keys) - 1)
         known = keys[ko][j] == qk
@@ -217,14 +218,18 @@ def answer(qdir, adir, only=None):
         SD_out = np.zeros((nq, H), np.float32)
         N_out = np.zeros((nq, H), np.float32)
         groups = {}
-        for i in range(nq):
-            if qpid[i] < 0:
-                continue
-            g = (int(Q["half"][i]), int(Q["ev_lo"][i]), int(Q["ev_parity"][i]), int(Q["exclude_lo"][i]),
-                 int(Q["exclude_hi"][i]))
-            groups.setdefault(g, []).append(i)
+        G = np.column_stack([Q["half"].astype(np.int64), Q["ev_lo"].astype(np.int64), Q["ev_parity"].astype(np.int64),
+                             Q["exclude_lo"].astype(np.int64), Q["exclude_hi"].astype(np.int64)])
+        ok = np.flatnonzero(qpid >= 0)
+        ug, ginv = np.unique(G[ok], axis=0, return_inverse=True)
+        for k_, g in enumerate(ug):
+            groups[tuple(int(x) for x in g)] = ok[ginv.ravel() == k_].tolist()
+        items = []
         for g, idx in groups.items():
             idx = np.array(idx)
+            for c0 in range(0, len(idx), 100_000):           # bound memory of the all-hero arrays
+                items.append((g, idx[c0:c0 + 100_000]))
+        for g, idx in items:
             half, ev_lo, par_, ex_lo, ex_hi = g
             armn, ptag, stem = ARMS[half]
             if armn not in cache:
