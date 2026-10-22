@@ -36,13 +36,12 @@ def extract(n):
     L = TD.load_lobbies()
     z = np.load(os.path.join(TD.OUT, "state_cur.npz"))["n"]
     rich = (z.astype(np.float64).sum(1) >= 50).reshape(-1, 10).all(1)
-    tl = os.path.join(TD.OUT, "tourney", "lobbies.npz")
-    excl = set(np.load(tl)["gi"].tolist()) if os.path.exists(tl) else set()
+    excl = TD.eval_lobbies()                 # tournament, tune and party-study lobbies
     cand = np.array([g for g in np.flatnonzero(rich & (L["day"] <= TD.LOBBY_END)) if g not in excl])
     gi = np.sort(np.random.RandomState(77).choice(cand, n, replace=False))
     K = BT.kernel_lobbies(gi)
     np.savez(os.path.join(TD.OUT, "probe_lobbies.npz"), gi=gi, **K)
-    print(f"probe lobbies: {len(gi)} (excluded {len(excl)} tournament lobbies)")
+    print(f"probe lobbies: {len(gi)} (excluded {len(excl)} evaluation lobbies)")
 
 
 def run(configs, device=0):

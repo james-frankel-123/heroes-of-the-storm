@@ -79,7 +79,9 @@ def positions(V):
     res = {}
     for t in (0, 1):
         for q in range(5):
-            key = f"pos_m1_p{q}_t{t}"
+            key = f"grid_m1_{q}_t{t}"
+            if f"{key}__generic" not in V:
+                key = f"pos_m1_p{q}_t{t}"
             if f"{key}__generic" not in V or f"{key}__aware" not in V:
                 continue
             g, a = V[f"{key}__generic"][1], V[f"{key}__aware"][1]
@@ -124,7 +126,7 @@ def main():
     V = load_views()
     out = {"capture": capture(V), "positions_solo": positions(V)}
     os.makedirs(os.path.join(C.RESULTS, "p3t"), exist_ok=True)
-    json.dump(out, open(os.path.join(C.RESULTS, "p3t", "party_report.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(C.RESULTS, "p3t", PT.RES_NAME + "_report.json"), "w"), indent=1)
     print(json.dumps(out, indent=1)[:4000], flush=True)
 
 

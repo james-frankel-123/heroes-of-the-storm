@@ -92,19 +92,21 @@ def stage_lobbies():
     L = TD.load_lobbies()
     nall = np.load(os.path.join(TD.OUT, "state_cur.npz"))["n"]
     rich = (nall.astype(np.float64).sum(1) >= 50).reshape(-1, 10).all(1) & np.isin(L["map"], MAPS)
-    excl = set(np.load(os.path.join(TD.OUT, "tourney", "lobbies.npz"))["gi"].tolist())
+    excl = TD.eval_lobbies()                 # tournament, tune and party-study lobbies
     excl |= set(np.load(os.path.join(TD.OUT, "probe_lobbies.npz"))["gi"].tolist())
-    excl |= set(np.load(os.path.join(TD.OUT, "tourney_tune", "lobbies.npz"))["gi"].tolist())
     cand = np.array([g for g in np.flatnonzero(rich & (L["day"] <= TD.LOBBY_END)) if g not in excl])
     gi = np.sort(np.random.RandomState(89).choice(cand, N_FIT, replace=False))
     np.savez(lobbies_file(), gi=gi)
-    print(f"fit lobbies: {len(gi)} of {len(cand)} eligible (tournament, probe and tune lobbies excluded)", flush=True)
+    print(f"fit lobbies: {len(gi)} of {len(cand)} eligible (tournament, tune, party and probe lobbies excluded)", flush=True)
 
 
 def stage_hist():
     import p3t_draftrec as DRC
     DRC.stage_hist(lobbies_file(), DRC._dr_file("hist_oppfit.npz"))
     DRC.stage_hist(os.path.join(TD.OUT, "tourney_tune", "lobbies.npz"), DRC._dr_file("hist_tune.npz"))
+    party = os.path.join(TD.OUT, "tourney_party", "lobbies.npz")
+    if os.path.exists(party):
+        DRC.stage_hist(party, DRC._dr_file("hist_party.npz"))
 
 
 def hist_for_lobbyset():

@@ -35,7 +35,8 @@ Outputs: cache p3t/party/<config>.npz (acts, slot_at, party, stranger) and
 results p3t/party.json (per configuration: J, J_cal, CONS, the judge-free
 record of the party's team; paired differences between arms with lobby
 bootstrap CIs).
-Usage (GPU host, from training/): python personalization/p3t_party.py run --plan effect|position [--only NAME]
+Usage (GPU host, from training/): python personalization/p3t_party.py run --plan effect|position|grid [--only NAME] [--shard i/n]
+                                 P3T_LOBBYSET=party python personalization/p3t_party.py select (CPU host, the study's lobby set)
                                  python personalization/p3t_party.py score
 """
 import argparse
@@ -64,7 +65,12 @@ H = 90
 ARMS = ("aware", "blind", "generic", "real")
 DESIGN = "x-combo1-dr-chance"
 BLIND = "x-blind-s400"
-OUT = os.path.join(TD.OUT, "party")
+LS = os.environ.get("P3T_LOBBYSET", "")
+OUT = os.path.join(TD.OUT, "party" + (f"_{LS}" if LS else ""))
+RES_NAME = "party" + (f"_{LS}" if LS else "")
+# the party study's own lobby set (P3T_LOBBYSET=party), sized for slot-level CIs (2026-10-22):
+N_PARTY = 1800            # target lobbies
+J_STRICT, J_FILL = 10, 5  # judge-window games per player: strict, then the fill-up threshold
 
 
 def plan(name):
@@ -75,6 +81,17 @@ def plan(name):
         for m in (1, 2, 3, 4, 5):
             for t in (0, 1):
                 out.append((f"eff_m{m}_t{t}", t, m, None, "first"))
+    if name == "grid":
+        # every set of the team's turns for every party size, both sides; sets holding the first
+        # turn also without the bans (the party never bans)
+        import itertools
+        for m in (1, 2, 3, 4, 5):
+            for turns in itertools.combinations(range(5), m):
+                tag = "".join(map(str, turns))
+                for t in (0, 1):
+                    out.append((f"grid_m{m}_{tag}_t{t}", t, m, list(turns), "first"))
+                    if 0 in turns:
+                        out.append((f"grid_m{m}_{tag}_t{t}_noban", t, m, list(turns), "never"))
     if name == "position":
         sets = {1: {f"p{q}": [q] for q in range(5)},
                 2: {"early": [0, 1], "middle": [1, 2], "late": [3, 4]},
@@ -196,7 +213,7 @@ def draft(LB, cfg, arm, device=0):
     slot_at = np.full((n, 16), -1, np.int64)
     for k in PICK_STEPS:
         slot_at[:, k] = np.argmax(turn_of == TURN[k], 1)
-    inf = DRC.load_inference(device=None)
+    inf = DRC.load_inference(device=None, hist_file=OD.hist_for_lobbyset())
     KS = KnownState(inf, LB.gi, LB.src, LB.map, LB.tier, turn_of)
     w = json.load(open(OD.out_file()))
     v = SY.vintage("cur")
@@ -284,15 +301,18 @@ def party_rows(KS, k, t, stranger, slot_at, w):
     return imit
 
 
-def stage_run(plan_name, only=None, device=0):
+def stage_run(plan_name, only=None, device=0, shard="0/1"):
     import p3t_tourney as TT
     LB = TT.Lobbies()
     os.makedirs(OUT, exist_ok=True)
-    for cfg in plan(plan_name):
+    si, sn = (int(x) for x in shard.split("/"))
+    for ci, cfg in enumerate(plan(plan_name)):
         if only and cfg[0] not in only.split(","):
             continue
+        if ci % sn != si:
+            continue
         for arm in ARMS:
-            if plan_name == "position" and arm in ("blind", "real"):
+            if plan_name in ("position", "grid") and arm in ("blind", "real"):
                 continue
             f = os.path.join(OUT, f"{cfg[0]}__{arm}.npz")
             if os.path.exists(f):
@@ -304,6 +324,40 @@ def stage_run(plan_name, only=None, device=0):
             os.replace(f + ".tmp.npz", f)
             print(f"  {cfg[0]} {arm}: {time.time() - t0:.0f}s (search {secs:.0f}s)", flush=True)
     print("PARTY RUN DONE", flush=True)
+
+
+def stage_select():
+    """The party study's lobby set: real tournament-window lobbies (2026-05-23 to 06-30, never the
+    sealed build) whose ten players all have 50+ earlier games. First every lobby whose players
+    all have J_STRICT+ judge-window games (the tournament's rule), then, if fewer than N_PARTY, lobbies
+    with J_FILL+ each in a fixed random order. The tune lobbies are left out (they chose the design);
+    the tournament lobbies may be included. Written before the probe, player-prior and opponent-model
+    lobbies are drawn, which then avoid this set (p3t_data.eval_lobbies)."""
+    from shared import MAPS
+    L = TD.load_lobbies()
+    cur = np.load(os.path.join(TD.OUT, "state_cur.npz"))
+    jd = np.load(os.path.join(TD.OUT, "state_judge.npz"))
+    win = np.flatnonzero(L["day"] <= TD.LOBBY_END)
+    assert (jd["gsel"] == win).all()
+    rich = (cur["n"].astype(np.float64).sum(1) >= 50).reshape(-1, 10).all(1)[win] & np.isin(L["map"][win], MAPS)
+    jn = jd["rec_n"].astype(np.float64).sum(1).reshape(-1, 10).min(1)
+    tune = os.path.join(TD.OUT, "tourney_tune", "lobbies.npz")
+    excl = set(np.load(tune)["gi"].tolist()) if os.path.exists(tune) else set()
+    keep = np.array([g not in excl for g in win])
+    strict = win[rich & keep & (jn >= J_STRICT)]
+    fill = win[rich & keep & (jn >= J_FILL) & (jn < J_STRICT)]
+    rng = np.random.RandomState(20261022)
+    sel = strict if len(strict) >= N_PARTY else np.r_[strict, rng.permutation(fill)[:N_PARTY - len(strict)]]
+    if len(sel) > N_PARTY:
+        sel = rng.permutation(sel)[:N_PARTY]
+    sel = np.sort(sel)
+    d = os.path.join(TD.OUT, "tourney_party")
+    os.makedirs(d, exist_ok=True)
+    np.savez(os.path.join(d, "lobbies.npz"), gi=sel)
+    info = {"strict_available": int(len(strict)), "fill_available": int(len(fill)), "selected": int(len(sel)),
+            "from_fill": int(max(0, len(sel) - len(strict))), "target": N_PARTY}
+    json.dump(info, open(os.path.join(d, "select.json"), "w"))
+    print(f"party lobbies: {info}", flush=True)
 
 
 # ------------------------------------------------------------------ scoring
@@ -344,6 +398,14 @@ def team_view(sc, t, judge):
             "CONS": 100 * f(sc["consensus"]), "record": 100 * sc["rec_true"][:, t]}
 
 
+def cluster_ci(M, B=2000, seed=0):
+    """M (n lobbies, k configs): per-lobby mean over the configs, then a lobby bootstrap."""
+    M = np.atleast_2d(np.asarray(M, float).T).T if np.ndim(M) == 1 else np.asarray(M, float)
+    with np.errstate(invalid="ignore"):
+        d = np.nanmean(M, 1)
+    return boot_ci(d, B, seed)
+
+
 def boot_ci(d, B=2000, seed=0):
     d = d[np.isfinite(d)]
     rng = np.random.RandomState(seed)
@@ -381,7 +443,7 @@ def stage_score():
             k1, k2 = f"{b}__{a1}", f"{b}__{a2}"
             if k1 in views and k2 in views:
                 res["contrasts"][f"{b}: {a1} - {a2}"] = {m: boot_ci(views[k1][m] - views[k2][m]) for m in views[k1]}
-    # seats pooled (the first- and second-pick team, concatenated by lobby)
+    # seats pooled (the first- and second-pick team): per-lobby mean of the two seats, lobby bootstrap
     import re
     groups = {}
     for b_ in base:
@@ -394,21 +456,51 @@ def stage_score():
             ks = [(f"{byt[t]}__{a1}", f"{byt[t]}__{a2}") for t in (0, 1)]
             if all(k1 in views and k2 in views for k1, k2 in ks):
                 res["contrasts"][f"{g} (both seats): {a1} - {a2}"] = {
-                    m: boot_ci(np.concatenate([views[k1][m] - views[k2][m] for k1, k2 in ks])) for m in views[ks[0][0]]}
+                    m: cluster_ci(np.stack([views[k1][m] - views[k2][m] for k1, k2 in ks], 1)) for m in views[ks[0][0]]}
+    # pooled over every slot set of a party size (grid, bans with the first turn): the judge-free
+    # check has its power here; and over all party sizes
+    pools = {}
+    for b_ in base:
+        mt = re.match(r"grid_m(\d)_(\d+)_t([01])$", b_)
+        if mt:
+            pools.setdefault(f"grid m{mt.group(1)}, all slot sets, both seats", []).append(b_)
+            pools.setdefault("grid, all party sizes and slot sets, both seats", []).append(b_)
+    for g, bs in sorted(pools.items()):
+        ks = [(f"{b_}__aware", f"{b_}__generic") for b_ in bs if f"{b_}__aware" in views and f"{b_}__generic" in views]
+        if ks:
+            res["contrasts"][f"{g}: aware - generic"] = {
+                m: cluster_ci(np.stack([views[k1][m] - views[k2][m] for k1, k2 in ks], 1)) for m in views[ks[0][0]]}
+            res["contrasts"][f"{g}: aware - generic"]["configs"] = len(ks)
+    # solo slot gaps: (aware - generic at slot a) - (same at slot b), seats pooled, paired by lobby
+    def gain(q):
+        ks = [(f"grid_m1_{q.split('_')[0]}_t{t}{q[1:]}__aware", f"grid_m1_{q.split('_')[0]}_t{t}{q[1:]}__generic")
+              for t in (0, 1)]
+        if all(k1 in views and k2 in views for k1, k2 in ks):
+            return {m: np.nanmean(np.stack([views[k1][m] - views[k2][m] for k1, k2 in ks], 1), 1) for m in views[ks[0][0]]}
+    slots = [q for q in ("0", "0_noban", "1", "2", "3", "4") if gain(q) is not None]
+    for i, qa in enumerate(slots):
+        for qb in slots[i + 1:]:
+            ga, gb = gain(qa), gain(qb)
+            res["contrasts"][f"solo slot gap {qa} - {qb} (both seats): aware - generic"] = {
+                m: boot_ci(ga[m] - gb[m]) for m in ga}
     os.makedirs(os.path.join(C.RESULTS, "p3t"), exist_ok=True)
-    json.dump(res, open(os.path.join(C.RESULTS, "p3t", "party.json"), "w"), indent=1)
+    res["lobbies"] = int(LB.n)
+    json.dump(res, open(os.path.join(C.RESULTS, "p3t", RES_NAME + ".json"), "w"), indent=1)
     print(f"party: {len(views)} drafts scored", flush=True)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["run", "score"])
+    ap.add_argument("stage", choices=["select", "run", "score"])
+    ap.add_argument("--shard", default="0/1")
     ap.add_argument("--plan", default="effect")
     ap.add_argument("--only", default=None)
     ap.add_argument("--device", type=int, default=0)
     a = ap.parse_args()
-    if a.stage == "run":
-        stage_run(a.plan, a.only, a.device)
+    if a.stage == "select":
+        stage_select()
+    elif a.stage == "run":
+        stage_run(a.plan, a.only, a.device, a.shard)
     else:
         stage_score()
 

@@ -94,7 +94,7 @@ def targets(n_lobbies, device=0):
     nall = np.load(os.path.join(TD.OUT, "state_cur.npz"))["n"]
     from shared import MAPS
     rich = (nall.astype(np.float64).sum(1) >= 50).reshape(-1, 10).all(1) & np.isin(L["map"], MAPS)
-    excl = set(np.load(os.path.join(TD.OUT, "tourney", "lobbies.npz"))["gi"].tolist())
+    excl = TD.eval_lobbies()                 # tournament, tune and party-study lobbies
     excl |= set(np.load(os.path.join(TD.OUT, "probe_lobbies.npz"))["gi"].tolist())
     cand = np.array([g for g in np.flatnonzero(rich & (L["day"] <= TD.LOBBY_END)) if g not in excl])
     gi = np.sort(np.random.RandomState(88).choice(cand, n_lobbies, replace=False))

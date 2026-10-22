@@ -132,10 +132,13 @@ run_cpu data $STEP p3t_data.py:lobbies p3t_data.py:states:--vintages:cur,s4m,s1y
   p3t_data.py:judgefit:--judge-params:full_ms_flip p3t_data.py:split_states p3t_data.py:split_judgefit \
   p3t_data.py:rosters p3t_data.py:prelobbies p3t_value.py:combfit:--vintages:cur,s4m,s1y,split p3t_judge.py:fit \
   p3t_vnet.py:data p3t_vnet.py:train p3t_vnet.py:train_pre p3t_vstudy.py p3t_value.py:predeval \
-  p3t_tourney.py:select p3t_probe.py:extract p3t_backtest.py:forced
+  p3t_tourney.py:select
 run_cpu vbest env P3T_VSTUDY_ASSIGN=best $STEP p3t_vstudy.py
 run_cpu jsplit env P3T_SPLIT=1 $STEP p3t_judge.py:fit
 run_cpu tunesel env P3T_LOBBYSET=tune $STEP p3t_tourney.py:select
+# the party study's lobby set, before any lobby that fits a drafter component is drawn
+run_cpu partysel env P3T_LOBBYSET=party $STEP p3t_party.py:select
+run_cpu probesel $STEP p3t_probe.py:extract p3t_backtest.py:forced
 fetch_vintages
 relay $CPU $GPU
 
@@ -169,8 +172,13 @@ run_cpu score $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py p3t_backtest.p
 run_cpu scoresplit env P3T_SPLIT=1 $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py
 run_cpu scoretune env P3T_LOBBYSET=tune $STEP p3t_judge.py:score p3t_analyze.py
 
-# 5b. the party drafter (P3_PARTY_DRAFTER.md): party sizes 1-5 and pick positions (5090)
-run_gpu party $STEP p3t_party.py:run:--plan:effect p3t_party.py:run:--plan:position p3t_party.py:score p3t_party_report.py
+# 5b. the party drafter (P3_PARTY_DRAFTER.md) on its own lobby set (about 1,800 lobbies): party sizes
+# 1-5 with random seats (4 arms), and the full slot grid (every turn set, both sides, with and without
+# the bans; aware and generic). Configurations sharded across both GPUs; scored on the 5090.
+relay $GPU $GPU2
+run_gpu_pair partyeff env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:effect
+run_gpu_pair partygrid env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:grid
+run_gpu partyscore env P3T_LOBBYSET=party $STEP p3t_party.py:score p3t_party_report.py
 
 # 6. results home (small JSON only) and the tables
 mkdir -p training/personalization/results/p3t

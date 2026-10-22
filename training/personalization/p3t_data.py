@@ -408,6 +408,18 @@ class Layer:
         return (self.m["drift_scale"] * rho)[:, None] + (self.m["learn_scale"] * nu)[:, None] * (n_all < 5)
 
 
+def eval_lobbies():
+    """Lobbies reserved for evaluation (tournament, tune, party study): the lobbies that fit a
+    drafter component (probe, player-feature prior targets, opponent models) are drawn
+    from the other rich tournament-window lobbies."""
+    out = set()
+    for sub in ("tourney", "tourney_tune", "tourney_party"):
+        p = os.path.join(OUT, sub, "lobbies.npz")
+        if os.path.exists(p):
+            out |= set(np.load(p)["gi"].tolist())
+    return out
+
+
 def layer_meta():
     # rcf_full layout: p3_c_tests_main.json; definitive builds (results/def_<D>): p3_c_tests_def.json
     for name in ("p3_c_tests_main.json", "p3_c_tests_def.json"):

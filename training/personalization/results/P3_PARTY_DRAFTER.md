@@ -71,6 +71,29 @@ Reading:
 - Among the picks themselves, later turns win: the drafter sees more of the draft (the opponents' and the strangers' picks) and fits the player's hero to it. The comfort risk of waiting is real but small (the player's best hero is gone by his turn in about a fifth of the late drafts) and the drafter compensates by picking another strong personal hero.
 - Practical advice for a solo user: claim the team's first pick if your client gives that player the bans; otherwise ask for one of the last two picks.
 
+## Definitive run: sizing and design (set up 2026-10-22)
+
+The paper reports the party-size result and the pick-slot result, so the definitive run gets its own lobby set sized for slot-level CIs.
+
+- **Lobby set (`P3T_LOBBYSET=party`, `p3t_party.py select`):** 1,800 real tournament-window lobbies (2026-05-23 to 06-30, never the sealed build, CAP_TS 2026-09-28), all ten players with 50+ earlier games. First every lobby whose players all have 10+ judge-window games (the tournament's rule), then lobbies with 5+ each in a fixed random order (seed 20261022). The tune lobbies are left out. On the current panel: 1,300 strict, 1,128 fill-eligible, 500 taken from the fill. The definitive store has more players with history, so the strict share should rise. The probe, player-prior and opponent-model fit lobbies are now drawn after this set and avoid it (`p3t_data.eval_lobbies`).
+- **Plans:** the effectiveness plan (party sizes 1 to 5, random seats, arms aware, blind, generic, real) and the full slot grid: every set of team turns for every party size (31 sets), both team sides, each with the bans going to the team's first pick turn, plus the same set with no party bans whenever it includes the first turn (62 configurations per side pair, aware and generic).
+- **Contrasts reported:** every grid cell per side and with both sides pooled; pooled over all slot sets of a party size and over all sizes; solo slot gaps (gain at slot a minus gain at slot b, paired by lobby) for every pair of slots including the no-ban first pick. All CIs are lobby-bootstrap.
+- **Precision at 1,800 lobbies** (projected from the 300-lobby grid run by 1/sqrt(n); the 1,800-lobby smoke matched it: ±0.44 for the solo random-seat gain against ±1.02 at 300):
+
+| solo slot (both sides pooled) | J gain 95% CI half-width | per side, worse side | lobbies for ±0.5 per side |
+|---|---|---|---|
+| 1st turn, with bans | ±0.46 | ±0.66 | 3,150 |
+| 1st turn, no bans | ±0.42 | ±0.58 | 2,440 |
+| 2nd | ±0.33 | ±0.48 | 1,670 |
+| 3rd | ±0.29 | ±0.41 | 1,200 |
+| 4th | ±0.24 | ±0.37 | 980 |
+| 5th | ±0.17 | ±0.27 | 510 |
+
+  Every solo slot meets ±0.5 with both sides pooled; the worst multi-player cell (both sides pooled) is ±0.50. Per side, the first-turn slots and the larger 3- and 4-player cells stay at ±0.6 to ±0.75. Slot gaps (paired) come to ±0.3 to ±0.6, so gaps of 1 to 2 points separate and gaps of about 0.3 (the last three solo slots) do not.
+- **Judge-free check:** pooled over the slot sets of a party size, the realized-record difference gets ±0.23pp (solo and duo), ±0.28 (trio), ±0.36 (four), ±0.71 (five), and ±0.19 over all sizes; a 0.5pp true gain is detectable for parties of one to four. Per slot it stays at ±0.35 to ±0.62 and slot gaps at about ±0.7, which cannot separate slots. The per-player record noise (SD 10 to 24pp per lobby) means ±0.5 per slot needs about 2,700 lobbies and ±0.5 on the worst slot gap about 4,300 (both sides pooled), against 2,428 lobbies in the tournament window that meet the 5-game rule; and even ±0.5 would not resolve slot gaps in a record effect that is itself about 0.5pp. The paper can state the judge-free result by party size, not by slot.
+- **Runtime (measured on the 5090):** the full grid takes 837 s on 300 lobbies; at 1,800 lobbies one configuration takes 4.2 to 5.8 times its 300-lobby time. Grid plus effect at 1,800 lobbies: about 1.5 h of search, plus about 10 min of scoring, per pass on the 5090 alone; about 1 h sharded across the 5090 and 3080 (`run_gpu_pair`). Two passes (new model headline, old full_ms model sensitivity): about 3.4 h on the 5090 alone or about 2 h sharded. Peak RSS 2.2 GB per process. Per-side ±0.5 on every solo slot (3,150 lobbies) would take about 2.8 h per pass on the 5090 alone and needs the 3-game fill rule.
+- **Pipeline:** `remote/p3t_pipeline.sh` selects the party set right after the tune set and before the probe lobbies, builds the party DraftRec history with the opponent-model histories, and runs the effect and grid plans sharded over both GPU hosts, then scores on the 5090. It runs in both passes (record, then replay with the new model's answers). The kernel determinism and parity gates, including the party gate, run on both hosts before any stage.
+
 ## Limits
 
 - One prototype pass on current data; the definitive rerun after Oct 29 uses the new player-state model and the definitive panel.
@@ -81,4 +104,4 @@ Reading:
 
 ## Files
 
-`training/personalization/p3t_party.py` (drafts, scoring), `p3t_party_report.py` (capture ratios, position diagnostics), results `results/p3t/party.json`, `party_report.json`. Rerun: `python personalization/p3t_party.py run --plan effect`, `run --plan position`, `score`, then `python personalization/p3t_party_report.py` (GPU host, run_rcf_full env).
+`training/personalization/p3t_party.py` (drafts, scoring), `p3t_party_report.py` (capture ratios, position diagnostics), results `results/p3t/party.json`, `party_report.json`. Definitive: `P3T_LOBBYSET=party` with `select`, `run --plan effect`, `run --plan grid` (results `party_party.json`, `party_party_report.json`), wired into `remote/p3t_pipeline.sh`. Prototype rerun: `python personalization/p3t_party.py run --plan effect`, `run --plan position`, `score`, then `python personalization/p3t_party_report.py` (GPU host, run_rcf_full env).
