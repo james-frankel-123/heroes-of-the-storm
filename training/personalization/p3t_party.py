@@ -308,15 +308,40 @@ def stage_run(plan_name, only=None, device=0):
 
 # ------------------------------------------------------------------ scoring
 
+def true_terms(LB, acts, slot_at):
+    """The judge's personal terms with the TRUE hero-to-player map (each hero belongs to the
+    player who picked it; the tournament's scoring takes the best assignment instead), and the
+    judge-free record of each team with that map."""
+    js, jo = LB.state["judge"]["s"].astype(np.float64), LB.state["judge"]["off"].astype(np.float64)
+    rs, rn = LB.state["judge"]["rec_sum"], LB.state["judge"]["rec_n"]
+    n = len(acts)
+    ar = np.arange(n)
+    S, O = np.zeros((n, 2)), np.zeros((n, 2))
+    rec = [[[] for _ in range(2)] for _ in range(n)]
+    for k in PICK_STEPS:
+        t = DRAFT_TEAM[k]
+        sl, h = slot_at[:, k], acts[:, k]
+        S[:, t] += js[ar, sl, h]
+        O[:, t] += jo[ar, sl, h]
+        c = rn[ar, sl, h]
+        for i in np.flatnonzero(c > 0):
+            rec[i][t].append(rs[i, sl[i], h[i]] / c[i])
+    rec_mean = np.array([[np.mean(r) if r else np.nan for r in row] for row in rec])
+    return S[:, 0] - S[:, 1], O[:, 0] - O[:, 1], rec_mean
+
+
 def team_view(sc, t, judge):
-    """Per lobby, the party team's J, J_cal, CONS (win %) and judge-free record (pp)."""
+    """Per lobby, the party team's J (true hero-to-player map), J_best (the tournament's best
+    assignment), J_cal, CONS (win %) and the judge-free record (pp, true map)."""
     from p3t_analyze import CAL_A, CAL_K
     pc = np.clip(sc["consensus"], 1e-6, 1 - 1e-6)
-    cal = 1 / (1 + np.exp(-(CAL_A * np.log(pc / (1 - pc)) + CAL_K * (judge["c2_skill"] * sc["dS_judge"]
-                                                                      + judge["c3_offrole"] * sc["dO_judge"]))))
+    lc = np.log(pc / (1 - pc))
+    pers = judge["c2_skill"] * sc["dS_true"] + judge["c3_offrole"] * sc["dO_true"]
+    jt = 1 / (1 + np.exp(-(lc + pers)))
+    cal = 1 / (1 + np.exp(-(CAL_A * lc + CAL_K * pers)))
     f = (lambda x: x) if t == 0 else (lambda x: 1 - x)
-    return {"J": 100 * f(sc["judge_personal"]), "J_cal": 100 * f(cal), "CONS": 100 * f(sc["consensus"]),
-            "record": 100 * sc["rec_mean"][:, t]}
+    return {"J": 100 * f(jt), "J_best": 100 * f(sc["judge_personal"]), "J_cal": 100 * f(cal),
+            "CONS": 100 * f(sc["consensus"]), "record": 100 * sc["rec_true"][:, t]}
 
 
 def boot_ci(d, B=2000, seed=0):
@@ -342,6 +367,7 @@ def stage_score():
         z = np.load(os.path.join(OUT, f))
         if not os.path.exists(sp) or os.path.getmtime(sp) < os.path.getmtime(os.path.join(OUT, f)):
             sc = JG.score_drafts(LB, z["acts"], judge, truth)
+            sc["dS_true"], sc["dO_true"], sc["rec_true"] = true_terms(LB, z["acts"], z["slot_at"])
             np.savez(sp, **sc)
         sc = dict(np.load(sp))
         views[f[:-4]] = team_view(sc, int(z["t"]), judge)

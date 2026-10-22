@@ -459,7 +459,9 @@ def act_mcts_x(vint, ctx, x, device=0):
         # party mode (p3t_party.py): our steps taken by stranger teammates are chance nodes
         cfg[:, 40:56] = np.where(ctx["stranger"], -2, -1)
     cfg[:, 56:M.CFG_LEN] = 0
-    cfg[:, M.CFG_ASSIGN] = 1
+    # party mode: the pick order is known, so each hero belongs to the player who picks it
+    # (slot mode, ecfg[24 + step] = that player's slot); otherwise the team picks (assign mode)
+    cfg[:, M.CFG_ASSIGN] = 0 if "stranger" in ctx else 1
     s = ctx["s"].astype(np.float32).copy()
     off = ctx["off"].astype(np.float32)
     b = list(vint.spec["combiner"])
@@ -479,7 +481,7 @@ def act_mcts_x(vint, ctx, x, device=0):
         bias += float(x.get("bias_scale", 1.0)) * pb
         if x.get("alpha") is None:
             alpha = a_fit
-    la = float(x.get("assign_bias", 0.0))
+    la = 0.0 if "stranger" in ctx else float(x.get("assign_bias", 0.0))   # team assignment gain: not in party mode
     if la and IS_PICK[k]:
         for i in range(B):
             own = [int(ctx["acts"][i, j]) for j in range(k) if IS_PICK[j] and DRAFT_TEAM[j] == t]
