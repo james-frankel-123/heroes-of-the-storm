@@ -8,6 +8,8 @@ Answers to Max's questions on `NARRATIVE_v2.md`. Each section starts with a shor
 
 So knowing the players adds 4.81 points, the "personal gain". These are the current panel numbers. The definitive rerun (about Oct 28) will move them a little.
 
+**Sections 12 and 13** (added 2026-10-21): party structure, and Korea's sample. Main box only.
+
 **Section 11** (added 2026-10-21): checks of the carry-forward numbers (simulation, matchmaking, recency, definitions, specialists, variance decomposition).
 
 **Sections 7 to 10** (added 2026-10-19 for REMAINING_WORK.md items 6, 7, 9 and 11): drift on one horizon, the player-model ladder, normalization in edge points, and Korea.
@@ -820,9 +822,118 @@ But silent errors in float32 arrays cannot be ruled out. The 3090's RAM should b
 
 ---
 
+## 12. Party (premade stack) structure
+
+**Plain answer.**
+- **How common stacks are:** 46% of teams are five solo players. 25% have one duo, 11% a trio, 5% two duos, 6% a four-stack, 4% a full five-stack, and 2% a trio plus a duo. In 58% of games the two teams' structures differ; in 69% at least one team has a stack.
+- **Raw effect:** stacks win slightly more. Against the draft-only prediction, a team's largest stack being one size bigger than the other team's is worth about 1.2 points of win probability, and three sizes bigger about 2.4.
+- **Most of that is the stacked players' own skill.** Against the main player model, the stack effect falls by a third to a half. After controlling for each member's skill, one more player in a 3+ stack is worth 0.12 points (SE 0.05), against 0.44 before the control. The team rating gap adds almost nothing on top.
+- **Five-stacks win no more than the player model already expects** (+0.0 points).
+- **Value for prediction:** a party term adds +0.1 to +0.2 log-loss points (×1000) on top of the main model, and −0.01 to +0.02 points of accuracy (SE 0.03 to 0.06). That is no measurable edge. On the draft-only model it adds +0.4 log-loss points and up to +0.1 points of accuracy. This confirms `P3_EXTENSIONS.md` (+0.0002 to +0.0004 log loss).
+- **By tier:** Bronze stands out, as before. Bronze 3+ stacks are +2.2 points beyond the draft and +2.1 beyond the player model. Elsewhere the remainder is +0.2 to +1.3. Bronze's player model has the thinnest histories, so it captures the least of the stack members' skill.
+
+**Method** (`p2f_party.py`, main box).
+- **Party groupings:** `replay_players.party` (0 = solo; members of one team share an id), from the full-panel slot table.
+- **Games:** structure counts use all 2.23M corpus games with ten labelled players. Win rates use the spring and summer test games, one row per team.
+- **"Beyond the draft"** = result minus the draft-only WP. **"Beyond the player model"** = result minus the main model's prediction.
+- **Value:** the main model's combiner plus three team differences (players in a 2+ party, players in a 3+ party, a five-stack flag), fit on V1 and scored on V2 and OOT, paired by game.
+- **Check:** a regression of the result beyond the draft on the 3+-stack player difference, then adding the player-model skill difference and then the at-game team rating gap.
+
+By own team structure (test games; points of win probability; SE of each cell about 0.1 to 0.35):
+
+| own structure | teams | raw win % | beyond the draft | beyond the player model |
+|---|---|---|---|---|
+| all solo | 240,775 | 48.8 | −1.03 | −0.66 |
+| duo | 232,031 | 49.7 | −0.23 | −0.08 |
+| two duos | 49,057 | 50.8 | +0.76 | +0.55 |
+| trio | 91,775 | 51.5 | +1.38 | +1.05 |
+| trio + duo | 20,678 | 51.3 | +1.12 | +0.59 |
+| four-stack | 47,630 | 52.1 | +1.75 | +0.86 |
+| five-stack | 35,034 | 51.5 | +0.96 | +0.01 |
+
+By the difference in the two teams' largest stack:
+
+| own largest minus opponents' | 0 | +1 | +2 | +3 | +4 (five-stack vs five solos) |
+|---|---|---|---|---|---|
+| teams | 237,652 | 143,776 | 59,952 | 34,840 | 1,096 |
+| raw win % | 50.0 | 51.3 | 52.5 | 53.1 | 48.7 |
+| beyond the draft | 0 | +1.17 | +2.13 | +2.41 | −1.97 (SE 1.5) |
+| beyond the player model | 0 | +0.78 | +1.20 | +1.05 | −3.61 (SE 1.5) |
+
+- Five-stacks almost never meet five solo players (1,096 test games); they are matched against other stacks.
+- Some matchups: four-stack vs solos +3.5 beyond the draft and +2.1 beyond the player model; trio vs solos +2.9 and +1.9; five-stack vs duo +1.6 and +0.3; five vs five 0.
+
+3+ stacks vs all-solo teams by tier, beyond the draft / beyond the player model, in points:
+
+| tier | 3+ stack | all solo |
+|---|---|---|
+| Bronze | +2.22 / +2.05 | −0.49 / −0.54 |
+| Silver | +1.00 / +0.84 | −0.84 / −0.76 |
+| Gold | +1.09 / +0.64 | −0.80 / −0.40 |
+| Platinum | +1.25 / +0.28 | −1.89 / −1.04 |
+| Diamond | +1.43 / +0.16 | −1.72 / −0.67 |
+| Master | +2.18 / +1.29 | −1.18 / −0.65 |
+
+**Is the stack effect just better players?** Mostly, yes (159K test games with every player's rating known):
+- each extra player in a 3+ stack: +0.44 points beyond the draft (SE 0.05);
+- with each member's player-model skill: +0.12;
+- with skill and the team rating gap: +0.11.
+
+Stacks carry 0.29 points more summed player-model skill per stacked player, and a slightly higher team rating (+0.9 rating points per stacked player). About three quarters of the raw stack effect is the members' measured skill. The small remainder (about 0.1 points per stacked player) is consistent with coordination, and only Bronze shows a sizable one.
+
+---
+
+## 13. Korea: a sample problem, and of which kind?
+
+**Plain answer.** Both kinds of "small" exist, but not in the place we feared.
+- **Our corpus does not under-sample Korean games relative to Heroes Profile.** For the same panel accounts, our corpus holds 67% of a Korean account's 2025 Heroes Profile games, against 59 to 60% in the Americas and Europe.
+- **Korean accounts have far fewer recorded games.**
+  - An active Korean panel account (20+ games in 2025) has a median of 101 games in 2025, against 160 to 172.
+  - Across all accounts in our corpus, a Korean account with a 2025 game has 13 corpus games that year, against 28 to 32.
+  - We cannot tell from Heroes Profile data alone whether Korean players play less or upload less to Heroes Profile. Its histories only contain uploaded games. Either way, the thin histories come from upstream, not from our sampling.
+- **Is the gap statistically clear?** On the two test windows together, yes.
+  - Korea's gain is 3.5 points (95% CI 2.7 to 4.2, 17,114 games), against 5.0 (4.7 to 5.3) in the Americas and 4.7 (4.5 to 4.9) in Europe.
+  - Differences: −1.5 (−2.3 to −0.7) against the Americas and −1.2 (−2.0 to −0.4) against Europe.
+  - On the spring window alone (3,322 Korean games) the accuracy differences are not clear (−0.7 and −0.6, CIs spanning zero). The log-loss gap against the Americas is (−8.9, CI −16.3 to −1.5).
+  - These CIs resample games. Korea's player pool is small and players recur often, so the true CIs are somewhat wider. The pooled differences would likely remain clear.
+
+**Method** (`p2f_korea.py`, main box).
+- **Panel accounts:** the Heroes Profile match histories of the pulled panel (store full_1017).
+  - Rows ending in 2025, per account.
+  - "Full history" = all rows (Heroes Profile and our corpus); "in our corpus" = rows that are corpus games.
+  - Region is from the account key. The panel was chosen by corpus activity (100+ window games for panel 1, 20+ games since 2025 for panel 2), the same rule for every region.
+- **All accounts:** corpus games in 2025 per account, from the slot table.
+- **Test:** gain = main model accuracy minus draft-only accuracy on the same games; CIs from 2,000 resamples of games within region.
+
+| region | panel accounts | active in 2025 | median 2025 games, full history | median 2025 games in our corpus | corpus share of full history |
+|---|---|---|---|---|---|
+| Americas | 13,743 | 10,869 (79%) | 172 | 103 | 60% |
+| Europe | 27,067 | 21,421 (79%) | 160 | 97 | 59% |
+| Korea | 1,307 | 889 (68%) | 101 | 69 | 67% |
+
+| region | accounts with a 2025 corpus game | with 20+ | median corpus games, 20+ accounts | corpus games per account with a game |
+|---|---|---|---|---|
+| Americas | 61,490 | 19,876 | 52 | 32.5 |
+| Europe | 138,273 | 39,886 | 48 | 27.8 |
+| Korea | 12,815 | 2,027 | 37 | 12.8 |
+
+Gain from the players by region, main model, accuracy points (95% CI):
+
+| window | Americas | Europe | Korea | Korea minus Americas | Korea minus Europe |
+|---|---|---|---|---|---|
+| spring (V2) | 4.89 (4.20, 5.60), 22,332 games | 4.82 (4.34, 5.29), 46,820 | 4.18 (2.47, 5.93), 3,322 | −0.67 (−2.55, 1.18) | −0.59 (−2.39, 1.22) |
+| summer (OOT) | 4.98 (4.65, 5.33), 91,555 | 4.69 (4.44, 4.92), 180,669 | 3.31 (2.39, 4.17), 13,792 | −1.68 (−2.63, −0.75) | −1.38 (−2.27, −0.50) |
+| both | 4.97 (4.67, 5.28), 113,887 | 4.71 (4.50, 4.92), 227,489 | 3.48 (2.74, 4.25), 17,114 | **−1.49 (−2.28, −0.68)** | **−1.23 (−2.00, −0.44)** |
+
+In log loss (×1000) the pooled differences are −12.7 (−16.2, −9.2) and −10.5 (−13.9, −7.2).
+
+**For the paper:** "Korea gains less (3.5 against 4.7 to 5.0 points; the difference is statistically clear on the pooled test games). Korean accounts have about 40% fewer recorded games per year in Heroes Profile itself, and our corpus covers them at least as well as other regions. So the shortfall reflects thinner public histories, and at equal history depth about a point remains unexplained (section 10)."
+
+---
+
 ## Files
 
-- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`, `p2f_more.py` (sections 8 to 10), `p2f_ladder.py` (the two new ladder arms, run on the 3090 CPU), `p2f_stale_decomp.py` (section 7's decomposition, 3090 CPU), `p2f_carry.py`, `p2f_carry_mmr.py` and `p2f_vardecomp.py` (section 11, main box) and `p2f_stale_cell.py` (the year-stale table of section 7, run on the 3090 CPU against the tournament's saved states).
+- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`, `p2f_more.py` (sections 8 to 10), `p2f_ladder.py` (the two new ladder arms, run on the 3090 CPU), `p2f_stale_decomp.py` (section 7's decomposition, 3090 CPU), `p2f_carry.py`, `p2f_carry_mmr.py` and `p2f_vardecomp.py` (section 11, main box), `p2f_party.py` (section 12) and `p2f_korea.py` (section 13), and `p2f_stale_cell.py` (the year-stale table of section 7, run on the 3090 CPU against the tournament's saved states).
 - Results: `training/personalization/results/p2f/*.json`.
 - Large inputs, all gitignored:
   - `cache/p2f_snapshot_games.npz`, a compact copy of the snapshot built by the game-clock script;
