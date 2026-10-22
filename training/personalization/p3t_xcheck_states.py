@@ -29,10 +29,14 @@ def main():
     inv_sh = TD.sh_inv(sh)
     L = TD.load_lobbies()
     lay = TD.Layer(d, aug, TD.layer_meta())
+    full = "--full" in sys.argv
     gi = np.load(os.path.join(TD.OUT, "tourney", "lobbies.npz"))["gi"]
-    out = {"lobbies": int(len(gi))}
+    out = {"lobbies": int(len(gi)), "full": full}
     for v in ("cur", "judge"):
         z = np.load(os.path.join(TD.OUT, f"state_{v}.npz"))
+        if full:
+            gi = z["gsel"]                       # every lobby of the state file
+            out[f"lobbies_{v}"] = int(len(gi))
         pos = {int(g): i for i, g in enumerate(z["gsel"])}
         sel = np.array([pos[int(g)] for g in gi])
         rows_state = (sel[:, None] * 10 + np.arange(10)[None]).ravel()
@@ -49,18 +53,20 @@ def main():
         new = {"s": s[inv][:, inv_sh].astype(dt), "sd": np.sqrt(res["var_all"])[inv][:, inv_sh].astype(np.float16),
                "n": res["n_all"][inv][:, inv_sh].astype(np.uint16),
                "off": TD.off_role(d, res["n_all"])[inv][:, inv_sh]}
+        np.savez(os.path.join(TD.OUT, f"xcheck_state_{v}{'_full' if full else ''}.npz"), rows_state=rows_state, **new)
         r = {}
         for k, a in new.items():
             b = z[k][rows_state]
             diff = np.abs(a.astype(np.float64) - b.astype(np.float64))
             r[k] = {"identical": bool(np.array_equal(a, b)), "cells_differing": int((diff > 0).sum()),
+                    "rows_differing": int((diff.reshape(len(diff), -1) > 0).any(1).sum()),
                     "max_abs_diff": float(diff.max()), "cells": int(diff.size)}
         out[v] = r
         print(v, json.dumps(r), flush=True)
     ok = all(x["max_abs_diff"] <= (1e-2 if k in ("s", "sd") else 0) for v in ("cur", "judge") for k, x in out[v].items())
     out["pass"] = bool(ok)
     os.makedirs(os.path.join(C.RESULTS, "p3t"), exist_ok=True)
-    json.dump(out, open(os.path.join(C.RESULTS, "p3t", "xcheck_states.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(C.RESULTS, "p3t", f"xcheck_states{'_full' if full else ''}.json"), "w"), indent=1)
     print("XCHECK STATES", "OK" if ok else "DIFF")
 
 

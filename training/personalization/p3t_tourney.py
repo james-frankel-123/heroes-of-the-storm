@@ -77,8 +77,9 @@ class Lobbies:
         self.gi = np.load(os.path.join(TDIR, "lobbies.npz"))["gi"]
         win = np.flatnonzero(self.L["day"] <= TD.LOBBY_END)
         wpos = {int(g): i for i, g in enumerate(win)}
-        st = {v: np.load(os.path.join(TD.OUT, f"state_{v}.npz")) for v in ("cur", "s4m", "s1y", "judge", "splitd", "splitj")
-              if os.path.exists(os.path.join(TD.OUT, f"state_{v}.npz"))}
+        # P3T_STATE_<V> overrides one state file (cross-checks with a recomputed state)
+        spath = lambda v: os.environ.get(f"P3T_STATE_{v.upper()}") or os.path.join(TD.OUT, f"state_{v}.npz")
+        st = {v: np.load(spath(v)) for v in ("cur", "s4m", "s1y", "judge", "splitd", "splitj") if os.path.exists(spath(v))}
         n = len(self.gi)
         self.map = np.array([MAPS.index(str(self.L["map"][g])) for g in self.gi], np.int32)
         self.tier = np.array([SKILL_TIERS.index(str(self.L["tier"][g])) for g in self.gi], np.int32)
