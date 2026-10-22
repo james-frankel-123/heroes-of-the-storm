@@ -27,7 +27,7 @@ source training/remote_workers/_remote.sh
 CPU=${P3T_CPU_HOST:-3080-gaming-desktop}
 GPU=${P3T_GPU_HOST:-windows-5090-wsl}
 GPU2=${P3T_GPU2_HOST:-3080-gaming-desktop}
-CPU_CORES=${P3T_CPU_CORES:-0-15}
+CPU_CORES=${P3T_CPU_CORES:-0-3,16-19}   # 3080: the nightly replay parse uses cores 4-15 from 22:40
 CPU_MEM=${P3T_CPU_MEM:-20G}          # 3080: lean jobs, at most 20 GB per lane
 B=/home/max/hots/repo/training/personalization
 STAMP=$(date +%m%d%H%M)
