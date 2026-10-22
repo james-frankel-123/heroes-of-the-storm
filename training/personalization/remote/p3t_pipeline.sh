@@ -154,6 +154,9 @@ run_cpu score $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py p3t_backtest.p
 run_cpu scoresplit env P3T_SPLIT=1 $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py
 run_cpu scoretune env P3T_LOBBYSET=tune $STEP p3t_judge.py:score p3t_analyze.py
 
+# 5b. the party drafter (P3_PARTY_DRAFTER.md): party sizes 1-5 and pick positions (5090)
+run_gpu party $STEP p3t_party.py:run:--plan:effect p3t_party.py:run:--plan:position p3t_party.py:score p3t_party_report.py
+
 # 6. results home (small JSON only) and the tables
 mkdir -p training/personalization/results/p3t
 for h in $CPU $GPU; do
