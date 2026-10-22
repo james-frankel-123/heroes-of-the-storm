@@ -28,11 +28,11 @@ MAIN = ["x-combo1-dr-chance", "x-combo1", "x-combo3", "x-combo1-dr", "x-pp-dr", 
 def cell(A, a, b, m):
     """Row a's win % against column b (both seatings), 95% CI; from either key order."""
     v = A["h2h"].get(f"{a} vs {b}")
-    if v is not None:
+    if v is not None and m in v:
         x = v[m]
         return x[0], x[1], x[2]
     v = A["h2h"].get(f"{b} vs {a}")
-    if v is not None:
+    if v is not None and m in v:
         x = v[m]
         return 100 - x[0], 100 - x[2], 100 - x[1]
     return None
@@ -42,7 +42,8 @@ def matrix(A):
     """The complete head-to-head matrix among the main systems, under J and CONS."""
     sysn = [s for s in MAIN if s in A["systems"]]
     L = []
-    for m, title in (("judge_personal", "J (player-aware judge)"), ("consensus", "CONS (paper 1's consensus judges)")):
+    for m, title in (("judge_personal", "J (player-aware judge)"), ("consensus", "CONS (paper 1's consensus judges)"),
+                     ("judge_cal", "J_cal (J with calibrated parts; sensitivity)")):
         L += ["", f"## Head-to-head matrix, {title}", "",
               "Cell = the row system's mean win % against the column system on the 300 tournament lobbies, both "
               "seatings, 95% CI (lobby bootstrap, widened for seed effects). Every cell is a played match; "
@@ -73,10 +74,11 @@ def main():
               "Personal part = judge's personal-sum difference (pp of team skill sum). Record = judge-free realized "
               "record per assigned player (pp). Future hero WR = judge-free. 95% CIs (lobby bootstrap, widened for seed effects).", "",
               f"J corrected = attenuation-corrected J (personal part divided by lambda = {A.get('attenuation_lambda')}; a model-based sensitivity).", "",
-              "| matchup | J win % | J corrected | CONS win % | personal part (pp) | realized record diff (pp) | future hero WR diff | off-role diff |",
-              "|---|---|---|---|---|---|---|---|"]
+              "J_cal = J with the two parts calibrated on held-out judge-window games (1.17 logit p_cons + 1.00 personal term; a sensitivity check).", "",
+              "| matchup | J win % | J_cal | J corrected | CONS win % | personal part (pp) | realized record diff (pp) | future hero WR diff | off-role diff |",
+              "|---|---|---|---|---|---|---|---|---|"]
         for k, v in A["h2h"].items():
-            L.append(f"| {k} | {ci(v['judge_personal'])} | {ci(v.get('judge_corr'))} | {ci(v['consensus'])} | {ci(v.get('dS_judge_pp'))} | "
+            L.append(f"| {k} | {ci(v['judge_personal'])} | {ci(v.get('judge_cal'))} | {ci(v.get('judge_corr'))} | {ci(v['consensus'])} | {ci(v.get('dS_judge_pp'))} | "
                      f"{ci(v.get('diff_rec_mean'))} | {ci(v.get('diff_truth_hero'))} | {ci(v.get('diff_offrole'))} |")
         L += ["", "## Bradley-Terry strengths (logit, GD = 0) and standings", "",
               "| system | BT under J | BT under CONS | standing J % | standing CONS % | degenerate % | healer % | off-role players | GPU+CPU s per draft |",

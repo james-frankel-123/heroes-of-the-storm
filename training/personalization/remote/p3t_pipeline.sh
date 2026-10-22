@@ -6,24 +6,29 @@
 #     > training/personalization/logs/p3t_pipeline.log 2>&1 &
 #
 # Inputs (already on the workers; produced by the personalization rerun):
-#   3090: personalization/cache_full/ (slot table x_slots_ext, merged rows, scoreboard cards,
+#   CPU host (3080; was the 3090): personalization/cache_full/ (slot table x_slots_ext, merged rows, scoreboard cards,
 #         rcf/parts_full_ms.npz, mmr_at_game.npz, x_post_games.json.gz, drafts_post.json.gz,
 #         gd_trainonly/) and results/rcf_full/{rcf/params/full_ms.npz, p3_c_tests_main.json,
 #         rcf/p3c/full_ms_layer__merged.npz}
 #   5090: personalization/cache_full/rcf/fit_merged.npz + fitm_merged_a_shrink.npz (judge refit)
 #   Stale vintages: paper1_revision/site/vint/<v>/ finished (vintage_launch.py; listed in
-#   personalization/p3t_vintages.json) and copied to the 5090 (rsync of models, stats, mcts_runs).
-# Hosts: CPU stages on the 3090 (cores 20-35); GPU stages on the 5090.
+#   personalization/p3t_vintages.json) and copied to the 5090 and the 3080 (rsync of models, stats, mcts_runs).
+# Hosts: CPU stages on the 3080 (P3T_CPU_HOST); GPU stages on the 5090, tournament shards also on the 3080 GPU.
 # Every stage writes outputs atomically and skips finished outputs, so a rerun after a pause
 # continues. Delete $B/cache_full/p3t (both hosts) to start over. p3t_vintages.json is written
-# only on the 3090 (combfit, vnet) and fetched back right after; do not edit it while this runs.
+# only on the CPU host (combfit, vnet) and fetched back right after; do not edit it while this runs.
 # The exploration design is the one the rule picked on the tune lobbies (x-combo1-dr-chance, with x-combo1 and x-combo3
 # reported next to it); the rerun re-reports the tune table but keeps that choice (P3_TOURNAMENT.md).
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
 source training/remote_workers/_remote.sh
-CPU=max-windows-3090
-GPU=windows-5090-wsl
+# Hosts (2026-10-21): the 3090 is out until its RAM is tested (single-bit flips seen), so the
+# definitive rerun uses the 3080 for CPU stages and as a second GPU, and the 5090 as the main GPU.
+CPU=${P3T_CPU_HOST:-3080-gaming-desktop}
+GPU=${P3T_GPU_HOST:-windows-5090-wsl}
+GPU2=${P3T_GPU2_HOST:-3080-gaming-desktop}
+CPU_CORES=${P3T_CPU_CORES:-0-15}
+CPU_MEM=${P3T_CPU_MEM:-20G}          # 3080: lean jobs, at most 20 GB per lane
 B=/home/max/hots/repo/training/personalization
 STAMP=$(date +%m%d%H%M)
 RELAY=${P3T_RELAY:-/tmp/p3t_relay_$STAMP}
@@ -41,13 +46,19 @@ wait_job() {   # host name: poll hotsjob state until the job ends; fail on anyth
   done
 }
 run_cpu() { local n="p3t_${1}_$STAMP"; shift
-  P3_CORES=20-35 P3_MEM=100G P3_THREADS=8 $JOB $CPU "$n" env P3T_PROCS=12 "$@"
+  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=6 $JOB $CPU "$n" env P3T_PROCS=6 "$@"
   wait_job $CPU "$n"; }
 run_gpu() { local n="p3t_${1}_$STAMP"; shift
   P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "$n" env P3T_PROCS=4 "$@"
   wait_job $GPU "$n"; }
+run_gpu_pair() {   # name step-args...: the same tournament step on both GPU hosts, shards 0/2 and 1/2
+  local n="p3t_${1}_$STAMP"; shift
+  P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "${n}_a" env P3T_PROCS=4 "$@":--shard:0/2
+  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "${n}_b" env P3T_PROCS=4 "$@":--shard:1/2
+  wait_job $GPU "${n}_a"; wait_job $GPU2 "${n}_b"
+  relay $GPU2 $GPU; }
 STEP="bash personalization/remote/p3t_run.sh"
-relay() {      # from-host to-host: cache_full/p3t (scores stay on the 3090)
+relay() {      # from-host to-host: cache_full/p3t (scores stay on the CPU host)
   mkdir -p "$RELAY"
   nice -n 19 rsync -rt --rsync-path="$(remote_rsync "$1")" --exclude 'scores*' --exclude 'premature' \
     --exclude '*_unmasked' "$1:$B/cache_full/p3t/" "$RELAY/"
@@ -65,8 +76,15 @@ fetch_vintages() {
 for h in $CPU $GPU; do training/personalization/remote/p3t_sync.sh $h; done
 
 # 0. rebuild every P3 kernel (race-fixed 2026-10-19) and gate on determinism and parity (5090)
-run_gpu build bash personalization/remote/p3t_build_all.sh
+# (the 5090's compile needs about 20 GB for the nvcc step: run its build with P3T_BUILD_MEM, default 20G)
+P3_CORES=0-15 P3_MEM=${P3T_BUILD_MEM:-20G} P3_THREADS=2 $JOB $GPU "p3t_build_$STAMP" env MAX_JOBS=1 bash personalization/remote/p3t_build_all.sh
+wait_job $GPU "p3t_build_$STAMP"
+P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_build2_$STAMP" env MAX_JOBS=1 bash personalization/remote/p3t_build_all.sh
+wait_job $GPU2 "p3t_build2_$STAMP"
 run_gpu determ $STEP p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py
+P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_determ2_$STAMP" bash personalization/remote/p3t_run.sh \
+  p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py
+wait_job $GPU2 "p3t_determ2_$STAMP"
 
 # 1. judge skill model: the main fit's settings on the other player half (5090 GPU, ~3 min)
 run_gpu flipfit env P3_CACHE=$B/cache_full P3_RESULTS=$B/results/rcf_full python -u personalization/p3_rcf.py fit \
@@ -75,7 +93,7 @@ mkdir -p "$RELAY"
 nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU)" "$GPU:$B/results/rcf_full/rcf/params/full_ms_flip.*" "$RELAY/"
 nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$RELAY"/full_ms_flip.* "$CPU:$B/results/rcf_full/rcf/params/"
 
-# 2. data, states, combiners, judges, value study, rosters, lobby sets (3090 CPU)
+# 2. data, states, combiners, judges, value study, rosters, lobby sets (CPU host)
 run_cpu data $STEP p3t_data.py:lobbies p3t_data.py:states:--vintages:cur,s4m,s1y,judge:--judge-params:full_ms_flip \
   p3t_data.py:judgefit:--judge-params:full_ms_flip p3t_data.py:split_states p3t_data.py:split_judgefit \
   p3t_data.py:rosters p3t_data.py:prelobbies p3t_value.py:combfit:--vintages:cur,s4m,s1y,split p3t_judge.py:fit \
@@ -99,17 +117,18 @@ relay $CPU $GPU
 push_results
 run_gpu draftrec $STEP p3t_draftrec.py:train p3t_draftrec.py:train:--final:--keep-epoch:auto p3t_draftrec.py:hist \
   p3t_probe.py:timing
-# DraftRec opponent inside the search (p3t_oppdr.py): fit lobbies and histories (3090), the fit (5090)
+# DraftRec opponent inside the search (p3t_oppdr.py): fit lobbies and histories (CPU host), the fit (5090)
 run_cpu oppdrhist $STEP p3t_oppdr.py:lobbies p3t_oppdr.py:hist
 relay $CPU $GPU
 run_gpu oppdrfit $STEP p3t_oppdr.py:fit
 
 # 4. the tournament (every ready pair), the tune set, the design ablation (5090)
-run_gpu tourney $STEP p3t_tourney.py:run:--schedule:all:--only-ready
+relay $GPU $GPU2
+run_gpu_pair tourney $STEP p3t_tourney.py:run:--schedule:all:--only-ready
 run_gpu tune env P3T_LOBBYSET=tune $STEP p3t_tourney.py:run:--schedule:tune
-run_gpu ablation $STEP p3t_tourney.py:run:--schedule:ablation
+run_gpu ablation $STEP p3t_tourney.py:run:--schedule:ablation   # leftovers only (all includes ablation)
 
-# 5. scoring and analysis (3090)
+# 5. scoring and analysis (CPU host)
 relay $GPU $CPU
 run_cpu score $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py p3t_backtest.py:agree_analyze:--games:20000:--vintage:cur_bc \
   p3t_backtest.py:agree_analyze:--games:20000:--vintage:cur

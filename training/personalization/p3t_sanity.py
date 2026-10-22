@@ -184,9 +184,19 @@ def realcal():
         return {"games": int(m.sum()), "log_loss": round(float(XC.logloss(p, yy).mean()), 5),
                 "acc": round(float(((p > .5) == (yy == 1)).mean()), 4), "slope": round(float(slope), 3),
                 "auc": round(float(auc), 4)}
+    # calibration of the two parts separately (coordinator 2026-10-21): logit P(win) = a logit p_cons + k pers,
+    # pers = c2 dS + c3 dO; J_cal = the held-out judge-window calibration (a 1.17, k 1.00)
+    lc = np.log(pc / (1 - pc))
+    pers = c2 * np.array(dS) + c3 * np.array(dO)
+    pcal = 1 / (1 + np.exp(-(1.17 * lc + pers)))
+    np.savez(os.path.join(TD.OUT, "realcal_games.npz"), gi=win, logit_cons=lc, dS=np.array(dS), dO=np.array(dO), y=y)
     out = {}
     for nm, m in (("all_window", np.ones(len(win), bool)), ("tournament_300", intour)):
-        out[nm] = {"CONS": stats(pc, m), "J": stats(pj, m), "coin_log_loss": round(float(np.log(2)), 5)}
+        out[nm] = {"CONS": stats(pc, m), "J": stats(pj, m), "J_cal": stats(pcal, m),
+                   "coin_log_loss": round(float(np.log(2)), 5)}
+        w, se = JG.fit_offset_logistic(np.zeros(int(m.sum())), np.c_[lc[m], pers[m]], y[m])
+        out[nm]["two_part_fit"] = {"a_consensus": round(float(w[0]), 3), "a_se": round(float(se[0]), 3),
+                                   "k_personal": round(float(w[1]), 3), "k_se": round(float(se[1]), 3)}
     json.dump(out, open(os.path.join(RES, "sanity_realcal.json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
 

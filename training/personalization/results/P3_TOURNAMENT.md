@@ -2,6 +2,14 @@
 
 Status: results on current data (store full_1017, CAP_TS 2026-09-28), all from the race-fixed kernels (2026-10-19, see "Kernel fix" below). The full-data rerun after the player-history pull (about Oct 26 to 27) is one command: `training/personalization/remote/p3t_pipeline.sh`. The pre-stated comparisons below were committed before the tournament ran (commits af7427c, 5194ad6, 7ffda4c).
 
+**Where the numbers were computed (2026-10-21).** The 3090 showed single-bit RAM flips. Every head-to-head, Bradley–Terry and matrix number in this file is now computed off the 3090: all drafts that the 3090 had drafted (46 ordered pairs) were redrafted on the 5090, and every draft was rescored and reanalyzed on the 5090 (main, split-history and tune sets; judge refit there too). Cross-check against the 3090's results:
+- judge fit (c2, c3, log losses): equal to 1e-8; the split-history judge to 1e-9;
+- rescoring the same drafts: all 271 common head-to-heads identical to two decimals, under J, CONS and the judge-free columns;
+- redrafting on the 5090: 96 of 10,200 drafts differ (0.9%, near-ties between GPU architectures; same-machine reruns are byte-identical); per-pair J moves by at most 0.11pp, head-to-heads by at most 0.06pp;
+- refitting the opponent models (comfort, DraftRec) on the 5090: coefficients equal to 4e-5; the distilled prior refits to the same quality (KL 1.302 vs 1.302, top-1 28.1% vs 28.1%) though not bit-identical (CPU training);
+- the real-outcome calibration reruns identically.
+Still computed on the 3090 and not yet rechecked: the player-state files (drafter and judge), the judge-fit inputs, the combiners, the rosters and pre-tournament lobbies, the value nets, the rich priors, the backtests, and paper 1's F seeds 1 and 2 plus the stale-vintage F runs (trained there). The state check (`p3t_xcheck_states.py`) needs more than the 5090's 12 GB per-process limit and is ready to run on the 3080 when it is free.
+
 **Kernel fix (2026-10-19).** An independent verification of the search kernels (`P3_MCTS_VERIFICATION.md`) found a race in the main draft loop of all five P3 kernels (`cuda_personal`, `cuda_prior`, `cuda_pgd`, `cuda_pvnet`, `cuda_explore`): threads read the shared skip and team flags after thread 0 had rewritten them for the next step. It bites only when steps are skipped (prefix replay, forced bans). It is fixed (local copies behind a barrier, commit 2ad31c1), and every number in this file comes from a rerun on the fixed kernels: every tournament pair, the tune set, the probe, the distilled, rich and self-play priors, the agreement backtests, the paper-1 bench and the timings.
 - Checks after the fix: identical reruns are byte-identical (decide-only searches at steps 2, 7 and 13 in all four tournament kernels); full drafts with two forced bans repeat no hero; the parity checks against the population reference pass (`p3t_determinism.py`, `p3t_verify.py`, `p3t_pvnet_verify.py`, `p3t_explore_verify.py`). The verifier reproduced these on its own build.
 - Smaller fixes in the same commit: hashed per-episode random seeds (neighbouring seeds were correlated; the opponent draw is now uniform, chi² p 0.42), a floor on the prior before its log so a bias can revive an underflowed hero, the rich prior no longer overwrites the ban bias, and score files record the judge they were scored with so stale scores are recomputed.
@@ -42,6 +50,7 @@ Status: results on current data (store full_1017, CAP_TS 2026-09-28), all from t
   - Two other versions of the same design tie with it: `x-combo1` (the comfort opponent instead of DraftRec; 60.8% and 61.8%) and `x-combo3` (1,600 simulations, selected before the kernel fix; 60.7% and 62.6%). Against each other they score 49.5 to 50.5%.
   - The direct match against GD is 54.8% for paper 1's MCTS and 55.2% for real drafts.
   - These are model-judged and conservative. J sees players only through 2.5 months of later games, so it credits about 0.42 of a true personal difference.
+  - J_cal, which recalibrates J's two parts on held-out judge-window games (the personal part is already calibrated; the population part is scaled up by 1.17), gives 59.9% (59.2, 60.6) against paper 1's MCTS and 63.5% (62.8, 64.1) against real drafts. Weighting population WP more moves each result toward the side with the population edge: paper 1's MCTS gains a point, real drafts lose 1.4.
   - A judge built from years of disjoint history (split-history, attenuation 0.71) puts `x-combo3`, run on half of each player's history, at 65.7% (65.0, 66.4) against paper 1's MCTS.
   - The judge-free check agrees: the players the selected design puts on heroes later win more on those heroes than the players paper 1's MCTS assigns, +3.7pp per player (1.6, 5.8), and more than the real drafts' players, +2.7pp (1.0, 4.3).
   - Under paper 1's own judges (CONS), the selected design beats real drafts 59.1% and paper 1's MCTS beats them 63.5%, a figure that reproduces paper 1.
@@ -100,7 +109,7 @@ Paper 1's headline 0.61 is a mean over a field of ten agents, and paper 1 made n
   | CONS | 0.6710 | 59.1% | 0.629 | 1.73 |
   | J | 0.6564 | 61.1% | 0.655 | 1.30 |
 
-  A slope above 1 means underconfident, so J's personal differences are if anything too small.
+  A slope above 1 means underconfident. Fitting the two parts separately on the same games (logit P(win) = a logit p_cons + k (c2 dS + c3 dO)): k = 1.02 (SE 0.03), a = 1.73 (SE 0.03). The personal part is calibrated; the underconfidence is all in the population part. J_cal (a = 1.17, k = 1.00, fit on held-out judge-window games) has log loss 0.655 here and is reported next to J in the tables.
 - **Pools.** In the tournament lobbies, 2.9% of real picks are heroes new to the player and 0.07% fall outside the team's pool union, whose median is 87 of 90 heroes. The pool rule does not handicap the drafters against real drafts.
 - **Same terms.** Real drafts are scored by the same judges with the same best hero-to-player assignment, and their rule-degenerate teams (8.5%) go through the same composition correction.
 - **Caveat.** gN and RN were trained on paper 1's post-snapshot no-drift games, which include window games on build 97039. CONS's accuracy on the real window drafts is therefore partly in-sample. This does not touch drafted teams or J's personal term, which uses later games only.
@@ -175,21 +184,21 @@ All 64 systems, with standings: `P3_TOURNAMENT_TABLES.md`. Ablation arms that pl
 
 Every main system played GD on the 300 lobbies, both seats.
 
-| system | J vs GD | CONS vs GD | judge-free: realized record diff per player (pp) | judge-free: future hero WR diff |
-|---|---|---|---|---|
-| x-combo1-dr-chance (selected) | 66.9 (66.3, 67.5) | 59.0 (58.6, 59.5) | +4.2 (2.2, 6.2) | +2.1 |
-| x-combo1 | 66.9 (66.3, 67.5) | 58.8 (58.4, 59.3) | +3.1 (1.1, 5.1) | +2.1 |
-| x-combo3 | 67.5 (66.9, 68.2) | 59.7 (59.2, 60.1) | +2.7 (0.6, 4.7) | +2.1 |
-| x-combo1-dr | 67.2 (66.6, 67.7) | 58.9 (58.4, 59.4) | +4.1 (2.2, 6.0) | +2.1 |
-| x-pp-dr | 65.7 (65.1, 66.4) | 59.4 (58.9, 59.9) | +1.7 (−0.2, 3.6) | +2.1 |
-| aMCTS-pp | 65.9 (65.3, 66.6) | 59.4 (58.9, 59.9) | +3.6 (1.7, 5.5) | +2.2 |
-| aMCTS-cur | 55.7 (53.8, 57.6) | 63.1 (61.9, 64.3) | −1.4 (−3.7, 1.0) | +3.0 |
-| pMCTS-cur (paper 1's MCTS) | 54.8 (52.9, 56.6) | 63.0 (61.7, 64.2) | −1.9 (−4.3, 0.5) | +2.9 |
-| a1step-cur | 63.6 (63.0, 64.3) | 58.0 (57.6, 58.5) | +0.9 (−1.3, 3.1) | +1.7 |
-| p1step-cur | 56.6 (55.9, 57.4) | 58.6 (58.1, 59.0) | −0.5 (−2.8, 1.8) | +1.8 |
-| DraftRec | 63.7 (63.1, 64.4) | 55.1 (54.6, 55.6) | +1.7 (0.0, 3.4) | +1.5 |
-| DraftRec-pv | 64.4 (63.7, 65.0) | 60.0 (59.6, 60.4) | +0.3 (−1.5, 2.0) | +2.5 |
-| Real | 55.2 (54.4, 56.0) | 50.2 (49.7, 50.7) | +1.9 (0.2, 3.6) | +0.4 |
+| system | J vs GD | J_cal vs GD | CONS vs GD | judge-free: realized record diff per player (pp) | judge-free: future hero WR diff |
+|---|---|---|---|---|---|
+| x-combo1-dr-chance (selected) | 66.9 (66.3, 67.5) | 68.1 (67.5, 68.8) | 59.0 (58.6, 59.5) | +4.2 (2.2, 6.2) | +2.1 |
+| x-combo1 | 66.9 (66.3, 67.5) | 68.2 (67.5, 68.8) | 58.8 (58.4, 59.3) | +3.1 (1.1, 5.1) | +2.1 |
+| x-combo3 | 67.5 (66.9, 68.2) | 68.9 (68.2, 69.5) | 59.7 (59.2, 60.1) | +2.7 (0.6, 4.7) | +2.1 |
+| x-combo1-dr | 67.2 (66.6, 67.7) | 68.4 (67.8, 69.0) | 58.9 (58.4, 59.4) | +4.1 (2.2, 6.0) | +2.1 |
+| x-pp-dr | 65.7 (65.1, 66.4) | 67.1 (66.4, 67.8) | 59.4 (59.0, 59.9) | +1.6 (−0.3, 3.5) | +2.1 |
+| aMCTS-pp | 65.9 (65.3, 66.6) | 67.3 (66.6, 67.9) | 59.4 (58.9, 59.9) | +3.6 (1.7, 5.5) | +2.2 |
+| aMCTS-cur | 55.7 (53.8, 57.6) | 57.8 (55.8, 59.8) | 63.1 (61.9, 64.3) | −1.4 (−3.7, 1.0) | +3.0 |
+| pMCTS-cur (paper 1's MCTS) | 54.8 (52.9, 56.6) | 56.9 (54.9, 58.9) | 63.0 (61.7, 64.2) | −1.9 (−4.3, 0.5) | +2.9 |
+| a1step-cur | 63.6 (63.0, 64.3) | 64.8 (64.1, 65.5) | 58.0 (57.6, 58.5) | +0.9 (−1.3, 3.1) | +1.7 |
+| p1step-cur | 56.6 (55.9, 57.4) | 58.0 (57.2, 58.8) | 58.6 (58.1, 59.0) | −0.5 (−2.8, 1.8) | +1.8 |
+| DraftRec | 63.7 (63.1, 64.4) | 64.5 (63.8, 65.2) | 55.1 (54.6, 55.6) | +1.7 (0.0, 3.4) | +1.5 |
+| DraftRec-pv | 64.4 (63.7, 65.0) | 65.8 (65.2, 66.5) | 60.0 (59.6, 60.4) | +0.3 (−1.5, 2.0) | +2.5 |
+| Real | 55.2 (54.4, 56.0) | 55.2 (54.4, 56.0) | 50.2 (49.7, 50.7) | +1.9 (0.2, 3.6) | +0.4 |
 
 - Under J, the distilled-prior drafters beat GD by 16 to 17.5pp; paper 1's MCTS beats it by 4.8pp, and the real human drafts by 5.2pp.
 - Under CONS the order flips at the top: paper 1's MCTS beats GD by 13pp and the player-aware designs by 9 to 10pp. Real drafts tie GD (50.2%), as paper 1 found.
@@ -202,13 +211,13 @@ Under J:
 
 | row vs column | sel | xc1 | xc3 | pp | aMC | pMC | a1s | DRpv | Real | GD |
 |---|---|---|---|---|---|---|---|---|---|---|
-| sel (x-combo1-dr-chance) |  | 50.5 | 50.0 | 51.9 | 60.4 | 60.9 | 56.8 | 55.4 | 62.1 | 66.9 |
+| sel (x-combo1-dr-chance) |  | 50.5 | 49.9 | 51.9 | 60.4 | 60.9 | 56.7 | 55.4 | 62.1 | 66.9 |
 | xc1 (x-combo1) | 49.5 |  | 50.0 | 51.6 | 60.5 | 60.8 | 56.5 | 54.5 | 61.8 | 66.9 |
-| xc3 (x-combo3) | 50.0 | 50.0 |  | 51.6 | 60.2 | 60.7 | 56.9 | 55.3 | 62.6 | 67.5 |
+| xc3 (x-combo3) | 50.1 | 50.0 |  | 51.6 | 60.2 | 60.7 | 56.9 | 55.3 | 62.6 | 67.5 |
 | pp (aMCTS-pp) | 48.1 | 48.4 | 48.4 |  | 59.3 | 60.4 | 54.2 | 53.1 | 59.8 | 65.9 |
 | aMC (aMCTS-cur) | 39.6 | 39.5 | 39.8 | 40.7 |  | 51.4 | 45.8 | 43.3 | 51.1 | 55.7 |
 | pMC (pMCTS-cur) | 39.1 | 39.2 | 39.3 | 39.6 | 48.6 |  | 45.1 | 42.6 | 50.5 | 54.8 |
-| a1s (a1step-cur) | 43.2 | 43.5 | 43.1 | 45.8 | 54.2 | 54.9 |  | 48.1 | 56.3 | 63.6 |
+| a1s (a1step-cur) | 43.3 | 43.5 | 43.1 | 45.8 | 54.2 | 54.9 |  | 48.1 | 56.3 | 63.6 |
 | DRpv (DraftRec-pv) | 44.6 | 45.5 | 44.7 | 46.9 | 56.7 | 57.4 | 51.9 |  | 57.9 | 64.4 |
 | Real (Real) | 37.9 | 38.2 | 37.4 | 40.2 | 48.9 | 49.5 | 43.7 | 42.1 |  | 55.2 |
 | GD (GD) | 33.1 | 33.1 | 32.5 | 34.1 | 44.3 | 45.2 | 36.4 | 35.6 | 44.8 |  |
@@ -217,16 +226,31 @@ Under CONS:
 
 | row vs column | sel | xc1 | xc3 | pp | aMC | pMC | a1s | DRpv | Real | GD |
 |---|---|---|---|---|---|---|---|---|---|---|
-| sel (x-combo1-dr-chance) |  | 50.2 | 49.7 | 49.0 | 43.8 | 43.8 | 53.5 | 51.1 | 59.1 | 59.0 |
-| xc1 (x-combo1) | 49.8 |  | 49.7 | 49.1 | 43.9 | 43.8 | 53.2 | 50.5 | 58.7 | 58.8 |
+| sel (x-combo1-dr-chance) |  | 50.3 | 49.7 | 49.0 | 43.8 | 43.8 | 53.4 | 51.1 | 59.1 | 59.0 |
+| xc1 (x-combo1) | 49.7 |  | 49.7 | 49.1 | 43.9 | 43.8 | 53.2 | 50.5 | 58.7 | 58.8 |
 | xc3 (x-combo3) | 50.3 | 50.3 |  | 49.4 | 44.4 | 44.3 | 54.0 | 51.3 | 59.5 | 59.7 |
 | pp (aMCTS-pp) | 51.0 | 50.9 | 50.6 |  | 44.1 | 44.2 | 53.3 | 51.5 | 59.1 | 59.4 |
 | aMC (aMCTS-cur) | 56.2 | 56.1 | 55.6 | 55.9 |  | 49.9 | 59.0 | 55.9 | 63.5 | 63.1 |
 | pMC (pMCTS-cur) | 56.2 | 56.2 | 55.7 | 55.8 | 50.1 |  | 58.5 | 55.8 | 63.5 | 63.0 |
-| a1s (a1step-cur) | 46.5 | 46.8 | 46.0 | 46.7 | 41.0 | 41.5 |  | 47.4 | 55.6 | 58.0 |
+| a1s (a1step-cur) | 46.6 | 46.8 | 46.0 | 46.7 | 41.0 | 41.5 |  | 47.4 | 55.6 | 58.0 |
 | DRpv (DraftRec-pv) | 48.9 | 49.5 | 48.7 | 48.5 | 44.1 | 44.2 | 52.6 |  | 58.5 | 60.0 |
 | Real (Real) | 40.9 | 41.3 | 40.5 | 40.9 | 36.5 | 36.5 | 44.4 | 41.5 |  | 50.2 |
 | GD (GD) | 41.0 | 41.2 | 40.3 | 40.6 | 36.9 | 37.0 | 42.0 | 40.0 | 49.8 |  |
+
+Under J_cal (sensitivity: the consensus part rescaled by 1.17, the personal part unchanged):
+
+| row vs column | sel | xc1 | xc3 | pp | aMC | pMC | a1s | DRpv | Real | GD |
+|---|---|---|---|---|---|---|---|---|---|---|
+| sel (x-combo1-dr-chance) |  | 50.6 | 49.9 | 51.7 | 59.4 | 59.9 | 57.3 | 55.5 | 63.5 | 68.1 |
+| xc1 (x-combo1) | 49.4 |  | 50.0 | 51.4 | 59.5 | 59.8 | 57.0 | 54.5 | 63.1 | 68.2 |
+| xc3 (x-combo3) | 50.1 | 50.0 |  | 51.5 | 59.2 | 59.8 | 57.5 | 55.5 | 64.0 | 68.9 |
+| pp (aMCTS-pp) | 48.3 | 48.6 | 48.5 |  | 58.4 | 59.4 | 54.7 | 53.3 | 61.2 | 67.3 |
+| aMC (aMCTS-cur) | 40.6 | 40.5 | 40.8 | 41.6 |  | 51.4 | 47.2 | 44.3 | 53.3 | 57.8 |
+| pMC (pMCTS-cur) | 40.1 | 40.2 | 40.2 | 40.6 | 48.6 |  | 46.5 | 43.6 | 52.7 | 56.9 |
+| a1s (a1step-cur) | 42.7 | 43.0 | 42.5 | 45.3 | 52.8 | 53.5 |  | 47.7 | 57.1 | 64.8 |
+| DRpv (DraftRec-pv) | 44.5 | 45.5 | 44.5 | 46.7 | 55.7 | 56.4 | 52.3 |  | 59.2 | 65.8 |
+| Real (Real) | 36.5 | 36.9 | 36.0 | 38.8 | 46.7 | 47.3 | 42.9 | 40.8 |  | 55.2 |
+| GD (GD) | 31.9 | 31.9 | 31.1 | 32.7 | 42.2 | 43.1 | 35.2 | 34.2 | 44.8 |  |
 
 - The matrix is consistent with the Bradley–Terry order: under J the three versions of the selected design tie with each other (49.5 to 50.5) and beat every other system; `aMCTS-pp` is next, then DraftRec-pv and the aware one-step drafter; paper 1's MCTS, real drafts and GD are last.
 - No three systems form a cycle in which each beats the next with its CI above 50%, under either judge.
@@ -278,13 +302,13 @@ What does cost the aware drafters is population win probability.
 - Before the kernel fix the rule picked it at 1,600 sims (`x-combo3`). On the rerun tune lobbies the rule picks the same design at 400 sims (`x-combo1`, tune J 56.07 against 55.84 for `x-combo3`). With the DraftRec opponent variants added on 2026-10-20 (rule stated before they played), `x-combo1-dr-chance` scores 56.27 and becomes the selected design. All three gaps are inside the noise, and on the tournament lobbies the three versions tie (49.5 to 50.5% against each other).
 - A split-history version (`x-combo3-split`, drafter state from odd days) also played the tune lobbies (56.39); it is a robustness arm for the split judge, not a candidate.
 
-**Pre-stated design comparison:** the selected design against `aMCTS-pp` on the tournament lobbies is **51.9% under J (51.4, 52.4)** for `x-combo1-dr-chance`, with CONS 49.0 (48.6, 49.4). `x-combo1`: 51.6% (51.0, 52.1), CONS 49.1; `x-combo3`: 51.6% (51.1, 52.1), CONS 49.4.
+**Pre-stated design comparison:** the selected design against `aMCTS-pp` on the tournament lobbies is **51.9% under J (51.4, 52.4)** for `x-combo1-dr-chance`, with CONS 49.0 (48.5, 49.4). `x-combo1`: 51.6% (51.0, 52.1), CONS 49.1; `x-combo3`: 51.6% (51.1, 52.1), CONS 49.4.
 
 Each component added alone to `aMCTS-pp`, against `aMCTS-pp`:
 
 | design | J vs aMCTS-pp (CI) | CONS vs aMCTS-pp (CI) | tune-set J | GPU ms per draft |
 |---|---|---|---|---|
-| x-combo1-dr-chance (selected) | 51.9 (51.4, 52.4) | 49.0 (48.6, 49.4) | 56.3 | about 70 |
+| x-combo1-dr-chance (selected) | 51.9 (51.4, 52.4) | 49.0 (48.5, 49.4) | 56.3 | about 70 |
 | x-combo1 (comfort opponent) | 51.6 (51.0, 52.1) | 49.1 (48.7, 49.5) | 56.1 | 41 |
 | x-combo3 (same, 1,600 sims) | 51.6 (51.1, 52.1) | 49.4 (49.0, 49.8) | 55.8 | 148 |
 | denial bans (λ 3) | 51.0 (50.4, 51.5) | 49.1 (48.7, 49.5) | 55.5 | 41 |
@@ -371,8 +395,8 @@ The search's opponent (chance nodes and rollouts) was GD, or GD times the oppone
 |---|---|---|---|---|---|
 | `x-pp-dr` (DraftRec opponent, chance nodes and rollouts) | 50.1 (49.7, 50.5) | 50.0 (49.7, 50.4) | vs `aMCTS-pp`: 50.1 | 55.08 | 0.11 |
 | `x-pp-dr-chance` (chance nodes only) | 50.7 (50.3, 51.1) | 50.4 (50.0, 50.7) | | 55.09 | 0.10 |
-| `x-combo1-dr` | 51.8 (51.3, 52.3) | 48.9 (48.6, 49.3) | vs `x-combo1`: 50.0 (49.5, 50.5) | 56.12 | 0.10 |
-| `x-combo1-dr-chance` (**selected**) | 51.9 (51.4, 52.4) | 49.0 (48.6, 49.4) | vs `x-combo1`: 50.5 (50.0, 51.0) | **56.27** | 0.11 |
+| `x-combo1-dr` | 51.8 (51.3, 52.3) | 49.0 (48.6, 49.3) | vs `x-combo1`: 50.0 (49.5, 50.5) | 56.12 | 0.10 |
+| `x-combo1-dr-chance` (**selected**) | 51.9 (51.4, 52.4) | 49.0 (48.5, 49.4) | vs `x-combo1`: 50.5 (50.0, 51.0) | **56.27** | 0.11 |
 | `x-combo1-dr-drban` (denial bans aimed by DraftRec) | 52.3 (51.8, 52.8) | 49.4 (49.1, 49.8) | | 56.25 | 0.11 |
 | `x-combo1` (comfort opponent, for reference) | 51.6 (51.0, 52.1) | 49.1 (48.7, 49.5) | | 56.07 | 0.08 |
 
@@ -497,6 +521,36 @@ Picking team's win, linear probability model, pp, SE clustered by player and gam
 - policy-only drafters about 2 ms.
 
 **Tournament compute.** The 300-lobby round robin, spokes, design ablation and the full matrix of main systems are 566 ordered pairs, about 6.2 hours of drafting time (5090 and 3090 searches plus the one-step CPU pool); the tune set is 184 pairs, 2.3 hours. Scoring is CPU minutes. The DraftRec opponent fit took seconds of GPU time after 3 CPU-minutes of history tensors.
+
+## Validation against paper 1's checklist (added 2026-10-21)
+
+Each check paper 1 used for its blind MCTS, and whether the player-aware tournament has it.
+
+| paper 1 check | here | how, or what is missing |
+|---|---|---|
+| Multi-judge consensus, each judge reported (gN, gN-naive, RN, QM2026) | yes | CONS is the same composition-corrected consensus; every head-to-head also stores each judge (`analysis.json`). J adds the personal term. |
+| Quick Match as a separate test population | **partly** | The QM2026 judge (no draft phase, no shared training data) sits inside CONS for the population part. The personal term has no QM check yet. |
+| Judges outside the drafters' data | yes, and stricter | The drafters stop at 2026-05-22; lobbies are 05-23 to 06-30; the judge window is 07-01 to 09-11; the judge's skill model is fit on the other half of the players; the split-history judge uses disjoint days. |
+| Calibration against real outcomes | yes | 60,500 real tournament-window drafts: J log loss 0.656 vs CONS 0.671. Fitting the two parts separately, the personal term's slope is 1.02 (SE 0.03): it is calibrated. The consensus part's slope is 1.73 (SE 0.03): it is underconfident, so J understates population differences, not personal ones. J_cal (1.17 consensus, 1.00 personal, from held-out judge-window games) is reported next to J in the tables. |
+| Bradley–Terry with crossed seed effects | yes | Seat term plus crossed random effects for the two sides' prior seeds; seed SEs 0 to 1pp. |
+| Every ordered pair, both seats | yes | All 91 pairs of the 14 main systems, both seats, 300 lobbies each. |
+| Degenerate and safety rates (healer, frontline, ranged, role stacking) | yes | Per system, with paper 1's structural mask on every search drafter (0% degenerate); off-role rate added. |
+| Leak controls (out-of-fold statistics, sealed holdout, test split) | yes | Paper 1's leak-free WP with out-of-fold statistics; the sealed build and the 5,000 sealed replays are never read; the DraftRec opponent, the distilled prior and the opponent comfort model are fit on lobbies outside the tournament, probe and tune sets. |
+| Search-budget scaling | **partly** | 400 vs 1,600 sims for the distilled prior and the selected design (no gain at 1,600); the probe at 400 and 1,600. No full curve for the player-aware drafter in the tournament. |
+| Ensemble / LCB diagnostics on the value model | **no** | Not done for the player-aware drafters. |
+| OOD checks (manifold discriminator, hand-crafted probes, degenerate probes) | **partly** | Pool coverage (99.9% of real picks in the team pool) and the structural mask. No manifold or GD-likelihood check, no hand-crafted personal probes. |
+| Interaction metrics (counter, synergy, resilience) and behavior (diversity, GD similarity) | **partly** | Future hero WR, synergy and counter from judge-window games are reported (judge-free). Resilience, diversity and GD similarity are not. |
+| Independent baseline | yes | DraftRec rebuilt from its paper and code, as a drafter and as the opponent model. |
+| Self-grading check (cross-evaluation) | yes | Each drafter's own value against the judge's (diagnosis section); judge-free realized records. |
+| Many seeds | **partly** | Paper 1 used 15 seeds per configuration. Here the prior has 5 seeds (2 for stale vintages, 1 for fine-tunes) and the kernel seeds are fixed per pair; the search's own run-to-run noise (about 0.4pp) is estimated from a duplicate design, not from repeated runs. |
+
+**Proposed additions** (all can run on the 5090 now unless noted):
+1. **Quick Match check of the personal term.** Fit the judge's personal coefficient on judge-window Quick Match games of the same players (their SL skill state, the QM hero they queued with, QM outcome), and score the tournament drafts with consensus + the QM-fitted term. If the QM coefficient matches c2 = 4.53, the personal judge generalizes across modes. Needs the players' QM games with hero and outcome from the local research DB; to be confirmed that they are there.
+2. **Search-budget curve** for the selected design and its blind twin: 100, 200, 400, 800 and 1,600 sims on the tune lobbies against `pMCTS-cur`. About 1.5 GPU-hours.
+3. **WP-ensemble disagreement (LCB)**: rescore every tournament draft with the three seeds of the enriched WP (42, 123, 777) and report each system's mean, spread and lower bound. Flags drafters that win by exploiting one model's blind spots. CPU minutes.
+4. **OOD**: GD log-likelihood of each system's drafts (how human-like) and hand-crafted personal probes (a player put on his worst hero, his main banned, a full team of first-time heroes): J must rank them below the obvious alternative. CPU minutes.
+5. **Behavior**: hero diversity (distinct heroes, entropy, top-10 share), GD similarity per step, and paper 1's resilience score per system. CPU minutes.
+6. **Repeated runs**: replay the main matrix pairs with three kernel-seed offsets to measure the search noise directly instead of from the duplicate design. About 3 GPU-hours.
 
 ## Design (fixed before the tournament)
 

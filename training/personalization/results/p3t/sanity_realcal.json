@@ -14,7 +14,20 @@
    "slope": 1.296,
    "auc": 0.6548
   },
-  "coin_log_loss": 0.69315
+  "J_cal": {
+   "games": 60500,
+   "log_loss": 0.65459,
+   "acc": 0.6121,
+   "slope": 1.234,
+   "auc": 0.6573
+  },
+  "coin_log_loss": 0.69315,
+  "two_part_fit": {
+   "a_consensus": 1.734,
+   "a_se": 0.032,
+   "k_personal": 1.024,
+   "k_se": 0.025
+  }
  },
  "tournament_300": {
   "CONS": {
@@ -31,6 +44,19 @@
    "slope": 0.8,
    "auc": 0.6054
   },
-  "coin_log_loss": 0.69315
+  "J_cal": {
+   "games": 300,
+   "log_loss": 0.67837,
+   "acc": 0.5667,
+   "slope": 0.759,
+   "auc": 0.6063
+  },
+  "coin_log_loss": 0.69315,
+  "two_part_fit": {
+   "a_consensus": 1.015,
+   "a_se": 0.438,
+   "k_personal": 0.67,
+   "k_se": 0.336
+  }
  }
 }

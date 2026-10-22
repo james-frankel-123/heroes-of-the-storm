@@ -39,7 +39,8 @@ SPLIT = os.environ.get("P3T_SPLIT") == "1"
 SDIR = os.path.join(TD.OUT, ("scores_split" if SPLIT else "scores") + (f"_{_LS}" if _LS else ""))
 RES = os.path.join(C.RESULTS, "p3t")
 B = 2000
-WIN = ["judge_personal", "judge_corr", "consensus", "gN", "gN_naive", "RN", "QM2026"]
+CAL_A, CAL_K = 1.17, 1.00     # J_cal: held-out judge-window calibration (rich-CF agent, 2026-10-21)
+WIN = ["judge_personal", "judge_corr", "judge_cal", "consensus", "gN", "gN_naive", "RN", "QM2026"]
 SIDE = {"rec_mean": "personal realized record (pp, judge-free)", "rec_pool": "personal realized record, game-weighted",
         "truth_hero": "future hero WR", "truth_syn": "future synergy", "truth_ctr": "future counter",
         "degen": "degenerate", "healer": "has healer", "offrole": "off-role players", "rec_cov": "record coverage"}
@@ -84,6 +85,11 @@ def load():
                                                  + judge["c3_offrole"] * e["dO_judge"])))
         else:
             e["judge_corr"] = e["judge_personal"]
+        # J_cal (sensitivity, coordinator 2026-10-21): the held-out judge-window calibration of the two
+        # parts, 1.17 logit p_cons + 1.00 (c2 dS + c3 dO); the consensus part is the underconfident one
+        pc = np.clip(e["consensus"], 1e-6, 1 - 1e-6)
+        e["judge_cal"] = 1 / (1 + np.exp(-(CAL_A * np.log(pc / (1 - pc)) + CAL_K * (judge["c2_skill"] * e["dS_judge"]
+                                                                              + judge["c3_offrole"] * e["dO_judge"]))))
         e["secs"] = t["secs"]
         e["fallback"] = t["fallback"]
         e["acts"] = t["acts"]

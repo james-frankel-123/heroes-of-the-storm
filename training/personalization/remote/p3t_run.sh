@@ -8,6 +8,8 @@ export P3_CACHE=$B/cache_full P3_RESULTS=$B/results/rcf_full \
   P3_RCF_ROWS=$B/cache_full/merged_rows_full_1017.npz P3_RCF_KERNELS=$B/cache_full/hs_kernels.npz
 for step in "$@"; do
   echo "=== ${step//:/ } $(date -Is)"
-  python -u personalization/${step//:/ } || { echo "FAILED $step"; exit 1; }
+  # peak memory per stage (for host planning; the 3090 is out until its RAM is tested)
+  TM=""; [ -x /usr/bin/time ] && TM="/usr/bin/time -f MAXRSS_KB=%M_SECS=%e"
+  $TM python -u personalization/${step//:/ } || { echo "FAILED $step"; exit 1; }
 done
 echo "P3T RUN DONE"

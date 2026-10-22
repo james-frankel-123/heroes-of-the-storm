@@ -1,6 +1,6 @@
 {
  "b2_drafter": 4.540632118348097,
- "c2_judge": 4.527987882601266,
+ "c2_judge": 4.527987884379898,
  "real": {
   "S_D_pp": 1.009,
   "S_J_pp": -0.567,
@@ -9,15 +9,15 @@
  },
  "systems": {
   "DraftRec-pv": {
-   "S_D_pp": -0.589,
-   "S_J_pp": -2.347,
+   "S_D_pp": -0.59,
+   "S_J_pp": -2.346,
    "S_D_minus_real_pp": -1.598,
    "S_J_minus_real_pp": -1.779,
    "slope_SJ_on_SD": 0.488
   },
   "DraftRec": {
    "S_D_pp": 3.43,
-   "S_J_pp": 0.864,
+   "S_J_pp": 0.863,
    "S_D_minus_real_pp": 2.421,
    "S_J_minus_real_pp": 1.431,
    "slope_SJ_on_SD": 0.366
@@ -25,8 +25,8 @@
   "GD": {
    "S_D_pp": -6.784,
    "S_J_pp": -7.254,
-   "S_D_minus_real_pp": -7.792,
-   "S_J_minus_real_pp": -6.686,
+   "S_D_minus_real_pp": -7.793,
+   "S_J_minus_real_pp": -6.687,
    "slope_SJ_on_SD": 0.63
   },
   "Real": {
@@ -37,10 +37,10 @@
    "slope_SJ_on_SD": 0.471
   },
   "a1step-cur": {
-   "S_D_pp": 6.293,
-   "S_J_pp": -1.652,
+   "S_D_pp": 6.294,
+   "S_J_pp": -1.65,
    "S_D_minus_real_pp": 5.285,
-   "S_J_minus_real_pp": -1.084,
+   "S_J_minus_real_pp": -1.083,
    "slope_SJ_on_SD": 0.46
   },
   "aMCTS-bc": {
@@ -53,22 +53,22 @@
   "aMCTS-cur": {
    "S_D_pp": -13.537,
    "S_J_pp": -12.714,
-   "S_D_minus_real_pp": -14.545,
+   "S_D_minus_real_pp": -14.546,
    "S_J_minus_real_pp": -12.147,
    "slope_SJ_on_SD": 0.641
   },
   "aMCTS-pp": {
    "S_D_pp": 8.088,
-   "S_J_pp": -0.314,
+   "S_J_pp": -0.315,
    "S_D_minus_real_pp": 7.08,
    "S_J_minus_real_pp": 0.253,
-   "slope_SJ_on_SD": 0.439
+   "slope_SJ_on_SD": 0.44
   },
   "p1step-cur": {
-   "S_D_pp": -5.47,
-   "S_J_pp": -8.099,
-   "S_D_minus_real_pp": -6.478,
-   "S_J_minus_real_pp": -7.532,
+   "S_D_pp": -5.474,
+   "S_J_pp": -8.103,
+   "S_D_minus_real_pp": -6.483,
+   "S_J_minus_real_pp": -7.536,
    "slope_SJ_on_SD": 0.595
   },
   "pMCTS-cur": {
@@ -86,39 +86,39 @@
    "slope_SJ_on_SD": 0.643
   },
   "x-combo1-dr-chance": {
-   "S_D_pp": 8.784,
-   "S_J_pp": 0.115,
-   "S_D_minus_real_pp": 7.775,
-   "S_J_minus_real_pp": 0.682,
+   "S_D_pp": 8.788,
+   "S_J_pp": 0.118,
+   "S_D_minus_real_pp": 7.779,
+   "S_J_minus_real_pp": 0.685,
    "slope_SJ_on_SD": 0.424
   },
   "x-combo1-dr": {
-   "S_D_pp": 8.763,
-   "S_J_pp": 0.146,
-   "S_D_minus_real_pp": 7.754,
-   "S_J_minus_real_pp": 0.713,
+   "S_D_pp": 8.76,
+   "S_J_pp": 0.141,
+   "S_D_minus_real_pp": 7.751,
+   "S_J_minus_real_pp": 0.708,
    "slope_SJ_on_SD": 0.426
   },
   "x-combo1": {
-   "S_D_pp": 9.111,
+   "S_D_pp": 9.113,
    "S_J_pp": 0.234,
-   "S_D_minus_real_pp": 8.102,
-   "S_J_minus_real_pp": 0.801,
+   "S_D_minus_real_pp": 8.104,
+   "S_J_minus_real_pp": 0.802,
    "slope_SJ_on_SD": 0.42
   },
   "x-combo3": {
-   "S_D_pp": 9.006,
-   "S_J_pp": -0.16,
-   "S_D_minus_real_pp": 7.997,
-   "S_J_minus_real_pp": 0.408,
-   "slope_SJ_on_SD": 0.414
+   "S_D_pp": 9.01,
+   "S_J_pp": -0.156,
+   "S_D_minus_real_pp": 8.001,
+   "S_J_minus_real_pp": 0.411,
+   "slope_SJ_on_SD": 0.413
   },
   "x-pp-dr": {
-   "S_D_pp": 7.173,
-   "S_J_pp": -0.638,
-   "S_D_minus_real_pp": 6.164,
-   "S_J_minus_real_pp": -0.071,
-   "slope_SJ_on_SD": 0.443
+   "S_D_pp": 7.174,
+   "S_J_pp": -0.64,
+   "S_D_minus_real_pp": 6.165,
+   "S_J_minus_real_pp": -0.072,
+   "slope_SJ_on_SD": 0.442
   },
   "a1step-s1y": {
    "S_D_pp": 2.614,
@@ -303,11 +303,11 @@
    "slope_SJ_on_SD": 0.47
   },
   "x-combo1-dr-drban": {
-   "S_D_pp": 9.937,
-   "S_J_pp": 0.452,
-   "S_D_minus_real_pp": 8.928,
-   "S_J_minus_real_pp": 1.019,
-   "slope_SJ_on_SD": 0.391
+   "S_D_pp": 9.946,
+   "S_J_pp": 0.447,
+   "S_D_minus_real_pp": 8.937,
+   "S_J_minus_real_pp": 1.014,
+   "slope_SJ_on_SD": 0.392
   },
   "x-pp-a0": {
    "S_D_pp": 12.545,
@@ -373,11 +373,11 @@
    "slope_SJ_on_SD": 0.439
   },
   "x-pp-dr-chance": {
-   "S_D_pp": 9.197,
-   "S_J_pp": 0.135,
-   "S_D_minus_real_pp": 8.189,
-   "S_J_minus_real_pp": 0.703,
-   "slope_SJ_on_SD": 0.413
+   "S_D_pp": 9.2,
+   "S_J_pp": 0.128,
+   "S_D_minus_real_pp": 8.192,
+   "S_J_minus_real_pp": 0.695,
+   "slope_SJ_on_SD": 0.414
   },
   "x-pp-opp2": {
    "S_D_pp": 8.88,
