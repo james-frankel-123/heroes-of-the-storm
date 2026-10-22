@@ -331,7 +331,7 @@ Each component added alone to `aMCTS-pp`, against `aMCTS-pp`:
 | rich prior alone, no search (best: one-step) | 47.2 (46.6, 47.8) | 46.1 (45.7, 46.6) | 51.4 | |
 | (reference) `x-pp`, the distilled prior in `cuda_explore` with every mode off | 50.4 (50.0, 50.9) | 50.1 (49.8, 50.5) | 55.1 | 40 |
 
-- `x-pp` is `aMCTS-pp`'s design run through the design-study code path; it differs only in its kernel seeds (seeds are per pair, lobby and step). Its distance from 50% is the run-to-run noise of the search itself, about 0.4pp, which the lobby-bootstrap CIs do not include. Rows within about 0.5pp of `x-pp` are ties.
+- `x-pp` is `aMCTS-pp`'s design run through the design-study code path; it differs only in its kernel seeds (seeds are per pair, lobby and step). Its distance from 50% is the run-to-run noise of the search itself (measured directly from repeated runs: SD up to 0.35pp per head-to-head), which the lobby-bootstrap CIs do not include. Rows within about 0.5pp of `x-pp` are ties.
 
 
 **Reading.**
@@ -529,28 +529,37 @@ Each check paper 1 used for its blind MCTS, and whether the player-aware tournam
 | paper 1 check | here | how, or what is missing |
 |---|---|---|
 | Multi-judge consensus, each judge reported (gN, gN-naive, RN, QM2026) | yes | CONS is the same composition-corrected consensus; every head-to-head also stores each judge (`analysis.json`). J adds the personal term. |
-| Quick Match as a separate test population | **partly** | The QM2026 judge (no draft phase, no shared training data) sits inside CONS for the population part. The personal term has no QM check yet. |
+| Quick Match as a separate test population | yes | QM2026 inside CONS for the population part; the personal term checked on later Quick Match outcomes (addition 1 below: c2 2.55, SE 0.39, against 4.53 on SL). |
 | Judges outside the drafters' data | yes, and stricter | The drafters stop at 2026-05-22; lobbies are 05-23 to 06-30; the judge window is 07-01 to 09-11; the judge's skill model is fit on the other half of the players; the split-history judge uses disjoint days. |
 | Calibration against real outcomes | yes | 60,500 real tournament-window drafts: J log loss 0.656 vs CONS 0.671. Fitting the two parts separately, the personal term's slope is 1.02 (SE 0.03): it is calibrated. The consensus part's slope is 1.73 (SE 0.03): it is underconfident, so J understates population differences, not personal ones. J_cal (1.17 consensus, 1.00 personal, from held-out judge-window games) is reported next to J in the tables. |
 | Bradley–Terry with crossed seed effects | yes | Seat term plus crossed random effects for the two sides' prior seeds; seed SEs 0 to 1pp. |
 | Every ordered pair, both seats | yes | All 91 pairs of the 14 main systems, both seats, 300 lobbies each. |
 | Degenerate and safety rates (healer, frontline, ranged, role stacking) | yes | Per system, with paper 1's structural mask on every search drafter (0% degenerate); off-role rate added. |
 | Leak controls (out-of-fold statistics, sealed holdout, test split) | yes | Paper 1's leak-free WP with out-of-fold statistics; the sealed build and the 5,000 sealed replays are never read; the DraftRec opponent, the distilled prior and the opponent comfort model are fit on lobbies outside the tournament, probe and tune sets. |
-| Search-budget scaling | **partly** | 400 vs 1,600 sims for the distilled prior and the selected design (no gain at 1,600); the probe at 400 and 1,600. No full curve for the player-aware drafter in the tournament. |
-| Ensemble / LCB diagnostics on the value model | **no** | Not done for the player-aware drafters. |
-| OOD checks (manifold discriminator, hand-crafted probes, degenerate probes) | **partly** | Pool coverage (99.9% of real picks in the team pool) and the structural mask. No manifold or GD-likelihood check, no hand-crafted personal probes. |
-| Interaction metrics (counter, synergy, resilience) and behavior (diversity, GD similarity) | **partly** | Future hero WR, synergy and counter from judge-window games are reported (judge-free). Resilience, diversity and GD similarity are not. |
+| Search-budget scaling | yes | 100 to 1,600 sims for the selected design and the blind search (addition 2 below). |
+| Ensemble / LCB diagnostics on the value model | yes | Every draft rescored with the three enriched-WP seeds (addition 3 below). |
+| OOD checks (manifold discriminator, hand-crafted probes, degenerate probes) | yes, except the manifold discriminator | Pool coverage, the structural mask, GD likelihood of every system's picks and hand-built personal probes (additions 4 and 5 below). |
+| Interaction metrics (counter, synergy, resilience) and behavior (diversity, GD similarity) | yes | Future hero WR, synergy and counter (judge-free); resilience, diversity and GD similarity per system (addition 5 below). |
 | Independent baseline | yes | DraftRec rebuilt from its paper and code, as a drafter and as the opponent model. |
 | Self-grading check (cross-evaluation) | yes | Each drafter's own value against the judge's (diagnosis section); judge-free realized records. |
-| Many seeds | **partly** | Paper 1 used 15 seeds per configuration. Here the prior has 5 seeds (2 for stale vintages, 1 for fine-tunes) and the kernel seeds are fixed per pair; the search's own run-to-run noise (about 0.4pp) is estimated from a duplicate design, not from repeated runs. |
+| Many seeds | partly | Paper 1 used 15 seeds per configuration. Here the prior has 5 seeds (2 for stale vintages, 1 for fine-tunes), and the search's own run-to-run noise is measured directly from four runs of the main pairs (SD 0.18pp median, 0.35 at most; addition 6 below). |
 
-**Proposed additions** (all can run on the 5090 now unless noted):
-1. **Quick Match check of the personal term.** Fit the judge's personal coefficient on judge-window Quick Match games of the same players (their SL skill state, the QM hero they queued with, QM outcome), and score the tournament drafts with consensus + the QM-fitted term. If the QM coefficient matches c2 = 4.53, the personal judge generalizes across modes. Needs the players' QM games with hero and outcome from the local research DB; to be confirmed that they are there.
-2. **Search-budget curve** for the selected design and its blind twin: 100, 200, 400, 800 and 1,600 sims on the tune lobbies against `pMCTS-cur`. About 1.5 GPU-hours.
-3. **WP-ensemble disagreement (LCB)**: rescore every tournament draft with the three seeds of the enriched WP (42, 123, 777) and report each system's mean, spread and lower bound. Flags drafters that win by exploiting one model's blind spots. CPU minutes.
-4. **OOD**: GD log-likelihood of each system's drafts (how human-like) and hand-crafted personal probes (a player put on his worst hero, his main banned, a full team of first-time heroes): J must rank them below the obvious alternative. CPU minutes.
-5. **Behavior**: hero diversity (distinct heroes, entropy, top-10 share), GD similarity per step, and paper 1's resilience score per system. CPU minutes.
-6. **Repeated runs**: replay the main matrix pairs with three kernel-seed offsets to measure the search noise directly instead of from the duplicate design. About 3 GPU-hours.
+**Additions run on 2026-10-21** (all on the 5090; tables in `P3_TOURNAMENT_TABLES.md`):
+
+1. **Quick Match check of the personal term** (`p3t_qm.py`). Quick Match has no draft, so each player's hero is known. The judge's Storm League skill state (as of 2026-09-12, from judge-window SL games only) is matched to Quick Match games from 2026-09-12 to 10-21 (local research DB, per-player rows; strictly later than every state). Population part: paper 1's QM2026 judge (trained on games up to 2026-06-18).
+   - Coverage is the limit: 35,011 QM games have ten per-player rows and a known map, tier and hero (games with Xal'atath, a hero newer than the 90-hero set, are dropped), but only 8.8% of their player rows belong to a player with an SL state. 13,669 games have at least one such player (1.7 per game); 2,629 have one on each team; 25 have three or more per team.
+   - Fit on the 13,669 games (unknown players count as the population, s = 0): logit P(win) = 0.84 logit p_QM2026 + **2.55 (SE 0.39)** dS + 0.20 (0.03) dO. On the 2,629 games with a known player on each team, c2 = 2.93 (0.72).
+   - So SL skill predicts QM outcomes with the expected sign, far beyond chance (6.6 SE), at 56 to 65% of the SL judge's coefficient (4.53). Some shrinkage is expected: a different mode, other players' skill unknown, a month later. The off-role term flips sign in QM (players who queue off their SL role win slightly more), so it does not transfer; in J it is tiny (−0.03 logit per off-role player).
+   - With more coverage (more QM history for SL players, or SL states for QM regulars) the test would tighten; the data that would help most is per-player QM rows for 2026-07 to 09 (we have 8K QM games for June and 14K for September with per-player rows).
+2. **Search-budget curve** (tune lobbies, against `pMCTS-cur` at 400 sims), J: the selected design at 100, 200, 400, 800 and 1,600 sims scores 57.7, 59.1, 60.6, 60.9 and 59.9%; the blind search at the same budgets 50.1, 49.9, 49.8, 50.2 and 49.8%. The player-aware design gains about 3pp from 100 to 400 sims and is flat after; the blind search does not gain at all, because paper 1's F prior already concentrates almost all visits on one or two heroes (paper 1's sims gains were in training, not inference).
+3. **WP-seed disagreement.** Rescoring every tournament draft with the three seeds of paper 1's enriched WP: each system's mean WP moves by at most 0.6pp across seeds (0.15 to 0.35pp for the player-aware designs, 0.5 to 0.6pp for paper 1's MCTS and the real drafts), and the per-draft spread is 1.0 to 1.2pp for every system. No drafter wins by exploiting one WP seed's blind spots.
+4. **Personal probes** on the 300 real drafts (team 0's most comfortable hero swapped for a same-role hero with a near-identical population win rate):
+   - to a hero none of the five has played (214 lobbies): J drops 7.7pp and ranks the probe below the real draft in 95% of lobbies; CONS moves +1.0pp, below in 37%;
+   - to the hero the team is worst at (300 lobbies): J drops 9.4pp, below in 99%; CONS 0.0pp, below in 50%;
+   - all five heroes to never-played same-role heroes (24 lobbies): J drops 30.5pp, below in 100%; CONS +0.5pp.
+   J sees exactly what it should, and CONS, blind to players, does not.
+5. **Behavior.** The player-aware designs use all 90 heroes (entropy 5.6 to 5.9 bits, top-10 share 0.40 to 0.47); paper 1's MCTS uses 45 (4.2 bits, top-10 share 0.77). GD similarity of their picks is 4 to 5%, against 16% for the real drafts and 25% for the BC-prior searches, and their picks are less GD-likely than real picks (mean log p_GD −4.6 vs −4.0): they leave the behavioral manifold, as paper 1's MCTS does (−5.2). Resilience (judge-window statistics) is −0.26 for the selected design, −0.31 for paper 1's MCTS and −0.22 for the real drafts: no system picks heroes the opponent cannot answer.
+6. **Repeated runs** (search noise). The 20 head-to-heads among the main search drafters, Real and GD were replayed three more times with shifted kernel seeds (same lobbies, same prior seeds). The SD of the four J values is 0.01 to 0.35pp (median 0.18); for CONS 0.27 at most. Matchups with GD or Real are steadiest (≤ 0.24); the closest contests between player-aware designs vary most (0.33 to 0.35pp), about the size of their lobby-bootstrap SE (0.24 to 0.27). For those comparisons the honest SE is about 0.4pp (both combined), which is why the three versions of the selected design are called a tie: `x-combo1` vs the selected design scored 49.5, 50.3, 49.9 and 50.0% in the four runs.
 
 ## Design (fixed before the tournament)
 

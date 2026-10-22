@@ -729,3 +729,28 @@ WP by seed: mean P(win) of the system's drafts against its opponents under paper
 | 400 | 60.6 (60.0, 61.2) | 43.7 (43.1, 44.2) | 49.8 (49.5, 50.1) | 50.0 (49.9, 50.1) |
 | 800 | 60.9 (60.2, 61.5) | 43.9 (43.3, 44.5) | 50.2 (49.9, 50.5) | 50.1 (49.9, 50.4) |
 | 1600 | 59.9 (59.2, 60.6) | 44.4 (44.0, 44.8) | 49.8 (49.3, 50.3) | 50.5 (50.1, 50.8) |
+
+## Repeated runs: the search's own noise (three extra kernel-seed offsets, same lobbies)
+
+| matchup | J, original | J, reruns | SD of the four J values | CONS SD |
+|---|---|---|---|---|
+| aMCTS-cur vs pMCTS-cur | 51.40 | 50.87, 51.32, 51.11 | 0.24 | 0.13 |
+| aMCTS-cur vs Real | 51.08 | 51.16, 51.07, 51.03 | 0.05 | 0.02 |
+| pMCTS-cur vs Real | 50.45 | 50.47, 50.46, 50.48 | 0.01 | 0.02 |
+| aMCTS-cur vs GD | 55.71 | 55.53, 55.74, 55.64 | 0.09 | 0.05 |
+| pMCTS-cur vs GD | 54.77 | 54.87, 54.91, 54.93 | 0.07 | 0.05 |
+| aMCTS-pp vs aMCTS-cur | 59.32 | 59.59, 59.67, 59.59 | 0.15 | 0.06 |
+| aMCTS-pp vs pMCTS-cur | 60.36 | 60.69, 60.32, 60.54 | 0.17 | 0.17 |
+| aMCTS-pp vs Real | 59.81 | 59.70, 59.85, 59.62 | 0.10 | 0.12 |
+| GD vs aMCTS-pp | 34.06 | 33.60, 34.07, 34.11 | 0.24 | 0.27 |
+| GD vs x-combo1 | 33.09 | 33.29, 33.41, 33.27 | 0.13 | 0.06 |
+| GD vs x-combo1-dr-chance | 33.13 | 33.09, 33.07, 33.42 | 0.16 | 0.14 |
+| Real vs x-combo1 | 38.20 | 38.04, 37.96, 37.97 | 0.11 | 0.10 |
+| Real vs x-combo1-dr-chance | 37.87 | 38.15, 37.77, 38.13 | 0.19 | 0.19 |
+| aMCTS-cur vs x-combo1 | 39.51 | 39.34, 39.58, 39.88 | 0.23 | 0.09 |
+| aMCTS-cur vs x-combo1-dr-chance | 39.61 | 39.67, 39.25, 39.67 | 0.20 | 0.05 |
+| aMCTS-pp vs x-combo1 | 48.44 | 48.17, 49.01, 48.52 | 0.35 | 0.20 |
+| aMCTS-pp vs x-combo1-dr-chance | 48.08 | 48.72, 48.26, 48.75 | 0.33 | 0.14 |
+| pMCTS-cur vs x-combo1 | 39.16 | 39.12, 38.76, 39.04 | 0.18 | 0.15 |
+| pMCTS-cur vs x-combo1-dr-chance | 39.08 | 38.87, 38.40, 38.93 | 0.29 | 0.12 |
+| x-combo1 vs x-combo1-dr-chance | 49.48 | 50.33, 49.87, 50.03 | 0.35 | 0.09 |
