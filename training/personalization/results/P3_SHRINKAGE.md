@@ -151,7 +151,7 @@ Slope of the realized residual on the slot prediction, V2 + OOT, local kernel fi
 
 In the state-space model a record's weight decays hyperbolically, faster for heavier records. That is why it can fix deep-record over-trust where an exponential half-life cannot without also discounting thin records.
 
-Separate drift for overall skill and hero-specific skill: the cell-level filter carries the hero-specific drift, and the layer's per-player drift term carries the overall one. With the state-space model in place, that term's best half-life drops to 45 days and it adds nothing (ablation +0.00). So overall skill shows no drift beyond what the cell-level filter already captures.
+Separate drift for overall skill and hero-specific skill: the cell-level filter carries the hero-specific drift, and the layer's per-player drift term carries the overall one. With the state-space model in place, that term's best half-life drops to 45 days and it adds almost nothing (drift-only ablation +0.00 to +0.05). So overall skill shows no drift beyond what the cell-level filter already captures.
 
 ## 4. Coordinator items folded in
 
