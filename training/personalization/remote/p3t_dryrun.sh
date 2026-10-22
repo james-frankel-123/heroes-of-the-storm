@@ -57,7 +57,7 @@ for st in "${STAGES[@]}"; do
   env $envs /usr/bin/time -o $D/.time -f "%M %e" python -u personalization/p3t_trace.py $D/trace.jsonl \
     personalization/$script "$@"
   rc=$?
-  read -r kb secs < $D/.time 2>/dev/null || { kb=-1; secs=$(( $(date +%s) - t0 )); }
+  read -r kb secs < <(tail -1 $D/.time) 2>/dev/null || { kb=-1; secs=$(( $(date +%s) - t0 )); }
   echo "{\"i\": $i, \"stage\": \"$envs $script $*\", \"rc\": $rc, \"maxrss_gb\": $(awk "BEGIN{print $kb/1048576}"), \"secs\": $secs}" | tee -a $D/dryrun.jsonl
   i=$((i + 1))
 done

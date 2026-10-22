@@ -11,6 +11,7 @@ import sys
 
 LOG, SCRIPT, ARGS = sys.argv[1], sys.argv[2], sys.argv[3:]
 ROOTS = [os.path.realpath(os.environ[k]) for k in ("P3_CACHE", "P3_RESULTS") if os.environ.get(k)]
+ROOTS += [os.path.realpath(r) for r in os.environ.get("P3T_TRACE_ROOTS", "").split(":") if r]   # e.g. the training dir
 READ, WRITTEN = set(), set()
 
 

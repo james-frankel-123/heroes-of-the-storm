@@ -5,6 +5,8 @@
      row stay NaN.
   L2 the player key used for the join is the blizz part of d["player_keys"]
      (region << 40 | blizz_id): a row whose region differs still joins.
+  L3 (real data, when the slot table is present) p3_rcf.load_aug keeps every
+     slot-table field p3t_data reads (REQUIRED below).
 Guards the interface between the tournament (p3t_data) and the skill-model
 code (p3_rcf): a signature change on either side fails here, not in a run.
 Run (a host with the project env): python3 personalization/tests/test_p3t_load_model.py"""
@@ -63,7 +65,36 @@ def main():
     # L2: region bits never enter the join
     assert (d["player_keys"] >> 40).max() > 1
     print("L2 ok: join uses the blizz part of player_keys")
+    real_l3()
     print("ALL OK")
+
+
+REQUIRED = ("pid", "player_keys", "hero", "day", "y", "wp", "r", "v", "post", "version", "versions", "hero_names",
+            "in_sample", "g", "team", "replay_id", "n_players")
+
+
+def real_l3():
+    """Run only where the real slot table exists (the workers): load_aug on real data."""
+    real_cache = os.environ.get("P3T_TEST_REAL_CACHE")
+    if not real_cache:
+        print("L3 skipped (set P3T_TEST_REAL_CACHE to a cache_full with x_slots_ext.npz and merged rows)")
+        return
+    import importlib
+    os.environ["P3_CACHE"] = real_cache
+    import p3_hs_core as Cm
+    import p3_x_common as Xm
+    importlib.reload(Cm)
+    importlib.reload(Xm)
+    importlib.reload(R)
+    d = Xm.load_ext()
+    missing = [k for k in REQUIRED if k not in d]
+    assert not missing, f"L3: slot table lacks {missing}"
+    d2, aug = R.load_aug("merged")
+    missing = [k for k in REQUIRED if k not in d2]
+    assert not missing, f"L3: p3_rcf.load_aug drops fields p3t_data reads: {missing}"
+    for k in ("day", "pid", "hero", "slot", "r_adj", "v", "table", "rid", "n_players"):
+        assert k in aug, f"L3: aug lacks {k}"
+    print("L3 ok: load_aug keeps every field p3t_data reads")
 
 
 if __name__ == "__main__":

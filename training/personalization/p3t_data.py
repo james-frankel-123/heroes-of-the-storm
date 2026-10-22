@@ -477,6 +477,13 @@ def _jpar(tag):
     return p
 
 
+def _slot_mmr(d):
+    """The slot table's player_mmr (post-game, kept for reference only; the judge does not read
+    it). p3_rcf.load_aug drops it since b169d46, so NaN when absent."""
+    v = d.get("player_mmr")
+    return np.full(len(d["pid"]), np.nan, np.float32) if v is None else v
+
+
 def judgefit(tag="full_ms_flip"):
     """Judge-window as-of predictions at the played hero for every slot of
     every judge-window game (evidence from J0 to the day before), the input
@@ -498,7 +505,7 @@ def judgefit(tag="full_ms_flip"):
     np.savez(os.path.join(OUT, "judgefit.npz"), replay_id=d["replay_id"][q], g=d["g"][q], team=d["team"][q],
              hero=to_shared(d["hero_names"])[hq], pred=(mu + res["mean"]).astype(np.float32),
              var=res["var"].astype(np.float32), off=off, y=d["y"][q], wp=d["wp"][q].astype(np.float32),
-             day=d["day"][q], mmr=d["player_mmr"][q])
+             day=d["day"][q], mmr=_slot_mmr(d)[q])
     print(f"judgefit: {len(q):,} slots ({time.time() - t0:.0f}s)", flush=True)
 
 
@@ -551,7 +558,7 @@ def split_judgefit(tag="full_ms_flip"):
     np.savez(os.path.join(OUT, "judgefit_split.npz"), replay_id=d["replay_id"][q], g=d["g"][q], team=d["team"][q],
              hero=to_shared(d["hero_names"])[hq], pred=(mu + res["mean"]).astype(np.float32),
              var=res["var"].astype(np.float32), off=off, y=d["y"][q], wp=d["wp"][q].astype(np.float32),
-             day=d["day"][q], mmr=d["player_mmr"][q])
+             day=d["day"][q], mmr=_slot_mmr(d)[q])
     print(f"judgefit split: {len(q):,} slots ({time.time() - t0:.0f}s)", flush=True)
 
 
