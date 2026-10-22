@@ -1,0 +1,136 @@
+{
+ "out_of_sample": {
+  "A2S": {
+   "all games": {
+    "games": 358490,
+    "var_y": 0.2499999252694704,
+    "var_draft_wp": 0.008457853614280917,
+    "brier_skill_draft": 0.030309323565436475,
+    "brier_skill_full": 0.06361243171661035,
+    "acc_draft": 0.5699154788139139,
+    "acc_full": 0.6018298976261541
+   },
+   "all ten players 300+ earlier games": {
+    "games": 5120,
+    "var_y": 0.24997009277343746,
+    "var_draft_wp": 0.007670546452705107,
+    "brier_skill_draft": 0.024498642892241462,
+    "brier_skill_full": 0.06312248756259475,
+    "acc_draft": 0.555859375,
+    "acc_full": 0.5984375
+   },
+   "all ten players 1,000+": {
+    "games": 242,
+    "var_y": 0.2486168977528857,
+    "var_draft_wp": 0.00863342103508074,
+    "brier_skill_draft": 0.06344024717765817,
+    "brier_skill_full": 0.12752118719339556,
+    "acc_draft": 0.6157024793388429,
+    "acc_full": 0.6446280991735537
+   }
+  },
+  "full_ms_layer": {
+   "all games": {
+    "games": 358490,
+    "var_y": 0.2499999252694704,
+    "var_draft_wp": 0.008457853614280917,
+    "brier_skill_draft": 0.030309323565436475,
+    "brier_skill_full": 0.08314109289847482,
+    "acc_draft": 0.5699154788139139,
+    "acc_full": 0.6172668693687411
+   },
+   "all ten players 300+ earlier games": {
+    "games": 5120,
+    "var_y": 0.24997009277343746,
+    "var_draft_wp": 0.007670546452705107,
+    "brier_skill_draft": 0.024498642892241462,
+    "brier_skill_full": 0.06608008327240122,
+    "acc_draft": 0.555859375,
+    "acc_full": 0.6064453125
+   },
+   "all ten players 1,000+": {
+    "games": 242,
+    "var_y": 0.2486168977528857,
+    "var_draft_wp": 0.00863342103508074,
+    "brier_skill_draft": 0.06344024717765817,
+    "brier_skill_full": 0.13508170932956431,
+    "acc_draft": 0.6157024793388429,
+    "acc_full": 0.6487603305785123
+   }
+  }
+ },
+ "stable": {
+  "players with 0+ earlier corpus games": {
+   "overall": {
+    "windows": 18,
+    "cells_per_window_median": 11331.0,
+    "stable_sd_pp": 2.589768328937265,
+    "stable_var": 0.0006706899997566514,
+    "share_of_one_game_per_player": 0.0026827599990266056,
+    "share_all_ten_players": 0.026827599990266057,
+    "sd_over_windows_pp2": 2.715772005230247
+   },
+   "hero": {
+    "windows": 18,
+    "cells_per_window_median": 6107.0,
+    "stable_sd_pp": 3.3614617968168052,
+    "stable_var": 0.0011299425411458867,
+    "share_of_one_game_per_player": 0.004519770164583547,
+    "share_all_ten_players": 0.04519770164583547,
+    "sd_over_windows_pp2": 2.1617816401106804
+   }
+  },
+  "players with 300+ earlier corpus games": {
+   "overall": {
+    "windows": 15,
+    "cells_per_window_median": 1845.0,
+    "stable_sd_pp": 0.0,
+    "stable_var": -2.1494849804337398e-05,
+    "share_of_one_game_per_player": -8.597939921734959e-05,
+    "share_all_ten_players": -0.0008597939921734959,
+    "sd_over_windows_pp2": 1.0891169028906973
+   },
+   "hero": {
+    "windows": 16,
+    "cells_per_window_median": 1611.0,
+    "stable_sd_pp": 3.565494219005907,
+    "stable_var": 0.0012712749025764543,
+    "share_of_one_game_per_player": 0.005085099610305817,
+    "share_all_ten_players": 0.05085099610305817,
+    "sd_over_windows_pp2": 3.3774889779114123
+   }
+  },
+  "players with 1000+ earlier corpus games": {
+   "overall": {
+    "windows": 7,
+    "cells_per_window_median": 288.0,
+    "stable_sd_pp": 0.0,
+    "stable_var": -8.777834548761763e-05,
+    "share_of_one_game_per_player": -0.0003511133819504705,
+    "share_all_ten_players": -0.003511133819504705,
+    "sd_over_windows_pp2": 2.560838518705178
+   },
+   "hero": {
+    "windows": 11,
+    "cells_per_window_median": 443.0,
+    "stable_sd_pp": 3.690380115092574,
+    "stable_var": 0.0013618905393870677,
+    "share_of_one_game_per_player": 0.005447562157548271,
+    "share_all_ten_players": 0.054475621575482705,
+    "sd_over_windows_pp2": 13.002734438916118
+   }
+  }
+ },
+ "matchmaker": {
+  "games": 158863,
+  "slope_win_prob_per_100_mmr_team_diff": 0.017240865680960876,
+  "sd_player_mmr_population": 255.90152507460397,
+  "sd_player_mmr_within_lobby": 165.0757385536693,
+  "sd_team_diff_real_mmr": 112.42734528000338,
+  "sd_team_diff_shuffled_within_lobby": 109.92855634802613,
+  "sd_team_diff_random_players": 162.21669947185535,
+  "var_share_real": 0.0015028721616482997,
+  "var_share_shuffled_within_lobby": 0.0014368094551068828,
+  "var_share_random_players": 0.0031287383806051666
+ }
+}

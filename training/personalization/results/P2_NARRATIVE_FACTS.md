@@ -8,6 +8,8 @@ Answers to Max's questions on `NARRATIVE_v2.md`. Each section starts with a shor
 
 So knowing the players adds 4.81 points, the "personal gain". These are the current panel numbers. The definitive rerun (about Oct 28) will move them a little.
 
+**Section 11** (added 2026-10-21): checks of the carry-forward numbers (simulation, matchmaking, recency, definitions, specialists, variance decomposition).
+
 **Sections 7 to 10** (added 2026-10-19 for REMAINING_WORK.md items 6, 7, 9 and 11): drift on one horizon, the player-model ladder, normalization in edge points, and Korea.
 
 **New code** (all in `training/personalization/`, run on this box at nice 19 on cores 48-51; no GPU, no Neon, no 2.57 or sealed games):
@@ -641,12 +643,189 @@ By depth bin, gain in points (SE):
 
 ---
 
+## 11. Are the carry-forward numbers right?
+
+**Plain answer.** The numbers are right, but the headline should be reframed.
+
+- **The low numbers are mostly noise in the record, not skill decay.** Section 3 found that 24%, 30%, 43% and 57% of a past record shows up later (by games-on-hero bin). We simulated players whose true hero skill never changes and ran the exact same estimator on them. It reports exactly how noisy their record is: between about 15% and 90% kept, depending on sample size and spread, with no real decay. Our estimator is therefore measuring noise in the record, as intended.
+- **The noise alone predicts 30%, 38%, 50%, 62%, 70% and 79%** by games bin, rising to 800+ games on the hero. The measured values are 24%, 30%, 43%, 50%, 58% and 81%.
+- **About 80 to 85% of the real skill difference persists.** That is measured over noise-only for 30 to 799 games, and about 100% at 800+.
+- **Better framing for the paper:** "about four fifths of a player's true edge on a hero persists into their next games. A record is only partly skill: at 80 games, about 40% of what you see is real, so about a third shows up next time."
+- **Matchmaking feedback does not explain it.** Adding both teams' at-game ratings changes the carry-forward by 0.01 or less in every bin.
+- **Recency does not fix it.** Records of the last 25 to 100 games, or with a half-life under two years, predict worse than the full record. Recent records do carry slightly more real signal, but they are much noisier.
+- **One-trick specialists are the one group that persists clearly less.** Heroes that are over half of a player's games keep only 56 to 66% of their true edge at 120 to 499 games. Heroes under 15% of a player's games keep 91 to 97%. The cause is not the visible ratings, though: adding them does not change it.
+- **Max's Ana:**
+  - **Record:** 237 games at 15.6 points above what the drafts predicted.
+  - **Model expectation:** 9.4 points better than the draft predicts in his next Ana game; about 60% of the record kept, the noise-only expectation at that sample size. His other heroes average about −0.5 to +1.6 points.
+  - **Plain terms:** in a draft the model calls 50-50, he wins about 59% on Ana and about 50% on anything else.
+  - **What happened next:** in the test windows he went +17.8 points on 53 Ana games (SE about 7) and −5.9 on 170 other games.
+- **Why one player's share of a game is small.** One game's outcome splits roughly as:
+  - draft: 3.4%;
+  - each player's stable hero-specific edge: 0.45 to 0.54%, so about 5% for all ten;
+  - stable overall skill beyond the matchmaker's rating: 2.7% for all ten, but about zero for players with 300+ games;
+  - game-to-game performance and luck: the rest, about 89%.
+
+  It is not 10% per player, and it is not zero. The matchmaker rates players, not player-hero pairs, so it cannot remove a hero-specific edge. Out of sample, the players add 5.3 points of explained variance on all games and 4.2 on games where all ten players have 300+ earlier games.
+
+### What exactly is measured (definitions)
+
+- **Past edge:** the player's mean result on the hero beyond the draft-only win probability. It is not relative to the player's own average unless stated.
+  - Our games: win minus WP, where WP sees the draft, map, tier and lobby average MMR.
+  - Heroes Profile history rows: win minus the hero's win rate that quarter.
+  - The record covers the player's full history on that hero through the day before.
+- **Later:** each scored game in the spring test window (V2) and the summer window (OOT). Each uses the record as of the day before, so a player contributes one point per later game.
+- **Population:** every slot in those windows whose player had 30+ games on the hero; all players, all tiers, all regions. That is 1.33M slots on the full-history panel.
+- **Carry-forward:** the least-squares slope of the next game's result on the past edge, within each games bin.
+- **Noise-only prediction:** the slope we would see if true edges never changed: 1 − mean(0.245/n) / variance of the records in the bin. Here 0.245 is one game's variance.
+
+The record rebuilt on this machine reproduces section 3 to three decimals in every bin (0.243, 0.300, 0.428, 0.568), so the numbers do not depend on the 3090 (see the hardware note at the end).
+
+### Check 1: simulation with 100% persistent skill
+
+**Method** (`p2f_carry.py`, `simulate`):
+- **Inputs kept real:** each player's games, dates and baselines on the full-history panel (48M rows).
+- **Outcomes replaced:** draws around each row's baseline plus a fixed true edge per player-hero (sd 3, 4 or 5 points), plus one version where the edge drifts (correlation 0.74 at one year, sd 4 points).
+- **Estimator unchanged.** Two seeds each.
+
+| games on hero | 30-59 | 60-119 | 120-249 | 250-499 | 500-799 | 800+ |
+|---|---|---|---|---|---|---|
+| simulated, sd 3 points, persistent: estimator / noise-only | 0.13 / 0.12 | 0.23 / 0.23 | 0.38 / 0.37 | 0.53 / 0.55 | 0.71 / 0.69 | 0.84 / 0.83 |
+| simulated, sd 4 points, persistent | 0.21 / 0.20 | 0.35 / 0.34 | 0.52 / 0.51 | 0.66 / 0.69 | 0.82 / 0.80 | 0.90 / 0.89 |
+| simulated, sd 5 points, persistent | 0.30 / 0.28 | 0.45 / 0.45 | 0.63 / 0.62 | 0.76 / 0.78 | 0.89 / 0.86 | 0.93 / 0.93 |
+| simulated, sd 4 points, drifting (0.74 a year) | 0.16 / 0.16 | 0.25 / 0.28 | 0.35 / 0.44 | 0.50 / 0.61 | 0.62 / 0.74 | 0.54 / 0.83 |
+| **real data: estimator / noise-only** | **0.24 / 0.30** | **0.30 / 0.38** | **0.43 / 0.50** | **0.50 / 0.62** | **0.58 / 0.70** | **0.81 / 0.79** |
+| real: implied true persistence (ratio) | 0.80 | 0.79 | 0.85 | 0.81 | 0.83 | 1.02 |
+| real: SE of the estimate | 0.009 | 0.016 | 0.019 | 0.033 | 0.055 | 0.082 |
+
+Reading the table:
+- **With no decay, the estimator returns the noise-only prediction** (within 0.03 in every bin). So low numbers such as 24% or 30% are mostly regression to the mean, which is what a 40- or 80-game record should show.
+- **The real data sit at about 0.8 times the noise-only prediction.** That ratio is the implied true persistence.
+- **The pattern matches neither extreme.** It is less than full persistence but flatter than the drifting simulation: the drift version falls to about 0.65 of noise-only in the heaviest bins, while the real ratio stays at 0.8 or above.
+- **Max's 800-game example:** a 62% record over 800 games, with an SE of about 1.8 points, sits in the 800+ bin. There the measured carry-forward is 0.81 against 0.79 from noise alone, so nothing is missing at that depth.
+- **The true spread of player-hero edges shrinks with depth:** 5.1, 4.3, 3.9 and 3.2 points from the lightest to the 250+ bin. In the simulations it stays flat. Heavy cells span years of play, so part of their old edge has faded, and heavy one-trick players get rated up (check 2).
+
+### Check 2: matchmaking feedback, and specialists vs mixed players
+
+**Method** (`p2f_carry_mmr.py`). At-game player rating is the latest Heroes Profile rating parsed before the game started (`P3_MMR_AT_GAME`). We use slots where all ten players have one (0.63M of the 1.33M), and add two controls:
+- own team's mean rating minus the opponents';
+- the player's rating minus their team's mean.
+
+| games on hero | 30-59 | 60-119 | 120-249 | 250-499 | 500-799 | 800+ |
+|---|---|---|---|---|---|---|
+| carry-forward, no ratings | 0.25 | 0.34 | 0.44 | 0.55 | 0.66 | 0.81 |
+| with both teams' ratings | 0.25 | 0.34 | 0.43 | 0.53 | 0.64 | 0.81 |
+| noise-only prediction | 0.30 | 0.39 | 0.49 | 0.62 | 0.69 | 0.80 |
+| implied true persistence | 0.84 | 0.87 | 0.88 | 0.88 | 0.95 | 1.01 |
+
+- Matchmaking feedback is not hiding carry-forward. A strong record does not buy measurably tougher team matchups (−1 to +2 rating points of team gap per 10 points of record), and a team rating gap moves results by only 2 to 3 points of win probability per 100 rating points beyond what the draft and lobby already price.
+- Within fifths of the player's own rating, or of the team rating gap, carry-forward moves around the pooled value with no pattern.
+- Adding the player's hero-specific rating lowers carry-forward by 0.02 to 0.09. That is expected, since a hero rating already contains part of the same hero edge.
+
+**Specialists vs mixed players** (share of the player's games on that hero), as implied true persistence:
+
+| games on hero | hero under 15% of games | 15-50% | over 50% |
+|---|---|---|---|
+| 30-59 | 0.96 | 0.68 | 0.73 |
+| 60-119 | 0.91 | 0.79 | 1.02 |
+| 120-249 | 0.93 | 0.82 | **0.56** |
+| 250-499 | 0.96 | 0.83 | **0.66** |
+| 500-799 | 0.97 | 0.91 | 0.96 |
+| 800+ | (1.46, 5K slots, noisy) | 0.91 | 0.89 |
+
+Max's mechanism shows up where he predicted. A hero that is a small share of a player's games keeps nearly all of its true edge. Heroes that are most of a player's games keep less, most clearly at 120 to 499 games.
+
+Adding the at-game ratings changes the specialist numbers by under 0.1, so the reversion is not visible as a rating effect in our data. The likely reason: a one-trick's hero edge and their overall level are the same thing, and the pre-game rating already prices most of it. The draft-plus-lobby baseline then over-states their record.
+
+### Check 3: recency
+
+Recency-weighted records have very different noise levels, so they are compared by how much of the next game's variance they predict: cov(record, next)² / var(record), in points².
+
+| record | 30-59 | 60-119 | 120-249 | 250-499 | 500-799 | 800+ |
+|---|---|---|---|---|---|---|
+| **full record** | **5.1** | **4.3** | **5.5** | **4.8** | **4.5** | **6.1** |
+| last 25 games | 4.1 | 2.2 | 1.9 | 1.3 | 0.5 | 0.4 |
+| last 50 games | 5.1 | 3.5 | 3.2 | 2.4 | 1.0 | 0.9 |
+| last 100 games | 5.1 | 4.3 | 4.4 | 3.2 | 2.5 | 1.5 |
+| half-life 180 days | 2.6 | 2.0 | 2.9 | 3.0 | 2.5 | 3.9 |
+| half-life 365 days | 3.9 | 3.4 | 4.5 | 4.5 | 4.0 | 5.4 |
+| half-life 730 days | 4.9 | 4.2 | 5.5 | 5.1 | 4.8 | 6.1 |
+
+- Recent windows carry slightly more real signal: the covariance with the next game is 11.9 against 9.5 points² at 250 to 499 games for the last 25 to 50 games.
+- But they are far noisier, so the full record, or a two-year half-life, predicts best. Old games are not dragging the numbers down; they add more signal than drift.
+
+### Check 4: robustness to the definitions
+
+| definition | 30-59 | 60-119 | 120-249 | 250-499 | 500-799 | 800+ |
+|---|---|---|---|---|---|---|
+| section 3: next game, edge vs the draft, all players | 0.24 | 0.30 | 0.43 | 0.50 | 0.58 | 0.81 |
+| edge relative to the player's own average (controlling for it) | 0.21 | 0.28 | 0.42 | 0.54 | 0.61 | 0.87 |
+| "later" = every later game: record frozen at the spring test start, mean of all its later games, cell-weighted | 0.20 | 0.27 | 0.40 | 0.47 | 0.59 | 0.79 |
+| slots with all ten ratings, plus rating controls | 0.25 | 0.34 | 0.43 | 0.53 | 0.64 | 0.81 |
+
+The answer does not depend on which of these definitions is used.
+
+### Check 5: how one game's outcome variance splits
+
+**Method** (`p2f_vardecomp.py`):
+- **One game's variance:** 0.25.
+- **Draft:** the variance of the draft-only win probability across games (spring and summer test windows).
+- **Stable player effects:** split halves on our corpus games. In 18 half-year windows, each player's (or player-hero's) games are cut into an earlier and a later half, and the covariance between the halves measures the part that holds across about three months. The residual is against the draft-only WP, which already includes the lobby's average rating.
+  - Overall effect: player mean, 20+ games in each half.
+  - Hero-specific effect: player-hero mean minus the player's own mean in the same half, 10+ games in each half.
+  - Shares are per game; "ten players" multiplies by 10.
+
+| part of one game's variance (0.25) | all players | players with 300+ earlier games | players with 1,000+ |
+|---|---|---|---|
+| draft (variance of the draft-only WP) | 3.4% | | |
+| one player's stable overall effect, beyond the lobby's rating (sd) | 0.27% (2.6 points) | 0% | 0% |
+| ... all ten players | 2.7% | 0% | 0% |
+| one player's stable hero-specific effect (sd) | 0.45% (3.4 points) | 0.51% (3.6 points) | 0.54% (3.7 points) |
+| ... all ten players | **4.5%** | **5.1%** | **5.4%** |
+| the rest: game-to-game performance and luck | about 89% | about 91% | |
+
+**What the matchmaker removes.**
+- It groups players by rating: the spread of player ratings drops from an sd of 256 in the population to 165 inside a lobby, removing about 58% of the variance.
+- It does not balance the two teams beyond that. The real team rating gap (sd 112) is the same as shuffling the same ten players at random (sd 110).
+- Rating gaps barely move results: 1.7 points of win probability per 100 points of team rating gap, about 0.15% of a game's variance.
+- Taken together, for established players any stable overall skill beyond the lobby's rating is absorbed. The 2.7% "overall" share comes entirely from players with under 300 games, mostly accounts still climbing. That matches `P3_SKILL_DRIFT.md`.
+
+**Why a hero-specific share survives.** Matchmaking is zero-sum in the player's overall rating, not in the hero they pick. A player's rating is an average over all their heroes. When they pick the hero they are best at, they are better than their rating says, and on a hero they rarely play they are worse. The matchmaker cannot see which hero will be picked. The hero-specific share is 0.45 to 0.54% per player, about 5% for ten, and it does not shrink for veterans, so it is not new accounts climbing.
+
+**Why section 4's "1.3% of one game per player-hero" differs.**
+- That number is the whole cell (overall plus hero), on estimation-window games, including new accounts.
+- Here the overall part is about zero for veterans, and the stable hero part is about 0.5%.
+- Either way, ten players' stable effects total about 5 to 13% of one game's variance, not 100% and not 0%.
+
+**Out-of-sample confirmation** (share of outcome variance explained, i.e. Brier skill):
+
+| games | draft only | full model | players add | accuracy, draft → full |
+|---|---|---|---|---|
+| all 358,490 test games | 3.0% | 8.3% | **+5.3 points** | 57.0% → 61.7% |
+| all ten players with 300+ earlier games (5,120) | 2.4% | 6.6% | **+4.2 points** | 55.6% → 60.6% |
+| all ten with 1,000+ (242 games, noisy) | 6.3% | 13.5% | +7.2 points | 61.6% → 64.9% |
+
+The model explains out of sample about what the stable shares say is there: 5.3 points of variance from players against roughly 5 to 7 points of stable player variance. It keeps explaining it in lobbies of established players only.
+
+### Hardware note: the 3090's memory
+
+Four runs on the 3090 (the two ladder arms on Oct 19, a rerun, and this check's first attempt) failed with array indices too large to be possible. Each wrong index equals a valid index plus exactly 2^28: one flipped bit at position 28. That is a memory fault on that machine (its RAM is not error-correcting), not a code bug.
+- **Integer arrays:** a flip usually crashes, as here.
+- **Floating-point arrays:** a flip at that bit is harmless in float64 (a change near the 7th to 8th significant digit). In float32 it hits the exponent and silently produces a wildly wrong value.
+
+Results already produced on the 3090 that were checked elsewhere agree:
+- this section's records, rebuilt on the main box, reproduce section 3's arm (computed on the 3090) to three decimals;
+- the section 7 decomposition's "all current" row reproduces the tournament's own score (61.51%) exactly.
+
+But silent errors in float32 arrays cannot be ruled out. The 3090's RAM should be tested (memtest86 or Windows Memory Diagnostic) before more definitive runs there. Everything in this section was computed on the main box.
+
+---
+
 ## Files
 
-- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`, `p2f_more.py` (sections 8 to 10), `p2f_ladder.py` (the two new ladder arms, run on the 3090 CPU), `p2f_stale_decomp.py` (section 7's decomposition, 3090 CPU) and `p2f_stale_cell.py` (the year-stale table of section 7, run on the 3090 CPU against the tournament's saved states).
+- Code: `training/personalization/p2f_clocks.py`, `p2f_game_clock.py`, `p2f_player_clock.py`, `p2f_arms.py`, `p2f_more.py` (sections 8 to 10), `p2f_ladder.py` (the two new ladder arms, run on the 3090 CPU), `p2f_stale_decomp.py` (section 7's decomposition, 3090 CPU), `p2f_carry.py`, `p2f_carry_mmr.py` and `p2f_vardecomp.py` (section 11, main box) and `p2f_stale_cell.py` (the year-stale table of section 7, run on the 3090 CPU against the tournament's saved states).
 - Results: `training/personalization/results/p2f/*.json`.
 - Large inputs, all gitignored:
   - `cache/p2f_snapshot_games.npz`, a compact copy of the snapshot built by the game-clock script;
   - the A2S and `full_ms_layer` arms (`results/rcf_full/p3c/`) and the full slot table (`cache_full/x_slots_ext.npz`) from the 3090, copied to a scratch directory and not committed. They hold player keys only.
 - Compute: this box, cores 48-51, nice 19, about an hour in total. The 3090 ran only CPU work (cores 24-31, nice 19, hotsjob jobs `p2f_ladder_*`, about 10 minutes). No GPU was used, and the tournament's jobs and files were only read.
-- One reliability note: two 3090 runs started outside hotsjob, and one inside it, failed with impossible array indices in code that had just run cleanly. Each succeeded on rerun with identical code. If this recurs, the 3090's memory should be checked.
+- One reliability note: the 3090 has a memory fault (single bit flips at bit 28; section 11, hardware note). Four runs failed on it; everything in section 11 was computed on the main box.
