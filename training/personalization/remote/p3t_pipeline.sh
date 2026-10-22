@@ -6,7 +6,7 @@
 #     > training/personalization/logs/p3t_pipeline.log 2>&1 &
 #
 # Inputs (already on the workers; produced by the personalization rerun):
-#   CPU host (3080; was the 3090): personalization/cache_full/ (slot table x_slots_ext, merged rows, scoreboard cards,
+#   CPU host (3080; was the 3090): personalization/cache_full/ or cache_def_<D>/ (slot table x_slots_ext, merged rows, scoreboard cards,
 #         rcf/parts_full_ms.npz, mmr_at_game.npz, x_post_games.json.gz, drafts_post.json.gz,
 #         gd_trainonly/) and results/rcf_full/{rcf/params/full_ms.npz, p3_c_tests_main.json,
 #         rcf/p3c/full_ms_layer__merged.npz}
@@ -15,7 +15,7 @@
 #   personalization/p3t_vintages.json) and copied to the 5090 and the 3080 (rsync of models, stats, mcts_runs).
 # Hosts: CPU stages on the 3080 (P3T_CPU_HOST); GPU stages on the 5090, tournament shards also on the 3080 GPU.
 # Every stage writes outputs atomically and skips finished outputs, so a rerun after a pause
-# continues. Delete $B/cache_full/p3t (both hosts) to start over. p3t_vintages.json is written
+# continues. Delete $CROOT/p3t (both hosts) to start over. p3t_vintages.json is written
 # only on the CPU host (combfit, vnet) and fetched back right after; do not edit it while this runs.
 # The exploration design is the one the rule picked on the tune lobbies (x-combo1-dr-chance, with x-combo1 and x-combo3
 # reported next to it); the rerun re-reports the tune table but keeps that choice (P3_TOURNAMENT.md).
@@ -30,6 +30,19 @@ GPU2=${P3T_GPU2_HOST:-3080-gaming-desktop}
 CPU_CORES=${P3T_CPU_CORES:-0-3,16-19}   # 3080: the nightly replay parse uses cores 4-15 from 22:40
 CPU_MEM=${P3T_CPU_MEM:-20G}          # 3080: lean jobs, at most 20 GB per lane
 B=/home/max/hots/repo/training/personalization
+# Input roots (2026-10-22): the definitive build is versioned by tag D (personalization lane):
+#   P3T_BUILD=<D>  ->  cache  $B/cache_def_<D>, results $B/results/def_<D>, merged rows from P3T_RCF_ROWS
+#                      (the manifest's file name); the judge's other-half fit (full_ms_flip) comes
+#                      with the build, so the refit step is skipped.
+#   unset          ->  the old layout ($B/cache_full, $B/results/rcf_full) and the refit runs.
+if [ -n "${P3T_BUILD:-}" ]; then
+  CROOT=$B/cache_def_$P3T_BUILD; RROOT=$B/results/def_$P3T_BUILD
+  : "${P3T_RCF_ROWS:?set P3T_RCF_ROWS to the merged-rows file of the build, see the manifest}"
+else
+  CROOT=$B/cache_full; RROOT=$B/results/rcf_full
+  P3T_RCF_ROWS=${P3T_RCF_ROWS:-$CROOT/merged_rows_full_1017.npz}
+fi
+ROOTENV="P3T_CACHE_ROOT=$CROOT P3T_RESULTS_ROOT=$RROOT P3T_RCF_ROWS=$P3T_RCF_ROWS"
 STAMP=$(date +%m%d%H%M)
 RELAY=${P3T_RELAY:-/tmp/p3t_relay_$STAMP}
 JOB=training/personalization/remote/p3_job.sh
@@ -46,15 +59,15 @@ wait_job() {   # host name: poll hotsjob state until the job ends; fail on anyth
   done
 }
 run_cpu() { local n="p3t_${1}_$STAMP"; shift
-  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=6 $JOB $CPU "$n" env P3T_PROCS=6 $WALKENV "$@"
+  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=6 $JOB $CPU "$n" env P3T_PROCS=6 $ROOTENV $WALKENV "$@"
   wait_job $CPU "$n"; }
 run_gpu() { local n="p3t_${1}_$STAMP"; shift
-  P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "$n" env P3T_PROCS=4 "$@"
+  P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "$n" env P3T_PROCS=4 $ROOTENV "$@"
   wait_job $GPU "$n"; }
 run_gpu_pair() {   # name step-args...: the same tournament step on both GPU hosts, shards 0/2 and 1/2
   local n="p3t_${1}_$STAMP"; shift
-  P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "${n}_a" env P3T_PROCS=4 "$@":--shard:0/2
-  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "${n}_b" env P3T_PROCS=4 "$@":--shard:1/2
+  P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "${n}_a" env P3T_PROCS=4 $ROOTENV "$@":--shard:0/2
+  P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "${n}_b" env P3T_PROCS=4 $ROOTENV "$@":--shard:1/2
   wait_job $GPU "${n}_a"; wait_job $GPU2 "${n}_b"
   relay $GPU2 $GPU; }
 STEP="bash personalization/remote/p3t_run.sh"
@@ -62,12 +75,12 @@ STEP="bash personalization/remote/p3t_run.sh"
 relay() {      # from-host to-host: cache_full/p3t (scores stay on the CPU host)
   mkdir -p "$RELAY"
   nice -n 19 rsync -rt --rsync-path="$(remote_rsync "$1")" --exclude 'scores*' --exclude 'premature' \
-    --exclude '*_unmasked' "$1:$B/cache_full/p3t/" "$RELAY/"
-  nice -n 19 rsync -rt --rsync-path="$(remote_rsync "$2")" "$RELAY/" "$2:$B/cache_full/p3t/"
+    --exclude '*_unmasked' "$1:$CROOT/p3t/" "$RELAY/"
+  nice -n 19 rsync -rt --rsync-path="$(remote_rsync "$2")" "$RELAY/" "$2:$CROOT/p3t/"
 }
 push_results() {  # small result JSONs the GPU host reads (opponent model)
-  nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$B/results/rcf_full/p3t/opp_model.json" "$RELAY/"
-  nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU)" "$RELAY/opp_model.json" "$GPU:$B/results/rcf_full/p3t/"
+  nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$RROOT/p3t/opp_model.json" "$RELAY/"
+  nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU)" "$RELAY/opp_model.json" "$GPU:$RROOT/p3t/"
 }
 fetch_vintages() {
   nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$B/p3t_vintages.json" training/personalization/
@@ -85,11 +98,11 @@ for h in $CPU $GPU; do
 done
 # Player states (coordinator, 2026-10-22): the definitive tournament uses the personalization
 # lane's chosen model; the old full_ms states are the sensitivity. Two passes of this script:
-#   P3T_STATES=record  full_ms states, every walk's query list written to $B/cache_full/p3t_walk_queries
-#                      (archive cache_full/p3t and results/rcf_full/p3t as *_oldmodel afterwards)
+#   P3T_STATES=record  full_ms states, every walk's query list written to $CROOT/p3t_walk_queries
+#                      (archive $CROOT/p3t and $RROOT/p3t as *_oldmodel afterwards)
 #   P3T_STATES=replay  P3T_WALK_ANSWERS=<dir>: the lane's answers to those queries replace the walk
 case "${P3T_STATES:-record}" in
-  record) WALKENV="P3T_WALK_RECORD=$B/cache_full/p3t_walk_queries" ;;
+  record) WALKENV="P3T_WALK_RECORD=$CROOT/p3t_walk_queries" ;;
   replay) WALKENV="P3T_WALK_REPLAY=${P3T_WALK_ANSWERS:?set P3T_WALK_ANSWERS for the replay pass}" ;;
   *) echo "P3T_STATES must be record or replay"; exit 2 ;;
 esac
@@ -106,11 +119,13 @@ P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_determ2_$STAMP"
 wait_job $GPU2 "p3t_determ2_$STAMP"
 
 # 1. judge skill model: the main fit's settings on the other player half (5090 GPU, ~3 min)
-run_gpu flipfit env P3_CACHE=$B/cache_full P3_RESULTS=$B/results/rcf_full python -u personalization/p3_rcf.py fit \
-  --tag full_ms_flip --hist merged --kmax 2 --metrics --gshare --hero-s2 --sb a_shrink --f64 --rounds 3 --iters 500 --flip-half
 mkdir -p "$RELAY"
-nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU)" "$GPU:$B/results/rcf_full/rcf/params/full_ms_flip.*" "$RELAY/"
-nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$RELAY"/full_ms_flip.* "$CPU:$B/results/rcf_full/rcf/params/"
+if [ -z "${P3T_BUILD:-}" ]; then
+run_gpu flipfit env P3_CACHE=$CROOT P3_RESULTS=$RROOT P3_RCF_ROWS=$P3T_RCF_ROWS python -u personalization/p3_rcf.py fit \
+  --tag full_ms_flip --hist merged --kmax 2 --metrics --gshare --hero-s2 --sb a_shrink --f64 --rounds 3 --iters 500 --flip-half
+nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU)" "$GPU:$RROOT/rcf/params/full_ms_flip.*" "$RELAY/"
+nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$RELAY"/full_ms_flip.* "$CPU:$RROOT/rcf/params/"
+fi
 
 # 2. data, states, combiners, judges, value study, rosters, lobby sets (CPU host)
 run_cpu data $STEP p3t_data.py:lobbies p3t_data.py:states:--vintages:cur,s4m,s1y,judge:--judge-params:full_ms_flip \
@@ -160,7 +175,7 @@ run_gpu party $STEP p3t_party.py:run:--plan:effect p3t_party.py:run:--plan:posit
 # 6. results home (small JSON only) and the tables
 mkdir -p training/personalization/results/p3t
 for h in $CPU $GPU; do
-  nice -n 19 rsync -t --rsync-path="$(remote_rsync $h)" "$h:$B/results/rcf_full/p3t/*.json" training/personalization/results/p3t/ || true
+  nice -n 19 rsync -t --rsync-path="$(remote_rsync $h)" "$h:$RROOT/p3t/*.json" training/personalization/results/p3t/ || true
 done
 python3 training/personalization/p3t_report.py
 echo "P3T PIPELINE DONE $(date -Is)"

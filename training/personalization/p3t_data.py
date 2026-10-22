@@ -378,7 +378,14 @@ class Layer:
 
 
 def layer_meta():
-    j = json.load(open(os.path.join(C.RESULTS, "p3_c_tests_main.json")))
+    # rcf_full layout: p3_c_tests_main.json; definitive builds (results/def_<D>): p3_c_tests_def.json
+    for name in ("p3_c_tests_main.json", "p3_c_tests_def.json"):
+        path = os.path.join(C.RESULTS, name)
+        if os.path.exists(path):
+            break
+    else:
+        raise SystemExit(f"layer meta: neither p3_c_tests_main.json nor p3_c_tests_def.json in {C.RESULTS}")
+    j = json.load(open(path))
     m = j["arms"]["full_ms_layer"]["layer"]
     return {k: m[k] for k in ("hl_d", "kd", "ke", "drift_scale", "learn_scale", "coef")}
 
