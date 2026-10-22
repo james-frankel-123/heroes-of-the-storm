@@ -125,7 +125,7 @@ answer)
   Q=${3:?query dir on the 3080}; A=${4:?answer dir on the 3080}
   rsync -t --rsync-path="wsl rsync" personalization/p3_rcf_states.py $W3:$R3/personalization/
   RUN_NAME=def_${D}_answer${RUNSUF:-} HOTSJOB_FLAGS="--mem-max 20G" remote_workers/run_remote.sh $W3 \
-    "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 PYTHONUNBUFFERED=1 nice -n 19 taskset -c 0-3,16-19 bash -c '. personalization/remote/def_env.sh \$PWD $D && python -u personalization/p3_rcf_states.py selfcheck && python -u personalization/p3_rcf_states.py answer $Q $A'"
+    "OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 PYTHONUNBUFFERED=1 nice -n 19 taskset -c 0-3 bash -c '. personalization/remote/def_env.sh \$PWD $D && python -u personalization/p3_rcf_states.py selfcheck && python -u personalization/p3_rcf_states.py answer $Q $A'"
   wait_job $W3 def_${D}_answer${RUNSUF:-} ;;
 report)
   rsync -t --rsync-path="wsl rsync" $W3:$R3/personalization/results/def_$D/p3_c_tests_def.json personalization/results/def_$D/
