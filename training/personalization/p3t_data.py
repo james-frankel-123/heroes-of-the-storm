@@ -200,7 +200,30 @@ def _walk_queries(par, q_pid, q_day, ev_lo, q_hero, ev_ok):
             "hero": (np.full(n, -1, np.int16) if q_hero is None else _KEYS["sh"][q_hero].astype(np.int16))}
 
 
-def _walk_external(qs, want_all, q_hero):
+def _merged_counts(aug, q_pid, q_day):
+    """(nq, H) merged play counts (every row with day <= q_day - 1, no evidence filter), in d hero
+    order: exactly the walk's n_all."""
+    day = aug["day"]
+    upid = np.unique(q_pid)
+    pos = np.full(int(aug["n_players"]), -1, np.int64)
+    pos[upid] = np.arange(len(upid))
+    sel = np.flatnonzero(pos[aug["pid"]] >= 0)
+    sday, sp, sh_ = day[sel], pos[aug["pid"][sel]], aug["hero"][sel]
+    out = np.empty((len(q_pid), H), np.float32)
+    N = np.zeros((len(upid), H), np.float32)
+    o = np.argsort(q_day, kind="stable")
+    ap = 0
+    for t_ in np.unique(q_day):
+        e = np.searchsorted(sday, t_ - 1, side="right")
+        if e > ap:
+            np.add.at(N, (sp[ap:e], sh_[ap:e]), 1.0)
+            ap = e
+        q = o[q_day[o] == t_]
+        out[q] = N[pos[q_pid[q]]]
+    return out
+
+
+def _walk_external(qs, want_all, q_hero, aug=None, q_pid=None, q_day=None):
     name = _walk_name()
     z = np.load(os.path.join(WALK_REPLAY, name + ".npz"))
     for k_, v_ in qs.items():
@@ -209,6 +232,14 @@ def _walk_external(qs, want_all, q_hero):
     s, sd, n_ = z["s"].astype(np.float32), z["sd"].astype(np.float32), z["n"].astype(np.float32)
     # the external files are in shared.HEROES order; this module works in d order: d column i = shared column sh[i]
     s, sd, n_ = s[:, _KEYS["sh"]], sd[:, _KEYS["sh"]], n_[:, _KEYS["sh"]]
+    if aug is not None:
+        # guard: the external n must be the merged count before the as-of day, in shared order;
+        # a wrong hero order or a windowed count fails here
+        want = _merged_counts(aug, q_pid, q_day)
+        if not np.array_equal(n_, want):
+            frac = float((n_ == want).mean())
+            raise SystemExit(f"external states {name}: n differs from the merged counts ({frac:.3f} of cells agree); "
+                             "check the hero order (shared.HEROES) and that n ignores the evidence filters")
     res = {"n_all": n_, "n_slot": np.zeros_like(n_)}
     if want_all:
         res["mean_all"], res["var_all"] = s, sd ** 2
@@ -223,7 +254,7 @@ def walk(aug, par, mets, mw, q_pid, q_day, ev_lo=None, q_hero=None, want_all=Tru
     if WALK_RECORD or WALK_REPLAY:
         qs = _walk_queries(par, q_pid, q_day, ev_lo, q_hero, ev_ok)
         if WALK_REPLAY:
-            return _walk_external(qs, want_all, q_hero)
+            return _walk_external(qs, want_all, q_hero, aug, q_pid, q_day)
         os.makedirs(WALK_RECORD, exist_ok=True)
         np.savez(os.path.join(WALK_RECORD, _walk_name() + ".npz"), **qs)
     return _walk(aug, par, mets, mw, q_pid, q_day, ev_lo, q_hero, want_all, ev_ok)

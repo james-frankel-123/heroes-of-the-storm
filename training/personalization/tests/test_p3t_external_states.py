@@ -4,6 +4,9 @@
      hero (want_all=False)
   E2 the queries are checked: a replay file whose echoed player keys or
      as-of days differ from this run's queries is refused
+  E4 the merged-count guard: the external n must equal the counts of every
+     row before the as-of day (no evidence filter) in the slot table's hero
+     order; a hero-order mix-up or a windowed count is refused
   E3 the query fields: as_of_day = query day - 1, the evidence filters
      (none / odd days / even days outside the tournament window), the fit
      half, and the hero in shared.HEROES order
@@ -67,6 +70,23 @@ def main():
     except SystemExit:
         pass
     print("E2 ok")
+    # E4: a tiny aug with known rows; the guard accepts the right counts and refuses permuted ones
+    aug = {"day": np.array([20590, 20595, 20599, 20650], np.int64), "pid": np.array([0, 2, 2, 1]),
+           "hero": np.array([3, 4, 4, 5]), "n_players": 3}
+    want = TD._merged_counts(aug, q_pid, q_day)
+    assert want[1, 4] == 2 and want[0, 3] == 1 and want[2, 5] == 0 and want[3, 4] == 2
+    Nsh = np.zeros((4, H), np.float32)
+    Nsh[:, sh] = want                              # shared order: shared column sh[i] holds d hero i
+    for k_, n_ in (("ok", Nsh), ("bad", want)):
+        TD._CALLS[0] = 0
+        np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__0.npz"), s=S, sd=SD, n=n_,
+                 **TD._walk_queries(par, q_pid, q_day, None, None, None))
+        try:
+            TD.walk(aug, par, None, None, q_pid, q_day)
+            assert k_ == "ok", "E4: permuted counts accepted"
+        except SystemExit:
+            assert k_ == "bad", "E4: correct counts refused"
+    print("E4 ok")
     print("ALL OK")
 
 
