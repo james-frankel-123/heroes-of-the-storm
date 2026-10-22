@@ -38,5 +38,9 @@ print("guard counts == old walk n:", np.array_equal(want, old_d), float((want ==
 print("answer n == old walk n:", float((n_d == old_d).mean()))
 dif = n_d != want
 r, c = np.nonzero(dif)
-print("differing cells", len(r), "players", len(np.unique(r)), "answer-want: mean", float((n_d - want)[dif].mean()), "min", float((n_d - want)[dif].min()), "max", float((n_d - want)[dif].max()))
+if dif.any():
+    print("differing cells", len(r), "players", len(np.unique(r)), "answer-want: mean", float((n_d - want)[dif].mean()),
+          "min", float((n_d - want)[dif].min()), "max", float((n_d - want)[dif].max()))
+else:
+    print("differing cells: none")
 print("answer total / want total per player (median)", float(np.median(n_d.sum(1))), float(np.median(want.sum(1))))
