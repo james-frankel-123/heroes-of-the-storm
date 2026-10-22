@@ -103,6 +103,39 @@ These match the full_1017 study within the panel difference. The dry1022 store h
 - **Missing offset term in the state writer.** It dropped the experience offset that the arm adds outside the shrinkage function. The self-check caught it, and the state writer is fixed.
 - **3080 cores.** By agreement with the tournament agent, this lane's jobs run on cores 0-3, away from the nightly parse on 4-15.
 
+## Tournament format check (dry run, 2026-10-22)
+
+The tournament agent re-recorded its walk queries on the dry1022 build, and this lane answered them on the 3080:
+
+| file | queries |
+|---|---|
+| states__1 | 60,335 |
+| states__0 | 869,026 |
+| judgefit__0 | 1,626,570 |
+
+Its replay passed end to end:
+- echoed fields are identical;
+- n equals its merged counts in every cell of every file;
+- the rebuilt drafter and judge states, the judge-fit inputs and the off-role flags show no errors.
+
+Old model (full_ms) against the chosen model, on tournament-window lobbies:
+
+| state | correlation of s, all heroes / played heroes | spread of s on played heroes |
+|---|---|---|
+| drafter | 0.930 / 0.921 | 3.95 → 4.00pp |
+| judge | 0.933 / 0.929 | 3.27 → 4.10pp |
+
+Judge fit on 144,414 judge-window games, with the consensus WP as the offset:
+
+| model | personal coefficient c2 | log loss | gain over the consensus, ×1000 |
+|---|---|---|---|
+| old | 4.62 (0.07) | 0.66024 | +19.98 (0.51) |
+| chosen | 3.15 (0.04) | 0.65737 | **+22.85 (0.55)** |
+
+The judge gets about 14% more personal signal. c2 drops because the new s is spread wider, so the same information carries a smaller coefficient. The tournament refits c2 and its combiners on whatever states it receives, so no constants carry over. Its attenuation figure will be recomputed.
+
+Their scripts: `/home/max/hots/p3t_dry1022/dry1022_replay.sh` on the 3080, and the check tool `p3t_check_answers.py` (commit 610c2f6).
+
 ## Files
 
 In `training/personalization/`:
