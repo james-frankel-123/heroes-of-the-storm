@@ -155,7 +155,81 @@ def load_lobbies():
 
 # ------------------------------------------------------------------ walk
 
+# ------------------------------------------------------------------ external player states
+# The definitive rerun takes the player states from the personalization lane's model
+# (coordinator, 2026-10-22). Two env switches, both keyed by the walk calls in order:
+#   P3T_WALK_RECORD=<dir>  compute as usual and also write every walk's query list to
+#                          <dir>/<stage>__<k>.npz (player_key, as_of_day, ev_lo, ev_parity,
+#                          exclude_lo, exclude_hi, half, hero)
+#   P3T_WALK_REPLAY=<dir>  read the state for those queries from <dir>/<stage>__<k>.npz
+#                          (fields s, sd, n; same order, the queries echoed and checked) in
+#                          place of the walk. The external s already holds the experience
+#                          offset and the temporal layer, so offset(), the offset-table
+#                          lookups and Layer.at contribute zero in this mode.
+WALK_RECORD = os.environ.get("P3T_WALK_RECORD")
+WALK_REPLAY = os.environ.get("P3T_WALK_REPLAY")
+_HALF = {}            # id(params) -> 0 drafter fit, 1 judge fit (other player half)
+_KEYS = {}            # "keys": d["player_keys"] of the loaded slot table
+_CALLS = [0]
+
+
+def _walk_name():
+    pos = [a_ for a_ in sys.argv[1:] if not a_.startswith("-")][:1]
+    stage = os.path.basename(sys.argv[0]).replace(".py", "") + ("_" + pos[0] if pos else "")
+    name = f"{stage}__{_CALLS[0]}"
+    _CALLS[0] += 1
+    return name
+
+
+def _walk_queries(par, q_pid, q_day, ev_lo, q_hero, ev_ok):
+    n = len(q_pid)
+    if ev_ok is None:
+        par_, xlo, xhi = 0, -1, -1
+    elif ev_ok is SPLIT_D:
+        par_, xlo, xhi = 1, -1, -1
+    elif ev_ok is SPLIT_J:
+        par_, xlo, xhi = 2, OOT_START, LOBBY_END
+    else:
+        raise SystemExit("external states: unknown evidence filter")
+    if id(par) not in _HALF:
+        raise SystemExit("external states: walk called with parameters not loaded through load_model/_jpar")
+    return {"player_key": _KEYS["keys"][q_pid].astype(np.int64), "as_of_day": (q_day - 1).astype(np.int32),
+            "ev_lo": np.full(n, -1 if ev_lo is None else ev_lo, np.int32), "ev_parity": np.full(n, par_, np.int8),
+            "exclude_lo": np.full(n, xlo, np.int32), "exclude_hi": np.full(n, xhi, np.int32),
+            "half": np.full(n, _HALF[id(par)], np.int8),
+            "hero": (np.full(n, -1, np.int16) if q_hero is None else _KEYS["sh"][q_hero].astype(np.int16))}
+
+
+def _walk_external(qs, want_all, q_hero):
+    name = _walk_name()
+    z = np.load(os.path.join(WALK_REPLAY, name + ".npz"))
+    for k_, v_ in qs.items():
+        if k_ in z.files and not np.array_equal(z[k_], v_):
+            raise SystemExit(f"external states {name}: query field {k_} differs from this run's queries")
+    s, sd, n_ = z["s"].astype(np.float32), z["sd"].astype(np.float32), z["n"].astype(np.float32)
+    # the external files are in shared.HEROES order; this module works in d order: d column i = shared column sh[i]
+    s, sd, n_ = s[:, _KEYS["sh"]], sd[:, _KEYS["sh"]], n_[:, _KEYS["sh"]]
+    res = {"n_all": n_, "n_slot": np.zeros_like(n_)}
+    if want_all:
+        res["mean_all"], res["var_all"] = s, sd ** 2
+    else:
+        hq = np.zeros(len(s), np.int64) if q_hero is None else q_hero
+        res["mean"], res["var"] = s[np.arange(len(s)), hq], sd[np.arange(len(s)), hq] ** 2
+    print(f"  external states {name}: {len(s):,} queries", flush=True)
+    return res
+
+
 def walk(aug, par, mets, mw, q_pid, q_day, ev_lo=None, q_hero=None, want_all=True, ev_ok=None):
+    if WALK_RECORD or WALK_REPLAY:
+        qs = _walk_queries(par, q_pid, q_day, ev_lo, q_hero, ev_ok)
+        if WALK_REPLAY:
+            return _walk_external(qs, want_all, q_hero)
+        os.makedirs(WALK_RECORD, exist_ok=True)
+        np.savez(os.path.join(WALK_RECORD, _walk_name() + ".npz"), **qs)
+    return _walk(aug, par, mets, mw, q_pid, q_day, ev_lo, q_hero, want_all, ev_ok)
+
+
+def _walk(aug, par, mets, mw, q_pid, q_day, ev_lo=None, q_hero=None, want_all=True, ev_ok=None):
     """As-of posterior for (player, day) queries: evidence rows with
     ev_lo <= day <= q_day - 1 (ev_lo None: from the start); merged counts
     (all rows) and slot-row counts with day <= q_day - 1. State is kept only
@@ -291,6 +365,8 @@ class Layer:
         self.key = self.pid * 100000 + self.day
 
     def at(self, q_pid, q_day, n_all):
+        if WALK_REPLAY:
+            return np.zeros(np.shape(n_all), np.float64)     # the external s already holds the layer
         lo = np.searchsorted(self.key, q_pid.astype(np.int64) * 100000)
         hi = np.searchsorted(self.key, q_pid.astype(np.int64) * 100000 + (q_day.astype(np.int64) - 1), side="right")
         sc = np.exp(-self.lam * (q_day.astype(np.int64) - self.d0))
@@ -322,6 +398,12 @@ def load_model(tag="full_ms"):
     import p3_rcf as R
     par = R.get_params(tag)
     d, aug = R.load_aug("merged")
+    _HALF[id(par)] = 1 if tag.endswith("_flip") else 0
+    _KEYS["keys"] = np.asarray(d["player_keys"])
+    _KEYS["sh"] = np.asarray(to_shared(d["hero_names"]))    # d hero index -> shared.HEROES index
+    if WALK_REPLAY:
+        aug["table"] = np.zeros_like(aug["table"])         # the external s already holds the experience offset
+        return par, d, aug, None, None
     mets, mw = R.aug_metrics(aug, par.meta.get("sb", "legacy"), d) if par.G is not None else (None, None)
     return par, d, aug, mets, mw
 
@@ -390,6 +472,7 @@ def _vidx(d, ver):
 def _jpar(tag):
     import p3_rcf as R
     p = R.get_params(tag)
+    _HALF[id(p)] = 1 if tag.endswith("_flip") else 0
     print(f"judge parameters: {tag} (n_fit {p.meta.get('n_fit')})", flush=True)
     return p
 

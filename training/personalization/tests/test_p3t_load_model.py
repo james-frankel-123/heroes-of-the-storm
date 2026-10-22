@@ -30,7 +30,8 @@ def fixture():
     blizz = np.array([101, 202, 303], np.int64)
     region = np.array([1, 2, 2], np.int64)
     keys = (region << 40) | blizz
-    d = {"player_keys": keys}
+    from shared import HEROES
+    d = {"player_keys": keys, "hero_names": np.array(HEROES[::-1])}
     aug = {"day": np.arange(n_aug, dtype=np.int32), "pid": rng.integers(0, 3, n_aug).astype(np.int32),
            "rid": (5000 + np.arange(n_aug)).astype(np.int64), "slot": np.where(np.arange(n_aug) < 6, np.arange(n_aug), -1)}
     # card rows for every second aug row, in shuffled order
