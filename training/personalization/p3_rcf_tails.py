@@ -17,6 +17,21 @@ x = (theta - m0) / sqrt(v0):
           game (0, 1-9, 10-29, 30-99, 100+) x specialist (hero share of the
           player's games >= 20%)
   vol_t   vol with a Student-t shape (df per cell)
+  vols    smooth volume and share prior: mean and log scale linear in
+          l = log1p(games on the hero), sh = hero share of the player's games
+          and l * sh (8 parameters; no bins)
+  shrinkfn  a data-chosen smooth shrinkage function. With the Gaussian data
+          weight w = Ph / (Ph + 1 / v0), the prediction becomes
+          b_p(z) m0 + b_o(z) w (ybar - m0) + b_m(z) offset, each b(z) linear in
+          the smooth basis z = (1, l, l^2, sh, g, l sh): l = log1p games on the
+          hero, sh = hero share, g = log1p days since the last game on it. Fit
+          by weighted least squares on V1 slots (weights 1 / wp (1 - wp)). b_o
+          multiplies the data weight the Gaussian model gives a record, so it
+          reads as "shrink harder" (< 1) or "trust the record more" (> 1) by
+          volume, share and recency. shrinkfn2 adds sh^2, g^2 and l g to the
+          basis (non-monotone share, stale records)
+  volsr   vols plus recency: g = log1p(days since the last game on the hero)
+          and g * l in both the mean and the log scale (12 parameters)
 
 The posterior of theta is computed by quadrature on a fixed x grid. The
 parameters are fit by maximum likelihood of the scored game's own residual
@@ -32,6 +47,16 @@ from scipy.special import gammaln
 
 XG = np.linspace(-10, 10, 401)
 NB_EDGES = np.array([0, 1, 10, 30, 100])
+
+
+def smooth_features(card, res):
+    l = np.log1p(res["nh"]) / np.log1p(300.0)
+    sh = res["nh"] / np.maximum(res["np"], 1)
+    cols = [np.ones(len(l)), l, sh, l * sh]
+    if card == "volsr":
+        g = np.where(res["gap"] >= 0, np.log1p(res["gap"]) / np.log1p(1000.0), 0.0)
+        cols += [g, g * l]
+    return np.column_stack(cols)
 
 
 def vol_bin(nh, npl):
@@ -60,6 +85,13 @@ def logf(card, p, ctx):
         mu, s, nu = p[0], np.exp(p[1]), 2 + np.exp(np.clip(p[2], -5, 8))
         z = (x - mu) / s
         return gammaln((nu + 1) / 2) - gammaln(nu / 2) - 0.5 * np.log(nu) - np.log(s) - (nu + 1) / 2 * np.log1p(z * z / nu)
+    if card in ("vols", "volsr"):
+        F = ctx["F"]
+        nf = F.shape[1]
+        mu = (F @ np.asarray(p[:nf]))[:, None]
+        s = np.exp(F @ np.asarray(p[nf:2 * nf]))[:, None]
+        z = (x[None, :] - mu) / s
+        return -0.5 * z ** 2 - np.log(s)
     if card in ("vol", "vol_t"):
         b = ctx["bin"]
         nb = 10
@@ -75,11 +107,34 @@ def logf(card, p, ctx):
 
 def p0(card):
     return {"scale": [0.0, 0.0], "asym": [0.0, 0.0, 0.0], "mix": [-2.0, 0.0, -1.0, 0.7], "t": [0.0, 0.0, 2.0],
-            "vol": [0.0] * 20, "vol_t": [0.0] * 20 + [2.0] * 10}[card]
+            "vol": [0.0] * 20, "vol_t": [0.0] * 20 + [2.0] * 10, "vols": [0.0] * 8, "volsr": [0.0] * 12}[card]
+
+
+GAUSS = ("scale", "vol", "vols", "volsr")
+
+
+def gauss_prior(card, p, m0, v0, ctx):
+    """Prior mean and variance of theta for the Gaussian cards."""
+    if card == "scale":
+        mu, s = p[0], np.exp(p[1])
+    elif card == "vol":
+        nb = 10
+        mu = np.asarray(p[:nb])[ctx["bin"]]
+        s = np.exp(np.asarray(p[nb:2 * nb]))[ctx["bin"]]
+    else:
+        F = ctx["F"]
+        nf = F.shape[1]
+        mu = F @ np.asarray(p[:nf])
+        s = np.exp(np.clip(F @ np.asarray(p[nf:2 * nf]), -6, 6))
+    return m0 + np.sqrt(v0) * mu, v0 * s * s
 
 
 def post(card, p, m0, v0, Sh, Ph, ctx, chunk=200000):
     """Posterior mean and variance of theta, and the log weights."""
+    if card in GAUSS:
+        M, Vp = gauss_prior(card, p, m0, v0, ctx)
+        var = 1.0 / (1.0 / Vp + Ph)
+        return var * (M / Vp + Sh), var
     n = len(m0)
     mean = np.empty(n)
     var = np.empty(n)
@@ -104,6 +159,10 @@ def post(card, p, m0, v0, Sh, Ph, ctx, chunk=200000):
 def nll(card, p, m0, v0, Sh, Ph, r, v, ctx):
     """- sum log posterior predictive of the scored residual r (Gaussian game
     noise v) under the card's posterior."""
+    if card in GAUSS:
+        mean, var = post(card, p, m0, v0, Sh, Ph, ctx)
+        tv = var + v
+        return float(0.5 * np.sum(np.log(2 * np.pi * tv) + (r - mean) ** 2 / tv))
     s0 = np.sqrt(v0)[:, None]
     lf = np.broadcast_to(logf(card, p, ctx), (len(m0), len(XG)))
     P = Ph[:, None]
@@ -115,13 +174,62 @@ def nll(card, p, m0, v0, Sh, Ph, r, v, ctx):
     return -float(np.logaddexp.reduce(lw + lr, axis=1).sum())
 
 
-def apply(card, res, r_target, v, v1_mask, args=None, max_fit=250000, seed=0):
+def shrink_basis(res, rich=False):
+    l = np.log1p(res["nh"]) / np.log1p(300.0)
+    sh = res["nh"] / np.maximum(res["np"], 1)
+    g = np.where(res["gap"] >= 0, np.log1p(res["gap"]) / np.log1p(1000.0), 0.0)
+    cols = [np.ones(len(l)), l, l * l, sh, g, l * sh]
+    if rich:
+        cols += [sh * sh, g * g, l * g]
+    if rich == 2:
+        # hinges (still smooth in the prediction: linear pieces) for the tails
+        # the quadratic basis misses: deep records, specialists, stale records
+        h = lambda x, k: np.maximum(x - k, 0.0)
+        cols += [h(l, np.log1p(100) / np.log1p(300.0)), h(l, 1.0), h(sh, 0.6), h(sh, 0.8),
+                 h(g, np.log1p(180) / np.log1p(1000.0)), h(g, np.log1p(365) / np.log1p(1000.0))]
+    return np.column_stack(cols)
+
+
+def shrinkfn(res, r_target, v, v1_mask, rich=False):
+    m0, v0, Sh, Ph = res["m0"], np.maximum(res["v0"], 1e-10), res["Sh"], res["Ph"]
+    w = Ph / (Ph + 1.0 / v0)
+    yb = np.where(Ph > 0, Sh / np.maximum(Ph, 1e-12), m0)
+    own = w * (yb - m0)
+    B = shrink_basis(res, rich)
+    feats = [m0, own, res["mu"]]
+    X = np.column_stack([B * f[:, None] for f in feats])
+    i = v1_mask
+    wt = 1.0 / v[i]
+    XtW = X[i].T * wt
+    beta = np.linalg.solve(XtW @ X[i] + 1e-9 * np.eye(X.shape[1]), XtW @ r_target[i])
+    mean = X @ beta
+    nb = B.shape[1]
+    bo = B @ beta[nb:2 * nb]
+    out = {"beta_prior": beta[:nb].tolist(), "beta_own": beta[nb:2 * nb].tolist(), "beta_offset": beta[2 * nb:].tolist()}
+    for lo_, hi_ in ((0, 0), (1, 9), (10, 29), (30, 99), (100, 299), (300, 10 ** 9)):
+        m = v1_mask & (res["nh"] >= lo_) & (res["nh"] <= hi_)
+        out[f"own_multiplier_games_{lo_}_{hi_ if hi_ < 10 ** 9 else ''}"] = float(np.mean(bo[m])) if m.any() else None
+        out[f"data_weight_gauss_{lo_}_{hi_ if hi_ < 10 ** 9 else ''}"] = float(np.mean(w[m])) if m.any() else None
+    var = res.get("var", np.zeros(len(mean)))
+    return mean, var, out
+
+
+def apply(card, res, r_target, v, v1_mask, args=None, max_fit=3000000, seed=0):
     """Fit the card on V1 slots (subsample), then the posterior for every slot.
     Returns (mean, var, meta)."""
+    if card in ("shrinkfn", "shrinkfn2"):
+        mean, var, meta = shrinkfn(res, r_target, v, v1_mask, rich=card == "shrinkfn2")
+        meta["card"] = card
+        print(f"  tail shrinkfn: own-record multiplier by games on the hero (V1): "
+              + ", ".join(f"{k.split('games_')[1]} {meta[k]:.2f}" for k in meta if k.startswith("own_multiplier") and meta[k] is not None),
+              flush=True)
+        return mean, var, meta
     m0, v0, Sh, Ph = res["m0"], np.maximum(res["v0"], 1e-10), res["Sh"], res["Ph"]
     ctx = {}
-    if card.startswith("vol"):
+    if card in ("vol", "vol_t"):
         ctx["bin"] = vol_bin(res["nh"], res["np"])
+    if card in ("vols", "volsr"):
+        ctx["F"] = smooth_features(card, res)
     idx = np.flatnonzero(v1_mask)
     rng = np.random.default_rng(seed)
     if len(idx) > max_fit:
@@ -130,7 +238,9 @@ def apply(card, res, r_target, v, v1_mask, args=None, max_fit=250000, seed=0):
     f = lambda p: nll(card, p, m0[idx], v0[idx], Sh[idx], Ph[idx], r_target[idx], v[idx], sub)
     pg = p0(card)
     base = nll("scale", [0.0, 0.0], m0[idx], v0[idx], Sh[idx], Ph[idx], r_target[idx], v[idx], sub)
-    if card.startswith("vol"):
+    if card in GAUSS:
+        r = minimize(f, pg, method="L-BFGS-B", options={"maxiter": 2000})
+    elif card == "vol_t":
         # the likelihood separates by volume cell: fit each cell's (mu, s) on
         # its own (vol_t: plus its own df), then assemble
         nb = 10
