@@ -83,6 +83,12 @@ push_results() {  # small result JSONs the GPU host reads (opponent model)
   nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$RROOT/p3t/opp_model.json" "$RELAY/"
   nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU)" "$RELAY/opp_model.json" "$GPU:$RROOT/p3t/"
 }
+push_gpu_results() {  # the 5090's opponent and ban-holder fits, read by the 3080 lane of run_gpu_pair
+  for f in opp_dr.json opp_holder.json; do
+    nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU)" "$GPU:$RROOT/p3t/$f" "$RELAY/"
+  done
+  nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU2)" "$RELAY/opp_dr.json" "$RELAY/opp_holder.json" "$GPU2:$RROOT/p3t/"
+}
 fetch_vintages() {
   nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$B/p3t_vintages.json" training/personalization/
   for h in $CPU $GPU; do training/personalization/remote/p3t_sync.sh $h; done
@@ -129,7 +135,7 @@ nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$RELAY"/full_ms_flip.* 
 fi
 
 # 2. data, states, combiners, judges, value study, rosters, lobby sets (CPU host)
-run_cpu data $STEP p3t_data.py:lobbies p3t_data.py:states:--vintages:cur,s4m,s1y,judge:--judge-params:full_ms_flip \
+run_cpu data $STEP p3t_data.py:lobbies p3t_data.py:ranks p3t_data.py:states:--vintages:cur,s4m,s1y,judge:--judge-params:full_ms_flip \
   p3t_data.py:judgefit:--judge-params:full_ms_flip p3t_data.py:split_states p3t_data.py:split_judgefit \
   p3t_data.py:rosters p3t_data.py:prelobbies p3t_value.py:combfit:--vintages:cur,s4m,s1y,split p3t_judge.py:fit \
   p3t_vnet.py:data p3t_vnet.py:train p3t_vnet.py:train_pre p3t_vstudy.py p3t_value.py:predeval \
@@ -158,7 +164,9 @@ run_gpu draftrec $STEP p3t_draftrec.py:train p3t_draftrec.py:train:--final:--kee
 # DraftRec opponent inside the search (p3t_oppdr.py): fit lobbies and histories (CPU host), the fit (5090)
 run_cpu oppdrhist $STEP p3t_oppdr.py:lobbies p3t_oppdr.py:hist
 relay $CPU $GPU
-run_gpu oppdrfit $STEP p3t_oppdr.py:fit
+# and the ban holder's model (the top-ranked player bans; party drafter)
+run_gpu oppdrfit $STEP p3t_oppdr.py:fit p3t_oppdr.py:holderfit
+push_gpu_results
 
 # 4. the tournament (every ready pair), the tune set, the design ablation (5090)
 relay $GPU $GPU2
@@ -173,13 +181,16 @@ run_cpu score $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py p3t_backtest.p
 run_cpu scoresplit env P3T_SPLIT=1 $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py
 run_cpu scoretune env P3T_LOBBYSET=tune $STEP p3t_judge.py:score p3t_analyze.py
 
-# 5b. the party drafter (P3_PARTY_DRAFTER.md) on its own lobby set (up to 1,800 lobbies, 10-game rule): party sizes
-# 1-5 with random seats (4 arms), and the full slot grid (every turn set, both sides, with and without
-# the bans; aware and generic). Configurations sharded across both GPUs; scored on the 5090.
+# 5b. the party drafter (P3_PARTY_DRAFTER.md) on its own lobby set (up to 1,800 lobbies, 10-game rule):
+# party sizes 1-5 with random members and lock turns (4 arms), the full fixed-timing grid (every set of
+# team turns, both sides, with and without the top-ranked player in the party; aware and generic), and
+# the solo lock-or-wait arm. Configurations sharded across both GPUs; scored on the CPU host (judge).
 relay $GPU $GPU2
 run_gpu_pair partyeff env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:effect
 run_gpu_pair partygrid env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:grid
-run_gpu partyscore env P3T_LOBBYSET=party $STEP p3t_party.py:score p3t_party_report.py
+run_gpu_pair partylock env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:lock
+relay $GPU $CPU
+run_cpu partyscore env P3T_LOBBYSET=party $STEP p3t_party.py:score p3t_party_report.py
 
 # 6. results home (small JSON only) and the tables
 mkdir -p training/personalization/results/p3t

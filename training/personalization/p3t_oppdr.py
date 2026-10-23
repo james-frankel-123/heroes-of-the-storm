@@ -87,6 +87,10 @@ def lobbies_file():
     return os.path.join(TD.OUT, "oppdr_lobbies.npz")
 
 
+def holder_file():
+    return os.path.join(C.RESULTS, "p3t", "opp_holder.json")
+
+
 def stage_lobbies():
     from shared import MAPS
     L = TD.load_lobbies()
@@ -306,6 +310,115 @@ def stage_fit():
     print(json.dumps(out, indent=1), flush=True)
 
 
+def stage_holderfit(batch=500):
+    """The ban holder's model (party drafter, Max 2026-10-23: the highest-ranked player of each
+    team bans). On the fit lobbies' real bans, at the exact ban state:
+      softmax_valid(w0 log p_GD + a1 log r + a2 log(1 - q_holder)),
+    w0 fixed at the DraftRec opponent's fit (one chance-node GD weight in the kernel); r =
+    DraftRec's mixture over the other team's players still to pick, at its next pick turn
+    (denial); q_holder = the holder's own DraftRec pick distribution at his team's next pick
+    turn (he keeps what he wants to play). Holder = the team's top-ranked player
+    (p3t_data.ranks). Controls on the same held-out bans (10% of lobbies): GD alone, denial
+    alone, and a placebo holder (a random other teammate) fitted the same way: if the rule is
+    right, the top-ranked holder fits better than the placebo."""
+    import torch
+    import p3t_backtest as BT
+    import p3t_draftrec as DRC
+    import p3t_party as PT
+    import p3t_systems as SY
+    t0 = time.time()
+    gi = np.load(lobbies_file())["gi"]
+    K = BT.kernel_lobbies(gi)
+    acts, mp, tr, src = K["acts"], K["map"].astype(np.int64), K["tier"].astype(np.int64), K["src"]
+    z = np.load(os.path.join(TD.OUT, "lobby_ranks.npz"))
+    r = np.take_along_axis(z["rank"][gi], src, 1)
+    top = np.stack([r[:, :5].argmax(1), 5 + r[:, 5:].argmax(1)], 1)
+    rng = np.random.RandomState(5)
+    plac = np.stack([np.array([rng.choice([s_ for s_ in range(5 * t, 5 * t + 5) if s_ != top[i, t]])
+                               for i in range(len(gi))]) for t in (0, 1)], 1)
+    dev = "cuda" if torch.cuda.is_available() else "cpu"
+    inf = DRC.load_inference(dev, hist_file=DRC._dr_file("hist_oppfit.npz"))
+    w = json.load(open(out_file()))
+    v = SY.vintage("cur")
+    G = len(gi)
+    BANS = [s for s in range(16) if not IS_PICK[s]]
+    R = np.zeros((G, 16, H), np.float32)
+    QH = np.zeros((G, 16, H), np.float32)
+    QP = np.zeros((G, 16, H), np.float32)
+    for b0 in range(0, G, batch):
+        b = np.arange(b0, min(b0 + batch, G))
+        KS = PT.KnownState(inf, gi[b], src[b], mp[b], tr[b], src[b])
+        for k in range(16):
+            if not IS_PICK[k]:
+                tt = DRAFT_TEAM[k]
+                jr = next_pick_turn(1 - tt, k)
+                if jr is not None:
+                    R[b, k] = _log(KS.mix(jr, KS.free(1 - tt)), DR_FLOOR)
+                jh = next_pick_turn(tt, k)
+                for hs, Q in ((top[b, tt], QH), (plac[b, tt], QP)):
+                    hf = np.flatnonzero(KS.assigned[np.arange(len(b)), hs] < 0)
+                    if jh is not None and len(hf):
+                        q = KS.subset(hf).dist_as(jh, hs[hf])
+                        Q[b[hf], k] = _log(1.0 - q, DR_FLOOR)
+                KS.ban(acts[b, k])
+            else:
+                KS.pick(TURN[k], acts[b, k])
+        print(f"  holder features {b[-1] + 1}/{G}", flush=True)
+    LG, RR, QQ, PP, Y, M, LOB = [], [], [], [], [], [], []
+    for s in BANS:
+        t = DRAFT_TEAM[s]
+        X = SY.features(acts, s, mp, tr, t)
+        m = SY.legal_mask(acts, s, np.ones((G, 2, H), bool))
+        LG.append(_log(SY.gd_probs(v, X[:, :289], m), GD_FLOOR))
+        RR.append(R[:, s])
+        QQ.append(QH[:, s])
+        PP.append(QP[:, s])
+        Y.append(acts[:, s])
+        M.append(m)
+        LOB.append(np.arange(G))
+    T = {k_: torch.from_numpy(np.concatenate(a_)) for k_, a_ in
+         (("lg", LG), ("r", RR), ("q", QQ), ("qp", PP), ("y", Y), ("m", M), ("lob", LOB))}
+    T["y"] = T["y"].long()
+    held = torch.from_numpy(np.random.RandomState(3).rand(G) < 0.1)[T["lob"]]
+    w0 = float(w["w0"])
+
+    def logits(sel, a1, a2, q="q"):
+        zz = w0 * T["lg"][sel] + a1 * T["r"][sel] + a2 * T[q][sel]
+        return zz.masked_fill(~T["m"][sel], -1e9)
+
+    def fit(q, free_a2=True):
+        p = torch.tensor([0.3, 0.3 if free_a2 else 0.0], requires_grad=True)
+        opt = torch.optim.LBFGS([p], max_iter=300, line_search_fn="strong_wolfe")
+        tr_ = ~held
+
+        def closure():
+            opt.zero_grad()
+            a2 = p[1] if free_a2 else torch.tensor(0.0)
+            l_ = -(torch.log_softmax(logits(tr_, p[0], a2, q), 1).gather(1, T["y"][tr_][:, None])).mean()
+            l_.backward()
+            return l_
+        opt.step(closure)
+        return float(p[0]), (float(p[1]) if free_a2 else 0.0)
+
+    def metrics(a1, a2, q="q"):
+        with torch.no_grad():
+            zz = logits(held, a1, a2, q)
+            l_ = -(torch.log_softmax(zz, 1).gather(1, T["y"][held][:, None])).mean().item()
+            top1 = (zz.argmax(1) == T["y"][held]).float().mean().item()
+        return {"top1": round(top1, 4), "nll": round(l_, 4), "n": int(held.sum())}
+    a1, a2 = fit("q")
+    d1, _ = fit("q", free_a2=False)
+    p1, p2 = fit("qp")
+    out = {"w0": w0, "a1": a1, "a2": a2, "fit_lobbies": int(G), "held_out_bans": int(held.sum()),
+           "held_out": {"GD": metrics(0.0, 0.0), "GD + denial (holder-free)": metrics(d1, 0.0),
+                        "holder model (top-ranked holder)": metrics(a1, a2),
+                        "placebo holder (random other teammate)": metrics(p1, p2, "qp")},
+           "denial_only_fit": {"a1": d1}, "placebo_fit": {"a1": p1, "a2": p2}, "secs": round(time.time() - t0)}
+    os.makedirs(os.path.dirname(holder_file()), exist_ok=True)
+    json.dump(out, open(holder_file(), "w"), indent=1)
+    print(json.dumps(out, indent=1), flush=True)
+
+
 def SY_opp_bias_batch(n5, wc):
     """p3t_systems.opp_bias for a batch: (G, 5, H) play counts -> (G, H)."""
     u = wc["w1"] * np.log1p(n5) + wc["w2"] * (n5 == 0)
@@ -315,9 +428,9 @@ def SY_opp_bias_batch(n5, wc):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["lobbies", "hist", "fit"])
+    ap.add_argument("stage", choices=["lobbies", "hist", "fit", "holderfit"])
     a = ap.parse_args()
-    {"lobbies": stage_lobbies, "hist": stage_hist, "fit": stage_fit}[a.stage]()
+    {"lobbies": stage_lobbies, "hist": stage_hist, "fit": stage_fit, "holderfit": stage_holderfit}[a.stage]()
 
 
 if __name__ == "__main__":

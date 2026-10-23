@@ -148,6 +148,45 @@ def build_lobbies(d):
           f"tournament window {int((out['day'] <= LOBBY_END).sum()):,}", flush=True)
 
 
+def ranks():
+    """Who holds the bans (Max, 2026-10-23: the highest-ranked player of each team bans; pick
+    order is free, whoever locks first takes the turn). Per lobby slot in pick order (as
+    slot_rows): rank = the player's as-of MMR (Heroes Profile's causal rating, the latest stamp
+    parsed before the game started: cache/mmr_at_game.npz, player_mmr_causal). Per-player league
+    tiers are not stored (only the game's), so a player without a causal MMR is ranked at the
+    lobby's average MMR, else at the median causal MMR of the lobby's site tier. party = the
+    Heroes Profile party id (0 = solo; groups are per game and team). lobby_ranks.npz:
+    rank (G, 10) float32, rank_src (G, 10) int8 (0 causal, 1 lobby average, 2 tier median),
+    party (G, 10) int64."""
+    import p3_x_common as X
+    import p3_mmr_feats as MF
+    t0 = time.time()
+    d = X.load_ext()
+    L = load_lobbies()
+    rows = L["slot_rows"]
+    G = len(rows)
+    rid = np.repeat(L["replay_id"], 10)
+    key = d["player_keys"][d["pid"][rows.ravel()]]
+    assert (d["replay_id"][rows.ravel()] == rid).all(), "slot rows out of step with the lobbies"
+    pm = MF.slot_features(rid, key, d["team"][rows.ravel()], MF.load_stamps(C.CACHE))["pm"].reshape(G, 10)
+    rank = pm.astype(np.float32)
+    src = np.where(np.isfinite(pm), 0, 1).astype(np.int8)
+    tiers = np.unique(L["tier"])
+    med = {t_: float(np.nanmedian(np.where(np.isfinite(pm[L["tier"] == t_]), pm[L["tier"] == t_], np.nan)))
+           for t_ in tiers}
+    avg = L["avg_mmr"].astype(np.float32)
+    fb = np.where(np.isfinite(avg), avg, np.array([med[t_] for t_ in L["tier"]], np.float32))
+    miss = ~np.isfinite(pm)
+    rank[miss] = np.broadcast_to(fb[:, None], (G, 10))[miss]
+    src[miss & ~np.isfinite(avg)[:, None]] = 2
+    party = d["party"][rows.ravel()].astype(np.int64).reshape(G, 10)
+    np.savez(os.path.join(OUT, "lobby_ranks.npz"), rank=rank, rank_src=src, party=party)
+    win = L["day"] <= LOBBY_END
+    print(f"lobby ranks: {G:,} lobbies; causal MMR on {(src[win] == 0).mean():.4f} of window slots, lobby "
+          f"average {(src[win] == 1).mean():.4f}, tier median {(src[win] == 2).mean():.4f}; solo slots "
+          f"{(party[win] == 0).mean():.3f} ({time.time() - t0:.0f}s)", flush=True)
+
+
 def load_lobbies():
     z = np.load(os.path.join(OUT, "lobbies.npz"))
     return {k: z[k] for k in z.files}
@@ -730,13 +769,15 @@ def rosters(n_max=20000):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["lobbies", "states", "judgefit", "rosters", "split_states", "split_judgefit", "prelobbies"])
+    ap.add_argument("stage", choices=["lobbies", "ranks", "states", "judgefit", "rosters", "split_states", "split_judgefit", "prelobbies"])
     ap.add_argument("--vintages", default="cur,s4m,s1y,judge")
     ap.add_argument("--judge-params", default="full_ms_flip")
     a = ap.parse_args()
     if a.stage == "lobbies":
         import p3_x_common as X
         build_lobbies(X.load_ext())
+    elif a.stage == "ranks":
+        ranks()
     elif a.stage == "states":
         states(a.vintages.split(","), a.judge_params)
     elif a.stage == "rosters":

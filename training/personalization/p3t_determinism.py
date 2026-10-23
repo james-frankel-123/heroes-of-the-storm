@@ -148,7 +148,7 @@ def main():
     ours_future = [s_ for s_ in range(k + 1, 16) if SY.DRAFT_TEAM[s_] == t]
     ours_past = [s_ for s_ in range(0, k) if SY.DRAFT_TEAM[s_] == t]
 
-    def party_run(flag_steps):
+    def party_run(flag_steps, full=False):
         cfg = np.full((n, M.CFG_LEN), -1, np.int32)
         cfg[:, 0], cfg[:, 1], cfg[:, 2] = K["map"][:n], K["tier"][:n], t
         cfg[:, 3], cfg[:, 4], cfg[:, 5], cfg[:, 6], cfg[:, 7] = 0, k, 1, 3, 1
@@ -167,6 +167,8 @@ def main():
                                                                        device_id=0)
         r = eng.run(*[np.ascontiguousarray(a) for a in args], 400, 2.0, 5151, 0.0, 0.3, 0.0, 1, search_mode=1)
         del eng
+        if full:
+            return r[5][:, 0, :].copy(), np.nan_to_num(r[6][:, 0, :], nan=-1.0).copy()
         return r[5][:, 0, :].copy()
     base = party_run([])
     fut1, fut2 = party_run(ours_future), party_run(ours_future)
@@ -174,7 +176,19 @@ def main():
     pres["reruns_identical"] = bool(np.array_equal(fut1, fut2))
     pres["past_flags_equal_no_flags"] = bool(np.array_equal(past, base))
     pres["future_flags_change_search"] = bool(not np.array_equal(fut1, base))
-    pres["pass"] = pres["reruns_identical"] and pres["past_flags_equal_no_flags"] and pres["future_flags_change_search"]
+    # chance root (lock-or-wait, 2026-10-23): a flag on the root step makes the root a stranger's
+    # chance node: reruns identical, visit shares sum to 1, root value sum(pol * q) in (0, 1), and the
+    # search differs from the decision root
+    c1, q1 = party_run([k] + ours_future, full=True)
+    c2, q2 = party_run([k] + ours_future, full=True)
+    val = (c1 * np.where(c1 > 0, q1, 0.0)).sum(1)
+    pres["chance_root_reruns_identical"] = bool(np.array_equal(c1, c2) and np.array_equal(q1, q2))
+    pres["chance_root_visits_sum_1"] = bool(np.allclose(c1.sum(1), 1.0, atol=1e-4))
+    pres["chance_root_value_in_0_1"] = bool(((val > 0) & (val < 1)).all())
+    pres["chance_root_differs_from_decision_root"] = bool(not np.array_equal(c1, fut1))
+    pres["pass"] = (pres["reruns_identical"] and pres["past_flags_equal_no_flags"] and pres["future_flags_change_search"]
+                    and pres["chance_root_reruns_identical"] and pres["chance_root_visits_sum_1"]
+                    and pres["chance_root_value_in_0_1"] and pres["chance_root_differs_from_decision_root"])
     ok &= pres["pass"]
     out["explore_party_gate"] = pres
     print("explore party gate", json.dumps(pres), flush=True)

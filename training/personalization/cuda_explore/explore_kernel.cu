@@ -15,6 +15,8 @@
  *    loop, but rollouts keep plain GD for the opponent (P3_OPP_ROLL).
  *  - party mode (2026-10-22): cfg[40 + step] = -2 on our steps = a stranger teammate's step,
  *    searched as a chance node (P3_STRANGER); see p3_search_v2.inc. v2 search only.
+ *    A flag on the ROOT step (2026-10-23, the lock-or-wait arm) makes the root itself a chance
+ *    node: out_policies = visit shares of the stranger's sampled heroes, root value = sum(pol * q).
  * Original header (cuda_pvnet):
  * P3 learned personal value net variant (copy of cuda_prior/prior_kernel.cu,
  * option (c): a value net with per-lobby player features). Per episode a

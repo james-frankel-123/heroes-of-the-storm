@@ -554,6 +554,12 @@ def act_mcts_x(vint, ctx, x, device=0):
             if not IS_PICK[j] and DRAFT_TEAM[j] == t:
                 cfg[:, 24 + j] = r
         cfg[:, 56] = 2
+    if "stranger" in ctx:
+        # party mode: a stranger holder's ban is a chance node on its own row (p3t_party.plan_rows),
+        # not the ban-bias row that the denial-ban options point our ban steps at
+        for j in range(16):
+            if not IS_PICK[j] and DRAFT_TEAM[j] == t:
+                cfg[:, 24 + j] = np.where(ctx["stranger"][:, j], ctx["slot_of"][:, j], cfg[:, 24 + j])
     feat = np.zeros((B, 10, H), np.float32)
     vnet = np.zeros(0, np.float32)
     if x.get("vnet"):
@@ -568,6 +574,9 @@ def act_mcts_x(vint, ctx, x, device=0):
     sims = int(x.get("sims", SIMS))
     cp = float(x.get("c_puct", 2.0))
     out = np.empty(B, np.int64)
+    val = np.full(B, np.nan, np.float64)
+    # party lock-or-wait: a stranger flag on the root step makes the root a chance node (kernel)
+    croot = np.asarray(ctx["stranger"][:, k], bool) if "stranger" in ctx else np.zeros(B, bool)
     wf, wo, lut = vint.wcfg()
     seeds = ctx["seed_i"] % vint.n_seeds
     Eng = getattr(kmod, "PersonalEngine", None) or getattr(kmod, "PriorEngine")
@@ -588,7 +597,14 @@ def act_mcts_x(vint, ctx, x, device=0):
             legal = legal_mask(ctx["acts"][ii], k, ctx["team_pool"][ii])
             sm = struct_mask(ctx["acts"][ii], k, legal)
             out[ii] = np.where(sm, pol + 1e-6 * q, -1e30).argmax(1)
-            assert legal[np.arange(len(ii)), out[ii]].all(), "illegal action"
+            cr = croot[ii]
+            # root value: the chosen action's q (decision root); visit-weighted mean (chance root)
+            rmean = (pol * np.where(pol > 0, q, 0.0)).sum(1) / np.maximum(pol.sum(1), 1e-12)
+            val[ii] = np.where(cr | (ctx.get("want_value") == "mean"), rmean, q[np.arange(len(ii)), out[ii]])
+            out[ii[cr]] = -1
+            assert legal[np.arange(len(ii))[~cr], out[ii[~cr]]].all(), "illegal action"
+    if ctx.get("want_value"):
+        return out, val
     return out
 
 
@@ -639,6 +655,9 @@ def act_mcts(vint, ctx, aware, device=0, kmod=None, pp=False, prior="pprior", vn
         coefs = np.array([0.0, vint.spec["vnet_b1"], cb[2], cb[3], 0.0, 1.0], np.float32)
         bias = np.zeros_like(s)
     out = np.empty(B, np.int64)
+    val = np.full(B, np.nan, np.float64)
+    # party lock-or-wait: a stranger flag on the root step makes the root a chance node (kernel)
+    croot = np.asarray(ctx["stranger"][:, k], bool) if "stranger" in ctx else np.zeros(B, bool)
     wf, wo, lut = vint.wcfg()
     seeds = ctx["seed_i"] % vint.n_seeds
     for i in np.unique(seeds):

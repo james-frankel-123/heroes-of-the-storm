@@ -48,7 +48,7 @@ def capture(V, B=2000):
     for m in (1, 2, 3, 4, 5):
         parts = {met: [] for met in ("J", "J_cal", "CONS", "record")}
         for t in (0, 1):
-            a, g = V.get(f"eff_m{m}_t{t}__aware"), V.get(f"eff_m{m}_t{t}__generic")
+            a, g = V.get(f"eff_m{m}_t{t}__aware"), V.get(f"eff_m{m}_t{t}__generic")   # bans as drawn
             if a is None or g is None:
                 break
             for met in parts:
@@ -77,11 +77,9 @@ def positions(V):
     s_cur = LB.state["cur"]["s"].astype(np.float64)
     n_cur = LB.state["cur"]["n"]
     res = {}
-    for t in (0, 1):
-        for q in range(5):
-            key = f"grid_m1_{q}_t{t}"
-            if f"{key}__generic" not in V:
-                key = f"pos_m1_p{q}_t{t}"
+    for t, q, hl in [(t, q, hl) for t in (0, 1) for q in range(5) for hl in ("ban", "noban", None)]:
+        if True:
+            key = f"grid_m1_{q}_t{t}_{hl}" if hl else f"pos_m1_p{q}_t{t}"       # pos_: the prototype's names
             if f"{key}__generic" not in V or f"{key}__aware" not in V:
                 continue
             g, a = V[f"{key}__generic"][1], V[f"{key}__aware"][1]
@@ -118,7 +116,7 @@ def positions(V):
                         "pick_is_his_best_hero_generic": round(float((hg == best).mean()), 3),
                         "counter_vs_later_opponents_aware": round(float(ctr[0]), 3),
                         "counter_vs_later_opponents_generic": round(float(ctr[1]), 3),
-                        "holds_bans": bool(q == 0)}
+                        "holds_bans": (hl == "ban") if hl else bool(q == 0)}
     return res
 
 

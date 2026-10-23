@@ -41,6 +41,10 @@
         v2_n_slots = 1;
         v2_init_node(nodes[0], -1, -1, main_state.step, KIND_DECISION);
         nodes[0].slot = 0;
+        // party lock-or-wait (2026-10-23): a stranger's step at the root makes the root a chance
+        // node (its distribution is built on the first visit, like any chance node); the root value
+        // is then the visit-weighted mean of out_q. Never set by earlier callers: unchanged paths.
+        if (P3_STRANGER(main_state.step)) { nodes[0].kind = KIND_CHANCE; nodes[0].slot = -1; }
         int nv = 0;
         for (int i = 0; i < NUM_HEROES; i++) nv += mask_buf[i] > 0.5f;
         eager_nodes = 1 + nv;
@@ -304,8 +308,9 @@
         int t = ep->num_our_turns;
         float vsum = 0;
         for (int i = 0; i < NUM_HEROES; i++) { ep->out_policies[t][i] = 0; ep->out_q[t][i] = 0.0f; }
-        for (int i = 0; i < NUM_HEROES; i++) {
-            int ci = slots[0].child[i];
+        const int rs = nodes[0].slot;   // 0 for a decision root; the chance root's own slot
+        for (int i = 0; i < NUM_HEROES && rs >= 0; i++) {
+            int ci = slots[rs].child[i];
             if (ci < 0) continue;
             float v = (float)nodes[ci].visits;
             ep->out_policies[t][i] = v;
