@@ -81,7 +81,8 @@ TEAM_TURNS = {t: [j for j in range(10) if PICK_TEAM[j] == t] for t in (0, 1)}   
 H = 90
 ARMS_OF = {"effect": ("aware", "blind", "generic", "real"), "grid": ("aware", "generic"), "lock": ("lock",)}
 DESIGN = "x-combo1-dr-chance"
-# lock-or-wait rule. "lookall" (default): lock now iff the chosen hero's value now >= the best later
+# lock-or-wait rule, FROZEN 2026-10-23 (chosen on the 300 tournament lobbies, which the party set
+# excludes): mode lookall, LOOK_K 4, value "best". "lookall" (default): lock now iff the chosen hero's value now >= the best later
 # team turn's value, each the mean over LOOK_K sampled futures of the chosen hero's value at that turn
 # (like with like). "lookahead": the next team turn only. "chance" (the first version): each later turn
 # valued by a search rooted at the next stranger's chance node. On the 300 tournament lobbies (smoke,
@@ -599,7 +600,8 @@ def stage_select():
     """The party study's lobby set: real tournament-window lobbies (2026-05-23 to 06-30, never the
     sealed build) whose ten players all have 50+ earlier games and J_STRICT+ judge-window games (the
     tournament's rule). N_PARTY drawn in a fixed random order, or every eligible lobby if fewer. The
-    tune lobbies are left out (they chose the design); the tournament lobbies may be included.
+    tune lobbies (they chose the design) and the tournament lobbies (the lock rule was chosen on
+    them) are left out.
     Written before the probe, player-prior and opponent-model lobbies are drawn, which then avoid
     this set (p3t_data.eval_lobbies)."""
     from shared import MAPS
@@ -610,15 +612,22 @@ def stage_select():
     assert (jd["gsel"] == win).all()
     rich = (cur["n"].astype(np.float64).sum(1) >= 50).reshape(-1, 10).all(1)[win] & np.isin(L["map"][win], MAPS)
     jn = jd["rec_n"].astype(np.float64).sum(1).reshape(-1, 10).min(1)
-    tune = os.path.join(TD.OUT, "tourney_tune", "lobbies.npz")
-    excl = set(np.load(tune)["gi"].tolist()) if os.path.exists(tune) else set()
+    # left out: the tune lobbies (they chose the design) and the tournament lobbies (the lock-or-wait
+    # rule was chosen on them, coordinator 2026-10-23)
+    excl = set()
+    for sub in ("tourney_tune", "tourney"):
+        f_ = os.path.join(TD.OUT, sub, "lobbies.npz")
+        if os.path.exists(f_):
+            excl |= set(np.load(f_)["gi"].tolist())
+        elif sub == "tourney":
+            raise FileNotFoundError(f"{f_}: the tournament lobbies must be selected before the party set")
     keep = np.array([g not in excl for g in win])
     strict = win[rich & keep & (jn >= J_STRICT)]
     sel = np.sort(np.random.RandomState(20261022).permutation(strict)[:N_PARTY])
     d = os.path.join(TD.OUT, "tourney_party")
     os.makedirs(d, exist_ok=True)
     np.savez(os.path.join(d, "lobbies.npz"), gi=sel)
-    info = {"strict_available": int(len(strict)), "selected": int(len(sel)), "target": N_PARTY,
+    info = {"excluded_tune_and_tournament": int(len(excl)), "strict_available": int(len(strict)), "selected": int(len(sel)), "target": N_PARTY,
             "below_floor": bool(len(sel) < N_PARTY_FLOOR), "floor": N_PARTY_FLOOR}
     json.dump(info, open(os.path.join(d, "select.json"), "w"))
     print(f"party lobbies: {info}", flush=True)
