@@ -202,9 +202,16 @@ if [ "$REBUILD" = 1 ]; then
   P3_CORES=$GPU2_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_build2_$STAMP" env MAX_JOBS=1 bash personalization/remote/p3t_build_all.sh
   wait_job $GPU2 "p3t_build2_$STAMP"
 fi
-run_gpu determ $STEP p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py
-P3_CORES=$GPU2_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_determ2_$STAMP" bash personalization/remote/p3t_run.sh \
-  p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py
+# the gates read fixed fixture lobbies (probe lobbies, rosters) of an older complete cache, not the
+# pass's (still empty) namespace; their reports go to the pass's results
+GATES="p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py tests/test_p3t_kernel_sampling.py"
+GATE_GPU=${P3T_GATE_CACHE_GPU:-$B/cache_full}
+GATE_GPU2=${P3T_GATE_CACHE_GPU2:-/home/max/hots/p3t_dry/cache_full}
+P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "p3t_determ_$STAMP" env P3T_PROCS=4 P3T_CACHE_ROOT=$GATE_GPU \
+  P3T_RESULTS_ROOT=$RROOT bash personalization/remote/p3t_run.sh $GATES
+wait_job $GPU "p3t_determ_$STAMP"
+P3_CORES=$GPU2_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_determ2_$STAMP" env P3T_PROCS=4 P3T_CACHE_ROOT=$GATE_GPU2 \
+  P3T_RESULTS_ROOT=$RROOT bash personalization/remote/p3t_run.sh $GATES
 wait_job $GPU2 "p3t_determ2_$STAMP"
 # the code this pass runs, per host (sources, scripts, built kernels): pinned into the pass's own code
 # manifest now, re-verified at the end of the pass (review C7)
