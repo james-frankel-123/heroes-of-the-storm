@@ -137,6 +137,8 @@ M["files"] += add
 json.dump(M, open(dst, "w"), indent=1)
 print(f"added {len(add)} tournament entries from {src}")
 PY
+  rsync -t personalization/p3_manifest.py $W5:$R5/personalization/
+  rsync -t --rsync-path="wsl rsync" personalization/p3_manifest.py $W3:$R3/personalization/
   for h in $W3 $W5; do
     if [ $h = $W5 ]; then rsync -t $MAN $h:$R5/$MAN && ssh $h "source ~/hots/env.sh; cd ~/$R5 && python personalization/p3_manifest.py verify $MAN --role tournament --complete"
     else rsync -t --rsync-path="wsl rsync" $MAN $h:$R3/$MAN && ssh $h "wsl -e bash -s" <<< "source ~/hots/env.sh; cd $R3 && python personalization/p3_manifest.py verify $MAN --role tournament --complete"; fi
