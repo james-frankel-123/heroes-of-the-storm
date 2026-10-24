@@ -667,7 +667,8 @@ def true_terms(LB, acts, slot_at):
 def team_view(sc, t, judge):
     """Per lobby, the party team's J (true hero-to-player map), J_best (the tournament's best
     assignment), J_cal, CONS (win %) and the judge-free record (pp, true map)."""
-    from p3t_analyze import CAL_A, CAL_K
+    import p3t_judge as JG
+    CAL_A, CAL_K = JG.cal_coefs(judge)
     pc = np.clip(sc["consensus"], 1e-6, 1 - 1e-6)
     lc = np.log(pc / (1 - pc))
     pers = judge["c2_skill"] * sc["dS_true"] + judge["c3_offrole"] * sc["dO_true"]
@@ -780,14 +781,20 @@ def stage_score():
     sdir = os.path.join(OUT, "scores")
     os.makedirs(sdir, exist_ok=True)
     views, hold, lockt = {}, {}, {}
+    key = JG.score_key(LB, os.path.join(TT.TDIR, "lobbies.npz"))      # judge, states, lobbies, population
     for f in sorted(os.listdir(OUT)):
         if not f.endswith(".npz") or "__" not in f or ".tmp" in f:
             continue
         sp = os.path.join(sdir, f)
         z = np.load(os.path.join(OUT, f))
-        if not os.path.exists(sp) or os.path.getmtime(sp) < os.path.getmtime(os.path.join(OUT, f)):
+        stale = not os.path.exists(sp) or os.path.getmtime(sp) < os.path.getmtime(os.path.join(OUT, f))
+        if not stale:
+            with np.load(sp) as old:
+                stale = "score_key" not in old.files or str(old["score_key"]) != key
+        if stale:
             sc = JG.score_drafts(LB, z["acts"], judge, truth)
             sc["dS_true"], sc["dO_true"], sc["rec_true"] = true_terms(LB, z["acts"], z["slot_at"])
+            sc["score_key"] = np.array(key)
             np.savez(sp, **sc)
         sc = dict(np.load(sp))
         views[f[:-4]] = team_view(sc, int(z["t"]), judge)

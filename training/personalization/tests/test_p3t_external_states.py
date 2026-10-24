@@ -7,6 +7,7 @@
   E4 the merged-count guard: the external n must equal the counts of every
      row before the as-of day (no evidence filter) in the slot table's hero
      order; a hero-order mix-up or a windowed count is refused
+  E5 sd is the base posterior sd (sd_display is never read); a file without sd_display is refused
   E3 the query fields: as_of_day = query day - 1, the evidence filters
      (none / odd days / even days outside the tournament window), the fit
      half, and the hero in shared.HEROES order
@@ -50,9 +51,9 @@ def main():
     SD = rng.random((4, H)).astype(np.float32)
     N = rng.integers(0, 50, (4, H)).astype(np.float32)
     TD._CALLS[0] = 0
-    np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__0.npz"), s=S, sd=SD, n=N,
+    np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__0.npz"), s=S, sd=SD, sd_display=2 * SD, n=N,
              **TD._walk_queries(par, q_pid, q_day, None, None, None))
-    np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__1.npz"), s=S, sd=SD, n=N,
+    np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__1.npz"), s=S, sd=SD, sd_display=2 * SD, n=N,
              **TD._walk_queries(par, q_pid, q_day, None, q_hero, None))
     TD._CALLS[0] = 0
     r = TD.walk(None, par, None, None, q_pid, q_day)
@@ -62,7 +63,7 @@ def main():
     r = TD.walk(None, par, None, None, q_pid, q_day, q_hero=q_hero, want_all=False)
     assert np.allclose(r["mean"], S[np.arange(4), sh[q_hero]])
     print("E1 ok")
-    np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__2.npz"), s=S, sd=SD, n=N,
+    np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__2.npz"), s=S, sd=SD, sd_display=2 * SD, n=N,
              **TD._walk_queries(par, q_pid, q_day + 1, None, None, None))
     try:
         TD.walk(None, par, None, None, q_pid, q_day)
@@ -79,7 +80,7 @@ def main():
     Nsh[:, sh] = want                              # shared order: shared column sh[i] holds d hero i
     for k_, n_ in (("ok", Nsh), ("bad", want)):
         TD._CALLS[0] = 0
-        np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__0.npz"), s=S, sd=SD, n=n_,
+        np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__0.npz"), s=S, sd=SD, sd_display=2 * SD, n=n_,
                  **TD._walk_queries(par, q_pid, q_day, None, None, None))
         try:
             TD.walk(aug, par, None, None, q_pid, q_day)
@@ -87,6 +88,16 @@ def main():
         except SystemExit:
             assert k_ == "bad", "E4: correct counts refused"
     print("E4 ok")
+    # E5: the base sd is read (not sd_display), and a file without sd_display (old format) is refused
+    TD._CALLS[0] = 0
+    np.savez(os.path.join(os.environ["P3T_WALK_REPLAY"], "p3t_data_states__0.npz"), s=S, sd=SD, n=N,
+             **TD._walk_queries(par, q_pid, q_day, None, None, None))
+    try:
+        TD.walk(None, par, None, None, q_pid, q_day)
+        raise AssertionError("E5: a file without sd_display was accepted")
+    except SystemExit:
+        pass
+    print("E5 ok")
     print("ALL OK")
 
 

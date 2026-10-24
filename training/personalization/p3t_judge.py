@@ -24,6 +24,7 @@ Stages (3090, run_rcf_full env):
 import argparse
 import gzip
 import itertools
+import hashlib
 import json
 import os
 import sys
@@ -93,6 +94,32 @@ def fit_offset_logistic(off, X, y, iters=50):
     return w, np.sqrt(np.diag(cov))
 
 
+def cal_fit(off, dS, dO, y, seed=0):
+    """J_cal (review C15/R19): y ~ a logit(p_cons) + k (c2 dS + c3 dO), fitted per pass with the
+    personal term cross-fitted: two folds of games, c2 and c3 fitted (offset logistic, as the judge)
+    on one fold and applied to the other; (a, k) fitted on the pooled held-out personal terms."""
+    fold = np.random.RandomState(seed).rand(len(y)) < 0.5
+    X = np.column_stack([dS, dO])
+    pers = np.zeros(len(y))
+    cf = []
+    for f in (False, True):
+        tr = fold != f
+        w, _ = fit_offset_logistic(off[tr], X[tr], y[tr])
+        pers[fold == f] = X[fold == f] @ w
+        cf.append([float(w[0]), float(w[1])])
+    ak, se = fit_offset_logistic(np.zeros(len(y)), np.column_stack([off, pers]), y)
+    return {"cal_a": float(ak[0]), "cal_k": float(ak[1]), "cal_a_se": float(se[0]), "cal_k_se": float(se[1]),
+            "cal_crossfit_c2_c3": cf, "cal_method": "2-fold cross-fitted personal term (by game, seed 0); "
+            "J_cal = sigmoid(cal_a logit p_cons + cal_k (c2 dS + c3 dO))"}
+
+
+def cal_coefs(judge):
+    """(a, k) of J_cal from the judge artifact of this pass; refuses a judge.json without them."""
+    if "cal_a" not in judge:
+        raise KeyError("judge.json has no cal_a/cal_k: refit the judge (p3t_judge.py fit)")
+    return float(judge["cal_a"]), float(judge["cal_k"])
+
+
 SPLIT = os.environ.get("P3T_SPLIT") == "1"   # split-history robustness: judge state splitj, judge_split.json
 JNAME = "judge_split.json" if SPLIT else "judge.json"
 JSTATE = "splitj" if SPLIT else "judge"
@@ -138,6 +165,7 @@ def fit():
            "acc_consensus": float(((pc > .5) == (y == 1)).mean()), "acc_judge": float(((p1 > .5) == (y == 1)).mean()),
            "consensus_slope": float(fit_offset_logistic(np.zeros(len(y)), off[:, None], y)[0][0]),
            "params": "full_ms_flip", "window": ["2026-07-01", "2026-09-11"]}
+    out.update(cal_fit(off, dS, dO, y))
     for k in ("gN", "gN_naive", "RN", "QM2026"):
         pk = np.clip(cons[k], 1e-6, 1 - 1e-6)
         out[f"ll_{k}"] = float(XC.logloss(pk, y).mean())
@@ -215,6 +243,8 @@ def score_drafts(LB, acts, judge, truth):
     ncur = LB.state["cur"]["n"]
     c2, c3 = judge["c2_skill"], judge["c3_offrole"]
     dS, dO = np.zeros(n), np.zeros(n)
+    dS_of, dO_of = np.zeros(n), np.zeros(n)        # outcome-free assignment (review C20/R17)
+    rec_slot = np.full((n, 10), np.nan)             # per-player record, outcome-free assignment (C19/R18)
     rec_mean = np.full((n, 2), np.nan)
     rec_cov = np.zeros((n, 2))
     rec_pool = np.full((n, 2), np.nan)
@@ -236,10 +266,13 @@ def score_drafts(LB, acts, judge, truth):
             vals, cnts = [], []
             for p_i in range(5):
                 h = hs[perm[p_i]]
+                dS_of[i] += sgn * js[i, 5 * t + p_i, h]
+                dO_of[i] += sgn * jn[i, 5 * t + p_i, h]
                 c = rn[i, 5 * t + p_i, h]
                 if c > 0:
                     vals.append(rs[i, 5 * t + p_i, h] / c)
                     cnts.append(c)
+                    rec_slot[i, 5 * t + p_i] = rs[i, 5 * t + p_i, h] / c
             rec_cov[i, t] = len(vals) / 5
             if vals:
                 rec_mean[i, t] = float(np.mean(vals))
@@ -251,8 +284,11 @@ def score_drafts(LB, acts, judge, truth):
             tr[i, t] = truth.side(hs, teams[2 * i + 1 - t], LB.tier[i])
     pc = np.clip(cons["consensus"], 1e-6, 1 - 1e-6)
     out["judge_personal"] = 1 / (1 + np.exp(-(np.log(pc / (1 - pc)) + c2 * dS + c3 * dO)))
-    out.update(dS_judge=dS, dO_judge=dO, rec_mean=rec_mean, rec_pool=rec_pool, rec_cov=rec_cov, degen=degen,
-               healer=healer, offrole=offc, truth=tr)
+    # the same judge with the outcome-free assignment (players by their earlier games on the heroes),
+    # next to the best-assignment J that chooses among 120 assignments with the judge's own states
+    out["judge_personal_of"] = 1 / (1 + np.exp(-(np.log(pc / (1 - pc)) + c2 * dS_of + c3 * dO_of)))
+    out.update(dS_judge=dS, dO_judge=dO, dS_judge_of=dS_of, dO_judge_of=dO_of, rec_mean=rec_mean, rec_pool=rec_pool,
+               rec_cov=rec_cov, rec_slot=rec_slot, degen=degen, healer=healer, offrole=offc, truth=tr)
     return out
 
 
@@ -287,12 +323,54 @@ def own_values(LB, acts, sysname):
     return wp, V
 
 
+def _sha_file(p, buf=1 << 24):
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        while True:
+            b = f.read(buf)
+            if not b:
+                break
+            h.update(b)
+    return h.hexdigest()
+
+
+_KEYS_CACHE = {}
+
+
+def score_key(LB, lobby_file):
+    """Digest of everything a score depends on besides the drafts (review C10/R11): the full judge
+    artifact, the lobby tables, every player-state file the scorer loads, the window games of the
+    truth tables, and the population consensus (its outputs on 32 fixed real drafts, so a change of
+    any consensus input shows)."""
+    if lobby_file in _KEYS_CACHE:
+        return _KEYS_CACHE[lobby_file]
+    h = hashlib.sha256()
+    h.update(json.dumps(json.load(open(os.path.join(RES, JNAME))), sort_keys=True).encode())
+    files = [lobby_file, os.path.join(TD.OUT, "lobbies.npz"), os.path.join(C.CACHE, "x_post_games.json.gz")]
+    for v in ("cur", "s4m", "s1y", "judge", "splitd", "splitj"):
+        p = os.environ.get(f"P3T_STATE_{v.upper()}") or os.path.join(TD.OUT, f"state_{v}.npz")
+        if os.path.exists(p):
+            files.append(p)
+    for p in files:
+        h.update(os.path.basename(p).encode() + _sha_file(p).encode())
+    from shared import HEROES, MAPS, SKILL_TIERS
+    m = min(32, LB.n)
+    acts = LB.real_acts[:m]
+    teams = [[acts[i, k] for k in range(16) if SKILL_PICK[k] and SKILL_TEAM[k] == t] for i in range(m) for t in (0, 1)]
+    rows = [([HEROES[x] for x in teams[2 * i]], [HEROES[x] for x in teams[2 * i + 1]], MAPS[LB.map[i]],
+             SKILL_TIERS[LB.tier[i]]) for i in range(m)]
+    h.update(np.round(consensus(rows, nproc=1)["consensus"], 9).tobytes())
+    _KEYS_CACHE[lobby_file] = h.hexdigest()
+    return _KEYS_CACHE[lobby_file]
+
+
 def score_all():
     import p3t_tourney as TT
     LB = TT.Lobbies()
     judge = json.load(open(os.path.join(RES, JNAME)))
     truth = Truth()
     files = sorted(f for f in os.listdir(TT.TDIR) if "__" in f and f.endswith(".npz") and ".tmp" not in f)
+    key = score_key(LB, os.path.join(TT.TDIR, "lobbies.npz"))
     todo = [("real", LB.real_acts, None, None)]
     for f in files:
         z = np.load(os.path.join(TT.TDIR, f))
@@ -305,7 +383,7 @@ def score_all():
             # and scores older than their drafts (a rerun pair)
             src = os.path.join(TT.TDIR, f"{name}.npz")
             fresh = not os.path.exists(src) or os.path.getmtime(src) <= os.path.getmtime(p)
-            if fresh and "judge_c2" in old.files and abs(float(old["judge_c2"]) - judge["c2_skill"]) < 1e-9:
+            if fresh and "score_key" in old.files and str(old["score_key"]) == key:
                 continue
         t0 = time.time()
         sc = score_drafts(LB, acts, judge, truth)
@@ -314,6 +392,7 @@ def score_all():
                 wp, V = own_values(LB, acts, s_)
                 sc[f"own_wp_{side}"], sc[f"own_V_{side}"] = wp, V
         sc["judge_c2"] = np.array(judge["c2_skill"])
+        sc["score_key"] = np.array(key)
         np.savez(p, **sc)
         print(f"scored {name} ({time.time() - t0:.0f}s)", flush=True)
 

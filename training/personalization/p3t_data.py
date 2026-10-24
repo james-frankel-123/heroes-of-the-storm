@@ -268,6 +268,11 @@ def _walk_external(qs, want_all, q_hero, aug=None, q_pid=None, q_day=None):
     for k_, v_ in qs.items():
         if k_ in z.files and not np.array_equal(z[k_], v_):
             raise SystemExit(f"external states {name}: query field {k_} differs from this run's queries")
+    # sd = the walk's base Gaussian posterior sd (sqrt(var), the old sqrt(var_all)); sd_display is the
+    # site band and never read here. Files without sd_display predate that split (review C12/R15:
+    # their sd was the band) and are refused.
+    if "sd_display" not in z.files:
+        raise SystemExit(f"external states {name}: no sd_display field (old answer format, sd = band); re-answer")
     s, sd, n_ = z["s"].astype(np.float32), z["sd"].astype(np.float32), z["n"].astype(np.float32)
     # the external files are in shared.HEROES order; this module works in d order: d column i = shared column sh[i]
     s, sd, n_ = s[:, _KEYS["sh"]], sd[:, _KEYS["sh"]], n_[:, _KEYS["sh"]]
