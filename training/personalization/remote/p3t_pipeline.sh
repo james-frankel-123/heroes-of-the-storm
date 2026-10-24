@@ -159,7 +159,11 @@ fi
 MANIFEST=${P3T_MANIFEST:?set P3T_MANIFEST to the definitive manifest (path relative to training/)}
 # (review C2) the CPU host holds every input: the full manifest; the GPU hosts hold the tournament
 # inputs only: --role tournament
+[ -s "training/$MANIFEST" ] || { echo "no manifest at training/$MANIFEST on the main box"; exit 1; }
 for h in $HOSTS; do
+  # every host checks the same manifest: the main box's copy is shipped first
+  ssh "$h" "$(remote_shell "$h")" <<<"mkdir -p $(dirname /home/max/hots/repo/training/$MANIFEST)"
+  nice -n 19 rsync -t --rsync-path="$(remote_rsync $h)" "training/$MANIFEST" "$h:/home/max/hots/repo/training/$MANIFEST"
   role=""; [ "$h" = "$CPU" ] || role="--role tournament"
   P3_CORES=0-3 P3_MEM=4G P3_THREADS=1 $JOB $h "p3t_manifest_$STAMP" python personalization/p3_manifest.py verify "$MANIFEST" $role
   wait_job $h "p3t_manifest_$STAMP" || { echo "manifest does not verify on $h: refusing to start"; exit 1; }
