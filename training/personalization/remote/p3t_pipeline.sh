@@ -55,6 +55,8 @@ else
   CROOT=$CROOT0; RROOT=$RROOT0; TAG=""
 fi
 SMOKE=${P3T_SMOKE:-0}
+# the merged rows through the namespace (a link on the CPU host, a copy on the GPU hosts)
+[ -z "$TAG" ] || P3T_RCF_ROWS=$CROOT/$(basename "$P3T_RCF_ROWS")
 ROOTENV="P3T_CACHE_ROOT=$CROOT P3T_RESULTS_ROOT=$RROOT P3T_RCF_ROWS=$P3T_RCF_ROWS P3T_VINTAGES=$RROOT/p3t_vintages.json"
 # stage sizes (full run), and the smoke test's: every stage runs, at small sizes
 PROBE_N=500; PROBE_RUN=""; PP_LOB=3000; SP_ARGS=":--iters:4:--rosters:4096:--sims:800"; AGREE=20000; DR_EP=""
@@ -151,6 +153,16 @@ for pair in "$CROOT0 $CROOT" "$RROOT0 $RROOT"; do
 done
 echo "namespace $TAG ready on \$(hostname)"
 NS
+  done
+  # the GPU hosts hold only the tournament-role inputs of the build: copy the build root's input files
+  # (top level, plus gd_trainonly) from the CPU host into their namespace (real files; about 12 GB)
+  mkdir -p "$RELAY/inputs"
+  nice -n 19 rsync -rtL --rsync-path="$(remote_rsync $CPU)" --exclude '/rcf' --exclude '/export' \
+    --exclude '/full_history' --exclude '/p3t*' --exclude '/prefix_race_*' --exclude '/manifest.json' \
+    "$CPU:$CROOT0/" "$RELAY/inputs/"
+  for h in $HOSTS; do
+    [ "$h" = "$CPU" ] && continue
+    nice -n 19 rsync -rtL --rsync-path="$(remote_rsync $h)" "$RELAY/inputs/" "$h:$CROOT/"
   done
 fi
 
