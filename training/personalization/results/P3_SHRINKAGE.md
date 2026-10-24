@@ -17,6 +17,8 @@ The 3090-built inputs match by checksum or rebuild bit for bit. So P3_TAILS stan
 
 ## Headline
 
+> **Development exposure (2026-10-24).** V2 and OOT were both read while choosing the model (this study, the team-share features and the role weights). Neither is an untouched holdout, and the gains here are development estimates. OOT also contains the formerly sealed build 2.55.17.98025 (36,447 games); the definitive report shows OOT before and from 2026-09-12 and with and without that build. The 5,000 sealed replays were never read. An untouched check comes after the definitive run: the frozen model scored once, with no refit, on 2.57 games from 2026-09-28 on.
+
 - **Best model:** the state-space model plus a data-chosen shrinkage function, MMR as a game-level term, a direct linear scoreboard channel, and a smooth final calibration (`LK2_full2`).
   - **+6.1 log-loss points (x1000) on V2 (SE 0.43) and +7.9 on OOT (SE 0.22)** over the current main model.
   - Lift over the population WP goes from +28.7 to +34.8 on V2 and from +27.8 to +35.7 on OOT.

@@ -136,6 +136,19 @@ The judge gets about 14% more personal signal. c2 drops because the new s is spr
 
 Their scripts: `/home/max/hots/p3t_dry1022/dry1022_replay.sh` on the 3080, and the check tool `p3t_check_answers.py` (commit 610c2f6).
 
+## Review fixes before the definitive run (2026-10-24)
+
+An external plan review (C-numbered findings) led to these changes before the build:
+
+- **Filtered states carry no temporal layer (C1).** The layer's residuals u = r − pred come from unfiltered predictions, so the judge, split and exclusion states inherited excluded outcomes through them. Any query with ev_lo ≥ 0, a parity filter or an exclusion window now gets no layer, matching the old judge contract. A poison check gates every selfcheck and answer run: for 50 players, every outcome and scoreboard value outside each filter form (judge window, even-day split, odd-day split, exclusion only) is perturbed, along with every layer residual. The filtered answers must not change at all, the unfiltered controls must change, and perturbing evidence inside the filter must change the filtered answers. Each filtered walk must also equal a walk over a physically filtered copy of the history. On dry1022 it passes; with the old behaviour switched back on, it fails (judge state moved by 0.038).
+- **`sd` is the base posterior sd again (C12).** Answer files carry `sd` = sqrt(var) (the old sqrt(var_all) meaning) and `sd_display` = the site band. The tournament reads `sd`. Neither is a validated sd of the full estimator: the shrinkage function, direct channel and calibration change only the mean.
+- **Failures stop the chain (C4, C5).** `def_walks.sh` and the collect step run under `set -e`. The selfcheck covers both halves and raises unless every difference is finite and below 1e-6. The report fails on missing subsets. Job polling retries unknown status for up to 2 hours instead of failing on one ssh error.
+- **Waiter completion (C6).** The download counts as complete only if the status command succeeds, both panels show 0 left, the row count parses and is stable over two polls, and no account has status "error". On 2026-10-24 there were 0 error records (88,228 ok, 229 not found).
+- **Manifest fails closed (C7).** verify fails on a missing or empty manifest, on zero matching entries, and (with `--complete`) on a missing stage inventory per role. Each host's code bundle (personalization `.py`, `remote/*.sh`, `shared.py`, built kernel `.so`) is pinned per build. Entries made outside a git checkout carry `git = src:<source digest>`.
+- **No inherited derived caches (C9).** The definitive cache links regular files and three input directories only (export, full_history, gd_trainonly); `rcf/` and `p3t/` are listed as derived. dry1022 had real `rcf/` and `p3t/` directories, so it was not affected. The aug cache key now includes the merged-rows file's content, and the metric caches are keyed by the aug key and the card file's content.
+- **Reporting (C13, C22).** The definitive report prints week-block 95% CIs for the primary contrasts and splits OOT at 2026-09-12 and by the formerly sealed build 2.55.17.98025. It states that V2 and OOT were read during development.
+- **Disclosed, sensitivity later (C18).** The drafter and judge fits use disjoint player halves but share V1 game outcomes, which fit the shrinkage function, direct channel, role weights, calibration and layer of each arm (coefficients fit separately). A game-disjoint variant is a planned sensitivity after the run.
+
 ## Files
 
 In `training/personalization/`:
