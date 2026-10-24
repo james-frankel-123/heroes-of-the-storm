@@ -42,6 +42,8 @@ def load_views():
 
 
 def capture(V, B=2000):
+    """gain(m) / gain(5), both seats pooled. Lobby-clustered bootstrap (review C21/R20): one draw of
+    lobby indices resamples both seats of every party size, numerator and denominator together."""
     res = {}
     rng = np.random.RandomState(1)
     gains = {}
@@ -54,7 +56,7 @@ def capture(V, B=2000):
             for met in parts:
                 parts[met].append(a[0][met] - g[0][met])
         else:
-            gains[m] = {met: np.concatenate(v) for met, v in parts.items()}
+            gains[m] = {met: np.stack(v, 1) for met, v in parts.items()}       # (n lobbies, 2 seats)
     if 5 not in gains:
         return res
     n = len(gains[5]["J"])
@@ -64,8 +66,11 @@ def capture(V, B=2000):
         for met in ("J", "J_cal", "CONS"):
             num, den = gm[met], gains[5][met]
             r = num.mean() / den.mean()
-            bs = [num[i].mean() / den[i].mean() for i in idx]
+            bs = np.array([num[i].mean() / den[i].mean() for i in idx])
+            dlo = np.percentile([den[i].mean() for i in idx], 2.5)
             res[m][met] = [round(float(r), 3), round(float(np.percentile(bs, 2.5)), 3), round(float(np.percentile(bs, 97.5)), 3)]
+            if dlo <= 0:
+                res[m][met].append("unstable: the full-party gain's CI reaches 0")
     return res
 
 

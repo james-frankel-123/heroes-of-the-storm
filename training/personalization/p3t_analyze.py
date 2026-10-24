@@ -39,16 +39,22 @@ SPLIT = os.environ.get("P3T_SPLIT") == "1"
 SDIR = os.path.join(TD.OUT, ("scores_split" if SPLIT else "scores") + (f"_{_LS}" if _LS else ""))
 RES = os.path.join(C.RESULTS, "p3t")
 B = 2000
-WIN = ["judge_personal", "judge_corr", "judge_cal", "consensus", "gN", "gN_naive", "RN", "QM2026"]
+BT_REPS = 1000                # lobby-bootstrap replicates of the BT fit (review C14: was 200)
+WIN = ["judge_personal", "judge_personal_of", "judge_corr", "judge_cal", "consensus", "gN", "gN_naive", "RN", "QM2026"]
 SIDE = {"rec_mean": "personal realized record (pp, judge-free)", "rec_pool": "personal realized record, game-weighted",
         "truth_hero": "future hero WR", "truth_syn": "future synergy", "truth_ctr": "future counter",
         "degen": "degenerate", "healer": "has healer", "offrole": "off-role players", "rec_cov": "record coverage"}
 
 
+SEEDED_KINDS = ("mcts", "policy", "mcts_x", "mcts_pp", "mcts_vn", "policy_pp", "policy_rich")
+
+
 def n_seeds(sysname):
+    """Prior seeds a system rotates over by lobby (seed_i % n_seeds of its F policies): every kind that
+    reads the vintage's policies (review C14/R14: mcts_x and mcts_pp were missing)."""
     import p3t_systems as SY
     s = SY.SYSTEMS[sysname]
-    if s["kind"] in ("mcts", "policy"):
+    if s["kind"] in SEEDED_KINDS:
         return SY.vintage(s["vint"]).n_seeds
     return 1
 
@@ -129,6 +135,26 @@ def pair_diff(P, a, b, key, idx=None):
     return np.mean(out) if out else None
 
 
+def paired_record(P, a, b, idx=None):
+    """Judge-free record of a minus b on the players covered under BOTH arms (review C19/R18): a
+    player's record on the hero a drafted for him (a drafts his team in one seat order) against
+    the hero b drafted for him (the other seat order); per lobby the mean over commonly covered
+    players, then the mean over lobbies. Also each arm's coverage share and the common share."""
+    if (a, b) not in P or (b, a) not in P:
+        return None
+    ab, ba = P[(a, b)]["rec_slot"], P[(b, a)]["rec_slot"]
+    A = np.concatenate([ab[:, :5], ba[:, 5:]], 1)
+    Bv = np.concatenate([ba[:, :5], ab[:, 5:]], 1)
+    if idx is not None:
+        A, Bv = A[idx], Bv[idx]
+    both = np.isfinite(A) & np.isfinite(Bv)
+    with np.errstate(invalid="ignore"):
+        d = np.where(both, A - Bv, np.nan)
+        per = np.nanmean(d, 1)
+    return {"diff": float(np.nanmean(per)), "cov_a": float(np.isfinite(A).mean()), "cov_b": float(np.isfinite(Bv).mean()),
+            "cov_both": float(both.mean())}
+
+
 def pair_signed(P, a, b, key, idx=None):
     """seat-averaged per-draft quantity that is team0-minus-team1 (sign flips with the seat)."""
     out = []
@@ -154,7 +180,10 @@ def side_mean(P, s, key, idx=None):
 
 
 def seed_se(P, a, b, key, n):
-    """Crossed seed random effects SE for the h2h of a over b."""
+    """Seed SE for the h2h of a over b. Lobby j gives side a prior seed j % na and side b j % nb, so
+    with equal seed counts the design is paired (seed i meets seed i only): the SE is that of the
+    per-seed-pair means. With unequal counts the cells are crossed and a two-way random-effects
+    decomposition is used. The BT fit itself has no seed terms."""
     na, nb = n_seeds(a), n_seeds(b)
     i = np.arange(n)
     cells = {}
@@ -293,6 +322,13 @@ def analyze(contrasts_extra=()):
             _, se_b = ci(lambda ix: pair_diff(P, a, b, key, ix), idxs[:500], pt)
             sc = 100 if key in ("rec_mean", "rec_pool", "degen") else 1
             r["diff_" + key] = [round(sc * pt, 3), round(sc * (pt - 1.96 * se_b), 3), round(sc * (pt + 1.96 * se_b), 3)]
+        pr = paired_record(P, a, b)
+        if pr is not None and np.isfinite(pr["diff"]):
+            _, se_b = ci(lambda ix: paired_record(P, a, b, ix)["diff"], idxs[:500], pr["diff"])
+            r["diff_rec_paired"] = [round(100 * pr["diff"], 3), round(100 * (pr["diff"] - 1.96 * se_b), 3),
+                                    round(100 * (pr["diff"] + 1.96 * se_b), 3)]
+            r["rec_coverage"] = {a: round(100 * pr["cov_a"], 2), b: round(100 * pr["cov_b"], 2),
+                                 "both": round(100 * pr["cov_both"], 2)}
         for side_key in ("own_V", "own_wp"):
             # model-internal: each system's own valuation of its own side, seat-averaged
             for who in (a, b):
@@ -341,7 +377,7 @@ def analyze(contrasts_extra=()):
     for key in ("judge_personal", "consensus"):
         th, h = bt_fit(P, systems, key)
         bsv = []
-        for ix in idxs[:200]:
+        for ix in idxs[:BT_REPS]:
             t_, _ = bt_fit(P, systems, key, ix)
             bsv.append([t_[s] for s in systems])
         bsv = np.array(bsv)
