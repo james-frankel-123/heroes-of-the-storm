@@ -165,7 +165,7 @@ for h in $HOSTS; do
   ssh "$h" "$(remote_shell "$h")" <<<"mkdir -p $(dirname /home/max/hots/repo/training/$MANIFEST)"
   nice -n 19 rsync -t --rsync-path="$(remote_rsync $h)" "training/$MANIFEST" "$h:/home/max/hots/repo/training/$MANIFEST"
   role=""; [ "$h" = "$CPU" ] || role="--role tournament"
-  P3_CORES=0-3 P3_MEM=4G P3_THREADS=1 $JOB $h "p3t_manifest_$STAMP" python personalization/p3_manifest.py verify "$MANIFEST" $role
+  P3_CORES=0-3 P3_MEM=4G P3_THREADS=1 $JOB $h "p3t_manifest_$STAMP" python personalization/p3_manifest.py verify "$MANIFEST" $role --complete
   wait_job $h "p3t_manifest_$STAMP" || { echo "manifest does not verify on $h: refusing to start"; exit 1; }
 done
 # Player states (coordinator, 2026-10-22): the definitive tournament uses the personalization
@@ -179,16 +179,32 @@ case "${P3T_STATES:-record}" in
   *) echo "P3T_STATES must be record or replay"; exit 2 ;;
 esac
 
-# 0. rebuild every P3 kernel (race-fixed 2026-10-19) and gate on determinism and parity (5090)
-# (the 5090's compile needs about 20 GB for the nvcc step: run its build with P3T_BUILD_MEM, default 20G)
-P3_CORES=0-15 P3_MEM=${P3T_BUILD_MEM:-20G} P3_THREADS=2 $JOB $GPU "p3t_build_$STAMP" env MAX_JOBS=1 bash personalization/remote/p3t_build_all.sh
-wait_job $GPU "p3t_build_$STAMP"
-P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_build2_$STAMP" env MAX_JOBS=1 bash personalization/remote/p3t_build_all.sh
-wait_job $GPU2 "p3t_build2_$STAMP"
+# 0. the P3 kernels: built once before the definitive run (and pinned by the personalization lane's
+# collect: no rebuild between that pin and a pass, review C7); each pass only re-runs the determinism
+# and parity gates on both GPU hosts. P3T_REBUILD=1 rebuilds first (the 5090's nvcc step needs about
+# 20 GB: P3T_BUILD_MEM, default 20G); the old layout (no P3T_BUILD) rebuilds by default.
+REBUILD=${P3T_REBUILD:-$([ -n "${P3T_BUILD:-}" ] && echo 0 || echo 1)}
+if [ "$REBUILD" = 1 ]; then
+  P3_CORES=0-15 P3_MEM=${P3T_BUILD_MEM:-20G} P3_THREADS=2 $JOB $GPU "p3t_build_$STAMP" env MAX_JOBS=1 bash personalization/remote/p3t_build_all.sh
+  wait_job $GPU "p3t_build_$STAMP"
+  P3_CORES=$GPU2_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_build2_$STAMP" env MAX_JOBS=1 bash personalization/remote/p3t_build_all.sh
+  wait_job $GPU2 "p3t_build2_$STAMP"
+fi
 run_gpu determ $STEP p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py
-P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_determ2_$STAMP" bash personalization/remote/p3t_run.sh \
+P3_CORES=$GPU2_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_determ2_$STAMP" bash personalization/remote/p3t_run.sh \
   p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py
 wait_job $GPU2 "p3t_determ2_$STAMP"
+# the code this pass runs, per host (sources, scripts, built kernels): pinned into the pass's own code
+# manifest now, re-verified at the end of the pass (review C7)
+CODEMAN=personalization/results/$(basename "$RROOT")/code_manifest.json
+code_pin() {   # verb: pin | verify
+  for h in $HOSTS; do
+    P3_CORES=0-3 P3_MEM=4G P3_THREADS=1 $JOB $h "p3t_code_${1}_$STAMP" bash personalization/remote/p3t_code_pin.sh \
+      "$1" "$CODEMAN" "${TAG:-full}" "$h"
+    wait_job $h "p3t_code_${1}_$STAMP" || { echo "code $1 failed on $h"; exit 1; }
+  done
+}
+code_pin pin
 
 # 1. judge skill model: the main fit's settings on the other player half (5090 GPU, ~3 min)
 mkdir -p "$RELAY"
@@ -265,6 +281,10 @@ for h in $HOSTS; do
 done
 nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$RROOT/p3t_vintages.json" "$LRES/"
 [ -s "$LRES/analysis.json" ] || { echo "no analysis.json collected from $RROOT: the pass is incomplete"; exit 1; }
+code_pin verify
+for h in $HOSTS; do
+  nice -n 19 rsync -t --rsync-path="$(remote_rsync $h)" "$h:/home/max/hots/repo/training/$CODEMAN" "$LRES/code_manifest_$h.json"
+done
 if [ -n "$TAG" ]; then P3T_REPORT_DIR=$PWD/$LRES python3 training/personalization/p3t_report.py
 else python3 training/personalization/p3t_report.py; fi
 echo "P3T PIPELINE DONE $(date -Is)"
