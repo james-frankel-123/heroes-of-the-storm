@@ -11,12 +11,18 @@ file echoes those fields and adds, over all 90 heroes in shared.HEROES order:
       reshaped by the V1 shrinkage function + direct scoreboard channel +
       temporal layer (drift and new-hero learning) times the V1 smooth
       calibration multiplier. The lobby-level MMR term is left out.
-  sd  the display sd: sqrt(s2 (1 + exp(-games on the hero / 10))), s2 the
-      state-space posterior variance (P3_SHRINKAGE.md section 6)
+  sd  the base sd: sqrt(s2), s2 the state-space Gaussian posterior variance
+      (same meaning as the old interface's sqrt(var_all)). It is the
+      posterior of the Gaussian walk, not a validated sd of the full estimator
+      (shrinkage function, direct channel and calibration change the mean only).
+  sd_display  the site's display band: sqrt(s2 (1 + exp(-games on the hero / 10)))
+      (P3_SHRINKAGE.md section 6); not for the tournament
   n   merged play counts (Heroes Profile and corpus rows) with day <= as_of_day
 Evidence for a query: history rows with day <= as_of_day, day >= ev_lo (if
 >= 0), the parity filter (1 odd days, 2 even days) and not in
-[exclude_lo, exclude_hi]. The same filter applies to the layer's statistics.
+[exclude_lo, exclude_hi]. A filtered query (any of the three) gets no
+temporal layer: the layer's residuals come from unfiltered predictions, so
+they would carry excluded outcomes (as the old judge contract, no layer).
 half 0 uses the drafter fit (full_ms, the arm "chosen"), half 1 the judge fit
 on the other player half (full_ms_flip, the arm "chosen_flip"); every V1
 coefficient comes from that arm's metadata.
@@ -228,16 +234,30 @@ def layer_terms(d, lay, meta, qpid, qday, filt):
     return rho, nu
 
 
-def answer(qdir, adir, only=None):
+def filtered(ev_lo, parity, ex_lo):
+    """True when the query's evidence filter drops any history (window start,
+    parity or exclusion). Such states carry no temporal layer: the layer's
+    residuals u = r - pred are built on unfiltered histories, so excluded
+    outcomes would reach the state through pred (old judge contract: no layer)."""
+    return ev_lo >= 0 or parity != 0 or ex_lo >= 0
+
+
+def answer(qdir, adir, only=None, ctx=None):
+    """ctx (optional dict) keeps the loaded data, metric caches, layer inputs and
+    arm caches across calls (filtercheck mutates them in place)."""
     t0 = time.time()
     os.makedirs(adir, exist_ok=True)
-    d, aug = R.load_aug("merged")
+    ctx = {} if ctx is None else ctx
+    if "d" not in ctx:
+        ctx["d"], ctx["aug"] = R.load_aug("merged")
+        ctx["cache"], ctx["mcache"] = {}, {}
+    d, aug = ctx["d"], ctx["aug"]
     keys = d["player_keys"]
     ko = np.argsort(keys)
     files = sorted(glob.glob(os.path.join(qdir, "*.npz")))
     if only:
         files = [os.path.join(qdir, f) for f in only]
-    cache, mcache = {}, {}
+    cache, mcache = ctx["cache"], ctx["mcache"]
     for fq in files:
         Qz = np.load(fq)
         Q = {k: Qz[k] for k in Qz.files}                       # read once (npz access re-reads the zip)
@@ -248,6 +268,7 @@ def answer(qdir, adir, only=None):
         nq = len(qk)
         S_out = np.zeros((nq, H), np.float32)
         SD_out = np.zeros((nq, H), np.float32)
+        SDD_out = np.zeros((nq, H), np.float32)
         N_out = np.zeros((nq, H), np.float32)
         groups = {}
         G = np.column_stack([Q["half"].astype(np.int64), Q["ev_lo"].astype(np.int64), Q["ev_parity"].astype(np.int64),
@@ -275,7 +296,8 @@ def answer(qdir, adir, only=None):
                 if ext and ext not in mcache:
                     mcache[ext] = R.aug_metrics(aug, ext, d)
                 xm = mcache[ext][0] if ext else None
-                lay = np.load(os.path.join(R.RCF_CACHE, f"{stem}_layer.npz"))
+                lz = np.load(os.path.join(R.RCF_CACHE, f"{stem}_layer.npz"))
+                lay = {k: lz[k] for k in lz.files}             # materialized (npz access re-reads)
                 cache[armn] = (meta, par, mets, mw, lay, xm)
             meta, par, mets, mw, lay, xm = cache[armn]
             filt = lambda dd: evidence_mask(dd, ev_lo, par_, ex_lo, ex_hi)
@@ -314,31 +336,38 @@ def answer(qdir, adir, only=None):
                 + (B @ np.asarray(tm["beta_offset"])) * fl(mu)
             # temporal layer
             lm = meta["layer"]
-            rho, nu = layer_terms(d, lay, lm, qpid[idx], Q["as_of_day"][idx].astype(np.int64), filt)
-            est = est.reshape(len(idx), H) + lm["drift_scale"] * rho[:, None] \
-                + lm["learn_scale"] * nu[:, None] * (n_full < 5)
+            est = est.reshape(len(idx), H)
+            if not filtered(ev_lo, par_, ex_lo):
+                rho, nu = layer_terms(d, lay, lm, qpid[idx], Q["as_of_day"][idx].astype(np.int64), filt)
+                est = est + lm["drift_scale"] * rho[:, None] + lm["learn_scale"] * nu[:, None] * (n_full < 5)
             # direct scoreboard channel, then the smooth calibration
             est = est + st["stat"]
             B2 = TL.shrink_basis(res, rich=2 if "rich=2" in meta["postcal"]["basis"] else True)
             est = est * (B2 @ np.asarray(meta["postcal"]["coef"])).reshape(len(idx), H)
             S_out[idx] = est
-            SD_out[idx] = np.sqrt(var * (1 + np.exp(-n_full / 10.0)))
+            SD_out[idx] = np.sqrt(var)                         # base Gaussian posterior sd (old sqrt(var_all))
+            SDD_out[idx] = np.sqrt(var * (1 + np.exp(-n_full / 10.0)))   # display band (site only)
             N_out[idx] = n_full
         # columns in shared.HEROES order (column i = shared.HEROES[i])
         perm = sh_perm(d["hero_names"])
         outp = {k: Q[k] for k in QFIELDS}
-        outp.update(s=S_out[:, perm], sd=SD_out[:, perm], n=N_out[:, perm], known=qpid >= 0)
+        outp.update(s=S_out[:, perm], sd=SD_out[:, perm], sd_display=SDD_out[:, perm], n=N_out[:, perm],
+                    known=qpid >= 0)
         np.savez(os.path.join(adir, os.path.basename(fq)), **outp)
         print(f"answered {os.path.basename(fq)}: {nq:,} queries, {int((qpid >= 0).sum()):,} known players "
               f"({time.time() - t0:.0f}s)", flush=True)
 
 
-def selfcheck(arm=None, n=3000, seed=0):
-    """The state at the played hero must equal the arm's own slot prediction
-    (minus the MMR term, which the arm adds only in the game combiner) for
-    random V2 slots: query = (player, day - 1, no filter, half 0)."""
+SELFCHECK_TOL = 1e-6      # float32 answer files; observed differences are ~1.5e-8
+
+
+def selfcheck(half=0, n=3000, seed=0, ctx=None):
+    """The unfiltered state at the played hero must equal the arm's own slot
+    prediction (minus the MMR term, which the arm adds only in the game
+    combiner) for random V2 slots: query = (player, day - 1, no filter, half).
+    Raises unless every difference is finite and below SELFCHECK_TOL."""
     import tempfile
-    arm = arm or ARMS[0][0]
+    arm = ARMS[half][0]
     z = np.load(os.path.join(R.RCF_RES, "p3c", f"{arm}__merged.npz"))
     rng = np.random.default_rng(seed)
     i = rng.choice(np.flatnonzero(z["s_win"] == 2), n, replace=False)
@@ -348,16 +377,143 @@ def selfcheck(arm=None, n=3000, seed=0):
         np.savez(os.path.join(qd, "check.npz"), player_key=z["s_key"][i].astype(np.int64),
                  as_of_day=(z["s_day"][i] - 1).astype(np.int32), ev_lo=np.full(n, -1, np.int32),
                  ev_parity=np.zeros(n, np.int8), exclude_lo=np.full(n, -1, np.int32),
-                 exclude_hi=np.full(n, -1, np.int32), half=np.zeros(n, np.int8), hero=np.full(n, -1, np.int16))
-        answer(qd, ad)
+                 exclude_hi=np.full(n, -1, np.int32), half=np.full(n, half, np.int8), hero=np.full(n, -1, np.int16))
+        answer(qd, ad, ctx=ctx)
         a = np.load(os.path.join(ad, "check.npz"))
         from shared import HEROES
         names = [str(h) for h in np.load(os.path.join(R.C.CACHE, "x_slots_ext.npz"), mmap_mode="r")["hero_names"]]
         to_sh = np.array([HEROES.index(h) for h in names])
         s = a["s"][np.arange(n), to_sh[z["s_hero"][i]]]
-        diff = np.abs(s - z["s_pred"][i])
-        print(f"selfcheck {arm}: max |state - arm prediction| {diff.max():.2e}, median {np.median(diff):.2e}")
+        diff = np.abs(s.astype(np.float64) - z["s_pred"][i])
+        print(f"selfcheck {arm} (half {half}): max |state - arm prediction| {np.nanmax(diff):.2e}, "
+              f"median {np.nanmedian(diff):.2e}", flush=True)
+        assert bool(a["known"].all()), "selfcheck: unknown players"
+        assert np.isfinite(a["s"]).all() and np.isfinite(a["sd"]).all(), f"selfcheck {arm}: non-finite state"
+        assert np.isfinite(diff).all() and diff.max() < SELFCHECK_TOL, \
+            f"selfcheck {arm}: max difference {np.nanmax(diff):.2e} >= {SELFCHECK_TOL:g}"
         return diff
+
+
+FILTERS = {  # name -> (half, ev_lo, parity, exclude_lo, exclude_hi); days as in p3t_data
+    "judge": (1, 20635, 0, -1, -1),                  # judge window from 2026-07-01 (J0)
+    "split_even": (1, -1, 2, 20596, 20634),          # even days, outside the tournament window
+    "split_odd": (0, -1, 1, -1, -1),                 # odd days
+    "exclude": (0, -1, 0, 20596, 20634),             # exclusion only
+}
+
+
+def filtercheck(n_players=50, seed=0, ctx=None):
+    """Two checks of every filter form (FILTERS), on the real data:
+    (a) poison: perturb, for n_players players, every outcome and scoreboard
+        value outside the query's filter and every layer residual; filtered
+        answers must not change at all, while unfiltered answers of the same
+        players must change (the perturbation reaches them) and perturbing
+        evidence inside the filter must change the filtered answers;
+    (b) reference: the filtered walk state equals the state of a walk over a
+        copy of the history with the out-of-filter rows physically removed
+        (posterior mean, variance, own evidence, counts, direct channel)."""
+    import tempfile
+    ctx = {} if ctx is None else ctx
+    if "d" not in ctx:
+        ctx["d"], ctx["aug"] = R.load_aug("merged")
+        ctx["cache"], ctx["mcache"] = {}, {}
+    d, aug = ctx["d"], ctx["aug"]
+    rng = np.random.default_rng(seed)
+    day = aug["day"].astype(np.int64)
+    qday = 20707                                      # as_of_day 2026-09-11, the judge window end (J1)
+    # players with history before, inside the tournament window and inside the judge window
+    before = np.unique(aug["pid"][day < 20596])
+    tw = np.unique(aug["pid"][(day >= 20596) & (day <= 20634)])
+    inside = np.unique(aug["pid"][(day >= 20635) & (day <= qday)])
+    cand = np.intersect1d(np.intersect1d(before, tw), inside)
+    keys = np.asarray(d["player_keys"])
+    pick = rng.choice(cand[cand < len(keys)], n_players, replace=False)
+    rows_q = []
+    for nm, (half, lo, par_, xlo, xhi) in FILTERS.items():
+        rows_q.append((half, lo, par_, xlo, xhi))
+    rows_q.append((0, -1, 0, -1, -1))                 # unfiltered control, half 0
+    rows_q.append((1, -1, 0, -1, -1))                 # unfiltered control, half 1
+    nq = len(rows_q) * n_players
+    Q = {"player_key": np.tile(keys[pick].astype(np.int64), len(rows_q)),
+         "as_of_day": np.full(nq, qday, np.int32),
+         "ev_lo": np.repeat([r[1] for r in rows_q], n_players).astype(np.int32),
+         "ev_parity": np.repeat([r[2] for r in rows_q], n_players).astype(np.int8),
+         "exclude_lo": np.repeat([r[3] for r in rows_q], n_players).astype(np.int32),
+         "exclude_hi": np.repeat([r[4] for r in rows_q], n_players).astype(np.int32),
+         "half": np.repeat([r[0] for r in rows_q], n_players).astype(np.int8),
+         "hero": np.full(nq, -1, np.int16)}
+    with tempfile.TemporaryDirectory() as td:
+        qd = os.path.join(td, "q")
+        os.makedirs(qd)
+        np.savez(os.path.join(qd, "fc.npz"), **Q)
+
+        def run(tag):
+            ad = os.path.join(td, tag)
+            answer(qd, ad, ctx=ctx)
+            z = np.load(os.path.join(ad, "fc.npz"))
+            return {k: z[k].copy() for k in ("s", "sd", "n")}
+
+        A = run("a")
+        prow = np.flatnonzero(np.isin(aug["pid"], pick))
+        lays = [v[4] for v in ctx["cache"].values()]
+        mets = [v for v in ctx["mcache"].values()]
+
+        def poison(sel):
+            r = prow[sel]
+            aug["r_adj"][r] = rng.normal(0, 1, len(r)).astype(aug["r_adj"].dtype)
+            for Z, W in mets:
+                Z[r] = rng.normal(0, 3, (len(r), Z.shape[1])).astype(Z.dtype)
+            return r
+
+        # (a) per filter: poison the rows outside it; that filter's answers must not move
+        nf = len(FILTERS) * n_players
+        sp = np.flatnonzero(np.isin(d["pid"], pick))
+        for lay in lays:                              # layer residuals reach unfiltered states only
+            lay["u"][sp] = rng.normal(0, 1, len(sp)).astype(lay["u"].dtype)
+        prev = A
+        ctl = 0.0
+        for j, (nm, (half, lo, par_, xlo, xhi)) in enumerate(FILTERS.items()):
+            ex = (~evidence_mask(day[prow], lo, par_, xlo, xhi)) & (day[prow] <= qday)
+            assert ex.sum() > 0, f"filtercheck: no excluded rows for {nm}"
+            poison(ex)
+            B = run(f"b{j}")
+            sl = slice(j * n_players, (j + 1) * n_players)
+            for k in ("s", "sd"):
+                dmax = np.abs(B[k][sl].astype(np.float64) - prev[k][sl]).max()
+                assert dmax == 0.0, f"filtercheck {nm}: {k} changed by {dmax:.3e} after poisoning excluded evidence"
+            assert np.array_equal(B["n"], A["n"]), "filtercheck: counts changed"
+            ctl = max(ctl, np.abs(B["s"][nf:].astype(np.float64) - prev["s"][nf:]).max())
+            print(f"  poison {nm}: {int(ex.sum()):,} excluded rows perturbed, filtered answers unchanged", flush=True)
+            prev = B
+        print(f"  unfiltered control max change {ctl:.2e}", flush=True)
+        assert ctl > 1e-4, "filtercheck: perturbation did not reach the unfiltered control (vacuous)"
+        # sensitivity: perturbing evidence inside the judge window moves every filtered group
+        poison((day[prow] >= 20635) & (day[prow] <= qday))
+        C_ = run("c")
+        for j, nm in enumerate(FILTERS):
+            sl = slice(j * n_players, (j + 1) * n_players)
+            dch = np.abs(C_["s"][sl].astype(np.float64) - prev["s"][sl]).max()
+            print(f"  sensitivity {nm}: max change {dch:.2e}", flush=True)
+            assert dch > 1e-4, f"filtercheck: {nm} answers ignore evidence inside the filter"
+    # (b) reference walk on a physically filtered copy (only the picked players' rows)
+    for nm, (half, lo, par_, xlo, xhi) in FILTERS.items():
+        meta, par, mets_, mw, lay, xm = ctx["cache"][ARMS[half][0]]
+        qpid = pick.astype(np.int64)
+        qd_ = np.full(len(qpid), qday, np.int64)
+        keep = evidence_mask(day, lo, par_, xlo, xhi)
+        st_f = state_walk(aug, par, qpid, qd_, keep, mets_, mw, meta["q_win"], meta["q_met"], meta["statlin"],
+                          xmetrics=xm, hero_names=d["hero_names"])
+        sub = np.flatnonzero(np.isin(aug["pid"], pick) & keep)
+        aug_s = {k: (v[sub] if (hasattr(v, "shape") and v.shape[:1] == aug["day"].shape) else v) for k, v in aug.items()}
+        st_r = state_walk(aug_s, par, qpid, qd_, np.ones(len(sub), bool), mets_[sub], mw[sub], meta["q_win"],
+                          meta["q_met"], meta["statlin"], xmetrics=None if xm is None else xm[sub],
+                          hero_names=d["hero_names"])
+        for k in ("mean", "var", "S", "P", "n", "stat", "last"):
+            a_, b_ = np.asarray(st_f[k], np.float64), np.asarray(st_r[k], np.float64)
+            dmax = np.abs(a_ - b_).max()
+            assert np.isfinite(a_).all() and dmax < SELFCHECK_TOL, f"filtercheck reference {nm}: {k} differs by {dmax:.3e}"
+        print(f"  reference {nm}: filtered walk = walk on the physically filtered history", flush=True)
+    print(f"filtercheck passed ({n_players} players, filters {list(FILTERS)})", flush=True)
 
 
 def main():
@@ -367,12 +523,18 @@ def main():
     p.add_argument("qdir")
     p.add_argument("adir")
     p.add_argument("--only", nargs="*", help="file names in this order (default: every file)")
-    sub.add_parser("selfcheck")
+    p = sub.add_parser("selfcheck", help="both halves (unfiltered) and the filter checks; raises on failure")
+    p.add_argument("--halves", default="0,1")
+    p.add_argument("--no-filtercheck", action="store_true")
     a = ap.parse_args()
     if a.cmd == "answer":
         answer(a.qdir, a.adir, a.only)
     else:
-        selfcheck()
+        ctx = {}
+        for h in (int(x) for x in a.halves.split(",")):
+            selfcheck(h, ctx=ctx)
+        if not a.no_filtercheck:
+            filtercheck(ctx=ctx)       # mutates ctx's data: last
 
 
 if __name__ == "__main__":
