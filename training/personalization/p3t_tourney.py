@@ -56,16 +56,23 @@ def select():
     ok = rich & (jn >= J_MIN).all(1)
     cand = win[ok]
     rng = np.random.RandomState(20261019)
+    old_tune = TD.gi_of_replays(L, TD.excluded_replays("tune"))
+    if not LOBBYSET:
+        # the headline set never reuses a lobby the design was selected on (frozen by replay ID)
+        cand = np.array([g for g in cand if g not in old_tune])
     if LOBBYSET:
         test = set(np.load(os.path.join(TD.OUT, "tourney", "lobbies.npz"))["gi"].tolist())
         cand = np.array([g for g in cand if g not in test])
         rng = np.random.RandomState(20261020)
     sel = np.sort(rng.choice(cand, N_LOBBIES, replace=False))
+    if not LOBBYSET:
+        assert not set(sel.tolist()) & old_tune, "headline lobbies overlap the frozen tune replays"
     np.savez(os.path.join(TDIR, "lobbies.npz"), gi=sel)
     print(f"tournament-window lobbies {len(win):,}; all ten 50+ earlier games {int(rich.sum()):,}; "
           f"and 10+ judge-window games each {len(cand):,}; selected {len(sel)}", flush=True)
     json.dump({"window_lobbies": int(len(win)), "rich": int(rich.sum()), "eligible": int(len(cand)),
-               "selected": int(len(sel))}, open(os.path.join(TDIR, "select.json"), "w"))
+               "selected": int(len(sel)), "frozen_tune_in_window": int(len(old_tune))},
+              open(os.path.join(TDIR, "select.json"), "w"))
 
 
 class Lobbies:

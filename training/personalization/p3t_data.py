@@ -459,6 +459,25 @@ def eval_lobbies():
     return out
 
 
+EXCLUDED_REPLAYS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "p3t_excluded_replays.json")
+
+
+def excluded_replays(*kinds):
+    """Replay IDs of the frozen pre-definitive selections ("tune", "tournament"), committed in
+    p3t_excluded_replays.json (2026-10-24), so a reselection on a larger history cannot reuse them."""
+    z = json.load(open(EXCLUDED_REPLAYS))
+    out = set()
+    for k in kinds:
+        assert len(z[k]) == 300, f"p3t_excluded_replays.json: {k} has {len(z[k])} replays"
+        out |= set(int(x) for x in z[k])
+    return out
+
+
+def gi_of_replays(L, rids):
+    """Lobby indices (rows of lobbies.npz) of the given replay IDs that are in this lobby table."""
+    return set(np.flatnonzero(np.isin(L["replay_id"], np.fromiter(rids, np.int64))).tolist())
+
+
 def layer_meta():
     # rcf_full layout: p3_c_tests_main.json; definitive builds (results/def_<D>): p3_c_tests_def.json
     for name in ("p3_c_tests_main.json", "p3_c_tests_def.json"):

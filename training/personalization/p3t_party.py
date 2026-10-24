@@ -621,13 +621,18 @@ def stage_select():
             excl |= set(np.load(f_)["gi"].tolist())
         elif sub == "tourney":
             raise FileNotFoundError(f"{f_}: the tournament lobbies must be selected before the party set")
+    # and the frozen pre-definitive tune and tournament lobbies, by replay ID (p3t_excluded_replays.json)
+    frozen = TD.gi_of_replays(L, TD.excluded_replays("tune", "tournament"))
+    excl |= frozen
     keep = np.array([g not in excl for g in win])
     strict = win[rich & keep & (jn >= J_STRICT)]
     sel = np.sort(np.random.RandomState(20261022).permutation(strict)[:N_PARTY])
+    assert not set(sel.tolist()) & excl, "party lobbies overlap an excluded set"
+    assert not set(L["replay_id"][sel].tolist()) & TD.excluded_replays("tune", "tournament")
     d = os.path.join(TD.OUT, "tourney_party")
     os.makedirs(d, exist_ok=True)
     np.savez(os.path.join(d, "lobbies.npz"), gi=sel)
-    info = {"excluded_tune_and_tournament": int(len(excl)), "strict_available": int(len(strict)), "selected": int(len(sel)), "target": N_PARTY,
+    info = {"excluded_tune_and_tournament": int(len(excl)), "frozen_in_lobby_table": int(len(frozen)), "strict_available": int(len(strict)), "selected": int(len(sel)), "target": N_PARTY,
             "below_floor": bool(len(sel) < N_PARTY_FLOOR), "floor": N_PARTY_FLOOR}
     json.dump(info, open(os.path.join(d, "select.json"), "w"))
     print(f"party lobbies: {info}", flush=True)
