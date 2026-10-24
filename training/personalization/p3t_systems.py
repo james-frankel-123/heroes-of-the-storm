@@ -51,7 +51,50 @@ H = 90
 DRAFT_TEAM = [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1]
 IS_PICK = [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1]
 SIMS = int(os.environ.get("P3T_SIMS", "400"))
-VFILE = os.path.join(HERE, "p3t_vintages.json")
+# the vintage table: the committed template, or (definitive passes, review C8) a per-pass copy
+# P3T_VINTAGES=<results root>/p3t_vintages.json, created from the template on first use; combfit
+# and vnet write their fits into the per-pass copy only
+VTEMPLATE = os.path.join(HERE, "p3t_vintages.json")
+VFILE = os.environ.get("P3T_VINTAGES") or VTEMPLATE
+if VFILE != VTEMPLATE and not os.path.exists(VFILE):
+    import shutil
+    os.makedirs(os.path.dirname(VFILE), exist_ok=True)
+    _tmp = f"{VFILE}.tmp{os.getpid()}"
+    shutil.copyfile(VTEMPLATE, _tmp)
+    if not os.path.exists(VFILE):
+        os.replace(_tmp, VFILE)
+    else:
+        os.remove(_tmp)
+
+
+_PROV = {}
+
+
+def provenance(shard=""):
+    """Execution provenance stored in every draft file (review R26): host, GPU and its architecture,
+    sha256 of each built P3 kernel module and of the P3 Python sources, and the shard."""
+    if not _PROV:
+        import glob
+        import hashlib
+        import socket
+        d = {"host": socket.gethostname()}
+        try:
+            import torch
+            if torch.cuda.is_available():
+                d["gpu"] = torch.cuda.get_device_name(0)
+                d["arch"] = "sm_%d%d" % torch.cuda.get_device_capability(0)
+            d["torch"] = torch.__version__
+        except Exception as ex:          # provenance must never stop a draft
+            d["gpu_error"] = repr(ex)
+        for so in sorted(glob.glob(os.path.join(HERE, "cuda_*", "*.so"))):
+            d["kernel:" + os.path.relpath(so, HERE)] = hashlib.sha256(open(so, "rb").read()).hexdigest()[:16]
+        h = hashlib.sha256()
+        for f in sorted(glob.glob(os.path.join(HERE, "p3*.py")) + [os.path.join(os.path.dirname(HERE), "shared.py")]):
+            h.update(os.path.basename(f).encode() + open(f, "rb").read())
+        d["code_sha256"] = h.hexdigest()[:16]
+        d["vintages_file"] = VFILE
+        _PROV.update(d)
+    return json.dumps(dict(_PROV, shard=shard), sort_keys=True)
 
 
 def tpath(p):

@@ -182,6 +182,9 @@ def pair_file(a, b):
     return os.path.join(TDIR, f"{a}__{b}.npz")
 
 
+SHARD = ""
+
+
 def play(LB, a, b, device=0):
     """Ordered pair: a = kernel team 0 (first pick), b = team 1."""
     p = pair_file(a, b)
@@ -208,7 +211,7 @@ def play(LB, a, b, device=0):
     for i in range(n):
         assert len(set(acts[i])) == 16
     np.savez(p + ".tmp.npz", acts=acts, gi=LB.gi, fallback=fallback,
-             secs=np.array([secs[a], secs[b]]), a=a, b=b)
+             secs=np.array([secs[a], secs[b]]), a=a, b=b, prov=SY.provenance(SHARD))
     os.replace(p + ".tmp.npz", p)
     print(f"  {a} vs {b}: {time.time() - t0:.0f}s (a {secs[a]:.0f}s, b {secs[b]:.0f}s)", flush=True)
 
@@ -343,7 +346,11 @@ def main():
     elif a.kind == "no-onestep":
         pairs = [p for p in pairs if not has1(p)]
     i, n = (int(x) for x in a.shard.split("/"))
-    pairs = pairs[i::n]
+    # stable shard by the pair's name (review R26): the same pair goes to the same host in every pass,
+    # whatever the set of ready pairs
+    pairs = [p for p in pairs if int(hashlib.md5(f"{p[0]}__{p[1]}".encode()).hexdigest()[:8], 16) % n == i]
+    global SHARD
+    SHARD = a.shard
     if a.stage == "list":
         for p in pairs:
             print(p, "done" if os.path.exists(pair_file(*p)) else "")

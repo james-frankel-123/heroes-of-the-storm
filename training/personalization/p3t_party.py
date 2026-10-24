@@ -571,6 +571,7 @@ def real_hero(LB, k, actor):
 
 
 def stage_run(plan_name, only=None, device=0, shard="0/1"):
+    import p3t_systems as SY
     import p3t_tourney as TT
     LB = TT.Lobbies()
     top, _, _ = ranks(LB)
@@ -588,7 +589,8 @@ def stage_run(plan_name, only=None, device=0, shard="0/1"):
             t0 = time.time()
             acts, slot_at, party, ban_ctl, lock_turn, secs = draft(LB, cfg, arm, top, device)
             np.savez(f + ".tmp.npz", acts=acts, slot_at=slot_at, party=party, ban_ctl=ban_ctl, lock_turn=lock_turn,
-                     t=cfg["t"], m=cfg["m"], arm=arm, hold=str(cfg["hold"]), search_secs=secs)
+                     t=cfg["t"], m=cfg["m"], arm=arm, hold=str(cfg["hold"]), search_secs=secs,
+                     prov=SY.provenance(f"{plan_name} {shard}"))
             os.replace(f + ".tmp.npz", f)
             print(f"  {cfg['name']} {arm}: {time.time() - t0:.0f}s (search {secs:.0f}s)", flush=True)
     print("PARTY RUN DONE", flush=True)
