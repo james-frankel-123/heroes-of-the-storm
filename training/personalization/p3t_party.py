@@ -96,7 +96,7 @@ OUT = os.path.join(TD.OUT, "party" + (f"_{LS}" if LS else ""))
 RES_NAME = "party" + (f"_{LS}" if LS else "")
 # the party study's own lobby set (P3T_LOBBYSET=party), sized for slot-level CIs with both team
 # sides pooled (coordinator, 2026-10-22): up to 1,800 lobbies, the tournament's strict judge rule only
-N_PARTY = 1800            # target lobbies; fewer if fewer meet the rule (all of them are used)
+N_PARTY = int(os.environ.get("P3T_N_PARTY", "1800"))   # target lobbies; fewer if fewer meet the rule (all used); smoke runs set fewer
 N_PARTY_FLOOR = 1500      # below this, select flags the set for the coordinator
 J_STRICT = 10             # judge-window games per player (the tournament's rule)
 

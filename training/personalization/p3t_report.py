@@ -8,8 +8,12 @@ import json
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-R = os.path.join(HERE, "results", "p3t")
-OUT = os.path.join(HERE, "results", "P3_TOURNAMENT_TABLES.md")
+# definitive passes (review C16): render from the pass's own directory, results/p3t_<D>_<pass>/, into
+# its own tables file; inputs that are not in that directory (other builds' repeat runs, validations)
+# are omitted rather than mixed in
+R = os.environ.get("P3T_REPORT_DIR") or os.path.join(HERE, "results", "p3t")
+OUT = (os.path.join(R, "P3_TOURNAMENT_TABLES.md") if os.environ.get("P3T_REPORT_DIR")
+       else os.path.join(HERE, "results", "P3_TOURNAMENT_TABLES.md"))
 
 
 def j(name):
@@ -144,12 +148,15 @@ def main():
               "Personal part = judge's personal-sum difference (pp of team skill sum). Record = judge-free realized "
               "record per assigned player (pp). Future hero WR = judge-free. 95% CIs (lobby bootstrap, widened for seed effects).", "",
               f"J corrected = attenuation-corrected J (personal part divided by lambda = {A.get('attenuation_lambda')}; a model-based sensitivity).", "",
-              "J_cal = J with the two parts calibrated on held-out judge-window games (1.17 logit p_cons + 1.00 personal term; a sensitivity check).", "",
-              "| matchup | J win % | J_cal | J corrected | CONS win % | personal part (pp) | realized record diff (pp) | future hero WR diff | off-role diff |",
-              "|---|---|---|---|---|---|---|---|---|"]
+              f"J_cal = J with the two parts calibrated on held-out judge-window games ({A.get('cal', 'a logit p_cons + k personal term')}; a sensitivity check). "
+              "J (outcome-free) = the same judge with players on heroes by their earlier games instead of the best of 120 assignments. "
+              "Paired record = the judge-free record on players covered under both arms (coverage: share of players covered under both).", "",
+              "| matchup | J win % | J (outcome-free) | J_cal | J corrected | CONS win % | personal part (pp) | realized record diff (pp) | paired record diff (pp) | coverage both % | future hero WR diff | off-role diff |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
         for k, v in A["h2h"].items():
-            L.append(f"| {k} | {ci(v['judge_personal'])} | {ci(v.get('judge_cal'))} | {ci(v.get('judge_corr'))} | {ci(v['consensus'])} | {ci(v.get('dS_judge_pp'))} | "
-                     f"{ci(v.get('diff_rec_mean'))} | {ci(v.get('diff_truth_hero'))} | {ci(v.get('diff_offrole'))} |")
+            cov = (v.get("rec_coverage") or {}).get("both")
+            L.append(f"| {k} | {ci(v['judge_personal'])} | {ci(v.get('judge_personal_of'))} | {ci(v.get('judge_cal'))} | {ci(v.get('judge_corr'))} | {ci(v['consensus'])} | {ci(v.get('dS_judge_pp'))} | "
+                     f"{ci(v.get('diff_rec_mean'))} | {ci(v.get('diff_rec_paired'))} | {cov if cov is not None else '-'} | {ci(v.get('diff_truth_hero'))} | {ci(v.get('diff_offrole'))} |")
         L += ["", "## Bradley-Terry strengths (logit, GD = 0) and standings", "",
               "| system | BT under J | BT under CONS | standing J % | standing CONS % | degenerate % | healer % | off-role players | GPU+CPU s per draft |",
               "|---|---|---|---|---|---|---|---|---|"]

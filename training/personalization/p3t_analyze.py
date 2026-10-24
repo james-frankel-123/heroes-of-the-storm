@@ -273,6 +273,9 @@ def analyze(contrasts_extra=()):
     idxs = boot_idx(n, B)
     systems = sorted({s for p in P for s in p})
     out = {"lobbies": n, "pairs": len(P), "systems": systems, "attenuation_lambda": attenuation()}
+    _j = json.load(open(os.path.join(RES, "judge_split.json" if SPLIT else "judge.json")))
+    if "cal_a" in _j:
+        out["cal"] = f"{_j['cal_a']:.3f} logit p_cons + {_j['cal_k']:.3f} personal term, fitted this pass"
     # --- head-to-heads of interest
     H = [("aMCTS-cur", "pMCTS-cur"), ("a1step-cur", "p1step-cur"), ("aMCTS-cur", "a1step-cur"),
          ("pMCTS-cur", "pPol-cur"), ("aMCTS-cur", "Real"), ("pMCTS-cur", "Real"), ("aMCTS-cur", "GD"),

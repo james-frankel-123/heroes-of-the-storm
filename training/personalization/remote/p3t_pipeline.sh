@@ -37,24 +37,58 @@ B=/home/max/hots/repo/training/personalization
 #                      with the build, so the refit step is skipped.
 #   unset          ->  the old layout ($B/cache_full, $B/results/rcf_full) and the refit runs.
 if [ -n "${P3T_BUILD:-}" ]; then
-  CROOT=$B/cache_def_$P3T_BUILD; RROOT=$B/results/def_$P3T_BUILD
+  CROOT0=$B/cache_def_$P3T_BUILD; RROOT0=$B/results/def_$P3T_BUILD
   : "${P3T_RCF_ROWS:?set P3T_RCF_ROWS to the merged-rows file of the build, see the manifest}"
 else
-  CROOT=$B/cache_full; RROOT=$B/results/rcf_full
-  P3T_RCF_ROWS=${P3T_RCF_ROWS:-$CROOT/merged_rows_full_1017.npz}
+  CROOT0=$B/cache_full; RROOT0=$B/results/rcf_full
+  P3T_RCF_ROWS=${P3T_RCF_ROWS:-$CROOT0/merged_rows_full_1017.npz}
 fi
-ROOTENV="P3T_CACHE_ROOT=$CROOT P3T_RESULTS_ROOT=$RROOT P3T_RCF_ROWS=$P3T_RCF_ROWS"
+# Passes (review C2/C8/C16, 2026-10-24): each model pass runs in its own namespace on every host,
+#   cache  $CROOT0_<pass>/   results  $RROOT0_<pass>/
+# whose entries are symlinks to the build's inputs (everything but p3t/, p3t_walk_*, p3t_vintages.json),
+# so drafts, scores, walk queries, the vintage table (P3T_VINTAGES) and every result JSON of one pass
+# never meet the other's. P3T_PASS is required with P3T_BUILD (p3t_definitive.sh sets it).
+if [ -n "${P3T_PASS:-}" ]; then
+  CROOT=${CROOT0}_$P3T_PASS; RROOT=${RROOT0}_$P3T_PASS; TAG=${P3T_BUILD:-full}_$P3T_PASS
+else
+  [ -z "${P3T_BUILD:-}" ] || { echo "P3T_BUILD needs P3T_PASS (run p3t_definitive.sh)"; exit 2; }
+  CROOT=$CROOT0; RROOT=$RROOT0; TAG=""
+fi
+SMOKE=${P3T_SMOKE:-0}
+ROOTENV="P3T_CACHE_ROOT=$CROOT P3T_RESULTS_ROOT=$RROOT P3T_RCF_ROWS=$P3T_RCF_ROWS P3T_VINTAGES=$RROOT/p3t_vintages.json"
+# stage sizes (full run), and the smoke test's: every stage runs, at small sizes
+PROBE_N=500; PROBE_RUN=""; PP_LOB=3000; SP_ARGS=":--iters:4:--rosters:4096:--sims:800"; AGREE=20000; DR_EP=""
+TOURNEY="--schedule:all:--only-ready"; TUNE="--schedule:tune"; ABLATION="--schedule:ablation"
+PARTY_EFF=""; PARTY_GRID=""; PARTY_LOCK=""
+if [ "$SMOKE" = 1 ]; then
+  ROOTENV="$ROOTENV P3T_LOBBIES=24 P3T_N_PARTY=40"
+  PROBE_N=40; PROBE_RUN=":--systems:aMCTS-cur:--configs:F:400"; PP_LOB=200; SP_ARGS=":--iters:1:--rosters:256:--sims:100"
+  AGREE=400; DR_EP=":--epochs:1"
+  TOURNEY="--pairs:x-combo1-dr-chance__aMCTS-cur,aMCTS-cur__x-combo1-dr-chance,aMCTS-cur__GD,GD__aMCTS-cur"
+  TUNE="--pairs:x-combo1-dr-chance__pMCTS-cur,pMCTS-cur__x-combo1-dr-chance"; ABLATION=""
+  PARTY_EFF=":--only:eff_m1_t0,eff_m2_t1"
+  PARTY_GRID=":--only:grid_m1_0_t0_ban,grid_m1_4_t0_ban,grid_m1_0_t1_noban,grid_m1_4_t1_noban"
+  PARTY_LOCK=":--only:lock_m1_t0_ban,lock_m1_t1_noban"
+fi
 STAMP=$(date +%m%d%H%M)
 RELAY=${P3T_RELAY:-/tmp/p3t_relay_$STAMP}
 JOB=training/personalization/remote/p3_job.sh
 
 wait_job() {   # host name: poll hotsjob state until the job ends; fail on anything but completed
-  local h=$1 n=$2 st
+  # (review C5/R06) a failed or empty status poll (ssh hiccup) is "unknown": keep polling; give up
+  # only after P3T_POLL_UNKNOWN_MAX seconds of nothing but unknown answers
+  local h=$1 n=$2 st since=""
+  local umax=${P3T_POLL_UNKNOWN_MAX:-3600}
   while true; do
-    st=$(hotsjob "$h" state "$n" 2>/dev/null | tail -1)
+    st=$(hotsjob "$h" state "$n" 2>/dev/null | tail -1) || st=""
     case "$st" in
       completed) echo "$(date -Is) $n completed"; return 0 ;;
       failed|died|paused) echo "$(date -Is) $n $st"; return 1 ;;
+      running|queued|starting) since="" ;;
+      *) [ -n "$since" ] || since=$(date +%s)
+         if [ $(( $(date +%s) - since )) -gt "$umax" ]; then
+           echo "$(date -Is) $n: status unknown for over ${umax}s ('$st'); giving up"; return 1
+         fi ;;
     esac
     sleep 60
   done
@@ -89,24 +123,51 @@ push_gpu_results() {  # the 5090's opponent and ban-holder fits, read by the 308
   done
   nice -n 19 rsync -t --rsync-path="$(remote_rsync $GPU2)" "$RELAY/opp_dr.json" "$RELAY/opp_holder.json" "$GPU2:$RROOT/p3t/"
 }
-fetch_vintages() {
-  nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$B/p3t_vintages.json" training/personalization/
-  for h in $CPU $GPU; do training/personalization/remote/p3t_sync.sh $h; done
+fetch_vintages() {   # this pass's vintage table (combfit, vnet write it on the CPU host) to the GPU hosts
+  mkdir -p "$RELAY"
+  nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$RROOT/p3t_vintages.json" "$RELAY/"
+  for h in $HOSTS; do
+    [ "$h" = "$CPU" ] || nice -n 19 rsync -t --rsync-path="$(remote_rsync $h)" "$RELAY/p3t_vintages.json" "$h:$RROOT/"
+  done
 }
+HOSTS=$(printf '%s\n' $CPU $GPU $GPU2 | awk '!seen[$0]++' | tr '\n' ' ')
 
-for h in $CPU $GPU; do training/personalization/remote/p3t_sync.sh $h; done
+for h in $HOSTS; do training/personalization/remote/p3t_sync.sh $h; done
+# the pass namespace on every host (idempotent)
+if [ -n "$TAG" ]; then
+  for h in $HOSTS; do
+    ssh "$h" "$(remote_shell "$h")" <<NS
+set -e
+for pair in "$CROOT0 $CROOT" "$RROOT0 $RROOT"; do
+  set -- \$pair; src=\$1; dst=\$2
+  mkdir -p "\$dst/p3t"
+  [ -d "\$src" ] || continue
+  for f in "\$src"/* "\$src"/.[!.]*; do
+    [ -e "\$f" ] || continue
+    b=\$(basename "\$f")
+    case "\$b" in p3t|p3t_walk_*|p3t_vintages.json|manifest.json) continue ;; esac
+    [ -e "\$dst/\$b" ] || ln -s "\$(readlink -f "\$f")" "\$dst/\$b"
+  done
+done
+echo "namespace $TAG ready on \$(hostname)"
+NS
+  done
+fi
 
 # Inputs (2026-10-22): the pipeline refuses to start unless the definitive input manifest
 # (personalization/p3_manifest.py, shared with the personalization lane) verifies on both hosts.
 MANIFEST=${P3T_MANIFEST:?set P3T_MANIFEST to the definitive manifest (path relative to training/)}
-for h in $CPU $GPU; do
-  P3_CORES=0-3 P3_MEM=4G P3_THREADS=1 $JOB $h "p3t_manifest_$STAMP" python personalization/p3_manifest.py verify "$MANIFEST"
+# (review C2) the CPU host holds every input: the full manifest; the GPU hosts hold the tournament
+# inputs only: --role tournament
+for h in $HOSTS; do
+  role=""; [ "$h" = "$CPU" ] || role="--role tournament"
+  P3_CORES=0-3 P3_MEM=4G P3_THREADS=1 $JOB $h "p3t_manifest_$STAMP" python personalization/p3_manifest.py verify "$MANIFEST" $role
   wait_job $h "p3t_manifest_$STAMP" || { echo "manifest does not verify on $h: refusing to start"; exit 1; }
 done
 # Player states (coordinator, 2026-10-22): the definitive tournament uses the personalization
-# lane's chosen model; the old full_ms states are the sensitivity. Two passes of this script:
+# lane's chosen model; the old full_ms states are the sensitivity. Two passes of this script, each in
+# its own namespace (p3t_definitive.sh runs them, with the answer and check steps between):
 #   P3T_STATES=record  full_ms states, every walk's query list written to $CROOT/p3t_walk_queries
-#                      (archive $CROOT/p3t and $RROOT/p3t as *_oldmodel afterwards)
 #   P3T_STATES=replay  P3T_WALK_ANSWERS=<dir>: the lane's answers to those queries replace the walk
 case "${P3T_STATES:-record}" in
   record) WALKENV="P3T_WALK_RECORD=$CROOT/p3t_walk_queries" ;;
@@ -145,21 +206,21 @@ run_cpu jsplit env P3T_SPLIT=1 $STEP p3t_judge.py:fit
 run_cpu tunesel env P3T_LOBBYSET=tune $STEP p3t_tourney.py:select
 # the party study's lobby set, before any lobby that fits a drafter component is drawn
 run_cpu partysel env P3T_LOBBYSET=party $STEP p3t_party.py:select
-run_cpu probesel $STEP p3t_probe.py:extract p3t_backtest.py:forced
+run_cpu probesel $STEP p3t_probe.py:extract:--n:$PROBE_N p3t_backtest.py:forced
 fetch_vintages
 relay $CPU $GPU
 
 # 3. GPU: probe, player-feature prior targets, self-play prior, agreement backtests, DraftRec (5090)
-run_gpu gpuprep $STEP p3t_probe.py:run p3t_pprior.py:targets:--lobbies:3000 \
-  p3t_selfplay.py:--iters:4:--rosters:4096:--sims:800 p3t_backtest.py:agree:--games:20000:--vintage:cur_bc \
-  p3t_backtest.py:agree:--games:20000:--vintage:cur
+run_gpu gpuprep $STEP p3t_probe.py:run$PROBE_RUN p3t_pprior.py:targets:--lobbies:$PP_LOB \
+  p3t_selfplay.py$SP_ARGS p3t_backtest.py:agree:--games:$AGREE:--vintage:cur_bc \
+  p3t_backtest.py:agree:--games:$AGREE:--vintage:cur
 relay $GPU $CPU
 run_cpu priors $STEP p3t_pprior.py:train p3t_oppmodel.py p3t_rprior.py:data_search p3t_rprior.py:train:--signal:search \
   p3t_rprior.py:data_bcow p3t_rprior.py:train:--signal:bcow p3t_rprior.py:data_onestep p3t_rprior.py:train:--signal:onestep \
   p3t_draftrec.py:data
 relay $CPU $GPU
 push_results
-run_gpu draftrec $STEP p3t_draftrec.py:train p3t_draftrec.py:train:--final:--keep-epoch:auto p3t_draftrec.py:hist \
+run_gpu draftrec $STEP p3t_draftrec.py:train$DR_EP p3t_draftrec.py:train:--final:--keep-epoch:auto$DR_EP p3t_draftrec.py:hist \
   p3t_probe.py:timing
 # DraftRec opponent inside the search (p3t_oppdr.py): fit lobbies and histories (CPU host), the fit (5090)
 run_cpu oppdrhist $STEP p3t_oppdr.py:lobbies p3t_oppdr.py:hist
@@ -170,14 +231,14 @@ push_gpu_results
 
 # 4. the tournament (every ready pair), the tune set, the design ablation (5090)
 relay $GPU $GPU2
-run_gpu_pair tourney $STEP p3t_tourney.py:run:--schedule:all:--only-ready
-run_gpu tune env P3T_LOBBYSET=tune $STEP p3t_tourney.py:run:--schedule:tune
-run_gpu ablation $STEP p3t_tourney.py:run:--schedule:ablation   # leftovers only (all includes ablation)
+run_gpu_pair tourney $STEP p3t_tourney.py:run:$TOURNEY
+run_gpu tune env P3T_LOBBYSET=tune $STEP p3t_tourney.py:run:$TUNE
+[ -z "$ABLATION" ] || run_gpu ablation $STEP p3t_tourney.py:run:$ABLATION   # leftovers only (all includes ablation)
 
 # 5. scoring and analysis (CPU host)
 relay $GPU $CPU
-run_cpu score $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py p3t_backtest.py:agree_analyze:--games:20000:--vintage:cur_bc \
-  p3t_backtest.py:agree_analyze:--games:20000:--vintage:cur
+run_cpu score $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py p3t_backtest.py:agree_analyze:--games:$AGREE:--vintage:cur_bc \
+  p3t_backtest.py:agree_analyze:--games:$AGREE:--vintage:cur
 run_cpu scoresplit env P3T_SPLIT=1 $STEP p3t_judge.py:score p3t_diag.py p3t_analyze.py
 run_cpu scoretune env P3T_LOBBYSET=tune $STEP p3t_judge.py:score p3t_analyze.py
 
@@ -186,16 +247,20 @@ run_cpu scoretune env P3T_LOBBYSET=tune $STEP p3t_judge.py:score p3t_analyze.py
 # team turns, both sides, with and without the top-ranked player in the party; aware and generic), and
 # the solo lock-or-wait arm. Configurations sharded across both GPUs; scored on the CPU host (judge).
 relay $GPU $GPU2
-run_gpu_pair partyeff env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:effect
-run_gpu_pair partygrid env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:grid
-run_gpu_pair partylock env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:lock
+run_gpu_pair partyeff env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:effect$PARTY_EFF
+run_gpu_pair partygrid env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:grid$PARTY_GRID
+run_gpu_pair partylock env P3T_LOBBYSET=party $STEP p3t_party.py:run:--plan:lock$PARTY_LOCK
 relay $GPU $CPU
 run_cpu partyscore env P3T_LOBBYSET=party $STEP p3t_party.py:score p3t_party_report.py
 
-# 6. results home (small JSON only) and the tables
-mkdir -p training/personalization/results/p3t
-for h in $CPU $GPU; do
-  nice -n 19 rsync -t --rsync-path="$(remote_rsync $h)" "$h:$RROOT/p3t/*.json" training/personalization/results/p3t/ || true
+# 6. results home (small JSON only) and the tables, per build and pass (review C16)
+LRES=training/personalization/results/p3t${TAG:+_$TAG}
+mkdir -p "$LRES"
+for h in $HOSTS; do
+  nice -n 19 rsync -t --rsync-path="$(remote_rsync $h)" "$h:$RROOT/p3t/*.json" "$LRES/"
 done
-python3 training/personalization/p3t_report.py
+nice -n 19 rsync -t --rsync-path="$(remote_rsync $CPU)" "$CPU:$RROOT/p3t_vintages.json" "$LRES/"
+[ -s "$LRES/analysis.json" ] || { echo "no analysis.json collected from $RROOT: the pass is incomplete"; exit 1; }
+if [ -n "$TAG" ]; then P3T_REPORT_DIR=$PWD/$LRES python3 training/personalization/p3t_report.py
+else python3 training/personalization/p3t_report.py; fi
 echo "P3T PIPELINE DONE $(date -Is)"
