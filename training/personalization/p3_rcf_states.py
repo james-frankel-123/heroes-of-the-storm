@@ -74,7 +74,7 @@ def evidence_mask(day, ev_lo, parity, ex_lo, ex_hi):
     return m
 
 
-def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, statlin):
+def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, statlin, xmetrics=None):
     """All-hero state of each query (player qpid, rows with day <= qday that
     pass row_mask). Same information filter as p3_rcf.online_walk (Kalman
     drift on win and metric cells). Returns per query (nq, H): mean, var
@@ -97,6 +97,10 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
     Nslf = np.zeros((npl, H), np.float32)                    # every slot row (experience offset)
     Xst = np.zeros((npl, H, Mn), np.float32)
     Cst = np.zeros((npl, H, Mn), np.float32)
+    Mx = 0 if xmetrics is None else xmetrics.shape[1]
+    if Mx:
+        XXst = np.zeros((npl, H, Mx), np.float32)
+        CXst = np.zeros((npl, H, Mx), np.float32)
     Lst = np.full((npl, H), -1, np.int32)
     eps2 = np.asarray(par.eps2, np.float32)
     beta, mF, sF = (np.asarray(statlin["beta"]), np.asarray(statlin["mean"]), np.asarray(statlin["sd"]))
@@ -132,6 +136,10 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
                 fm_ = (1.0 / (1.0 + q_met * (Cst[cp_, ch_] / eps2[None, :]) * dt[:, None])).astype(np.float32)
                 Xst[cp_, ch_] *= fm_
                 Cst[cp_, ch_] *= fm_
+                if Mx:
+                    fx_ = (1.0 / (1.0 + q_met * CXst[cp_, ch_] * dt[:, None])).astype(np.float32)
+                    XXst[cp_, ch_] *= fx_
+                    CXst[cp_, ch_] *= fx_
                 Lst[cp_, ch_] = dd
                 np.add.at(Sst, (pi, hi), aug["r_adj"][rr] / aug["v"][rr])
                 np.add.at(Pst, (pi, hi), 1.0 / aug["v"][rr])
@@ -141,6 +149,11 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
                 wr = mweights[rr].astype(np.float32)
                 np.add.at(Xst, (pi, hi), np.where(g, Xm, 0) * wr[:, None])
                 np.add.at(Cst, (pi, hi), g.astype(np.float32) * wr[:, None])
+                if Mx:
+                    Xx = xmetrics[rr].astype(np.float32)
+                    gx = ~np.isnan(Xx)
+                    np.add.at(XXst, (pi, hi), np.where(gx, Xx, 0))
+                    np.add.at(CXst, (pi, hi), gx.astype(np.float32))
             ap = e
         q = o[a_:b_]
         pq = cmap[qpid[q]]
@@ -159,7 +172,13 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
         out["last"][q] = Lst[pq]
         Fh = Xq / (Cq + 5.0)                                 # (b, H, M)
         Fa = Xq.sum(1) / (Cq.sum(1) + 5.0)                   # (b, M)
-        F = np.concatenate([Fh, np.repeat(Fa[:, None, :], H, 1)], 2)
+        parts_ = [Fh, np.repeat(Fa[:, None, :], H, 1)]
+        if Mx:
+            CXq = CXst[pq]
+            fx_ = 1.0 / (np.float32(1.0) + np.float32(q_met) * CXq * dtq.astype(np.float32)[:, :, None])
+            XXq, CXq = XXst[pq] * fx_, CXq * fx_
+            parts_ += [XXq / (CXq + 5.0), np.repeat((XXq.sum(1) / (CXq.sum(1) + 5.0))[:, None, :], H, 1)]
+        F = np.concatenate(parts_, 2)
         out["stat"][q] = (((F - mF) / sF) @ beta).astype(np.float32)
     return out
 
@@ -236,13 +255,15 @@ def answer(qdir, adir, only=None):
                 meta = arm_meta(armn)
                 par = R.get_params(ptag)
                 mets, mw = R.aug_metrics(aug, par.meta.get("sb", "legacy"), d)
+                ext = (meta.get("statlin") or {}).get("extra")
+                xm = R.aug_metrics(aug, ext, d)[0] if ext else None
                 lay = np.load(os.path.join(R.RCF_CACHE, f"{stem}_layer.npz"))
-                cache[armn] = (meta, par, mets, mw, lay)
-            meta, par, mets, mw, lay = cache[armn]
+                cache[armn] = (meta, par, mets, mw, lay, xm)
+            meta, par, mets, mw, lay, xm = cache[armn]
             filt = lambda dd: evidence_mask(dd, ev_lo, par_, ex_lo, ex_hi)
             rm = filt(aug["day"].astype(np.int64))
             st = state_walk(aug, par, qpid[idx], Q["as_of_day"][idx].astype(np.int64), rm, mets, mw,
-                            meta["q_win"], meta["q_met"], meta["statlin"])
+                            meta["q_win"], meta["q_met"], meta["statlin"], xmetrics=xm)
             tq = Q["as_of_day"][idx].astype(np.int64) + 1
             # n_all / np_all: evidence-window counts (the record the shrinkage and calibration describe);
             # n_full: every history row (output n, the new-hero flag); slot counts for the offset

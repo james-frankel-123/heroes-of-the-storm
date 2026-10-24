@@ -770,7 +770,8 @@ def pred_ll_np(par, S1, P1, S2, P2, chunk=20000):
 # ------------------------------------------------------------------ online
 
 def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights=None, hl_win=None, hl_met=None,
-                parts=False, want_all=False, q_win=None, q_met=None, metric_feats=False, feat_mask=None):
+                parts=False, want_all=False, q_win=None, q_met=None, metric_feats=False, feat_mask=None,
+                xmetrics=None):
     """As-of posterior for each query slot row (indices into the slot table,
     any order). State holds aug rows with day <= query day - lag; every
     query sees only rows on earlier days, so its own row (same day) and its
@@ -816,6 +817,13 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
         mdt = np.float32
         Xst = np.zeros((npl, H, Mn), mdt)
         Cst = np.zeros((npl, H, Mn), mdt)
+    # extra scoreboard metrics for the direct channel only (e.g. team shares):
+    # same as-of accumulation and the same drift / decay as the model's metrics
+    use_x = metric_feats and use_m and xmetrics is not None
+    Mx = xmetrics.shape[1] if use_x else 0
+    if use_x:
+        XXst = np.zeros((npl, H, Mx), np.float32)
+        CXst = np.zeros((npl, H, Mx), np.float32)
     # query rows in the aug order
     inv = np.full(int(slot.max()) + 1, -1, np.int64)
     inv[slot[slot >= 0]] = np.flatnonzero(slot >= 0)
@@ -840,7 +848,7 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
         fpos = np.full(nq, -1, np.int64)
         fpos[np.flatnonzero(fm_q)] = np.arange(int(fm_q.sum()))
         fpos_s = fpos[oq]                                   # in the walk's sorted order
-        mfeat = np.empty((int(fm_q.sum()), 2 * Mn), np.float32)
+        mfeat = np.empty((int(fm_q.sum()), 2 * Mn + 2 * Mx), np.float32)
     if parts:
         # the prior for theta at the query hero from everything except that
         # hero's own win evidence (m0, v0), and the own evidence (Sh, Ph)
@@ -877,6 +885,10 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
                     fm_ = (1.0 / (1.0 + qm * (Cst[cp_, ch_] / eps2[None, :]) * dt[:, None])).astype(np.float32)
                     Xst[cp_, ch_] *= fm_
                     Cst[cp_, ch_] *= fm_
+                if use_x and qm > 0:
+                    fx_ = (1.0 / (1.0 + qm * CXst[cp_, ch_] * dt[:, None])).astype(np.float32)
+                    XXst[cp_, ch_] *= fx_
+                    CXst[cp_, ch_] *= fx_
                 Lst[cp_, ch_] = dd
                 np.add.at(Sst, (pi, hi), aug["r_adj"][rr] / aug["v"][rr])
                 np.add.at(Pst, (pi, hi), 1.0 / aug["v"][rr])
@@ -887,6 +899,11 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
                     wr = np.ones(len(rr), np.float32) if mweights is None else mweights[rr].astype(np.float32)
                     np.add.at(Xst, (pi, hi), np.where(g, Xm, 0) * wr[:, None])
                     np.add.at(Cst, (pi, hi), g.astype(np.float32) * wr[:, None])
+                if use_x:
+                    Xx = xmetrics[rr].astype(np.float32)
+                    gx = ~np.isnan(Xx)
+                    np.add.at(XXst, (pi, hi), np.where(gx, Xx, 0))
+                    np.add.at(CXst, (pi, hi), gx.astype(np.float32))
             ap = e
         elif e > ap:
             rr_all = np.arange(ap, e)
@@ -906,6 +923,12 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
                     wr = (wr * np.exp(lm * (day[rr] - d0))).astype(mdt)
                     np.add.at(Xst, (pi, hi), np.where(g, Xm, 0) * wr[:, None])
                     np.add.at(Cst, (pi, hi), g.astype(mdt) * wr[:, None])
+                if use_x:
+                    Xx = xmetrics[rr].astype(np.float32)
+                    gx = ~np.isnan(Xx)
+                    sx = np.exp(lm * (day[rr] - d0)).astype(np.float32)
+                    np.add.at(XXst, (pi, hi), np.where(gx, Xx, 0) * sx[:, None])
+                    np.add.at(CXst, (pi, hi), gx.astype(np.float32) * sx[:, None])
             ap = e
         q = qa_s[a_:b_]
         pq, hq = pid[q], hero[q]
@@ -921,10 +944,16 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
                 fm_ = 1.0 / (np.float32(1.0) + np.float32(qm) * (Cq / eps2[None, None, :])
                              * dtq.astype(np.float32)[:, :, None])
                 kw["X"], kw["Cm"] = Xst[pq] * fm_, Cq * fm_
+            if use_x:
+                CXq = CXst[pq]
+                fx_ = 1.0 / (np.float32(1.0) + np.float32(qm) * CXq * dtq.astype(np.float32)[:, :, None])
+                XXq, CXq = XXst[pq] * fx_, CXq * fx_
         else:
             if use_m:
                 fm = np.float32(np.exp(-lm * (t - d0)))
                 kw["X"], kw["Cm"] = Xst[pq] * fm, Cst[pq] * fm
+            if use_x:
+                XXq, CXq = XXst[pq] * fm, CXst[pq] * fm
             fw = np.exp(-lw * (t - d0))
             Sq, Pq = Sst[pq] * fw, Pst[pq] * fw
         mean[a_:b_], var[a_:b_] = posterior(par, Sq, Pq, hq, **kw)
@@ -944,7 +973,10 @@ def online_walk(aug, query_slots, par, lag=1, metrics=None, use_z=True, mweights
                 ar_ = np.flatnonzero(sel)
                 Xq, Cq_ = kw["X"], kw["Cm"]
                 mfeat[fp[sel], :Mn] = Xq[ar_, hq[ar_]] / (Cq_[ar_, hq[ar_]] + 5.0)
-                mfeat[fp[sel], Mn:] = Xq[ar_].sum(1) / (Cq_[ar_].sum(1) + 5.0)
+                mfeat[fp[sel], Mn:2 * Mn] = Xq[ar_].sum(1) / (Cq_[ar_].sum(1) + 5.0)
+                if use_x:
+                    mfeat[fp[sel], 2 * Mn:2 * Mn + Mx] = XXq[ar_, hq[ar_]] / (CXq[ar_, hq[ar_]] + 5.0)
+                    mfeat[fp[sel], 2 * Mn + Mx:] = XXq[ar_].sum(1) / (CXq[ar_].sum(1) + 5.0)
         Nh[a_:b_] = Nst[pq, hq]
         Np[a_:b_] = Nst[pq].sum(1)
     back = np.empty(nq, np.int64)
@@ -1012,7 +1044,10 @@ def online(a):
     else:
         mets, mw = aug_metrics(aug, par.meta.get("sb", "legacy"), d) if par.G is not None else (None, None)
         fmask = (w[qwalk] > 0) if getattr(a, "statlin", False) else None
-        kw_walk = dict(metrics=mets, mweights=mw, hl_win=getattr(a, "hl_win", None),
+        xm = None
+        if getattr(a, "statlin_extra", None):
+            xm, _ = aug_metrics(aug, a.statlin_extra, d)
+        kw_walk = dict(metrics=mets, mweights=mw, xmetrics=xm, hl_win=getattr(a, "hl_win", None),
                        hl_met=getattr(a, "hl_met", None), parts=bool(ppath or tail),
                        q_win=getattr(a, "q_win", None), q_met=getattr(a, "q_met", None),
                        metric_feats=bool(getattr(a, "statlin", False)))
@@ -1101,6 +1136,7 @@ def online(a):
         beta = np.linalg.solve(A + lam * np.eye(F.shape[1]), (Fz[v1].T / wv[v1]) @ tgt[v1])
         pred = pred + Fz @ beta
         stat_meta = {"ridge": lam, "beta": beta.tolist(), "mean": mF.tolist(), "sd": sF.tolist(),
+                     "extra": getattr(a, "statlin_extra", None),
                      "features": "per metric: X_hero / (C_hero + 5), then X_all / (C_all + 5), as-of walk state"}
         del F, Fz, A
         res.pop("mfeat", None)
@@ -1507,6 +1543,7 @@ def main():
     ap.add_argument("--parts", help="online: cache file for the walk (with leave-own-hero-out parts)")
     ap.add_argument("--tail", help="online: tail card (p3_rcf_tails.py), fit on V1 slots")
     ap.add_argument("--postcal", action="store_true", help="online: smooth calibration of the slot prediction (V1)")
+    ap.add_argument("--statlin-extra", help="online: extra scoreboard card for the direct channel only (e.g. share6)")
     ap.add_argument("--statlin", action="store_true", help="online: direct linear metric channel (ridge on V1)")
     ap.add_argument("--layer-arm", help="cover: add this online arm's temporal layer (needs --parts)")
     ap.add_argument("--tail-args", help="online: tail card options (json)")

@@ -233,16 +233,21 @@ def test_r9_metric_feats():
     par = rand_params(rng, implicit=False)
     aug, Z, wp, y = walk_fixture(rng)
     q = rng.choice(np.flatnonzero(aug["day"] > 1100), 25, replace=False)
+    Xx = rng.standard_normal((len(aug["day"]), 2)).astype(np.float32)
     for kw in ({}, {"q_win": 2e-5, "q_met": 1e-3}, {"hl_win": 300.0, "hl_met": 300.0}):
+        kw = dict(kw, xmetrics=Xx)
         base = R.online_walk(aug, q, par, metrics=Z, metric_feats=True, **kw)
+        assert base["mfeat"].shape[1] == 2 * Z.shape[1] + 4
         caught = 0
         for j, i in enumerate(q):
             Z2 = Z.copy()
             later = (aug["day"] >= aug["day"][i]) & (aug["pid"] == aug["pid"][i])
             Z2[later] = 4.0
-            r2 = R.online_walk(aug, np.array([i]), par, metrics=Z2, metric_feats=True, **kw)
+            kw2 = dict(kw, xmetrics=Xx.copy())
+            kw2["xmetrics"][later] = -3.0
+            r2 = R.online_walk(aug, np.array([i]), par, metrics=Z2, metric_feats=True, **kw2)
             assert np.allclose(r2["mfeat"][0], base["mfeat"][j], atol=1e-6)
-            leak = R.online_walk(aug, np.array([i]), par, metrics=Z2, metric_feats=True, lag=0, **kw)
+            leak = R.online_walk(aug, np.array([i]), par, metrics=Z2, metric_feats=True, lag=0, **kw2)
             caught += not np.allclose(leak["mfeat"][0], base["mfeat"][j], atol=1e-6)
         assert caught == len(q), caught
 

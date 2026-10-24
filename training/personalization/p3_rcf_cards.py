@@ -62,6 +62,8 @@ from p3_rcf_data import METRICS, LEN_EDGES, RCF
 
 E_LAST = C.day_of("2026-02-10")
 K_SHRINK = 100.0
+# team-share card (P3_PLAY_BY_PLAY): the player's share of the team total of these stats
+SHARE_METRICS = ["hero_damage", "damage_taken", "healing", "siege_damage", "experience_contribution", "takedowns"]
 CARDS = ["base", "a_shrink", "a_tier", "b_len", "c_share", "c_opp", "d_rank", "d_wins", "e_weight"]
 
 
@@ -78,7 +80,7 @@ def read_export(tag, chunk=1_000_000):
     p = os.path.join(C.CACHE, "export", tag, "scoreboard.csv.gz")
     t0 = time.time()
     cols = ["replay_id", "blizz_id", "hero", "team", "winner", "league_tier", "end_ts", "game_map",
-            "game_length"] + METRICS
+            "game_length"] + METRICS + [m for m in SHARE_METRICS if m not in METRICS]
     hero_code, map_code = {}, {}
     parts = {k: [] for k in cols}
 
@@ -97,7 +99,7 @@ def read_export(tag, chunk=1_000_000):
         parts["game_map"].append(np.array([map_code.setdefault(x if x != "" else "?", len(map_code)) for x in T[7]],
                                           np.int32))
         parts["game_length"].append(np.array([fnum(x) for x in T[8]], np.float64))
-        for k, m in enumerate(METRICS):
+        for k, m in enumerate(cols[9:]):
             parts[m].append(np.array([fnum(x) for x in T[9 + k]], np.float32))
     with gzip.open(p, "rt", newline="") as f:
         rd = csv.reader(f)
@@ -137,7 +139,7 @@ def load(tag):
     real = np.where(np.isnan(lt), 6, lt - 1)              # NULL = Master (live DB scheme)
     R["tier"] = np.select([real <= 2, real == 3, real == 4, real == 5], [0, 1, 2, 3], 4).astype(np.int64)
     _, R["map"] = np.unique(df["game_map"].astype(str), return_inverse=True)
-    R["V"] = {m: df[m].astype(np.float64) for m in METRICS}
+    R["V"] = {m: df[m].astype(np.float64) for m in dict.fromkeys(METRICS + SHARE_METRICS)}
     R["H"] = len(names)
     R["fit"] = (R["day"] >= C.day_of(C.E_START)) & (R["day"] <= E_LAST) & (R["glen"] > 3)
     _, R["g"] = np.unique(R["replay_id"], return_inverse=True)
@@ -257,7 +259,7 @@ def card_len(R, m):
     return z
 
 
-def card_share(R, m):
+def card_share(R, m, mode="hard"):
     v = R["V"][m]
     miss = np.isnan(v) | (R["glen"] <= 3)
     v0 = np.where(np.isnan(v), 0.0, v)
@@ -267,7 +269,7 @@ def card_share(R, m):
     share = np.where(tot > 0, v0 / np.maximum(tot, 1e-9), np.nan)
     miss = miss | np.isnan(share) | (n10 != 10)
     share = np.where(np.isnan(share), 0.0, share)
-    return standardize(R, share, miss, v0)
+    return standardize(R, share, miss, v0, mode=mode)
 
 
 def card_opp(R, m, roles):
@@ -362,9 +364,13 @@ def build(tag, cards):
     roles = C.hero_meta(np.load(os.path.join(C.CACHE, "x_slots_ext.npz"))["hero_names"])["blizz"]
     os.makedirs(RCF, exist_ok=True)
     for card in cards:
-        Z = np.full((len(R["hero"]), len(METRICS)), np.nan, np.float32)
-        for k, m in enumerate(METRICS):
-            if card in ("base", "e_weight", "d_wins", "a_shrink", "a_tier"):
+        mets = SHARE_METRICS if card == "share6" else METRICS
+        Z = np.full((len(R["hero"]), len(mets)), np.nan, np.float32)
+        for k, m in enumerate(mets):
+            if card == "share6":
+                # shares standardized like a_shrink: (hero, map, length, outcome) shrunk to (hero, length, outcome)
+                z = card_share(R, m, mode="shrink")
+            elif card in ("base", "e_weight", "d_wins", "a_shrink", "a_tier"):
                 t, miss, x = base_t(R, m)
                 z = standardize(R, t, miss, x, mode="hard" if card in ("base", "e_weight", "d_wins") else "shrink",
                                 clip=2.5 if card == "d_wins" else 5.0, tier=card == "a_tier")
@@ -379,13 +385,13 @@ def build(tag, cards):
             Z[:, k] = z
         W = np.ones(len(Z), np.float16)
         info = {"rows": int(len(Z)), "rows_any_value": int((~np.isnan(Z)).any(1).sum()),
-                "e_sd": {m: float(np.nanstd(Z[R["fit"], k])) for k, m in enumerate(METRICS)}}
+                "e_sd": {m: float(np.nanstd(Z[R["fit"], k])) for k, m in enumerate(mets)}}
         if card == "e_weight":
             W, info["weights"] = weights(R, Z)
             print(f"  [e_weight] weight by kill-margin quintile {np.round(info['weights']['weight_by_quintile'], 3)}",
                   flush=True)
         np.savez(card_path(card), replay_id=R["replay_id"], blizz_id=R["blizz_id"], Z=Z.astype(np.float16), W=W,
-                 metrics=np.array(METRICS), info=np.array(json.dumps(info)))
+                 metrics=np.array(mets), info=np.array(json.dumps(info)))
         print(f"[{card}] wrote {card_path(card)}; rows with a value {info['rows_any_value']:,} "
               f"({time.time() - t0:.0f}s)", flush=True)
 

@@ -89,9 +89,9 @@ M="python personalization/p3_manifest.py add $MAN --role personalization --host 
 \$M personalization/cache/export/$D/stamps.npz --stage a1-parse
 \$M \$DEF_CACHE/{players_2024q2,hero_mmr_2024q2,gametime_2024q2,mmr_stamps_db,hs_slots,hs_kernels,x_slots_ext,mmr_at_game}.npz --stage a1-cache
 \$M \$P3_RCF_ROWS --stage merged-rows
-\$M \$DEF_CACHE/rcf/sb_a_shrink.npz --stage card
+\$M \$DEF_CACHE/rcf/sb_a_shrink.npz \$DEF_CACHE/rcf/sb_share6.npz --stage card
 \$M \$DEF_CACHE/rcf/fit_merged.npz \$DEF_CACHE/rcf/fitm_merged_a_shrink.npz \$DEF_CACHE/rcf/aug_merged.npz \
-   \$DEF_CACHE/rcf/aug_merged_mmr.npz \$DEF_CACHE/rcf/zaug_a_shrink_*.npz \$DEF_CACHE/rcf/mmr_coef.npy --stage model-cache
+   \$DEF_CACHE/rcf/aug_merged_mmr.npz \$DEF_CACHE/rcf/zaug_a_shrink_*.npz \$DEF_CACHE/rcf/zaug_share6_*.npz \$DEF_CACHE/rcf/mmr_coef.npy --stage model-cache
 \$M \$DEF_RESULTS/rcf/params/full_ms.npz \$DEF_RESULTS/rcf/params/full_ms.json \$DEF_RESULTS/rcf/params/full_ms_flip.npz \
    \$DEF_RESULTS/rcf/params/full_ms_flip.json --stage fit --host windows-5090-wsl
 \$M \$DEF_CACHE/rcf/parts_full_ms.npz \$DEF_CACHE/rcf/parts_chosen.npz \$DEF_CACHE/rcf/parts_chosen_flip.npz --stage walk-parts

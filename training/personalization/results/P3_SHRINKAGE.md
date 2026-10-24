@@ -223,6 +223,47 @@ Median display sd on V2 + OOT slots:
 
 Numbers: `results/rcf_shrink/rcf/band_chosen.json` and `band_moments.json`.
 
+## 7. Team-share features (adopted 2026-10-24)
+
+Each game gives the player's share of the team total for damage, damage taken, healing, siege, XP and takedowns. Card `share6` standardizes each share within hero × map × length band × outcome, shrunk toward hero × length × outcome. As-of hero means and overall means then enter the direct scoreboard channel next to the a_shrink metrics. They use the same +5 pseudo-game shrinkage and the same 0.4 z/yr drift, and the ridge is refit on V1.
+
+**Coverage.** Shares need all five teammates' rows, so they exist only for corpus games. Heroes Profile full-history rows carry no scoreboard at all, so they lose nothing here relative to the existing scoreboard channel. By metric, coverage is:
+
+| metric | coverage of slot rows |
+|---|---|
+| damage | 99.4% |
+| damage taken | 98.3% |
+| siege | 99.4% |
+| XP | 99.4% |
+| takedowns | 99.0% |
+| healing | 28.2% (masked to heroes where healing is informative) |
+
+**Gain over the chosen model** (log loss ×1000, paired by game; V2 was read before OOT):
+
+| | chosen (LK2_full2) | + shares | diff (SE) |
+|---|---|---|---|
+| V1 | 33.05 | 33.77 | in-sample |
+| V2 | 34.77 | 34.91 | +0.14 (0.15) |
+| OOT | 35.69 | 36.27 | +0.57 (0.08), week-block 95% CI 0.40 to 0.73 |
+
+Accuracy moves from 62.74% to 62.94% on V2 and from 62.71% to 62.75% on OOT.
+
+**Calibration slope by games on the hero** (smooth, V2 + OOT):
+
+| games | chosen | + shares |
+|---|---|---|
+| 0 | 1.07 | 1.06 |
+| 3 | 1.02 | 1.01 |
+| 10 | 1.01 | 1.00 |
+| 30 | 0.96 | 0.95 |
+| 100 | 0.97 | 0.97 |
+| 300 | 0.93 | 0.91 |
+| 1000 | 0.85 | 0.82 |
+
+The overall slope moves from 1.011 to 1.007. RMS of (slope minus 1) moves 0.052 to 0.058 by games, 0.048 to 0.050 by share, and 0.034 to 0.036 by recency. Every change sits inside the player-bootstrap bands.
+
+**Decision: adopted.** OOT clears the CI rule, and calibration moves only within noise. V2 alone would not have established the gain. The definitive chain now builds `share6` (A1 step), walks with `--statlin-extra share6`, and pins `sb_share6` and its aug cache in the manifest. Results are in `results/rcf_shrink/rcf/calib_share.json`.
+
 ## Leak checks
 
 `tests/test_rcf.py`, 9 of 9 pass. New this round:

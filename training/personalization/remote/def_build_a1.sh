@@ -37,6 +37,7 @@ FP=$(ls $P3_CACHE/merged_rows_${D}_*.npz | head -1 | sed 's/.*_//; s/.npz$//')
 export P3_RCF_ROWS=$P3_CACHE/merged_rows_${D}_$FP.npz P3_RCF_KERNELS=$P3_CACHE/hs_kernels.npz
 # 5. scoreboard card a_shrink (full export)
 step cards   $PY personalization/p3_rcf_cards.py --tag "$D" --cards a_shrink
+step share6  $PY personalization/p3_rcf_cards.py --tag "$D" --cards share6
 # 6. compact caches: aug (plain and MMR-adjusted) and the aug-indexed metrics, MMR coefficients
 if [ ! -e $DONE/aug ]; then mark aug
 P3_RCF_WRITE_AUG=1 $PY -c "
@@ -48,6 +49,12 @@ import sys; sys.path.insert(0, 'personalization')
 import p3_rcf as R
 R.load_aug('merged')"
 touch $DONE/aug; fi
+if [ ! -e $DONE/zaug_share6 ]; then mark zaug_share6
+P3_RCF_WRITE_AUG=1 $PY -c "
+import sys; sys.path.insert(0, 'personalization')
+import p3_rcf as R
+d, aug = R.load_aug('merged'); R.aug_metrics(aug, 'share6', d)"
+touch $DONE/zaug_share6; fi
 # 7. fit inputs (predictive split at 2025-03-01)
 step prep    $PY personalization/p3_rcf.py prep --hist merged --sb a_shrink
 echo "A1 BUILD DONE $(date -Is)"

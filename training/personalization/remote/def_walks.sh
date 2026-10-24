@@ -9,7 +9,7 @@ cd "$(dirname "$0")/../.."
 . personalization/remote/def_env.sh "$PWD" "$D"
 PY="python -u personalization/p3_rcf.py online --hist merged"
 QW=$(python -c "print(0.02**2/365)"); QM=$(python -c "print(0.4**2/365)")
-CHOSEN="--layer --q-win $QW --q-met $QM --tail shrinkfn2 --statlin --postcal"
+CHOSEN="--layer --q-win $QW --q-met $QM --tail shrinkfn2 --statlin --statlin-extra share6 --postcal"
 mark() { echo "=== $1 $(date -Is)"; }
 export P3_RCF_SHARDS=${P3_RCF_SHARDS:-3}
 have() { [ -f $DEF_RESULTS/rcf/p3c/$1__merged.npz ] && echo "skip $1 (done)"; }
