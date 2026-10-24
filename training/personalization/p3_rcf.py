@@ -100,7 +100,10 @@ def load_aug(hist):
         z = np.load(cpath)
         aug = {k: z[k] for k in z.files}
         aug["n_players"] = d["n_players"]
-        assert int(aug["n_slots"]) == len(d["pid"]) and str(aug["fingerprint"]) == aug_fingerprint(d)
+        fp = aug_fingerprint(d, hist)
+        assert int(aug["n_slots"]) == len(d["pid"]) and str(aug["fingerprint"]) == fp, \
+            f"aug cache {cpath} is stale (fingerprint {aug['fingerprint']} != {fp}); rebuild it"
+        aug["fingerprint"] = fp
         print(f"  loaded aug cache {cpath}", flush=True)
         return d, aug
     ex = None
@@ -114,6 +117,7 @@ def load_aug(hist):
     aug["r_adj"] = A["r_adj"]
     aug["slot"] = np.where(o < n, o, -1)
     aug["table"] = A["table"]
+    aug["fingerprint"] = aug_fingerprint(d, hist)
     from p3_keys import key_blizz
     rid_all = d["replay_id"].astype(np.int64) if ex is None else np.r_[d["replay_id"].astype(np.int64),
                                                                       ex["replay_id"].astype(np.int64)]
@@ -124,13 +128,31 @@ def load_aug(hist):
         aug[k] = aug[k].astype(dt)
     if os.environ.get("P3_RCF_WRITE_AUG") == "1":
         os.makedirs(RCF_CACHE, exist_ok=True)
-        np.savez(cpath, **{k: v for k, v in aug.items() if k != "n_players"}, n_slots=np.int64(len(d["pid"])),
-                 fingerprint=np.array(aug_fingerprint(d)))
+        np.savez(cpath, **{k: v for k, v in aug.items() if k not in ("n_players", "fingerprint")},
+                 n_slots=np.int64(len(d["pid"])), fingerprint=np.array(aug["fingerprint"]))
         print(f"  wrote aug cache {cpath}", flush=True)
     return d, aug
 
 
-def aug_fingerprint(d):
+_FILE_DIGESTS = {}
+
+
+def file_digest(path):
+    """sha1 of a file's content (first 16 hex), memoized per process."""
+    import hashlib
+    rp = os.path.realpath(path)
+    if rp not in _FILE_DIGESTS:
+        h = hashlib.sha1()
+        with open(rp, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 24), b""):
+                h.update(chunk)
+        _FILE_DIGESTS[rp] = h.hexdigest()[:16]
+    return _FILE_DIGESTS[rp]
+
+
+def aug_fingerprint(d, hist="merged"):
+    """Key of the compact aug cache: the slot rows, the population WP, the MMR
+    coefficients and, for merged histories, the merged-rows file's content."""
     import hashlib
     h = hashlib.sha1()
     for k in ("replay_id", "pid", "hero", "y"):
@@ -138,6 +160,8 @@ def aug_fingerprint(d):
     h.update(np.ascontiguousarray(d["wp_pop"]).tobytes())
     if "mmr_coef" in d:
         h.update(np.round(np.asarray(d["mmr_coef"]), 12).tobytes())
+    if hist == "merged":
+        h.update(file_digest(ROWS).encode())
     return h.hexdigest()[:16]
 
 
@@ -204,11 +228,16 @@ def aug_metrics(aug, card, d=None):
         out[sl] = Z[aug["slot"][sl]]
         return out, np.ones(n, np.float32)
     zc = os.path.join(RCF_CACHE, f"zaug_{card}_{n}.npz")
+    sbp = os.path.join(RCF_CACHE, f"sb_{card}.npz")
+    # key: the aug rows (fingerprint) and the card file's content
+    key = f"{aug.get('fingerprint', 'none')}:{file_digest(sbp)}"
     if os.path.exists(zc):
         z = np.load(zc)
+        assert "key" in z.files and str(z["key"]) == key, \
+            f"metric cache {zc} is stale (key {z['key'] if 'key' in z.files else None} != {key}); rebuild it"
         print(f"  loaded metric cache {zc}", flush=True)
         return z["Z"], z["W"]
-    z = np.load(os.path.join(RCF_CACHE, f"sb_{card}.npz"))
+    z = np.load(sbp)
     comp = (z["replay_id"].astype(np.int64) << 40) | z["blizz_id"].astype(np.int64)
     o = np.argsort(comp)
     cs = comp[o]
@@ -225,7 +254,7 @@ def aug_metrics(aug, card, d=None):
     print(f"  metrics {card}: slot rows with a value {(~np.isnan(out[sl])).any(1).mean():.3f}, "
           f"other rows {(~np.isnan(out[~sl])).any(1).sum():,}", flush=True)
     if os.environ.get("P3_RCF_WRITE_AUG") == "1":
-        np.savez(zc, Z=out, W=W)
+        np.savez(zc, Z=out, W=W, key=np.array(key))
     return out, W
 
 
