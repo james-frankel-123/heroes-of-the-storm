@@ -24,9 +24,21 @@ LOCAL="nice -n 19 taskset -c 48-51"
 UPSTREAM="wp_drift.npz players_2024q2.npz x_wp_post.npz x_post_players.npz x_post_games.json.gz x_tiers.npz
   pickorder_2024q2.npz x_bans.npz drafts_post.json.gz x_side_games.npz x_side_players.npz"
 source remote_workers/_remote.sh
-wait_job() {  # host name: block until the hotsjob ends, fail if it did not complete
-  until [ "$(hotsjob $1 state $2 2>/dev/null | tail -1)" != "running" ]; do sleep 60; done
-  st=$(hotsjob $1 state $2 | tail -1); echo "job $2 on $1: $st"; [ "$st" = "completed" ]
+wait_job() {  # host name: block until the hotsjob reaches a terminal state; 0 only if it completed.
+  # An empty or unknown answer (ssh or transport failure) is retried; after 2 h of
+  # unknown answers in a row it gives up (the job itself keeps running).
+  local st="" unk=0
+  while true; do
+    st=$(hotsjob $1 state $2 2>/dev/null | tail -1) || st=""
+    case "$st" in
+      completed|failed|killed|stopped) break ;;
+      running|paused) unk=0 ;;
+      *) unk=$((unk + 1)); echo "job $2 on $1: status unknown ('$st'), retry $unk" >&2
+         [ $unk -ge 120 ] && { echo "job $2 on $1: status unknown for 2 h, giving up" >&2; return 1; } ;;
+    esac
+    sleep 60
+  done
+  echo "job $2 on $1: $st"; [ "$st" = "completed" ]
 }
 case $STAGE in
 export)
@@ -69,6 +81,10 @@ fit)
   RUN_NAME=def_${D}_fit${RUNSUF:-} HOTSJOB_FLAGS="--mem-max 11500M" remote_workers/run_remote.sh $W5 \
     "OMP_NUM_THREADS=8 PYTHONUNBUFFERED=1 nice -n 19 bash personalization/remote/def_fit.sh $D"
   wait_job $W5 def_${D}_fit${RUNSUF:-}
+  # pin the 5090's code bundle (the manifest travels there and back)
+  rsync -t $MAN $W5:$R5/$MAN
+  ssh $W5 "source ~/hots/env.sh; cd ~/$R5 && python personalization/p3_manifest.py code $MAN --pass $D --host windows-5090-wsl"
+  rsync -t $W5:$R5/$MAN $MAN
   rsync -t "$W5:$R5/personalization/results/def_$D/rcf/params/full_ms*" $T/
   ssh $W3 "wsl -e bash -s" <<< "mkdir -p $R3/personalization/results/def_$D/rcf/params"
   rsync -t --rsync-path="wsl rsync" $T/full_ms* $W3:$R3/personalization/results/def_$D/rcf/params/
@@ -83,6 +99,7 @@ collect)
   # hash on the 3080, where the files live, then pull the manifest back
   rsync -t --rsync-path="wsl rsync" $MAN $W3:$R3/$MAN
   ssh $W3 "wsl -e bash -s" <<EOF
+set -euo pipefail
 source ~/hots/env.sh; cd $R3
 . personalization/remote/def_env.sh \$PWD $D
 M="python personalization/p3_manifest.py add $MAN --role personalization --host 3080-gaming-desktop"
@@ -99,9 +116,12 @@ M="python personalization/p3_manifest.py add $MAN --role personalization --host 
 \$M \$DEF_RESULTS/rcf/p3c/{today,full_ms,full_ms_layer,chosen,chosen_flip}__merged.npz --stage arms
 \$M \$DEF_RESULTS/rcf/calib_def.json \$DEF_RESULTS/rcf/band_def_chosen.json \$DEF_RESULTS/p3_c_tests_def.json --stage reports
 \$M \$DEF_CACHE/rcf/parts_chosen_layer.npz \$DEF_CACHE/rcf/parts_chosen_flip_layer.npz --stage layer-inputs
-python personalization/p3_manifest.py verify $MAN
+python personalization/p3_manifest.py code $MAN --pass $D --host 3080-gaming-desktop
+python personalization/p3_manifest.py verify $MAN --role personalization,upstream,code --complete --host 3080-gaming-desktop
 EOF
   rsync -t --rsync-path="wsl rsync" $W3:$R3/$MAN $MAN
+  $MANPY code $MAN --pass $D --host main
+  $MANPY verify $MAN --role code --host main
   rsync -t --rsync-path="wsl rsync" "$W3:$R3/personalization/results/def_$D/rcf/*.json" personalization/results/def_$D/
   rsync -t --rsync-path="wsl rsync" "$W3:$R3/personalization/results/fig_shrink_def.png" personalization/results/def_$D/ || true
   $MANPY show $MAN ;;
@@ -118,12 +138,15 @@ json.dump(M, open(dst, "w"), indent=1)
 print(f"added {len(add)} tournament entries from {src}")
 PY
   for h in $W3 $W5; do
-    if [ $h = $W5 ]; then rsync -t $MAN $h:$R5/$MAN && ssh $h "source ~/hots/env.sh; cd ~/$R5 && python personalization/p3_manifest.py verify $MAN --role tournament"
-    else rsync -t --rsync-path="wsl rsync" $MAN $h:$R3/$MAN && ssh $h "wsl -e bash -s" <<< "source ~/hots/env.sh; cd $R3 && python personalization/p3_manifest.py verify $MAN --role tournament"; fi
+    if [ $h = $W5 ]; then rsync -t $MAN $h:$R5/$MAN && ssh $h "source ~/hots/env.sh; cd ~/$R5 && python personalization/p3_manifest.py verify $MAN --role tournament --complete"
+    else rsync -t --rsync-path="wsl rsync" $MAN $h:$R3/$MAN && ssh $h "wsl -e bash -s" <<< "source ~/hots/env.sh; cd $R3 && python personalization/p3_manifest.py verify $MAN --role tournament --complete"; fi
   done ;;
 answer)
   # answer a tournament walk-query directory on the 3080: p3_def.sh <D> answer <query dir> <answer dir>
   Q=${3:?query dir on the 3080}; A=${4:?answer dir on the 3080}
+  # host RAM rule (C23): never answer while another job (e.g. a tournament CPU stage) runs on the 3080
+  busy=$(hotsjob $W3 status all | awk '$2 == "running" {print $1}' | grep -v "^def_" || true)
+  if [ -n "$busy" ]; then echo "answer: other jobs running on $W3: $busy; refusing (host RAM rule)" >&2; exit 3; fi
   rsync -t --rsync-path="wsl rsync" personalization/p3_rcf_states.py $W3:$R3/personalization/
   RUN_NAME=def_${D}_answer${RUNSUF:-} HOTSJOB_FLAGS="--mem-max 20G" remote_workers/run_remote.sh $W3 \
     "OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 PYTHONUNBUFFERED=1 nice -n 19 taskset -c 0-3 bash -c '. personalization/remote/def_env.sh \$PWD $D && python -u personalization/p3_rcf_states.py selfcheck && python -u personalization/p3_rcf_states.py answer $Q $A'"

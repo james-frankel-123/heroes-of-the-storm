@@ -3,7 +3,7 @@
 # shrinkage model (LK2_full2) for the drafter half and for the judge half
 # (full_ms_flip), calibration curves, the display band.
 # Usage: bash personalization/remote/def_walks.sh <D>
-set -uo pipefail
+set -euo pipefail
 D=${1:?build tag}
 cd "$(dirname "$0")/../.."
 . personalization/remote/def_env.sh "$PWD" "$D"

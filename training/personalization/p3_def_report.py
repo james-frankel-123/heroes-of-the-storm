@@ -21,7 +21,7 @@ def main():
     D = sys.argv[1]
     R = os.path.join(HERE, "results", f"def_{D}")
     cal = json.load(open(os.path.join(R, "calib_def.json")))
-    tests = json.load(open(os.path.join(R, "p3_c_tests_def.json"))) if os.path.exists(os.path.join(R, "p3_c_tests_def.json")) else None
+    tests = json.load(open(os.path.join(R, "p3_c_tests_def.json")))
     band = json.load(open(os.path.join(R, "band_def_chosen.json")))
     man = json.load(open(os.path.join(R, "manifest.json")))
     A = cal["arms"]
@@ -37,23 +37,45 @@ def main():
          "|---|---|---|---|---|---|---|---|"]
     names = {"today": "today's kernel (A2S-equivalent)", "full_ms_layer": "previous main model (full_ms + layer)",
              "chosen": "**chosen shrinkage model**", "chosen_flip": "chosen model, judge half (full_ms_flip)"}
+    miss = [k for k in names if k not in A]
+    assert not miss, f"calib_def.json lacks arms {miss}"
     for k, nm in names.items():
-        if k not in A:
-            continue
         a = A[k]
         L.append(f"| {nm} | {a['V1']['gain']:+.2f} | {a['V2']['gain']:+.2f} | {a['V2']['vs_ref']:+.2f} ({a['V2']['vs_ref_se']:.2f}) | "
                  f"{a['OOT']['gain']:+.2f} | {a['OOT']['vs_ref']:+.2f} ({a['OOT']['vs_ref_se']:.2f}) | "
                  f"{100 * a['V2']['acc']:.2f}% | {100 * a['OOT']['acc']:.2f}% |")
-    if tests:
-        L += ["", "## Subsets (against today's kernel; gain x1000, SE)", "",
-              "| set | games | today | previous | chosen | chosen − today (SE) |", "|---|---|---|---|---|---|"]
-        for sn, v in tests["sets"].items():
-            a = v["arms"]
-            p = v["paired"].get("chosen-today")
-            if p is None:
-                continue
-            L.append(f"| {sn} | {v['games']:,} | {1000 * a['today']['gain']:+.2f} | {1000 * a['full_ms_layer']['gain']:+.2f} | "
-                     f"{1000 * a['chosen']['gain']:+.2f} | {1000 * p['ll_gain']:+.2f} ({1000 * p['se']:.2f}) |")
+    need = ["V2 all", "OOT all", "OOT before 2026-09-12", "OOT from 2026-09-12",
+            "OOT without 2.55.17.98025", "OOT 2.55.17.98025 only"]
+    miss = [k for k in need if k not in tests["sets"]]
+    assert not miss, f"p3_c_tests_def.json lacks subsets {miss}"
+    for sn, v in tests["sets"].items():
+        for pk in ("chosen-today", "chosen-full_ms_layer"):
+            assert pk in v["paired"], f"p3_c_tests_def.json: subset {sn} lacks the {pk} contrast"
+    fmt = lambda p: (f"{1000 * p['ll_gain']:+.2f} ({1000 * p['se']:.2f}) "
+                     f"[{1000 * p['week_ci'][0]:+.2f}, {1000 * p['week_ci'][1]:+.2f}]")
+    L += ["", "## Primary contrasts with week-block 95% CIs (log-loss gain x1000; game SE in parentheses)", "",
+          "V2 and OOT were both read during model development (shrinkage study, team shares, role weights), "
+          "so neither is an untouched holdout. OOT also contains the formerly sealed build 2.55.17.98025 "
+          f"({tests.get('oot_sealed_build_games', 0):,} games), shown separately below; the 5,000 sealed replays "
+          "were never read. The previous main model is the pre-stated comparator.", "",
+          "| set | games | chosen − previous | chosen − today |", "|---|---|---|---|"]
+    for sn in need:
+        v = tests["sets"][sn]
+        L.append(f"| {sn} | {v['games']:,} | {fmt(v['paired']['chosen-full_ms_layer'])} | {fmt(v['paired']['chosen-today'])} |")
+    L += ["", "## Subsets (against today's kernel; gain x1000, SE, week-block 95% CI)", "",
+          "| set | games | today | previous | chosen | chosen − today |", "|---|---|---|---|---|---|"]
+    for sn, v in tests["sets"].items():
+        a = v["arms"]
+        L.append(f"| {sn} | {v['games']:,} | {1000 * a['today']['gain']:+.2f} | {1000 * a['full_ms_layer']['gain']:+.2f} | "
+                 f"{1000 * a['chosen']['gain']:+.2f} | {fmt(v['paired']['chosen-today'])} |")
+    L += ["", "## Disclosures", "",
+          "- The drafter fit (full_ms, chosen) and the judge fit (full_ms_flip, chosen_flip) use disjoint player halves "
+          "but the same V1 games: the shrinkage function, direct channel, role weights, calibration and layer of each "
+          "arm are fit on V1 slot outcomes, and the two halves share those games' outcomes (teammates and opponents). "
+          "Their coefficients are fit separately. A game-disjoint variant is a planned sensitivity after this run.",
+          "- Filtered states (the judge window, split halves, exclusions) carry no temporal layer, whose residuals "
+          "come from unfiltered predictions; a poison check of every filter form gates each answer run.",
+          "- The tournament reads the base posterior sd (`sd`); the display band (`sd_display`) is for the site only.", ""]
     L += ["", "## Calibration of the chosen model (slope of realized on predicted, V2 + OOT, smooth curve)", "",
           "| axis | point | previous main | chosen |", "|---|---|---|---|"]
     pts = {"games": [0, 3, 10, 30, 100, 300, 1000], "share": [0.05, 0.2, 0.4, 0.6, 0.8, 0.95],
