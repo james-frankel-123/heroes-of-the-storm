@@ -264,6 +264,54 @@ The overall slope moves from 1.011 to 1.007. RMS of (slope minus 1) moves 0.052 
 
 **Decision: adopted.** OOT clears the CI rule, and calibration moves only within noise. V2 alone would not have established the gain. The definitive chain now builds `share6` (A1 step), walks with `--statlin-extra share6`, and pins `sb_share6` and its aug cache in the manifest. Results are in `results/rcf_shrink/rcf/calib_share.json`.
 
+## 8. Per-role and per-hero scoreboard weights (role adopted 2026-10-24)
+
+Until now the direct scoreboard channel used one weight per metric for every hero; only the normalization was per hero. Here each group (role or hero) gets the shared weight plus a deviation, with the deviations ridge-shrunk toward 0. The deviation penalty is chosen by the same 2-fold V1 player split, and "no deviations" was one of the candidates. Roles follow the site scheme (`src/lib/data/hero-roles.ts`, six roles). Both variants chose a deviation penalty of 1e6. All three arms below reuse the same LK2_share walk, and the control reproduces it exactly (V2 34.91, OOT 36.27).
+
+Gain over the team-share model (log loss ×1000; game-level SE; week-block 95% CI). V2 was read first:
+
+| | V2 | OOT | acc V2 / OOT |
+|---|---|---|---|
+| team share (ref) | 34.91 | 36.27 | 62.94 / 62.75 |
+| metric × role | +0.51 (0.09), [0.35, 0.67] | +0.42 (0.05), [0.34, 0.49] | 63.02 / 62.77 |
+| metric × hero | +0.35 (0.08), [0.17, 0.56] | +0.17 (0.04), [0.09, 0.26] | 62.91 / 62.78 |
+
+Calibration slope by games on the hero (smooth, V2 + OOT):
+
+| games | team share | role | hero |
+|---|---|---|---|
+| 0 | 1.06 | 1.05 | 1.05 |
+| 3 | 1.01 | 1.00 | 1.00 |
+| 10 | 1.01 | 1.00 | 0.98 |
+| 30 | 0.95 | 0.95 | 0.93 |
+| 100 | 0.97 | 0.95 | 0.92 |
+| 300 | 0.91 | 0.91 | 0.88 |
+| 1000 | 0.82 | 0.83 | 0.82 |
+
+RMS of (slope minus 1), team share → role → hero:
+
+| axis | team share | role | hero |
+|---|---|---|---|
+| games | 0.058 | 0.057 | 0.074 |
+| share | 0.050 | 0.054 | 0.070 |
+| recency | 0.036 | 0.043 | 0.057 |
+
+The overall slope is 1.007, 0.998 and 0.983.
+
+Largest role deviations, in win-probability points per SD of the feature (shared weight → role total):
+
+| role | feature | shared → role total |
+|---|---|---|
+| Healer | healing, all heroes | −0.11 → +0.05 |
+| Healer | kills, on the hero | +0.28 → +0.16 |
+| Healer | kills, all heroes | +0.41 → +0.29 |
+| Ranged Assassin | outnumbered deaths, on the hero | +0.08 → +0.19 |
+| Bruiser | structure damage, all heroes | −0.18 → −0.06 |
+| Healer | healing, on the hero | +0.19 → +0.31 |
+| Bruiser | self-healing, on the hero | +0.27 → +0.38 |
+
+**Decision: role weights adopted, hero weights not.** The role variant clears V2 on its own and OOT's CI excludes 0. Calibration by games is unchanged, and the share and recency axes stay inside the bands. The hero variant gains less and over-trusts records from 30 games up. Switch: `P3_RCF_STATLIN_GROUP=role` (set in `remote/def_walks.sh`). The state writer applies each hero column's role weights, and its selfcheck matches to 1.5e-08. Results are in `results/rcf_shrink/rcf/calib_group.json`, and the runner is `remote/run_rcf_share_group.sh`.
+
 ## Leak checks
 
 `tests/test_rcf.py`, 9 of 9 pass. New this round:

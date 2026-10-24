@@ -1134,10 +1134,25 @@ def online(a):
                 best = (err, lam)
         lam = best[1]
         beta = np.linalg.solve(A + lam * np.eye(F.shape[1]), (Fz[v1].T / wv[v1]) @ tgt[v1])
-        pred = pred + Fz @ beta
         stat_meta = {"ridge": lam, "beta": beta.tolist(), "mean": mF.tolist(), "sd": sF.tolist(),
                      "extra": getattr(a, "statlin_extra", None),
+                     "names": statlin_names(par.meta.get("sb", "legacy"), getattr(a, "statlin_extra", None)),
                      "features": "per metric: X_hero / (C_hero + 5), then X_all / (C_all + 5), as-of walk state"}
+        grp_kind = os.environ.get("P3_RCF_STATLIN_GROUP")
+        if grp_kind:
+            # metric x group weights: shared weight plus per-group deviations, the
+            # deviations ridge-shrunk toward 0 with their own penalty (2-fold V1 player split)
+            gidx, gnames = statlin_groups(grp_kind, d["hero"][qi], d["hero_names"])
+            fold = (d["pid"][qi] % 2) == 0
+            lam_d, beta, dev, sel = statlin_group_fit(Fz, tgt, wv, gidx, len(gnames), v1, fold, lam)
+            beta_all = beta[None, :] + dev                     # (G, K)
+            pred = pred + np.einsum("ik,ik->i", Fz, beta_all[gidx])
+            stat_meta.update({"group": grp_kind, "group_names": gnames, "group_ridge": lam_d,
+                              "group_dev": dev.tolist(), "beta": beta.tolist(), "group_select": sel})
+            print(f"  direct channel x {grp_kind}: deviation ridge {lam_d:g}, |dev| max {np.abs(dev).max():.4f}",
+                  flush=True)
+        else:
+            pred = pred + Fz @ beta
         del F, Fz, A
         res.pop("mfeat", None)
         import gc
@@ -1222,6 +1237,112 @@ def online(a):
                                        "q_win": getattr(a, "q_win", None), "q_met": getattr(a, "q_met", None),
                                        "layer": lay_meta, "tail": tail_meta, "statlin": stat_meta,
                                        "postcal": post_meta})))
+
+
+def statlin_names(card, extra):
+    """feature names of the direct channel, in mfeat column order"""
+    def mets(c):
+        try:
+            return [str(m) for m in np.load(os.path.join(RCF_CACHE, f"sb_{c}.npz"), mmap_mode="r")["metrics"]]
+        except Exception:
+            return None
+    m = mets(card) or []
+    x = (mets(extra) or []) if extra else []
+    return ([f"{k}@hero" for k in m] + [f"{k}@all" for k in m] +
+            [f"share_{k}@hero" for k in x] + [f"share_{k}@all" for k in x])
+
+
+def site_roles():
+    """hero -> role from the site's scheme (src/lib/data/hero-roles.ts)"""
+    import re
+    here = os.path.dirname(os.path.abspath(__file__))
+    txt = open(os.path.join(here, "..", "..", "src", "lib", "data", "hero-roles.ts")).read()
+    out = {}
+    for m in re.finditer(r"""^\s*['"](.+?)['"]\s*:\s*'([A-Za-z ]+)'""", txt, re.M):
+        out[m.group(1).replace("\\'", "'")] = m.group(2)
+    return out
+
+
+def statlin_groups(kind, hero, hero_names):
+    """group index per row and group names for the grouped direct channel"""
+    hero_names = [str(h) for h in hero_names]
+    if kind == "hero":
+        return np.asarray(hero, np.int64), hero_names
+    if kind == "role":
+        R = site_roles()
+        miss = [h for h in hero_names if h not in R]
+        assert not miss, f"heroes without a site role: {miss}"
+        names = sorted(set(R[h] for h in hero_names))
+        hmap = np.array([names.index(R[h]) for h in hero_names], np.int64)
+        return hmap[np.asarray(hero, np.int64)], names
+    raise ValueError(kind)
+
+
+def statlin_group_fit(Fz, tgt, wv, gidx, G, v1, fold, lam, grid=(1e3, 1e4, 1e5, 1e6, 1e7, 1e8)):
+    """shared weights b (penalty lam) plus per-group deviations d_g (penalty
+    lam_d), fit by weighted least squares on V1 rows; lam_d chosen by a 2-fold
+    split of V1 players, with "no deviations" (lam_d = inf) as a candidate.
+    Normal equations from per-group Gram blocks (no dense one-hot design).
+    Returns (lam_d, shared weights (K,), dev (G, K), selection errors)."""
+    K = Fz.shape[1]
+
+    def grams(m):
+        Ag = np.zeros((G, K, K))
+        bg = np.zeros((G, K))
+        idx = np.flatnonzero(m)
+        for c0 in range(0, len(idx), 200000):
+            ii = idx[c0:c0 + 200000]
+            Fi = Fz[ii]
+            Fw = Fi / wv[ii, None]
+            ti = tgt[ii]
+            g = gidx[ii]
+            for gg in np.unique(g):
+                s_ = g == gg
+                Ag[gg] += Fw[s_].T @ Fi[s_]
+                bg[gg] += Fw[s_].T @ ti[s_]
+        return Ag, bg
+
+    def solve(Ag, bg, lam_d):
+        if not np.isfinite(lam_d):
+            b = np.linalg.solve(Ag.sum(0) + lam * np.eye(K), bg.sum(0))
+            return b, np.zeros((G, K))
+        n = K * (G + 1)
+        N = np.zeros((n, n))
+        r = np.zeros(n)
+        N[:K, :K] = Ag.sum(0) + lam * np.eye(K)
+        r[:K] = bg.sum(0)
+        for g in range(G):
+            sl = slice(K * (g + 1), K * (g + 2))
+            N[:K, sl] = Ag[g]
+            N[sl, :K] = Ag[g]
+            N[sl, sl] = Ag[g] + lam_d * np.eye(K)
+            r[sl] = bg[g]
+        x = np.linalg.solve(N, r)
+        return x[:K], x[K:].reshape(G, K)
+
+    def err(m, b, dv):
+        idx = np.flatnonzero(m)
+        e = 0.0
+        for c0 in range(0, len(idx), 200000):
+            ii = idx[c0:c0 + 200000]
+            p_ = np.einsum("ik,ik->i", Fz[ii], b[None, :] + dv[gidx[ii]])
+            e += float(np.sum((tgt[ii] - p_) ** 2 / wv[ii]))
+        return e
+
+    folds = [grams(v1 & fold), grams(v1 & ~fold)]
+    sel = {}
+    for lam_d in (np.inf,) + tuple(grid):
+        e = 0.0
+        for k in (0, 1):
+            b, dv = solve(*folds[k], lam_d)
+            e += err(v1 & (fold if k == 1 else ~fold), b, dv)
+        sel[str(lam_d)] = e
+    best = min(sel, key=sel.get)
+    lam_d = float(best)
+    Ag = folds[0][0] + folds[1][0]
+    bg = folds[0][1] + folds[1][1]
+    b, dv = solve(Ag, bg, lam_d)
+    return lam_d, b, dv, sel
 
 
 def layer_stats(d, u, early, hl_d):

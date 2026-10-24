@@ -74,7 +74,8 @@ def evidence_mask(day, ev_lo, parity, ex_lo, ex_hi):
     return m
 
 
-def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, statlin, xmetrics=None):
+def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, statlin, xmetrics=None,
+               hero_names=None):
     """All-hero state of each query (player qpid, rows with day <= qday that
     pass row_mask). Same information filter as p3_rcf.online_walk (Kalman
     drift on win and metric cells). Returns per query (nq, H): mean, var
@@ -104,6 +105,12 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
     Lst = np.full((npl, H), -1, np.int32)
     eps2 = np.asarray(par.eps2, np.float32)
     beta, mF, sF = (np.asarray(statlin["beta"]), np.asarray(statlin["mean"]), np.asarray(statlin["sd"]))
+    if statlin.get("group"):
+        # metric x group weights: column h uses the shared weights plus its group's deviations
+        gidx, _ = R.statlin_groups(statlin["group"], np.arange(H), hero_names)
+        Bh = beta[None, :] + np.asarray(statlin["group_dev"])[gidx]   # (H, K)
+    else:
+        Bh = None
     nq = len(qpid)
     out = {k: np.empty((nq, H), np.float64) for k in ("mean", "var", "S", "P")}
     out.update({k: np.empty((nq, H), np.float32) for k in ("n", "nfull", "nslf", "stat")})
@@ -179,7 +186,13 @@ def state_walk(aug, par, qpid, qday, row_mask, metrics, mweights, q_win, q_met, 
             XXq, CXq = XXst[pq] * fx_, CXq * fx_
             parts_ += [XXq / (CXq + 5.0), np.repeat((XXq.sum(1) / (CXq.sum(1) + 5.0))[:, None, :], H, 1)]
         F = np.concatenate(parts_, 2)
-        out["stat"][q] = (((F - mF) / sF) @ beta).astype(np.float32)
+        del parts_
+        st_ = np.empty(F.shape[:2], np.float32)
+        for c0 in range(0, len(F), 4096):                    # bounded float64 temporaries
+            Fz = (F[c0:c0 + 4096] - mF) / sF
+            st_[c0:c0 + 4096] = Fz @ beta if Bh is None else np.einsum("bhk,hk->bh", Fz, Bh)
+        out["stat"][q] = st_
+        del F, Fz
     return out
 
 
@@ -224,7 +237,7 @@ def answer(qdir, adir, only=None):
     files = sorted(glob.glob(os.path.join(qdir, "*.npz")))
     if only:
         files = [os.path.join(qdir, f) for f in only]
-    cache = {}
+    cache, mcache = {}, {}
     for fq in files:
         Qz = np.load(fq)
         Q = {k: Qz[k] for k in Qz.files}                       # read once (npz access re-reads the zip)
@@ -254,16 +267,22 @@ def answer(qdir, adir, only=None):
             if armn not in cache:
                 meta = arm_meta(armn)
                 par = R.get_params(ptag)
-                mets, mw = R.aug_metrics(aug, par.meta.get("sb", "legacy"), d)
+                card = par.meta.get("sb", "legacy")
+                if card not in mcache:                       # one copy per card, shared by both halves
+                    mcache[card] = R.aug_metrics(aug, card, d)
+                mets, mw = mcache[card]
                 ext = (meta.get("statlin") or {}).get("extra")
-                xm = R.aug_metrics(aug, ext, d)[0] if ext else None
+                if ext and ext not in mcache:
+                    mcache[ext] = R.aug_metrics(aug, ext, d)
+                xm = mcache[ext][0] if ext else None
                 lay = np.load(os.path.join(R.RCF_CACHE, f"{stem}_layer.npz"))
                 cache[armn] = (meta, par, mets, mw, lay, xm)
             meta, par, mets, mw, lay, xm = cache[armn]
             filt = lambda dd: evidence_mask(dd, ev_lo, par_, ex_lo, ex_hi)
             rm = filt(aug["day"].astype(np.int64))
             st = state_walk(aug, par, qpid[idx], Q["as_of_day"][idx].astype(np.int64), rm, mets, mw,
-                            meta["q_win"], meta["q_met"], meta["statlin"], xmetrics=xm)
+                            meta["q_win"], meta["q_met"], meta["statlin"], xmetrics=xm,
+                            hero_names=d["hero_names"])
             tq = Q["as_of_day"][idx].astype(np.int64) + 1
             # n_all / np_all: evidence-window counts (the record the shrinkage and calibration describe);
             # n_full: every history row (output n, the new-hero flag); slot counts for the offset

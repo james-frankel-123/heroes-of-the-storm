@@ -252,9 +252,30 @@ def test_r9_metric_feats():
         assert caught == len(q), caught
 
 
+def test_r10_statlin_groups():
+    """grouped direct channel: recovers planted per-group weights, picks no
+    deviations when there are none, and maps every hero to a site role"""
+    import shared
+    rng = np.random.default_rng(10)
+    N, K, G = 40000, 4, 3
+    F = rng.normal(size=(N, K))
+    gi = rng.integers(0, G, N)
+    b = np.array([.1, .2, 0, 0])
+    dev = np.array([[0, 0, 0, 0], [.3, 0, 0, 0], [0, -.3, 0, 0]])
+    t = np.einsum("ik,ik->i", F, b + dev[gi]) + rng.normal(size=N)
+    v1, fold, wv = np.ones(N, bool), rng.random(N) < .5, np.ones(N)
+    lam_d, bb, dd, _ = R.statlin_group_fit(F, t, wv, gi, G, v1, fold, 1.0)
+    assert np.isfinite(lam_d)
+    assert np.abs((bb + dd) - (b + dev)).max() < 0.05
+    t2 = F @ b + rng.normal(size=N)
+    assert R.statlin_group_fit(F, t2, wv, gi, G, v1, fold, 1.0)[0] == np.inf
+    g, names = R.statlin_groups("role", np.arange(len(shared.HEROES)), shared.HEROES)
+    assert len(names) == 6 and g.min() >= 0
+
+
 if __name__ == "__main__":
     for t in (test_r1_equals_gp, test_r2_today_kernel, test_r3_asof, test_r4_predictive_ll,
               test_r5_asof_weighted_decay, test_r6_layer_asof, test_r7_parts_and_tails,
-              test_r8_kalman, test_r9_metric_feats):
+              test_r8_kalman, test_r9_metric_feats, test_r10_statlin_groups):
         t()
         print(f"{t.__name__}: pass")
