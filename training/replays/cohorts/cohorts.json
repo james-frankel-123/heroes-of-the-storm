@@ -1,11 +1,11 @@
 {
-  "_doc": "Live config for sync/fetch-replay-files.py. Rules are in SELECTION_RULES.md. Caps count quota-charged downloads per rolling 7-day replay_download window. A schedule entry overrides the defaults until its date. From 2026-10-18 (paper 3 cancelled): p2_panel_v1 8,000 a week, B and surprise_v1 closed, about 16K a week left as headroom for ad hoc cohorts (add a cap here when one is defined).",
+  "_doc": "Live config for sync/fetch-replay-files.py. Rules are in SELECTION_RULES.md. Caps count quota-charged downloads per rolling 7-day replay_download window. A schedule entry overrides the defaults until its date. From 2026-10-18 (paper 3 cancelled): p2_panel_v1 8,000 a week, B and surprise_v1 closed, about 16K a week left as headroom for ad hoc cohorts (add a cap here when one is defined). From 2026-10-24 (Max: use all quota): p2_panel_v1 23,000 a week, the whole quota under the 24K total cap.",
   "quota_margin": 1000,
   "window_total_cap": 24000,
   "window_caps": {
     "stratified_b": 0,
     "surprise_v1": 0,
-    "p2_panel_v1": 8000
+    "p2_panel_v1": 23000
   },
   "schedule": [
     {
