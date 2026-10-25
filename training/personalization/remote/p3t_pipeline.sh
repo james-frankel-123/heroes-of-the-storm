@@ -64,7 +64,7 @@ TOURNEY="--schedule:all:--only-ready"; TUNE="--schedule:tune"; ABLATION="--sched
 PARTY_EFF=""; PARTY_GRID=""; PARTY_LOCK=""
 if [ "$SMOKE" = 1 ]; then
   ROOTENV="$ROOTENV P3T_LOBBIES=24 P3T_N_PARTY=40"
-  PROBE_N=40; PROBE_RUN=":--systems:aMCTS-cur:--configs:F:400"; PP_LOB=200; SP_ARGS=":--iters:1:--rosters:256:--sims:100"
+  PROBE_N=40; PROBE_RUN=":--systems:aMCTS-cur"; PP_LOB=200; SP_ARGS=":--iters:1:--rosters:256:--sims:100"
   AGREE=400; DR_EP=":--epochs:1"
   TOURNEY="--pairs:x-combo1-dr-chance__aMCTS-cur,aMCTS-cur__x-combo1-dr-chance,aMCTS-cur__GD,GD__aMCTS-cur"
   TUNE="--pairs:x-combo1-dr-chance__pMCTS-cur,pMCTS-cur__x-combo1-dr-chance"; ABLATION=""
@@ -95,18 +95,23 @@ wait_job() {   # host name: poll hotsjob state until the job ends; fail on anyth
     sleep 60
   done
 }
-run_cpu() { local n="p3t_${1}_$STAMP"; shift
+# per-stage markers on the main box: a rerun of the same pass skips the stages that finished
+SMK=training/personalization/logs/p3t_pass_${TAG:-legacy}${P3T_SMOKE:+_smoke$P3T_SMOKE}
+mkdir -p "$SMK"
+done_before() { if [ -e "$SMK/$1.done" ]; then echo "$(date -Is) stage $1: done earlier, skipped"; return 0; fi; return 1; }
+mark_done() { date -Is > "$SMK/$1.done"; }
+run_cpu() { local s=$1 n="p3t_${1}_$STAMP"; shift; done_before $s && return 0
   P3_CORES=$CPU_CORES P3_MEM=$CPU_MEM P3_THREADS=6 $JOB $CPU "$n" env P3T_PROCS=6 $ROOTENV $WALKENV "$@"
-  wait_job $CPU "$n"; }
-run_gpu() { local n="p3t_${1}_$STAMP"; shift
+  wait_job $CPU "$n"; mark_done $s; }
+run_gpu() { local s=$1 n="p3t_${1}_$STAMP"; shift; done_before $s && return 0
   P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "$n" env P3T_PROCS=4 $ROOTENV "$@"
-  wait_job $GPU "$n"; }
+  wait_job $GPU "$n"; mark_done $s; }
 run_gpu_pair() {   # name step-args...: the same tournament step on both GPU hosts, shards 0/2 and 1/2
-  local n="p3t_${1}_$STAMP"; shift
+  local s=$1 n="p3t_${1}_$STAMP"; shift; done_before $s && return 0
   P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "${n}_a" env P3T_PROCS=4 $ROOTENV "$@":--shard:0/2
   P3_CORES=$GPU2_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "${n}_b" env P3T_PROCS=4 $ROOTENV "$@":--shard:1/2
   wait_job $GPU "${n}_a"; wait_job $GPU2 "${n}_b"
-  relay $GPU2 $GPU; }
+  relay $GPU2 $GPU; mark_done $s; }
 STEP="bash personalization/remote/p3t_run.sh"
 
 relay() {      # from-host to-host: cache_full/p3t (scores stay on the CPU host)
@@ -207,12 +212,15 @@ fi
 GATES="p3t_determinism.py p3t_verify.py p3t_pvnet_verify.py p3t_explore_verify.py tests/test_p3t_kernel_sampling.py"
 GATE_GPU=${P3T_GATE_CACHE_GPU:-$B/cache_full}
 GATE_GPU2=${P3T_GATE_CACHE_GPU2:-/home/max/hots/p3t_dry/cache_full}
+if ! done_before gates; then
 P3_CORES=0-15 P3_MEM=11G P3_THREADS=2 $JOB $GPU "p3t_determ_$STAMP" env P3T_PROCS=4 P3T_CACHE_ROOT=$GATE_GPU \
   P3T_RESULTS_ROOT=$RROOT bash personalization/remote/p3t_run.sh $GATES
 wait_job $GPU "p3t_determ_$STAMP"
 P3_CORES=$GPU2_CORES P3_MEM=$CPU_MEM P3_THREADS=2 $JOB $GPU2 "p3t_determ2_$STAMP" env P3T_PROCS=4 P3T_CACHE_ROOT=$GATE_GPU2 \
   P3T_RESULTS_ROOT=$RROOT bash personalization/remote/p3t_run.sh $GATES
 wait_job $GPU2 "p3t_determ2_$STAMP"
+mark_done gates
+fi
 # the code this pass runs, per host (sources, scripts, built kernels): pinned into the pass's own code
 # manifest now, re-verified at the end of the pass (review C7)
 CODEMAN=personalization/results/$(basename "$RROOT")/code_manifest.json
