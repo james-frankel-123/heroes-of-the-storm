@@ -57,21 +57,32 @@ def select():
     cand = win[ok]
     rng = np.random.RandomState(20261019)
     old_tune = TD.gi_of_replays(L, TD.excluded_replays("tune"))
-    if not LOBBYSET:
-        # the headline set never reuses a lobby the design was selected on (frozen by replay ID)
-        cand = np.array([g for g in cand if g not in old_tune])
-    if LOBBYSET:
-        test = set(np.load(os.path.join(TD.OUT, "tourney", "lobbies.npz"))["gi"].tolist())
-        cand = np.array([g for g in cand if g not in test])
-        rng = np.random.RandomState(20261020)
-    sel = np.sort(rng.choice(cand, N_LOBBIES, replace=False))
-    if not LOBBYSET:
-        assert not set(sel.tolist()) & old_tune, "headline lobbies overlap the frozen tune replays"
+    old_tour = TD.gi_of_replays(L, TD.excluded_replays("tournament"))
+    if LOBBYSET == "tune":
+        # coordinator 2026-10-25: the tune set IS the old tune set (a tuning set can be tuned on again)
+        sel = np.sort(np.fromiter(old_tune, np.int64))
+        assert len(sel) == 300, f"only {len(sel)} of the 300 frozen tune replays are in this lobby table"
+        test_f = os.path.join(TD.OUT, "tourney", "lobbies.npz")
+        if os.path.exists(test_f):
+            assert not set(sel.tolist()) & set(np.load(test_f)["gi"].tolist()), "tune overlaps the headline set"
+    else:
+        if not LOBBYSET:
+            # the headline set: fresh lobbies, never one the design (old tune) or the lock rule and
+            # development (old tournament) saw; frozen by replay ID
+            cand = np.array([g for g in cand if g not in old_tune and g not in old_tour])
+        else:
+            test = set(np.load(os.path.join(TD.OUT, "tourney", "lobbies.npz"))["gi"].tolist())
+            cand = np.array([g for g in cand if g not in test])
+            rng = np.random.RandomState(20261020)
+        sel = np.sort(rng.choice(cand, N_LOBBIES, replace=False))
+        if not LOBBYSET:
+            assert not set(sel.tolist()) & (old_tune | old_tour), "headline lobbies overlap the frozen replays"
     np.savez(os.path.join(TDIR, "lobbies.npz"), gi=sel)
     print(f"tournament-window lobbies {len(win):,}; all ten 50+ earlier games {int(rich.sum()):,}; "
           f"and 10+ judge-window games each {len(cand):,}; selected {len(sel)}", flush=True)
     json.dump({"window_lobbies": int(len(win)), "rich": int(rich.sum()), "eligible": int(len(cand)),
-               "selected": int(len(sel)), "frozen_tune_in_window": int(len(old_tune))},
+               "selected": int(len(sel)), "frozen_tune_in_table": int(len(old_tune)),
+               "frozen_tournament_in_table": int(len(old_tour))},
               open(os.path.join(TDIR, "select.json"), "w"))
 
 
