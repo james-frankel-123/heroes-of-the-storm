@@ -1,0 +1,14 @@
+{
+ "p1val": {
+  "n": 38100,
+  "label_agreement": 1.0
+ },
+ "p1test": {
+  "n": 38869,
+  "label_agreement": 1.0
+ },
+ "post": {
+  "n": 287751,
+  "label_agreement": 1.0
+ }
+}

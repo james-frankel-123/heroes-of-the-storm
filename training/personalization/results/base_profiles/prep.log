@@ -1,0 +1,11 @@
+cells built (11s): {"rows_used": 24391988, "rows_total": 24958096, "first_week_day": 17980, "metrics": {"dmg": {"nan_share": 0.0, "nonzero": 0.9996859624561967, "cap_p999": 6236.587888432761, "mean": 2238.940609106869}, "siege": {"nan_share": 0.0, "nonzero": 0.9998416693219101, "cap_p999": 13371.5259462024, "mean": 3623.22744715972}, "struct": {"nan_share": 0.0, "nonzero": 0.9314405615483248, "cap_p999": 4697.575838301068, "mean": 657.2549707634182}, "heal": {"nan_share": 0.716030485092072, "nonzero": 0.283969514907928, "cap_p999": 7268.771666301967, "mean": 808.22155334938}, "self_heal": {"nan_share": 0.0, "non
+p1val: 38,100 games, 38,100 joined; label agreement 1.00000
+  p1val roll: median cell games 966 (12s)
+p1test: 38,869 games, 38,869 joined; label agreement 1.00000
+  p1test roll: median cell games 971 (12s)
+post: 287,751 games, 287,751 joined; label agreement 1.00000
+  post roll: median cell games 1493 (12s)
+  post roll8: median cell games 507 (12s)
+  post rollall: median cell games 9271 (13s)
+  post frozen: median cell games 1507 (13s)
+EXIT 0
