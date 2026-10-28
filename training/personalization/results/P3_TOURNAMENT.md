@@ -27,7 +27,7 @@ Intervals are 95%, lobby bootstrap widened for seed variation, both seats. "Reco
 | GD | **66.0** (65.2, 66.8) | 67.4 (66.6, 68.1) | 66.8 (66.2, 67.4) | 58.7 (58.2, 59.2) | +3.6 (1.5, 5.8) | 48% |
 | DraftRec | **58.1** (57.4, 58.7) | 59.3 (58.6, 60.0) | 57.9 (57.3, 58.6) | 57.2 (56.7, 57.7) | +2.1 (0.4, 3.8) | 64% |
 | DraftRec-pv | **55.1** (54.5, 55.7) | 55.3 (54.7, 56.0) | 55.7 (54.9, 56.5) | 51.0 (50.6, 51.5) | +3.5 (1.6, 5.5) | 53% |
-| `aMCTS-pp` (pre-stated design comparison) | 51.6 (51.1, 52.2) | 51.4 (50.9, 52.0) | 52.0 (51.5, 52.6) | 48.8 (48.4, 49.3) | +0.7 (−1.0, 2.3) | |
+| `aMCTS-pp` (the design comparison fixed before the tournament) | 51.6 (51.1, 52.2) | 51.4 (50.9, 52.0) | 52.0 (51.5, 52.6) | 48.8 (48.4, 49.3) | +0.7 (−1.0, 2.3) | |
 
 - **Reading the record column.** In `analysis.json` each row is from the first-named system's side. The `pMCTS-cur vs x-combo1-dr-chance` row has −4.77 (−7.34, −2.20), which is +4.8 (2.2, 7.3) for the selected design. Real, GD, DraftRec and DraftRec-pv read the same way: the selected design's players later win more on its heroes than on the other arm's heroes.
 - **Not the first positive judge-free result.** The prototype also had a positive judge-free result: +3.7 (1.6, 5.8) vs paper 1's MCTS and +2.7 (1.0, 4.3) vs real drafts. It used the unpaired record, compared over different players. The definitive numbers are the first on paired coverage (the same players under both arms) and with seed SE included. All five are positive with CIs above 0.
@@ -47,7 +47,7 @@ Intervals are 95%, lobby bootstrap widened for seed variation, both seats. "Reco
 - **J_cal.** It moves as in the prototype: 58.1 vs paper 1's MCTS (prototype 59.9), 64.4 vs real drafts (63.5).
 - **Smoke run on dry1022 (24 lobbies, two pairs).** It only checked the chain and is not a comparison point. Its paper-1 MCTS vs GD (56.5 J) sits next to this run's 57.0.
 
-### Other pre-stated comparisons (headline; old-model pass in brackets)
+### Other comparisons fixed before the tournament (headline; old-model pass in brackets)
 
 - **Primary,** `aMCTS-cur` vs `pMCTS-cur`: 50.9% (50.5, 51.2) [50.9]; prototype 51.4. Adding the personal term to the leaf of the blind-trained search still does almost nothing. Record +0.3 (−0.7, 1.4).
 - **Secondary,** `aMCTS-bc` vs `pMCTS-bc`: 56.3% (55.7, 56.9) [57.6]; prototype 57.6.
@@ -76,7 +76,7 @@ Intervals are 95%, lobby bootstrap widened for seed variation, both seats. "Reco
 The seat (first-pick) term is 0.049. The old-model pass orders the top the same way within noise: `x-combo3-split` 0.748, `x-combo1-dr-drban` 0.741, selected 0.729.
 
 **Design study, and what "selected design" means.**
-- **The design was fixed before the definitive run.** `x-combo1-dr-chance` was chosen by the pre-stated rule (mean J against `pMCTS-cur` and `aMCTS-pp`) on the tune lobbies in the prototype. The definitive run does not reselect.
+- **The design was fixed before the definitive run.** `x-combo1-dr-chance` was chosen by the selection rule (mean J against `pMCTS-cur` and `aMCTS-pp`) on the tune lobbies in the prototype. The definitive run does not reselect.
 - **Rescored on the definitive states, the tune set does not separate the top designs.** The top eight score 55.26 to 55.49 (headline) and 55.98 to 56.65 (old model).
   - Headline: `x-combo1-dr-drban` 55.49, the selected design 55.29.
   - Old model: `x-combo3-split` 56.65, the selected design 55.98.
@@ -86,7 +86,7 @@ The seat (first-pick) term is 0.049. The old-model pass orders the top the same 
   - Against `aMCTS-pp`, `x-combo1-dr-drban` scores 52.4 (52.0, 52.9); the selected design scores 51.6 (51.1, 52.2).
   - There is no direct match between them.
   - The 0.8pp difference sits inside the two intervals and inside the tune-set spread.
-- **Wording for the paper:** "the pre-registered design". The top design-study entries are within noise of it. No claim that it is the best design.
+- **Wording for the paper:** "the design chosen on the tune lobbies before the definitive run, within noise of the top design-study entries". No claim that it is the best design.
 
 ### Split-history judge
 
@@ -140,10 +140,10 @@ A judge built from even days outside the tournament window, scoring drafters tha
 
 ### Flags
 
-1. **Design-study entries top BT** (`x-combo1-dr-drban`, `x-pp-ban3`); see "Design study" above. They played the same 300 headline lobbies, but against `aMCTS-pp` only, and they are within noise of the selected design. Report the selected design as pre-registered, not best.
+1. **Design-study entries top BT** (`x-combo1-dr-drban`, `x-pp-ban3`); see "Design study" above. They played the same 300 headline lobbies, but against `aMCTS-pp` only, and they are within noise of the selected design. Report it as the design chosen on the tune lobbies before the definitive run, within noise of the top design-study entries, not as the best design.
 2. **Judge-free coverage against paper 1's MCTS is low.** 37% of players are covered under both arms. The +4.8 rests on about a third of the players. It is positive, but each arm's realized-record sample is thin there.
 3. **The new state model shifts paper 1's MCTS vs real drafts by 2.4pp under J** (53.3 vs 50.9 in the old-model pass), with CONS unchanged. The paper's statement that paper 1's MCTS "gives back" its population edge holds less strongly under the new model.
-4. **The first attempt of pass 1's data stage failed** after 13 minutes (job `p3t_data_10270242`, 03:37 on Oct 27). The orchestrator's rerun with the same code passed. The cause is in that job's log on the 3080 (`~/hots/logs/p3t_data_10270242.log`), which I have not read because the box is released.
+4. **The first attempt of pass 1's data stage ran out of memory** (job `p3t_data_10270242`, 03:37 on Oct 27). `p3t_vnet.py data` reached the 20 GB per-process cap: peak RSS 17.3 GB, then a 1.5 GB allocation in `TD._walk` failed. The full-history store is larger than dry1022's. The stage was resumed with `P3T_CPU_MEM=30G` and the same code, and passed. Nothing else changed between the attempts. For a later rerun, the 3080 CPU lane needs 30 GB, not 20 GB.
 5. **Distilled prior vs paper 1's MCTS** is 1.9pp lower in the headline pass than in the old-model pass (58.2 vs 60.0). The selected design's lead over paper 1's MCTS is lower by the same amount (59.0 vs 61.0). Both passes agree on the ordering.
 
 
