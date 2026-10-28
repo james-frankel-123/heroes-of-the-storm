@@ -10,8 +10,10 @@ import { cn } from '@/lib/utils'
 interface DraftBoardProps {
   state: DraftState
   currentStep: number
-  /** Available battletags for player assignment (unassigned ones) */
-  availableBattletags: string[]
+  /** Who? options for our picks: unassigned party tags and matched teammates */
+  assignOptions: { value: string; label: string }[]
+  /** Display names for assignment values that are not BattleTags (matched players) */
+  assignLabels: Record<string, string>
   /** All battletags assigned so far: stepIndex → battletag */
   playerAssignments: Record<number, string>
   onAssignPlayer: (stepIndex: number, battletag: string) => void
@@ -24,7 +26,8 @@ interface DraftBoardProps {
 export function DraftBoard({
   state,
   currentStep,
-  availableBattletags,
+  assignOptions,
+  assignLabels,
   playerAssignments,
   onAssignPlayer,
   teamAWinPct,
@@ -59,7 +62,8 @@ export function DraftBoard({
         bans={teamABans}
         picks={teamAPicks}
         currentStep={currentStep}
-        availableBattletags={availableBattletags}
+        assignOptions={assignOptions}
+        assignLabels={assignLabels}
         playerAssignments={playerAssignments}
         onAssignPlayer={onAssignPlayer}
         winPct={teamAWinPct}
@@ -75,7 +79,8 @@ export function DraftBoard({
         bans={teamBBans}
         picks={teamBPicks}
         currentStep={currentStep}
-        availableBattletags={availableBattletags}
+        assignOptions={assignOptions}
+        assignLabels={assignLabels}
         playerAssignments={playerAssignments}
         onAssignPlayer={onAssignPlayer}
         winPct={teamBWinPct}
@@ -96,7 +101,8 @@ function TeamRow({
   bans,
   picks,
   currentStep,
-  availableBattletags,
+  assignOptions,
+  assignLabels,
   playerAssignments,
   onAssignPlayer,
   winPct,
@@ -106,11 +112,13 @@ function TeamRow({
   bans: { stepIdx: number; hero: string | null }[]
   picks: { stepIdx: number; hero: string | null }[]
   currentStep: number
-  availableBattletags: string[]
+  assignOptions: { value: string; label: string }[]
+  assignLabels: Record<string, string>
   playerAssignments: Record<number, string>
   onAssignPlayer: (stepIndex: number, battletag: string) => void
   winPct: number | null
 }) {
+  const labelOf = (v: string) => assignLabels[v] ?? v.replace(/^\d+:/, '').split('#')[0]
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -133,9 +141,9 @@ function TeamRow({
           </span>
         )}
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
         {/* Bans */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[10px] text-muted-foreground uppercase mr-1">
             Bans
           </span>
@@ -151,11 +159,11 @@ function TeamRow({
         </div>
 
         {/* Separator */}
-        <div className="w-px h-8 bg-border" />
+        <div className="hidden sm:block w-px h-8 bg-border" />
 
         {/* Picks */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase mr-1">
+        <div className="flex flex-wrap items-start gap-1.5">
+          <span className="text-[10px] text-muted-foreground uppercase mr-1 self-center">
             Picks
           </span>
           {picks.map(({ stepIdx, hero }) => (
@@ -168,6 +176,7 @@ function TeamRow({
               {/* Player assignment dropdown — only for our team's completed picks */}
               {isOurs && hero && (
                 <select
+                  aria-label={`Player on ${hero}`}
                   value={playerAssignments[stepIdx] ?? ''}
                   onChange={(e) => {
                     onAssignPlayer(stepIdx, e.target.value || '')
@@ -183,14 +192,14 @@ function TeamRow({
                   {/* Show currently assigned battletag + available ones */}
                   {playerAssignments[stepIdx] && (
                     <option value={playerAssignments[stepIdx]}>
-                      {playerAssignments[stepIdx].split('#')[0]}
+                      {labelOf(playerAssignments[stepIdx])}
                     </option>
                   )}
-                  {availableBattletags
-                    .filter((bt) => bt !== playerAssignments[stepIdx])
-                    .map((bt) => (
-                      <option key={bt} value={bt}>
-                        {bt.split('#')[0]}
+                  {assignOptions
+                    .filter((o) => o.value !== playerAssignments[stepIdx])
+                    .map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
                       </option>
                     ))}
                 </select>
@@ -220,7 +229,7 @@ function Slot({
     <div
       className={cn(
         'flex items-center justify-center rounded-md border text-xs font-medium transition-all',
-        isBan ? 'min-w-[80px] h-8' : 'min-w-[100px] h-10',
+        isBan ? 'min-w-[72px] sm:min-w-[80px] h-8' : 'min-w-[88px] sm:min-w-[100px] h-10',
         hero
           ? isBan
             ? 'border-gaming-danger/40 bg-gaming-danger/10 text-gaming-danger line-through'

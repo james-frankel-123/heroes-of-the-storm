@@ -243,6 +243,9 @@ export function AMADrawer({ open, onClose, draftContext }: AMADrawerProps) {
   return (
     /* No backdrop — drawer pushes content via margin on the parent */
     <div
+      aria-hidden={!open}
+      // closed: off-screen, so keep it out of the tab order
+      {...(!open ? ({ inert: '' } as Record<string, string>) : {})}
       className={cn(
         'fixed z-40 flex flex-col shadow-2xl',
         'transition-transform duration-300 ease-in-out',

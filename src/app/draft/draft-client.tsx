@@ -240,6 +240,8 @@ export function DraftClient({
   // Joint estimate from the latest search (root value, %, our perspective).
   // Header and suggestion rows share this scale by construction.
   const [searchProjNow, setSearchProjNow] = useState<number | null>(null)
+  // The picks that search value was computed on (personal terms use the same picks)
+  const [searchBasis, setSearchBasis] = useState<{ ours: string[]; theirs: string[] } | null>(null)
   const [searchStatus, setSearchStatus] = useState<string>('')
   const [gdOpponentPreds, setGdOpponentPreds] = useState<OpponentPredictionRow[]>([])
   const [gdLoading, setGdLoading] = useState(false)
@@ -354,6 +356,7 @@ export function DraftClient({
           return { hero, isGreedyPad, winPct, deltaPp: winPct - projNow }
         }
         setSearchProjNow(projNow)
+        setSearchBasis({ ours: pickArrays.ourPicks, theirs: pickArrays.enemyPicks })
 
         const mctsHeroes = new Set(mctsRecs.map(r => r.hero))
         const aiTopHero = mctsRecs[0]?.hero ?? null
@@ -407,6 +410,29 @@ export function DraftClient({
     return { ourPicks, enemyPicks, ourPlayerMap }
   }, [state.selections, state.playerAssignments, state.ourTeam])
 
+  // In-game mode: matched players' skill on top of the search's values
+  // (docs/personalization-site-design.md, "Draft page"). Unmatched players count as average.
+  const [personal, setPersonal] = useState<PersonalDraftState | null>(null)
+
+  // Our picks pinned to a player (by id) from the board's assignments: a matched in-game
+  // player directly, or a registered party tag via the party member's BattleTag.
+  const personalFixed = useMemo(() => {
+    const fixed: Record<string, string> = {}
+    if (!personal) return fixed
+    pickArrays.ourPicks.forEach((h, i) => {
+      const v = pickArrays.ourPlayerMap[i]
+      if (!v) return
+      const p = personal.ours.find(x => x.id === v || x.tag?.toLowerCase() === v.toLowerCase())
+      if (p) fixed[h] = p.id
+    })
+    return fixed
+  }, [personal, pickArrays])
+
+  const personalNowPct = useMemo(() => {
+    if (!personal || searchProjNow === null || !searchBasis) return null
+    return personalValue(searchProjNow / 100, searchBasis.ours, searchBasis.theirs, personal.ours, personal.theirs, personal.coefs, personalFixed).value * 100
+  }, [personal, searchProjNow, searchBasis, personalFixed])
+
   // Compute running win % for both teams
   const { ourWinPct, enemyWinPct } = useMemo(() => {
     if (!draftData) return { ourWinPct: null, enemyWinPct: null }
@@ -421,12 +447,15 @@ export function DraftClient({
     // MCTS, bans included in state); enemy is its complement. The old
     // per-team stats heuristics disagreed with the suggestion rows by
     // construction (different model, different scale).
-    if (searchProjNow !== null) {
-      const our = Math.round(searchProjNow * 10) / 10
+    // With matched players, the same personal terms as the suggestion rows sit on top
+    // (one estimate on the page; the draft-only value is shown beside it).
+    const eff = personalNowPct ?? searchProjNow
+    if (eff !== null) {
+      const our = Math.round(eff * 10) / 10
       return { ourWinPct: our, enemyWinPct: Math.round((100 - our) * 10) / 10 }
     }
     return { ourWinPct: null, enemyWinPct: null }
-  }, [pickArrays, draftData, searchProjNow])
+  }, [pickArrays, draftData, searchProjNow, personalNowPct])
 
   // Raw win estimate (with breakdown) for AMA context enrichment and as the
   // baseline for search-recommendation deltas
@@ -496,9 +525,6 @@ export function DraftClient({
       ? DRAFT_SEQUENCE[state.currentStep]
       : null
 
-  // In-game mode: matched players' skill on top of the search's values
-  // (docs/personalization-site-design.md, "Draft page"). Unmatched players count as average.
-  const [personal, setPersonal] = useState<PersonalDraftState | null>(null)
   const partyTags = useMemo(
     () => state.playerSlots.map(s => s.battletag).filter((bt): bt is string => bt !== null),
     [state.playerSlots],
@@ -508,13 +534,10 @@ export function DraftClient({
     if (!personal || !step || step.team !== state.ourTeam || searchProjNow === null || searchResults.length === 0) {
       return { rows: searchResults, summary: null as string | null }
     }
-    const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
+    const { ourPicks, enemyPicks } = pickArrays
     const c = personal.coefs
-    const fixed: Record<string, string> = {}
-    ourPicks.forEach((h, i) => {
-      const bt = ourPlayerMap[i]
-      if (bt) fixed[h] = bt.split('#')[0]
-    })
+    const fixed = personalFixed
+    const nameOf = (id: string | null | undefined) => [...personal.ours, ...personal.theirs].find(p => p.id === id)?.label ?? id
     const heroes = Object.keys((personal.ours[0] ?? personal.theirs[0]).s)
     const available = heroes.filter(h => !unavailableHeroes.has(h))
     const now = personalValue(searchProjNow / 100, ourPicks, enemyPicks, personal.ours, personal.theirs, c, fixed)
@@ -530,20 +553,20 @@ export function DraftClient({
         const g = banGain(hero, available, personal.theirs, enemyAssigned, c)
         const qq = Math.min(Math.max(q, 1e-4), 1 - 1e-4)
         winPct = 100 / (1 + Math.exp(-(c.b0 + c.b1 * logit(qq) + now.ours.value - now.theirs.value + g.gain)))
-        if (g.who && g.gain > 0.01) personalNote = `Takes away ${g.who}'s best option`
+        if (g.who && g.gain > 0.01) personalNote = `Takes away ${nameOf(g.who)}'s best option`
       } else {
         const v = personalValue(q, [...ourPicks, hero], enemyPicks, personal.ours, personal.theirs, c, fixed)
         winPct = v.value * 100
         const who = v.ours.who[hero]
-        const p = personal.ours.find(x => x.label === who)
-        if (p) personalNote = `${who}: ${pp(p.s[hero] ?? 0)} on ${hero}${p.offRole[hero] ? ' (off-role)' : ''}`
+        const p = personal.ours.find(x => x.id === who)
+        if (p) personalNote = `${p.label}: ${pp(p.s[hero] ?? 0)} on ${hero}${p.offRole[hero] ? ' (off-role)' : ''}`
       }
       return { hero, isGreedyPad, isAiTop, winPct, deltaPp: winPct - nowPct, personalNote }
     }
     const rows: OurTurnRow[] = searchResults.map(r => rowFor(r.hero, r.winPct / 100, r.isGreedyPad, r.isAiTop))
     // add each unassigned matched player's own best heroes (not searched: the current value stands in for Q)
     const shown = new Set(rows.map(r => r.hero))
-    const pool = isBan ? personal.theirs.filter(p => !enemyAssigned.has(p.label)) : personal.ours.filter(p => !Object.values(now.ours.who).includes(p.label))
+    const pool = isBan ? personal.theirs.filter(p => !enemyAssigned.has(p.id)) : personal.ours.filter(p => !Object.values(now.ours.who).includes(p.id))
     for (const p of pool) {
       const top = available.filter(h => !shown.has(h)).sort((a, b) => (p.s[b] ?? 0) - (p.s[a] ?? 0)).slice(0, isBan ? 2 : 3)
       for (const h of top) {
@@ -555,10 +578,35 @@ export function DraftClient({
     const n = personal.ours.length + personal.theirs.length
     return {
       rows,
-      summary: `With player skill for ${n} matched player${n === 1 ? '' : 's'}: ${nowPct.toFixed(1)}% now (search alone ${searchProjNow.toFixed(1)}%). Rows from a player's own pool were not searched.`,
+      summary: `With player skill for ${n} matched player${n === 1 ? '' : 's'}: ${nowPct.toFixed(1)}% now (${searchProjNow.toFixed(1)}% from the draft alone). Rows from a player's own pool were not searched.`,
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personal, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
+  }, [personal, personalFixed, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
+
+  // Who? options on the board: unassigned registered party tags, then matched teammates
+  const assignOptions = useMemo(() => {
+    const assigned = new Set(Object.values(state.playerAssignments).map(v => v.toLowerCase()))
+    const opts = availableBattletags.map(bt => ({ value: bt, label: bt.split('#')[0] }))
+    const registered = new Set(state.playerSlots.map(s => s.battletag?.toLowerCase()).filter(Boolean))
+    for (const p of personal?.ours ?? []) {
+      if (assigned.has(p.id) || (p.tag && (registered.has(p.tag.toLowerCase()) || assigned.has(p.tag.toLowerCase())))) continue
+      opts.push({ value: p.id, label: p.label })
+    }
+    return opts
+  }, [availableBattletags, personal, state.playerAssignments, state.playerSlots])
+  const assignLabels = useMemo(() => {
+    const m: Record<string, string> = {}
+    for (const p of personal?.ours ?? []) m[p.id] = p.label
+    return m
+  }, [personal])
+
+  const reset = useCallback(() => {
+    dispatch({ type: 'RESET' })
+    setPersonal(null)
+    setSearchProjNow(null)
+    setSearchBasis(null)
+    setSearchResults([])
+  }, [])
 
   // ---------------------------------------------------------------------------
   // Setup phase
@@ -661,7 +709,7 @@ export function DraftClient({
                 Team Players (optional)
               </label>
               <p className="text-xs text-muted-foreground">
-                Assign registered battletags for personalized recommendations
+                Registered players only. Anyone can add themselves and the other nine players by name or BattleTag under In-game players once the draft starts.
               </p>
               <PlayerSlots
                 slots={state.playerSlots}
@@ -707,8 +755,8 @@ export function DraftClient({
         }}
       >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-white">
             Draft &mdash; {state.map}
           </h1>
@@ -720,7 +768,7 @@ export function DraftClient({
                 : ''}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {currentStep?.type === 'ban' && (
             <button
               onClick={() => dispatch({ type: 'SKIP_BAN' })}
@@ -742,7 +790,7 @@ export function DraftClient({
             Undo
           </button>
           <button
-            onClick={() => dispatch({ type: 'RESET' })}
+            onClick={reset}
             className="px-3 py-1.5 rounded text-xs font-medium border border-[#d46b6b]/50 text-[#d46b6b] hover:bg-[#d46b6b]/10 transition-colors"
           >
             Reset
@@ -768,6 +816,12 @@ export function DraftClient({
         <WinPctBadge label="YOUR TEAM" pct={ourWinPct} accent="blue" />
         <WinPctBadge label="ENEMY" pct={enemyWinPct} accent="red" />
       </div>
+      {ourWinPct !== null && personalNowPct !== null && searchProjNow !== null && (
+        <p className="text-center text-[11px] text-[#8b9bc8]">
+          With player skill for {personal ? personal.ours.length + personal.theirs.length : 0} matched player
+          {personal && personal.ours.length + personal.theirs.length === 1 ? '' : 's'}; {searchProjNow.toFixed(1)}% from the draft alone.
+        </p>
+      )}
 
       {/* Main drafting area — 3 column hex layout */}
       {state.phase !== 'complete' && (
@@ -823,13 +877,15 @@ export function DraftClient({
       </div>
       {/* End HotS arena wrapper */}
 
-      {state.phase !== 'complete' && <InGamePlayers partyTags={partyTags} onChange={setPersonal} />}
+      {/* Kept mounted through completion so Undo returns to the same lobby */}
+      <InGamePlayers partyTags={partyTags} onChange={setPersonal} />
 
       {/* Detailed draft board (keeps player-assignment controls) */}
       <DraftBoard
         state={state}
         currentStep={state.currentStep}
-        availableBattletags={availableBattletags}
+        assignOptions={assignOptions}
+        assignLabels={assignLabels}
         playerAssignments={state.playerAssignments}
         onAssignPlayer={(stepIdx, bt) =>
           dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })
@@ -880,7 +936,7 @@ export function DraftClient({
             </>
           )}
           <button
-            onClick={() => dispatch({ type: 'RESET' })}
+            onClick={reset}
             className="relative px-6 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             New Draft
