@@ -28,10 +28,16 @@ OUT = os.path.join(C.CACHE, "x_side_slots.npz")
 
 def align_players(d, side):
     """Row of side (replay_id, blizz_id) for every slot of d (-1 if none)."""
+    # (replay_id, blizz_id) matched as a pair. The former packed key
+    # replay_id * 2^40 + blizz overflowed int64 for replay ids >= 2^23, so
+    # unrelated games could share a key. Region is not in the side table.
     blizz = d["player_keys"][d["pid"]] % (1 << 40)
-    ka = d["replay_id"].astype(np.int64) * (1 << 40) + blizz
-    kb = side["replay_ids"].astype(np.int64) * (1 << 40) + side["blizz_ids"]
-    o = np.argsort(kb)
+    ub = np.unique(np.r_[blizz, side["blizz_ids"].astype(np.int64)])
+    assert len(ub) < (1 << 23)
+    ka = d["replay_id"].astype(np.int64) * (1 << 23) + np.searchsorted(ub, blizz)
+    kb = side["replay_ids"].astype(np.int64) * (1 << 23) + np.searchsorted(ub, side["blizz_ids"].astype(np.int64))
+    assert max(int(d["replay_id"].max()), int(side["replay_ids"].max())) < (1 << 40)
+    o = np.argsort(kb, kind="stable")
     kbs = kb[o]
     j = np.searchsorted(kbs, ka)
     ok = (j < len(kbs)) & (kbs[np.minimum(j, len(kbs) - 1)] == ka)

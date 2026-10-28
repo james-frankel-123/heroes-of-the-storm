@@ -36,9 +36,13 @@ def main():
     dupg = np.zeros(len(common), bool)
     if "--dup-stamps" in sys.argv:
         Z = np.load(sys.argv[sys.argv.index("--dup-stamps") + 1])
+        # games with a stamps key the legacy loader could confuse: two rows whose
+        # legacy packed key (rid * 2^44 + key, int64 overflow) coincides
         comp = Z["replay_ids"].astype(np.int64) * (1 << 44) + ((Z["region"].astype(np.int64) << 40) | Z["blizz_ids"])
-        u, c = np.unique(comp, return_counts=True)
-        dup_rid = np.unique(u[c > 1] >> 44)
+        o = np.argsort(comp, kind="stable")
+        cs = comp[o]
+        dup = np.r_[cs[1:] == cs[:-1], False] | np.r_[False, cs[1:] == cs[:-1]]
+        dup_rid = np.unique(Z["replay_ids"][o][dup])
         dupg = np.isin(common, dup_rid)
         print(f"games with a duplicated stamps key: {dupg.sum():,} (reported separately)")
     if len(common) != len(rr):

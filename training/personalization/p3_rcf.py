@@ -1060,6 +1060,10 @@ def online(a):
     par = get_params(a.tag)
     d, aug = load_aug(a.hist)
     w, med = T.windows(d)
+    # fit window of every coefficient fitted below (default 1 = V1). P3_RCF_FIT_WINDOW=2
+    # fits them on V2 games instead (the game-disjoint judge sensitivity: V2 games
+    # are disjoint from every game the drafter's arm was fit on)
+    FW = int(os.environ.get("P3_RCF_FIT_WINDOW", "1"))
     # frozen mode: every V1-fitted piece (shrinkage function, layer, direct channel,
     # calibration, combiner) comes from a saved arm file instead of a refit
     FZ = None
@@ -1133,7 +1137,7 @@ def online(a):
         res["mu"] = mu_all
         res["mean"], res["var"], tail_meta = TL.apply(tail, res, d["r"][qwalk] - mu_all, d["v"][qwalk] if "v" in d else
                                                       d["wp"][qwalk] * (1 - d["wp"][qwalk]),
-                                                      w[qwalk] == 1, getattr(a, "tail_args", None),
+                                                      w[qwalk] == FW, getattr(a, "tail_args", None),
                                                       frozen=None if FZ is None else FZ["meta"]["tail"])
     pred_all = mu_all + res["mean"]
     n_games, y, wp0, cnt, gday = X.game_arrays(dict(d, wp=d["wp_pop"]))
@@ -1141,7 +1145,7 @@ def online(a):
     gw = np.zeros(n_games, np.int8)
     gw[d["g"][qi]] = w[qi]
     full = cnt == 10
-    fitg = (gw == 1) & full
+    fitg = (gw == FW) & full
     lay_meta = None
     if layer:
         if ppath:
@@ -1176,7 +1180,7 @@ def online(a):
         F = np.nan_to_num(F.astype(np.float64))
         wv = (d["wp_pop"] * (1 - d["wp_pop"]))[qi]
         tgt = d["r"][qi] - pred
-        v1 = w[qi] == 1
+        v1 = w[qi] == FW
         mF, sF = F[v1].mean(0), F[v1].std(0) + 1e-9
         Fz = (F - mF) / sF
         A = (Fz[v1].T / wv[v1]) @ Fz[v1]
@@ -1231,7 +1235,7 @@ def online(a):
             cpar = np.asarray(FZ["meta"]["postcal"]["coef"], np.float64)
         else:
             Xp = B * pred[:, None]
-            v1 = w[qi] == 1
+            v1 = w[qi] == FW
             wv = 1.0 / (d["wp_pop"] * (1 - d["wp_pop"]))[qi][v1]
             cpar = np.linalg.solve((Xp[v1].T * wv) @ Xp[v1] + 1e-9 * np.eye(B.shape[1]), (Xp[v1].T * wv) @ d["r"][qi][v1])
         mult = B @ cpar
@@ -1305,7 +1309,7 @@ def online(a):
                                        "q_win": getattr(a, "q_win", None), "q_met": getattr(a, "q_met", None),
                                        "layer": lay_meta, "tail": tail_meta, "statlin": stat_meta,
                                        "postcal": post_meta,
-                                       "frozen_from": os.environ.get("P3_RCF_FROZEN")})))
+                                       "frozen_from": os.environ.get("P3_RCF_FROZEN"), "fit_window": FW})))
 
 
 def statlin_names(card, extra):
