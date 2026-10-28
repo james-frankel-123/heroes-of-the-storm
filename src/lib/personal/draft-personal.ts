@@ -100,10 +100,11 @@ export function personalValue(
   theirPlayers: PersonalPlayer[],
   c: DraftCoefs,
   fixed: Record<string, string> = {},
+  fixedTheirs: Record<string, string> = {},
 ): { value: number; ours: Assignment; theirs: Assignment } {
   const qq = Math.min(Math.max(q, 1e-4), 1 - 1e-4)
   const a = bestAssignment(ours, oursPlayers, c, fixed)
-  const b = bestAssignment(theirs, theirPlayers, c)
+  const b = bestAssignment(theirs, theirPlayers, c, fixedTheirs)
   return { value: sigmoid(c.b0 + c.b1 * logit(qq) + a.value - b.value), ours: a, theirs: b }
 }
 

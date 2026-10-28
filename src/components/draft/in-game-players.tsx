@@ -92,6 +92,8 @@ export function InGamePlayers({
   }, [ours, theirs, count, coefs, onChange])
 
   const stale = Object.values(lobby.slots).some(s => s.kind === 'pending')
+  // uncertain names wait for a click on their account; until then they neither count nor can be assigned a hero
+  const unconfirmed = Object.values(lobby.slots).filter(s => s.kind === 'unselected' && s.result.status === 'choose').length
 
   const run = async () => {
     const id = ++reqId.current
@@ -230,7 +232,7 @@ export function InGamePlayers({
         </button>
         <span role="status" aria-live="polite" className="text-[10px] text-muted-foreground">
           {res &&
-            `${count} player${count === 1 ? '' : 's'} with personal skill${stale ? ' (some changes not matched yet)' : ''}. Records through ${res.through}${res.estimatesAsOf ? `; skill estimates use games through ${res.estimatesAsOf}` : ''}.${res.noEstimate?.length ? ` No personal estimate for ${res.noEstimate.join(', ')} (not in the current model): draft-only value.` : ''}`}
+            `${count} player${count === 1 ? '' : 's'} with personal skill${stale ? ' (some changes not matched yet)' : ''}.${unconfirmed ? ` ${unconfirmed} name${unconfirmed === 1 ? '' : 's'} to confirm: pick the account below to use ${unconfirmed === 1 ? 'that player' : 'them'} and assign a hero.` : ''} Records through ${res.through}${res.estimatesAsOf ? `; skill estimates use games through ${res.estimatesAsOf}` : ''}.${res.noEstimate?.length ? ` No personal estimate for ${res.noEstimate.join(', ')} (not in the current model): draft-only value.` : ''}`}
         </span>
         {res && (
           <button

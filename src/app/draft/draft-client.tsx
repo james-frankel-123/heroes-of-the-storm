@@ -13,6 +13,7 @@ import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, evaluat
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { InGamePlayers, type PersonalDraftState } from '@/components/draft/in-game-players'
 import { banGain, personalValue } from '@/lib/personal/draft-personal'
+import { assignOptionsFor, assignPlayer, pinsFor } from '@/lib/draft/assignments'
 import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
 import type { DraftState, DraftPhase, DraftData, Team } from '@/lib/draft/types'
@@ -116,15 +117,9 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
         currentStep: state.currentStep + 1,
       }
     }
-    case 'ASSIGN_PLAYER': {
-      const newAssignments = { ...state.playerAssignments }
-      if (action.battletag) {
-        newAssignments[action.stepIndex] = action.battletag
-      } else {
-        delete newAssignments[action.stepIndex]
-      }
-      return { ...state, playerAssignments: newAssignments }
-    }
+    case 'ASSIGN_PLAYER':
+      // one hero per player: choosing someone already on another pick moves them here
+      return { ...state, playerAssignments: assignPlayer(state.playerAssignments, action.stepIndex, action.battletag) }
     case 'UNDO': {
       if (state.currentStep === 0) return state
       const newSelections = { ...state.selections }
@@ -441,28 +436,28 @@ export function DraftClient({
   // (docs/personalization-site-design.md, "Draft page"). Unmatched players count as average.
   const [personal, setPersonal] = useState<PersonalDraftState | null>(null)
 
-  // Our picks pinned to a player (by id) from the board's assignments: a matched in-game
-  // player directly, or a registered party tag via the party member's BattleTag.
-  const personalFixed = useMemo(() => {
-    const fixed: Record<string, string> = {}
-    if (!personal) return fixed
-    pickArrays.ourPicks.forEach((h, i) => {
-      const v = pickArrays.ourPlayerMap[i]
-      if (!v) return
-      const p = personal.ours.find(x => x.id === v || x.tag?.toLowerCase() === v.toLowerCase())
-      if (p) fixed[h] = p.id
-    })
-    return fixed
-  }, [personal, pickArrays])
+  // Picks pinned to a player (by id) from the board's assignments, on both teams: a matched
+  // in-game player directly, or a registered party tag via the party member's BattleTag.
+  const { personalFixed, personalFixedTheirs } = useMemo(() => {
+    if (!personal) return { personalFixed: {}, personalFixedTheirs: {} }
+    const picks = (ours: boolean) =>
+      DRAFT_SEQUENCE.flatMap((st, i) =>
+        st.type === 'pick' && state.selections[i] && (st.team === state.ourTeam) === ours ? [{ hero: state.selections[i], stepIndex: i }] : [],
+      )
+    return {
+      personalFixed: pinsFor(picks(true), state.playerAssignments, personal.ours),
+      personalFixedTheirs: pinsFor(picks(false), state.playerAssignments, personal.theirs),
+    }
+  }, [personal, state.selections, state.playerAssignments, state.ourTeam])
 
   const personalNowPct = useMemo(() => {
     if (!personal || !position) return null
-    return personalValue(position.pct / 100, position.ours, position.theirs, personal.ours, personal.theirs, personal.coefs, personalFixed).value * 100
-  }, [personal, position, personalFixed])
+    return personalValue(position.pct / 100, position.ours, position.theirs, personal.ours, personal.theirs, personal.coefs, personalFixed, personalFixedTheirs).value * 100
+  }, [personal, position, personalFixed, personalFixedTheirs])
   // Enemy-impact rows: change to the banner's estimate, with the same personal terms and pins
   const opponentRows = useMemo<OpponentPredictionRow[]>(() => {
     const withSkill = (pct: number, ours: string[], theirs: string[]) =>
-      personal ? personalValue(pct / 100, ours, theirs, personal.ours, personal.theirs, personal.coefs, personalFixed).value * 100 : pct
+      personal ? personalValue(pct / 100, ours, theirs, personal.ours, personal.theirs, personal.coefs, personalFixed, personalFixedTheirs).value * 100 : pct
     return gdOpponentPreds.map(({ hero, probabilityPct, basis }) => ({
       hero,
       probabilityPct,
@@ -470,7 +465,7 @@ export function DraftClient({
         ? Math.round((withSkill(basis.after, basis.ours, [...basis.theirs, hero]) - withSkill(basis.before, basis.ours, basis.theirs)) * 10) / 10
         : null,
     }))
-  }, [gdOpponentPreds, personal, personalFixed])
+  }, [gdOpponentPreds, personal, personalFixed, personalFixedTheirs])
 
   // The page's one current estimate: the position value, with player skill when matched
   const nowPct = personalNowPct ?? position?.pct ?? null
@@ -566,7 +561,7 @@ export function DraftClient({
     const modelHeroes = (personal.ours[0] ?? personal.theirs[0]).s
     const heroes = Object.keys(modelHeroes)
     const available = heroes.filter(h => !unavailableHeroes.has(h))
-    const now = personalValue(searchProjNow / 100, ourPicks, enemyPicks, personal.ours, personal.theirs, c, fixed)
+    const now = personalValue(searchProjNow / 100, ourPicks, enemyPicks, personal.ours, personal.theirs, c, fixed, personalFixedTheirs)
     const basePct = now.value * 100
     const isBan = step.type === 'ban'
     const pp = (x: number) => `${x >= 0 ? '+' : ''}${(100 * x).toFixed(1)} pp`
@@ -581,7 +576,7 @@ export function DraftClient({
         winPct = 100 / (1 + Math.exp(-(c.b0 + c.b1 * logit(qq) + now.ours.value - now.theirs.value + g.gain)))
         if (g.who && g.gain > 0.01) personalNote = `Takes away ${nameOf(g.who)}'s best option`
       } else {
-        const v = personalValue(q, [...ourPicks, hero], enemyPicks, personal.ours, personal.theirs, c, fixed)
+        const v = personalValue(q, [...ourPicks, hero], enemyPicks, personal.ours, personal.theirs, c, fixed, personalFixedTheirs)
         winPct = v.value * 100
         const who = v.ours.who[hero]
         const p = personal.ours.find(x => x.id === who)
@@ -609,7 +604,7 @@ export function DraftClient({
       summary: `Rows include player skill for ${n} matched player${n === 1 ? '' : 's'} (search line ${basePct.toFixed(1)}%, ${searchProjNow.toFixed(1)}% without player skill). Rows from a player's own pool were not searched.`,
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personal, personalFixed, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
+  }, [personal, personalFixed, personalFixedTheirs, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
 
   // AMA context (updates live with every pick/ban)
   const amaContext = useMemo(() => {
@@ -636,23 +631,18 @@ export function DraftClient({
     }
   }, [amaContext])
 
-  // Who? options on the board: unassigned registered party tags, then matched teammates
-  const assignOptions = useMemo(() => {
-    const assigned = new Set(Object.values(state.playerAssignments).map(v => v.toLowerCase()))
-    const opts = availableBattletags.map(bt => ({ value: bt, label: bt.split('#')[0] }))
-    const registered = new Set(state.playerSlots.map(s => s.battletag?.toLowerCase()).filter(Boolean))
-    for (const p of personal?.ours ?? []) {
-      if (assigned.has(p.id) || (p.tag && (registered.has(p.tag.toLowerCase()) || assigned.has(p.tag.toLowerCase())))) continue
-      opts.push({ value: p.id, label: p.label })
-    }
-    return opts
-  }, [availableBattletags, personal, state.playerAssignments, state.playerSlots])
+  // Who? options on the board, per team: every assignable player, assigned or not (choosing
+  // one already on another hero moves them; the board marks where they are now)
+  const assignOptions = useMemo(() => ({
+    ours: assignOptionsFor('ours', partyTags, personal?.ours ?? []),
+    theirs: assignOptionsFor('theirs', [], personal?.theirs ?? []),
+  }), [partyTags, personal])
   // Remember matched players' names so an assignment whose player was invalidated (edited,
   // cleared, rematched away) can still be shown, marked as not matched
   const knownLabels = useRef<Record<string, string>>({})
   const assignLabels = useMemo(() => {
     const m: Record<string, string> = {}
-    for (const p of personal?.ours ?? []) {
+    for (const p of [...(personal?.ours ?? []), ...(personal?.theirs ?? [])]) {
       m[p.id] = p.label
       knownLabels.current[p.id] = p.label
     }

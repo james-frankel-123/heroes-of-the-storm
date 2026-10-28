@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils'
 interface DraftBoardProps {
   state: DraftState
   currentStep: number
-  /** Who? options for our picks: unassigned party tags and matched teammates */
-  assignOptions: { value: string; label: string }[]
+  /** Who? options per team: party tags and matched teammates; matched enemies */
+  assignOptions: { ours: { value: string; label: string }[]; theirs: { value: string; label: string }[] }
   /** Display names for assignment values that are not BattleTags (matched players) */
   assignLabels: Record<string, string>
   /** Assignments to players no longer matched in the lobby (not used by the scorer) */
@@ -62,10 +62,11 @@ export function DraftBoard({
       <TeamRow
         teamLabel={`Team A${isOurTeam('A') ? ' (You)' : ''}`}
         isOurs={isOurTeam('A')}
+        options={isOurTeam('A') ? assignOptions.ours : assignOptions.theirs}
+        heroAt={state.selections}
         bans={teamABans}
         picks={teamAPicks}
         currentStep={currentStep}
-        assignOptions={assignOptions}
         assignLabels={assignLabels}
         staleAssignLabels={staleAssignLabels}
         playerAssignments={playerAssignments}
@@ -80,10 +81,11 @@ export function DraftBoard({
       <TeamRow
         teamLabel={`Team B${isOurTeam('B') ? ' (You)' : ''}`}
         isOurs={isOurTeam('B')}
+        options={isOurTeam('B') ? assignOptions.ours : assignOptions.theirs}
+        heroAt={state.selections}
         bans={teamBBans}
         picks={teamBPicks}
         currentStep={currentStep}
-        assignOptions={assignOptions}
         assignLabels={assignLabels}
         staleAssignLabels={staleAssignLabels}
         playerAssignments={playerAssignments}
@@ -103,10 +105,11 @@ function winPctColor(pct: number): string {
 function TeamRow({
   teamLabel,
   isOurs,
+  options,
+  heroAt,
   bans,
   picks,
   currentStep,
-  assignOptions,
   assignLabels,
   staleAssignLabels,
   playerAssignments,
@@ -115,16 +118,20 @@ function TeamRow({
 }: {
   teamLabel: string
   isOurs: boolean
+  options: { value: string; label: string }[]
+  heroAt: Record<number, string>
   bans: { stepIdx: number; hero: string | null }[]
   picks: { stepIdx: number; hero: string | null }[]
   currentStep: number
-  assignOptions: { value: string; label: string }[]
   assignLabels: Record<string, string>
   staleAssignLabels: Record<string, string>
   playerAssignments: Record<number, string>
   onAssignPlayer: (stepIndex: number, battletag: string) => void
   winPct: number | null
 }) {
+  // where each player is assigned now, so an option can say "(on Valla)"; choosing it moves them
+  const placedOn = new Map<string, number>()
+  for (const [k, v] of Object.entries(playerAssignments)) placedOn.set(v.toLowerCase(), Number(k))
   const labelOf = (v: string) => staleAssignLabels[v] ?? assignLabels[v] ?? v.replace(/^\d+:/, '').split('#')[0]
   return (
     <div className="space-y-2">
@@ -180,8 +187,8 @@ function TeamRow({
                 isCurrent={stepIdx === currentStep}
                 isBan={false}
               />
-              {/* Player assignment dropdown — only for our team's completed picks */}
-              {isOurs && hero && (
+              {/* Player assignment: our picks always; enemy picks once enemies are matched */}
+              {hero && (isOurs || options.length > 0 || playerAssignments[stepIdx]) && (
                 <select
                   aria-label={`Player on ${hero}`}
                   value={playerAssignments[stepIdx] ?? ''}
@@ -204,13 +211,17 @@ function TeamRow({
                       {labelOf(playerAssignments[stepIdx])}
                     </option>
                   )}
-                  {assignOptions
-                    .filter((o) => o.value !== playerAssignments[stepIdx])
-                    .map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
+                  {options
+                    .filter((o) => o.value.toLowerCase() !== playerAssignments[stepIdx]?.toLowerCase())
+                    .map((o) => {
+                      const on = placedOn.get(o.value.toLowerCase())
+                      return (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                          {on !== undefined && heroAt[on] ? ` (on ${heroAt[on]})` : ''}
+                        </option>
+                      )
+                    })}
                 </select>
               )}
             </div>
