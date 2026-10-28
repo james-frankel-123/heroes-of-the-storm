@@ -7,7 +7,7 @@ Descriptive likelihood test on the random-40k E sample (dWR uses both
 sides of the boundary, so this is not a causal predictor).
 
 Run (from training/, 4 threads):
-  NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_ph_patch_big.py
+  NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_ph_patch_big.py
 Output: results/p3_ph_patch_big.json
 """
 import os

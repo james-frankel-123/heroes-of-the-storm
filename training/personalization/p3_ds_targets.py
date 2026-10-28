@@ -7,7 +7,7 @@ all have >= 50 earlier games. V1 lobbies are disjoint from every V2 lobby
 used to evaluate drafters. Targets are the root visit distributions.
 
 Run (from training/):
-  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 48-63 \
+  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 44-47 \
     python3 personalization/p3_ds_targets.py [--lobbies 6000] [--sims 400]
 Output: cache/ds_targets_s<sims>.pkl.gz
 """

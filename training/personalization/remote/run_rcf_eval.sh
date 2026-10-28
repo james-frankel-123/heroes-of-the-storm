@@ -5,7 +5,7 @@ set -uo pipefail
 HIST=$1; shift
 cd "$(dirname "$0")/../.."
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 NUMBA_NUM_THREADS=4
-PY="nice -n 19 taskset -c 48-51 /usr/bin/python3 personalization/p3_rcf.py"
+PY="nice -n 19 taskset -c 44-47 /usr/bin/python3 personalization/p3_rcf.py"
 P=personalization/results/rcf/params
 mkdir -p $P
 for tag in "$@"; do

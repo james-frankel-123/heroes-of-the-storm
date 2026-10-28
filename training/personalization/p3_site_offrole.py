@@ -11,7 +11,7 @@ games, tested on V2 and OOT as every combiner in p3_c_tests.
 Run with the build's env, e.g. the definitive build on the main box (arms
 from SITE_OFFROLE_ARMS, comma separated; default full_ms,full_imp2):
   . personalization/remote/def_env.sh $PWD def1027
-  SITE_OFFROLE_ARMS=chosen nice -n 19 taskset -c 48-51 python3 personalization/p3_site_offrole.py
+  SITE_OFFROLE_ARMS=chosen nice -n 19 taskset -c 44-47 python3 personalization/p3_site_offrole.py
 Writes $P3_RESULTS/site/offrole_refit.json.
 """
 import json

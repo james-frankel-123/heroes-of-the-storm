@@ -18,7 +18,7 @@ Outputs in the MCTS pickle formats so p3_mcts_analyze functions apply:
   collapse  300 players x 30 contexts (same contexts as the MCTS runs)
 
 Run (from training/):
-  OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_ds_greedy.py
+  OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_ds_greedy.py
 Output: cache/dsgreedy_{full,real,collapse}.pkl.gz
 """
 import os

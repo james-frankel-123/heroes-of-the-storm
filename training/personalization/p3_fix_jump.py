@@ -30,7 +30,7 @@ sets, the J maximizing the fit-sample likelihood with a profile 95% bound,
 and real minus placebo at each J. Plus the split-half DiD of p3_ph_patch on
 u restricted to the 2026 boundaries (out of sample).
 
-Run (from training/): OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_fix_jump.py
+Run (from training/): OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_fix_jump.py
 Output: results/fix/p3_fix_jump.json
 """
 import os

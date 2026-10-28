@@ -25,7 +25,7 @@ Secondary, flagged as selected: the mean of the first 3 games for events
 that reached 3 games, prediction path offset(n_p, j - 1) + m.
 CIs: player-cluster bootstrap (500).
 
-Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_fix_neverplayed.py
+Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_fix_neverplayed.py
 Output: results/fix/p3_fix_neverplayed.json
 """
 import os

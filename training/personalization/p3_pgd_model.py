@@ -26,7 +26,7 @@ Breakdowns: picks by the acting player's games before the game (0, 1-20,
 bans by the remaining opponents' mean history and the most concentrated
 remaining opponent.
 
-Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_pgd_model.py
+Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_pgd_model.py
 Outputs: cache/pgd_personal.pt, results/p3_pgd_model.json
 """
 import os

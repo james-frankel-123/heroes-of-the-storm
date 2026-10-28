@@ -26,7 +26,7 @@ refit on the held-out half's E games and compared with the fit-half one.
 
 Run (from training/):
   NUMBA_NUM_THREADS=4 OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 \
-    nice -n 19 taskset -c 48-63 python3 personalization/p3_hs_similarity_pool.py
+    nice -n 19 taskset -c 44-47 python3 personalization/p3_hs_similarity_pool.py
 Outputs: results/p3_hs_similarity_pool.json, results/fig_hero_skill_vs_pref_pooled.png
 """
 import os

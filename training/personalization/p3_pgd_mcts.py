@@ -25,7 +25,7 @@ Runs:
 (kernel personalized-GD vs Python) masks with the acting slot's pool; in
 assign mode it masks with the team's pool union.
 Run (from training/):
-  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 48-63 \
+  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 44-47 \
     python3 personalization/p3_pgd_mcts.py --stage verify|real|full|analyze
 Outputs: cache/pgdmcts_*.pkl.gz, results/p3_pgd_mcts.json
 """

@@ -40,7 +40,7 @@ Subcommands
           game-level V1 -> V2 test of adding them to the value function.
 
 Run (from training/):
-  OMP_NUM_THREADS=1 nice -n 19 taskset -c 48-63 python3 personalization/p3_x_draft.py sim --procs 4
+  OMP_NUM_THREADS=1 nice -n 19 taskset -c 44-47 python3 personalization/p3_x_draft.py sim --procs 4
   python3 personalization/p3_x_draft.py assign | combine | chem | analyze
 Outputs: cache/x_draft_sim.pkl.gz, results/p3_x_draft.json
 """

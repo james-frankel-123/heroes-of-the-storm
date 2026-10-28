@@ -16,7 +16,7 @@ personalized drafter changes its prior):
 --assign {slot,team}: see p3_mcts_drafter (default slot).
 
 Run (from training/):
-  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 48-63 \
+  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 44-47 \
     python3 personalization/p3_ds_mcts.py --stage verify|full|real|collapse --sims 400
 Output: cache/dsmcts_<stage>_s<sims>.pkl.gz, results/p3_ds_verify.json
 """

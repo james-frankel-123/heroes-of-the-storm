@@ -33,7 +33,7 @@ gain of r = y - wp on the lobby-centered value, per source, on the same
 games; at-game MMR must not beat the clean previous-game MMR.
 
 Usage (from training/):
-  nice -n 19 taskset -c 48-63 python3 personalization/p3_mmr_at_game.py
+  nice -n 19 taskset -c 44-47 python3 personalization/p3_mmr_at_game.py
 Output: cache/mmr_at_game.npz, results/p3_mmr_at_game.json/.txt
 """
 import glob

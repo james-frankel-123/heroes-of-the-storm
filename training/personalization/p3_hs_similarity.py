@@ -35,7 +35,7 @@ the region-aware player key) and its rank-12 SVD cosine for ordering.
 
 Run (from training/):
   NUMBA_NUM_THREADS=4 OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 \
-    nice -n 19 taskset -c 48-63 python3 personalization/p3_hs_similarity.py
+    nice -n 19 taskset -c 44-47 python3 personalization/p3_hs_similarity.py
 Outputs: results/p3_hs_similarity.json, results/fig_hero_skill_vs_pref.png,
 cache/hs_similarity.npz
 """

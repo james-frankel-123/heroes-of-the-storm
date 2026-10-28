@@ -14,7 +14,7 @@ real teams by agreement quintile, same 2,000-lobby subset for all),
 collapse, self-play meta breadth, off-role rate.
 
 Run (from training/):
-  OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_ds_analyze.py
+  OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_ds_analyze.py
 Outputs: results/p3_ds_analyze.json, results/fig_ds_meta.png
 """
 import os

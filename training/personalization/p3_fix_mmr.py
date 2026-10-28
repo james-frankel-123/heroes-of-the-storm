@@ -15,7 +15,7 @@ CIs: paired replay bootstrap and a player-cluster bootstrap (one-way, the
 player of the slot with the most V2 games in the game, P3-16 approximation:
 games resampled through clusters of their first team-0 player).
 
-Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_fix_mmr.py
+Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_fix_mmr.py
 Output: results/fix/p3_fix_mmr.json
 """
 import os

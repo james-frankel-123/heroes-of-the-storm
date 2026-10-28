@@ -19,7 +19,7 @@ Sims curve: predicted whole-draft gain (a-gd) and realized agreement on the
 same 2,000-lobby subset at every sims level, plus the one-step reference.
 
 Run (from training/):
-  OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_mcts_analyze.py
+  OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_mcts_analyze.py
 Outputs: results/p3_mcts_analyze.json, results/fig_mcts_sims_curve.png,
 results/fig_mcts_meta.png
 """

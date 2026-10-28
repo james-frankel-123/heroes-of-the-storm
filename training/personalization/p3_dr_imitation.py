@@ -18,7 +18,7 @@ batch conditional-logit fit on V1 picks; scored on V2 picks. Baselines: GD
 alone, frequency alone (EWMA-20 share), uniform over the player's pool.
 
 Run (from training/):
-  OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 48-63 \
+  OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 44-47 \
     python3 personalization/p3_dr_imitation.py
 Outputs: cache/dr_imitation.npz (weights + per-pick features for reuse),
 results/p3_dr_imitation.json

@@ -19,7 +19,7 @@ P3 personalized MCTS kernel verification.
 3. Tree guard: max nodes used and capacity hits at the sim counts used.
 
 Run (from training/):
-  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_mcts_verify.py --search-mode chance
+  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_mcts_verify.py --search-mode chance
 Output: results/p3_mcts_verify_<mode>.json; exits 1 if a gate fails (leaf parity
 1e-5, population identity, tree reaching a later own pick block).
 """

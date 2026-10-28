@@ -65,6 +65,8 @@ import p3_hs_core as C
 RCF_CACHE = os.path.join(C.CACHE, "rcf")
 RCF_RES = os.path.join(C.RESULTS, "rcf")
 TZ = C.day_of("2025-03-01")
+# fit-input files fit_<hist><FITSUF>.npz (P3_RCF_FIT_SUFFIX; default "": the E-window fit)
+FITSUF = os.environ.get("P3_RCF_FIT_SUFFIX", "")
 ROWS = os.environ.get("P3_RCF_ROWS") or os.path.join(RCF_CACHE, "merged_rows_oct05.npz")
 KERN = os.environ.get("P3_RCF_KERNELS") or os.path.join(RCF_CACHE, "hs_kernels.npz")
 H = 90
@@ -316,6 +318,14 @@ def prep(hist, card="legacy"):
     e_slot = is_slot & ins & (day >= e_start) & (day <= e_last)
     tgt = e_slot & (day >= TZ)
     cond = (day < TZ)
+    if os.environ.get("P3_PREP_WINDOW"):
+        # a fit on one window only (the game-disjoint judge: V2 games): conditioning rows
+        # (slot and history rows) from lo to before tz, target slot rows from tz to hi
+        lo_, tz_, hi_ = (C.day_of(x) for x in os.environ["P3_PREP_WINDOW"].split(":"))
+        e_slot = is_slot & (day >= lo_) & (day <= hi_)
+        tgt = e_slot & (day >= tz_)
+        cond = (day >= lo_) & (day < tz_)
+        print(f"[prep] window {os.environ['P3_PREP_WINDOW']} (lo:tz:hi)", flush=True)
     players = np.unique(pid[tgt])
     pos = np.full(npl, -1, np.int64)
     pos[players] = np.arange(len(players))
@@ -340,10 +350,10 @@ def prep(hist, card="legacy"):
     Zaug, Waug = aug_metrics(aug, card, d)
     X1, C1 = metric_sums(aug, Zaug, Waug, cond, pos, n)
     if card != "legacy":
-        p = os.path.join(RCF_CACHE, f"fitm_{hist}_{card}.npz")
+        p = os.path.join(RCF_CACHE, f"fitm_{hist}{FITSUF}_{card}.npz")
         np.savez_compressed(p, X1=X1, C1=C1, players=players)
         print(f"[prep {hist} {card}] wrote {p} ({time.time() - t0:.0f}s)", flush=True)
-        if os.path.exists(os.path.join(RCF_CACHE, f"fit_{hist}.npz")):
+        if os.path.exists(os.path.join(RCF_CACHE, f"fit_{hist}{FITSUF}.npz")):
             return
     out["X1"] = X1
     out["C1"] = C1
@@ -351,8 +361,9 @@ def prep(hist, card="legacy"):
     out["hero_names"] = d["hero_names"]
     out["tz"] = np.int64(TZ)
     out["hist"] = np.array(hist)
+    out["window"] = np.array(os.environ.get("P3_PREP_WINDOW", "E"))
     os.makedirs(RCF_CACHE, exist_ok=True)
-    p = os.path.join(RCF_CACHE, f"fit_{hist}.npz")
+    p = os.path.join(RCF_CACHE, f"fit_{hist}{FITSUF}.npz")
     np.savez_compressed(p, **out)
     f = out["fit"]
     print(f"[prep {hist}] wrote {p}: players {n:,} (fit {f.sum():,}, held-out {(~f).sum():,}); "
@@ -483,9 +494,9 @@ def fit(a):
     import torch
     dev = torch.device("cuda" if torch.cuda.is_available() and not a.cpu else "cpu")
     torch.manual_seed(a.seed)
-    z = dict(np.load(os.path.join(RCF_CACHE, f"fit_{a.hist}.npz")))
+    z = dict(np.load(os.path.join(RCF_CACHE, f"fit_{a.hist}{FITSUF}.npz")))
     if a.sb != "legacy" and a.metrics:
-        zm = np.load(os.path.join(RCF_CACHE, f"fitm_{a.hist}_{a.sb}.npz"))
+        zm = np.load(os.path.join(RCF_CACHE, f"fitm_{a.hist}{FITSUF}_{a.sb}.npz"))
         assert np.array_equal(zm["players"], z["players"])
         z["X1"], z["C1"] = zm["X1"], zm["C1"]
     fitm = z["fit"]

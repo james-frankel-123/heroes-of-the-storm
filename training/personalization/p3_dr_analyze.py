@@ -23,7 +23,7 @@ P3 items 1-2: analysis of the drafter runs (cache/dr_runs.pkl.gz).
    population-model residual of the picking team.
 
 Run (from training/):
-  OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_dr_analyze.py
+  OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_dr_analyze.py
 Outputs: results/p3_dr_analyze.json, results/fig_dr_meta.png, results/fig_dr_collapse.png
 """
 import os

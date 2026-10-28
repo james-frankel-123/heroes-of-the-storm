@@ -15,7 +15,7 @@ Example pairs of each group are listed (largest gap in rank).
 
 Run (from training/):
   NUMBA_NUM_THREADS=4 OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 \
-    nice -n 19 taskset -c 48-63 python3 personalization/p3_hs_similarity_diverge.py
+    nice -n 19 taskset -c 44-47 python3 personalization/p3_hs_similarity_diverge.py
 Output: results/p3_hs_similarity_diverge.json
 """
 import os

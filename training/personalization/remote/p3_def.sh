@@ -20,7 +20,7 @@ R3=/home/max/hots/repo/training; R5=hots/repo/training
 MAN=personalization/results/def_$D/manifest.json
 mkdir -p personalization/results/def_$D
 MANPY="/usr/bin/python3 personalization/p3_manifest.py"
-LOCAL="nice -n 19 taskset -c 48-51"
+LOCAL="nice -n 19 taskset -c 44-47"
 UPSTREAM="wp_drift.npz players_2024q2.npz x_wp_post.npz x_post_players.npz x_post_games.json.gz x_tiers.npz
   pickorder_2024q2.npz x_bans.npz drafts_post.json.gz x_side_games.npz x_side_players.npz"
 source remote_workers/_remote.sh

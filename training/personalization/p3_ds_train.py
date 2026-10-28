@@ -11,7 +11,7 @@ kernel's valid mask. Compared: BC prior alone; alpha * BC (fitted alpha);
 alpha * BC + g (the distilled prior); g alone (no draft state).
 
 Run (from training/):
-  OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_ds_train.py
+  OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_ds_train.py
 Outputs: cache/ds_prior.pt, results/p3_ds_train.json
 """
 import os

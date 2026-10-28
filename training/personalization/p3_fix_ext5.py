@@ -22,9 +22,9 @@ model's own predicted gap for the same real draft, and the remainder
               predicted gap and remainder next to every realized number
 
 Run (from training/), after p3_fix_drafters.py tables and onestep:
-  OMP_NUM_THREADS=1 nice -n 19 taskset -c 48-63 python3 personalization/p3_fix_ext5.py b_sim --procs 4
-  OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_fix_ext5.py b_analyze
-  OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_fix_ext5.py d
+  OMP_NUM_THREADS=1 nice -n 19 taskset -c 44-47 python3 personalization/p3_fix_ext5.py b_sim --procs 4
+  OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_fix_ext5.py b_analyze
+  OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_fix_ext5.py d
 Outputs: cache/fix/x_draft_sim_b.pkl.gz, results/fix/p3_fix_ext5.json
 """
 import os

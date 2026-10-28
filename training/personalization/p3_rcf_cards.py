@@ -44,7 +44,7 @@ state of games on later days only, so a game's own scoreboard never enters
 its prediction.
 
 Usage (from training/):
-  nice -n 19 taskset -c 48-51 python3 personalization/p3_rcf_cards.py --tag rcf1017 --cards base,a_shrink,...
+  nice -n 19 taskset -c 44-47 python3 personalization/p3_rcf_cards.py --tag rcf1017 --cards base,a_shrink,...
 Output: cache/rcf/sb_<card>.npz: replay_id, blizz_id (export row order),
 Z (float16, rows x M), W (float16 evidence weight), metrics.
 """

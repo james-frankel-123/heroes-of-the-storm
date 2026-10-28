@@ -22,7 +22,7 @@ Analyses
     game combiner on top of M0 + skill model (fit V1, test V2).
 
 Run (from training/, 4 threads):
-  NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_ph_role.py
+  NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_ph_role.py
 Output: results/p3_ph_role.json
 """
 import os

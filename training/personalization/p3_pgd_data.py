@@ -22,7 +22,7 @@ Every kept game is checked against this pattern.
 Also: per-day, per-tier hero pick and ban counts (for the causal 28-day meta
 rates used as model inputs).
 
-Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_pgd_data.py
+Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_pgd_data.py
 Output: cache/pgd_games.npz
 """
 import os

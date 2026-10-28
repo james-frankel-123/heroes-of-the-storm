@@ -22,7 +22,7 @@ Quintile means of the three, Q5 - Q1 with a GAME bootstrap (both teams of a
 game resampled together, P3-15), and the OLS of realized on agreement and
 predicted gap (agreement coefficient, game bootstrap).
 
-Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_fix_realized.py
+Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_fix_realized.py
      With --old: the same on the pre-audit runs (cache/), with the pre-audit
      tables and combiner as the predicted gap.
 Output: results/fix/p3_fix_realized.json (--old: p3_fix_realized_old.json)

@@ -30,7 +30,7 @@ Stages
   collapse  decide-only for 300 players x 30 contexts, both valuations
 
 Run (from training/):
-  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 48-63 \
+  CUDA_VISIBLE_DEVICES=3 OMP_NUM_THREADS=2 nice -n 19 taskset -c 44-47 \
     python3 personalization/p3_mcts_drafter.py --stage full --sims 400
 Output: cache/mcts_<stage>_s<sims>.pkl.gz
 """

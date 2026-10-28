@@ -14,7 +14,7 @@ Heroes are ordered by average-linkage clustering on 1 - cosine.
 
 Outputs (personalization/results/): P3_PREF_SIMILARITY.md,
 p3_pref_similarity.json, fig_hero_pref_corr.png
-Usage (from training/): nice -n 19 taskset -c 48-63 python3 personalization/p3_pref_similarity.py
+Usage (from training/): nice -n 19 taskset -c 44-47 python3 personalization/p3_pref_similarity.py
 """
 import os
 import sys

@@ -21,7 +21,7 @@ B. Premade parties: party id != 0, size = members of the same party on the
    V2 combiner on top of the skill model.
 
 Run (from training/):
-  OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_val_validity.py
+  OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_val_validity.py
 Output: results/p3_val_validity.json
 """
 import os

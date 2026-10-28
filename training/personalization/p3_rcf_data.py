@@ -24,7 +24,7 @@ rows on earlier days only (p3_rcf.py), so a game's metrics never enter its
 own prediction.
 
 Usage (from training/):
-  nice -n 19 taskset -c 48-51 python3 personalization/p3_rcf_data.py build --tag rcf1016
+  nice -n 19 taskset -c 44-47 python3 personalization/p3_rcf_data.py build --tag rcf1016
   ... reliability       per-metric reliability per game (E rows)
 Output: cache/rcf/sb_z.npz (Z float16 n_slots x M, metric names, has_sb).
 """

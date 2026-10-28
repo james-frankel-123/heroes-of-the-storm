@@ -18,7 +18,7 @@ Audit fixes P3-09, P3-12, P3-11, P3-19, P3-13 (small, CPU).
            the per-hero transfer tests of P3_HERO_SIMILARITY.
   cf       P3-13: profile likelihood of the CF-factor drift rate.
 
-Run (from training/): OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 48-63 \
+Run (from training/): OMP_NUM_THREADS=4 NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 44-47 \
   python3 personalization/p3_fix_arms.py arms|role|misc|cf
 Output: results/fix/p3_fix_<what>.json
 """

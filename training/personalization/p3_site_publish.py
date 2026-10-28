@@ -53,7 +53,7 @@ Card format (bytea, little endian), version 2:
 The displayed estimate of a hero is s; its 80% band is s +- 1.2816 sd.
 
 Usage (from training/, source ../.env):
-  nice -n 19 taskset -c 48-51 python3 personalization/p3_site_publish.py build
+  nice -n 19 taskset -c 44-47 python3 personalization/p3_site_publish.py build
   (. personalization/remote/def_env.sh $PWD def1027; python3 personalization/p3_site_publish.py states)
 """
 import argparse

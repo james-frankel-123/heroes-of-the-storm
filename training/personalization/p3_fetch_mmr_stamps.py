@@ -15,7 +15,7 @@ p3_mmr_at_game.py can take, for each game, the latest stamp parsed strictly
 before the game started.
 
 Usage (from training/, needs psycopg2 and DATABASE_URL):
-  nice -n 19 taskset -c 48-63 python3 personalization/p3_fetch_mmr_stamps.py
+  nice -n 19 taskset -c 44-47 python3 personalization/p3_fetch_mmr_stamps.py
 Output: personalization/cache/mmr_stamps_db.npz
 """
 import os

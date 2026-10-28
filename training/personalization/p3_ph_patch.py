@@ -41,7 +41,7 @@ D. Out of sample after the 2026-04-20 patch (2.55.16, inside V2): lag-1-day
    the day before the patch.
 
 Run (from training/, 4 threads):
-  NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_ph_patch.py
+  NUMBA_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_ph_patch.py
 Output: results/p3_ph_patch.json
 """
 import os

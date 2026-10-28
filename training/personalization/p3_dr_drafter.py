@@ -45,7 +45,7 @@ Protocol (October 2026; the audit fixes are the defaults, no monkeypatching):
   - GD and the imitation model come from the train window (p3_dr_core.gd_dir)
 
 Run (from training/):
-  OMP_NUM_THREADS=1 nice -n 19 taskset -c 48-63 python3 personalization/p3_dr_drafter.py \
+  OMP_NUM_THREADS=1 nice -n 19 taskset -c 44-47 python3 personalization/p3_dr_drafter.py \
       [--lobbies 1000] [--real-extra 3000] [--collapse-players 300] [--procs 4]
 Output: cache/dr_runs.pkl.gz
 """

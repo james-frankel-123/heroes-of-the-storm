@@ -34,8 +34,8 @@ pulled long after most games, so the default rule ("game") counts a match
 played before t even if it was uploaded after t; `late` reports how often.
 
 Usage (from training/, nice 19, <= 4 cores on the main box):
-  nice -n 19 taskset -c 48-51 python3 personalization/p3_full_history.py build --tag oct05
-  nice -n 19 taskset -c 48-51 python3 personalization/p3_full_history.py stats --tag oct05
+  nice -n 19 taskset -c 44-47 python3 personalization/p3_full_history.py build --tag oct05
+  nice -n 19 taskset -c 44-47 python3 personalization/p3_full_history.py stats --tag oct05
 Output: cache/full_history/<tag>/history.npz, meta.json (no battletags);
 results/p3_full_history_<tag>.json/.txt (stats)
 """

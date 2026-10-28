@@ -2,7 +2,7 @@
 P3 play-by-play study (results/P3_PLAY_BY_PLAY.md): prediction targets and the
 non-replay baseline inputs.
 
-Stages (from training/, system python3, nice 19, cores 48-63):
+Stages (from training/, system python3, nice 19, cores 44-47):
   targets   every 2.57 Storm League game in the local research DB with ten
             replay_players rows, sealed holdout ids removed by id (their rows
             are never selected). Per slot: identity, hero, team, win, party,

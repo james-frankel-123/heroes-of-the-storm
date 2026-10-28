@@ -11,7 +11,7 @@ holdout of the training window.
 Evaluated on V2 and post-snapshot games: picks top-1/3/5 and log loss; bans
 top-1/3 and log loss; against the paper-1 GD.
 
-Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 48-63 python3 personalization/p3_pgd_gd.py
+Run (from training/): OMP_NUM_THREADS=4 nice -n 19 taskset -c 44-47 python3 personalization/p3_pgd_gd.py
 Outputs: cache/pgd_metagd.pt, results/p3_pgd_gd.json
 """
 import os
