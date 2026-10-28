@@ -1,0 +1,32 @@
+{
+ "lobbies": 500,
+ "sims": 400,
+ "pMCTS-cur": {
+  "ms_per_decision": 4.344,
+  "ms_per_draft_8_decisions": 34.76
+ },
+ "aMCTS-cur": {
+  "ms_per_decision": 4.489,
+  "ms_per_draft_8_decisions": 35.91
+ },
+ "pMCTS-bc": {
+  "ms_per_decision": 3.764,
+  "ms_per_draft_8_decisions": 30.11
+ },
+ "aMCTS-bc": {
+  "ms_per_decision": 3.91,
+  "ms_per_draft_8_decisions": 31.28
+ },
+ "aMCTS-pp": {
+  "ms_per_decision": 5.132,
+  "ms_per_draft_8_decisions": 41.06
+ },
+ "aMCTS-sp": {
+  "ms_per_decision": 4.815,
+  "ms_per_draft_8_decisions": 38.52
+ },
+ "aMCTS-vn": {
+  "ms_per_decision": 3.905,
+  "ms_per_draft_8_decisions": 31.24
+ }
+}

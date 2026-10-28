@@ -78,6 +78,10 @@ def main():
             gl.append(int(r[il]) if r[il] else -1)
     np.savez(os.path.join(out, "gametime_2024q2.npz"), replay_ids=np.array(gr, np.int64),
              ts=np.array(gt, np.int64), game_length=np.array(gl, np.int32))
+    # input directories keyed inside by tag (export/<D>, full_history/<D>) or pinned
+    # tournament inputs (gd_trainonly, sha256 in the manifest); any other directory
+    # (rcf/, p3t/, run outputs) is never linked
+    LINK_DIRS = {"export", "full_history", "gd_trainonly"}
     # every other input from the window cache, never a derived table nor a
     # table aligned to the window slot order (mmr_at_game is rebuilt)
     import re
@@ -89,6 +93,8 @@ def main():
             continue
         if any(p.search("/" + f) for p in pats):
             continue
+        if os.path.isdir(os.path.join(src, f)) and f not in LINK_DIRS:
+            continue                                 # derived or unrelated directories are never inherited
         dst = os.path.join(out, f)
         if not os.path.lexists(dst):
             os.symlink(os.path.join(src, f), dst)

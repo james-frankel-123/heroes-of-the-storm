@@ -48,7 +48,9 @@ def rev_leaf():
     deploy statistics (flat weights, offsets, LUT blob)."""
     if "leaf" not in _CACHE:
         from paper1_revision import bench_mcts
-        _CACHE["leaf"] = bench_mcts.leaf_config("new:x_s0")
+        # any oof run resolves to the leak-free enriched leaf (bench_mcts.leaf_spec reads the
+        # run's run_meta.json since c66e81a, so the placeholder run name "x_s0" no longer works)
+        _CACHE["leaf"] = bench_mcts.leaf_config("new:F_oof_s0")
     return _CACHE["leaf"]
 
 

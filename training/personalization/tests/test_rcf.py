@@ -196,8 +196,86 @@ def test_r7_parts_and_tails():
             assert abs(r2[k][0] - res[k][j]) < 1e-10
 
 
+def test_r8_kalman():
+    rng = np.random.default_rng(6)
+    par = rand_params(rng, implicit=False)
+    aug, Z, wp, y = walk_fixture(rng)
+    q = rng.choice(np.flatnonzero(aug["day"] > 1100), 30, replace=False)
+    qw, qm = 2e-5, 1e-3
+    res = R.online_walk(aug, q, par, metrics=Z, parts=True, q_win=qw, q_met=qm)
+    for j, i in enumerate(q):
+        T = aug["day"][i]
+        m = (aug["pid"] == aug["pid"][i]) & (aug["hero"] == aug["hero"][i]) & (aug["day"] <= T - 1)
+        if m.sum() == 0:
+            assert res["Ph"][j] == 0
+            continue
+        ti = aug["day"][m].astype(float)
+        yv = aug["r_adj"][m]
+        Sg = np.diag(aug["v"][m]) + qw * (T - np.maximum.outer(ti, ti))
+        one = np.ones(m.sum())
+        Pi = np.linalg.solve(Sg, one)
+        P_ref = one @ Pi
+        S_ref = Pi @ yv
+        assert abs(P_ref - res["Ph"][j]) < 1e-8 * P_ref, (P_ref, res["Ph"][j])
+        assert abs(S_ref - res["Sh"][j]) < 1e-8 * max(1, abs(S_ref)), (S_ref, res["Sh"][j])
+    for j, i in enumerate(q[:15]):
+        a2 = {k: (v.copy() if isinstance(v, np.ndarray) else v) for k, v in aug.items()}
+        Z2 = Z.copy()
+        later = (aug["day"] >= aug["day"][i]) & (aug["pid"] == aug["pid"][i])
+        a2["r_adj"][later] = 0.7
+        Z2[later] = 2.5
+        r2 = R.online_walk(a2, np.array([i]), par, metrics=Z2, q_win=qw, q_met=qm)
+        assert abs(r2["mean"][0] - res["mean"][j]) < 1e-10
+
+
+def test_r9_metric_feats():
+    rng = np.random.default_rng(9)
+    par = rand_params(rng, implicit=False)
+    aug, Z, wp, y = walk_fixture(rng)
+    q = rng.choice(np.flatnonzero(aug["day"] > 1100), 25, replace=False)
+    Xx = rng.standard_normal((len(aug["day"]), 2)).astype(np.float32)
+    for kw in ({}, {"q_win": 2e-5, "q_met": 1e-3}, {"hl_win": 300.0, "hl_met": 300.0}):
+        kw = dict(kw, xmetrics=Xx)
+        base = R.online_walk(aug, q, par, metrics=Z, metric_feats=True, **kw)
+        assert base["mfeat"].shape[1] == 2 * Z.shape[1] + 4
+        caught = 0
+        for j, i in enumerate(q):
+            Z2 = Z.copy()
+            later = (aug["day"] >= aug["day"][i]) & (aug["pid"] == aug["pid"][i])
+            Z2[later] = 4.0
+            kw2 = dict(kw, xmetrics=Xx.copy())
+            kw2["xmetrics"][later] = -3.0
+            r2 = R.online_walk(aug, np.array([i]), par, metrics=Z2, metric_feats=True, **kw2)
+            assert np.allclose(r2["mfeat"][0], base["mfeat"][j], atol=1e-6)
+            leak = R.online_walk(aug, np.array([i]), par, metrics=Z2, metric_feats=True, lag=0, **kw2)
+            caught += not np.allclose(leak["mfeat"][0], base["mfeat"][j], atol=1e-6)
+        assert caught == len(q), caught
+
+
+def test_r10_statlin_groups():
+    """grouped direct channel: recovers planted per-group weights, picks no
+    deviations when there are none, and maps every hero to a site role"""
+    import shared
+    rng = np.random.default_rng(10)
+    N, K, G = 40000, 4, 3
+    F = rng.normal(size=(N, K))
+    gi = rng.integers(0, G, N)
+    b = np.array([.1, .2, 0, 0])
+    dev = np.array([[0, 0, 0, 0], [.3, 0, 0, 0], [0, -.3, 0, 0]])
+    t = np.einsum("ik,ik->i", F, b + dev[gi]) + rng.normal(size=N)
+    v1, fold, wv = np.ones(N, bool), rng.random(N) < .5, np.ones(N)
+    lam_d, bb, dd, _ = R.statlin_group_fit(F, t, wv, gi, G, v1, fold, 1.0)
+    assert np.isfinite(lam_d)
+    assert np.abs((bb + dd) - (b + dev)).max() < 0.05
+    t2 = F @ b + rng.normal(size=N)
+    assert R.statlin_group_fit(F, t2, wv, gi, G, v1, fold, 1.0)[0] == np.inf
+    g, names = R.statlin_groups("role", np.arange(len(shared.HEROES)), shared.HEROES)
+    assert len(names) == 6 and g.min() >= 0
+
+
 if __name__ == "__main__":
     for t in (test_r1_equals_gp, test_r2_today_kernel, test_r3_asof, test_r4_predictive_ll,
-              test_r5_asof_weighted_decay, test_r6_layer_asof, test_r7_parts_and_tails):
+              test_r5_asof_weighted_decay, test_r6_layer_asof, test_r7_parts_and_tails,
+              test_r8_kalman, test_r9_metric_feats, test_r10_statlin_groups):
         t()
         print(f"{t.__name__}: pass")

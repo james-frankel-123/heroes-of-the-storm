@@ -1,0 +1,624 @@
+{
+ "main_sims": 400,
+ "decisions": {
+  "decisions": 5000,
+  "share_differ": 0.4046,
+  "share_both_picks_visited_in_both_trees": 0.9940682155215027,
+  "dV_pp_when_differ (personal tree Q)": [
+   4.363837247935769,
+   4.161270253269131,
+   4.589645245115536
+  ],
+  "dWPpop_pp_when_differ (population tree Q)": [
+   -1.86055924334021,
+   -2.046460115673944,
+   -1.6807397722812627
+  ]
+ },
+ "final_drafts": {
+  "vs gd": {
+   "dV_pp": [
+    6.363731364207,
+    5.499046605532626,
+    7.218156436946495
+   ],
+   "dWPpop_pp": [
+    -0.8503014147281647,
+    -1.5404196317493914,
+    -0.08456099495291736
+   ],
+   "mean_V_pers": 0.6907600363174251,
+   "mean_V_pop": 0.6271227226753552,
+   "lobbies": 1000
+  },
+  "vs imit": {
+   "dV_pp": [
+    6.6256379774040175,
+    5.71334142105941,
+    7.552221291548374
+   ],
+   "dWPpop_pp": [
+    -0.8119531989097595,
+    -1.5566236237436533,
+    -0.032899108827114235
+   ],
+   "mean_V_pers": 0.6006151576261374,
+   "mean_V_pop": 0.5343587778520973,
+   "lobbies": 1000
+  }
+ },
+ "meta": {
+  "effective_heroes": {
+   "MCTS personalized self-play": 42.04479432572013,
+   "MCTS population self-play": 38.83123301373457,
+   "one-step personalized self-play": 65.20840689567524,
+   "one-step population self-play": 61.99442679233888,
+   "real": 73.45442053973008
+  },
+  "top10_share": {
+   "MCTS personalized": 0.48290000000000005,
+   "MCTS population": 0.5109999999999999,
+   "real": 0.2572
+  },
+  "corr_with_real": {
+   "MCTS personalized": 0.6515719561734502,
+   "MCTS population": 0.6022298329469205,
+   "one-step personalized": 0.5220806642740273,
+   "one-step population": 0.41993817337975087
+  },
+  "corr_MCTS_pers_vs_pop": 0.9844644720742932,
+  "role_shares": {
+   "MCTS personalized": {
+    "Tank": 0.2,
+    "Bruiser": 0.1933,
+    "Healer": 0.21300000000000002,
+    "Ranged Assassin": 0.3469,
+    "Melee Assassin": 0.045,
+    "Support": 0.0018
+   },
+   "MCTS population": {
+    "Tank": 0.1988,
+    "Bruiser": 0.1906,
+    "Healer": 0.2172,
+    "Ranged Assassin": 0.35850000000000004,
+    "Melee Assassin": 0.0334,
+    "Support": 0.0015
+   },
+   "real": {
+    "Tank": 0.195,
+    "Bruiser": 0.1765,
+    "Healer": 0.2017,
+    "Ranged Assassin": 0.3517,
+    "Melee Assassin": 0.059899999999999995,
+    "Support": 0.015200000000000002
+   }
+  },
+  "risers": [
+   {
+    "hero": "Alarak",
+    "pers_pct": 1.53,
+    "pop_pct": 0.49,
+    "real_pct": 1.3
+   },
+   {
+    "hero": "Hanzo",
+    "pers_pct": 0.83,
+    "pop_pct": 0.27999999999999997,
+    "real_pct": 2.41
+   },
+   {
+    "hero": "Tyrael",
+    "pers_pct": 0.47000000000000003,
+    "pop_pct": 0.13999999999999999,
+    "real_pct": 1.53
+   },
+   {
+    "hero": "Genji",
+    "pers_pct": 0.19,
+    "pop_pct": 0.03,
+    "real_pct": 0.97
+   },
+   {
+    "hero": "Junkrat",
+    "pers_pct": 0.26,
+    "pop_pct": 0.1,
+    "real_pct": 1.15
+   },
+   {
+    "hero": "Sylvanas",
+    "pers_pct": 0.7100000000000001,
+    "pop_pct": 0.37,
+    "real_pct": 2.8400000000000003
+   },
+   {
+    "hero": "D.Va",
+    "pers_pct": 0.18,
+    "pop_pct": 0.06999999999999999,
+    "real_pct": 0.54
+   },
+   {
+    "hero": "Maiev",
+    "pers_pct": 0.58,
+    "pop_pct": 0.33,
+    "real_pct": 1.01
+   },
+   {
+    "hero": "Malthael",
+    "pers_pct": 0.41000000000000003,
+    "pop_pct": 0.22999999999999998,
+    "real_pct": 0.95
+   },
+   {
+    "hero": "Hogger",
+    "pers_pct": 2.36,
+    "pop_pct": 1.54,
+    "real_pct": 1.59
+   },
+   {
+    "hero": "Thrall",
+    "pers_pct": 2.25,
+    "pop_pct": 1.48,
+    "real_pct": 2.1999999999999997
+   },
+   {
+    "hero": "Johanna",
+    "pers_pct": 0.06,
+    "pop_pct": 0.01,
+    "real_pct": 2.93
+   }
+  ],
+  "fallers": [
+   {
+    "hero": "Rexxar",
+    "pers_pct": 0.29,
+    "pop_pct": 0.48,
+    "real_pct": 0.38999999999999996
+   },
+   {
+    "hero": "Malfurion",
+    "pers_pct": 1.05,
+    "pop_pct": 1.54,
+    "real_pct": 1.0999999999999999
+   },
+   {
+    "hero": "Varian",
+    "pers_pct": 1.55,
+    "pop_pct": 2.17,
+    "real_pct": 1.67
+   },
+   {
+    "hero": "Stukov",
+    "pers_pct": 0.21,
+    "pop_pct": 0.32,
+    "real_pct": 1.0999999999999999
+   },
+   {
+    "hero": "Deathwing",
+    "pers_pct": 0.27,
+    "pop_pct": 0.38999999999999996,
+    "real_pct": 0.8999999999999999
+   },
+   {
+    "hero": "Jaina",
+    "pers_pct": 2.19,
+    "pop_pct": 2.9000000000000004,
+    "real_pct": 0.95
+   },
+   {
+    "hero": "Diablo",
+    "pers_pct": 2.48,
+    "pop_pct": 3.2199999999999998,
+    "real_pct": 1.46
+   },
+   {
+    "hero": "Azmodan",
+    "pers_pct": 1.53,
+    "pop_pct": 1.9900000000000002,
+    "real_pct": 0.76
+   },
+   {
+    "hero": "Gazlowe",
+    "pers_pct": 0.09,
+    "pop_pct": 0.13999999999999999,
+    "real_pct": 0.32
+   },
+   {
+    "hero": "Zeratul",
+    "pers_pct": 0.35000000000000003,
+    "pop_pct": 0.45999999999999996,
+    "real_pct": 0.52
+   },
+   {
+    "hero": "The Lost Vikings",
+    "pers_pct": 0.04,
+    "pop_pct": 0.06999999999999999,
+    "real_pct": 0.3
+   },
+   {
+    "hero": "Illidan",
+    "pers_pct": 0.97,
+    "pop_pct": 1.1900000000000002,
+    "real_pct": 0.89
+   }
+  ],
+  "top_pers": [
+   {
+    "hero": "Valla",
+    "pers_pct": 7.04,
+    "pop_pct": 7.449999999999999,
+    "real_pct": 2.91
+   },
+   {
+    "hero": "Muradin",
+    "pers_pct": 6.7,
+    "pop_pct": 6.4799999999999995,
+    "real_pct": 2.32
+   },
+   {
+    "hero": "Anduin",
+    "pers_pct": 6.61,
+    "pop_pct": 7.3,
+    "real_pct": 3.0700000000000003
+   },
+   {
+    "hero": "Rehgar",
+    "pers_pct": 5.72,
+    "pop_pct": 5.76,
+    "real_pct": 2.29
+   },
+   {
+    "hero": "Leoric",
+    "pers_pct": 4.4799999999999995,
+    "pop_pct": 5.1,
+    "real_pct": 1.4500000000000002
+   },
+   {
+    "hero": "Anub'arak",
+    "pers_pct": 4.24,
+    "pop_pct": 4.66,
+    "real_pct": 1.23
+   },
+   {
+    "hero": "Falstad",
+    "pers_pct": 3.82,
+    "pop_pct": 3.34,
+    "real_pct": 2.27
+   },
+   {
+    "hero": "Nazeebo",
+    "pers_pct": 3.6799999999999997,
+    "pop_pct": 4.22,
+    "real_pct": 1.82
+   },
+   {
+    "hero": "Li-Ming",
+    "pers_pct": 3.0300000000000002,
+    "pop_pct": 2.67,
+    "real_pct": 2.42
+   },
+   {
+    "hero": "Tychus",
+    "pers_pct": 2.97,
+    "pop_pct": 3.5700000000000003,
+    "real_pct": 2.1999999999999997
+   }
+  ],
+  "top_pop": [
+   {
+    "hero": "Valla",
+    "pers_pct": 7.04,
+    "pop_pct": 7.449999999999999,
+    "real_pct": 2.91
+   },
+   {
+    "hero": "Anduin",
+    "pers_pct": 6.61,
+    "pop_pct": 7.3,
+    "real_pct": 3.0700000000000003
+   },
+   {
+    "hero": "Muradin",
+    "pers_pct": 6.7,
+    "pop_pct": 6.4799999999999995,
+    "real_pct": 2.32
+   },
+   {
+    "hero": "Rehgar",
+    "pers_pct": 5.72,
+    "pop_pct": 5.76,
+    "real_pct": 2.29
+   },
+   {
+    "hero": "Leoric",
+    "pers_pct": 4.4799999999999995,
+    "pop_pct": 5.1,
+    "real_pct": 1.4500000000000002
+   },
+   {
+    "hero": "Anub'arak",
+    "pers_pct": 4.24,
+    "pop_pct": 4.66,
+    "real_pct": 1.23
+   },
+   {
+    "hero": "Nazeebo",
+    "pers_pct": 3.6799999999999997,
+    "pop_pct": 4.22,
+    "real_pct": 1.82
+   },
+   {
+    "hero": "Tychus",
+    "pers_pct": 2.97,
+    "pop_pct": 3.5700000000000003,
+    "real_pct": 2.1999999999999997
+   },
+   {
+    "hero": "Falstad",
+    "pers_pct": 3.82,
+    "pop_pct": 3.34,
+    "real_pct": 2.27
+   },
+   {
+    "hero": "Diablo",
+    "pers_pct": 2.48,
+    "pop_pct": 3.2199999999999998,
+    "real_pct": 1.46
+   }
+  ]
+ },
+ "off_role": {
+  "b|pers": 0.2008,
+  "b|pop": 0.3393,
+  "a-gd|pers": 0.2772,
+  "a-gd|pop": 0.3433,
+  "real": 0.1577
+ },
+ "collapse": {
+  "pers_eff": [
+   8.980723343475507,
+   9.132386946740821
+  ],
+  "pop_eff": [
+   10.01202587035932,
+   9.986838114096985
+  ],
+  "pers_top1": [
+   0.03333333333333333,
+   0.08822222222222223
+  ],
+  "pop_top1": [
+   0.0,
+   0.03944444444444444
+  ],
+  "pers_top3": [
+   0.2,
+   0.24344444444444444
+  ],
+  "pop_top3": [
+   0.08333333333333334,
+   0.12433333333333332
+  ]
+ },
+ "realized_all": {
+  "teams": 4000,
+  "personalized agreement": {
+   "quintile_resid_pp": [
+    -4.815252687782049,
+    2.1581708807498217,
+    2.472878033295274,
+    -0.673505637794733,
+    0.8577094059437512
+   ],
+   "top_minus_bottom_pp": [
+    5.6729620937258005,
+    0.8369161346461621,
+    10.22679764702916
+   ]
+  },
+  "population agreement": {
+   "quintile_resid_pp": [
+    -2.3814518488943577,
+    -0.23611696437001228,
+    0.9213528521358967,
+    1.4255972765386105,
+    0.2706186790019274
+   ],
+   "top_minus_bottom_pp": [
+    2.652070527896285,
+    -2.162366842199117,
+    7.244728747755288
+   ]
+  },
+  "personal component": {
+   "quintile_resid_pp": [
+    -3.297946386039257,
+    0.1332495715469122,
+    0.2781872767955065,
+    2.0142844635993242,
+    0.8722250685095787
+   ],
+   "top_minus_bottom_pp": [
+    4.170171454548836,
+    -0.6158225453924386,
+    8.567832159996032
+   ]
+  },
+  "pers_slope_controlling_pop_pp": [
+   25.584501503028907,
+   -5.2054424471178145,
+   56.40961274956049
+  ]
+ },
+ "sims_curve": {
+  "one-step": {
+   "realized_top_minus_bottom_pp": [
+    NaN,
+    NaN,
+    NaN
+   ],
+   "dV_pp": [
+    3.323764101120842,
+    2.680664536560206,
+    3.9815418114863794
+   ]
+  },
+  "MCTS 25": {
+   "dV_pp": [
+    2.1278625331566756,
+    1.312781507042767,
+    2.9362330540311765
+   ],
+   "dWPpop_pp": [
+    -0.533716830611229,
+    -1.2263166909664869,
+    0.1519198792427778
+   ],
+   "mean_V_pers": 0.566419711572026,
+   "realized_top_minus_bottom_pp": [
+    -1.4540983587503433,
+    -6.338182752626016,
+    3.2981704017613085
+   ],
+   "realized_personal_component_pp": [
+    -4.040092460811138,
+    -8.951722125383094,
+    0.9248305765446264
+   ],
+   "realized_pop_agreement_pp": [
+    0.6295791361480951,
+    -3.8987416129093613,
+    5.272777191922067
+   ],
+   "teams": 4000
+  },
+  "MCTS 100": {
+   "dV_pp": [
+    3.3856754169635224,
+    2.4727142810005964,
+    4.269765278092423
+   ],
+   "dWPpop_pp": [
+    -0.602469202876091,
+    -1.363879413753748,
+    0.1322490663826465
+   ],
+   "mean_V_pers": 0.616553206782145,
+   "realized_top_minus_bottom_pp": [
+    2.0122141037136316,
+    -3.038670742418617,
+    6.815440188720818
+   ],
+   "realized_personal_component_pp": [
+    2.6350291762501,
+    -1.9299172731582077,
+    8.02816775208339
+   ],
+   "realized_pop_agreement_pp": [
+    2.8250460475683212,
+    -1.9250517167616634,
+    7.460742594907059
+   ],
+   "teams": 4000
+  },
+  "MCTS 400": {
+   "dV_pp": [
+    6.363731364207,
+    5.555949994620429,
+    7.209680283813551
+   ],
+   "dWPpop_pp": [
+    -0.8503014147281647,
+    -1.6287224423140287,
+    -0.13318506933748728
+   ],
+   "mean_V_pers": 0.6907600363174251,
+   "realized_top_minus_bottom_pp": [
+    5.6729620937258005,
+    0.7579348699189723,
+    11.047409170679748
+   ],
+   "realized_personal_component_pp": [
+    4.170171454548836,
+    -0.8040729709900916,
+    9.45056635979563
+   ],
+   "realized_pop_agreement_pp": [
+    2.652070527896285,
+    -2.343221827689558,
+    7.292413104278962
+   ],
+   "teams": 4000
+  },
+  "MCTS 1500": {
+   "dV_pp": [
+    7.431925304305744,
+    6.7153682287066925,
+    8.123608311823151
+   ],
+   "dWPpop_pp": [
+    -2.4917788445949554,
+    -3.148951378017664,
+    -1.8606258568167686
+   ],
+   "mean_V_pers": 0.7617799079035286,
+   "realized_top_minus_bottom_pp": [
+    4.571852752938867,
+    -0.5828444535844027,
+    9.07124720015563
+   ],
+   "realized_personal_component_pp": [
+    9.535697584971786,
+    4.504670435888693,
+    14.434451038530097
+   ],
+   "realized_pop_agreement_pp": [
+    1.9247076362371447,
+    -2.9406174899078907,
+    6.963326451228929
+   ],
+   "teams": 4000
+  }
+ },
+ "imitation_vs_outcome": {
+  "picks": 20000,
+  "real_equals_imitation_top1": 0.32535,
+  "real_equals_MCTS_personalized_top1": 0.18695,
+  "real_equals_MCTS_population_top1": 0.1302,
+  "imitation_equals_MCTS_personalized": 0.29585,
+  "MCTS_personalized_equals_population": 0.5789,
+  "team_residual_pp": {
+   "matches imitation only": {
+    "picks": 4176,
+    "resid": [
+     1.5926479547502208,
+     0.13923183664272742,
+     3.098480335661563
+    ]
+   },
+   "matches personalized MCTS only": {
+    "picks": 1408,
+    "resid": [
+     2.1667138631032272,
+     -0.24105371613669288,
+     4.669704694586636
+    ]
+   },
+   "matches both": {
+    "picks": 2331,
+    "resid": [
+     1.7747040082077672,
+     -0.2227044770999918,
+     3.525963482402619
+    ]
+   },
+   "matches neither": {
+    "picks": 12085,
+    "resid": [
+     -1.1450944181853797,
+     -2.0583896532895203,
+     -0.2348877316387815
+    ]
+   }
+  }
+ }
+}

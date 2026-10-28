@@ -1,0 +1,14 @@
+{
+ "window": {
+  "real_picks_new_to_the_player_pct": 13.9,
+  "real_picks_outside_the_team_pool_pct": 3.037,
+  "team_pool_median": 79.0,
+  "team_pool_p10": 54.0
+ },
+ "tournament_300": {
+  "real_picks_new_to_the_player_pct": 2.93,
+  "real_picks_outside_the_team_pool_pct": 0.067,
+  "team_pool_median": 87.0,
+  "team_pool_p10": 76.0
+ }
+}

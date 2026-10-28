@@ -1,0 +1,68 @@
+{
+ "personal": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "prior": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "pvnet": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "explore": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "explore_chance": {
+  "decide_k2_identical": true,
+  "decide_k2_episodes_differing": 0,
+  "decide_k7_identical": true,
+  "decide_k7_episodes_differing": 0,
+  "decide_k13_identical": true,
+  "decide_k13_episodes_differing": 0,
+  "full_forced_bans_drafts_with_repeat": 0,
+  "full_identical": true
+ },
+ "explore_cfg6_3_gate": {
+  "identity_rows_cfg6_3_equals_2": true,
+  "bias_rows_cfg6_3_equals_2": false,
+  "pass": true
+ },
+ "explore_party_gate": {
+  "reruns_identical": true,
+  "past_flags_equal_no_flags": true,
+  "future_flags_change_search": true,
+  "chance_root_reruns_identical": true,
+  "chance_root_visits_sum_1": true,
+  "chance_root_value_in_0_1": true,
+  "chance_root_differs_from_decision_root": true,
+  "pass": true
+ },
+ "pass": true
+}

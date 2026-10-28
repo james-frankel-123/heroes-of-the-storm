@@ -1,0 +1,61 @@
+{
+ "w0": 0.5245018601417542,
+ "lp": 0.7888885736465454,
+ "lb": 0.3368777930736542,
+ "fit_lobbies": 3000,
+ "held_out_lobbies": 300,
+ "picks": {
+  "GD": {
+   "top1": 0.0863,
+   "nll": 3.7281,
+   "n": 3000
+  },
+  "DraftRec opponent (kernel model: w0 log GD + DraftRec at the root)": {
+   "top1": 0.197,
+   "nll": 3.1445,
+   "n": 3000
+  },
+  "GD x comfort (current opponent model, exact state)": {
+   "top1": 0.1187,
+   "nll": 3.5276,
+   "n": 3000
+  },
+  "DraftRec team mixture alone, exact state": {
+   "top1": 0.222,
+   "nll": 3.066,
+   "n": 3000
+  },
+  "DraftRec team mixture alone, at the root": {
+   "top1": 0.2083,
+   "nll": 3.161,
+   "n": 3000
+  },
+  "w0 log GD + DraftRec, exact state (refit; not usable in the kernel)": {
+   "top1": 0.2243,
+   "nll": 3.0527,
+   "n": 3000
+  }
+ },
+ "bans": {
+  "GD": {
+   "top1": 0.158,
+   "nll": 3.4867,
+   "n": 1500
+  },
+  "DraftRec opponent (kernel model: w0 log GD + DraftRec at the root)": {
+   "top1": 0.138,
+   "nll": 3.4608,
+   "n": 1500
+  },
+  "DraftRec (our next pick) alone, at the root": {
+   "top1": 0.074,
+   "nll": 4.0515,
+   "n": 1500
+  }
+ },
+ "exact_refit": {
+  "w0": 0.17631380259990692,
+  "lp": 0.8775748014450073
+ },
+ "secs": 6
+}

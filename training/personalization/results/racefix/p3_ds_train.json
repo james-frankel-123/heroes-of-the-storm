@@ -1,0 +1,60 @@
+{
+ "n_train": 51180,
+ "n_val": 5680,
+ "n_test": 20000,
+ "features": [
+  "b2_s",
+  "off_role",
+  "log1p_n",
+  "never_n",
+  "ewma20",
+  "ewma100",
+  "log1p_days_since",
+  "never_played",
+  "log_fine_share"
+ ],
+ "models": {
+  "BC prior alone": {
+   "test": {
+    "cross_entropy": 2.5787694454193115,
+    "kl_to_mcts": 0.25603675842285156,
+    "top1_equals_mcts_argmax": 0.466,
+    "top1_equals_real_pick": 0.12885,
+    "loglik_real_pick": -54850000.0
+   }
+  },
+  "alpha only": {
+   "val_ce": 2.577716112136841,
+   "alpha": 1.2472102642059326,
+   "test": {
+    "cross_entropy": 2.5573487281799316,
+    "kl_to_mcts": 0.23461604118347168,
+    "top1_equals_mcts_argmax": 0.466,
+    "top1_equals_real_pick": 0.12885,
+    "loglik_real_pick": -54850000.0
+   }
+  },
+  "g only": {
+   "val_ce": 3.223930597305298,
+   "alpha": 0.0,
+   "test": {
+    "cross_entropy": 3.208468437194824,
+    "kl_to_mcts": 0.8857357501983643,
+    "top1_equals_mcts_argmax": 0.16425,
+    "top1_equals_real_pick": 0.2154,
+    "loglik_real_pick": -54850000.0
+   }
+  },
+  "distilled (alpha BC + g)": {
+   "val_ce": 2.5339314937591553,
+   "alpha": 1.2212308645248413,
+   "test": {
+    "cross_entropy": 2.514982223510742,
+    "kl_to_mcts": 0.19224953651428223,
+    "top1_equals_mcts_argmax": 0.5334,
+    "top1_equals_real_pick": 0.1775,
+    "loglik_real_pick": -54850000.0
+   }
+  }
+ }
+}

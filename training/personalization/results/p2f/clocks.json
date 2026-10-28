@@ -1,0 +1,2339 @@
+{
+ "method": "Paper 2 narrative facts, question 2, rigorous version: the game's clock and\nthe players' clock measured with ONE estimator on ONE table.\n\nData: the full corpus slot table of the full-history panel (cache_full\nx_slots_ext.npz: 22.4M slots, every Storm League game 2021-12-07 to\n2026-09-27 with all ten players labeled), with the draft-only WP of each\ngame (d2c_cumprev, statistics through the previous build). Tiers: real\nleague tier (stored - 1, NULL = Master) from the pinned snapshot and the\npost-snapshot export, grouped Bronze-Silver / Gold-Platinum / Diamond-Master.\n\nWindows. Window A is 90 days; window B is 90 days starting h days after A\nends (h = 91, 182, 365, 730). A new A starts every 30 days and the pairs are\npooled. Each cell is estimated separately from the games played inside A and\ninside B. Nothing carries over: a player who does not play a hero in B has no\nB value for it and enters only the selection check.\n\nCells and values, in points of win probability:\n  game side    hero x tier group: x = 100 (win rate - 0.5), sampling\n               variance p(1 - p) / n (binomial, p = the cell's own rate)\n  player side  player x hero: x = 100 mean(y - WP), the player's results on the\n               hero beyond what the draft predicts (\"whole cell\"); and the\n               same minus the player's own mean over all heroes in the window\n               (\"hero-specific\"). Sampling variance: within-cell sample\n               variance / n (residual-based, primary; one-game cells use\n               wp(1 - wp)), or sum wp(1 - wp) / n^2 (model-based).\n\nEstimator (measurement-error model, method of moments with inverse-variance\nweights): each cell's estimate = true effect + sampling error of known\nvariance e. For cells observed in both windows, with weights\nw = 1 / sqrt((eA + tA^2)(eB + tB^2)) with e the model noise (tA^2, tB^2 from an equal-weight first pass):\n  tA^2 = [sum w (xA - mA)^2 - sum w eA] / (W - sum w^2 / W), same for B,\n  cov  = sum w (xA - mA)(xB - mB) / (W - sum w^2 / W)  (errors independent across windows),\n  r    = cov / sqrt(tA^2 tB^2), the true-effect (disattenuated) correlation.\nMoments are pooled over window pairs (each pair centered on its own means).\n95% CIs: 200 bootstrap draws over players (200 hash groups) or over heroes.\n\nSecondary: sensitivity to a minimum number of games per cell in each window\n(1, 5, 10, 20, 50, 100), and on the game side to a minimum pick rate\n(0.25% to 5% of the tier group's games, both windows). Selection checks:\nplayer cells active in A that stop in B (share, their A values against\ncontinuers', and an intent-to-treat bound that sets a stopper's B value to the\npopulation mean); game cells split by whether the patch notes list a balance\nchange or rework for the hero between the two windows.",
+ "player": {
+  "3 months": {
+   "window_pairs": 50,
+   "whole cell, residual-based noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 1.0297463651934993,
+     "ci": [
+      0.9170853061909383,
+      1.1701269784801063
+     ],
+     "true_sd_A_pts": 4.234506519032536,
+     "true_sd_B_pts": 3.687180415381235,
+     "true_cov": 16.077831091928243,
+     "carried_sd_pts": 4.0097170837763905,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 1.0297463651934993,
+      "ci": [
+       0.9170853061909383,
+       1.1701269784801063
+      ],
+      "true_sd_A_pts": 4.234506519032536,
+      "true_sd_B_pts": 3.687180415381235,
+      "true_cov": 16.077831091928243,
+      "carried_sd_pts": 4.0097170837763905,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.0592609417204848,
+      "ci": [
+       0.9534436655410357,
+       1.1891162400279427
+      ],
+      "true_sd_A_pts": 3.7334524255650146,
+      "true_sd_B_pts": 3.237833879317922,
+      "true_cov": 12.804662718058367,
+      "carried_sd_pts": 3.578360339325592,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 1.093515477312587,
+      "ci": [
+       0.9746677336430507,
+       1.269953697644946
+      ],
+      "true_sd_A_pts": 3.543631139676333,
+      "true_sd_B_pts": 2.907862829397103,
+      "true_cov": 11.268013527421454,
+      "carried_sd_pts": 3.3567861903048657,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 1.1447482716114485,
+      "ci": [
+       1.0052957755683853,
+       1.3434549538257297
+      ],
+      "true_sd_A_pts": 2.95510621148072,
+      "true_sd_B_pts": 2.806602704180798,
+      "true_cov": 9.494323614308593,
+      "carried_sd_pts": 3.08128603253716,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 1.4256718996628779,
+      "ci": [
+       1.1520551683546623,
+       2.2274880433820345
+      ],
+      "true_sd_A_pts": 2.4877265617279485,
+      "true_sd_B_pts": 2.3104891758129797,
+      "true_cov": 8.194570031640989,
+      "carried_sd_pts": 2.8626159420433943,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 5.63168736821849,
+      "ci": [
+       1.313695862232407,
+       23.287243595059348
+      ],
+      "true_sd_A_pts": 1.3238017043647718,
+      "true_sd_B_pts": 0.7714356037138584,
+      "true_cov": 5.75123551551081,
+      "carried_sd_pts": 2.3981733706116435,
+      "boot_nan": 140
+     }
+    }
+   },
+   "whole cell, model noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 3.257417188504259,
+     "ci": [
+      2.658586388119931,
+      4.185714104791699
+     ],
+     "true_sd_A_pts": 2.362886005905765,
+     "true_sd_B_pts": 2.0645258195806986,
+     "true_cov": 15.890460115211988,
+     "carried_sd_pts": 3.9862839983137164,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 3.257417188504259,
+      "ci": [
+       2.658586388119931,
+       4.185714104791699
+      ],
+      "true_sd_A_pts": 2.362886005905765,
+      "true_sd_B_pts": 2.0645258195806986,
+      "true_cov": 15.890460115211988,
+      "carried_sd_pts": 3.9862839983137164,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.6513637972571034,
+      "ci": [
+       1.4655714815020482,
+       1.885465076619384
+      ],
+      "true_sd_A_pts": 2.9306877864111938,
+      "true_sd_B_pts": 2.6071267362903683,
+      "true_cov": 12.61753322896248,
+      "carried_sd_pts": 3.5521167251319996,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 1.4223765473923633,
+      "ci": [
+       1.2736485430321085,
+       1.7097567708636268
+      ],
+      "true_sd_A_pts": 3.0523601462652836,
+      "true_sd_B_pts": 2.552160012197565,
+      "true_cov": 11.080471910726601,
+      "carried_sd_pts": 3.3287342805827262,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 1.3695249236609561,
+      "ci": [
+       1.2112852835790946,
+       1.6634017883835077
+      ],
+      "true_sd_A_pts": 2.6472768072362935,
+      "true_sd_B_pts": 2.587390682618934,
+      "true_cov": 9.380614849061917,
+      "carried_sd_pts": 3.062778942245411,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 1.5945625009127293,
+      "ci": [
+       1.2845664464633713,
+       2.901366808484604
+      ],
+      "true_sd_A_pts": 2.304698340724104,
+      "true_sd_B_pts": 2.223366054877267,
+      "true_cov": 8.170838124111048,
+      "carried_sd_pts": 2.858467793086193,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 6.026777060239169,
+      "ci": [
+       1.2592838805109576,
+       28.367714112368265
+      ],
+      "true_sd_A_pts": 1.2630512979300814,
+      "true_sd_B_pts": 0.7504764261593438,
+      "true_cov": 5.712723058390483,
+      "carried_sd_pts": 2.390130343389348,
+      "boot_nan": 147
+     }
+    }
+   },
+   "hero-specific, residual-based noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.9110715262190482,
+     "ci": [
+      0.7998472681542929,
+      1.0400351459437136
+     ],
+     "true_sd_A_pts": 3.2970514304741805,
+     "true_sd_B_pts": 3.5180165826766596,
+     "true_cov": 10.56759298183291,
+     "carried_sd_pts": 3.250783441238882,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 0.9110715262190482,
+      "ci": [
+       0.7998472681542929,
+       1.0400351459437136
+      ],
+      "true_sd_A_pts": 3.2970514304741805,
+      "true_sd_B_pts": 3.5180165826766596,
+      "true_cov": 10.56759298183291,
+      "carried_sd_pts": 3.250783441238882,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.8950390328055077,
+      "ci": [
+       0.8216393478797867,
+       0.9904442589678627
+      ],
+      "true_sd_A_pts": 3.0005902776733464,
+      "true_sd_B_pts": 3.1580021512267207,
+      "true_cov": 8.481274013711223,
+      "carried_sd_pts": 2.9122626965490634,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.8827441824811755,
+      "ci": [
+       0.8125503353630501,
+       0.9711324448453403
+      ],
+      "true_sd_A_pts": 2.931220461980202,
+      "true_sd_B_pts": 2.887869186924604,
+      "true_cov": 7.472412955223128,
+      "carried_sd_pts": 2.7335714651757557,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.8326674885762567,
+      "ci": [
+       0.7585240684169673,
+       0.9345512227173348
+      ],
+      "true_sd_A_pts": 2.6082418870379094,
+      "true_sd_B_pts": 2.8021477831139054,
+      "true_cov": 6.08569957224924,
+      "carried_sd_pts": 2.466921071345664,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.8891508334472388,
+      "ci": [
+       0.7861265998242211,
+       1.0319705858501445
+      ],
+      "true_sd_A_pts": 2.4694536687383435,
+      "true_sd_B_pts": 2.363838057384942,
+      "true_cov": 5.190318906046916,
+      "carried_sd_pts": 2.2782271410127035,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 1.1010696092650314,
+      "ci": [
+       0.7927186488393859,
+       2.6713577639380834
+      ],
+      "true_sd_A_pts": 1.6918676766657532,
+      "true_sd_B_pts": 1.797646711119508,
+      "true_cov": 3.3487714896848226,
+      "carried_sd_pts": 1.8299648875551746,
+      "boot_nan": 6
+     }
+    }
+   },
+   "hero-specific, model noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 2.4294021773511987,
+     "ci": [
+      2.0653264449830586,
+      3.0649898981641126
+     ],
+     "true_sd_A_pts": 1.6676293179636026,
+     "true_sd_B_pts": 2.4159912313564864,
+     "true_cov": 9.788007462541993,
+     "carried_sd_pts": 3.1285791443628197,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 2.4294021773511987,
+      "ci": [
+       2.0653264449830586,
+       3.0649898981641126
+      ],
+      "true_sd_A_pts": 1.6676293179636026,
+      "true_sd_B_pts": 2.4159912313564864,
+      "true_cov": 9.788007462541993,
+      "carried_sd_pts": 3.1285791443628197,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.231389726294037,
+      "ci": [
+       1.110973726726485,
+       1.3631458759318609
+      ],
+      "true_sd_A_pts": 2.339711570727505,
+      "true_sd_B_pts": 2.639709835091066,
+      "true_cov": 7.6052595342208535,
+      "carried_sd_pts": 2.7577635022280016,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 1.0315404760905662,
+      "ci": [
+       0.9362140950773297,
+       1.1365942565695284
+      ],
+      "true_sd_A_pts": 2.4822454510542857,
+      "true_sd_B_pts": 2.53350429993819,
+      "true_cov": 6.487130623955663,
+      "carried_sd_pts": 2.546984614000576,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.9154488832372257,
+      "ci": [
+       0.8490562724708137,
+       1.0120267880148561
+      ],
+      "true_sd_A_pts": 2.2713952698669817,
+      "true_sd_B_pts": 2.4943920427550585,
+      "true_cov": 5.186704773033714,
+      "carried_sd_pts": 2.27743381309616,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.9203685686385699,
+      "ci": [
+       0.834778792839374,
+       1.097086816673025
+      ],
+      "true_sd_A_pts": 2.1243172775866648,
+      "true_sd_B_pts": 2.174904010527824,
+      "true_cov": 4.252274129049627,
+      "carried_sd_pts": 2.06210429635594,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 1.121576290806337,
+      "ci": [
+       0.7095423537280979,
+       3.078434434007442
+      ],
+      "true_sd_A_pts": 1.5088264708989674,
+      "true_sd_B_pts": 1.738010331828737,
+      "true_cov": 2.941172310448615,
+      "carried_sd_pts": 1.7149846385459595,
+      "boot_nan": 4
+     }
+    }
+   },
+   "cells_in_both": 5281842,
+   "cells_in_A": 24559590,
+   "selection": {
+    "whole cell": {
+     "share_of_A_cells_continuing": 0.21357187598780497,
+     "r_both_active_equal_weights": 1.1024954046451967,
+     "r_intent_to_treat_bound": 0.1946790560413415,
+     "true_sd_A_continuers_pts": 4.256366513364588,
+     "true_sd_A_all_pts": 5.1480248709647025,
+     "mean_A_value_continuers_pts": 1.2370754610067058,
+     "mean_A_value_stoppers_pts": 0.7249034141112679
+    },
+    "hero-specific": {
+     "share_of_A_cells_continuing": 0.2131248584352028,
+     "r_both_active_equal_weights": 1.0142095438685088,
+     "r_intent_to_treat_bound": 0.23636639660394526,
+     "true_sd_A_continuers_pts": 3.402077452553019,
+     "true_sd_A_all_pts": 3.111145075124294,
+     "mean_A_value_continuers_pts": 1.161654674989452,
+     "mean_A_value_stoppers_pts": 0.3117691285120963
+    }
+   }
+  },
+  "6 months": {
+   "window_pairs": 47,
+   "whole cell, residual-based noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.9735250488320236,
+     "ci": [
+      0.8518572618236196,
+      1.1116833567163367
+     ],
+     "true_sd_A_pts": 4.0662637010798175,
+     "true_sd_B_pts": 3.73218939725914,
+     "true_cov": 14.77428065816643,
+     "carried_sd_pts": 3.843732646551582,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 0.9735250488320236,
+      "ci": [
+       0.8518572618236196,
+       1.1116833567163367
+      ],
+      "true_sd_A_pts": 4.0662637010798175,
+      "true_sd_B_pts": 3.73218939725914,
+      "true_cov": 14.77428065816643,
+      "carried_sd_pts": 3.843732646551582,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.034602678409743,
+      "ci": [
+       0.9048669116445052,
+       1.1680737127443857
+      ],
+      "true_sd_A_pts": 3.682444598539392,
+      "true_sd_B_pts": 3.059438942843266,
+      "true_cov": 11.656055603746038,
+      "carried_sd_pts": 3.414096601408056,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 1.0030775548144135,
+      "ci": [
+       0.8603312483647028,
+       1.1896672764840994
+      ],
+      "true_sd_A_pts": 3.402903174027875,
+      "true_sd_B_pts": 2.7521864752401513,
+      "true_cov": 9.394246698115001,
+      "carried_sd_pts": 3.065003539657826,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 1.165446150341796,
+      "ci": [
+       0.973848882674539,
+       1.4389945982979324
+      ],
+      "true_sd_A_pts": 2.939936754898453,
+      "true_sd_B_pts": 2.448673067159778,
+      "true_cov": 8.389981514071252,
+      "carried_sd_pts": 2.896546480564614,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 1.3967666979150255,
+      "ci": [
+       0.9174157407414703,
+       5.118499770361583
+      ],
+      "true_sd_A_pts": 2.1560313854931463,
+      "true_sd_B_pts": 1.979555874565613,
+      "true_cov": 5.961378749371782,
+      "carried_sd_pts": 2.4415934856916257,
+      "boot_nan": 4
+     },
+     "min games 100": {
+      "r": 6.082772291427503,
+      "ci": [
+       1.3499528483117968,
+       24.82589642548413
+      ],
+      "true_sd_A_pts": 1.1367904593923093,
+      "true_sd_B_pts": 0.7672892376305332,
+      "true_cov": 5.305680399507578,
+      "carried_sd_pts": 2.3034062601954477,
+      "boot_nan": 139
+     }
+    }
+   },
+   "whole cell, model noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 3.308549462722063,
+     "ci": [
+      2.721238025889328,
+      4.646572914269474
+     ],
+     "true_sd_A_pts": 2.1421311704492756,
+     "true_sd_B_pts": 2.058664141387905,
+     "true_cov": 14.590466988687032,
+     "carried_sd_pts": 3.819746979668553,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 3.308549462722063,
+      "ci": [
+       2.721238025889328,
+       4.646572914269474
+      ],
+      "true_sd_A_pts": 2.1421311704492756,
+      "true_sd_B_pts": 2.058664141387905,
+      "true_cov": 14.590466988687032,
+      "carried_sd_pts": 3.819746979668553,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.6884491855287986,
+      "ci": [
+       1.4476486935739736,
+       2.067273047475538
+      ],
+      "true_sd_A_pts": 2.8359381634306873,
+      "true_sd_B_pts": 2.39581383070448,
+      "true_cov": 11.471965166066191,
+      "carried_sd_pts": 3.3870289585514604,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 1.3465543414040486,
+      "ci": [
+       1.1687796126351409,
+       1.7059063509122392
+      ],
+      "true_sd_A_pts": 2.8908797075175445,
+      "true_sd_B_pts": 2.379433542726378,
+      "true_cov": 9.262484293801906,
+      "carried_sd_pts": 3.0434329783653697,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 1.4045260734852107,
+      "ci": [
+       1.1910311929130295,
+       1.8695992691611658
+      ],
+      "true_sd_A_pts": 2.6177055432305036,
+      "true_sd_B_pts": 2.24136728496645,
+      "true_cov": 8.240690950213336,
+      "carried_sd_pts": 2.870660368314813,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 1.5804895575443683,
+      "ci": [
+       1.1506342944648287,
+       7.638646805367406
+      ],
+      "true_sd_A_pts": 1.958739230802508,
+      "true_sd_B_pts": 1.9066751466179992,
+      "true_cov": 5.902621808402342,
+      "carried_sd_pts": 2.429531191074184,
+      "boot_nan": 8
+     },
+     "min games 100": {
+      "r": 5.382041986372705,
+      "ci": [
+       0.2775895082202446,
+       28.86644182205153
+      ],
+      "true_sd_A_pts": 1.1588084485312105,
+      "true_sd_B_pts": 0.8073238710834925,
+      "true_cov": 5.035081774229681,
+      "carried_sd_pts": 2.2438987887669266,
+      "boot_nan": 158
+     }
+    }
+   },
+   "hero-specific, residual-based noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.8456646503243737,
+     "ci": [
+      0.7547065454591673,
+      0.9790755620406201
+     ],
+     "true_sd_A_pts": 3.2355490410469083,
+     "true_sd_B_pts": 3.575779439594578,
+     "true_cov": 9.78400997243971,
+     "carried_sd_pts": 3.127940212414507,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 0.8456646503243737,
+      "ci": [
+       0.7547065454591673,
+       0.9790755620406201
+      ],
+      "true_sd_A_pts": 3.2355490410469083,
+      "true_sd_B_pts": 3.575779439594578,
+      "true_cov": 9.78400997243971,
+      "carried_sd_pts": 3.127940212414507,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.8550838013293692,
+      "ci": [
+       0.782576793900045,
+       0.9684023846837293
+      ],
+      "true_sd_A_pts": 3.057838837760171,
+      "true_sd_B_pts": 3.056344636098921,
+      "true_cov": 7.991450168261856,
+      "carried_sd_pts": 2.826915309708067,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.797284946699097,
+      "ci": [
+       0.7196377184322755,
+       0.9050516355020266
+      ],
+      "true_sd_A_pts": 2.895857972649277,
+      "true_sd_B_pts": 2.8233718375624313,
+      "true_cov": 6.518668573013541,
+      "carried_sd_pts": 2.5531683401243916,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.7863718756239803,
+      "ci": [
+       0.6833524254275664,
+       0.9211171699435607
+      ],
+      "true_sd_A_pts": 2.609108094481878,
+      "true_sd_B_pts": 2.6124842700557305,
+      "true_cov": 5.360110329243064,
+      "carried_sd_pts": 2.3151912079228065,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.8149724276271737,
+      "ci": [
+       0.6851668245468262,
+       1.1474257861171475
+      ],
+      "true_sd_A_pts": 2.4101494387004836,
+      "true_sd_B_pts": 2.3346836882658395,
+      "true_cov": 4.585798165372649,
+      "carried_sd_pts": 2.1414476798121056,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 0.9228825574895722,
+      "ci": [
+       0.3183324672842391,
+       3.62440898425065
+      ],
+      "true_sd_A_pts": 1.730928857610587,
+      "true_sd_B_pts": 1.8630774277151194,
+      "true_cov": 2.9761619533518693,
+      "carried_sd_pts": 1.7251556316320766,
+      "boot_nan": 13
+     }
+    }
+   },
+   "hero-specific, model noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 2.3211585109341244,
+     "ci": [
+      1.9081234340529056,
+      3.194601798487741
+     ],
+     "true_sd_A_pts": 1.6119170542892909,
+     "true_sd_B_pts": 2.4306287861817037,
+     "true_cov": 9.094234037368809,
+     "carried_sd_pts": 3.015664775363603,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 2.3211585109341244,
+      "ci": [
+       1.9081234340529056,
+       3.194601798487741
+      ],
+      "true_sd_A_pts": 1.6119170542892909,
+      "true_sd_B_pts": 2.4306287861817037,
+      "true_cov": 9.094234037368809,
+      "carried_sd_pts": 3.015664775363603,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.1692354659868587,
+      "ci": [
+       1.0535969842531683,
+       1.3391560849487179
+      ],
+      "true_sd_A_pts": 2.3904143253004277,
+      "true_sd_B_pts": 2.5664065164432337,
+      "true_cov": 7.172996390621697,
+      "carried_sd_pts": 2.678245020647233,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.9347695266841098,
+      "ci": [
+       0.8317253486357804,
+       1.0471646119826294
+      ],
+      "true_sd_A_pts": 2.4497428451699,
+      "true_sd_B_pts": 2.4972621909811754,
+      "true_cov": 5.718592967729366,
+      "carried_sd_pts": 2.3913579756551226,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.8730291153661031,
+      "ci": [
+       0.7534265446510839,
+       1.008229024471463
+      ],
+      "true_sd_A_pts": 2.2578251184589653,
+      "true_sd_B_pts": 2.3505130840456463,
+      "true_cov": 4.633206968787149,
+      "carried_sd_pts": 2.1524885525333577,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.8762873833174429,
+      "ci": [
+       0.7074108667372536,
+       1.1519354841788665
+      ],
+      "true_sd_A_pts": 2.078920656163761,
+      "true_sd_B_pts": 2.1576036205953617,
+      "true_cov": 3.9305754336285648,
+      "carried_sd_pts": 1.98256788878176,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 0.8615864916129224,
+      "ci": [
+       0.2851180384089556,
+       2.8314610228771917
+      ],
+      "true_sd_A_pts": 1.6586513819977862,
+      "true_sd_B_pts": 1.8248828683437035,
+      "true_cov": 2.6078883261431205,
+      "carried_sd_pts": 1.614895763243907,
+      "boot_nan": 10
+     }
+    }
+   },
+   "cells_in_both": 4276056,
+   "cells_in_A": 22601927,
+   "selection": {
+    "whole cell": {
+     "share_of_A_cells_continuing": 0.18673342321824302,
+     "r_both_active_equal_weights": 1.035734107615524,
+     "r_intent_to_treat_bound": 0.15640545328253266,
+     "true_sd_A_continuers_pts": 4.146414091152581,
+     "true_sd_A_all_pts": 5.1273281999332525,
+     "mean_A_value_continuers_pts": 1.0732101831700271,
+     "mean_A_value_stoppers_pts": 0.9528654250783452
+    },
+    "hero-specific": {
+     "share_of_A_cells_continuing": 0.18638204324412241,
+     "r_both_active_equal_weights": 0.9250026468232124,
+     "r_intent_to_treat_bound": 0.18849806529574245,
+     "true_sd_A_continuers_pts": 3.37369912329172,
+     "true_sd_A_all_pts": 3.0856488054666906,
+     "mean_A_value_continuers_pts": 1.102203504535238,
+     "mean_A_value_stoppers_pts": 0.4774387736387428
+    }
+   }
+  },
+  "1 year": {
+   "window_pairs": 41,
+   "whole cell, residual-based noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 1.0824832049326567,
+     "ci": [
+      0.9204927355417565,
+      1.333493785687341
+     ],
+     "true_sd_A_pts": 3.8807379451256123,
+     "true_sd_B_pts": 3.274325543664931,
+     "true_cov": 13.75489691945776,
+     "carried_sd_pts": 3.708759485253494,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 1.0824832049326567,
+      "ci": [
+       0.9204927355417565,
+       1.333493785687341
+      ],
+      "true_sd_A_pts": 3.8807379451256123,
+      "true_sd_B_pts": 3.274325543664931,
+      "true_cov": 13.75489691945776,
+      "carried_sd_pts": 3.708759485253494,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.0749190318860153,
+      "ci": [
+       0.9079656350852489,
+       1.2850162597677444
+      ],
+      "true_sd_A_pts": 3.429897064111381,
+      "true_sd_B_pts": 2.985327906408268,
+      "true_cov": 11.006490915950934,
+      "carried_sd_pts": 3.317603188440555,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 1.0232800988270214,
+      "ci": [
+       0.8847895521351172,
+       1.3050752126556455
+      ],
+      "true_sd_A_pts": 3.1596066546156125,
+      "true_sd_B_pts": 3.05325672592045,
+      "true_cov": 9.871675484334547,
+      "carried_sd_pts": 3.1419222594352245,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.9826421016107466,
+      "ci": [
+       0.8190055307354694,
+       1.276657478740301
+      ],
+      "true_sd_A_pts": 3.1514522809727565,
+      "true_sd_B_pts": 2.921787368472356,
+      "true_cov": 9.04804413487022,
+      "carried_sd_pts": 3.00799669794869,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.982239436045443,
+      "ci": [
+       0.666128155887734,
+       3.012136934360268
+      ],
+      "true_sd_A_pts": 2.753907228088547,
+      "true_sd_B_pts": 2.6484734278231143,
+      "true_cov": 7.164110776930127,
+      "carried_sd_pts": 2.6765856565651185,
+      "boot_nan": 7
+     },
+     "min games 100": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 0.0,
+      "true_sd_B_pts": 0.0,
+      "true_cov": 0.4435924007890605,
+      "carried_sd_pts": 0.666027327359066,
+      "boot_nan": 200
+     }
+    }
+   },
+   "whole cell, model noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 5.288090340948451,
+     "ci": [
+      3.5653691676341386,
+      12.104042056976938
+     ],
+     "true_sd_A_pts": 1.6474874003258557,
+     "true_sd_B_pts": 1.56604435259653,
+     "true_cov": 13.643475821087058,
+     "carried_sd_pts": 3.693707598211729,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 5.288090340948451,
+      "ci": [
+       3.5653691676341386,
+       12.104042056976938
+      ],
+      "true_sd_A_pts": 1.6474874003258557,
+      "true_sd_B_pts": 1.56604435259653,
+      "true_cov": 13.643475821087058,
+      "carried_sd_pts": 3.693707598211729,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.8485186623230891,
+      "ci": [
+       1.5136648885247777,
+       2.486128334608782
+      ],
+      "true_sd_A_pts": 2.5209289654842513,
+      "true_sd_B_pts": 2.3359750320306354,
+      "true_cov": 10.885606832166962,
+      "carried_sd_pts": 3.2993343013654983,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 1.374912960810238,
+      "ci": [
+       1.1533406748385993,
+       1.7725755335837015
+      ],
+      "true_sd_A_pts": 2.640517917197912,
+      "true_sd_B_pts": 2.6755971984358893,
+      "true_cov": 9.713708291204522,
+      "carried_sd_pts": 3.1166822570169908,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 1.145941773770588,
+      "ci": [
+       0.9381962067241373,
+       1.6446993426055891
+      ],
+      "true_sd_A_pts": 2.8680583730637643,
+      "true_sd_B_pts": 2.7155176305895745,
+      "true_cov": 8.92489600575377,
+      "carried_sd_pts": 2.9874564441601104,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 1.0854646888035209,
+      "ci": [
+       0.7562445569317853,
+       3.7727085410187082
+      ],
+      "true_sd_A_pts": 2.643810090908537,
+      "true_sd_B_pts": 2.49144881848126,
+      "true_cov": 7.149866383926599,
+      "carried_sd_pts": 2.6739234065183317,
+      "boot_nan": 14
+     },
+     "min games 100": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 0.0,
+      "true_sd_B_pts": 0.0,
+      "true_cov": 0.409877127112902,
+      "carried_sd_pts": 0.6402164689485127,
+      "boot_nan": 200
+     }
+    }
+   },
+   "hero-specific, residual-based noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.8982019714736342,
+     "ci": [
+      0.7750688609461369,
+      1.0811468381913343
+     ],
+     "true_sd_A_pts": 3.26078196848772,
+     "true_sd_B_pts": 3.23877807898669,
+     "true_cov": 9.4858653560488,
+     "carried_sd_pts": 3.079913205927855,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 0.8982019714736342,
+      "ci": [
+       0.7750688609461369,
+       1.0811468381913343
+      ],
+      "true_sd_A_pts": 3.26078196848772,
+      "true_sd_B_pts": 3.23877807898669,
+      "true_cov": 9.4858653560488,
+      "carried_sd_pts": 3.079913205927855,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.8496227738439488,
+      "ci": [
+       0.7541805787352405,
+       0.98827550274256
+      ],
+      "true_sd_A_pts": 2.873644841078521,
+      "true_sd_B_pts": 3.021674750413,
+      "true_cov": 7.377461511525711,
+      "carried_sd_pts": 2.716148285997234,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.8008389846983666,
+      "ci": [
+       0.6768517170369068,
+       0.9992532606772204
+      ],
+      "true_sd_A_pts": 2.5953388073340626,
+      "true_sd_B_pts": 2.914177899601242,
+      "true_cov": 6.056968670794,
+      "carried_sd_pts": 2.461090951345358,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.7366171339505375,
+      "ci": [
+       0.6083420260933686,
+       0.8963156597185244
+      ],
+      "true_sd_A_pts": 2.5161528966277174,
+      "true_sd_B_pts": 2.7026662254853773,
+      "true_cov": 5.009233297820996,
+      "carried_sd_pts": 2.238131653370953,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.6627376099563489,
+      "ci": [
+       0.49819694993280106,
+       1.0676650557423335
+      ],
+      "true_sd_A_pts": 2.4260938122760343,
+      "true_sd_B_pts": 2.5868049115554492,
+      "true_cov": 4.159229495559588,
+      "carried_sd_pts": 2.039418911248885,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 0.0,
+      "true_sd_B_pts": 0.0,
+      "true_cov": 3.64816044931682,
+      "carried_sd_pts": 1.9100158243629344,
+      "boot_nan": 188
+     }
+    }
+   },
+   "hero-specific, model noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 2.48009825997636,
+     "ci": [
+      1.9012802499217367,
+      3.796656412915808
+     ],
+     "true_sd_A_pts": 1.6217365579464087,
+     "true_sd_B_pts": 2.165837496910292,
+     "true_cov": 8.711141391424839,
+     "carried_sd_pts": 2.9514642792052963,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 2.48009825997636,
+      "ci": [
+       1.9012802499217367,
+       3.796656412915808
+      ],
+      "true_sd_A_pts": 1.6217365579464087,
+      "true_sd_B_pts": 2.165837496910292,
+      "true_cov": 8.711141391424839,
+      "carried_sd_pts": 2.9514642792052963,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 1.1762203303235865,
+      "ci": [
+       1.0183988559077444,
+       1.406019179567435
+      ],
+      "true_sd_A_pts": 2.1950674070390908,
+      "true_sd_B_pts": 2.525001517659216,
+      "true_cov": 6.519258267658291,
+      "carried_sd_pts": 2.553283820427782,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.949660254729206,
+      "ci": [
+       0.8016756867263676,
+       1.1378890241648396
+      ],
+      "true_sd_A_pts": 2.1637560046518267,
+      "true_sd_B_pts": 2.527200918619674,
+      "true_cov": 5.192976043720396,
+      "carried_sd_pts": 2.27881022547302,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.8058267661091045,
+      "ci": [
+       0.6774168638678957,
+       1.0489350880641628
+      ],
+      "true_sd_A_pts": 2.196546226924239,
+      "true_sd_B_pts": 2.391782686867784,
+      "true_cov": 4.2335408444110545,
+      "carried_sd_pts": 2.057557008787619,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.7879782673124113,
+      "ci": [
+       0.6034697232047732,
+       1.2047250586864784
+      ],
+      "true_sd_A_pts": 1.9750141403842894,
+      "true_sd_B_pts": 2.1848874219262164,
+      "true_cov": 3.400270859584163,
+      "carried_sd_pts": 1.8439823371128485,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 0.0,
+      "true_sd_B_pts": 0.0,
+      "true_cov": 2.4063250894929746,
+      "carried_sd_pts": 1.5512334090951545,
+      "boot_nan": 197
+     }
+    }
+   },
+   "cells_in_both": 2970919,
+   "cells_in_A": 18880026,
+   "selection": {
+    "whole cell": {
+     "share_of_A_cells_continuing": 0.1537874716437233,
+     "r_both_active_equal_weights": 1.2149637851808297,
+     "r_intent_to_treat_bound": 0.14549115190950965,
+     "true_sd_A_continuers_pts": 3.9439381815229866,
+     "true_sd_A_all_pts": 5.064980837266412,
+     "mean_A_value_continuers_pts": 1.0623252420299982,
+     "mean_A_value_stoppers_pts": 1.1776967352960535
+    },
+    "hero-specific": {
+     "share_of_A_cells_continuing": 0.15351582976992226,
+     "r_both_active_equal_weights": 1.0565610760546646,
+     "r_intent_to_treat_bound": 0.18429647512348002,
+     "true_sd_A_continuers_pts": 3.4468155879717224,
+     "true_sd_A_all_pts": 3.033533469193508,
+     "mean_A_value_continuers_pts": 1.1483116439885612,
+     "mean_A_value_stoppers_pts": 0.65823599627392
+    }
+   }
+  },
+  "2 years": {
+   "window_pairs": 29,
+   "whole cell, residual-based noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 1.00233319088207,
+     "ci": [
+      0.7943017655040425,
+      1.4131117661513992
+     ],
+     "true_sd_A_pts": 3.6534073779805105,
+     "true_sd_B_pts": 3.419839351593985,
+     "true_cov": 12.523217360236137,
+     "carried_sd_pts": 3.538815813268068,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 1.00233319088207,
+      "ci": [
+       0.7943017655040425,
+       1.4131117661513992
+      ],
+      "true_sd_A_pts": 3.6534073779805105,
+      "true_sd_B_pts": 3.419839351593985,
+      "true_cov": 12.523217360236137,
+      "carried_sd_pts": 3.538815813268068,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.8369480380065925,
+      "ci": [
+       0.6282976795001579,
+       1.097589035695165
+      ],
+      "true_sd_A_pts": 3.254486140494976,
+      "true_sd_B_pts": 3.0408839684955886,
+      "true_cov": 8.282868586646552,
+      "carried_sd_pts": 2.8779973222097603,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.712927773160942,
+      "ci": [
+       0.5154383059440718,
+       0.9957861570269674
+      ],
+      "true_sd_A_pts": 3.127146949435846,
+      "true_sd_B_pts": 3.0852560544806047,
+      "true_cov": 6.878362130978609,
+      "carried_sd_pts": 2.622663175281685,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.8515562482749606,
+      "ci": [
+       0.500643920607973,
+       2.2599842091954025
+      ],
+      "true_sd_A_pts": 3.2168986023100143,
+      "true_sd_B_pts": 2.1899382661032054,
+      "true_cov": 5.999051417660999,
+      "carried_sd_pts": 2.449296106570416,
+      "boot_nan": 1
+     },
+     "min games 50": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 2.251922601761655,
+      "true_sd_B_pts": 0.0,
+      "true_cov": 3.9661234618348673,
+      "carried_sd_pts": 1.9915128575620262,
+      "boot_nan": 188
+     },
+     "min games 100": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 0.0,
+      "true_sd_B_pts": 0.0,
+      "true_cov": Infinity,
+      "carried_sd_pts": Infinity,
+      "boot_nan": 200
+     }
+    }
+   },
+   "whole cell, model noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 9.784028040163838,
+     "ci": [
+      3.4004408571178,
+      24.278625637513045
+     ],
+     "true_sd_A_pts": 0.6826701260238102,
+     "true_sd_B_pts": 1.8524851779245468,
+     "true_cov": 12.373236920706537,
+     "carried_sd_pts": 3.5175612177624624,
+     "boot_nan": 67
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 9.784028040163838,
+      "ci": [
+       3.4004408571178,
+       24.278625637513045
+      ],
+      "true_sd_A_pts": 0.6826701260238102,
+      "true_sd_B_pts": 1.8524851779245468,
+      "true_cov": 12.373236920706537,
+      "carried_sd_pts": 3.5175612177624624,
+      "boot_nan": 67
+     },
+     "min games 5": {
+      "r": 1.508365556393785,
+      "ci": [
+       1.089567445851772,
+       2.481200740140064
+      ],
+      "true_sd_A_pts": 2.232236385148497,
+      "true_sd_B_pts": 2.431399274358997,
+      "true_cov": 8.186590595935323,
+      "carried_sd_pts": 2.861221871147941,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.9809213934526214,
+      "ci": [
+       0.6982497401734807,
+       1.3683892537910838
+      ],
+      "true_sd_A_pts": 2.55442224985817,
+      "true_sd_B_pts": 2.720344319119841,
+      "true_cov": 6.816332573299995,
+      "carried_sd_pts": 2.6108107118862516,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 1.0770320991555944,
+      "ci": [
+       0.6129883408751506,
+       2.301489918322119
+      ],
+      "true_sd_A_pts": 2.917437778654243,
+      "true_sd_B_pts": 1.9139859705573563,
+      "true_cov": 6.014077211246441,
+      "carried_sd_pts": 2.4523615580184015,
+      "boot_nan": 5
+     },
+     "min games 50": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 2.047152857300892,
+      "true_sd_B_pts": 0.0,
+      "true_cov": 4.033836464246364,
+      "carried_sd_pts": 2.0084413021660263,
+      "boot_nan": 190
+     },
+     "min games 100": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 0.0,
+      "true_sd_B_pts": 0.0,
+      "true_cov": Infinity,
+      "carried_sd_pts": Infinity,
+      "boot_nan": 200
+     }
+    }
+   },
+   "hero-specific, residual-based noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.8567340521864266,
+     "ci": [
+      0.6737454858017305,
+      1.111762574360832
+     ],
+     "true_sd_A_pts": 2.999080766209005,
+     "true_sd_B_pts": 3.3258748033713217,
+     "true_cov": 8.545551336318,
+     "carried_sd_pts": 2.9232774990270767,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 0.8567340521864266,
+      "ci": [
+       0.6737454858017305,
+       1.111762574360832
+      ],
+      "true_sd_A_pts": 2.999080766209005,
+      "true_sd_B_pts": 3.3258748033713217,
+      "true_cov": 8.545551336318,
+      "carried_sd_pts": 2.9232774990270767,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.6332870970838436,
+      "ci": [
+       0.5160499471247867,
+       0.8115520253036078
+      ],
+      "true_sd_A_pts": 2.8464322790868235,
+      "true_sd_B_pts": 3.1359513387476823,
+      "true_cov": 5.652893589571912,
+      "carried_sd_pts": 2.37758145803081,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.6198732555468282,
+      "ci": [
+       0.48535107407191413,
+       0.8063355877236964
+      ],
+      "true_sd_A_pts": 2.614247946757993,
+      "true_sd_B_pts": 3.118682763181546,
+      "true_cov": 5.053832857551427,
+      "carried_sd_pts": 2.248073143283249,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.5747614210340805,
+      "ci": [
+       0.3835302358814099,
+       0.8416019923612483
+      ],
+      "true_sd_A_pts": 2.6148688718293522,
+      "true_sd_B_pts": 2.5174916832574064,
+      "true_cov": 3.783603072629797,
+      "carried_sd_pts": 1.9451485991126223,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.646917788661683,
+      "ci": [
+       0.04405485254793144,
+       3.171792603464273
+      ],
+      "true_sd_A_pts": 2.56929402498869,
+      "true_sd_B_pts": 1.5840207392195342,
+      "true_cov": 2.6328357334759342,
+      "carried_sd_pts": 1.6226015325630425,
+      "boot_nan": 41
+     },
+     "min games 100": {
+      "r": NaN,
+      "ci": [
+       NaN,
+       NaN
+      ],
+      "true_sd_A_pts": 0.0,
+      "true_sd_B_pts": 0.0,
+      "true_cov": -96.0625,
+      "carried_sd_pts": 0.0,
+      "boot_nan": 200
+     }
+    }
+   },
+   "hero-specific, model noise": {
+    "primary (all cells with play in both windows)": {
+     "r": 3.5569785203391437,
+     "ci": [
+      1.9189626111704265,
+      10.244485959191218
+     ],
+     "true_sd_A_pts": 0.9770058042572703,
+     "true_sd_B_pts": 2.2952766976484735,
+     "true_cov": 7.976519551206768,
+     "carried_sd_pts": 2.824273278421684,
+     "boot_nan": 28
+    },
+    "sensitivity": {
+     "min games 2": {
+      "r": 3.5569785203391437,
+      "ci": [
+       1.9189626111704265,
+       10.244485959191218
+      ],
+      "true_sd_A_pts": 0.9770058042572703,
+      "true_sd_B_pts": 2.2952766976484735,
+      "true_cov": 7.976519551206768,
+      "carried_sd_pts": 2.824273278421684,
+      "boot_nan": 28
+     },
+     "min games 5": {
+      "r": 0.871247492199014,
+      "ci": [
+       0.6281109534216351,
+       1.1590649099897308
+      ],
+      "true_sd_A_pts": 2.187851736440276,
+      "true_sd_B_pts": 2.7023662670763855,
+      "true_cov": 5.1511433988792135,
+      "carried_sd_pts": 2.269613050473409,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.7233623562723022,
+      "ci": [
+       0.5438489506597863,
+       0.9660443366243215
+      ],
+      "true_sd_A_pts": 2.2256938141268754,
+      "true_sd_B_pts": 2.773636647200138,
+      "true_cov": 4.465508187797085,
+      "carried_sd_pts": 2.113174907052676,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.6345245233102643,
+      "ci": [
+       0.4435865517045501,
+       0.89958659306522
+      ],
+      "true_sd_A_pts": 2.3430113844618616,
+      "true_sd_B_pts": 2.266111769762119,
+      "true_cov": 3.3690242479429227,
+      "carried_sd_pts": 1.8354901928212317,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.7022958489857875,
+      "ci": [
+       0.08918989385974024,
+       3.7992515660065145
+      ],
+      "true_sd_A_pts": 2.4019110271950206,
+      "true_sd_B_pts": 1.4940610903953826,
+      "true_cov": 2.5202601536486147,
+      "carried_sd_pts": 1.5875327252213147,
+      "boot_nan": 43
+     },
+     "min games 100": {
+      "r": -3.50778599988514e-17,
+      "ci": [
+       -4.1380099496556274e-17,
+       9.746376690675327e-18
+      ],
+      "true_sd_A_pts": 790637865.9754735,
+      "true_sd_B_pts": 1018609568.7351273,
+      "true_cov": -28.25,
+      "carried_sd_pts": 0.0,
+      "boot_nan": 177
+     }
+    }
+   },
+   "cells_in_both": 1653435,
+   "cells_in_A": 13549195,
+   "selection": {
+    "whole cell": {
+     "share_of_A_cells_continuing": 0.11825512621286252,
+     "r_both_active_equal_weights": 1.3174821934578396,
+     "r_intent_to_treat_bound": 0.10061026566386001,
+     "true_sd_A_continuers_pts": 3.190102049465839,
+     "true_sd_A_all_pts": 4.9400006999552835,
+     "mean_A_value_continuers_pts": 0.9077215038845814,
+     "mean_A_value_stoppers_pts": 1.3317013262847428
+    },
+    "hero-specific": {
+     "share_of_A_cells_continuing": 0.11813845206792817,
+     "r_both_active_equal_weights": 1.2337878367646582,
+     "r_intent_to_treat_bound": 0.13875898271717632,
+     "true_sd_A_continuers_pts": 2.7194303825450783,
+     "true_sd_A_all_pts": 2.856594519835405,
+     "mean_A_value_continuers_pts": 1.0727105667800751,
+     "mean_A_value_stoppers_pts": 0.7908220081643471
+    }
+   }
+  }
+ },
+ "game": {
+  "3 months": {
+   "window_pairs": 50,
+   "hero x tier": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.9266856153745611,
+     "ci": [
+      0.9000245666889513,
+      0.9489155570937463
+     ],
+     "true_sd_A_pts": 2.3642190103201024,
+     "true_sd_B_pts": 2.346627052935771,
+     "true_cov": 5.141196460478773,
+     "carried_sd_pts": 2.2674206624441733,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 1": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.9000245666889513,
+       0.9489155570937463
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min games 2": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.9002180518970722,
+       0.9468627946471364
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.8985949420999466,
+       0.9466348579459725
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.9016713034467737,
+       0.948341329074638
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.897423111642604,
+       0.9481445149919845
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.9024349539546687,
+       0.9513010190877926
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.9008242128806727,
+       0.9483446710600256
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min pick rate 0.25%": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.9015726909456583,
+       0.9492437441714038
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min pick rate 0.5%": {
+      "r": 0.9266856153745611,
+      "ci": [
+       0.8993574669689075,
+       0.9490418480726898
+      ],
+      "true_sd_A_pts": 2.3642190103201024,
+      "true_sd_B_pts": 2.346627052935771,
+      "true_cov": 5.141196460478773,
+      "carried_sd_pts": 2.2674206624441733,
+      "boot_nan": 0
+     },
+     "min pick rate 1%": {
+      "r": 0.9267351668048416,
+      "ci": [
+       0.8998901431275985,
+       0.9478610880886525
+      ],
+      "true_sd_A_pts": 2.3644416862458297,
+      "true_sd_B_pts": 2.346351293579769,
+      "true_cov": 5.141351375588591,
+      "carried_sd_pts": 2.267454823274014,
+      "boot_nan": 0
+     },
+     "min pick rate 2%": {
+      "r": 0.9247343345736327,
+      "ci": [
+       0.8992036904568015,
+       0.9476282941767047
+      ],
+      "true_sd_A_pts": 2.3509588022329777,
+      "true_sd_B_pts": 2.3420059035011267,
+      "true_cov": 5.091549696138861,
+      "carried_sd_pts": 2.2564462537669407,
+      "boot_nan": 0
+     },
+     "min pick rate 5%": {
+      "r": 0.9194712088105838,
+      "ci": [
+       0.8884948174665266,
+       0.9427136165078548
+      ],
+      "true_sd_A_pts": 2.094345119105048,
+      "true_sd_B_pts": 2.0847915282167815,
+      "true_cov": 4.0146622778819685,
+      "carried_sd_pts": 2.003662216513045,
+      "boot_nan": 0
+     }
+    }
+   },
+   "cells_in_both": 13500,
+   "cells_in_A": 13500,
+   "rework_split": {
+    "no listed change": {
+     "r": 0.950483082116388,
+     "ci": [
+      0.9308395224333659,
+      0.9729421831871349
+     ],
+     "true_sd_A_pts": 2.3456353260389733,
+     "true_sd_B_pts": 2.3320949601678658,
+     "true_cov": 5.199374683339189,
+     "carried_sd_pts": 2.280213736328064,
+     "boot_nan": 0,
+     "cell_pairs": 9336
+    },
+    "changed once": {
+     "r": 0.9151909105695012,
+     "ci": [
+      0.8750095916018876,
+      0.9559975745504193
+     ],
+     "true_sd_A_pts": 2.5142908077379738,
+     "true_sd_B_pts": 2.4747063446387383,
+     "true_cov": 5.6944381146228515,
+     "carried_sd_pts": 2.3863021842639403,
+     "boot_nan": 0,
+     "cell_pairs": 3711
+    },
+    "changed 2+ times": {
+     "r": 0.7500422201607636,
+     "ci": [
+      0.6075072237766762,
+      0.8743070598420117
+     ],
+     "true_sd_A_pts": 2.5908947534935987,
+     "true_sd_B_pts": 2.599112333327776,
+     "true_cov": 5.0508041928013405,
+     "carried_sd_pts": 2.2473994288513426,
+     "boot_nan": 0,
+     "cell_pairs": 453
+    }
+   }
+  },
+  "6 months": {
+   "window_pairs": 47,
+   "hero x tier": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.9002685510917532,
+     "ci": [
+      0.8716780254123913,
+      0.9299163750174039
+     ],
+     "true_sd_A_pts": 2.364512874701994,
+     "true_sd_B_pts": 2.3468674670937317,
+     "true_cov": 4.995768750319022,
+     "carried_sd_pts": 2.235121641056482,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 1": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.8716780254123913,
+       0.9299163750174039
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min games 2": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.8646842280493156,
+       0.9287059786998729
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.8620608800222006,
+       0.9254482931181172
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.8675854699742889,
+       0.9316344806272397
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.8646024018792099,
+       0.9306059660245312
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.857702393512893,
+       0.929381895459395
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.8508565837806806,
+       0.9279313424421384
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min pick rate 0.25%": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.8588576724002608,
+       0.9314112285823333
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min pick rate 0.5%": {
+      "r": 0.9002685510917532,
+      "ci": [
+       0.8636411624833203,
+       0.9298344041782592
+      ],
+      "true_sd_A_pts": 2.364512874701994,
+      "true_sd_B_pts": 2.3468674670937317,
+      "true_cov": 4.995768750319022,
+      "carried_sd_pts": 2.235121641056482,
+      "boot_nan": 0
+     },
+     "min pick rate 1%": {
+      "r": 0.9002914386450229,
+      "ci": [
+       0.8583695796226868,
+       0.9283541360497429
+      ],
+      "true_sd_A_pts": 2.3647325358347038,
+      "true_sd_B_pts": 2.3467941991220953,
+      "true_cov": 4.996203888407204,
+      "carried_sd_pts": 2.2352189799675566,
+      "boot_nan": 0
+     },
+     "min pick rate 2%": {
+      "r": 0.8980667253744213,
+      "ci": [
+       0.8572210497069438,
+       0.9277617083443903
+      ],
+      "true_sd_A_pts": 2.3471916086577567,
+      "true_sd_B_pts": 2.338216945688766,
+      "true_cov": 4.928808593421598,
+      "carried_sd_pts": 2.2200920236381188,
+      "boot_nan": 0
+     },
+     "min pick rate 5%": {
+      "r": 0.888218732162161,
+      "ci": [
+       0.8483988597190953,
+       0.9222140569380488
+      ],
+      "true_sd_A_pts": 2.0798896663183832,
+      "true_sd_B_pts": 2.0827758561352914,
+      "true_cov": 3.8477137900978966,
+      "carried_sd_pts": 1.9615590202942905,
+      "boot_nan": 0
+     }
+    }
+   },
+   "cells_in_both": 12690,
+   "cells_in_A": 12690,
+   "rework_split": {
+    "no listed change": {
+     "r": 0.9383551178835754,
+     "ci": [
+      0.9103903231061453,
+      0.961197067660966
+     ],
+     "true_sd_A_pts": 2.338072314285204,
+     "true_sd_B_pts": 2.3227889812250124,
+     "true_cov": 5.096064586639363,
+     "carried_sd_pts": 2.2574464748116094,
+     "boot_nan": 0,
+     "cell_pairs": 7230
+    },
+    "changed once": {
+     "r": 0.898034386309007,
+     "ci": [
+      0.8513029893062253,
+      0.9381214977411209
+     ],
+     "true_sd_A_pts": 2.431106701853178,
+     "true_sd_B_pts": 2.3996640923671375,
+     "true_cov": 5.238988436727125,
+     "carried_sd_pts": 2.2888836660536342,
+     "boot_nan": 0,
+     "cell_pairs": 4323
+    },
+    "changed 2+ times": {
+     "r": 0.8041580855713203,
+     "ci": [
+      0.6834182825539005,
+      0.8974355513211097
+     ],
+     "true_sd_A_pts": 2.7687178455906207,
+     "true_sd_B_pts": 2.7702547156020576,
+     "true_cov": 6.167935673823016,
+     "carried_sd_pts": 2.483532901699314,
+     "boot_nan": 0,
+     "cell_pairs": 1137
+    }
+   }
+  },
+  "1 year": {
+   "window_pairs": 41,
+   "hero x tier": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.8454506370184414,
+     "ci": [
+      0.7881954221619112,
+      0.8891181828079194
+     ],
+     "true_sd_A_pts": 2.386415073308598,
+     "true_sd_B_pts": 2.3488558328586464,
+     "true_cov": 4.739042470997642,
+     "carried_sd_pts": 2.1769341907824504,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 1": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.7881954221619112,
+       0.8891181828079194
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min games 2": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.7935627234428877,
+       0.8896708194372287
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.8039101999754765,
+       0.889821518696416
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.7915004314418681,
+       0.8842927973955085
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.7904777416626451,
+       0.8875350200967085
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.7917623123451929,
+       0.8918419234908614
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.7942512783386578,
+       0.8856876036949891
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min pick rate 0.25%": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.7953355086520932,
+       0.8887378199431056
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min pick rate 0.5%": {
+      "r": 0.8454506370184414,
+      "ci": [
+       0.7897745669689894,
+       0.8867368997270946
+      ],
+      "true_sd_A_pts": 2.386415073308598,
+      "true_sd_B_pts": 2.3488558328586464,
+      "true_cov": 4.739042470997642,
+      "carried_sd_pts": 2.1769341907824504,
+      "boot_nan": 0
+     },
+     "min pick rate 1%": {
+      "r": 0.8453302064238767,
+      "ci": [
+       0.7974671881776505,
+       0.8856901721095285
+      ],
+      "true_sd_A_pts": 2.3866661657413,
+      "true_sd_B_pts": 2.3491209301279516,
+      "true_cov": 4.739400814065225,
+      "carried_sd_pts": 2.177016493751305,
+      "boot_nan": 0
+     },
+     "min pick rate 2%": {
+      "r": 0.8455866274593615,
+      "ci": [
+       0.7977248300003396,
+       0.8880766898814108
+      ],
+      "true_sd_A_pts": 2.3656509035091435,
+      "true_sd_B_pts": 2.331079998011447,
+      "true_cov": 4.6630056401526145,
+      "carried_sd_pts": 2.15939937023067,
+      "boot_nan": 0
+     },
+     "min pick rate 5%": {
+      "r": 0.8236234257509034,
+      "ci": [
+       0.7632972192804571,
+       0.871764293779991
+      ],
+      "true_sd_A_pts": 2.085951935886017,
+      "true_sd_B_pts": 2.0787898982464683,
+      "true_cov": 3.571441867262653,
+      "carried_sd_pts": 1.8898258827899075,
+      "boot_nan": 0
+     }
+    }
+   },
+   "cells_in_both": 11070,
+   "cells_in_A": 11070,
+   "rework_split": {
+    "no listed change": {
+     "r": 0.9104327000237296,
+     "ci": [
+      0.8595707113428426,
+      0.9501332046972193
+     ],
+     "true_sd_A_pts": 2.3493174934628867,
+     "true_sd_B_pts": 2.3575178821491853,
+     "true_cov": 5.042484315711794,
+     "carried_sd_pts": 2.245547664983265,
+     "boot_nan": 0,
+     "cell_pairs": 3792
+    },
+    "changed once": {
+     "r": 0.8598037206256512,
+     "ci": [
+      0.816307601716192,
+      0.9000988383352588
+     ],
+     "true_sd_A_pts": 2.365066187995382,
+     "true_sd_B_pts": 2.3503159449625732,
+     "true_cov": 4.779350335493746,
+     "carried_sd_pts": 2.186172531044553,
+     "boot_nan": 0,
+     "cell_pairs": 4563
+    },
+    "changed 2+ times": {
+     "r": 0.7852663170896395,
+     "ci": [
+      0.6614547136221278,
+      0.8613135277663214
+     ],
+     "true_sd_A_pts": 2.62717461316815,
+     "true_sd_B_pts": 2.5041808662672733,
+     "true_cov": 5.166204591864999,
+     "carried_sd_pts": 2.272928637653413,
+     "boot_nan": 0,
+     "cell_pairs": 2715
+    }
+   }
+  },
+  "2 years": {
+   "window_pairs": 29,
+   "hero x tier": {
+    "primary (all cells with play in both windows)": {
+     "r": 0.7655852523457722,
+     "ci": [
+      0.6873411690491514,
+      0.8285033905990363
+     ],
+     "true_sd_A_pts": 2.4467131343304254,
+     "true_sd_B_pts": 2.3063097058200444,
+     "true_cov": 4.3201043682658575,
+     "carried_sd_pts": 2.0784860760336734,
+     "boot_nan": 0
+    },
+    "sensitivity": {
+     "min games 1": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6873411690491514,
+       0.8285033905990363
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min games 2": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6912786165269208,
+       0.8241887371907528
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min games 5": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6817045946193627,
+       0.8280285777440264
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min games 10": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6957060272353669,
+       0.836247132949247
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min games 20": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6707650729876454,
+       0.8226673049585972
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min games 50": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6705032132129789,
+       0.8386130793676955
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min games 100": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6948135846966972,
+       0.8235776247741898
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min pick rate 0.25%": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6798995720156988,
+       0.8358762205805739
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min pick rate 0.5%": {
+      "r": 0.7655852523457722,
+      "ci": [
+       0.6975722566396104,
+       0.8302227474303958
+      ],
+      "true_sd_A_pts": 2.4467131343304254,
+      "true_sd_B_pts": 2.3063097058200444,
+      "true_cov": 4.3201043682658575,
+      "carried_sd_pts": 2.0784860760336734,
+      "boot_nan": 0
+     },
+     "min pick rate 1%": {
+      "r": 0.7657624132538101,
+      "ci": [
+       0.6910920891450928,
+       0.8256067240847411
+      ],
+      "true_sd_A_pts": 2.4471138842361433,
+      "true_sd_B_pts": 2.3058132547271604,
+      "true_cov": 4.320881520620374,
+      "carried_sd_pts": 2.0786730191688094,
+      "boot_nan": 0
+     },
+     "min pick rate 2%": {
+      "r": 0.7636621565429464,
+      "ci": [
+       0.6859604150860573,
+       0.8258707308520147
+      ],
+      "true_sd_A_pts": 2.4350904847136507,
+      "true_sd_B_pts": 2.283224396963228,
+      "true_cov": 4.245853153033939,
+      "carried_sd_pts": 2.060546809231457,
+      "boot_nan": 0
+     },
+     "min pick rate 5%": {
+      "r": 0.7131995221509148,
+      "ci": [
+       0.6190095139323218,
+       0.7831847274880542
+      ],
+      "true_sd_A_pts": 2.1296495102403394,
+      "true_sd_B_pts": 2.0509896270127874,
+      "true_cov": 3.11517638660299,
+      "carried_sd_pts": 1.7649862284457039,
+      "boot_nan": 0
+     }
+    }
+   },
+   "cells_in_both": 7830,
+   "cells_in_A": 7830,
+   "rework_split": {
+    "no listed change": {
+     "r": 0.7127462867745935,
+     "ci": [
+      0.5328481153344415,
+      0.8915219338985404
+     ],
+     "true_sd_A_pts": 2.2536660675643807,
+     "true_sd_B_pts": 2.2147442843975846,
+     "true_cov": 3.557526294691954,
+     "carried_sd_pts": 1.8861405819004993,
+     "boot_nan": 0,
+     "cell_pairs": 405
+    },
+    "changed once": {
+     "r": 0.8214782556320025,
+     "ci": [
+      0.7417425328112074,
+      0.9043083978244856
+     ],
+     "true_sd_A_pts": 2.1868980319358218,
+     "true_sd_B_pts": 2.2605862320472174,
+     "true_cov": 4.061118707504618,
+     "carried_sd_pts": 2.015221751446877,
+     "boot_nan": 0,
+     "cell_pairs": 2310
+    },
+    "changed 2+ times": {
+     "r": 0.7763438065404537,
+     "ci": [
+      0.7090644419823923,
+      0.8413746259900486
+     ],
+     "true_sd_A_pts": 2.6006961943258586,
+     "true_sd_B_pts": 2.413183592295055,
+     "true_cov": 4.872300645716955,
+     "carried_sd_pts": 2.2073288485671894,
+     "boot_nan": 0,
+     "cell_pairs": 5115
+    }
+   }
+  }
+ }
+}

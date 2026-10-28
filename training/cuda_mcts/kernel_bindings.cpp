@@ -291,14 +291,14 @@ public:
         policy_weight_count_ = pw.shape(0);
 
         cudaMalloc(&d_policy_weights_, pw.shape(0) * sizeof(float));
-        cudaMemcpy(d_policy_weights_, pw.data(0), pw.shape(0) * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpyAsync(d_policy_weights_, pw.data(0), pw.shape(0) * sizeof(float), cudaMemcpyHostToDevice, stream_);
 
         cudaMalloc(&d_gd_weights_, gw.shape(0) * sizeof(float));
-        cudaMemcpy(d_gd_weights_, gw.data(0), gw.shape(0) * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpyAsync(d_gd_weights_, gw.data(0), gw.shape(0) * sizeof(float), cudaMemcpyHostToDevice, stream_);
 
         // Upload WP model weights
         cudaMalloc(&d_wp_weights_, ww.shape(0) * sizeof(float));
-        cudaMemcpy(d_wp_weights_, ww.data(0), ww.shape(0) * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpyAsync(d_wp_weights_, ww.data(0), ww.shape(0) * sizeof(float), cudaMemcpyHostToDevice, stream_);
 
         // Upload lookup tables (one contiguous struct blob)
         auto lb = lut_blob.unchecked<1>();
@@ -308,7 +308,7 @@ public:
                 " expected " + std::to_string(sizeof(WPLookupTables)));
         }
         cudaMalloc(&d_lut_, sizeof(WPLookupTables));
-        cudaMemcpy(d_lut_, lb.data(0), sizeof(WPLookupTables), cudaMemcpyHostToDevice);
+        cudaMemcpyAsync(d_lut_, lb.data(0), sizeof(WPLookupTables), cudaMemcpyHostToDevice, stream_);
 
         cudaMalloc(&d_configs_, max_episodes_ * 3 * sizeof(int));
         // Legacy episode memory (~2 MB per episode) and the v2 arenas are
@@ -318,6 +318,14 @@ public:
         cudaMalloc(&d_outs_, max_episodes_ * sizeof(EpisodeOutV2));
         cudaMallocHost(&h_outs_, max_episodes_ * sizeof(EpisodeOutV2));
         std::memset(h_outs_, 0, max_episodes_ * sizeof(EpisodeOutV2));
+        // Every upload above is ordered on stream_ (the stream every launch uses) and
+        // complete before the constructor returns. With plain cudaMemcpy on the legacy
+        // stream, a non-blocking stream_ had no ordering with the uploads: on WDDM
+        // (WSL workers) an engine that was not the first in its process could launch
+        // its first kernels before its weights arrived (found 2026-10-19, see
+        // personalization/results/P3_MCTS_VERIFICATION.md).
+        cudaStreamSynchronize(stream_);
+        check_cuda("engine uploads");
         last_n_ = 0;
         last_mode_ = -1;
     }

@@ -188,7 +188,8 @@ class PGDSetup(Setup):
         for i, j in enumerate(jobs):
             by_key.setdefault(j[0]["key"], []).append(i)
         coefs = np.r_[self.coefs, np.float32(self.hp.alpha.item()), np.float32(self.hb.alpha.item())].astype(np.float32)
-        bc = M.BatchCache(f"{getattr(self, 'tag', 'pgdmcts')}_pgd{use_pgd}_s{sims}_seed{seed}_n{len(jobs)}")
+        dig = M.jobs_digest([a for j in jobs for a in (j[1], j[0]["s"], j[0]["off"], j[0]["imit"], j[0]["pool"], j[2], j[3])])
+        bc = M.BatchCache(f"{getattr(self, 'tag', 'pgdmcts')}_pgd{use_pgd}_s{sims}_seed{seed}_n{len(jobs)}_{dig}")
         for key, idx in by_key.items():
             for bs in range(0, len(idx), BATCH):
                 ii = idx[bs:bs + BATCH]

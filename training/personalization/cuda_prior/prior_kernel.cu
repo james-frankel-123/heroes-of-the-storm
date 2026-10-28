@@ -46,6 +46,25 @@
 #include "device_forward.cuh"
 #include "enriched_features.cuh"
 
+// P3 safe inverse-CDF draw (2026-10-24, plan review C24): entries p[i] / denom <= 0 (or NaN) are never
+// chosen; when rounding leaves r above the accumulated mass the LAST positive entry is returned (the
+// legacy loops fell back to hero 0, taken or not); no positive entry -> -1, and the caller applies
+// P3_SAFE_FALLBACK (first hero not yet taken). Whenever the legacy loop found an entry the result is
+// identical (zero entries add nothing to the cumulative sum).
+__device__ __forceinline__ int p3_sample_cdf(const float* p, float r, float denom) {
+    float cum = 0.0f;
+    int last = -1;
+    for (int i = 0; i < NUM_HEROES; i++) {
+        float q = denom == 1.0f ? p[i] : p[i] / denom;
+        if (!(q > 0.0f)) continue;
+        last = i;
+        cum += q;
+        if (cum > r) return i;
+    }
+    return last;
+}
+#define P3_SAFE_FALLBACK(X, ST) do { if ((X) < 0) { (X) = 0; while ((X) < NUM_HEROES - 1 && (ST).is_taken(X)) (X)++; } } while (0)
+
 #define NUM_HEROES 90
 #define NUM_MAPS 14
 #define NUM_TIERS 3
@@ -200,8 +219,10 @@ __device__ void apply_prior_bias(float* pri, const float* mask, int step, const 
         if (slot >= 0) {
             float mx = -1e30f;
             for (int i = 0; i < NUM_HEROES; i++) {
-                if (mask[i] > 0.5f && pri[i] > 0.0f) {
-                    pri[i] = alpha * logf(pri[i]) + eb[slot * NUM_HEROES + i];
+                if (mask[i] > 0.5f) {
+                    // underflow fix (2026-10-19): a valid hero whose base prior underflowed to 0
+                    // can still be revived by the bias (floor 1e-30 before the log)
+                    pri[i] = alpha * logf(fmaxf(pri[i], 1e-30f)) + eb[slot * NUM_HEROES + i];
                     mx = fmaxf(mx, pri[i]);
                 } else {
                     pri[i] = -1e30f;
@@ -440,7 +461,15 @@ extern "C" __global__ void mcts_episodes_kernel(
 
     // Thread-local RNG (only thread 0 uses it)
     curandState rng;
-    if (tid == 0) curand_init(base_seed + ep_idx, 0, 0, &rng);
+    // RNG fix (2026-10-19): a hashed per-episode seed (splitmix64) instead of base_seed + ep_idx
+    // with subsequence 0, whose neighbouring seeds give correlated first draws.
+    if (tid == 0) {
+        unsigned long long z = (unsigned long long)base_seed + 0x9E3779B97F4A7C15ULL * (unsigned long long)(ep_idx + 1);
+        z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+        z = z ^ (z >> 31);
+        curand_init(z, 0, 0, &rng);
+    }
 
     // Init draft state
     __shared__ DraftStateGPU main_state;
@@ -486,8 +515,15 @@ extern "C" __global__ void mcts_episodes_kernel(
             }
         }
         __syncthreads();
-        if (s_skip) continue;
-        if (s_team < 0) break;
+        // Race fix (2026-10-19): copy the flags, then a barrier, before branching. Without it
+        // thread 0 could rewrite s_skip/s_team for the next step (after a `continue`) before
+        // slower warps read them, putting warps one __syncthreads() out of step.
+        {
+            int l_skip = s_skip, l_team = s_team;
+            __syncthreads();
+            if (l_skip) continue;
+            if (l_team < 0) break;
+        }
 
         if (s_team == s_our_team) {
             // ═══ OUR TURN: MCTS SEARCH ═══
@@ -653,12 +689,8 @@ extern "C" __global__ void mcts_episodes_kernel(
                                     break;
                                 }
                                 float r = curand_uniform(&rng);
-                                float cum = 0;
-                                int opp_action = 0;
-                                for (int j = 0; j < NUM_HEROES; j++) {
-                                    cum += node.cached_opp_probs[j];
-                                    if (cum > r) { opp_action = j; break; }
-                                }
+                                int opp_action = p3_sample_cdf(node.cached_opp_probs, r, 1.0f);
+                                P3_SAFE_FALLBACK(opp_action, scratch);
                                 scratch.apply_action(opp_action,
                                     scratch.current_team(), scratch.current_is_pick());
                             }
@@ -751,12 +783,8 @@ extern "C" __global__ void mcts_episodes_kernel(
                         }
                         if (sm > 0) for (int i = 0; i < NUM_HEROES; i++) priors_buf[i] /= sm;
                         float r = curand_uniform(&rng);
-                        float cum = 0;
-                        int action = 0;
-                        for (int i = 0; i < NUM_HEROES; i++) {
-                            cum += priors_buf[i];
-                            if (cum > r) { action = i; break; }
-                        }
+                        int action = p3_sample_cdf(priors_buf, r, 1.0f);
+                        P3_SAFE_FALLBACK(action, scratch);
                         scratch.apply_action(action, scratch.current_team(), scratch.current_is_pick());
                     }
                     __syncthreads();
@@ -831,23 +859,19 @@ extern "C" __global__ void mcts_episodes_kernel(
                 // stream (and thus GD opponent behavior) is identical across
                 // root_temp settings for a given seed.
                 float r = curand_uniform(&rng);
-                int chosen = 0;
+                int chosen = -1;
                 if (root_temp < 0.05f) {
                     // argmax (T -> 0)
                     float best = -1.0f;
                     for (int i = 0; i < NUM_HEROES; i++) {
-                        if (ep->out_policies[t][i] > best) {
+                        if (ep->out_policies[t][i] > best && ep->out_policies[t][i] > 0.0f) {
                             best = ep->out_policies[t][i];
                             chosen = i;
                         }
                     }
                 } else if (fabsf(root_temp - 1.0f) < 1e-6f) {
                     // T=1: exact historical code path (bit-identical results)
-                    float cum = 0;
-                    for (int i = 0; i < NUM_HEROES; i++) {
-                        cum += ep->out_policies[t][i];
-                        if (cum > r) { chosen = i; break; }
-                    }
+                    chosen = p3_sample_cdf(ep->out_policies[t], r, 1.0f);
                 } else {
                     // General T: p_i ∝ visits_i^(1/T)
                     float w[NUM_HEROES];
@@ -858,12 +882,9 @@ extern "C" __global__ void mcts_episodes_kernel(
                                  ? powf(ep->out_policies[t][i], inv_t) : 0.0f;
                         wsum += w[i];
                     }
-                    float cum = 0;
-                    for (int i = 0; i < NUM_HEROES; i++) {
-                        cum += (wsum > 0.0f ? w[i] / wsum : 0.0f);
-                        if (cum > r) { chosen = i; break; }
-                    }
+                    chosen = wsum > 0.0f ? p3_sample_cdf(w, r, wsum) : -1;
                 }
+                P3_SAFE_FALLBACK(chosen, main_state);
                 main_state.apply_action(chosen, s_team, s_is_pick);
                 ep->num_our_turns++;
                 if (ecfg[4] >= 0) ep->decided = 1;
@@ -905,12 +926,8 @@ extern "C" __global__ void mcts_episodes_kernel(
                 }
 
                 float r = curand_uniform(&rng);
-                float cum = 0;
-                int action = 0;
-                for (int i = 0; i < NUM_HEROES; i++) {
-                    cum += priors_buf[i];
-                    if (cum > r) { action = i; break; }
-                }
+                int action = p3_sample_cdf(priors_buf, r, 1.0f);
+                P3_SAFE_FALLBACK(action, main_state);
                 main_state.apply_action(action, s_team, s_is_pick);
             }
             __syncthreads();

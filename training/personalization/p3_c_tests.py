@@ -195,6 +195,21 @@ def ll_of(p, y):
     return -(y * np.log(p + eps) + (1 - y) * np.log(1 - p + eps))
 
 
+SEALED_BUILD = "2.55.17.98025"   # formerly sealed build: inside OOT (reported separately, C13)
+
+
+def game_version(rids):
+    """Build string per replay id (slot table of the current cache)."""
+    z = np.load(os.path.join(C.CACHE, "x_slots_ext.npz"), mmap_mode="r")
+    r, v = np.asarray(z["replay_id"]), np.asarray(z["version"])
+    u, i = np.unique(r, return_index=True)
+    names = np.array([str(x) for x in z["versions"]])
+    j = np.searchsorted(u, rids)
+    j = np.minimum(j, len(u) - 1)
+    assert np.array_equal(u[j], rids), "game_version: replay ids missing from the slot table"
+    return names[v[i][j]]
+
+
 def real_tier(rids):
     """Real league tier per game (1 Bronze .. 5 Diamond, 6 Master, -2 unknown):
     x_tiers.npz for snapshot games, x_post_games.json.gz for post games."""
@@ -321,6 +336,18 @@ def report(a):
         sets[f"{wn} Diamond"] = base & (tier == 5)
         sets[f"{wn} Master"] = base & (tier == 6)
         sets[f"{wn} Diamond+Master, all-10 pulled"] = base & (tier >= 5) & pulled10
+    # OOT by period and with / without the formerly sealed build (C13)
+    ver = game_version(common)
+    sealed = ver == SEALED_BUILD
+    split = C.day_of("2026-09-12")
+    gday = A[names[0]]["day"]
+    oot = win == 3
+    sets["OOT before 2026-09-12"] = oot & (gday < split)
+    sets["OOT from 2026-09-12"] = oot & (gday >= split)
+    sets["OOT from 2026-09-12, without " + SEALED_BUILD] = oot & (gday >= split) & ~sealed
+    sets["OOT without " + SEALED_BUILD] = oot & ~sealed
+    sets["OOT " + SEALED_BUILD + " only"] = oot & sealed
+    out["oot_sealed_build_games"] = int((oot & sealed).sum())
     out["sets"] = {}
     lines.append("## Game-level lift (log-loss gain over M0 population WP, x1000; acc in %)")
     lines.append("set | games | " + " | ".join(f"{n} gain (SE)" for n in names) + " | "

@@ -1,0 +1,281 @@
+{
+ "_note": "exploration design study: aMCTS-pp-like searches with one knob changed (tuned on the tune lobby set, never the tournament lobbies)",
+ "x-pp": {
+  "base": "cur",
+  "prior": "pprior"
+ },
+ "x-pp-c1": {
+  "base": "cur",
+  "prior": "pprior",
+  "c_puct": 1.0
+ },
+ "x-pp-c4": {
+  "base": "cur",
+  "prior": "pprior",
+  "c_puct": 4.0
+ },
+ "x-pp-b05": {
+  "base": "cur",
+  "prior": "pprior",
+  "bias_scale": 0.5
+ },
+ "x-pp-b2": {
+  "base": "cur",
+  "prior": "pprior",
+  "bias_scale": 2.0
+ },
+ "x-pp-a0": {
+  "base": "cur",
+  "prior": "pprior",
+  "alpha": 0.0
+ },
+ "x-pp-a03": {
+  "base": "cur",
+  "prior": "pprior",
+  "alpha": 0.3
+ },
+ "x-pp-a06": {
+  "base": "cur",
+  "prior": "pprior",
+  "alpha": 0.6
+ },
+ "x-pp-apos": {
+  "base": "cur",
+  "prior": "pprior",
+  "alpha": {
+   "4": 0.5,
+   "5": 0.5,
+   "6": 0.5,
+   "7": 0.3,
+   "8": 0.3,
+   "default": 0.156
+  }
+ },
+ "x-pp-opt05": {
+  "base": "cur",
+  "prior": "pprior",
+  "optimism": 0.5
+ },
+ "x-pp-opt1": {
+  "base": "cur",
+  "prior": "pprior",
+  "optimism": 1.0
+ },
+ "x-pp-as1": {
+  "base": "cur",
+  "prior": "pprior",
+  "assign_bias": 1.0
+ },
+ "x-pp-as3": {
+  "base": "cur",
+  "prior": "pprior",
+  "assign_bias": 3.0
+ },
+ "x-pp-s1600": {
+  "base": "cur",
+  "prior": "pprior",
+  "sims": 1600
+ },
+ "x-bc-pp": {
+  "base": "cur_bc",
+  "prior": "pprior",
+  "alpha": 1.0
+ },
+ "x-pp-opp": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": 1.0
+ },
+ "x-pp-opp2": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": 2.0
+ },
+ "x-pp-ban1": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 1.0
+ },
+ "x-pp-ban3": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0
+ },
+ "x-rich-search": {
+  "base": "cur",
+  "rich": "search"
+ },
+ "x-rich-bcow": {
+  "base": "cur",
+  "rich": "bcow"
+ },
+ "x-rich-onestep": {
+  "base": "cur",
+  "rich": "onestep"
+ },
+ "x-rich-search-opp": {
+  "base": "cur",
+  "rich": "search",
+  "opp": 1.0
+ },
+ "x-pp-vn2": {
+  "base": "cur",
+  "prior": "pprior",
+  "vnet": "cur_bc_vn2"
+ },
+ "x-bc-vn2": {
+  "base": "cur_bc",
+  "vnet": "cur_bc_vn2"
+ },
+ "x-pp-ban5": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 5.0
+ },
+ "x-pp-opp3": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": 3.0
+ },
+ "x-combo1": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": 2.0,
+  "assign_bias": 1.0
+ },
+ "x-combo2": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": 2.0,
+  "assign_bias": 1.0,
+  "alpha": {
+   "4": 0.5,
+   "5": 0.5,
+   "6": 0.5,
+   "7": 0.3,
+   "8": 0.3,
+   "default": 0.156
+  }
+ },
+ "x-combo3": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": 2.0,
+  "assign_bias": 1.0,
+  "sims": 1600
+ },
+ "x-combo3-split": {
+  "base": "cur_split",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": 2.0,
+  "assign_bias": 1.0,
+  "sims": 1600,
+  "state": "splitd"
+ },
+ "x-pp-split": {
+  "base": "cur_split",
+  "state": "splitd",
+  "prior": "pprior"
+ },
+ "_best_design": "x-combo1-dr-chance (the pre-stated rule on the tune lobbies, 2026-10-20: highest mean J against pMCTS-cur and aMCTS-pp, 56.27%, above x-combo1's 56.07%, so it replaces x-combo1 as stated in _dr_rule; the margin is inside the search's run-to-run noise. x-combo1 (56.07) and x-combo3 (55.84, picked before the 2026-10-19 kernel fix) are reported next to it)",
+ "x-pp-dr": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": "dr"
+ },
+ "x-pp-dr-chance": {
+  "base": "cur",
+  "prior": "pprior",
+  "opp": "dr",
+  "opp_chance_only": true
+ },
+ "x-combo1-dr": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "assign_bias": 1.0
+ },
+ "x-combo1-dr-chance": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0
+ },
+ "x-combo1-dr-drban": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_dr": 1.0,
+  "opp": "dr",
+  "assign_bias": 1.0
+ },
+ "_dr_rule": "DraftRec opponent variants (added 2026-10-20, stated before any of them played): x-pp-dr = aMCTS-pp's design with the DraftRec opponent at chance nodes and in rollouts; -chance = chance nodes only, rollouts keep GD; x-combo1-dr = x-combo1 with the DraftRec opponent in place of the comfort opponent; -drban = denial bans aimed by DraftRec (lambda 1 on its log-probability of the opponent's next pick) in place of the skill-based ones. Selection: the same rule on the tune lobbies (highest mean J against pMCTS-cur and aMCTS-pp). The best DraftRec variant replaces x-combo1 as the selected design only if its tune score is higher than x-combo1's (56.07).",
+ "x-sel-s100": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "sims": 100
+ },
+ "x-sel-s200": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "sims": 200
+ },
+ "x-sel-s800": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "sims": 800
+ },
+ "x-sel-s1600": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "sims": 1600
+ },
+ "x-blind-s100": {
+  "base": "cur",
+  "blind": true,
+  "sims": 100
+ },
+ "x-blind-s200": {
+  "base": "cur",
+  "blind": true,
+  "sims": 200
+ },
+ "x-blind-s400": {
+  "base": "cur",
+  "blind": true,
+  "sims": 400
+ },
+ "x-blind-s800": {
+  "base": "cur",
+  "blind": true,
+  "sims": 800
+ },
+ "x-blind-s1600": {
+  "base": "cur",
+  "blind": true,
+  "sims": 1600
+ },
+ "_sims_curve": "Search-budget curve (2026-10-21): x-sel-sN = the selected design x-combo1-dr-chance at N sims; x-blind-sN = the population-only search (pMCTS-cur's leaf and F prior) at N sims; each against pMCTS-cur at 400 sims on the tune lobbies."
+}

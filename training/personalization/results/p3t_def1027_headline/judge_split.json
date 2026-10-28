@@ -1,0 +1,39 @@
+{
+ "games": 144414,
+ "c2_skill": 3.8093192716880626,
+ "c2_se": 0.04803064771667377,
+ "c3_offrole": -0.029921321209803897,
+ "c3_se": 0.005001725659115997,
+ "ll_consensus": 0.6802242522097394,
+ "ll_judge": 0.654929473824039,
+ "lift_x1000": 25.294778385700535,
+ "lift_se_x1000": 0.5737612991277281,
+ "acc_consensus": 0.5647513398977938,
+ "acc_judge": 0.6107787333638013,
+ "consensus_slope": 1.1744148228704236,
+ "params": "full_ms_flip",
+ "window": [
+  "2026-07-01",
+  "2026-09-11"
+ ],
+ "cal_a": 1.1548984422882156,
+ "cal_k": 1.001185026501988,
+ "cal_a_se": 0.019903424025930275,
+ "cal_k_se": 0.012215255857009786,
+ "cal_crossfit_c2_c3": [
+  [
+   3.750835369577456,
+   -0.030487378804443195
+  ],
+  [
+   3.868395781993264,
+   -0.029373735493610414
+  ]
+ ],
+ "cal_method": "2-fold cross-fitted personal term (by game, seed 0); J_cal = sigmoid(cal_a logit p_cons + cal_k (c2 dS + c3 dO))",
+ "ll_gN": 0.6799701027596347,
+ "ll_gN_naive": 0.6778122999861999,
+ "ll_RN": 0.6835423739335907,
+ "ll_QM2026": 0.6910840737120394,
+ "evidence": "even days outside the tournament window (split-history robustness)"
+}

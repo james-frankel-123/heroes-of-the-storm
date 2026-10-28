@@ -105,7 +105,17 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
     TreeSlotV2* slots = slots_all + (size_t)ep_idx * slot_cap;
 
     curandState rng;
+#ifdef P3_HASHED_SEED
+    if (tid == 0) {   // the P3 kernels' hashed per-episode seed (see mcts_kernel.cu)
+        unsigned long long z = (unsigned long long)base_seed + 0x9E3779B97F4A7C15ULL * (unsigned long long)(ep_idx + 1);
+        z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+        z = z ^ (z >> 31);
+        curand_init(z, 0, 0, &rng);
+    }
+#else
     if (tid == 0) curand_init(base_seed + ep_idx, 0, 0, &rng);
+#endif
 
     __shared__ DraftStateGPU main_state;
     __shared__ DraftStateGPU scratch;

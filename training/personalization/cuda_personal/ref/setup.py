@@ -1,9 +1,10 @@
-# Unmodified copy of overfit2026/cuda_ofit (population MCTS kernel with the
+# Copy (unmodified except the P3 hashed seed, built in) of overfit2026/cuda_ofit (population MCTS kernel with the
 # tree-capacity guard), built under a different module name for the
 # bit-identity check of the personalized kernel.
 from setuptools import setup
 import os
 _DEFS = ["-DCOMP_FALLBACK_MID_HIGH_LOW"] if os.environ.get("HOTS_COMP_FALLBACK_MID_HIGH_LOW") == "1" else []
+_DEFS += ["-DP3_HASHED_SEED"]   # same per-episode seeding as the P3 kernels
 from torch.utils.cpp_extension import CUDAExtension, BuildExtension
 
 setup(

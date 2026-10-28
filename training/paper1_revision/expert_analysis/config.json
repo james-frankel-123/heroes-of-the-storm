@@ -1,0 +1,22 @@
+{
+ "prereg": {"file": "oss-export/docs/prereg_expert_study_v3.md", "sha256": "90c2a40ce698302833db6ec4b15f633c0ac11262594679e3684571b79662d995", "osf": "https://osf.io/fspuc", "registered_utc": "2026-10-03 12:24:00"},
+ "pool": {"file": "data/rating-items.json", "sha256": "ed6d4da4a28bf2b076f46597eac12098f9e880a29433a33e33240054abbe6c2c"},
+ "raters": {
+  "rater01": {"slot": 0, "group": "A"}, "rater02": {"slot": 1, "group": "A"}, "rater03": {"slot": 2, "group": "A"},
+  "rater04": {"slot": 3, "group": "A"}, "rater05": {"slot": 4, "group": "A", "note": "invite revoked 2026-10-19; slot 4 re-issued to rater15"},
+  "rater15": {"slot": 4, "group": "A", "note": "slot-4 refill (prereg §2 slot refill)"},
+  "rater06": {"slot": 5, "group": "B"}, "rater07": {"slot": 6, "group": "B"}, "rater08": {"slot": 7, "group": "B"},
+  "rater09": {"slot": 8, "group": "B"}, "rater10": {"slot": 9, "group": "B"}, "rater11": {"slot": 10, "group": "B"},
+  "rater12": {"slot": 11, "group": "B"}, "rater13": {"slot": 12, "group": "B"}, "rater14": {"slot": 13, "group": "B"}
+ },
+ "gates": {"screener_min": 7, "catch_min": 2, "speed_median_ms_min": 10000, "calibration_flag_max": 0.5},
+ "near_tie": {"primary": 0.02, "sensitivity": [0.01, 0.02, 0.05]},
+ "h2_margin": -0.25, "h2_margin_sensitivity": -0.20,
+ "patch257": {
+  "changed_heroes": ["Abathur", "Alexstrasza", "Garrosh", "Mal'Ganis", "Qhira", "Whitemane", "Yrel"],
+  "bugfix_heroes": ["Ragnaros", "Malfurion", "Anduin", "Xul"],
+  "changed_maps": ["Garden of Terror", "Volskaya Foundry"]
+ },
+ "anchored": ["gd", "cql_naive_a1.0", "cql_enr_a2.0", "gourdeau_disc"],
+ "seed": 20261026
+}

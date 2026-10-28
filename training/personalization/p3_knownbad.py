@@ -89,7 +89,7 @@ def main():
     ban_t = np.where(hb[:, None], bz["team"][bo][jb], -1)
     ban_s = np.where(hb[:, None], bz["pick_number"][bo][jb], 99)
     # the walk with all-hero posteriors
-    mets, mw = R.aug_metrics(aug, par.meta.get("sb", "legacy")) if par.G is not None else (None, None)
+    mets, mw = R.aug_metrics(aug, par.meta.get("sb", "legacy"), d) if par.G is not None else (None, None)
     res = R.online_walk(aug, qi, par, metrics=mets, mweights=mw, want_all=True)
     # slot-row lag-1 counts per hero at the query (for the experience offset)
     day = d["day"]

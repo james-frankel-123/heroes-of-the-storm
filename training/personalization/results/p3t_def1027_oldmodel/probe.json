@@ -1,0 +1,37 @@
+{
+ "lobbies": 500,
+ "combiner": [
+  0.0,
+  1.2040641082740606,
+  4.46738075148876,
+  -0.02338050703488638
+ ],
+ "F:400": {
+  "decisions": 5000,
+  "share_differ": 0.0436,
+  "own_q_gain_when_differ_pp": 4.025907363366644,
+  "root_visit_entropy_blind": 0.44337096739932896,
+  "gpu_sec": 43.27850341796875
+ },
+ "F:1600": {
+  "decisions": 5000,
+  "share_differ": 0.0762,
+  "own_q_gain_when_differ_pp": 4.342818756898245,
+  "root_visit_entropy_blind": 0.4372580537766218,
+  "gpu_sec": 154.7831301689148
+ },
+ "BC:400": {
+  "decisions": 5000,
+  "share_differ": 0.5848,
+  "own_q_gain_when_differ_pp": 5.936539756636123,
+  "root_visit_entropy_blind": 2.689974253615737,
+  "gpu_sec": 37.46595025062561
+ },
+ "BC:1600": {
+  "decisions": 5000,
+  "share_differ": 0.6526,
+  "own_q_gain_when_differ_pp": 6.50635760664538,
+  "root_visit_entropy_blind": 2.795879784400761,
+  "gpu_sec": 140.6466989517212
+ }
+}

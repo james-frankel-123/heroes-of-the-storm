@@ -38,7 +38,7 @@ COHORT = "p2_panel_v1"
 MIN_VERSION = (2, 57)
 LOOKBACK_DAYS = 21       # game_date in [day - 21, day): upload >= game date, so >= 7 days of retention left
 MIN_K = 3                # at least 3 of the lobby's players covered
-DAILY = 1140             # about 8,000 a week
+DAILY = 3300             # about 23,000 a week (full replay quota from 2026-10-24; was 1,140)
 FIRST_BATCH = 2400       # first batch also uses what is left of the window ending 2026-10-20
 MAX_CATCHUP_DAYS = 3
 
@@ -157,6 +157,7 @@ def pool(day, sealed, keys):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--budget", type=int, help="override today's batch size (one-off catch-up)")
     a = ap.parse_args()
 
     today = dt.datetime.now(dt.timezone.utc).date()
@@ -170,6 +171,9 @@ def main():
         n = DAILY * min(MAX_CATCHUP_DAYS, (today - last).days)
     else:
         n = FIRST_BATCH
+
+    if a.budget:
+        n = a.budget
 
     sealed = sealed_ids()
     keys, kmeta = full_history_keys()

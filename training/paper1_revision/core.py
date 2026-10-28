@@ -52,6 +52,26 @@ LOGS = odata.art(HERE, "logs")
 MCTS_RUNS = odata.art(HERE, "mcts_runs")
 TEST_IDS = os.path.join(CACHE, "paper_test_ids.json")
 
+# Stale vintage (paper1_revision/vintage.py): P1_VINTAGE=<name> rebuilds from
+# the train/val games on builds <= the vintage cutoff; artifacts under
+# site/vint/<name>/, the test split (and its id file) unchanged.
+VINTAGE = os.environ.get("P1_VINTAGE", "")
+if VINTAGE:
+    if odata.TIER_SCHEME != "site":
+        raise SystemExit("P1_VINTAGE needs P1_TIERS=site")
+    from paper1_revision import vintage as _vint
+    if not _vint.is_ft(VINTAGE):
+        CACHE = odata.art(HERE, "vint", VINTAGE, "cache")
+        STATS_DIR = os.path.join(CACHE, "stats")
+        FEAT_DIR = os.path.join(CACHE, "feats")
+    MODEL_DIR = odata.art(HERE, "vint", VINTAGE, "models")
+    RESULTS = odata.art(HERE, "vint", VINTAGE, "results")
+    LOGS = odata.art(HERE, "vint", VINTAGE, "logs")
+    MCTS_RUNS = odata.art(HERE, "vint", VINTAGE, "mcts_runs")
+# train/val restricted to builds <= the cutoff (a fine-tune vintage reads the
+# current site stats and features: no filter)
+VINT_FILTER = bool(VINTAGE) and not _vint.is_ft(VINTAGE)
+
 N_FOLDS = 5
 COMP_MIN_GAMES = 50       # own role-composition cell admitted at >= 50 games
                           # (the external table's smallest cell is 50)
@@ -96,6 +116,10 @@ def split_games():
             out["val"].append(g)
         else:
             out["train"].append(g)
+    if VINT_FILTER:
+        for k in ("train", "val"):
+            out[k] = _vint.keep(out[k])
+            _vint.check([g[0] for g in out[k]], f"split {k}")
     return out
 
 
@@ -149,6 +173,8 @@ def build_stats():
     for name, games in jobs.items():
         if os.path.exists(stats_path(name)):
             continue
+        if VINT_FILTER:
+            _vint.check([g[0] for g in games], f"stats {name}")
         t0 = time.time()
         js = stats_json(counts_for(games), {"subset": name, "games_used": len(games)})
         comps = js.pop("compositions")
@@ -275,6 +301,8 @@ def build_features(which=("train_oof", "train_leak", "val", "test", "test_hp",
             Xf, Xs = featurize(rows_of(games), load_stats("hp"))
         else:
             raise ValueError(name)
+        if VINT_FILTER and name in ("train_oof", "train_leak", "val"):
+            _vint.check([g[0] for g in games], f"features {name}")
         np.savez(path, Xf=Xf, Xs=Xs, y=labels(games),
                  rid=np.array([g[0] for g in games]),
                  tier=np.array([g[1] for g in games]))

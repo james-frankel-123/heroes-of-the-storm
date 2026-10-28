@@ -1,0 +1,137 @@
+{
+ "coefs": [
+  0.0,
+  1.201565146446228,
+  4.540632247924805,
+  -0.014701616950333118,
+  0.800000011920929,
+  0.699999988079071
+ ],
+ "search_mode": "chance",
+ "comp_fallback_order": {
+  "pvnet": "mid_high_low",
+  "prior": "mid_high_low",
+  "ref": "mid_high_low"
+ },
+ "tensors": "s ~ N(0, 0.2^2), off ~ Bernoulli(0.1), feat = log1p(Poisson(5)), pools 25 heroes/slot, imit and prior bias ~ N(0, 0.5^2), vnet W1, w2 ~ N(0, 0.3^2), c1 ~ N(0, 0.1^2), c2 0.1",
+ "a_identity_vs_prior": {
+  "decide | cfg56=0 | sims 100": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": [],
+   "root_visits_nonzero_turns": 64
+  },
+  "decide | cfg56=0 | sims 400": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": [],
+   "root_visits_nonzero_turns": 64
+  },
+  "decide | cfg56=1 | sims 100": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": [],
+   "root_visits_nonzero_turns": 64
+  },
+  "decide | cfg56=1 | sims 400": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": [],
+   "root_visits_nonzero_turns": 64
+  },
+  "full | cfg56=0 | sims 100": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": [],
+   "root_visits_nonzero_turns": 784
+  },
+  "full | cfg56=0 | sims 400": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": [],
+   "root_visits_nonzero_turns": 784
+  },
+  "full | cfg56=1 | sims 100": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": [],
+   "root_visits_nonzero_turns": 784
+  },
+  "full | cfg56=1 | sims 400": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": [],
+   "root_visits_nonzero_turns": 784
+  }
+ },
+ "b_leaf": {
+  "drafts": 256,
+  "max_abs_diff_value": 9.491395991378937e-08,
+  "mean_abs_diff_value": 2.8896967743576724e-08,
+  "max_abs_diff_wp_vs_float64_mirror": 4.920699927524197e-07,
+  "max_abs_diff_value_end_to_end_float64": 6.056418392907936e-07,
+  "mean_abs_diff_value_end_to_end_float64": 1.6072852485396732e-07,
+  "teams_with_non_identity_assignment_drafts": 256,
+  "mean_abs_pvnet_shift_from_wp": 0.03220809227786958,
+  "wp_column_identical_to_prior_kernel": true,
+  "cfg57_0_values_identical_to_prior_kernel": true,
+  "cfg57_without_assign_refused": true
+ },
+ "c_population_identity": {
+  "valuation off | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 179,
+   "capacity_hits": 0
+  },
+  "valuation off, cfg57=1 assign, random tensors | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 179,
+   "capacity_hits": 0
+  },
+  "personal terms zeroed | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 179,
+   "capacity_hits": 0
+  },
+  "valuation off | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 684,
+   "capacity_hits": 0
+  },
+  "valuation off, cfg57=1 assign, random tensors | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 684,
+   "capacity_hits": 0
+  },
+  "personal terms zeroed | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true,
+   "max_nodes_used": 684,
+   "capacity_hits": 0
+  }
+ },
+ "gates": {
+  "a_identity_vs_prior": true,
+  "b_leaf_parity": true,
+  "c_population_identity": true
+ },
+ "pass": true,
+ "seconds": 282.4
+}

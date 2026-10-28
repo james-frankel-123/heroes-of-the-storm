@@ -1,0 +1,10 @@
+{
+ "states": 30000,
+ "val_states": 3000,
+ "alpha": 0.16028766334056854,
+ "kl_to_targets_F_prior": 7.865020275115967,
+ "kl_to_targets_fit": 1.301834225654602,
+ "top1_matches_target_F": 0.2136666625738144,
+ "top1_matches_target_fit": 0.281333327293396,
+ "b2": 4.540632118348097
+}

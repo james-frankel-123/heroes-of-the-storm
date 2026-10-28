@@ -1,0 +1,1156 @@
+{
+ "n_rows": 201880,
+ "n_games": 20188,
+ "sealed_overlap": 0,
+ "features": {
+  "win residual (y - hero 2.57 win rate)": {
+   "player_hero": {
+    "r": 0.0037298994748581698,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     -0.004378887494028115,
+     0.00981802384670443
+    ],
+    "se": 0.0036920802744319116
+   },
+   "player": {
+    "r": 0.009035257300937833,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.005458666823924,
+     0.012267353132313835
+    ],
+    "se": 0.001799270244458145
+   },
+   "coverage": 1.0,
+   "group": "reference",
+   "label": "win residual (y - hero 2.57 win rate)",
+   "games_until_half_real": 267.10374025911926,
+   "E_table_player_hero": 0.01328419244949166
+  },
+  "hero_damage": {
+   "player_hero": {
+    "r": 0.21323703392563398,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.20222180958085986,
+     0.2219647942606341
+    ],
+    "se": 0.004885226529231225
+   },
+   "player": {
+    "r": 0.11850614395076879,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.1134224051855903,
+     0.12357276564523755
+    ],
+    "se": 0.002660471372128579
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "hero_damage",
+   "E_table_player_hero": 0.22928708588540603,
+   "E_table_player": 0.12152005062471463,
+   "games_until_half_real": 3.6896169093626963
+  },
+  "siege_damage": {
+   "player_hero": {
+    "r": 0.286581387075512,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.2748616678760247,
+     0.2960869691781307
+    ],
+    "se": 0.005396503548567089
+   },
+   "player": {
+    "r": 0.142406097960005,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.13599764797376282,
+     0.14886559942213193
+    ],
+    "se": 0.00335926899629671
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "siege_damage",
+   "E_table_player_hero": 0.27546309988970025,
+   "E_table_player": 0.14257934275941153,
+   "games_until_half_real": 2.489410146990836
+  },
+  "structure_damage": {
+   "player_hero": {
+    "r": 0.1201274033810644,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.11126479026661666,
+     0.1288217541101908
+    ],
+    "se": 0.004400104146141198
+   },
+   "player": {
+    "r": 0.06774557899631169,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.06289540693480888,
+     0.07158771042277559
+    ],
+    "se": 0.002290284659080839
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "structure_damage",
+   "E_table_player_hero": 0.13582529666670318,
+   "E_table_player": 0.07446538534519616,
+   "games_until_half_real": 7.324495259652214
+  },
+  "healing": {
+   "player_hero": {
+    "r": 0.2416966181688317,
+    "cells": 11671,
+    "rows_in_cells": 38728,
+    "ci": [
+     0.22054985135075125,
+     0.25849373093532807
+    ],
+    "se": 0.01002193943045405
+   },
+   "player": {
+    "r": 0.11354916797246006,
+    "cells": 12584,
+    "rows_in_cells": 61280,
+    "ci": [
+     0.10179771695935651,
+     0.12356169235344278
+    ],
+    "se": 0.005644381299588548
+   },
+   "coverage": 0.3760748959778086,
+   "group": "scoreboard",
+   "label": "healing",
+   "E_table_player_hero": 0.2262987385501613,
+   "E_table_player": 0.12280523867349383,
+   "games_until_half_real": 3.1374182542408295
+  },
+  "self_healing": {
+   "player_hero": {
+    "r": 0.3721902916521326,
+    "cells": 26147,
+    "rows_in_cells": 84448,
+    "ci": [
+     0.35916792452449325,
+     0.3854087212071937
+    ],
+    "se": 0.0068923450226019535
+   },
+   "player": {
+    "r": 0.1152501779874885,
+    "cells": 24326,
+    "rows_in_cells": 150055,
+    "ci": [
+     0.1088146619633563,
+     0.12144144223490093
+    ],
+    "se": 0.003321442474603808
+   },
+   "coverage": 0.8376659401624728,
+   "group": "scoreboard",
+   "label": "self_healing",
+   "E_table_player_hero": 0.38692624704943634,
+   "E_table_player": 0.1138381847597992,
+   "games_until_half_real": 1.68679764741056
+  },
+  "protection_allies": {
+   "player_hero": {
+    "r": 0.3884832296911803,
+    "cells": 7650,
+    "rows_in_cells": 25552,
+    "ci": [
+     0.3676897031939167,
+     0.4096236667601203
+    ],
+    "se": 0.011002068621814598
+   },
+   "player": {
+    "r": 0.16484274807222857,
+    "cells": 8470,
+    "rows_in_cells": 36894,
+    "ci": [
+     0.15216809994787395,
+     0.17900340443824708
+    ],
+    "se": 0.006982353205586007
+   },
+   "coverage": 0.24009807806617792,
+   "group": "scoreboard",
+   "label": "protection_allies",
+   "E_table_player_hero": 0.3968174137446734,
+   "E_table_player": 0.1805037934487326,
+   "games_until_half_real": 1.5741136902999313
+  },
+  "damage_taken": {
+   "player_hero": {
+    "r": 0.26490768496127226,
+    "cells": 31083,
+    "rows_in_cells": 101496,
+    "ci": [
+     0.25345797964475203,
+     0.27693989130595714
+    ],
+    "se": 0.005923583041440045
+   },
+   "player": {
+    "r": 0.16055372489862232,
+    "cells": 27443,
+    "rows_in_cells": 181672,
+    "ci": [
+     0.1546428852516708,
+     0.1673098472811722
+    ],
+    "se": 0.003257743346733438
+   },
+   "coverage": 0.998147414305528,
+   "group": "scoreboard",
+   "label": "damage_taken",
+   "E_table_player_hero": 0.2811177949381828,
+   "E_table_player": 0.16941316012609225,
+   "games_until_half_real": 2.77489992465184
+  },
+  "deaths": {
+   "player_hero": {
+    "r": 0.15378700130587547,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.14526891160942837,
+     0.16287573891722334
+    ],
+    "se": 0.004572963117067548
+   },
+   "player": {
+    "r": 0.11976276368917078,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.11464659894257395,
+     0.12542834326276353
+    ],
+    "se": 0.002719456926338145
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "deaths",
+   "E_table_player_hero": 0.171385321824191,
+   "E_table_player": 0.12292235273177257,
+   "games_until_half_real": 5.502500156115565
+  },
+  "kills": {
+   "player_hero": {
+    "r": 0.07560302371411468,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.06725766899390123,
+     0.08397943499532229
+    ],
+    "se": 0.004254192378986402
+   },
+   "player": {
+    "r": 0.04216958528853876,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.03759486604174087,
+     0.04616229665973534
+    ],
+    "se": 0.002178550831291075
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "kills",
+   "E_table_player_hero": 0.06725404793996577,
+   "E_table_player": 0.034611591014867736,
+   "games_until_half_real": 12.226984198163828
+  },
+  "assists": {
+   "player_hero": {
+    "r": 0.04162948674033833,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.0346875335744159,
+     0.04949723031850396
+    ],
+    "se": 0.003766107532035486
+   },
+   "player": {
+    "r": 0.028536274478726194,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.02481024223870282,
+     0.03259167799065272
+    ],
+    "se": 0.0018931317868992044
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "assists",
+   "E_table_player_hero": 0.04206644481344002,
+   "E_table_player": 0.025047157560332076,
+   "games_until_half_real": 23.02143476419601
+  },
+  "experience_contribution": {
+   "player_hero": {
+    "r": 0.20145473236222391,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.19271376658380202,
+     0.21188835042132625
+    ],
+    "se": 0.00514735668477455
+   },
+   "player": {
+    "r": 0.10536059353886373,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.09977221822329532,
+     0.11072530661143896
+    ],
+    "se": 0.002797058301186755
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "experience_contribution",
+   "E_table_player_hero": 0.208437837821624,
+   "E_table_player": 0.11259104924229293,
+   "games_until_half_real": 3.9638943115119223
+  },
+  "merc_camp_captures": {
+   "player_hero": {
+    "r": 0.17675392278872276,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.16771546892265032,
+     0.18548385853900326
+    ],
+    "se": 0.004413321143820853
+   },
+   "player": {
+    "r": 0.10569868514844696,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.09979223881510159,
+     0.11048116382479005
+    ],
+    "se": 0.0027757862844676596
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "merc_camp_captures",
+   "E_table_player_hero": 0.16232009256363364,
+   "E_table_player": 0.09982093515321895,
+   "games_until_half_real": 4.657583063632022
+  },
+  "outnumbered_deaths": {
+   "player_hero": {
+    "r": 0.08651745680615243,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.07929674613845297,
+     0.09451029491237223
+    ],
+    "se": 0.003987323341013154
+   },
+   "player": {
+    "r": 0.06308434911849767,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.057945615528610626,
+     0.06751791769818616
+    ],
+    "se": 0.0023548731366365063
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "outnumbered_deaths",
+   "E_table_player_hero": 0.09199584523665903,
+   "E_table_player": 0.0663650240105174,
+   "games_until_half_real": 10.558361016558313
+  },
+  "escapes": {
+   "player_hero": {
+    "r": 0.05490357576618398,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.048258118665404144,
+     0.06145381041392779
+    ],
+    "se": 0.003794437778604251
+   },
+   "player": {
+    "r": 0.03886391658252824,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.034889972079153085,
+     0.042689584308114537
+    ],
+    "se": 0.002129467705003749
+   },
+   "coverage": 1.0,
+   "group": "scoreboard",
+   "label": "escapes",
+   "E_table_player_hero": 0.05645710029493651,
+   "E_table_player": 0.03668524655393656,
+   "games_until_half_real": 17.21374994333095
+  },
+  "regen_globes": {
+   "player_hero": {
+    "r": 0.1706135448166207,
+    "cells": 31083,
+    "rows_in_cells": 101496,
+    "ci": [
+     0.1603279134540454,
+     0.1781451343212565
+    ],
+    "se": 0.004926049353269701
+   },
+   "player": {
+    "r": 0.12455104061450031,
+    "cells": 27443,
+    "rows_in_cells": 181672,
+    "ci": [
+     0.1200075775857399,
+     0.12931982473010617
+    ],
+    "se": 0.0025840833668581333
+   },
+   "coverage": 0.998147414305528,
+   "group": "scoreboard",
+   "label": "regen_globes",
+   "E_table_player_hero": 0.1966893637103953,
+   "E_table_player": 0.14098395324562465,
+   "games_until_half_real": 4.861199361837436
+  },
+  "cc_time": {
+   "player_hero": {
+    "r": 0.39846268524379863,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.3855204928713194,
+     0.4143612025523969
+    ],
+    "se": 0.007482317871949009
+   },
+   "player": {
+    "r": 0.10015208794865053,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.09461102763850132,
+     0.10612629038779198
+    ],
+    "se": 0.0029395151461595963
+   },
+   "coverage": 1.0,
+   "group": "score screen, not in the model's export",
+   "label": "time CCing enemy heroes (per min)",
+   "games_until_half_real": 1.50964528683069
+  },
+  "stun_time": {
+   "player_hero": {
+    "r": 0.19251869158144935,
+    "cells": 27706,
+    "rows_in_cells": 89740,
+    "ci": [
+     0.18328535280315883,
+     0.20345886975259572
+    ],
+    "se": 0.005279439379376846
+   },
+   "player": {
+    "r": 0.04823568747817269,
+    "cells": 25585,
+    "rows_in_cells": 160773,
+    "ci": [
+     0.04360707038977592,
+     0.05255274269827957
+    ],
+    "se": 0.0024586015897542076
+   },
+   "coverage": 0.8925004953437686,
+   "group": "score screen, not in the model's export",
+   "label": "time stunning (per min)",
+   "games_until_half_real": 4.194300832742401
+  },
+  "root_time": {
+   "player_hero": {
+    "r": 0.3520564082823423,
+    "cells": 6059,
+    "rows_in_cells": 19672,
+    "ci": [
+     0.3174102185640879,
+     0.38610548332415123
+    ],
+    "se": 0.01889895125444509
+   },
+   "player": {
+    "r": 0.1809346670221597,
+    "cells": 7129,
+    "rows_in_cells": 28200,
+    "ci": [
+     0.15817560924353957,
+     0.19944802890018548
+    ],
+    "se": 0.011204733029543106
+   },
+   "coverage": 0.1919605706360214,
+   "group": "score screen, not in the model's export",
+   "label": "time rooting (per min)",
+   "games_until_half_real": 1.8404539058923186
+  },
+  "silence_time": {
+   "player_hero": {
+    "r": 0.33028965589013143,
+    "cells": 7213,
+    "rows_in_cells": 23892,
+    "ci": [
+     0.31054408988220417,
+     0.35242205942326893
+    ],
+    "se": 0.011049240992068403
+   },
+   "player": {
+    "r": 0.15432577209542195,
+    "cells": 8120,
+    "rows_in_cells": 34732,
+    "ci": [
+     0.14000517333769055,
+     0.1685027455948597
+    ],
+    "se": 0.007692854504543525
+   },
+   "coverage": 0.22964632454923717,
+   "group": "score screen, not in the model's export",
+   "label": "time silencing (per min)",
+   "games_until_half_real": 2.027645529209801
+  },
+  "tf_hero_damage": {
+   "player_hero": {
+    "r": 0.18969446151635183,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.1804962288010244,
+     0.19855511300951928
+    ],
+    "se": 0.00485660701300707
+   },
+   "player": {
+    "r": 0.10121580553147583,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.09651000917900004,
+     0.10512750384481011
+    ],
+    "se": 0.0023091247297850207
+   },
+   "coverage": 1.0,
+   "group": "score screen, not in the model's export",
+   "label": "teamfight hero damage (per min)",
+   "games_until_half_real": 4.271635196970678
+  },
+  "tf_damage_taken": {
+   "player_hero": {
+    "r": 0.2330829844954186,
+    "cells": 31058,
+    "rows_in_cells": 101389,
+    "ci": [
+     0.22438488030885534,
+     0.24453519804775292
+    ],
+    "se": 0.00522872527245706
+   },
+   "player": {
+    "r": 0.13218604459544475,
+    "cells": 27431,
+    "rows_in_cells": 181528,
+    "ci": [
+     0.12727087819656738,
+     0.1379692155591481
+    ],
+    "se": 0.0028882775691784763
+   },
+   "coverage": 0.9974588864672083,
+   "group": "score screen, not in the model's export",
+   "label": "teamfight damage taken (per min)",
+   "games_until_half_real": 3.2903174685394325
+  },
+  "tf_healing": {
+   "player_hero": {
+    "r": 0.18595773975283367,
+    "cells": 7139,
+    "rows_in_cells": 23979,
+    "ci": [
+     0.16433476771045213,
+     0.20617992550380237
+    ],
+    "se": 0.011002202517072674
+   },
+   "player": {
+    "r": 0.10994889124464353,
+    "cells": 7928,
+    "rows_in_cells": 35779,
+    "ci": [
+     0.09479391731634905,
+     0.12261798306200444
+    ],
+    "se": 0.006957196479482534
+   },
+   "coverage": 0.23292550029720627,
+   "group": "score screen, not in the model's export",
+   "label": "teamfight healing (per min)",
+   "games_until_half_real": 4.37756589926912
+  },
+  "minion_damage": {
+   "player_hero": {
+    "r": 0.32433957113717604,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.3113585814784899,
+     0.3360251109607585
+    ],
+    "se": 0.006260800211176826
+   },
+   "player": {
+    "r": 0.16428804597593402,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.1568744392555829,
+     0.17127963480142527
+    ],
+    "se": 0.003657539213743087
+   },
+   "coverage": 1.0,
+   "group": "score screen, not in the model's export",
+   "label": "minion damage (per min)",
+   "games_until_half_real": 2.0831883895445507
+  },
+  "creep_damage": {
+   "player_hero": {
+    "r": 0.19730264548342263,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.18721832989812087,
+     0.20533084307731414
+    ],
+    "se": 0.004628062181987095
+   },
+   "player": {
+    "r": 0.10240655891281362,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.09636107924121683,
+     0.10726634043627713
+    ],
+    "se": 0.0027190452763380716
+   },
+   "coverage": 1.0,
+   "group": "score screen, not in the model's export",
+   "label": "creep damage (per min)",
+   "games_until_half_real": 4.06835576152485
+  },
+  "deaths_pre10": {
+   "player_hero": {
+    "r": 0.10998111304579287,
+    "cells": 30770,
+    "rows_in_cells": 100205,
+    "ci": [
+     0.10179327971961553,
+     0.11750279917467851
+    ],
+    "se": 0.003995926085184906
+   },
+   "player": {
+    "r": 0.08438222844575374,
+    "cells": 27306,
+    "rows_in_cells": 179908,
+    "ci": [
+     0.07950826653595967,
+     0.08951410874542697
+    ],
+    "se": 0.0025630650118439843
+   },
+   "coverage": 0.9893005745987715,
+   "group": "timeline",
+   "label": "deaths before 10:00",
+   "games_until_half_real": 8.09247026426828
+  },
+  "deaths_pre_obj": {
+   "player_hero": {
+    "r": 0.05196433521144159,
+    "cells": 25080,
+    "rows_in_cells": 78855,
+    "ci": [
+     0.04382348440886037,
+     0.059668792639361895
+    ],
+    "se": 0.00439158491545078
+   },
+   "player": {
+    "r": 0.033585067897620904,
+    "cells": 24353,
+    "rows_in_cells": 148605,
+    "ci": [
+     0.029165980468349277,
+     0.038410665024324685
+    ],
+    "se": 0.002381502233047968
+   },
+   "coverage": 0.8320784624529424,
+   "group": "timeline",
+   "label": "deaths before the first map objective",
+   "games_until_half_real": 18.243967923981415
+  },
+  "death_enemy_half": {
+   "player_hero": {
+    "r": 0.09289238399152139,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.08529900586509509,
+     0.10084975174725787
+    ],
+    "se": 0.004134188757291948
+   },
+   "player": {
+    "r": 0.0712263082451015,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.06658063228434218,
+     0.075517030375115
+    ],
+    "se": 0.002470826705059224
+   },
+   "coverage": 1.0,
+   "group": "timeline",
+   "label": "deaths in the enemy half (per min)",
+   "games_until_half_real": 9.765145182314122
+  },
+  "death_isolated": {
+   "player_hero": {
+    "r": 0.09272021011046531,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.08619666477093792,
+     0.10134694074653093
+    ],
+    "se": 0.004285243490523904
+   },
+   "player": {
+    "r": 0.07394310194237301,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.06982556126610681,
+     0.07829156345184306
+    ],
+    "se": 0.002312724333482109
+   },
+   "coverage": 1.0,
+   "group": "timeline",
+   "label": "deaths with no ally sampled within 10 units (per min)",
+   "games_until_half_real": 9.785135180438187
+  },
+  "death_overext": {
+   "player_hero": {
+    "r": 0.07169733812024122,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.06424287038529614,
+     0.08114233798394913
+    ],
+    "se": 0.004357343420094284
+   },
+   "player": {
+    "r": 0.055299117321635886,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.050822830602523156,
+     0.059741542259895884
+    ],
+    "se": 0.002223711284910278
+   },
+   "coverage": 1.0,
+   "group": "timeline",
+   "label": "overextended deaths: enemy half and no ally near (per min)",
+   "games_until_half_real": 12.947519199707711
+  },
+  "early_kp": {
+   "player_hero": {
+    "r": 0.037502960260480486,
+    "cells": 30712,
+    "rows_in_cells": 100130,
+    "ci": [
+     0.030995955768964786,
+     0.04473677866784924
+    ],
+    "se": 0.0036910213052033392
+   },
+   "player": {
+    "r": 0.025111998890320054,
+    "cells": 27279,
+    "rows_in_cells": 179614,
+    "ci": [
+     0.020919809656799473,
+     0.02937013242790031
+    ],
+    "se": 0.002068017383658054
+   },
+   "coverage": 0.9878393104814741,
+   "group": "timeline",
+   "label": "early takedown participation (share of team takedowns before 10:00)",
+   "games_until_half_real": 25.664561758709233
+  },
+  "obj_kp": {
+   "player_hero": {
+    "r": 0.02032096229039253,
+    "cells": 22667,
+    "rows_in_cells": 70017,
+    "ci": [
+     0.013260943020900001,
+     0.02706996786059868
+    ],
+    "se": 0.003898152497874154
+   },
+   "player": {
+    "r": 0.01985655925791525,
+    "cells": 22959,
+    "rows_in_cells": 134443,
+    "ci": [
+     0.015234655603504888,
+     0.024274480870789684
+    ],
+    "se": 0.0023227909789969243
+   },
+   "coverage": 0.7606498910243709,
+   "group": "timeline",
+   "label": "takedown participation within 30 s of a map objective",
+   "games_until_half_real": 48.210267983853605
+  },
+  "enemy_half_share": {
+   "player_hero": {
+    "r": 0.07315158395699578,
+    "cells": 31118,
+    "rows_in_cells": 101626,
+    "ci": [
+     0.06597815800383752,
+     0.08137071721929963
+    ],
+    "se": 0.004077779036712954
+   },
+   "player": {
+    "r": 0.0501692436875833,
+    "cells": 27478,
+    "rows_in_cells": 181947,
+    "ci": [
+     0.04620791927987626,
+     0.054495497672506145
+    ],
+    "se": 0.0022445482808815813
+   },
+   "coverage": 0.9995541906082821,
+   "group": "timeline",
+   "label": "share of position samples in the enemy half",
+   "games_until_half_real": 12.670243977052884
+  },
+  "move_per_min": {
+   "player_hero": {
+    "r": 0.12720298817422768,
+    "cells": 31051,
+    "rows_in_cells": 101412,
+    "ci": [
+     0.1186245347762472,
+     0.136719305685967
+    ],
+    "se": 0.004725838174808644
+   },
+   "player": {
+    "r": 0.08800475370786431,
+    "cells": 27422,
+    "rows_in_cells": 181586,
+    "ci": [
+     0.08351925802817216,
+     0.09333530178878081
+    ],
+    "se": 0.0025020962569147504
+   },
+   "coverage": 0.9976768377253814,
+   "group": "timeline",
+   "label": "distance moved per minute (position samples)",
+   "games_until_half_real": 6.861450539434794
+  },
+  "merc_part": {
+   "player_hero": {
+    "r": 0.10935222378399376,
+    "cells": 30770,
+    "rows_in_cells": 100354,
+    "ci": [
+     0.10180528934748123,
+     0.1176729495885474
+    ],
+    "se": 0.0039957054408177066
+   },
+   "player": {
+    "r": 0.06409843633052122,
+    "cells": 27254,
+    "rows_in_cells": 179831,
+    "ci": [
+     0.06055145875309407,
+     0.06867285055864847
+    ],
+    "se": 0.0021640241658021806
+   },
+   "coverage": 0.9885823261343373,
+   "group": "timeline",
+   "label": "present at own team's merc captures (share)",
+   "games_until_half_real": 8.144761445138286
+  },
+  "apm_cmd": {
+   "player_hero": {
+    "r": 0.9138136639717732,
+    "cells": 31126,
+    "rows_in_cells": 101653,
+    "ci": [
+     0.8813937512003347,
+     0.945155924602637
+    ],
+    "se": 0.017376786735576227
+   },
+   "player": {
+    "r": 0.8339225420343388,
+    "cells": 27486,
+    "rows_in_cells": 182016,
+    "ci": [
+     0.8137612184183868,
+     0.852701656456826
+    ],
+    "se": 0.010700080366439959
+   },
+   "coverage": 0.9999157915593422,
+   "group": "timeline",
+   "label": "APM: commands per minute",
+   "games_until_half_real": 0.0943150003400354
+  },
+  "apm_key": {
+   "player_hero": {
+    "r": 0.8833137564683081,
+    "cells": 31126,
+    "rows_in_cells": 101653,
+    "ci": [
+     0.852298831444194,
+     0.9203656202207819
+    ],
+    "se": 0.017308117589573804
+   },
+   "player": {
+    "r": 0.746177743391395,
+    "cells": 27484,
+    "rows_in_cells": 182011,
+    "ci": [
+     0.7225385219165734,
+     0.7681747726537441
+    ],
+    "se": 0.010656795543023297
+   },
+   "coverage": 0.9998959778085992,
+   "group": "timeline",
+   "label": "key presses per minute",
+   "games_until_half_real": 0.1321005618640316
+  },
+  "apm_camera": {
+   "player_hero": {
+    "r": 0.945712373281039,
+    "cells": 31105,
+    "rows_in_cells": 101588,
+    "ci": [
+     0.8967790267352227,
+     0.9893854179014779
+    ],
+    "se": 0.022546272160272187
+   },
+   "player": {
+    "r": 0.9329524878901111,
+    "cells": 27475,
+    "rows_in_cells": 181927,
+    "ci": [
+     0.9017075716464835,
+     0.9644940144291216
+    ],
+    "se": 0.017595573868532517
+   },
+   "coverage": 0.9994154943530811,
+   "group": "timeline",
+   "label": "camera moves per minute",
+   "games_until_half_real": 0.057403950982069143
+  },
+  "time_dead_share": {
+   "player_hero": {
+    "r": 0.13647111521338046,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.1290873978245124,
+     0.1449124074444758
+    ],
+    "se": 0.0044312989036904915
+   },
+   "player": {
+    "r": 0.10846635090931903,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.10323371891521184,
+     0.11370238564191446
+    ],
+    "se": 0.0027684724696885234
+   },
+   "coverage": 1.0,
+   "group": "timeline",
+   "label": "share of the game spent dead",
+   "games_until_half_real": 6.327557911697595
+  },
+  "first_death_min": {
+   "player_hero": {
+    "r": 0.08425937158449061,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     0.0763386802035016,
+     0.09190391142056532
+    ],
+    "se": 0.004088350883469398
+   },
+   "player": {
+    "r": 0.05829114540208885,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.054402457625969,
+     0.062003985905200384
+    ],
+    "se": 0.002020619917488495
+   },
+   "coverage": 1.0,
+   "group": "timeline",
+   "label": "minutes to first death",
+   "games_until_half_real": 10.86811604685724
+  },
+  "xp_lead10": {
+   "player_hero": {
+    "r": 0.009400781135992404,
+    "cells": 30770,
+    "rows_in_cells": 100205,
+    "ci": [
+     0.002454214939381428,
+     0.01639115673754119
+    ],
+    "se": 0.0035775274431055185
+   },
+   "player": {
+    "r": 0.008222249815761605,
+    "cells": 27306,
+    "rows_in_cells": 179908,
+    "ci": [
+     0.004591924855030088,
+     0.012020990426845025
+    ],
+    "se": 0.0018692463419353329
+   },
+   "coverage": 0.9893005745987715,
+   "group": "timeline (team-level)",
+   "label": "team XP lead at 10:00 (team)",
+   "games_until_half_real": 105.37413907779845
+  },
+  "level_lead10": {
+   "player_hero": {
+    "r": 0.005791603424440156,
+    "cells": 30770,
+    "rows_in_cells": 100205,
+    "ci": [
+     -0.000549059013809039,
+     0.013408631118696486
+    ],
+    "se": 0.003711664392286102
+   },
+   "player": {
+    "r": 0.006040747743834533,
+    "cells": 27306,
+    "rows_in_cells": 179908,
+    "ci": [
+     0.002609736289897031,
+     0.009358626055588893
+    ],
+    "se": 0.0017576477248676713
+   },
+   "coverage": 0.9893005745987715,
+   "group": "timeline (team-level)",
+   "label": "team level lead at 10:00 (team)",
+   "games_until_half_real": 171.66375590912713
+  },
+  "first_merc_lead": {
+   "player_hero": {
+    "r": 0.00795627908412482,
+    "cells": 31132,
+    "rows_in_cells": 101668,
+    "ci": [
+     -0.0010378996119360228,
+     0.015400205925446853
+    ],
+    "se": 0.003726329415470193
+   },
+   "player": {
+    "r": 0.009160194466373053,
+    "cells": 27488,
+    "rows_in_cells": 182029,
+    "ci": [
+     0.004991875639242566,
+     0.013121857931097833
+    ],
+    "se": 0.0021339799864155333
+   },
+   "coverage": 1.0,
+   "group": "timeline (team-level)",
+   "label": "team first-merc lead, min (team)",
+   "games_until_half_real": 124.68689326085885
+  }
+ }
+}
