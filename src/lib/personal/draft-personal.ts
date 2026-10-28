@@ -17,8 +17,12 @@ export interface DraftCoefs {
 }
 
 export interface PersonalPlayer {
-  /** Display label, e.g. the visible name */
+  /** Stable account key (region + BattleTag, see lobby.ts accountKey); identity in assignments */
+  id: string
+  /** Display label, e.g. the visible name (not unique: two accounts can share a name) */
   label: string
+  /** Full BattleTag when known (party members), to match registered-tag assignments */
+  tag?: string
   /** Hero name -> s(p, h) (win-probability units) */
   s: Record<string, number>
   /** Hero name -> off-role flag */
@@ -31,7 +35,7 @@ export interface PersonalPlayer {
 
 export interface Assignment {
   value: number
-  /** hero -> player label (only heroes given to matched players) */
+  /** hero -> player id (only heroes given to matched players) */
   who: Record<string, string>
 }
 
@@ -41,7 +45,7 @@ function playerValue(p: PersonalPlayer, hero: string): number {
 
 /**
  * Best total personal logit for a team: heroes to distinct players, team size 5, players
- * beyond the matched ones are unknown (0). `fixed` pins a hero to a player label.
+ * beyond the matched ones are unknown (0). `fixed` pins a hero to a player id.
  */
 export function bestAssignment(
   heroes: string[],
@@ -60,7 +64,7 @@ export function bestAssignment(
       if (!bestSet || acc > best.value) {
         const who: Record<string, string> = {}
         cur.forEach((slot, k) => {
-          if (slot < ps.length) who[heroes[k]] = ps[slot].label
+          if (slot < ps.length) who[heroes[k]] = ps[slot].id
         })
         best = { value: acc, who }
         bestSet = true
@@ -71,7 +75,7 @@ export function bestAssignment(
     for (let slot = 0; slot < slots; slot++) {
       if (used[slot]) continue
       const p = slot < ps.length ? ps[slot] : null
-      if (pin !== undefined && p?.label !== pin) continue
+      if (pin !== undefined && p?.id !== pin) continue
       used[slot] = true
       cur.push(slot)
       rec(i + 1, acc + (p ? playerValue(p, heroes[i]) : 0))
@@ -105,7 +109,7 @@ export function personalValue(
 
 /**
  * Value of banning `hero` against the enemy's matched players: how much their best
- * personal option drops (logit units), over players not yet given a hero.
+ * personal option drops (logit units), over players not yet given a hero. `who` is a player id.
  */
 export function banGain(
   hero: string,
@@ -117,7 +121,7 @@ export function banGain(
   let gain = 0
   let who: string | null = null
   for (const p of theirPlayers) {
-    if (assigned.has(p.label)) continue
+    if (assigned.has(p.id)) continue
     let best = -Infinity
     let without = -Infinity
     for (const h of available) {
@@ -128,7 +132,7 @@ export function banGain(
     const g = Number.isFinite(without) ? best - without : 0
     if (g > gain) {
       gain = g
-      who = p.label
+      who = p.id
     }
   }
   return { gain, who }

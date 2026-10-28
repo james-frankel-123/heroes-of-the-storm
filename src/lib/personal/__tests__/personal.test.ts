@@ -96,6 +96,7 @@ describe('name matching (same rule as the simulation)', () => {
 describe('personal draft terms', () => {
   const c = { b0: 0, b1: 1 }
   const p = (label: string, s: Record<string, number>, off: Record<string, boolean> = {}): PersonalPlayer => ({
+    id: label,
     label,
     s,
     offRole: off,

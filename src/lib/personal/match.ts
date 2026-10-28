@@ -55,3 +55,21 @@ export function rankCandidates<T extends MatchCandidate>(cands: T[], ctx: MatchC
     (ranked.length === 1 || ranked[0].score - ranked[1].score >= p.margin)
   return { ranked, clear }
 }
+
+/** In-game lobby limits: five players a side, the party is on our side. */
+export const MAX_LOBBY_NAMES = 10
+export const MAX_PARTY = 5
+
+/** Split a comma-separated query parameter; blank entries dropped, nothing truncated. */
+export function splitList(v: string | null): string[] {
+  return (v ?? '').split(',').map(s => s.trim()).filter(Boolean)
+}
+
+/** Validate the match request; an error message, or null when it is acceptable. */
+export function lobbyRequestError(names: string[], party: string[]): string | null {
+  if (names.length === 0 && party.length === 0) return 'Enter at least one player.'
+  if (names.length > MAX_LOBBY_NAMES) return `Enter at most ${MAX_LOBBY_NAMES} names (five per team).`
+  if (party.length > MAX_PARTY) return `A party has at most ${MAX_PARTY} players.`
+  if (names.length + party.length > MAX_LOBBY_NAMES) return `A lobby has at most ${MAX_LOBBY_NAMES} players.`
+  return null
+}

@@ -100,9 +100,21 @@ export async function byName(name: string, limit = 50): Promise<AccountSummary[]
   return rowsOf<any>(res).map(toSummary)
 }
 
-/** Match a visible name (no #number) given the party's context. */
+/**
+ * Match a visible name (no #number) given the party's context. A full BattleTag is looked up
+ * exactly; it is selected without asking unless it exists in several regions and the context
+ * does not settle which.
+ */
 export async function matchName(query: string, ctx: MatchContext): Promise<MatchResult> {
   const name = query.trim()
+  const tag = parseTag(name)
+  if (tag) {
+    const accts = (await byTag(tag.name, tag.discriminator)).map(({ card, ...a }) => ({ ...a, draft: draftByName(card) }))
+    if (accts.length === 0) return { query, status: 'none', candidates: [] }
+    const { ranked, clear } = rankCandidates(accts, ctx)
+    const ok = accts.length === 1 || clear
+    return { query, status: ok ? 'matched' : 'choose', candidates: ranked.slice(0, ok ? 1 : 4).map(x => x.item) }
+  }
   if (!/^[^\s#]{2,12}$/u.test(name)) return { query, status: 'none', candidates: [] }
   const res = await db.execute(sql`
     SELECT ${COLS}, blizz_id FROM personal_accounts WHERE lower(name) = lower(${name}) LIMIT 1000`)
@@ -134,7 +146,7 @@ export async function partyContext(
   tags: string[],
 ): Promise<{ ctx: MatchContext; party: (AccountSummary & { tag: string; draft: DraftTerms })[] }> {
   const party: (AccountSummary & { tag: string; draft: DraftTerms })[] = []
-  for (const t of tags.slice(0, 5)) {
+  for (const t of tags.slice(0, 10)) {
     const p = parseTag(t)
     if (!p) continue
     const accts = await byTag(p.name, p.discriminator)

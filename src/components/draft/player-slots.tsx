@@ -29,10 +29,11 @@ export function PlayerSlots({
 
         return (
           <div key={idx} className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground w-16 shrink-0">
+            <label htmlFor={`player-slot-${idx}`} className="text-xs text-muted-foreground w-16 shrink-0">
               Player {idx + 1}
-            </span>
+            </label>
             <select
+              id={`player-slot-${idx}`}
               value={slot.battletag ?? ''}
               onChange={(e) =>
                 onSetPlayer(idx, e.target.value || null)
