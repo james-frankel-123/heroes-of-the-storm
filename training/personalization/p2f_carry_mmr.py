@@ -13,7 +13,7 @@ Variants: slope on the record with dTeam + own; + hero MMR; and within bands
 of the player's own at-game MMR (quintiles), and within bands of dTeam.
 Also the "Max on Ana" example (key passed with --key, never stored).
 
-Usage (from training/): nice -n 19 taskset -c 48-51 python3 personalization/p2f_carry_mmr.py --arms <dir> [--key K --hero NAME]
+Usage (from training/): nice -n 19 taskset -c 44-47 python3 personalization/p2f_carry_mmr.py --arms <dir> [--key K --hero NAME]
 Output: results/p2f/carry_mmr.json
 """
 import argparse

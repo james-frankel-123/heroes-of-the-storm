@@ -3,7 +3,7 @@
 # P3T_RF_FROM=3 P3T_RF_WAIT=<job> starts at the tournament after <job> ends.
 # Picks up after p3t_fixA (probe + player-prior targets) and p3t_fixB (every pair that needs
 # no new prior) on the 5090. Light orchestration on the main box:
-#   nohup nice -n 19 taskset -c 48-51 training/personalization/remote/p3t_racefix_rerun.sh \
+#   nohup nice -n 19 taskset -c 44-47 training/personalization/remote/p3t_racefix_rerun.sh \
 #     > training/personalization/logs/p3t_racefix_rerun.log 2>&1 &
 # One GPU job at a time on the 5090; CPU stages on the 3090 (cores 20-35).
 set -euo pipefail

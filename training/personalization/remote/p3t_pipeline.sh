@@ -2,7 +2,7 @@
 # P3 tournament: the whole pipeline in one command, for the full-data rerun.
 #
 # Run from the repo root on the main box (light orchestration only):
-#   nohup nice -n 19 taskset -c 48-51 training/personalization/remote/p3t_pipeline.sh \
+#   nohup nice -n 19 taskset -c 44-47 training/personalization/remote/p3t_pipeline.sh \
 #     > training/personalization/logs/p3t_pipeline.log 2>&1 &
 #
 # Inputs (already on the workers; produced by the personalization rerun):

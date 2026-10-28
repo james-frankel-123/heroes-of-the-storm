@@ -20,7 +20,7 @@ player MMR (cache/mmr_at_game.npz).
   check      the 3+ stack effect beyond the draft, with and without the
              team difference of player-model skill (D) and the team MMR gap
 
-Usage (from training/): nice -n 19 taskset -c 48-51 python3 personalization/p2f_party.py --arms <dir>
+Usage (from training/): nice -n 19 taskset -c 44-47 python3 personalization/p2f_party.py --arms <dir>
 Output: results/p2f/party.json
 """
 import argparse

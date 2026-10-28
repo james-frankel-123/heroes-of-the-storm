@@ -26,7 +26,7 @@ removes; and out-of-sample confirmation, with young accounts excluded.
              of draft-only and full models, all games and games whose ten
              players all have 300+ / 1,000+ earlier games (full history).
 
-Usage (from training/): nice -n 19 taskset -c 48-51 python3 personalization/p2f_vardecomp.py --arms <dir>
+Usage (from training/): nice -n 19 taskset -c 44-47 python3 personalization/p2f_vardecomp.py --arms <dir>
 Output: results/p2f/vardecomp.json
 """
 import argparse

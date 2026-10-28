@@ -1,7 +1,7 @@
 #!/bin/bash
 # P3 tournament, definitive run end to end (review C2/R02, 2026-10-24): both model passes and the
 # handoff between them, resumable. Run from the repo root on the main box (light orchestration):
-#   nohup nice -n 19 taskset -c 48-51 training/personalization/remote/p3t_definitive.sh <D> \
+#   nohup nice -n 19 taskset -c 44-47 training/personalization/remote/p3t_definitive.sh <D> \
 #     > training/personalization/logs/p3t_definitive_<D>.log 2>&1 &
 # Environment: P3T_RCF_ROWS (the build's merged-rows file, absolute worker path), P3T_MANIFEST
 # (relative to training/), optional P3T_SMOKE=1 (small sizes; the dry run), P3T_ANSWER_CMD (default:
