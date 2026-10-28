@@ -1,0 +1,385 @@
+{
+ "partials_rule": "lenient",
+ "dropped_rows": {
+  "is_test": 0,
+  "before_registration": 0
+ },
+ "raters": {
+  "rater01": {
+   "slot": 0,
+   "group": "A",
+   "n_rated": 24,
+   "complete": false,
+   "last_position_reached": 24,
+   "positions_contiguous": true,
+   "screener": [
+    3,
+    3
+   ],
+   "catch": [
+    0,
+    0
+   ],
+   "median_ms": 43495.0,
+   "calibration_acc": 0.47619047619047616,
+   "calibration_flag_le_50pct": true,
+   "gate_screener": false,
+   "gate_catch_strict": false,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": false,
+   "included_lenient": false,
+   "included": false
+  },
+  "rater02": {
+   "slot": 1,
+   "group": "A",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    8,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 21663.5,
+   "calibration_acc": 0.575,
+   "calibration_flag_le_50pct": false,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater03": {
+   "slot": 2,
+   "group": "A",
+   "n_rated": 63,
+   "complete": false,
+   "last_position_reached": 63,
+   "positions_contiguous": true,
+   "screener": [
+    8,
+    8
+   ],
+   "catch": [
+    0,
+    0
+   ],
+   "median_ms": 18770,
+   "calibration_acc": 0.575,
+   "calibration_flag_le_50pct": false,
+   "gate_screener": true,
+   "gate_catch_strict": false,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": false,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater04": {
+   "slot": 3,
+   "group": "A",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    8,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 10878.0,
+   "calibration_acc": 0.55,
+   "calibration_flag_le_50pct": false,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater06": {
+   "slot": 5,
+   "group": "B",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    6,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 11978.0,
+   "calibration_acc": 0.5,
+   "calibration_flag_le_50pct": true,
+   "gate_screener": false,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": false,
+   "included_lenient": false,
+   "included": false
+  },
+  "rater07": {
+   "slot": 6,
+   "group": "B",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    7,
+    8
+   ],
+   "catch": [
+    2,
+    3
+   ],
+   "median_ms": 23575.5,
+   "calibration_acc": 0.55,
+   "calibration_flag_le_50pct": false,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater08": {
+   "slot": 7,
+   "group": "B",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    6,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 45356.5,
+   "calibration_acc": 0.5,
+   "calibration_flag_le_50pct": true,
+   "gate_screener": false,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": false,
+   "included_lenient": false,
+   "included": false
+  },
+  "rater09": {
+   "slot": 8,
+   "group": "B",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    8,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 38972.5,
+   "calibration_acc": 0.45,
+   "calibration_flag_le_50pct": true,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater10": {
+   "slot": 9,
+   "group": "B",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    8,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 20428.0,
+   "calibration_acc": 0.5,
+   "calibration_flag_le_50pct": true,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater11": {
+   "slot": 10,
+   "group": "B",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    8,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 18138.5,
+   "calibration_acc": 0.525,
+   "calibration_flag_le_50pct": false,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater12": {
+   "slot": 11,
+   "group": "B",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    8,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 42729.0,
+   "calibration_acc": 0.575,
+   "calibration_flag_le_50pct": false,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater13": {
+   "slot": 12,
+   "group": "B",
+   "n_rated": 7,
+   "complete": false,
+   "last_position_reached": 7,
+   "positions_contiguous": true,
+   "screener": [
+    1,
+    1
+   ],
+   "catch": [
+    0,
+    0
+   ],
+   "median_ms": 26573,
+   "calibration_acc": 0.5,
+   "calibration_flag_le_50pct": true,
+   "gate_screener": false,
+   "gate_catch_strict": false,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": false,
+   "included_lenient": false,
+   "included": false
+  },
+  "rater14": {
+   "slot": 13,
+   "group": "B",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    8,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 62736.5,
+   "calibration_acc": 0.5,
+   "calibration_flag_le_50pct": true,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  },
+  "rater15": {
+   "slot": 4,
+   "group": "A",
+   "n_rated": 240,
+   "complete": true,
+   "last_position_reached": 240,
+   "positions_contiguous": true,
+   "screener": [
+    7,
+    8
+   ],
+   "catch": [
+    3,
+    3
+   ],
+   "median_ms": 20006.0,
+   "calibration_acc": 0.7,
+   "calibration_flag_le_50pct": false,
+   "gate_screener": true,
+   "gate_catch_strict": true,
+   "gate_catch_lenient": true,
+   "gate_speed": true,
+   "included_strict": true,
+   "included_lenient": true,
+   "included": true
+  }
+ },
+ "included": [
+  "rater02",
+  "rater03",
+  "rater04",
+  "rater07",
+  "rater09",
+  "rater10",
+  "rater11",
+  "rater12",
+  "rater14",
+  "rater15"
+ ]
+}
