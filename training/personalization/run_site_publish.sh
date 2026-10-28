@@ -20,6 +20,8 @@ echo "[$(date -Is)] site publish: store $STORE, model chosen ($DEF)"
 $PYDB personalization/p3_site_publish.py build --store "$STORE"
 (
   . personalization/remote/def_env.sh "$PWD" "$DEF"
+  # the state writer must still reproduce the chosen arm's stored predictions (guards code drift)
+  $PYREF personalization/p3_rcf_states.py selfcheck --halves 0 --no-filtercheck
   $PYREF personalization/p3_site_publish.py states --def-tag "$DEF"
   $PYREF personalization/p3_site_publish.py encode
   $PYREF personalization/p3_site_publish.py check --def-tag "$DEF"
