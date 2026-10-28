@@ -58,6 +58,10 @@ The horizon matters, as drift and new-hero learning would predict. Realized/clai
 
 The recommended form is the last row. The 300+ bin rests on few cells with large noise in every form.
 
+## On the site (2026-10-28)
+
+The weekly publish now uses this band (`SITE_BAND=anchored_v1` in `run_site_publish.sh`, band version `anchored_v1` in `p3_rcf_states.BANDS`). The estimates and the base sd are unchanged. The publish check verifies the card band against the formula, computed from the base sd and the games on the hero (max difference 1.5e-08). The model artifact records the version, formula, coefficients and held-out numbers. The cards were republished to Neon and the page copy updated in commit 2d9e973; the live /players API serves the new band.
+
 ## Notes
 
 - The empirical-noise variant (the cell's own spread over its K games) gives the same picture: realized/claimed 2.8 to 3.6 at K = 10. In this check it is less stable than the binomial noise, because a 10-game spread is itself very noisy.
