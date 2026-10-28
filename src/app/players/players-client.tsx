@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card } from '@/components/ui/card'
@@ -131,7 +131,17 @@ function Profile({
   val: Validation
 }) {
   const [showAll, setShowAll] = useState(false)
-  const heroes = showAll ? a.card.played : a.card.played.slice(0, 18)
+  const [find, setFind] = useState('')
+  const [sort, setSort] = useState<'games' | 'recent' | 'name'>('games')
+  const many = a.card.played.length > 18
+  const filtered = useMemo(() => {
+    const f = find.trim().toLowerCase()
+    const list = a.card.played.filter(h => !f || h.hero.toLowerCase().includes(f))
+    if (sort === 'recent') return [...list].sort((x, y) => y.lastPlayed.localeCompare(x.lastPlayed) || y.games - x.games)
+    if (sort === 'name') return [...list].sort((x, y) => x.hero.localeCompare(y.hero))
+    return list
+  }, [a.card.played, find, sort])
+  const heroes = showAll || find.trim() ? filtered : filtered.slice(0, 18)
   return (
     <div className="space-y-6">
       <div>
@@ -152,12 +162,34 @@ function Profile({
           than an average player in the same draft. It uses wins, losses and scoreboard stats from past games, and
           weighs recent games more.
         </p>
+        {many && (
+          <div className="flex flex-wrap gap-2">
+            <Input
+              value={find}
+              onChange={e => setFind(e.target.value)}
+              placeholder="Find a hero"
+              aria-label="Find a hero"
+              className="h-8 max-w-[200px]"
+            />
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value as typeof sort)}
+              aria-label="Sort heroes"
+              className="h-8 rounded-md border border-border bg-background px-2 text-sm"
+            >
+              <option value="games">Most games</option>
+              <option value="recent">Most recent</option>
+              <option value="name">A to Z</option>
+            </select>
+          </div>
+        )}
+        {find.trim() && heroes.length === 0 && <p className="text-sm text-muted-foreground">No played hero matches.</p>}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {heroes.map(h => (
             <HeroCard key={h.hero} h={h} />
           ))}
         </div>
-        {a.card.played.length > 18 && (
+        {many && !find.trim() && (
           <Button variant="outline" size="sm" onClick={() => setShowAll(!showAll)}>
             {showAll ? 'Show fewer' : `Show all ${a.card.played.length} heroes`}
           </Button>
@@ -182,16 +214,29 @@ function Profile({
       <section className="space-y-1 text-sm text-muted-foreground">
         <h3 className="text-base font-semibold text-foreground">How far to trust this</h3>
         {val.band ? (
-          <p>
-            One game says little: a single win or loss is mostly noise. Each range shows where this player&apos;s edge
-            on that hero is likely to fall over their next {val.band.horizonGames} or so games, about 80% of the time.
-            We checked this on games the model never saw: the ranges held {pct(val.cover80.oot)} of the time, between{' '}
-            {pct(val.band.cover80ByGamesRange[0])} and {pct(val.band.cover80ByGamesRange[1])} for new and experienced
-            players alike, and their width matched how much players really vary (the real variation came to{' '}
-            {val.band.realizedOverClaimed.oot.toFixed(2)} times the predicted amount, where 1 is exact). Ranges are wide
-            for heroes a player has barely touched and never shrink below a few points, because form and patches move
-            everyone.
-          </p>
+          <>
+            <p>
+              One game says little: a single win or loss is mostly noise. Each range is the model&apos;s 80% range for
+              this player&apos;s underlying edge on that hero over roughly their next {val.band.horizonGames} games. The
+              edge itself cannot be observed, so we checked the ranges against what players went on to do in games the
+              model never saw, after allowing for the luck in any 10 games, and found their width about right. Ranges
+              are wide for heroes a player has barely touched and never shrink below a few points, because form and
+              patches move everyone.
+            </p>
+            <details className="text-xs">
+              <summary className="cursor-pointer">How we checked the ranges</summary>
+              <p className="mt-1">
+                For each player and hero we froze the estimate and its range before a game, then compared them with the
+                player&apos;s average result over that game and the next {val.band.horizonGames - 1}. On later games
+                than the model was fit on, the spread of those results beyond game-to-game luck came to{' '}
+                {val.band.realizedOverClaimed.oot.toFixed(2)} times the variance the ranges claim (1.00 is exact;
+                {' '}{val.band.realizedOverClaimed.v2.toFixed(2)} on a second held-out set). Ranges widened by that
+                same luck covered the observed averages {pct(val.cover80.oot)} of the time, between{' '}
+                {pct(val.band.cover80ByGamesRange[0])} and {pct(val.band.cover80ByGamesRange[1])} across players with
+                few and many games on the hero. These are checks on the ranges as a whole, not on any one player.
+              </p>
+            </details>
+          </>
         ) : (
           <p>
             One game says little: a single win or loss is mostly noise. The ranges are 80% ranges. Tested on games the
@@ -231,9 +276,22 @@ export function PlayersClient() {
   const [names, setNames] = useState<NameResponse | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Bumped to rerun the same lookup (the URL does not change on a retry)
+  const [attempt, setAttempt] = useState(0)
+
+  // Keep the box in step with the URL (Back/Forward, picking an account)
+  useEffect(() => {
+    setQ(tagParam || nameParam)
+  }, [tagParam, nameParam])
 
   useEffect(() => {
-    if (!tagParam && !nameParam) return
+    if (!tagParam && !nameParam) {
+      setRes(null)
+      setNames(null)
+      setError(null)
+      setBusy(false)
+      return
+    }
     let cancelled = false
     setBusy(true)
     setError(null)
@@ -255,10 +313,16 @@ export function PlayersClient() {
     return () => {
       cancelled = true
     }
-  }, [tagParam, nameParam])
+  }, [tagParam, nameParam, attempt])
 
   const shown = res?.accounts.filter(a => !regionParam || a.region === regionParam) ?? []
   const one = shown.length === 1 ? shown[0] : null
+  const lookup = (v: string) => {
+    const url = v.includes('#') ? `/players?tag=${encodeURIComponent(v)}` : `/players?name=${encodeURIComponent(v)}`
+    const same = v.includes('#') ? v === tagParam && !nameParam : v === nameParam && !tagParam
+    if (same && !params.get('region')) setAttempt(n => n + 1)
+    else router.push(url)
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -274,8 +338,7 @@ export function PlayersClient() {
         onSubmit={e => {
           e.preventDefault()
           const v = q.trim()
-          if (!v) return
-          router.push(v.includes('#') ? `/players?tag=${encodeURIComponent(v)}` : `/players?name=${encodeURIComponent(v)}`)
+          if (v) lookup(v)
         }}
       >
         <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Name#1234 or Name" maxLength={24} aria-label="BattleTag or name" />
@@ -284,7 +347,16 @@ export function PlayersClient() {
         </Button>
       </form>
 
-      {error && <p className="text-sm text-gaming-danger">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-gaming-danger">
+          {error}{' '}
+          {(tagParam || nameParam) && (
+            <button type="button" className="underline" onClick={() => setAttempt(n => n + 1)}>
+              Retry
+            </button>
+          )}
+        </p>
+      )}
 
       {names && !busy && (
         <section className="space-y-2">
@@ -312,6 +384,24 @@ export function PlayersClient() {
           {tagParam} is not in our data. We have cards for accounts with at least 3 Storm League games in our replay
           data in the 180 days up to {res.through}. That covers most active players, but not everyone.
         </p>
+      )}
+
+      {res && !busy && res.accounts.length > 0 && shown.length === 0 && (
+        <section className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {tagParam} is not in our data for the selected region. It is in{' '}
+            {res.accounts.map(a => a.regionName).join(', ')}:
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {res.accounts.map(a => (
+              <AccountChoice
+                key={a.region}
+                a={a}
+                onPick={() => router.push(`/players?tag=${encodeURIComponent(tagParam)}&region=${a.region}`)}
+              />
+            ))}
+          </div>
+        </section>
       )}
 
       {res && !busy && shown.length > 1 && (
