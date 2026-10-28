@@ -139,6 +139,28 @@ A judge built from even days outside the tournament window, scoring drafters tha
 - The blind search is flat at every budget.
 - Old model: 53.6 at 100, 56.0 to 56.2 from 400 on.
 
+### Game-disjoint judge (sensitivity, 2026-10-28)
+
+The judge arm `chosen_flip_gd` refits every fitted piece of the judge's state model on V2 games. That covers the shrinkage function, layer, direct channel, calibration and combiner. So these pieces share no game outcome with any drafter fit. The judge's skill parameters are still the E-window fit on the other player half.
+- **How it was run:** the four judge walk files were replayed on the main box, then the judge refit, the rescoring and the analyses. CPU only, with no redrafting. Results are in `results/p3t_def1027_headline_judgegd/`. Replaying the original answers through the same steps reproduces the run's judge files bit for bit.
+- **Judge refit:** c2 3.00 (SE 0.04) vs 3.05, c3 −0.049 vs −0.047, lift 23.41 vs 23.19 ×1000. J_cal 1.20 / 1.01 vs 1.18 / 1.00. λ 0.56 vs 0.55. Split-history judge: c2 3.68 vs 3.81, λ 0.62 vs 0.60.
+- **The selected design moves by at most 0.5pp under J:**
+
+| vs | J before | J now |
+|---|---|---|
+| paper 1's MCTS | 59.0 | 59.4 (58.5, 60.4) |
+| Real | 63.0 | 63.0 |
+| GD | 66.0 | 65.9 |
+| DraftRec | 58.1 | 57.9 |
+| DraftRec-pv | 55.1 | 55.0 |
+| `aMCTS-pp` | 51.6 | 51.7 |
+
+  J_cal and outcome-free J move the same way. CONS and the judge-free record do not use the judge and are unchanged.
+- **BT:** the top-12 order is unchanged; the largest move anywhere in the ranking is one place. The tune ranking keeps the top designs within 0.3pp (55.44 to 55.70), with `x-combo1-dr-drban` still first.
+- **CI crossings:** 25 (main) and 34 (split) contrasts change whether their CI includes 50. All are contrasts that were within about 0.5pp of 50 before. None is a headline row; the one reported line among them is the split-history judge's paper 1's MCTS vs Real, which goes from 51.3 to 50.6 (49.8, 51.4).
+- **Paper 1's MCTS vs Real under J:** 52.8 (53.3 before). Flag 3's shift is about a fifth smaller.
+- **Party:** every judged point moves by at most 0.6pp. Most of the main lines move by 0.2pp or less: the solo gain is 2.49 (was 2.46), the five-stack 12.63 (12.46). The lock-or-wait gap to always-last is −0.66 (−0.64), and the capture ratios change by under 0.005.
+
 ### Flags
 
 1. **Design-study entries top BT** (`x-combo1-dr-drban`, `x-pp-ban3`); see "Design study" above. They played the same 300 headline lobbies, but against `aMCTS-pp` only, and they are within noise of the selected design. Report it as the design chosen on the tune lobbies before the definitive run, within noise of the top design-study entries, not as the best design.
