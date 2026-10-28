@@ -22,6 +22,8 @@ interface AccountResponse {
   estimatesAsOf: string
   accounts: AccountWithCard[]
   validation: Validation
+  /** Heroes the current model has no estimate for */
+  noEstimate?: string[]
   error?: string
 }
 
@@ -124,11 +126,13 @@ function Profile({
   through,
   asOf,
   val,
+  noEstimate = [],
 }: {
   a: AccountWithCard
   through: string
   asOf: string
   val: Validation
+  noEstimate?: string[]
 }) {
   const [showAll, setShowAll] = useState(false)
   const [find, setFind] = useState('')
@@ -162,6 +166,13 @@ function Profile({
           than an average player in the same draft. It uses wins, losses and scoreboard stats from past games, and
           weighs recent games more.
         </p>
+        {noEstimate.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            No personal estimate yet for {noEstimate.join(', ')}: the current model uses games through {asOf} and does
+            not cover {noEstimate.length === 1 ? 'this hero' : 'these heroes'}. The draft page counts{' '}
+            {noEstimate.length === 1 ? 'it' : 'them'} at the draft-only value.
+          </p>
+        )}
         {many && (
           <div className="flex flex-wrap gap-2">
             <Input
@@ -319,8 +330,10 @@ export function PlayersClient() {
   const one = shown.length === 1 ? shown[0] : null
   const lookup = (v: string) => {
     const url = v.includes('#') ? `/players?tag=${encodeURIComponent(v)}` : `/players?name=${encodeURIComponent(v)}`
+    // The same lookup (with or without a region filter in the URL) is a retry: rerun the fetch
+    // and keep the URL; router.push to an unchanged tag would not refetch
     const same = v.includes('#') ? v === tagParam && !nameParam : v === nameParam && !tagParam
-    if (same && !params.get('region')) setAttempt(n => n + 1)
+    if (same) setAttempt(n => n + 1)
     else router.push(url)
   }
 
@@ -419,7 +432,7 @@ export function PlayersClient() {
         </section>
       )}
 
-      {res && one && <Profile a={one} through={res.through} asOf={res.estimatesAsOf} val={res.validation} />}
+      {res && one && <Profile a={one} through={res.through} asOf={res.estimatesAsOf} val={res.validation} noEstimate={res.noEstimate} />}
     </div>
   )
 }

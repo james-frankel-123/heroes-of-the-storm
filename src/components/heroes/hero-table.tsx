@@ -44,6 +44,40 @@ interface HeroTableProps {
   personal?: boolean
 }
 
+interface SortHeaderProps {
+  field: SortField
+  children: React.ReactNode
+  className?: string
+  sortField: SortField
+  sortAsc: boolean
+  onSort: (field: SortField) => void
+}
+
+// Module scope: a component declared inside HeroTable would be a new type on every
+// render, remounting the header button and dropping keyboard focus after a sort.
+function SortHeader({ field, children, className, sortField, sortAsc, onSort }: SortHeaderProps) {
+  return (
+    <th
+      className={cn(
+        'px-3 py-2 text-xs font-medium text-muted-foreground select-none whitespace-nowrap',
+        className
+      )}
+      aria-sort={sortField === field ? (sortAsc ? 'ascending' : 'descending') : 'none'}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className="inline-flex items-center gap-1 hover:text-foreground"
+      >
+        {children}
+        {sortField === field && (
+          <span className="text-primary" aria-hidden="true">{sortAsc ? '\u25B2' : '\u25BC'}</span>
+        )}
+      </button>
+    </th>
+  )
+}
+
 export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<HeroRole | 'All'>('All')
@@ -96,34 +130,7 @@ export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
     }
   }
 
-  const SortHeader = ({
-    field,
-    children,
-    className,
-  }: {
-    field: SortField
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <th
-      className={cn(
-        'px-3 py-2 text-xs font-medium text-muted-foreground select-none whitespace-nowrap',
-        className
-      )}
-      aria-sort={sortField === field ? (sortAsc ? 'ascending' : 'descending') : 'none'}
-    >
-      <button
-        type="button"
-        onClick={() => handleSort(field)}
-        className="inline-flex items-center gap-1 hover:text-foreground"
-      >
-        {children}
-        {sortField === field && (
-          <span className="text-primary" aria-hidden="true">{sortAsc ? '\u25B2' : '\u25BC'}</span>
-        )}
-      </button>
-    </th>
-  )
+  const sortProps = { sortField, sortAsc, onSort: handleSort }
 
   return (
     <div className="space-y-4">
@@ -158,33 +165,33 @@ export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
-              <SortHeader field="hero" className="text-left">
+              <SortHeader {...sortProps} field="hero" className="text-left">
                 Hero
               </SortHeader>
               <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-left">
                 Role
               </th>
-              <SortHeader field="winRate" className="text-right">
+              <SortHeader {...sortProps} field="winRate" className="text-right">
                 Win %
               </SortHeader>
-              <SortHeader field="games" className="text-right">
+              <SortHeader {...sortProps} field="games" className="text-right">
                 Games
               </SortHeader>
               {personal ? (
                 <>
-                  <SortHeader field="mawp" className="text-right">
+                  <SortHeader {...sortProps} field="mawp" className="text-right">
                     MAWP
                   </SortHeader>
-                  <SortHeader field="kda" className="text-right">
+                  <SortHeader {...sortProps} field="kda" className="text-right">
                     KDA
                   </SortHeader>
                 </>
               ) : (
                 <>
-                  <SortHeader field="pickRate" className="text-right">
+                  <SortHeader {...sortProps} field="pickRate" className="text-right">
                     Pick %
                   </SortHeader>
-                  <SortHeader field="banRate" className="text-right">
+                  <SortHeader {...sortProps} field="banRate" className="text-right">
                     Ban %
                   </SortHeader>
                 </>

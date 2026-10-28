@@ -18,20 +18,22 @@ export function NavHeader() {
 
   return (
     <header className="border-b border-border/40 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container flex h-14 items-center justify-between">
+      <div className="container flex flex-wrap items-center justify-between gap-y-1 py-2 sm:h-14 sm:flex-nowrap sm:py-0">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold text-white">
             HotS <span className="fever-text">Fever</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-1 overflow-x-auto">
+        {/* Phones: the links get their own full-width row, so none is hidden off-screen */}
+        <nav className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              aria-current={pathname === item.href ? 'page' : undefined}
               prefetch={item.prefetch ? undefined : false}
               className={cn(
-                'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                'px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
                 pathname === item.href
                   ? 'bg-primary/20 text-primary'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent'

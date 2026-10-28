@@ -20,6 +20,7 @@ import {
   confidenceAdjustedWinRate,
 } from '@/lib/utils'
 import type { HeroMapStats, PlayerMatch, SkillTier } from '@/lib/types'
+import { useReturnFocus } from '@/components/ui/use-return-focus'
 
 type SortField = 'hero' | 'winRate' | 'games'
 
@@ -171,9 +172,11 @@ export function MapDetailModal({
     return result
   }, [personalMatches])
 
+  const returnFocus = useReturnFocus()
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto" aria-describedby={undefined}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto" aria-describedby={undefined} {...returnFocus}>
         <DialogHeader>
           <DialogTitle className="text-xl">{mapName}</DialogTitle>
         </DialogHeader>

@@ -37,7 +37,7 @@ What ships:
 
 The cards hold the answers of the definitive build's state writer (`p3_rcf_states.py`, def1027, half 0 = the drafter fit `chosen`, unfiltered queries) as of the store's last day, 2026-09-27:
 - **s for all 90 heroes**, displayed as the per-hero estimate and used as the draft term (experience offset, state-space posterior through the V1 shrinkage function, direct scoreboard channel, temporal layer, smooth calibration; no lobby MMR term).
-- **Band:** `sd_display` = √(s²(1 + exp(−games/10))), shown as s ± 1.28·sd_display (80% coverage on V2 0.792, OOT 0.799; `band_def_chosen.json`).
+- **Band:** at launch `sd_display` = √(s²(1 + exp(−games/10))), shown as s ± 1.28·sd_display (80% coverage on V2 0.792, OOT 0.799; `band_def_chosen.json`). **Superseded the same day by the anchored band `anchored_v1`** (the player's edge over the next ~10 games, with a 3.8 pp floor): see `training/personalization/results/P3_BAND_ANCHOR.md`, "On the site". The model artifact's `band` block is the live definition.
 - **Suggestions:** the 5 never-played heroes with the highest s. That s is the expected edge on a first game, new-hero cost included.
 - **Draft combiner:** refit on V1 games with the off-role term (`p3_site_offrole.py`, `SITE_OFFROLE_ARMS=chosen`): b0 0.00014, b1 1.0131, b2 4.329, b3 −0.031 (`results/site_offrole_refit_def1027.json`).
 - **Stages:** `build` (accounts, names, counts, query file) → `states` (state writer, def env, ~90 s and ~17 GB for 190K accounts) → `encode` → `check` → `load`. `artifact` writes `src/lib/personal/model-artifact.json` (combiner, validation numbers, `estimatesAsOf`).

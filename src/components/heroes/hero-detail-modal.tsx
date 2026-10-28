@@ -25,6 +25,7 @@ import type {
   PlayerMatch,
   SkillTier,
 } from '@/lib/types'
+import { useReturnFocus } from '@/components/ui/use-return-focus'
 
 interface HeroDetailModalProps {
   open: boolean
@@ -62,9 +63,11 @@ export function HeroDetailModal({
     talentsByTier[t.talentTier].push(t)
   }
 
+  const returnFocus = useReturnFocus()
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto" aria-describedby={undefined}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto" aria-describedby={undefined} {...returnFocus}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <span className="text-xl">{heroName}</span>
