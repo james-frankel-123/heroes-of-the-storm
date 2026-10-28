@@ -18,7 +18,7 @@ set -a
 . ./.env
 set +a
 PY=/home/linuxbrew/.linuxbrew/bin/python3
-RUN="nice -n 19 ionice -c3 taskset -c 48-63 $PY sync/fetch-replay-files.py"
+RUN="nice -n 19 ionice -c3 taskset -c 40-47 $PY sync/fetch-replay-files.py"
 
 case "${1:-run}" in
   run)
