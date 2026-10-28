@@ -11,6 +11,7 @@ import { HeroesProfileApiV2 } from './api-client-v2'
 import { HpApi } from './hp-api'
 import { SyncDb } from './db'
 import { log } from './logger'
+import { parseMatchupData } from './matchup-rows'
 
 type SkillTier = 'low' | 'mid' | 'high'
 
@@ -631,78 +632,6 @@ async function syncMatchups(
   }, MATCHUP_CONCURRENCY)
 
   log.info(`Matchup sync tier=${tier} complete: ${successCount} heroes succeeded, ${failCount} failed`)
-}
-
-interface MatchupRow {
-  heroA: string
-  heroB: string
-  relationship: string
-  games: number
-  wins: number
-  winRate: number
-}
-
-/**
- * Parse matchup data from the API.
- * Actual format: { "Ana": { "HeroB": { "ally": { wins_with, losses_with, win_rate_as_ally }, "enemy": { wins_against, losses_against, win_rate_against } }, ... } }
- */
-function parseMatchupData(hero: string, data: any): MatchupRow[] {
-  const rows: MatchupRow[] = []
-  if (!data || typeof data !== 'object') return rows
-
-  // Unwrap the hero key if present
-  let heroMatchups = data
-  if (data[hero] && typeof data[hero] === 'object') {
-    heroMatchups = data[hero]
-  }
-
-  for (const [heroB, matchupData] of Object.entries(heroMatchups)) {
-    if (typeof matchupData !== 'object' || matchupData === null) continue
-    const md = matchupData as Record<string, any>
-
-    // Parse ally (synergy) data
-    if (md.ally && typeof md.ally === 'object') {
-      const ally = md.ally
-      const winsW = num(ally.wins_with ?? ally.wins)
-      const lossesW = num(ally.losses_with ?? ally.losses)
-      const gamesW = winsW + lossesW
-      const winRateW = num(ally.win_rate_as_ally ?? ally.win_rate)
-
-      if (gamesW > 0) {
-        rows.push({
-          heroA: hero,
-          heroB,
-          relationship: 'with',
-          games: gamesW,
-          wins: winsW,
-          winRate: winRateW,
-        })
-      }
-    }
-
-    // Parse enemy (counter) data
-    // API returns the OPPONENT's wins/WR, so we invert to get hero A's perspective
-    if (md.enemy && typeof md.enemy === 'object') {
-      const enemy = md.enemy
-      const opponentWins = num(enemy.wins_against ?? enemy.wins)
-      const opponentLosses = num(enemy.losses_against ?? enemy.losses)
-      const gamesA = opponentWins + opponentLosses
-      const opponentWR = num(enemy.win_rate_against ?? enemy.win_rate)
-
-      if (gamesA > 0) {
-        rows.push({
-          heroA: hero,
-          heroB,
-          relationship: 'against',
-          games: gamesA,
-          wins: gamesA - opponentWins,
-          winRate: Math.round((100 - opponentWR) * 100) / 100,
-        })
-      }
-    }
-  }
-
-  return rows
 }
 
 // ── Main export ──────────────────────────────────────────────────────

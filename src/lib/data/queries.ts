@@ -45,6 +45,9 @@ import modelCompositionsJson from '@/lib/data/model-compositions.json'
 import draftStatsDecayed from '@/lib/data/draft-stats-decayed.json'
 import { computeBaselineCompWR } from '@/lib/draft/composition'
 import { resolveRotation } from '@/lib/data/map-rotation'
+import { MIN_PAIR_GAMES, PAIR_PRIOR_GAMES, rankPairs } from '@/lib/data/pair-ranking'
+
+export { MIN_PAIR_GAMES }
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -431,109 +434,52 @@ export async function getBottomHeroes(
     .slice(0, limit)
 }
 
-/**
- * Merge Cho/Gall references in pairwise stats into "Cho'gall".
- * The DB has separate rows for Cho+X and Gall+X with identical stats.
- * Rename both to Cho'gall, drop the Cho+Gall self-pair, then dedup
- * by keeping the first occurrence of each (heroA, heroB) pair.
- */
-function mergeChoGallPairwise(pairs: HeroPairwiseStats[]): HeroPairwiseStats[] {
-  const renamed = pairs.map((p) => ({
-    ...p,
-    heroA: p.heroA === 'Cho' || p.heroA === 'Gall' ? "Cho'gall" : p.heroA,
-    heroB: p.heroB === 'Cho' || p.heroB === 'Gall' ? "Cho'gall" : p.heroB,
-  }))
-
-  // Drop self-pairs (Cho'gall + Cho'gall)
-  const filtered = renamed.filter((p) => p.heroA !== p.heroB)
-
-  // Dedup: keep first occurrence of each pair (order-independent key,
-  // since Cho→Fenix and Fenix→Gall both become Cho'gall↔Fenix after rename)
-  const seen = new Set<string>()
-  return filtered.filter((p) => {
-    const [a, b] = [p.heroA, p.heroB].sort()
-    const key = `${a}|${b}`
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-}
-
-/**
- * Pair rankings need evidence: at least MIN_PAIR_GAMES games, ordered by the win rate
- * pulled toward 50% by PAIR_PRIOR_GAMES phantom games (raw win rate is still displayed).
- */
-export const MIN_PAIR_GAMES = 50
-const PAIR_PRIOR_GAMES = 50
-const pairScore = (p: { wins: number; games: number }) => (p.wins + PAIR_PRIOR_GAMES / 2) / (p.games + PAIR_PRIOR_GAMES)
-
-/** Top synergy pairs for a tier (deduped: only heroA < heroB alphabetically) */
+/** Top synergy pairs for a tier (one row per pair; see pair-ranking.ts) */
 export async function getTopSynergies(
   tier: SkillTier,
   limit = 10
 ): Promise<HeroPairwiseStats[]> {
-  // Fetch extra rows to account for Cho/Gall dedup reducing count
-  const rows = await db
-    .select()
-    .from(heroPairwiseStatsTable)
-    .where(
-      and(
-        eq(heroPairwiseStatsTable.relationship, 'with'),
-        eq(heroPairwiseStatsTable.skillTier, tier),
-        gte(heroPairwiseStatsTable.games, MIN_PAIR_GAMES),
-        sql`${heroPairwiseStatsTable.heroA} < ${heroPairwiseStatsTable.heroB}`
-      )
-    )
-    .orderBy(desc(sql`(${heroPairwiseStatsTable.wins} + ${PAIR_PRIOR_GAMES / 2}) / (${heroPairwiseStatsTable.games} + ${PAIR_PRIOR_GAMES})::float`))
-    .limit(limit + 10)
-
-  const mapped = rows.map((r) => ({
-    heroA: r.heroA,
-    heroB: r.heroB,
-    relationship: r.relationship as 'with' | 'against',
-    skillTier: r.skillTier as SkillTier,
-    games: r.games,
-    wins: r.wins,
-    winRate: r.winRate,
-  }))
-
-  return mergeChoGallPairwise(mapped)
-    .sort((a, b) => pairScore(b) - pairScore(a))
-    .slice(0, limit)
+  return topPairs(tier, 'with', limit)
 }
 
-/** Top counter matchups for a tier (deduped: only heroA < heroB alphabetically) */
+/**
+ * Top counter matchups for a tier. Counter rows are directed (A's win rate against B),
+ * so both directions are eligible; the stronger one represents the pair.
+ */
 export async function getTopCounters(
   tier: SkillTier,
   limit = 10
 ): Promise<HeroPairwiseStats[]> {
+  return topPairs(tier, 'against', limit)
+}
+
+async function topPairs(
+  tier: SkillTier,
+  relationship: 'with' | 'against',
+  limit: number
+): Promise<HeroPairwiseStats[]> {
+  const t = heroPairwiseStatsTable
+  // Both directions of a pair come back (synergy rows are symmetric, counter rows are not),
+  // plus slack for the Cho/Gall merge; ranking and dedup happen in rankPairs.
   const rows = await db
     .select()
-    .from(heroPairwiseStatsTable)
-    .where(
-      and(
-        eq(heroPairwiseStatsTable.relationship, 'against'),
-        eq(heroPairwiseStatsTable.skillTier, tier),
-        gte(heroPairwiseStatsTable.games, MIN_PAIR_GAMES),
-        sql`${heroPairwiseStatsTable.heroA} < ${heroPairwiseStatsTable.heroB}`
-      )
-    )
-    .orderBy(desc(sql`(${heroPairwiseStatsTable.wins} + ${PAIR_PRIOR_GAMES / 2}) / (${heroPairwiseStatsTable.games} + ${PAIR_PRIOR_GAMES})::float`))
-    .limit(limit + 10)
+    .from(t)
+    .where(and(eq(t.relationship, relationship), eq(t.skillTier, tier), gte(t.games, MIN_PAIR_GAMES)))
+    .orderBy(desc(sql`(${t.winRate} * ${t.games} / 100.0 + ${PAIR_PRIOR_GAMES / 2}) / (${t.games} + ${PAIR_PRIOR_GAMES})`))
+    .limit(2 * limit + 20)
 
-  const mapped = rows.map((r) => ({
-    heroA: r.heroA,
-    heroB: r.heroB,
-    relationship: r.relationship as 'with' | 'against',
-    skillTier: r.skillTier as SkillTier,
-    games: r.games,
-    wins: r.wins,
-    winRate: r.winRate,
-  }))
-
-  return mergeChoGallPairwise(mapped)
-    .sort((a, b) => pairScore(b) - pairScore(a))
-    .slice(0, limit)
+  return rankPairs(
+    rows.map((r) => ({
+      heroA: r.heroA,
+      heroB: r.heroB,
+      relationship: r.relationship as 'with' | 'against',
+      skillTier: r.skillTier as SkillTier,
+      games: r.games,
+      wins: r.wins,
+      winRate: r.winRate,
+    })),
+    limit
+  )
 }
 
 /** Power picks: hero+map combos with high win rate for a tier */

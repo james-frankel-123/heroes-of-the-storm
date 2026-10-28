@@ -34,7 +34,7 @@ export function MetaPairwise({ synergies, counters }: MetaPairwiseProps) {
         </CardHeader>
         <CardContent>
           <p className="mb-2 text-xs text-muted-foreground">
-            Pairs with 50+ games, ranked the same way.
+            Pairs with 50+ games, ranked the same way, each shown from the winning hero's side.
           </p>
           <PairList pairs={counters} label="vs" />
         </CardContent>
