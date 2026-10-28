@@ -161,6 +161,51 @@ The judge arm `chosen_flip_gd` refits every fitted piece of the judge's state mo
 - **Paper 1's MCTS vs Real under J:** 52.8 (53.3 before). Flag 3's shift is about a fifth smaller.
 - **Party:** every judged point moves by at most 0.6pp. Most of the main lines move by 0.2pp or less: the solo gain is 2.49 (was 2.46), the five-stack 12.63 (12.46). The lock-or-wait gap to always-last is −0.66 (−0.64), and the capture ratios change by under 0.005.
 
+### Fully game-disjoint judge (sensitivity, 2026-10-28)
+
+The judge arm `chosen_v2flip` refits everything on V2 games only. That includes the skill parameters (other player half; conditioning 2026-03-29 to 04-24, targets 04-25 to 05-22) and every coefficient. This judge shares no game outcome with any drafter fit.
+- **Cost of full disjointness:** V2 is thin (median 2 conditioning games per player), so the judge is weaker. OOT gain is +31.1 ×1000, against +36.3 for the original arm.
+- **How it was run:** CPU only on the main box, single-threaded BLAS, with no redrafting. Results are in `results/p3t_def1027_headline_judgev2/`.
+- **Rerun check:** the game-disjoint-coefficients (gd) rescore was rerun single-threaded after a threaded-OpenBLAS memory fault turned up in the answer writer. Its judge, diag, analysis and party outputs are identical; the only difference is one float in the last digit.
+
+| | original | gd (coefficients disjoint) | v2 (fully disjoint) |
+|---|---|---|---|
+| c2 (SE) | 3.05 (0.04) | 3.00 (0.04) | 2.76 (0.04) |
+| c3 | −0.047 | −0.049 | −0.052 |
+| lift ×1000 | 23.2 | 23.4 | 17.5 |
+| J_cal (a / k) | 1.18 / 1.00 | 1.20 / 1.01 | 1.16 / 1.00 |
+| attenuation λ | 0.55 | 0.56 | 0.44 |
+| split judge c2, λ | 3.81, 0.60 | 3.68, 0.62 | 3.55, 0.46 |
+
+**The selected design, J (J_cal; outcome-free J):**
+
+| vs | original | gd | v2 |
+|---|---|---|---|
+| paper 1's MCTS | 59.0 (58.1, 60.0) | 59.4 | **55.0 (53.8, 56.1)**; J_cal 54.1, outcome-free 58.1 |
+| Real | 63.0 | 63.0 | 62.4 (61.7, 63.0) |
+| GD | 66.0 | 65.9 | 65.0 |
+| DraftRec | 58.1 | 57.9 | 58.7 |
+| DraftRec-pv | 55.1 | 55.0 | 54.8 |
+| `aMCTS-pp` | 51.6 (51.1, 52.1) | 51.7 | 50.8 (50.3, 51.3) |
+
+**What the fully disjoint judge changes:**
+- **The personal-term contrasts shrink, in line with its lower λ.** The selected design's lead over paper 1's MCTS falls by 4pp (59.0 to 55.0) and `aMCTS-pp`'s by 3.6pp (58.2 to 54.6). The secondary (`aMCTS-bc` vs `pMCTS-bc`) goes from 56.3 to 54.5.
+- **Against real drafts, GD and DraftRec the lead moves by under 1pp.** The primary (`aMCTS-cur` vs `pMCTS-cur`) is 50.7.
+- **Paper 1's MCTS vs Real rises** to 56.7 (53.3 original); CONS is unchanged at 63.4.
+- **Every headline row keeps its sign and its CI above 50.** The selected design stays first among the core systems in BT and in the standings.
+- **Below the top, several near-even matchups flip** (the original point was 1 to 4pp from 50):
+  - DraftRec now loses to paper 1's MCTS (48.1, was 52.8) and falls below it and `aMCTS-cur` in BT.
+  - The one-step drafters and the BC-prior and value-net searches lose their small leads over the blind MCTS.
+  - In all, 60 contrasts whose original point was more than 1pp from 50 change whether their CI includes 50.
+- **The design-study top stays within noise but reshuffles.**
+  - Headline BT: `x-combo1-dr-drban` 0.677, `x-combo3-split` 0.675, `x-combo1-dr` 0.669, `x-combo3` 0.666, then the selected design at 0.661.
+  - Tune ranking: the selected design is 9th, at 0.6pp below the top (`x-combo2` 54.1 to 52.9 for places 2 to 8).
+- **Party barely moves.**
+  - Solo +2.33 (2.46 original), five-stack +12.30. Capture 19%, 41%, 64%, 82%.
+  - Lock-or-wait minus always-last −0.67 (−0.64). Weighted first-minus-last turn gap −1.26 (−1.53).
+  - The 19 party CI crossings are blind-vs-generic and single-seat cells.
+- **The judge-free paired record and CONS don't use the judge and are unchanged.** That covers the selected design's +4.8 against paper 1's MCTS and +3.1 against real drafts.
+
 ### Flags
 
 1. **Design-study entries top BT** (`x-combo1-dr-drban`, `x-pp-ban3`); see "Design study" above. They played the same 300 headline lobbies, but against `aMCTS-pp` only, and they are within noise of the selected design. Report it as the design chosen on the tune lobbies before the definitive run, within noise of the top design-study entries, not as the best design.
