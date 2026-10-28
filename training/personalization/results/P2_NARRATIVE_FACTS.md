@@ -708,16 +708,16 @@ Reading the table:
 
 ### Check 2: matchmaking feedback, and specialists vs mixed players
 
-**Method** (`p2f_carry_mmr.py`). At-game player rating is the latest Heroes Profile rating parsed before the game started (`P3_MMR_AT_GAME`). We use slots where all ten players have one (0.63M of the 1.33M), and add two controls:
+**Method** (`p2f_carry_mmr.py`). At-game player rating is the latest Heroes Profile rating parsed before the game started (`P3_MMR_AT_GAME`). (Lookup by game and player without key collisions, 2026-10-28: the earlier packed key matched some games of one player 2^20 replay ids apart; the fix moves four cells of the tables below by 0.01.) We use slots where all ten players have one (0.63M of the 1.33M), and add two controls:
 - own team's mean rating minus the opponents';
 - the player's rating minus their team's mean.
 
 | games on hero | 30-59 | 60-119 | 120-249 | 250-499 | 500-799 | 800+ |
 |---|---|---|---|---|---|---|
 | carry-forward, no ratings | 0.25 | 0.34 | 0.44 | 0.55 | 0.66 | 0.81 |
-| with both teams' ratings | 0.25 | 0.34 | 0.43 | 0.53 | 0.64 | 0.81 |
+| with both teams' ratings | 0.25 | 0.34 | 0.43 | 0.54 | 0.64 | 0.81 |
 | noise-only prediction | 0.30 | 0.39 | 0.49 | 0.62 | 0.69 | 0.80 |
-| implied true persistence | 0.84 | 0.87 | 0.88 | 0.88 | 0.95 | 1.01 |
+| implied true persistence | 0.83 | 0.88 | 0.88 | 0.88 | 0.95 | 1.01 |
 
 - Matchmaking feedback is not hiding carry-forward. A strong record does not buy measurably tougher team matchups (−1 to +2 rating points of team gap per 10 points of record), and a team rating gap moves results by only 2 to 3 points of win probability per 100 rating points beyond what the draft and lobby already price.
 - Within fifths of the player's own rating, or of the team rating gap, carry-forward moves around the pooled value with no pattern.
@@ -729,9 +729,9 @@ Reading the table:
 |---|---|---|---|
 | 30-59 | 0.96 | 0.68 | 0.73 |
 | 60-119 | 0.91 | 0.79 | 1.02 |
-| 120-249 | 0.93 | 0.82 | **0.56** |
+| 120-249 | 0.93 | 0.83 | **0.56** |
 | 250-499 | 0.96 | 0.83 | **0.66** |
-| 500-799 | 0.97 | 0.91 | 0.96 |
+| 500-799 | 0.96 | 0.91 | 0.96 |
 | 800+ | (1.46, 5K slots, noisy) | 0.91 | 0.89 |
 
 Max's mechanism shows up where he predicted. A hero that is a small share of a player's games keeps nearly all of its true edge. Heroes that are most of a player's games keep less, most clearly at 120 to 499 games.
@@ -762,7 +762,7 @@ Recency-weighted records have very different noise levels, so they are compared 
 | section 3: next game, edge vs the draft, all players | 0.24 | 0.30 | 0.43 | 0.50 | 0.58 | 0.81 |
 | edge relative to the player's own average (controlling for it) | 0.21 | 0.28 | 0.42 | 0.54 | 0.61 | 0.87 |
 | "later" = every later game: record frozen at the spring test start, mean of all its later games, cell-weighted | 0.20 | 0.27 | 0.40 | 0.47 | 0.59 | 0.79 |
-| slots with all ten ratings, plus rating controls | 0.25 | 0.34 | 0.43 | 0.53 | 0.64 | 0.81 |
+| slots with all ten ratings, plus rating controls | 0.25 | 0.34 | 0.43 | 0.54 | 0.64 | 0.81 |
 
 The answer does not depend on which of these definitions is used.
 

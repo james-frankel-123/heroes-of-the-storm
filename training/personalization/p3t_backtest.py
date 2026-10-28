@@ -137,18 +137,13 @@ def cluster2_se(X, e, g1, g2):
 def causal_mmr(d, rows):
     """Causal player MMR (P3_MMR_AT_GAME: latest stamp parsed before the game
     started) for slot rows; NaN where unknown. The slot table's player_mmr is
-    the post-game rating (it contains the game's own result)."""
-    from p3_keys import key_blizz
-    z = np.load(os.path.join(C.CACHE, "mmr_at_game.npz"))
-    key = (z["replay_ids"].astype(np.int64) << 40) | z["blizz_ids"].astype(np.int64)
-    o = np.argsort(key)
-    ks = key[o]
-    bl = key_blizz(d["player_keys"])[d["pid"][rows]].astype(np.int64)
-    q = (d["replay_id"][rows].astype(np.int64) << 40) | bl
-    j = np.minimum(np.searchsorted(ks, q), len(ks) - 1)
-    hit = ks[j] == q
-    v = z["player_mmr_causal"][o][j].astype(np.float64)
-    return np.where(hit & np.isfinite(v), v, np.nan)
+    the post-game rating (it contains the game's own result). Keyed by (game,
+    region-qualified player) without collisions (2026-10-28: the former
+    replay_id << 40 | blizz_id overflowed int64 and dropped the region)."""
+    import p3_mmr_feats as MF
+    key = np.asarray(d["player_keys"])[d["pid"][rows]].astype(np.int64)
+    pm, _ = MF.stamps_at(C.CACHE, d["replay_id"][rows].astype(np.int64), key)
+    return pm
 
 
 def agree_analyze(n_games, vint="cur_bc"):

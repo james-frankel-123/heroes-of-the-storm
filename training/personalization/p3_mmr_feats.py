@@ -69,6 +69,25 @@ def _load_stamps_legacy(cache):
     return {"comp": comp[o], "pm": Z["player_mmr_causal"][o], "hm": Z["hero_mmr_causal"][o], "legacy": True}
 
 
+def stamps_at(cache, rid, key):
+    """Causal player and hero MMR per (game, player) with the collision-free key, whatever
+    P3_MMR_KEY_FIX says (for scripts that used the packed rid * 2^44 + key inline): (pm, hm),
+    NaN where unknown or where duplicate stamps of one (game, player) conflict."""
+    prev = os.environ.get("P3_MMR_KEY_FIX")
+    os.environ["P3_MMR_KEY_FIX"] = "1"
+    try:
+        st = load_stamps(cache)
+    finally:
+        if prev is None:
+            os.environ.pop("P3_MMR_KEY_FIX")
+        else:
+            os.environ["P3_MMR_KEY_FIX"] = prev
+    qc = _pair(rid, key, st["ukeys"])
+    j = np.minimum(np.searchsorted(st["comp"], qc), len(st["comp"]) - 1)
+    ok = (qc >= 0) & (st["comp"][j] == qc)
+    return np.where(ok, st["pm"][j], np.nan).astype(float), np.where(ok, st["hm"][j], np.nan).astype(float)
+
+
 def slot_features(rid, key, team, stamps):
     """rid, key ((region << 40) | blizz_id), team per slot; slots of a game
     may be in any order. Returns dict of dteam, own, hrel, full, pm."""

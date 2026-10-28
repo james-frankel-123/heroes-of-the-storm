@@ -177,14 +177,10 @@ def main():
     print(json.dumps(val, indent=1))
 
     # check: 3+ stack effect beyond the draft with and without skill and MMR controls (test team rows)
-    Z = np.load(os.path.join(HERE, "cache", "mmr_at_game.npz"))
-    zk = (Z["region"].astype(np.int64) << 40) | Z["blizz_ids"]
-    compk = Z["replay_ids"].astype(np.int64) * (1 << 44) + zk
-    oz = np.argsort(compk)
+    # collision-free (game, player) lookup (2026-10-28; see p3_mmr_feats.stamps_at)
+    import p3_mmr_feats as MF
     S = M["full_ms_layer"]
-    qc = S["s_replay_id"].astype(np.int64) * (1 << 44) + S["s_key"]
-    jj = np.minimum(np.searchsorted(compk[oz], qc), len(oz) - 1)
-    mm = np.where(compk[oz][jj] == qc, Z["player_mmr_causal"][oz][jj], np.nan)
+    mm, _ = MF.stamps_at(os.path.join(HERE, "cache"), S["s_replay_id"].astype(np.int64), S["s_key"].astype(np.int64))
     sgi = np.minimum(np.searchsorted(gr, S["s_replay_id"]), len(gr) - 1)
     sgn = np.where(S["s_team"] == 0, 1.0, -1.0)
     okm = np.isfinite(mm)

@@ -450,13 +450,13 @@
  },
  "check": {
   "V2+OOT": {
-   "games": 158772,
-   "pp_per_3plus_player_beyond_draft": 0.4427677887250713,
-   "plus_skill_D": 0.1240870060294233,
-   "plus_skill_and_team_mmr_gap": 0.10818072874588247,
-   "se_pp": 0.05233293518383166,
-   "mean_D_pp_by_own_3plus": 0.29425690045900643,
-   "mmr_gap_per_3plus_player": 0.8795751679581614
+   "games": 158801,
+   "pp_per_3plus_player_beyond_draft": 0.4420522425767309,
+   "plus_skill_D": 0.12330894047926505,
+   "plus_skill_and_team_mmr_gap": 0.10745493825527683,
+   "se_pp": 0.05232707449120759,
+   "mean_D_pp_by_own_3plus": 0.2942488877615915,
+   "mmr_gap_per_3plus_player": 0.8768809796773025
   }
  }
 }

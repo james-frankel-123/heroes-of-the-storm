@@ -122,6 +122,7 @@ A judge built from even days outside the tournament window, scoring drafters tha
   - With the skill model's predicted gap added: −0.88 (0.35) [−0.44].
   - Prototype: +0.9 and −0.5.
   - Paper 1's own F-prior search agrees with its blind twin on 96% of picks, so its agreement test has no power: +2.3 (2.8) on the 0.15% of picks where they differ.
+- **MMR control check (2026-10-28).** The agreement backtest's causal-MMR lookup used `replay_id << 40 | blizz_id`, which overflows int64 and drops the region. It now uses the collision-free key. Rerunning the analysis for both passes changes one coefficient in the fourth decimal; every number above stands.
 - **Forced switches** (1.19M pick slots, 37,752 players): when a player's best hero is banned, realized cost −2.18pp (0.19) against −1.38 predicted (residual −0.80, SE 0.18) [−2.12 vs −1.26]; prototype −2.1 vs −1.3. Forced switches still cost more than the model says.
 
 ### Simulations (tune set, mean J against the tune opponents)

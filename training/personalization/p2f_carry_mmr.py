@@ -45,16 +45,10 @@ def main():
     npl = A["s_np"][q].astype(float)
     x = np.where(nh > 0, A["s_rec"][q] / np.maximum(nh, 1), np.nan)
     r = A["s_r"][q].astype(float)
-    Z = np.load(os.path.join(HERE, "cache", "mmr_at_game.npz"))
-    zk = (Z["region"].astype(np.int64) << 40) | Z["blizz_ids"]
-    comp = Z["replay_ids"].astype(np.int64) * (1 << 44) + zk
-    o = np.argsort(comp)
-    comp = comp[o]
-    qc = rid.astype(np.int64) * (1 << 44) + key
-    j = np.minimum(np.searchsorted(comp, qc), len(comp) - 1)
-    ok = comp[j] == qc
-    pm = np.where(ok, Z["player_mmr_causal"][o][j], np.nan).astype(float)
-    hm = np.where(ok, Z["hero_mmr_causal"][o][j], np.nan).astype(float)
+    # collision-free (game, player) lookup (2026-10-28; the packed rid * 2^44 + key overflowed
+    # int64 and matched games of one player 2^20 replay ids apart)
+    import p3_mmr_feats as MF
+    pm, hm = MF.stamps_at(os.path.join(HERE, "cache"), rid.astype(np.int64), key.astype(np.int64))
     # team means per game
     gk = rid * 2 + team
     ug, gi = np.unique(gk, return_inverse=True)

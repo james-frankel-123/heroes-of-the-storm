@@ -122,15 +122,15 @@
   }
  },
  "matchmaker": {
-  "games": 158863,
-  "slope_win_prob_per_100_mmr_team_diff": 0.017240865680960876,
-  "sd_player_mmr_population": 255.90152507460397,
-  "sd_player_mmr_within_lobby": 165.0757385536693,
-  "sd_team_diff_real_mmr": 112.42734528000338,
-  "sd_team_diff_shuffled_within_lobby": 109.92855634802613,
-  "sd_team_diff_random_players": 162.21669947185535,
-  "var_share_real": 0.0015028721616482997,
-  "var_share_shuffled_within_lobby": 0.0014368094551068828,
-  "var_share_random_players": 0.0031287383806051666
+  "games": 158892,
+  "slope_win_prob_per_100_mmr_team_diff": 0.017241761306901675,
+  "sd_player_mmr_population": 255.90662113886236,
+  "sd_player_mmr_within_lobby": 165.0690539481589,
+  "sd_team_diff_real_mmr": 112.41893373947615,
+  "sd_team_diff_shuffled_within_lobby": 109.98620781793814,
+  "sd_team_diff_random_players": 161.60915624958236,
+  "var_share_real": 0.0015028034102343823,
+  "var_share_shuffled_within_lobby": 0.0014384663438799816,
+  "var_share_random_players": 0.003105669049418541
  }
 }

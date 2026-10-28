@@ -81,6 +81,11 @@ The corrected rules apply throughout: the top-ranked player bans; any teammate m
 - **Against the player-blind drafter** the record is clearly positive for parties of 2 to 5 (+2.3 to +4.9). That reflects the blind drafter putting players on heroes they are bad at, not the aware drafter's edge over typical picks.
 - **The judged gains are not confirmed player by player at these sample sizes.**
 
+**MMR key check (2026-10-28).** The ban-holder ranks used the shared MMR stamp key, which collided for games of one player 2^20 replay ids apart (fixed behind `P3_MMR_KEY_FIX=1`, now the pipeline default).
+- **Effect on ranks:** with the fix, 302 of 1.76M rank cells change. The ban holder changes on one side of 1 of the 1,175 party lobbies, and in none of the headline or tune lobbies.
+- **Effect on rates:** the real ban-holder rates are unchanged to four decimals.
+- **Effect on results:** a CPU rescore on the main box reproduces `party_party.json` exactly. Leaving the affected lobby out moves every judged point estimate by at most 0.02pp and every record point estimate by at most 0.10pp. No redrafting.
+
 **Flags.**
 - The first-turn, no-ban solo cell differs between sides: +0.9 (0.3, 1.5) for the first-pick team, +1.7 (1.2, 2.3) for the second. All other turns agree within ±0.7. Pooling as decided is fine, but this is the one cell where the sides differ by more than the noise.
 - The ban-holder model's holder term still adds nothing measurable. Who holds the bans is not identifiable from our data (methods note); the rule rests on Max's account of the client.

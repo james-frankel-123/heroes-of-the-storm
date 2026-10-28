@@ -773,6 +773,9 @@ def split_ci(D, Hm, r, B=2000, seed=0):
     return out
 
 
+DROP = [int(x) for x in os.environ.get("P3T_PARTY_DROP_LOBBIES", "").split(",") if x]
+
+
 def stage_score():
     import re
     import p3t_judge as JG
@@ -800,6 +803,11 @@ def stage_score():
             np.savez(sp, **sc)
         sc = dict(np.load(sp))
         views[f[:-4]] = team_view(sc, int(z["t"]), judge)
+        if DROP:
+            # sensitivity: leave these lobbies out of every contrast (P3T_PARTY_DROP_LOBBIES)
+            for m_ in views[f[:-4]]:
+                views[f[:-4]][m_] = views[f[:-4]][m_].astype(float)
+                views[f[:-4]][m_][DROP] = np.nan
         hold[f[:-4]] = z["ban_ctl"]
         if "lock_turn" in z.files:
             lockt[f[:-4]] = z["lock_turn"]
@@ -909,7 +917,9 @@ def stage_score():
                 mt_: boot_ci(rw[1] * a[mt_] + (1 - rw[1]) * b[mt_]) for mt_ in a}
     os.makedirs(os.path.join(C.RESULTS, "p3t"), exist_ok=True)
     res["lobbies"] = int(LB.n)
-    json.dump(res, open(os.path.join(C.RESULTS, "p3t", RES_NAME + ".json"), "w"), indent=1)
+    if DROP:
+        res["dropped_lobbies"] = DROP
+    json.dump(res, open(os.path.join(C.RESULTS, "p3t", RES_NAME + (f"_drop{len(DROP)}" if DROP else "") + ".json"), "w"), indent=1)
     print(f"party: {len(views)} drafts scored; real ban rates {json.dumps(rates)}", flush=True)
 
 

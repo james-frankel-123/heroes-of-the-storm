@@ -57,7 +57,8 @@ fi
 SMOKE=${P3T_SMOKE:-0}
 # the merged rows through the namespace (a link on the CPU host, a copy on the GPU hosts)
 [ -z "$TAG" ] || P3T_RCF_ROWS=$CROOT/$(basename "$P3T_RCF_ROWS")
-ROOTENV="P3T_CACHE_ROOT=$CROOT P3T_RESULTS_ROOT=$RROOT P3T_RCF_ROWS=$P3T_RCF_ROWS P3T_VINTAGES=$RROOT/p3t_vintages.json"
+# P3_MMR_KEY_FIX=1 (2026-10-28): collision-free MMR stamp keys for the ban-holder ranks (p3t_data.ranks); def1027 ran without
+ROOTENV="P3T_CACHE_ROOT=$CROOT P3T_RESULTS_ROOT=$RROOT P3T_RCF_ROWS=$P3T_RCF_ROWS P3T_VINTAGES=$RROOT/p3t_vintages.json P3_MMR_KEY_FIX=${P3_MMR_KEY_FIX:-1}"
 # stage sizes (full run), and the smoke test's: every stage runs, at small sizes
 PROBE_N=500; PROBE_RUN=""; PP_LOB=3000; SP_ARGS=":--iters:4:--rosters:4096:--sims:800"; AGREE=20000; DR_EP=""
 TOURNEY="--schedule:all:--only-ready"; TUNE="--schedule:tune"; ABLATION="--schedule:ablation"

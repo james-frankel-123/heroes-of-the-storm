@@ -130,17 +130,11 @@ def main():
     out["stable"] = stable
 
     # ---------------- matchmaker
-    Z = np.load(os.path.join(HERE, "cache", "mmr_at_game.npz"))
-    rid = Z["replay_ids"].astype(np.int64)
-    pm = Z["player_mmr_causal"].astype(float)
+    # collision-free (game, player) lookup (2026-10-28; see p3_mmr_feats.stamps_at)
+    import p3_mmr_feats as MF
     A = np.load(os.path.join(a_.arms, "A2S.npz"))
     q = A["s_win"] >= 2
-    zk = (Z["region"].astype(np.int64) << 40) | Z["blizz_ids"]
-    comp = rid * (1 << 44) + zk
-    oz = np.argsort(comp)
-    qc = A["s_replay_id"][q].astype(np.int64) * (1 << 44) + A["s_key"][q]
-    j = np.minimum(np.searchsorted(comp[oz], qc), len(oz) - 1)
-    mm = np.where(comp[oz][j] == qc, pm[oz][j], np.nan)
+    mm, _ = MF.stamps_at(os.path.join(HERE, "cache"), A["s_replay_id"][q].astype(np.int64), A["s_key"][q].astype(np.int64))
     g = A["s_replay_id"][q]
     team = A["s_team"][q]
     ug, gidx = np.unique(g, return_inverse=True)
