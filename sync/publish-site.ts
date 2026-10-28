@@ -40,6 +40,21 @@ async function fingerprint(c: pg.Pool, table: string, cols: string[]) {
   return { n: Number(r.rows[0].n), h: String(r.rows[0].h) }
 }
 
+/**
+ * Row invariants a table must satisfy before it reaches the site. hero_pairwise_stats:
+ * wins and win_rate describe the same side (sync/matchup-rows.ts), within rounding.
+ */
+const INVARIANTS: Record<string, string> = {
+  hero_pairwise_stats: `games > 0 AND abs(wins - games * win_rate / 100.0) > 1`,
+}
+
+async function invariantViolations(c: pg.Pool, table: string): Promise<number> {
+  const where = INVARIANTS[table]
+  if (!where) return 0
+  const r = await q(c, `SELECT count(*) AS n FROM public."${table}" WHERE ${where}`)
+  return Number(r.rows[0].n)
+}
+
 async function main() {
   const dryRun = process.argv.includes('--dry-run')
   const localUrl = process.env.DATABASE_URL
@@ -66,6 +81,12 @@ async function main() {
     const [lf, nf] = await Promise.all([fingerprint(local, table, cols), fingerprint(neon, table, cols)])
     if (lf.n === nf.n && lf.h === nf.h) {
       log.info(`  ${table}: unchanged (${lf.n} rows)`)
+      continue
+    }
+    const broken = await invariantViolations(local, table)
+    if (broken > 0) {
+      log.error(`  ${table}: GATED, ${broken} local rows break the table's invariant; not published`)
+      gated++
       continue
     }
     if (lf.n === 0 || lf.n < nf.n * (1 - GATE_DROP)) {

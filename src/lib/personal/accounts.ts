@@ -6,7 +6,7 @@
 import { sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { decodeCard, draftByName, HERO_NAMES, type Card } from './card'
-import { rankCandidates, type MatchContext } from './match'
+import { nfc, parseTag, rankCandidates, type MatchContext } from './match'
 
 export const REGIONS: Record<number, string> = { 1: 'Americas', 2: 'Europe', 3: 'Asia', 5: 'China' }
 
@@ -66,21 +66,31 @@ function toSummary(r: any): AccountSummary {
   }
 }
 
+/** Decode a published card; an invalid one is logged and left out rather than failing the request. */
+function cardOrNull(v: unknown, where: string): Card | null {
+  try {
+    return decodeCard(bytesOf(v))
+  } catch (err) {
+    console.error(`[personal] invalid card skipped (${where}):`, err instanceof Error ? err.message : err)
+    return null
+  }
+}
+
 const COLS = sql`region, name, discriminator, mmr, last_played::text AS last_played, games, recent_games, top_heroes`
 
 /** Every account with this exact BattleTag (any region). */
 export async function byTag(name: string, discriminator: number): Promise<AccountWithCard[]> {
   const res = await db.execute(sql`
     SELECT ${COLS}, card FROM personal_accounts
-    WHERE lower(name) = lower(${name}) AND discriminator = ${discriminator}
+    WHERE lower(name) = lower(${nfc(name)}) AND discriminator = ${discriminator}
     ORDER BY last_played DESC LIMIT 8`)
-  return rowsOf<any>(res).map(r => ({ ...toSummary(r), card: decodeCard(bytesOf(r.card)) }))
+  return rowsOf<any>(res).flatMap(r => {
+    const card = cardOrNull(r.card, `tag region ${r.region}`)
+    return card ? [{ ...toSummary(r), card }] : []
+  })
 }
 
-export function parseTag(tag: string): { name: string; discriminator: number } | null {
-  const m = /^\s*([^\s#]{2,12})#(\d{3,6})\s*$/u.exec(tag)
-  return m ? { name: m[1], discriminator: Number(m[2]) } : null
-}
+export { nfc, parseTag } from './match'
 
 export type DraftTerms = ReturnType<typeof draftByName>
 
@@ -92,10 +102,11 @@ export interface MatchResult {
 }
 
 /** Every published account with this visible name, most recently active first (name-only search). */
-export async function byName(name: string, limit = 50): Promise<AccountSummary[]> {
-  if (!/^[^\s#]{2,12}$/u.test(name.trim())) return []
+export async function byName(rawName: string, limit = 50): Promise<AccountSummary[]> {
+  const name = nfc(rawName).trim()
+  if (!/^[^\s#]{2,12}$/u.test(name)) return []
   const res = await db.execute(sql`
-    SELECT ${COLS} FROM personal_accounts WHERE lower(name) = lower(${name.trim()})
+    SELECT ${COLS} FROM personal_accounts WHERE lower(name) = lower(${name})
     ORDER BY last_played DESC, games DESC LIMIT ${limit}`)
   return rowsOf<any>(res).map(toSummary)
 }
@@ -106,7 +117,7 @@ export async function byName(name: string, limit = 50): Promise<AccountSummary[]
  * does not settle which.
  */
 export async function matchName(query: string, ctx: MatchContext): Promise<MatchResult> {
-  const name = query.trim()
+  const name = nfc(query).trim()
   const tag = parseTag(name)
   if (tag) {
     const accts = (await byTag(tag.name, tag.discriminator)).map(({ card, ...a }) => ({ ...a, draft: draftByName(card) }))
@@ -130,15 +141,14 @@ export async function matchName(query: string, ctx: MatchContext): Promise<Match
       SELECT region, blizz_id, card FROM personal_accounts
       WHERE (region, blizz_id) IN (${sql.join(top.map(t => sql`(${t.region}, ${t.blizz_id})`), sql`, `)})`),
   )
-  const cardOf = new Map(cards.map(c => [`${c.region}:${c.blizz_id}`, decodeCard(bytesOf(c.card))]))
-  return {
-    query,
-    status: clear ? 'matched' : 'choose',
-    candidates: top.map(t => {
-      const card = cardOf.get(`${t.region}:${t.blizz_id}`)!
-      return { ...toSummary(t), draft: draftByName(card) }
-    }),
-  }
+  const cardOf = new Map(cards.map(c => [`${c.region}:${c.blizz_id}`, cardOrNull(c.card, `match region ${c.region}`)]))
+  const candidates = top.flatMap(t => {
+    const card = cardOf.get(`${t.region}:${t.blizz_id}`)
+    return card ? [{ ...toSummary(t), draft: draftByName(card) }] : []
+  })
+  if (candidates.length === 0) return { query, status: 'none', candidates: [] }
+  // a clear match whose card was invalid is not silently replaced by a weaker candidate
+  return { query, status: clear && candidates.length === top.length ? 'matched' : 'choose', candidates }
 }
 
 /** Party context: region (most common) and mean MMR of the party accounts found. */

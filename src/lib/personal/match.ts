@@ -73,3 +73,14 @@ export function lobbyRequestError(names: string[], party: string[]): string | nu
   if (names.length + party.length > MAX_LOBBY_NAMES) return `A lobby has at most ${MAX_LOBBY_NAMES} players.`
   return null
 }
+
+/**
+ * Names are compared in Unicode NFC, the form the published index stores, so canonically
+ * equivalent spellings (a precomposed É, or E + combining acute) find the same account.
+ */
+export const nfc = (s: string) => s.normalize('NFC')
+
+export function parseTag(tag: string): { name: string; discriminator: number } | null {
+  const m = /^\s*([^\s#]{2,12})#(\d{3,6})\s*$/u.exec(nfc(tag))
+  return m ? { name: m[1], discriminator: Number(m[2]) } : null
+}

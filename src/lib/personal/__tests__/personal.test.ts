@@ -134,3 +134,27 @@ describe('personal draft terms', () => {
     expect(banGain('Lucio', ['Ana', 'Lucio'], e, new Set(), c).gain).toBe(0)
   })
 })
+
+describe('card validation (R3-09)', () => {
+  const H_OFF = 1 + 1 + 4 + 2 * H // version, model, games, s
+  const withByte = (hex: string, at: number, v: number) => {
+    const b = bytes(hex)
+    b[at] = v
+    return b
+  }
+  const withPlayed = F.cards.find(c => Object.keys(c.played).length >= 2)!
+
+  it('rejects an out-of-range played hero index', () => {
+    expect(() => decodeCard(withByte(withPlayed.card_hex, H_OFF + 1, 255))).toThrow(/out of range/)
+  })
+
+  it('rejects a repeated played hero index', () => {
+    const b = bytes(withPlayed.card_hex)
+    b[H_OFF + 1 + 6] = b[H_OFF + 1]
+    expect(() => decodeCard(b)).toThrow(/repeated/)
+  })
+
+  it('still accepts every published fixture card', () => {
+    for (const c of F.cards) expect(() => decodeCard(bytes(c.card_hex))).not.toThrow()
+  })
+})

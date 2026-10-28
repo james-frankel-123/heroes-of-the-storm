@@ -13,6 +13,19 @@ export const dynamic = 'force-dynamic'
  * At most 10 names; more is a 400, never a silent cut. Reads Neon only.
  */
 export async function GET(req: Request) {
+  try {
+    return await handle(req)
+  } catch (err) {
+    // database or decoder failure: a controlled JSON error, details only in the server log
+    console.error('[personal/match] failed:', err)
+    return NextResponse.json(
+      { error: 'Player data is unavailable right now. Try again in a minute.' },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
+    )
+  }
+}
+
+async function handle(req: Request): Promise<Response> {
   const sp = new URL(req.url).searchParams
   const names = splitList(sp.get('names'))
   const partyTags = splitList(sp.get('party'))

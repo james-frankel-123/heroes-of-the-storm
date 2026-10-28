@@ -64,6 +64,7 @@ import shutil
 import struct
 import sys
 import time
+import unicodedata
 
 import numpy as np
 
@@ -450,7 +451,8 @@ def load(a):
     buf = io.StringIO()
     for i in np.flatnonzero(keep):
         mmr = z["mmr"][i]
-        name = str(z["name"][i]).replace("\\", "\\\\").replace("\t", " ").replace("\n", " ")
+        # NFC: the site normalizes lookups the same way (src/lib/personal/accounts.ts nfc)
+        name = unicodedata.normalize("NFC", str(z["name"][i])).replace("\\", "\\\\").replace("\t", " ").replace("\n", " ")
         buf.write("\t".join([str(z["region"][i]), str(z["blizz_id"][i]), name, str(z["discriminator"][i]),
                              "\\N" if mmr is None else str(int(mmr)), str(z["last_played"][i]), str(z["games"][i]),
                              str(z["recent_games"][i]), "\\\\x" + bytes(z["top_heroes"][i]).hex(),

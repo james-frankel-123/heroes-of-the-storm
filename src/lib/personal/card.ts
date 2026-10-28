@@ -80,8 +80,16 @@ export function decodeCard(buf: Uint8Array): Card {
   for (let h = 0; h < H; h++, o += 2) s[h] = dv.getInt16(o, true) / 1e4
   const k = dv.getUint8(o++)
   const played: PlayedHero[] = []
+  const seen = new Set<number>()
+  // every hero index must name a model hero, once per section (a bad card fails here, not in the page)
+  const heroAt = (h: number, section: string) => {
+    if (h >= H) throw new Error(`card ${section} hero index ${h} out of range`)
+    if (seen.has(h)) throw new Error(`card ${section} hero index ${h} repeated`)
+    seen.add(h)
+    return h
+  }
   for (let i = 0; i < k; i++) {
-    const h = dv.getUint8(o)
+    const h = heroAt(dv.getUint8(o), 'played')
     const n = dv.getUint16(o + 1, true)
     const last = dv.getUint16(o + 3, true)
     const sd = dv.getUint8(o + 5) / 1e3
@@ -90,8 +98,9 @@ export function decodeCard(buf: Uint8Array): Card {
   }
   const j = dv.getUint8(o++)
   const suggestions: SuggestedHero[] = []
+  // suggestions are never-played heroes: distinct from each other and from the played list
   for (let i = 0; i < j; i++) {
-    const h = dv.getUint8(o)
+    const h = heroAt(dv.getUint8(o), 'suggestion')
     suggestions.push({ hero: HERO_NAMES[h], mean: s[h], sd: dv.getUint8(o + 1) / 1e3 })
     o += 2
   }

@@ -164,3 +164,18 @@ describe('heroes without a personal estimate (R2-10)', () => {
     for (const h of NO_ESTIMATE_HEROES) expect(HERO_NAMES).not.toContain(h)
   })
 })
+
+describe('Unicode names (R3-05)', () => {
+  const nfcName = 'Éclair'
+  const nfdName = nfcName.normalize('NFD')
+
+  it('treats composed and decomposed spellings as one account', () => {
+    expect(nfdName).not.toBe(nfcName)
+    expect(accountKey({ region: 2, name: nfdName, discriminator: 1234 })).toBe(accountKey({ region: 2, name: nfcName, discriminator: 1234 }))
+  })
+
+  it('parses a decomposed BattleTag to the stored NFC name', async () => {
+    const { parseTag } = await import('../match')
+    expect(parseTag(`${nfdName}#1234`)).toEqual({ name: nfcName, discriminator: 1234 })
+  })
+})

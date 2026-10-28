@@ -28,6 +28,10 @@ interface AccountResponse {
 }
 
 const Z80 = 1.2815515655446004
+
+/** Why recent games alone may not be enough yet (docs/personalization-site-design.md, launch limits). */
+const eligibilityNote = (asOf?: string) =>
+  `Game counts update weekly, but an account first seen after the model's data${asOf ? ` (games through ${asOf})` : ''} gets a card only when the model is rebuilt.`
 const pp = (x: number) => `${x >= 0 ? '+' : ''}${(100 * x).toFixed(1)}`
 const pct = (x: number) => `${Math.round(100 * x)}%`
 
@@ -272,6 +276,7 @@ function Profile({
 
 interface NameResponse {
   through: string
+  estimatesAsOf?: string
   matches: AccountSummary[]
   error?: string
 }
@@ -375,7 +380,7 @@ export function PlayersClient() {
         <section className="space-y-2">
           <p className="text-sm text-muted-foreground">
             {names.matches.length === 0
-              ? `No account named ${nameParam} in our data (accounts with at least 3 Storm League games in the 180 days up to ${names.through}).`
+              ? `No account named ${nameParam} in our data. We list accounts with at least 3 Storm League games in the 180 days up to ${names.through} that our skill model already knows. ${eligibilityNote(names.estimatesAsOf)}`
               : `${names.matches.length === 50 ? 'The 50 most recently active' : names.matches.length} account${names.matches.length === 1 ? '' : 's'} named ${nameParam}, most recently active first:`}
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -395,7 +400,8 @@ export function PlayersClient() {
       {res && !busy && res.accounts.length === 0 && (
         <p className="text-sm text-muted-foreground">
           {tagParam} is not in our data. We have cards for accounts with at least 3 Storm League games in our replay
-          data in the 180 days up to {res.through}. That covers most active players, but not everyone.
+          data in the 180 days up to {res.through} that our skill model already knows. That covers most active
+          players, but not everyone. {eligibilityNote(res.estimatesAsOf)}
         </p>
       )}
 

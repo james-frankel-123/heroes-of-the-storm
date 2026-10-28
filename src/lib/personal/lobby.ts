@@ -44,7 +44,7 @@ export interface Lobby {
 
 /** Stable identity of a published account: region + BattleTag (names are not unique). */
 export function accountKey(a: { region: number; name: string; discriminator: number }): string {
-  return `${a.region}:${a.name.toLowerCase()}#${a.discriminator}`
+  return `${a.region}:${a.name.normalize('NFC').toLowerCase()}#${a.discriminator}`
 }
 
 export function toPlayer(a: AccountSummary & { draft: DraftTerms; tag?: string }): PersonalPlayer {
