@@ -39,6 +39,12 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Single-threaded BLAS unless the caller insists (P3_BLAS_THREADS): on the main box
+# (OpenBLAS 0.3.29, numpy 2.2.6) multi-threaded runs of answer() overwrote memory
+# nondeterministically on 2026-10-28 (zeroed query keys, garbage estimates at chunk
+# ends); single-threaded runs are bit-reproducible.
+for _v in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ[_v] = os.environ.get("P3_BLAS_THREADS", "1")
 import numpy as np
 
 import p3_hs_core as C
@@ -385,6 +391,14 @@ def answer(qdir, adir, only=None, ctx=None):
         outp = {k: Q[k] for k in QFIELDS}
         outp.update(s=S_out[:, perm], sd=SD_out[:, perm], sd_display=SDD_out[:, perm], n=N_out[:, perm],
                     known=qpid >= 0)
+        # the echoed query fields must equal the query file (guards memory corruption)
+        Qc = np.load(fq)
+        for k in QFIELDS:
+            assert np.array_equal(outp[k], Qc[k]), f"answer {os.path.basename(fq)}: echoed {k} differs from the query file"
+        for k in ("s", "sd", "sd_display", "n"):
+            v = outp[k][outp["known"]]
+            assert np.isfinite(v).all(), f"answer {os.path.basename(fq)}: non-finite {k}"
+        assert np.abs(outp["s"]).max() < 1.0 and outp["sd"].max() < 1.0, f"answer {os.path.basename(fq)}: estimate out of range"
         np.savez(os.path.join(adir, os.path.basename(fq)), **outp)
         print(f"answered {os.path.basename(fq)}: {nq:,} queries, {int((qpid >= 0).sum()):,} known players "
               f"({time.time() - t0:.0f}s)", flush=True)

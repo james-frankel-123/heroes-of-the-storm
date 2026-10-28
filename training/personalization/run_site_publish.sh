@@ -18,7 +18,9 @@ DEF=${SITE_DEF_TAG:-def1027}
 # display band version (p3_rcf_states.BANDS): anchored_v1 since 2026-10-28 (P3_BAND_ANCHOR.md);
 # the estimates and the base sd are unchanged
 BAND=${SITE_BAND:-anchored_v1}
-export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 NUMBA_NUM_THREADS=4
+# BLAS single-threaded: multi-threaded OpenBLAS overwrote memory in the state writer on
+# the main box (2026-10-28); p3_rcf_states.py forces 1 thread as well
+export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMBA_NUM_THREADS=4
 echo "[$(date -Is)] site publish: store $STORE, model chosen ($DEF), band $BAND"
 $PYDB personalization/p3_site_publish.py build --store "$STORE"
 (
