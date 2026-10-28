@@ -11,15 +11,10 @@
  */
 
 import {
-  HEROES, MAPS, NUM_HEROES, NUM_MAPS, NUM_TIERS, STATE_DIM, HERO_TO_IDX, MAP_TO_IDX, TIER_TO_IDX,
+  HEROES, NUM_HEROES, NUM_MAPS, NUM_TIERS, STATE_DIM, HERO_TO_IDX, MAP_TO_IDX, TIER_TO_IDX,
 } from './encoding'
-
-const DRAFT_ORDER: [number, 'ban' | 'pick'][] = [
-  [0, 'ban'], [1, 'ban'], [0, 'ban'], [1, 'ban'],
-  [0, 'pick'], [1, 'pick'], [1, 'pick'], [0, 'pick'], [0, 'pick'],
-  [1, 'ban'], [0, 'ban'],
-  [1, 'pick'], [1, 'pick'], [0, 'pick'], [0, 'pick'], [1, 'pick'],
-]
+import { DRAFT_SEQUENCE } from './types'
+import { applySelection, lineups, positionProblems, unavailableAt, CHO, GALL, type Selections } from './rules'
 
 const C_PUCT = 2.0
 // Tunables: at least MIN_SIMS simulations are always run; after that the
@@ -47,52 +42,72 @@ function softmaxMasked(logits: Float32Array, mask: Float32Array): Float32Array {
   return result
 }
 
+/**
+ * Tree over legal positions (training/cuda_mcts/ref_search.py semantics):
+ *  - decision nodes (our steps): PUCT over the legal actions of THEIR OWN position, priors
+ *    from the policy, untried actions at Q = 0, children created on demand;
+ *  - chance nodes (opponent steps): outcome sampled from the GD model over that position's
+ *    legal actions, one child per distinct outcome, progressive widening
+ *    limit(N) = max(1, ceil(PW_K * N^PW_ALPHA)); at the limit the outcome is redrawn from the
+ *    distribution restricted to existing children;
+ *  - every node holds its position, so a node's statistics and children always describe one
+ *    state (the old tree reused a decision node across different sampled opponent moves and
+ *    could pick a hero the opponent had just taken).
+ * Transitions and legal actions come from ./rules (the board reducer's own rules: Cho'gall
+ * fills two pick slots, either half blocks both, and needs two consecutive open slots).
+ * The leaf is the first unexpanded decision node or a complete draft, as before.
+ */
+const PW_K = 1.0
+const PW_ALPHA = 0.5
+
+type NodeKind = 'decision' | 'chance' | 'terminal'
+
 interface MCTSNode {
+  kind: NodeKind
+  sel: Selections
+  step: number
   action: number
   parent: MCTSNode | null
   children: Map<number, MCTSNode>
   visitCount: number
   valueSum: number
-  prior: number
-  isExpanded: boolean
+  /** decision: tempered policy priors over legal actions; chance: GD probabilities over legal actions */
+  probs: Float32Array | null
 }
 
-function createNode(action: number, parent: MCTSNode | null, prior: number): MCTSNode {
-  return { action, parent, children: new Map(), visitCount: 0, valueSum: 0, prior, isExpanded: false }
+function kindAt(step: number, ourTeam: number): NodeKind {
+  if (step >= DRAFT_SEQUENCE.length) return 'terminal'
+  return teamIdx(DRAFT_SEQUENCE[step].team) === ourTeam ? 'decision' : 'chance'
 }
 
-function ucbScore(node: MCTSNode): number {
-  if (!node.parent) return 0
-  const q = node.visitCount === 0 ? 0 : node.valueSum / node.visitCount
-  return q + C_PUCT * node.prior * Math.sqrt(node.parent.visitCount) / (1 + node.visitCount)
+const teamIdx = (t: 'A' | 'B') => (t === 'A' ? 0 : 1)
+
+function makeNode(sel: Selections, step: number, action: number, parent: MCTSNode | null, ourTeam: number): MCTSNode {
+  return { kind: kindAt(step, ourTeam), sel, step, action, parent, children: new Map(), visitCount: 0, valueSum: 0, probs: null }
 }
 
-interface DraftMCTSState {
-  team0Picks: number[]
-  team1Picks: number[]
-  bans: number[]
-  taken: Set<number>
-  step: number
-  map: string
-  tier: string
-  ourTeam: number
+/** Legal-action mask of a position, encoding order. */
+function legalMask(sel: Selections, step: number, extraTaken: Set<string>): Float32Array {
+  const mask = new Float32Array(NUM_HEROES)
+  const blocked = unavailableAt(sel, step)
+  for (let i = 0; i < NUM_HEROES; i++) mask[i] = blocked.has(HEROES[i]) || extraTaken.has(HEROES[i]) ? 0 : 1
+  return mask
 }
 
-function cloneState(s: DraftMCTSState): DraftMCTSState {
-  return {
-    team0Picks: [...s.team0Picks], team1Picks: [...s.team1Picks],
-    bans: [...s.bans], taken: new Set(s.taken),
-    step: s.step, map: s.map, tier: s.tier, ourTeam: s.ourTeam,
+/** First index whose cumulative mass exceeds r (zero entries skipped; last positive on overrun). */
+function sampleIndex(p: Float32Array, r: number, allowed?: (i: number) => boolean): number {
+  let tot = 0
+  for (let i = 0; i < p.length; i++) if (p[i] > 0 && (!allowed || allowed(i))) tot += p[i]
+  const x0 = r * tot
+  let cum = 0
+  let last = -1
+  for (let i = 0; i < p.length; i++) {
+    if (p[i] <= 0 || (allowed && !allowed(i))) continue
+    last = i
+    cum += p[i]
+    if (cum > x0) return i
   }
-}
-
-function applyAction(s: DraftMCTSState, heroIdx: number) {
-  const [team, actionType] = DRAFT_ORDER[s.step]
-  s.taken.add(heroIdx)
-  if (actionType === 'ban') s.bans.push(heroIdx)
-  else if (team === 0) s.team0Picks.push(heroIdx)
-  else s.team1Picks.push(heroIdx)
-  s.step++
+  return last
 }
 
 function heroesToMultiHot(names: string[]): Float32Array {
@@ -125,15 +140,20 @@ function encodeState(
   return input
 }
 
-function stateToTensors(s: DraftMCTSState) {
-  const t0Names = s.team0Picks.map(i => HEROES[i])
-  const t1Names = s.team1Picks.map(i => HEROES[i])
-  const banNames = s.bans.map(i => HEROES[i])
-  const stepType: 'ban' | 'pick' = s.step < 16 ? DRAFT_ORDER[s.step][1] : 'pick'
-  const state = encodeState(t0Names, t1Names, banNames, s.map, s.tier, s.step, stepType, s.ourTeam)
-  const mask = new Float32Array(NUM_HEROES).fill(1)
-  for (const idx of s.taken) mask[idx] = 0
-  return { state, mask }
+/**
+ * Rebuild the board's selections from the search input (picks per team and bans, all at
+ * steps before `step`). Which skipped ban slot is empty does not matter: those steps are past.
+ */
+export function selectionsFromLineups(team0: string[], team1: string[], bans: string[], step: number): Selections {
+  const sel: Selections = {}
+  const queues = { A: [...team0], B: [...team1], ban: [...bans] }
+  for (let i = 0; i < Math.min(step, DRAFT_SEQUENCE.length); i++) {
+    const s = DRAFT_SEQUENCE[i]
+    const q = s.type === 'ban' ? queues.ban : queues[s.team]
+    const h = q.shift()
+    if (h) sel[i] = h
+  }
+  return sel
 }
 
 /**
@@ -174,19 +194,12 @@ export async function runMCTSSearch(
    * rng = Math.random, and the standard MIN/MAX_SIMS + time budget. Used by the
    * parity oracle to drive a deterministic (shared-RNG, fixed-sim) search.
    */
-  options?: { rng?: () => number; maxSims?: number; minSims?: number; timeBudgetMs?: number },
-): Promise<{ recommendations: MCTSRecommendation[]; valueEstimate: number; sims: number }> {
-
-  const evalPartialOur = evaluatePartial
-    ? async (s: DraftMCTSState): Promise<number> => {
-        const p = await evaluatePartial(
-          s.team0Picks.map(i => HEROES[i]),
-          s.team1Picks.map(i => HEROES[i]),
-          Math.max(0, Math.min(15, s.step - 1)),
-        )
-        return ourTeam === 0 ? p : 1 - p
-      }
-    : null
+  options?: {
+    rng?: () => number; maxSims?: number; minSims?: number; timeBudgetMs?: number
+    /** Test hook: called with every position about to be evaluated and its legality problems */
+    onEvaluate?: (sel: Selections, problems: string[]) => void
+  },
+): Promise<{ recommendations: MCTSRecommendation[]; valueEstimate: number; sims: number; illegal: number }> {
 
   const ourTeam = draftState.ourTeam
   const rng = options?.rng ?? Math.random
@@ -209,45 +222,79 @@ export async function runMCTSSearch(
     return { priors: softmaxMasked(tempered, mask), value }
   }
 
-  async function runGD(state: Float32Array, mask: Float32Array): Promise<number> {
+  /** GD opponent distribution over the position's legal actions. */
+  async function runGD(state: Float32Array, mask: Float32Array): Promise<Float32Array> {
     const gdState = state.slice(0, STATE_DIM - 1)
     const stateTensor = new ort.Tensor('float32', gdState, [1, STATE_DIM - 1])
     const maskTensor = new ort.Tensor('float32', mask, [1, NUM_HEROES])
     const result: any = await withLock(() => gdSession.run({ state: stateTensor, valid_mask: maskTensor }))
     const logits = result.hero_logits.data as Float32Array
-    const probs = softmaxMasked(logits, mask)
-    const r = rng()
-    let cumSum = 0
-    for (let i = 0; i < NUM_HEROES; i++) {
-      cumSum += probs[i]
-      if (r < cumSum) return i
+    return softmaxMasked(logits, mask)
+  }
+
+  // Root position. Cho/Gall in takenHeroes may be a temporary root-only block (not enough
+  // open pick slots this turn); the rules recompute that at every simulated step, so only
+  // other extra exclusions are kept.
+  const rootSel = selectionsFromLineups(draftState.team0Picks, draftState.team1Picks, draftState.bans, draftState.step)
+  const extraTaken = new Set<string>()
+  const drafted = new Set(Object.values(rootSel))
+  for (const h of takenHeroes) if (!drafted.has(h) && h !== CHO && h !== GALL && HERO_TO_IDX[h] !== undefined) extraTaken.add(h)
+
+  const encodeAt = (node: MCTSNode) => {
+    const { A, B, bans } = lineups(node.sel)
+    const stepType: 'ban' | 'pick' = node.step < DRAFT_SEQUENCE.length ? DRAFT_SEQUENCE[node.step].type : 'pick'
+    return {
+      state: encodeState(A, B, bans, draftState.map, draftState.tier, node.step, stepType, ourTeam),
+      mask: legalMask(node.sel, node.step, extraTaken),
     }
-    for (let i = 0; i < NUM_HEROES; i++) { if (mask[i] > 0) return i }
-    return 0
   }
 
-  // Build initial state
-  const t0Idx = draftState.team0Picks.map(h => HERO_TO_IDX[h]).filter(i => i !== undefined)
-  const t1Idx = draftState.team1Picks.map(h => HERO_TO_IDX[h]).filter(i => i !== undefined)
-  const banIdx = draftState.bans.map(h => HERO_TO_IDX[h]).filter(i => i !== undefined)
-  const taken = new Set<number>()
-  for (const h of takenHeroes) {
-    const idx = HERO_TO_IDX[h]
-    if (idx !== undefined) taken.add(idx)
+  let illegal = 0
+  const assertLegal = (node: MCTSNode) => {
+    const problems = positionProblems(node.sel, node.kind === 'terminal')
+    options?.onEvaluate?.(node.sel, problems)
+    if (problems.length) {
+      illegal++
+      throw new Error(`search reached an illegal position: ${problems.join('; ')}`)
+    }
   }
 
-  const rootState: DraftMCTSState = {
-    team0Picks: t0Idx, team1Picks: t1Idx, bans: banIdx,
-    taken, step: draftState.step, map: draftState.map, tier: draftState.tier, ourTeam,
+  const evaluate = async (node: MCTSNode, policyValue: () => Promise<number>): Promise<number> => {
+    assertLegal(node)
+    const { A, B } = lineups(node.sel)
+    if (node.kind === 'terminal') {
+      if (evaluateTerminal) {
+        const wp0 = await evaluateTerminal(A, B)
+        return ourTeam === 0 ? wp0 : 1 - wp0
+      }
+      return policyValue()
+    }
+    if (evaluatePartial) {
+      const p = await evaluatePartial(A, B, Math.max(0, Math.min(15, node.step - 1)))
+      return ourTeam === 0 ? p : 1 - p
+    }
+    return policyValue()
   }
 
-  const root = createNode(-1, null, 0)
-  const { state: rootEncoded, mask: rootMask } = stateToTensors(rootState)
-  const { priors, value: rootValue } = await runPolicy(rootEncoded, rootMask)
+  const expandDecision = async (node: MCTSNode): Promise<number> => {
+    const { state, mask } = encodeAt(node)
+    const { priors, value } = await runPolicy(state, mask)
+    node.probs = priors
+    return value
+  }
 
-  root.isExpanded = true
-  for (let a = 0; a < NUM_HEROES; a++) {
-    if (rootMask[a] > 0) root.children.set(a, createNode(a, root, priors[a]))
+  const root = makeNode(rootSel, draftState.step, -1, null, ourTeam)
+  if (root.kind !== 'decision') throw new Error('search root must be one of our decisions')
+  const rootValue = await expandDecision(root)
+
+  const childFor = (node: MCTSNode, a: number): MCTSNode => {
+    let child = node.children.get(a)
+    if (!child) {
+      const next = applySelection(node.sel, node.step, HEROES[a])
+      child = makeNode(next.selections, next.step, a, node, ourTeam)
+      node.children.set(a, child)
+    }
+    return child
   }
 
   const startTime = performance.now()
@@ -258,79 +305,52 @@ export async function runMCTSSearch(
     simsRun++
 
     let node = root
-    const scratch = cloneState(rootState)
-
-    // Selection
-    while (node.isExpanded && scratch.step < 16) {
-      const currentTeam = DRAFT_ORDER[scratch.step][0]
-      if (currentTeam === ourTeam) {
-        let bestScore = -Infinity
-        let bestChild: MCTSNode | null = null
-        for (const child of node.children.values()) {
-          const score = ucbScore(child)
-          if (score > bestScore) { bestScore = score; bestChild = child }
-        }
-        if (!bestChild) break
-        applyAction(scratch, bestChild.action)
-        node = bestChild
-      } else {
-        const { state: s, mask: m } = stateToTensors(scratch)
-        const oppAction = await runGD(s, m)
-        applyAction(scratch, oppAction)
-      }
-    }
-
-    // Roll the draft forward through any opponent steps with GD sampling so
-    // the leaf we expand/evaluate sits at OUR next decision (or terminal).
-    // Without this, a leaf whose next step belongs to the opponent could
-    // never expand and the tree would stay one ply deep.
-    while (scratch.step < 16 && DRAFT_ORDER[scratch.step][0] !== ourTeam) {
-      const { state: s, mask: m } = stateToTensors(scratch)
-      const oppAction = await runGD(s, m)
-      applyAction(scratch, oppAction)
-    }
-
+    const path: MCTSNode[] = [root]
     let value: number
-    if (scratch.step >= 16) {
-      // Terminal: full 10-hero draft. Prefer the dedicated WP model
-      // (leaf evaluator per spec); fall back to the policy value head.
-      if (evaluateTerminal) {
-        const wpTeam0 = await evaluateTerminal(
-          scratch.team0Picks.map(i => HEROES[i]),
-          scratch.team1Picks.map(i => HEROES[i]),
-        )
-        value = ourTeam === 0 ? wpTeam0 : 1 - wpTeam0
+    for (;;) {
+      if (node.kind === 'terminal') {
+        value = await evaluate(node, async () => (await runPolicy(encodeAt(node).state, encodeAt(node).mask)).value)
+        break
+      }
+      if (node.kind === 'decision') {
+        if (!node.probs) {
+          const v = await expandDecision(node)
+          value = await evaluate(node, async () => v)
+          break
+        }
+        const sq = Math.sqrt(node.visitCount)
+        let best = -Infinity
+        let bestA = -1
+        for (let a = 0; a < NUM_HEROES; a++) {
+          const p = node.probs[a]
+          if (!(p > 0)) continue
+          const c = node.children.get(a)
+          const n = c ? c.visitCount : 0
+          const q = c && c.visitCount > 0 ? c.valueSum / c.visitCount : 0
+          const score = q + C_PUCT * p * sq / (1 + n)
+          if (score > best) { best = score; bestA = a }
+        }
+        if (bestA < 0) throw new Error('search found no legal action at a decision node')
+        node = childFor(node, bestA)
       } else {
-        const { state: s, mask: m } = stateToTensors(scratch)
-        const { value: v } = await runPolicy(s, m)
-        value = v
+        if (!node.probs) {
+          const { state, mask } = encodeAt(node)
+          node.probs = await runGD(state, mask)
+        }
+        const r = 1 - rng()
+        const limit = Math.max(1, Math.ceil(PW_K * Math.pow(node.visitCount, PW_ALPHA) - 1e-3))
+        const a = node.children.size < limit
+          ? sampleIndex(node.probs, r)
+          : sampleIndex(node.probs, r, i => node.children.has(i))
+        if (a < 0) throw new Error('search found no legal action at a chance node')
+        node = childFor(node, a)
       }
-    } else if (!node.isExpanded) {
-      // Expand at our decision point: policy priors for exploration, the
-      // partial-draft evaluator (when provided) for the backed-up value.
-      const { state: s, mask: m } = stateToTensors(scratch)
-      const { priors: leafPriors, value: v } = await runPolicy(s, m)
-      value = evalPartialOur ? await evalPartialOur(scratch) : v
-      node.isExpanded = true
-      for (let a = 0; a < NUM_HEROES; a++) {
-        if (m[a] > 0) node.children.set(a, createNode(a, node, leafPriors[a]))
-      }
-    } else {
-      if (evalPartialOur) {
-        value = await evalPartialOur(scratch)
-      } else {
-        const { state: s, mask: m } = stateToTensors(scratch)
-        const { value: v } = await runPolicy(s, m)
-        value = v
-      }
+      path.push(node)
     }
 
-    // Backpropagate
-    let current: MCTSNode | null = node
-    while (current) {
-      current.visitCount++
-      current.valueSum += value
-      current = current.parent
+    for (const n of path) {
+      n.visitCount++
+      n.valueSum += value
     }
   }
 
@@ -353,5 +373,5 @@ export async function runMCTSSearch(
   // network's direct value estimate when no simulations completed.
   const valueEstimate = root.visitCount > 0 ? root.valueSum / root.visitCount : rootValue
 
-  return { recommendations, valueEstimate, sims: simsRun }
+  return { recommendations, valueEstimate, sims: simsRun, illegal }
 }

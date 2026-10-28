@@ -13,8 +13,9 @@ import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, evaluat
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { InGamePlayers, type PersonalDraftState } from '@/components/draft/in-game-players'
 import { banGain, personalValue } from '@/lib/personal/draft-personal'
-import { assignOptionsFor, assignPlayer, pinsFor } from '@/lib/draft/assignments'
-import { generateRecommendations, expandChoGall, consecutivePicksRemaining } from '@/lib/draft/engine'
+import { assignOptionsFor, assignPlayer, displayLabels, pinsFor } from '@/lib/draft/assignments'
+import { generateRecommendations } from '@/lib/draft/engine'
+import { applySelection, isLegal, lineups, takenHeroes, unavailableAt } from '@/lib/draft/rules'
 import { DRAFT_SEQUENCE } from '@/lib/draft/types'
 import type { DraftState, DraftPhase, DraftData, Team } from '@/lib/draft/types'
 import type { SkillTier } from '@/lib/types'
@@ -76,37 +77,12 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
       return { ...state, phase: 'drafting' }
     case 'SELECT_HERO': {
       if (state.currentStep >= DRAFT_SEQUENCE.length) return state
-      const currentDraftStep = DRAFT_SEQUENCE[state.currentStep]
-      const newSelections = { ...state.selections, [state.currentStep]: action.hero }
-
-      // Cho'gall auto-pair: picking Cho pre-fills Gall (and vice versa)
-      // into the next pick slot for the same team. That slot will be
-      // auto-skipped when the draft reaches it.
-      if (currentDraftStep.type === 'pick' && (action.hero === 'Cho' || action.hero === 'Gall')) {
-        const companion = action.hero === 'Cho' ? 'Gall' : 'Cho'
-        for (let i = state.currentStep + 1; i < DRAFT_SEQUENCE.length; i++) {
-          const s = DRAFT_SEQUENCE[i]
-          if (s.type === 'pick' && s.team === currentDraftStep.team) {
-            newSelections[i] = companion
-            break
-          }
-        }
-      }
-
-      // Advance past any steps that are already pre-filled (Cho'gall companion)
-      let nextStep = state.currentStep + 1
-      while (nextStep < DRAFT_SEQUENCE.length && newSelections[nextStep]) {
-        nextStep++
-      }
-
-      const phase: DraftPhase =
-        nextStep >= DRAFT_SEQUENCE.length ? 'complete' : 'drafting'
-      return {
-        ...state,
-        selections: newSelections,
-        currentStep: nextStep,
-        phase,
-      }
+      // shared rules (src/lib/draft/rules.ts): Cho'gall fills the team's next pick slot, the
+      // step advances past prefilled slots; the search uses the same transition
+      if (!isLegal(state.selections, state.currentStep, action.hero)) return state
+      const next = applySelection(state.selections, state.currentStep, action.hero)
+      const phase: DraftPhase = next.step >= DRAFT_SEQUENCE.length ? 'complete' : 'drafting'
+      return { ...state, selections: next.selections, currentStep: next.step, phase }
     }
     case 'SKIP_BAN': {
       if (state.currentStep >= DRAFT_SEQUENCE.length) return state
@@ -176,7 +152,7 @@ interface OpponentRaw {
   hero: string
   probabilityPct: number | null
   /** Population values (our %) before and after the enemy takes the hero; null for bans */
-  basis: { ours: string[]; theirs: string[]; before: number; after: number } | null
+  basis: { ours: string[]; theirs: string[]; theirsAfter: string[]; before: number; after: number } | null
 }
 
 /** Searched rows by projected final win chance, then rows the search did not evaluate */
@@ -215,6 +191,7 @@ export function DraftClient({
 
   // AMA drawer state
   const [amaOpen, setAmaOpen] = useState(false)
+  const coachButtonRef = useRef<HTMLButtonElement>(null)
 
   // MCTS search state (runs on main thread)
   const [searchResults, setSearchResults] = useState<OurTurnRow[]>([])
@@ -295,14 +272,20 @@ export function DraftClient({
                 .filter(r => !gdHeroes.has(r.hero) && !unavailableHeroes.has(r.hero))
                 .map(r => ({ hero: r.hero, probability: null })),
             ].slice(0, 10)
+            // the board's own transition (a Cho/Gall pick brings its companion)
+            const enemyTeam = state.ourTeam === 'A' ? 'B' : 'A'
+            const after = candidates.map(c => {
+              const next = applySelection(state.selections, state.currentStep, c.hero)
+              return { theirs: lineups(next.selections)[enemyTeam], last: next.step - 1 }
+            })
             const impacts = isPick
-              ? await Promise.all(candidates.map(c => proj(ourPicks, [...enemyPicks, c.hero], state.currentStep)))
+              ? await Promise.all(after.map(x => proj(ourPicks, x.theirs, x.last)))
               : null
             if (cancelled) return
             setGdOpponentPreds(candidates.map(({ hero, probability }, i) => ({
               hero,
               probabilityPct: probability != null ? probability * 100 : null,
-              basis: impacts && before !== null ? { ours: ourPicks, theirs: enemyPicks, before, after: impacts[i] } : null,
+              basis: impacts && before !== null ? { ours: ourPicks, theirs: enemyPicks, theirsAfter: after[i].theirs, before, after: impacts[i] } : null,
             })))
             setGdLoading(false)
             setSearchStatus('')
@@ -462,7 +445,7 @@ export function DraftClient({
       hero,
       probabilityPct,
       impactPp: basis
-        ? Math.round((withSkill(basis.after, basis.ours, [...basis.theirs, hero]) - withSkill(basis.before, basis.ours, basis.theirs)) * 10) / 10
+        ? Math.round((withSkill(basis.after, basis.ours, basis.theirsAfter) - withSkill(basis.before, basis.ours, basis.theirs)) * 10) / 10
         : null,
     }))
   }, [gdOpponentPreds, personal, personalFixed, personalFixedTheirs])
@@ -494,7 +477,7 @@ export function DraftClient({
   // Raw win estimate (with breakdown) for AMA context enrichment and as the
   // baseline for search-recommendation deltas
   const ourWinEstimate = useMemo(() => {
-    if (!draftData || state.phase !== 'drafting') return null
+    if (!draftData || state.phase === 'setup') return null
     const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
     if (ourPicks.length === 0) return null
     return computeTeamWinEstimate(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
@@ -503,26 +486,13 @@ export function DraftClient({
   // Heroes that are already selected (banned or picked)
   // Cho'gall: if either Cho or Gall is selected, both are unavailable
   // Also block Cho/Gall from being picked when our team has <2 picks remaining
-  const unavailableHeroes = useMemo(() => {
-    const set = expandChoGall(new Set(Object.values(state.selections)))
-
-    // Block Cho/Gall if the current team has <2 consecutive picks this turn
-    // (applies to both our team and enemy team — it's a game rule, not team-specific)
-    if (state.phase === 'drafting' && state.currentStep < DRAFT_SEQUENCE.length) {
-      const step = DRAFT_SEQUENCE[state.currentStep]
-      if (step.type === 'pick') {
-        const turnsLeft = consecutivePicksRemaining(
-          state.currentStep, step.team, state.selections
-        )
-        if (turnsLeft < 2) {
-          set.add('Cho')
-          set.add('Gall')
-        }
-      }
-    }
-
-    return set
-  }, [state.selections, state.phase, state.currentStep])
+  const unavailableHeroes = useMemo(
+    () =>
+      state.phase === 'drafting' && state.currentStep < DRAFT_SEQUENCE.length
+        ? unavailableAt(state.selections, state.currentStep)
+        : takenHeroes(state.selections),
+    [state.selections, state.phase, state.currentStep],
+  )
 
   const handleSelectHero = useCallback(
     (hero: string) => dispatch({ type: 'SELECT_HERO', hero }),
@@ -557,7 +527,8 @@ export function DraftClient({
     const { ourPicks, enemyPicks } = pickArrays
     const c = personal.coefs
     const fixed = personalFixed
-    const nameOf = (id: string | null | undefined) => [...personal.ours, ...personal.theirs].find(p => p.id === id)?.label ?? id
+    const shownNames = displayLabels([...personal.ours, ...personal.theirs])
+    const nameOf = (id: string | null | undefined) => (id ? shownNames[id] ?? id : id)
     const modelHeroes = (personal.ours[0] ?? personal.theirs[0]).s
     const heroes = Object.keys(modelHeroes)
     const available = heroes.filter(h => !unavailableHeroes.has(h))
@@ -576,11 +547,11 @@ export function DraftClient({
         winPct = 100 / (1 + Math.exp(-(c.b0 + c.b1 * logit(qq) + now.ours.value - now.theirs.value + g.gain)))
         if (g.who && g.gain > 0.01) personalNote = `Takes away ${nameOf(g.who)}'s best option`
       } else {
-        const v = personalValue(q, [...ourPicks, hero], enemyPicks, personal.ours, personal.theirs, c, fixed, personalFixedTheirs)
+        const v = personalValue(q, lineups(applySelection(state.selections, state.currentStep, hero).selections)[state.ourTeam], enemyPicks, personal.ours, personal.theirs, c, fixed, personalFixedTheirs)
         winPct = v.value * 100
         const who = v.ours.who[hero]
         const p = personal.ours.find(x => x.id === who)
-        if (p) personalNote = `${p.label}: ${pp(p.s[hero] ?? 0)} on ${hero}${p.offRole[hero] ? ' (off-role)' : ''}`
+        if (p) personalNote = `${nameOf(p.id)}: ${pp(p.s[hero] ?? 0)} on ${hero}${p.offRole[hero] ? ' (off-role)' : ''}`
       }
       // A hero the personal model does not cover adds nothing: say so instead of implying a neutral estimate
       if (!(hero in modelHeroes)) personalNote = `No personal estimate for ${hero} in the current model: draft-only value`
@@ -606,9 +577,9 @@ export function DraftClient({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personal, personalFixed, personalFixedTheirs, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
 
-  // AMA context (updates live with every pick/ban)
+  // AMA context (updates live with every pick/ban, and keeps the finished draft at completion)
   const amaContext = useMemo(() => {
-    if (!draftData || state.phase !== 'drafting') return null
+    if (!draftData || state.phase === 'setup') return null
     // The coach sees what the page shows: the displayed rows (searched ones ranked; unsearched
     // flagged) and the banner's estimate; the stats ranking is passed only as background
     const isOurs = currentStep?.team === state.ourTeam
@@ -621,13 +592,13 @@ export function DraftClient({
   }, [state, recommendations, draftData, ourWinEstimate, personalView, ourWinPct, currentStep])
 
   // Sync AMA context to sessionStorage so the standalone /AMA page can read it
+  // (and clear it on Reset / New Draft, so /AMA never shows the previous draft as current)
   useEffect(() => {
-    if (amaContext) {
-      try {
-        sessionStorage.setItem('ama-draft-context', JSON.stringify(amaContext))
-      } catch {
-        // sessionStorage unavailable
-      }
+    try {
+      if (amaContext) sessionStorage.setItem('ama-draft-context', JSON.stringify(amaContext))
+      else sessionStorage.removeItem('ama-draft-context')
+    } catch {
+      // sessionStorage unavailable
     }
   }, [amaContext])
 
@@ -642,9 +613,11 @@ export function DraftClient({
   const knownLabels = useRef<Record<string, string>>({})
   const assignLabels = useMemo(() => {
     const m: Record<string, string> = {}
-    for (const p of [...(personal?.ours ?? []), ...(personal?.theirs ?? [])]) {
-      m[p.id] = p.label
-      knownLabels.current[p.id] = p.label
+    const all = [...(personal?.ours ?? []), ...(personal?.theirs ?? [])]
+    const shown = displayLabels(all)
+    for (const p of all) {
+      m[p.id] = shown[p.id]
+      knownLabels.current[p.id] = shown[p.id]
     }
     return m
   }, [personal])
@@ -688,12 +661,14 @@ export function DraftClient({
             <label className="text-sm font-medium text-muted-foreground">
               Map
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div role="group" aria-label="Map" className="grid grid-cols-2 gap-2">
               {maps.map((map) => {
                 const img = mapImageSrc(map)
                 return (
                   <button
                     key={map}
+                    type="button"
+                    aria-pressed={state.map === map}
                     onClick={() => dispatch({ type: 'SET_MAP', map })}
                     className={cn(
                       'rounded-lg overflow-hidden text-sm text-left transition-all border',
@@ -746,10 +721,12 @@ export function DraftClient({
               <label className="text-sm font-medium text-muted-foreground">
                 Your Team (banning first?)
               </label>
-              <div className="flex gap-2">
+              <div role="group" aria-label="Your team" className="flex gap-2">
                 {(['A', 'B'] as Team[]).map((team) => (
                   <button
                     key={team}
+                    type="button"
+                    aria-pressed={state.ourTeam === team}
                     onClick={() => dispatch({ type: 'SET_TEAM', team })}
                     className={cn(
                       'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border',
@@ -857,6 +834,7 @@ export function DraftClient({
             Reset
           </button>
           <button
+            ref={coachButtonRef}
             onClick={() => setAmaOpen(true)}
             className="px-3 py-1.5 rounded text-xs font-medium border border-[#b48ad4]/50 text-[#b48ad4] hover:bg-[#b48ad4]/10 transition-colors"
           >
@@ -1013,7 +991,10 @@ export function DraftClient({
 
       <AMADrawer
         open={amaOpen}
-        onClose={() => setAmaOpen(false)}
+        onClose={() => {
+          setAmaOpen(false)
+          coachButtonRef.current?.focus()
+        }}
         draftContext={amaContext}
       />
     </div>
