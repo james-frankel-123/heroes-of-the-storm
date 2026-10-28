@@ -156,3 +156,11 @@ describe('assignment identity (R1-03, R1-07)', () => {
     expect(actual).toBeLessThan(best)
   })
 })
+
+describe('heroes without a personal estimate (R2-10)', () => {
+  it("lists heroes in the game but not in the model, such as Xal'atath", async () => {
+    const { NO_ESTIMATE_HEROES, HERO_NAMES } = await import('../card')
+    expect(NO_ESTIMATE_HEROES).toContain("Xal'atath")
+    for (const h of NO_ESTIMATE_HEROES) expect(HERO_NAMES).not.toContain(h)
+  })
+})

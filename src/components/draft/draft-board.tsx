@@ -14,6 +14,8 @@ interface DraftBoardProps {
   assignOptions: { value: string; label: string }[]
   /** Display names for assignment values that are not BattleTags (matched players) */
   assignLabels: Record<string, string>
+  /** Assignments to players no longer matched in the lobby (not used by the scorer) */
+  staleAssignLabels: Record<string, string>
   /** All battletags assigned so far: stepIndex → battletag */
   playerAssignments: Record<number, string>
   onAssignPlayer: (stepIndex: number, battletag: string) => void
@@ -28,6 +30,7 @@ export function DraftBoard({
   currentStep,
   assignOptions,
   assignLabels,
+  staleAssignLabels,
   playerAssignments,
   onAssignPlayer,
   teamAWinPct,
@@ -64,6 +67,7 @@ export function DraftBoard({
         currentStep={currentStep}
         assignOptions={assignOptions}
         assignLabels={assignLabels}
+        staleAssignLabels={staleAssignLabels}
         playerAssignments={playerAssignments}
         onAssignPlayer={onAssignPlayer}
         winPct={teamAWinPct}
@@ -81,6 +85,7 @@ export function DraftBoard({
         currentStep={currentStep}
         assignOptions={assignOptions}
         assignLabels={assignLabels}
+        staleAssignLabels={staleAssignLabels}
         playerAssignments={playerAssignments}
         onAssignPlayer={onAssignPlayer}
         winPct={teamBWinPct}
@@ -103,6 +108,7 @@ function TeamRow({
   currentStep,
   assignOptions,
   assignLabels,
+  staleAssignLabels,
   playerAssignments,
   onAssignPlayer,
   winPct,
@@ -114,11 +120,12 @@ function TeamRow({
   currentStep: number
   assignOptions: { value: string; label: string }[]
   assignLabels: Record<string, string>
+  staleAssignLabels: Record<string, string>
   playerAssignments: Record<number, string>
   onAssignPlayer: (stepIndex: number, battletag: string) => void
   winPct: number | null
 }) {
-  const labelOf = (v: string) => assignLabels[v] ?? v.replace(/^\d+:/, '').split('#')[0]
+  const labelOf = (v: string) => staleAssignLabels[v] ?? assignLabels[v] ?? v.replace(/^\d+:/, '').split('#')[0]
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -184,7 +191,9 @@ function TeamRow({
                   className={cn(
                     'w-full max-w-[100px] h-5 px-1 text-[9px] rounded border bg-background truncate',
                     playerAssignments[stepIdx]
-                      ? 'border-purple-500/40 text-purple-400'
+                      ? playerAssignments[stepIdx] in staleAssignLabels
+                        ? 'border-yellow-500/40 text-yellow-400'
+                        : 'border-purple-500/40 text-purple-400'
                       : 'border-border/50 text-muted-foreground'
                   )}
                 >

@@ -1,6 +1,6 @@
 'use client'
 
-import { useReducer, useMemo, useCallback, useState, useEffect } from 'react'
+import { useReducer, useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import { computeTeamWinEstimate } from '@/lib/draft/win-estimate'
 import { TierSelector } from '@/components/shared/tier-selector'
 import { DraftBoard } from '@/components/draft/draft-board'
@@ -9,7 +9,7 @@ import { TeamColumn } from '@/components/draft/hex/TeamColumn'
 import { buildDraftView } from '@/components/draft/hex/draft-view-model'
 import { HeroPicker } from '@/components/draft/hero-picker'
 import { SearchRecommendationPanel, type OpponentPredictionRow, type OurTurnRow } from '@/components/draft/search-recommendation-panel'
-import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, getPartialProjection } from '@/lib/draft/ai-inference'
+import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, getPartialProjection, evaluatePosition } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { InGamePlayers, type PersonalDraftState } from '@/components/draft/in-game-players'
 import { banGain, personalValue } from '@/lib/personal/draft-personal'
@@ -177,30 +177,6 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
   }
 }
 
-/**
- * Our team's win % as displayed in the banner: the two teams' raw estimates
- * normalized to sum to 100 (falling back to a single-sided estimate when only
- * one team has picks). Used to quantify the impact of hypothetical picks.
- */
-function displayedOurWinPct(
-  ourPicks: string[],
-  enemyPicks: string[],
-  data: DraftData,
-  map: string | null,
-  ourPlayerMap: Record<number, string>,
-): number {
-  const ourRaw = ourPicks.length > 0
-    ? computeTeamWinEstimate(ourPicks, enemyPicks, data, map, ourPlayerMap).winPct
-    : null
-  const enemyRaw = enemyPicks.length > 0
-    ? computeTeamWinEstimate(enemyPicks, ourPicks, data, map).winPct
-    : null
-  if (ourRaw !== null && enemyRaw !== null) return ourRaw / (ourRaw + enemyRaw) * 100
-  if (ourRaw !== null) return ourRaw
-  if (enemyRaw !== null) return 100 - enemyRaw
-  return 50
-}
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -240,8 +216,11 @@ export function DraftClient({
   // Joint estimate from the latest search (root value, %, our perspective).
   // Header and suggestion rows share this scale by construction.
   const [searchProjNow, setSearchProjNow] = useState<number | null>(null)
-  // The picks that search value was computed on (personal terms use the same picks)
-  const [searchBasis, setSearchBasis] = useState<{ ours: string[]; theirs: string[] } | null>(null)
+  // Current-position estimate (our perspective, %), evaluated on every committed action and
+  // at completion, separately from the search. `ours`/`theirs` are the picks it was computed
+  // on (personal terms use the same picks); `pending` while a newer position is evaluating.
+  const [position, setPosition] = useState<{ pct: number; ours: string[]; theirs: string[]; pending: boolean } | null>(null)
+  const positionRev = useRef(0)
   const [searchStatus, setSearchStatus] = useState<string>('')
   const [gdOpponentPreds, setGdOpponentPreds] = useState<OpponentPredictionRow[]>([])
   const [gdLoading, setGdLoading] = useState(false)
@@ -288,11 +267,16 @@ export function DraftClient({
           if (cancelled) return
           const preds = await getGenericDraftPredictions(buildAIState(), unavailableHeroes, 12)
           if (!cancelled) {
-            const { ourPicks, enemyPicks, ourPlayerMap } = pickArrays
+            const { ourPicks, enemyPicks } = pickArrays
             const isPick = step.type === 'pick'
-            const before = isPick
-              ? displayedOurWinPct(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
-              : 0
+            // Impact on the banner's estimate family: the partial-draft model, before and
+            // after the enemy takes the hero (our perspective)
+            const ourIs0 = state.ourTeam === 'A'
+            const proj = async (ours: string[], theirs: string[]) => {
+              const p0 = await getPartialProjection(ourIs0 ? ours : theirs, ourIs0 ? theirs : ours, state.map ?? '', state.tier, state.currentStep, draftData)
+              return 100 * (ourIs0 ? p0 : 1 - p0)
+            }
+            const before = isPick ? await proj(ourPicks, enemyPicks) : 0
             // Pad the model's predictions with statistically strong options
             const gdHeroes = new Set(preds.map(p => p.hero))
             const candidates: { hero: string; probability: number | null }[] = [
@@ -301,12 +285,14 @@ export function DraftClient({
                 .filter(r => !gdHeroes.has(r.hero) && !unavailableHeroes.has(r.hero))
                 .map(r => ({ hero: r.hero, probability: null })),
             ].slice(0, 10)
-            setGdOpponentPreds(candidates.map(({ hero, probability }) => ({
+            const impacts = isPick
+              ? await Promise.all(candidates.map(c => proj(ourPicks, [...enemyPicks, c.hero])))
+              : null
+            if (cancelled) return
+            setGdOpponentPreds(candidates.map(({ hero, probability }, i) => ({
               hero,
               probabilityPct: probability != null ? probability * 100 : null,
-              impactPp: isPick
-                ? Math.round((displayedOurWinPct(ourPicks, [...enemyPicks, hero], draftData, state.map, ourPlayerMap) - before) * 10) / 10
-                : null,
+              impactPp: impacts ? Math.round((impacts[i] - before) * 10) / 10 : null,
             })))
             setGdLoading(false)
             setSearchStatus('')
@@ -356,7 +342,6 @@ export function DraftClient({
           return { hero, isGreedyPad, winPct, deltaPp: winPct - projNow }
         }
         setSearchProjNow(projNow)
-        setSearchBasis({ ours: pickArrays.ourPicks, theirs: pickArrays.enemyPicks })
 
         const mctsHeroes = new Set(mctsRecs.map(r => r.hero))
         const aiTopHero = mctsRecs[0]?.hero ?? null
@@ -410,6 +395,33 @@ export function DraftClient({
     return { ourPicks, enemyPicks, ourPlayerMap }
   }, [state.selections, state.playerAssignments, state.ourTeam])
 
+  // Evaluate the position after every action (both teams' turns, completion, undo)
+  useEffect(() => {
+    if (!draftData || state.phase === 'setup') return
+    const { ourPicks, enemyPicks } = pickArrays
+    const rev = ++positionRev.current
+    if (ourPicks.length === 0 && enemyPicks.length === 0) {
+      setPosition(null)
+      return
+    }
+    setPosition(p => (p ? { ...p, pending: true } : p))
+    const ourIs0 = state.ourTeam === 'A'
+    ;(async () => {
+      try {
+        await loadAIModels()
+        const p0 = await evaluatePosition(
+          ourIs0 ? ourPicks : enemyPicks, ourIs0 ? enemyPicks : ourPicks,
+          state.map ?? '', state.tier, Math.max(0, state.currentStep - 1), draftData,
+        )
+        if (rev !== positionRev.current) return
+        setPosition({ pct: 100 * (ourIs0 ? p0 : 1 - p0), ours: ourPicks, theirs: enemyPicks, pending: false })
+      } catch (err) {
+        console.error('Position estimate failed:', err)
+        if (rev === positionRev.current) setPosition(null)
+      }
+    })()
+  }, [draftData, pickArrays, state.phase, state.map, state.tier, state.ourTeam, state.currentStep])
+
   // In-game mode: matched players' skill on top of the search's values
   // (docs/personalization-site-design.md, "Draft page"). Unmatched players count as average.
   const [personal, setPersonal] = useState<PersonalDraftState | null>(null)
@@ -429,9 +441,11 @@ export function DraftClient({
   }, [personal, pickArrays])
 
   const personalNowPct = useMemo(() => {
-    if (!personal || searchProjNow === null || !searchBasis) return null
-    return personalValue(searchProjNow / 100, searchBasis.ours, searchBasis.theirs, personal.ours, personal.theirs, personal.coefs, personalFixed).value * 100
-  }, [personal, searchProjNow, searchBasis, personalFixed])
+    if (!personal || !position) return null
+    return personalValue(position.pct / 100, position.ours, position.theirs, personal.ours, personal.theirs, personal.coefs, personalFixed).value * 100
+  }, [personal, position, personalFixed])
+  // The page's one current estimate: the position value, with player skill when matched
+  const nowPct = personalNowPct ?? position?.pct ?? null
 
   // Compute running win % for both teams
   const { ourWinPct, enemyWinPct } = useMemo(() => {
@@ -443,19 +457,16 @@ export function DraftClient({
       return { ourWinPct: null, enemyWinPct: null }
     }
 
-    // JOINT estimate, one model: the search's root value (partial-WP-backed
-    // MCTS, bans included in state); enemy is its complement. The old
-    // per-team stats heuristics disagreed with the suggestion rows by
-    // construction (different model, different scale).
-    // With matched players, the same personal terms as the suggestion rows sit on top
-    // (one estimate on the page; the draft-only value is shown beside it).
-    const eff = personalNowPct ?? searchProjNow
-    if (eff !== null) {
-      const our = Math.round(eff * 10) / 10
+    // JOINT estimate of the current position (partial-draft model; the terminal WP judge
+    // once complete), evaluated on every action; enemy is its complement. With matched
+    // players the same personal terms as the suggestion rows sit on top, and the
+    // draft-only value is shown beside it.
+    if (nowPct !== null) {
+      const our = Math.round(nowPct * 10) / 10
       return { ourWinPct: our, enemyWinPct: Math.round((100 - our) * 10) / 10 }
     }
     return { ourWinPct: null, enemyWinPct: null }
-  }, [pickArrays, draftData, searchProjNow, personalNowPct])
+  }, [pickArrays, draftData, nowPct])
 
   // Raw win estimate (with breakdown) for AMA context enrichment and as the
   // baseline for search-recommendation deltas
@@ -531,6 +542,9 @@ export function DraftClient({
   )
   const personalView = useMemo(() => {
     const step = currentStep
+    // Rows are search values (projected final if we keep following the search), with deltas
+    // against the search's own value of the current state; the banner is the neutral estimate
+    // of the position as it stands (see the position effect)
     if (!personal || !step || step.team !== state.ourTeam || searchProjNow === null || searchResults.length === 0) {
       return { rows: searchResults, summary: null as string | null }
     }
@@ -538,10 +552,11 @@ export function DraftClient({
     const c = personal.coefs
     const fixed = personalFixed
     const nameOf = (id: string | null | undefined) => [...personal.ours, ...personal.theirs].find(p => p.id === id)?.label ?? id
-    const heroes = Object.keys((personal.ours[0] ?? personal.theirs[0]).s)
+    const modelHeroes = (personal.ours[0] ?? personal.theirs[0]).s
+    const heroes = Object.keys(modelHeroes)
     const available = heroes.filter(h => !unavailableHeroes.has(h))
     const now = personalValue(searchProjNow / 100, ourPicks, enemyPicks, personal.ours, personal.theirs, c, fixed)
-    const nowPct = now.value * 100
+    const basePct = now.value * 100
     const isBan = step.type === 'ban'
     const pp = (x: number) => `${x >= 0 ? '+' : ''}${(100 * x).toFixed(1)} pp`
     const logit = (p: number) => Math.log(p / (1 - p))
@@ -561,7 +576,9 @@ export function DraftClient({
         const p = personal.ours.find(x => x.id === who)
         if (p) personalNote = `${p.label}: ${pp(p.s[hero] ?? 0)} on ${hero}${p.offRole[hero] ? ' (off-role)' : ''}`
       }
-      return { hero, isGreedyPad, isAiTop, winPct, deltaPp: winPct - nowPct, personalNote }
+      // A hero the personal model does not cover adds nothing: say so instead of implying a neutral estimate
+      if (!(hero in modelHeroes)) personalNote = `No personal estimate for ${hero} in the current model: draft-only value`
+      return { hero, isGreedyPad, isAiTop, winPct, deltaPp: winPct - basePct, personalNote }
     }
     const rows: OurTurnRow[] = searchResults.map(r => rowFor(r.hero, r.winPct / 100, r.isGreedyPad, r.isAiTop))
     // add each unassigned matched player's own best heroes (not searched: the current value stands in for Q)
@@ -578,7 +595,7 @@ export function DraftClient({
     const n = personal.ours.length + personal.theirs.length
     return {
       rows,
-      summary: `With player skill for ${n} matched player${n === 1 ? '' : 's'}: ${nowPct.toFixed(1)}% now (${searchProjNow.toFixed(1)}% from the draft alone). Rows from a player's own pool were not searched.`,
+      summary: `Rows include player skill for ${n} matched player${n === 1 ? '' : 's'} (search line ${basePct.toFixed(1)}%, ${searchProjNow.toFixed(1)}% without player skill). Rows from a player's own pool were not searched.`,
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personal, personalFixed, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
@@ -594,17 +611,35 @@ export function DraftClient({
     }
     return opts
   }, [availableBattletags, personal, state.playerAssignments, state.playerSlots])
+  // Remember matched players' names so an assignment whose player was invalidated (edited,
+  // cleared, rematched away) can still be shown, marked as not matched
+  const knownLabels = useRef<Record<string, string>>({})
   const assignLabels = useMemo(() => {
     const m: Record<string, string> = {}
-    for (const p of personal?.ours ?? []) m[p.id] = p.label
+    for (const p of personal?.ours ?? []) {
+      m[p.id] = p.label
+      knownLabels.current[p.id] = p.label
+    }
     return m
   }, [personal])
+  // Assignments to in-game player ids that are not in the current lobby: kept (a rematch
+  // restores them) but not used by the scorer, and shown as such on the board
+  const staleAssignLabels = useMemo(() => {
+    const m: Record<string, string> = {}
+    for (const v of Object.values(state.playerAssignments)) {
+      if (/^\d+:/.test(v) && !(v in assignLabels)) {
+        m[v] = `${knownLabels.current[v] ?? v.replace(/^\d+:/, '').split('#')[0]} (not matched)`
+      }
+    }
+    return m
+  }, [state.playerAssignments, assignLabels])
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' })
     setPersonal(null)
     setSearchProjNow(null)
-    setSearchBasis(null)
+    positionRev.current++
+    setPosition(null)
     setSearchResults([])
   }, [])
 
@@ -816,10 +851,15 @@ export function DraftClient({
         <WinPctBadge label="YOUR TEAM" pct={ourWinPct} accent="blue" />
         <WinPctBadge label="ENEMY" pct={enemyWinPct} accent="red" />
       </div>
-      {ourWinPct !== null && personalNowPct !== null && searchProjNow !== null && (
+      {position?.pending && (
+        <p role="status" className="text-center text-[11px] text-[#8b9bc8]">
+          Updating the estimate for the latest pick...
+        </p>
+      )}
+      {ourWinPct !== null && personalNowPct !== null && position && (
         <p className="text-center text-[11px] text-[#8b9bc8]">
           With player skill for {personal ? personal.ours.length + personal.theirs.length : 0} matched player
-          {personal && personal.ours.length + personal.theirs.length === 1 ? '' : 's'}; {searchProjNow.toFixed(1)}% from the draft alone.
+          {personal && personal.ours.length + personal.theirs.length === 1 ? '' : 's'}; {position.pct.toFixed(1)}% from the draft alone.
         </p>
       )}
 
@@ -886,6 +926,7 @@ export function DraftClient({
         currentStep={state.currentStep}
         assignOptions={assignOptions}
         assignLabels={assignLabels}
+        staleAssignLabels={staleAssignLabels}
         playerAssignments={state.playerAssignments}
         onAssignPlayer={(stepIdx, bt) =>
           dispatch({ type: 'ASSIGN_PLAYER', stepIndex: stepIdx, battletag: bt })

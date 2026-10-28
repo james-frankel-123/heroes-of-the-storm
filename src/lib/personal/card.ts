@@ -9,6 +9,7 @@
  * against the population win rate on the hero.
  */
 import artifactJson from './model-artifact.json'
+import { HERO_ROLES } from '@/lib/data/hero-roles'
 
 interface Artifact {
   version: string
@@ -28,6 +29,8 @@ interface Artifact {
 
 export const ARTIFACT = artifactJson as unknown as Artifact
 export const HERO_NAMES = ARTIFACT.heroNames
+/** Heroes in the game but not in this model (e.g. released after its data): no personal estimate. */
+export const NO_ESTIMATE_HEROES = Object.keys(HERO_ROLES).filter(h => !HERO_NAMES.includes(h))
 export const H = HERO_NAMES.length
 const EPOCH14 = Date.UTC(2014, 0, 1) / 86_400_000
 export const CARD_VERSION = 2

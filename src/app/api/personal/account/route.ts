@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { byName, byTag, dataThrough, parseTag } from '@/lib/personal/accounts'
-import { ARTIFACT } from '@/lib/personal/card'
+import { ARTIFACT, NO_ESTIMATE_HEROES } from '@/lib/personal/card'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   if (!p) return NextResponse.json({ error: 'Enter a full BattleTag, like Name#1234.' }, { status: 400 })
   const accounts = await byTag(p.name, p.discriminator)
   return NextResponse.json(
-    { through: await dataThrough(), estimatesAsOf: ARTIFACT.estimatesAsOf, accounts, validation: ARTIFACT.validation },
+    { through: await dataThrough(), estimatesAsOf: ARTIFACT.estimatesAsOf, accounts, validation: ARTIFACT.validation, noEstimate: NO_ESTIMATE_HEROES },
     { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } },
   )
 }

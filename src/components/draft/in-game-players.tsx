@@ -23,6 +23,7 @@ export interface PersonalDraftState {
 interface MatchResponse {
   through: string
   estimatesAsOf?: string
+  noEstimate?: string[]
   context: { region: number | null; mmr: number | null }
   party: PartyAccount[]
   results: MatchResult[]
@@ -229,16 +230,19 @@ export function InGamePlayers({
         </button>
         <span role="status" aria-live="polite" className="text-[10px] text-muted-foreground">
           {res &&
-            `${count} player${count === 1 ? '' : 's'} with personal skill${stale ? ' (some changes not matched yet)' : ''}. Records through ${res.through}${res.estimatesAsOf ? `; skill estimates use games through ${res.estimatesAsOf}` : ''}.`}
+            `${count} player${count === 1 ? '' : 's'} with personal skill${stale ? ' (some changes not matched yet)' : ''}. Records through ${res.through}${res.estimatesAsOf ? `; skill estimates use games through ${res.estimatesAsOf}` : ''}.${res.noEstimate?.length ? ` No personal estimate for ${res.noEstimate.join(', ')} (not in the current model): draft-only value.` : ''}`}
         </span>
         {res && (
           <button
             type="button"
             className="text-[10px] text-muted-foreground underline"
             onClick={() => {
+              // cancels an in-flight match too: its response is ignored, so release the button here
               reqId.current++
               setRes(null)
               setPicked({})
+              setBusy(false)
+              setError(null)
             }}
           >
             Clear

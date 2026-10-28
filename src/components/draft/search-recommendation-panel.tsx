@@ -91,9 +91,9 @@ export function SearchRecommendationPanel({
     : isOurTurn ? 'Search Recommendations' : 'Likely Enemy Picks'
   const subtitle = isOurTurn
     ? isBanPhase
-      ? 'Projected final win chance after each ban, from the same search and model as the picks and the banner above'
+      ? 'Projected final win chance after each ban if we keep following the search. These assume good drafting from here, so they run above the banner, which scores the draft as it stands.'
 
-      : 'Projected win chance after each pick, judged by the same model that scores the final draft'
+      : 'Projected final win chance after each pick if we keep following the search. These assume good drafting from here, so they run above the banner, which scores the draft as it stands.'
     : isBanPhase
       ? 'How likely the enemy is to ban each hero'
       : 'How likely the enemy is to pick each hero, and what it would do to your win chance'
@@ -208,7 +208,7 @@ export function SearchRecommendationPanel({
                 </div>
                 <div className="text-right shrink-0">
                   <div
-                    title={`Projected final win chance after ${isBanPhase ? 'banning' : 'picking'} ${rec.hero}: the search's estimate with this action taken, evaluated by the same model that scores the finished draft. The banner shows the same search's estimate for the current state, so the two converge as the draft completes.`}
+                    title={`Projected final win chance after ${isBanPhase ? 'banning' : 'picking'} ${rec.hero}: the search's estimate with this action taken, evaluated by the same model that scores the finished draft. The search's value of the current state is the baseline for the change below; the banner instead scores the draft as it stands, and the two meet when the draft is complete.`}
                   >
                     <span className={cn(
                       'text-sm font-bold tabular-nums',
@@ -225,9 +225,9 @@ export function SearchRecommendationPanel({
                   {!isBanPhase && (
                     <div
                       className="text-[10px] tabular-nums text-[#8b9bc8]"
-                      title="Change vs. your current win estimate, in percentage points"
+                      title="Change vs. the search's value of the current state, in percentage points"
                     >
-                      {rec.deltaPp >= 0 ? '+' : ''}{rec.deltaPp.toFixed(1)}pp vs now
+                      {rec.deltaPp >= 0 ? '+' : ''}{rec.deltaPp.toFixed(1)}pp vs search line
                     </div>
                   )}
                 </div>
@@ -267,7 +267,7 @@ export function SearchRecommendationPanel({
                         'text-[10px] tabular-nums',
                         rec.impactPp <= -1 ? 'text-[#d46b6b]' : rec.impactPp >= 1 ? 'text-[#6fd46f]' : 'text-[#8b9bc8]'
                       )}
-                      title="Expected change to YOUR win chance if the enemy takes this hero, in percentage points"
+                      title="Change to the banner's win estimate if the enemy takes this hero, in percentage points"
                     >
                       {rec.impactPp >= 0 ? '+' : ''}{rec.impactPp.toFixed(1)}pp for us
                     </div>

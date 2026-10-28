@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { dataThrough, matchName, parseTag, partyContext, REGIONS } from '@/lib/personal/accounts'
-import { ARTIFACT, draftCoefs } from '@/lib/personal/card'
+import { ARTIFACT, draftCoefs, NO_ESTIMATE_HEROES } from '@/lib/personal/card'
 import { lobbyRequestError, splitList } from '@/lib/personal/match'
 
 export const runtime = 'nodejs'
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
   if (region !== null) ctx.region = region
   const results = await Promise.all(names.map(n => matchName(n, ctx)))
   return NextResponse.json(
-    { through: await dataThrough(), estimatesAsOf: ARTIFACT.estimatesAsOf, context: ctx, party, results, coefs: draftCoefs() },
+    { through: await dataThrough(), estimatesAsOf: ARTIFACT.estimatesAsOf, noEstimate: NO_ESTIMATE_HEROES, context: ctx, party, results, coefs: draftCoefs() },
     { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } },
   )
 }

@@ -48,13 +48,17 @@ export async function loadAIModels(): Promise<void> {
   return loadPromise
 }
 
+const ORT_WEB_VERSION = '1.31.1'
+
 async function loadOrtFromCDN(): Promise<any> {
   // Check if already loaded via script tag
   if ((window as any).ort) return (window as any).ort
 
   return new Promise((resolve, reject) => {
     const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js'
+    // Pinned: the version the site's models were last checked with (it also fixes the WASM
+    // files, which ort loads from the same versioned path)
+    script.src = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_WEB_VERSION}/dist/ort.min.js`
     script.onload = () => {
       const ortLib = (window as any).ort
       if (ortLib) resolve(ortLib)
@@ -821,6 +825,26 @@ export async function getPartialProjection(
     runOne(team1Heroes, team0Heroes),
   ])
   return (pNormal + (1 - pSwapped)) / 2
+}
+
+/**
+ * P(team0 wins) for the position as it stands: the terminal WP judge once both teams have
+ * five heroes, otherwise the partial-draft model at the last action taken. Independent of
+ * the recommendation search, so every committed action (either team's, and completion)
+ * gets its own value.
+ */
+export async function evaluatePosition(
+  team0Heroes: string[],
+  team1Heroes: string[],
+  map: string,
+  tier: string,
+  lastActionIdx: number,
+  draftData: DraftData,
+): Promise<number> {
+  if (team0Heroes.length >= 5 && team1Heroes.length >= 5) {
+    return getWinProbability(team0Heroes, team1Heroes, map, tier, draftData)
+  }
+  return getPartialProjection(team0Heroes, team1Heroes, map, tier, lastActionIdx, draftData)
 }
 
 // Temporary test export (feature-parity harness; safe to keep, tree-shaken in prod)
