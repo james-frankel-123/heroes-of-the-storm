@@ -6,6 +6,7 @@ import { getHeroRole } from '@/lib/data/hero-roles'
 import { heroImageSrc } from '@/lib/data/hero-images'
 import { RoleBadge } from '@/components/shared/role-badge'
 import { cn } from '@/lib/utils'
+import { compactLabel } from '@/lib/draft/assignments'
 
 interface DraftBoardProps {
   state: DraftState
@@ -191,6 +192,7 @@ function TeamRow({
               {hero && (isOurs || options.length > 0 || playerAssignments[stepIdx]) && (
                 <select
                   aria-label={`Player on ${hero}`}
+                  title={playerAssignments[stepIdx] ? labelOf(playerAssignments[stepIdx]) : undefined}
                   value={playerAssignments[stepIdx] ?? ''}
                   onChange={(e) => {
                     onAssignPlayer(stepIdx, e.target.value || '')
@@ -208,7 +210,8 @@ function TeamRow({
                   {/* Show currently assigned battletag + available ones */}
                   {playerAssignments[stepIdx] && (
                     <option value={playerAssignments[stepIdx]}>
-                      {labelOf(playerAssignments[stepIdx])}
+                      {/* the closed control shows this: compact so region and games stay readable */}
+                      {compactLabel(labelOf(playerAssignments[stepIdx]))}
                     </option>
                   )}
                   {options

@@ -31,3 +31,13 @@ describe('coach context (R3-08)', () => {
     expect(ctx.textBlock).toContain('+17.5 pp')
   })
 })
+
+describe('coach starter prompts (R5-03)', () => {
+  it('asks about the finished draft, not a top hero, at completion', async () => {
+    const { coachStarterPrompts } = await import('../ama/context')
+    const done = enrichDraftContext({ ...state, phase: 'complete', currentStep: 16 } as DraftState, [], data, null, 5, { rows: [], nowPct: 47.3 }).card
+    const prompts = coachStarterPrompts(done)
+    expect(prompts.some(p => /top/i.test(p))).toBe(false)
+    expect(prompts[2]).toContain('Haunted Mines')
+  })
+})

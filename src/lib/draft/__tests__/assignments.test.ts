@@ -60,3 +60,12 @@ describe('same-name accounts (R4-05)', () => {
     expect(assignOptionsFor('ours', ['Me#222'], [a]).map(o => o.label)).toEqual(['Me (party)', 'Me (Americas, 5 games)'])
   })
 })
+
+describe('compact closed labels (R5-02)', () => {
+  it('shortens region and games, leaves other labels alone', async () => {
+    const { compactLabel } = await import('../assignments')
+    expect(compactLabel('Max (Americas, 668 games)')).toBe('Max (AM 668g)')
+    expect(compactLabel('Max (Europe, 7 games) (not matched)')).toBe('Max (EU 7g) (not matched)')
+    expect(compactLabel('Me (party)')).toBe('Me (party)')
+  })
+})

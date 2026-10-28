@@ -90,3 +90,13 @@ export function assignOptionsFor(
   for (const p of shown) opts.push({ value: p.id, label: labels[p.id] })
   return opts
 }
+
+const REGION_ABBR: Record<string, string> = { Americas: 'AM', Europe: 'EU', Asia: 'AS', China: 'CN' }
+
+/**
+ * Compact form of a display label for the closed (narrow) select: "Max (Americas, 668 games)"
+ * becomes "Max (AM 668g)". The full label stays in the open list and the tooltip.
+ */
+export function compactLabel(label: string): string {
+  return label.replace(/\((Americas|Europe|Asia|China), (\d+) games\)/, (_m, r: string, g: string) => `(${REGION_ABBR[r]} ${g}g)`)
+}

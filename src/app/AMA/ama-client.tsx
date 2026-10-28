@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import type { DraftContextCard } from '@/lib/ama/context'
+import { coachStarterPrompts } from '@/lib/ama/context'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -91,14 +92,7 @@ const STARTER_PROMPTS_GENERIC = [
 
 function starterPrompts(card: DraftContextCard | null): string[] {
   if (!card || !card.map) return STARTER_PROMPTS_GENERIC
-  // sessions saved before topRecsSource existed hold the stats ranking
-  const topRec = card.topRecsSource === 'displayed' ? card.topRecs[0]?.hero : undefined
-  return [
-    topRec ? `Why is ${topRec} the top recommendation here?` : 'Why is the top hero recommended?',
-    'What is our team composition trying to accomplish?',
-    'What are the biggest threats in the enemy draft?',
-    'Is our current ban strategy sound?',
-  ]
+  return coachStarterPrompts(card)
 }
 
 export function AMAClient() {

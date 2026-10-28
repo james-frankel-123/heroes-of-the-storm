@@ -277,3 +277,25 @@ export function enrichDraftContext(
     card,
   }
 }
+
+/**
+ * Starter questions for the coach. A "why is X top" prompt only when the page shows a
+ * searched top pick; a finished draft gets questions about the composition and the game plan.
+ */
+export function coachStarterPrompts(card: DraftContextCard | null): string[] {
+  if (card && card.step >= card.totalSteps) {
+    return [
+      'What is our team composition trying to accomplish?',
+      'What are the biggest threats in the enemy draft?',
+      `What should our game plan be on ${card.map ?? 'this map'}?`,
+      'Which enemy hero should we watch most closely?',
+    ]
+  }
+  const top = card?.topRecsSource === 'displayed' ? card.topRecs[0]?.hero : undefined
+  return [
+    top ? `Why is ${top} the top recommendation right now?` : 'What should we prioritize with this pick?',
+    'What is our team composition trying to do?',
+    'What are the biggest threats in the enemy draft?',
+    'Is our ban strategy sound given the enemy team?',
+  ]
+}

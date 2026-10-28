@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import type { EnrichedDraftContext } from '@/lib/ama/context'
+import { coachStarterPrompts } from '@/lib/ama/context'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -15,12 +16,6 @@ interface AMADrawerProps {
   draftContext: EnrichedDraftContext | null
 }
 
-const STARTER_PROMPTS = (topRec: string | undefined) => [
-  topRec ? `Why is ${topRec} the top recommendation right now?` : 'Why is the top hero recommended here?',
-  'What is our team composition trying to do?',
-  'What are the biggest threats in the enemy draft?',
-  'Is our ban strategy sound given the enemy team?',
-]
 
 interface ExpandPopup {
   x: number
@@ -347,7 +342,7 @@ export function AMADrawer({ open, onClose, draftContext }: AMADrawerProps) {
               {!card?.map && ' Load a draft first for context-aware answers.'}
             </p>
             <div className="space-y-2">
-              {STARTER_PROMPTS(card?.topRecsSource === 'displayed' ? card.topRecs[0]?.hero : undefined).map((prompt) => (
+              {coachStarterPrompts(card ?? null).map((prompt) => (
                 <button
                   key={prompt}
                   onClick={() => sendMessage(prompt)}

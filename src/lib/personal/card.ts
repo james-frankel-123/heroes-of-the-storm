@@ -24,6 +24,8 @@ interface Artifact {
     cover80: { v2: number; oot: number }
     /** Anchored check of the display band (band version anchored_v1 and later). */
     band?: { realizedOverClaimed: { v2: number; oot: number }; cover80ByGamesRange: [number, number]; horizonGames: number }
+    /** Scored once, no refit, on games after the freeze that no modelling choice used (P3_POSTFREEZE.md) */
+    postFreeze?: { accuracy: number; games: number; from: string; to: string; patch: string; build: string; note: string }
   }
 }
 

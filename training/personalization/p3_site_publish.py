@@ -656,6 +656,19 @@ def check(a):
     assert out["band_sd_minus_base_sd_max"] is None or out["band_sd_minus_base_sd_max"] > 2 / SD_SCALE
 
 
+def post_freeze_block():
+    """Post-freeze confirmation for the site (P3_POSTFREEZE.md): the definitive build scored once,
+    without refit, on games after the freeze that no modelling choice used. None if not run."""
+    path = os.path.join(HERE, "results", "def_pf1027", "pf_report.json")
+    if not os.path.exists(path):
+        return None
+    r = json.load(open(path))
+    day = lambda d: (datetime.date(1970, 1, 1) + datetime.timedelta(days=int(d))).isoformat()
+    return {"accuracy": round(float(r["arms"]["chosen"]["acc"]), 4), "games": int(r["games"]),
+            "from": day(r["days"][0]), "to": day(r["days"][1]), "patch": "2.57", "build": r["frozen_from"],
+            "note": "scored once with no refit; no modelling choice used these games (P3_POSTFREEZE.md)"}
+
+
 def artifact(a):
     """src/lib/personal/model-artifact.json for the chosen model (hero order and roles kept)."""
     def_env(a.def_tag)
@@ -701,7 +714,8 @@ def artifact(a):
                    "offRoleShare": 0.1, "offRoleMinGames": 50,
                    "offRoleGainX1000": {k: off[k]["gain_x1000"] for k in ("V2", "OOT")}},
          "band": band_entry,
-         "validation": dict({"accuracy": acc, "cover80": cover}, **({"band": anchored} if anchored else {}))}
+         "validation": dict({"accuracy": acc, "cover80": cover}, **({"band": anchored} if anchored else {}),
+                            **({"postFreeze": pf} if (pf := post_freeze_block()) else {}))}
     with open(ARTIFACT, "w") as f:
         json.dump(A, f, indent=1)
         f.write("\n")

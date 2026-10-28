@@ -15,6 +15,7 @@ interface Validation {
   accuracy: { v2: number; oot: number }
   cover80: { v2: number; oot: number }
   band?: { realizedOverClaimed: { v2: number; oot: number }; cover80ByGamesRange: [number, number]; horizonGames: number }
+  postFreeze?: { accuracy: number; games: number; from: string; to: string; patch: string }
 }
 
 interface AccountResponse {
@@ -228,13 +229,30 @@ function Profile({
 
       <section className="space-y-1 text-sm text-muted-foreground">
         <h3 className="text-base font-semibold text-foreground">How far to trust this</h3>
+        {val.postFreeze ? (
+          <p>
+            We froze the model before patch {val.postFreeze.patch} and scored it once, without refitting, on{' '}
+            {val.postFreeze.games.toLocaleString()} Storm League games from {val.postFreeze.from} to {val.postFreeze.to}{' '}
+            that no modelling choice ever used (games with a hero the model does not know were left out): combined with
+            the draft, estimates like these for all ten players called the winner of{' '}
+            {(100 * val.postFreeze.accuracy).toFixed(1)}%. A real gain, and a reminder that the draft and the
+            players leave most of a game unexplained.
+          </p>
+        ) : (
+          <p>
+            Combined with the draft, estimates like these for all ten players called the winner of{' '}
+            {(100 * val.accuracy.v2).toFixed(1)}% of development-period games the model was not fit on. A real gain,
+            and a reminder that the draft and the players leave most of a game unexplained.
+          </p>
+        )}
         {val.band ? (
           <>
             <p>
               One game says little: a single win or loss is mostly noise. Each range is the model&apos;s 80% range for
               this player&apos;s underlying edge on that hero over roughly their next {val.band.horizonGames} games. The
-              edge itself cannot be observed, so we checked the ranges against what players went on to do in games the
-              model never saw, after allowing for the luck in any 10 games, and found their width about right. Ranges
+              edge itself cannot be observed, so we checked the ranges against what players went on to do in later
+              games the model was not fit on, after allowing for the luck in any 10 games, and found their width about
+              right. Those games were also looked at while we chose the model, so this check is from development. Ranges
               are wide for heroes a player has barely touched and never shrink below a few points, because form and
               patches move everyone.
             </p>
@@ -242,10 +260,10 @@ function Profile({
               <summary className="cursor-pointer">How we checked the ranges</summary>
               <p className="mt-1">
                 For each player and hero we froze the estimate and its range before a game, then compared them with the
-                player&apos;s average result over that game and the next {val.band.horizonGames - 1}. On later games
-                than the model was fit on, the spread of those results beyond game-to-game luck came to{' '}
+                player&apos;s average result over that game and the next {val.band.horizonGames - 1}. On later
+                development-period games that the model was not fit on but that we did read while choosing it, the spread of those results beyond game-to-game luck came to{' '}
                 {val.band.realizedOverClaimed.oot.toFixed(2)} times the variance the ranges claim (1.00 is exact;
-                {' '}{val.band.realizedOverClaimed.v2.toFixed(2)} on a second held-out set). Ranges widened by that
+                {' '}{val.band.realizedOverClaimed.v2.toFixed(2)} on a second development set). Ranges widened by that
                 same luck covered the observed averages {pct(val.cover80.oot)} of the time, between{' '}
                 {pct(val.band.cover80ByGamesRange[0])} and {pct(val.band.cover80ByGamesRange[1])} across players with
                 few and many games on the hero. These are checks on the ranges as a whole, not on any one player.
@@ -254,16 +272,11 @@ function Profile({
           </>
         ) : (
           <p>
-            One game says little: a single win or loss is mostly noise. The ranges are 80% ranges. Tested on games the
-            model never saw, the true value fell inside about {pct(val.cover80.v2)} of the
-            time, so roughly 1 range in 5 misses.
+            One game says little: a single win or loss is mostly noise. The ranges are 80% ranges. Tested on
+            development-period games the model was not fit on, the true value fell inside about {pct(val.cover80.v2)} of
+            the time, so roughly 1 range in 5 misses.
           </p>
         )}
-        <p>
-          Combined with the draft, estimates like these for all ten players called the winner of{' '}
-          {(100 * val.accuracy.v2).toFixed(1)}% of held-out games. A real gain, and a
-          reminder that the draft and the players leave most of a game unexplained.
-        </p>
         <p>
           These estimates come from our own replay data. Names and game counts are updated weekly; skill estimates
           are refreshed when we rebuild the model&apos;s data. Private Heroes Profile accounts are
