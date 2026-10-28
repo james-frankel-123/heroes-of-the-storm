@@ -23,6 +23,9 @@ export interface PersonalPlayer {
   label: string
   /** Full BattleTag when known (party members), to match registered-tag assignments */
   tag?: string
+  /** Shown only to tell same-name accounts apart (region name, games in our data) */
+  regionName?: string
+  games?: number
   /** Hero name -> s(p, h) (win-probability units) */
   s: Record<string, number>
   /** Hero name -> off-role flag */

@@ -21,6 +21,7 @@ import {
 } from '@/lib/utils'
 import type { HeroMapStats, PlayerMatch, SkillTier } from '@/lib/types'
 import { useReturnFocus } from '@/components/ui/use-return-focus'
+import { SortHeader } from '@/components/shared/sort-header'
 
 type SortField = 'hero' | 'winRate' | 'games'
 
@@ -114,32 +115,7 @@ export function MapDetailModal({
     }
   }
 
-  const SortHeader = ({
-    field,
-    children,
-    className,
-  }: {
-    field: SortField
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <th
-      className={cn(
-        'px-3 py-2 text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none',
-        className
-      )}
-      onClick={() => handleSort(field)}
-    >
-      <span className="inline-flex items-center gap-1">
-        {children}
-        {sortField === field && (
-          <span className="text-primary">
-            {sortAsc ? '\u25B2' : '\u25BC'}
-          </span>
-        )}
-      </span>
-    </th>
-  )
+  const sortProps = { sortField, sortAsc, onSort: handleSort }
 
   // Aggregate personal match data per hero per battletag on this map
   const personalHeroBreakdown = useMemo(() => {
@@ -224,16 +200,16 @@ export function MapDetailModal({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <SortHeader field="hero" className="text-left">
+                    <SortHeader {...sortProps} field="hero" className="text-left">
                       Hero
                     </SortHeader>
                     <th className="px-3 py-2 text-xs font-medium text-muted-foreground text-left">
                       Role
                     </th>
-                    <SortHeader field="winRate" className="text-right">
+                    <SortHeader {...sortProps} field="winRate" className="text-right">
                       Win %
                     </SortHeader>
-                    <SortHeader field="games" className="text-right">
+                    <SortHeader {...sortProps} field="games" className="text-right">
                       Games
                     </SortHeader>
                   </tr>

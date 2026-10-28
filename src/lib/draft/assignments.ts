@@ -49,6 +49,25 @@ export interface AssignOption {
 }
 
 /**
+ * Display names for players, told apart when several share a visible name: region and games
+ * in our data (what the confirmation cards already showed), never a #number the user did
+ * not type. Ids stay the identity.
+ */
+export function displayLabels(players: PersonalPlayer[], alsoTaken: string[] = []): Record<string, string> {
+  const count = new Map<string, number>()
+  const bump = (l: string) => count.set(l.toLowerCase(), (count.get(l.toLowerCase()) ?? 0) + 1)
+  alsoTaken.forEach(bump)
+  players.forEach(p => bump(p.label))
+  const out: Record<string, string> = {}
+  for (const p of players) {
+    const clash = (count.get(p.label.toLowerCase()) ?? 0) > 1
+    const detail = [p.regionName, p.games !== undefined ? `${p.games} games` : undefined].filter(Boolean).join(', ')
+    out[p.id] = clash && detail ? `${p.label} (${detail})` : p.label
+  }
+  return out
+}
+
+/**
  * Options for one team's selects: every assignable player of that team, whether or not
  * they already have a hero (picking them again moves them). Ours: registered party tags,
  * then matched teammates not already listed by tag. Theirs: matched enemies.
@@ -58,11 +77,16 @@ export function assignOptionsFor(
   registeredTags: string[],
   players: PersonalPlayer[],
 ): AssignOption[] {
-  const opts: AssignOption[] = side === 'ours' ? registeredTags.map(bt => ({ value: bt, label: bt.split('#')[0] })) : []
-  const listed = new Set(registeredTags.map(t => t.toLowerCase()))
-  for (const p of players) {
-    if (side === 'ours' && p.tag && listed.has(p.tag.toLowerCase())) continue
-    opts.push({ value: p.id, label: p.label })
-  }
+  const tags = side === 'ours' ? registeredTags : []
+  const listed = new Set(tags.map(t => t.toLowerCase()))
+  const shown = players.filter(p => !(side === 'ours' && p.tag && listed.has(p.tag.toLowerCase())))
+  const tagNames = tags.map(bt => bt.split('#')[0])
+  const labels = displayLabels(shown, tagNames)
+  const clashWithParty = new Set(shown.map(p => p.label.toLowerCase()))
+  const opts: AssignOption[] = tags.map((bt, i) => ({
+    value: bt,
+    label: clashWithParty.has(tagNames[i].toLowerCase()) ? `${tagNames[i]} (party)` : tagNames[i],
+  }))
+  for (const p of shown) opts.push({ value: p.id, label: labels[p.id] })
   return opts
 }

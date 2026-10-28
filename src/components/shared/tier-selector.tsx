@@ -17,10 +17,12 @@ interface TierSelectorProps {
 
 export function TierSelector({ value, onChange, className }: TierSelectorProps) {
   return (
-    <div className={cn('flex items-center gap-1 p-1 rounded-lg bg-muted', className)}>
+    <div role="group" aria-label="Skill tier" className={cn('flex items-center gap-1 p-1 rounded-lg bg-muted', className)}>
       {TIER_CONFIG.map((tier) => (
         <button
           key={tier.value}
+          type="button"
+          aria-pressed={value === tier.value}
           onClick={() => onChange(tier.value)}
           className={cn(
             'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',

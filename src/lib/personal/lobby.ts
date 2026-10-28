@@ -49,7 +49,7 @@ export function accountKey(a: { region: number; name: string; discriminator: num
 
 export function toPlayer(a: AccountSummary & { draft: DraftTerms; tag?: string }): PersonalPlayer {
   const d = a.draft
-  return { id: accountKey(a), label: a.name, tag: a.tag, s: d.s, offRole: d.offRole, b2: d.b2, b3: d.b3 }
+  return { id: accountKey(a), label: a.name, tag: a.tag, regionName: a.regionName, games: a.games, s: d.s, offRole: d.offRole, b2: d.b2, b3: d.b3 }
 }
 
 export const slotKey = (side: Side, i: number) => `${side}${i}`

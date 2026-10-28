@@ -109,20 +109,22 @@ export function SearchRecommendationPanel({
     : []
   const isEmpty = isOurTurn ? ourRowsShown.length === 0 : oppRowsShown.length === 0
 
+  // Secondary rows (not searched / not from the opponent model) get a dashed border and a
+  // dimmed portrait; their text stays at full contrast (no opacity on the whole row)
   const rowButtonClass = (isGreedyPad: boolean) => cn(
     'w-full text-left px-3 py-2 rounded border transition-all',
     'hover:scale-[1.01] active:scale-[0.99]',
-    isGreedyPad && 'opacity-60',
+    isGreedyPad && 'border-dashed',
     isBanPhase
       ? 'border-[#3a2222] bg-[#0a0d1f]/40 hover:border-[#d46b6b]/60 hover:bg-[#d46b6b]/10'
       : 'border-[#3a4050] bg-[#0a0d1f]/40 hover:border-[#6b8dd4]/60 hover:bg-[#6b8dd4]/10'
   )
 
-  const heroCell = (hero: string) => {
+  const heroCell = (hero: string, dim = false) => {
     const role = getHeroRole(hero)
     return (
       <div className="flex items-center gap-2 min-w-0">
-        <div className="relative w-9 h-9 shrink-0">
+        <div className={cn('relative w-9 h-9 shrink-0', dim && 'opacity-60')}>
           <div className="absolute inset-0" style={{ clipPath: HEX_CLIP, background: METALLIC_FRAME }} />
           <div className="absolute inset-[1.5px] bg-[#0a0d1f] overflow-hidden" style={{ clipPath: HEX_CLIP }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -198,7 +200,7 @@ export function SearchRecommendationPanel({
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
-                  {heroCell(rec.hero)}
+                  {heroCell(rec.hero, rec.isGreedyPad)}
                   {rec.isAiTop && (
                     <span
                       className="shrink-0 rounded border border-[#6b8dd4]/50 px-1 py-px text-[9px] font-medium tracking-wide text-[#6b8dd4]"
@@ -211,7 +213,7 @@ export function SearchRecommendationPanel({
                 </div>
                 {rec.isGreedyPad ? (
                   <div
-                    className="text-right shrink-0 text-[10px] text-[#8b9bc8]"
+                    className="text-right shrink-0 text-[11px] text-[#b4c0e4]"
                     title="The search did not evaluate this hero; it is listed from hero statistics or a matched player's pool, with no projected win chance"
                   >
                     Not searched
@@ -259,7 +261,7 @@ export function SearchRecommendationPanel({
               onClick={() => onSelect(rec.hero)}
             >
               <div className="flex items-center justify-between">
-                {heroCell(rec.hero)}
+                {heroCell(rec.hero, rec.probabilityPct == null)}
                 <div className="text-right shrink-0">
                   {rec.probabilityPct != null ? (
                     <div title="How likely the enemy is to take this hero next (opponent model trained on real drafts)">

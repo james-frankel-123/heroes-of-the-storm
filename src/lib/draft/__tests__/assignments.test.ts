@@ -44,3 +44,19 @@ describe('enemy pins reach the estimate', () => {
     expect(pinned).toBeGreaterThan(free)
   })
 })
+
+describe('same-name accounts (R4-05)', () => {
+  it('tells apart accounts that share a visible name, without a hidden #number', () => {
+    const a = { ...player('1:max#1', 'Max'), regionName: 'Americas', games: 668 }
+    const b = { ...player('2:max#2', 'Max'), regionName: 'Europe', games: 7 }
+    const c = { ...player('1:solo#3', 'Solo'), regionName: 'Americas', games: 12 }
+    const opts = assignOptionsFor('ours', [], [a, b, c])
+    expect(opts.map(o => o.label)).toEqual(['Max (Americas, 668 games)', 'Max (Europe, 7 games)', 'Solo'])
+    for (const o of opts) expect(o.label).not.toMatch(/#/)
+  })
+
+  it('marks a party member whose name a matched player shares', () => {
+    const a = { ...player('1:me#9', 'Me'), regionName: 'Americas', games: 5 }
+    expect(assignOptionsFor('ours', ['Me#222'], [a]).map(o => o.label)).toEqual(['Me (party)', 'Me (Americas, 5 games)'])
+  })
+})

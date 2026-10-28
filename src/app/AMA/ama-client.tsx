@@ -125,9 +125,8 @@ export function AMAClient() {
   const refreshContext = () => {
     try {
       const raw = sessionStorage.getItem('ama-draft-context')
-      if (raw) {
-        setStoredContext(JSON.parse(raw) as StoredContext)
-      }
+      // no stored draft (reset or never started): drop the old one rather than keep showing it
+      setStoredContext(raw ? (JSON.parse(raw) as StoredContext) : null)
     } catch {
       // ignore
     }

@@ -12,6 +12,7 @@ import {
   getWinRateColor,
 } from '@/lib/utils'
 import type { HeroStats } from '@/lib/types'
+import { SortHeader } from '@/components/shared/sort-header'
 
 /** Extended hero row with optional personal fields */
 export interface HeroRow extends HeroStats {
@@ -42,40 +43,6 @@ interface HeroTableProps {
   onHeroClick: (hero: string) => void
   /** When true, show MAWP + KDA columns instead of Pick% + Ban% */
   personal?: boolean
-}
-
-interface SortHeaderProps {
-  field: SortField
-  children: React.ReactNode
-  className?: string
-  sortField: SortField
-  sortAsc: boolean
-  onSort: (field: SortField) => void
-}
-
-// Module scope: a component declared inside HeroTable would be a new type on every
-// render, remounting the header button and dropping keyboard focus after a sort.
-function SortHeader({ field, children, className, sortField, sortAsc, onSort }: SortHeaderProps) {
-  return (
-    <th
-      className={cn(
-        'px-3 py-2 text-xs font-medium text-muted-foreground select-none whitespace-nowrap',
-        className
-      )}
-      aria-sort={sortField === field ? (sortAsc ? 'ascending' : 'descending') : 'none'}
-    >
-      <button
-        type="button"
-        onClick={() => onSort(field)}
-        className="inline-flex items-center gap-1 hover:text-foreground"
-      >
-        {children}
-        {sortField === field && (
-          <span className="text-primary" aria-hidden="true">{sortAsc ? '\u25B2' : '\u25BC'}</span>
-        )}
-      </button>
-    </th>
-  )
 }
 
 export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
