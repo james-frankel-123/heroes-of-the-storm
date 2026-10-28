@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   if (!p) return NextResponse.json({ error: 'Enter a full BattleTag, like Name#1234.' }, { status: 400 })
   const accounts = await byTag(p.name, p.discriminator)
   return NextResponse.json(
-    { through: await dataThrough(), accounts, validation: ARTIFACT.validation },
+    { through: await dataThrough(), estimatesAsOf: ARTIFACT.estimatesAsOf, accounts, validation: ARTIFACT.validation },
     { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } },
   )
 }

@@ -2,52 +2,65 @@
 Offline player cards and name index for the site (docs/personalization-site-design.md).
 
 The website never calls Heroes Profile. Everything it shows about a player is
-computed here, on the main box, from our research store, then published:
+computed here, on the main box, from our research store, then published.
 
-  build     read the merged history store (corpus plus the Heroes Profile
-            history pull: cache/full_history/<tag>/history.npz) plus the
-            site's post-cap corpus rows (below), pick every account with a
-            game in the last WINDOW days of that data, compute
-            its per-hero estimates with the exported model
-            (src/lib/personal/model-artifact.json; the main model where the
-            account has corpus scoreboard rows, else imp2), read its latest
-            visible name, discriminator and MMR from the local research DB,
-            drop accounts that are private in player_privacy, and write
-            cache/site/accounts.npz plus a size report.
+Model: the paper's definitive chosen shrinkage model (P3_SHRINKAGE.md; build
+def1027, results/def_def1027/P3_DEFINITIVE_def1027.md). The cards hold the
+answers of its state writer (p3_rcf_states.py, half 0 = the drafter fit
+"chosen") as of the last day of the store, unfiltered: s for all 90 heroes
+and the display band sd_display = sqrt(s2 (1 + exp(-games / 10))).
+
+Stages (run_site_publish.sh runs them in this order):
+  build     (numpy + psycopg2) read the merged history store
+            (cache/full_history/<store>/history.npz) plus the site's post-cap
+            corpus rows (below), pick every account with a game in the last
+            WINDOW days, read its latest visible name, discriminator and MMR
+            from the local research DB, drop private accounts, and write
+            cache/site/pre.npz and the state writer's query file.
+  states    (numpy + numba, the def env: personalization/remote/def_env.sh)
+            p3_rcf_states.answer on that query file.
+  encode    cards from pre.npz and the answers: cache/site/accounts.npz and a
+            size report.
+  check     (def env) fresh state-writer answers for random published
+            accounts must equal the decoded cards (s within the card's 1e-4
+            quantization, the band within 1e-3, the band being sd_display);
+            writes results/site_publish_check.json (errors only, no ids).
   load      replace the local table personal_accounts with the build (one
             transaction). sync/publish-site.ts then pushes it to Neon with
             the other site tables (it is in SITE_TABLES).
+  artifact  (def env) src/lib/personal/model-artifact.json: the draft
+            combiner refit with the off-role term (p3_site_offrole.py on
+            the chosen arm) and the validation numbers the page quotes.
   simulate  name-matching accuracy on held-out lobbies (store data only).
-  check     the batched build against the research reference functions.
+  fixture   synthetic cards for src/lib/personal/__tests__.
 
-Data rules. The research store holds no game from 2026-09-28 on (the P3
-snapshot cap, which the research reruns keep). The site adds, here only, the
-corpus games from that date on (the 2.57 builds), read from the local DB with
-the 5,000 sealed replays (training/replays/cohorts/sealed_ids.txt) excluded
-at the query; every other row set is filtered against the same list. Post-cap
-rows carry no scoreboard (the a_shrink card covers the capped export), so they
-enter the win channel and the counts only. --research-cap builds without
-them. Battletags are read from the local store at build time and go only to
-the local table and Neon, never to the repo.
+Data rules. The research store holds no game from its cap on (2026-09-28 for
+def1027). The site adds, here only, the corpus games from that date on (the
+2.57 builds), read from the local DB with the 5,000 sealed replays
+(training/replays/cohorts/sealed_ids.txt) excluded at the query; every other
+row set is filtered against the same list. Post-cap rows only feed the game
+counts, last played, the recent-games filter and the name index: the model's
+estimates are as of the store's last day, because the state writer reads the
+definitive build's caches. Battletags are read from the local store at build
+time and go only to the local table and Neon, never to the repo.
 
-Card format (bytea, little endian), version 1:
-  u8 version, u8 model (1 main, 2 imp2), u32 games,
-  3 x f32 factor mean a_hat of the draft model (s for unplayed heroes is
-      offset(games, 0) + U_h . a_hat; see src/lib/personal/card.ts),
-  u8 k, then k played heroes, each:
-      u8 hero, u16 games, u16 last played (days since 2014-01-01),
-      i16 display mean (0.01 pp), u8 display sd (0.1 pp), i16 draft s (0.01 pp)
-  u8 j, then j never-played suggestions: u8 hero, i16 mean (0.01 pp), u8 sd (0.1 pp)
+Card format (bytea, little endian), version 2:
+  u8 version, u8 model (3 = chosen shrinkage model), u32 games,
+  90 x i16 s for every hero in model-artifact heroNames order (0.01 pp),
+  u8 k, then k played heroes (most games first), each:
+      u8 hero, u16 games, u16 last played (days since 2014-01-01), u8 band sd (0.1 pp)
+  u8 j, then j never-played suggestions (highest s first): u8 hero, u8 band sd (0.1 pp)
+The displayed estimate of a hero is s; its 80% band is s +- 1.2816 sd.
 
-Usage (from training/, source ../.env; numpy and psycopg2, no torch or numba):
+Usage (from training/, source ../.env):
   nice -n 19 taskset -c 48-51 python3 personalization/p3_site_publish.py build
-  python3 personalization/p3_site_publish.py load
-  nice -n 19 taskset -c 48-51 python3 personalization/p3_site_publish.py simulate
+  (. personalization/remote/def_env.sh $PWD def1027; python3 personalization/p3_site_publish.py states)
 """
 import argparse
 import datetime
 import json
 import os
+import shutil
 import struct
 import sys
 import time
@@ -57,149 +70,57 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 ARTIFACT = os.path.join(ROOT, "src", "lib", "personal", "model-artifact.json")
-PARAMS = os.path.join(HERE, "results", "rcf_full", "params", "full_ms.npz")
-SB_IDX = os.path.join(HERE, "cache", "rcf", "site_sb_by_blizz")
 OUT = os.path.join(HERE, "cache", "site")
+QDIR = os.path.join(OUT, "states_q")
+ADIR = os.path.join(OUT, "states_a")
 REGION_SHIFT = 40
 DAY = 86400
 EPOCH14 = (datetime.date(2014, 1, 1) - datetime.date(1970, 1, 1)).days
-CARD_VERSION = 1
+CARD_VERSION = 2
+MODEL_CHOSEN = 3
+DEF_TAG = "def1027"
 H = 90
+S_SCALE = 1e4          # s in 0.01 pp
+SD_SCALE = 1e3         # band sd in 0.1 pp
 
 
 def log(msg):
     print(f"[{datetime.datetime.now():%H:%M:%S}] {msg}", flush=True)
 
 
-# ------------------------------------------------------------------ model pieces
+def hero_names():
+    return list(json.load(open(ARTIFACT))["heroNames"])
 
-class Model:
-    def __init__(self):
-        A = json.load(open(ARTIFACT))
-        self.A = A
-        self.names = A["heroNames"]
-        self.ms_U = np.array(A["main"]["U"])
-        self.ms_s2 = np.array(A["main"]["s2"])
-        self.im_U = np.array(A["imp2"]["U"])
-        self.im_s2 = np.array(A["imp2"]["s2"])
-        self.W = np.array(A["imp2"]["W"])
-        self.zmean = np.array(A["imp2"]["zmean"])
-        self.zsd = np.array(A["imp2"]["zsd"])
-        self.exp = np.array(A["expTable"])
-        self.npe = np.array(A["npEdges"])
-        self.nphe = np.array(A["nphEdges"])
-        self.ptab = np.array(A["proxy"]["table"])
-        self.pbase = np.array(A["proxy"]["base"])
-        self.q0 = A["proxy"]["q0"]
-        self.vol = np.array(A["main"]["volParams"])
-        self.vol_edges = np.array(A["main"]["volEdges"])
-        self.sc_disp = A["main"]["scaleNoLayer"]
-        self.sc_imp = A["imp2"]["scale"]
-        p = np.load(PARAMS)
-        self.G, self.c, self.rho2, self.eps2 = (p[k].astype(np.float64) for k in ("G", "c", "rho2", "eps2"))
-        assert np.allclose(p["U"], self.ms_U), "full_ms params do not match the artifact"
-
-    def offset(self, n_p, n_ph):
-        a = np.searchsorted(self.npe, n_p, side="right") - 1
-        b = np.searchsorted(self.nphe, n_ph, side="right") - 1
-        return self.exp[a * len(self.nphe) + b]
-
-    def proxy(self, hero, day):
-        m = day.astype("datetime64[D]").astype("datetime64[M]").astype(np.int64)
-        q = m // 3
-        nq = self.ptab.shape[1]
-        out = self.ptab[hero, np.clip(q - self.q0, 0, nq - 1)]
-        out = np.where(q < self.q0, self.pbase[hero], out)
-        return np.clip(out, 0.2, 0.8)
-
-    def zfeat(self, N):
-        L = np.log1p(N)
-        tot = L.sum(1, keepdims=True)
-        s = np.where(tot > 0, L / np.maximum(tot, 1e-9), 0.0)
-        F = np.concatenate([s, np.log1p(N.sum(1, keepdims=True))], 1)
-        Z = ((F - self.zmean) / self.zsd).astype(np.float32).astype(np.float64)
-        Z[tot[:, 0] <= 0] = 0.0
-        return Z
-
-    def metric_evidence(self, X, C):
-        """(n, H, M) metric sums -> Lam_m (n, K, K), eta_m (n, K) (p3_site_export.evidence, batched)."""
-        wm = C / (self.rho2[None, None, :] * C + self.eps2[None, None, :])
-        xb = np.where(C > 0, X / np.maximum(C, 1e-9), 0.0) - self.c.T[None]
-        G = np.transpose(self.G, (1, 0, 2))                       # (H, M, K)
-        Lam = np.einsum("nhm,hmk,hml->nkl", wm, G, G, optimize=True)
-        eta = np.einsum("nhm,hmk->nk", wm * xb, G, optimize=True)
-        return Lam, eta
-
-
-def factor_post(U, s2, S, P, Lam_extra=None, eta_extra=None):
-    """Batched posterior pieces (p3_rcf.posterior): Lam, eta, Linv, ahat, w, wy."""
-    n = S.shape[0]
-    K = U.shape[1]
-    den = 1.0 + s2[None] * P
-    w = P / den
-    wy = S / den
-    Lam = np.einsum("nh,hk,hl->nkl", w, U, U, optimize=True) + np.eye(K)[None]
-    eta = wy @ U
-    if Lam_extra is not None:
-        Lam = Lam + Lam_extra
-    if eta_extra is not None:
-        eta = eta + eta_extra
-    Linv = np.linalg.inv(Lam)
-    ahat = np.einsum("nkl,nl->nk", Linv, eta)
-    return Lam, eta, Linv, ahat, w, wy
-
-
-def all_heroes(U, s2, Linv, ahat, w, wy):
-    a = 1.0 - s2[None] * w
-    mean = a * (ahat @ U.T) + s2[None] * wy
-    q = np.einsum("hk,nkl,hl->nh", U, Linv, U, optimize=True)
-    var = a * a * q + s2[None] * a
-    return mean, var
-
-
-def vol_post(M, m0, v0, Sh, Ph, nh, npl):
-    """p3_rcf_tails.post, card "vol", for many (player, hero) pairs."""
-    b = np.searchsorted(M.vol_edges, nh, side="right") - 1
-    b = b * 2 + ((nh / np.maximum(npl, 1)) >= 0.2).astype(int)
-    xg = np.linspace(-10, 10, 401)
-    out_m = np.empty(len(m0))
-    out_v = np.empty(len(m0))
-    for i0 in range(0, len(m0), 50000):
-        sl = slice(i0, i0 + 50000)
-        mu = M.vol[b[sl]][:, None]
-        s = np.exp(M.vol[10 + b[sl]])[:, None]
-        s0 = np.sqrt(np.maximum(v0[sl], 1e-10))[:, None]
-        P = Ph[sl][:, None]
-        yb = np.where(P > 0, Sh[sl][:, None] / np.maximum(P, 1e-12), 0.0)
-        th = m0[sl][:, None] + s0 * xg[None]
-        lw = -0.5 * ((xg[None] - mu) / s) ** 2 - np.log(s) + np.where(P > 0, -0.5 * P * (yb - th) ** 2, 0.0)
-        lw -= lw.max(1, keepdims=True)
-        wgt = np.exp(lw)
-        wgt /= wgt.sum(1, keepdims=True)
-        out_m[sl] = (wgt * th).sum(1)
-        out_v[sl] = (wgt * th * th).sum(1) - out_m[sl] ** 2
-    return out_m, out_v
-
-
-def lag1(day, key):
-    """Rows (any order) -> number of rows with the same key on EARLIER days."""
-    o = np.lexsort((day, key))
-    k, d = key[o], day[o]
-    ar = np.arange(len(o))
-    grp = np.maximum.accumulate(np.where(np.r_[True, k[1:] != k[:-1]], ar, 0))
-    blk = np.maximum.accumulate(np.where(np.r_[True, (k[1:] != k[:-1]) | (d[1:] != d[:-1])], ar, 0))
-    out = np.empty(len(o), np.int64)
-    out[o] = blk - grp
-    return out
-
-
-# ------------------------------------------------------------------ store
 
 def load_store(tag):
     z = np.load(os.path.join(HERE, "cache", "full_history", tag, "history.npz"))
     meta = json.load(open(os.path.join(HERE, "cache", "full_history", tag, "meta.json")))
     return z, meta
 
+
+def def_env(tag):
+    """The state writer reads the definitive build's caches through these variables."""
+    got = os.environ.get("P3_RESULTS", "")
+    assert os.environ.get("DEF_TAG") == tag and os.path.basename(os.path.normpath(got)) == f"def_{tag}" \
+        and os.path.isdir(got), f"source personalization/remote/def_env.sh <training dir> {tag} first (P3_RESULTS={got!r})"
+
+
+def states_module():
+    sys.path.insert(0, os.path.dirname(HERE))
+    import p3_rcf_states as RS
+    from shared import HEROES
+    assert len(HEROES) == H, "shared.HEROES must be the v1 set (unset HOTS_HERO_SET)"
+    assert RS.ARMS[0][0] == "chosen", f"half 0 must be the chosen arm, got {RS.ARMS[0]}"
+    return RS, list(HEROES)
+
+
+def to_names_order(arr, sh_heroes, names):
+    """state-writer columns (shared.HEROES order) -> model-artifact heroNames order"""
+    perm = np.array([sh_heroes.index(n) for n in names])
+    return arr[:, perm]
+
+
+# ------------------------------------------------------------------ store rows
 
 SEALED = os.path.join(os.path.dirname(HERE), "replays", "cohorts", "sealed_ids.txt")
 
@@ -211,7 +132,7 @@ def sealed_ids():
     return ids
 
 
-def post_cap_rows(cap_ts, sealed, M):
+def post_cap_rows(cap_ts, sealed, names):
     """Site only: corpus Storm League rows of games from the store cap on (the 2.57 builds),
     excluding the sealed replays at the query. The research store and its cap are untouched.
     No scoreboard for these rows (the a_shrink card covers the capped export only), so they
@@ -231,7 +152,7 @@ def post_cap_rows(cap_ts, sealed, M):
           AND NOT (d.replay_id = ANY(%s))""", (hi, [int(x) for x in sealed]))
     rows = cur.fetchall()
     con.close()
-    hidx = {n: i for i, n in enumerate(M.names)}
+    hidx = {n: i for i, n in enumerate(names)}
     rid = np.array([r[0] for r in rows], np.int64)
     key = np.array([(int(r[2] or 0) << REGION_SHIFT) | int(r[1]) for r in rows], np.int64)
     hero = np.array([hidx.get(r[3], -1) for r in rows], np.int64)
@@ -247,13 +168,13 @@ def post_cap_rows(cap_ts, sealed, M):
     return out
 
 
-def site_rows(z, cap_ts, window_days, M, post=None, sealed=None):
+def site_rows(z, cap_ts, window_days, names, post=None, sealed=None):
     """Store rows (before the research cap) plus the site's post-cap rows; accounts with a game
     in the last window_days of the combined data; known heroes only."""
     ptr = z["ptr"]
     keys = z["keys"]
     kidx = np.repeat(np.arange(len(keys)), np.diff(ptr))
-    hmap = np.array([M.names.index(str(h)) if str(h) in M.names else -1 for h in z["hero_names"]])
+    hmap = np.array([names.index(str(h)) if str(h) in names else -1 for h in z["hero_names"]])
     h0 = z["hero"]
     hero = np.where(h0 >= 0, hmap[np.maximum(h0, 0)], -1)
     end = z["end_ts"]
@@ -284,137 +205,177 @@ def site_rows(z, cap_ts, window_days, M, post=None, sealed=None):
 
 # ------------------------------------------------------------------ build
 
-def compute_cards(M, R, chunk=10000):
+def query_arrays(keys, as_of):
+    """Unfiltered queries of the drafter half (p3_rcf_states.QFIELDS)."""
+    q = len(keys)
+    return {"player_key": np.asarray(keys, np.int64), "as_of_day": np.full(q, as_of, np.int32),
+            "ev_lo": np.full(q, -1, np.int32), "ev_parity": np.zeros(q, np.int8),
+            "exclude_lo": np.full(q, -1, np.int32), "exclude_hi": np.full(q, -1, np.int32),
+            "half": np.zeros(q, np.int8), "hero": np.full(q, -1, np.int16)}
+
+
+def build(a):
+    t0 = time.time()
+    names = hero_names()
+    z, meta = load_store(a.store)
+    cap = int(meta["cap_ts"])
+    sealed = sealed_ids()
+    post = None if a.research_cap else post_cap_rows(cap, sealed, names)
+    R = site_rows(z, cap, a.window, names, post, sealed)
+    end = z["end_ts"]
+    as_of = int(end[end < cap].max() // DAY)                   # the store's last day
+    through = datetime.datetime.fromtimestamp(R["end_max"], datetime.timezone.utc).date()
+    log(f"data through {through}; model estimates as of {datetime.date(1970, 1, 1) + datetime.timedelta(days=as_of)}")
     n = len(R["keys"])
-    acct, hero, day = R["acct"], R["hero"], R["day"]
-    log(f"accounts {n:,}, rows {len(acct):,}")
-    n_p = lag1(day, acct)
-    n_ph = lag1(day, acct * 128 + hero)
-    pr = M.proxy(hero, day)
-    r = R["win"] - pr
-    v = pr * (1 - pr)
-    r_adj = r - M.offset(n_p, n_ph)
-    cell = acct * H + hero
-    S = np.bincount(cell, weights=r_adj / v, minlength=n * H).reshape(n, H)
-    P = np.bincount(cell, weights=1 / v, minlength=n * H).reshape(n, H)
-    N = np.bincount(cell, minlength=n * H).reshape(n, H).astype(np.float64)
-    W_ = np.bincount(cell, weights=R["win"], minlength=n * H).reshape(n, H)
+    cell = R["acct"] * H + R["hero"]
+    N = np.bincount(cell, minlength=n * H).reshape(n, H)
     last = np.full(n * H, -1, np.int64)
-    np.maximum.at(last, cell, day)
+    np.maximum.at(last, cell, R["day"])
     last = last.reshape(n, H)
-    log("state built; joining corpus scoreboard rows")
-    # metric sums: corpus rows joined to the a_shrink card on (replay_id, blizz_id)
-    sb_bl = np.load(os.path.join(SB_IDX, "blizz_id.npy"), mmap_mode="r")
-    sb_rid = np.load(os.path.join(SB_IDX, "replay_id.npy"), mmap_mode="r")
-    sb_Z = np.load(os.path.join(SB_IDX, "Z.npy"), mmap_mode="r")
-    sb_W = np.load(os.path.join(SB_IDX, "W.npy"), mmap_mode="r")
-    comp = np.asarray(sb_rid) * (1 << 34) + np.asarray(sb_bl)       # rid < 2^27, blizz < 2^34: exact
-    so = np.argsort(comp)
-    cs = comp[so]
-    blz = R["keys"][acct] & ((1 << REGION_SHIFT) - 1)
-    assert int(blz.max()) < (1 << 34)
-    q = R["rid"] * (1 << 34) + blz
-    j = np.minimum(np.searchsorted(cs, q), len(cs) - 1)
-    hit = ((R["src"] & 1) > 0) & (cs[j] == q)
-    hrow = np.flatnonzero(hit)
-    sbrow = so[j[hit]]
-    log(f"scoreboard rows matched {len(hrow):,}")
-    Mm = sb_Z.shape[1]
-    has_m = np.bincount(acct[hrow], minlength=n) > 0
-    # per account outputs
-    model = np.where(has_m, 1, 2).astype(np.int8)
-    ahat_draft = np.zeros((n, 3))
-    disp_mean = np.zeros((n, H))
-    disp_sd = np.zeros((n, H))
-    draft_s = np.zeros((n, H))
-    sugg_mean = np.zeros((n, H))
-    sugg_sd = np.zeros((n, H))
-    ntot = N.sum(1)
-    order = np.argsort(acct[hrow], kind="stable")
-    hrow, sbrow = hrow[order], sbrow[order]
-    hacct = acct[hrow]
-    for i0 in range(0, n, chunk):
-        i1 = min(n, i0 + chunk)
-        sl = slice(i0, i1)
-        m = i1 - i0
-        off = M.offset(np.repeat(ntot[sl, None], H, 1).astype(np.int64), N[sl].astype(np.int64))
-        # imp2 (all accounts): cards without metrics and the never-played ranking
-        _, _, Li, ai, w, wy = factor_post(M.im_U, M.im_s2, S[sl], P[sl], eta_extra=M.zfeat(N[sl]) @ M.W.T)
-        mi, vi = all_heroes(M.im_U, M.im_s2, Li, ai, w, wy)
-        sc = M.sc_imp
-        sugg_mean[sl] = mi
-        sugg_sd[sl] = np.sqrt(sc["c"] * vi + sc["k0"] ** 2)
-        disp_mean[sl] = off + mi
-        disp_sd[sl] = sugg_sd[sl]
-        draft_s[sl] = off + mi
-        ahat_draft[sl] = ai
-        # main model where the account has scoreboard rows
-        a0, a1 = np.searchsorted(hacct, [i0, i1])
-        X = np.zeros((m, H, Mm))
-        C = np.zeros((m, H, Mm))
-        if a1 > a0:
-            la = hacct[a0:a1] - i0
-            hh = hero[hrow[a0:a1]]
-            sr = np.sort(sbrow[a0:a1])
-            inv = np.argsort(np.argsort(sbrow[a0:a1]))
-            Zr = np.asarray(sb_Z[sr]).astype(np.float64)[inv]
-            Wr = np.asarray(sb_W[sr]).astype(np.float64)[inv]
-            for k in range(Mm):
-                x = Zr[:, k]
-                g = ~np.isnan(x)
-                X[:, :, k] = np.bincount(la[g] * H + hh[g], weights=(Wr * x)[g], minlength=m * H).reshape(m, H)
-                C[:, :, k] = np.bincount(la[g] * H + hh[g], weights=Wr[g], minlength=m * H).reshape(m, H)
-        sel = np.flatnonzero(has_m[sl])
-        if len(sel):
-            Lm, em = M.metric_evidence(X[sel], C[sel])
-            Ss, Ps = S[sl][sel], P[sl][sel]
-            Lam, eta, Lg, ag, w, wy = factor_post(M.ms_U, M.ms_s2, Ss, Ps, Lm, em)
-            mg, vg = all_heroes(M.ms_U, M.ms_s2, Lg, ag, w, wy)
-            ok = off[sel]
-            draft_s[i0 + sel] = ok + mg
-            ahat_draft[i0 + sel] = ag
-            # volume card for played heroes: prior from everything except the hero's own record
-            pi, ph = np.nonzero(N[sl][sel] > 0)
-            U = M.ms_U
-            Lloo = Lam[pi] - w[pi, ph][:, None, None] * U[ph][:, :, None] * U[ph][:, None, :]
-            eloo = eta[pi] - wy[pi, ph][:, None] * U[ph]
-            al = np.linalg.solve(Lloo, eloo[:, :, None])[:, :, 0]
-            m0 = (U[ph] * al).sum(1)
-            v0 = np.einsum("nk,nkl,nl->n", U[ph], np.linalg.inv(Lloo), U[ph]) + M.ms_s2[ph]
-            nh = N[sl][sel][pi, ph]
-            vm, _ = vol_post(M, m0, v0, Ss[pi, ph], Ps[pi, ph], nh, ntot[sl][sel][pi])
-            dm = np.array(ok)
-            dm[pi, ph] = ok[pi, ph] + vm
-            sd = np.sqrt(M.sc_disp["c"] * vg + M.sc_disp["k0"] ** 2)
-            disp_mean[i0 + sel] = np.where(N[sl][sel] > 0, dm, disp_mean[i0 + sel])
-            disp_sd[i0 + sel] = np.where(N[sl][sel] > 0, sd, disp_sd[i0 + sel])
-        if (i0 // chunk) % 4 == 0:
-            log(f"  cards {i1:,}/{n:,}")
-    return {"model": model, "N": N, "wins": W_, "last": last, "ahat": ahat_draft, "disp_mean": disp_mean,
-            "disp_sd": disp_sd, "draft_s": draft_s, "sugg_mean": sugg_mean, "sugg_sd": sugg_sd,
-            "games": ntot.astype(np.int64)}
+    tags, n_private = read_names(R["keys"], R["end_max"] + 1, a.window, sealed)
+    lastrow = np.full(n, -1, np.int64)                         # latest MMR: HP post-game rating of the last row
+    np.maximum.at(lastrow, R["acct"], np.arange(len(R["acct"])))
+    mmr = np.where(lastrow >= 0, R["mmr"][np.maximum(lastrow, 0)], np.nan)
+    keep = []
+    nm, disc = [], []
+    for i, t in enumerate(tags):
+        if t is None:
+            continue
+        name, d = t.rsplit("#", 1)
+        if not d.isdigit() or not name:
+            continue
+        keep.append(i)
+        nm.append(name[:24])
+        disc.append(int(d))
+    keep = np.array(keep, np.int64)
+    log(f"accounts with a visible name: {len(keep):,} of {n:,} (private-listed tags: {n_private:,})")
+    os.makedirs(OUT, exist_ok=True)
+    np.savez(os.path.join(OUT, "pre.npz"), keys=R["keys"][keep], N=N[keep].astype(np.int32),
+             last=last[keep].astype(np.int32), recent=R["recent"][keep], mmr=mmr[keep],
+             name=np.array(nm, dtype=object), disc=np.array(disc, np.int64),
+             info=json.dumps({"store": a.store, "research_cap": datetime.datetime.fromtimestamp(cap, datetime.timezone.utc).date().isoformat(),
+                              "as_of_day": as_of, "through": through.isoformat(), "window_days": a.window,
+                              "post_cap_rows": 0 if post is None else int(len(post["rid"])),
+                              "build_seconds": round(time.time() - t0)}))
+    shutil.rmtree(QDIR, ignore_errors=True)
+    shutil.rmtree(ADIR, ignore_errors=True)
+    os.makedirs(QDIR)
+    np.savez(os.path.join(QDIR, "site.npz"), **query_arrays(R["keys"][keep], as_of))
+    log(f"pre.npz and {len(keep):,} state queries written ({time.time() - t0:.0f}s)")
 
 
-def encode_card(Cd, i, n_sugg=5):
-    N = Cd["N"][i]
+def states(a):
+    """The chosen model's states of every built account (p3_rcf_states.answer)."""
+    def_env(a.def_tag)
+    RS, sh = states_module()
+    shutil.rmtree(ADIR, ignore_errors=True)
+    RS.answer(QDIR, ADIR)
+    with open(os.path.join(ADIR, "heroes.json"), "w") as f:
+        json.dump({"def_tag": a.def_tag, "arm": RS.ARMS[0][0], "heroes": sh}, f)
+
+
+def encode_card(s, sdd, N, last, games, n_sugg=5):
+    """s, sdd: (H,) in heroNames order; N, last: (H,) site counts and last day (-1 never)."""
+    b = bytearray(struct.pack("<BBI", CARD_VERSION, MODEL_CHOSEN, int(games)))
+    b += np.clip(np.round(s * S_SCALE), -32767, 32767).astype("<i2").tobytes()
     played = np.flatnonzero(N > 0)
     played = played[np.argsort(-N[played], kind="stable")][:255]
-    b = bytearray(struct.pack("<BBI3f", CARD_VERSION, int(Cd["model"][i]), int(Cd["games"][i]),
-                              *[float(x) for x in Cd["ahat"][i]]))
     b += struct.pack("<B", len(played))
     for h in played:
-        lastd = int(Cd["last"][i, h]) - EPOCH14
-        b += struct.pack("<BHHhBh", int(h), int(min(N[h], 65535)), max(0, min(lastd, 65535)),
-                         int(np.clip(round(Cd["disp_mean"][i, h] * 1e4), -32767, 32767)),
-                         int(np.clip(round(Cd["disp_sd"][i, h] * 1e3), 0, 255)),
-                         int(np.clip(round(Cd["draft_s"][i, h] * 1e4), -32767, 32767)))
+        lastd = int(last[h]) - EPOCH14
+        b += struct.pack("<BHHB", int(h), int(min(N[h], 65535)), max(0, min(lastd, 65535)),
+                         int(np.clip(round(sdd[h] * SD_SCALE), 0, 255)))
     never = np.flatnonzero(N == 0)
-    top = never[np.argsort(-Cd["sugg_mean"][i, never], kind="stable")][:n_sugg]
+    top = never[np.argsort(-s[never], kind="stable")][:n_sugg]
     b += struct.pack("<B", len(top))
     for h in top:
-        b += struct.pack("<BhB", int(h), int(np.clip(round(Cd["sugg_mean"][i, h] * 1e4), -32767, 32767)),
-                         int(np.clip(round(Cd["sugg_sd"][i, h] * 1e3), 0, 255)))
+        b += struct.pack("<BB", int(h), int(np.clip(round(sdd[h] * SD_SCALE), 0, 255)))
     return bytes(b)
+
+
+def decode_card(buf):
+    """Python mirror of src/lib/personal/card.ts decodeCard."""
+    v, model, games = struct.unpack_from("<BBI", buf, 0)
+    assert v == CARD_VERSION and model == MODEL_CHOSEN
+    o = 6
+    s = np.frombuffer(buf, "<i2", H, o).astype(np.float64) / S_SCALE
+    o += 2 * H
+    k = buf[o]
+    o += 1
+    played = []
+    for _ in range(k):
+        h, n, lastd, sd = struct.unpack_from("<BHHB", buf, o)
+        played.append((h, n, lastd + EPOCH14, sd / SD_SCALE))
+        o += 6
+    j = buf[o]
+    o += 1
+    sugg = []
+    for _ in range(j):
+        h, sd = struct.unpack_from("<BB", buf, o)
+        sugg.append((h, sd / SD_SCALE))
+        o += 2
+    assert o == len(buf)
+    return {"games": games, "s": s, "played": played, "suggestions": sugg}
+
+
+def read_answers(names):
+    hz = json.load(open(os.path.join(ADIR, "heroes.json")))
+    A = np.load(os.path.join(ADIR, "site.npz"))
+    out = {k: A[k] for k in A.files}
+    for k in ("s", "sd", "sd_display", "n"):
+        out[k] = to_names_order(out[k], hz["heroes"], names)
+    return out, hz
+
+
+def encode(a):
+    t0 = time.time()
+    names = hero_names()
+    P = np.load(os.path.join(OUT, "pre.npz"), allow_pickle=True)
+    P = {k: P[k] for k in P.files}
+    info = json.loads(str(P["info"]))
+    A, hz = read_answers(names)
+    assert np.array_equal(A["player_key"], P["keys"]), "answers do not match pre.npz (rerun states)"
+    assert (A["as_of_day"] == info["as_of_day"]).all()
+    known = A["known"]
+    assert np.isfinite(A["s"][known]).all() and np.isfinite(A["sd_display"][known]).all()
+    log(f"accounts {len(known):,}, known to the model {int(known.sum()):,} (others have only post-cap games: dropped)")
+    rows, sizes = [], []
+    games = P["N"].sum(1)
+    for i in np.flatnonzero(known):
+        N = P["N"][i]
+        card = encode_card(A["s"][i], A["sd_display"][i], N, P["last"][i], games[i])
+        top = [int(h) for h in np.argsort(-N, kind="stable")[:3] if N[h] > 0]
+        lastday = int(P["last"][i].max())
+        mmr = P["mmr"][i]
+        rows.append((int(P["keys"][i] >> REGION_SHIFT), int(P["keys"][i] & ((1 << REGION_SHIFT) - 1)),
+                     str(P["name"][i]), int(P["disc"][i]), None if not np.isfinite(mmr) else int(round(float(mmr))),
+                     (datetime.date(1970, 1, 1) + datetime.timedelta(days=lastday)).isoformat(),
+                     int(games[i]), int(P["recent"][i]), bytes(top), card))
+        sizes.append(len(card))
+    cols = ["region", "blizz_id", "name", "discriminator", "mmr", "last_played", "games", "recent_games",
+            "top_heroes", "card"]
+    np.savez(os.path.join(OUT, "accounts.npz"), cols=np.array(cols),
+             **{c: np.array([r[j] for r in rows], dtype=object) for j, c in enumerate(cols)})
+    sizes = np.array(sizes)
+    names_len = np.array([len(r[2].encode()) for r in rows])
+    # Postgres estimate: 24 B tuple header + 4 B item pointer, fixed columns
+    # 2+4+4+2+4+4+4 = 24 B, varlena headers, plus two btree indexes
+    heap = 28 + 24 + (names_len + 1) + (3 + 1) + (sizes + 4)
+    idx = 24 + 16 + names_len
+    recent = np.array([r[7] for r in rows])
+    rep = dict(info, model=f"chosen shrinkage model ({hz['def_tag']}, arm {hz['arm']}, p3_rcf_states.py)",
+               estimates_as_of=(datetime.date(1970, 1, 1) + datetime.timedelta(days=info["as_of_day"])).isoformat(),
+               accounts=len(rows), dropped_unknown=int((~known).sum()),
+               card_bytes_mean=float(sizes.mean()), card_bytes_p95=float(np.quantile(sizes, 0.95)),
+               by_recent_games={str(t): int((recent >= t).sum()) for t in (1, 3, 5, 10, 20)},
+               built_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+               encode_seconds=round(time.time() - t0))
+    for t in (1, 3, 5, 10):
+        m = recent >= t
+        rep[f"neon_estimate_mb_min{t}"] = float((heap[m].sum() * 1.12 + idx[m].sum() * 1.3) / 1e6)
+    with open(os.path.join(OUT, "report.json"), "w") as f:
+        json.dump(rep, f, indent=1)
+    log(json.dumps(rep))
 
 
 def read_names(keys, cap_ts, window_days, sealed):
@@ -452,70 +413,6 @@ def read_names(keys, cap_ts, window_days, sealed):
         reg = int(k) >> REGION_SHIFT
         out.append(None if tag is None or (tag, reg) in private else tag)
     return out, len(private)
-
-
-def build(a):
-    t0 = time.time()
-    M = Model()
-    z, meta = load_store(a.store)
-    cap = int(meta["cap_ts"])
-    sealed = sealed_ids()
-    post = None if a.research_cap else post_cap_rows(cap, sealed, M)
-    R = site_rows(z, cap, a.window, M, post, sealed)
-    through = datetime.datetime.fromtimestamp(R["end_max"], datetime.timezone.utc).date()
-    log(f"data through {through}")
-    Cd = compute_cards(M, R)
-    tags, n_private = read_names(R["keys"], R["end_max"] + 1, a.window, sealed)
-    keys = R["keys"]
-    n = len(keys)
-    # latest MMR per account (HP post-game rating of its last row)
-    lastrow = np.full(n, -1, np.int64)
-    np.maximum.at(lastrow, R["acct"], np.arange(len(R["acct"])))
-    mmr = np.where(lastrow >= 0, R["mmr"][np.maximum(lastrow, 0)], np.nan)
-    keep = np.array([t is not None for t in tags])
-    log(f"accounts with a visible name: {keep.sum():,} of {n:,} (private-listed tags: {n_private:,})")
-    rows = []
-    sizes = []
-    for i in np.flatnonzero(keep):
-        name, disc = tags[i].rsplit("#", 1)
-        if not disc.isdigit() or not name:
-            continue
-        card = encode_card(Cd, i)
-        N = Cd["N"][i]
-        top = np.argsort(-N, kind="stable")[:3]
-        top = [int(h) for h in top if N[h] > 0]
-        lastday = int(Cd["last"][i].max())
-        rows.append((int(keys[i] >> REGION_SHIFT), int(keys[i] & ((1 << REGION_SHIFT) - 1)), name[:24], int(disc),
-                     None if not np.isfinite(mmr[i]) else int(round(float(mmr[i]))),
-                     (datetime.date(1970, 1, 1) + datetime.timedelta(days=lastday)).isoformat(),
-                     int(Cd["games"][i]), int(R["recent"][i]), bytes(top), card))
-        sizes.append(len(card))
-    os.makedirs(OUT, exist_ok=True)
-    cols = ["region", "blizz_id", "name", "discriminator", "mmr", "last_played", "games", "recent_games",
-            "top_heroes", "card"]
-    np.savez(os.path.join(OUT, "accounts.npz"), cols=np.array(cols),
-             **{c: np.array([r[j] for r in rows], dtype=object) for j, c in enumerate(cols)})
-    sizes = np.array(sizes)
-    names_len = np.array([len(r[2].encode()) for r in rows])
-    # Postgres estimate: 24 B tuple header + 4 B item pointer, fixed columns
-    # 2+4+4+2+4+4+4 = 24 B, varlena headers 3 x 1-4 B, plus two btree indexes
-    # (pk ~ 24 B per row, lower(name) ~ 16 B + name per row)
-    heap = 28 + 24 + (names_len + 1) + (3 + 1) + (sizes + 4)
-    idx = 24 + 16 + names_len
-    rep = {"store": a.store, "research_cap": datetime.date.fromtimestamp(cap).isoformat(),
-           "through": through.isoformat(), "post_cap_rows": 0 if post is None else int(len(post["rid"])),
-           "window_days": a.window,
-           "accounts": len(rows), "main_model": int(sum(r[9][1] == 1 for r in rows)),
-           "card_bytes_mean": float(sizes.mean()), "card_bytes_p95": float(np.quantile(sizes, 0.95)),
-           "neon_estimate_mb": float((heap.sum() * 1.12 + idx.sum() * 1.3) / 1e6),
-           "by_recent_games": {str(t): int((np.array([r[7] for r in rows]) >= t).sum()) for t in (1, 3, 5, 10, 20)},
-           "built_at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "seconds": round(time.time() - t0)}
-    for t in (1, 3, 5, 10):
-        m = np.array([r[7] for r in rows]) >= t
-        rep[f"neon_estimate_mb_min{t}"] = float((heap[m].sum() * 1.12 + idx[m].sum() * 1.3) / 1e6)
-    with open(os.path.join(OUT, "report.json"), "w") as f:
-        json.dump(rep, f, indent=1)
-    log(json.dumps(rep))
 
 
 # ------------------------------------------------------------------ load (local table)
@@ -594,7 +491,6 @@ def simulate(a):
     CUT to the store cap. The party is one random player of the lobby; its
     region and MMR as of CUT are the context (the lobby MMR context uses the
     mean MMR of the party only, as the page knows nothing else)."""
-    M = Model()
     z, meta = load_store(a.store)
     cap = int(meta["cap_ts"])
     cut = cap - a.test_days * DAY
@@ -693,108 +589,119 @@ def simulate(a):
         json.dump(out, f, indent=1)
 
 
-# ------------------------------------------------------------------ checks and fixtures
+# ------------------------------------------------------------------ checks, artifact and fixtures
 
 def check(a):
-    """compute_cards against the research reference (p3_site_export.reference, which calls
-    p3_rcf.posterior and p3_rcf_tails.post) on random active accounts. Needs numba
-    (/usr/bin/python3). Writes results/site_publish_check.json (errors only, no ids)."""
-    from p3_site_export import load_inputs, reference
-    M = Model()
-    T, ms, imp, consts, _, _ = load_inputs()
-    z, meta = load_store(a.store)
-    R = site_rows(z, int(meta["cap_ts"]), a.window, M, None, sealed_ids())
-    cnt = np.bincount(R["acct"], minlength=len(R["keys"]))
+    """Fresh state-writer answers for random published accounts (a new query file, a new
+    answer run) against the decoded cards. Needs the def env (numba)."""
+    import tempfile
+    def_env(a.def_tag)
+    RS, sh = states_module()
+    names = hero_names()
+    acc = np.load(os.path.join(OUT, "accounts.npz"), allow_pickle=True)
+    acc = {k: acc[k] for k in ("region", "blizz_id", "card")}
+    keys = (acc["region"].astype(np.int64) << REGION_SHIFT) | acc["blizz_id"].astype(np.int64)
     rng = np.random.default_rng(a.seed)
-    pick = rng.choice(np.flatnonzero((cnt >= 5) & (cnt <= 400)), a.n_check, replace=False)
-    sel = np.isin(R["acct"], pick)
-    remap = np.full(len(R["keys"]), -1, np.int64)
-    remap[pick] = np.arange(len(pick))
-    Rs = {k: (v[sel] if k not in ("keys", "recent") else v[pick]) for k, v in R.items() if k != "end_max"}
-    Rs["acct"] = remap[R["acct"][sel]]
-    Cd = compute_cards(M, Rs, chunk=len(pick))
-    # the same corpus scoreboard rows, as per-hero metric sums, for the reference
-    sb_bl = np.load(os.path.join(SB_IDX, "blizz_id.npy"), mmap_mode="r")
-    sb_rid = np.load(os.path.join(SB_IDX, "replay_id.npy"), mmap_mode="r")
-    sb_Z = np.load(os.path.join(SB_IDX, "Z.npy"), mmap_mode="r")
-    sb_W = np.load(os.path.join(SB_IDX, "W.npy"), mmap_mode="r")
-    err = {"draft_s": 0.0, "disp_mean_played": 0.0, "imp2": 0.0, "gauss_var_sd": 0.0}
-    for i in range(len(pick)):
-        m = Rs["acct"] == i
-        rows = {"hero": Rs["hero"][m], "y": Rs["win"][m].astype(np.int64), "day": Rs["day"][m]}
-        o = np.argsort(rows["day"], kind="stable")
-        rows = {k: v[o] for k, v in rows.items()}
-        blz = int(Rs["keys"][i] & ((1 << REGION_SHIFT) - 1))
-        lo, hi = np.searchsorted(sb_bl, blz, "left"), np.searchsorted(sb_bl, blz, "right")
-        rid_m = Rs["rid"][m][((Rs["src"][m] & 1) > 0)]
-        hero_m = Rs["hero"][m][((Rs["src"][m] & 1) > 0)]
-        X = np.zeros((H, sb_Z.shape[1]))
-        C = np.zeros((H, sb_Z.shape[1]))
-        hero_of = dict(zip(rid_m.tolist(), hero_m.tolist()))
-        for j in range(lo, hi):
-            h = hero_of.get(int(sb_rid[j]))
-            if h is None:
-                continue
-            x = np.asarray(sb_Z[j], np.float64)
-            w = float(sb_W[j])
-            g = ~np.isnan(x)
-            X[h, g] += w * x[g]
-            C[h, g] += w
-        withm = C.sum() > 0
-        ref = reference(T, ms, imp, consts, rows, X if withm else None, C if withm else None,
-                        int(rows["day"].max()) + 1)
-        off = np.array(ref["offset"])
-        played = np.array(ref["N"]) > 0
-        err["imp2"] = max(err["imp2"], float(np.abs(Cd["sugg_mean"][i] - np.array(ref["imp2"]["mean"])).max()))
-        if withm:
-            e = ref["main"]
-            err["draft_s"] = max(err["draft_s"], float(np.abs(Cd["draft_s"][i] - (off + np.array(e["gauss_mean"]))).max()))
-            err["disp_mean_played"] = max(err["disp_mean_played"], float(
-                np.abs(Cd["disp_mean"][i][played] - (off + np.array(e["vol_mean"]))[played]).max()))
-            sd_ref = np.sqrt(M.sc_disp["c"] * np.array(e["gauss_var"]) + M.sc_disp["k0"] ** 2)
-            err["gauss_var_sd"] = max(err["gauss_var_sd"], float(np.abs(Cd["disp_sd"][i][played] - sd_ref[played]).max()))
-    out = {"accounts": int(len(pick)), "max_abs_error": err,
-           "note": "win-probability units; reference = p3_site_export.reference (research functions)"}
+    pick = rng.choice(len(keys), min(a.n_check, len(keys)), replace=False)
+    info = json.loads(str(np.load(os.path.join(OUT, "pre.npz"), allow_pickle=True)["info"]))
+    with tempfile.TemporaryDirectory() as td:
+        qd, ad = os.path.join(td, "q"), os.path.join(td, "a")
+        os.makedirs(qd)
+        np.savez(os.path.join(qd, "check.npz"), **query_arrays(keys[pick], info["as_of_day"]))
+        RS.answer(qd, ad)
+        F = np.load(os.path.join(ad, "check.npz"))
+        assert F["known"].all()
+        fs, fsd, fsdd = (to_names_order(F[k], sh, names).astype(np.float64) for k in ("s", "sd", "sd_display"))
+    # the build's own answer file, full precision, for the same accounts
+    B, _ = read_answers(names)
+    bpos = np.searchsorted(B["player_key"], keys[pick]) if (np.diff(B["player_key"]) > 0).all() else None
+    if bpos is None:
+        o = np.argsort(B["player_key"])
+        bpos = o[np.searchsorted(B["player_key"][o], keys[pick])]
+    assert np.array_equal(B["player_key"][bpos], keys[pick])
+    err = {"s_build_vs_fresh": float(np.abs(B["s"][bpos] - fs).max()),
+           "sd_display_build_vs_fresh": float(np.abs(B["sd_display"][bpos] - fsdd).max()),
+           "s_card_vs_fresh": 0.0, "sd_card_vs_sd_display": 0.0, "suggestion_sd_vs_sd_display": 0.0}
+    sd_vs_base = []
+    for j, i in enumerate(pick):
+        c = decode_card(bytes(acc["card"][i]))
+        err["s_card_vs_fresh"] = max(err["s_card_vs_fresh"], float(np.abs(c["s"] - fs[j]).max()))
+        for h, _, _, sd in c["played"]:
+            err["sd_card_vs_sd_display"] = max(err["sd_card_vs_sd_display"], abs(sd - fsdd[j, h]))
+            sd_vs_base.append(abs(sd - fsd[j, h]))
+        for h, sd in c["suggestions"]:
+            err["suggestion_sd_vs_sd_display"] = max(err["suggestion_sd_vs_sd_display"], abs(sd - fsdd[j, h]))
+    tol = {"s_build_vs_fresh": 1e-6, "sd_display_build_vs_fresh": 1e-6, "s_card_vs_fresh": 0.5 / S_SCALE + 1e-6,
+           "sd_card_vs_sd_display": 0.5 / SD_SCALE + 1e-6, "suggestion_sd_vs_sd_display": 0.5 / SD_SCALE + 1e-6}
+    out = {"accounts": int(len(pick)), "model": f"chosen ({a.def_tag}), p3_rcf_states.py half 0, unfiltered",
+           "as_of_day": info["as_of_day"], "max_abs_error": err, "tolerance": tol,
+           "band_sd_minus_base_sd_max": float(max(sd_vs_base)) if sd_vs_base else None,
+           "note": "win-probability units; card values are quantized to 1e-4 (s) and 1e-3 (band sd)"}
     print(json.dumps(out, indent=1))
     with open(os.path.join(HERE, "results", "site_publish_check.json"), "w") as f:
         json.dump(out, f, indent=1)
-    assert max(err.values()) < 1e-6, err
+    bad = {k: v for k, v in err.items() if not v <= tol[k]}
+    assert not bad, f"check failed: {bad}"
+    # the band must be the display band, not the base posterior sd
+    assert out["band_sd_minus_base_sd_max"] is None or out["band_sd_minus_base_sd_max"] > 2 / SD_SCALE
+
+
+def artifact(a):
+    """src/lib/personal/model-artifact.json for the chosen model (hero order and roles kept)."""
+    def_env(a.def_tag)
+    res = os.environ["P3_RESULTS"]
+    old = json.load(open(ARTIFACT))
+    off = json.load(open(os.path.join(res, "site", "offrole_refit.json")))["chosen"]
+    band = json.load(open(os.path.join(res, "rcf", "band_def_chosen.json")))
+    z = np.load(os.path.join(res, "rcf", "p3c", "chosen__merged.npz"))
+    acc = {}
+    for k, nm in ((2, "v2"), (3, "oot")):
+        m = z["g_win"] == k
+        acc[nm] = round(float(((z["g_p"][m] > 0.5) == (z["g_y"][m] > 0.5)).mean()), 4)
+    _, meta = load_store(a.store)
+    as_of = datetime.datetime.fromtimestamp(int(meta["cap_ts"]), datetime.timezone.utc).date() - datetime.timedelta(days=1)
+    b = off["coef_with"]
+    A = {"version": f"{a.def_tag}-chosen",
+         "source": ("training/personalization/p3_site_publish.py artifact; chosen shrinkage model of the "
+                    f"definitive build {a.def_tag} (P3_SHRINKAGE.md, P3_DEFINITIVE_{a.def_tag}.md); draft combiner "
+                    "refit with the off-role term by p3_site_offrole.py on V1 games"),
+         "model": "chosen",
+         "estimatesAsOf": as_of.isoformat(),
+         "heroNames": old["heroNames"], "fineRoles": old["fineRoles"], "heroFineRole": old["heroFineRole"],
+         "draft": {"b0": b[0], "b1": b[1], "b2": b[2], "b3": b[3],
+                   "offRoleShare": 0.1, "offRoleMinGames": 50,
+                   "offRoleGainX1000": {k: off[k]["gain_x1000"] for k in ("V2", "OOT")}},
+         "band": {"formula": band["formula"], "z80": 1.2815515655446004},
+         "validation": {"accuracy": acc,
+                        "cover80": {"v2": round(band["V2"]["cover80"], 4), "oot": round(band["OOT"]["cover80"], 4)}}}
+    with open(ARTIFACT, "w") as f:
+        json.dump(A, f, indent=1)
+        f.write("\n")
+    print(json.dumps({k: A[k] for k in ("version", "estimatesAsOf", "draft", "validation")}, indent=1))
 
 
 def fixture(a):
     """Synthetic cards (no real accounts) for src/lib/personal/__tests__: the encoded bytes,
-    what they decode to, the draft term for every hero, and match scores."""
-    from types import SimpleNamespace  # noqa: F401
-    M = Model()
+    what they decode to, and match scores."""
     rng = np.random.default_rng(a.seed)
+    names = hero_names()
     cases = []
     for c in range(4):
-        n = 1
-        N = np.zeros((n, H))
         k = [0, 3, 25, 40][c]
         heroes = rng.choice(H, k, replace=False)
-        N[0, heroes] = rng.integers(1, 300, k)
-        ahat = rng.normal(0, 0.02, (n, 3))
-        model = np.array([1 if c % 2 == 0 else 2], np.int8)
-        U = M.ms_U if model[0] == 1 else M.im_U
-        ntot = N.sum(1)
-        off = M.offset(np.repeat(ntot[:, None], H, 1).astype(np.int64), N.astype(np.int64))
-        draft = off + ahat @ U.T
-        draft[0, heroes] += rng.normal(0, 0.02, k)        # played heroes: own evidence moves them
-        Cd = {"model": model, "N": N, "games": ntot.astype(np.int64), "ahat": ahat,
-              "last": np.where(N > 0, 20500 + rng.integers(0, 300, (n, H)), -1),
-              "disp_mean": draft + rng.normal(0, 0.005, (n, H)), "disp_sd": rng.uniform(0.02, 0.09, (n, H)),
-              "draft_s": draft, "sugg_mean": rng.normal(0, 0.02, (n, H)), "sugg_sd": rng.uniform(0.02, 0.06, (n, H))}
-        card = encode_card(Cd, 0)
-        # the values as stored (quantized)
-        q = lambda x, s: np.round(np.asarray(x) * s) / s
-        draft_exp = off[0] + np.asarray(np.float32(ahat[0]), np.float64) @ U.T
-        draft_exp[heroes] = q(draft[0, heroes], 1e4)
-        cases.append({"card_hex": card.hex(), "model": "main" if model[0] == 1 else "imp2", "games": int(ntot[0]),
-                      "played": {M.names[h]: {"games": int(N[0, h]), "draft": float(q(draft[0, h], 1e4)),
-                                              "mean": float(q(Cd["disp_mean"][0, h], 1e4))} for h in heroes},
-                      "draft_s": draft_exp.tolist()})
-    # match scores
+        N = np.zeros(H, np.int64)
+        N[heroes] = rng.integers(1, 300, k)
+        last = np.where(N > 0, 20500 + rng.integers(0, 300, H), -1)
+        s = rng.normal(-0.02, 0.04, H)
+        sdd = rng.uniform(0.02, 0.12, H)
+        card = encode_card(s, sdd, N, last, int(N.sum()))
+        q = lambda x, sc: np.round(np.asarray(x) * sc) / sc
+        never = np.flatnonzero(N == 0)
+        top = never[np.argsort(-s[never], kind="stable")][:5]
+        cases.append({"card_hex": card.hex(), "games": int(N.sum()), "s": q(s, S_SCALE).tolist(),
+                      "played": {names[h]: {"games": int(N[h]), "sd": float(q(sdd[h], SD_SCALE)),
+                                            "mean": float(q(s[h], S_SCALE))} for h in heroes},
+                      "suggestions": [names[h] for h in top]})
     ctx = {"region": 2, "mmr": 2600.0, "day": 20700}
     cand = {"region": np.array([2, 2, 1, 2]), "mmr": np.array([2650.0, np.nan, 2600.0, 3400.0]),
             "last": np.array([20690, 20500, 20700, 20699])}
@@ -814,19 +721,21 @@ def fixture(a):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["build", "load", "simulate", "check", "fixture"])
-    ap.add_argument("--n-check", type=int, default=40)
+    ap.add_argument("stage", choices=["build", "states", "encode", "check", "load", "artifact", "simulate", "fixture"])
+    ap.add_argument("--n-check", type=int, default=200)
     ap.add_argument("--research-cap", action="store_true",
                     help="build: stop at the research store cap (no 2.57 rows)")
-    ap.add_argument("--store", default="full_1017")
-    ap.add_argument("--window", type=int, default=180, help="days before the store cap that make an account active")
+    ap.add_argument("--store", default=DEF_TAG)
+    ap.add_argument("--def-tag", default=DEF_TAG, help="definitive build whose chosen model makes the cards")
+    ap.add_argument("--window", type=int, default=180, help="days before the data's end that make an account active")
     ap.add_argument("--min-recent", type=int, default=3, help="load and simulate: minimum games in the window")
     ap.add_argument("--test-days", type=int, default=14)
     ap.add_argument("--games", type=int, default=20000)
     ap.add_argument("--seed", type=int, default=5)
     ap.add_argument("--params", help="simulate: JSON overrides of PARAMS_MATCH")
     a = ap.parse_args()
-    {"build": build, "load": load, "simulate": simulate, "check": check, "fixture": fixture}[a.stage](a)
+    {"build": build, "states": states, "encode": encode, "check": check, "load": load, "artifact": artifact,
+     "simulate": simulate, "fixture": fixture}[a.stage](a)
 
 
 if __name__ == "__main__":

@@ -7,10 +7,10 @@ import { bestAssignment, banGain, personalValue, type PersonalPlayer } from '../
 const F = fixture as unknown as {
   cards: {
     card_hex: string
-    model: 'main' | 'imp2'
     games: number
-    played: Record<string, { games: number; draft: number; mean: number }>
-    draft_s: number[]
+    s: number[]
+    played: Record<string, { games: number; sd: number; mean: number }>
+    suggestions: string[]
   }[]
   match: {
     ctx: { region: number; mmr: number; asOf: string }
@@ -24,21 +24,25 @@ const bytes = (hex: string) => Uint8Array.from(Buffer.from(hex, 'hex'))
 
 describe('published cards (encoded by p3_site_publish.py)', () => {
   for (const [i, c] of F.cards.entries()) {
-    it(`card ${i}: decodes and expands the draft term for all heroes`, () => {
+    it(`card ${i}: decodes s for all heroes, played heroes and suggestions`, () => {
       const card = decodeCard(bytes(c.card_hex))
-      expect(card.model).toBe(c.model)
+      expect(card.model).toBe('chosen')
       expect(card.games).toBe(c.games)
+      expect(card.s.length).toBe(H)
+      for (let h = 0; h < H; h++) expect(Math.abs(card.s[h] - c.s[h])).toBeLessThan(1e-9)
       expect(card.played.length).toBe(Object.keys(c.played).length)
       for (const p of card.played) {
         expect(p.games).toBe(c.played[p.hero].games)
-        expect(p.draft).toBeCloseTo(c.played[p.hero].draft, 10)
         expect(p.mean).toBeCloseTo(c.played[p.hero].mean, 10)
+        expect(p.draft).toBe(p.mean)
+        expect(p.sd).toBeCloseTo(c.played[p.hero].sd, 10)
       }
       // played heroes are sorted by games
       for (let k = 1; k < card.played.length; k++) expect(card.played[k - 1].games).toBeGreaterThanOrEqual(card.played[k].games)
+      expect(card.suggestions.map(x => x.hero)).toEqual(c.suggestions)
+      for (const x of card.suggestions) expect(x.mean).toBe(card.s[HERO_NAMES.indexOf(x.hero)])
       const d = draftProfile(card)
-      expect(d.s.length).toBe(H)
-      for (let h = 0; h < H; h++) expect(Math.abs(d.s[h] - c.draft_s[h])).toBeLessThan(1e-9)
+      expect(d.s).toEqual(card.s)
     })
   }
 

@@ -8,8 +8,10 @@ counts team t's off-role players: the hero's fine role is under 10% of the
 player's 50+ earlier games (lag-1 day slot counts, as p3_dr_core). Fit on V1
 games, tested on V2 and OOT as every combiner in p3_c_tests.
 
-Run on the 3090 with the full_1017 env:
-  RCF_SCRIPT=p3_site_offrole.py bash personalization/remote/run_rcf_full.sh
+Run with the build's env, e.g. the definitive build on the main box (arms
+from SITE_OFFROLE_ARMS, comma separated; default full_ms,full_imp2):
+  . personalization/remote/def_env.sh $PWD def1027
+  SITE_OFFROLE_ARMS=chosen nice -n 19 taskset -c 48-51 python3 personalization/p3_site_offrole.py
 Writes $P3_RESULTS/site/offrole_refit.json.
 """
 import json
@@ -40,7 +42,7 @@ def main():
     o = np.argsort(grid)
     res = os.environ["P3_RESULTS"]
     out = {"off_role_share_of_slots": float(off.mean())}
-    for arm in ("full_ms", "full_imp2"):
+    for arm in os.environ.get("SITE_OFFROLE_ARMS", "full_ms,full_imp2").split(","):
         z = np.load(os.path.join(res, "rcf", "p3c", f"{arm}__merged.npz"))
         rid, win, yy, lo, D = (z[k] for k in ("g_replay_id", "g_win", "g_y", "g_lo", "g_D"))
         j = o[np.searchsorted(grid[o], rid)]

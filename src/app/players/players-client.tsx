@@ -12,12 +12,13 @@ import type { AccountSummary, AccountWithCard } from '@/lib/personal/accounts'
 import type { PlayedHero, SuggestedHero } from '@/lib/personal/card'
 
 interface Validation {
-  accuracy: { v2: Record<string, number> }
-  cover80: Record<string, number>
+  accuracy: { v2: number; oot: number }
+  cover80: { v2: number; oot: number }
 }
 
 interface AccountResponse {
   through: string
+  estimatesAsOf: string
   accounts: AccountWithCard[]
   validation: Validation
   error?: string
@@ -110,16 +111,25 @@ function SuggestionCard({ s }: { s: SuggestedHero }) {
           <span className="font-bold tabular-nums">{pp(s.mean)} pp</span>
         </div>
         <div className="text-xs tabular-nums text-muted-foreground">
-          80% range {pp(s.mean - Z80 * s.sd)} to {pp(s.mean + Z80 * s.sd)}, once learned
+          80% range {pp(s.mean - Z80 * s.sd)} to {pp(s.mean + Z80 * s.sd)}
         </div>
       </div>
     </Card>
   )
 }
 
-function Profile({ a, through, val }: { a: AccountWithCard; through: string; val: Validation }) {
+function Profile({
+  a,
+  through,
+  asOf,
+  val,
+}: {
+  a: AccountWithCard
+  through: string
+  asOf: string
+  val: Validation
+}) {
   const [showAll, setShowAll] = useState(false)
-  const main = a.card.model === 'main'
   const heroes = showAll ? a.card.played : a.card.played.slice(0, 18)
   return (
     <div className="space-y-6">
@@ -129,7 +139,8 @@ function Profile({ a, through, val }: { a: AccountWithCard; through: string; val
         </h2>
         <p className="text-sm text-muted-foreground">
           {a.regionName}, {a.games.toLocaleString()} Storm League games in our data, last played {a.lastPlayed}
-          {a.mmr !== null ? `, MMR ${a.mmr.toLocaleString()}` : ''}. Estimates as of {through}.
+          {a.mmr !== null ? `, MMR ${a.mmr.toLocaleString()}` : ''}. Games counted through {through}; skill
+          estimates use games through {asOf}.
         </p>
       </div>
 
@@ -137,8 +148,8 @@ function Profile({ a, through, val }: { a: AccountWithCard; through: string; val
         <h3 className="text-lg font-semibold">Skill by hero</h3>
         <p className="text-sm text-muted-foreground">
           Each number is how many percentage points more (or fewer) games we expect this player to win on the hero
-          than an average player in the same draft.{' '}
-          {main ? 'It uses wins, losses and scoreboard stats from past games.' : 'It uses wins and losses only.'}
+          than an average player in the same draft. It uses wins, losses and scoreboard stats from past games, and
+          weighs recent games more.
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {heroes.map(h => (
@@ -157,7 +168,7 @@ function Profile({ a, through, val }: { a: AccountWithCard; through: string; val
           <h3 className="text-lg font-semibold">Heroes you might be good at</h3>
           <p className="text-sm text-muted-foreground">
             Heroes this player has not played, ranked by what players with similar records do on them. The number is
-            the expected edge once the hero is learned; first games on a new hero usually run about 3 points worse.
+            the expected edge on a first game, which includes the usual cost of being new to a hero.
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {a.card.suggestions.map(s => (
@@ -171,17 +182,17 @@ function Profile({ a, through, val }: { a: AccountWithCard; through: string; val
         <h3 className="text-base font-semibold text-foreground">How far to trust this</h3>
         <p>
           One game says little: a single win or loss is mostly noise. The ranges are 80% ranges. Tested on games the
-          model never saw, the true value fell inside about {pct(main ? val.cover80.main : val.cover80.imp2)} of the
+          model never saw, the true value fell inside about {pct(val.cover80.v2)} of the
           time, so roughly 1 range in 5 misses.
         </p>
         <p>
           Combined with the draft, estimates like these for all ten players called the winner of{' '}
-          {(100 * val.accuracy.v2.main).toFixed(1)}% of held-out games with scoreboard stats and{' '}
-          {(100 * val.accuracy.v2.imp2).toFixed(1)}% with wins and losses only. Real gains, and a reminder that the
-          draft and the players leave most of a game unexplained.
+          {(100 * val.accuracy.v2).toFixed(1)}% of held-out games. A real gain, and a
+          reminder that the draft and the players leave most of a game unexplained.
         </p>
         <p>
-          These estimates come from our own replay data and are updated weekly. Private Heroes Profile accounts are
+          These estimates come from our own replay data. Names and game counts are updated weekly; skill estimates
+          are refreshed when we rebuild the model&apos;s data. Private Heroes Profile accounts are
           never shown. Data provided by Heroes Profile.
         </p>
       </section>
@@ -304,7 +315,7 @@ export function PlayersClient() {
         </section>
       )}
 
-      {res && one && <Profile a={one} through={res.through} val={res.validation} />}
+      {res && one && <Profile a={one} through={res.through} asOf={res.estimatesAsOf} val={res.validation} />}
     </div>
   )
 }

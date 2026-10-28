@@ -1,6 +1,6 @@
 # Personalization on HotS Fever: design (2026-10-19)
 
-Status: built on branch `personal-site`, not merged or deployed. Launch is after the Oct 28 rerun: the coordinator creates the Neon table and runs the first publish. This version replaces the 2026-10-18 design, which looked players up live through the Heroes Profile (HP) API. Max's decisions of 2026-10-19 are in: 2.57 games on the site (sealed replays excluded), name-only search, the 3+ games threshold, and the off-role refit.
+Status: launched 2026-10-28 (merged to main, table on Neon, weekly cron installed). The cards use the paper's definitive **chosen shrinkage model** (build def1027, section 1a). This version replaces the 2026-10-18 design, which looked players up live through the Heroes Profile (HP) API. Max's decisions of 2026-10-19 are in: 2.57 games on the site (sealed replays excluded), name-only search, the 3+ games threshold, and the off-role refit.
 
 ## 0. What changed and why
 
@@ -33,7 +33,21 @@ What ships:
 - 712 private accounts in `player_privacy` are dropped;
 - 15,603 accounts have no corpus scoreboard rows (mostly new since the cap) and get `imp2` cards.
 
-**Model, per account:**
+## 1a. Model at launch (2026-10-28): the chosen shrinkage model
+
+The cards hold the answers of the definitive build's state writer (`p3_rcf_states.py`, def1027, half 0 = the drafter fit `chosen`, unfiltered queries) as of the store's last day, 2026-09-27:
+- **s for all 90 heroes**, displayed as the per-hero estimate and used as the draft term (experience offset, state-space posterior through the V1 shrinkage function, direct scoreboard channel, temporal layer, smooth calibration; no lobby MMR term).
+- **Band:** `sd_display` = √(s²(1 + exp(−games/10))), shown as s ± 1.28·sd_display (80% coverage on V2 0.792, OOT 0.799; `band_def_chosen.json`).
+- **Suggestions:** the 5 never-played heroes with the highest s. That s is the expected edge on a first game, new-hero cost included.
+- **Draft combiner:** refit on V1 games with the off-role term (`p3_site_offrole.py`, `SITE_OFFROLE_ARMS=chosen`): b0 0.00014, b1 1.0131, b2 4.329, b3 −0.031 (`results/site_offrole_refit_def1027.json`).
+- **Stages:** `build` (accounts, names, counts, query file) → `states` (state writer, def env, ~90 s and ~17 GB for 190K accounts) → `encode` → `check` → `load`. `artifact` writes `src/lib/personal/model-artifact.json` (combiner, validation numbers, `estimatesAsOf`).
+- **Check** (`results/site_publish_check.json`, every run): for 200 random published accounts a fresh state-writer run equals the build's answers exactly (max difference 0), the decoded card s is within its 0.5e-4 quantization, and every band sd is `sd_display` within its 0.5e-3 quantization (it differs from the base sd by up to 3.3 pp, so the base sd cannot pass). The state writer's own selfcheck on the main box: max |state − arm prediction| 1.5e-8.
+- **Card format, version 2:** header (version, model 3, games), 90 × i16 s (0.01 pp), per played hero 6 B (hero, games, last played, band sd), per suggestion 2 B (hero, band sd). 317 B on average.
+- **Limits.** Estimates stop at 2026-09-27: post-cap (2.57) games feed counts, last played, the recent-games filter and the name index only. Accounts unknown to the def1027 store (24,278 of 189,711 named accounts, mostly new since the cap) get no card until the store is rebuilt. Launch build: 165,433 cards, 123,965 loaded at 3+ recent games; Neon table 59.9 MB.
+
+The rest of this section describes the 2026-10-19 design (model `full_ms`/`imp2`), kept for the record.
+
+**Model, per account (2026-10-19 design, replaced):**
 - **Displayed per-hero number:** the main model (`full_ms`, the `met2_hs2` structure with the `a_shrink` scoreboard card) through the play-volume card (P3_TAILS), plus the experience offset. It applies wherever the account has corpus scoreboard rows: 166,797 of 182,400 accounts. The rest get `imp2` (wins and losses only).
 - **Band:** ±1.2816·√(c·var + k0²), with the no-layer main arm's V1 scale (c 2.23, k0 2.29 pp; 80% coverage on V2: 0.808) or `imp2`'s (c 2.19, k0 0.43 pp; 0.805).
 - **Draft term s(p, h):** the main model's Gaussian posterior mean plus the offset. This is the quantity its V1 combiner was fit on.
@@ -68,7 +82,7 @@ For a never-played hero the page computes s = offset(games, 0) + U_h·â from th
 **Schedule.** Weekly. With 2.57 games the table changes every run, and publish-site replaces it whole (about 48 MB written to Neon, plus dead rows until autovacuum), so weekly keeps Neon churn low. Daily works too if fresher cards are worth the writes. Cron line for the coordinator (not installed):
 
 ```
-15 23 * * 0 flock -n /home/max/heroes-of-the-storm/sync/.site-publish.lock sh -c 'cd /home/max/heroes-of-the-storm && set -a && . ./.env && set +a && nice -n 19 ionice -c3 taskset -c 48-51 training/personalization/run_site_publish.sh' >> /home/max/heroes-of-the-storm/sync/logs/site-publish.log 2>&1
+15 23 * * 0 flock -n /home/max/heroes-of-the-storm/sync/.site-publish.lock sh -c 'cd /home/max/heroes-of-the-storm && set -a && . ./.env && set +a && nice -n 19 ionice -c3 taskset -c 48-51 env SITE_STORE=def1027 SITE_DEF_TAG=def1027 training/personalization/run_site_publish.sh' >> /home/max/heroes-of-the-storm/sync/logs/site-publish.log 2>&1
 ```
 
 The scoreboard enrichment from the previous design is folded into `build`: scoreboard evidence is computed for every account in one pass. There is no separate enrich job and no queue.
@@ -185,9 +199,8 @@ Most wrong automatic picks are players missing from the index who share a name w
 
 ## 7. Before launch (coordinator)
 
-1. Create the table on Neon: `drizzle/0001_personal_accounts.sql`. It is additive. Max approved creating it.
-2. Merge `personal-site`.
-3. Run `training/personalization/run_site_publish.sh` once by hand: about 4 minutes, and it pushes the table with publish-site. Then install the cron line from section 1.
+1. Done 2026-10-28: table created on Neon from `drizzle/0001_personal_accounts.sql` (additive), `personal-site` merged, first publish run, cron installed with `SITE_STORE=def1027`.
+2. Weekly runs refresh names, MMR, counts and the recent-games filter; the skill estimates change only when the store and the definitive caches are rebuilt.
 4. No new Vercel env is needed.
 5. `/rate` and the study tables are untouched.
 
