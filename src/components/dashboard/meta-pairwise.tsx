@@ -21,6 +21,9 @@ export function MetaPairwise({ synergies, counters }: MetaPairwiseProps) {
           <CardTitle className="text-lg">Strongest Synergies</CardTitle>
         </CardHeader>
         <CardContent>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Pairs with 50+ games, ranked by win rate with small samples pulled toward 50%.
+          </p>
           <PairList pairs={synergies} label="together" />
         </CardContent>
       </Card>
@@ -30,6 +33,9 @@ export function MetaPairwise({ synergies, counters }: MetaPairwiseProps) {
           <CardTitle className="text-lg">Strongest Counters</CardTitle>
         </CardHeader>
         <CardContent>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Pairs with 50+ games, ranked the same way.
+          </p>
           <PairList pairs={counters} label="vs" />
         </CardContent>
       </Card>

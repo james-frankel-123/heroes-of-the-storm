@@ -459,6 +459,14 @@ function mergeChoGallPairwise(pairs: HeroPairwiseStats[]): HeroPairwiseStats[] {
   })
 }
 
+/**
+ * Pair rankings need evidence: at least MIN_PAIR_GAMES games, ordered by the win rate
+ * pulled toward 50% by PAIR_PRIOR_GAMES phantom games (raw win rate is still displayed).
+ */
+export const MIN_PAIR_GAMES = 50
+const PAIR_PRIOR_GAMES = 50
+const pairScore = (p: { wins: number; games: number }) => (p.wins + PAIR_PRIOR_GAMES / 2) / (p.games + PAIR_PRIOR_GAMES)
+
 /** Top synergy pairs for a tier (deduped: only heroA < heroB alphabetically) */
 export async function getTopSynergies(
   tier: SkillTier,
@@ -472,10 +480,11 @@ export async function getTopSynergies(
       and(
         eq(heroPairwiseStatsTable.relationship, 'with'),
         eq(heroPairwiseStatsTable.skillTier, tier),
+        gte(heroPairwiseStatsTable.games, MIN_PAIR_GAMES),
         sql`${heroPairwiseStatsTable.heroA} < ${heroPairwiseStatsTable.heroB}`
       )
     )
-    .orderBy(desc(heroPairwiseStatsTable.winRate))
+    .orderBy(desc(sql`(${heroPairwiseStatsTable.wins} + ${PAIR_PRIOR_GAMES / 2}) / (${heroPairwiseStatsTable.games} + ${PAIR_PRIOR_GAMES})::float`))
     .limit(limit + 10)
 
   const mapped = rows.map((r) => ({
@@ -489,7 +498,7 @@ export async function getTopSynergies(
   }))
 
   return mergeChoGallPairwise(mapped)
-    .sort((a, b) => b.winRate - a.winRate)
+    .sort((a, b) => pairScore(b) - pairScore(a))
     .slice(0, limit)
 }
 
@@ -505,10 +514,11 @@ export async function getTopCounters(
       and(
         eq(heroPairwiseStatsTable.relationship, 'against'),
         eq(heroPairwiseStatsTable.skillTier, tier),
+        gte(heroPairwiseStatsTable.games, MIN_PAIR_GAMES),
         sql`${heroPairwiseStatsTable.heroA} < ${heroPairwiseStatsTable.heroB}`
       )
     )
-    .orderBy(desc(heroPairwiseStatsTable.winRate))
+    .orderBy(desc(sql`(${heroPairwiseStatsTable.wins} + ${PAIR_PRIOR_GAMES / 2}) / (${heroPairwiseStatsTable.games} + ${PAIR_PRIOR_GAMES})::float`))
     .limit(limit + 10)
 
   const mapped = rows.map((r) => ({
@@ -522,7 +532,7 @@ export async function getTopCounters(
   }))
 
   return mergeChoGallPairwise(mapped)
-    .sort((a, b) => b.winRate - a.winRate)
+    .sort((a, b) => pairScore(b) - pairScore(a))
     .slice(0, limit)
 }
 
