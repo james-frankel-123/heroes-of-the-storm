@@ -91,7 +91,8 @@ const STARTER_PROMPTS_GENERIC = [
 
 function starterPrompts(card: DraftContextCard | null): string[] {
   if (!card || !card.map) return STARTER_PROMPTS_GENERIC
-  const topRec = card.topRecs[0]?.hero
+  // sessions saved before topRecsSource existed hold the stats ranking
+  const topRec = card.topRecsSource === 'displayed' ? card.topRecs[0]?.hero : undefined
   return [
     topRec ? `Why is ${topRec} the top recommendation here?` : 'Why is the top hero recommended?',
     'What is our team composition trying to accomplish?',
@@ -425,7 +426,9 @@ export function AMAClient() {
 
               {card.topRecs.length > 0 && (
                 <div>
-                  <p className="text-[10px] text-[#8b9bc8] uppercase tracking-widest mb-1.5">Top recommendations</p>
+                  <p className="text-[10px] text-[#8b9bc8] uppercase tracking-widest mb-1.5">
+                    {card.topRecsSource === 'displayed' ? 'Top recommendations (pp vs search line)' : 'Statistical alternatives (pp)'}
+                  </p>
                   <div className="space-y-1">
                     {card.topRecs.slice(0, 5).map((rec) => (
                       <button
@@ -439,7 +442,7 @@ export function AMAClient() {
                           rec.netDelta >= 3 ? 'text-[#6fd46f]' :
                           rec.netDelta >= 0 ? 'text-[#d4b85a]' : 'text-[#d46b6b]'
                         )}>
-                          {rec.netDelta >= 0 ? '+' : ''}{rec.netDelta.toFixed(1)}%
+                          {rec.netDelta >= 0 ? '+' : ''}{rec.netDelta.toFixed(1)} pp
                         </span>
                       </button>
                     ))}

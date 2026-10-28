@@ -306,7 +306,9 @@ export function AMADrawer({ open, onClose, draftContext }: AMADrawerProps) {
       {/* Top recs quick-ask */}
       {card && card.topRecs.length > 0 && messages.length === 0 && (
         <div className="px-4 py-3 border-b border-[#3a4050] shrink-0">
-          <p className="text-[10px] text-[#8b9bc8] uppercase tracking-widest mb-2">Current top picks</p>
+          <p className="text-[10px] text-[#8b9bc8] uppercase tracking-widest mb-2">
+            {card.topRecsSource === 'displayed' ? 'Current top picks (pp vs search line)' : 'Statistical alternatives (pp)'}
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {card.topRecs.slice(0, 4).map((rec) => (
               <button
@@ -319,7 +321,7 @@ export function AMADrawer({ open, onClose, draftContext }: AMADrawerProps) {
                   'font-medium',
                   rec.netDelta >= 3 ? 'text-[#6fd46f]' : rec.netDelta >= 0 ? 'text-[#d4b85a]' : 'text-[#d46b6b]'
                 )}>
-                  {rec.netDelta >= 0 ? '+' : ''}{rec.netDelta.toFixed(1)}%
+                  {rec.netDelta >= 0 ? '+' : ''}{rec.netDelta.toFixed(1)} pp
                 </span>
               </button>
             ))}
@@ -336,7 +338,7 @@ export function AMADrawer({ open, onClose, draftContext }: AMADrawerProps) {
               {!card?.map && ' Load a draft first for context-aware answers.'}
             </p>
             <div className="space-y-2">
-              {STARTER_PROMPTS(card?.topRecs[0]?.hero).map((prompt) => (
+              {STARTER_PROMPTS(card?.topRecsSource === 'displayed' ? card.topRecs[0]?.hero : undefined).map((prompt) => (
                 <button
                   key={prompt}
                   onClick={() => sendMessage(prompt)}

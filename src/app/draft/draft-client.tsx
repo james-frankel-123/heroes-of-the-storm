@@ -9,7 +9,7 @@ import { TeamColumn } from '@/components/draft/hex/TeamColumn'
 import { buildDraftView } from '@/components/draft/hex/draft-view-model'
 import { HeroPicker } from '@/components/draft/hero-picker'
 import { SearchRecommendationPanel, type OpponentPredictionRow, type OurTurnRow } from '@/components/draft/search-recommendation-panel'
-import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, getPartialProjection, evaluatePosition } from '@/lib/draft/ai-inference'
+import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, evaluatePosition } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { InGamePlayers, type PersonalDraftState } from '@/components/draft/in-game-players'
 import { banGain, personalValue } from '@/lib/personal/draft-personal'
@@ -177,6 +177,18 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
   }
 }
 
+interface OpponentRaw {
+  hero: string
+  probabilityPct: number | null
+  /** Population values (our %) before and after the enemy takes the hero; null for bans */
+  basis: { ours: string[]; theirs: string[]; before: number; after: number } | null
+}
+
+/** Searched rows by projected final win chance, then rows the search did not evaluate */
+function searchedFirst(a: OurTurnRow, b: OurTurnRow): number {
+  return Number(a.isGreedyPad) - Number(b.isGreedyPad) || b.winPct - a.winPct
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -222,7 +234,9 @@ export function DraftClient({
   const [position, setPosition] = useState<{ pct: number; ours: string[]; theirs: string[]; pending: boolean } | null>(null)
   const positionRev = useRef(0)
   const [searchStatus, setSearchStatus] = useState<string>('')
-  const [gdOpponentPreds, setGdOpponentPreds] = useState<OpponentPredictionRow[]>([])
+  // Opponent-turn rows with the population values of the position before and after the
+  // enemy takes each hero (same evaluator as the banner); personal terms are applied later
+  const [gdOpponentPreds, setGdOpponentPreds] = useState<OpponentRaw[]>([])
   const [gdLoading, setGdLoading] = useState(false)
 
   // Build AI state helper
@@ -269,14 +283,15 @@ export function DraftClient({
           if (!cancelled) {
             const { ourPicks, enemyPicks } = pickArrays
             const isPick = step.type === 'pick'
-            // Impact on the banner's estimate family: the partial-draft model, before and
-            // after the enemy takes the hero (our perspective)
+            // Impact on the banner: the banner's own evaluator (evaluatePosition, the terminal
+            // judge once a candidate completes the draft) for the position now, indexed at the
+            // last action, and after the enemy's pick, indexed at this step
             const ourIs0 = state.ourTeam === 'A'
-            const proj = async (ours: string[], theirs: string[]) => {
-              const p0 = await getPartialProjection(ourIs0 ? ours : theirs, ourIs0 ? theirs : ours, state.map ?? '', state.tier, state.currentStep, draftData)
+            const proj = async (ours: string[], theirs: string[], lastAction: number) => {
+              const p0 = await evaluatePosition(ourIs0 ? ours : theirs, ourIs0 ? theirs : ours, state.map ?? '', state.tier, lastAction, draftData)
               return 100 * (ourIs0 ? p0 : 1 - p0)
             }
-            const before = isPick ? await proj(ourPicks, enemyPicks) : 0
+            const before = isPick ? await proj(ourPicks, enemyPicks, Math.max(0, state.currentStep - 1)) : null
             // Pad the model's predictions with statistically strong options
             const gdHeroes = new Set(preds.map(p => p.hero))
             const candidates: { hero: string; probability: number | null }[] = [
@@ -286,13 +301,13 @@ export function DraftClient({
                 .map(r => ({ hero: r.hero, probability: null })),
             ].slice(0, 10)
             const impacts = isPick
-              ? await Promise.all(candidates.map(c => proj(ourPicks, [...enemyPicks, c.hero])))
+              ? await Promise.all(candidates.map(c => proj(ourPicks, [...enemyPicks, c.hero], state.currentStep)))
               : null
             if (cancelled) return
             setGdOpponentPreds(candidates.map(({ hero, probability }, i) => ({
               hero,
               probabilityPct: probability != null ? probability * 100 : null,
-              impactPp: impacts ? Math.round((impacts[i] - before) * 10) / 10 : null,
+              basis: impacts && before !== null ? { ours: ourPicks, theirs: enemyPicks, before, after: impacts[i] } : null,
             })))
             setGdLoading(false)
             setSearchStatus('')
@@ -352,7 +367,7 @@ export function DraftClient({
             .map(r => toRow(r.hero, true)),
         ]
           .slice(0, 10)
-          .sort((a, b) => b.winPct - a.winPct)
+          .sort(searchedFirst)
           .map(r => (r.hero === aiTopHero ? { ...r, isAiTop: true } : r))
 
         if (!cancelled) {
@@ -444,6 +459,19 @@ export function DraftClient({
     if (!personal || !position) return null
     return personalValue(position.pct / 100, position.ours, position.theirs, personal.ours, personal.theirs, personal.coefs, personalFixed).value * 100
   }, [personal, position, personalFixed])
+  // Enemy-impact rows: change to the banner's estimate, with the same personal terms and pins
+  const opponentRows = useMemo<OpponentPredictionRow[]>(() => {
+    const withSkill = (pct: number, ours: string[], theirs: string[]) =>
+      personal ? personalValue(pct / 100, ours, theirs, personal.ours, personal.theirs, personal.coefs, personalFixed).value * 100 : pct
+    return gdOpponentPreds.map(({ hero, probabilityPct, basis }) => ({
+      hero,
+      probabilityPct,
+      impactPp: basis
+        ? Math.round((withSkill(basis.after, basis.ours, [...basis.theirs, hero]) - withSkill(basis.before, basis.ours, basis.theirs)) * 10) / 10
+        : null,
+    }))
+  }, [gdOpponentPreds, personal, personalFixed])
+
   // The page's one current estimate: the position value, with player skill when matched
   const nowPct = personalNowPct ?? position?.pct ?? null
 
@@ -476,23 +504,6 @@ export function DraftClient({
     if (ourPicks.length === 0) return null
     return computeTeamWinEstimate(ourPicks, enemyPicks, draftData, state.map, ourPlayerMap)
   }, [pickArrays, state.phase, state.map, draftData])
-
-  // AMA context (updates live with every pick/ban)
-  const amaContext = useMemo(() => {
-    if (!draftData || state.phase !== 'drafting') return null
-    return enrichDraftContext(state, recommendations, draftData, ourWinEstimate)
-  }, [state, recommendations, draftData, ourWinEstimate])
-
-  // Sync AMA context to sessionStorage so the standalone /AMA page can read it
-  useEffect(() => {
-    if (amaContext) {
-      try {
-        sessionStorage.setItem('ama-draft-context', JSON.stringify(amaContext))
-      } catch {
-        // sessionStorage unavailable
-      }
-    }
-  }, [amaContext])
 
   // Heroes that are already selected (banned or picked)
   // Cho'gall: if either Cho or Gall is selected, both are unavailable
@@ -591,7 +602,7 @@ export function DraftClient({
         shown.add(h)
       }
     }
-    rows.sort((a, b) => b.winPct - a.winPct)
+    rows.sort(searchedFirst)
     const n = personal.ours.length + personal.theirs.length
     return {
       rows,
@@ -599,6 +610,31 @@ export function DraftClient({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personal, personalFixed, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
+
+  // AMA context (updates live with every pick/ban)
+  const amaContext = useMemo(() => {
+    if (!draftData || state.phase !== 'drafting') return null
+    // The coach sees what the page shows: the displayed rows (searched ones ranked; unsearched
+    // flagged) and the banner's estimate; the stats ranking is passed only as background
+    const isOurs = currentStep?.team === state.ourTeam
+    return enrichDraftContext(state, recommendations, draftData, ourWinEstimate, 5, {
+      rows: isOurs
+        ? personalView.rows.map(r => ({ hero: r.hero, winPct: r.winPct, deltaPp: r.deltaPp, searched: !r.isGreedyPad, note: r.personalNote }))
+        : [],
+      nowPct: ourWinPct,
+    })
+  }, [state, recommendations, draftData, ourWinEstimate, personalView, ourWinPct, currentStep])
+
+  // Sync AMA context to sessionStorage so the standalone /AMA page can read it
+  useEffect(() => {
+    if (amaContext) {
+      try {
+        sessionStorage.setItem('ama-draft-context', JSON.stringify(amaContext))
+      } catch {
+        // sessionStorage unavailable
+      }
+    }
+  }, [amaContext])
 
   // Who? options on the board: unassigned registered party tags, then matched teammates
   const assignOptions = useMemo(() => {
@@ -891,7 +927,7 @@ export function DraftClient({
             ) : (
               // Opponent turn: show GD model predictions + impact on our win %
               <SearchRecommendationPanel
-                opponentRows={gdOpponentPreds}
+                opponentRows={opponentRows}
                 searching={gdLoading}
                 statusText={searchStatus}
                 isBanPhase={currentStep?.type === 'ban'}

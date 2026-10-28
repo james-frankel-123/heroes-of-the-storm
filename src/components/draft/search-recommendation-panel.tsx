@@ -30,7 +30,10 @@ export interface OurTurnRow {
   winPct: number
   /** Delta vs the current estimate, in percentage points */
   deltaPp: number
-  /** True when the row comes from greedy padding rather than the search */
+  /**
+   * True when the search did not evaluate this hero (statistical padding, or a matched
+   * player's own pool): its winPct/deltaPp are placeholders and are not shown.
+   */
   isGreedyPad: boolean
   /** True for the MCTS search's own top choice (shown as a subtle badge) */
   isAiTop?: boolean
@@ -206,6 +209,14 @@ export function SearchRecommendationPanel({
                     </span>
                   )}
                 </div>
+                {rec.isGreedyPad ? (
+                  <div
+                    className="text-right shrink-0 text-[10px] text-[#8b9bc8]"
+                    title="The search did not evaluate this hero; it is listed from hero statistics or a matched player's pool, with no projected win chance"
+                  >
+                    Not searched
+                  </div>
+                ) : (
                 <div className="text-right shrink-0">
                   <div
                     title={`Projected final win chance after ${isBanPhase ? 'banning' : 'picking'} ${rec.hero}: the search's estimate with this action taken, evaluated by the same model that scores the finished draft. The search's value of the current state is the baseline for the change below; the banner instead scores the draft as it stands, and the two meet when the draft is complete.`}
@@ -231,6 +242,7 @@ export function SearchRecommendationPanel({
                     </div>
                   )}
                 </div>
+                )}
               </div>
               {rec.personalNote ? (
                 <p className="mt-1 text-[10px] text-gaming-success">{rec.personalNote}</p>

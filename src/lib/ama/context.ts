@@ -23,6 +23,11 @@ export interface DraftContextCard {
   totalSteps: number
   stepType: 'pick' | 'ban' | null
   isOurTurn: boolean
+  /**
+   * 'displayed': the page's own recommendation rows (searched rows; netDelta in pp vs the
+   * search line). 'stats': the statistical ranking, a different metric (netDelta in pp).
+   */
+  topRecsSource: 'displayed' | 'stats'
   topRecs: Array<{
     rank: number
     hero: string
@@ -42,11 +47,18 @@ export interface EnrichedDraftContext {
 }
 
 function fmt(n: number): string {
-  return `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`
+  return `${n >= 0 ? '+' : ''}${n.toFixed(1)} pp`
 }
 
 function fmtWR(wr: number, games: number): string {
   return `${wr.toFixed(1)}% WR / ${games} games`
+}
+
+/** What the draft page currently displays, so the coach describes the same ranking and numbers. */
+export interface DisplayedDraft {
+  rows: { hero: string; winPct: number; deltaPp: number; searched: boolean; note?: string }[]
+  /** The banner's win estimate (our team, %), or null before any pick */
+  nowPct: number | null
 }
 
 export function enrichDraftContext(
@@ -54,7 +66,8 @@ export function enrichDraftContext(
   recommendations: DraftRecommendation[],
   draftData: DraftData,
   winEstimate: WinEstimateResult | null,
-  topN = 5
+  topN = 5,
+  displayed?: DisplayedDraft,
 ): EnrichedDraftContext {
   // Derive picks and bans from state
   const ourPicks: string[] = []
@@ -80,16 +93,26 @@ export function enrichDraftContext(
     : null
   const isOurTurn = currentStep?.team === state.ourTeam
 
-  // Build card
-  const topRecs = recommendations
-    .slice(0, topN)
-    .map((rec, i) => ({
-      rank: i + 1,
-      hero: rec.hero,
-      netDelta: rec.netDelta,
-      reasons: rec.reasons,
-      suggestedPlayer: rec.suggestedPlayer,
-    }))
+  // Build card: the displayed (searched) rows when there are any, else the stats ranking
+  const shownRows = (displayed?.rows ?? []).filter(r => r.searched)
+  const topRecsSource: 'displayed' | 'stats' = shownRows.length > 0 ? 'displayed' : 'stats'
+  const topRecs = topRecsSource === 'displayed'
+    ? shownRows.slice(0, topN).map((r, i) => ({
+        rank: i + 1,
+        hero: r.hero,
+        netDelta: r.deltaPp,
+        reasons: [] as Array<{ type: string; label: string; delta: number }>,
+        suggestedPlayer: null,
+      }))
+    : recommendations
+        .slice(0, topN)
+        .map((rec, i) => ({
+          rank: i + 1,
+          hero: rec.hero,
+          netDelta: rec.netDelta,
+          reasons: rec.reasons,
+          suggestedPlayer: rec.suggestedPlayer,
+        }))
 
   const card: DraftContextCard = {
     map: state.map,
@@ -102,8 +125,9 @@ export function enrichDraftContext(
     totalSteps: DRAFT_SEQUENCE.length,
     stepType: currentStep?.type ?? null,
     isOurTurn,
+    topRecsSource,
     topRecs,
-    winPct: winEstimate?.winPct ?? null,
+    winPct: displayed ? displayed.nowPct : winEstimate?.winPct ?? null,
     winBreakdown: winEstimate?.breakdown ?? null,
   }
 
@@ -134,16 +158,30 @@ export function enrichDraftContext(
     lines.push('Bans: (none yet)')
   }
 
+  if (displayed?.nowPct != null) {
+    lines.push(`Win estimate shown on the page (banner): ${displayed.nowPct.toFixed(1)}% for our team`)
+  }
+  if (displayed && displayed.rows.length > 0) {
+    lines.push('')
+    lines.push('=== RECOMMENDATIONS AS DISPLAYED (search: projected final win chance if we keep following the search; change in pp vs the search line) ===')
+    displayed.rows.slice(0, 10).forEach((r, i) => {
+      const value = r.searched
+        ? `${r.winPct.toFixed(1)}% projected final, ${r.deltaPp >= 0 ? '+' : ''}${r.deltaPp.toFixed(1)} pp vs search line`
+        : 'not searched (listed from statistics or a matched player\'s pool; no win chance computed)'
+      lines.push(`#${i + 1} ${r.hero}: ${value}${r.note ? ` | ${r.note}` : ''}`)
+    })
+  }
+
   if (winEstimate && winEstimate.winPct !== 50) {
     const bd = winEstimate.breakdown
     lines.push(
-      `Win estimate: ${winEstimate.winPct.toFixed(1)}% ` +
+      `Stats-model estimate (background, not the banner): ${winEstimate.winPct.toFixed(1)}% ` +
       `(heroWR: ${fmt(bd.heroWR)}, synergies: ${fmt(bd.synergies)}, counters: ${fmt(bd.counters)}, playerAdj: ${fmt(bd.playerAdj)})`
     )
   }
 
   lines.push('')
-  lines.push(`=== TOP ${Math.min(topN, recommendations.length)} RECOMMENDATIONS (stats mode) ===`)
+  lines.push(`=== TOP ${Math.min(topN, recommendations.length)} STATISTICAL ALTERNATIVES (stats mode: a different ranking and metric than the displayed rows; deltas in pp) ===`)
 
   if (recommendations.length === 0) {
     lines.push('(No recommendations available — draft may not be in progress or no map selected)')
