@@ -1,0 +1,37 @@
+{
+ "w0": 0.5245018601417542,
+ "a1": 0.33597663044929504,
+ "a2": 0.11751728504896164,
+ "fit_lobbies": 3000,
+ "held_out_bans": 1800,
+ "held_out": {
+  "GD": {
+   "top1": 0.1478,
+   "nll": 3.6557,
+   "n": 1800
+  },
+  "GD + denial (holder-free)": {
+   "top1": 0.14,
+   "nll": 3.474,
+   "n": 1800
+  },
+  "holder model (top-ranked holder)": {
+   "top1": 0.1439,
+   "nll": 3.4742,
+   "n": 1800
+  },
+  "placebo holder (random other teammate)": {
+   "top1": 0.1389,
+   "nll": 3.4732,
+   "n": 1800
+  }
+ },
+ "denial_only_fit": {
+  "a1": 0.33438923954963684
+ },
+ "placebo_fit": {
+  "a1": 0.33721819519996643,
+  "a2": 0.21358053386211395
+ },
+ "secs": 3
+}

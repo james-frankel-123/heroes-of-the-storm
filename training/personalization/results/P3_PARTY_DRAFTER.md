@@ -1,6 +1,91 @@
-# P3: the party drafter (partial control), prototype on current data (2026-10-22)
+# P3: the party drafter (partial control)
 
 **Draft rules corrected 2026-10-23 (Max).** In ranked drafts the team's highest-ranked player bans, whatever the pick order, and on each team pick turn any teammate may lock (whoever clicks first takes the turn). The prototype below assumed the player on the team's first pick turn bans and treated pick slots as assigned. Its numbers stay here as the record of that setup; they are not the paper's numbers. The definitive run uses the corrected rules ("Definitive run" below).
+
+## Definitive results (run def1027, finished 2026-10-28)
+
+The corrected rules apply throughout: the top-ranked player bans; any teammate may lock; strangers lock in a random order. The run uses the definitive headline lobby set (`results/p3t_def1027_headline/party_party.json`, `party_party_report.json`); old-model pass in brackets.
+- **Lobbies:** 1,175, all of them under the 10-game rule. Old tune, old tournament and new headline lobbies are excluded by replay ID. The set is below the 1,500 floor and ran as decided.
+- **Precision:** 95% lobby-bootstrap CIs, both team sides pooled unless stated.
+- **Units:** J, J_cal and CONS in pp of the party team's win probability. Record = judge-free realized record per party-team player, pp.
+
+**Gain over generic picks by party size** (random members and lock turns; the party holds the bans when a member is the top-ranked player):
+
+| party | J | J_cal | CONS | record | capture of the full team's J gain | vs blind: J | vs real picks: J |
+|---|---|---|---|---|---|---|---|
+| 1 | +2.5 (2.1, 2.8) [2.4] | +2.7 | +1.6 | +0.1 (−0.5, 0.8) | 20% (17, 23) [19%] | +2.8 | +2.2 |
+| 2 | +4.8 (4.3, 5.2) [4.9] | +5.3 | +3.3 | +0.9 (0.1, 1.7) | 38% (34, 42) | +5.5 | +4.4 |
+| 3 | +8.0 (7.5, 8.5) [8.1] | +8.8 | +4.9 | +0.6 (−0.3, 1.4) | 64% (60, 69) | +8.4 | +6.8 |
+| 4 | +10.3 (9.8, 10.8) [10.5] | +11.3 | +6.3 | −0.1 (−1.1, 0.8) | 83% (78, 88) | +11.2 | +8.3 |
+| 5 | +12.5 (11.9, 13.0) [13.2] | +13.7 | +7.6 | +1.2 (0.3, 2.1) | 100% | +13.8 | +9.8 |
+
+- **Capture.** A solo user gets a fifth of what a full team gets, a duo 38%, a trio 64%, a four-stack 83%. The capture CIs resample whole lobbies, numerator and denominator together.
+- **Sides.** First- and second-pick teams agree within noise at every size (solo 2.6 vs 2.4; five 12.5 vs 12.4).
+- **Prototype comparison** (old rules, 300 lobbies): solo +2.8, five +14.5, solo capture 19%. The definitive gains are similar, a little smaller at five.
+
+**Who holds the bans in real lobbies** (Heroes Profile party ids, all 60,500 tournament-window lobbies):
+
+| party size | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| holds the bans | 19.0% (362,397 solo players) | 43.4% | 66.1% | 84.7% | 100% |
+
+- The 1,175 study lobbies give 17.7%, 44.9%, 74.1%, 92.5% and 100%.
+- Weighted by the real rates, the solo gain is +2.45 (2.09, 2.83).
+- Split by holding: a solo user who holds the bans gains +3.6 (2.5, 4.8); one who does not, +2.2 (1.8, 2.5).
+- For a duo: +6.0 holding, +3.9 not.
+
+**Solo user, fixed lock timing** (the grid, J, both sides; "bans" = the user is the top-ranked player):
+
+| lock at the team's | with the bans | without the bans | weighted by the real rate |
+|---|---|---|---|
+| 1st turn | +2.8 (2.3, 3.3) | +1.3 (0.9, 1.8) | +1.6 (1.3, 2.0) |
+| 2nd | +3.4 (2.9, 3.9) | +1.7 (1.3, 2.1) | +2.0 (1.7, 2.4) |
+| 3rd | +4.4 (3.9, 4.9) | +2.1 (1.8, 2.4) | +2.5 (2.2, 2.8) |
+| 4th | +4.5 (4.0, 5.0) | +2.4 (2.1, 2.6) | +2.8 (2.5, 3.0) |
+| 5th (last) | +4.8 (4.3, 5.2) | +2.8 (2.6, 3.0) | +3.1 (3.0, 3.3) |
+
+- **Later is better at every step.** Weighted gaps:
+  - first minus last −1.5 (−1.9, −1.1);
+  - 2nd minus last −1.1;
+  - 3rd minus last −0.6 (−0.9, −0.3);
+  - 4th minus last −0.4 (−0.6, −0.1).
+- **The bans add 1.5 to 2.3pp at every turn.**
+- **Old model:** the same pattern. Weighted first minus last −1.6; the last turn +3.3 weighted.
+- **Parties** (weighted, mean over all turn sets): +2.4, +5.0, +7.8, +10.4, +12.2 for sizes 1 to 5.
+
+**Lock-or-wait vs fixed timing** (solo, weighted by the real holding rate, J):
+
+| lock-or-wait minus | J | CONS | record |
+|---|---|---|---|
+| always first | +1.4 (1.0, 1.7) | +0.3 | +0.3 (−0.3, 0.9) |
+| always last | **−0.6 (−1.0, −0.3)** | −0.1 | +0.3 (−0.3, 0.9) |
+| a fixed turn at random | +0.2 (−0.1, 0.4) | 0.0 | +0.3 |
+| generic picks at a random turn | +2.6 (2.3, 2.9) | +1.8 | +0.3 |
+
+- **The reading is confirmed: always-last beats the adaptive rule by 0.6pp** under J (old model 0.5, CI 0.2 to 0.9). The advice for a solo user is to lock last.
+- **The adaptive rule locks too early.** On the first-pick team it locks at the first turn 29 to 37% of the time.
+- **Why it locks early:** it compares the drafter's own value estimates, which undervalue waiting relative to the judge.
+- **CONS and the judge-free record do not separate the timing rules.**
+
+**Achieved precision at 1,175 lobbies** (95% CI half-widths, J):
+- **Solo turns, weighted, both sides pooled:** ±0.37, ±0.33, ±0.27, ±0.24, ±0.18 (turns 1 to 5). With the bans ±0.45 to ±0.52; without ±0.43 to ±0.20.
+- **Per side:** worst ±0.76 (with the bans) and ±0.61 (without).
+- **Slot gaps (paired):** ±0.2 to ±0.4. The plan expected gaps of about 0.3 among the last turns to be inseparable. Here they separate: 4th minus last is −0.36 (−0.62, −0.10). The paired design (common random numbers across turns) makes the gaps tighter than the projection.
+- **Multi-player cells, both sides pooled:** worst ±0.55.
+
+**The judge-free record for parties is mostly null.**
+- **Solo:** +0.1 (−0.5, 0.8) against generic picks. It is null at every lock turn, with and without the bans.
+- **Larger parties:**
+  - Some cells are positive: duo +0.9 (0.1, 1.7); five +1.2 (0.3, 2.1); grid means over turn sets +0.6 to +1.6 for sizes 2 to 5.
+  - Others are null: trio and four-stack in the random-seat plan.
+- **Against the player-blind drafter** the record is clearly positive for parties of 2 to 5 (+2.3 to +4.9). That reflects the blind drafter putting players on heroes they are bad at, not the aware drafter's edge over typical picks.
+- **The judged gains are not confirmed player by player at these sample sizes.**
+
+**Flags.**
+- The first-turn, no-ban solo cell differs between sides: +0.9 (0.3, 1.5) for the first-pick team, +1.7 (1.2, 2.3) for the second. All other turns agree within ±0.7. Pooling as decided is fine, but this is the one cell where the sides differ by more than the noise.
+- The ban-holder model's holder term still adds nothing measurable. Who holds the bans is not identifiable from our data (methods note); the rule rests on Max's account of the client.
+
+## Prototype record (2026-10-22, old draft rules; superseded)
 
 Status: prototype on the current panel (store full_1017, CAP_TS 2026-09-28), the 300 tournament lobbies, kernels as of commit a2d5bad. It reruns on the definitive inputs after Oct 29 with the definitive player-state model. Model-judged numbers are labeled J (player-aware judge), J_cal (calibrated parts) and CONS (population consensus); the judge-free record uses later real games. Every interval is a 95% lobby-bootstrap CI over the 300 lobbies (paired by lobby between arms; both team seats pooled = 600 lobby-seats).
 

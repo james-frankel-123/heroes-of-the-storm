@@ -1,0 +1,86 @@
+{
+ "slots": 1185998,
+ "players": 37752,
+ "share_playing_best": 0.19138649474956956,
+ "share_playing_main": 0.19836879994738607,
+ "best_banned": {
+  "share_of_slots": 0.09383068099608936,
+  "players": 19185,
+  "realized_pp": -2.18,
+  "realized_se": 0.19,
+  "predicted_pp": -1.38,
+  "realized_minus_predicted_pp": -0.8,
+  "realized_minus_predicted_se": 0.18,
+  "model_cost_vs_lost_hero_pp": 4.88
+ },
+ "best_by_teammate": {
+  "share_of_slots": 0.025791780424587563,
+  "players": 12871,
+  "realized_pp": -1.24,
+  "realized_se": 0.29,
+  "predicted_pp": -1.01,
+  "realized_minus_predicted_pp": -0.23,
+  "realized_minus_predicted_se": 0.29,
+  "model_cost_vs_lost_hero_pp": 4.61
+ },
+ "best_by_enemy": {
+  "share_of_slots": 0.03952030273238235,
+  "players": 16767,
+  "realized_pp": -1.07,
+  "realized_se": 0.25,
+  "predicted_pp": -1.11,
+  "realized_minus_predicted_pp": 0.04,
+  "realized_minus_predicted_se": 0.25,
+  "model_cost_vs_lost_hero_pp": 4.61
+ },
+ "main_banned": {
+  "share_of_slots": 0.09679358649845952,
+  "players": 19292,
+  "realized_pp": -1.81,
+  "realized_se": 0.18,
+  "predicted_pp": -1.18,
+  "realized_minus_predicted_pp": -0.64,
+  "realized_minus_predicted_se": 0.17,
+  "model_cost_vs_lost_hero_pp": 3.5
+ },
+ "main_by_teammate": {
+  "share_of_slots": 0.027728545916603568,
+  "players": 12987,
+  "realized_pp": -1.53,
+  "realized_se": 0.28,
+  "predicted_pp": -0.85,
+  "realized_minus_predicted_pp": -0.68,
+  "realized_minus_predicted_se": 0.27,
+  "model_cost_vs_lost_hero_pp": 3.11
+ },
+ "main_by_enemy": {
+  "share_of_slots": 0.04281373155772607,
+  "players": 16969,
+  "realized_pp": -1.4,
+  "realized_se": 0.22,
+  "predicted_pp": -0.91,
+  "realized_minus_predicted_pp": -0.49,
+  "realized_minus_predicted_se": 0.22,
+  "model_cost_vs_lost_hero_pp": 3.21
+ },
+ "best_taken_any": {
+  "share_of_slots": 0.15914276415305928,
+  "players": 25098,
+  "realized_pp": -1.99,
+  "realized_se": 0.14,
+  "predicted_pp": -1.45,
+  "realized_minus_predicted_pp": -0.54,
+  "realized_minus_predicted_se": 0.13,
+  "model_cost_vs_lost_hero_pp": 4.77
+ },
+ "main_taken_any": {
+  "share_of_slots": 0.16733586397278916,
+  "players": 25231,
+  "realized_pp": -1.96,
+  "realized_se": 0.13,
+  "predicted_pp": -1.24,
+  "realized_minus_predicted_pp": -0.72,
+  "realized_minus_predicted_se": 0.13,
+  "model_cost_vs_lost_hero_pp": 3.36
+ }
+}

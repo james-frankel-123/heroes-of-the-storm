@@ -1,0 +1,59 @@
+{
+ "sims": 800,
+ "rosters_per_iter": 4096,
+ "roster_pool": 18136,
+ "iters": [
+  {
+   "iter": 0,
+   "gpu_seconds": 549.8012571334839,
+   "picks_equal_F_argmax": 0.6758544921875,
+   "root_visit_entropy": 0.9311355352401733,
+   "states": 40960,
+   "val_states": 3930,
+   "alpha": 0.5892546772956848,
+   "kl_to_targets_F_prior": 0.9691569209098816,
+   "kl_to_targets_fit": 0.5958808660507202,
+   "top1_matches_target_F": 0.8506361246109009,
+   "top1_matches_target_fit": 0.850890576839447
+  },
+  {
+   "iter": 1,
+   "gpu_seconds": 560.8077073097229,
+   "picks_equal_F_argmax": 0.551904296875,
+   "root_visit_entropy": 1.218445062637329,
+   "states": 81920,
+   "val_states": 7890,
+   "alpha": 0.5537301301956177,
+   "kl_to_targets_F_prior": 1.2477484941482544,
+   "kl_to_targets_fit": 0.6318750381469727,
+   "top1_matches_target_F": 0.7861850261688232,
+   "top1_matches_target_fit": 0.7901140451431274
+  },
+  {
+   "iter": 2,
+   "gpu_seconds": 563.6500248908997,
+   "picks_equal_F_argmax": 0.522314453125,
+   "root_visit_entropy": 1.2699054479599,
+   "states": 81920,
+   "val_states": 7890,
+   "alpha": 0.5249828696250916,
+   "kl_to_targets_F_prior": 1.5589592456817627,
+   "kl_to_targets_fit": 0.593353807926178,
+   "top1_matches_target_F": 0.6946768164634705,
+   "top1_matches_target_fit": 0.7490494251251221
+  },
+  {
+   "iter": 3,
+   "gpu_seconds": 564.9336395263672,
+   "picks_equal_F_argmax": 0.48515625,
+   "root_visit_entropy": 1.331236720085144,
+   "states": 81920,
+   "val_states": 7890,
+   "alpha": 0.5115410685539246,
+   "kl_to_targets_F_prior": 1.822789192199707,
+   "kl_to_targets_fit": 0.5898197293281555,
+   "top1_matches_target_F": 0.644486665725708,
+   "top1_matches_target_fit": 0.7291508316993713
+  }
+ ]
+}

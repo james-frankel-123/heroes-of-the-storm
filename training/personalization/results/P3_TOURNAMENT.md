@@ -1,5 +1,154 @@
 # P3 tournament: player-aware vs player-blind drafters, and drafters under drift (started 2026-10-19)
 
+## Definitive results (run def1027, finished 2026-10-28)
+
+**Run.** Build def1027 (full player-history pull, CAP_TS 2026-09-28), two passes by `remote/p3t_definitive.sh`:
+- **Headline:** the personalization lane's chosen state model, as the drafters' and the judge's player states, with disjoint player halves.
+- **Sensitivity:** the old full_ms model.
+
+Each pass has its own drafts, scores, judge and combiners. Results are in `results/p3t_def1027_headline/` and `results/p3t_def1027_oldmodel/`, tables in each folder's `P3_TOURNAMENT_TABLES.md`.
+- **Lobbies:** 300 fresh headline lobbies. They exclude the earlier tune and tournament lobbies by replay ID (`p3t_excluded_replays.json`). The tune set is the earlier tune set.
+- **Pairs:** 566 ordered pairs, both seats.
+- **Gates and code pins:** determinism and parity gates passed on both GPU hosts in both passes. Each pass pinned the code it ran on every host and re-verified it at the end.
+- **Judge:** 144,414 judge-window games. c2 3.05 (SE 0.04), lift 23.2 ×1000 (SE 0.55); old-model pass: c2 4.62, lift 20.0.
+- **J_cal (fitted this pass):** 1.18 logit p_cons + 1.00 personal term.
+- **Attenuation λ:** 0.55 (old model 0.39). The new judge credits about 0.55 of a true personal difference.
+
+Intervals are 95%, lobby bootstrap widened for seed variation, both seats. "Record" is the judge-free paired record: each player's later realized record on the hero each arm put him on, over the players covered under both arms, in pp per player.
+
+### The selected design against the baselines (headline pass)
+
+`x-combo1-dr-chance`, the design picked on the tune lobbies before the prototype tournament. Row = its win % (or its record advantage):
+
+| vs | J | J_cal | J outcome-free | CONS | record (pp) | coverage both |
+|---|---|---|---|---|---|---|
+| paper 1's MCTS (`pMCTS-cur`) | **59.0** (58.1, 60.0) | 58.1 (57.0, 59.1) | 60.7 (59.7, 61.8) | 44.3 (43.5, 45.1) | **+4.8** (2.2, 7.3) | 37% |
+| Real drafts | **63.0** (62.3, 63.7) | 64.4 (63.7, 65.2) | 63.5 (62.5, 64.5) | 58.9 (58.4, 59.4) | **+3.1** (1.0, 5.1) | 56% |
+| GD | **66.0** (65.2, 66.8) | 67.4 (66.6, 68.1) | 66.8 (66.2, 67.4) | 58.7 (58.2, 59.2) | +3.6 (1.5, 5.8) | 48% |
+| DraftRec | **58.1** (57.4, 58.7) | 59.3 (58.6, 60.0) | 57.9 (57.3, 58.6) | 57.2 (56.7, 57.7) | +2.1 (0.4, 3.8) | 64% |
+| DraftRec-pv | **55.1** (54.5, 55.7) | 55.3 (54.7, 56.0) | 55.7 (54.9, 56.5) | 51.0 (50.6, 51.5) | +3.5 (1.6, 5.5) | 53% |
+| `aMCTS-pp` (pre-stated design comparison) | 51.6 (51.1, 52.2) | 51.4 (50.9, 52.0) | 52.0 (51.5, 52.6) | 48.8 (48.4, 49.3) | +0.7 (−1.0, 2.3) | |
+
+- **Reading the record column.** In `analysis.json` each row is from the first-named system's side. The `pMCTS-cur vs x-combo1-dr-chance` row has −4.77 (−7.34, −2.20), which is +4.8 (2.2, 7.3) for the selected design. Real, GD, DraftRec and DraftRec-pv read the same way: the selected design's players later win more on its heroes than on the other arm's heroes.
+- **Not the first positive judge-free result.** The prototype also had a positive judge-free result: +3.7 (1.6, 5.8) vs paper 1's MCTS and +2.7 (1.0, 4.3) vs real drafts. It used the unpaired record, compared over different players. The definitive numbers are the first on paired coverage (the same players under both arms) and with seed SE included. All five are positive with CIs above 0.
+- **Coverage.** Against paper 1's MCTS the record rests on the 37% of players covered under both arms. Paper 1's MCTS puts players on heroes they rarely play (its own coverage is 44%, the selected design's 77%), so most of its picks have no later record.
+- **Outcome-free J.** It scores the judge with players placed on heroes by their earlier games, not by the best of 120 assignments. It is within about 1.7pp of J everywhere, and higher against paper 1's MCTS (60.7 vs 59.0). The best-assignment choice does not flatter the selected design.
+- **CONS.** Under the population judges the selected design still loses to paper 1's MCTS (44.3%) and beats real drafts (58.9%). This is the prototype pattern: the gain is personal, bought with some population win probability.
+
+**Against the prototype (2026-10-21, store full_1017, old states) and the old-model pass:**
+
+| selected design vs | prototype J | old-model pass J | headline J | old-model pass record | headline record |
+|---|---|---|---|---|---|
+| paper 1's MCTS | 60.9 (60.3, 61.6) | 61.0 (59.8, 62.2) | 59.0 (58.1, 60.0) | +4.0 (1.5, 6.4) | +4.8 (2.2, 7.3) |
+| Real | 62.1 (61.5, 62.8) | 62.5 (61.3, 63.7) | 63.0 (62.3, 63.7) | +3.1 (1.3, 4.9) | +3.1 (1.0, 5.1) |
+| GD | 66.9 (66.3, 67.5) | 66.2 (65.6, 66.8) | 66.0 (65.2, 66.8) | +5.8 (3.6, 7.9) | +3.6 (1.5, 5.8) |
+
+- **Wider intervals.** The definitive intervals are wider than the prototype's because the seed SE of the exploration searches now counts (it was 0 before the C14 fix).
+- **J_cal.** It moves as in the prototype: 58.1 vs paper 1's MCTS (prototype 59.9), 64.4 vs real drafts (63.5).
+- **Smoke run on dry1022 (24 lobbies, two pairs).** It only checked the chain and is not a comparison point. Its paper-1 MCTS vs GD (56.5 J) sits next to this run's 57.0.
+
+### Other pre-stated comparisons (headline; old-model pass in brackets)
+
+- **Primary,** `aMCTS-cur` vs `pMCTS-cur`: 50.9% (50.5, 51.2) [50.9]; prototype 51.4. Adding the personal term to the leaf of the blind-trained search still does almost nothing. Record +0.3 (−0.7, 1.4).
+- **Secondary,** `aMCTS-bc` vs `pMCTS-bc`: 56.3% (55.7, 56.9) [57.6]; prototype 57.6.
+- **Distilled prior,** `aMCTS-pp` vs paper 1's MCTS: 58.2% (57.0, 59.3) [60.0], record +5.8 (3.6, 7.9); prototype 60.4.
+- **Paper 1's MCTS vs real drafts:** J 53.3 (52.7, 54.0), CONS 63.4. The prototype had J 50.5, and the old-model pass has 50.9. The new state model credits paper 1's MCTS 2.4pp more against real drafts under J, while CONS is unchanged.
+
+### Bradley–Terry (J, logit, GD = 0; headline)
+
+| system | BT J | BT CONS | J standing % | note |
+|---|---|---|---|---|
+| `x-combo1-dr-drban` | 0.760 (0.733, 0.786) | 0.368 | | design-study variant, one opponent on the headline lobbies |
+| `x-combo1-dr` | 0.736 (0.714, 0.756) | 0.387 | 61.0 | |
+| `x-pp-ban3` | 0.732 (0.704, 0.760) | 0.376 | | ablation row, one opponent |
+| **`x-combo1-dr-chance` (selected)** | **0.726 (0.705, 0.746)** | 0.385 | 60.8 | |
+| `x-combo3-split` | 0.724 (0.701, 0.749) | 0.439 | 61.5 | |
+| `x-combo3` | 0.723 (0.702, 0.743) | 0.394 | 60.3 | |
+| `x-combo1` | 0.720 (0.699, 0.741) | 0.374 | 60.1 | |
+| `aMCTS-pp` | 0.663 (0.644, 0.680) | 0.406 | 59.5 | |
+| `DraftRec-pv` | 0.543 (0.522, 0.561) | 0.359 | 56.5 | |
+| `DraftRec` | 0.428 (0.407, 0.448) | 0.120 | 53.7 | |
+| `aMCTS-cur` | 0.361 (0.338, 0.382) | 0.602 | 52.0 | |
+| paper 1's MCTS | 0.339 (0.316, 0.361) | 0.602 | 51.4 | |
+| Real | 0.196 (0.174, 0.219) | 0.026 | 47.5 | |
+| GD | 0 | 0 | 42.4 | |
+
+The seat (first-pick) term is 0.049. The old-model pass orders the top the same way within noise: `x-combo3-split` 0.748, `x-combo1-dr-drban` 0.741, selected 0.729.
+
+**Design study, and what "selected design" means.**
+- **The design was fixed before the definitive run.** `x-combo1-dr-chance` was chosen by the pre-stated rule (mean J against `pMCTS-cur` and `aMCTS-pp`) on the tune lobbies in the prototype. The definitive run does not reselect.
+- **Rescored on the definitive states, the tune set does not separate the top designs.** The top eight score 55.26 to 55.49 (headline) and 55.98 to 56.65 (old model).
+  - Headline: `x-combo1-dr-drban` 55.49, the selected design 55.29.
+  - Old model: `x-combo3-split` 56.65, the selected design 55.98.
+  - Run on the definitive scores, the same rule would pick `x-combo1-dr-drban` (headline) or `x-combo3-split` (old model), by 0.2 to 0.7pp.
+- **The selected design ties the other versions directly.** `x-combo1` scores 49.6 (49.1, 50.2) against it and `x-combo3` 49.9 (49.5, 50.4).
+- **`x-combo1-dr-drban` and `x-pp-ban3` do play the headline lobbies (flag 1), but only in the design-ablation schedule:** both seats against `aMCTS-pp`, no other opponent. Their BT values therefore rest on one opponent and are linked to the rest only through `aMCTS-pp`.
+  - Against `aMCTS-pp`, `x-combo1-dr-drban` scores 52.4 (52.0, 52.9); the selected design scores 51.6 (51.1, 52.2).
+  - There is no direct match between them.
+  - The 0.8pp difference sits inside the two intervals and inside the tune-set spread.
+- **Wording for the paper:** "the pre-registered design". The top design-study entries are within noise of it. No claim that it is the best design.
+
+### Split-history judge
+
+A judge built from even days outside the tournament window, scoring drafters that use only odd days of history: λ 0.60 (old model 0.73; prototype 0.71).
+- Selected design vs paper 1's MCTS: 63.9% (62.9, 65.0) [old model 67.4].
+- `x-combo3-split` vs paper 1's MCTS: 62.9% (62.2, 63.7) [66.6]; prototype 65.7.
+- `x-pp-split`: 62.1% (61.2, 63.0).
+- Odd-day drafters against their full-history twins: 49.2 to 49.1%.
+
+### Drift (headline; old model in brackets)
+
+- **Prediction** (60,500 tournament-window games, share of the log-loss lift over a coin flip kept):
+  - Population WP: 91% at 4 months, 72% at 1 year (prototype 72% at a year).
+  - Full value with the player state frozen: 37% at 4 months, 23% at 1 year [46%, 32%]; prototype 43% and 30%. The new state model's fresh lift is larger (0.052 vs 0.044 nats), so freezing it costs a larger share.
+- **Population search** (current vs stale twin):
+  - Paper 1's MCTS against its 1-year-stale twin: J 53.3 (51.8, 54.8), CONS 52.2.
+    - Refreshing the stats tables recovers nothing: 53.2.
+    - A 2 GPU-hour fine-tune leaves 52.2 (CONS 52.2).
+  - 4 months: J 51.8, CONS 52.2.
+  - Prototype: 3.4 (J) and 2.2 (CONS) at a year; fine-tune 1.3 and 1.7.
+- **Frozen player state, distilled-prior drafter:**
+  - 4 months: 51.5% (51.0, 52.0) for the fresh state.
+  - 1 year: 53.7% (53.2, 54.2).
+  - CONS 49.5 and 48.7: no population cost.
+  - Prototype: 1.7 and 3.8pp.
+  - Old model: 51.7, 53.8.
+- **Frozen state, leaf-only drafter** (`aMCTS-cur`): 50.2 and 50.4. It barely uses the state.
+
+### Backtests on real games (headline; old model in brackets)
+
+- **Agreement** (20,000 OOT games, 200,000 picks, behavioral-prior search):
+  - Teams whose pick matched the aware recommendation won +0.82pp (SE 0.36) with draft-only WP and causal MMR controlled [+0.98].
+  - With the skill model's predicted gap added: −0.88 (0.35) [−0.44].
+  - Prototype: +0.9 and −0.5.
+  - Paper 1's own F-prior search agrees with its blind twin on 96% of picks, so its agreement test has no power: +2.3 (2.8) on the 0.15% of picks where they differ.
+- **Forced switches** (1.19M pick slots, 37,752 players): when a player's best hero is banned, realized cost −2.18pp (0.19) against −1.38 predicted (residual −0.80, SE 0.18) [−2.12 vs −1.26]; prototype −2.1 vs −1.3. Forced switches still cost more than the model says.
+
+### Simulations (tune set, mean J against the tune opponents)
+
+| sims | selected | blind |
+|---|---|---|
+| 100 | 53.2 | 46.0 |
+| 200 | 54.8 | 46.1 |
+| 400 (as run) | 55.3 | 45.9 |
+| 800 | 55.5 | 46.2 |
+| 1,600 | 55.2 | 45.9 |
+
+- The selected design gains 2.1pp from 100 to 400 simulations, then is flat. Prototype: +3pp, then flat.
+- The blind search is flat at every budget.
+- Old model: 53.6 at 100, 56.0 to 56.2 from 400 on.
+
+### Flags
+
+1. **Design-study entries top BT** (`x-combo1-dr-drban`, `x-pp-ban3`); see "Design study" above. They played the same 300 headline lobbies, but against `aMCTS-pp` only, and they are within noise of the selected design. Report the selected design as pre-registered, not best.
+2. **Judge-free coverage against paper 1's MCTS is low.** 37% of players are covered under both arms. The +4.8 rests on about a third of the players. It is positive, but each arm's realized-record sample is thin there.
+3. **The new state model shifts paper 1's MCTS vs real drafts by 2.4pp under J** (53.3 vs 50.9 in the old-model pass), with CONS unchanged. The paper's statement that paper 1's MCTS "gives back" its population edge holds less strongly under the new model.
+4. **The first attempt of pass 1's data stage failed** after 13 minutes (job `p3t_data_10270242`, 03:37 on Oct 27). The orchestrator's rerun with the same code passed. The cause is in that job's log on the 3080 (`~/hots/logs/p3t_data_10270242.log`), which I have not read because the box is released.
+5. **Distilled prior vs paper 1's MCTS** is 1.9pp lower in the headline pass than in the old-model pass (58.2 vs 60.0). The selected design's lead over paper 1's MCTS is lower by the same amount (59.0 vs 61.0). Both passes agree on the ordering.
+
+
+## Prototype record (2026-10-19 to 10-24; superseded by the definitive results above)
+
 Status: results on current data (store full_1017, CAP_TS 2026-09-28), all from the race-fixed kernels (2026-10-19, see "Kernel fix" below). The full-data rerun after the player-history pull (about Oct 26 to 27) is one command: `training/personalization/remote/p3t_pipeline.sh`. The pre-stated comparisons below were committed before the tournament ran (commits af7427c, 5194ad6, 7ffda4c).
 
 **Where the numbers were computed (2026-10-21).** The 3090 showed single-bit RAM flips. Every head-to-head, Bradley–Terry and matrix number in this file is now computed off the 3090: all drafts that the 3090 had drafted (46 ordered pairs) were redrafted on the 5090, and every draft was rescored and reanalyzed on the 5090 (main, split-history and tune sets; judge refit there too). Cross-check against the 3090's results:

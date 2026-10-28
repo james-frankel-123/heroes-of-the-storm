@@ -1,0 +1,296 @@
+{
+ "coefs": [
+  0.0,
+  1.201565146446228,
+  4.540632247924805,
+  -0.014701616950333118,
+  0.800000011920929,
+  0.699999988079071
+ ],
+ "attrs": {
+  "BAN_BIAS_MODE": 2,
+  "OPP_PERSONAL_MODE": 2,
+  "SEARCH": [
+   0,
+   1,
+   2
+  ],
+  "CFG_LEN": 59,
+  "PVNET_LEN": 225
+ },
+ "comp_fallback_order": {
+  "explore": "mid_high_low",
+  "pvnet": "mid_high_low",
+  "ref": "mid_high_low"
+ },
+ "device": "NVIDIA GeForce RTX 5090",
+ "a_identity_vs_pvnet": {
+  "decide | cfg56=0 cfg6=0 | sims 100 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=0 cfg6=0 | sims 400 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=0 cfg6=1 | sims 100 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=0 cfg6=1 | sims 400 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=1 cfg6=0 | sims 100 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=1 cfg6=0 | sims 400 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=1 cfg6=1 | sims 100 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=1 cfg6=1 | sims 400 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=1 cfg6=1 | sims 100 | search 0": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "decide | cfg56=1 cfg6=1 | sims 100 | search 2": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=0 cfg6=0 | sims 100 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=0 cfg6=0 | sims 400 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=0 cfg6=1 | sims 100 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=0 cfg6=1 | sims 400 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=1 cfg6=0 | sims 100 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=1 cfg6=0 | sims 400 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=1 cfg6=1 | sims 100 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=1 cfg6=1 | sims 400 | search 1": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=1 cfg6=1 | sims 100 | search 0": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  },
+  "full | cfg56=1 cfg6=1 | sims 100 | search 2": {
+   "episodes": 64,
+   "all_outputs_byte_identical": true,
+   "differing_outputs": []
+  }
+ },
+ "b_ban_bias": {
+  "i ban rows -1 | decide | sims 100": {
+   "all_outputs_byte_identical_to_cfg56_1": true,
+   "differing_outputs": []
+  },
+  "i ban rows -1 | decide | sims 400": {
+   "all_outputs_byte_identical_to_cfg56_1": true,
+   "differing_outputs": []
+  },
+  "i ban rows -1 | full | sims 100": {
+   "all_outputs_byte_identical_to_cfg56_1": true,
+   "differing_outputs": []
+  },
+  "i ban rows -1 | full | sims 400": {
+   "all_outputs_byte_identical_to_cfg56_1": true,
+   "differing_outputs": []
+  },
+  "ii our ban step, bias +4 on one hero": {
+   "episodes": 64,
+   "ban_steps": [
+    0,
+    1,
+    2,
+    3,
+    9,
+    10
+   ],
+   "max_abs_diff_root_prior_vs_python_softmax": 6.166894536141498e-07,
+   "mean_root_prior_on_hero_cfg56_0": 0.030269284099326763,
+   "mean_root_prior_on_hero_cfg56_2": 0.04839077789642943,
+   "cfg56_1_root_prior_identical_to_cfg56_0_at_bans": true,
+   "root_visits_changed_episodes": 46
+  }
+ },
+ "c_opp_personal": {
+  "i zero imit, w0 = 1 | decide | sims 100 | search 1": {
+   "all_outputs_byte_identical_to_cfg6_0": true,
+   "differing_outputs": [],
+   "constant_rows_full_path_identical_terminal_drafts": 1.0,
+   "constant_rows_full_path_identical_root_visits": 1.0
+  },
+  "i zero imit, w0 = 1 | decide | sims 400 | search 1": {
+   "all_outputs_byte_identical_to_cfg6_0": true,
+   "differing_outputs": [],
+   "constant_rows_full_path_identical_terminal_drafts": 1.0,
+   "constant_rows_full_path_identical_root_visits": 1.0
+  },
+  "i zero imit, w0 = 1 | decide | sims 100 | search 0": {
+   "all_outputs_byte_identical_to_cfg6_0": true,
+   "differing_outputs": [],
+   "constant_rows_full_path_identical_terminal_drafts": 1.0,
+   "constant_rows_full_path_identical_root_visits": 1.0
+  },
+  "i zero imit, w0 = 1 | decide | sims 100 | search 2": {
+   "all_outputs_byte_identical_to_cfg6_0": true,
+   "differing_outputs": [],
+   "constant_rows_full_path_identical_terminal_drafts": 1.0,
+   "constant_rows_full_path_identical_root_visits": 1.0
+  },
+  "i zero imit, w0 = 1 | full | sims 100 | search 1": {
+   "all_outputs_byte_identical_to_cfg6_0": true,
+   "differing_outputs": [],
+   "constant_rows_full_path_identical_terminal_drafts": 1.0,
+   "constant_rows_full_path_identical_root_visits": 1.0
+  },
+  "i zero imit, w0 = 1 | full | sims 400 | search 1": {
+   "all_outputs_byte_identical_to_cfg6_0": true,
+   "differing_outputs": [],
+   "constant_rows_full_path_identical_terminal_drafts": 1.0,
+   "constant_rows_full_path_identical_root_visits": 1.0
+  },
+  "i zero imit, w0 = 1 | full | sims 100 | search 0": {
+   "all_outputs_byte_identical_to_cfg6_0": true,
+   "differing_outputs": [],
+   "constant_rows_full_path_identical_terminal_drafts": 1.0,
+   "constant_rows_full_path_identical_root_visits": 1.0
+  },
+  "i zero imit, w0 = 1 | full | sims 100 | search 2": {
+   "all_outputs_byte_identical_to_cfg6_0": true,
+   "differing_outputs": [],
+   "constant_rows_full_path_identical_terminal_drafts": 1.0,
+   "constant_rows_full_path_identical_root_visits": 1.0
+  },
+  "ii full drafts, imit +50 on one hero": {
+   "cfg6=0": {
+    "episodes_with_a_legal_opp_step": 126,
+    "opp_took_hero": 1,
+    "rate": 0.007936507936507936
+   },
+   "cfg6=1": {
+    "episodes_with_a_legal_opp_step": 126,
+    "opp_took_hero": 1,
+    "rate": 0.007936507936507936
+   },
+   "cfg6=2": {
+    "episodes_with_a_legal_opp_step": 126,
+    "opp_took_hero": 126,
+    "rate": 1.0
+   }
+  },
+  "ii decide-only root Q, imit +50 vs cfg6=0": {
+   "episodes": 64,
+   "episodes_with_later_opp_steps": 64,
+   "episodes_root_q_changed": 64,
+   "mean_max_abs_root_q_change": 0.18473495543003082,
+   "episodes_root_visits_changed": 55
+  }
+ },
+ "d_population_identity": {
+  "valuation off | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true
+  },
+  "valuation off, cfg57=1 assign, random tensors | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true
+  },
+  "valuation off, cfg6=2 cfg56=2, rows -1 | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true
+  },
+  "personal terms zeroed | sims 100": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true
+  },
+  "valuation off | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true
+  },
+  "valuation off, cfg57=1 assign, random tensors | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true
+  },
+  "valuation off, cfg6=2 cfg56=2, rows -1 | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true
+  },
+  "personal terms zeroed | sims 400": {
+   "episodes": 64,
+   "identical_win_prob": true,
+   "identical_drafts": true,
+   "identical_root_visit_distributions": true
+  }
+ },
+ "gates": {
+  "attrs": true,
+  "a_identity_vs_pvnet": true,
+  "b_ban_bias": true,
+  "c_opp_personal": true,
+  "d_population_identity": true
+ },
+ "pass": true,
+ "seconds": 182.0
+}

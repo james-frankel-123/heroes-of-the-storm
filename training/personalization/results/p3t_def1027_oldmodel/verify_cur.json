@@ -1,0 +1,35 @@
+{
+ "vintage": "cur",
+ "leaf": {
+  "drafts": 256,
+  "max_abs_diff_wp": 5.364418029785156e-07,
+  "mean_abs_diff_wp": 1.3771932572126389e-07,
+  "max_abs_diff_value": 5.960464477539062e-07,
+  "mean_abs_diff_value": 1.3748649507761002e-07,
+  "mean_abs_personal_shift": 0.08557605743408203
+ },
+ "decide": {
+  "2": {
+   "agree_aware_blind": 0.984375,
+   "blind_invariant_to_tensors": 1.0,
+   "sec_per_decision_aware": 0.015740410424768925,
+   "sec_per_decision_blind": 0.014939733780920506,
+   "sims": 400
+  },
+  "7": {
+   "agree_aware_blind": 0.96484375,
+   "blind_invariant_to_tensors": 1.0,
+   "sec_per_decision_aware": 0.013079043477773666,
+   "sec_per_decision_blind": 0.012782971374690533,
+   "sims": 400
+  },
+  "13": {
+   "agree_aware_blind": 0.96875,
+   "blind_invariant_to_tensors": 1.0,
+   "sec_per_decision_aware": 0.0017436780035495758,
+   "sec_per_decision_blind": 0.001392456702888012,
+   "sims": 400
+  }
+ },
+ "pass": true
+}

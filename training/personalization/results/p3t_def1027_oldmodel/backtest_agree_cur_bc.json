@@ -1,0 +1,133 @@
+{
+ "games": 20000,
+ "picks": 200000,
+ "match_rate_aware": 0.092825,
+ "match_rate_blind": 0.064225,
+ "aware_equals_blind": 0.4005,
+ "match_rate_aware_only": 0.056195,
+ "models": {
+  "raw: matched aware": {
+   "const": [
+    49.69,
+    0.04
+   ],
+   "m_aw": [
+    3.36,
+    0.38
+   ]
+  },
+  "matched aware + WP + MMR": {
+   "const": [
+    49.91,
+    0.04
+   ],
+   "m_aw": [
+    0.98,
+    0.36
+   ],
+   "lo": [
+    22.53,
+    0.91
+   ],
+   "dmmr": [
+    4.62,
+    0.52
+   ]
+  },
+  "matched aware, matched blind + WP + MMR": {
+   "const": [
+    49.97,
+    0.04
+   ],
+   "m_aw": [
+    1.73,
+    0.41
+   ],
+   "m_bl": [
+    -2.08,
+    0.49
+   ],
+   "lo": [
+    22.6,
+    0.91
+   ],
+   "dmmr": [
+    4.62,
+    0.52
+   ]
+  },
+  "matched aware only (aware != blind) + WP + MMR": {
+   "const": [
+    49.97,
+    0.04
+   ],
+   "m_pers": [
+    1.74,
+    0.47
+   ],
+   "m_bl": [
+    -1.1,
+    0.44
+   ],
+   "lo": [
+    22.61,
+    0.91
+   ],
+   "dmmr": [
+    4.62,
+    0.52
+   ]
+  },
+  "matched aware + WP + MMR + predicted skill gap": {
+   "const": [
+    50.04,
+    0.03
+   ],
+   "m_aw": [
+    -0.44,
+    0.35
+   ],
+   "lo": [
+    21.93,
+    0.88
+   ],
+   "dmmr": [
+    4.87,
+    0.5
+   ],
+   "dS": [
+    107.21,
+    2.84
+   ]
+  },
+  "matched aware only + matched blind + WP + MMR + predicted gap": {
+   "const": [
+    50.08,
+    0.04
+   ],
+   "m_pers": [
+    -0.3,
+    0.45
+   ],
+   "m_bl": [
+    -0.98,
+    0.42
+   ],
+   "lo": [
+    21.97,
+    0.88
+   ],
+   "dmmr": [
+    4.87,
+    0.5
+   ],
+   "dS": [
+    107.18,
+    2.84
+   ]
+  }
+ },
+ "note": "linear probability model of the picking team's win, coefficients in pp (SE two-way clustered by player and game); lo and dS per unit",
+ "drafter": "aMCTS-bc vs pMCTS-bc (behavioral prior)",
+ "mmr": "causal player MMR (mmr_at_game.npz player_mmr_causal), team mean over players with a known value"
+}
