@@ -15,11 +15,15 @@ PYDB=/home/linuxbrew/.linuxbrew/bin/python3     # numpy + psycopg2
 PYREF=/usr/bin/python3                          # numpy + numba (state writer)
 STORE=${SITE_STORE:-def1027}
 DEF=${SITE_DEF_TAG:-def1027}
+# display band version (p3_rcf_states.BANDS): anchored_v1 since 2026-10-28 (P3_BAND_ANCHOR.md);
+# the estimates and the base sd are unchanged
+BAND=${SITE_BAND:-anchored_v1}
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 NUMBA_NUM_THREADS=4
-echo "[$(date -Is)] site publish: store $STORE, model chosen ($DEF)"
+echo "[$(date -Is)] site publish: store $STORE, model chosen ($DEF), band $BAND"
 $PYDB personalization/p3_site_publish.py build --store "$STORE"
 (
   . personalization/remote/def_env.sh "$PWD" "$DEF"
+  export P3_BAND=$BAND
   # the state writer must still reproduce the chosen arm's stored predictions (guards code drift)
   $PYREF personalization/p3_rcf_states.py selfcheck --halves 0 --no-filtercheck
   $PYREF personalization/p3_site_publish.py states --def-tag "$DEF"

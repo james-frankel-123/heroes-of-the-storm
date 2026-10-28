@@ -1,13 +1,16 @@
 {
  "accounts": 200,
  "model": "chosen (def1027), p3_rcf_states.py half 0, unfiltered",
+ "band": "anchored_v1",
+ "band_formula": "D = s2 * exp(b0 + b1 l + b2 l^2) + exp(b3), l = log1p(n) / log1p(300)",
+ "band_vs_formula_max": 1.516467565410018e-08,
  "as_of_day": 20723,
  "max_abs_error": {
   "s_build_vs_fresh": 0.0,
   "sd_display_build_vs_fresh": 0.0,
   "s_card_vs_fresh": 4.998851343989384e-05,
-  "sd_card_vs_sd_display": 0.0004999673366546664,
-  "suggestion_sd_vs_sd_display": 0.0004998844563961005
+  "sd_card_vs_sd_display": 0.0004999402748553788,
+  "suggestion_sd_vs_sd_display": 0.0004996641850725514
  },
  "tolerance": {
   "s_build_vs_fresh": 1e-06,
@@ -16,6 +19,6 @@
   "sd_card_vs_sd_display": 0.000501,
   "suggestion_sd_vs_sd_display": 0.000501
  },
- "band_sd_minus_base_sd_max": 0.033385021388530736,
+ "band_sd_minus_base_sd_max": 0.11944197839498519,
  "note": "win-probability units; card values are quantized to 1e-4 (s) and 1e-3 (band sd)"
 }

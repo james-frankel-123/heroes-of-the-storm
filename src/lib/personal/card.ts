@@ -17,9 +17,12 @@ interface Artifact {
   heroNames: string[]
   heroFineRole: number[]
   draft: { b0: number; b1: number; b2: number; b3: number; offRoleShare: number; offRoleMinGames: number }
+  band: { version?: string; formula: string; b?: number[]; target?: string; z80: number }
   validation: {
     accuracy: { v2: number; oot: number }
     cover80: { v2: number; oot: number }
+    /** Anchored check of the display band (band version anchored_v1 and later). */
+    band?: { realizedOverClaimed: { v2: number; oot: number }; cover80ByGamesRange: [number, number]; horizonGames: number }
   }
 }
 

@@ -619,6 +619,11 @@ def check(a):
         o = np.argsort(B["player_key"])
         bpos = o[np.searchsorted(B["player_key"][o], keys[pick])]
     assert np.array_equal(B["player_key"][bpos], keys[pick])
+    # the band must follow its formula from the base sd and the games on the hero
+    fn = to_names_order(F["n"], sh, names).astype(np.float64)
+    fband = np.sqrt(RS.display_var(fsd ** 2, fn))
+    err0 = float(np.abs(fband - fsdd).max())
+    assert err0 < 1e-5, f"sd_display does not follow band {RS.BAND}: {err0:.2e}"
     err = {"s_build_vs_fresh": float(np.abs(B["s"][bpos] - fs).max()),
            "sd_display_build_vs_fresh": float(np.abs(B["sd_display"][bpos] - fsdd).max()),
            "s_card_vs_fresh": 0.0, "sd_card_vs_sd_display": 0.0, "suggestion_sd_vs_sd_display": 0.0}
@@ -627,13 +632,16 @@ def check(a):
         c = decode_card(bytes(acc["card"][i]))
         err["s_card_vs_fresh"] = max(err["s_card_vs_fresh"], float(np.abs(c["s"] - fs[j]).max()))
         for h, _, _, sd in c["played"]:
-            err["sd_card_vs_sd_display"] = max(err["sd_card_vs_sd_display"], abs(sd - fsdd[j, h]))
+            err["sd_card_vs_sd_display"] = max(err["sd_card_vs_sd_display"], abs(sd - fsdd[j, h]),
+                                               abs(sd - fband[j, h]))
             sd_vs_base.append(abs(sd - fsd[j, h]))
         for h, sd in c["suggestions"]:
-            err["suggestion_sd_vs_sd_display"] = max(err["suggestion_sd_vs_sd_display"], abs(sd - fsdd[j, h]))
+            err["suggestion_sd_vs_sd_display"] = max(err["suggestion_sd_vs_sd_display"], abs(sd - fsdd[j, h]),
+                                                     abs(sd - fband[j, h]))
     tol = {"s_build_vs_fresh": 1e-6, "sd_display_build_vs_fresh": 1e-6, "s_card_vs_fresh": 0.5 / S_SCALE + 1e-6,
            "sd_card_vs_sd_display": 0.5 / SD_SCALE + 1e-6, "suggestion_sd_vs_sd_display": 0.5 / SD_SCALE + 1e-6}
     out = {"accounts": int(len(pick)), "model": f"chosen ({a.def_tag}), p3_rcf_states.py half 0, unfiltered",
+           "band": RS.BAND, "band_formula": RS.BANDS[RS.BAND]["formula"], "band_vs_formula_max": err0,
            "as_of_day": info["as_of_day"], "max_abs_error": err, "tolerance": tol,
            "band_sd_minus_base_sd_max": float(max(sd_vs_base)) if sd_vs_base else None,
            "note": "win-probability units; card values are quantized to 1e-4 (s) and 1e-3 (band sd)"}
@@ -652,7 +660,26 @@ def artifact(a):
     res = os.environ["P3_RESULTS"]
     old = json.load(open(ARTIFACT))
     off = json.load(open(os.path.join(res, "site", "offrole_refit.json")))["chosen"]
-    band = json.load(open(os.path.join(res, "rcf", "band_def_chosen.json")))
+    RS, _ = states_module()
+    bv = RS.BAND
+    if bv == "def1027":
+        band = json.load(open(os.path.join(res, "rcf", "band_def_chosen.json")))
+        cover = {"v2": round(band["V2"]["cover80"], 4), "oot": round(band["OOT"]["cover80"], 4)}
+        band_entry = {"version": bv, "formula": band["formula"], "z80": 1.2815515655446004}
+        anchored = None
+    else:
+        an = json.load(open(os.path.join(res, "rcf", "band_anchor_chosen_k10_binomial.json")))
+        f = an["forms"]["smooth_plus_floor"]
+        assert np.allclose(f["b"], RS.BANDS[bv]["b"], rtol=0, atol=0), "band coefficients differ from the fit"
+        ho = f["held_out"]
+        cover = {"v2": round(ho["V2"]["summary"]["cover80"], 4), "oot": round(ho["OOT"]["summary"]["cover80"], 4)}
+        by = [v["cover80"] for w in ("V2", "OOT") for v in ho[w]["summary"]["by_games"].values()]
+        band_entry = {"version": bv, "formula": RS.BANDS[bv]["formula"], "b": RS.BANDS[bv]["b"],
+                      "target": RS.BANDS[bv]["target"], "z80": 1.2815515655446004,
+                      "fit": "maximum likelihood on V1 cells of the def1027 chosen arm (P3_BAND_ANCHOR.md)"}
+        anchored = {"realizedOverClaimed": {"v2": round(ho["V2"]["summary"]["ratio"], 3),
+                                            "oot": round(ho["OOT"]["summary"]["ratio"], 3)},
+                    "cover80ByGamesRange": [round(min(by), 3), round(max(by), 3)], "horizonGames": an["k"]}
     z = np.load(os.path.join(res, "rcf", "p3c", "chosen__merged.npz"))
     acc = {}
     for k, nm in ((2, "v2"), (3, "oot")):
@@ -671,9 +698,8 @@ def artifact(a):
          "draft": {"b0": b[0], "b1": b[1], "b2": b[2], "b3": b[3],
                    "offRoleShare": 0.1, "offRoleMinGames": 50,
                    "offRoleGainX1000": {k: off[k]["gain_x1000"] for k in ("V2", "OOT")}},
-         "band": {"formula": band["formula"], "z80": 1.2815515655446004},
-         "validation": {"accuracy": acc,
-                        "cover80": {"v2": round(band["V2"]["cover80"], 4), "oot": round(band["OOT"]["cover80"], 4)}}}
+         "band": band_entry,
+         "validation": dict({"accuracy": acc, "cover80": cover}, **({"band": anchored} if anchored else {}))}
     with open(ARTIFACT, "w") as f:
         json.dump(A, f, indent=1)
         f.write("\n")

@@ -15,8 +15,9 @@ file echoes those fields and adds, over all 90 heroes in shared.HEROES order:
       (same meaning as the old interface's sqrt(var_all)). It is the
       posterior of the Gaussian walk, not a validated sd of the full estimator
       (shrinkage function, direct channel and calibration change the mean only).
-  sd_display  the site's display band: sqrt(s2 (1 + exp(-games on the hero / 10)))
-      (P3_SHRINKAGE.md section 6); not for the tournament
+  sd_display  the site's display band sqrt(D), D from BANDS[P3_BAND] (default
+      def1027: s2 (1 + exp(-games on the hero / 10)); anchored_v1:
+      P3_BAND_ANCHOR.md); not for the tournament
   n   merged play counts (Heroes Profile and corpus rows) with day <= as_of_day
 Evidence for a query: history rows with day <= as_of_day, day >= ev_lo (if
 >= 0), the parity filter (1 odd days, 2 even days) and not in
@@ -50,6 +51,37 @@ ARMS = {0: ("chosen", "full_ms", "parts_chosen"), 1: ("chosen_flip", "full_ms_fl
 if os.environ.get("P3_RCF_STATE_ARMS"):
     ARMS = {int(k): tuple(v) for k, v in json.loads(os.environ["P3_RCF_STATE_ARMS"]).items()}
 QFIELDS = ("player_key", "as_of_day", "ev_lo", "ev_parity", "exclude_lo", "exclude_hi", "half", "hero")
+
+# Display band versions (sd_display = sqrt(D)); P3_BAND selects one (default: the
+# def1027 band, so every earlier answer file reproduces). The tournament reads the
+# base sd, never sd_display.
+#   def1027      D = s2 (1 + exp(-n / 10))
+#   anchored_v1  D = s2 exp(b0 + b1 l + b2 l^2) + exp(b3), l = log1p(n) / log1p(300):
+#                fit by maximum likelihood on V1 cells of the def1027 chosen arm against
+#                the mean residual of each cell's next 10 games (P3_BAND_ANCHOR.md)
+BANDS = {
+    "def1027": {"formula": "D = s2 * (1 + exp(-n / 10))"},
+    "anchored_v1": {"formula": "D = s2 * exp(b0 + b1 l + b2 l^2) + exp(b3), l = log1p(n) / log1p(300)",
+                    "b": [1.7429621513498998, 0.23345425930006328, -5.169928757897522, -6.5394001352483535],
+                    "target": "the player's mean result on the hero over the next 10 games, minus game noise"},
+}
+BAND = os.environ.get("P3_BAND", "def1027")
+assert BAND in BANDS, f"unknown P3_BAND {BAND!r}"
+
+
+def display_var(var, n, version=None):
+    """Display-band variance D from the base posterior variance var and the
+    merged games on the hero n (arrays of one shape)."""
+    version = version or BAND
+    var = np.asarray(var, np.float64)
+    n = np.asarray(n, np.float64)
+    if version == "def1027":
+        return var * (1 + np.exp(-n / 10.0))
+    if version == "anchored_v1":
+        b = BANDS[version]["b"]
+        l = np.log1p(n) / np.log1p(300.0)
+        return var * np.exp(b[0] + b[1] * l + b[2] * l * l) + np.exp(b[3])
+    raise ValueError(version)
 
 
 def sh_perm(hero_names):
@@ -346,7 +378,7 @@ def answer(qdir, adir, only=None, ctx=None):
             est = est * (B2 @ np.asarray(meta["postcal"]["coef"])).reshape(len(idx), H)
             S_out[idx] = est
             SD_out[idx] = np.sqrt(var)                         # base Gaussian posterior sd (old sqrt(var_all))
-            SDD_out[idx] = np.sqrt(var * (1 + np.exp(-n_full / 10.0)))   # display band (site only)
+            SDD_out[idx] = np.sqrt(display_var(var, n_full))           # display band (site only), P3_BAND
             N_out[idx] = n_full
         # columns in shared.HEROES order (column i = shared.HEROES[i])
         perm = sh_perm(d["hero_names"])

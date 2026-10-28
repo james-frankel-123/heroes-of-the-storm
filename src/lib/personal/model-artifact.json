@@ -211,8 +211,17 @@
   }
  },
  "band": {
-  "formula": "D = s2 * (1 + exp(-games_on_hero / 10)); band = estimate +- 1.28 sqrt(D)",
-  "z80": 1.2815515655446004
+  "version": "anchored_v1",
+  "formula": "D = s2 * exp(b0 + b1 l + b2 l^2) + exp(b3), l = log1p(n) / log1p(300)",
+  "b": [
+   1.7429621513498998,
+   0.23345425930006328,
+   -5.169928757897522,
+   -6.5394001352483535
+  ],
+  "target": "the player's mean result on the hero over the next 10 games, minus game noise",
+  "z80": 1.2815515655446004,
+  "fit": "maximum likelihood on V1 cells of the def1027 chosen arm (P3_BAND_ANCHOR.md)"
  },
  "validation": {
   "accuracy": {
@@ -220,8 +229,19 @@
    "oot": 0.6285
   },
   "cover80": {
-   "v2": 0.7915,
-   "oot": 0.7992
+   "v2": 0.7897,
+   "oot": 0.798
+  },
+  "band": {
+   "realizedOverClaimed": {
+    "v2": 1.132,
+    "oot": 0.895
+   },
+   "cover80ByGamesRange": [
+    0.777,
+    0.807
+   ],
+   "horizonGames": 10
   }
  }
 }

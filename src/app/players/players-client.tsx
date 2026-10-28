@@ -14,6 +14,7 @@ import type { PlayedHero, SuggestedHero } from '@/lib/personal/card'
 interface Validation {
   accuracy: { v2: number; oot: number }
   cover80: { v2: number; oot: number }
+  band?: { realizedOverClaimed: { v2: number; oot: number }; cover80ByGamesRange: [number, number]; horizonGames: number }
 }
 
 interface AccountResponse {
@@ -180,11 +181,24 @@ function Profile({
 
       <section className="space-y-1 text-sm text-muted-foreground">
         <h3 className="text-base font-semibold text-foreground">How far to trust this</h3>
-        <p>
-          One game says little: a single win or loss is mostly noise. The ranges are 80% ranges. Tested on games the
-          model never saw, the true value fell inside about {pct(val.cover80.v2)} of the
-          time, so roughly 1 range in 5 misses.
-        </p>
+        {val.band ? (
+          <p>
+            One game says little: a single win or loss is mostly noise. Each range shows where this player&apos;s edge
+            on that hero is likely to fall over their next {val.band.horizonGames} or so games, about 80% of the time.
+            We checked this on games the model never saw: the ranges held {pct(val.cover80.oot)} of the time, between{' '}
+            {pct(val.band.cover80ByGamesRange[0])} and {pct(val.band.cover80ByGamesRange[1])} for new and experienced
+            players alike, and their width matched how much players really vary (the real variation came to{' '}
+            {val.band.realizedOverClaimed.oot.toFixed(2)} times the predicted amount, where 1 is exact). Ranges are wide
+            for heroes a player has barely touched and never shrink below a few points, because form and patches move
+            everyone.
+          </p>
+        ) : (
+          <p>
+            One game says little: a single win or loss is mostly noise. The ranges are 80% ranges. Tested on games the
+            model never saw, the true value fell inside about {pct(val.cover80.v2)} of the
+            time, so roughly 1 range in 5 misses.
+          </p>
+        )}
         <p>
           Combined with the draft, estimates like these for all ten players called the winner of{' '}
           {(100 * val.accuracy.v2).toFixed(1)}% of held-out games. A real gain, and a
