@@ -31,7 +31,20 @@ WHERE = ("(d.game_version = '2.55.16.97039' OR d.game_version LIKE '2.55.17.%') 
 
 
 def main():
+    """Post-freeze mode (P3_PF_CAP=YYYY-MM-DD, P3_PF_OUT=<cache dir>): the pinned
+    pre-freeze files (cache/x_post_*) are kept unchanged and the 2.57 games dated
+    2026-09-28 .. before the cap are appended; output to P3_PF_OUT."""
+    global OUT_G, OUT_P, WHERE
     import psycopg2
+    pf_cap = os.environ.get("P3_PF_CAP")
+    base_games, base_players = None, None
+    if pf_cap:
+        out_dir = os.environ["P3_PF_OUT"]
+        assert os.path.realpath(out_dir) != os.path.realpath(CACHE), "post-freeze files never replace the pinned ones"
+        base_games = json.load(gzip.open(OUT_G, "rt"))
+        base_players = dict(np.load(OUT_P))
+        OUT_G, OUT_P = os.path.join(out_dir, "x_post_games.json.gz"), os.path.join(out_dir, "x_post_players.npz")
+        WHERE = (f"d.game_version LIKE '2.57.%' AND d.game_date >= '2026-09-28' AND d.game_date < '{pf_cap}'")
     conn = psycopg2.connect(os.environ["DATABASE_URL"])
     conn.set_session(readonly=True)
     cur = conn.cursor(name="x_g")
@@ -55,6 +68,9 @@ def main():
                                        int(e.get("player_slot", -1))]
                                       for e in (lst(do) or [])]})
     cur.close()
+    if base_games is not None:
+        print(f"post-freeze: {len(games):,} new games appended to {len(base_games):,}", flush=True)
+        games = base_games + games
     with gzip.open(OUT_G, "wt") as f:
         json.dump(games, f)
     print(f"wrote {OUT_G}: {len(games):,} games", flush=True)
@@ -89,9 +105,12 @@ def main():
           "hero": np.int16, "team": np.int8, "party": np.int64,
           "player_mmr": np.float32, "hero_mmr": np.float32, "role_mmr": np.float32,
           "hero_level": np.int16}
-    np.savez(OUT_P, hero_names=np.array(names),
-             **{k: np.array(v, dt[k]) for k, v in cols.items()})
-    print(f"wrote {OUT_P}: {len(cols['replay_ids']):,} rows; unknown heroes {unknown}")
+    arrs = {k: np.array(v, dt[k]) for k, v in cols.items()}
+    if base_players is not None:
+        assert [str(x) for x in base_players["hero_names"]] == names
+        arrs = {k: np.concatenate([base_players[k], arrs[k]]) for k in arrs}
+    np.savez(OUT_P, hero_names=np.array(names), **arrs)
+    print(f"wrote {OUT_P}: {len(arrs['replay_ids']):,} rows; unknown heroes {unknown}")
 
 
 if __name__ == "__main__":

@@ -60,7 +60,9 @@ CACHE = os.environ.get("P3_CACHE") or os.path.join(HERE, "cache")
 RESULTS = os.environ.get("P3_RESULTS") or os.path.join(HERE, "results")
 SHARDS = os.path.join(HERE, "cache", "mmr_history", "shards")
 DONE = os.path.join(HERE, "cache", "mmr_history", "done.jsonl")
-CAP_TS = int(datetime.datetime(2026, 9, 28, tzinfo=datetime.timezone.utc).timestamp())
+# P3_CAP_DATE (YYYY-MM-DD) moves the cap for the post-freeze confirmation build only
+_CAP = os.environ.get("P3_CAP_DATE", "2026-09-28")
+CAP_TS = int(datetime.datetime.strptime(_CAP, "%Y-%m-%d").replace(tzinfo=datetime.timezone.utc).timestamp())
 SRC_CORPUS, SRC_HP = 1, 2
 # Corpus clock bug (found 2026-10-16): for replay ids >= CLOCK_FIX_RID (games
 # from about 2026-07-09 on), replay_draft_data.game_date is the true UTC end

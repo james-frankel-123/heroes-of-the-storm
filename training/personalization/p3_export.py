@@ -32,6 +32,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 WHERE = ("d.game_date < '2026-09-28' AND d.game_version NOT LIKE '2.57%' "
          "AND d.game_version NOT LIKE '2.58%' AND d.game_version NOT LIKE '3.%'")
 
+# Post-freeze mode (--pf-cap D --base-tag B): the export of tag B (the frozen
+# build, unchanged and copied byte for byte) plus the 2.57 games dated
+# 2026-09-28 <= game_date < D, appended as a second gzip member without a
+# header. The pre-freeze rows are exactly the frozen build's; nothing before
+# the freeze is re-read from the DB.
+PF_START = "2026-09-28"
+
+
+def where_pf(cap):
+    return (f"d.game_date >= '{PF_START}' AND d.game_date < '{cap}' AND d.game_version LIKE '2.57%'")
+
+
 QUERIES = {
     "stamps": f"""
         SELECT rp.replay_id, rp.blizz_id, COALESCE(rp.region, d.region) AS region,
@@ -72,7 +84,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("what", choices=sorted(QUERIES))
     ap.add_argument("--tag", required=True)
+    ap.add_argument("--pf-cap", help="post-freeze mode: append 2.57 games dated 2026-09-28 .. before this date")
+    ap.add_argument("--base-tag", help="post-freeze mode: the frozen build's export tag")
     a = ap.parse_args()
+    if bool(a.pf_cap) != bool(a.base_tag):
+        raise SystemExit("--pf-cap and --base-tag go together")
     url = os.environ.get("DATABASE_URL_RESEARCH")
     if not url:
         raise SystemExit("DATABASE_URL_RESEARCH is not set (local read-only role)")
@@ -85,10 +101,20 @@ def main():
     t0 = time.time()
     conn = psycopg2.connect(url)
     conn.set_session(readonly=True)
+    q = QUERIES[a.what]
     with conn.cursor() as c:
         c.execute("SET statement_timeout = 0")
-        with gzip.open(path + ".tmp", "wb", compresslevel=4) as f:
-            c.copy_expert(f"COPY ({QUERIES[a.what]}) TO STDOUT WITH (FORMAT csv, HEADER true)", f)
+        if a.pf_cap:
+            import shutil
+            base = os.path.join(HERE, "cache", "export", a.base_tag, f"{a.what}.csv.gz")
+            shutil.copyfile(base, path + ".tmp")
+            q = q.replace(WHERE, where_pf(a.pf_cap))
+            assert where_pf(a.pf_cap) in q
+            with open(path + ".tmp", "ab") as raw, gzip.open(raw, "wb", compresslevel=4) as f:
+                c.copy_expert(f"COPY ({q}) TO STDOUT WITH (FORMAT csv, HEADER false)", f)
+        else:
+            with gzip.open(path + ".tmp", "wb", compresslevel=4) as f:
+                c.copy_expert(f"COPY ({q}) TO STDOUT WITH (FORMAT csv, HEADER true)", f)
     os.replace(path + ".tmp", path)
     h = hashlib.sha256()
     n = -1
@@ -98,7 +124,8 @@ def main():
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 22), b""):
             h.update(chunk)
-    meta = {"what": a.what, "rows": n, "sha256": h.hexdigest(), "query": " ".join(QUERIES[a.what].split()),
+    meta = {"what": a.what, "rows": n, "sha256": h.hexdigest(), "query": " ".join(q.split()),
+            "pf_cap": a.pf_cap, "base_tag": a.base_tag,
             "exported_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
             "seconds": round(time.time() - t0)}
     with open(os.path.join(out_dir, f"{a.what}.json"), "w") as f:

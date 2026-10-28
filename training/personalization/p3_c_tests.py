@@ -38,7 +38,8 @@ NH_BINS = [(1, 9), (10, 19), (20, 49), (50, 99), (100, 10 ** 9)]
 NH_LABELS = ["1-9", "10-19", "20-49", "50-99", "100+"]
 REC_EDGES = [-1e9, -0.05, 0.0, 0.05, 0.10, 1e9]
 REC_LABELS = ["< -5pp", "-5 to 0", "0 to +5", "+5 to +10", "> +10"]
-WIN = {1: "V1", 2: "V2", 3: "OOT"}
+WIN = {1: "V1", 2: "V2", 3: "OOT", 4: "PF"}
+PF_START = "2026-09-28"   # post-freeze games (2.57): window 4 when P3_PF_WINDOW=1
 
 
 def out_dir():
@@ -59,6 +60,9 @@ def windows(d):
     w[snap_post & (day < med)] = 1
     w[snap_post & (day >= med)] = 2
     w[post & (day > X.SNAP_LAST_DAY)] = 3
+    if os.environ.get("P3_PF_WINDOW") == "1":
+        # post-freeze confirmation build only: games from 2026-09-28 form window 4
+        w[post & (day >= C.day_of(PF_START))] = 4
     return w, float(med)
 
 
@@ -170,6 +174,8 @@ def predict(a):
     summ = {}
     for k, nm in WIN.items():
         m = (gw == k) & full
+        if not m.any():
+            continue
         summ[nm] = {"games": int(m.sum()), "gain": float((ll0[m] - ll[m]).mean()),
                     "acc": float(((p[m] > 0.5) == (y[m] == 1)).mean()), "ll": float(ll[m].mean())}
     print(f"[{a.arm}] {json.dumps(summ)}", flush=True)

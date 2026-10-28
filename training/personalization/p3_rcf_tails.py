@@ -190,7 +190,8 @@ def shrink_basis(res, rich=False):
     return np.column_stack(cols)
 
 
-def shrinkfn(res, r_target, v, v1_mask, rich=False, chunk=2_000_000):
+def shrinkfn(res, r_target, v, v1_mask, rich=False, chunk=2_000_000, frozen=None):
+    """frozen: a saved meta (beta_prior, beta_own, beta_offset) applied without refitting."""
     m0, v0, Sh, Ph = res["m0"], np.maximum(res["v0"], 1e-10), res["Sh"], res["Ph"]
 
     def design(ix):
@@ -200,12 +201,16 @@ def shrinkfn(res, r_target, v, v1_mask, rich=False, chunk=2_000_000):
         yb = np.where(Ph[ix] > 0, Sh[ix] / np.maximum(Ph[ix], 1e-12), m0[ix])
         own = w * (yb - m0[ix])
         return np.column_stack([B * f[:, None] for f in (m0[ix], own, res["mu"][ix])]), B, w
-    i1 = np.flatnonzero(v1_mask)
-    X, _, _ = design(i1)
-    wt = 1.0 / v[i1]
-    XtW = X.T * wt
-    beta = np.linalg.solve(XtW @ X + 1e-9 * np.eye(X.shape[1]), XtW @ r_target[i1])
-    del X, XtW
+    if frozen is not None:
+        beta = np.r_[np.asarray(frozen["beta_prior"], np.float64), np.asarray(frozen["beta_own"], np.float64),
+                     np.asarray(frozen["beta_offset"], np.float64)]
+    else:
+        i1 = np.flatnonzero(v1_mask)
+        X, _, _ = design(i1)
+        wt = 1.0 / v[i1]
+        XtW = X.T * wt
+        beta = np.linalg.solve(XtW @ X + 1e-9 * np.eye(X.shape[1]), XtW @ r_target[i1])
+        del X, XtW
     n = len(m0)
     mean = np.empty(n)
     nb = shrink_basis({k: res[k][:1] for k in ("nh", "np", "gap")}, rich).shape[1]
@@ -227,11 +232,13 @@ def shrinkfn(res, r_target, v, v1_mask, rich=False, chunk=2_000_000):
     return mean, var, out
 
 
-def apply(card, res, r_target, v, v1_mask, args=None, max_fit=3000000, seed=0):
+def apply(card, res, r_target, v, v1_mask, args=None, max_fit=3000000, seed=0, frozen=None):
     """Fit the card on V1 slots (subsample), then the posterior for every slot.
-    Returns (mean, var, meta)."""
+    Returns (mean, var, meta). frozen: a saved shrinkfn meta, applied without refitting."""
+    if frozen is not None and card not in ("shrinkfn", "shrinkfn2"):
+        raise ValueError(f"frozen mode supports shrinkfn cards only, not {card}")
     if card in ("shrinkfn", "shrinkfn2"):
-        mean, var, meta = shrinkfn(res, r_target, v, v1_mask, rich=card == "shrinkfn2")
+        mean, var, meta = shrinkfn(res, r_target, v, v1_mask, rich=card == "shrinkfn2", frozen=frozen)
         meta["card"] = card
         print(f"  tail shrinkfn: own-record multiplier by games on the hero (V1): "
               + ", ".join(f"{k.split('games_')[1]} {meta[k]:.2f}" for k in meta if k.startswith("own_multiplier") and meta[k] is not None),

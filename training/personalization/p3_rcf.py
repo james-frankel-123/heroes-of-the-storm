@@ -1060,6 +1060,19 @@ def online(a):
     par = get_params(a.tag)
     d, aug = load_aug(a.hist)
     w, med = T.windows(d)
+    # frozen mode: every V1-fitted piece (shrinkage function, layer, direct channel,
+    # calibration, combiner) comes from a saved arm file instead of a refit
+    FZ = None
+    if os.environ.get("P3_RCF_FROZEN"):
+        fz = np.load(os.environ["P3_RCF_FROZEN"])
+        FZ = {"meta": json.loads(str(fz["meta"])), "coef": np.asarray(fz["coef"], np.float64),
+              "coef0": np.asarray(fz["coef0"], np.float64)}
+        print(f"  frozen coefficients from {os.environ['P3_RCF_FROZEN']}", flush=True)
+        if os.environ.get("P3_RCF_FROZEN_TABLE"):
+            # the experience-offset table of the frozen build (fit on E)
+            t_old = np.load(os.environ["P3_RCF_FROZEN_TABLE"])["table"]
+            print(f"  frozen offset table: max |new - frozen| {np.abs(aug['table'] - t_old).max():.2e}", flush=True)
+            aug["table"] = t_old
     qi = np.flatnonzero(w > 0)
     layer = getattr(a, "layer", False)
     qwalk = np.arange(len(d["pid"])) if layer else qi
@@ -1120,7 +1133,8 @@ def online(a):
         res["mu"] = mu_all
         res["mean"], res["var"], tail_meta = TL.apply(tail, res, d["r"][qwalk] - mu_all, d["v"][qwalk] if "v" in d else
                                                       d["wp"][qwalk] * (1 - d["wp"][qwalk]),
-                                                      w[qwalk] == 1, getattr(a, "tail_args", None))
+                                                      w[qwalk] == 1, getattr(a, "tail_args", None),
+                                                      frozen=None if FZ is None else FZ["meta"]["tail"])
     pred_all = mu_all + res["mean"]
     n_games, y, wp0, cnt, gday = X.game_arrays(dict(d, wp=d["wp_pop"]))
     lo = np.log(wp0 / (1 - wp0))
@@ -1132,13 +1146,30 @@ def online(a):
     if layer:
         if ppath:
             os.environ.setdefault("P3_RCF_LAYER_SAVE", ppath.replace(".npz", "_layer.npz"))
-        pred, lay_meta, extra_cols = temporal_layer(d, pred_all, res["nh"], qi, gw * full, fitg, lo, y, n_games)
+        pred, lay_meta, extra_cols = temporal_layer(d, pred_all, res["nh"], qi, gw * full, fitg, lo, y, n_games,
+                                                    frozen=None if FZ is None else FZ["meta"]["layer"])
         res = {k: (v if k == "mfeat" else v[qi]) for k, v in res.items()}
     else:
         pred, extra_cols = pred_all, []
     mu = mu_all if not layer else mu_all[qi]
     stat_meta = None
-    if getattr(a, "statlin", False):
+    if getattr(a, "statlin", False) and FZ is not None:
+        sm = FZ["meta"]["statlin"]
+        assert sm.get("extra") == getattr(a, "statlin_extra", None), "frozen statlin: extra card differs"
+        F = np.nan_to_num(res["mfeat"].astype(np.float64))
+        Fz = (F - np.asarray(sm["mean"], np.float64)) / np.asarray(sm["sd"], np.float64)
+        beta = np.asarray(sm["beta"], np.float64)
+        if sm.get("group"):
+            gidx, _ = statlin_groups(sm["group"], d["hero"][qi], d["hero_names"])
+            beta_all = beta[None, :] + np.asarray(sm["group_dev"], np.float64)
+            pred = pred + np.einsum("ik,ik->i", Fz, beta_all[gidx])
+        else:
+            pred = pred + Fz @ beta
+        stat_meta = dict(sm, frozen=True)
+        del F, Fz
+        res.pop("mfeat", None)
+        print(f"  direct metric channel frozen ({sm.get('group') or 'shared weights'})", flush=True)
+    elif getattr(a, "statlin", False):
         # direct linear metric channel: ridge of the remaining residual on the
         # 30 metric features, fit on V1 slots (weights 1 / v), applied to all
         F = res["mfeat"]                                     # already restricted to qi (w > 0)
@@ -1196,10 +1227,13 @@ def online(a):
         import p3_rcf_tails as TL
         B = TL.shrink_basis({"nh": res["nh"], "np": res["np"], "gap": gap},
                             rich=2 if os.environ.get("P3_RCF_POSTCAL") == "2" else True)
-        Xp = B * pred[:, None]
-        v1 = w[qi] == 1
-        wv = 1.0 / (d["wp_pop"] * (1 - d["wp_pop"]))[qi][v1]
-        cpar = np.linalg.solve((Xp[v1].T * wv) @ Xp[v1] + 1e-9 * np.eye(B.shape[1]), (Xp[v1].T * wv) @ d["r"][qi][v1])
+        if FZ is not None:
+            cpar = np.asarray(FZ["meta"]["postcal"]["coef"], np.float64)
+        else:
+            Xp = B * pred[:, None]
+            v1 = w[qi] == 1
+            wv = 1.0 / (d["wp_pop"] * (1 - d["wp_pop"]))[qi][v1]
+            cpar = np.linalg.solve((Xp[v1].T * wv) @ Xp[v1] + 1e-9 * np.eye(B.shape[1]), (Xp[v1].T * wv) @ d["r"][qi][v1])
         mult = B @ cpar
         pred = pred * mult
         post_meta = {"coef": cpar.tolist(), "multiplier_quantiles": np.percentile(mult, [5, 25, 50, 75, 95]).tolist(),
@@ -1216,8 +1250,12 @@ def online(a):
         adj[qi] = d["mmr_adj"][qi]
         cols.append(X.team_diff(adj, d["g"], d["team"], n_games))
     Xc = np.column_stack(cols)
-    wc = C.fit_logistic(Xc[fitg], y[fitg])
-    w0 = C.fit_logistic(lo[fitg][:, None], y[fitg])
+    if FZ is not None:
+        wc, w0 = FZ["coef"], FZ["coef0"]
+        assert len(wc) == Xc.shape[1] + 1, "frozen combiner: column count differs"
+    else:
+        wc = C.fit_logistic(Xc[fitg], y[fitg])
+        w0 = C.fit_logistic(lo[fitg][:, None], y[fitg])
     p = C.predict(wc, Xc)
     p0 = C.predict(w0, lo[:, None])
     gsel = (gw > 0) & full
@@ -1256,7 +1294,8 @@ def online(a):
     ll = X.logloss(p, y)
     ll0 = X.logloss(p0, y)
     summ = {nm: {"games": int(((gw == k) & full).sum()),
-                 "gain": float((ll0 - ll)[(gw == k) & full].mean())} for k, nm in T.WIN.items()}
+                 "gain": float((ll0 - ll)[(gw == k) & full].mean())} for k, nm in T.WIN.items()
+            if ((gw == k) & full).any()}
     name = getattr(a, "out", None) or a.tag
     print(f"[online {name} {a.hist}] {json.dumps(summ)} ({time.time() - t0:.0f}s)", flush=True)
     os.makedirs(os.path.join(RCF_RES, "p3c"), exist_ok=True)
@@ -1265,7 +1304,8 @@ def online(a):
                                        "hl_win": getattr(a, "hl_win", None), "hl_met": getattr(a, "hl_met", None),
                                        "q_win": getattr(a, "q_win", None), "q_met": getattr(a, "q_met", None),
                                        "layer": lay_meta, "tail": tail_meta, "statlin": stat_meta,
-                                       "postcal": post_meta})))
+                                       "postcal": post_meta,
+                                       "frozen_from": os.environ.get("P3_RCF_FROZEN")})))
 
 
 def statlin_names(card, extra):
@@ -1393,7 +1433,7 @@ def layer_stats(d, u, early, hl_d):
     return Sd, Nd, Se, Ne
 
 
-def temporal_layer(d, pred_all, nh_all, qi, gw, fitg, lo, y, n_games):
+def temporal_layer(d, pred_all, nh_all, qi, gw, fitg, lo, y, n_games, frozen=None):
     """Variant 6b/6c: per-player drift (decayed mean of the player's recent
     residuals against the model, u = r - pred, shrunk) and a per-player
     new-hero learning term (mean u over the player's early games on heroes,
@@ -1410,6 +1450,14 @@ def temporal_layer(d, pred_all, nh_all, qi, gw, fitg, lo, y, n_games):
     if lp:
         # the layer's inputs for every slot (state writers rebuild the per-player terms from them)
         np.savez(lp, u=u.astype(np.float32), early=early)
+    if frozen is not None:
+        # saved half-life, shrinkage and scales, no search or refit
+        Sd, Nd, Se, Ne = layer_stats(d, u, early, frozen["hl_d"])
+        rho = Sd / (Nd + frozen["kd"])
+        nu = np.where(early, Se / (Ne + frozen["ke"]), 0.0)
+        pred = pred_all[qi] + frozen["drift_scale"] * rho[qi] + frozen["learn_scale"] * nu[qi]
+        print(f"  layer frozen: hl {frozen['hl_d']} kd {frozen['kd']} ke {frozen['ke']}", flush=True)
+        return pred, dict(frozen, frozen=True), [rho[qi], nu[qi]]
     best = None
     qm = np.zeros(len(u), bool)
     qm[qi] = True

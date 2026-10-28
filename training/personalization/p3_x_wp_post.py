@@ -44,8 +44,10 @@ common.setup()
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GAMES = os.path.join(HERE, "cache", "x_post_games.json.gz")
-OUT = os.path.join(HERE, "cache", "x_wp_post.npz")
+# P3_PF_OUT: the post-freeze build's cache dir (reads and writes there; the pinned files stay)
+_DIR = os.environ.get("P3_PF_OUT") or os.path.join(HERE, "cache")
+GAMES = os.path.join(_DIR, "x_post_games.json.gz")
+OUT = os.path.join(_DIR, "x_wp_post.npz")
 SEEDS = [42, 123, 777]
 BASE_BUILD = "2.55.16.96881"
 
@@ -213,6 +215,18 @@ def main():
     diff = np.abs(w["wp0"][o][j[ins]] - wp0[ins])
     print(f"check vs wp_drift on {ins.sum():,} snapshot games: max |dwp| {diff.max():.2e}, "
           f"mean {diff.mean():.2e}", flush=True)
+    if os.environ.get("P3_PF_OUT"):
+        # post-freeze build: every pre-freeze game must keep its pinned WP exactly
+        pin = np.load(os.path.join(HERE, "cache", "x_wp_post.npz"))
+        po = np.argsort(pin["replay_ids"])
+        pr = pin["replay_ids"][po]
+        jj = np.searchsorted(pr, rid)
+        hit = (jj < len(pr)) & (pr[np.minimum(jj, len(pr) - 1)] == rid)
+        assert hit.sum() == len(pr), f"post-freeze WP: {len(pr) - hit.sum()} pinned games missing"
+        dmax = float(np.abs(pin["wp0"][po][jj[hit]] - wp0[hit].astype(np.float32)).max())
+        print(f"post-freeze check: {hit.sum():,} pinned games, max |dwp| {dmax:.2e}; new games {(~hit).sum():,}",
+              flush=True)
+        assert dmax == 0.0, "post-freeze WP changed a pinned game"
     np.savez(OUT, replay_ids=rid, date_days=(ts // 86400).astype(np.int32), ts=ts,
              version=ver, versions=np.array(versions), y=y, wp0=wp0.astype(np.float32),
              wp0_seeds=seeds.astype(np.float32), in_snapshot=ins)

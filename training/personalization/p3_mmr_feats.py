@@ -17,12 +17,56 @@ import os
 import numpy as np
 
 
+def _pair(rid, key, ukeys):
+    """Collision-free (game, player) key: rid * 2^22 + dense player index.
+    (The former rid * 2^44 + key overflowed int64 for replay ids >= 2^19 and
+    kept only the low 20 bits of the replay id, so two games of the same player
+    1,048,576 ids apart shared a key.) Players not in ukeys get -1."""
+    rid = np.asarray(rid, np.int64)
+    key = np.asarray(key, np.int64)
+    j = np.minimum(np.searchsorted(ukeys, key), len(ukeys) - 1)
+    ok = ukeys[j] == key
+    assert len(ukeys) < (1 << 22) and (rid.max(initial=0) < (1 << 40))
+    return np.where(ok, rid * (1 << 22) + j, -1)
+
+
 def load_stamps(cache):
+    if os.environ.get("P3_MMR_KEY_FIX") != "1":
+        return _load_stamps_legacy(cache)
+    Z = np.load(os.path.join(cache, "mmr_at_game.npz"))
+    zk = (Z["region"].astype(np.int64) << 40) | Z["blizz_ids"]
+    ukeys = np.unique(zk)
+    comp = _pair(Z["replay_ids"], zk, ukeys)
+    # one value per (game, player); a genuine duplicate row keeps its value when
+    # the copies agree and becomes unknown (NaN) when they conflict
+    o = np.argsort(comp, kind="stable")
+    comp = comp[o]
+    st = np.flatnonzero(np.r_[True, comp[1:] != comp[:-1]])
+    size = np.diff(np.r_[st, len(comp)])
+    out = {"comp": comp[st], "ukeys": ukeys, "n_dup_keys": int((size > 1).sum())}
+    for name, col in (("pm", "player_mmr_causal"), ("hm", "hero_mmr_causal")):
+        x = Z[col][o].astype(np.float64)
+        nan = np.isnan(x)
+        lo = np.minimum.reduceat(np.where(nan, np.inf, x), st)
+        hi = np.maximum.reduceat(np.where(nan, -np.inf, x), st)
+        n_nan = np.add.reduceat(nan.astype(np.int64), st)
+        agree = (n_nan == size) | ((n_nan == 0) & (lo == hi))
+        v = x[st].copy()
+        v[~agree] = np.nan
+        out[name] = v.astype(Z[col].dtype)
+    return out
+
+
+def _load_stamps_legacy(cache):
+    """The def1027 behaviour (default until the next model version): packed key
+    rid * 2^44 + key, which overflows int64 and collides for games of one
+    player 2^20 replay ids apart; the unstable sort picks one colliding stamp
+    depending on the numpy build. P3_MMR_KEY_FIX=1 selects load_stamps' fix."""
     Z = np.load(os.path.join(cache, "mmr_at_game.npz"))
     zk = (Z["region"].astype(np.int64) << 40) | Z["blizz_ids"]
     comp = Z["replay_ids"].astype(np.int64) * (1 << 44) + zk
     o = np.argsort(comp)
-    return {"comp": comp[o], "pm": Z["player_mmr_causal"][o], "hm": Z["hero_mmr_causal"][o]}
+    return {"comp": comp[o], "pm": Z["player_mmr_causal"][o], "hm": Z["hero_mmr_causal"][o], "legacy": True}
 
 
 def slot_features(rid, key, team, stamps):
@@ -32,9 +76,14 @@ def slot_features(rid, key, team, stamps):
     key = np.asarray(key, np.int64)
     team = np.asarray(team, np.int64)
     comp = stamps["comp"]
-    qc = rid * (1 << 44) + key
-    j = np.minimum(np.searchsorted(comp, qc), len(comp) - 1)
-    ok = comp[j] == qc
+    if stamps.get("legacy"):
+        qc = rid * (1 << 44) + key
+        j = np.minimum(np.searchsorted(comp, qc), len(comp) - 1)
+        ok = comp[j] == qc
+    else:
+        qc = _pair(rid, key, stamps["ukeys"])
+        j = np.minimum(np.searchsorted(comp, qc), len(comp) - 1)
+        ok = (qc >= 0) & (comp[j] == qc)
     pm = np.where(ok, stamps["pm"][j], np.nan).astype(float)
     hm = np.where(ok, stamps["hm"][j], np.nan).astype(float)
     gk = rid * 2 + team
