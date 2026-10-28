@@ -107,17 +107,21 @@ export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
   }) => (
     <th
       className={cn(
-        'px-3 py-2 text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none whitespace-nowrap',
+        'px-3 py-2 text-xs font-medium text-muted-foreground select-none whitespace-nowrap',
         className
       )}
-      onClick={() => handleSort(field)}
+      aria-sort={sortField === field ? (sortAsc ? 'ascending' : 'descending') : 'none'}
     >
-      <span className="inline-flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => handleSort(field)}
+        className="inline-flex items-center gap-1 hover:text-foreground"
+      >
         {children}
         {sortField === field && (
-          <span className="text-primary">{sortAsc ? '\u25B2' : '\u25BC'}</span>
+          <span className="text-primary" aria-hidden="true">{sortAsc ? '\u25B2' : '\u25BC'}</span>
         )}
-      </span>
+      </button>
     </th>
   )
 
@@ -198,11 +202,18 @@ export function HeroTable({ heroes, onHeroClick, personal }: HeroTableProps) {
                   onClick={() => onHeroClick(hero.hero)}
                 >
                   <td className="px-3 py-2.5 font-medium">
-                    <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onHeroClick(hero.hero)
+                      }}
+                      className="flex items-center gap-2 text-left hover:underline"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={heroImageSrc(hero.hero)} alt="" loading="lazy" className="w-6 h-6 rounded object-cover shrink-0" />
                       {hero.hero}
-                    </div>
+                    </button>
                   </td>
                   <td className="px-3 py-2.5">
                     {role && (

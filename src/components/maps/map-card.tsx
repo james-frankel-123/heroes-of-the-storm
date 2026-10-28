@@ -34,8 +34,17 @@ export function MapCard({
 }: MapCardProps) {
   return (
     <Card
-      className="cursor-pointer hover:border-primary/40 transition-colors"
+      className="cursor-pointer hover:border-primary/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      aria-label={`${mapStat.map} details`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClick()
+        }
+      }}
     >
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center justify-between">

@@ -83,6 +83,17 @@ body {
 /* Gradient backgrounds */
 .gradient-gaming {
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  /* Muted text sits directly on the blue gradient: lighter so it keeps 4.5:1 at #2a5298 */
+  --muted-foreground: 215 30% 82%;
+}
+
+/* Card surfaces keep the theme's own muted tone */
+.gradient-gaming .bg-card {
+  --muted-foreground: 215.4 16.3% 46.9%;
+}
+
+.dark .gradient-gaming .bg-card {
+  --muted-foreground: 215 20.2% 65.1%;
 }
 
 .gradient-performance-high {

@@ -4,12 +4,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
+// Heroes, Maps and Draft ship large payloads; fetch them on navigation, not on every page view
 const NAV_ITEMS = [
-  { href: '/', label: 'Dashboard' },
-  { href: '/heroes', label: 'Heroes' },
-  { href: '/maps', label: 'Maps' },
-  { href: '/draft', label: 'Draft' },
-  { href: '/players', label: 'Players' },
+  { href: '/', label: 'Dashboard', prefetch: true },
+  { href: '/heroes', label: 'Heroes', prefetch: false },
+  { href: '/maps', label: 'Maps', prefetch: false },
+  { href: '/draft', label: 'Draft', prefetch: false },
+  { href: '/players', label: 'Players', prefetch: true },
 ]
 
 export function NavHeader() {
@@ -28,6 +29,7 @@ export function NavHeader() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={item.prefetch ? undefined : false}
               className={cn(
                 'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
                 pathname === item.href
