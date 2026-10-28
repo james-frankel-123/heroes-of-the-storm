@@ -80,7 +80,7 @@ export function HeroDetailModal({
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="mt-2">
-          <TabsList className="w-full justify-start">
+          <TabsList className="w-full h-auto flex-wrap justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="maps">Maps</TabsTrigger>
             <TabsTrigger value="talents">Talents</TabsTrigger>
@@ -91,7 +91,7 @@ export function HeroDetailModal({
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4 mt-4">
             {/* Stats across tiers */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {(['low', 'mid', 'high'] as SkillTier[]).map((tier) => {
                 const s = statsByTier.find((st) => st.skillTier === tier)
                 if (!s) return null

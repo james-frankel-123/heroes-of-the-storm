@@ -25,7 +25,7 @@ export function NavHeader() {
           </span>
         </Link>
         {/* Phones: the links get their own full-width row, so none is hidden off-screen */}
-        <nav className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start">
+        <nav className="flex w-full flex-wrap items-center justify-between gap-1 sm:w-auto sm:flex-nowrap sm:justify-start">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}

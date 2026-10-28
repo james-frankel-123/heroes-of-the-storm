@@ -182,7 +182,7 @@ export function MapDetailModal({
         </DialogHeader>
 
         <Tabs defaultValue="heroes" className="mt-2">
-          <TabsList className="w-full justify-start">
+          <TabsList className="w-full h-auto flex-wrap justify-start">
             <TabsTrigger value="heroes">Hero Win Rates</TabsTrigger>
             <TabsTrigger value="personal">Personal</TabsTrigger>
           </TabsList>

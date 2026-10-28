@@ -36,8 +36,8 @@ export function DashboardClient({ metaByTier, personalData, mapRotation }: Dashb
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             Meta trends and personal insights &mdash; {getTierLabel(tier)}
