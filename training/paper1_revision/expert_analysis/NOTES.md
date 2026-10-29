@@ -9,7 +9,7 @@ built from `rocker/r-ver:4.4.1`); the rest in Python.
 Rater codes only. Code-to-slot and code-to-group come from the written designations and
 are in `config.json`; the designations file itself is never committed.
 
-## Choices the prereg does not settle
+## Choices the prereg does not settle (approved 2026-10-26)
 
 1. **Incomplete raters (§3.8 says their ratings are "retained"; the gates assume 240
    items).** Primary: the gates are applied as written, so a rater who never reached a
@@ -49,3 +49,10 @@ did not respond to a reminder; no outcome results were examined before closing."
 
 (Check before use: the reminder outcome, and that the pipeline dry run on 2026-10-25 was
 inspected only for structure, which is how it was done.)
+
+## Descriptive, post hoc
+
+`exploratory_anchor_models.py`: accuracy of the study's draft-only models (the H1 consensus
+label and each corrected value function) on the 570 anchor games the experts rated, from the
+item file only (`results/expert_v6/analysis_final/exploratory_anchor_models.json`). Not in
+the registered plan.
