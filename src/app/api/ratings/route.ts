@@ -3,6 +3,8 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { draftRatings, ratingItems } from '@/lib/db/schema'
 import {
+  SURVEY_CLOSED,
+  SURVEY_CLOSED_MESSAGE,
   isRevokedRater,
   REVOKED_MESSAGE,
   fullSequence,
@@ -16,6 +18,10 @@ import {
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+
+function closed() {
+  return NextResponse.json({ error: SURVEY_CLOSED_MESSAGE, closed: true }, { status: 410, headers: { 'Cache-Control': 'no-store' } })
+}
 
 interface RatingPayload {
   rater?: unknown
@@ -33,6 +39,8 @@ interface RatingPayload {
  * Upserts one rating per (rater, item).
  */
 export async function POST(req: Request) {
+  // closed study: refuse before reading the body or the database
+  if (SURVEY_CLOSED) return closed()
   let body: RatingPayload
   try {
     body = await req.json()
@@ -153,3 +161,10 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true })
 }
+
+/** Any other write method on a closed study is gone too (otherwise Next answers 405). */
+export async function PUT() {
+  return closed()
+}
+export const PATCH = PUT
+export const DELETE = PUT

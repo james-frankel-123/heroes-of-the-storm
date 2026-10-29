@@ -3,6 +3,8 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { draftRatings, ratingItems } from '@/lib/db/schema'
 import {
+  SURVEY_CLOSED,
+  SURVEY_CLOSED_MESSAGE,
   isRevokedRater,
   REVOKED_MESSAGE,
   fullSequence,
@@ -16,6 +18,10 @@ import {
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+
+function closed() {
+  return NextResponse.json({ error: SURVEY_CLOSED_MESSAGE, closed: true }, { status: 410, headers: { 'Cache-Control': 'no-store' } })
+}
 
 /**
  * GET /api/ratings/items?rater=NAME[&slot=N]
@@ -31,6 +37,8 @@ export const dynamic = 'force-dynamic'
  * the sequence on any device after a hard refresh.
  */
 export async function GET(req: Request) {
+  // closed study: refuse before reading the body or the database
+  if (SURVEY_CLOSED) return closed()
   const url = new URL(req.url)
   const rater = (url.searchParams.get('rater') ?? '').trim()
   if (!rater || rater.length > 100) {

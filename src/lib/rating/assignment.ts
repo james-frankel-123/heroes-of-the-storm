@@ -102,6 +102,15 @@ export function isRevokedRater(rater: string): boolean {
 
 export const REVOKED_MESSAGE = 'This rating link is no longer active. Please contact the study team.'
 
+/**
+ * Data collection ended 2026-10-26 and the analysis is frozen. While true, /rate shows only
+ * SURVEY_CLOSED_MESSAGE and the rating API answers 410 Gone before reading the request
+ * body or touching the database (draft_ratings and rating_items are left as they are).
+ */
+export const SURVEY_CLOSED = true
+
+export const SURVEY_CLOSED_MESSAGE = 'Data collection for this study closed on October 26, 2026. Thank you for taking part.'
+
 export function isTestRater(rater: string): boolean {
   return normalizeRater(rater).startsWith('test')
 }
