@@ -1,0 +1,14 @@
+{
+  "model": "mcq_t0.4",
+  "drafts": 200,
+  "rich_metrics": {
+    "healer_rate": 100.0,
+    "degen_rate": 20.5,
+    "counter": -0.22,
+    "synergy": 0.09,
+    "distinct_heroes": 13,
+    "entropy": 3.16,
+    "top10_concentration": 99.4,
+    "gd_similarity": 1.3
+  }
+}

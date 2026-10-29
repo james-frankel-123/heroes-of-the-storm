@@ -1,0 +1,63 @@
+{
+  "strategy": "CQL a=0.5",
+  "slug": "cql_a0.5",
+  "seeds": 5,
+  "drafts_per_seed": 1000,
+  "metrics": {
+    "healer_rate": 99.7,
+    "degen_rate": 3.6,
+    "counter": -0.01,
+    "synergy": -0.17,
+    "distinct_heroes": 75,
+    "entropy": 4.62,
+    "top10_concentration": 69.1,
+    "gd_similarity": 69.6,
+    "map_adapt": {
+      "Braxis Holdout": {
+        "map_rate": 31.8,
+        "other_rate": 46.1,
+        "delta": -14.3
+      },
+      "Battlefield of Eternity": {
+        "map_rate": 68.6,
+        "other_rate": 75.3,
+        "delta": -6.7
+      },
+      "Cursed Hollow": {
+        "map_rate": 35.8,
+        "other_rate": 17.1,
+        "delta": 18.7
+      }
+    }
+  },
+  "seed_metrics": [
+    {
+      "degen": 4.2,
+      "counter": -0.0055610333333331995,
+      "synergy": -0.1751489999999997
+    },
+    {
+      "degen": 2.7,
+      "counter": -9.399999999988751e-05,
+      "synergy": -0.14493199999999978
+    },
+    {
+      "degen": 3.8,
+      "counter": -0.005150533333333137,
+      "synergy": -0.17340899999999979
+    },
+    {
+      "degen": 3.3000000000000003,
+      "counter": -0.03219008333333313,
+      "synergy": -0.1799809999999997
+    },
+    {
+      "degen": 3.8,
+      "counter": -0.021854266666666462,
+      "synergy": -0.1687609999999997
+    }
+  ],
+  "degen_std": 0.5161395160225575,
+  "counter_std": 0.01208445298358365,
+  "synergy_std": 0.012293292668768581
+}

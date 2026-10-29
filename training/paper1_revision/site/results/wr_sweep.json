@@ -1,0 +1,24 @@
+{
+ "enriched_512": {
+  "test_acc": 0.5745452674367748,
+  "NODRIFT_acc": 0.5672068289200465,
+  "NODRIFT_slope": 0.9498567679620047,
+  "sanity": "25/28",
+  "degen_scores": {
+   "5 tanks": 0.2637088894844055,
+   "5 healers": 0.16726219654083252,
+   "5 ranged assassins": 0.28334248065948486,
+   "5 melee assassins": 0.4278919994831085,
+   "3T 2H no damage": 0.21993297338485718,
+   "No healer high WR": 0.38918012380599976
+  },
+  "healer": 85.45,
+  "ranged": 92.9,
+  "degen": 20.549999999999997,
+  "degen_per_seed": [
+   20.4,
+   20.7
+  ],
+  "n_drafts": 2000
+ }
+}

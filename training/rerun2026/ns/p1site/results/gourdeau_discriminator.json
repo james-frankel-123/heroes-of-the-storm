@@ -1,0 +1,97 @@
+{
+  "config": {
+    "model": "MLP 197-1024-512-128-1, leaky ReLU, dropout 0.4, sigmoid",
+    "output": "P(generated)",
+    "l1": 1e-07,
+    "lr": 0.0001,
+    "batch": 8192,
+    "labels_soft": [
+      0.05,
+      0.95
+    ],
+    "negatives": "1 uniformly random legal same-team same-type alternative action per real state, regenerated each epoch (paper's random-sampling 'NN' variant)",
+    "encoding": "180d signed DraftState (team A = first drafter) + 14d map + 3d tier (tier replaces the paper's patch one-hot; single-major-patch snapshot)",
+    "data": "rerun2026 pinned 2.55 snapshot, replay-level 2% test split",
+    "early_stopping": "held-out real-vs-generated acc, patience 5, cap 20 epochs"
+  },
+  "wall_time_minutes": {
+    "cache": 1.76,
+    "total_this_run": 2.15,
+    "train": 8.99,
+    "degen": 0.01,
+    "rich": 2.15
+  },
+  "degenerate_comps_p_generated": {
+    "5 tanks": 0.9981709718704224,
+    "5 healers": 0.972658097743988,
+    "5 ranged assassins": 0.8915070295333862,
+    "5 melee assassins": 0.6315124034881592,
+    "3T 2H no damage": 0.9739867448806763,
+    "No healer high WR": 0.9274523258209229,
+    "control (plausible comp)": 0.8769453763961792,
+    "_note": "P(generated) for endpoint states with 10 picks and NO bans (mirroring the WP sanity-suite inputs); real endpoints carry 6 bans, so absolute values skew toward 'generated' - compare against the control row."
+  },
+  "rich_eval": {
+    "strategy": "Gourdeau discriminator",
+    "slug": "gourdeau_discriminator",
+    "seeds": 5,
+    "drafts_per_seed": 1000,
+    "metrics": {
+      "healer_rate": 99.9,
+      "degen_rate": 0.3,
+      "counter": -0.02,
+      "synergy": -0.06,
+      "distinct_heroes": 87,
+      "entropy": 4.39,
+      "top10_concentration": 75.3,
+      "gd_similarity": 40.6,
+      "map_adapt": {
+        "Braxis Holdout": {
+          "map_rate": 26.3,
+          "other_rate": 42.1,
+          "delta": -15.8
+        },
+        "Battlefield of Eternity": {
+          "map_rate": 66.8,
+          "other_rate": 88.9,
+          "delta": -22.1
+        },
+        "Cursed Hollow": {
+          "map_rate": 24.8,
+          "other_rate": 15.3,
+          "delta": 9.5
+        }
+      }
+    },
+    "seed_metrics": [
+      {
+        "degen": 0.5,
+        "counter": -0.024646566666666828,
+        "synergy": -0.048028000000000216
+      },
+      {
+        "degen": 0.2,
+        "counter": -0.007029200000000245,
+        "synergy": -0.041085000000000295
+      },
+      {
+        "degen": 0.2,
+        "counter": -0.012062900000000112,
+        "synergy": -0.06152000000000022
+      },
+      {
+        "degen": 0.2,
+        "counter": -0.042262766666666875,
+        "synergy": -0.0778070000000002
+      },
+      {
+        "degen": 0.3,
+        "counter": -0.037671716666666945,
+        "synergy": -0.07749200000000024
+      }
+    ],
+    "degen_std": 0.116619037896906,
+    "counter_std": 0.013774371377704825,
+    "synergy_std": 0.014962874036761768
+  }
+}

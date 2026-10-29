@@ -1,0 +1,20 @@
+{
+  "alpha": 1.0,
+  "tau": 0.005,
+  "hidden_dims": [
+    256,
+    128,
+    64
+  ],
+  "drafts": 200,
+  "rich_metrics": {
+    "healer_rate": 100.0,
+    "degen_rate": 2.5,
+    "counter": -0.07,
+    "synergy": -0.13,
+    "distinct_heroes": 53,
+    "entropy": 4.52,
+    "top10_concentration": 70.1,
+    "gd_similarity": 71.9
+  }
+}

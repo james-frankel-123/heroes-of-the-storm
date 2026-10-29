@@ -1,0 +1,102 @@
+[
+ {
+  "wp": "enriched",
+  "wp_path": "/home/max/hots/repo/training/paper1_revision/site/models/enriched_s42.pt",
+  "time": "2026-10-03 08:28:02",
+  "kernel_comp_fallback_order": "low_mid_high (pre-attribute build)",
+  "episodes": 768,
+  "compared": 768,
+  "malformed": 0,
+  "per_tier": {
+   "low": 264,
+   "mid": 252,
+   "high": 252
+  },
+  "max_abs_diff": 0.043718934059143066,
+  "mean_abs_diff": 0.00032409314007963985,
+  "fallback_drafts": 256,
+  "order_differs_drafts": 17,
+  "order_differs_share": 0.022135416666666668,
+  "max_abs_diff_order_differs": 0.043718934059143066,
+  "mean_abs_diff_order_differs": 0.014634115731014925,
+  "max_abs_diff_rest": 6.556510925292969e-07,
+  "n_over_tol": 17,
+  "tol": 0.002,
+  "pass": false
+ },
+ {
+  "wp": "enriched_leak",
+  "wp_path": "/home/max/hots/repo/training/paper1_revision/site/models/enriched_leak_s777.pt",
+  "time": "2026-10-03 08:28:18",
+  "kernel_comp_fallback_order": "low_mid_high (pre-attribute build)",
+  "episodes": 768,
+  "compared": 768,
+  "malformed": 0,
+  "per_tier": {
+   "low": 264,
+   "mid": 252,
+   "high": 252
+  },
+  "max_abs_diff": 0.03627268970012665,
+  "mean_abs_diff": 0.00016362633444562866,
+  "fallback_drafts": 231,
+  "order_differs_drafts": 12,
+  "order_differs_share": 0.015625,
+  "max_abs_diff_order_differs": 0.03627268970012665,
+  "mean_abs_diff_order_differs": 0.010451892778898278,
+  "max_abs_diff_rest": 1.385807991027832e-06,
+  "n_over_tol": 11,
+  "tol": 0.002,
+  "pass": false
+ },
+ {
+  "wp": "enriched",
+  "wp_path": "/home/max/hots/repo/training/paper1_revision/site/models/enriched_s42.pt",
+  "time": "2026-10-03 08:31:01",
+  "kernel_comp_fallback_order": "mid_high_low",
+  "episodes": 768,
+  "compared": 768,
+  "malformed": 0,
+  "per_tier": {
+   "low": 264,
+   "mid": 252,
+   "high": 252
+  },
+  "max_abs_diff": 7.152557373046875e-07,
+  "mean_abs_diff": 1.6614891743908325e-07,
+  "fallback_drafts": 250,
+  "order_differs_drafts": 19,
+  "order_differs_share": 0.024739583333333332,
+  "max_abs_diff_order_differs": 4.172325134277344e-07,
+  "mean_abs_diff_order_differs": 1.6469704477410567e-07,
+  "max_abs_diff_rest": 7.152557373046875e-07,
+  "n_over_tol": 0,
+  "tol": 0.002,
+  "pass": true
+ },
+ {
+  "wp": "enriched_leak",
+  "wp_path": "/home/max/hots/repo/training/paper1_revision/site/models/enriched_leak_s777.pt",
+  "time": "2026-10-03 08:31:17",
+  "kernel_comp_fallback_order": "mid_high_low",
+  "episodes": 768,
+  "compared": 768,
+  "malformed": 0,
+  "per_tier": {
+   "low": 264,
+   "mid": 252,
+   "high": 252
+  },
+  "max_abs_diff": 1.475214958190918e-06,
+  "mean_abs_diff": 3.1543095246888697e-07,
+  "fallback_drafts": 194,
+  "order_differs_drafts": 32,
+  "order_differs_share": 0.041666666666666664,
+  "max_abs_diff_order_differs": 6.407499313354492e-07,
+  "mean_abs_diff_order_differs": 1.8745777197182178e-07,
+  "max_abs_diff_rest": 1.475214958190918e-06,
+  "n_over_tol": 0,
+  "tol": 0.002,
+  "pass": true
+ }
+]

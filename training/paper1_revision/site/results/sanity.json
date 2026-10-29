@@ -1,0 +1,170 @@
+{
+ "rev_naive": {
+  "passed": 25,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.27598220109939575,
+   "5 healers": 0.17123782634735107,
+   "5 ranged assassins": 0.40719231963157654,
+   "5 melee assassins": 0.43261227011680603,
+   "3T 2H no damage": 0.23049208521842957,
+   "No healer high WR": 0.48576512932777405
+  }
+ },
+ "rev_herostrength": {
+  "passed": 23,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.18465344607830048,
+   "5 healers": 0.10925411432981491,
+   "5 ranged assassins": 0.3156374394893646,
+   "5 melee assassins": 0.4092998206615448,
+   "3T 2H no damage": 0.19287140667438507,
+   "No healer high WR": 0.44750452041625977
+  }
+ },
+ "rev_enriched": {
+  "passed": 25,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.2843703627586365,
+   "5 healers": 0.2024880051612854,
+   "5 ranged assassins": 0.3213288187980652,
+   "5 melee assassins": 0.3896734416484833,
+   "3T 2H no damage": 0.24848926067352295,
+   "No healer high WR": 0.4581667482852936
+  }
+ },
+ "rev_enriched_512": {
+  "passed": 25,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.2637088894844055,
+   "5 healers": 0.16726219654083252,
+   "5 ranged assassins": 0.28334248065948486,
+   "5 melee assassins": 0.4278919994831085,
+   "3T 2H no damage": 0.21993297338485718,
+   "No healer high WR": 0.38918012380599976
+  }
+ },
+ "rev_aug_wr0_512": {
+  "passed": 26,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.05753978341817856,
+   "5 healers": 0.21671541035175323,
+   "5 ranged assassins": 0.3292551338672638,
+   "5 melee assassins": 0.07293162494897842,
+   "3T 2H no damage": 0.09866802394390106,
+   "No healer high WR": 0.32621023058891296
+  }
+ },
+ "rev_aug_wr5_512": {
+  "passed": 26,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.05080946162343025,
+   "5 healers": 0.14299508929252625,
+   "5 ranged assassins": 0.33023104071617126,
+   "5 melee assassins": 0.0772833526134491,
+   "3T 2H no damage": 0.08426094800233841,
+   "No healer high WR": 0.33971768617630005
+  }
+ },
+ "rev_aug_wr10_512": {
+  "passed": 25,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.07096075266599655,
+   "5 healers": 0.11869388818740845,
+   "5 ranged assassins": 0.3033199608325958,
+   "5 melee assassins": 0.08856407552957535,
+   "3T 2H no damage": 0.11187028139829636,
+   "No healer high WR": 0.3657945394515991
+  }
+ },
+ "rev_aug_wr50_512": {
+  "passed": 26,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.3050064742565155,
+   "5 healers": 0.23185129463672638,
+   "5 ranged assassins": 0.2893863022327423,
+   "5 melee assassins": 0.30695146322250366,
+   "3T 2H no damage": 0.2780858874320984,
+   "No healer high WR": 0.40083974599838257
+  }
+ },
+ "rev_enriched_leak": {
+  "passed": 26,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.16564233601093292,
+   "5 healers": 0.1912340372800827,
+   "5 ranged assassins": 0.33348727226257324,
+   "5 melee assassins": 0.31254664063453674,
+   "3T 2H no damage": 0.2293117195367813,
+   "No healer high WR": 0.4347744584083557
+  }
+ },
+ "sub_naive": {
+  "passed": 22,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.36540505290031433,
+   "5 healers": 0.25651514530181885,
+   "5 ranged assassins": 0.3655445873737335,
+   "5 melee assassins": 0.4259708523750305,
+   "3T 2H no damage": 0.33909061551094055,
+   "No healer high WR": 0.4987386167049408
+  }
+ },
+ "sub_herostrength": {
+  "passed": 22,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.3725007176399231,
+   "5 healers": 0.10644116997718811,
+   "5 ranged assassins": 0.3568388521671295,
+   "5 melee assassins": 0.4224254786968231,
+   "3T 2H no damage": 0.23166510462760925,
+   "No healer high WR": 0.4963400959968567
+  }
+ },
+ "sub_enriched_256": {
+  "passed": 25,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.1468801349401474,
+   "5 healers": 0.1818133443593979,
+   "5 ranged assassins": 0.28814855217933655,
+   "5 melee assassins": 0.29922086000442505,
+   "3T 2H no damage": 0.26838499307632446,
+   "No healer high WR": 0.3872842490673065
+  }
+ },
+ "sub_enriched_512": {
+  "passed": 25,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.15479138493537903,
+   "5 healers": 0.15565137565135956,
+   "5 ranged assassins": 0.31160566210746765,
+   "5 melee assassins": 0.3287927508354187,
+   "3T 2H no damage": 0.25848549604415894,
+   "No healer high WR": 0.40044206380844116
+  }
+ },
+ "sub_aug_v2_512": {
+  "passed": 22,
+  "total": 28,
+  "degen_scores": {
+   "5 tanks": 0.06240929290652275,
+   "5 healers": 0.09069961309432983,
+   "5 ranged assassins": 0.3052096962928772,
+   "5 melee assassins": 0.09549813717603683,
+   "3T 2H no damage": 0.13319456577301025,
+   "No healer high WR": 0.3974342942237854
+  }
+ }
+}

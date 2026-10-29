@@ -1,0 +1,63 @@
+{
+  "strategy": "Gourdeau (greedy)",
+  "slug": "gourdeau",
+  "seeds": 5,
+  "drafts_per_seed": 1000,
+  "metrics": {
+    "healer_rate": 66.8,
+    "degen_rate": 40.1,
+    "counter": -0.08,
+    "synergy": 0.36,
+    "distinct_heroes": 90,
+    "entropy": 5.73,
+    "top10_concentration": 43.2,
+    "gd_similarity": 4.9,
+    "map_adapt": {
+      "Braxis Holdout": {
+        "map_rate": 17.1,
+        "other_rate": 19.8,
+        "delta": -2.7
+      },
+      "Battlefield of Eternity": {
+        "map_rate": 24.7,
+        "other_rate": 8.8,
+        "delta": 15.9
+      },
+      "Cursed Hollow": {
+        "map_rate": 12.4,
+        "other_rate": 12.0,
+        "delta": 0.4
+      }
+    }
+  },
+  "seed_metrics": [
+    {
+      "degen": 40.8,
+      "counter": -0.09344158333333291,
+      "synergy": 0.32993300000000053
+    },
+    {
+      "degen": 38.0,
+      "counter": -0.06970046666666628,
+      "synergy": 0.3839180000000006
+    },
+    {
+      "degen": 39.5,
+      "counter": -0.08805874999999953,
+      "synergy": 0.3549075555555561
+    },
+    {
+      "degen": 40.5,
+      "counter": -0.07949669999999963,
+      "synergy": 0.3650236666666672
+    },
+    {
+      "degen": 41.6,
+      "counter": -0.07206889999999962,
+      "synergy": 0.379369555555556
+    }
+  ],
+  "degen_std": 1.2383860464330174,
+  "counter_std": 0.009092030194207306,
+  "synergy_std": 0.01932796554671016
+}

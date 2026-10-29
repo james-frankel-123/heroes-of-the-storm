@@ -1,0 +1,78 @@
+{
+ "gpu": "NVIDIA GeForce RTX 5090",
+ "torch": "2.10.0+cu128",
+ "kernel_comp_fallback_order": "mid_high_low",
+ "policy": "paper1_revision/site/mcts_runs/F_oof_s0/draft_policy.pt",
+ "wp": "paper1_revision/site/models/enriched_s42.pt",
+ "gd": "rerun2026/ns/p1site/models/generic_draft_0.pt",
+ "protocol": "MCTS throughput of the fused CUDA kernel as used in the revision (chance",
+ "fused": [
+  {
+   "search_mode": 0,
+   "sims": 200,
+   "eps_per_s": 216.0,
+   "episodes": 768,
+   "elapsed_s": 3.55,
+   "engine_startup_s": 0.006,
+   "gpu_memory_mb": 276.8
+  },
+  {
+   "search_mode": 1,
+   "sims": 200,
+   "eps_per_s": 63.4,
+   "episodes": 768,
+   "elapsed_s": 12.12,
+   "engine_startup_s": 0.004,
+   "gpu_memory_mb": 86.0
+  },
+  {
+   "search_mode": 0,
+   "sims": 400,
+   "eps_per_s": 111.8,
+   "episodes": 768,
+   "elapsed_s": 6.87,
+   "engine_startup_s": 0.004,
+   "gpu_memory_mb": 274.7
+  },
+  {
+   "search_mode": 1,
+   "sims": 400,
+   "eps_per_s": 33.0,
+   "episodes": 768,
+   "elapsed_s": 23.24,
+   "engine_startup_s": 0.004,
+   "gpu_memory_mb": 142.6
+  }
+ ],
+ "host_equal_semantics_mode0": {
+  "n_threads": 256,
+  "num_sims": 200,
+  "leaf_batch": 1,
+  "virtual_loss": 3.0,
+  "max_eval_batch": 1024,
+  "streams": [
+   2,
+   2,
+   2
+  ],
+  "warmup_episodes": 512,
+  "episodes_measured": 2560,
+  "elapsed_s": 274.816615662,
+  "eps_per_s": 9.315302838706712,
+  "policy_launches": 34931,
+  "policy_samples": 35283,
+  "gd_batch_launches": 256486,
+  "gd_batch_samples": 29502924,
+  "wp_launches": 1053086,
+  "wp_samples": 4084304
+ },
+ "summary": {
+  "fused_chance_200": 63.4,
+  "fused_legacy_200": 216.0,
+  "fused_chance_400": 33.0,
+  "fused_legacy_400": 111.8,
+  "chance_over_legacy_200": 0.294,
+  "host_mode0_200": 9.315302838706712,
+  "fused_mode0_over_host": 23.19
+ }
+}

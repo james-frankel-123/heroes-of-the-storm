@@ -1,0 +1,14 @@
+{
+  "model": "bccql_b2.0",
+  "drafts": 200,
+  "rich_metrics": {
+    "healer_rate": 100.0,
+    "degen_rate": 1.0,
+    "counter": -0.12,
+    "synergy": -0.04,
+    "distinct_heroes": 53,
+    "entropy": 4.53,
+    "top10_concentration": 68.8,
+    "gd_similarity": 73.4
+  }
+}
