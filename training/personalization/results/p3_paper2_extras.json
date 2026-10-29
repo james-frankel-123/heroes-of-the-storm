@@ -1,0 +1,269 @@
+{
+ "postfreeze": {
+  "games": 83955,
+  "draft_only_acc": 0.5716753022452504,
+  "chosen_acc": 0.625882913465547,
+  "previous_acc": 0.6154011077362873,
+  "today_acc": 0.6007861354296945,
+  "draft_only_gain_x1000_vs_coin": 16.683163723543952
+ },
+ "lags": {
+  "1": {
+   "gain_x1000": 37.38053316072826,
+   "cost_x1000": 2.9779673516641623e-08,
+   "cost_se": 1.5917386941151645e-08,
+   "cost_week_ci": [
+    1.0180278237079532e-09,
+    5.8642534212965505e-08
+   ],
+   "acc": 0.6284928115909599
+  },
+  "7": {
+   "gain_x1000": 27.929779298596927,
+   "cost_x1000": 9.450753891911017,
+   "cost_se": 0.22413542230651629,
+   "cost_week_ci": [
+    8.836799816468623,
+    10.07504256650204
+   ],
+   "acc": 0.6169235287536362
+  },
+  "30": {
+   "gain_x1000": 17.356089306140376,
+   "cost_x1000": 20.024443884367553,
+   "cost_se": 0.3382857523053413,
+   "cost_week_ci": [
+    19.187593475709836,
+    20.8872909518451
+   ],
+   "acc": 0.604672465876035
+  },
+  "120": {
+   "gain_x1000": 9.17897812965085,
+   "cost_x1000": 28.201555060857096,
+   "cost_se": 0.41712601092092627,
+   "cost_week_ci": [
+    27.195484735949726,
+    29.118000018723723
+   ],
+   "acc": 0.5932989762810472
+  },
+  "365": {
+   "gain_x1000": 3.891755578224362,
+   "cost_x1000": 33.48877761228358,
+   "cost_se": 0.4741761862312788,
+   "cost_week_ci": [
+    32.628858486556126,
+    34.26757455890955
+   ],
+   "acc": 0.5849218225553815
+  }
+ },
+ "lag1_reproduces_arm_max_abs": 2.9802322387695312e-08,
+ "current": {
+  "gain_x1000": 37.38053319050794,
+  "acc": 0.6284928115909599,
+  "games": 286016
+ },
+ "stale365_breakdown": {
+  "new player": {
+   "slot_share": 0.23430192716491385,
+   "cost_x1000": 17.67768680785607,
+   "cost_se": 0.33085782246580886
+  },
+  "new hero": {
+   "slot_share": 0.15887118203177444,
+   "cost_x1000": 7.33456606315165,
+   "cost_se": 0.23985685681381033
+  },
+  "known pair": {
+   "slot_share": 0.6068268908033118,
+   "cost_x1000": 9.482572840136973,
+   "cost_se": 0.2596047492774082
+  }
+ },
+ "region": {
+  "V2 Americas": {
+   "games": 22332,
+   "chosen_gain_x1000": 41.6177061563562,
+   "previous_gain_x1000": 31.960272493417847,
+   "today_gain_x1000": 20.850976049821018,
+   "chosen_minus_previous": 9.657433662938345,
+   "chosen_minus_previous_se": 0.8259174907548384,
+   "chosen_acc": 0.6403367365215834,
+   "draft_only_acc": 0.5742432384022926
+  },
+  "V2 Europe": {
+   "games": 46820,
+   "chosen_gain_x1000": 34.821104150935184,
+   "previous_gain_x1000": 28.257503162182296,
+   "today_gain_x1000": 18.8508248797206,
+   "chosen_minus_previous": 6.563600988752886,
+   "chosen_minus_previous_se": 0.580376391957246,
+   "chosen_acc": 0.6279154207603588,
+   "draft_only_acc": 0.5711661683041436
+  },
+  "V2 Asia": {
+   "games": 3322,
+   "chosen_gain_x1000": 26.404960765308207,
+   "previous_gain_x1000": 24.32533629321792,
+   "today_gain_x1000": 13.56794649841429,
+   "chosen_minus_previous": 2.0796244720902872,
+   "chosen_minus_previous_se": 2.3113020881033846,
+   "chosen_acc": 0.6164960866947622,
+   "draft_only_acc": 0.5656231186032511
+  },
+  "OOT Americas": {
+   "games": 91555,
+   "chosen_gain_x1000": 41.7753023031112,
+   "previous_gain_x1000": 30.51793676268469,
+   "today_gain_x1000": 20.276511504808017,
+   "chosen_minus_previous": 11.257365540426504,
+   "chosen_minus_previous_se": 0.42166929976254414,
+   "chosen_acc": 0.6322538364917263,
+   "draft_only_acc": 0.568150292174103
+  },
+  "OOT Europe": {
+   "games": 180669,
+   "chosen_gain_x1000": 36.40191752488605,
+   "previous_gain_x1000": 28.08511198871465,
+   "today_gain_x1000": 18.386438288510814,
+   "chosen_minus_previous": 8.316805536171398,
+   "chosen_minus_previous_se": 0.29796814419328277,
+   "chosen_acc": 0.6278387548500296,
+   "draft_only_acc": 0.569655004455662
+  },
+  "OOT Asia": {
+   "games": 13792,
+   "chosen_gain_x1000": 21.026300852040094,
+   "previous_gain_x1000": 16.670202745842843,
+   "today_gain_x1000": 7.96373791531349,
+   "chosen_minus_previous": 4.356098106197255,
+   "chosen_minus_previous_se": 1.1310437035313399,
+   "chosen_acc": 0.6120939675174014,
+   "draft_only_acc": 0.5748259860788864
+  }
+ },
+ "tier": {
+  "V2 Bronze": {
+   "games": 13140,
+   "chosen_gain_x1000": 30.14530323953105,
+   "previous_gain_x1000": 20.09831008266081,
+   "today_gain_x1000": 8.758632200474104,
+   "chosen_minus_previous": 10.046993156870244,
+   "chosen_minus_previous_se": 1.1913838657109421,
+   "chosen_acc": 0.6280821917808219,
+   "draft_only_acc": 0.5799847792998478
+  },
+  "V2 Silver": {
+   "games": 15489,
+   "chosen_gain_x1000": 29.088085947837744,
+   "previous_gain_x1000": 25.093522254793122,
+   "today_gain_x1000": 14.175353756746166,
+   "chosen_minus_previous": 3.994563693044622,
+   "chosen_minus_previous_se": 1.0441200862416717,
+   "chosen_acc": 0.623926657627994,
+   "draft_only_acc": 0.5733100910323455
+  },
+  "V2 Gold": {
+   "games": 14771,
+   "chosen_gain_x1000": 39.94118034085972,
+   "previous_gain_x1000": 33.65960539483398,
+   "today_gain_x1000": 21.46572278228652,
+   "chosen_minus_previous": 6.281574946025729,
+   "chosen_minus_previous_se": 1.0107378868049863,
+   "chosen_acc": 0.6341479926883759,
+   "draft_only_acc": 0.5696973800013541
+  },
+  "V2 Platinum": {
+   "games": 13409,
+   "chosen_gain_x1000": 43.06540355590096,
+   "previous_gain_x1000": 35.140940441396765,
+   "today_gain_x1000": 24.914106954845842,
+   "chosen_minus_previous": 7.9244631145042055,
+   "chosen_minus_previous_se": 1.028320388139772,
+   "chosen_acc": 0.6342754866134686,
+   "draft_only_acc": 0.5690208069207249
+  },
+  "V2 Diamond": {
+   "games": 9188,
+   "chosen_gain_x1000": 44.70534441192267,
+   "previous_gain_x1000": 35.38018176642382,
+   "today_gain_x1000": 28.260914598386883,
+   "chosen_minus_previous": 9.325162645498843,
+   "chosen_minus_previous_se": 1.1937908019095753,
+   "chosen_acc": 0.6421419242490205,
+   "draft_only_acc": 0.5715063125816282
+  },
+  "V2 Master": {
+   "games": 6477,
+   "chosen_gain_x1000": 34.368606843712925,
+   "previous_gain_x1000": 26.452446829722845,
+   "today_gain_x1000": 22.828025339466095,
+   "chosen_minus_previous": 7.916160013990082,
+   "chosen_minus_previous_se": 1.5248060578425868,
+   "chosen_acc": 0.6265246255982708,
+   "draft_only_acc": 0.5632237146827235
+  },
+  "OOT Bronze": {
+   "games": 52738,
+   "chosen_gain_x1000": 32.703892704354,
+   "previous_gain_x1000": 21.9138753753295,
+   "today_gain_x1000": 11.500372158653526,
+   "chosen_minus_previous": 10.7900173290245,
+   "chosen_minus_previous_se": 0.6091529897806811,
+   "chosen_acc": 0.6238006750350791,
+   "draft_only_acc": 0.5693996738594562
+  },
+  "OOT Silver": {
+   "games": 59442,
+   "chosen_gain_x1000": 30.331979188764148,
+   "previous_gain_x1000": 23.555335741415828,
+   "today_gain_x1000": 14.673437211307919,
+   "chosen_minus_previous": 6.776643447348322,
+   "chosen_minus_previous_se": 0.5420964700861917,
+   "chosen_acc": 0.6187375929477474,
+   "draft_only_acc": 0.5662999226136401
+  },
+  "OOT Gold": {
+   "games": 59666,
+   "chosen_gain_x1000": 38.56332285164577,
+   "previous_gain_x1000": 30.358524824965706,
+   "today_gain_x1000": 18.698323679080215,
+   "chosen_minus_previous": 8.204798026680065,
+   "chosen_minus_previous_se": 0.5081320042281671,
+   "chosen_acc": 0.6287668018637079,
+   "draft_only_acc": 0.5710790064693461
+  },
+  "OOT Platinum": {
+   "games": 51135,
+   "chosen_gain_x1000": 44.30775082406421,
+   "previous_gain_x1000": 34.76832446596555,
+   "today_gain_x1000": 23.890762709744248,
+   "chosen_minus_previous": 9.539426358098668,
+   "chosen_minus_previous_se": 0.5310544520501274,
+   "chosen_acc": 0.6371565463967928,
+   "draft_only_acc": 0.5705094358071771
+  },
+  "OOT Diamond": {
+   "games": 33192,
+   "chosen_gain_x1000": 43.02311245365733,
+   "previous_gain_x1000": 32.394093954117025,
+   "today_gain_x1000": 24.325581545986836,
+   "chosen_minus_previous": 10.629018499540301,
+   "chosen_minus_previous_se": 0.6368968672250862,
+   "chosen_acc": 0.6343395999035912,
+   "draft_only_acc": 0.5722764521571463
+  },
+  "OOT Master": {
+   "games": 29843,
+   "chosen_gain_x1000": 39.17434481851577,
+   "previous_gain_x1000": 29.412231594791983,
+   "today_gain_x1000": 22.27199635448377,
+   "chosen_minus_previous": 9.762113223723778,
+   "chosen_minus_previous_se": 0.7172671731617636,
+   "chosen_acc": 0.6343196059377408,
+   "draft_only_acc": 0.5673357236202795
+  }
+ }
+}
