@@ -73,3 +73,6 @@ benchmark/cache/
 # CSV dumps
 training/*.csv
 paper/hypothesis_system/runs/
+
+# Paper sources and drafts stay private (backed up to the NAS by sync/backup_papers.sh)
+/paper/

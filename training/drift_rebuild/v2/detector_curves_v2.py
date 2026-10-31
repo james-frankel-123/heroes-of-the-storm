@@ -35,7 +35,7 @@ VERIFICATION GATES (all hard asserts):
 
 Existing results files are not modified. Outputs:
   results/detector_curves.json + results/DETECTOR_CURVES.md
-  paper/drift/overleaf/fig_detector_curves.pdf (2 panels: P/R tradeoff,
+  paper/paper 2/drift/overleaf/fig_detector_curves.pdf (2 panels: P/R tradeoff,
   regret-vs-refresh frontier; paper operating point marked on both)
 
 Usage:

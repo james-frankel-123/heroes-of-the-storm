@@ -1,7 +1,7 @@
 """Generate the three paper-2 figures from drift2026 results.
 
-Outputs fig_dose.pdf, fig_vintage.pdf, fig_decay.pdf into paper/drift/overleaf/.
-Usage: python3 paper/drift/scripts/gen_figs.py  (from repo root)
+Outputs fig_dose.pdf, fig_vintage.pdf, fig_decay.pdf into paper/paper 2/drift/overleaf/.
+Usage: python3 paper/paper 2/drift/scripts/gen_figs.py  (from repo root)
 """
 import json
 import os
