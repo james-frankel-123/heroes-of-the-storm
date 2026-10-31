@@ -653,7 +653,7 @@ By depth bin, gain in points (SE):
 - **The noise alone predicts 30%, 38%, 50%, 62%, 70% and 79%** by games bin, rising to 800+ games on the hero. The measured values are 24%, 30%, 43%, 50%, 58% and 81%.
 - **About 80 to 85% of the real skill difference persists.** That is measured over noise-only for 30 to 799 games, and about 100% at 800+.
 - **Better framing for the paper:** "about four fifths of a player's true edge on a hero persists into their next games. A record is only partly skill: at 80 games, about 40% of what you see is real, so about a third shows up next time."
-- **Matchmaking feedback does not explain it.** Adding both teams' at-game ratings changes the carry-forward by 0.01 or less in every bin.
+- **Matchmaking feedback does not explain it.** Adding both teams' at-game ratings changes the carry-forward by 0.02 or less in every bin (largest 0.0165, in the 500-799 bin; `results/p2f/carry_mmr.json`).
 - **Recency does not fix it.** Records of the last 25 to 100 games, or with a half-life under two years, predict worse than the full record. Recent records do carry slightly more real signal, but they are much noisier.
 - **One-trick specialists are the one group that persists clearly less.** Heroes that are over half of a player's games keep only 56 to 66% of their true edge at 120 to 499 games. Heroes under 15% of a player's games keep 91 to 97%. The cause is not the visible ratings, though: adding them does not change it.
 - **Max's Ana:**
