@@ -44,7 +44,11 @@ def main():
         base_games = json.load(gzip.open(OUT_G, "rt"))
         base_players = dict(np.load(OUT_P))
         OUT_G, OUT_P = os.path.join(out_dir, "x_post_games.json.gz"), os.path.join(out_dir, "x_post_players.npz")
-        WHERE = (f"d.game_version LIKE '2.57.%' AND d.game_date >= '2026-09-28' AND d.game_date < '{pf_cap}'")
+        import sys
+        sys.path.insert(0, HERE)
+        import p3_sealed
+        WHERE = (f"d.game_version LIKE '2.57.%' AND d.game_date >= '2026-09-28' AND d.game_date < '{pf_cap}' "
+                 f"AND {p3_sealed.sql_exclude('d.replay_id')}")
     conn = psycopg2.connect(os.environ["DATABASE_URL"])
     conn.set_session(readonly=True)
     cur = conn.cursor(name="x_g")

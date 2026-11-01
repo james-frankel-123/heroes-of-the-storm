@@ -57,6 +57,29 @@ describe('published cards (encoded by p3_site_publish.py)', () => {
     if (few.played.reduce((a, p) => a + p.games, 0) < 50) expect(draftProfile(few).offRole.every(x => !x)).toBe(true)
   })
 
+  it('decodes a version 3 card (estimates as-of day) like its version 2 twin', () => {
+    const v2 = bytes(F.cards[1].card_hex)
+    const asOfDay = 4652 // days since 2014-01-01: 2026-09-27
+    const v3 = new Uint8Array(v2.length + 2)
+    v3.set(v2.slice(0, 6), 0)
+    v3[0] = 3
+    new DataView(v3.buffer).setUint16(6, asOfDay, true)
+    v3.set(v2.slice(6), 8)
+    const a = decodeCard(v2)
+    const b = decodeCard(v3)
+    expect(a.asOf).toBeUndefined()
+    expect(b.asOf).toBe('2026-09-27')
+    expect(b.s).toEqual(a.s)
+    expect(b.played).toEqual(a.played)
+    expect(b.suggestions).toEqual(a.suggestions)
+  })
+
+  it('rejects an unknown card version', () => {
+    const b = bytes(F.cards[1].card_hex)
+    b[0] = 9
+    expect(() => decodeCard(b)).toThrow()
+  })
+
   it('rejects a truncated card', () => {
     const b = bytes(F.cards[2].card_hex)
     expect(() => decodeCard(b.slice(0, b.length - 1))).toThrow()

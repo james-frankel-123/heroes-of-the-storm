@@ -62,6 +62,9 @@ SHARDS = os.path.join(HERE, "cache", "mmr_history", "shards")
 DONE = os.path.join(HERE, "cache", "mmr_history", "done.jsonl")
 # P3_CAP_DATE (YYYY-MM-DD) moves the cap for the post-freeze confirmation build only
 _CAP = os.environ.get("P3_CAP_DATE", "2026-09-28")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import p3_sealed as _SL
+_SEALED = _SL.sealed_ids()
 CAP_TS = int(datetime.datetime.strptime(_CAP, "%Y-%m-%d").replace(tzinfo=datetime.timezone.utc).timestamp())
 SRC_CORPUS, SRC_HP = 1, 2
 # Corpus clock bug (found 2026-10-16): for replay ids >= CLOCK_FIX_RID (games
@@ -144,6 +147,8 @@ def _parse_shard(path):
                 end = _naive_epoch([row[ci["game_date"]] for row in rows])
                 keep = end < CAP_TS
                 n_cap += int((~keep).sum())
+                # the sealed 2.57 replays are never read (p3_sealed)
+                keep &= ~np.isin(np.array([row[ci["replayID"]] for row in rows], np.int64), _SEALED)
                 idx = np.flatnonzero(keep)
                 if not len(idx):
                     continue
@@ -224,7 +229,7 @@ def load_corpus(tag):
     c = {"rid": np.array(rid, np.int64), "blizz": np.array(bid, np.int64), "region": np.array(reg, np.int64),
          "hero": np.array(hero, np.int8), "end": np.array(end, np.int64), "gl": np.array(gl, np.int32),
          "win": np.array(win, np.int8), "mmr": np.array(mmr, np.float32)}
-    keep = c["end"] < CAP_TS
+    keep = (c["end"] < CAP_TS) & ~np.isin(c["rid"], _SEALED)
     c = {k: v[keep] for k, v in c.items()}
     say(f"corpus export {tag}: {len(c['rid']):,} player rows (unmapped heroes {unmapped})")
     return c

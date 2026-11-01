@@ -3,7 +3,7 @@ Regression check of the frozen-coefficient mode (P3_RCF_FROZEN): an arm scored
 with every V1-fitted piece loaded from a saved arm must reproduce that arm.
 
   python3 personalization/p3_rcf_frozen_check.py <reference arm npz> <frozen arm npz> [--windows V1,V2,OOT]
-      [--dup-stamps <mmr_at_game.npz>]
+      [--dup-stamps <mmr_at_game.npz>] [--skip-keys <keys.npy>]
 
 Compares, on the games and slots both files hold (by replay id and player key),
 the slot predictions s_pred, the combiner inputs g_D and the game
@@ -12,7 +12,10 @@ probabilities g_p, and the saved coefficients. Exits 1 on any difference above
 --dup-stamps, games holding a (game, player) key that appears more than once
 in the MMR stamps table are reported separately: the definitive build picked
 one of the duplicates through an unstable sort (numpy-build dependent); the
-stamps loader now treats conflicting duplicates as unknown.
+stamps loader now treats conflicting duplicates as unknown. With --skip-keys,
+slots of those player keys (accounts whose history changed after the base
+build, e.g. newly downloaded Heroes Profile histories) and the games holding
+them are left out of the comparison.
 """
 import json
 import sys
@@ -32,6 +35,12 @@ def main():
     gf = np.isin(frz["g_win"], ws)
     rr, fr = ref["g_replay_id"][gr], frz["g_replay_id"][gf]
     common, ir, jf = np.intersect1d(rr, fr, return_indices=True)
+    skip = np.load(sys.argv[sys.argv.index("--skip-keys") + 1]) if "--skip-keys" in sys.argv else np.zeros(0, np.int64)
+    if len(skip):
+        bad_g = np.unique(ref["s_replay_id"][np.isin(ref["s_key"], skip)])
+        keepg = ~np.isin(common, bad_g)
+        print(f"skip keys: {len(skip):,} accounts, {int((~keepg).sum()):,} games left out")
+        common, ir, jf = common[keepg], ir[keepg], jf[keepg]
     print(f"games: reference {len(rr):,}, frozen {len(fr):,}, common {len(common):,}")
     dupg = np.zeros(len(common), bool)
     if "--dup-stamps" in sys.argv:
@@ -45,7 +54,7 @@ def main():
         dup_rid = np.unique(Z["replay_ids"][o][dup])
         dupg = np.isin(common, dup_rid)
         print(f"games with a duplicated stamps key: {dupg.sum():,} (reported separately)")
-    if len(common) != len(rr):
+    if len(common) != len(rr) and not len(skip):
         bad.append(f"{len(rr) - len(common)} reference games missing from the frozen arm")
     for k in ("g_y", "g_lo", "g_D", "g_p", "g_p0"):
         a = np.asarray(ref[k][gr][ir], np.float64)
@@ -60,6 +69,9 @@ def main():
     sr = np.isin(ref["s_win"], ws)
     sf = np.isin(frz["s_win"], ws)
     key = lambda z, m: np.char.add(z["s_replay_id"][m].astype(str), np.char.add(":", z["s_key"][m].astype(str)))
+    if len(skip):
+        sr = sr & ~np.isin(ref["s_key"], skip)
+        sf = sf & ~np.isin(frz["s_key"], skip)
     a_k, b_k = key(ref, sr), key(frz, sf)
     common_s, i2, j2 = np.intersect1d(a_k, b_k, return_indices=True)
     print(f"slots: reference {len(a_k):,}, common {len(common_s):,}")

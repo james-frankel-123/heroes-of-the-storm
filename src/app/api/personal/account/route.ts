@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { byName, byTag, dataThrough, parseTag } from '@/lib/personal/accounts'
+import { byName, byTag, dataThrough, estimatesAsOf, parseTag } from '@/lib/personal/accounts'
 import { ARTIFACT, NO_ESTIMATE_HEROES } from '@/lib/personal/card'
 
 export const runtime = 'nodejs'
@@ -32,7 +32,7 @@ async function handle(req: Request): Promise<Response> {
       return NextResponse.json({ error: 'Enter a name of 2 to 12 characters.' }, { status: 400 })
     }
     return NextResponse.json(
-      { through: await dataThrough(), estimatesAsOf: ARTIFACT.estimatesAsOf, matches: await byName(name) },
+      { through: await dataThrough(), estimatesAsOf: await estimatesAsOf(), matches: await byName(name) },
       { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } },
     )
   }
@@ -41,7 +41,7 @@ async function handle(req: Request): Promise<Response> {
   if (!p) return NextResponse.json({ error: 'Enter a full BattleTag, like Name#1234.' }, { status: 400 })
   const accounts = await byTag(p.name, p.discriminator)
   return NextResponse.json(
-    { through: await dataThrough(), estimatesAsOf: ARTIFACT.estimatesAsOf, accounts, validation: ARTIFACT.validation, noEstimate: NO_ESTIMATE_HEROES },
+    { through: await dataThrough(), estimatesAsOf: await estimatesAsOf(), accounts, validation: ARTIFACT.validation, noEstimate: NO_ESTIMATE_HEROES },
     { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } },
   )
 }

@@ -35,7 +35,9 @@ export const HERO_NAMES = ARTIFACT.heroNames
 export const NO_ESTIMATE_HEROES = Object.keys(HERO_ROLES).filter(h => !HERO_NAMES.includes(h))
 export const H = HERO_NAMES.length
 const EPOCH14 = Date.UTC(2014, 0, 1) / 86_400_000
-export const CARD_VERSION = 2
+/** Versions this site decodes; 3 adds the estimates' as-of day after the games count. */
+export const CARD_VERSIONS = [2, 3]
+export const CARD_VERSION = 3
 const MODEL_CHOSEN = 3
 
 export interface PlayedHero {
@@ -59,6 +61,8 @@ export interface SuggestedHero {
 export interface Card {
   model: 'chosen'
   games: number
+  /** The estimates' as-of day (version 3 cards); undefined on version 2 cards. */
+  asOf?: string
   /** s(p, h) for every hero, HERO_NAMES order. */
   s: number[]
   played: PlayedHero[]
@@ -73,11 +77,16 @@ export function decodeCard(buf: Uint8Array): Card {
   const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength)
   let o = 0
   const version = dv.getUint8(o++)
-  if (version !== CARD_VERSION) throw new Error(`card version ${version} not supported`)
+  if (!CARD_VERSIONS.includes(version)) throw new Error(`card version ${version} not supported`)
   const model = dv.getUint8(o++)
   if (model !== MODEL_CHOSEN) throw new Error(`card model ${model} not supported`)
   const games = dv.getUint32(o, true)
   o += 4
+  let asOf: string | undefined
+  if (version >= 3) {
+    asOf = dayToIso(EPOCH14 + dv.getUint16(o, true))
+    o += 2
+  }
   const s = new Array<number>(H)
   for (let h = 0; h < H; h++, o += 2) s[h] = dv.getInt16(o, true) / 1e4
   const k = dv.getUint8(o++)
@@ -107,7 +116,7 @@ export function decodeCard(buf: Uint8Array): Card {
     o += 2
   }
   if (o !== buf.byteLength) throw new Error(`card length ${buf.byteLength}, decoded ${o}`)
-  return { model: 'chosen', games, s, played, suggestions }
+  return { model: 'chosen', games, s, played, suggestions, ...(asOf ? { asOf } : {}) }
 }
 
 export interface DraftProfile {

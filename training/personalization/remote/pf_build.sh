@@ -19,7 +19,7 @@ mkdir -p $DC/rcf $DC/.done
 cp -n $BC/hs_kernels.npz $DC/hs_kernels.npz
 cp -n $BC/rcf/mmr_coef.npy $DC/rcf/mmr_coef.npy
 touch $DC/.done/kernels $DC/.done/prep       # no refit of the kernels, no fit inputs
-export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 NUMBA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4
+export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMBA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1   # BLAS single-threaded (2026-10-28)
 bash personalization/remote/def_build_a1.sh $D
 # params of build B (no refit)
 mkdir -p $T/personalization/results/def_$D/rcf/params

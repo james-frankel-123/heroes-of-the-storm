@@ -43,6 +43,15 @@
  *   npx tsx sync/fetch-mmr-history.ts --dry-run --limit 3 --out /tmp/x
  *        (fixture allowed; writes only under --out)
  *   --retry-errors   re-attempt accounts marked status=error
+ *   --add-recent     once per week (recent_adds.jsonl), append a panel tranche
+ *                    panelN.tsv of accounts from the last MMR_HISTORY_RECENT_DAYS
+ *                    (default 7) days of corpus games that are in no panel yet,
+ *                    most games first, as many as fit in this week's remaining
+ *                    budget (95% of WEEKLY_BUDGET minus the rolling week's calls
+ *                    and the unfetched panel rows; ~1 call per account). The 5,000
+ *                    sealed replays are excluded at the query. Logged to
+ *                    recent_adds.jsonl and the run log.
+ *   --add-recent-preview  log what --add-recent would add, write nothing, exit
  *   --panel a.tsv,b.tsv  panel files (relative to the cache dir, or absolute);
  *                    default: every panel.tsv / panelN.tsv in the cache dir,
  *                    panel.tsv first, then N ascending (so the hourly cron
@@ -54,6 +63,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as zlib from 'zlib'
 import { HeroesProfileApiV2 } from './api-client-v2'
+import { createPool } from './db'
 import { isHpAccessPaused } from './hp-errors'
 import { log } from './logger'
 
@@ -206,6 +216,65 @@ async function status(dir: string) {
   console.log(`ETA at ~${Math.round(perDay).toLocaleString()} calls/day: ${(left / perDay).toFixed(1)} days of live pulling`)
 }
 
+/** Weekly new-account tranche (see --add-recent in the header). Reads the local store only. */
+async function addRecent(dir: string, ledger: Ledger, preview = false): Promise<void> {
+  const days = Number(process.env.MMR_HISTORY_RECENT_DAYS ?? 7)
+  const stateFile = path.join(dir, 'recent_adds.jsonl')
+  if (fs.existsSync(stateFile)) {
+    const lines = fs.readFileSync(stateFile, 'utf8').trim().split('\n').filter(Boolean)
+    const last = lines.length ? JSON.parse(lines[lines.length - 1]) : null
+    if (last && Date.now() - Date.parse(last.at) < WEEK - HOUR && !preview) return
+  }
+  const panel = readPanel(dir)
+  const done = readDone(dir)
+  const known = new Set(panel.map(p => `${p.region}:${p.blizzId}`))
+  for (const k of done.keys()) known.add(k)
+  const pending = panel.filter(p => !done.has(`${p.region}:${p.blizzId}`)).length
+  const room = Math.max(0, Math.floor(0.95 * WEEKLY_BUDGET) - ledger.lastWeek() - pending)
+  const url = process.env.DATABASE_URL
+  if (!url || /neon\.tech/.test(url)) throw new Error('--add-recent reads the LOCAL store (DATABASE_URL)')
+  const sealedFile = path.join(ROOT, 'training/replays/cohorts/sealed_ids.txt')
+  const sealed = fs.readFileSync(sealedFile, 'utf8').split(/\s+/).filter(Boolean).map(Number)
+  if (sealed.length !== 5000) throw new Error(`sealed list has ${sealed.length} ids`)
+  const pool = createPool(url, 1)
+  let rows: any[] = []
+  try {
+    const r = await pool.query(`
+      SELECT COALESCE(rp.region, d.region) AS region, rp.blizz_id,
+             (array_agg(rp.battletag ORDER BY d.game_date DESC))[1] AS battletag,
+             count(*)::int AS n, max(d.game_date)::date::text AS last_game
+      FROM replay_players rp JOIN replay_draft_data d USING (replay_id)
+      WHERE d.game_date >= now() - make_interval(days => $1::int)
+        AND rp.battletag IS NOT NULL AND COALESCE(rp.region, d.region) IS NOT NULL
+        AND NOT (d.replay_id = ANY($2::bigint[]))
+      GROUP BY 1, 2 ORDER BY n DESC, 1, 2`, [days, sealed])
+    rows = r.rows
+  } finally {
+    await pool.end()
+  }
+  const fresh = rows.filter(x => !known.has(`${Number(x.region)}:${Number(x.blizz_id)}`))
+  const take = fresh.slice(0, room)
+  let file: string | null = null
+  if (preview) {
+    log.info(`add-recent PREVIEW: ${rows.length} accounts in the last ${days} days, ${fresh.length} not in any panel; ` +
+      `room ${room} (budget ${WEEKLY_BUDGET}, used ${ledger.lastWeek()}, pending ${pending}) -> would add ${take.length}`)
+    return
+  }
+  if (take.length) {
+    const nums = fs.readdirSync(dir).map(f => f.match(/^panel(\d*)\.tsv$/)).filter(Boolean).map(m => Number(m![1] || 1))
+    file = `panel${Math.max(1, ...nums) + 1}.tsv`
+    const body = ['order\tregion\tblizz_id\tbattletag\tn_games\tlast_game',
+      ...take.map((x, i) => [i, x.region, x.blizz_id, x.battletag, x.n, x.last_game].join('\t'))].join('\n') + '\n'
+    fs.writeFileSync(path.join(dir, file + '.tmp'), body)
+    fs.renameSync(path.join(dir, file + '.tmp'), path.join(dir, file))
+  }
+  const rec = { at: new Date().toISOString(), days, recent_accounts: rows.length, not_in_panel: fresh.length,
+    room, added: take.length, file, budget: WEEKLY_BUDGET, used_last_week: ledger.lastWeek(), pending_before: pending }
+  fs.appendFileSync(stateFile, JSON.stringify(rec) + '\n')
+  log.info(`add-recent: ${rows.length} accounts in the last ${days} days, ${fresh.length} not in any panel; ` +
+    `room ${room} -> added ${take.length}${file ? ` (${file})` : ''}`)
+}
+
 async function main() {
   const dryRun = flag('--dry-run')
   const outDir = arg('--out')
@@ -229,6 +298,8 @@ async function main() {
   const api = new HeroesProfileApiV2(key, RATE, 4)
   const ledger = new Ledger(path.join(writeDir, 'ledger.json'))
 
+  if (flag('--add-recent-preview')) { await addRecent(dir, ledger, true); return }
+  if (flag('--add-recent') && !dryRun) await addRecent(dir, ledger)
   const panel = readPanel(dir)
   const done = readDone(writeDir)
   const todo = panel.filter(p => {

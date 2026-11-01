@@ -61,8 +61,12 @@ def main():
         assert np.array_equal(A[k]["g_replay_id"], ref["g_replay_id"]), k
     y = ref["g_y"].astype(float)
     win = ref["g_win"]
-    m = win == 4
     day = ref["g_day"]
+    m = win == 4
+    if os.environ.get("PF_LAST"):
+        # restrict window 4 to games on or before this date (same window as an earlier report)
+        import p3_hs_core as C
+        m &= day <= C.day_of(os.environ["PF_LAST"])
     rng = np.random.default_rng(0)
     LL0 = ll_of(ref["g_p0"], y)
     out = {"build": D, "frozen_from": B, "games": int(m.sum()),
@@ -97,7 +101,7 @@ def main():
     # slot-level calibration by games on the hero (window 4 slots)
     for k, _ in ARMS:
         a = A[k]
-        s = a["s_win"] == 4
+        s = (a["s_win"] == 4) & (a["s_day"] <= (day[m].max()))
         p = a["s_pred"][s].astype(float)
         r = a["s_r"][s].astype(float)
         av = {kk: (v[0][s], v[1][s]) for kk, v in K.axis_values(a).items()}
@@ -137,9 +141,10 @@ def main():
     L += ["", "Pre-freeze windows of this build vs the frozen build (gain x1000):", ""]
     for k, nm in ARMS:
         L.append(f"- {nm}: " + ", ".join(f"{wn} {v['this']:+.3f} vs {v['frozen_build']:+.3f}" for wn, v in out["prefreeze"][k].items()))
-    with open(os.path.join(HERE, "results", f"def_{D}", "pf_report.json"), "w") as f:
+    sfx = os.environ.get("PF_REPORT_SUFFIX", "")
+    with open(os.path.join(HERE, "results", f"def_{D}", f"pf_report{sfx}.json"), "w") as f:
         json.dump(out, f, indent=1)
-    with open(os.path.join(HERE, "results", f"def_{D}", f"P3_POSTFREEZE_{D}.md"), "w") as f:
+    with open(os.path.join(HERE, "results", f"def_{D}", f"P3_POSTFREEZE_{D}{sfx}.md"), "w") as f:
         f.write("\n".join(L) + "\n")
     print("\n".join(L))
 

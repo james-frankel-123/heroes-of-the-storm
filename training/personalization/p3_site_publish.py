@@ -71,13 +71,17 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 ARTIFACT = os.path.join(ROOT, "src", "lib", "personal", "model-artifact.json")
-OUT = os.path.join(HERE, "cache", "site")
+OUT = os.environ.get("SITE_OUT") or os.path.join(HERE, "cache", "site")   # SITE_OUT: a staging build
 QDIR = os.path.join(OUT, "states_q")
 ADIR = os.path.join(OUT, "states_a")
 REGION_SHIFT = 40
 DAY = 86400
 EPOCH14 = (datetime.date(2014, 1, 1) - datetime.date(1970, 1, 1)).days
-CARD_VERSION = 2
+# card version 3 adds u16 estimates-as-of day (days since 2014-01-01) after the games
+# count, so a weekly refresh can show its own date; SITE_CARD_VERSION selects it once
+# the site decodes version 3 (src/lib/personal/card.ts)
+CARD_VERSION = int(os.environ.get("SITE_CARD_VERSION", "2"))
+assert CARD_VERSION in (2, 3)
 MODEL_CHOSEN = 3
 DEF_TAG = "def1027"
 H = 90
@@ -275,9 +279,12 @@ def states(a):
         json.dump({"def_tag": a.def_tag, "arm": RS.ARMS[0][0], "heroes": sh}, f)
 
 
-def encode_card(s, sdd, N, last, games, n_sugg=5):
-    """s, sdd: (H,) in heroNames order; N, last: (H,) site counts and last day (-1 never)."""
+def encode_card(s, sdd, N, last, games, n_sugg=5, as_of_day=None):
+    """s, sdd: (H,) in heroNames order; N, last: (H,) site counts and last day (-1 never);
+    as_of_day (days since 1970): the estimates' as-of day, stored by version 3."""
     b = bytearray(struct.pack("<BBI", CARD_VERSION, MODEL_CHOSEN, int(games)))
+    if CARD_VERSION >= 3:
+        b += struct.pack("<H", int(as_of_day) - EPOCH14)
     b += np.clip(np.round(s * S_SCALE), -32767, 32767).astype("<i2").tobytes()
     played = np.flatnonzero(N > 0)
     played = played[np.argsort(-N[played], kind="stable")][:255]
@@ -297,8 +304,12 @@ def encode_card(s, sdd, N, last, games, n_sugg=5):
 def decode_card(buf):
     """Python mirror of src/lib/personal/card.ts decodeCard."""
     v, model, games = struct.unpack_from("<BBI", buf, 0)
-    assert v == CARD_VERSION and model == MODEL_CHOSEN
+    assert v in (2, 3) and model == MODEL_CHOSEN
     o = 6
+    as_of = None
+    if v >= 3:
+        as_of = struct.unpack_from("<H", buf, o)[0] + EPOCH14
+        o += 2
     s = np.frombuffer(buf, "<i2", H, o).astype(np.float64) / S_SCALE
     o += 2 * H
     k = buf[o]
@@ -316,7 +327,7 @@ def decode_card(buf):
         sugg.append((h, sd / SD_SCALE))
         o += 2
     assert o == len(buf)
-    return {"games": games, "s": s, "played": played, "suggestions": sugg}
+    return {"games": games, "s": s, "played": played, "suggestions": sugg, "as_of_day": as_of}
 
 
 def read_answers(names):
@@ -344,7 +355,7 @@ def encode(a):
     games = P["N"].sum(1)
     for i in np.flatnonzero(known):
         N = P["N"][i]
-        card = encode_card(A["s"][i], A["sd_display"][i], N, P["last"][i], games[i])
+        card = encode_card(A["s"][i], A["sd_display"][i], N, P["last"][i], games[i], as_of_day=info["as_of_day"])
         top = [int(h) for h in np.argsort(-N, kind="stable")[:3] if N[h] > 0]
         lastday = int(P["last"][i].max())
         mmr = P["mmr"][i]

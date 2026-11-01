@@ -5,7 +5,7 @@
  */
 import { sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { decodeCard, draftByName, HERO_NAMES, type Card } from './card'
+import { ARTIFACT, decodeCard, draftByName, HERO_NAMES, type Card } from './card'
 import { nfc, parseTag, rankCandidates, type MatchContext } from './match'
 
 export const REGIONS: Record<number, string> = { 1: 'Americas', 2: 'Europe', 3: 'Asia', 5: 'China' }
@@ -18,6 +18,24 @@ export async function dataThrough(): Promise<string> {
   const r = rowsOf<{ d: string | null }>(await db.execute(sql`SELECT max(last_played)::text AS d FROM personal_accounts`))[0]
   through = { value: r?.d ?? new Date().toISOString().slice(0, 10), at: Date.now() }
   return through.value
+}
+
+let asOfCache: { value: string; at: number } | null = null
+
+/**
+ * The published estimates' as-of day: version 3 cards carry it (weekly refresh);
+ * version 2 cards fall back to the model artifact. Cached for an hour per instance.
+ */
+export async function estimatesAsOf(): Promise<string> {
+  if (asOfCache && Date.now() - asOfCache.at < 3_600_000) return asOfCache.value
+  let value = ARTIFACT.estimatesAsOf
+  const r = rowsOf<{ card: unknown }>(await db.execute(sql`SELECT card FROM personal_accounts LIMIT 1`))[0]
+  if (r?.card) {
+    const c = decodeCard(bytesOf(r.card))
+    if (c.asOf) value = c.asOf
+  }
+  asOfCache = { value, at: Date.now() }
+  return value
 }
 
 export interface AccountSummary {

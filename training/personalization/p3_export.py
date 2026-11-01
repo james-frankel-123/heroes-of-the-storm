@@ -41,7 +41,11 @@ PF_START = "2026-09-28"
 
 
 def where_pf(cap):
-    return (f"d.game_date >= '{PF_START}' AND d.game_date < '{cap}' AND d.game_version LIKE '2.57%'")
+    import sys
+    sys.path.insert(0, HERE)
+    import p3_sealed
+    return (f"d.game_date >= '{PF_START}' AND d.game_date < '{cap}' AND d.game_version LIKE '2.57%' "
+            f"AND {p3_sealed.sql_exclude('d.replay_id')}")
 
 
 QUERIES = {
@@ -109,7 +113,7 @@ def main():
             base = os.path.join(HERE, "cache", "export", a.base_tag, f"{a.what}.csv.gz")
             shutil.copyfile(base, path + ".tmp")
             q = q.replace(WHERE, where_pf(a.pf_cap))
-            assert where_pf(a.pf_cap) in q
+            assert where_pf(a.pf_cap) in q and "NOT (d.replay_id = ANY" in q
             with open(path + ".tmp", "ab") as raw, gzip.open(raw, "wb", compresslevel=4) as f:
                 c.copy_expert(f"COPY ({q}) TO STDOUT WITH (FORMAT csv, HEADER false)", f)
         else:
@@ -124,7 +128,7 @@ def main():
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 22), b""):
             h.update(chunk)
-    meta = {"what": a.what, "rows": n, "sha256": h.hexdigest(), "query": " ".join(q.split()),
+    meta = {"what": a.what, "rows": n, "sha256": h.hexdigest(), "query": " ".join(q.split())[:2000],
             "pf_cap": a.pf_cap, "base_tag": a.base_tag,
             "exported_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
             "seconds": round(time.time() - t0)}
