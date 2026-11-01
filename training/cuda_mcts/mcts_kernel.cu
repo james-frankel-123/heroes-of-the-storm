@@ -147,6 +147,69 @@ __device__ float d_sample_gamma(curandState* rng, float alpha) {
     return boost * d;
 }
 
+// ── Safe inverse-CDF sampling (legacy search, 2026-11-01) ──────────
+// Thread 0. Same arithmetic as the legacy loops (cum += p[i]; first i with
+// cum > r), so the draw is bit-identical whenever they found an entry. Unlike
+// them it never falls back to hero 0: entries that are not positive (zero,
+// NaN) are skipped, a boundary draw (rounding leaves r above the accumulated
+// mass; curand_uniform can return 1.0) returns the last positive entry, and an
+// empty support returns -1 for the caller's explicit fallback.
+// *fell is set when the loop ends without a draw (where the legacy loop fell
+// through to hero 0).
+__device__ __forceinline__ int p1_sample(const float* p, float r, int* fell) {
+    float cum = 0.0f;
+    int last = -1;
+    for (int i = 0; i < NUM_HEROES; i++) {
+        if (!(p[i] > 0.0f)) continue;
+        last = i;
+        cum += p[i];
+        if (cum > r) return i;
+    }
+    *fell = 1;
+    return last;
+}
+
+// Explicit fallback for an empty support: the first hero not yet taken.
+__device__ __forceinline__ int p1_first_free(const DraftStateGPU& s) {
+    for (int i = 0; i < NUM_HEROES; i++)
+        if (!s.is_taken(i)) return i;
+    return 0;
+}
+
+// Audit build only (-DP1_SAMPLE_AUDIT; never in production builds): per draw site
+// (0 chance-node opponent, 1 rollout, 2 executed opponent, 3 executed own action)
+// counts [draws, fell through (the legacy loop played hero 0), of those hero 0
+// already taken (duplicate / illegal), of those hero 0 free but outside the
+// support (zero probability)]. Read and reset from Python with p1_audit().
+#ifdef P1_SAMPLE_AUDIT
+__device__ unsigned long long g_p1_audit[4][4];
+extern "C" void p1_audit_read(unsigned long long* out, int reset) {
+    cudaDeviceSynchronize();
+    cudaMemcpyFromSymbol(out, g_p1_audit, sizeof(g_p1_audit));
+    if (reset) {
+        unsigned long long z[16] = {0};
+        cudaMemcpyToSymbol(g_p1_audit, z, sizeof(z));
+    }
+}
+#endif
+
+// Thread 0. One draw at a site: the safe sample, the explicit fallback, and the
+// audit counters (audit builds only).
+__device__ __forceinline__ int p1_draw(int site, const float* p, float r, const DraftStateGPU& s) {
+    int fell = 0;
+    int a = p1_sample(p, r, &fell);
+#ifdef P1_SAMPLE_AUDIT
+    atomicAdd(&g_p1_audit[site][0], 1ULL);
+    if (fell) {
+        atomicAdd(&g_p1_audit[site][1], 1ULL);
+        if (s.is_taken(0)) atomicAdd(&g_p1_audit[site][2], 1ULL);
+        else if (!(p[0] > 0.0f)) atomicAdd(&g_p1_audit[site][3], 1ULL);
+    }
+#endif
+    if (a < 0) a = p1_first_free(s);
+    return a;
+}
+
 // ── Main MCTS Episode Kernel ───────────────────────────────────────
 // root_temp: temperature over root visit counts for the executed action
 //   (1.0 = historical behavior: sample proportional to visits; <0.05 = argmax).
@@ -375,12 +438,7 @@ extern "C" __global__ void mcts_episodes_kernel(
                                     break;
                                 }
                                 float r = curand_uniform(&rng);
-                                float cum = 0;
-                                int opp_action = 0;
-                                for (int j = 0; j < NUM_HEROES; j++) {
-                                    cum += node.cached_opp_probs[j];
-                                    if (cum > r) { opp_action = j; break; }
-                                }
+                                int opp_action = p1_draw(0, node.cached_opp_probs, r, scratch);
                                 scratch.apply_action(opp_action,
                                     scratch.current_team(), scratch.current_is_pick());
                             }
@@ -454,12 +512,7 @@ extern "C" __global__ void mcts_episodes_kernel(
                         }
                         if (sm > 0) for (int i = 0; i < NUM_HEROES; i++) priors_buf[i] /= sm;
                         float r = curand_uniform(&rng);
-                        float cum = 0;
-                        int action = 0;
-                        for (int i = 0; i < NUM_HEROES; i++) {
-                            cum += priors_buf[i];
-                            if (cum > r) { action = i; break; }
-                        }
+                        int action = p1_draw(1, priors_buf, r, scratch);
                         scratch.apply_action(action, scratch.current_team(), scratch.current_is_pick());
                     }
                     __syncthreads();
@@ -528,12 +581,8 @@ extern "C" __global__ void mcts_episodes_kernel(
                         }
                     }
                 } else if (fabsf(root_temp - 1.0f) < 1e-6f) {
-                    // T=1: exact historical code path (bit-identical results)
-                    float cum = 0;
-                    for (int i = 0; i < NUM_HEROES; i++) {
-                        cum += ep->out_policies[t][i];
-                        if (cum > r) { chosen = i; break; }
-                    }
+                    // T=1: the historical draw (bit-identical whenever it found an entry)
+                    chosen = p1_draw(3, ep->out_policies[t], r, main_state);
                 } else {
                     // General T: p_i ∝ visits_i^(1/T)
                     float w[NUM_HEROES];
@@ -544,12 +593,11 @@ extern "C" __global__ void mcts_episodes_kernel(
                                  ? powf(ep->out_policies[t][i], inv_t) : 0.0f;
                         wsum += w[i];
                     }
-                    float cum = 0;
-                    for (int i = 0; i < NUM_HEROES; i++) {
-                        cum += (wsum > 0.0f ? w[i] / wsum : 0.0f);
-                        if (cum > r) { chosen = i; break; }
-                    }
+                    for (int i = 0; i < NUM_HEROES; i++)
+                        w[i] = (wsum > 0.0f ? w[i] / wsum : 0.0f);
+                    chosen = p1_draw(3, w, r, main_state);
                 }
+                if (chosen < 0 || main_state.is_taken(chosen)) chosen = p1_first_free(main_state);
                 main_state.apply_action(chosen, s_team, s_is_pick);
                 ep->num_our_turns++;
             }
@@ -572,12 +620,7 @@ extern "C" __global__ void mcts_episodes_kernel(
                 if (sm > 0) for (int i = 0; i < NUM_HEROES; i++) priors_buf[i] /= sm;
 
                 float r = curand_uniform(&rng);
-                float cum = 0;
-                int action = 0;
-                for (int i = 0; i < NUM_HEROES; i++) {
-                    cum += priors_buf[i];
-                    if (cum > r) { action = i; break; }
-                }
+                int action = p1_draw(2, priors_buf, r, main_state);
                 main_state.apply_action(action, s_team, s_is_pick);
             }
             __syncthreads();

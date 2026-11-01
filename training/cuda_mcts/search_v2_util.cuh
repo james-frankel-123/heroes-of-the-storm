@@ -26,6 +26,14 @@ __device__ __forceinline__ int v2_sample(const float* p, float r) {
     return last;
 }
 
+// Thread 0. Explicit fallback for an empty support (no positive entry): the
+// first hero not yet taken in s.
+__device__ __forceinline__ int v2_first_free(const DraftStateGPU& s) {
+    for (int i = 0; i < NUM_HEROES; i++)
+        if (!s.is_taken(i)) return i;
+    return 0;
+}
+
 // Thread 0. Sample from p restricted to existing children, renormalized.
 __device__ __forceinline__ int v2_sample_existing(const TreeSlotV2& s, float r) {
     float tot = 0.0f;

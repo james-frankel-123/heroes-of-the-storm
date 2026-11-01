@@ -268,6 +268,7 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
                             } else {
                                 float r = curand_uniform(&rng);
                                 int a = v2_sample(priors_buf, r);
+                                if (a < 0) a = v2_first_free(scratch);
                                 scratch.apply_action(a, scratch.current_team(), scratch.current_is_pick());
                             }
                         }
@@ -418,6 +419,7 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
                         v2_softmax90(priors_buf);
                         float r = curand_uniform(&rng);
                         int a = v2_sample(priors_buf, r);
+                        if (a < 0) a = v2_first_free(scratch);
                         scratch.apply_action(a, scratch.current_team(), scratch.current_is_pick());
                     }
                     __syncthreads();
@@ -497,6 +499,7 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
                 if (chosen < 0 || main_state.is_taken(chosen)) {
                     // no visits recorded (num_simulations == 0): follow the prior
                     chosen = v2_sample(slots[0].p, r);
+                    if (chosen < 0 || main_state.is_taken(chosen)) chosen = v2_first_free(main_state);
                 }
                 main_state.apply_action(chosen, s_team, s_is_pick);
                 ep->num_our_turns++;
@@ -514,6 +517,7 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
                 v2_softmax90(priors_buf);
                 float r = curand_uniform(&rng);
                 int a = v2_sample(priors_buf, r);
+                if (a < 0) a = v2_first_free(main_state);
                 main_state.apply_action(a, s_team, s_is_pick);
             }
             __syncthreads();

@@ -644,7 +644,20 @@ private:
 };
 
 
+#ifdef P1_SAMPLE_AUDIT
+extern "C" void p1_audit_read(unsigned long long* out, int reset);
+#endif
+
 PYBIND11_MODULE(cuda_mcts_kernel, m) {
+#ifdef P1_SAMPLE_AUDIT
+    // audit builds only: legacy-search draw counters (see mcts_kernel.cu, p1_draw)
+    m.def("p1_audit", [](bool reset) {
+        unsigned long long c[16];
+        p1_audit_read(c, reset ? 1 : 0);
+        std::vector<unsigned long long> v(c, c + 16);
+        return v;
+    }, py::arg("reset") = true);
+#endif
     m.doc() = "Full MCTS kernel: one block = one episode, zero launch overhead";
 
     py::class_<MCTSKernelEngine>(m, "MCTSKernelEngine")
