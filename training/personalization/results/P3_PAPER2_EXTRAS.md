@@ -4,16 +4,16 @@ All computed on the main box, single-threaded BLAS, from the pinned def1027 arm 
 
 ## 1. Draft-only accuracy on the post-freeze set
 
-The post-freeze set is 83,955 complete 2.57 games (2026-09-28 to 2026-10-26), scored once with no refit (P3_POSTFREEZE.md).
+The post-freeze set is 84,658 complete 2.57 games (2026-09-28 to 2026-10-26, the 5,000 sealed replays excluded), scored once with no refit (P3_POSTFREEZE.md, corrected 2026-11-01; the first version of this table included 4,312 sealed games).
 
 | model | accuracy | edge over a coin flip | log-loss gain over a coin flip x1000 |
 |---|---|---|---|
-| draft only (population WP) | 57.17% | +7.17pp | +16.68 |
-| today's kernel | 60.08% | +10.08pp | +32.95 |
-| previous main model | 61.54% | +11.54pp | +42.31 |
-| chosen model | 62.59% | +12.59pp | +50.15 |
+| draft only (population WP) | 57.22% | +7.22pp | +16.98 |
+| today's kernel | 60.20% | +10.20pp | +32.85 |
+| previous main model | 61.59% | +11.59pp | +42.32 |
+| chosen model | 62.69% | +12.69pp | +49.93 |
 
-On this set, the players add 5.42pp of accuracy to the draft alone (+33.47 log-loss points over population WP).
+On this set, the players add 5.47pp of accuracy to the draft alone (+32.95 log-loss points over population WP).
 
 ## 2-3. Stale and lagged player states (OOT, 286,016 games)
 

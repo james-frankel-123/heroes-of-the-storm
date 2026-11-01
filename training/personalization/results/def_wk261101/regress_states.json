@@ -1,0 +1,38 @@
+{
+ "tag": "wk261101",
+ "base": "def1027",
+ "queries": 164889,
+ "skipped_changed_accounts": 544,
+ "unknown_to_base": 24278,
+ "newly_known": 21546,
+ "fields": {
+  "s": {
+   "equal": false,
+   "max_abs": 1.4901161193847656e-08
+  },
+  "sd": {
+   "equal": true,
+   "max_abs": 0.0
+  },
+  "sd_display": {
+   "equal": true,
+   "max_abs": 0.0
+  },
+  "n": {
+   "equal": true,
+   "max_abs": 0.0
+  },
+  "known": {
+   "equal": true,
+   "max_abs": 0.0
+  },
+  "player_key": {
+   "equal": true,
+   "max_abs": 0.0
+  },
+  "as_of_day": {
+   "equal": true,
+   "max_abs": 0.0
+  }
+ }
+}

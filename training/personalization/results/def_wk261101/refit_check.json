@@ -1,0 +1,30 @@
+{
+ "tag": "wk261101",
+ "base": "def1027",
+ "window": [
+  "2026-10-04",
+  "2026-10-31"
+ ],
+ "games": 78855,
+ "slots": 788550,
+ "game_calibration_slope": 0.9557370188089184,
+ "game_calibration_slope_week_ci": [
+  0.9161593647463591,
+  0.9827634114808003
+ ],
+ "slot_calibration_slope": 0.919161711160359,
+ "gain_over_population_wp_x1000": 33.6379966657006,
+ "gain_over_today_kernel_x1000": 17.067842107981402,
+ "base_oot_gain_over_population_wp_x1000": 37.38053319050794,
+ "base_oot_gain_over_today_kernel_x1000": 18.891667870743802,
+ "accuracy": 0.6265170249191554,
+ "draft_only_accuracy": 0.5716948830131253,
+ "coefficients_built": "2026-10-27",
+ "coefficients_age_days": 5,
+ "rules": {
+  "R1_game_slope_ci_outside_0.9_1.1": false,
+  "R2_gain_vs_today_below_half_of_oot": false,
+  "R3_coefficients_older_than_92_days": false
+ },
+ "verdict": "keep frozen coefficients"
+}
