@@ -23,6 +23,8 @@ PYDB=/home/linuxbrew/.linuxbrew/bin/python3              # numpy + psycopg2 + to
 PYREF=/usr/bin/python3                                    # numpy + numba (model, state writer)
 # BLAS single-threaded: multi-threaded OpenBLAS corrupted memory on this box (2026-10-28)
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMBA_NUM_THREADS=4
+# exact (replay_id, blizz_id) scoreboard join (the legacy key overflowed; p3_rcf.aug_metrics)
+export P3_METRIC_JOIN_FIX=1
 SHIM=$(mktemp -d); ln -s $PYREF $SHIM/python; export PATH=$SHIM:$PATH; trap 'rm -rf $SHIM' EXIT
 DC=$T/personalization/cache_def_$D
 RD=$T/personalization/results/def_$D
@@ -44,6 +46,7 @@ step store env P3_CAP_DATE=$CAP $PYREF personalization/p3_full_history.py build 
 step a1 bash personalization/remote/pf_build.sh $D $B
 step score env PF_ARMS="today chosen" bash personalization/remote/pf_score.sh $D $B
 step changed_keys $PYREF personalization/p3_weekly.py changed-keys --base $B --out $DC/changed_keys.npy
+step join_keys $PYREF personalization/p3_weekly.py join-keys --base $B --out $DC/changed_keys.npy
 step regress_arm $PYREF personalization/p3_rcf_frozen_check.py $T/personalization/results/def_$B/rcf/p3c/chosen__merged.npz \
   $RD/rcf/p3c/chosen__merged.npz --windows V1,V2,OOT --dup-stamps $DC/mmr_at_game.npz --skip-keys $DC/changed_keys.npy
 step regress_states $PYREF personalization/p3_weekly.py regress-states --tag $D --base $B --skip-keys $DC/changed_keys.npy

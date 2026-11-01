@@ -231,8 +231,9 @@ def aug_metrics(aug, card, d=None):
         return out, np.ones(n, np.float32)
     zc = os.path.join(RCF_CACHE, f"zaug_{card}_{n}.npz")
     sbp = os.path.join(RCF_CACHE, f"sb_{card}.npz")
-    # key: the aug rows (fingerprint) and the card file's content
-    key = f"{aug.get('fingerprint', 'none')}:{file_digest(sbp)}"
+    # key: the aug rows (fingerprint), the card file's content and the join rule
+    exact = os.environ.get("P3_METRIC_JOIN_FIX") == "1"
+    key = f"{aug.get('fingerprint', 'none')}:{file_digest(sbp)}" + (":exact" if exact else "")
     if os.path.exists(zc):
         z = np.load(zc)
         assert "key" in z.files and str(z["key"]) == key, \
@@ -240,11 +241,22 @@ def aug_metrics(aug, card, d=None):
         print(f"  loaded metric cache {zc}", flush=True)
         return z["Z"], z["W"]
     z = np.load(sbp)
-    comp = (z["replay_id"].astype(np.int64) << 40) | z["blizz_id"].astype(np.int64)
-    o = np.argsort(comp)
-    cs = comp[o]
     bl = aug["bl"] if "bl" in aug else aug_bl(aug, d)
-    q = (aug["rid"].astype(np.int64) << 40) | bl
+    if exact:
+        # (replay_id, blizz_id) matched as a pair. The legacy key (replay_id << 40) | blizz_id
+        # overflows int64 for replay ids >= 2^23, so a row could take the scoreboard of the
+        # same player's game 2^24 replay ids away (715 of 58.7M rows in def1027).
+        zb = z["blizz_id"].astype(np.int64)
+        ub = np.unique(np.r_[zb, bl])
+        assert len(ub) < (1 << 24) and max(int(z["replay_id"].max()), int(aug["rid"].max())) < (1 << 38)
+        comp = z["replay_id"].astype(np.int64) * (1 << 24) + np.searchsorted(ub, zb)
+        q = aug["rid"].astype(np.int64) * (1 << 24) + np.searchsorted(ub, bl)
+    else:
+        # legacy join (def1027 and earlier builds; reproduces them)
+        comp = (z["replay_id"].astype(np.int64) << 40) | z["blizz_id"].astype(np.int64)
+        q = (aug["rid"].astype(np.int64) << 40) | bl
+    o = np.argsort(comp, kind="stable") if exact else np.argsort(comp)
+    cs = comp[o]
     j = np.minimum(np.searchsorted(cs, q), len(cs) - 1)
     hit = cs[j] == q
     Zs = z["Z"]
