@@ -69,7 +69,14 @@ Deploy gates (checked before export):
   - selected MCTS seed: proxy eval WP >= GATE_MCTS_PROXY_FLOOR (sanity only)
   - export parity asserts (in export_site_models.py) must pass
 
-Remote (pause-robust) runs: HOTS_CORPUS_PATH=<dump> refresh.py --resume stats
+Remote GPU phases (2026-11-01; production_refresh/remote_gpu.py): with
+REFRESH_GPU_HOSTS="windows-5090-wsl,3080-gaming-desktop" the GPU phases (wp,
+lowdata, partial, gd, refit on REFRESH_TRAIN_HOST; kparity and one MCTS seed
+per host) run on the workers through the remote job tooling, from this run's
+corpus dump (written automatically); dump, stats, data, select, gates and
+export stay on this box. The workers are shared: give 15 minutes' notice.
+
+Older manual remote runs: HOTS_CORPUS_PATH=<dump> refresh.py --resume stats
 data wp partial gd; each MCTS seed as its own job (`refresh.py mcts_cmd
 --seed N` prints the command); then REFRESH_MCTS_EXTERNAL=1
 REFRESH_EXPORT_DIR=<dir> refresh.py mcts select export.
@@ -1148,6 +1155,30 @@ def mcts_cmd(seed):
             f"&& touch {shlex.quote(os.path.join(run_dir, 'DONE'))}")
 
 
+def mcts_run(seed):
+    """One MCTS seed in the foreground (a remote job: remote_gpu.py launches
+    `refresh.py mcts_run --seed N` on a worker). Resumes from the seed's
+    checkpoint when one exists; writes DONE on success."""
+    require_compositions()
+    ensure_kernel()
+    run_dir, extra = mcts_env(seed)
+    os.makedirs(run_dir, exist_ok=True)
+    if os.path.exists(os.path.join(run_dir, "DONE")):
+        log(f"MCTS seed {seed}: DONE already")
+        return
+    env = dict(os.environ)
+    env.update(extra)
+    if os.path.exists(os.path.join(run_dir, "draft_policy_checkpoint.pt")):
+        env["MCTS_FRESH"] = "0"      # resume after a pause or a lost job
+    with open(os.path.join(run_dir, "train.log"), "a") as logf:
+        rc = subprocess.run([sys.executable, "-u", os.path.join(TRAINING_DIR, "train_mcts_worker.py")],
+                            env=env, stdout=logf, stderr=subprocess.STDOUT, cwd=TRAINING_DIR).returncode
+    if rc != 0:
+        sys.exit(f"MCTS seed {seed}: worker exited {rc}")
+    open(os.path.join(run_dir, "DONE"), "w").write(datetime.datetime.now().isoformat(timespec="seconds"))
+    log(f"MCTS seed {seed} done -> {run_dir}")
+
+
 def phase_kparity():
     """The v2 kernel's in-kernel WP must match the Python WP on finished
     self-play drafts across all 15 maps (gated)."""
@@ -1788,7 +1819,7 @@ ALL = ("stats", "data", "wp", "lowdata", "partial", "gd", "kparity", "mcts", "se
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("phases", nargs="+", choices=list(PHASES) + ["all", "mcts_cmd"])
+    ap.add_argument("phases", nargs="+", choices=list(PHASES) + ["all", "mcts_cmd", "mcts_run"])
     ap.add_argument("--resume", action="store_true",
                     help="skip phases refresh_meta.json records as done (pause-robust "
                          "remote runs: a re-run continues at the first unfinished phase)")
@@ -1798,16 +1829,56 @@ def main():
     if args.phases == ["mcts_cmd"]:
         print(mcts_cmd(args.seed))
         return
+    if args.phases == ["mcts_run"]:
+        mcts_run(args.seed)
+        return
+    # REFRESH_GPU_HOSTS (remote_gpu.py): the GPU phases run on the remote workers;
+    # dump, stats, data, select, gates and export stay here
+    sys.path.insert(0, BASE)
+    import remote_gpu
+    remote = remote_gpu.enabled()
+
+    def need_corpus():
+        # the workers have no DB: they read the dump (written here once per run)
+        if not os.path.exists(CORPUS_DUMP):
+            log("=== phase dump (for the remote GPU phases) ===")
+            phase_dump()
     names = list(ALL) if args.phases == ["all"] else args.phases
     log(f"evaluation protocol {PROTOCOL['version']} (since {PROTOCOL['since']}): "
         f"{PROTOCOL['summary']}; test window {TEST_DAYS:g} days; refit "
         f"{'on' if REFIT else 'off'}")
     meta_update(protocol={**PROTOCOL, "test_days": TEST_DAYS, "refit": REFIT})
-    for name in names:
+    i = 0
+    while i < len(names):
+        name = names[i]
+        i += 1
         done = json.load(open(META_JSON)).get("phases_done", []) if os.path.exists(META_JSON) else []
         if args.resume and name in done:
             log(f"=== phase {name}: done, skipping ===")
             continue
+        if remote and name in remote_gpu.TRAIN_PHASES:
+            group = [name]
+            while i < len(names) and names[i] in remote_gpu.TRAIN_PHASES and names[i] != "refit" and name != "refit":
+                group.append(names[i])
+                i += 1
+            log(f"=== phases {' '.join(group)} on {remote_gpu.train_host()} (remote) ===")
+            need_corpus()
+            remote_gpu.run_train(group, RUN_DATE, RUN_DIR, CORPUS_DUMP if os.path.exists(CORPUS_DUMP) else None,
+                                 meta_update)
+            m = json.load(open(META_JSON))
+            meta_update(phases_done=sorted(set(m.get("phases_done", [])) | set(group)))
+            continue
+        if remote and name == "kparity":
+            log("=== phase kparity: runs on each MCTS host with the mcts phase (remote) ===")
+            continue
+        if remote and name == "mcts":
+            log(f"=== phases kparity mcts on {remote_gpu.hosts()} (remote) ===")
+            need_corpus()
+            remote_gpu.run_kparity_and_mcts(MCTS_SEEDS, RUN_DATE, RUN_DIR,
+                                            CORPUS_DUMP if os.path.exists(CORPUS_DUMP) else None, meta_update)
+            os.environ["REFRESH_MCTS_EXTERNAL"] = "1"      # collect: DONE marker + draft_policy.pt
+            m = json.load(open(META_JSON))
+            meta_update(phases_done=sorted(set(m.get("phases_done", [])) | {"kparity"}))
         log(f"=== phase {name} ===")
         PHASES[name]()
         if name not in ("gates",):
