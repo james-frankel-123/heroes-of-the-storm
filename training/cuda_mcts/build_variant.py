@@ -6,6 +6,7 @@ import argparse, os, shutil, subprocess, sys, tempfile
 ap = argparse.ArgumentParser()
 ap.add_argument("out"); ap.add_argument("--rev"); ap.add_argument("--audit", action="store_true")
 ap.add_argument("--src", help="take the sources from this directory instead (a host without git)")
+ap.add_argument("--research", action="store_true", help="the v1 research build (setup.py's flags: hots_dims defaults, no extra defines)")
 ap.add_argument("--heroes", type=int, default=91); ap.add_argument("--maps", type=int, default=15)
 a = ap.parse_args()
 SRC = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +19,8 @@ for f in FILES:
         open(os.path.join(work, f), "wb").write(data)
     else:
         shutil.copy(os.path.join(a.src or SRC, f), work)
-defs = [f"-DNUM_HEROES={a.heroes}", f"-DNUM_MAPS={a.maps}", "-DCOMP_FALLBACK_MID_HIGH_LOW"] + (["-DP1_SAMPLE_AUDIT"] if a.audit else [])
+defs = ([] if a.research else [f"-DNUM_HEROES={a.heroes}", f"-DNUM_MAPS={a.maps}", "-DCOMP_FALLBACK_MID_HIGH_LOW"]) \
+    + (["-DP1_SAMPLE_AUDIT"] if a.audit else [])
 from setuptools import setup
 from torch.utils.cpp_extension import CUDAExtension, BuildExtension
 os.makedirs(a.out, exist_ok=True)
