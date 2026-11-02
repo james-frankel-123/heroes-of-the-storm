@@ -244,13 +244,13 @@
    "horizonGames": 10
   },
   "postFreeze": {
-   "accuracy": 0.6259,
-   "games": 83955,
+   "accuracy": 0.6269,
+   "games": 84658,
    "from": "2026-09-28",
    "to": "2026-10-26",
    "patch": "2.57",
-   "build": "def1027",
-   "note": "scored once with no refit; no modelling choice used these games (P3_POSTFREEZE.md)"
+   "build": "wk261101 (def1027 coefficients)",
+   "note": "scored once with no refit; no modelling choice used these games; the 5,000 sealed replays excluded (P3_POSTFREEZE.md)"
   }
  }
 }

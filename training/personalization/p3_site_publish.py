@@ -670,14 +670,18 @@ def check(a):
 def post_freeze_block():
     """Post-freeze confirmation for the site (P3_POSTFREEZE.md): the definitive build scored once,
     without refit, on games after the freeze that no modelling choice used. None if not run."""
-    path = os.path.join(HERE, "results", "def_pf1027", "pf_report.json")
+    # corrected 2026-11-01: the weekly build wk261101 (sealed replays excluded), same window
+    # as the first version (def_pf1027, which included 4,312 sealed games)
+    path = os.path.join(HERE, "results", "def_wk261101", "pf_report_to1026.json")
     if not os.path.exists(path):
         return None
     r = json.load(open(path))
     day = lambda d: (datetime.date(1970, 1, 1) + datetime.timedelta(days=int(d))).isoformat()
     return {"accuracy": round(float(r["arms"]["chosen"]["acc"]), 4), "games": int(r["games"]),
-            "from": day(r["days"][0]), "to": day(r["days"][1]), "patch": "2.57", "build": r["frozen_from"],
-            "note": "scored once with no refit; no modelling choice used these games (P3_POSTFREEZE.md)"}
+            "from": day(r["days"][0]), "to": day(r["days"][1]), "patch": "2.57",
+            "build": f"{r['build']} ({r['frozen_from']} coefficients)",
+            "note": "scored once with no refit; no modelling choice used these games; the 5,000 sealed "
+                    "replays excluded (P3_POSTFREEZE.md)"}
 
 
 def artifact(a):

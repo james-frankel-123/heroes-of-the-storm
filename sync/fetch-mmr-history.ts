@@ -45,7 +45,8 @@
  *   --retry-errors   re-attempt accounts marked status=error
  *   --add-recent     once per week (recent_adds.jsonl), append a panel tranche
  *                    panelN.tsv of accounts from the last MMR_HISTORY_RECENT_DAYS
- *                    (default 7) days of corpus games that are in no panel yet,
+ *                    (default 7; MMR_HISTORY_RECENT_DAYS_FIRST for the very first
+ *                    tranche) days of corpus games that are in no panel yet,
  *                    most games first, as many as fit in this week's remaining
  *                    budget (95% of WEEKLY_BUDGET minus the rolling week's calls
  *                    and the unfetched panel rows; ~1 call per account). The 5,000
@@ -218,8 +219,10 @@ async function status(dir: string) {
 
 /** Weekly new-account tranche (see --add-recent in the header). Reads the local store only. */
 async function addRecent(dir: string, ledger: Ledger, preview = false): Promise<void> {
-  const days = Number(process.env.MMR_HISTORY_RECENT_DAYS ?? 7)
   const stateFile = path.join(dir, 'recent_adds.jsonl')
+  // the first tranche may look further back (MMR_HISTORY_RECENT_DAYS_FIRST); later ones use 7 days
+  const first = !fs.existsSync(stateFile) || !fs.readFileSync(stateFile, 'utf8').trim()
+  const days = Number((first && process.env.MMR_HISTORY_RECENT_DAYS_FIRST) || process.env.MMR_HISTORY_RECENT_DAYS || 7)
   if (fs.existsSync(stateFile)) {
     const lines = fs.readFileSync(stateFile, 'utf8').trim().split('\n').filter(Boolean)
     const last = lines.length ? JSON.parse(lines[lines.length - 1]) : null
