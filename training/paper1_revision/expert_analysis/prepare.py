@@ -40,7 +40,7 @@ def main():
     ap.add_argument("ratings")
     ap.add_argument("sequences")
     ap.add_argument("out")
-    ap.add_argument("--partials", choices=["strict", "lenient"], default="strict")
+    ap.add_argument("--partials", choices=["strict", "lenient", "nogates"], default="strict")
     a = ap.parse_args()
     cfg = json.load(open(os.path.join(HERE, "config.json")))
     pool = json.load(open(os.path.join(REPO, cfg["pool"]["file"])))
@@ -101,7 +101,8 @@ def main():
         g_spd = med is not None and med >= G["speed_median_ms_min"]
         inc_strict = g_scr and g_cat_strict and g_spd
         inc_len = g_scr and g_cat_len and g_spd
-        included = inc_strict if a.partials == "strict" else inc_len
+        # nogates (exploratory, not registered): every rater who completed all 240 items
+        included = {"strict": inc_strict, "lenient": inc_len, "nogates": complete}[a.partials]
         cal_acc = (sum(x["correct"] for x in cal) / len(cal)) if cal else None
         raters[code] = {"slot": cfg["raters"][code]["slot"], "group": cfg["raters"][code]["group"],
                         "n_rated": n, "complete": complete, "last_position_reached": last,

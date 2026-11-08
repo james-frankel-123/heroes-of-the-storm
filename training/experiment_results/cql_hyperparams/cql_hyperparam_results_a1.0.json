@@ -1,0 +1,392 @@
+[
+  {
+    "name": "1024\u2192512\u2192256 \u03c4=0.001",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.001,
+      "hidden_dims": [
+        1024,
+        512,
+        256
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7938052452843207,
+      "action_match": 13.402053123729502
+    },
+    "rich_metrics": {
+      "healer_rate": 99.5,
+      "degen_rate": 2.5,
+      "counter": -0.05,
+      "synergy": -0.11,
+      "distinct_heroes": 52,
+      "entropy": 4.45,
+      "top10_concentration": 71.6,
+      "gd_similarity": 62.7
+    }
+  },
+  {
+    "name": "1024\u2192512\u2192256 \u03c4=0.005",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.005,
+      "hidden_dims": [
+        1024,
+        512,
+        256
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7938052452843207,
+      "action_match": 13.402053123729502
+    },
+    "rich_metrics": {
+      "healer_rate": 99.5,
+      "degen_rate": 2.5,
+      "counter": -0.05,
+      "synergy": -0.11,
+      "distinct_heroes": 52,
+      "entropy": 4.45,
+      "top10_concentration": 71.6,
+      "gd_similarity": 62.7
+    }
+  },
+  {
+    "name": "1024\u2192512\u2192256 \u03c4=0.01",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.01,
+      "hidden_dims": [
+        1024,
+        512,
+        256
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7938052452843207,
+      "action_match": 13.402053123729502
+    },
+    "rich_metrics": {
+      "healer_rate": 99.5,
+      "degen_rate": 2.5,
+      "counter": -0.05,
+      "synergy": -0.11,
+      "distinct_heroes": 52,
+      "entropy": 4.45,
+      "top10_concentration": 71.6,
+      "gd_similarity": 62.7
+    }
+  },
+  {
+    "name": "1024\u2192512\u2192256 \u03c4=0.05",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.05,
+      "hidden_dims": [
+        1024,
+        512,
+        256
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7938052452843207,
+      "action_match": 13.402053123729502
+    },
+    "rich_metrics": {
+      "healer_rate": 99.5,
+      "degen_rate": 2.5,
+      "counter": -0.05,
+      "synergy": -0.11,
+      "distinct_heroes": 52,
+      "entropy": 4.45,
+      "top10_concentration": 71.6,
+      "gd_similarity": 62.7
+    }
+  },
+  {
+    "name": "1024\u2192512\u2192256 \u03c4=0.1",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.1,
+      "hidden_dims": [
+        1024,
+        512,
+        256
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7938052452843207,
+      "action_match": 13.402053123729502
+    },
+    "rich_metrics": {
+      "healer_rate": 99.5,
+      "degen_rate": 2.5,
+      "counter": -0.05,
+      "synergy": -0.11,
+      "distinct_heroes": 52,
+      "entropy": 4.45,
+      "top10_concentration": 71.6,
+      "gd_similarity": 62.7
+    }
+  },
+  {
+    "name": "512\u2192256\u2192128 \u03c4=0.001",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.001,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7932686428985617,
+      "action_match": 13.370290689795366
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 1.5,
+      "counter": -0.03,
+      "synergy": -0.04,
+      "distinct_heroes": 47,
+      "entropy": 4.46,
+      "top10_concentration": 70.1,
+      "gd_similarity": 63.3
+    }
+  },
+  {
+    "name": "512\u2192256\u2192128 \u03c4=0.005",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.005,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7932686428985617,
+      "action_match": 13.370290689795366
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 1.5,
+      "counter": -0.03,
+      "synergy": -0.04,
+      "distinct_heroes": 47,
+      "entropy": 4.46,
+      "top10_concentration": 70.1,
+      "gd_similarity": 63.3
+    }
+  },
+  {
+    "name": "512\u2192256\u2192128 \u03c4=0.01",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.01,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7932686428985617,
+      "action_match": 13.370290689795366
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 1.5,
+      "counter": -0.03,
+      "synergy": -0.04,
+      "distinct_heroes": 47,
+      "entropy": 4.46,
+      "top10_concentration": 70.1,
+      "gd_similarity": 63.3
+    }
+  },
+  {
+    "name": "512\u2192256\u2192128 \u03c4=0.05",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.05,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7932686428985617,
+      "action_match": 13.370290689795366
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 1.5,
+      "counter": -0.03,
+      "synergy": -0.04,
+      "distinct_heroes": 47,
+      "entropy": 4.46,
+      "top10_concentration": 70.1,
+      "gd_similarity": 63.3
+    }
+  },
+  {
+    "name": "512\u2192256\u2192128 \u03c4=0.1",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.1,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7932686428985617,
+      "action_match": 13.370290689795366
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 1.5,
+      "counter": -0.03,
+      "synergy": -0.04,
+      "distinct_heroes": 47,
+      "entropy": 4.46,
+      "top10_concentration": 70.1,
+      "gd_similarity": 63.3
+    }
+  },
+  {
+    "name": "256\u2192128\u219264 \u03c4=0.001",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.001,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7928952577557081,
+      "action_match": 13.26505115869359
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 0.0,
+      "counter": -0.07,
+      "synergy": -0.02,
+      "distinct_heroes": 46,
+      "entropy": 4.33,
+      "top10_concentration": 73.7,
+      "gd_similarity": 64.0
+    }
+  },
+  {
+    "name": "256\u2192128\u219264 \u03c4=0.005",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.005,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7928952577557081,
+      "action_match": 13.26505115869359
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 0.0,
+      "counter": -0.07,
+      "synergy": -0.02,
+      "distinct_heroes": 46,
+      "entropy": 4.33,
+      "top10_concentration": 73.7,
+      "gd_similarity": 64.0
+    }
+  },
+  {
+    "name": "256\u2192128\u219264 \u03c4=0.01",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.01,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7928952577557081,
+      "action_match": 13.26505115869359
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 0.0,
+      "counter": -0.07,
+      "synergy": -0.02,
+      "distinct_heroes": 46,
+      "entropy": 4.33,
+      "top10_concentration": 73.7,
+      "gd_similarity": 64.0
+    }
+  },
+  {
+    "name": "256\u2192128\u219264 \u03c4=0.05",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.05,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7928952577557081,
+      "action_match": 13.26505115869359
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 0.0,
+      "counter": -0.07,
+      "synergy": -0.02,
+      "distinct_heroes": 46,
+      "entropy": 4.33,
+      "top10_concentration": 73.7,
+      "gd_similarity": 64.0
+    }
+  },
+  {
+    "name": "256\u2192128\u219264 \u03c4=0.1",
+    "config": {
+      "alpha": 1.0,
+      "tau": 0.1,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ]
+    },
+    "train_metrics": {
+      "test_loss": 0.7928952577557081,
+      "action_match": 13.26505115869359
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 0.0,
+      "counter": -0.07,
+      "synergy": -0.02,
+      "distinct_heroes": 46,
+      "entropy": 4.33,
+      "top10_concentration": 73.7,
+      "gd_similarity": 64.0
+    }
+  }
+]

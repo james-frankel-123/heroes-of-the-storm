@@ -1,0 +1,209 @@
+[
+  {
+    "name": "MCQ \u03c4=0.4",
+    "config": {
+      "method": "mcq",
+      "threshold": 0.4,
+      "alpha": 1.0,
+      "bc_weight": 0
+    },
+    "train_metrics": {
+      "test_loss": 0.715331132244912,
+      "action_match": 2.4169094728282965
+    },
+    "rich_metrics": {
+      "healer_rate": 15.0,
+      "degen_rate": 90.0,
+      "counter": -0.12,
+      "synergy": -0.33,
+      "distinct_heroes": 15,
+      "entropy": 3.05,
+      "top10_concentration": 99.4,
+      "gd_similarity": 3.8
+    }
+  },
+  {
+    "name": "MCQ \u03c4=0.5",
+    "config": {
+      "method": "mcq",
+      "threshold": 0.5,
+      "alpha": 1.0,
+      "bc_weight": 0
+    },
+    "train_metrics": {
+      "test_loss": 0.6945107624546625,
+      "action_match": 0.5448316167502372
+    },
+    "rich_metrics": {
+      "healer_rate": 79.5,
+      "degen_rate": 20.5,
+      "counter": -0.16,
+      "synergy": 0.06,
+      "distinct_heroes": 9,
+      "entropy": 2.8,
+      "top10_concentration": 100.0,
+      "gd_similarity": 0.0
+    }
+  },
+  {
+    "name": "MCQ \u03c4=0.6",
+    "config": {
+      "method": "mcq",
+      "threshold": 0.6,
+      "alpha": 1.0,
+      "bc_weight": 0
+    },
+    "train_metrics": {
+      "test_loss": 0.694509678117013,
+      "action_match": 0.444250575958802
+    },
+    "rich_metrics": {
+      "healer_rate": 52.5,
+      "degen_rate": 55.0,
+      "counter": -0.17,
+      "synergy": 0.67,
+      "distinct_heroes": 9,
+      "entropy": 2.79,
+      "top10_concentration": 100.0,
+      "gd_similarity": 0.4
+    }
+  },
+  {
+    "name": "MCQ \u03c4=0.7",
+    "config": {
+      "method": "mcq",
+      "threshold": 0.7,
+      "alpha": 1.0,
+      "bc_weight": 0
+    },
+    "train_metrics": {
+      "test_loss": 0.694509678117013,
+      "action_match": 0.444250575958802
+    },
+    "rich_metrics": {
+      "healer_rate": 52.5,
+      "degen_rate": 55.0,
+      "counter": -0.17,
+      "synergy": 0.67,
+      "distinct_heroes": 9,
+      "entropy": 2.79,
+      "top10_concentration": 100.0,
+      "gd_similarity": 0.4
+    }
+  },
+  {
+    "name": "MCQ \u03c4=0.8",
+    "config": {
+      "method": "mcq",
+      "threshold": 0.8,
+      "alpha": 1.0,
+      "bc_weight": 0
+    },
+    "train_metrics": {
+      "test_loss": 0.694509678117013,
+      "action_match": 0.444250575958802
+    },
+    "rich_metrics": {
+      "healer_rate": 52.5,
+      "degen_rate": 55.0,
+      "counter": -0.17,
+      "synergy": 0.67,
+      "distinct_heroes": 9,
+      "entropy": 2.79,
+      "top10_concentration": 100.0,
+      "gd_similarity": 0.4
+    }
+  },
+  {
+    "name": "BC-CQL \u03b2=0.1",
+    "config": {
+      "method": "bc_cql",
+      "threshold": 0,
+      "alpha": 1.0,
+      "bc_weight": 0.1
+    },
+    "train_metrics": {
+      "test_loss": 0.7960913229447455,
+      "action_match": 13.405652866242038
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 2.0,
+      "counter": -0.04,
+      "synergy": 0.01,
+      "distinct_heroes": 46,
+      "entropy": 4.42,
+      "top10_concentration": 71.9,
+      "gd_similarity": 61.0
+    }
+  },
+  {
+    "name": "BC-CQL \u03b2=0.5",
+    "config": {
+      "method": "bc_cql",
+      "threshold": 0,
+      "alpha": 1.0,
+      "bc_weight": 0.5
+    },
+    "train_metrics": {
+      "test_loss": 0.8052012148483737,
+      "action_match": 13.403747120205988
+    },
+    "rich_metrics": {
+      "healer_rate": 98.0,
+      "degen_rate": 3.0,
+      "counter": -0.04,
+      "synergy": -0.02,
+      "distinct_heroes": 45,
+      "entropy": 4.4,
+      "top10_concentration": 72.2,
+      "gd_similarity": 64.0
+    }
+  },
+  {
+    "name": "BC-CQL \u03b2=1.0",
+    "config": {
+      "method": "bc_cql",
+      "threshold": 0,
+      "alpha": 1.0,
+      "bc_weight": 1.0
+    },
+    "train_metrics": {
+      "test_loss": 0.8114983333386546,
+      "action_match": 13.412217102588428
+    },
+    "rich_metrics": {
+      "healer_rate": 99.5,
+      "degen_rate": 1.5,
+      "counter": -0.03,
+      "synergy": -0.0,
+      "distinct_heroes": 46,
+      "entropy": 4.43,
+      "top10_concentration": 71.3,
+      "gd_similarity": 62.3
+    }
+  },
+  {
+    "name": "BC-CQL \u03b2=2.0",
+    "config": {
+      "method": "bc_cql",
+      "threshold": 0,
+      "alpha": 1.0,
+      "bc_weight": 2.0
+    },
+    "train_metrics": {
+      "test_loss": 0.818568854300306,
+      "action_match": 13.445885282558612
+    },
+    "rich_metrics": {
+      "healer_rate": 100.0,
+      "degen_rate": 0.5,
+      "counter": -0.05,
+      "synergy": 0.0,
+      "distinct_heroes": 46,
+      "entropy": 4.44,
+      "top10_concentration": 70.4,
+      "gd_similarity": 63.1
+    }
+  }
+]

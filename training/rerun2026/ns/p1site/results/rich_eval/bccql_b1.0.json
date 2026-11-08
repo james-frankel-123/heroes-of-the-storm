@@ -4,60 +4,60 @@
   "seeds": 5,
   "drafts_per_seed": 1000,
   "metrics": {
-    "healer_rate": 99.0,
-    "degen_rate": 1.5,
+    "healer_rate": 99.8,
+    "degen_rate": 1.6,
     "counter": -0.01,
-    "synergy": -0.16,
+    "synergy": -0.13,
     "distinct_heroes": 71,
-    "entropy": 4.62,
-    "top10_concentration": 68.5,
+    "entropy": 4.65,
+    "top10_concentration": 68.3,
     "gd_similarity": 73.2,
     "map_adapt": {
       "Braxis Holdout": {
-        "map_rate": 19.8,
-        "other_rate": 36.0,
-        "delta": -16.3
+        "map_rate": 23.1,
+        "other_rate": 36.8,
+        "delta": -13.6
       },
       "Battlefield of Eternity": {
-        "map_rate": 68.3,
-        "other_rate": 76.3,
-        "delta": -8.0
+        "map_rate": 70.1,
+        "other_rate": 77.6,
+        "delta": -7.5
       },
       "Cursed Hollow": {
-        "map_rate": 27.3,
-        "other_rate": 16.5,
-        "delta": 10.9
+        "map_rate": 35.5,
+        "other_rate": 18.7,
+        "delta": 16.8
       }
     }
   },
   "seed_metrics": [
     {
-      "degen": 2.1999999999999997,
-      "counter": 0.0036110666666667227,
-      "synergy": -0.15417599999999987
+      "degen": 1.5,
+      "counter": -0.00171386666666654,
+      "synergy": -0.12522099999999978
     },
     {
-      "degen": 1.0,
-      "counter": 8.879999999998489e-05,
-      "synergy": -0.15928099999999992
-    },
-    {
-      "degen": 1.0,
-      "counter": -0.004694483333333345,
-      "synergy": -0.165083
+      "degen": 1.0999999999999999,
+      "counter": 0.0036603999999999816,
+      "synergy": -0.10703199999999986
     },
     {
       "degen": 1.7999999999999998,
-      "counter": -0.036052949999999924,
-      "synergy": -0.17639399999999983
+      "counter": -0.004713249999999945,
+      "synergy": -0.12866599999999995
     },
     {
-      "degen": 1.4000000000000001,
-      "counter": -0.03214436666666664,
-      "synergy": -0.15604499999999982
+      "degen": 1.6,
+      "counter": -0.020504083333333277,
+      "synergy": -0.1509539999999998
+    },
+    {
+      "degen": 2.1999999999999997,
+      "counter": -0.02282826666666665,
+      "synergy": -0.1389249999999999
     }
   ],
-  "degen_std": 0.4664761515876239,
-  "counter_std": 0.01679676543921939,
-  "synergy_std": 0.008007126810535723
+  "degen_std": 0.36110940170535566,
+  "counter_std": 0.010536346572800061,
+  "synergy_std": 0.014633836142310732
 }

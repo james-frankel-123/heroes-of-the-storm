@@ -24,108 +24,108 @@
  "sets": {
   "held_out_human": {
    "n": 2000,
-   "median_x1e3": 0.42299076449126005,
-   "p95_x1e3": 1.173536293208599,
+   "median_x1e3": 0.4053713637404144,
+   "p95_x1e3": 1.1943371500819921,
    "ratio_to_human_median": 1.0,
    "frac_above_human_p95": 0.05
   },
   "mcts_F_oof": {
    "n": 2000,
-   "median_x1e3": 0.5251335678622127,
-   "p95_x1e3": 1.559233060106635,
-   "ratio_to_human_median": 1.2414776206610607,
-   "frac_above_human_p95": 0.1065
+   "median_x1e3": 0.5638642469421029,
+   "p95_x1e3": 1.570295775309205,
+   "ratio_to_human_median": 1.3909819424323762,
+   "frac_above_human_p95": 0.121
   },
   "tournament_mcts": {
    "n": 2000,
-   "median_x1e3": 0.751137500628829,
-   "p95_x1e3": 2.400144701823592,
-   "ratio_to_human_median": 1.7757775433518932,
-   "frac_above_human_p95": 0.2605
+   "median_x1e3": 0.7663849974051118,
+   "p95_x1e3": 2.5674570351839066,
+   "ratio_to_human_median": 1.89057507746373,
+   "frac_above_human_p95": 0.265
   },
   "tournament_constrained_mcts": {
    "n": 2000,
-   "median_x1e3": 0.7217376260086894,
-   "p95_x1e3": 2.329365350306034,
-   "ratio_to_human_median": 1.706272776136705,
-   "frac_above_human_p95": 0.244
+   "median_x1e3": 0.7477024337276816,
+   "p95_x1e3": 2.443010685965419,
+   "ratio_to_human_median": 1.844487550448887,
+   "frac_above_human_p95": 0.237
   },
   "tournament_enriched": {
    "n": 2000,
-   "median_x1e3": 0.8726030355319381,
-   "p95_x1e3": 2.841328736394644,
-   "ratio_to_human_median": 2.062936377775142,
-   "frac_above_human_p95": 0.3395
+   "median_x1e3": 0.7562532555311918,
+   "p95_x1e3": 2.56663141772151,
+   "ratio_to_human_median": 1.8655813487986534,
+   "frac_above_human_p95": 0.272
   },
   "tournament_constrained_greedy": {
    "n": 2000,
-   "median_x1e3": 0.8588270284235477,
-   "p95_x1e3": 2.829054370522499,
-   "ratio_to_human_median": 2.0303682740129734,
-   "frac_above_human_p95": 0.344
+   "median_x1e3": 0.7368995575234294,
+   "p95_x1e3": 2.6008347049355507,
+   "ratio_to_human_median": 1.817838218082208,
+   "frac_above_human_p95": 0.2605
   },
   "tournament_k_oof": {
    "n": 2000,
-   "median_x1e3": 0.7817079895175993,
-   "p95_x1e3": 2.774610184133053,
-   "ratio_to_human_median": 1.848049780608747,
-   "frac_above_human_p95": 0.298
+   "median_x1e3": 0.8264473872259259,
+   "p95_x1e3": 2.767230849713087,
+   "ratio_to_human_median": 2.0387414137994067,
+   "frac_above_human_p95": 0.315
   },
   "tournament_gourdeau": {
    "n": 2000,
-   "median_x1e3": 0.9493093239143491,
-   "p95_x1e3": 3.150827018544078,
-   "ratio_to_human_median": 2.2442790803153905,
-   "frac_above_human_p95": 0.3895
+   "median_x1e3": 0.8745207451283932,
+   "p95_x1e3": 2.977723488584161,
+   "ratio_to_human_median": 2.1573323213042883,
+   "frac_above_human_p95": 0.338
   },
   "tournament_gourdeau_disc": {
    "n": 2000,
-   "median_x1e3": 0.55341562256217,
-   "p95_x1e3": 2.6329292450100183,
-   "ratio_to_human_median": 1.3083397298940431,
-   "frac_above_human_p95": 0.222
+   "median_x1e3": 0.5225334316492081,
+   "p95_x1e3": 1.7557019600644708,
+   "ratio_to_human_median": 1.2890240366949555,
+   "frac_above_human_p95": 0.118
   },
   "tournament_cql_naive_a1.0": {
    "n": 2000,
-   "median_x1e3": 0.6001972360536456,
-   "p95_x1e3": 2.08135973662138,
-   "ratio_to_human_median": 1.4189369755519734,
-   "frac_above_human_p95": 0.2145
+   "median_x1e3": 0.529681914485991,
+   "p95_x1e3": 1.7036601202562451,
+   "ratio_to_human_median": 1.3066584417768117,
+   "frac_above_human_p95": 0.108
   },
   "tournament_cql_enr_a2.0": {
    "n": 2000,
-   "median_x1e3": 0.6123789353296161,
-   "p95_x1e3": 2.474707318469882,
-   "ratio_to_human_median": 1.4477359477721392,
-   "frac_above_human_p95": 0.2475
+   "median_x1e3": 0.5547287873923779,
+   "p95_x1e3": 1.7146605532616377,
+   "ratio_to_human_median": 1.3684459165389067,
+   "frac_above_human_p95": 0.1235
   },
   "tournament_gd": {
    "n": 2000,
-   "median_x1e3": 0.5917382659390569,
-   "p95_x1e3": 2.252991311252117,
-   "ratio_to_human_median": 1.3989389736458029,
-   "frac_above_human_p95": 0.2165
+   "median_x1e3": 0.5298232426866889,
+   "p95_x1e3": 1.5822084387764335,
+   "ratio_to_human_median": 1.3070070806135412,
+   "frac_above_human_p95": 0.1225
   },
   "tournament_mcq_t0.5": {
    "n": 2000,
-   "median_x1e3": 1.50323286652565,
-   "p95_x1e3": 3.273103618994355,
-   "ratio_to_human_median": 3.5538195930438814,
-   "frac_above_human_p95": 0.652
+   "median_x1e3": 0.6905003683641553,
+   "p95_x1e3": 2.5891519617289305,
+   "ratio_to_human_median": 1.7033772736012196,
+   "frac_above_human_p95": 0.2555
   },
   "synthetic_degenerate": {
    "n": 500,
-   "median_x1e3": 1.580496085807681,
-   "p95_x1e3": 4.500343929976225,
-   "ratio_to_human_median": 3.7364789458431256,
-   "frac_above_human_p95": 0.648
+   "median_x1e3": 1.526165404357016,
+   "p95_x1e3": 4.127865191549063,
+   "ratio_to_human_median": 3.7648574637213863,
+   "frac_above_human_p95": 0.602
   },
   "degenerate_probes": {
    "n": 6,
-   "median_x1e3": 2.205799799412489,
-   "p95_x1e3": 4.35833353549242,
-   "ratio_to_human_median": 5.214770592132079,
-   "frac_above_human_p95": 0.8333333333333334
+   "median_x1e3": 2.290381584316492,
+   "p95_x1e3": 2.8965617530047894,
+   "ratio_to_human_median": 5.65008234223267,
+   "frac_above_human_p95": 1.0
   }
  }
 }

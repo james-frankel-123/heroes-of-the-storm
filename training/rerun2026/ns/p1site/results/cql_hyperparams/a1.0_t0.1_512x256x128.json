@@ -9,12 +9,12 @@
   "drafts": 200,
   "rich_metrics": {
     "healer_rate": 100.0,
-    "degen_rate": 4.5,
-    "counter": -0.17,
-    "synergy": -0.01,
-    "distinct_heroes": 51,
-    "entropy": 4.55,
-    "top10_concentration": 70.0,
-    "gd_similarity": 68.4
+    "degen_rate": 0.0,
+    "counter": -0.14,
+    "synergy": -0.07,
+    "distinct_heroes": 56,
+    "entropy": 4.63,
+    "top10_concentration": 67.5,
+    "gd_similarity": 71.3
   }
 }

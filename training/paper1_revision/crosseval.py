@@ -66,6 +66,7 @@ def main():
             recs = [r for p in pool.map(_worker, parts) for r in p]
         json.dump(recs, open(path, "w"))
     recs = json.load(open(path))
+    from shared import is_degenerate
     from paper1_revision.bench_mcts import sym_predict
     from paper1_revision.score_tournament import score_rows
     from paper1_revision import train_wp
@@ -85,7 +86,10 @@ def main():
             "healer": 100 * np.mean([r["comp_has_healer"] for r in sub]),
             "ranged": 100 * np.mean([r["comp_has_ranged_damage"] for r in sub]),
             "frontline": 100 * np.mean([r["comp_has_frontline"] for r in sub]),
-            "degen": 100 * np.mean([r["comp_is_absurd"] for r in sub])}
+            # degenerate as everywhere else in the paper (shared.is_degenerate); the
+            # archive drafter's stricter "absurd" flag (any fine role x3, ranged required) kept beside it
+            "degen": 100 * np.mean([is_degenerate(r["our_picks"]) for r in sub]),
+            "absurd": 100 * np.mean([r["comp_is_absurd"] for r in sub])}
         print(d, {k: round(v[0], 4) for k, v in res["matrix"][d].items()},
               res["composition"][d], flush=True)
     # pick agreement at the same step of the same configuration (submission's
@@ -114,7 +118,8 @@ def main():
     nidx = [i for i, r in enumerate(recs) if r["wp_model"] == "naive"]
     gap = sorted(nidx, key=lambda i: -(sc["by_naive"][i] - sc["by_enriched"][i]))[:50]
     res["top50_gap"] = {"no_healer": int(sum(not recs[i]["comp_has_healer"] for i in gap)),
-                        "degenerate": int(sum(recs[i]["comp_is_absurd"] for i in gap)),
+                        "degenerate": int(sum(is_degenerate(recs[i]["our_picks"]) for i in gap)),
+                        "absurd": int(sum(recs[i]["comp_is_absurd"] for i in gap)),
                         "role_stacking": int(sum(any(v >= 3 for v in recs[i]["comp_roles"].values())
                                                  for i in gap))}
     hn = sum(r["comp_has_healer"] for r in recs if r["wp_model"] == "naive")

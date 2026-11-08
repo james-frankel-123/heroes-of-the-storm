@@ -1,0 +1,1497 @@
+{
+ "B": 2000,
+ "checks": {
+  "paper": {
+   "x-combo1-dr-chance__pMCTS-cur": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "pMCTS-cur__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__Real": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "Real__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__GD": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "GD__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__DraftRec": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "DraftRec__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__DraftRec-pv": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "DraftRec-pv__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 2.384185793236071e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__aMCTS-pp": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "aMCTS-pp__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   }
+  },
+  "A_replicate": {
+   "x-combo1-dr-chance__pMCTS-cur": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "pMCTS-cur__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__Real": {
+    "rec_slot_vs_state": 2.5544847792602354e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "Real__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 2.384185793236071e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__GD": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "GD__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 2.384185793236071e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__DraftRec": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "DraftRec__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   }
+  },
+  "loose": {
+   "x-combo1-dr-chance__pMCTS-cur": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "pMCTS-cur__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__Real": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "Real__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__GD": {
+    "rec_slot_vs_state": 2.384185793236071e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "GD__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "x-combo1-dr-chance__DraftRec": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   },
+   "DraftRec__x-combo1-dr-chance": {
+    "rec_slot_vs_state": 1.9868214962137642e-08,
+    "slots_differ": 0,
+    "nan_agree": true,
+    "count_agree": true,
+    "slot_table_vs_state": 2.9802322387695312e-08
+   }
+  }
+ },
+ "rows": {
+  "The earlier search drafter": {
+   "opp": "pMCTS-cur",
+   "point": 4.771,
+   "lobby_paper500": [
+    4.77,
+    2.2,
+    7.34
+   ],
+   "lobby": [
+    4.77,
+    2.23,
+    7.31
+   ],
+   "player": [
+    4.77,
+    2.25,
+    7.29
+   ],
+   "twoway": [
+    4.77,
+    0.54,
+    9.0
+   ],
+   "max_oneway": [
+    4.77,
+    2.23,
+    7.31
+   ],
+   "cgm": [
+    4.77,
+    2.13,
+    7.41
+   ],
+   "se": {
+    "lobby_paper500": 0.01310547219716171,
+    "lobby": 0.012967343501872234,
+    "player": 0.01285491661608465,
+    "twoway": 0.021586534178802647,
+    "slot_iid": 0.012322512034637557,
+    "cgm": 0.013474293148742527
+   },
+   "se_ratio_twoway_over_lobby": 1.647,
+   "raw": [
+    4.45,
+    1.88,
+    7.01
+   ],
+   "raw_cgm": [
+    4.45,
+    1.75,
+    7.14
+   ],
+   "raw_twoway": [
+    4.45,
+    0.18,
+    8.72
+   ],
+   "wp_gap": -0.323,
+   "coverage": {
+    "sel": 77.37,
+    "opp": 43.53,
+    "both": 36.73
+   },
+   "games_per_covered_slot": {
+    "sel": 6.0,
+    "opp": 3.0
+   },
+   "reuse": {
+    "covered_slots": 1102,
+    "distinct_player_hero_pairs": 1067,
+    "slots_in_repeated_triples": 65,
+    "distinct_players_covered": 863
+   }
+  },
+  "Real drafts": {
+   "opp": "Real",
+   "point": 3.069,
+   "lobby_paper500": [
+    3.07,
+    1.05,
+    5.09
+   ],
+   "lobby": [
+    3.07,
+    1.07,
+    5.06
+   ],
+   "player": [
+    3.07,
+    1.05,
+    5.09
+   ],
+   "twoway": [
+    3.07,
+    -0.45,
+    6.59
+   ],
+   "max_oneway": [
+    3.07,
+    1.05,
+    5.09
+   ],
+   "cgm": [
+    3.07,
+    0.97,
+    5.17
+   ],
+   "se": {
+    "lobby_paper500": 0.010314175729015811,
+    "lobby": 0.010182379022196424,
+    "player": 0.010326353602551993,
+    "twoway": 0.017959769379613792,
+    "slot_iid": 0.009758637300892723,
+    "cgm": 0.010727694034890699
+   },
+   "se_ratio_twoway_over_lobby": 1.741,
+   "raw": [
+    4.04,
+    2.01,
+    6.07
+   ],
+   "raw_cgm": [
+    4.04,
+    1.91,
+    6.17
+   ],
+   "raw_twoway": [
+    4.04,
+    0.5,
+    7.58
+   ],
+   "wp_gap": 0.971,
+   "coverage": {
+    "sel": 74.3,
+    "opp": 72.73,
+    "both": 56.4
+   },
+   "games_per_covered_slot": {
+    "sel": 6.0,
+    "opp": 5.0
+   },
+   "reuse": {
+    "covered_slots": 1692,
+    "distinct_player_hero_pairs": 1654,
+    "slots_in_repeated_triples": 70,
+    "distinct_players_covered": 1282
+   }
+  },
+  "Imitation drafter": {
+   "opp": "GD",
+   "point": 3.621,
+   "lobby_paper500": [
+    3.62,
+    1.45,
+    5.79
+   ],
+   "lobby": [
+    3.62,
+    1.38,
+    5.86
+   ],
+   "player": [
+    3.62,
+    1.32,
+    5.92
+   ],
+   "twoway": [
+    3.62,
+    -0.29,
+    7.53
+   ],
+   "max_oneway": [
+    3.62,
+    1.32,
+    5.92
+   ],
+   "cgm": [
+    3.62,
+    1.27,
+    5.97
+   ],
+   "se": {
+    "lobby_paper500": 0.011054510994265047,
+    "lobby": 0.011422368470214,
+    "player": 0.011724568661879795,
+    "twoway": 0.019928196681674615,
+    "slot_iid": 0.011161870343310369,
+    "cgm": 0.01197283016732473
+   },
+   "se_ratio_twoway_over_lobby": 1.803,
+   "raw": [
+    5.45,
+    3.14,
+    7.76
+   ],
+   "raw_cgm": [
+    5.45,
+    3.07,
+    7.83
+   ],
+   "raw_twoway": [
+    5.45,
+    1.42,
+    9.47
+   ],
+   "wp_gap": 1.829,
+   "coverage": {
+    "sel": 76.07,
+    "opp": 60.07,
+    "both": 47.73
+   },
+   "games_per_covered_slot": {
+    "sel": 6.0,
+    "opp": 4.0
+   },
+   "reuse": {
+    "covered_slots": 1432,
+    "distinct_player_hero_pairs": 1373,
+    "slots_in_repeated_triples": 112,
+    "distinct_players_covered": 1090
+   }
+  },
+  "DraftRec, pick head": {
+   "opp": "DraftRec",
+   "point": 2.104,
+   "lobby_paper500": [
+    2.1,
+    0.43,
+    3.78
+   ],
+   "lobby": [
+    2.1,
+    0.48,
+    3.72
+   ],
+   "player": [
+    2.1,
+    0.39,
+    3.82
+   ],
+   "twoway": [
+    2.1,
+    -0.75,
+    4.96
+   ],
+   "max_oneway": [
+    2.1,
+    0.39,
+    3.82
+   ],
+   "cgm": [
+    2.1,
+    0.39,
+    3.82
+   ],
+   "se": {
+    "lobby_paper500": 0.008546668230748103,
+    "lobby": 0.008269357576115317,
+    "player": 0.0087508874710742,
+    "twoway": 0.014578299242581156,
+    "slot_iid": 0.008692174170477043,
+    "cgm": 0.0087508874710742
+   },
+   "se_ratio_twoway_over_lobby": 1.706,
+   "raw": [
+    3.4,
+    1.73,
+    5.06
+   ],
+   "raw_cgm": [
+    3.4,
+    1.64,
+    5.15
+   ],
+   "raw_twoway": [
+    3.4,
+    0.48,
+    6.31
+   ],
+   "wp_gap": 1.292,
+   "coverage": {
+    "sel": 75.0,
+    "opp": 83.33,
+    "both": 64.27
+   },
+   "games_per_covered_slot": {
+    "sel": 6.0,
+    "opp": 7.0
+   },
+   "reuse": {
+    "covered_slots": 1928,
+    "distinct_player_hero_pairs": 1840,
+    "slots_in_repeated_triples": 171,
+    "distinct_players_covered": 1444
+   }
+  },
+  "DraftRec, pick-and-win rule": {
+   "opp": "DraftRec-pv",
+   "point": 3.523,
+   "lobby_paper500": [
+    3.52,
+    1.58,
+    5.47
+   ],
+   "lobby": [
+    3.52,
+    1.63,
+    5.42
+   ],
+   "player": [
+    3.52,
+    1.62,
+    5.43
+   ],
+   "twoway": [
+    3.52,
+    0.19,
+    6.86
+   ],
+   "max_oneway": [
+    3.52,
+    1.62,
+    5.43
+   ],
+   "cgm": [
+    3.52,
+    1.62,
+    5.43
+   ],
+   "se": {
+    "lobby_paper500": 0.009924500859478824,
+    "lobby": 0.009670448864311945,
+    "player": 0.009732729308479203,
+    "twoway": 0.017016853521106795,
+    "slot_iid": 0.010005893658071151,
+    "cgm": 0.009732729308479203
+   },
+   "se_ratio_twoway_over_lobby": 1.715,
+   "raw": [
+    3.05,
+    1.12,
+    4.98
+   ],
+   "raw_cgm": [
+    3.05,
+    1.08,
+    5.01
+   ],
+   "raw_twoway": [
+    3.05,
+    -0.37,
+    6.47
+   ],
+   "wp_gap": -0.476,
+   "coverage": {
+    "sel": 75.33,
+    "opp": 68.37,
+    "both": 53.17
+   },
+   "games_per_covered_slot": {
+    "sel": 6.0,
+    "opp": 5.0
+   },
+   "reuse": {
+    "covered_slots": 1595,
+    "distinct_player_hero_pairs": 1533,
+    "slots_in_repeated_triples": 120,
+    "distinct_players_covered": 1234
+   }
+  },
+  "Player-prior search": {
+   "opp": "aMCTS-pp",
+   "point": 0.665,
+   "lobby_paper500": [
+    0.67,
+    -0.99,
+    2.32
+   ],
+   "lobby": [
+    0.67,
+    -0.91,
+    2.24
+   ],
+   "player": [
+    0.67,
+    -0.86,
+    2.19
+   ],
+   "twoway": [
+    0.67,
+    -1.97,
+    3.3
+   ],
+   "max_oneway": [
+    0.67,
+    -0.91,
+    2.24
+   ],
+   "cgm": [
+    0.67,
+    -0.91,
+    2.24
+   ],
+   "se": {
+    "lobby_paper500": 0.00843205401753765,
+    "lobby": 0.008048644843149154,
+    "player": 0.007758081392888195,
+    "twoway": 0.013444761299555678,
+    "slot_iid": 0.007837290456997536,
+    "cgm": 0.008048644843149154
+   },
+   "se_ratio_twoway_over_lobby": 1.594,
+   "raw": [
+    0.62,
+    -0.98,
+    2.21
+   ],
+   "raw_cgm": [
+    0.62,
+    -0.98,
+    2.21
+   ],
+   "raw_twoway": [
+    0.62,
+    -2.06,
+    3.3
+   ],
+   "wp_gap": -0.048,
+   "coverage": {
+    "sel": 76.67,
+    "opp": 69.47,
+    "both": 60.23
+   },
+   "games_per_covered_slot": {
+    "sel": 7.0,
+    "opp": 5.0
+   },
+   "reuse": {
+    "covered_slots": 1807,
+    "distinct_player_hero_pairs": 1721,
+    "slots_in_repeated_triples": 159,
+    "distinct_players_covered": 1352
+   }
+  }
+ },
+ "pooled": {
+  "pMCTS-cur": {
+   "draws": {
+    "paper": [
+     4.77,
+     2.2,
+     7.34
+    ],
+    "A": [
+     3.92,
+     1.49,
+     6.34
+    ],
+    "loose171": [
+     -0.31,
+     -3.98,
+     3.36
+    ]
+   },
+   "weights": [
+    0.382,
+    0.431,
+    0.187
+   ],
+   "point": 3.453,
+   "paper_iv_pool": [
+    3.45,
+    1.86,
+    5.04
+   ],
+   "lobby": [
+    3.45,
+    1.93,
+    4.98
+   ],
+   "player": [
+    3.45,
+    1.86,
+    5.04
+   ],
+   "twoway": [
+    3.45,
+    0.84,
+    6.06
+   ],
+   "slot": [
+    3.45,
+    2.0,
+    4.91
+   ],
+   "cgm": [
+    3.45,
+    1.79,
+    5.11
+   ],
+   "se": {
+    "lobby": 0.007785797555147982,
+    "player": 0.008121627456272651,
+    "twoway": 0.013307760196962044,
+    "slot": 0.00741856178493785,
+    "cgm": 0.00845839329608702
+   },
+   "lobby_iv_independent_draws": [
+    3.41,
+    1.88,
+    4.93
+   ],
+   "player_iv_independent_draws": [
+    3.25,
+    1.77,
+    4.73
+   ],
+   "twoway_iv_independent_draws": [
+    3.29,
+    0.72,
+    5.86
+   ],
+   "raw": [
+    2.73,
+    1.17,
+    4.28
+   ],
+   "raw_cgm": [
+    2.73,
+    1.04,
+    4.42
+   ],
+   "raw_twoway": [
+    2.73,
+    0.08,
+    5.37
+   ],
+   "flat_771_mean": 3.31,
+   "coverage_both": [
+    36.7,
+    36.5,
+    37.9
+   ]
+  },
+  "Real": {
+   "draws": {
+    "paper": [
+     3.07,
+     1.05,
+     5.09
+    ],
+    "A": [
+     2.36,
+     0.52,
+     4.2
+    ],
+    "loose171": [
+     0.14,
+     -2.69,
+     2.98
+    ]
+   },
+   "weights": [
+    0.369,
+    0.444,
+    0.187
+   ],
+   "point": 2.207,
+   "paper_iv_pool": [
+    2.21,
+    0.98,
+    3.43
+   ],
+   "lobby": [
+    2.21,
+    0.99,
+    3.43
+   ],
+   "player": [
+    2.21,
+    0.89,
+    3.53
+   ],
+   "twoway": [
+    2.21,
+    -0.0,
+    4.42
+   ],
+   "slot": [
+    2.21,
+    1.03,
+    3.38
+   ],
+   "cgm": [
+    2.21,
+    0.84,
+    3.57
+   ],
+   "se": {
+    "lobby": 0.00623262358691087,
+    "player": 0.006739261420480511,
+    "twoway": 0.011266894352869017,
+    "slot": 0.005994741093063513,
+    "cgm": 0.006951713493580586
+   },
+   "lobby_iv_independent_draws": [
+    2.18,
+    0.96,
+    3.4
+   ],
+   "player_iv_independent_draws": [
+    2.11,
+    0.88,
+    3.33
+   ],
+   "twoway_iv_independent_draws": [
+    2.17,
+    0.1,
+    4.24
+   ],
+   "raw": [
+    3.38,
+    2.16,
+    4.6
+   ],
+   "raw_cgm": [
+    3.38,
+    2.01,
+    4.75
+   ],
+   "raw_twoway": [
+    3.38,
+    1.16,
+    5.61
+   ],
+   "flat_771_mean": 2.145,
+   "coverage_both": [
+    56.4,
+    55.8,
+    56.2
+   ]
+  },
+  "GD": {
+   "draws": {
+    "paper": [
+     3.62,
+     1.45,
+     5.79
+    ],
+    "A": [
+     5.08,
+     2.78,
+     7.38
+    ],
+    "loose171": [
+     -0.12,
+     -3.16,
+     2.92
+    ]
+   },
+   "weights": [
+    0.417,
+    0.371,
+    0.212
+   ],
+   "point": 3.369,
+   "paper_iv_pool": [
+    3.37,
+    1.97,
+    4.77
+   ],
+   "lobby": [
+    3.37,
+    1.95,
+    4.78
+   ],
+   "player": [
+    3.37,
+    1.87,
+    4.87
+   ],
+   "twoway": [
+    3.37,
+    0.89,
+    5.85
+   ],
+   "slot": [
+    3.37,
+    2.04,
+    4.7
+   ],
+   "cgm": [
+    3.37,
+    1.79,
+    4.94
+   ],
+   "se": {
+    "lobby": 0.007218440800377329,
+    "player": 0.007634491843073187,
+    "twoway": 0.012645470680105035,
+    "slot": 0.006768344386893074,
+    "cgm": 0.008036222218861059
+   },
+   "lobby_iv_independent_draws": [
+    3.44,
+    2.03,
+    4.85
+   ],
+   "player_iv_independent_draws": [
+    3.3,
+    1.91,
+    4.68
+   ],
+   "twoway_iv_independent_draws": [
+    3.34,
+    0.98,
+    5.7
+   ],
+   "raw": [
+    5.07,
+    3.62,
+    6.52
+   ],
+   "raw_cgm": [
+    5.07,
+    3.46,
+    6.68
+   ],
+   "raw_twoway": [
+    5.07,
+    2.55,
+    7.59
+   ],
+   "flat_771_mean": 3.361,
+   "coverage_both": [
+    47.7,
+    48.3,
+    49.1
+   ]
+  },
+  "DraftRec": {
+   "draws": {
+    "paper": [
+     2.1,
+     0.43,
+     3.78
+    ],
+    "A": [
+     2.96,
+     1.21,
+     4.71
+    ],
+    "loose171": [
+     0.95,
+     -1.15,
+     3.04
+    ]
+   },
+   "weights": [
+    0.391,
+    0.359,
+    0.249
+   ],
+   "point": 2.122,
+   "paper_iv_pool": [
+    2.12,
+    1.07,
+    3.17
+   ],
+   "lobby": [
+    2.12,
+    1.07,
+    3.17
+   ],
+   "player": [
+    2.12,
+    1.02,
+    3.23
+   ],
+   "twoway": [
+    2.12,
+    0.3,
+    3.94
+   ],
+   "slot": [
+    2.12,
+    1.09,
+    3.15
+   ],
+   "cgm": [
+    2.12,
+    1.0,
+    3.24
+   ],
+   "se": {
+    "lobby": 0.005353391865996528,
+    "player": 0.005631890525450709,
+    "twoway": 0.00928942259588509,
+    "slot": 0.005257125543985261,
+    "cgm": 0.005721855151640674
+   },
+   "lobby_iv_independent_draws": [
+    2.18,
+    1.13,
+    3.23
+   ],
+   "player_iv_independent_draws": [
+    2.18,
+    1.12,
+    3.24
+   ],
+   "twoway_iv_independent_draws": [
+    2.2,
+    0.4,
+    4.0
+   ],
+   "raw": [
+    3.4,
+    2.33,
+    4.48
+   ],
+   "raw_cgm": [
+    3.4,
+    2.25,
+    4.55
+   ],
+   "raw_twoway": [
+    3.4,
+    1.53,
+    5.27
+   ],
+   "flat_771_mean": 2.18,
+   "coverage_both": [
+    64.3,
+    64.0,
+    64.0
+   ]
+  }
+ },
+ "coverage_compare": {
+  "The earlier search drafter": {
+   "earlier games (all heroes)": {
+    "covered_median": 1323.0,
+    "uncovered_median": 830.0,
+    "covered_mean": 2277.7241379310344,
+    "uncovered_mean": 1566.2839831401475,
+    "std_mean_diff": 0.31568414915638077
+   },
+   "judge-window games (all heroes)": {
+    "covered_median": 105.0,
+    "uncovered_median": 56.0,
+    "covered_mean": 134.04627949183302,
+    "uncovered_mean": 82.22866174920969,
+    "std_mean_diff": 0.5406923678362089
+   },
+   "earlier games on the selected design's hero": {
+    "covered_median": 90.5,
+    "uncovered_median": 53.0,
+    "covered_mean": 259.2967332123412,
+    "uncovered_mean": 196.81296101159114,
+    "std_mean_diff": 0.1430290528223201
+   },
+   "earlier games on the comparator's hero": {
+    "covered_median": 41.0,
+    "uncovered_median": 5.0,
+    "covered_mean": 100.42377495462794,
+    "uncovered_mean": 23.622760800842993,
+    "std_mean_diff": 0.623211138329225
+   },
+   "as-of rank (MMR)": {
+    "covered_median": 2832.8214111328125,
+    "uncovered_median": 2799.2052001953125,
+    "covered_mean": 2831.311733903556,
+    "uncovered_mean": 2794.863837641082,
+    "std_mean_diff": 0.2231880624501685
+   },
+   "slot MMR": {
+    "covered_median": 2837.323486328125,
+    "uncovered_median": 2802.6126708984375,
+    "covered_mean": 2834.752920604228,
+    "uncovered_mean": 2799.8240564183516,
+    "std_mean_diff": 0.2167059221899673
+   },
+   "party size": {
+    "covered_median": 1.0,
+    "uncovered_median": 1.0,
+    "covered_mean": 2.000907441016334,
+    "uncovered_mean": 2.042676501580611,
+    "std_mean_diff": -0.03103024834935541
+   },
+   "solo share": {
+    "covered": 0.5290381125226861,
+    "uncovered": 0.5210748155953635
+   },
+   "tier share covered/uncovered": {
+    "high": [
+     0.5027223230490018,
+     0.41938883034773444
+    ],
+    "low": [
+     0.020871143375680582,
+     0.030031612223393046
+    ],
+    "mid": [
+     0.4764065335753176,
+     0.5505795574288725
+    ]
+   }
+  },
+  "Real drafts": {
+   "earlier games (all heroes)": {
+    "covered_median": 1216.5,
+    "uncovered_median": 753.5,
+    "covered_mean": 2135.547281323877,
+    "uncovered_mean": 1429.2912844036698,
+    "std_mean_diff": 0.3133838060347883
+   },
+   "judge-window games (all heroes)": {
+    "covered_median": 94.0,
+    "uncovered_median": 48.0,
+    "covered_mean": 125.4420803782506,
+    "uncovered_mean": 69.9854740061162,
+    "std_mean_diff": 0.5786634955015574
+   },
+   "earlier games on the selected design's hero": {
+    "covered_median": 97.5,
+    "uncovered_median": 33.5,
+    "covered_mean": 266.6501182033097,
+    "uncovered_mean": 128.86697247706422,
+    "std_mean_diff": 0.3328854139260569
+   },
+   "earlier games on the comparator's hero": {
+    "covered_median": 61.0,
+    "uncovered_median": 17.0,
+    "covered_mean": 157.4468085106383,
+    "uncovered_mean": 53.10626911314985,
+    "std_mean_diff": 0.4386960622869486
+   },
+   "as-of rank (MMR)": {
+    "covered_median": 2826.049072265625,
+    "uncovered_median": 2788.1026611328125,
+    "covered_mean": 2824.007803986822,
+    "uncovered_mean": 2787.871475733019,
+    "std_mean_diff": 0.22128018113718373
+   },
+   "slot MMR": {
+    "covered_median": 2831.3505859375,
+    "uncovered_median": 2792.5433349609375,
+    "covered_mean": 2827.2763443894983,
+    "uncovered_mean": 2793.7402162697704,
+    "std_mean_diff": 0.20806509860131997
+   },
+   "party size": {
+    "covered_median": 1.0,
+    "uncovered_median": 1.0,
+    "covered_mean": 1.9923167848699763,
+    "uncovered_mean": 2.0726299694189603,
+    "std_mean_diff": -0.05966469029025713
+   },
+   "solo share": {
+    "covered": 0.5384160756501182,
+    "uncovered": 0.5053516819571865
+   },
+   "tier share covered/uncovered": {
+    "high": [
+     0.4875886524822695,
+     0.4013761467889908
+    ],
+    "low": [
+     0.02186761229314421,
+     0.03287461773700306
+    ],
+    "mid": [
+     0.4905437352245863,
+     0.5657492354740061
+    ]
+   }
+  },
+  "Imitation drafter": {
+   "earlier games (all heroes)": {
+    "covered_median": 1378.0,
+    "uncovered_median": 744.5,
+    "covered_mean": 2262.469273743017,
+    "uncovered_mean": 1430.486607142857,
+    "std_mean_diff": 0.3691719373019181
+   },
+   "judge-window games (all heroes)": {
+    "covered_median": 101.0,
+    "uncovered_median": 51.0,
+    "covered_mean": 131.36382681564245,
+    "uncovered_mean": 73.77295918367346,
+    "std_mean_diff": 0.6009335037426318
+   },
+   "earlier games on the selected design's hero": {
+    "covered_median": 90.0,
+    "uncovered_median": 42.0,
+    "covered_mean": 258.0872905027933,
+    "uncovered_mean": 165.70344387755102,
+    "std_mean_diff": 0.21421799073436132
+   },
+   "earlier games on the comparator's hero": {
+    "covered_median": 57.0,
+    "uncovered_median": 15.0,
+    "covered_mean": 141.31843575418995,
+    "uncovered_mean": 45.30165816326531,
+    "std_mean_diff": 0.5292443043729886
+   },
+   "as-of rank (MMR)": {
+    "covered_median": 2827.3197021484375,
+    "uncovered_median": 2796.8316650390625,
+    "covered_mean": 2824.06011877646,
+    "uncovered_mean": 2793.815691655996,
+    "std_mean_diff": 0.18520122643899983
+   },
+   "slot MMR": {
+    "covered_median": 2831.0281982421875,
+    "uncovered_median": 2801.2012939453125,
+    "covered_mean": 2827.5543146399814,
+    "uncovered_mean": 2799.0471932547434,
+    "std_mean_diff": 0.1768640971516976
+   },
+   "party size": {
+    "covered_median": 1.0,
+    "uncovered_median": 1.0,
+    "covered_mean": 2.053072625698324,
+    "uncovered_mean": 2.003826530612245,
+    "std_mean_diff": 0.03658493966857198
+   },
+   "solo share": {
+    "covered": 0.5216480446927374,
+    "uncovered": 0.5261479591836735
+   },
+   "tier share covered/uncovered": {
+    "high": [
+     0.4860335195530726,
+     0.41709183673469385
+    ],
+    "low": [
+     0.020251396648044692,
+     0.032525510204081634
+    ],
+    "mid": [
+     0.4937150837988827,
+     0.5503826530612245
+    ]
+   }
+  },
+  "DraftRec, pick head": {
+   "earlier games (all heroes)": {
+    "covered_median": 1186.0,
+    "uncovered_median": 710.0,
+    "covered_mean": 2067.734958506224,
+    "uncovered_mean": 1395.7705223880596,
+    "std_mean_diff": 0.2981677655538864
+   },
+   "judge-window games (all heroes)": {
+    "covered_median": 89.0,
+    "uncovered_median": 45.0,
+    "covered_mean": 121.08558091286307,
+    "uncovered_mean": 65.61194029850746,
+    "std_mean_diff": 0.5788412397739133
+   },
+   "earlier games on the selected design's hero": {
+    "covered_median": 99.0,
+    "uncovered_median": 23.0,
+    "covered_mean": 281.30134854771785,
+    "uncovered_mean": 90.34514925373135,
+    "std_mean_diff": 0.4368604465345884
+   },
+   "earlier games on the comparator's hero": {
+    "covered_median": 72.0,
+    "uncovered_median": 27.0,
+    "covered_mean": 177.63589211618256,
+    "uncovered_mean": 71.02705223880596,
+    "std_mean_diff": 0.4097710737340673
+   },
+   "as-of rank (MMR)": {
+    "covered_median": 2824.228515625,
+    "uncovered_median": 2785.323486328125,
+    "covered_mean": 2821.8283310253096,
+    "uncovered_mean": 2783.8358884213576,
+    "std_mean_diff": 0.2326460652615351
+   },
+   "slot MMR": {
+    "covered_median": 2827.5513916015625,
+    "uncovered_median": 2787.269287109375,
+    "covered_mean": 2826.1603251730257,
+    "uncovered_mean": 2788.364431580501,
+    "std_mean_diff": 0.23449356762290097
+   },
+   "party size": {
+    "covered_median": 1.0,
+    "uncovered_median": 1.0,
+    "covered_mean": 2.0238589211618256,
+    "uncovered_mean": 2.033582089552239,
+    "std_mean_diff": -0.007223344883058404
+   },
+   "solo share": {
+    "covered": 0.5316390041493776,
+    "uncovered": 0.5102611940298507
+   },
+   "tier share covered/uncovered": {
+    "high": [
+     0.4828838174273859,
+     0.3908582089552239
+    ],
+    "low": [
+     0.023340248962655602,
+     0.03264925373134328
+    ],
+    "mid": [
+     0.49377593360995853,
+     0.5764925373134329
+    ]
+   }
+  },
+  "DraftRec, pick-and-win rule": {
+   "earlier games (all heroes)": {
+    "covered_median": 1264.0,
+    "uncovered_median": 750.0,
+    "covered_mean": 2197.520376175549,
+    "uncovered_mean": 1407.6967971530248,
+    "std_mean_diff": 0.3504648744498541
+   },
+   "judge-window games (all heroes)": {
+    "covered_median": 94.0,
+    "uncovered_median": 50.0,
+    "covered_mean": 126.1717868338558,
+    "uncovered_mean": 72.98576512455516,
+    "std_mean_diff": 0.5549710169353282
+   },
+   "earlier games on the selected design's hero": {
+    "covered_median": 96.0,
+    "uncovered_median": 36.0,
+    "covered_mean": 270.82758620689657,
+    "uncovered_mean": 153.02633451957294,
+    "std_mean_diff": 0.2704493057671077
+   },
+   "earlier games on the comparator's hero": {
+    "covered_median": 54.0,
+    "uncovered_median": 15.0,
+    "covered_mean": 137.79623824451411,
+    "uncovered_mean": 40.19430604982207,
+    "std_mean_diff": 0.49205508223073074
+   },
+   "as-of rank (MMR)": {
+    "covered_median": 2823.596435546875,
+    "uncovered_median": 2798.96484375,
+    "covered_mean": 2822.4659912874704,
+    "uncovered_mean": 2792.1166110327235,
+    "std_mean_diff": 0.18584390514176966
+   },
+   "slot MMR": {
+    "covered_median": 2827.567138671875,
+    "uncovered_median": 2801.69482421875,
+    "covered_mean": 2826.707973984865,
+    "uncovered_mean": 2796.70075379504,
+    "std_mean_diff": 0.1861710214505868
+   },
+   "party size": {
+    "covered_median": 1.0,
+    "uncovered_median": 1.0,
+    "covered_mean": 2.0282131661442007,
+    "uncovered_mean": 2.026334519572954,
+    "std_mean_diff": 0.001395647134001145
+   },
+   "solo share": {
+    "covered": 0.5329153605015674,
+    "uncovered": 0.5138790035587188
+   },
+   "tier share covered/uncovered": {
+    "high": [
+     0.47836990595611284,
+     0.41779359430604984
+    ],
+    "low": [
+     0.021316614420062698,
+     0.032740213523131674
+    ],
+    "mid": [
+     0.5003134796238244,
+     0.5494661921708185
+    ]
+   }
+  },
+  "Player-prior search": {
+   "earlier games (all heroes)": {
+    "covered_median": 1219.0,
+    "uncovered_median": 713.0,
+    "covered_mean": 2136.2933038184838,
+    "uncovered_mean": 1360.081307627829,
+    "std_mean_diff": 0.344425067846285
+   },
+   "judge-window games (all heroes)": {
+    "covered_median": 90.0,
+    "uncovered_median": 48.0,
+    "covered_mean": 123.2169341449917,
+    "uncovered_mean": 68.01005867560771,
+    "std_mean_diff": 0.5760576714785259
+   },
+   "earlier games on the selected design's hero": {
+    "covered_median": 105.0,
+    "uncovered_median": 29.0,
+    "covered_mean": 271.54067515218594,
+    "uncovered_mean": 129.3235540653814,
+    "std_mean_diff": 0.32643866705769425
+   },
+   "earlier games on the comparator's hero": {
+    "covered_median": 77.0,
+    "uncovered_median": 19.0,
+    "covered_mean": 196.4803541781959,
+    "uncovered_mean": 52.04945515507125,
+    "std_mean_diff": 0.5164684931089386
+   },
+   "as-of rank (MMR)": {
+    "covered_median": 2824.244140625,
+    "uncovered_median": 2792.294189453125,
+    "covered_mean": 2825.758902958763,
+    "uncovered_mean": 2781.7357560419177,
+    "std_mean_diff": 0.26957497882932036
+   },
+   "slot MMR": {
+    "covered_median": 2829.173583984375,
+    "uncovered_median": 2795.17822265625,
+    "covered_mean": 2829.6105261223715,
+    "uncovered_mean": 2786.971967212712,
+    "std_mean_diff": 0.2645384682478503
+   },
+   "party size": {
+    "covered_median": 1.0,
+    "uncovered_median": 1.0,
+    "covered_mean": 2.022136137244051,
+    "uncovered_mean": 2.0352053646269908,
+    "std_mean_diff": -0.009709133170537641
+   },
+   "solo share": {
+    "covered": 0.5279468732706143,
+    "uncovered": 0.5180217937971501
+   },
+   "tier share covered/uncovered": {
+    "high": [
+     0.48422800221361373,
+     0.39815590947191953
+    ],
+    "low": [
+     0.018262313226342003,
+     0.039396479463537304
+    ],
+    "mid": [
+     0.4975096845600443,
+     0.5624476110645432
+    ]
+   }
+  }
+ },
+ "recurrence": {
+  "paper": {
+   "slots": 3000,
+   "players": 2181,
+   "players_2plus": 536,
+   "slots_of_2plus": 1355,
+   "max": 9
+  },
+  "A_replicate": {
+   "slots": 3000,
+   "players": 2184,
+   "players_2plus": 548,
+   "slots_of_2plus": 1364,
+   "max": 7
+  },
+  "loose_171": {
+   "slots": 1710,
+   "players": 1474,
+   "players_2plus": 193,
+   "slots_of_2plus": 429,
+   "max": 6
+  },
+  "pooled_771": {
+   "slots": 7710,
+   "players": 4226,
+   "players_2plus": 1688,
+   "slots_of_2plus": 5172
+  },
+  "players_shared_between_draws": {
+   "paper&A": 831,
+   "paper&loose171": 542,
+   "A&loose171": 552
+  }
+ }
+}

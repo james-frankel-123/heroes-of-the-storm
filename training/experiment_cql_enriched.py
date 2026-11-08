@@ -190,7 +190,8 @@ def replay_to_enriched_transitions(replay, stats, group_indices, enriched_cols, 
 
         slot = step.get("player_slot", 0)
         acting_team = 0 if slot <= 4 else 1
-        outcome = 1.0 if winner != acting_team else 0.0
+        # the actor's outcome does not depend on which slot its team occupies
+        outcome = 1.0 if winner == acting_team else 0.0
 
         transitions.append({
             "state": state,
@@ -203,12 +204,14 @@ def replay_to_enriched_transitions(replay, stats, group_indices, enriched_cols, 
         if step_type == 0:
             bans2[hero_idx] = 1.0
         else:
+            # *_2 hold the original teams' picks; the swapped state above
+            # places team 1 first, so each team changes slot
             if acting_team == 0:
-                team1_picks_mh2[hero_idx] = 1.0
-                team1_heroes2.append(hero)
-            else:
                 team0_picks_mh2[hero_idx] = 1.0
                 team0_heroes2.append(hero)
+            else:
+                team1_picks_mh2[hero_idx] = 1.0
+                team1_heroes2.append(hero)
 
     return transitions
 

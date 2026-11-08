@@ -1,0 +1,9 @@
+{
+ "_note": "RLIMIT_DATA per process (ulimit -d), ~1.5x the measured VmData peak (memmon, ~/hots/memmon_state.json on the worker; 2026-10-03 10:47). Jobs not yet measured get the default; tighten as peaks come in.",
+ "_measured_vmdata_peak_gb": {"mcts_B (setup, value pretraining, self-play)": 7.2, "gourdeau_wp": 6.8, "iql": 3.4, "cql_build": 12.8, "disc_rich/rich_iql": 1.2},
+ "default": "16G",
+ "jobs": {"gourdeau_wp": "10G", "iql_t0.8_b3.0": "6G", "iql_t0.9_b1.0": "6G", "cql_build": "20G",
+          "disc_degen": "32G", "rich_iql": "8G", "rich_gourdeau": "8G", "rich_cql_a0.5": "8G",
+          "rich_cql_a1.0": "8G", "rich_bccql_b1.0": "8G"},
+ "mcts": {"default": "12G"}
+}

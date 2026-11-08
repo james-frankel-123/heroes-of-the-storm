@@ -1,9 +1,10 @@
 """
 Revised Fig. 1 (results at a glance) and Fig. scatter (safety vs synergy) for
 draft_revision.tex, from the revision's result files. Same layout and palette
-as paper/paper 1/scripts/gen_fig_glance.py and gen_fig_scatter.py; writes NEW
-files fig_glance_revision.{pdf,png} and fig_safety_context_revision.{pdf,png}
-into paper/paper 1/overleaf/ (the submitted figures are untouched).
+as paper/paper 1/scripts/gen_fig_glance.py and gen_fig_scatter.py; writes
+fig_glance_revision.{pdf,png} and fig_safety_context_revision.{pdf,png}.
+With P1_TIERS=site they go to site/results/figs/; the paper uses them as
+paper/paper 1/current/fig_glance.* and fig_safety_context.*.
 
 Glance columns: tournament consensus WP under the independent judges (mean
 of gN, gN_naive, RN, QM2026; composition-corrected v2 judges from
@@ -26,7 +27,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT = "/home/max/heroes-of-the-storm/paper/paper 1/overleaf/"
+OUT = "/home/max/heroes-of-the-storm/paper/paper 1/current/"
 from overfit2026 import data as _odata
 SITE = _odata.TIER_SCHEME == "site"
 if SITE:   # site rebuild: figures land next to the site results; copied in when the paper is updated
@@ -37,12 +38,12 @@ ACCENT, ACCENT2, NEUTRAL = "#2a78d6", "#8ab6e8", "#b9b7b1"
 TEXT, MUTED = "#0b0b0b", "#52514e"
 LABELS = {
     "constrained_mcts": "Ours + constraints", "mcts": "Ours (MCTS)",
-    "constrained_greedy": "Greedy + constraints", "enriched": "Enriched greedy search",
+    "constrained_greedy": "Greedy + constraints", "constrained_wr": "Top win rate + constraints", "enriched": "Enriched greedy search",
     "enriched_aug": "Greedy + synthetic data", "k_truebase": "MCTS, no domain features",
     "k_oof": "MCTS, no domain features",
-    "gourdeau": "WR-estimator search (G&A)", "cql_best": "Conservative RL (CQL, best)",
-    "gourdeau_disc": "Prof.-manifold discrim. (G&A)", "gd": "Imitating human drafts (BC)",
-    "mcq_t0.5": "Mildly conserv. RL (MCQ)",
+    "gourdeau": "WR-estimator search (Gourdeau)", "cql_best": "Conservative RL (CQL)",
+    "gourdeau_disc": "G&A discriminator", "gd": "Behavioral cloning (GD)",
+    "mcq_t0.5": "Thresholded CQL (TCQL)",
 }
 
 
@@ -53,6 +54,10 @@ def glance():
     v2 = os.path.join(core.RESULTS, "comp_rescore.json")
     if os.path.exists(v2):
         st = json.load(open(v2))["tournament"]["v2"]["standings"]
+    t12 = os.path.join(core.RESULTS, "tournament12.json")
+    if os.path.exists(t12):   # twelve-strategy round robin: the eleven plus the masked win-rate drafter
+        T12 = json.load(open(t12))
+        st, dm = T12["standings"]["v2"], T12["draft_metrics"]
     rows = []
     for s in st:
         rows.append((s, 100 * st[s]["consensus"]["mean"], dm[s]["synergy"], 100 * dm[s]["degen"]))
@@ -120,7 +125,7 @@ def glance():
 FAMILY = {"mcts": dict(marker="p", color="#2a78d6", label="MCTS"),
           "vf": dict(marker="o", color="#1baf7a", label="Value fn. search"),
           "cql": dict(marker="s", color="#4a3aa7", label="CQL / BC-CQL / IQL"),
-          "mcq": dict(marker="^", color="#e34948", label="MCQ"),
+          "mcq": dict(marker="^", color="#e34948", label="TCQL / MCQ"),
           "bc": dict(marker="D", color="#eda100", label="Behavioral anchoring")}
 
 
@@ -137,10 +142,15 @@ def scatter():
             for a_, v in json.load(open(ce)).items():
                 old[f"cql_enr_{a_}"] = {"metrics": {"degen_rate": v["degen"], "synergy": v["synergy"],
                                                     "entropy": v["entropy"]}}
+        mr = os.path.join(core.RESULTS, "mcq_real", "rich_mcq_real_l0.5.json")
+        if os.path.exists(mr):   # MCQ at the held-out-loss-selected weight (mcq_real.py)
+            v = json.load(open(mr))
+            old["mcq_real"] = {"metrics": {"degen_rate": v["degen"], "synergy": v["synergy"],
+                                           "entropy": v["entropy"]}}
     else:
         old = json.load(open(os.path.join(rr, "rich_evaluation_results.json")))
     pts = []
-    fam = {"gourdeau": "vf", "gd": "bc", "gourdeau_discriminator": "bc", "mcq_t0.5": "mcq"}
+    fam = {"gourdeau": "vf", "gd": "bc", "gourdeau_discriminator": "bc", "mcq_t0.5": "mcq", "mcq_real": "mcq"}
     for k, v in (old.items() if isinstance(old, dict) else []):
         m = v.get("metrics", v) if isinstance(v, dict) else None
         if not m or "degen_rate" not in m:
@@ -152,16 +162,11 @@ def scatter():
             continue
         pts.append((k, m["degen_rate"], m["synergy"], m.get("entropy", 4.5), f))
     G = json.load(open(os.path.join(core.RESULTS, "greedy_rich.json")))
-    for k, lab, f in (("enriched", "Enriched", "vf"),
+    for k, lab, f in (("enriched", "Enriched", "vf"), ("mcts", "MCTS", "mcts"),
                       ("constrained_mcts", "MCTS constr.", "mcts")):
         if k in G:
             pts.append((lab, G[k]["degen"], G[k]["synergy"], G[k]["entropy"], f))
-    S = json.load(open(os.path.join(core.RESULTS, "SUMMARY.json")))["mcts"]["configs"]
-    for k, lab in (("new:B_oof|T1", "MCTS 200s"), ("new:F_oof|T1", "MCTS 400s"),
-                   ("new:J_oof|T1", "MCTS 800s")):
-        if k in S:
-            v = S[k]
-            pts.append((lab, 100 * v["mean"]["degen"], v["mean"]["syn_hp"], v["entropy"], "mcts"))
+    # every point is a rich-evaluation row (Table IV protocol: policy argmax vs the GD pool)
     fig, ax = plt.subplots(figsize=(3.5, 2.12))
     for name, dg, syn, ent, f in pts:
         st = FAMILY[f]
@@ -169,7 +174,7 @@ def scatter():
                    edgecolors="white", linewidth=0.7, zorder=3)
         if f in ("mcts", "vf", "mcq") or name == "gourdeau_discriminator":
             lab = {"gourdeau": "Gourdeau est.", "gourdeau_discriminator": "G&A disc.",
-                   "mcq_t0.5": "MCQ"}.get(name, name)
+                   "mcq_t0.5": "TCQL", "mcq_real": "MCQ"}.get(name, name)
             off = {"MCTS 400s": (2, -10), "MCTS 800s": (5, 1), "MCTS 200s": (5, -9)}.get(lab, (4, 2))
             ax.annotate(lab, (dg, syn), xytext=off, textcoords="offset points", fontsize=5.8,
                         ha="right" if off[0] < 0 else "left",

@@ -2,13 +2,13 @@
   "model": "mcq_t0.5",
   "drafts": 200,
   "rich_metrics": {
-    "healer_rate": 0.0,
-    "degen_rate": 100.0,
-    "counter": -0.19,
-    "synergy": -0.76,
-    "distinct_heroes": 8,
-    "entropy": 2.71,
-    "top10_concentration": 100.0,
-    "gd_similarity": 0.0
+    "healer_rate": 86.0,
+    "degen_rate": 31.5,
+    "counter": -0.22,
+    "synergy": -0.1,
+    "distinct_heroes": 44,
+    "entropy": 4.49,
+    "top10_concentration": 67.0,
+    "gd_similarity": 6.6
   }
 }

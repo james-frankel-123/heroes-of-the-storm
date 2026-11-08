@@ -1,0 +1,292 @@
+[
+  {
+    "name": "no_aug",
+    "config": {
+      "name": "no_aug",
+      "wr": null,
+      "volume": 0,
+      "scope": "none"
+    },
+    "accuracy": 57.361698150634766,
+    "sanity_passed": 23,
+    "sanity_total": 28,
+    "degen_scores": {
+      "5 tanks": 0.16079668700695038,
+      "5 healers": 0.14332613348960876,
+      "5 ranged assassins": 0.3155013918876648,
+      "5 melee assassins": 0.3524942696094513,
+      "3T 2H no damage": 0.23735322058200836,
+      "No healer high WR": 0.3811241388320923
+    },
+    "healer_rate": 86.5,
+    "ranged_rate": 91.4,
+    "degen_rate": 19.8,
+    "healer_std": 1.55,
+    "degen_std": 1.62,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 87.2,
+        "ranged_rate": 91.10000000000001,
+        "degen_rate": 20.4
+      },
+      {
+        "seed": 1,
+        "healer_rate": 85.6,
+        "ranged_rate": 91.8,
+        "degen_rate": 21.3
+      },
+      {
+        "seed": 2,
+        "healer_rate": 84.1,
+        "ranged_rate": 92.5,
+        "degen_rate": 21.4
+      },
+      {
+        "seed": 3,
+        "healer_rate": 88.6,
+        "ranged_rate": 90.5,
+        "degen_rate": 17.2
+      },
+      {
+        "seed": 4,
+        "healer_rate": 87.2,
+        "ranged_rate": 90.9,
+        "degen_rate": 18.7
+      }
+    ],
+    "total_drafts": 5000
+  },
+  {
+    "name": "wr0",
+    "config": {
+      "name": "wr0",
+      "wr": 0.0,
+      "volume": 100,
+      "scope": "tier2_only"
+    },
+    "accuracy": 57.39235877990723,
+    "sanity_passed": 25,
+    "sanity_total": 28,
+    "degen_scores": {
+      "5 tanks": 0.0017489974852651358,
+      "5 healers": 0.026891129091382027,
+      "5 ranged assassins": 0.3010382354259491,
+      "5 melee assassins": 0.0012429257621988654,
+      "3T 2H no damage": 0.012914890423417091,
+      "No healer high WR": 0.3735024034976959
+    },
+    "healer_rate": 91.3,
+    "ranged_rate": 96.2,
+    "degen_rate": 16.3,
+    "healer_std": 0.44,
+    "degen_std": 0.44,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 91.3,
+        "ranged_rate": 95.7,
+        "degen_rate": 16.8
+      },
+      {
+        "seed": 1,
+        "healer_rate": 91.0,
+        "ranged_rate": 96.2,
+        "degen_rate": 16.3
+      },
+      {
+        "seed": 2,
+        "healer_rate": 90.7,
+        "ranged_rate": 95.89999999999999,
+        "degen_rate": 16.8
+      },
+      {
+        "seed": 3,
+        "healer_rate": 91.7,
+        "ranged_rate": 96.3,
+        "degen_rate": 16.0
+      },
+      {
+        "seed": 4,
+        "healer_rate": 91.9,
+        "ranged_rate": 97.0,
+        "degen_rate": 15.7
+      }
+    ],
+    "total_drafts": 5000
+  },
+  {
+    "name": "wr5",
+    "config": {
+      "name": "wr5",
+      "wr": 5.0,
+      "volume": 100,
+      "scope": "tier2_only"
+    },
+    "accuracy": 57.30547904968262,
+    "sanity_passed": 25,
+    "sanity_total": 28,
+    "degen_scores": {
+      "5 tanks": 0.027110178023576736,
+      "5 healers": 0.08048956841230392,
+      "5 ranged assassins": 0.3466390371322632,
+      "5 melee assassins": 0.05225061997771263,
+      "3T 2H no damage": 0.0948093980550766,
+      "No healer high WR": 0.3715739846229553
+    },
+    "healer_rate": 95.0,
+    "ranged_rate": 96.6,
+    "degen_rate": 12.6,
+    "healer_std": 0.14,
+    "degen_std": 0.36,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 95.19999999999999,
+        "ranged_rate": 96.2,
+        "degen_rate": 12.4
+      },
+      {
+        "seed": 1,
+        "healer_rate": 95.0,
+        "ranged_rate": 96.7,
+        "degen_rate": 12.1
+      },
+      {
+        "seed": 2,
+        "healer_rate": 95.1,
+        "ranged_rate": 97.1,
+        "degen_rate": 13.200000000000001
+      },
+      {
+        "seed": 3,
+        "healer_rate": 94.89999999999999,
+        "ranged_rate": 96.3,
+        "degen_rate": 12.7
+      },
+      {
+        "seed": 4,
+        "healer_rate": 94.8,
+        "ranged_rate": 96.5,
+        "degen_rate": 12.6
+      }
+    ],
+    "total_drafts": 5000
+  },
+  {
+    "name": "wr10",
+    "config": {
+      "name": "wr10",
+      "wr": 10.0,
+      "volume": 100,
+      "scope": "tier2_only"
+    },
+    "accuracy": 57.278650999069214,
+    "sanity_passed": 25,
+    "sanity_total": 28,
+    "degen_scores": {
+      "5 tanks": 0.052478719502687454,
+      "5 healers": 0.09989982843399048,
+      "5 ranged assassins": 0.3277384638786316,
+      "5 melee assassins": 0.0936008021235466,
+      "3T 2H no damage": 0.13767455518245697,
+      "No healer high WR": 0.3650099039077759
+    },
+    "healer_rate": 95.0,
+    "ranged_rate": 96.9,
+    "degen_rate": 12.3,
+    "healer_std": 0.94,
+    "degen_std": 1.33,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 95.8,
+        "ranged_rate": 97.2,
+        "degen_rate": 11.4
+      },
+      {
+        "seed": 1,
+        "healer_rate": 96.0,
+        "ranged_rate": 97.1,
+        "degen_rate": 11.700000000000001
+      },
+      {
+        "seed": 2,
+        "healer_rate": 93.4,
+        "ranged_rate": 97.3,
+        "degen_rate": 13.8
+      },
+      {
+        "seed": 3,
+        "healer_rate": 94.6,
+        "ranged_rate": 96.39999999999999,
+        "degen_rate": 13.900000000000002
+      },
+      {
+        "seed": 4,
+        "healer_rate": 95.19999999999999,
+        "ranged_rate": 96.5,
+        "degen_rate": 10.6
+      }
+    ],
+    "total_drafts": 5000
+  },
+  {
+    "name": "wr50",
+    "config": {
+      "name": "wr50",
+      "wr": 50.0,
+      "volume": 100,
+      "scope": "tier2_only"
+    },
+    "accuracy": 57.31825828552246,
+    "sanity_passed": 24,
+    "sanity_total": 28,
+    "degen_scores": {
+      "5 tanks": 0.42354583740234375,
+      "5 healers": 0.3524220585823059,
+      "5 ranged assassins": 0.3098577857017517,
+      "5 melee assassins": 0.4832647442817688,
+      "3T 2H no damage": 0.42048749327659607,
+      "No healer high WR": 0.40471723675727844
+    },
+    "healer_rate": 94.8,
+    "ranged_rate": 94.4,
+    "degen_rate": 8.1,
+    "healer_std": 0.59,
+    "degen_std": 0.72,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 95.3,
+        "ranged_rate": 94.5,
+        "degen_rate": 8.200000000000001
+      },
+      {
+        "seed": 1,
+        "healer_rate": 94.6,
+        "ranged_rate": 93.60000000000001,
+        "degen_rate": 8.1
+      },
+      {
+        "seed": 2,
+        "healer_rate": 94.8,
+        "ranged_rate": 94.8,
+        "degen_rate": 7.8
+      },
+      {
+        "seed": 3,
+        "healer_rate": 93.89999999999999,
+        "ranged_rate": 94.5,
+        "degen_rate": 9.4
+      },
+      {
+        "seed": 4,
+        "healer_rate": 95.6,
+        "ranged_rate": 94.69999999999999,
+        "degen_rate": 7.199999999999999
+      }
+    ],
+    "total_drafts": 5000
+  }
+]

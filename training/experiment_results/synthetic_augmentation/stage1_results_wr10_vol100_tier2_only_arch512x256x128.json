@@ -1,0 +1,109 @@
+[
+  {
+    "name": "baseline",
+    "config": {
+      "wr": null,
+      "volume": 0,
+      "scope": "none"
+    },
+    "accuracy": 57.5131893157959,
+    "eval": {
+      "sanity_passed": 24,
+      "sanity_total": 28,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 7,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 2,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 10,
+          "total": 10
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.1507164090871811,
+        "5 healers": 0.1346694678068161,
+        "5 ranged assassins": 0.2938458323478699,
+        "5 melee assassins": 0.35277050733566284,
+        "3T 2H no damage": 0.2501412034034729,
+        "No healer high WR": 0.387126624584198
+      },
+      "all_degen_below_25": false
+    },
+    "synthetic_stats": {
+      "total": 0
+    }
+  },
+  {
+    "name": "wr10.0_vol100_tier2_only",
+    "config": {
+      "wr": 10.0,
+      "volume": 100,
+      "scope": "tier2_only"
+    },
+    "accuracy": 57.30740427970886,
+    "all_accs": [
+      57.25216269493103,
+      57.362645864486694
+    ],
+    "eval": {
+      "sanity_passed": 26,
+      "sanity_total": 28,
+      "sanity_categories": {
+        "absurd": {
+          "passed": 8,
+          "total": 8
+        },
+        "trap": {
+          "passed": 5,
+          "total": 5
+        },
+        "normal": {
+          "passed": 3,
+          "total": 5
+        },
+        "symmetry": {
+          "passed": 10,
+          "total": 10
+        }
+      },
+      "degen_scores": {
+        "5 tanks": 0.05113830789923668,
+        "5 healers": 0.07692643254995346,
+        "5 ranged assassins": 0.3378811478614807,
+        "5 melee assassins": 0.08977838605642319,
+        "3T 2H no damage": 0.1183137521147728,
+        "No healer high WR": 0.38208794593811035
+      },
+      "all_degen_below_25": false
+    },
+    "best_seed": 0,
+    "synthetic_stats": {
+      "tier1": 0,
+      "tier2": 34400,
+      "by_tier": {
+        "low": {
+          "tier1": 0,
+          "tier2": 8800
+        },
+        "mid": {
+          "tier1": 0,
+          "tier2": 12500
+        },
+        "high": {
+          "tier1": 0,
+          "tier2": 13100
+        }
+      },
+      "total": 34400
+    }
+  }
+]

@@ -133,7 +133,8 @@ def replay_to_transitions(replay):
         acting_team = 0 if slot <= 4 else 1
         # In swapped view, team 0 becomes team 1 and vice versa
         swapped_team = 1 - acting_team
-        outcome_swapped = 1.0 if winner != acting_team else 0.0
+        # the actor's outcome does not depend on which slot its team occupies
+        outcome_swapped = 1.0 if winner == acting_team else 0.0
 
         transitions.append({
             "state": state,
@@ -147,11 +148,12 @@ def replay_to_transitions(replay):
         if step_type == 0:
             bans2[hero_idx] = 1.0
         else:
+            # team0_picks2/team1_picks2 hold the original teams' picks; the
+            # swapped state above places team 1 first, so each team changes slot
             if acting_team == 0:
-                # In original, team0 picked → in swapped view, goes to team1 slot
-                team1_picks2[hero_idx] = 1.0
-            else:
                 team0_picks2[hero_idx] = 1.0
+            else:
+                team1_picks2[hero_idx] = 1.0
 
     return transitions
 

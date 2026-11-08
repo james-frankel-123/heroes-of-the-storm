@@ -1,0 +1,237 @@
+[
+  {
+    "alpha": 0.1,
+    "healer_rate": 93.7,
+    "frontline_rate": 97.6,
+    "ranged_rate": 97.2,
+    "degen_rate": 7.8,
+    "healer_std": 0.83,
+    "degen_std": 0.8,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 93.2,
+        "frontline_rate": 97.7,
+        "ranged_rate": 97.6,
+        "degen_rate": 8.200000000000001
+      },
+      {
+        "seed": 1,
+        "healer_rate": 95.0,
+        "frontline_rate": 98.0,
+        "ranged_rate": 96.5,
+        "degen_rate": 6.5
+      },
+      {
+        "seed": 2,
+        "healer_rate": 93.8,
+        "frontline_rate": 97.0,
+        "ranged_rate": 96.8,
+        "degen_rate": 8.0
+      },
+      {
+        "seed": 3,
+        "healer_rate": 92.5,
+        "frontline_rate": 97.5,
+        "ranged_rate": 97.7,
+        "degen_rate": 8.9
+      },
+      {
+        "seed": 4,
+        "healer_rate": 93.89999999999999,
+        "frontline_rate": 97.6,
+        "ranged_rate": 97.2,
+        "degen_rate": 7.5
+      }
+    ],
+    "total_drafts": 5000
+  },
+  {
+    "alpha": 0.5,
+    "healer_rate": 96.3,
+    "frontline_rate": 98.4,
+    "ranged_rate": 99.4,
+    "degen_rate": 9.9,
+    "healer_std": 0.35,
+    "degen_std": 0.74,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 95.8,
+        "frontline_rate": 99.1,
+        "ranged_rate": 99.5,
+        "degen_rate": 9.9
+      },
+      {
+        "seed": 1,
+        "healer_rate": 96.1,
+        "frontline_rate": 98.2,
+        "ranged_rate": 99.2,
+        "degen_rate": 9.8
+      },
+      {
+        "seed": 2,
+        "healer_rate": 96.7,
+        "frontline_rate": 98.4,
+        "ranged_rate": 99.8,
+        "degen_rate": 8.6
+      },
+      {
+        "seed": 3,
+        "healer_rate": 96.7,
+        "frontline_rate": 97.7,
+        "ranged_rate": 99.0,
+        "degen_rate": 10.8
+      },
+      {
+        "seed": 4,
+        "healer_rate": 96.39999999999999,
+        "frontline_rate": 98.5,
+        "ranged_rate": 99.6,
+        "degen_rate": 10.4
+      }
+    ],
+    "total_drafts": 5000
+  },
+  {
+    "alpha": 1.0,
+    "healer_rate": 94.9,
+    "frontline_rate": 98.8,
+    "ranged_rate": 99.8,
+    "degen_rate": 6.5,
+    "healer_std": 0.22,
+    "degen_std": 0.56,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 94.89999999999999,
+        "frontline_rate": 99.1,
+        "ranged_rate": 99.8,
+        "degen_rate": 5.6000000000000005
+      },
+      {
+        "seed": 1,
+        "healer_rate": 95.19999999999999,
+        "frontline_rate": 98.4,
+        "ranged_rate": 99.9,
+        "degen_rate": 6.6000000000000005
+      },
+      {
+        "seed": 2,
+        "healer_rate": 94.89999999999999,
+        "frontline_rate": 98.8,
+        "ranged_rate": 99.7,
+        "degen_rate": 6.1
+      },
+      {
+        "seed": 3,
+        "healer_rate": 94.5,
+        "frontline_rate": 98.8,
+        "ranged_rate": 99.5,
+        "degen_rate": 7.1
+      },
+      {
+        "seed": 4,
+        "healer_rate": 94.8,
+        "frontline_rate": 98.8,
+        "ranged_rate": 100.0,
+        "degen_rate": 7.000000000000001
+      }
+    ],
+    "total_drafts": 5000
+  },
+  {
+    "alpha": 2.0,
+    "healer_rate": 92.0,
+    "frontline_rate": 97.1,
+    "ranged_rate": 98.1,
+    "degen_rate": 9.9,
+    "healer_std": 0.45,
+    "degen_std": 0.67,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 91.60000000000001,
+        "frontline_rate": 96.1,
+        "ranged_rate": 98.2,
+        "degen_rate": 10.4
+      },
+      {
+        "seed": 1,
+        "healer_rate": 92.2,
+        "frontline_rate": 97.6,
+        "ranged_rate": 97.1,
+        "degen_rate": 9.5
+      },
+      {
+        "seed": 2,
+        "healer_rate": 92.5,
+        "frontline_rate": 96.89999999999999,
+        "ranged_rate": 99.1,
+        "degen_rate": 9.3
+      },
+      {
+        "seed": 3,
+        "healer_rate": 91.3,
+        "frontline_rate": 97.3,
+        "ranged_rate": 98.6,
+        "degen_rate": 10.9
+      },
+      {
+        "seed": 4,
+        "healer_rate": 92.30000000000001,
+        "frontline_rate": 97.6,
+        "ranged_rate": 97.7,
+        "degen_rate": 9.2
+      }
+    ],
+    "total_drafts": 5000
+  },
+  {
+    "alpha": 5.0,
+    "healer_rate": 91.6,
+    "frontline_rate": 97.2,
+    "ranged_rate": 97.9,
+    "degen_rate": 10.2,
+    "healer_std": 0.64,
+    "degen_std": 0.85,
+    "seed_results": [
+      {
+        "seed": 0,
+        "healer_rate": 92.10000000000001,
+        "frontline_rate": 96.89999999999999,
+        "ranged_rate": 98.2,
+        "degen_rate": 9.6
+      },
+      {
+        "seed": 1,
+        "healer_rate": 92.30000000000001,
+        "frontline_rate": 98.0,
+        "ranged_rate": 97.0,
+        "degen_rate": 9.0
+      },
+      {
+        "seed": 2,
+        "healer_rate": 91.9,
+        "frontline_rate": 96.5,
+        "ranged_rate": 98.4,
+        "degen_rate": 10.100000000000001
+      },
+      {
+        "seed": 3,
+        "healer_rate": 90.5,
+        "frontline_rate": 97.6,
+        "ranged_rate": 97.8,
+        "degen_rate": 11.5
+      },
+      {
+        "seed": 4,
+        "healer_rate": 91.4,
+        "frontline_rate": 97.1,
+        "ranged_rate": 98.0,
+        "degen_rate": 10.6
+      }
+    ],
+    "total_drafts": 5000
+  }
+]

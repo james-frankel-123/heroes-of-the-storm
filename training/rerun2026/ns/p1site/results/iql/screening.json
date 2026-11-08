@@ -8,48 +8,48 @@
       "drafts_per_seed": 200,
       "metrics": {
         "healer_rate": 100.0,
-        "degen_rate": 2.5,
-        "counter": -0.14,
+        "degen_rate": 1.5,
+        "counter": -0.13,
         "synergy": 0.03,
         "distinct_heroes": 51,
-        "entropy": 4.59,
-        "top10_concentration": 68.3,
-        "gd_similarity": 67.9,
+        "entropy": 4.65,
+        "top10_concentration": 67.0,
+        "gd_similarity": 71.5,
         "map_adapt": {
           "Braxis Holdout": {
-            "map_rate": 26.3,
-            "other_rate": 40.3,
-            "delta": -14.0
+            "map_rate": 15.8,
+            "other_rate": 34.3,
+            "delta": -18.5
           },
           "Battlefield of Eternity": {
-            "map_rate": 64.7,
-            "other_rate": 83.6,
-            "delta": -18.9
+            "map_rate": 76.5,
+            "other_rate": 79.8,
+            "delta": -3.3
           },
           "Cursed Hollow": {
-            "map_rate": 33.3,
-            "other_rate": 14.7,
-            "delta": 18.7
+            "map_rate": 55.6,
+            "other_rate": 12.0,
+            "delta": 43.5
           }
         }
       },
       "seed_metrics": [
         {
-          "degen": 2.5,
-          "counter": -0.13980400000000018,
-          "synergy": 0.02554499999999994
+          "degen": 1.5,
+          "counter": -0.13231400000000015,
+          "synergy": 0.029080000000000005
         }
       ],
       "degen_std": 0.0,
       "counter_std": 0.0,
       "synergy_std": 0.0,
       "train_metrics": {
-        "epoch": 9,
-        "q_test_loss": 0.6948276874883438,
-        "v_test_loss": 3.719135272821367e-06,
-        "pi_test_loss": 3.5029858138455956,
-        "q_action_match": 0.6521617473058106,
-        "pi_action_match": 13.506323750439705
+        "epoch": 4,
+        "q_test_loss": 0.6939418975463137,
+        "v_test_loss": 0.0003659414672213548,
+        "pi_test_loss": 3.474938173578605,
+        "q_action_match": 1.132838732371846,
+        "pi_action_match": 13.439768475584406
       }
     },
     "t0.7_b3.0": {
@@ -59,48 +59,48 @@
       "drafts_per_seed": 200,
       "metrics": {
         "healer_rate": 100.0,
-        "degen_rate": 3.0,
-        "counter": -0.14,
-        "synergy": 0.0,
-        "distinct_heroes": 53,
-        "entropy": 4.63,
-        "top10_concentration": 68.0,
-        "gd_similarity": 70.1,
+        "degen_rate": 2.0,
+        "counter": -0.12,
+        "synergy": 0.07,
+        "distinct_heroes": 56,
+        "entropy": 4.72,
+        "top10_concentration": 66.0,
+        "gd_similarity": 67.2,
         "map_adapt": {
           "Braxis Holdout": {
-            "map_rate": 26.3,
-            "other_rate": 35.9,
-            "delta": -9.6
+            "map_rate": 21.1,
+            "other_rate": 41.4,
+            "delta": -20.4
           },
           "Battlefield of Eternity": {
             "map_rate": 70.6,
-            "other_rate": 83.6,
-            "delta": -13.0
+            "other_rate": 83.1,
+            "delta": -12.5
           },
           "Cursed Hollow": {
-            "map_rate": 44.4,
-            "other_rate": 14.1,
-            "delta": 30.3
+            "map_rate": 55.6,
+            "other_rate": 13.6,
+            "delta": 41.9
           }
         }
       },
       "seed_metrics": [
         {
-          "degen": 3.0,
-          "counter": -0.14405200000000007,
-          "synergy": 0.001000000000000032
+          "degen": 2.0,
+          "counter": -0.12136799999999993,
+          "synergy": 0.06792000000000015
         }
       ],
       "degen_std": 0.0,
       "counter_std": 0.0,
       "synergy_std": 0.0,
       "train_metrics": {
-        "epoch": 9,
-        "q_test_loss": 0.6948276874883438,
-        "v_test_loss": 3.719135272821367e-06,
-        "pi_test_loss": 3.500175235757196,
-        "q_action_match": 0.6521617473058106,
-        "pi_action_match": 13.49673019730741
+        "epoch": 4,
+        "q_test_loss": 0.6939418975463137,
+        "v_test_loss": 0.0003659414672213548,
+        "pi_test_loss": 3.420297665437576,
+        "q_action_match": 1.132838732371846,
+        "pi_action_match": 13.424878481660324
       }
     },
     "t0.8_b1.0": {
@@ -110,48 +110,48 @@
       "drafts_per_seed": 200,
       "metrics": {
         "healer_rate": 100.0,
-        "degen_rate": 4.5,
-        "counter": -0.12,
-        "synergy": -0.0,
+        "degen_rate": 4.0,
+        "counter": -0.15,
+        "synergy": 0.01,
         "distinct_heroes": 53,
-        "entropy": 4.53,
-        "top10_concentration": 70.0,
-        "gd_similarity": 69.9,
+        "entropy": 4.59,
+        "top10_concentration": 68.8,
+        "gd_similarity": 73.1,
         "map_adapt": {
           "Braxis Holdout": {
-            "map_rate": 31.6,
-            "other_rate": 33.7,
-            "delta": -2.1
+            "map_rate": 21.1,
+            "other_rate": 35.4,
+            "delta": -14.3
           },
           "Battlefield of Eternity": {
-            "map_rate": 58.8,
-            "other_rate": 84.7,
-            "delta": -25.9
+            "map_rate": 70.6,
+            "other_rate": 82.0,
+            "delta": -11.4
           },
           "Cursed Hollow": {
-            "map_rate": 33.3,
-            "other_rate": 15.2,
-            "delta": 18.2
+            "map_rate": 55.6,
+            "other_rate": 13.6,
+            "delta": 41.9
           }
         }
       },
       "seed_metrics": [
         {
-          "degen": 4.5,
-          "counter": -0.11736400000000012,
-          "synergy": -0.004914999999999967
+          "degen": 4.0,
+          "counter": -0.146442,
+          "synergy": 0.006390000000000011
         }
       ],
       "degen_std": 0.0,
       "counter_std": 0.0,
       "synergy_std": 0.0,
       "train_metrics": {
-        "epoch": 9,
-        "q_test_loss": 0.6948276874883438,
-        "v_test_loss": 2.7081920977329463e-06,
-        "pi_test_loss": 3.5019048605587044,
-        "q_action_match": 0.6521617473058106,
-        "pi_action_match": 13.49772952575869
+        "epoch": 4,
+        "q_test_loss": 0.6939418975463137,
+        "v_test_loss": 0.000311552888286937,
+        "pi_test_loss": 3.4566625914885196,
+        "q_action_match": 1.132838732371846,
+        "pi_action_match": 13.470247993348469
       }
     },
     "t0.8_b3.0": {
@@ -161,48 +161,48 @@
       "drafts_per_seed": 200,
       "metrics": {
         "healer_rate": 100.0,
-        "degen_rate": 2.0,
+        "degen_rate": 1.5,
         "counter": -0.13,
-        "synergy": 0.01,
-        "distinct_heroes": 51,
-        "entropy": 4.57,
-        "top10_concentration": 68.7,
-        "gd_similarity": 70.0,
+        "synergy": 0.05,
+        "distinct_heroes": 55,
+        "entropy": 4.67,
+        "top10_concentration": 67.3,
+        "gd_similarity": 68.0,
         "map_adapt": {
           "Braxis Holdout": {
-            "map_rate": 21.1,
-            "other_rate": 35.4,
-            "delta": -14.3
+            "map_rate": 15.8,
+            "other_rate": 43.1,
+            "delta": -27.3
           },
           "Battlefield of Eternity": {
-            "map_rate": 76.5,
-            "other_rate": 85.2,
-            "delta": -8.8
+            "map_rate": 58.8,
+            "other_rate": 80.9,
+            "delta": -22.1
           },
           "Cursed Hollow": {
-            "map_rate": 33.3,
-            "other_rate": 15.7,
-            "delta": 17.6
+            "map_rate": 55.6,
+            "other_rate": 13.1,
+            "delta": 42.5
           }
         }
       },
       "seed_metrics": [
         {
-          "degen": 2.0,
-          "counter": -0.13496200000000003,
-          "synergy": 0.007575000000000003
+          "degen": 1.5,
+          "counter": -0.12830000000000003,
+          "synergy": 0.04948000000000007
         }
       ],
       "degen_std": 0.0,
       "counter_std": 0.0,
       "synergy_std": 0.0,
       "train_metrics": {
-        "epoch": 9,
-        "q_test_loss": 0.6948276874883438,
-        "v_test_loss": 2.7081920977329463e-06,
-        "pi_test_loss": 3.4965017785391965,
-        "q_action_match": 0.6521617473058106,
-        "pi_action_match": 13.511919989766877
+        "epoch": 4,
+        "q_test_loss": 0.6939418975463137,
+        "v_test_loss": 0.000311552888286937,
+        "pi_test_loss": 3.3662871684993307,
+        "q_action_match": 1.132838732371846,
+        "pi_action_match": 13.415384861373159
       }
     },
     "t0.9_b1.0": {
@@ -211,49 +211,49 @@
       "seeds": 1,
       "drafts_per_seed": 200,
       "metrics": {
-        "healer_rate": 100.0,
-        "degen_rate": 1.5,
+        "healer_rate": 99.5,
+        "degen_rate": 3.5,
         "counter": -0.14,
-        "synergy": 0.04,
-        "distinct_heroes": 54,
-        "entropy": 4.62,
-        "top10_concentration": 68.5,
-        "gd_similarity": 71.7,
+        "synergy": 0.02,
+        "distinct_heroes": 51,
+        "entropy": 4.65,
+        "top10_concentration": 67.6,
+        "gd_similarity": 70.4,
         "map_adapt": {
           "Braxis Holdout": {
-            "map_rate": 36.8,
-            "other_rate": 39.2,
-            "delta": -2.4
+            "map_rate": 15.8,
+            "other_rate": 38.1,
+            "delta": -22.3
           },
           "Battlefield of Eternity": {
-            "map_rate": 70.6,
-            "other_rate": 80.3,
-            "delta": -9.7
+            "map_rate": 76.5,
+            "other_rate": 80.9,
+            "delta": -4.4
           },
           "Cursed Hollow": {
             "map_rate": 44.4,
-            "other_rate": 14.7,
-            "delta": 29.8
+            "other_rate": 13.6,
+            "delta": 30.8
           }
         }
       },
       "seed_metrics": [
         {
-          "degen": 1.5,
-          "counter": -0.14166200000000012,
-          "synergy": 0.0360400000000001
+          "degen": 3.5000000000000004,
+          "counter": -0.14021800000000006,
+          "synergy": 0.02370000000000001
         }
       ],
       "degen_std": 0.0,
       "counter_std": 0.0,
       "synergy_std": 0.0,
       "train_metrics": {
-        "epoch": 9,
-        "q_test_loss": 0.6948276874883438,
-        "v_test_loss": 1.577865950980379e-06,
-        "pi_test_loss": 3.499760844306376,
-        "q_action_match": 0.6521617473058106,
-        "pi_action_match": 13.507123213200728
+        "epoch": 4,
+        "q_test_loss": 0.6939418975463137,
+        "v_test_loss": 0.00021946052781429714,
+        "pi_test_loss": 3.427823210810148,
+        "q_action_match": 1.132838732371846,
+        "pi_action_match": 13.471347254644877
       }
     },
     "t0.9_b3.0": {
@@ -262,14 +262,14 @@
       "seeds": 1,
       "drafts_per_seed": 200,
       "metrics": {
-        "healer_rate": 100.0,
-        "degen_rate": 3.0,
-        "counter": -0.14,
-        "synergy": -0.0,
-        "distinct_heroes": 55,
-        "entropy": 4.61,
-        "top10_concentration": 68.5,
-        "gd_similarity": 69.7,
+        "healer_rate": 99.5,
+        "degen_rate": 3.5,
+        "counter": -0.15,
+        "synergy": 0.01,
+        "distinct_heroes": 56,
+        "entropy": 4.62,
+        "top10_concentration": 68.6,
+        "gd_similarity": 69.0,
         "map_adapt": {
           "Braxis Holdout": {
             "map_rate": 15.8,
@@ -277,34 +277,34 @@
             "delta": -21.8
           },
           "Battlefield of Eternity": {
-            "map_rate": 64.7,
-            "other_rate": 84.7,
-            "delta": -20.0
+            "map_rate": 76.5,
+            "other_rate": 83.6,
+            "delta": -7.1
           },
           "Cursed Hollow": {
-            "map_rate": 33.3,
-            "other_rate": 14.1,
-            "delta": 19.2
+            "map_rate": 44.4,
+            "other_rate": 12.0,
+            "delta": 32.4
           }
         }
       },
       "seed_metrics": [
         {
-          "degen": 3.0,
-          "counter": -0.13829800000000017,
-          "synergy": -5.00000000005052e-06
+          "degen": 3.5000000000000004,
+          "counter": -0.1518259999999999,
+          "synergy": 0.00534500000000012
         }
       ],
       "degen_std": 0.0,
       "counter_std": 0.0,
       "synergy_std": 0.0,
       "train_metrics": {
-        "epoch": 9,
-        "q_test_loss": 0.6948276874883438,
-        "v_test_loss": 1.577865950980379e-06,
-        "pi_test_loss": 3.4911436096974082,
-        "q_action_match": 0.6521617473058106,
-        "pi_action_match": 13.491733555051006
+        "epoch": 4,
+        "q_test_loss": 0.6939418975463137,
+        "v_test_loss": 0.00021946052781429714,
+        "pi_test_loss": 3.285584527627122,
+        "q_action_match": 1.132838732371846,
+        "pi_action_match": 13.403992517028557
       }
     }
   }

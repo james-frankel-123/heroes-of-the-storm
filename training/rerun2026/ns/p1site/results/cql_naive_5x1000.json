@@ -3,245 +3,245 @@
     "alpha": 0.1,
     "seed_results": [
       {
-        "healer": 96.6,
-        "frontline": 97.6,
-        "ranged": 98.1,
-        "degen": 11.0,
+        "healer": 99.1,
+        "frontline": 99.4,
+        "ranged": 98.7,
+        "degen": 1.3,
         "seed": 0
       },
       {
-        "healer": 98.2,
-        "frontline": 98.2,
-        "ranged": 98.2,
-        "degen": 8.799999999999999,
+        "healer": 99.4,
+        "frontline": 99.6,
+        "ranged": 98.5,
+        "degen": 0.8,
         "seed": 1
       },
       {
-        "healer": 98.1,
-        "frontline": 98.0,
-        "ranged": 98.1,
-        "degen": 8.9,
+        "healer": 99.4,
+        "frontline": 99.1,
+        "ranged": 97.8,
+        "degen": 0.7000000000000001,
         "seed": 2
       },
       {
-        "healer": 96.8,
-        "frontline": 98.0,
+        "healer": 99.4,
+        "frontline": 99.6,
         "ranged": 98.2,
-        "degen": 8.7,
+        "degen": 0.8,
         "seed": 3
       },
       {
-        "healer": 97.7,
-        "frontline": 97.6,
-        "ranged": 98.5,
-        "degen": 9.3,
+        "healer": 99.4,
+        "frontline": 99.3,
+        "ranged": 97.89999999999999,
+        "degen": 0.8999999999999999,
         "seed": 4
       }
     ],
     "total_drafts": 5000,
-    "healer_rate": 97.47999999999999,
-    "healer_std": 0.661513416341651,
-    "frontline_rate": 97.88,
-    "frontline_std": 0.2400000000000034,
+    "healer_rate": 99.33999999999999,
+    "healer_std": 0.12000000000000453,
+    "frontline_rate": 99.4,
+    "frontline_std": 0.18973665961010247,
     "ranged_rate": 98.22,
-    "ranged_std": 0.14696938456699238,
-    "degen_rate": 9.339999999999998,
-    "degen_std": 0.8546344247688601
+    "ranged_std": 0.342928563989648,
+    "degen_rate": 0.9,
+    "degen_std": 0.20976176963403032
   },
   {
     "alpha": 0.5,
     "seed_results": [
       {
-        "healer": 99.5,
+        "healer": 98.9,
         "frontline": 99.8,
-        "ranged": 99.2,
-        "degen": 4.2,
+        "ranged": 99.5,
+        "degen": 1.5,
         "seed": 0
       },
       {
-        "healer": 99.8,
-        "frontline": 99.8,
-        "ranged": 99.6,
-        "degen": 2.7,
+        "healer": 99.4,
+        "frontline": 99.7,
+        "ranged": 99.3,
+        "degen": 0.8999999999999999,
         "seed": 1
       },
       {
-        "healer": 99.9,
-        "frontline": 99.9,
-        "ranged": 98.8,
-        "degen": 3.8,
+        "healer": 99.4,
+        "frontline": 99.7,
+        "ranged": 99.3,
+        "degen": 0.8999999999999999,
         "seed": 2
       },
       {
-        "healer": 99.6,
-        "frontline": 99.4,
+        "healer": 99.3,
+        "frontline": 99.7,
         "ranged": 99.0,
-        "degen": 3.3000000000000003,
+        "degen": 0.8999999999999999,
         "seed": 3
       },
       {
-        "healer": 99.5,
-        "frontline": 99.4,
-        "ranged": 98.8,
-        "degen": 3.8,
+        "healer": 98.9,
+        "frontline": 99.8,
+        "ranged": 99.4,
+        "degen": 1.4000000000000001,
         "seed": 4
       }
     ],
     "total_drafts": 5000,
-    "healer_rate": 99.66000000000001,
-    "healer_std": 0.16248076809272083,
-    "frontline_rate": 99.66,
-    "frontline_std": 0.21540659228537795,
-    "ranged_rate": 99.08000000000001,
-    "ranged_std": 0.2993325909419146,
-    "degen_rate": 3.56,
-    "degen_std": 0.5161395160225575
+    "healer_rate": 99.18000000000002,
+    "healer_std": 0.23151673805580364,
+    "frontline_rate": 99.74,
+    "frontline_std": 0.04898979485566078,
+    "ranged_rate": 99.3,
+    "ranged_std": 0.16733200530681577,
+    "degen_rate": 1.1199999999999999,
+    "degen_std": 0.2712931993250108
   },
   {
     "alpha": 1.0,
     "seed_results": [
       {
-        "healer": 99.8,
-        "frontline": 99.6,
+        "healer": 99.0,
+        "frontline": 99.7,
         "ranged": 99.4,
-        "degen": 3.9,
+        "degen": 1.7999999999999998,
         "seed": 0
       },
       {
-        "healer": 99.6,
-        "frontline": 99.8,
-        "ranged": 99.2,
-        "degen": 2.9000000000000004,
+        "healer": 99.7,
+        "frontline": 99.4,
+        "ranged": 99.7,
+        "degen": 0.6,
         "seed": 1
       },
       {
-        "healer": 99.7,
-        "frontline": 99.2,
-        "ranged": 99.1,
-        "degen": 3.3000000000000003,
+        "healer": 99.9,
+        "frontline": 100.0,
+        "ranged": 99.5,
+        "degen": 0.3,
         "seed": 2
       },
       {
         "healer": 99.6,
-        "frontline": 99.5,
+        "frontline": 99.4,
         "ranged": 99.3,
-        "degen": 3.4000000000000004,
+        "degen": 0.7000000000000001,
         "seed": 3
       },
       {
-        "healer": 99.3,
-        "frontline": 99.6,
-        "ranged": 98.9,
-        "degen": 3.5999999999999996,
+        "healer": 99.6,
+        "frontline": 99.8,
+        "ranged": 99.3,
+        "degen": 0.8999999999999999,
         "seed": 4
       }
     ],
     "total_drafts": 5000,
-    "healer_rate": 99.6,
-    "healer_std": 0.16733200530681577,
-    "frontline_rate": 99.53999999999999,
-    "frontline_std": 0.19595917942265179,
-    "ranged_rate": 99.18000000000002,
-    "ranged_std": 0.1720465053408523,
-    "degen_rate": 3.4200000000000004,
-    "degen_std": 0.3310589071449368
+    "healer_rate": 99.56000000000002,
+    "healer_std": 0.3006659275674594,
+    "frontline_rate": 99.66,
+    "frontline_std": 0.23323807579380926,
+    "ranged_rate": 99.44000000000001,
+    "ranged_std": 0.14966629547095942,
+    "degen_rate": 0.86,
+    "degen_std": 0.5083306010855534
   },
   {
     "alpha": 2.0,
     "seed_results": [
       {
-        "healer": 99.4,
-        "frontline": 99.3,
-        "ranged": 99.4,
-        "degen": 2.3,
+        "healer": 99.7,
+        "frontline": 99.6,
+        "ranged": 99.8,
+        "degen": 0.8,
         "seed": 0
       },
       {
-        "healer": 99.6,
-        "frontline": 99.6,
-        "ranged": 99.2,
-        "degen": 2.0,
+        "healer": 99.4,
+        "frontline": 99.7,
+        "ranged": 99.6,
+        "degen": 1.0,
         "seed": 1
       },
       {
-        "healer": 100.0,
-        "frontline": 99.5,
-        "ranged": 99.6,
-        "degen": 1.7000000000000002,
+        "healer": 99.8,
+        "frontline": 99.9,
+        "ranged": 99.4,
+        "degen": 0.5,
         "seed": 2
       },
       {
-        "healer": 99.7,
-        "frontline": 99.9,
-        "ranged": 99.0,
-        "degen": 1.5,
+        "healer": 99.9,
+        "frontline": 99.6,
+        "ranged": 99.3,
+        "degen": 0.6,
         "seed": 3
       },
       {
         "healer": 99.4,
-        "frontline": 99.8,
-        "ranged": 99.2,
-        "degen": 1.9,
+        "frontline": 99.7,
+        "ranged": 99.6,
+        "degen": 1.2,
         "seed": 4
       }
     ],
     "total_drafts": 5000,
-    "healer_rate": 99.62,
-    "healer_std": 0.22271057451319892,
-    "frontline_rate": 99.61999999999999,
-    "frontline_std": 0.21354156504062818,
-    "ranged_rate": 99.28,
-    "ranged_std": 0.20396078054370984,
-    "degen_rate": 1.8800000000000001,
-    "degen_std": 0.27129319932501067
+    "healer_rate": 99.64000000000001,
+    "healer_std": 0.20591260281973853,
+    "frontline_rate": 99.70000000000002,
+    "frontline_std": 0.10954451150103738,
+    "ranged_rate": 99.53999999999999,
+    "ranged_std": 0.17435595774162518,
+    "degen_rate": 0.82,
+    "degen_std": 0.25612496949731395
   },
   {
     "alpha": 5.0,
     "seed_results": [
       {
-        "healer": 99.7,
-        "frontline": 98.8,
+        "healer": 99.9,
+        "frontline": 99.6,
         "ranged": 99.4,
-        "degen": 3.2,
+        "degen": 3.8,
         "seed": 0
       },
       {
-        "healer": 99.7,
+        "healer": 99.8,
         "frontline": 99.5,
-        "ranged": 99.1,
-        "degen": 1.7999999999999998,
+        "ranged": 99.3,
+        "degen": 3.2,
         "seed": 1
       },
       {
-        "healer": 100.0,
-        "frontline": 99.7,
-        "ranged": 99.3,
-        "degen": 1.7000000000000002,
+        "healer": 99.9,
+        "frontline": 99.8,
+        "ranged": 98.9,
+        "degen": 3.3000000000000003,
         "seed": 2
       },
       {
-        "healer": 99.7,
-        "frontline": 99.8,
-        "ranged": 99.1,
-        "degen": 2.8000000000000003,
+        "healer": 99.9,
+        "frontline": 99.6,
+        "ranged": 98.9,
+        "degen": 3.3000000000000003,
         "seed": 3
       },
       {
-        "healer": 99.5,
-        "frontline": 99.6,
-        "ranged": 99.0,
-        "degen": 2.0,
+        "healer": 99.3,
+        "frontline": 99.9,
+        "ranged": 99.2,
+        "degen": 2.6,
         "seed": 4
       }
     ],
     "total_drafts": 5000,
-    "healer_rate": 99.72,
-    "healer_std": 0.1599999999999998,
-    "frontline_rate": 99.47999999999999,
-    "frontline_std": 0.35440090293338755,
-    "ranged_rate": 99.17999999999999,
-    "ranged_std": 0.14696938456699316,
-    "degen_rate": 2.3,
-    "degen_std": 0.5932958789676531
+    "healer_rate": 99.76,
+    "healer_std": 0.2332380757938151,
+    "frontline_rate": 99.67999999999999,
+    "frontline_std": 0.14696938456699316,
+    "ranged_rate": 99.14,
+    "ranged_std": 0.2059126028197385,
+    "degen_rate": 3.2400000000000007,
+    "degen_std": 0.38262252939417973
   }
 ]

@@ -4,11 +4,11 @@
   "rich_metrics": {
     "healer_rate": 100.0,
     "degen_rate": 1.0,
-    "counter": -0.12,
-    "synergy": -0.04,
-    "distinct_heroes": 53,
-    "entropy": 4.53,
-    "top10_concentration": 68.8,
-    "gd_similarity": 73.4
+    "counter": -0.13,
+    "synergy": -0.03,
+    "distinct_heroes": 52,
+    "entropy": 4.58,
+    "top10_concentration": 68.5,
+    "gd_similarity": 74.3
   }
 }
