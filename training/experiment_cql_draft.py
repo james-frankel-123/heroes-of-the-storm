@@ -82,7 +82,8 @@ def replay_to_transitions(replay):
 
         # Determine acting team
         slot = step.get("player_slot", 0)
-        acting_team = 0 if slot <= 4 else 1
+        # picks carry the player's seat (0-4 team 0, 5-9 team 1); bans carry the team as 1 or 2
+        acting_team = (slot - 1) if step_type == 0 else (0 if slot <= 4 else 1)
 
         # MC return: did this team's side win?
         outcome_for_actor = 1.0 if winner == acting_team else 0.0
@@ -130,7 +131,8 @@ def replay_to_transitions(replay):
             valid[idx] = 0.0
 
         slot = step.get("player_slot", 0)
-        acting_team = 0 if slot <= 4 else 1
+        # picks carry the player's seat (0-4 team 0, 5-9 team 1); bans carry the team as 1 or 2
+        acting_team = (slot - 1) if step_type == 0 else (0 if slot <= 4 else 1)
         # In swapped view, team 0 becomes team 1 and vice versa
         swapped_team = 1 - acting_team
         # the actor's outcome does not depend on which slot its team occupies

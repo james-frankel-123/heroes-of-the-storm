@@ -133,7 +133,8 @@ def replay_to_enriched_transitions(replay, stats, group_indices, enriched_cols, 
             valid[idx] = 0.0
 
         slot = step.get("player_slot", 0)
-        acting_team = 0 if slot <= 4 else 1
+        # picks carry the player's seat (0-4 team 0, 5-9 team 1); bans carry the team as 1 or 2
+        acting_team = (slot - 1) if step_type == 0 else (0 if slot <= 4 else 1)
         outcome = 1.0 if winner == acting_team else 0.0
 
         transitions.append({
@@ -189,7 +190,8 @@ def replay_to_enriched_transitions(replay, stats, group_indices, enriched_cols, 
             valid[idx] = 0.0
 
         slot = step.get("player_slot", 0)
-        acting_team = 0 if slot <= 4 else 1
+        # picks carry the player's seat (0-4 team 0, 5-9 team 1); bans carry the team as 1 or 2
+        acting_team = (slot - 1) if step_type == 0 else (0 if slot <= 4 else 1)
         # the actor's outcome does not depend on which slot its team occupies
         outcome = 1.0 if winner == acting_team else 0.0
 

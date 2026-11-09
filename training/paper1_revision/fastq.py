@@ -83,23 +83,31 @@ def _load(cache_dir):
     if cache_dir in _DATA:
         return _DATA[cache_dir]
     t0 = time.time()
-    mm = common.memmap_open(cache_dir)
-    n, dim = mm["meta"]["n"], mm["meta"]["state_dim"]
+    assert os.path.exists(os.path.join(cache_dir, "banfix.json")), f"{cache_dir}: ban outcomes not fixed (banfix.py)"
+    meta = common.memmap_meta(cache_dir)
+    n, dim = meta["n"], meta["state_dim"]
     if dim == 289:
         assert os.path.exists(os.path.join(cache_dir, "swapfix.json")), f"{cache_dir} predates the swap fix"
-        d = _pack(cache_dir)
+        # a box may hold only the packed copy (relayed after its check against the source)
+        has_src = os.path.exists(os.path.join(cache_dir, "states.dat"))
+        d = _pack(cache_dir) if has_src else os.path.join(cache_dir, "packed")
+        assert os.path.exists(os.path.join(d, "done.json")), d
         dev = torch.device("cuda")
         L = lambda f: torch.from_numpy(np.load(os.path.join(d, f), mmap_mode="r")[:].copy()).to(dev)
         bits, step = L("bits.npy"), L("step.npy")
         acts, outs = L("actions.npy").long(), L("outcomes.npy").float()
-        # spot-check the packed copy against the source cache
-        idx = np.random.default_rng(0).choice(n, 4096, replace=False)
-        idx.sort()
-        ref = torch.from_numpy(np.asarray(mm["states"][idx])).to(dev)
-        assert torch.allclose(_unpack(bits[idx], step[idx]), ref, atol=1e-6), "packed cache mismatch"
+        if has_src:
+            # spot-check the packed copy against the source cache
+            mm = common.memmap_open(cache_dir)
+            idx = np.random.default_rng(0).choice(n, 4096, replace=False)
+            idx.sort()
+            ref = torch.from_numpy(np.asarray(mm["states"][idx])).to(dev)
+            assert torch.allclose(_unpack(bits[idx], step[idx]), ref, atol=1e-6), "packed cache mismatch"
+            assert torch.equal(outs[idx].cpu(), torch.from_numpy(np.asarray(mm["outcomes"][idx])).float()), "packed outcomes stale"
         print(f"[fastq] loaded {cache_dir} n={n:,} packed on {dev} in {time.time() - t0:.0f}s", flush=True)
         _DATA[cache_dir] = (bits, step, None, acts, outs)
         return _DATA[cache_dir]
+    mm = common.memmap_open(cache_dir)
     base = torch.empty((n, 289), dtype=torch.uint8)
     extra = torch.empty((n, dim - 289), dtype=torch.float32)
     CH = 1_000_000
