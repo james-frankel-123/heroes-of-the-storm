@@ -359,6 +359,7 @@ class Search:
         self.k = k_lcb
         self.sims, self.c, self.pk, self.pa = sims, c_puct, pw_k, pw_alpha
         self.stats = {"sims": 0, "leaf_steps": 0, "max_depth": 0}
+        self.decision_mask = None     # optional x -> bool[90] restricting our moves (floor_search.py)
 
     def _kind(self, x, step, our):
         if step >= 16:
@@ -439,7 +440,7 @@ class Search:
         def expand(i, prior=None):
             x = X[i]
             if KIND[i] == KIND_DECISION:
-                fm = free_mask(x)
+                fm = free_mask(x) if self.decision_mask is None else self.decision_mask(x)
                 p = np.where(fm, prior, 0.0)
                 ch = np.where(fm, CHILD_LAZY, CHILD_NONE)
             else:
