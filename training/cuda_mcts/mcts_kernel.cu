@@ -20,6 +20,28 @@
 __constant__ int c_draft_team[16] = {0,1,0,1, 0,1,1,0,0, 1,0, 1,1,0,0,1};
 __constant__ int c_draft_is_pick[16] = {0,0,0,0, 1,1,1,1,1, 0,0, 1,1,1,1,1};
 
+// Support floor for our own picks (paper-1 revision; -DP1_FLOOR builds only, off unless
+// p1_floor_set(on=1) is called): role mask (role-count completion to a valid final team,
+// availability ignored) AND every triple with our current picks seen >= FLOOR times in
+// training teams. Same fallbacks as the CPU masks: floor empty -> role mask; role empty ->
+// free heroes. Applied at our decision nodes (root, leaf expansion) and our rollout picks.
+#ifdef P1_FLOOR
+#define P1_NTRIPLE_WORDS ((NUM_HEROES * NUM_HEROES * NUM_HEROES + 31) / 32)
+__device__ uint32_t g_floor_bits[P1_NTRIPLE_WORDS];   // bit (a*H+b)*H+c, a<b<c: triple supported
+__device__ unsigned char g_role_ok[46656];             // base-6 role-count code -> completable
+__device__ int g_hero_role[NUM_HEROES];
+__device__ int g_floor_on = 0;
+extern "C" int p1_floor_set(const uint32_t* bits, int nwords, const unsigned char* role_ok,
+                            const int* hero_role, int on) {
+    if (nwords != P1_NTRIPLE_WORDS) return -1;
+    cudaMemcpyToSymbol(g_floor_bits, bits, sizeof(uint32_t) * nwords);
+    cudaMemcpyToSymbol(g_role_ok, role_ok, 46656);
+    cudaMemcpyToSymbol(g_hero_role, hero_role, sizeof(int) * NUM_HEROES);
+    cudaMemcpyToSymbol(g_floor_on, &on, sizeof(int));
+    return (int)cudaDeviceSynchronize();
+}
+#endif
+
 // ── GPU-side data structures ───────────────────────────────────────
 
 struct DraftStateGPU {
@@ -89,6 +111,48 @@ struct DraftStateGPU {
         for (int i = tid; i < NUM_HEROES; i += blockDim.x)
             out[i] = is_taken(i) ? 0.0f : 1.0f;
         __syncthreads();
+    }
+
+    // valid_mask restricted for OUR picks (P1_FLOOR builds with the floor on); all threads call.
+    __device__ void own_mask(float* out) const {
+        valid_mask(out);
+#ifdef P1_FLOOR
+        if (!(g_floor_on && step < 16 && c_draft_team[step] == our_team && c_draft_is_pick[step])) return;
+        __shared__ int s_ours[5], s_n, s_code, s_level;
+        const int pow6[6] = {1, 6, 36, 216, 1296, 7776};
+        if (threadIdx.x == 0) {
+            const uint32_t* pk = our_team == 0 ? t0_picks : t1_picks;
+            s_n = 0; s_code = 0; s_level = 1;
+            for (int i = 0; i < NUM_HEROES; i++)
+                if (((pk[i / 32] >> (i % 32)) & 1) && s_n < 5) {
+                    s_ours[s_n++] = i;
+                    s_code += pow6[g_hero_role[i]];
+                }
+        }
+        __syncthreads();
+        for (int h = threadIdx.x; h < NUM_HEROES; h += blockDim.x) {
+            if (out[h] < 0.5f) continue;
+            int lvl = 1;
+            if (g_role_ok[s_code + pow6[g_hero_role[h]]]) {
+                lvl = 3;
+                for (int x = 0; x < s_n && lvl == 3; x++)
+                    for (int y = x + 1; y < s_n; y++) {
+                        int a = s_ours[x], b = s_ours[y], c = h, t;
+                        if (a > b) { t = a; a = b; b = t; }
+                        if (b > c) { t = b; b = c; c = t; }
+                        if (a > b) { t = a; a = b; b = t; }
+                        int bit = (a * NUM_HEROES + b) * NUM_HEROES + c;
+                        if (!((g_floor_bits[bit >> 5] >> (bit & 31)) & 1)) { lvl = 2; break; }
+                    }
+            }
+            out[h] = (float)lvl;
+            atomicMax(&s_level, lvl);
+        }
+        __syncthreads();
+        for (int h = threadIdx.x; h < NUM_HEROES; h += blockDim.x)
+            out[h] = (out[h] >= (float)s_level - 0.5f) ? 1.0f : 0.0f;
+        __syncthreads();
+#endif
     }
 };
 

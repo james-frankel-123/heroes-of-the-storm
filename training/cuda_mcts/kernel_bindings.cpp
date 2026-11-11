@@ -647,6 +647,10 @@ private:
 #ifdef P1_SAMPLE_AUDIT
 extern "C" void p1_audit_read(unsigned long long* out, int reset);
 #endif
+#ifdef P1_FLOOR
+extern "C" int p1_floor_set(const uint32_t* bits, int nwords, const unsigned char* role_ok,
+                            const int* hero_role, int on);
+#endif
 
 PYBIND11_MODULE(cuda_mcts_kernel, m) {
 #ifdef P1_SAMPLE_AUDIT
@@ -657,6 +661,17 @@ PYBIND11_MODULE(cuda_mcts_kernel, m) {
         std::vector<unsigned long long> v(c, c + 16);
         return v;
     }, py::arg("reset") = true);
+#endif
+#ifdef P1_FLOOR
+    m.def("p1_floor_set", [](py::array_t<uint32_t, py::array::c_style> bits,
+                             py::array_t<uint8_t, py::array::c_style> role_ok,
+                             py::array_t<int32_t, py::array::c_style> hero_role, int on) {
+        if (role_ok.size() != 46656 || hero_role.size() != NUM_HEROES)
+            throw std::runtime_error("p1_floor_set: bad table size");
+        int rc = p1_floor_set(bits.data(), (int)bits.size(), role_ok.data(),
+                              reinterpret_cast<const int*>(hero_role.data()), on);
+        if (rc != 0) throw std::runtime_error("p1_floor_set failed: " + std::to_string(rc));
+    });
 #endif
     m.doc() = "Full MCTS kernel: one block = one episode, zero launch overhead";
 

@@ -101,6 +101,13 @@ def worker():
     # from the run seed for runs launched from 2026-10-01 on.
     import random
     random.seed(int(os.environ.get("P1R_RUN_SEED", "0")))
+    if os.environ.get("MCTS_P1_FLOOR") == "1":
+        # support floor inside self-play (floor_kernel.py): load the -DP1_FLOOR build,
+        # set its tables, and register it so the worker uses this module
+        assert os.environ.get("MCTS_SEARCH_MODE", "chance") == "chance"
+        from paper1_revision import floor_kernel
+        sys.modules["cuda_mcts_kernel"] = floor_kernel.load(os.environ["MCTS_KERNEL_DIR"], on=1)
+        print(f"support floor ON: kernel {sys.modules['cuda_mcts_kernel'].__file__}", flush=True)
     sys.argv = [os.path.join(TRAINING_DIR, "train_mcts_worker.py")]
     runpy.run_path(sys.argv[0], run_name="__main__")
 
@@ -115,6 +122,9 @@ def main():
                          "naive for config K; enriched_leak = in-sample statistics control)")
     ap.add_argument("--print-env", action="store_true",
                     help="print the worker environment overrides as JSON (for multi_mcts.py) and exit")
+    ap.add_argument("--floor", default=None, metavar="KERNEL_DIR",
+                    help="train under the support floor with the -DP1_FLOOR kernel build in KERNEL_DIR "
+                         "(floor_kernel.py build); run names <config>_floor_s<seed>")
     ap.add_argument("--resume", action="store_true",
                     help="continue from the run's saved checkpoint (the worker saves at each new best eval)")
     a = ap.parse_args()
@@ -161,6 +171,8 @@ def main():
     wp = os.path.join(core.MODEL_DIR, f"{a.wp}_s{meta['selected_seed']}.pt")
     wp_type = "true_base" if meta["input_dim"] == 197 else "enriched_full"
     tag = {"enriched": "oof", "naive": "oof", "enriched_leak": "leak"}[a.wp]
+    if a.floor:
+        tag = "floor"
     name = f"{a.config}_{tag}_s{a.seed}"
     save = os.path.join(core.MCTS_RUNS, name)
     os.makedirs(save, exist_ok=True)
@@ -189,6 +201,9 @@ def main():
     })
     if init_policy:
         env["MCTS_INIT_POLICY"] = init_policy
+    if a.floor:
+        env["MCTS_P1_FLOOR"] = "1"
+        env["MCTS_KERNEL_DIR"] = os.path.abspath(a.floor)
     if a.print_env:
         print(json.dumps({"name": name, "log": os.path.join(core.LOGS, f"mcts_{name}.log"),
                           "env": {k: v for k, v in env.items()
@@ -198,6 +213,7 @@ def main():
         return
     json.dump({"config": a.config, "sims": sims, "episodes": episodes, "seed": a.seed,
                "wp": wp, "stats": core.stats_path("deploy"),
+               **({"floor_kernel": os.path.abspath(a.floor)} if a.floor else {}),
                **({"vintage": core.VINTAGE, "gd": GD_PATH, "init_policy": init_policy}
                   if core.VINTAGE else {})},
               open(os.path.join(save, "run_meta.json" if not a.resume else "run_meta_resume.json"), "w"),

@@ -144,7 +144,7 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
         if (s_team == s_our_team) {
             // ═══ OUR TURN: search ═══
             main_state.to_float_array(state_buf);
-            main_state.valid_mask(mask_buf);
+            main_state.own_mask(mask_buf);
             if (tid == 0) {
                 int t = ep->num_our_turns;
                 memcpy(ep->out_states[t], state_buf, STATE_DIM * sizeof(float));
@@ -378,7 +378,7 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
                 // ── EXPAND the leaf decision node: policy priors ──
                 if (s_leaf_expand) {
                     scratch.to_float_array(state_buf);
-                    scratch.valid_mask(mask_buf);
+                    scratch.own_mask(mask_buf);
                     d_policy_backbone(state_buf, W_policy, policy_off, buf_e, workspace);
                     d_policy_head(buf_e, mask_buf, W_policy, policy_off, priors_buf, workspace, scratch.step);
                     {
@@ -413,7 +413,7 @@ extern "C" __global__ void mcts_episodes_kernel_v2(
                 // ── ROLLOUT to the terminal draft with GD for both teams ──
                 while (!scratch.is_terminal()) {
                     scratch.to_float_array(state_buf);
-                    scratch.valid_mask(mask_buf);
+                    scratch.own_mask(mask_buf);
                     d_gd_forward(state_buf, mask_buf, W_gd, priors_buf, gd_off, workspace);
                     if (tid == 0) {
                         v2_softmax90(priors_buf);
