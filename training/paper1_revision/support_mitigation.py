@@ -57,7 +57,12 @@ from paper1_revision import team_support as ts
 
 OUT = os.path.join(core.RESULTS, "support_mitigation")
 FLOOR = 25
-VARIANTS = ["constrained_greedy_sp", "constrained_greedy_sf", "constrained_wr_sf"]
+VARIANTS = ["constrained_greedy_sp", "constrained_greedy_sf", "constrained_wr_sf", "constrained_mcts_sf", "constrained_k_sf"]
+# floor at play on the trained search policies: the MCTS-trained policy (F_oof) and masked K, argmax as in the tournament
+EXTRA_PAIRS = ["constrained_k_sf__constrained_k", "constrained_k__constrained_k_sf",
+               # floored vs floored: the search policies against the floored hero-strength drafter
+               "constrained_mcts_sf__constrained_wr_sf", "constrained_wr_sf__constrained_mcts_sf",
+               "constrained_k_sf__constrained_wr_sf", "constrained_wr_sf__constrained_k_sf"]
 OPPONENTS = ["mcts", "constrained_mcts", "enriched", "constrained_greedy", "k_oof", "gourdeau",
              "gourdeau_disc", "gd", "constrained_wr"]
 FLOOR_FALLBACKS = {"n": 0}
@@ -263,6 +268,10 @@ def build_variant(name, device, gd_models):
     elif name == "constrained_greedy_sf":
         m, cols = train_wp.load("enriched", device=device)
         strat = floor_constrain(ere.make_wp_greedy_strategy(m, ENRICHED_GROUPS, core.load_stats("deploy"), gi, device))
+    elif name in ("constrained_mcts_sf", "constrained_k_sf"):
+        from paper1_revision import tournament as T
+        cfg, seeds = (T.MCTS_CONFIG, T.MCTS_SEEDS) if name == "constrained_mcts_sf" else (T.K_CONFIG, T.K_SEEDS)
+        strat = floor_constrain(T.pooled_policy([os.path.join(core.MCTS_RUNS, f"{cfg}_s{s}", "draft_policy.pt") for s in seeds]))
     elif name == "constrained_greedy_sp":
         m, cols = train_wp.load("enriched", device=device)
         strat = constrain(make_sp_greedy(m, gi, device))
@@ -349,7 +358,7 @@ def sup_corpus():
 
 # ── tournament ───────────────────────────────────────────────────────────
 def pairs():
-    return [f"{v}__{o}" for v in VARIANTS for o in OPPONENTS] + [f"{o}__{v}" for v in VARIANTS for o in OPPONENTS]
+    return [f"{v}__{o}" for v in VARIANTS for o in OPPONENTS] + [f"{o}__{v}" for v in VARIANTS for o in OPPONENTS] + EXTRA_PAIRS
 
 
 def path(p):
@@ -362,8 +371,9 @@ def run_one(p, n=200):
     if os.path.exists(path(p)):
         return
     a, b = p.split("__")
-    v = a if a in VARIANTS else b
-    T.STRATEGIES = list(T.STRATEGIES) + [v]
+    if "constrained_k" in (a, b):
+        from paper1_revision import mk_tour  # noqa: F401  appends constrained_k and wraps T.build
+    T.STRATEGIES = list(T.STRATEGIES) + [x for x in (a, b) if x in VARIANTS]
     _build = T.build
 
     def build(name, device, gd_models):
@@ -398,18 +408,18 @@ def tour(procs, n=200):
 
 # ── scoring ──────────────────────────────────────────────────────────────
 BASE_OF = {"constrained_greedy_sp": "constrained_greedy", "constrained_greedy_sf": "constrained_greedy",
-           "constrained_wr_sf": "constrained_wr"}
+           "constrained_wr_sf": "constrained_wr", "constrained_mcts_sf": "constrained_mcts", "constrained_k_sf": "constrained_k"}
 
 
 def score():
     from paper1_revision import judge_ood_calibration as joc
     from shared import HERO_TO_IDX
     recs = []
-    for d in ("tournament", "wr_baseline/tournament", "support_mitigation/tournament"):
+    for d in ("tournament", "wr_baseline/tournament", "masked_k/tournament", "support_mitigation/tournament"):
         for f in sorted(glob.glob(os.path.join(core.RESULTS, d, "*.json"))):
             R = json.load(open(f))
             a, b = R["team0_strategy"], R["team1_strategy"]
-            keep = {"constrained_greedy", "constrained_wr", *VARIANTS}
+            keep = set(BASE_OF.values()) | set(VARIANTS)
             if not ({a, b} & keep):
                 continue
             for r in R["records"]:
@@ -438,7 +448,8 @@ def score():
         return float(np.mean(vals)) if vals else None, len(vals)
     res = {"floor": FLOOR, "comparisons": {}, "support": {}}
     for v, base in BASE_OF.items():
-        opps = [o for o in OPPONENTS if o != base]
+        has = lambda s_, o: bool(((S0 == s_) & (S1 == o)).any() or ((S0 == o) & (S1 == s_)).any())
+        opps = [o for o in OPPONENTS if o not in (base, v) and has(v, o) and has(base, o)]  # shared opponents only
         row = {}
         for (j, form), pv in P.items():
             mv, nv = mean_vs(v, opps, pv)
@@ -447,7 +458,7 @@ def score():
             row[f"{j}/{form}"] = {"variant": mv, "base": mb, "diff": None if mv is None or mb is None else mv - mb,
                                   "pairs": [nv, nb], "h2h_vs_base": h}
         res["comparisons"][v] = row
-    for s in [*VARIANTS, "constrained_greedy", "constrained_wr"]:
+    for s in [*VARIANTS, *sorted(set(BASE_OF.values()))]:
         sel0, sel1 = S0 == s, S1 == s
         mm = {k: np.concatenate([np.asarray(m0[k])[sel0], np.asarray(m1[k])[sel1]]) for k in ("min3", "pmi", "dist", "n5")}
         if len(mm["min3"]):
