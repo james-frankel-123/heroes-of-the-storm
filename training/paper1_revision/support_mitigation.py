@@ -57,6 +57,7 @@ from paper1_revision import team_support as ts
 
 OUT = os.path.join(core.RESULTS, "support_mitigation")
 FLOOR = 25
+SWEEP_RE = r"^constrained_mcts_sf(\d+)$"  # floor-threshold sweep on the MCTS-trained policy (ood_frontier.py)
 VARIANTS = ["constrained_greedy_sp", "constrained_greedy_sf", "constrained_wr_sf", "constrained_mcts_sf", "constrained_k_sf"]
 # floor at play on the trained search policies: the MCTS-trained policy (F_oof) and masked K, argmax as in the tournament
 EXTRA_PAIRS = ["constrained_k_sf__constrained_k", "constrained_k__constrained_k_sf",
@@ -208,8 +209,9 @@ def triple_counts():
     return _C3
 
 
-def floor_mask(state, team):
-    """1 for heroes whose every triple with our current picks has >= FLOOR training teams."""
+def floor_mask(state, team, floor=None):
+    """1 for heroes whose every triple with our current picks has >= floor (default FLOOR) training teams."""
+    floor = FLOOR if floor is None else floor
     from shared import NUM_HEROES
     H = NUM_HEROES
     c3 = triple_counts()
@@ -221,13 +223,13 @@ def floor_mask(state, team):
     for h in range(H):
         for a, b in combinations(ours, 2):
             t = sorted((a, b, h))
-            if len(set(t)) == 3 and c3[(t[0] * H + t[1]) * H + t[2]] < FLOOR:
+            if len(set(t)) == 3 and c3[(t[0] * H + t[1]) * H + t[2]] < floor:
                 ok[h] = 0.0
                 break
     return ok
 
 
-def floor_constrain(inner):
+def floor_constrain(inner, floor=None):
     """Structural mask (constrained_search.constrain) combined with the support floor."""
     from rerun2026.constrained_search import role_constraint_mask, _constrained_view
 
@@ -235,7 +237,7 @@ def floor_constrain(inner):
         if step_type != "pick":
             return inner(state, team, step_type, game_map, tier, gd_models, device)
         cmask = role_constraint_mask(state, team)
-        m = cmask * floor_mask(state, team)
+        m = cmask * floor_mask(state, team, floor)
         if m.sum() < 0.5:
             FLOOR_FALLBACKS["n"] += 1
             m = cmask
@@ -244,6 +246,11 @@ def floor_constrain(inner):
             idx = int(np.argmax(m))
         return idx
     return strategy
+
+
+def is_variant(name):
+    import re
+    return name in VARIANTS or re.match(SWEEP_RE, name) is not None
 
 
 def build_variant(name, device, gd_models):
@@ -268,6 +275,12 @@ def build_variant(name, device, gd_models):
     elif name == "constrained_greedy_sf":
         m, cols = train_wp.load("enriched", device=device)
         strat = floor_constrain(ere.make_wp_greedy_strategy(m, ENRICHED_GROUPS, core.load_stats("deploy"), gi, device))
+    elif is_variant(name) and name not in VARIANTS:
+        import re
+        from paper1_revision import tournament as T
+        t = int(re.match(SWEEP_RE, name).group(1))
+        strat = floor_constrain(T.pooled_policy([os.path.join(core.MCTS_RUNS, f"{T.MCTS_CONFIG}_s{s}", "draft_policy.pt")
+                                                 for s in T.MCTS_SEEDS]), floor=t)
     elif name in ("constrained_mcts_sf", "constrained_k_sf"):
         from paper1_revision import tournament as T
         cfg, seeds = (T.MCTS_CONFIG, T.MCTS_SEEDS) if name == "constrained_mcts_sf" else (T.K_CONFIG, T.K_SEEDS)
@@ -373,11 +386,11 @@ def run_one(p, n=200):
     a, b = p.split("__")
     if "constrained_k" in (a, b):
         from paper1_revision import mk_tour  # noqa: F401  appends constrained_k and wraps T.build
-    T.STRATEGIES = list(T.STRATEGIES) + [x for x in (a, b) if x in VARIANTS]
+    T.STRATEGIES = list(T.STRATEGIES) + [x for x in (a, b) if is_variant(x)]
     _build = T.build
 
     def build(name, device, gd_models):
-        if name in VARIANTS:
+        if is_variant(name):
             return build_variant(name, device, gd_models)
         return _build(name, device, gd_models)
     T.build = build
