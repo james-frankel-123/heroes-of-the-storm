@@ -1,0 +1,15 @@
+{
+ "games": 1500,
+ "sd_pair_effect_pts": 1.1412367068444802,
+ "worst_counter_per_hero_pts": {
+  "median": -2.4651643887828034,
+  "p10": -3.89806978528162,
+  "min": -4.969648285486753
+ },
+ "spread_of_replacement_pts": {
+  "median_range": 22.206884064479258,
+  "median_sd": 4.638351008811759
+ },
+ "corr_with_real_shrunk": 0.6963894026952475,
+ "pairs_compared": 7743
+}
