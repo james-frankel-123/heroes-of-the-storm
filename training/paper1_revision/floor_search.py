@@ -41,11 +41,18 @@ import numpy as np
 from paper1_revision import core
 
 OUT = os.path.join(core.RESULTS, "support_mitigation", "floor_search")
-AGENTS = {"search_c": (False, 200), "search_sf": (True, 200), "search_sf800": (True, 800)}
+AGENTS = {"search_c": (False, 200), "search_sf": (True, 200), "search_sf800": (True, 800),
+          "search_sf_oracle": (True, 200)}
+# search_sf_oracle: search_sf whose opponent model (chance nodes and rollouts) is the floored
+# win-rate drafter itself (its deterministic move at the opponent's turns), not GD: the most
+# search can gain against that opponent if it knows exactly how it drafts. Our own rollout picks
+# stay GD inside the mask, as in search_sf.
+ORACLE = {"search_sf_oracle"}
 OPPS = ["constrained_wr_sf", "constrained_wr", "constrained_greedy", "gd", "constrained_mcts_sf", "constrained_mcts"]
 PAIRS = ([(a, o) for a in ("search_c", "search_sf") for o in OPPS]
          + [("search_sf800", o) for o in ("constrained_wr_sf", "constrained_greedy", "constrained_mcts_sf")]
          + [("search_sf", "search_c"), ("search_sf800", "search_sf")])
+PAIRS = PAIRS + [("search_sf_oracle", "constrained_wr_sf")]
 PAIRS = PAIRS + [(b, a) for a, b in PAIRS]
 SEED_OFFSET = 9000
 FALLBACKS = {"floor_empty": 0}
@@ -155,6 +162,32 @@ class _MaskedPolicy:
         return [self.s._restrict_prior(x, p) for x, p in zip(xs, self.pol.prior_batch(xs))]
 
 
+class OracleOpp:
+    """Opponent model = the floored win-rate drafter: one-hot on its move at the opponent's
+    steps (bans: highest score among free heroes; picks: highest score inside its role mask
+    and floor), GD everywhere else."""
+
+    def __init__(self, gd, wr_scores, our):
+        self.gd, self.sc, self.our = gd, np.asarray(wr_scores, float), our
+        self.cache = {}
+
+    def probs(self, x):
+        from paper1_revision import search_actor as sa
+        step = sa.step_of(x)
+        if step >= 16 or sa.TEAM_OF[step] == self.our:
+            return self.gd.probs(x)
+        k = x[:289].tobytes()
+        p = self.cache.get(k)
+        if p is None:
+            m = own_mask(x, 1 - self.our, True) & sa.free_mask(x) if sa.IS_PICK[step] == 1.0 else sa.free_mask(x)
+            if not m.any():
+                m = sa.free_mask(x)
+            p = np.zeros(90)
+            p[int(np.argmax(np.where(m, self.sc, -np.inf)))] = 1.0
+            self.cache[k] = p
+        return p
+
+
 def build_actor(name, draft_ctx, seed_base):
     from paper1_revision import search_actor as sa
     floor, sims = AGENTS[name]
@@ -162,13 +195,22 @@ def build_actor(name, draft_ctx, seed_base):
     pols = [sa._policy(p) for p in sa.f_oof_paths()]
     leaf = sa._leaf("enriched")
     gd = sa.gd_np(0)
+    wr_cache = {}
+
+    def opp_model(game_map, tier, team):
+        if name not in ORACLE:
+            return gd
+        from paper1_revision import wr_tour
+        if (game_map, tier) not in wr_cache:
+            wr_cache[(game_map, tier)] = wr_tour.scores(core.load_stats("deploy"), game_map, tier)
+        return OracleOpp(gd, wr_cache[(game_map, tier)], team)
 
     def batch_act(items):
         gens, xs, ss = [], [], []
         for i, state, team, game_map, tier in items:
             x = sa.state_vec(state)
             rng = np.random.default_rng([seed_base, i, state.step, 7])
-            s = FS(None, gd, leaf, game_map, tier, sims=sims)
+            s = FS(None, opp_model(game_map, tier, team), leaf, game_map, tier, sims=sims)
             s.floor = floor
             s.pol = _MaskedPolicy(pols[i % len(pols)], s)
             gens.append(s.gen(x, team, rng))
@@ -189,7 +231,8 @@ def build_actor(name, draft_ctx, seed_base):
 
 
 def all_names():
-    return list(AGENTS) + OPPS
+    # oracle agents last, so the seeds of the original pairs are unchanged
+    return [a for a in AGENTS if a not in ORACLE] + OPPS + sorted(ORACLE)
 
 
 def pair_path(a, b):
