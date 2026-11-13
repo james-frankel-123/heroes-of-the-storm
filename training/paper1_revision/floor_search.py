@@ -48,11 +48,20 @@ AGENTS = {"search_c": (False, 200), "search_sf": (True, 200), "search_sf800": (T
 # search can gain against that opponent if it knows exactly how it drafts. Our own rollout picks
 # stay GD inside the mask, as in search_sf.
 ORACLE = {"search_sf_oracle"}
+# search_ft_sf: search_sf whose prior is the floor-trained MCTS policy (support_mitigation.FT_CONFIG seeds)
+# instead of F_oof. Appended last in all_names, with the extra opponents, so earlier pair seeds are unchanged.
+AGENTS["search_ft_sf"] = (True, 200)
+FT = {"search_ft_sf"}
 OPPS = ["constrained_wr_sf", "constrained_wr", "constrained_greedy", "gd", "constrained_mcts_sf", "constrained_mcts"]
+OPP8 = ["mcts", "constrained_mcts", "enriched", "constrained_greedy", "k_oof", "gourdeau", "gourdeau_disc", "gd"]
+EXTRA_OPPS = [o for o in OPP8 if o not in OPPS] + ["constrained_mcts_ft_sf"]
 PAIRS = ([(a, o) for a in ("search_c", "search_sf") for o in OPPS]
          + [("search_sf800", o) for o in ("constrained_wr_sf", "constrained_greedy", "constrained_mcts_sf")]
          + [("search_sf", "search_c"), ("search_sf800", "search_sf")])
 PAIRS = PAIRS + [("search_sf_oracle", "constrained_wr_sf")]
+# frontier rows (vs all eight tournament strategies) for both searches, and the floor-trained head-to-heads
+PAIRS = PAIRS + [("search_sf", o) for o in OPP8 if o not in OPPS] + [("search_ft_sf", o) for o in OPP8]
+PAIRS = PAIRS + [("search_ft_sf", o) for o in ("constrained_wr_sf", "search_sf", "constrained_mcts_ft_sf")]
 PAIRS = PAIRS + [(b, a) for a, b in PAIRS]
 SEED_OFFSET = 9000
 FALLBACKS = {"floor_empty": 0}
@@ -192,7 +201,11 @@ def build_actor(name, draft_ctx, seed_base):
     from paper1_revision import search_actor as sa
     floor, sims = AGENTS[name]
     FS = make_search_cls()
-    pols = [sa._policy(p) for p in sa.f_oof_paths()]
+    if name in FT:
+        from paper1_revision import support_mitigation as sm
+        pols = [sa._policy(os.path.join(core.MCTS_RUNS, f"{sm.FT_CONFIG}_s{s}", "draft_policy.pt")) for s in sm.FT_SEEDS]
+    else:
+        pols = [sa._policy(p) for p in sa.f_oof_paths()]
     leaf = sa._leaf("enriched")
     gd = sa.gd_np(0)
     wr_cache = {}
@@ -232,7 +245,7 @@ def build_actor(name, draft_ctx, seed_base):
 
 def all_names():
     # oracle agents last, so the seeds of the original pairs are unchanged
-    return [a for a in AGENTS if a not in ORACLE] + OPPS + sorted(ORACLE)
+    return [a for a in AGENTS if a not in ORACLE | FT] + OPPS + sorted(ORACLE) + sorted(FT) + EXTRA_OPPS
 
 
 def pair_path(a, b):
@@ -245,7 +258,7 @@ def build_any(name, device, gd_models, seed):
     from paper1_revision import wr_tour  # noqa: F401  registers constrained_wr in T.build
     if name in AGENTS:
         return build_actor(name, T.CTX, seed)
-    if name in sm.VARIANTS:
+    if sm.is_variant(name):
         return sm.build_variant(name, device, gd_models)
     return T.build(name, device, gd_models)
 

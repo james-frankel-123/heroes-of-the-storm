@@ -58,6 +58,10 @@ from paper1_revision import team_support as ts
 OUT = os.path.join(core.RESULTS, "support_mitigation")
 FLOOR = 25
 SWEEP_RE = r"^constrained_mcts_sf(\d+)$"  # floor-threshold sweep on the MCTS-trained policy (ood_frontier.py)
+# MCTS trained with the floor inside self-play (floor_kernel.py, train_mcts --floor), pooled over its seeds;
+# constrained_mcts_ft = role mask only at play, constrained_mcts_ft_sf = role mask + floor at play
+FT_CONFIG, FT_SEEDS = "F_floor", [0, 1, 2]
+FT_NAMES = ["constrained_mcts_ft", "constrained_mcts_ft_sf"]
 VARIANTS = ["constrained_greedy_sp", "constrained_greedy_sf", "constrained_wr_sf", "constrained_mcts_sf", "constrained_k_sf"]
 # floor at play on the trained search policies: the MCTS-trained policy (F_oof) and masked K, argmax as in the tournament
 EXTRA_PAIRS = ["constrained_k_sf__constrained_k", "constrained_k__constrained_k_sf",
@@ -250,7 +254,7 @@ def floor_constrain(inner, floor=None):
 
 def is_variant(name):
     import re
-    return name in VARIANTS or re.match(SWEEP_RE, name) is not None
+    return name in VARIANTS or name in FT_NAMES or re.match(SWEEP_RE, name) is not None
 
 
 def build_variant(name, device, gd_models):
@@ -275,6 +279,10 @@ def build_variant(name, device, gd_models):
     elif name == "constrained_greedy_sf":
         m, cols = train_wp.load("enriched", device=device)
         strat = floor_constrain(ere.make_wp_greedy_strategy(m, ENRICHED_GROUPS, core.load_stats("deploy"), gi, device))
+    elif name in FT_NAMES:
+        from paper1_revision import tournament as T
+        pol = T.pooled_policy([os.path.join(core.MCTS_RUNS, f"{FT_CONFIG}_s{s}", "draft_policy.pt") for s in FT_SEEDS])
+        strat = floor_constrain(pol) if name.endswith("_sf") else constrain(pol)
     elif is_variant(name) and name not in VARIANTS:
         import re
         from paper1_revision import tournament as T

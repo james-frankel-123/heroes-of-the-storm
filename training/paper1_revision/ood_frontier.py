@@ -49,7 +49,7 @@ SWEEP = [5, 10, 50, 100, 200]  # 25 is constrained_mcts_sf
 TD_SWEEP = ["cql_td_a0.5", "cql_td_a2.0", "cql_td_a0.1", "cql_td_a5.0", "iql_td_t0.9_b3.0", "iql_td_t0.7_b10.0", "iql_td_t0.7_b30.0",
             "iql_td_t0.9_b30.0"]
 DIRS = ["tournament", "wr_baseline/tournament", "masked_k/tournament", "td/*/tournament", "mcq_real/tournament",
-        "search_agents/tournament", "support_mitigation/tournament", "ood_frontier/tournament"]
+        "search_agents/tournament", "support_mitigation/tournament", "support_mitigation/floor_search/tournament", "ood_frontier/tournament"]
 EPS, MIN_N = 1.0, 500
 logit = lambda p: np.log(np.clip(p, 1e-6, 1 - 1e-6) / (1 - np.clip(p, 1e-6, 1 - 1e-6)))
 sig = lambda z: 1 / (1 + np.exp(-z))
@@ -61,6 +61,11 @@ def sweep_pairs():
     for t in SWEEP:
         v = f"constrained_mcts_sf{t}"
         out += [f"{v}__{o}" for o in OPP8] + [f"{o}__{v}" for o in OPP8]
+    from paper1_revision import support_mitigation as sm
+    for v in sm.FT_NAMES:  # floor-trained MCTS policy, without and with the floor at play
+        out += [f"{v}__{o}" for o in OPP8] + [f"{o}__{v}" for o in OPP8]
+    out += ["constrained_mcts_ft_sf__constrained_mcts_sf", "constrained_mcts_sf__constrained_mcts_ft_sf",
+            "constrained_mcts_ft_sf__constrained_wr_sf", "constrained_wr_sf__constrained_mcts_ft_sf"]
     return out
 
 
