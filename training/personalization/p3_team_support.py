@@ -571,7 +571,11 @@ def residual(a):
                    "Team support: min3 / PMI of the real team on paper 1's corpus (p1) and on the lobby-window corpus "
                    "(win, 2026-05-23..06-30; the judge window is not in it). 'slope_P' = slope of r on P within the bin "
                    "(1 = the personal term is right on average; below 1 = over-trusted).",
-           "combiner": comb, "games": int(G), "games_all_known": int(allk.sum()), "by_corpus": {}}
+           "unknown_players": "players outside the tournament-window state set (60,335 players) get s = 0 and no "
+                              "off-role flag, i.e. no personal term; 'all_games' uses every game this way, 'all_known' "
+                              "only games with all ten players in the state set",
+           "combiner": comb, "games": int(G), "games_all_known": int(allk.sum()),
+           "player_slots_known": round(float(known.mean()), 4), "by_corpus": {}}
     for cname, lc in corp.items():
         mt = lc.metrics(T)
         mn = mt["min3"]

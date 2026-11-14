@@ -3502,5 +3502,898 @@
     }
    }
   }
+ },
+ "residual": {
+  "what": "real Storm League games in the judge window (2026-07-01..09-11; post-snapshot, not the sealed build, no sealed id), one row per team (two per game), SEs clustered by game. r = y - WP_pop (slot-table causal WP). P = the drafter's personal term: sig(b0 + b1 logit WP + b2 dS + b3 dO) - sig(b0 + b1 logit WP), dS/dO = team minus opponent sums of s(p, h) and off-role flags on the drafter state as of 2026-06-30 (fixed before the window), the actual player-hero cells. e = r - P. All in WP points. Team support: min3 / PMI of the real team on paper 1's corpus (p1) and on the lobby-window corpus (win, 2026-05-23..06-30; the judge window is not in it). 'slope_P' = slope of r on P within the bin (1 = the personal term is right on average; below 1 = over-trusted).",
+  "unknown_players": "players outside the tournament-window state set (60,335 players) get s = 0 and no off-role flag, i.e. no personal term; 'all_games' uses every game this way, 'all_known' only games with all ten players in the state set",
+  "combiner": [
+   0.0,
+   1.2158510866657697,
+   4.242860855417209,
+   -0.031338977228257625
+  ],
+  "games": 162657,
+  "games_all_known": 16165,
+  "player_slots_known": 0.7104,
+  "by_corpus": {
+   "p1": {
+    "all_known": {
+     "rows": 32330,
+     "by_min3": {
+      "0-4": {
+       "rows": 130
+      },
+      "5-24": {
+       "rows": 1718,
+       "share": 0.0531,
+       "e_pp": [
+        0.229,
+        1.116
+       ],
+       "r_pp": [
+        0.853,
+        1.143
+       ],
+       "P_pp": [
+        0.624,
+        0.305
+       ],
+       "slope_P": [
+        0.783,
+        0.087
+       ],
+       "mean_thin_cells": 1.233
+      },
+      "25-99": {
+       "rows": 7014,
+       "share": 0.217,
+       "e_pp": [
+        -0.333,
+        0.502
+       ],
+       "r_pp": [
+        -0.384,
+        0.515
+       ],
+       "P_pp": [
+        -0.051,
+        0.134
+       ],
+       "slope_P": [
+        0.822,
+        0.048
+       ],
+       "mean_thin_cells": 1.189
+      },
+      "100-499": {
+       "rows": 16766,
+       "share": 0.5186,
+       "e_pp": [
+        0.478,
+        0.256
+       ],
+       "r_pp": [
+        0.461,
+        0.263
+       ],
+       "P_pp": [
+        -0.016,
+        0.067
+       ],
+       "slope_P": [
+        0.927,
+        0.035
+       ],
+       "mean_thin_cells": 1.078
+      },
+      "500+": {
+       "rows": 6702,
+       "share": 0.2073,
+       "e_pp": [
+        -0.931,
+        0.524
+       ],
+       "r_pp": [
+        -0.951,
+        0.537
+       ],
+       "P_pp": [
+        -0.02,
+        0.134
+       ],
+       "slope_P": [
+        0.923,
+        0.05
+       ],
+       "mean_thin_cells": 0.989
+      }
+     },
+     "e_slope_log1p_min3": [
+      -0.113,
+      0.227
+     ],
+     "e_slope_log1p_min3_opp_ctrl": [
+      -0.115,
+      0.232
+     ],
+     "r_slope_log1p_min3": [
+      -0.105,
+      0.233
+     ],
+     "r_slope_log1p_min3_opp_ctrl": [
+      -0.107,
+      0.237
+     ],
+     "slope_P_interaction_rare": {
+      "rare_def": "min3 < 25",
+      "slope_P_common": [
+       0.901,
+       0.029
+      ],
+      "slope_P_rare_minus_common": [
+       -0.124,
+       0.085
+      ],
+      "rare_share": 0.0572
+     },
+     "by_pmi_quintile": {
+      "q1": {
+       "pmi_mean": -0.228,
+       "e_pp": [
+        0.074,
+        0.52
+       ],
+       "r_pp": [
+        0.329,
+        0.536
+       ],
+       "slope_P": [
+        0.873,
+        0.05
+       ]
+      },
+      "q2": {
+       "pmi_mean": -0.125,
+       "e_pp": [
+        -0.618,
+        0.536
+       ],
+       "r_pp": [
+        -0.739,
+        0.55
+       ],
+       "slope_P": [
+        0.887,
+        0.049
+       ]
+      },
+      "q3": {
+       "pmi_mean": -0.087,
+       "e_pp": [
+        0.804,
+        0.531
+       ],
+       "r_pp": [
+        0.669,
+        0.545
+       ],
+       "slope_P": [
+        0.847,
+        0.05
+       ]
+      },
+      "q4": {
+       "pmi_mean": -0.058,
+       "e_pp": [
+        0.824,
+        0.528
+       ],
+       "r_pp": [
+        0.631,
+        0.54
+       ],
+       "slope_P": [
+        0.909,
+        0.051
+       ]
+      },
+      "q5": {
+       "pmi_mean": -0.005,
+       "e_pp": [
+        -1.084,
+        0.535
+       ],
+       "r_pp": [
+        -0.89,
+        0.551
+       ],
+       "slope_P": [
+        0.953,
+        0.048
+       ]
+      }
+     },
+     "e_slope_pmi": [
+      -2.111,
+      2.851
+     ],
+     "r_slope_pmi": [
+      -3.907,
+      2.929
+     ]
+    },
+    "all_games": {
+     "rows": 325314,
+     "by_min3": {
+      "0-4": {
+       "rows": 1663,
+       "share": 0.0051,
+       "e_pp": [
+        1.61,
+        1.182
+       ],
+       "r_pp": [
+        1.338,
+        1.206
+       ],
+       "P_pp": [
+        -0.272,
+        0.292
+       ],
+       "slope_P": [
+        0.839,
+        0.096
+       ],
+       "mean_thin_cells": 2.655
+      },
+      "5-24": {
+       "rows": 18433,
+       "share": 0.0567,
+       "e_pp": [
+        0.018,
+        0.345
+       ],
+       "r_pp": [
+        -0.116,
+        0.349
+       ],
+       "P_pp": [
+        -0.135,
+        0.081
+       ],
+       "slope_P": [
+        0.74,
+        0.032
+       ],
+       "mean_thin_cells": 2.553
+      },
+      "25-99": {
+       "rows": 74582,
+       "share": 0.2293,
+       "e_pp": [
+        0.607,
+        0.156
+       ],
+       "r_pp": [
+        0.49,
+        0.158
+       ],
+       "P_pp": [
+        -0.117,
+        0.035
+       ],
+       "slope_P": [
+        0.737,
+        0.018
+       ],
+       "mean_thin_cells": 2.466
+      },
+      "100-499": {
+       "rows": 167572,
+       "share": 0.5151,
+       "e_pp": [
+        0.121,
+        0.083
+       ],
+       "r_pp": [
+        0.125,
+        0.084
+       ],
+       "P_pp": [
+        0.005,
+        0.018
+       ],
+       "slope_P": [
+        0.8,
+        0.013
+       ],
+       "mean_thin_cells": 2.339
+      },
+      "500+": {
+       "rows": 63064,
+       "share": 0.1939,
+       "e_pp": [
+        -1.086,
+        0.175
+       ],
+       "r_pp": [
+        -0.913,
+        0.177
+       ],
+       "P_pp": [
+        0.173,
+        0.038
+       ],
+       "slope_P": [
+        0.832,
+        0.02
+       ],
+       "mean_thin_cells": 2.238
+      }
+     },
+     "e_slope_log1p_min3": [
+      -0.466,
+      0.072
+     ],
+     "e_slope_log1p_min3_opp_ctrl": [
+      -0.469,
+      0.073
+     ],
+     "r_slope_log1p_min3": [
+      -0.369,
+      0.073
+     ],
+     "r_slope_log1p_min3_opp_ctrl": [
+      -0.371,
+      0.073
+     ],
+     "slope_P_interaction_rare": {
+      "rare_def": "min3 < 25",
+      "slope_P_common": [
+       0.789,
+       0.011
+      ],
+      "slope_P_rare_minus_common": [
+       -0.041,
+       0.03
+      ],
+      "rare_share": 0.0618
+     },
+     "by_pmi_quintile": {
+      "q1": {
+       "pmi_mean": -0.241,
+       "e_pp": [
+        0.011,
+        0.169
+       ],
+       "r_pp": [
+        0.203,
+        0.171
+       ],
+       "slope_P": [
+        0.757,
+        0.019
+       ]
+      },
+      "q2": {
+       "pmi_mean": -0.131,
+       "e_pp": [
+        0.124,
+        0.171
+       ],
+       "r_pp": [
+        0.045,
+        0.173
+       ],
+       "slope_P": [
+        0.764,
+        0.019
+       ]
+      },
+      "q3": {
+       "pmi_mean": -0.093,
+       "e_pp": [
+        0.627,
+        0.171
+       ],
+       "r_pp": [
+        0.523,
+        0.173
+       ],
+       "slope_P": [
+        0.783,
+        0.019
+       ]
+      },
+      "q4": {
+       "pmi_mean": -0.062,
+       "e_pp": [
+        -0.057,
+        0.171
+       ],
+       "r_pp": [
+        -0.08,
+        0.173
+       ],
+       "slope_P": [
+        0.807,
+        0.019
+       ]
+      },
+      "q5": {
+       "pmi_mean": -0.01,
+       "e_pp": [
+        -0.706,
+        0.171
+       ],
+       "r_pp": [
+        -0.69,
+        0.173
+       ],
+       "slope_P": [
+        0.822,
+        0.019
+       ]
+      }
+     },
+     "e_slope_pmi": [
+      -0.727,
+      0.869
+     ],
+     "r_slope_pmi": [
+      -2.354,
+      0.881
+     ]
+    }
+   },
+   "win": {
+    "all_known": {
+     "rows": 32330,
+     "by_min3": {
+      "0": {
+       "rows": 1931,
+       "share": 0.0597,
+       "e_pp": [
+        -1.486,
+        1.06
+       ],
+       "r_pp": [
+        -1.697,
+        1.086
+       ],
+       "P_pp": [
+        -0.211,
+        0.283
+       ],
+       "slope_P": [
+        0.811,
+        0.084
+       ],
+       "mean_thin_cells": 1.212
+      },
+      "1": {
+       "rows": 2082,
+       "share": 0.0644,
+       "e_pp": [
+        -1.236,
+        1.021
+       ],
+       "r_pp": [
+        -1.009,
+        1.048
+       ],
+       "P_pp": [
+        0.227,
+        0.273
+       ],
+       "slope_P": [
+        0.898,
+        0.079
+       ],
+       "mean_thin_cells": 1.194
+      },
+      "2-4": {
+       "rows": 5709,
+       "share": 0.1766,
+       "e_pp": [
+        -0.089,
+        0.578
+       ],
+       "r_pp": [
+        -0.259,
+        0.591
+       ],
+       "P_pp": [
+        -0.17,
+        0.152
+       ],
+       "slope_P": [
+        0.804,
+        0.053
+       ],
+       "mean_thin_cells": 1.173
+      },
+      "5-22": {
+       "rows": 15060,
+       "share": 0.4658,
+       "e_pp": [
+        0.448,
+        0.284
+       ],
+       "r_pp": [
+        0.523,
+        0.292
+       ],
+       "P_pp": [
+        0.074,
+        0.075
+       ],
+       "slope_P": [
+        0.895,
+        0.036
+       ],
+       "mean_thin_cells": 1.075
+      },
+      "23+": {
+       "rows": 7548,
+       "share": 0.2335,
+       "e_pp": [
+        -0.106,
+        0.486
+       ],
+       "r_pp": [
+        -0.134,
+        0.5
+       ],
+       "P_pp": [
+        -0.028,
+        0.126
+       ],
+       "slope_P": [
+        0.983,
+        0.046
+       ],
+       "mean_thin_cells": 1.01
+      }
+     },
+     "e_slope_log1p_min3": [
+      0.234,
+      0.238
+     ],
+     "e_slope_log1p_min3_opp_ctrl": [
+      0.233,
+      0.238
+     ],
+     "r_slope_log1p_min3": [
+      0.251,
+      0.244
+     ],
+     "r_slope_log1p_min3_opp_ctrl": [
+      0.25,
+      0.244
+     ],
+     "slope_P_interaction_rare": {
+      "rare_def": "min3 < 2 (about the same rate)",
+      "slope_P_common": [
+       0.899,
+       0.03
+      ],
+      "slope_P_rare_minus_common": [
+       -0.042,
+       0.06
+      ],
+      "rare_share": 0.1241
+     },
+     "by_pmi_quintile": {
+      "q1": {
+       "pmi_mean": -0.229,
+       "e_pp": [
+        -0.537,
+        0.521
+       ],
+       "r_pp": [
+        -0.344,
+        0.537
+       ],
+       "slope_P": [
+        0.881,
+        0.05
+       ]
+      },
+      "q2": {
+       "pmi_mean": -0.124,
+       "e_pp": [
+        0.38,
+        0.54
+       ],
+       "r_pp": [
+        0.279,
+        0.55
+       ],
+       "slope_P": [
+        0.817,
+        0.05
+       ]
+      },
+      "q3": {
+       "pmi_mean": -0.086,
+       "e_pp": [
+        0.484,
+        0.534
+       ],
+       "r_pp": [
+        0.291,
+        0.551
+       ],
+       "slope_P": [
+        0.959,
+        0.049
+       ]
+      },
+      "q4": {
+       "pmi_mean": -0.057,
+       "e_pp": [
+        1.062,
+        0.532
+       ],
+       "r_pp": [
+        0.983,
+        0.545
+       ],
+       "slope_P": [
+        0.872,
+        0.05
+       ]
+      },
+      "q5": {
+       "pmi_mean": -0.002,
+       "e_pp": [
+        -1.389,
+        0.535
+       ],
+       "r_pp": [
+        -1.21,
+        0.552
+       ],
+       "slope_P": [
+        0.941,
+        0.048
+       ]
+      }
+     },
+     "e_slope_pmi": [
+      -1.156,
+      2.807
+     ],
+     "r_slope_pmi": [
+      -2.937,
+      2.887
+     ]
+    },
+    "all_games": {
+     "rows": 325314,
+     "by_min3": {
+      "0": {
+       "rows": 22275,
+       "share": 0.0685,
+       "e_pp": [
+        0.037,
+        0.313
+       ],
+       "r_pp": [
+        -0.208,
+        0.317
+       ],
+       "P_pp": [
+        -0.245,
+        0.072
+       ],
+       "slope_P": [
+        0.743,
+        0.029
+       ],
+       "mean_thin_cells": 2.544
+      },
+      "1": {
+       "rows": 22733,
+       "share": 0.0699,
+       "e_pp": [
+        0.3,
+        0.311
+       ],
+       "r_pp": [
+        0.214,
+        0.314
+       ],
+       "P_pp": [
+        -0.086,
+        0.07
+       ],
+       "slope_P": [
+        0.732,
+        0.03
+       ],
+       "mean_thin_cells": 2.485
+      },
+      "2-4": {
+       "rows": 59027,
+       "share": 0.1814,
+       "e_pp": [
+        0.263,
+        0.181
+       ],
+       "r_pp": [
+        0.155,
+        0.183
+       ],
+       "P_pp": [
+        -0.108,
+        0.04
+       ],
+       "slope_P": [
+        0.77,
+        0.02
+       ],
+       "mean_thin_cells": 2.44
+      },
+      "5-22": {
+       "rows": 151363,
+       "share": 0.4653,
+       "e_pp": [
+        0.1,
+        0.091
+       ],
+       "r_pp": [
+        0.123,
+        0.093
+       ],
+       "P_pp": [
+        0.023,
+        0.02
+       ],
+       "slope_P": [
+        0.786,
+        0.014
+       ],
+       "mean_thin_cells": 2.34
+      },
+      "23+": {
+       "rows": 69916,
+       "share": 0.2149,
+       "e_pp": [
+        -0.549,
+        0.164
+       ],
+       "r_pp": [
+        -0.401,
+        0.166
+       ],
+       "P_pp": [
+        0.147,
+        0.036
+       ],
+       "slope_P": [
+        0.839,
+        0.019
+       ],
+       "mean_thin_cells": 2.247
+      }
+     },
+     "e_slope_log1p_min3": [
+      -0.207,
+      0.075
+     ],
+     "e_slope_log1p_min3_opp_ctrl": [
+      -0.206,
+      0.075
+     ],
+     "r_slope_log1p_min3": [
+      -0.102,
+      0.076
+     ],
+     "r_slope_log1p_min3_opp_ctrl": [
+      -0.102,
+      0.076
+     ],
+     "slope_P_interaction_rare": {
+      "rare_def": "min3 < 2 (about the same rate)",
+      "slope_P_common": [
+       0.795,
+       0.011
+      ],
+      "slope_P_rare_minus_common": [
+       -0.058,
+       0.022
+      ],
+      "rare_share": 0.1384
+     },
+     "by_pmi_quintile": {
+      "q1": {
+       "pmi_mean": -0.243,
+       "e_pp": [
+        -0.292,
+        0.169
+       ],
+       "r_pp": [
+        -0.09,
+        0.171
+       ],
+       "slope_P": [
+        0.747,
+        0.019
+       ]
+      },
+      "q2": {
+       "pmi_mean": -0.132,
+       "e_pp": [
+        0.441,
+        0.171
+       ],
+       "r_pp": [
+        0.33,
+        0.173
+       ],
+       "slope_P": [
+        0.757,
+        0.019
+       ]
+      },
+      "q3": {
+       "pmi_mean": -0.092,
+       "e_pp": [
+        0.51,
+        0.17
+       ],
+       "r_pp": [
+        0.434,
+        0.173
+       ],
+       "slope_P": [
+        0.801,
+        0.019
+       ]
+      },
+      "q4": {
+       "pmi_mean": -0.06,
+       "e_pp": [
+        0.016,
+        0.17
+       ],
+       "r_pp": [
+        0.003,
+        0.173
+       ],
+       "slope_P": [
+        0.815,
+        0.019
+       ]
+      },
+      "q5": {
+       "pmi_mean": -0.007,
+       "e_pp": [
+        -0.675,
+        0.17
+       ],
+       "r_pp": [
+        -0.677,
+        0.173
+       ],
+       "slope_P": [
+        0.814,
+        0.019
+       ]
+      }
+     },
+     "e_slope_pmi": [
+      -0.296,
+      0.854
+     ],
+     "r_slope_pmi": [
+      -1.998,
+      0.866
+     ]
+    }
+   }
+  }
  }
 }
