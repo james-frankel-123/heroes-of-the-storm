@@ -268,7 +268,8 @@ def summary(arm_names, out_dir, opponents=None, stem="summary", ref=SEL):
     if any((res["arms"][a].get("config") or {}).get("pscale") is not None for a in res["arms"]):
         lines += ["", "Caveat (s-pcal arms): J and CONS use the uncalibrated personal model (the judge's c2 and the drafters' "
                   "unscaled b2), so they are biased toward the selected design; the judge-free paired record is the fair "
-                  "metric for the pscale arms."]
+                  "metric for the pscale arms. pscale = 0.864, by the rule fixed in advance: mean of all_known p1 min3-bin slope_P "
+                  "(results/p3_team_support.json residual stage)."]
     open(os.path.join(out_dir, f"{stem}.md"), "w").write("\n".join(lines) + "\n")
     print("\n".join(lines))
 

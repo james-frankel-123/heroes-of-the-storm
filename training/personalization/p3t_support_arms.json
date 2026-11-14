@@ -1,5 +1,5 @@
 {
- "_note": "paper 2 support arms (p3t_support.py, 2026-11-13): each arm is x-combo1-dr-chance (p3t_explore.json) plus one change in 'support' or 'base'/'prior'. floor = graded support floor T on our picks; leaf = lambda on the measured value-function error by min3 bin; gd_mix = mu on log p_GD in our pick prior; s-ffloor = the player-aware prior refit on paper 1's floor-trained policy (vintage cur_ffloor, pprior_ffloor). s-pcal / s-pcal-floor25 (coordinator 2026-11-14): the drafter's combiner b2 and b3 times pscale = 0.88, fixed in advance (mean slope_P of the all-known players' paper-1 min3 bins, results/p3_team_support.json residual stage); the learned prior keeps its fitted b2 input; judges and the vintage table unchanged.",
+ "_note": "paper 2 support arms (p3t_support.py, 2026-11-13): each arm is x-combo1-dr-chance (p3t_explore.json) plus one change in 'support' or 'base'/'prior'. floor = graded support floor T on our picks; leaf = lambda on the measured value-function error by min3 bin; gd_mix = mu on log p_GD in our pick prior; s-ffloor = the player-aware prior refit on paper 1's floor-trained policy (vintage cur_ffloor, pprior_ffloor). s-pcal / s-pcal-floor25 (coordinator 2026-11-14): the drafter's combiner b2 and b3 times pscale = 0.864, the rule fixed in advance: \"mean of all_known p1 min3-bin slope_P\" (results/p3_team_support.json residual stage: 0.783, 0.822, 0.927, 0.923); the learned prior keeps its fitted b2 input; judges and the vintage table unchanged.",
  "s-floor10": {
   "base": "cur",
   "prior": "pprior",
@@ -158,7 +158,7 @@
   "opp": "dr",
   "opp_chance_only": true,
   "assign_bias": 1.0,
-  "pscale": 0.88
+  "pscale": 0.864
  },
  "s-pcal-floor25": {
   "base": "cur",
@@ -167,7 +167,7 @@
   "opp": "dr",
   "opp_chance_only": true,
   "assign_bias": 1.0,
-  "pscale": 0.88,
+  "pscale": 0.864,
   "support": {
    "floor": 25
   }
