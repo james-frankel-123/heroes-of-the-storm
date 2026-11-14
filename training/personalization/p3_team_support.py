@@ -648,6 +648,8 @@ def residual(a):
 
 def regret(a):
     import p3_ood_audit as OA
+    # the headline run's vintages (its combiner); the checkout default p3t_vintages.json differs in the combiner only
+    os.environ.setdefault("P3T_VINTAGES", os.path.join(OA.HL_RES, "p3t_vintages.json"))
     import p3t_systems as SY
     from shared import HEROES
     C3 = sm.triple_counts()
@@ -695,12 +697,16 @@ def regret(a):
         wpt = wp if t == 0 else 1 - wp
         return Vt, wpt, sgn * dS, sgn * dO, np.array(thin)
 
-    recs = []
+    recs, vchk = [], []
+    own_V = {}
     for opp in ARMS:
         if opp == SEL:
             continue
         for (x, y_, t) in ((SEL, opp, 0), (opp, SEL, 1)):
             f = np.load(os.path.join(a.hl, "tourney", f"{x}__{y_}.npz"))
+            if t == 0:
+                ov = np.load(os.path.join(a.hl, "scores", f"{x}__{y_}.npz"))["own_V_a"]
+                own_V.update({(opp, i): ov[i] for i in range(len(ov))})
             acts_all, fb = f["acts"], f["fallback"]
             for i in range(len(acts_all)):
                 acts = acts_all[i].astype(np.int64)
@@ -721,20 +727,30 @@ def regret(a):
                 feas_step = [h for h in cand if tri_ok(h, prior)]
                 later = set(int(u) for u in acts)
                 feas_free = [h for h in feas_step if h not in later]
+                any_free = [h for h in cand if h not in later]
                 subs = []
-                for h in feas_free:
+                for h in any_free:
                     ac = acts.copy()
                     ac[kstar] = h
                     subs.append(ac)
                 Vs, wps, dSs, dOs, ths = team_value(i, [acts] + subs, t)
                 newteams = [[int(ac[k]) for k in PK[t]] for ac in subs]
-                full = np.array([min3_of(tm) >= FLOOR for tm in newteams], bool)
+                fs_ = set(feas_free)
+                stepok = np.array([h in fs_ for h in any_free], bool)
+                full = stepok & np.array([min3_of(tm) >= FLOOR for tm in newteams], bool)
+                if t == 0:
+                    vchk.append(abs(float(Vs[0]) - float(own_V[(opp, i)])))
                 r = {"opp": opp, "seat": t, "lobby": i, "step": kstar, "pick_no": PK[t].index(kstar) + 1,
                      "actual_in_mask": in_mask, "fallback": bool(fb[i, kstar]), "n_legal": len(cand) + 1,
                      "n_feas_step": len(feas_step), "n_feas_free": len(feas_free), "n_feas_full": int(full.sum()),
                      "V": float(Vs[0]), "wp": float(wps[0]), "dS": float(dSs[0]), "thin": int(ths[0]),
                      "min3": int(min3_of(own))}
-                for lab, msk in (("step", np.ones(len(subs), bool)), ("full", full)):
+                vbest_any = float(Vs[1:].max()) if len(subs) else -np.inf
+                r["actual_is_hindsight_best"] = bool(Vs[0] >= vbest_any)
+                if full.any():
+                    # hindsight cost of the floor: best V with any free hero (or the actual) minus best V in support
+                    r["floor_cost"] = float(max(Vs[0], vbest_any) - Vs[1:][full].max())
+                for lab, msk in (("step", stepok), ("full", full), ("any", np.ones(len(subs), bool))):
                     if msk.any():
                         jj = 1 + int(np.argmax(np.where(msk, Vs[1:], -np.inf)))
                         r[f"best_{lab}"] = {"dV": float(Vs[jj] - Vs[0]), "dwp": float(wps[jj] - wps[0]),
@@ -768,7 +784,10 @@ def regret(a):
                    "heroes in the drafter's own action set at k* (team-pool legal mask and paper 1's structural mask, "
                    "p3t_systems), other than its pick. feasible_step: every triple with its earlier picks >= 25. "
                    "feasible_full: also unused later in the draft and the substituted final team has min3 >= 25 (rest of "
-                   "the draft held fixed). Cost of the best feasible hero by the drafter's own leaf V (vintage WP + "
+                   "the draft held fixed). any: every free hero in the action set. These are hindsight comparisons (the rest of the "
+                   "draft is the one that happened), so the best of ~30 alternatives often beats the searched pick; "
+                   "floor_cost = max(V actual, V best any) - V best full, the hindsight price of staying in support. "
+                   "Cost of the best feasible hero by the drafter's own leaf V (vintage WP + "
                    "b2 S + b3 O, best of 120 assignments, cur state): dV = V(substituted) - V(actual), in probability; "
                    "dwp = population-WP part; b2dS = change in b2 x (S_ours - S_theirs) (logit units); dthin = change in "
                    "the team's cells with n < 5 under the drafter's assignment. SEs: lobby bootstrap.",
@@ -781,6 +800,16 @@ def regret(a):
            "median_n_feasible_step": float(np.median([r["n_feas_step"] for r in R])),
            "best_step": {k: med(("best_step", k)) for k in ("dV", "dwp", "b2dS", "dthin")},
            "best_full": {k: med(("best_full", k)) for k in ("dV", "dwp", "b2dS", "dthin")},
+           "best_any": {k: med(("best_any", k)) for k in ("dV", "dwp", "b2dS", "dthin")},
+           "actual_is_hindsight_best": share(lambda r: r["actual_is_hindsight_best"]),
+           "floor_cost": (lambda v, L: {"n": int(len(v)), "median": round(float(np.median(v)), 5),
+                                        "median_se": round(float(np.std(boot_median(v, L, W))), 5),
+                                        "mean": round(float(v.mean()), 5), "mean_se": round(float(np.std(boot_mean(v, L, W))), 5),
+                                        "share_zero": round(float((v <= 1e-12).mean()), 4),
+                                        "q75": round(float(np.percentile(v, 75)), 5), "q90": round(float(np.percentile(v, 90)), 5)})(
+               np.array([r["floor_cost"] for r in R if "floor_cost" in r]),
+               np.array([r["lobby"] for r in R if "floor_cost" in r])),
+           "V_check_max_abs_diff_vs_score_files": float(max(vchk)) if vchk else None,
            "best_full_adds_thin_cell": share(lambda r: r.get("best_full", {}).get("dthin", 0) > 0),
            "actual_team_thin_cells_mean": round(float(np.mean([r["thin"] for r in R])), 3)}
     # cost quantiles of the best full fix

@@ -4395,5 +4395,161 @@
     }
    }
   }
+ },
+ "regret": {
+  "what": "each selected-design team below 25 (paper 1's corpus) in the headline drafts (both seats vs the other nine arms, 5,400 teams): the pick step k* where its rarest triple first fell below 25; alternatives = heroes in the drafter's own action set at k* (team-pool legal mask and paper 1's structural mask, p3t_systems), other than its pick. feasible_step: every triple with its earlier picks >= 25. feasible_full: also unused later in the draft and the substituted final team has min3 >= 25 (rest of the draft held fixed). any: every free hero in the action set. These are hindsight comparisons (the rest of the draft is the one that happened), so the best of ~30 alternatives often beats the searched pick; floor_cost = max(V actual, V best any) - V best full, the hindsight price of staying in support. Cost of the best feasible hero by the drafter's own leaf V (vintage WP + b2 S + b3 O, best of 120 assignments, cur state): dV = V(substituted) - V(actual), in probability; dwp = population-WP part; b2dS = change in b2 x (S_ours - S_theirs) (logit units); dthin = change in the team's cells with n < 5 under the drafter's assignment. SEs: lobby bootstrap.",
+  "teams_total": 5400,
+  "teams_below_floor": 2033,
+  "share_below_floor": 0.3765,
+  "pick_no_of_first_breach": {
+   "3": 390,
+   "4": 777,
+   "5": 866
+  },
+  "actual_pick_in_mask": [
+   1.0,
+   0.0
+  ],
+  "share_with_feasible_step": [
+   0.9936,
+   0.0028
+  ],
+  "share_with_feasible_full": [
+   0.8711,
+   0.0132
+  ],
+  "median_n_legal": 73.0,
+  "median_n_feasible_step": 38.0,
+  "best_step": {
+   "dV": {
+    "n": 2017,
+    "median": 0.00489,
+    "median_se": 0.00142,
+    "mean": 0.00519,
+    "mean_se": 0.00139,
+    "share_gt0": 0.5493
+   },
+   "dwp": {
+    "n": 2017,
+    "median": 0.01739,
+    "median_se": 0.00184,
+    "mean": 0.0204,
+    "mean_se": 0.00154,
+    "share_gt0": 0.6361
+   },
+   "b2dS": {
+    "n": 2017,
+    "median": -0.06306,
+    "median_se": 0.00803,
+    "mean": -0.07367,
+    "mean_se": 0.00689,
+    "share_gt0": 0.3803
+   },
+   "dthin": {
+    "n": 2017,
+    "median": 0.0,
+    "median_se": 0.0,
+    "mean": 0.11601,
+    "mean_se": 0.01755,
+    "share_gt0": 0.2325
+   }
+  },
+  "best_full": {
+   "dV": {
+    "n": 1771,
+    "median": 0.00439,
+    "median_se": 0.00156,
+    "mean": 0.0045,
+    "mean_se": 0.00163,
+    "share_gt0": 0.5477
+   },
+   "dwp": {
+    "n": 1771,
+    "median": 0.01423,
+    "median_se": 0.00179,
+    "mean": 0.01832,
+    "mean_se": 0.00154,
+    "share_gt0": 0.6172
+   },
+   "b2dS": {
+    "n": 1771,
+    "median": -0.05286,
+    "median_se": 0.0078,
+    "mean": -0.06803,
+    "mean_se": 0.00695,
+    "share_gt0": 0.3879
+   },
+   "dthin": {
+    "n": 1771,
+    "median": 0.0,
+    "median_se": 0.0,
+    "mean": 0.09994,
+    "mean_se": 0.01829,
+    "share_gt0": 0.2225
+   }
+  },
+  "best_any": {
+   "dV": {
+    "n": 2033,
+    "median": 0.01997,
+    "median_se": 0.00124,
+    "mean": 0.02325,
+    "mean_se": 0.0011,
+    "share_gt0": 0.7063
+   },
+   "dwp": {
+    "n": 2033,
+    "median": 0.03864,
+    "median_se": 0.00195,
+    "mean": 0.03985,
+    "mean_se": 0.00146,
+    "share_gt0": 0.7757
+   },
+   "b2dS": {
+    "n": 2033,
+    "median": -0.07458,
+    "median_se": 0.00766,
+    "mean": -0.08177,
+    "mean_se": 0.00667,
+    "share_gt0": 0.3478
+   },
+   "dthin": {
+    "n": 2033,
+    "median": 0.0,
+    "median_se": 0.0,
+    "mean": 0.17708,
+    "mean_se": 0.01641,
+    "share_gt0": 0.2745
+   }
+  },
+  "actual_is_hindsight_best": [
+   0.2937,
+   0.0112
+  ],
+  "floor_cost": {
+   "n": 1771,
+   "median": 0.01605,
+   "median_se": 0.00122,
+   "mean": 0.02526,
+   "mean_se": 0.00124,
+   "share_zero": 0.2976,
+   "q75": 0.03709,
+   "q90": 0.06632
+  },
+  "V_check_max_abs_diff_vs_score_files": 1.1615507089501875e-07,
+  "best_full_adds_thin_cell": [
+   0.1938,
+   0.0116
+  ],
+  "actual_team_thin_cells_mean": 0.597,
+  "best_full_dV_quantiles": {
+   "10": -0.04656,
+   "25": -0.02128,
+   "50": 0.00439,
+   "75": 0.03044,
+   "90": 0.0589
+  },
+  "best_full_cost_lt_0p5pp": 0.5906,
+  "best_full_cost_lt_1pp": 0.6443
  }
 }
