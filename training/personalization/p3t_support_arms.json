@@ -55,6 +55,17 @@
    "leaf": 10.0
   }
  },
+ "s-leaf30": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "leaf": 30.0
+  }
+ },
  "s-gd025": {
   "base": "cur",
   "prior": "pprior",
