@@ -16,7 +16,7 @@
 | s-gd2 | 13.2 | 3.7 | 303 | 44.5 (43.9, 45.0) | 53.8 (52.9, 54.6) | 2.3 (-0.7, 5.3) | 59.6 (58.6, 60.7) | 2.6 (0.6, 4.6) | 41.2 (40.8, 41.6) |
 | s-ffloor | 34.7 | 13.0 | 38 | 49.4 (48.9, 49.8) | 58.6 (57.3, 59.9) | 2.7 (0.2, 5.2) | 63.1 (62.2, 63.9) | 2.6 (0.8, 4.4) | 45.0 (44.0, 46.0) |
 | s-ffloor-floor25 | 1.2 | 0.0 | 51 | 48.9 (48.1, 49.7) | 57.8 (56.6, 59.0) | 4.7 (1.9, 7.5) | 62.8 (62.0, 63.7) | 1.8 (-0.3, 3.8) | 44.1 (43.4, 44.9) |
-| s-pcal | nan | nan | nan | - | - | - | - | - | - |
-| s-pcal-floor25 | nan | nan | nan | - | - | - | - | - | - |
+| s-pcal | 39.0 | 13.1 | 34 | 50.2 (49.7, 50.6) | 59.1 (58.3, 59.9) | 4.3 (1.7, 6.9) | 62.6 (61.7, 63.6) | 3.3 (1.2, 5.3) | 45.1 (44.3, 45.9) |
+| s-pcal-floor25 | 1.2 | 0.0 | 51 | 49.4 (49.0, 49.9) | 58.5 (57.4, 59.7) | 5.4 (2.9, 7.9) | 62.4 (61.8, 63.1) | 2.8 (1.0, 4.6) | 44.5 (43.9, 45.2) |
 
 Caveat (s-pcal arms): J and CONS use the uncalibrated personal model (the judge's c2 and the drafters' unscaled b2), so they are biased toward the selected design; the judge-free paired record is the fair metric for the pscale arms. pscale = 0.864, by the rule fixed in advance: mean of all_known p1 min3-bin slope_P (results/p3_team_support.json residual stage).

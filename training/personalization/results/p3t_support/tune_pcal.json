@@ -1,0 +1,118 @@
+{
+ "lobbies": 300,
+ "opponents": [
+  "pMCTS-cur",
+  "aMCTS-pp"
+ ],
+ "vintages": "/home/max/hots/repo/training/personalization/results/def_def1027_hlsup/p3t_vintages.json",
+ "rows": {
+  "x-combo1-dr-chance": {
+   "judge_personal": 55.29,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 58.57,
+    "aMCTS-pp": 52.02
+   },
+   "judge_personal_boot_se": 0.216,
+   "consensus": 46.75,
+   "consensus_by_opp": {
+    "pMCTS-cur": 44.54,
+    "aMCTS-pp": 48.97
+   },
+   "consensus_boot_se": 0.166,
+   "judge_corr": 60.76,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 67.43,
+    "aMCTS-pp": 54.09
+   },
+   "judge_corr_boot_se": 0.317,
+   "support": {
+    "teams": 1200,
+    "lt25": 0.3375,
+    "lt10": 0.1225,
+    "lt5": 0.04,
+    "min3_median": 38.0,
+    "pmi_mean": -0.26714964072056746,
+    "seen_exact": 0.195
+   }
+  },
+  "s-pcal": {
+   "judge_personal": 55.28,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 58.76,
+    "aMCTS-pp": 51.8
+   },
+   "judge_personal_boot_se": 0.209,
+   "consensus": 47.25,
+   "consensus_by_opp": {
+    "pMCTS-cur": 44.94,
+    "aMCTS-pp": 49.55
+   },
+   "consensus_boot_se": 0.145,
+   "judge_corr": 60.39,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 67.46,
+    "aMCTS-pp": 53.32
+   },
+   "judge_corr_boot_se": 0.307,
+   "support": {
+    "teams": 1200,
+    "lt25": 0.37833333333333335,
+    "lt10": 0.1125,
+    "lt5": 0.035,
+    "min3_median": 35.0,
+    "pmi_mean": -0.2688692377672095,
+    "seen_exact": 0.18583333333333332
+   },
+   "diff_J_minus_sel": [
+    -0.01,
+    0.204,
+    -0.41,
+    0.39
+   ]
+  },
+  "s-pcal-floor25": {
+   "judge_personal": 54.91,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 58.63,
+    "aMCTS-pp": 51.19
+   },
+   "judge_personal_boot_se": 0.218,
+   "consensus": 46.82,
+   "consensus_by_opp": {
+    "pMCTS-cur": 44.58,
+    "aMCTS-pp": 49.06
+   },
+   "consensus_boot_se": 0.152,
+   "judge_corr": 60.03,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 67.47,
+    "aMCTS-pp": 52.59
+   },
+   "judge_corr_boot_se": 0.311,
+   "support": {
+    "teams": 1200,
+    "lt25": 0.0075,
+    "lt10": 0.0,
+    "lt5": 0.0,
+    "min3_median": 53.0,
+    "pmi_mean": -0.2142560603968748,
+    "seen_exact": 0.23666666666666666
+   },
+   "diff_J_minus_sel": [
+    -0.39,
+    0.225,
+    -0.83,
+    0.06
+   ]
+  }
+ },
+ "humans": {
+  "teams": 600,
+  "lt25": 0.05333333333333334,
+  "lt10": 0.015,
+  "lt5": 0.006666666666666667,
+  "min3_median": 199.5,
+  "pmi_mean": -0.0933118704816594,
+  "seen_exact": 0.64
+ }
+}
