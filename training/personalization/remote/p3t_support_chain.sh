@@ -92,7 +92,7 @@ drafts() {
   done
   local rc=0
   for p in "${pids[@]}"; do wait "$p" || rc=1; done
-  tail -3 "$MK"/drafts_*.log
+  tail -n 3 "$MK"/drafts_*.log
   return $rc
 }
 score() {
