@@ -1,0 +1,81 @@
+{
+ "lobbies": 300,
+ "opponents": [
+  "pMCTS-cur",
+  "aMCTS-pp"
+ ],
+ "vintages": "/home/max/hots/repo/training/personalization/results/def_def1027_hlsup/p3t_vintages.json",
+ "rows": {
+  "x-combo1-dr-chance": {
+   "judge_personal": 55.29,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 58.57,
+    "aMCTS-pp": 52.02
+   },
+   "judge_personal_boot_se": 0.216,
+   "consensus": 46.75,
+   "consensus_by_opp": {
+    "pMCTS-cur": 44.54,
+    "aMCTS-pp": 48.97
+   },
+   "consensus_boot_se": 0.166,
+   "judge_corr": 60.76,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 67.43,
+    "aMCTS-pp": 54.09
+   },
+   "judge_corr_boot_se": 0.317,
+   "support": {
+    "teams": 1200,
+    "lt25": 0.3375,
+    "lt10": 0.1225,
+    "lt5": 0.04,
+    "min3_median": 38.0,
+    "pmi_mean": -0.26714964072056746,
+    "seen_exact": 0.195
+   }
+  },
+  "s-floor25": {
+   "judge_personal": 54.56,
+   "judge_personal_by_opp": {
+    "pMCTS-cur": 58.16,
+    "aMCTS-pp": 50.96
+   },
+   "judge_personal_boot_se": 0.235,
+   "consensus": 46.05,
+   "consensus_by_opp": {
+    "pMCTS-cur": 43.98,
+    "aMCTS-pp": 48.12
+   },
+   "consensus_boot_se": 0.158,
+   "judge_corr": 60.02,
+   "judge_corr_by_opp": {
+    "pMCTS-cur": 67.12,
+    "aMCTS-pp": 52.92
+   },
+   "judge_corr_boot_se": 0.336,
+   "support": {
+    "teams": 1200,
+    "lt25": 0.0125,
+    "lt10": 0.0,
+    "lt5": 0.0,
+    "min3_median": 57.5,
+    "pmi_mean": -0.2063500773591533,
+    "seen_exact": 0.2758333333333333
+   }
+  }
+ },
+ "diff_J_promote_minus_sel": [
+  -0.73,
+  0.233
+ ],
+ "humans": {
+  "teams": 600,
+  "lt25": 0.05333333333333334,
+  "lt10": 0.015,
+  "lt5": 0.006666666666666667,
+  "min3_median": 199.5,
+  "pmi_mean": -0.0933118704816594,
+  "seen_exact": 0.64
+ }
+}
