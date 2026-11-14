@@ -265,6 +265,14 @@ def summary(arm_names, out_dir, opponents=None, stem="summary", ref=SEL):
         lines.append(f"| {a} | {100 * s.get('lt25', np.nan):.1f} | {100 * s.get('lt10', np.nan):.1f} | {s.get('min3_median', np.nan):.0f} | "
                      f"{f(g(SEL, 'J'))} | {f(g('pMCTS-cur', 'J'))} | {f(g('pMCTS-cur', 'record_pp'))} | {f(g('Real', 'J'))} | "
                      f"{f(g('Real', 'record_pp'))} | {f(g('pMCTS-cur', 'CONS'))} |")
+    if stem != "summary":
+        # per-opponent table: J next to the judge-free record (the fair metric for pscale arms)
+        lines += ["", "| arm | vs | J | judge-free record (pp, fair metric) | CONS | coverage both |", "|---|---|---|---|---|---|"]
+        for a_, row_ in res["arms"].items():
+            for o_, v_ in row_["vs"].items():
+                if v_:
+                    lines.append(f"| {a_} | {o_} | {f(v_['J'])} | {f(v_['record_pp'])} | {f(v_['CONS'])} | "
+                                 f"{100 * v_['coverage']['cov_both']:.0f}% |")
     if any((res["arms"][a].get("config") or {}).get("pscale") is not None for a in res["arms"]):
         lines += ["", "Caveat (s-pcal arms): J and CONS use the uncalibrated personal model (the judge's c2 and the drafters' "
                   "unscaled b2), so they are biased toward the selected design; the judge-free paired record is the fair "
@@ -276,7 +284,9 @@ def summary(arm_names, out_dir, opponents=None, stem="summary", ref=SEL):
 
 # ------------------------------------------------------------------ promotion of s-floor25 (coordinator 2026-11-14)
 
-PROMOTE = "s-floor25"
+# the candidate under promotion (P3T_PROMOTE; default s-floor25) and its output suffix (P3T_PROMOTE_TAG, e.g. _pcalf)
+PROMOTE = os.environ.get("P3T_PROMOTE", "s-floor25")
+PTAG = os.environ.get("P3T_PROMOTE_TAG", "")
 REP_OFFSETS = (1, 2, 3)
 CURVE = ["s-floor10", "s-floor15", "s-floor20", "s-floor25"]   # graded-floor tradeoff curve (coordinator 2026-11-14)
 PCAL = ["s-pcal", "s-pcal-floor25"]   # personal-term recalibration arms (coordinator 2026-11-14)
@@ -381,12 +391,16 @@ def rep_table(out_dir):
         r["record_sd"] = round(float(np.std([100 * x["diff"] for x in rec], ddof=1)), 3)
         rows[f"{a} vs {b}"] = r
     os.makedirs(out_dir, exist_ok=True)
-    json.dump({"offsets": [0] + list(REP_OFFSETS), "rows": rows}, open(os.path.join(out_dir, "rep.json"), "w"), indent=1)
-    L = ["| matchup | J, offsets 0-3 | J SD | CONS SD | record, offsets 0-3 | record SD |", "|---|---|---|---|---|---|"]
+    json.dump({"offsets": [0] + list(REP_OFFSETS), "rows": rows}, open(os.path.join(out_dir, f"rep{PTAG}.json"), "w"), indent=1)
+    L = ["| matchup | J, offsets 0-3 | judge-free record (pp, fair metric), offsets 0-3 | J SD | record SD | CONS SD |",
+         "|---|---|---|---|---|---|"]
     for k, r in rows.items():
-        L.append(f"| {k} | {', '.join(f'{x:.2f}' for x in r['J'])} | {r['J_sd']:.2f} | {r['CONS_sd']:.2f} | "
-                 f"{', '.join(f'{x:+.1f}' for x in r['record_pp'])} | {r['record_sd']:.2f} |")
-    open(os.path.join(out_dir, "rep.md"), "w").write("\n".join(L) + "\n")
+        L.append(f"| {k} | {', '.join(f'{x:.2f}' for x in r['J'])} | {', '.join(f'{x:+.1f}' for x in r['record_pp'])} | "
+                 f"{r['J_sd']:.2f} | {r['record_sd']:.2f} | {r['CONS_sd']:.2f} |")
+    if arms().get(PROMOTE, {}).get("pscale") is not None:
+        L += ["", "The judge-free record is the fair metric for this arm: J and CONS use the uncalibrated personal model "
+              "(biased toward the selected design)."]
+    open(os.path.join(out_dir, f"rep{PTAG}.md"), "w").write("\n".join(L) + "\n")
     print("\n".join(L))
 
 
@@ -421,10 +435,10 @@ def main():
             tune_score(out, PCAL, stem="tune_pcal")
         elif a.stage == "matrix":
             import p3t_tourney as TT
-            summary([PROMOTE], out, opponents=[o for o in TT.MAIN if o != PROMOTE], stem="matrix")
+            summary([PROMOTE], out, opponents=[o for o in TT.MAIN if o != PROMOTE], stem="matrix" + PTAG)
         elif a.stage == "loose":
             assert os.environ.get("P3T_LOBBYSET") == "loose"
-            summary([PROMOTE], out, opponents=["pMCTS-cur", "aMCTS-pp", "GD", "DraftRec", "Real"], stem="loose")
+            summary([PROMOTE], out, opponents=["pMCTS-cur", "aMCTS-pp", "GD", "DraftRec", "Real"], stem="loose" + PTAG)
         else:
             rep_table(out)
 
