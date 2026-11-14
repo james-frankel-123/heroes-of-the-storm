@@ -302,6 +302,11 @@ def schedule(name):
         # opponents, both seats; not part of "all"
         import p3t_support as SP
         pairs += SP.pairs_for()
+    if name in ("support_confirm", "support_matrix", "support_rep", "support_loose"):
+        # promotion of the floored drafter (p3t_support.PROMOTE): tune confirmation, headline matrix row,
+        # repeated runs (with P3T_SEED_OFFSET and its own lobby-set copy), loose lobbies; not part of "all"
+        import p3t_support as SP
+        pairs += SP.promote_pairs(name)
     if name in ("matrix", "all"):
         pairs += [(x, y) for x in MAIN for y in MAIN if x != y]
     if name == "all":

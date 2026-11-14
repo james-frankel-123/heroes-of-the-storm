@@ -167,7 +167,7 @@ def verify(pair, ref_dir, device=0, force_support=False):
         for s_ in (a, b):
             if SY.SYSTEMS[s_]["kind"] == "mcts_x":
                 SY.SYSTEMS[s_] = dict(SY.SYSTEMS[s_], x=dict(SY.SYSTEMS[s_]["x"], support={}))
-    vdir = os.path.join(os.path.dirname(TT.TDIR), "tourney_verify" + ("_sk" if force_support else ""))
+    vdir = TT.TDIR + "_verify" + ("_sk" if force_support else "")   # tourney_verify for the headline set
     os.makedirs(vdir, exist_ok=True)
     lob = np.load(os.path.join(TT.TDIR, "lobbies.npz"))["gi"]
     TT.pair_file = lambda x, y: os.path.join(vdir, f"{x}__{y}.npz")
@@ -202,9 +202,10 @@ def _teams(acts, t):
     return np.sort(acts[:, PK], 1).astype(np.int64)
 
 
-def summary(arm_names, out_dir):
+def summary(arm_names, out_dir, opponents=None, stem="summary", ref=SEL):
     import p3t_analyze as AN
     from paper1_revision import support_mitigation as sm
+    OPPONENTS = opponents or globals()["OPPONENTS"]
     P = AN.load()
     n = len(next(iter(P.values()))["consensus"])
     idxs = AN.boot_idx(n, AN.B)
@@ -223,7 +224,7 @@ def summary(arm_names, out_dir):
             hum.append(sorted(int(h) for h, ty, tm, _ in steps[i] if ty == 1 and (tm ^ first[i]) == t))
     res["humans"] = _support(C, np.array(hum, np.int64))
     print("humans", json.dumps(res["humans"]), flush=True)
-    for a in [SEL] + list(arm_names):
+    for a in [ref] + [x for x in arm_names if x != ref]:
         row = {"config": arms().get(a), "vs": {}}
         T = []
         for o in OPPONENTS:
@@ -252,7 +253,7 @@ def summary(arm_names, out_dir):
         res["arms"][a] = row
         print(a, json.dumps(row.get("support")), flush=True)
     os.makedirs(out_dir, exist_ok=True)
-    json.dump(res, open(os.path.join(out_dir, "summary.json"), "w"), indent=1)
+    json.dump(res, open(os.path.join(out_dir, f"{stem}.json"), "w"), indent=1)
     lines = ["| arm | <25 | <10 | median min3 | J vs sel | J vs pMCTS-cur | record vs pMCTS-cur | J vs Real | record vs Real | CONS vs pMCTS-cur |",
              "|---|---|---|---|---|---|---|---|---|---|"]
     f = lambda v: "-" if v is None else f"{v[0]:.1f} ({v[1]:.1f}, {v[2]:.1f})"
@@ -264,13 +265,115 @@ def summary(arm_names, out_dir):
         lines.append(f"| {a} | {100 * s.get('lt25', np.nan):.1f} | {100 * s.get('lt10', np.nan):.1f} | {s.get('min3_median', np.nan):.0f} | "
                      f"{f(g(SEL, 'J'))} | {f(g('pMCTS-cur', 'J'))} | {f(g('pMCTS-cur', 'record_pp'))} | {f(g('Real', 'J'))} | "
                      f"{f(g('Real', 'record_pp'))} | {f(g('pMCTS-cur', 'CONS'))} |")
-    open(os.path.join(out_dir, "summary.md"), "w").write("\n".join(lines) + "\n")
+    open(os.path.join(out_dir, f"{stem}.md"), "w").write("\n".join(lines) + "\n")
     print("\n".join(lines))
+
+
+# ------------------------------------------------------------------ promotion of s-floor25 (coordinator 2026-11-14)
+
+PROMOTE = "s-floor25"
+REP_OFFSETS = (1, 2, 3)
+
+
+def promote_pairs(kind):
+    """support_confirm: the tune-set selection matchups; support_matrix: the headline matrix row (MAIN);
+    support_rep: the repeated-run set REP with PROMOTE in place of the selected design (pairs that involve it),
+    plus PROMOTE vs the selected design; support_loose: the loose-lobby matchups."""
+    import p3t_tourney as TT
+    F = PROMOTE
+    if kind == "support_confirm":
+        opps, extra = TT.TUNE_OPP, [(SEL, o) for o in TT.TUNE_OPP] + [(o, SEL) for o in TT.TUNE_OPP]
+    elif kind == "support_matrix":
+        opps, extra = [o for o in TT.MAIN if o != F], []
+    elif kind == "support_rep":
+        opps, extra = [o for o in TT.REP if o not in (SEL, F)] + [SEL], []
+    elif kind == "support_loose":
+        opps, extra = ["pMCTS-cur", "aMCTS-pp"], [(SEL, "aMCTS-pp"), ("aMCTS-pp", SEL)]
+    else:
+        raise ValueError(kind)
+    out = []
+    for o in opps:
+        out += [(F, o), (o, F)]
+    return out + extra
+
+
+def tune_score(out_dir):
+    """The selection rule on the tune lobbies (run with P3T_LOBBYSET=tune): mean J, CONS and J_corr win
+    probability against the tune opponents (both seats), as p3t_analyze's tune table; plus team support."""
+    import p3t_analyze as AN
+    import p3t_tourney as TT
+    from paper1_revision import support_mitigation as sm
+    assert os.environ.get("P3T_LOBBYSET") == "tune"
+    P = AN.load()
+    n = len(next(iter(P.values()))["consensus"])
+    idxs = AN.boot_idx(n, AN.B)
+    C = sm.sup_corpus()
+    res = {"lobbies": n, "opponents": TT.TUNE_OPP, "vintages": check_vintages(), "rows": {}}
+    for x in (SEL, PROMOTE):
+        row = {}
+        for key in ("judge_personal", "consensus", "judge_corr"):
+            vals = [AN.pair_win(P, x, o, key) for o in TT.TUNE_OPP]
+            row[key] = round(100 * float(np.mean(vals)), 2)
+            row[key + "_by_opp"] = {o: round(100 * float(v), 2) for o, v in zip(TT.TUNE_OPP, vals)}
+            bs = [np.mean([AN.pair_win(P, x, o, key, ix) for o in TT.TUNE_OPP]) for ix in idxs]
+            row[key + "_boot_se"] = round(100 * float(np.std(bs)), 3)
+        # paired difference of the two designs' tune scores (same lobbies), lobby bootstrap
+        T = []
+        for o in TT.TUNE_OPP:
+            T += [_teams(P[(x, o)]["acts"], 0), _teams(P[(o, x)]["acts"], 1)]
+        row["support"] = _support(C, np.concatenate(T))
+        res["rows"][x] = row
+    d = [np.mean([AN.pair_win(P, PROMOTE, o, "judge_personal", ix) - AN.pair_win(P, SEL, o, "judge_personal", ix)
+                  for o in TT.TUNE_OPP]) for ix in idxs]
+    pt = np.mean([AN.pair_win(P, PROMOTE, o, "judge_personal") - AN.pair_win(P, SEL, o, "judge_personal") for o in TT.TUNE_OPP])
+    res["diff_J_promote_minus_sel"] = [round(100 * pt, 2), round(100 * float(np.std(d)), 3)]
+    lob = np.load(os.path.join(TT.TDIR, "lobbies.npz"))["gi"]
+    L = np.load(os.path.join(os.path.dirname(TT.TDIR), "lobbies.npz"))
+    first = L["first_team"][lob].astype(np.int64)
+    steps = L["steps"][lob]
+    hum = [sorted(int(h) for h, ty, tm, _ in steps[i] if ty == 1 and (tm ^ first[i]) == t) for i in range(len(lob)) for t in (0, 1)]
+    res["humans"] = _support(C, np.array(hum, np.int64))
+    os.makedirs(out_dir, exist_ok=True)
+    json.dump(res, open(os.path.join(out_dir, "tune.json"), "w"), indent=1)
+    print(json.dumps(res, indent=1))
+
+
+def rep_table(out_dir):
+    """Repeated runs: J and CONS of every PROMOTE matchup at kernel-seed offset 0 (the main run) and the
+    REP_OFFSETS (tourney_rep<n>), and their SD, as the headline's repeated-run table."""
+    import p3t_analyze as AN
+    base = os.path.dirname(AN.TDIR)
+    Ps = []
+    for tag in [""] + [f"_rep{n}" for n in REP_OFFSETS]:
+        AN.TDIR = os.path.join(base, "tourney" + tag)
+        AN.SDIR = os.path.join(base, "scores" + tag)
+        Ps.append(AN.load())
+    rows = {}
+    for a, b in promote_pairs("support_rep"):
+        if a != PROMOTE:
+            continue
+        r = {}
+        for key, lab in (("judge_personal", "J"), ("consensus", "CONS"), ("judge_cal", "J_cal")):
+            v = [100 * AN.pair_win(P, a, b, key) for P in Ps]
+            r[lab] = [round(x, 2) for x in v]
+            r[lab + "_sd"] = round(float(np.std(v, ddof=1)), 3)
+        rec = [AN.paired_record(P, a, b) for P in Ps]
+        r["record_pp"] = [round(100 * x["diff"], 2) for x in rec]
+        r["record_sd"] = round(float(np.std([100 * x["diff"] for x in rec], ddof=1)), 3)
+        rows[f"{a} vs {b}"] = r
+    os.makedirs(out_dir, exist_ok=True)
+    json.dump({"offsets": [0] + list(REP_OFFSETS), "rows": rows}, open(os.path.join(out_dir, "rep.json"), "w"), indent=1)
+    L = ["| matchup | J, offsets 0-3 | J SD | CONS SD | record, offsets 0-3 | record SD |", "|---|---|---|---|---|---|"]
+    for k, r in rows.items():
+        L.append(f"| {k} | {', '.join(f'{x:.2f}' for x in r['J'])} | {r['J_sd']:.2f} | {r['CONS_sd']:.2f} | "
+                 f"{', '.join(f'{x:+.1f}' for x in r['record_pp'])} | {r['record_sd']:.2f} |")
+    open(os.path.join(out_dir, "rep.md"), "w").write("\n".join(L) + "\n")
+    print("\n".join(L))
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["list", "verify", "summary"])
+    ap.add_argument("stage", choices=["list", "verify", "summary", "tune", "matrix", "rep", "loose"])
     ap.add_argument("--pair", default="")
     ap.add_argument("--ref", default="")
     ap.add_argument("--arms", default="")
@@ -286,7 +389,19 @@ def main():
         verify(a.pair, a.ref, a.device, a.force_support_kernel)
     else:
         import p3_hs_core as C
-        summary(names, a.out or os.path.join(C.RESULTS, "p3t_support"))
+        out = a.out or os.path.join(C.RESULTS, "p3t_support")
+        if a.stage == "summary":
+            summary(names, out)
+        elif a.stage == "tune":
+            tune_score(out)
+        elif a.stage == "matrix":
+            import p3t_tourney as TT
+            summary([PROMOTE], out, opponents=[o for o in TT.MAIN if o != PROMOTE], stem="matrix")
+        elif a.stage == "loose":
+            assert os.environ.get("P3T_LOBBYSET") == "loose"
+            summary([PROMOTE], out, opponents=["pMCTS-cur", "aMCTS-pp", "GD", "DraftRec", "Real"], stem="loose")
+        else:
+            rep_table(out)
 
 
 if __name__ == "__main__":
