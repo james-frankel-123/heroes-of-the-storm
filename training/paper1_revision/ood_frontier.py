@@ -204,9 +204,12 @@ def score():
     cp = os.path.join(OUT, "certify.json")
     if os.path.exists(cp):
         thr = json.load(open(cp))["certified_threshold"]
-    res = {"opponents": OPP8, "strategies": {}}
+    excl = [x for x in os.environ.get("FRONTIER_EXCLUDE", "").split(",") if x]
+    res = {"opponents": [o for o in OPP8 if o not in excl], "excluded": excl, "strategies": {}}
     for s in names:
-        opps = [o for o in OPP8 if o != s]
+        # an entrant in OPP8 never plays itself; FRONTIER_EXCLUDE drops opponents for everyone, so a
+        # variant and its base are scored on the same opponent set
+        opps = [o for o in OPP8 if o != s and o not in excl]
         row = {"opponents_covered": 0}
         for (j, form), v in P.items():
             means, varm = [], []
@@ -231,7 +234,7 @@ def score():
             row[f"{j}/riding_on_bias_pts"] = 100 * (row[f"{j}/raw"][0] - row[f"{j}/corrected"][0])
         res["strategies"][s] = row
     os.makedirs(OUT, exist_ok=True)
-    json.dump(res, open(os.path.join(OUT, "frontier.json"), "w"), indent=1)
+    json.dump(res, open(os.path.join(OUT, "frontier" + ("_excl_" + "_".join(excl) if excl else "") + ".json"), "w"), indent=1)
     print(f"{'strategy':24s} {'<25':>5s} {'min3md':>6s} {'pmi':>6s} | {'cons raw':>8s} {'cons corr':>9s} {'gN corr':>8s} {'RN corr':>8s} {'bias':>5s}")
     for s, r in sorted(res["strategies"].items(), key=lambda kv: -kv[1]["consensus/corrected"][0]):
         u = r["support"]
