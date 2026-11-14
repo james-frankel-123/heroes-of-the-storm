@@ -1,6 +1,6 @@
 /**
  * P3 support variant (copy of cuda_explore/explore_kernel.cu, 2026-11-13; paper 2 support arms,
- * P3_SUPPORT_ARMS.md). Three additions, each gated by a PersonalArgs field that is 0 for every
+ * p3t_support.py). Three additions, each gated by a PersonalArgs field that is 0 for every
  * earlier caller, so with sup_floor = sup_leaf = sup_gdmix = 0 every path is the explore kernel's.
  * All three act in the v2 search (search_mode >= 1) only; the legacy tree is unchanged.
  *  - sup_floor = T > 0 (graded support floor, our picks only): at a pick step of OUR team with
