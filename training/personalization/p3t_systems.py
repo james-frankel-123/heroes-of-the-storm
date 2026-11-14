@@ -176,6 +176,15 @@ SYSTEMS = system_table()
 SYSTEMS.update(explore_systems())
 
 
+def support_systems():
+    """Paper 2 support arms (p3t_support.py, p3t_support_arms.json): kind mcts_x with a 'support' block."""
+    import p3t_support as SP
+    return SP.support_systems()
+
+
+SYSTEMS.update(support_systems())
+
+
 # ------------------------------------------------------------------ vintages
 
 class Vintage:
@@ -490,8 +499,16 @@ def act_mcts_x(vint, ctx, x, device=0):
     B = len(ctx["acts"])
     use_ex = (bool(x.get("opp")) or bool(x.get("ban_bias")) or bool(x.get("ban_dr"))
               or (bool(x.get("rich")) and not IS_PICK[k]) or "stranger" in ctx)
-    kmod = M.load_module("explore_kernel" if use_ex else "pvnet_kernel",
-                         os.path.join(HERE, "cuda_explore" if use_ex else "cuda_pvnet"))
+    # support arms (p3t_support.py): the explore kernel plus support floor / leaf penalty / GD prior mix
+    sup = None
+    if x.get("support") is not None:
+        import p3t_support as SP
+        sup = SP.sup_args(x["support"])
+        kmod = M.load_module("support_kernel", os.path.join(HERE, "cuda_support"))
+    else:
+        kmod = M.load_module("explore_kernel" if use_ex else "pvnet_kernel",
+                             os.path.join(HERE, "cuda_explore" if use_ex else "cuda_pvnet"))
+    sup_kw = {} if sup is None else {"sup": sup, "c3": SP.c3_flat()}
     cfg = np.full((B, M.CFG_LEN), -1, np.int32)
     cfg[:, 0], cfg[:, 1], cfg[:, 2] = ctx["map"], ctx["tier"], t
     cfg[:, 3], cfg[:, 4], cfg[:, 5], cfg[:, 6], cfg[:, 7] = 0, k, 1, 0, 1
@@ -633,12 +650,15 @@ def act_mcts_x(vint, ctx, x, device=0):
             r_ = eng.run(np.ascontiguousarray(cfg[ii]), np.ascontiguousarray(s[ii]), np.ascontiguousarray(off[ii]),
                          np.ascontiguousarray(imit[ii]), np.ascontiguousarray(ctx["pool_bits"][ii]), coefs,
                          np.ascontiguousarray(bias[ii]), np.ascontiguousarray(feat[ii]), vnet, sims, cp,
-                         int(ctx["kseed"] + 7919 * k + b0 + 104729 * int(i)), 0.0, 0.3, 0.0, 1, search_mode=1)
+                         int(ctx["kseed"] + 7919 * k + b0 + 104729 * int(i)), 0.0, 0.3, 0.0, 1, search_mode=1, **sup_kw)
             del eng
             pol = r_[5][:, 0, :]
             q = np.nan_to_num(r_[6][:, 0, :], nan=-1.0)
             legal = legal_mask(ctx["acts"][ii], k, ctx["team_pool"][ii])
             sm = struct_mask(ctx["acts"][ii], k, legal)
+            if sup is not None and sup[0] > 0:
+                # support floor at the root choice too (with paper 1's structural mask; graded as in the kernel)
+                sm = SP.graded_floor(ctx["acts"][ii], k, sm, float(sup[0]))
             out[ii] = np.where(sm, pol + 1e-6 * q, -1e30).argmax(1)
             cr = croot[ii]
             # root value: the chosen action's q (decision root); visit-weighted mean (chance root)

@@ -1,0 +1,121 @@
+{
+ "_note": "paper 2 support arms (p3t_support.py, 2026-11-13): each arm is x-combo1-dr-chance (p3t_explore.json) plus one change in 'support' or 'base'/'prior'. floor = graded support floor T on our picks; leaf = lambda on the measured value-function error by min3 bin; gd_mix = mu on log p_GD in our pick prior; s-ffloor = the player-aware prior refit on paper 1's floor-trained policy (vintage cur_ffloor, pprior_ffloor).",
+ "s-floor10": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "floor": 10
+  }
+ },
+ "s-floor25": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "floor": 25
+  }
+ },
+ "s-leaf1": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "leaf": 1.0
+  }
+ },
+ "s-leaf3": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "leaf": 3.0
+  }
+ },
+ "s-leaf10": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "leaf": 10.0
+  }
+ },
+ "s-gd025": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "gd_mix": 0.25
+  }
+ },
+ "s-gd05": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "gd_mix": 0.5
+  }
+ },
+ "s-gd1": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "gd_mix": 1.0
+  }
+ },
+ "s-gd2": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "gd_mix": 2.0
+  }
+ },
+ "s-ffloor": {
+  "base": "cur_ffloor",
+  "prior": "pprior_ffloor",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0
+ },
+ "s-ffloor-floor25": {
+  "base": "cur_ffloor",
+  "prior": "pprior_ffloor",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "floor": 25
+  }
+ }
+}

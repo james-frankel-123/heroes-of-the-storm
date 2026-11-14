@@ -297,6 +297,11 @@ def schedule(name):
     if name == "simscurve":
         for x in SIMS_CURVE + ["x-combo1-dr-chance"]:
             pairs += [(x, "pMCTS-cur"), ("pMCTS-cur", x)]
+    if name == "support":
+        # paper 2 support arms (p3t_support.py): each arm against the selected design and the headline
+        # opponents, both seats; not part of "all"
+        import p3t_support as SP
+        pairs += SP.pairs_for()
     if name in ("matrix", "all"):
         pairs += [(x, y) for x in MAIN for y in MAIN if x != y]
     if name == "all":
