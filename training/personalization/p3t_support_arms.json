@@ -11,6 +11,28 @@
    "floor": 10
   }
  },
+ "s-floor15": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "floor": 15
+  }
+ },
+ "s-floor20": {
+  "base": "cur",
+  "prior": "pprior",
+  "ban_bias": 3.0,
+  "opp": "dr",
+  "opp_chance_only": true,
+  "assign_bias": 1.0,
+  "support": {
+   "floor": 20
+  }
+ },
  "s-floor25": {
   "base": "cur",
   "prior": "pprior",

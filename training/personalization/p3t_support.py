@@ -273,6 +273,7 @@ def summary(arm_names, out_dir, opponents=None, stem="summary", ref=SEL):
 
 PROMOTE = "s-floor25"
 REP_OFFSETS = (1, 2, 3)
+CURVE = ["s-floor10", "s-floor15", "s-floor20", "s-floor25"]   # graded-floor tradeoff curve (coordinator 2026-11-14)
 
 
 def promote_pairs(kind):
@@ -287,6 +288,12 @@ def promote_pairs(kind):
         opps, extra = [o for o in TT.MAIN if o != F], []
     elif kind == "support_rep":
         opps, extra = [o for o in TT.REP if o not in (SEL, F)] + [SEL], []
+    elif kind == "support_tune_curve":
+        out = []
+        for x in CURVE:
+            for o in TT.TUNE_OPP:
+                out += [(x, o), (o, x)]
+        return out
     elif kind == "support_loose":
         opps, extra = ["pMCTS-cur", "aMCTS-pp"], [(SEL, "aMCTS-pp"), ("aMCTS-pp", SEL)]
     else:
@@ -297,7 +304,7 @@ def promote_pairs(kind):
     return out + extra
 
 
-def tune_score(out_dir):
+def tune_score(out_dir, arms_=None, stem="tune"):
     """The selection rule on the tune lobbies (run with P3T_LOBBYSET=tune): mean J, CONS and J_corr win
     probability against the tune opponents (both seats), as p3t_analyze's tune table; plus team support."""
     import p3t_analyze as AN
@@ -309,7 +316,8 @@ def tune_score(out_dir):
     idxs = AN.boot_idx(n, AN.B)
     C = sm.sup_corpus()
     res = {"lobbies": n, "opponents": TT.TUNE_OPP, "vintages": check_vintages(), "rows": {}}
-    for x in (SEL, PROMOTE):
+    arms_ = list(arms_ or [PROMOTE])
+    for x in [SEL] + arms_:
         row = {}
         for key in ("judge_personal", "consensus", "judge_corr"):
             vals = [AN.pair_win(P, x, o, key) for o in TT.TUNE_OPP]
@@ -323,10 +331,15 @@ def tune_score(out_dir):
             T += [_teams(P[(x, o)]["acts"], 0), _teams(P[(o, x)]["acts"], 1)]
         row["support"] = _support(C, np.concatenate(T))
         res["rows"][x] = row
-    d = [np.mean([AN.pair_win(P, PROMOTE, o, "judge_personal", ix) - AN.pair_win(P, SEL, o, "judge_personal", ix)
-                  for o in TT.TUNE_OPP]) for ix in idxs]
-    pt = np.mean([AN.pair_win(P, PROMOTE, o, "judge_personal") - AN.pair_win(P, SEL, o, "judge_personal") for o in TT.TUNE_OPP])
-    res["diff_J_promote_minus_sel"] = [round(100 * pt, 2), round(100 * float(np.std(d)), 3)]
+    for x in arms_:
+        d = [np.mean([AN.pair_win(P, x, o, "judge_personal", ix) - AN.pair_win(P, SEL, o, "judge_personal", ix)
+                      for o in TT.TUNE_OPP]) for ix in idxs]
+        pt = np.mean([AN.pair_win(P, x, o, "judge_personal") - AN.pair_win(P, SEL, o, "judge_personal") for o in TT.TUNE_OPP])
+        se = float(np.std(d))
+        res["rows"][x]["diff_J_minus_sel"] = [round(100 * pt, 2), round(100 * se, 3),
+                                              round(100 * (pt - 1.96 * se), 2), round(100 * (pt + 1.96 * se), 2)]
+    if arms_ == [PROMOTE]:
+        res["diff_J_promote_minus_sel"] = res["rows"][PROMOTE]["diff_J_minus_sel"][:2]
     lob = np.load(os.path.join(TT.TDIR, "lobbies.npz"))["gi"]
     L = np.load(os.path.join(os.path.dirname(TT.TDIR), "lobbies.npz"))
     first = L["first_team"][lob].astype(np.int64)
@@ -334,7 +347,7 @@ def tune_score(out_dir):
     hum = [sorted(int(h) for h, ty, tm, _ in steps[i] if ty == 1 and (tm ^ first[i]) == t) for i in range(len(lob)) for t in (0, 1)]
     res["humans"] = _support(C, np.array(hum, np.int64))
     os.makedirs(out_dir, exist_ok=True)
-    json.dump(res, open(os.path.join(out_dir, "tune.json"), "w"), indent=1)
+    json.dump(res, open(os.path.join(out_dir, f"{stem}.json"), "w"), indent=1)
     print(json.dumps(res, indent=1))
 
 
@@ -373,7 +386,7 @@ def rep_table(out_dir):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["list", "verify", "summary", "tune", "matrix", "rep", "loose"])
+    ap.add_argument("stage", choices=["list", "verify", "summary", "tune", "tune_curve", "matrix", "rep", "loose"])
     ap.add_argument("--pair", default="")
     ap.add_argument("--ref", default="")
     ap.add_argument("--arms", default="")
@@ -394,6 +407,9 @@ def main():
             summary(names, out)
         elif a.stage == "tune":
             tune_score(out)
+        elif a.stage == "tune_curve":
+            assert os.environ.get("P3T_LOBBYSET") == "tune"
+            tune_score(out, CURVE, stem="tune_curve")
         elif a.stage == "matrix":
             import p3t_tourney as TT
             summary([PROMOTE], out, opponents=[o for o in TT.MAIN if o != PROMOTE], stem="matrix")
