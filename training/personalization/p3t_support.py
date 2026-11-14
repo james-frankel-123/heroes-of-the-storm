@@ -265,6 +265,10 @@ def summary(arm_names, out_dir, opponents=None, stem="summary", ref=SEL):
         lines.append(f"| {a} | {100 * s.get('lt25', np.nan):.1f} | {100 * s.get('lt10', np.nan):.1f} | {s.get('min3_median', np.nan):.0f} | "
                      f"{f(g(SEL, 'J'))} | {f(g('pMCTS-cur', 'J'))} | {f(g('pMCTS-cur', 'record_pp'))} | {f(g('Real', 'J'))} | "
                      f"{f(g('Real', 'record_pp'))} | {f(g('pMCTS-cur', 'CONS'))} |")
+    if any((res["arms"][a].get("config") or {}).get("pscale") is not None for a in res["arms"]):
+        lines += ["", "Caveat (s-pcal arms): J and CONS use the uncalibrated personal model (the judge's c2 and the drafters' "
+                  "unscaled b2), so they are biased toward the selected design; the judge-free paired record is the fair "
+                  "metric for the pscale arms."]
     open(os.path.join(out_dir, f"{stem}.md"), "w").write("\n".join(lines) + "\n")
     print("\n".join(lines))
 
@@ -274,6 +278,7 @@ def summary(arm_names, out_dir, opponents=None, stem="summary", ref=SEL):
 PROMOTE = "s-floor25"
 REP_OFFSETS = (1, 2, 3)
 CURVE = ["s-floor10", "s-floor15", "s-floor20", "s-floor25"]   # graded-floor tradeoff curve (coordinator 2026-11-14)
+PCAL = ["s-pcal", "s-pcal-floor25"]   # personal-term recalibration arms (coordinator 2026-11-14)
 
 
 def promote_pairs(kind):
@@ -288,9 +293,9 @@ def promote_pairs(kind):
         opps, extra = [o for o in TT.MAIN if o != F], []
     elif kind == "support_rep":
         opps, extra = [o for o in TT.REP if o not in (SEL, F)] + [SEL], []
-    elif kind == "support_tune_curve":
+    elif kind in ("support_tune_curve", "support_tune_pcal"):
         out = []
-        for x in CURVE:
+        for x in (CURVE if kind == "support_tune_curve" else PCAL):
             for o in TT.TUNE_OPP:
                 out += [(x, o), (o, x)]
         return out
@@ -386,7 +391,7 @@ def rep_table(out_dir):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["list", "verify", "summary", "tune", "tune_curve", "matrix", "rep", "loose"])
+    ap.add_argument("stage", choices=["list", "verify", "summary", "tune", "tune_curve", "tune_pcal", "matrix", "rep", "loose"])
     ap.add_argument("--pair", default="")
     ap.add_argument("--ref", default="")
     ap.add_argument("--arms", default="")
@@ -410,6 +415,9 @@ def main():
         elif a.stage == "tune_curve":
             assert os.environ.get("P3T_LOBBYSET") == "tune"
             tune_score(out, CURVE, stem="tune_curve")
+        elif a.stage == "tune_pcal":
+            assert os.environ.get("P3T_LOBBYSET") == "tune"
+            tune_score(out, PCAL, stem="tune_pcal")
         elif a.stage == "matrix":
             import p3t_tourney as TT
             summary([PROMOTE], out, opponents=[o for o in TT.MAIN if o != PROMOTE], stem="matrix")

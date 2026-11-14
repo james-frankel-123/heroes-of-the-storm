@@ -525,6 +525,13 @@ def act_mcts_x(vint, ctx, x, device=0):
     s = ctx["s"].astype(np.float32).copy()
     off = ctx["off"].astype(np.float32)
     b = list(vint.spec["combiner"])
+    # learned priors (pprior, rich) take the b2 they were fit with as an input feature
+    pb2 = float(b[2])
+    if x.get("pscale") is not None:
+        # paper 2 support arms (s-pcal*): the drafter's personal coefficients b2, b3 scaled (leaf, assignment
+        # gain, denial bans); b0, b1, the vintage table and the judges are unchanged
+        b[2] = float(b[2]) * float(x["pscale"])
+        b[3] = float(b[3]) * float(x["pscale"])
     # (e) uncertainty-aware value: optimism on our cells, pessimism on theirs
     ku = float(x.get("optimism", 0.0))
     if ku:
@@ -537,7 +544,7 @@ def act_mcts_x(vint, ctx, x, device=0):
         alpha = float(alpha.get(str(k), alpha.get("default", 1.0)))
     if x.get("prior"):
         import p3t_pprior as PP
-        pb, a_fit = PP.bias_for(ctx["s"], ctx["off"], ctx["n"], float(b[2]), prior_path(x["prior"]))
+        pb, a_fit = PP.bias_for(ctx["s"], ctx["off"], ctx["n"], pb2, prior_path(x["prior"]))
         bias += float(x.get("bias_scale", 1.0)) * pb
         if x.get("alpha") is None:
             alpha = a_fit
@@ -552,7 +559,7 @@ def act_mcts_x(vint, ctx, x, device=0):
     if rich:
         import p3t_rprior as RP
         u, lpF, msk = RP.logits(rich, ctx["acts"], k, ctx["map"], ctx["tier"], ctx["s"].astype(np.float32),
-                                ctx["sd"].astype(np.float32), ctx["n"].astype(np.float32), ctx["seed_i"], float(b[2]))
+                                ctx["sd"].astype(np.float32), ctx["n"].astype(np.float32), ctx["seed_i"], pb2)
         rb = np.where(msk, u - lpF, 0.0).astype(np.float32)
         alpha = 1.0                                    # root prior = softmax(rich logits) exactly
         if IS_PICK[k]:
