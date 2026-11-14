@@ -750,5 +750,32 @@
    -0.216617614030838
   ],
   "vnet_b1": 1.2015651731611285
+ },
+ "cur_ffloor": {
+  "note": "cur with paper 1's floor-trained MCTS policies as the search prior (config F_floor, seeds 0-2: the floor inside self-play, paper1_revision/support_mitigation FT_CONFIG); leaf WP, statistics, GD and combiner of cur (paper 2 support arm s-ffloor, p3t_support.py)",
+  "cutoff": "2026-05-22",
+  "policies": [
+   "paper1_revision/site/mcts_runs/F_floor_s0/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_floor_s1/draft_policy.pt",
+   "paper1_revision/site/mcts_runs/F_floor_s2/draft_policy.pt"
+  ],
+  "wp_json": "paper1_revision/site/models/enriched.json",
+  "stats": "paper1_revision/site/cache/stats/deploy.json",
+  "comps": "paper1_revision/site/cache/stats/deploy_compositions.json",
+  "gds": [
+   "rerun2026/ns/p1site/models/generic_draft_0.pt",
+   "rerun2026/ns/p1site/models/generic_draft_1.pt",
+   "rerun2026/ns/p1site/models/generic_draft_2.pt",
+   "rerun2026/ns/p1site/models/generic_draft_3.pt",
+   "rerun2026/ns/p1site/models/generic_draft_4.pt"
+  ],
+  "state": "cur",
+  "combiner": [
+   0.0,
+   1.2015651731611285,
+   4.540632118348097,
+   -0.01470161729888318
+  ],
+  "combiner_note": "p3t_value combfit: 5,397 held-out games 2026-02-11..05-22 (paper-1 test/val splits + post-snapshot uploads), b0 set to 0 (side constant, no effect on decisions); fitted b0 -0.029"
  }
 }

@@ -114,10 +114,10 @@ def targets(n_lobbies, device=0):
     print(f"targets: {len(gi)} lobbies x {len(PICKS)} picks ({time.time() - t0:.0f}s)")
 
 
-def f_logp(acts, k, mp, tr, team_pool, seed_i):
-    """log p_F over legal heroes at step k (B, 90), F seed = seed_i % 5."""
+def f_logp(acts, k, mp, tr, team_pool, seed_i, vint="cur"):
+    """log p_F over legal heroes at step k (B, 90), F seed = seed_i % (the vintage's seed count)."""
     import p3t_systems as SY
-    v = SY.vintage("cur")
+    v = SY.vintage(vint)
     X = SY.features(acts, k, mp, tr, SY.DRAFT_TEAM[k])
     m = SY.legal_mask(acts, k, team_pool)
     out = np.full((len(X), 90), -30.0, np.float32)
@@ -198,15 +198,18 @@ def fit_prior(F, LP, MS, TG, TT, II, G, init=None, seed=0):
                    "top1_matches_target_F": top_f, "top1_matches_target_fit": top_pp}
 
 
-def train():
+def train(vint="cur", out=None):
+    """Fit on the visit targets with the vintage's F policies as p_F. Defaults: vintage cur ->
+    pprior.pt / pprior.json; --vintage cur_ffloor --out pprior_ffloor (paper 2 support arm s-ffloor:
+    the same targets, paper 1's floor-trained policies as p_F) -> pprior_ffloor.pt / pprior_ffloor.json."""
     import p3t_systems as SY
     z = dict(np.load(os.path.join(TD.OUT, "pprior_targets.npz")))
-    b2 = float(SY.vintage("cur").spec["combiner"][2])
+    b2 = float(SY.vintage(vint).spec["combiner"][2])
     F = features(z["s"], z["off"], z["n"], b2)
     G = len(z["gi"])
     LP, MS, TG, TT, II = [], [], [], [], []
     for k in PICKS:
-        lp, m = f_logp(z["acts"], k, z["map"], z["tier"], z["team_pool"], np.arange(G))
+        lp, m = f_logp(z["acts"], k, z["map"], z["tier"], z["team_pool"], np.arange(G), vint=vint)
         tg = z["vis"][:, k] * m
         tg = tg / np.maximum(tg.sum(1, keepdims=True), 1e-9)
         LP.append(lp)
@@ -215,11 +218,15 @@ def train():
         TT.append(np.full(G, SY.DRAFT_TEAM[k]))
         II.append(np.arange(G))
     LP, MS, TG, TT, II = (np.concatenate(x) for x in (LP, MS, TG, TT, II))
-    model, out = fit_prior(F, LP, MS, TG, TT, II, G)
-    torch.save(model.state_dict(), MODEL)
-    out["b2"] = b2
+    model, res = fit_prior(F, LP, MS, TG, TT, II, G)
+    name = out or "pprior"
+    torch.save(model.state_dict(), os.path.join(TD.OUT, f"{name}.pt"))
+    res["b2"] = b2
+    if vint != "cur":
+        res["vintage"] = vint
+    out = res
     os.makedirs(os.path.join(C.RESULTS, "p3t"), exist_ok=True)
-    json.dump(out, open(os.path.join(C.RESULTS, "p3t", "pprior.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(C.RESULTS, "p3t", f"{name}.json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
 
 
@@ -245,11 +252,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=["targets", "train"])
     ap.add_argument("--lobbies", type=int, default=3000)
+    ap.add_argument("--vintage", default="cur", help="train: the vintage whose F policies give p_F")
+    ap.add_argument("--out", default="", help="train: output name under $P3_CACHE/p3t (default pprior)")
     a = ap.parse_args()
     if a.stage == "targets":
         targets(a.lobbies)
     else:
-        train()
+        train(a.vintage, a.out or None)
 
 
 if __name__ == "__main__":
