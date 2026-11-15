@@ -37,9 +37,9 @@ import data as WD  # noqa: E402
 import model as M  # noqa: E402
 import world as W  # noqa: E402
 
-OUT = os.path.join(WD.CACHE, "tl_p2")
+OPP = os.environ.get("TL_P2_OPP", "pMCTS-cur")
+OUT = os.path.join(WD.CACHE, "tl_p2" + ("" if OPP == "pMCTS-cur" else "_" + OPP))
 PLAN = [("a", "default", range(20)), ("f", "default", range(20)), ("fc", "default", range(20)), ("a", "stress", range(20))]
-OPP = "pMCTS-cur"
 TL_AGENTS = {"TL-sel": "x-combo1-dr-chance", "TL-f25": "s-floor25"}
 _TRUTH = {}
 
@@ -228,7 +228,7 @@ def score():
                         "s-pcal-floor25 (vs TL-f25)": RS.contrast([r["TL-f25"] - r["s-pcal-floor25"] for r in rows])},
              "floor_true_effect": RS.contrast([r["TL-f25"] - r["TL-sel"] for r in rows])}
         out["settings"][f"{fam}/{dial}"] = S
-    json.dump(out, open(os.path.join(WD.RESULTS, "truthleaf_p2.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(WD.RESULTS, "truthleaf_p2" + ("" if OPP == "pMCTS-cur" else "_" + OPP) + ".json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
 
 

@@ -5,7 +5,8 @@ floor-trained prior, GD opponent and rollouts, role mask, and the support floor 
 with only the leaf swapped: search_actor's shared 'enriched' leaf is replaced, inside the worker
 process, by the world's true win probability (family / world / dial). Opponents and seeds are the
 tournament's (floor_search.run_pair); every ordered pair against the common opponent set (OPP8
-minus constrained_mcts), N_DRAFTS = 42 per seat (14 maps x 3 tiers, balanced).
+minus constrained_mcts) cut to three opponents (mcts, constrained_greedy, gd) and N_DRAFTS = 28 per seat
+(14 maps x the first two tiers): the search costs ~9 s per draft on the 3090 CPU.
 
 Agents:  search_c (role mask, no floor)        truth counterpart of constrained_mcts, mcts, search_c
          search_sf (role mask + floor)         ... of constrained_mcts_sf, search_sf
@@ -36,10 +37,10 @@ import model as M  # noqa: E402
 import world as W  # noqa: E402
 
 AGENTS = ["search_c", "search_sf", "search_ft_sf"]
-OPPS = ["mcts", "enriched", "constrained_greedy", "k_oof", "gourdeau", "gourdeau_disc", "gd"]
-N_DRAFTS = 42
+OPPS = ["mcts", "constrained_greedy", "gd"]     # a policy, a greedy WP drafter, the human-imitation model
+N_DRAFTS = 28                                   # 14 maps x 2 tiers per seat (paper 1's search costs ~9 s per draft)
 TL = os.path.join(WD.CACHE, "tl")
-PLAN = [("a", "default", range(20)), ("a", "stress", range(20)), ("c", "default", range(20)), ("g", "member", range(20))]
+PLAN = [("a", "default", range(10)), ("a", "stress", range(10)), ("g", "member", range(10)), ("c", "default", range(5))]
 COUNTERPART = {"constrained_mcts": "search_c", "mcts": "search_c", "search_c": "search_c",
                "constrained_mcts_sf": "search_sf", "search_sf": "search_sf",
                "constrained_mcts_ft_sf": "search_ft_sf", "search_ft_sf": "search_ft_sf"}
@@ -102,14 +103,21 @@ def run_setting(fam, wid, dial_name):
         dial = {} if fam == "g" else {k: v for k, v in W.dials()["named"][dial_name].items() if k != "drift"}
         sa._SHARED["leaf:enriched"] = TruthLeaf(fam, wid, dial)
     res = {"family": fam, "world": int(wid), "dial": dial_name, "n": N_DRAFTS, "pairs": {}}
+    pdir = os.path.join(TL, tag_of(fam, wid, dial_name))       # per-pair checkpoints (resume)
+    os.makedirs(pdir, exist_ok=True)
     t0 = time.time()
     for a in AGENTS:
         for o in OPPS:
             for x, y in ((a, o), (o, a)):
-                R = fs.run_pair(x, y, N_DRAFTS)
-                res["pairs"][f"{x}__{y}"] = [{"m": r["game_map"], "t": r["tier"], "t0": r["team0"]["picks"],
-                                              "t1": r["team1"]["picks"], "s0": [h for h, _ in r["team0_steps"]],
-                                              "s1": [h for h, _ in r["team1_steps"]]} for r in R["records"]]
+                pp = os.path.join(pdir, f"{x}__{y}.json")
+                if not os.path.exists(pp):
+                    R = fs.run_pair(x, y, N_DRAFTS)
+                    recs = [{"m": r["game_map"], "t": r["tier"], "t0": r["team0"]["picks"],
+                             "t1": r["team1"]["picks"], "s0": [h for h, _ in r["team0_steps"]],
+                             "s1": [h for h, _ in r["team1_steps"]]} for r in R["records"]]
+                    json.dump(recs, open(pp + ".tmp", "w"))
+                    os.replace(pp + ".tmp", pp)
+                res["pairs"][f"{x}__{y}"] = json.load(open(pp))
         print(f"{tag_of(fam, wid, dial_name)} {a} done ({time.time() - t0:.0f}s)", flush=True)
     json.dump(res, open(out + ".tmp", "w"))
     os.replace(out + ".tmp", out)
@@ -182,8 +190,7 @@ def score():
     import rescore as RS
     real = json.load(open(os.path.join(TL, "real_real_w0.json")))
     Dreal = {k: _arrays(v) for k, v in real["pairs"].items()}
-    z = {f: np.load(os.path.join(WD.CACHE, f"rescore_p1_{f}.npz")) for f in ("a", "c", "g")}
-    names = list(z["a"]["names"])
+    P1 = RS.p1_drafts()
     out = {"n_drafts_per_seat": N_DRAFTS, "opponents": OPPS, "settings": {}, "concentration": {}}
     out["concentration"]["real_leaf"] = {a: concentration(real["pairs"], a) for a in AGENTS}
     ens = {}
@@ -207,12 +214,16 @@ def score():
             for a in AGENTS:
                 row[f"TL:{a}"] = agent_value(R["pairs"], a, lambda k: pt[k])
                 row[f"real:{a}"] = agent_value(real["pairs"], a, lambda k: pr[k])
-            # the tournament agents' true values in the same world (rescore, all 200 drafts per pair)
-            V = z[fam]["V"]
-            ci = 0 if fam == "g" else list(W.dials()["named"]).index(dial)
+            # the tournament agents' true values in the same world, against the same three opponents
+            # (their tournament drafts, all 200 per ordered pair)
+            if fam == "g":
+                pa = np.asarray(ens.setdefault("g_p1", _ens_all(P1))[w], float)
+            else:
+                pa = truth_p(fam, w, dial, P1)
             for x in COUNTERPART:
-                if x in names:
-                    row[f"agent:{x}"] = float(V[w, ci, names.index(x)])
+                v = _p1_agent_value(P1, pa, x)
+                if v is not None:
+                    row[f"agent:{x}"] = v
             row["concentration"] = {a: concentration(R["pairs"], a) for a in AGENTS}
             rows.append(row)
         if not rows:
@@ -235,6 +246,22 @@ def score():
         out["settings"][f"{fam}/{dial}"] = S
     json.dump(out, open(os.path.join(WD.RESULTS, "truthleaf_p1.json"), "w"), indent=1)
     print(json.dumps(out, indent=1)[:6000])
+
+
+def _p1_agent_value(P1, p, x):
+    v = []
+    for o in OPPS:
+        f = (P1["S0"] == x) & (P1["S1"] == o)
+        g = (P1["S0"] == o) & (P1["S1"] == x)
+        if not (f.any() and g.any()):
+            return None
+        v.append(np.concatenate([p[f], 1 - p[g]]).mean())
+    return float(np.mean(v))
+
+
+def _ens_all(P1):
+    import ensemble as EN
+    return EN.values(EN.rows_of(P1), "p1drafts")
 
 
 def _ens_split(Dd, tag, w):
