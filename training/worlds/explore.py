@@ -3,8 +3,11 @@ Step 3: sample-efficient exploration inside hidden worlds (3090 CPU).
 
 Decision problem (a completion bandit, cheap enough for thousands of rounds): a context is a real NODRIFT game;
 our team has three of its heroes already (a random 3 of the real five), the opponent's five, map and tier are the
-real ones. The drafter recommends the last two heroes. Candidates: the learner's top 100 completions (any two free
-heroes) plus the humans' own two plus 20 random ones. A real lobby (player_cov pool) is attached to each context:
+real ones. The drafter recommends the last two heroes. Candidates: completions whose role composition occurs in
+>= 100 training teams (no absurd compositions: an additive outcome model rates e.g. healer-less five-assassin teams
+highly); of those, the learner's top 100 plus the humans' own two plus 20 random ones. The true win probability is
+clipped to [0.25, 0.75], the 1st-99th percentile of the worlds' p on the humans' own teams (diagnostics: stage diag,
+results/explore_diag.json): no completion is truly better than the best 1% of human matchups. A real lobby (player_cov pool) is attached to each context:
 the two remaining players.
 
 Compliance: each recommended hero is played with probability c * phi(n_ph) * 0.8^(rank - 1), c in {5, 20, 50}%,
@@ -145,6 +148,9 @@ class Truth:
             self.PW = PL.PlayerWorldsCov()
 
     def p(self, D, lob=None):
+        return np.clip(self._p(D, lob), *P_CAP)
+
+    def _p(self, D, lob=None):
         if self.fam == "g":
             HEROES, maps, tiers = self.names
             keys = [(tuple(a), tuple(b), maps[m] if m < len(maps) else "?", tiers[t] if t < len(tiers) else "?")
@@ -177,6 +183,22 @@ def contexts(n, seed):
             "pid": cz["pool_pid"][li], "cnt": cz["pool_cnt"][li], "s": cz["pool_s"][li], "off": cz["pool_off"][li]}
 
 
+RC_MIN = 100      # plausibility: a candidate's role composition must occur in >= 100 training teams
+P_CAP = (0.25, 0.75)   # plausibility cap on the truth: the 1st-99th percentile of the worlds' p on the humans' own teams
+_RC = {}
+
+
+def role_ok(teams):
+    """True where the team's role composition (paper 1's role classes) has >= RC_MIN training teams."""
+    if "C" not in _RC:
+        from paper1_revision import support_mitigation as sm
+        from paper1_revision import team_support as ts
+        _RC["C"], _RC["ts"] = sm.sup_corpus(), ts
+    C, ts = _RC["C"], _RC["ts"]
+    rk = ts.key(range(5), np.sort(ts.ROLE_IDX[teams], 1).astype(np.int64))
+    return C._lookup(C.rc, rk) >= RC_MIN
+
+
 def candidates(L, ctx, i, rng):
     T0, T1 = ctx["T0"][i], ctx["T1"][i]
     base3 = T0[ctx["keep"][i]]
@@ -185,12 +207,14 @@ def candidates(L, ctx, i, rng):
     free = np.concatenate([free, human])
     pairs = np.array(list(combinations(free, 2)))
     teams = np.sort(np.concatenate([np.repeat(base3[None], len(pairs), 0), pairs], 1), 1)
+    ok = role_ok(teams) | (teams == np.sort(T0)).all(1)          # the humans' own team is always a candidate
+    pairs, teams = pairs[ok], teams[ok]
     D = {"T0": teams, "T1": np.repeat(T1[None], len(teams), 0), "m": np.full(len(teams), ctx["m"][i]),
          "t": np.full(len(teams), ctx["t"][i])}
     z, sd = L.value(D)
     top = np.argsort(-z)[:100]
     hidx = np.flatnonzero((teams == np.sort(T0)).all(1))
-    rnd = rng.choice(len(teams), 20, replace=False)
+    rnd = rng.choice(len(teams), min(20, len(teams)), replace=False)
     sel = np.unique(np.concatenate([top, hidx, rnd]))
     D = {k: v[sel] for k, v in D.items()}
     return D, z[sel], sd[sel], int(np.flatnonzero((D["T0"] == np.sort(T0)).all(1))[0]), pairs[sel], base3
@@ -343,6 +367,60 @@ def summarize():
               f"followed {c['followed_share']:.3f} cost {c['cost_mean_pts']:.2f} P>2pp {c['p_cost_gt_2pp']:.2f}")
 
 
+# ── diagnostics: what drives extreme true values among candidates ───────
+def diag(n_ctx=300, worlds=(0, 1, 2), fams=None):
+    rng = np.random.default_rng(5)
+    ctx = contexts(n_ctx, seed=9000)
+    L = Learner()
+    out = {}
+    for fam in fams or FAMS:
+        rows = {"human": [], "top100": [], "random": []}
+        comp = {"main": [], "pairsyn": [], "cp": [], "tri_mu": [], "tri_noise": [], "counter": [], "player": [], "total": []}
+        z_by = {"human_minus_best": []}
+        for w in worlds:
+            TR = Truth(fam, w)
+            for i in range(n_ctx):
+                D, z, sd, ih, pairs, base3 = candidates(L, ctx, i, rng)
+                lob = {k: np.repeat(ctx[k][i:i + 1], len(D["T0"]), 0) for k in ("pid", "cnt", "s", "off")}
+                pt = TR._p(D, lob if fam == "fc" else None)        # uncapped: the diagnostics look at the raw tails
+                top = set(np.argsort(-z)[:100].tolist())
+                for j in range(len(pt)):
+                    rows["human" if j == ih else ("top100" if j in top else "random")].append(pt[j])
+                z_by["human_minus_best"].append(pt[ih] - pt.max())
+                z_by.setdefault("learner_p_of_true_best", []).append(float(M.sig(z[int(np.argmax(pt))])))
+                z_by.setdefault("learner_p_human", []).append(float(M.sig(z[ih])))
+                if fam in ("a", "c", "fc"):
+                    Ws = TR.W
+                    th = TR.theta
+                    q = Ws.B.unpack(th)
+                    P = Ws.B.parts(th, D)
+                    c = Ws.components("a" if fam == "fc" else fam, D, w, theta=th)
+                    cp0, cp1 = Ws.B.e3(q["E"][D["T0"]]), Ws.B.e3(q["E"][D["T1"]])
+                    j = int(np.argmax(pt))
+                    comp["main"].append(float(P["main0"][j] - P["main1"][j]))
+                    comp["cp"].append(float(cp0[j] - cp1[j]))
+                    comp["pairsyn"].append(float(P["int0"][j] - P["int1"][j] - (cp0[j] - cp1[j])))
+                    comp["counter"].append(float(P["cross"][j]))
+                    comp["tri_mu"].append(float(c["lm0"][j] - c["lm1"][j]))
+                    comp["tri_noise"].append(float(c["ln00"][j] - c["ln01"][j]))
+                    zt = np.log(pt[j] / (1 - pt[j]))
+                    comp["total"].append(float(zt))
+                    if fam == "fc":
+                        comp["player"].append(float(zt - Ws.combine(c, "a")[j]))
+        a = {k: np.array(v) for k, v in rows.items()}
+        out[fam] = {"p_quantiles": {k: np.percentile(v, [1, 10, 50, 90, 99]).round(3).tolist() for k, v in a.items()},
+                    "share_gt_0.7": {k: float((v > 0.7).mean()) for k, v in a.items()},
+                    "share_gt_0.8": {k: float((v > 0.8).mean()) for k, v in a.items()},
+                    "human_minus_best_pts": np.percentile(100 * np.array(z_by["human_minus_best"]), [10, 50, 90]).round(2).tolist(),
+                    "learner_p_of_true_best_median": float(np.median(z_by["learner_p_of_true_best"])),
+                    "learner_p_human_median": float(np.median(z_by["learner_p_human"]))}
+        if comp["total"]:
+            out[fam]["best_candidate_logit_parts_mean_abs"] = {k: float(np.mean(np.abs(v))) for k, v in comp.items() if v}
+            out[fam]["best_candidate_logit_parts_mean"] = {k: float(np.mean(v)) for k, v in comp.items() if v}
+        print(fam, json.dumps(out[fam]), flush=True)
+    json.dump(out, open(os.path.join(WD.RESULTS, "explore_diag.json"), "w"), indent=1)
+
+
 # ── value-of-information map ─────────────────────────────────────────────
 def voi(fam, wid, n_ctx=3000):
     """Missed true value by hero pair and by role archetype: for each context, every candidate the learner ranks below
@@ -405,7 +483,7 @@ def voi_summary():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["run", "queue", "summary", "voi", "voi_queue", "voi_summary"])
+    ap.add_argument("stage", choices=["run", "queue", "summary", "voi", "voi_queue", "voi_summary", "diag"])
     ap.add_argument("--fam", default="a")
     ap.add_argument("--wid", type=int, default=0)
     ap.add_argument("--policy", default="exploit")
@@ -420,6 +498,8 @@ if __name__ == "__main__":
         queue(a.procs, a.worlds)
     elif a.stage == "summary":
         summarize()
+    elif a.stage == "diag":
+        diag()
     elif a.stage == "voi":
         voi(a.fam, a.wid)
     elif a.stage == "voi_queue":
