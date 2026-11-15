@@ -1,0 +1,265 @@
+{
+ "real_reference": "paper1_revision/site/results/counter_checks/real.json",
+ "runs": [
+  {
+   "family": "real",
+   "world": 0,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2932840340801721,
+    "mean_se_pts": 0.6973015601197241,
+    "sd_true_pts": 1.0891988464285494
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 1.9655428701770574,
+    "mean_se_pts": 0.9559084507871857,
+    "sd_true_pts": 1.7174393171863478
+   }
+  },
+  {
+   "family": "a",
+   "world": 0,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2829582905015946,
+    "mean_se_pts": 0.6958639727719229,
+    "sd_true_pts": 1.077847534006944
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.022429473400275,
+    "mean_se_pts": 0.9541285710600472,
+    "sd_true_pts": 1.7832160959247267
+   }
+  },
+  {
+   "family": "a",
+   "world": 1,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2738076366844782,
+    "mean_se_pts": 0.6961972384359553,
+    "sd_true_pts": 1.0667217540060974
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.0260084428737883,
+    "mean_se_pts": 0.9546006864539861,
+    "sd_true_pts": 1.7870220312065126
+   }
+  },
+  {
+   "family": "a",
+   "world": 2,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2571330098398814,
+    "mean_se_pts": 0.6950370308360395,
+    "sd_true_pts": 1.0475241907448731
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.002942620554697,
+    "mean_se_pts": 0.9531619015852741,
+    "sd_true_pts": 1.7616076551266635
+   }
+  },
+  {
+   "family": "b",
+   "world": 0,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2862419810351111,
+    "mean_se_pts": 0.6958875131708522,
+    "sd_true_pts": 1.0817388792079232
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.0209148585832843,
+    "mean_se_pts": 0.9541567865089646,
+    "sd_true_pts": 1.7814830036802436
+   }
+  },
+  {
+   "family": "b",
+   "world": 1,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2743267283563235,
+    "mean_se_pts": 0.696242586157662,
+    "sd_true_pts": 1.0673119842969168
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.0258736580836967,
+    "mean_se_pts": 0.9546639944705526,
+    "sd_true_pts": 1.7868353970578676
+   }
+  },
+  {
+   "family": "b",
+   "world": 2,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2562967025351897,
+    "mean_se_pts": 0.6950339399126119,
+    "sd_true_pts": 1.0465224446567511
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.00259635340339,
+    "mean_se_pts": 0.9531545912011012,
+    "sd_true_pts": 1.7612178967796168
+   }
+  },
+  {
+   "family": "c",
+   "world": 0,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2824704801775126,
+    "mean_se_pts": 0.6959080169563477,
+    "sd_true_pts": 1.0772383972281268
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.02046743334592,
+    "mean_se_pts": 0.9541855483104383,
+    "sd_true_pts": 1.780960018812033
+   }
+  },
+  {
+   "family": "c",
+   "world": 1,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2763496279786668,
+    "mean_se_pts": 0.6962171241635254,
+    "sd_true_pts": 1.0697430013151528
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.023252951225487,
+    "mean_se_pts": 0.9546223039837773,
+    "sd_true_pts": 1.7838858599639578
+   }
+  },
+  {
+   "family": "c",
+   "world": 2,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.257807223343575,
+    "mean_se_pts": 0.6950031218609624,
+    "sd_true_pts": 1.0483556990348222
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.0026769531847495,
+    "mean_se_pts": 0.9531229907141826,
+    "sd_true_pts": 1.7613266430135566
+   }
+  },
+  {
+   "family": "d",
+   "world": 0,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2857322172479944,
+    "mean_se_pts": 0.6958880632747804,
+    "sd_true_pts": 1.0811323405860724
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.021772209704607,
+    "mean_se_pts": 0.9541528518114951,
+    "sd_true_pts": 1.7824576301595052
+   }
+  },
+  {
+   "family": "d",
+   "world": 1,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2750455949793607,
+    "mean_se_pts": 0.6962477431607417,
+    "sd_true_pts": 1.068166817224653
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.0177975001410586,
+    "mean_se_pts": 0.9546591029269642,
+    "sd_true_pts": 1.7776762215809125
+   }
+  },
+  {
+   "family": "d",
+   "world": 2,
+   "counter": {
+    "pairs": 8008,
+    "sd_estimates_pts": 1.2535560500639646,
+    "mean_se_pts": 0.6950442767053526,
+    "sd_true_pts": 1.0432239568142125
+   },
+   "synergy": {
+    "pairs": 7966,
+    "sd_estimates_pts": 2.003782440130257,
+    "mean_se_pts": 0.9531628431368354,
+    "sd_true_pts": 1.7625619597159332
+   }
+  }
+ ],
+ "summary": {
+  "real": {
+   "counter": {
+    "sd_true_pts_mean": 1.0891988464285494,
+    "sd_true_pts_sd": 0.0
+   },
+   "synergy": {
+    "sd_true_pts_mean": 1.7174393171863478,
+    "sd_true_pts_sd": 0.0
+   }
+  },
+  "a": {
+   "counter": {
+    "sd_true_pts_mean": 1.0640311595859717,
+    "sd_true_pts_sd": 0.01252479568422985
+   },
+   "synergy": {
+    "sd_true_pts_mean": 1.777281927419301,
+    "sd_true_pts_sd": 0.01119176467378557
+   }
+  },
+  "b": {
+   "counter": {
+    "sd_true_pts_mean": 1.0651911027205303,
+    "sd_true_pts_sd": 0.014455054931753987
+   },
+   "synergy": {
+    "sd_true_pts_mean": 1.776512099172576,
+    "sd_true_pts_sd": 0.011033177204680063
+   }
+  },
+  "c": {
+   "counter": {
+    "sd_true_pts_mean": 1.065112365859367,
+    "sd_true_pts_sd": 0.012237501168530103
+   },
+   "synergy": {
+    "sd_true_pts_mean": 1.7753908405965158,
+    "sd_true_pts_sd": 0.010016365836335398
+   }
+  },
+  "d": {
+   "counter": {
+    "sd_true_pts_mean": 1.064174371541646,
+    "sd_true_pts_sd": 0.015731414578214167
+   },
+   "synergy": {
+    "sd_true_pts_mean": 1.774231937152117,
+    "sd_true_pts_sd": 0.008479651998348308
+   }
+  }
+ }
+}
