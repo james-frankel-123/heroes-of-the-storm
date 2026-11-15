@@ -162,12 +162,173 @@ def rescore_section(L):
                     L.append("")
 
 
+def cf(c, d=2):
+    return f"{c['mean']:+.{d}f} [{c['lo95']:+.{d}f}, {c['hi95']:+.{d}f}]"
+
+
+def step4_section(L):
+    t1 = J("truthleaf_p1.json")
+    if t1:
+        L += ["## Truth-leaf search: paper 1", "", "Same floor_search code and 200 sims, leaf = world truth; opponents mcts, "
+              "constrained_greedy, gd; 28 drafts per seat. Regret = truth-leaf counterpart minus agent (true pts).", "",
+              "| setting | worlds | regret search_c (paired) | search_sf (paired) | search_ft_sf (paired) | constrained_mcts | "
+              "constrained_mcts_sf | constrained_mcts_ft_sf | floor TL sf - TL c | Rehgar first-pick share TL c / real c |",
+              "|---|---|---|---|---|---|---|---|---|---|"]
+        rc = t1["concentration"]["real_leaf"]["search_c"]["first_top_share"]
+        for k, S in t1["settings"].items():
+            R = S["regret_pts"]
+            g = lambda n: cf(R[n]) if n in R else ""
+            L.append(f"| {k} | {S['worlds']} | {g('search_c (real leaf, same seeds)')} | {g('search_sf (real leaf, same seeds)')} | "
+                     f"{g('search_ft_sf (real leaf, same seeds)')} | {g('constrained_mcts')} | {g('constrained_mcts_sf')} | "
+                     f"{g('constrained_mcts_ft_sf')} | {cf(S['floor_true_effect_pts']['TL:search_sf - TL:search_c'])} | "
+                     f"{S['concentration_mean']['search_c']['first_top_share']:.2f} / {rc:.2f} |")
+        L.append("")
+    for name, opp in (("truthleaf_p2.json", "pMCTS-cur"), ("truthleaf_p2_aMCTS-pp.json", "aMCTS-pp")):
+        t2 = J(name)
+        if not t2:
+            continue
+        L += [f"## Truth-leaf search: paper 2 vs {opp}", "", "Support-kernel search, leaf = world truth (worlds/cuda_truth); "
+              "300 headline lobbies, both seats. True win % and regret (TL counterpart minus arm).", "",
+              "| family | worlds | TL-sel | selected | s-floor25 | s-pcal-floor25 | regret selected | regret s-floor25 | regret s-pcal-floor25 | floor TL-f25 - TL-sel |",
+              "|---|---|---|---|---|---|---|---|---|---|"]
+        for k, S in t2["settings"].items():
+            v, R = S["value_pts"], S["regret"]
+            L.append(f"| {k} | {S['worlds']} | {v['TL-sel']:.1f} | {v['x-combo1-dr-chance']:.1f} | {v['s-floor25']:.1f} | "
+                     f"{v['s-pcal-floor25']:.1f} | {cf(R['x-combo1-dr-chance (vs TL-sel)'])} | {cf(R['s-floor25 (vs TL-f25)'])} | "
+                     f"{cf(R['s-pcal-floor25 (vs TL-f25)'])} | {cf(S['floor_true_effect'])} |")
+        L.append("")
+    rt = J("retrain_p1.json")
+    if rt:
+        S = rt["summary"]
+        L += ["## Retrained arm (paper 1, family a default)", "", f"Worlds {rt['worlds']}: outcomes redrawn, stats + features + "
+              "enriched WP refit (seed 42), search with the refit leaf, scored by truth.", "",
+              "| agent | true value | claimed | claimed - true | refit - real leaf | regret refit vs TL | regret real vs TL |", "|---|---|---|---|---|---|---|"]
+        for a in ("search_c", "search_sf"):
+            x = S[a]
+            L.append(f"| {a} | {x['refit_true_pts']:.2f} | {x['refit_claimed_pts']:.2f} | {cf(x['winners_curse_claimed_minus_true'])} | "
+                     f"{cf(x['refit_minus_real_leaf'])} | {cf(x['regret_refit_vs_truth_leaf'])} | {cf(x['regret_real_vs_truth_leaf'])} |")
+        L += [f"| floor refit sf - c | {cf(S['floor_refit_sf_minus_c'])} | | | | | |", ""]
+
+
+def explore_section(L):
+    e = J("explore.json")
+    if e:
+        L += ["## Exploration (step 3)", "", f"{e['rounds']} rounds per run, {e['organic_per_round']} organic games per round, "
+              "learner = family-a class; role filter + truth clip [0.25, 0.75]. Regret minus exploit: true pts per round, mean [95% over worlds].", "",
+              "| family | c | policy | SD x | regret | minus exploit | followed | played explorations | true cost mean | P(cost > 2 pp) | below-floor plays |",
+              "|---|---|---|---|---|---|---|---|---|---|---|"]
+        for c in e["cells"]:
+            m = c["minus_exploit"]
+            L.append(f"| {c['family']} | {c['compliance']} | {c['policy']} | {c['sd_mult']} | {c['mean_regret_pts']:.2f} | "
+                     f"{cf(m, 3) if m else ''} | {c['followed_share']:.4f} | {c['played_explorations']:.1f} | {c['cost_mean_pts']:.2f} | "
+                     f"{c['p_cost_gt_2pp']:.2f} | {c['below_floor_played']:.1f} |")
+        L.append("")
+    v = J("explore_voi.json")
+    if v:
+        L += ["### Value-of-information map", "", "Spearman of pair VOI across families: " +
+              ", ".join(f"{k} {x:.2f}" for k, x in v["spearman_pair_voi"].items()) + "; across worlds: " +
+              ", ".join(f"{k} {x:.2f}" for k, x in v.get("spearman_across_worlds", {}).items()), ""]
+        for f, t in v["top_pairs"].items():
+            L.append(f"- {f}: " + ", ".join(f"{a}+{b}" for a, b, _ in t[:8]))
+        P = v["projection"]
+        L += ["", "### Traffic scenarios (target-pair games per week)", "",
+              "| mode | c | drafts/week | games/week | weeks to 25 | weeks to 600 | speed vs both |", "|---|---|---|---|---|---|---|"]
+        for r in P["table"]:
+            L.append(f"| {r['mode']} | {r['compliance']} | {r['drafts_per_week']} | {r['pair_games_per_week']:.2f} | "
+                     f"{r['weeks_for_25_games']:.1f} | {r['weeks_for_600_games']:.1f} | {r['speed_vs_both']:.2f} |")
+        L += ["", "### Directed push, 2,000 drafts/week at c = 20%", "",
+              "| family | mode, horizon | followed games | pairs into support | expected true gain (pts per draft, upper bound) |", "|---|---|---|---|---|"]
+        for f, R in P["push_2000_c20"].items():
+            for k, x in R.items():
+                L.append(f"| {f} | {k} | {x['followed_games']:.0f} | {x['pairs_into_support']} | {x['expected_true_gain_pts_per_draft']:.3f} |")
+        L.append("")
+
+
+def findings(L):
+    L += ["## Findings (numbers only)", ""]
+    b, ll, pr = J("fit_base.json"), J("check_logloss.json"), J("check_pairs.json")
+    if b and ll:
+        L.append(f"- World model NODRIFT nll {b['NODRIFT_nll']:.4f} vs enriched WP {ll['agent_nll']:.4f}; higher-order layer SDs <= 0.005 logit (cross 0.002); hero drift SD 0.074 logit (T17).")
+    if pr:
+        a = pr["summary"]["a"]
+        L.append(f"- Pair SD true: counter {a['counter']['sd_true_pts_mean']:.2f} / synergy {a['synergy']['sd_true_pts_mean']:.2f} pts (real 1.09 / 1.72).")
+    s1 = J("check_step1_a_default.json")
+    if s1:
+        st = s1["stats"]
+        L.append(f"- Step-1 stats in worlds (a default): below-floor beta {st['below_beta']['world_mean']:.2f} (real {st['below_beta']['real']:.2f}); "
+                 f"cert 1-4 {st['cert_1']['world_mean']:+.2f} (real {st['cert_1']['real']:+.2f}, pct {st['cert_1']['real_percentile']:.0f}); allowed delta at a = 1: -3..0 pts.")
+    r1 = J("rescore_p1.json")
+    if r1:
+        C = r1["families"]["a"]["contrasts"]["default"]
+        L.append(f"- Paper 1 rescoring (a default, 1,000 worlds): sf - cmcts {cf(C['constrained_mcts_sf - constrained_mcts'])}, "
+                 f"ft_sf - cmcts {cf(C['constrained_mcts_ft_sf - constrained_mcts'])}, search_ft_sf - cmcts {cf(C['search_ft_sf - constrained_mcts'])} pts; no break-even on the delta grid.")
+        for fam in ("f", "fc"):
+            if fam in r1["families"]:
+                C = r1["families"][fam]["contrasts"]['{"assign": "best"}']
+                L.append(f"- Paper 1 under {'f-out' if fam == 'f' else 'f-cov'} (best assignment): sf - cmcts {cf(C['constrained_mcts_sf - constrained_mcts'])}, "
+                         f"search_ft_sf - cmcts {cf(C['search_ft_sf - constrained_mcts'])}.")
+    r2 = J("rescore_p2.json")
+    if r2:
+        for lset in ("headline", "tune"):
+            for fam, tag in (("a", "default"), ("f", '{"assign": "best"}'), ("fc", '{"assign": "best"}')):
+                T = r2.get(lset, {}).get(fam, {}).get("arms", {}).get(tag)
+                if T:
+                    L.append(f"- Paper 2 {lset} {fam}: s-floor25 {cf(T['s-floor25']['minus_sel'])}, s-pcal-floor25 {cf(T['s-pcal-floor25']['minus_sel'])} pts vs selected.")
+    ps, pc = J("check_player_slope2.json"), J("check_player_slope_cov.json")
+    if ps and pc:
+        L.append(f"- Personal-term slope (25-99 bin): real {ps['worlds_summary']['all_games']['25-99']['real']:.2f}; f-out {ps['worlds_summary']['all_games']['25-99']['mean']:.2f}; "
+                 f"f-cov {pc['worlds_summary']['all_games']['25-99']['mean']:.2f} (half B).")
+    t1 = J("truthleaf_p1.json")
+    if t1:
+        S = t1["settings"]["a/default"]
+        L.append(f"- Paper 1 truth-leaf (a default): regret constrained_mcts {cf(S['regret_pts']['constrained_mcts'])}, search_c {cf(S['regret_pts']['search_c (real leaf, same seeds)'])}; "
+                 f"floor under truth leaf {cf(S['floor_true_effect_pts']['TL:search_sf - TL:search_c'])}; Rehgar first-pick share {S['concentration_mean']['search_c']['first_top_share']:.2f} (TL) vs "
+                 f"{t1['concentration']['real_leaf']['search_c']['first_top_share']:.2f} (real leaf).")
+    for name, opp in (("truthleaf_p2.json", "pMCTS-cur"), ("truthleaf_p2_aMCTS-pp.json", "aMCTS-pp")):
+        t2 = J(name)
+        if t2:
+            parts = [f"{k}: selected {t2['settings'][k]['regret']['x-combo1-dr-chance (vs TL-sel)']['mean']:.1f}, s-pcal-floor25 "
+                     f"{t2['settings'][k]['regret']['s-pcal-floor25 (vs TL-f25)']['mean']:.1f}, floor {t2['settings'][k]['floor_true_effect']['mean']:+.2f}"
+                     for k in t2["settings"]]
+            L.append(f"- Paper 2 truth-leaf regret vs {opp} (pts): " + "; ".join(parts) + ".")
+    rt = J("retrain_p1.json")
+    if rt:
+        S = rt["summary"]
+        L.append(f"- Retrained arm ({len(rt['worlds'])} worlds): claimed - true search_c {cf(S['search_c']['winners_curse_claimed_minus_true'])}, "
+                 f"refit - real leaf {cf(S['search_c']['refit_minus_real_leaf'])}; floor {cf(S['floor_refit_sf_minus_c'])}.")
+    rc = J("check_recovery.json")
+    if rc:
+        h = [b_["cover90"] for r in rc["runs"] for b_ in r["bins"] if b_["probes"] == "human"]
+        s = [b_["cover90"] for r in rc["runs"] for b_ in r["bins"] if b_["probes"] == "search"]
+        zs = [b_["z_sd"] for r in rc["runs"] for b_ in r["bins"] if b_["probes"] == "search"]
+        L.append(f"- Recovery (worlds {[r['world'] for r in rc['runs']]}): 90% coverage human {min(h):.2f}-{max(h):.2f}; search-chosen {min(s):.2f}-{max(s):.2f}, z SD {min(zs):.2f}-{max(zs):.2f}.")
+    e = J("explore.json")
+    if e:
+        x = [c for c in e["cells"] if c["compliance"] == 0.2 and c["policy"] != "exploit" and c["minus_exploit"]]
+        L.append(f"- Exploration (c = 20%): every policy minus exploit within {min(c_['minus_exploit']['mean'] for c_ in x):+.3f}..{max(c_['minus_exploit']['mean'] for c_ in x):+.3f} pts per round; "
+                 f"followed share {min(c_['followed_share'] for c_ in x):.4f}-{max(c_['followed_share'] for c_ in x):.4f}; P(cost > 2 pp) {min(c_['p_cost_gt_2pp'] for c_ in x):.2f}-{max(c_['p_cost_gt_2pp'] for c_ in x):.2f}.")
+    v = J("explore_voi.json")
+    if v:
+        P = v["projection"]
+        r = {(t["mode"], t["compliance"], t["drafts_per_week"]): t for t in P["table"]}
+        L.append(f"- Weeks to 25 games for one pair at 2,000 drafts/week, c = 20%: both {r[('both', 0.2, 2000)]['weeks_for_25_games']:.1f}, "
+                 f"lobby {r[('lobby', 0.2, 2000)]['weeks_for_25_games']:.2f}, single {r[('single', 0.2, 2000)]['weeks_for_25_games']:.1f}; at 25 drafts/week both {r[('both', 0.2, 25)]['weeks_for_25_games']:.0f}.")
+        g = P["push_2000_c20"]
+        L.append("- 2,000/week push, 12 months, both-follow: expected true gain per draft (upper bound) " +
+                 ", ".join(f"{f} {g[f]['both_12_months']['expected_true_gain_pts_per_draft']:.2f}" for f in g) + " pts.")
+        L.append("- VOI rank stability: " + ", ".join(f"{k} {x:.2f}" for k, x in v["spearman_pair_voi"].items()) + ".")
+    L.append("")
+
+
 def main():
     L = ["# Hidden worlds", "", "Generated by `worlds/report.py` from `worlds/site/results/*.json`.", ""]
+    findings(L)
     fit_section(L)
     L += ["## Plausibility checks", ""]
     checks_section(L)
     rescore_section(L)
+    step4_section(L)
+    explore_section(L)
     rc = J("check_recovery.json")
     if rc:
         L += ["### Recovery (family a: refit on one world's outcomes, coverage of the truth on probe games)", "",
