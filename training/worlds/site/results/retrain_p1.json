@@ -1,0 +1,488 @@
+{
+ "worlds": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "rows": [
+  {
+   "world": 0,
+   "refit:search_c": 0.6100271129769038,
+   "refit_claimed:search_c": 0.5919642662982327,
+   "real:search_c": 0.6060835643910334,
+   "TL:search_c": 0.6128871047284749,
+   "conc:search_c": {
+    "first_top": [
+     [
+      "Rehgar",
+      59
+     ],
+     [
+      "Samuro",
+      37
+     ],
+     [
+      "Hogger",
+      21
+     ]
+    ],
+    "first_top_share": 0.35119047619047616,
+    "all_top": [
+     [
+      "Rehgar",
+      127
+     ],
+     [
+      "Samuro",
+      115
+     ],
+     [
+      "Hogger",
+      110
+     ]
+    ],
+    "all_top_share": 0.15119047619047618,
+    "entropy_bits": 3.895531475081791,
+    "distinct_heroes": 32
+   },
+   "refit:search_sf": 0.5824229207859513,
+   "refit_claimed:search_sf": 0.5735251805630718,
+   "real:search_sf": 0.5812228291565291,
+   "TL:search_sf": 0.5793628105624762,
+   "conc:search_sf": {
+    "first_top": [
+     [
+      "Rehgar",
+      59
+     ],
+     [
+      "Samuro",
+      42
+     ],
+     [
+      "Hogger",
+      19
+     ]
+    ],
+    "first_top_share": 0.35119047619047616,
+    "all_top": [
+     [
+      "Rehgar",
+      124
+     ],
+     [
+      "Samuro",
+      105
+     ],
+     [
+      "Hogger",
+      95
+     ]
+    ],
+    "all_top_share": 0.14761904761904762,
+    "entropy_bits": 4.1090803871622725,
+    "distinct_heroes": 35
+   }
+  },
+  {
+   "world": 1,
+   "refit:search_c": 0.5925948352059313,
+   "refit_claimed:search_c": 0.5866217204581238,
+   "real:search_c": 0.5942996191275245,
+   "TL:search_c": 0.5996696370897275,
+   "conc:search_c": {
+    "first_top": [
+     [
+      "Rehgar",
+      59
+     ],
+     [
+      "Samuro",
+      37
+     ],
+     [
+      "Hogger",
+      21
+     ]
+    ],
+    "first_top_share": 0.35119047619047616,
+    "all_top": [
+     [
+      "Rehgar",
+      127
+     ],
+     [
+      "Samuro",
+      115
+     ],
+     [
+      "Hogger",
+      110
+     ]
+    ],
+    "all_top_share": 0.15119047619047618,
+    "entropy_bits": 3.907398418658202,
+    "distinct_heroes": 32
+   },
+   "refit:search_sf": 0.5670809273321011,
+   "refit_claimed:search_sf": 0.5697446033385553,
+   "real:search_sf": 0.5731911420509134,
+   "TL:search_sf": 0.5744185677086985,
+   "conc:search_sf": {
+    "first_top": [
+     [
+      "Rehgar",
+      59
+     ],
+     [
+      "Samuro",
+      41
+     ],
+     [
+      "Hogger",
+      19
+     ]
+    ],
+    "first_top_share": 0.35119047619047616,
+    "all_top": [
+     [
+      "Rehgar",
+      124
+     ],
+     [
+      "Samuro",
+      108
+     ],
+     [
+      "Hogger",
+      91
+     ]
+    ],
+    "all_top_share": 0.14761904761904762,
+    "entropy_bits": 4.11811866682422,
+    "distinct_heroes": 35
+   }
+  },
+  {
+   "world": 2,
+   "refit:search_c": 0.589740527872432,
+   "refit_claimed:search_c": 0.5913036861462194,
+   "real:search_c": 0.5870915387440975,
+   "TL:search_c": 0.6210547604849924,
+   "conc:search_c": {
+    "first_top": [
+     [
+      "Rehgar",
+      59
+     ],
+     [
+      "Samuro",
+      37
+     ],
+     [
+      "Hogger",
+      20
+     ]
+    ],
+    "first_top_share": 0.35119047619047616,
+    "all_top": [
+     [
+      "Rehgar",
+      127
+     ],
+     [
+      "Samuro",
+      118
+     ],
+     [
+      "Hogger",
+      108
+     ]
+    ],
+    "all_top_share": 0.15119047619047618,
+    "entropy_bits": 3.9293892742472254,
+    "distinct_heroes": 34
+   },
+   "refit:search_sf": 0.5711679340758796,
+   "refit_claimed:search_sf": 0.5831159610331605,
+   "real:search_sf": 0.5744080717307106,
+   "TL:search_sf": 0.595364408321373,
+   "conc:search_sf": {
+    "first_top": [
+     [
+      "Rehgar",
+      61
+     ],
+     [
+      "Samuro",
+      41
+     ],
+     [
+      "Hogger",
+      18
+     ]
+    ],
+    "first_top_share": 0.3630952380952381,
+    "all_top": [
+     [
+      "Rehgar",
+      125
+     ],
+     [
+      "Samuro",
+      103
+     ],
+     [
+      "Hogger",
+      91
+     ]
+    ],
+    "all_top_share": 0.1488095238095238,
+    "entropy_bits": 4.108723368247201,
+    "distinct_heroes": 35
+   }
+  },
+  {
+   "world": 3,
+   "refit:search_c": 0.5996934636941643,
+   "refit_claimed:search_c": 0.5927270080712789,
+   "real:search_c": 0.5966348026891505,
+   "TL:search_c": 0.6252765917940509,
+   "conc:search_c": {
+    "first_top": [
+     [
+      "Rehgar",
+      59
+     ],
+     [
+      "Samuro",
+      36
+     ],
+     [
+      "Hogger",
+      20
+     ]
+    ],
+    "first_top_share": 0.35119047619047616,
+    "all_top": [
+     [
+      "Rehgar",
+      126
+     ],
+     [
+      "Samuro",
+      116
+     ],
+     [
+      "Deathwing",
+      109
+     ]
+    ],
+    "all_top_share": 0.15,
+    "entropy_bits": 3.9186354189148442,
+    "distinct_heroes": 33
+   },
+   "refit:search_sf": 0.5582088228318104,
+   "refit_claimed:search_sf": 0.5677677174622908,
+   "real:search_sf": 0.5620411177319784,
+   "TL:search_sf": 0.5780543143128629,
+   "conc:search_sf": {
+    "first_top": [
+     [
+      "Rehgar",
+      60
+     ],
+     [
+      "Samuro",
+      41
+     ],
+     [
+      "Hogger",
+      19
+     ]
+    ],
+    "first_top_share": 0.35714285714285715,
+    "all_top": [
+     [
+      "Rehgar",
+      126
+     ],
+     [
+      "Samuro",
+      105
+     ],
+     [
+      "Hogger",
+      90
+     ]
+    ],
+    "all_top_share": 0.15,
+    "entropy_bits": 4.107035728096,
+    "distinct_heroes": 35
+   }
+  },
+  {
+   "world": 4,
+   "refit:search_c": 0.608883834866338,
+   "refit_claimed:search_c": 0.5909237052826745,
+   "real:search_c": 0.6014352338383588,
+   "TL:search_c": 0.6167410551781218,
+   "conc:search_c": {
+    "first_top": [
+     [
+      "Rehgar",
+      58
+     ],
+     [
+      "Samuro",
+      37
+     ],
+     [
+      "Hogger",
+      20
+     ]
+    ],
+    "first_top_share": 0.34523809523809523,
+    "all_top": [
+     [
+      "Rehgar",
+      125
+     ],
+     [
+      "Samuro",
+      116
+     ],
+     [
+      "Hogger",
+      110
+     ]
+    ],
+    "all_top_share": 0.1488095238095238,
+    "entropy_bits": 3.8898966754352506,
+    "distinct_heroes": 33
+   },
+   "refit:search_sf": 0.5882241780204479,
+   "refit_claimed:search_sf": 0.5744827700160579,
+   "real:search_sf": 0.5840234470419465,
+   "TL:search_sf": 0.5972724017997976,
+   "conc:search_sf": {
+    "first_top": [
+     [
+      "Rehgar",
+      60
+     ],
+     [
+      "Samuro",
+      41
+     ],
+     [
+      "Hogger",
+      19
+     ]
+    ],
+    "first_top_share": 0.35714285714285715,
+    "all_top": [
+     [
+      "Rehgar",
+      125
+     ],
+     [
+      "Samuro",
+      102
+     ],
+     [
+      "Hogger",
+      93
+     ]
+    ],
+    "all_top_share": 0.1488095238095238,
+    "entropy_bits": 4.106613439104587,
+    "distinct_heroes": 34
+   }
+  }
+ ],
+ "summary": {
+  "search_c": {
+   "refit_true_pts": 60.01879549231538,
+   "refit_claimed_pts": 59.07080772513058,
+   "winners_curse_claimed_minus_true": {
+    "mean": -0.9479877671848037,
+    "lo95": -1.8052574969170332,
+    "hi95": 0.08095309716279024,
+    "p_gt0": 0.2,
+    "worst10_mean": -1.8062846678671085,
+    "worlds": 5
+   },
+   "refit_minus_real_leaf": {
+    "mean": 0.30790031651209526,
+    "lo95": -0.12694066166004547,
+    "hi95": 0.7098095783768299,
+    "p_gt0": 0.8,
+    "worst10_mean": -0.17047839215932337,
+    "worlds": 5
+   },
+   "regret_refit_vs_truth_leaf": {
+    "mean": 1.4937874931919626,
+    "lo95": 0.3281472764793558,
+    "hi95": 3.074112216129301,
+    "p_gt0": 1.0,
+    "worst10_mean": 0.2859991751571034,
+    "worlds": 5
+   },
+   "regret_real_vs_truth_leaf": {
+    "mean": 1.8016878097040578,
+    "lo95": 0.5513370199726886,
+    "hi95": 3.3431078477295495,
+    "p_gt0": 1.0,
+    "worst10_mean": 0.5370017962203044,
+    "worlds": 5
+   }
+  },
+  "search_sf": {
+   "refit_true_pts": 57.34209566092381,
+   "refit_claimed_pts": 57.37272464826273,
+   "winners_curse_claimed_minus_true": {
+    "mean": 0.030628987338918723,
+    "lo95": -1.3257041226238997,
+    "hi95": 1.1709113724600873,
+    "p_gt0": 0.6,
+    "worst10_mean": -1.3741408004390054,
+    "worlds": 5
+   },
+   "refit_minus_real_leaf": {
+    "mean": -0.15563649331775453,
+    "lo95": -0.5882422736947812,
+    "hi95": 0.3900667043593453,
+    "p_gt0": 0.4,
+    "worst10_mean": -0.6110214718812235,
+    "worlds": 5
+   },
+   "regret_refit_vs_truth_leaf": {
+    "mean": 1.1473543931803576,
+    "lo95": -0.20203351634678346,
+    "hi95": 2.3761375969049334,
+    "p_gt0": 0.8,
+    "worst10_mean": -0.30601102234750766,
+    "worlds": 5
+   },
+   "regret_real_vs_truth_leaf": {
+    "mean": 0.9917178998626032,
+    "lo95": -0.15512741688691323,
+    "hi95": 2.0462022589684636,
+    "p_gt0": 0.8,
+    "worst10_mean": -0.18600185940529368,
+    "worlds": 5
+   }
+  },
+  "floor_refit_sf_minus_c": {
+   "mean": -2.676699831391582,
+   "lo95": -4.009659599521379,
+   "hi95": -1.8781300101486176,
+   "p_gt0": 0.0,
+   "worst10_mean": -4.148464086235393,
+   "worlds": 5
+  }
+ }
+}
