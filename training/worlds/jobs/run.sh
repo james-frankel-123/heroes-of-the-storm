@@ -8,4 +8,5 @@ source ~/hots/td_env.sh
 cd ~/hots/repo/training
 [ "${WORLDS_GPU:-0}" = 1 ] && export CUDA_VISIBLE_DEVICES=0
 export WORLDS_THREADS=${WORLDS_THREADS:-6}
+[ -n "${P1R_NPROC_OVERRIDE:-}" ] && P1ENV="${P1ENV/P1R_NPROC=3/P1R_NPROC=$P1R_NPROC_OVERRIDE}"
 exec env $P1ENV OMP_NUM_THREADS=$WORLDS_THREADS MKL_NUM_THREADS=$WORLDS_THREADS nice -n 10 python -u "worlds/$@"

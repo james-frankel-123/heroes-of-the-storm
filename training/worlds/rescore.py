@@ -98,9 +98,32 @@ def strat_support(D, idx):
 _G = {}
 
 
+def p1_attach_lobbies(D):
+    """Each paper-1 draft gets a real judge-window lobby (player_cov pool; draft i -> a fixed random lobby):
+    team t's five players, their earlier games per hero as of that game, and the drafter state."""
+    import player as PL
+    cz = np.load(PL.COV)
+    n = len(D["T0"])
+    li = np.random.default_rng(23).integers(0, len(cz["pool_pid"]), n)
+    return dict(D, H0=D["T0"], H1=D["T1"], pid=cz["pool_pid"][li], cnt=cz["pool_cnt"][li], lob=li,
+                s=cz["pool_s"][li], off=cz["pool_off"][li])
+
+
 def _p1_world(args):
     fam, wid, cells = args
     D, idx, names = _G["D"], _G["idx"], _G["names"]
+    if fam in ("f", "fc"):
+        import player as PL
+        Ws = _G.setdefault("W", W.Worlds())
+        PW = _G.setdefault("PW" + fam, PL.PlayerWorldsCov() if fam == "fc" else PL.PlayerWorlds2())
+        Dl = _G["Dlob"] if fam == "fc" else {k: v for k, v in _G["Dlob"].items() if k not in ("s", "off")}
+        zg = Ws.logit("a", D, wid)
+        A = assign_terms(PW, Dl, wid, np.random.default_rng([wid, 4]))
+        out = np.zeros((3, len(names)), np.float32)
+        for i, nm in enumerate(("random", "human", "best")):
+            v = strat_values(M.sig(zg + A[nm]), idx)
+            out[i] = [v[s] for s in names]
+        return out
     if fam == "g":
         p = np.asarray(_G["ens"][wid], float)
         v = strat_values(p, idx)
@@ -148,6 +171,10 @@ def stage_p1(fams, n):
             _G["ens"] = EN.values(EN.rows_of(D), "p1drafts")
             cells, nn = [{}], ["member"]
             jobs = [(fam, w, cells) for w in range(EN.N_MEMBERS)]
+        elif fam in ("f", "fc"):
+            _G["Dlob"] = p1_attach_lobbies(D)
+            cells = [{"assign": x} for x in ("random", "human", "best")]
+            jobs = [(fam, w, cells) for w in range(n)]
         else:
             cells, nn = cells_for(fam)
             jobs = [(fam, w, cells) for w in range(n)]
@@ -226,7 +253,12 @@ def assign_terms(PW, D, wid, rng):
         P = np.repeat(pid[:, :, None], 5, 2)                      # player i x hero j
         Hh = np.repeat(her[:, None, :], 5, 1)
         N = np.take_along_axis(D["cnt"][:, t], Hh, 2)             # n_ph as of the lobby day
-        U = PW.u(P, Hh, N, wid)                                   # (n, 5, 5)
+        if "s" in D:                                              # f-cov: the drafter state's s and off-role
+            Sv = np.take_along_axis(D["s"][:, t], Hh, 2)
+            Ov = np.take_along_axis(D["off"][:, t], Hh, 2).astype(float)
+            U = PW.u(P, Hh, N, wid, s=Sv, off=Ov)
+        else:
+            U = PW.u(P, Hh, N, wid)                               # (n, 5, 5)
         tot = U[:, np.arange(5)[None, :], PERMS].sum(2)          # (n, 120): perm k gives player i hero PERMS[k, i]
         lw = np.log(N + 0.5)[:, np.arange(5)[None, :], PERMS].sum(2)
         pr = np.exp(lw - lw.max(1, keepdims=True))
@@ -245,9 +277,11 @@ def _p2_world(args):
     D = _G["D2"]
     Ws = _G.setdefault("W", W.Worlds())
     keys = _G["keys2"]
-    if fam == "f":
+    if fam in ("f", "fc"):
         import player as PL
-        PW = _G.setdefault("PW", PL.PlayerWorlds2() if os.path.exists(PL.FIT2) else PL.PlayerWorlds())
+        PW = _G.setdefault("PW" + fam, PL.PlayerWorldsCov() if fam == "fc" else PL.PlayerWorlds2())
+        if fam == "fc" and "s" not in D:
+            D = dict(D, s=_G["cov_s"][lset], off=_G["cov_off"][lset])
         zg = Ws.logit("a", D, wid)
         A = assign_terms(PW, D, wid, np.random.default_rng([wid, 3]))
         res = []
@@ -276,7 +310,12 @@ def stage_p2(fams, n, lsets):
             if os.path.exists(out):
                 continue
             t0 = time.time()
-            cells = [{"assign": x} for x in ("random", "human", "best")] if fam == "f" else cells_for(fam)[0]
+            cells = [{"assign": x} for x in ("random", "human", "best")] if fam in ("f", "fc") else cells_for(fam)[0]
+            if fam == "fc":
+                import player as PL
+                cz = np.load(PL.COV)
+                _G["cov_s"] = {lset: cz[f"{lset}_s"][D["lob"]]}
+                _G["cov_off"] = {lset: cz[f"{lset}_off"][D["lob"]]}
             with get_context("fork").Pool(NPROC) as pool:
                 V = np.stack(pool.map(_p2_world, [(fam, w, cells, lset) for w in range(n)], chunksize=4))
             np.savez(out, V=V, cells=json.dumps(cells), keys=json.dumps(keys))
@@ -286,13 +325,13 @@ def stage_p2(fams, n, lsets):
 def summarize_p2():
     res = {}
     for lset in ("headline", "tune"):
-        for fam in ("a", "b", "c", "d", "e", "f"):
+        for fam in ("a", "b", "c", "d", "e", "f", "fc"):
             p = os.path.join(WD.CACHE, f"rescore_p2_{lset}_{fam}.npz")
             if not os.path.exists(p):
                 continue
             z = np.load(p)
             V, cells, keys = z["V"], json.loads(str(z["cells"])), [tuple(k) for k in json.loads(str(z["keys"]))]
-            named = list(W.dials()["named"]) if fam not in ("e", "f") else None
+            named = list(W.dials()["named"]) if fam not in ("e", "f", "fc") else None
             F = {"worlds": int(V.shape[0]), "cells": cells, "arms": {}}
             for ci, cell in enumerate(cells):
                 tag = named[ci] if named and ci < len(named) else json.dumps(cell, sort_keys=True)
@@ -373,14 +412,14 @@ def summarize_p1():
     res = json.load(open(res_path))
     names = res["strategies"]
     res["families"] = {}
-    for fam in ("a", "b", "c", "d", "e", "g"):
+    for fam in ("a", "b", "c", "d", "e", "g", "f", "fc"):
         p = os.path.join(WD.CACHE, f"rescore_p1_{fam}.npz")
         if not os.path.exists(p):
             continue
         z = np.load(p)
         V, cells = z["V"], json.loads(str(z["cells"]))
         F = {"cells": cells, "worlds": int(V.shape[0]), "value": {}, "contrasts": {}}
-        named = list(W.dials()["named"]) if fam not in ("e", "g") else None
+        named = list(W.dials()["named"]) if fam not in ("e", "g", "f", "fc") else None
         for ci, cell in enumerate(cells):
             tag = named[ci] if named and ci < len(named) else json.dumps(cell, sort_keys=True)
             F["value"][tag] = {s: [float(100 * V[:, ci, j].mean()), float(100 * V[:, ci, j].std())] for j, s in enumerate(names)}

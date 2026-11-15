@@ -172,6 +172,66 @@ def extract_p2():
     np.savez(P2_LOBBIES, **out)
 
 
+COV = os.path.join(WD.CACHE, "player_cov.npz")
+
+
+def extract_cov(work, n_pool=3000):
+    """f-cov inputs (main box): the drafter state's skill s(p, h) and off-role flag (as of 2026-06-30,
+    cells.npz b rows; unknown players 0) for (1) the judge-window slots, (2) the paper-2 lobby players,
+    (3) a pool of real judge-window lobbies attached to paper-1 drafts (players, earlier games per hero
+    as of the game day, state). Integer ids only. -> player_cov.npz"""
+    sys.path.insert(0, P2)
+    import p3_ood_audit as OA
+    src = dict(np.load(SRC))
+    c = np.load(os.path.join(work, "cells.npz"))
+    jq = np.load(os.path.join(P2, "cache_def_def1027", "judge_q", "p3t_data_states__3.npz"))
+    bkeys = jq["player_key"].astype(np.int64)
+    pkeys = np.asarray(np.load(os.path.join(P2, "cache_def_def1027", "x_slots_ext.npz"), mmap_mode="r")["player_keys"]).astype(np.int64)
+    ob = np.argsort(bkeys)
+    OFF = OA.off_role_shared(c["b_n"])
+    bs = c["b_s"]
+
+    def brow(pid):
+        k = pkeys[pid]
+        j = np.minimum(np.searchsorted(bkeys[ob], k), len(bkeys) - 1)
+        return ob[j], bkeys[ob][j] == k
+
+    out = {}
+    jw = src["jw"]
+    pid, hero = src["pid"][jw], src["hero"][jw]
+    r, kn = brow(pid)
+    out["j_s"] = np.where(kn, bs[r, hero], 0.0).astype(np.float32)
+    out["j_off"] = np.where(kn, OFF[r, hero], False)
+    out["j_known"] = kn
+    L = np.load(P2_LOBBIES)
+    for tag in ("headline", "tune"):
+        r, kn = brow(L[f"{tag}_pid"])
+        out[f"{tag}_s"] = np.where(kn[..., None], bs[r], 0.0).astype(np.float32)          # (n, 2, 5, 90)
+        out[f"{tag}_off"] = np.where(kn[..., None], OFF[r], False)
+    # pool of judge-window lobbies for paper-1 drafts
+    rng = np.random.default_rng(17)
+    gi = rng.choice(np.flatnonzero(jw), n_pool, replace=False)
+    ppid = src["pid"][gi].reshape(n_pool, 2, 5)
+    pday = src["day"][gi]
+    sp, sh, sd = src["pid"].ravel(), src["hero"].ravel(), np.repeat(src["day"], 10)
+    keep = np.isin(sp, ppid.ravel())
+    kp, kh, kd = sp[keep], sh[keep], sd[keep]
+    o = np.lexsort((kd, kp))
+    kp, kh, kd = kp[o], kh[o], kd[o]
+    cnt = np.zeros((n_pool, 2, 5, H), np.int32)
+    for i in range(n_pool):
+        for t in range(2):
+            for j in range(5):
+                a, b = np.searchsorted(kp, ppid[i, t, j]), np.searchsorted(kp, ppid[i, t, j], side="right")
+                m = kd[a:b] < pday[i]
+                cnt[i, t, j] = np.bincount(kh[a:b][m], minlength=H)
+    r, kn = brow(ppid)
+    out.update(pool_pid=ppid, pool_cnt=cnt, pool_s=np.where(kn[..., None], bs[r], 0.0).astype(np.float32),
+               pool_off=np.where(kn[..., None], OFF[r], False), pool_known=kn)
+    np.savez(COV, **out)
+    print("player_cov:", {k: v.shape for k, v in out.items()}, flush=True)
+
+
 # ── fit (3090) ───────────────────────────────────────────────────────────
 def _map(S, sa, se, init=None, iters=300):
     import torch
@@ -397,23 +457,76 @@ class PlayerWorlds2:
         self.sd = json.loads(str(self.z["sd"]))
         self.last = int(period(np.array([20634]))[0])        # 2026-06-30's half-year
 
-    def _draw(self, g, K, wid, k_mult=1.0):
+    def _draw(self, g, K, wid, k_mult=1.0, mean_only=False):
         import world as W
         keys = self.z["keys_" + g]
         i = np.clip(np.searchsorted(keys, K), 0, len(keys) - 1)
         hit = keys[i] == K
         mu = np.where(hit, self.z["mu_" + g][i], 0.0)
         sd = np.where(hit, self.z["psd_" + g][i], self.sd[g]) * k_mult
-        return mu + sd * W.hnorm(K, wid, self.SALT[g])
+        return mu if mean_only else mu + sd * W.hnorm(K, wid, self.SALT[g])
 
-    def u(self, pid, hero, nprior, wid, k=1.0, delta=0.0):
+    def u(self, pid, hero, nprior, wid, k=1.0, delta=0.0, mean_only=False, s=None, off=None):
         import world as W
         ro = role_idx()[hero]
-        A = self._draw("A", pid, wid)
-        AP = self._draw("AP", pid * 64 + self.last, wid) + self.sd["AP"] * W.hnorm(pid, wid, self.SALT["NEW"])
-        R = self._draw("R", pid * 8 + ro, wid)
-        E = self._draw("E", pid * H + hero, wid, k_mult=np.where(nprior < FLOOR_N, k, 1.0))
+        mo = mean_only
+        A = self._draw("A", pid, wid, mean_only=mo)
+        AP = self._draw("AP", pid * 64 + self.last, wid, mean_only=mo) + (0.0 if mo else self.sd["AP"] * W.hnorm(pid, wid, self.SALT["NEW"]))
+        R = self._draw("R", pid * 8 + ro, wid, mean_only=mo)
+        E = self._draw("E", pid * H + hero, wid, k_mult=np.where(nprior < FLOOR_N, k, 1.0), mean_only=mo)
         return self.z["gamma"][nbin(nprior)] + A + AP + R + E - self.z["ubar"][hero] + np.where(nprior == 0, W.PTS * delta, 0.0)
+
+
+# ── f-cov: the drafter state's skill as a jointly fit covariate (partly circular) ──
+FITCOV = os.path.join(WD.CACHE, "player_fitcov.json")
+
+
+def fitcov():
+    """On half A of the judge window (even game index), with the v2 outcome-only term (posterior mean) and
+    logit WP_pop as offset: logistic fit of the outcome on the team differences of the drafter state's
+    s(p, h) and off-role flag (beta_s, beta_off). The covariate enters every world as beta . x, centred per
+    hero over half A's observed slots. Labelled partly circular: the drafter's own skill estimates are
+    part of the world's truth."""
+    src = dict(np.load(SRC))
+    cov = dict(np.load(COV))
+    jw = src["jw"]
+    G = int(jw.sum())
+    A = np.arange(G) % 2 == 0
+    PW = PlayerWorlds2()
+    pid, hero, npr = src["pid"][jw], src["hero"][jw], src["nprior"][jw]
+    U = PW.u(pid, hero, npr, 0, mean_only=True)
+    sg = np.r_[np.ones(5), -np.ones(5)]
+    wp = np.clip(src["wp0"][jw], 1e-6, 1 - 1e-6)
+    off = np.log(wp / (1 - wp)) + U @ sg
+    X = np.column_stack([cov["j_s"] @ sg, cov["j_off"].astype(float) @ sg])
+    y = src["y0"][jw]
+    b = np.zeros(2)
+    for _ in range(30):
+        p = 1 / (1 + np.exp(-(off[A] + X[A] @ b)))
+        g = X[A].T @ (y[A] - p)
+        Hm = (X[A] * (p * (1 - p))[:, None]).T @ X[A]
+        b += np.linalg.solve(Hm, g)
+    se = np.sqrt(np.diag(np.linalg.inv(Hm)))
+    hA = hero[A].ravel()
+    v = (b[0] * cov["j_s"][A] + b[1] * cov["j_off"][A]).ravel()
+    ch = np.bincount(hA, weights=v, minlength=H) / np.maximum(np.bincount(hA, minlength=H), 1)
+    out = {"beta_s": float(b[0]), "beta_off": float(b[1]), "se": se.tolist(), "fit_games": int(A.sum()),
+           "centre": ch.tolist(), "what": "f-cov: v2 outcome-only term + beta . (drafter state s, off-role), fit on "
+                                       "judge-window half A; partly circular"}
+    json.dump(out, open(FITCOV, "w"), indent=1)
+    json.dump({k: v for k, v in out.items() if k != "centre"}, open(os.path.join(WD.RESULTS, "player_fitcov.json"), "w"), indent=1)
+    print(json.dumps({k: v for k, v in out.items() if k != "centre"}), flush=True)
+
+
+class PlayerWorldsCov:
+    def __init__(self):
+        self.v2 = PlayerWorlds2()
+        c = json.load(open(FITCOV))
+        self.b = (c["beta_s"], c["beta_off"])
+        self.ch = np.asarray(c["centre"])
+
+    def u(self, pid, hero, nprior, wid, k=1.0, delta=0.0, s=None, off=None):
+        return self.v2.u(pid, hero, nprior, wid, k, delta) + self.b[0] * s + self.b[1] * off - self.ch[hero]
 
 
 # ── the player term in a world ───────────────────────────────────────────
@@ -442,7 +555,9 @@ class PlayerWorlds:
 def slope(n_worlds, version=1):
     src = dict(np.load(SRC))
     jw = src["jw"]
-    PW = PlayerWorlds() if version == 1 else PlayerWorlds2()
+    PW = PlayerWorlds() if version == 1 else (PlayerWorldsCov() if version == "cov" else PlayerWorlds2())
+    if version == "cov":
+        cov = dict(np.load(COV))
     pid, hero, npr = src["pid"][jw], src["hero"][jw], src["nprior"][jw]
     wp0 = np.clip(src["wp0"][jw], 1e-6, 1 - 1e-6)
     P = src["j_P"]
@@ -454,11 +569,15 @@ def slope(n_worlds, version=1):
     rows_P = np.r_[P[:, 0], P[:, 1]]
     rows_m = np.r_[mn[:, 0], mn[:, 1]]
     keep = np.r_[known, known]
+    half = np.ones(2 * G, bool)
+    if version == "cov":                       # f-cov's beta is fit on half A: check on half B only
+        hb = np.arange(G) % 2 == 1
+        half = np.r_[hb, hb]
 
     def fit_slopes(y0):
         r = np.r_[y0 - wp0, (1 - y0) - (1 - wp0)]
         out = {}
-        for sample, km in (("all_games", np.ones(2 * G, bool)), ("all_known", keep)):
+        for sample, km in (("all_games", half), ("all_known", keep & half)):
             o = {}
             for lo, hi, lab in bins:
                 s = km & (rows_m >= lo) & (rows_m <= hi)
@@ -468,7 +587,7 @@ def slope(n_worlds, version=1):
         return out
     res = []
     for w in range(n_worlds):
-        U = PW.u(pid, hero, npr, w)
+        U = PW.u(pid, hero, npr, w, s=cov["j_s"], off=cov["j_off"].astype(float)) if version == "cov" else PW.u(pid, hero, npr, w)
         z = np.log(wp0 / (1 - wp0)) + U @ sgn
         y0 = (np.random.default_rng([w, 13]).random(G) < 1 / (1 + np.exp(-z))).astype(float)
         res.append(fit_slopes(y0))
@@ -483,13 +602,15 @@ def slope(n_worlds, version=1):
                                                   "p05": float(np.percentile(v, 5)), "p95": float(np.percentile(v, 95)),
                                                   "real": real[sample][lab], "real_pct": float(100 * (v < real[sample][lab]).mean())}
     out["model_version"] = version
-    json.dump(out, open(os.path.join(WD.RESULTS, "check_player_slope" + ("" if version == 1 else "2") + ".json"), "w"), indent=1)
+    suf = {1: "", 2: "2", "cov": "_cov"}[version]
+    json.dump(out, open(os.path.join(WD.RESULTS, "check_player_slope" + suf + ".json"), "w"), indent=1)
     print(json.dumps(out["worlds_summary"], indent=1))
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["extract", "extract_p2", "fit", "slope", "fit2", "slope2"])
+    ap.add_argument("stage", choices=["extract", "extract_p2", "extract_cov", "fit", "slope", "fit2", "slope2", "fitcov",
+                                      "slopecov"])
     ap.add_argument("--procs", type=int, default=3)
     ap.add_argument("--work", default="")
     ap.add_argument("--n", type=int, default=200)
@@ -498,6 +619,12 @@ if __name__ == "__main__":
         extract(a.work)
     elif a.stage == "extract_p2":
         extract_p2()
+    elif a.stage == "extract_cov":
+        extract_cov(a.work)
+    elif a.stage == "fitcov":
+        fitcov()
+    elif a.stage == "slopecov":
+        slope(a.n, version="cov")
     elif a.stage == "fit":
         fit()
     elif a.stage == "fit2":

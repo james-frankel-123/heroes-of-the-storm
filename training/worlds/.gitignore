@@ -4,3 +4,6 @@ site/logs/
 *.npy
 *.pt
 __pycache__/
+cuda_truth/build/
+*.so
+cuda_truth/build.log
