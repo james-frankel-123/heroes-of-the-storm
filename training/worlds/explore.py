@@ -435,6 +435,8 @@ def voi(fam, wid, n_ctx=3000):
     L = Learner()
     TR = Truth(fam, wid)
     pair_v = np.zeros((H, H))
+    pair_m3 = np.zeros((H, H))          # gain-weighted sum of log1p(min3) of the teams the pair completes
+    pair_w = np.zeros((H, H))
     arch = {}
     for i in range(n_ctx):
         D, z, sd, ih, pairs, base3 = candidates(L, ctx, i, rng)
@@ -446,12 +448,17 @@ def voi(fam, wid, n_ctx=3000):
         pf = (0.2 * phi(n_ph)).prod(1)
         g = gain * pf
         np.add.at(pair_v, (pairs[:, 0], pairs[:, 1]), g)
+        m3 = L.cnt[tri_index(D["T0"])].min(1)
+        np.add.at(pair_m3, (pairs[:, 0], pairs[:, 1]), g * np.log1p(m3))
+        np.add.at(pair_w, (pairs[:, 0], pairs[:, 1]), g)
         roles = np.sort(ts.ROLE_IDX[D["T0"]], 1)
         for r_, v in zip(map(tuple, roles), g):
             arch[r_] = arch.get(r_, 0.0) + float(v)
     pair_v = pair_v + pair_v.T
+    pm = np.where(pair_w + pair_w.T > 0, (pair_m3 + pair_m3.T) / np.maximum(pair_w + pair_w.T, 1e-12), np.nan)
     keys = sorted(arch)
-    np.savez(out, pair=pair_v, arch_keys=np.array(keys), arch_v=np.array([arch[k] for k in keys]))
+    np.savez(out, pair=pair_v, pair_log1p_min3=pm, n_ctx=n_ctx, arch_keys=np.array(keys),
+             arch_v=np.array([arch[k] for k in keys]))
 
 
 def voi_summary():
@@ -477,8 +484,87 @@ def voi_summary():
                                                                              for j in range(len(ws)) for k in range(j + 1, len(ws))]))
         o = np.argsort(-M_[a])[:15]
         out["top_pairs"][a] = [(HEROES[iu[0][j]], HEROES[iu[1][j]], float(M_[a][j])) for j in o]
+    out["projection"] = project(P)
     json.dump(out, open(os.path.join(WD.RESULTS, "explore_voi.json"), "w"), indent=1)
-    print(json.dumps(out, indent=1)[:4000])
+    print(json.dumps(out, indent=1)[:6000])
+
+
+SCENARIOS = [25, 300, 2000]       # recommendation-served drafts per week (Max, 2026-11-15: about 24 today)
+
+
+def pick_follow(comp):
+    """P(one player follows a top-ranked recommendation) = c * mean phi over the lobbies' players and heroes."""
+    import player as PL
+    cz = np.load(PL.COV)
+    return float(comp * phi(cz["pool_cnt"][:, 0, 3:5].reshape(-1, H)).mean())
+
+
+def partner_share():
+    """per hero: the share of training teams that contain it (the chance the humans' own other pick is that hero)."""
+    c1 = np.load(C3_FILE.replace("triple_counts.npy", "corpus.npz"))
+    return np.asarray(c1["c1"], float) / float(c1["n"])
+
+
+def pair_follow(comp):
+    """P(both remaining players follow a top-ranked recommendation) at pick-level compliance c, averaged over the
+    exploration contexts' lobbies (phi from their earlier games on the recommended heroes: here the typical mix)."""
+    import player as PL
+    cz = np.load(PL.COV)
+    n = cz["pool_cnt"][:, 0, 3:5].reshape(-1, H)
+    ph = phi(n).mean()                                     # average over heroes and players
+    return float((comp * ph) ** 2)
+
+
+def project(P):
+    """Games and weeks to bring the top-VOI pairs into support (min3 >= 25) and to measure a 2 pt effect (~600 games
+    per composition at 1 SE), per traffic scenario and compliance level; what a directed 2,000-draft/week push at
+    c = 20% buys in 3 and 12 months (pairs filled greedily by VOI per game needed)."""
+    from shared import HEROES
+    import glob
+    iu = np.triu_indices(H, 1)
+    q = partner_share()
+    qbar = float(q.mean())
+    out = {"pair_follow_prob": {str(c): pair_follow(c) for c in COMPLIANCE}, "scenarios_drafts_per_week": SCENARIOS,
+           "modes": {"both": "both remaining players follow independently: (c phi)^2",
+                     "lobby": "coordinated lobby (premade / partner team): one decision covers both picks: c phi",
+                     "single": "only the last pick is recommended; the other hero is the humans' own, so a target pair "
+                               "is filled only when the humans happen to pick its partner: c phi x partner share "
+                               f"(mean share of training teams containing a hero = {qbar:.3f})"},
+           "table": [], "push_2000_c20": {}}
+    for c in COMPLIANCE:
+        for mode in ("both", "lobby", "single"):
+            pf = {"both": pair_follow(c), "lobby": pick_follow(c), "single": pick_follow(c) * qbar}[mode]
+            for d in SCENARIOS:
+                g = d * pf
+                out["table"].append({"mode": mode, "drafts_per_week": d, "compliance": c, "pair_games_per_week": g,
+                                     "weeks_for_25_games": 25 / g if g else None, "weeks_for_600_games": 600 / g if g else None,
+                                     "speed_vs_both": pf / pair_follow(c)})
+    for fam in sorted(P):
+        Z = [np.load(f) for f in glob.glob(os.path.join(OUT, f"voi_{fam}_w*.npz"))]
+        if not Z or "pair_log1p_min3" not in Z[0].files:
+            continue
+        v = np.mean([z["pair"] for z in Z], 0)[iu] / float(Z[0]["n_ctx"])         # true win gain per draft, if resolved
+        m3 = np.expm1(np.nanmean([z["pair_log1p_min3"] for z in Z], 0)[iu])
+        need = np.maximum(25 - np.nan_to_num(m3, nan=0.0), 0)
+        rank = np.argsort(-(v / np.maximum(need, 1)))
+        res = {}
+        for mode, months in [(m, mo) for m in ("both", "lobby", "single") for mo in (3, 12)]:
+            pf = {"both": pair_follow(0.2), "lobby": pick_follow(0.2), "single": pick_follow(0.2) * qbar}[mode]
+            budget = 2000 * pf * months * 52 / 12
+            used, gain, pairs = 0.0, 0.0, []
+            for j in rank:
+                if v[j] <= 0:
+                    break
+                if used + need[j] > budget:
+                    continue
+                used += need[j]
+                gain += v[j]
+                if need[j] > 0:
+                    pairs.append((HEROES[iu[0][j]], HEROES[iu[1][j]], round(float(need[j]), 1), round(float(100 * v[j]), 4)))
+            res[f"{mode}_{months}_months"] = {"followed_games": budget, "pairs_into_support": len(pairs),
+                                       "expected_true_gain_pts_per_draft": float(100 * gain), "top_pairs": pairs[:15]}
+        out["push_2000_c20"][fam] = res
+    return out
 
 
 if __name__ == "__main__":

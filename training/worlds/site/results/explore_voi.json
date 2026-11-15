@@ -1,0 +1,2932 @@
+{
+ "families": {
+  "fc": 10,
+  "g": 10,
+  "c": 10,
+  "a": 10
+ },
+ "spearman_pair_voi": {
+  "a~c": 0.9990256168458312,
+  "a~fc": 0.8704647594322078,
+  "a~g": 0.7591183313980913,
+  "c~fc": 0.8686367132721269,
+  "c~g": 0.7575552273695738,
+  "fc~g": 0.8584330483285397
+ },
+ "top_pairs": {
+  "a": [
+   [
+    "Gall",
+    "Rehgar",
+    0.06828290232812247
+   ],
+   [
+    "Auriel",
+    "Gall",
+    0.06503095389943801
+   ],
+   [
+    "Gall",
+    "Samuro",
+    0.05472472163950422
+   ],
+   [
+    "Deathwing",
+    "Gall",
+    0.05337165711146104
+   ],
+   [
+    "Cho",
+    "Kerrigan",
+    0.04494530397899625
+   ],
+   [
+    "Auriel",
+    "Cho",
+    0.0397243491243161
+   ],
+   [
+    "Gall",
+    "Kerrigan",
+    0.039170987733491265
+   ],
+   [
+    "Gall",
+    "Hogger",
+    0.03590183361582846
+   ],
+   [
+    "Gall",
+    "Xul",
+    0.0356097721478858
+   ],
+   [
+    "Cho",
+    "Samuro",
+    0.03553945445973389
+   ],
+   [
+    "Cho",
+    "Xul",
+    0.035412755042819086
+   ],
+   [
+    "Cho",
+    "Rehgar",
+    0.03202612589733077
+   ],
+   [
+    "Gall",
+    "Leoric",
+    0.03169619306890331
+   ],
+   [
+    "Cho",
+    "Ragnaros",
+    0.031455765084471225
+   ],
+   [
+    "Gall",
+    "Tracer",
+    0.030371394691004604
+   ]
+  ],
+  "c": [
+   [
+    "Gall",
+    "Rehgar",
+    0.06834501872908312
+   ],
+   [
+    "Auriel",
+    "Gall",
+    0.0652981856979957
+   ],
+   [
+    "Gall",
+    "Samuro",
+    0.05465835526425211
+   ],
+   [
+    "Deathwing",
+    "Gall",
+    0.05314491622818054
+   ],
+   [
+    "Cho",
+    "Kerrigan",
+    0.04474616145425895
+   ],
+   [
+    "Auriel",
+    "Cho",
+    0.039925466934225405
+   ],
+   [
+    "Gall",
+    "Kerrigan",
+    0.03911564036484289
+   ],
+   [
+    "Gall",
+    "Hogger",
+    0.03593420505093217
+   ],
+   [
+    "Cho",
+    "Samuro",
+    0.03560745385151666
+   ],
+   [
+    "Gall",
+    "Xul",
+    0.035432255521752526
+   ],
+   [
+    "Cho",
+    "Xul",
+    0.03542147663284792
+   ],
+   [
+    "Cho",
+    "Rehgar",
+    0.03199079605348977
+   ],
+   [
+    "Gall",
+    "Leoric",
+    0.031756184787361745
+   ],
+   [
+    "Cho",
+    "Ragnaros",
+    0.03147064444526239
+   ],
+   [
+    "Gall",
+    "Tracer",
+    0.030362476351464236
+   ]
+  ],
+  "fc": [
+   [
+    "Gall",
+    "Rehgar",
+    0.08381119390214796
+   ],
+   [
+    "Auriel",
+    "Gall",
+    0.08128282569160564
+   ],
+   [
+    "Gall",
+    "Samuro",
+    0.06912366697807443
+   ],
+   [
+    "Deathwing",
+    "Leoric",
+    0.0668702145593367
+   ],
+   [
+    "Deathwing",
+    "Gall",
+    0.06651595377629813
+   ],
+   [
+    "Cho",
+    "Kerrigan",
+    0.056436647492874734
+   ],
+   [
+    "Deathwing",
+    "The Butcher",
+    0.05569323872088494
+   ],
+   [
+    "Illidan",
+    "Rehgar",
+    0.05436377405089028
+   ],
+   [
+    "Leoric",
+    "Rehgar",
+    0.05233539693503135
+   ],
+   [
+    "Maiev",
+    "Rehgar",
+    0.051379357633972986
+   ],
+   [
+    "Deathwing",
+    "Rehgar",
+    0.04846648002511854
+   ],
+   [
+    "Gall",
+    "Xul",
+    0.048251706334670436
+   ],
+   [
+    "Gall",
+    "Leoric",
+    0.047685502122167336
+   ],
+   [
+    "Hogger",
+    "Rehgar",
+    0.047087901992410496
+   ],
+   [
+    "Cho",
+    "Xul",
+    0.046981223346710746
+   ]
+  ],
+  "g": [
+   [
+    "Rehgar",
+    "Samuro",
+    0.07361330126911439
+   ],
+   [
+    "Hogger",
+    "Samuro",
+    0.06344984562771175
+   ],
+   [
+    "Hogger",
+    "Rehgar",
+    0.061192715561870926
+   ],
+   [
+    "Kerrigan",
+    "Rehgar",
+    0.0584925345158266
+   ],
+   [
+    "Deathwing",
+    "Rehgar",
+    0.05631530329467967
+   ],
+   [
+    "Illidan",
+    "Rehgar",
+    0.052004864262647034
+   ],
+   [
+    "Deathwing",
+    "Samuro",
+    0.048949569946756685
+   ],
+   [
+    "Deathwing",
+    "Hogger",
+    0.04881886908676245
+   ],
+   [
+    "Maiev",
+    "Rehgar",
+    0.03794940069867978
+   ],
+   [
+    "Auriel",
+    "Hogger",
+    0.035061572799498855
+   ],
+   [
+    "Ragnaros",
+    "Rehgar",
+    0.03494248324722004
+   ],
+   [
+    "Deathwing",
+    "Gazlowe",
+    0.034530077647135365
+   ],
+   [
+    "Rexxar",
+    "Samuro",
+    0.03398286702223216
+   ],
+   [
+    "Rehgar",
+    "Rexxar",
+    0.0335716025431823
+   ],
+   [
+    "Deathwing",
+    "Illidan",
+    0.03281049107779976
+   ]
+  ]
+ },
+ "spearman_across_worlds": {
+  "a": 0.6489270706646174,
+  "c": 0.6523287427297114,
+  "fc": 0.823142394601147,
+  "g": 0.9312961907653247
+ },
+ "projection": {
+  "pair_follow_prob": {
+   "0.05": 0.00042429820224999993,
+   "0.2": 0.006788771235999999,
+   "0.5": 0.04242982022499999
+  },
+  "scenarios_drafts_per_week": [
+   25,
+   300,
+   2000
+  ],
+  "modes": {
+   "both": "both remaining players follow independently: (c phi)^2",
+   "lobby": "coordinated lobby (premade / partner team): one decision covers both picks: c phi",
+   "single": "only the last pick is recommended; the other hero is the humans' own, so a target pair is filled only when the humans happen to pick its partner: c phi x partner share (mean share of training teams containing a hero = 0.056)"
+  },
+  "table": [
+   {
+    "mode": "both",
+    "drafts_per_week": 25,
+    "compliance": 0.05,
+    "pair_games_per_week": 0.010607455056249998,
+    "weeks_for_25_games": 2356.8329884433306,
+    "weeks_for_600_games": 56563.991722639934,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "both",
+    "drafts_per_week": 300,
+    "compliance": 0.05,
+    "pair_games_per_week": 0.127289460675,
+    "weeks_for_25_games": 196.4027490369442,
+    "weeks_for_600_games": 4713.66597688666,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "both",
+    "drafts_per_week": 2000,
+    "compliance": 0.05,
+    "pair_games_per_week": 0.8485964044999998,
+    "weeks_for_25_games": 29.46041235554163,
+    "weeks_for_600_games": 707.0498965329991,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 25,
+    "compliance": 0.05,
+    "pair_games_per_week": 0.5149625,
+    "weeks_for_25_games": 48.547224312449934,
+    "weeks_for_600_games": 1165.1333834987984,
+    "speed_vs_both": 48.54722431244994
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 300,
+    "compliance": 0.05,
+    "pair_games_per_week": 6.17955,
+    "weeks_for_25_games": 4.0456020260374945,
+    "weeks_for_600_games": 97.09444862489987,
+    "speed_vs_both": 48.54722431244994
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 2000,
+    "compliance": 0.05,
+    "pair_games_per_week": 41.196999999999996,
+    "weeks_for_25_games": 0.6068403039056243,
+    "weeks_for_600_games": 14.564167293734982,
+    "speed_vs_both": 48.54722431244994
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 25,
+    "compliance": 0.05,
+    "pair_games_per_week": 0.028609027777777775,
+    "weeks_for_25_games": 873.850037624099,
+    "weeks_for_600_games": 20972.400902978374,
+    "speed_vs_both": 2.6970680173583297
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 300,
+    "compliance": 0.05,
+    "pair_games_per_week": 0.34330833333333327,
+    "weeks_for_25_games": 72.82083646867491,
+    "weeks_for_600_games": 1747.700075248198,
+    "speed_vs_both": 2.6970680173583297
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 2000,
+    "compliance": 0.05,
+    "pair_games_per_week": 2.288722222222222,
+    "weeks_for_25_games": 10.923125470301237,
+    "weeks_for_600_games": 262.1550112872297,
+    "speed_vs_both": 2.6970680173583297
+   },
+   {
+    "mode": "both",
+    "drafts_per_week": 25,
+    "compliance": 0.2,
+    "pair_games_per_week": 0.16971928089999996,
+    "weeks_for_25_games": 147.30206177770816,
+    "weeks_for_600_games": 3535.249482664996,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "both",
+    "drafts_per_week": 300,
+    "compliance": 0.2,
+    "pair_games_per_week": 2.0366313708,
+    "weeks_for_25_games": 12.275171814809012,
+    "weeks_for_600_games": 294.60412355541627,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "both",
+    "drafts_per_week": 2000,
+    "compliance": 0.2,
+    "pair_games_per_week": 13.577542471999998,
+    "weeks_for_25_games": 1.841275772221352,
+    "weeks_for_600_games": 44.190618533312445,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 25,
+    "compliance": 0.2,
+    "pair_games_per_week": 2.05985,
+    "weeks_for_25_games": 12.136806078112484,
+    "weeks_for_600_games": 291.2833458746996,
+    "speed_vs_both": 12.136806078112485
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 300,
+    "compliance": 0.2,
+    "pair_games_per_week": 24.7182,
+    "weeks_for_25_games": 1.0114005065093736,
+    "weeks_for_600_games": 24.273612156224967,
+    "speed_vs_both": 12.136806078112485
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 2000,
+    "compliance": 0.2,
+    "pair_games_per_week": 164.78799999999998,
+    "weeks_for_25_games": 0.15171007597640607,
+    "weeks_for_600_games": 3.6410418234337456,
+    "speed_vs_both": 12.136806078112485
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 25,
+    "compliance": 0.2,
+    "pair_games_per_week": 0.1144361111111111,
+    "weeks_for_25_games": 218.46250940602474,
+    "weeks_for_600_games": 5243.100225744593,
+    "speed_vs_both": 0.6742670043395824
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 300,
+    "compliance": 0.2,
+    "pair_games_per_week": 1.373233333333333,
+    "weeks_for_25_games": 18.205209117168728,
+    "weeks_for_600_games": 436.9250188120495,
+    "speed_vs_both": 0.6742670043395824
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 2000,
+    "compliance": 0.2,
+    "pair_games_per_week": 9.154888888888888,
+    "weeks_for_25_games": 2.730781367575309,
+    "weeks_for_600_games": 65.53875282180742,
+    "speed_vs_both": 0.6742670043395824
+   },
+   {
+    "mode": "both",
+    "drafts_per_week": 25,
+    "compliance": 0.5,
+    "pair_games_per_week": 1.0607455056249997,
+    "weeks_for_25_games": 23.568329884433307,
+    "weeks_for_600_games": 565.6399172263993,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "both",
+    "drafts_per_week": 300,
+    "compliance": 0.5,
+    "pair_games_per_week": 12.728946067499997,
+    "weeks_for_25_games": 1.9640274903694421,
+    "weeks_for_600_games": 47.136659768866615,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "both",
+    "drafts_per_week": 2000,
+    "compliance": 0.5,
+    "pair_games_per_week": 84.85964044999999,
+    "weeks_for_25_games": 0.2946041235554163,
+    "weeks_for_600_games": 7.070498965329992,
+    "speed_vs_both": 1.0
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 25,
+    "compliance": 0.5,
+    "pair_games_per_week": 5.1496249999999995,
+    "weeks_for_25_games": 4.854722431244994,
+    "weeks_for_600_games": 116.51333834987986,
+    "speed_vs_both": 4.854722431244994
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 300,
+    "compliance": 0.5,
+    "pair_games_per_week": 61.79549999999999,
+    "weeks_for_25_games": 0.40456020260374953,
+    "weeks_for_600_games": 9.709444862489988,
+    "speed_vs_both": 4.854722431244994
+   },
+   {
+    "mode": "lobby",
+    "drafts_per_week": 2000,
+    "compliance": 0.5,
+    "pair_games_per_week": 411.96999999999997,
+    "weeks_for_25_games": 0.06068403039056242,
+    "weeks_for_600_games": 1.4564167293734982,
+    "speed_vs_both": 4.854722431244994
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 25,
+    "compliance": 0.5,
+    "pair_games_per_week": 0.28609027777777774,
+    "weeks_for_25_games": 87.3850037624099,
+    "weeks_for_600_games": 2097.2400902978375,
+    "speed_vs_both": 0.269706801735833
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 300,
+    "compliance": 0.5,
+    "pair_games_per_week": 3.433083333333333,
+    "weeks_for_25_games": 7.282083646867491,
+    "weeks_for_600_games": 174.7700075248198,
+    "speed_vs_both": 0.269706801735833
+   },
+   {
+    "mode": "single",
+    "drafts_per_week": 2000,
+    "compliance": 0.5,
+    "pair_games_per_week": 22.887222222222217,
+    "weeks_for_25_games": 1.0923125470301238,
+    "weeks_for_600_games": 26.21550112872297,
+    "speed_vs_both": 0.269706801735833
+   }
+  ],
+  "push_2000_c20": {
+   "a": {
+    "both_3_months": {
+     "followed_games": 176.50805213599998,
+     "pairs_into_support": 27,
+     "expected_true_gain_pts_per_draft": 0.10381318130688537,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.6,
+       0.0003
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       1.2,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.4,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       0.5,
+       0.0002
+      ],
+      [
+       "Garrosh",
+       "The Lost Vikings",
+       1.0,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.5,
+       0.0023
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.6,
+       0.0006
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       0.5,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.2,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       1.4,
+       0.0001
+      ],
+      [
+       "Alarak",
+       "Kerrigan",
+       2.4,
+       0.0002
+      ],
+      [
+       "Imperius",
+       "Probius",
+       0.8,
+       0.0001
+      ]
+     ]
+    },
+    "both_12_months": {
+     "followed_games": 706.0322085439999,
+     "pairs_into_support": 74,
+     "expected_true_gain_pts_per_draft": 0.12816430934490944,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.6,
+       0.0003
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       1.2,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.4,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       0.5,
+       0.0002
+      ],
+      [
+       "Garrosh",
+       "The Lost Vikings",
+       1.0,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.5,
+       0.0023
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.6,
+       0.0006
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       0.5,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.2,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       1.4,
+       0.0001
+      ],
+      [
+       "Alarak",
+       "Kerrigan",
+       2.4,
+       0.0002
+      ],
+      [
+       "Imperius",
+       "Probius",
+       0.8,
+       0.0001
+      ]
+     ]
+    },
+    "lobby_3_months": {
+     "followed_games": 2142.2439999999997,
+     "pairs_into_support": 203,
+     "expected_true_gain_pts_per_draft": 0.1575348862200835,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.6,
+       0.0003
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       1.2,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.4,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       0.5,
+       0.0002
+      ],
+      [
+       "Garrosh",
+       "The Lost Vikings",
+       1.0,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.5,
+       0.0023
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.6,
+       0.0006
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       0.5,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.2,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       1.4,
+       0.0001
+      ],
+      [
+       "Alarak",
+       "Kerrigan",
+       2.4,
+       0.0002
+      ],
+      [
+       "Imperius",
+       "Probius",
+       0.8,
+       0.0001
+      ]
+     ]
+    },
+    "lobby_12_months": {
+     "followed_games": 8568.975999999999,
+     "pairs_into_support": 765,
+     "expected_true_gain_pts_per_draft": 0.1774941674785294,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.6,
+       0.0003
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       1.2,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.4,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       0.5,
+       0.0002
+      ],
+      [
+       "Garrosh",
+       "The Lost Vikings",
+       1.0,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.5,
+       0.0023
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.6,
+       0.0006
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       0.5,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.2,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       1.4,
+       0.0001
+      ],
+      [
+       "Alarak",
+       "Kerrigan",
+       2.4,
+       0.0002
+      ],
+      [
+       "Imperius",
+       "Probius",
+       0.8,
+       0.0001
+      ]
+     ]
+    },
+    "single_3_months": {
+     "followed_games": 119.01355555555553,
+     "pairs_into_support": 23,
+     "expected_true_gain_pts_per_draft": 0.09988879599552446,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.6,
+       0.0003
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       1.2,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.4,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       0.5,
+       0.0002
+      ],
+      [
+       "Garrosh",
+       "The Lost Vikings",
+       1.0,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.5,
+       0.0023
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.6,
+       0.0006
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       0.5,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.2,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       1.4,
+       0.0001
+      ],
+      [
+       "Alarak",
+       "Kerrigan",
+       2.4,
+       0.0002
+      ],
+      [
+       "Imperius",
+       "Probius",
+       0.8,
+       0.0001
+      ]
+     ]
+    },
+    "single_12_months": {
+     "followed_games": 476.0542222222221,
+     "pairs_into_support": 55,
+     "expected_true_gain_pts_per_draft": 0.11985774704795478,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.6,
+       0.0003
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       1.2,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.4,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       0.5,
+       0.0002
+      ],
+      [
+       "Garrosh",
+       "The Lost Vikings",
+       1.0,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.5,
+       0.0023
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.6,
+       0.0006
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       0.5,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.2,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       1.4,
+       0.0001
+      ],
+      [
+       "Alarak",
+       "Kerrigan",
+       2.4,
+       0.0002
+      ],
+      [
+       "Imperius",
+       "Probius",
+       0.8,
+       0.0001
+      ]
+     ]
+    }
+   },
+   "c": {
+    "both_3_months": {
+     "followed_games": 176.50805213599998,
+     "pairs_into_support": 36,
+     "expected_true_gain_pts_per_draft": 0.10342198349197239,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.9,
+       0.0007
+      ],
+      [
+       "Deathwing",
+       "Samuro",
+       0.0,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       1.0,
+       0.0003
+      ],
+      [
+       "Maiev",
+       "Sgt. Hammer",
+       0.7,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.2,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       1.0,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       0.8,
+       0.0001
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.5,
+       0.0006
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.8,
+       0.0023
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       2.1,
+       0.0002
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       1.1,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.0,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Rehgar",
+       "Stitches",
+       0.1,
+       0.0001
+      ]
+     ]
+    },
+    "both_12_months": {
+     "followed_games": 706.0322085439999,
+     "pairs_into_support": 82,
+     "expected_true_gain_pts_per_draft": 0.12786520437659507,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.9,
+       0.0007
+      ],
+      [
+       "Deathwing",
+       "Samuro",
+       0.0,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       1.0,
+       0.0003
+      ],
+      [
+       "Maiev",
+       "Sgt. Hammer",
+       0.7,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.2,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       1.0,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       0.8,
+       0.0001
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.5,
+       0.0006
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.8,
+       0.0023
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       2.1,
+       0.0002
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       1.1,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.0,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Rehgar",
+       "Stitches",
+       0.1,
+       0.0001
+      ]
+     ]
+    },
+    "lobby_3_months": {
+     "followed_games": 2142.2439999999997,
+     "pairs_into_support": 205,
+     "expected_true_gain_pts_per_draft": 0.15725661996983065,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.9,
+       0.0007
+      ],
+      [
+       "Deathwing",
+       "Samuro",
+       0.0,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       1.0,
+       0.0003
+      ],
+      [
+       "Maiev",
+       "Sgt. Hammer",
+       0.7,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.2,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       1.0,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       0.8,
+       0.0001
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.5,
+       0.0006
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.8,
+       0.0023
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       2.1,
+       0.0002
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       1.1,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.0,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Rehgar",
+       "Stitches",
+       0.1,
+       0.0001
+      ]
+     ]
+    },
+    "lobby_12_months": {
+     "followed_games": 8568.975999999999,
+     "pairs_into_support": 780,
+     "expected_true_gain_pts_per_draft": 0.17736750792126943,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.9,
+       0.0007
+      ],
+      [
+       "Deathwing",
+       "Samuro",
+       0.0,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       1.0,
+       0.0003
+      ],
+      [
+       "Maiev",
+       "Sgt. Hammer",
+       0.7,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.2,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       1.0,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       0.8,
+       0.0001
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.5,
+       0.0006
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.8,
+       0.0023
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       2.1,
+       0.0002
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       1.1,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.0,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Rehgar",
+       "Stitches",
+       0.1,
+       0.0001
+      ]
+     ]
+    },
+    "single_3_months": {
+     "followed_games": 119.01355555555553,
+     "pairs_into_support": 29,
+     "expected_true_gain_pts_per_draft": 0.09963648270718299,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.9,
+       0.0007
+      ],
+      [
+       "Deathwing",
+       "Samuro",
+       0.0,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       1.0,
+       0.0003
+      ],
+      [
+       "Maiev",
+       "Sgt. Hammer",
+       0.7,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.2,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       1.0,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       0.8,
+       0.0001
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.5,
+       0.0006
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.8,
+       0.0023
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       2.1,
+       0.0002
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       1.1,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.0,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Rehgar",
+       "Stitches",
+       0.1,
+       0.0001
+      ]
+     ]
+    },
+    "single_12_months": {
+     "followed_games": 476.0542222222221,
+     "pairs_into_support": 59,
+     "expected_true_gain_pts_per_draft": 0.11952898968459831,
+     "top_pairs": [
+      [
+       "Deathwing",
+       "Kerrigan",
+       0.9,
+       0.0007
+      ],
+      [
+       "Deathwing",
+       "Samuro",
+       0.0,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       1.0,
+       0.0003
+      ],
+      [
+       "Maiev",
+       "Sgt. Hammer",
+       0.7,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Murky",
+       0.2,
+       0.0002
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       1.0,
+       0.0002
+      ],
+      [
+       "Deathwing",
+       "Maiev",
+       0.8,
+       0.0001
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       4.5,
+       0.0006
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.8,
+       0.0023
+      ],
+      [
+       "Auriel",
+       "Gall",
+       18.4,
+       0.0022
+      ],
+      [
+       "Kerrigan",
+       "Thrall",
+       2.1,
+       0.0002
+      ],
+      [
+       "Rexxar",
+       "Sgt. Hammer",
+       1.1,
+       0.0001
+      ],
+      [
+       "Falstad",
+       "Probius",
+       0.0,
+       0.0001
+      ],
+      [
+       "Gall",
+       "Samuro",
+       17.9,
+       0.0018
+      ],
+      [
+       "Rehgar",
+       "Stitches",
+       0.1,
+       0.0001
+      ]
+     ]
+    }
+   },
+   "fc": {
+    "both_3_months": {
+     "followed_games": 176.50805213599998,
+     "pairs_into_support": 44,
+     "expected_true_gain_pts_per_draft": 0.4212588348837578,
+     "top_pairs": [
+      [
+       "Hogger",
+       "Samuro",
+       1.6,
+       0.0013
+      ],
+      [
+       "D.Va",
+       "Ragnaros",
+       0.8,
+       0.0006
+      ],
+      [
+       "D.Va",
+       "Sgt. Hammer",
+       0.1,
+       0.0005
+      ],
+      [
+       "Auriel",
+       "Zarya",
+       0.7,
+       0.0005
+      ],
+      [
+       "Leoric",
+       "Probius",
+       1.7,
+       0.0006
+      ],
+      [
+       "Qhira",
+       "Samuro",
+       1.4,
+       0.0005
+      ],
+      [
+       "Kerrigan",
+       "The Butcher",
+       0.1,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       4.2,
+       0.0011
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.6,
+       0.0008
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.3,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Malthael",
+       3.1,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Deathwing",
+       4.9,
+       0.0009
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       2.9,
+       0.0005
+      ],
+      [
+       "Azmodan",
+       "Probius",
+       0.7,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.1,
+       0.0028
+      ]
+     ]
+    },
+    "both_12_months": {
+     "followed_games": 706.0322085439999,
+     "pairs_into_support": 107,
+     "expected_true_gain_pts_per_draft": 0.4569585035793027,
+     "top_pairs": [
+      [
+       "Hogger",
+       "Samuro",
+       1.6,
+       0.0013
+      ],
+      [
+       "D.Va",
+       "Ragnaros",
+       0.8,
+       0.0006
+      ],
+      [
+       "D.Va",
+       "Sgt. Hammer",
+       0.1,
+       0.0005
+      ],
+      [
+       "Auriel",
+       "Zarya",
+       0.7,
+       0.0005
+      ],
+      [
+       "Leoric",
+       "Probius",
+       1.7,
+       0.0006
+      ],
+      [
+       "Qhira",
+       "Samuro",
+       1.4,
+       0.0005
+      ],
+      [
+       "Kerrigan",
+       "The Butcher",
+       0.1,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       4.2,
+       0.0011
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.6,
+       0.0008
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.3,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Malthael",
+       3.1,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Deathwing",
+       4.9,
+       0.0009
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       2.9,
+       0.0005
+      ],
+      [
+       "Azmodan",
+       "Probius",
+       0.7,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.1,
+       0.0028
+      ]
+     ]
+    },
+    "lobby_3_months": {
+     "followed_games": 2142.2439999999997,
+     "pairs_into_support": 238,
+     "expected_true_gain_pts_per_draft": 0.5012570558110768,
+     "top_pairs": [
+      [
+       "Hogger",
+       "Samuro",
+       1.6,
+       0.0013
+      ],
+      [
+       "D.Va",
+       "Ragnaros",
+       0.8,
+       0.0006
+      ],
+      [
+       "D.Va",
+       "Sgt. Hammer",
+       0.1,
+       0.0005
+      ],
+      [
+       "Auriel",
+       "Zarya",
+       0.7,
+       0.0005
+      ],
+      [
+       "Leoric",
+       "Probius",
+       1.7,
+       0.0006
+      ],
+      [
+       "Qhira",
+       "Samuro",
+       1.4,
+       0.0005
+      ],
+      [
+       "Kerrigan",
+       "The Butcher",
+       0.1,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       4.2,
+       0.0011
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.6,
+       0.0008
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.3,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Malthael",
+       3.1,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Deathwing",
+       4.9,
+       0.0009
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       2.9,
+       0.0005
+      ],
+      [
+       "Azmodan",
+       "Probius",
+       0.7,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.1,
+       0.0028
+      ]
+     ]
+    },
+    "lobby_12_months": {
+     "followed_games": 8568.975999999999,
+     "pairs_into_support": 754,
+     "expected_true_gain_pts_per_draft": 0.5349297281042855,
+     "top_pairs": [
+      [
+       "Hogger",
+       "Samuro",
+       1.6,
+       0.0013
+      ],
+      [
+       "D.Va",
+       "Ragnaros",
+       0.8,
+       0.0006
+      ],
+      [
+       "D.Va",
+       "Sgt. Hammer",
+       0.1,
+       0.0005
+      ],
+      [
+       "Auriel",
+       "Zarya",
+       0.7,
+       0.0005
+      ],
+      [
+       "Leoric",
+       "Probius",
+       1.7,
+       0.0006
+      ],
+      [
+       "Qhira",
+       "Samuro",
+       1.4,
+       0.0005
+      ],
+      [
+       "Kerrigan",
+       "The Butcher",
+       0.1,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       4.2,
+       0.0011
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.6,
+       0.0008
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.3,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Malthael",
+       3.1,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Deathwing",
+       4.9,
+       0.0009
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       2.9,
+       0.0005
+      ],
+      [
+       "Azmodan",
+       "Probius",
+       0.7,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.1,
+       0.0028
+      ]
+     ]
+    },
+    "single_3_months": {
+     "followed_games": 119.01355555555553,
+     "pairs_into_support": 40,
+     "expected_true_gain_pts_per_draft": 0.4156197923030338,
+     "top_pairs": [
+      [
+       "Hogger",
+       "Samuro",
+       1.6,
+       0.0013
+      ],
+      [
+       "D.Va",
+       "Ragnaros",
+       0.8,
+       0.0006
+      ],
+      [
+       "D.Va",
+       "Sgt. Hammer",
+       0.1,
+       0.0005
+      ],
+      [
+       "Auriel",
+       "Zarya",
+       0.7,
+       0.0005
+      ],
+      [
+       "Leoric",
+       "Probius",
+       1.7,
+       0.0006
+      ],
+      [
+       "Qhira",
+       "Samuro",
+       1.4,
+       0.0005
+      ],
+      [
+       "Kerrigan",
+       "The Butcher",
+       0.1,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       4.2,
+       0.0011
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.6,
+       0.0008
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.3,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Malthael",
+       3.1,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Deathwing",
+       4.9,
+       0.0009
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       2.9,
+       0.0005
+      ],
+      [
+       "Azmodan",
+       "Probius",
+       0.7,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.1,
+       0.0028
+      ]
+     ]
+    },
+    "single_12_months": {
+     "followed_games": 476.0542222222221,
+     "pairs_into_support": 76,
+     "expected_true_gain_pts_per_draft": 0.444431889583657,
+     "top_pairs": [
+      [
+       "Hogger",
+       "Samuro",
+       1.6,
+       0.0013
+      ],
+      [
+       "D.Va",
+       "Ragnaros",
+       0.8,
+       0.0006
+      ],
+      [
+       "D.Va",
+       "Sgt. Hammer",
+       0.1,
+       0.0005
+      ],
+      [
+       "Auriel",
+       "Zarya",
+       0.7,
+       0.0005
+      ],
+      [
+       "Leoric",
+       "Probius",
+       1.7,
+       0.0006
+      ],
+      [
+       "Qhira",
+       "Samuro",
+       1.4,
+       0.0005
+      ],
+      [
+       "Kerrigan",
+       "The Butcher",
+       0.1,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       4.2,
+       0.0011
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.6,
+       0.0008
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.3,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Malthael",
+       3.1,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Deathwing",
+       4.9,
+       0.0009
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       2.9,
+       0.0005
+      ],
+      [
+       "Azmodan",
+       "Probius",
+       0.7,
+       0.0002
+      ],
+      [
+       "Gall",
+       "Rehgar",
+       17.1,
+       0.0028
+      ]
+     ]
+    }
+   },
+   "g": {
+    "both_3_months": {
+     "followed_games": 176.50805213599998,
+     "pairs_into_support": 65,
+     "expected_true_gain_pts_per_draft": 0.19606578503009775,
+     "top_pairs": [
+      [
+       "Rehgar",
+       "The Lost Vikings",
+       1.1,
+       0.0009
+      ],
+      [
+       "Deathwing",
+       "Ragnaros",
+       1.2,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       0.1,
+       0.0005
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.5,
+       0.0004
+      ],
+      [
+       "Rexxar",
+       "Tyrande",
+       0.4,
+       0.0004
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       5.5,
+       0.0021
+      ],
+      [
+       "Samuro",
+       "Xul",
+       1.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Sgt. Hammer",
+       0.0,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Sonya",
+       2.1,
+       0.0007
+      ],
+      [
+       "Auriel",
+       "The Lost Vikings",
+       0.1,
+       0.0003
+      ],
+      [
+       "Anub'arak",
+       "The Lost Vikings",
+       0.8,
+       0.0003
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.7,
+       0.0011
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       7.0,
+       0.0016
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.4,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Kerrigan",
+       4.7,
+       0.001
+      ]
+     ]
+    },
+    "both_12_months": {
+     "followed_games": 706.0322085439999,
+     "pairs_into_support": 142,
+     "expected_true_gain_pts_per_draft": 0.2152014907630567,
+     "top_pairs": [
+      [
+       "Rehgar",
+       "The Lost Vikings",
+       1.1,
+       0.0009
+      ],
+      [
+       "Deathwing",
+       "Ragnaros",
+       1.2,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       0.1,
+       0.0005
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.5,
+       0.0004
+      ],
+      [
+       "Rexxar",
+       "Tyrande",
+       0.4,
+       0.0004
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       5.5,
+       0.0021
+      ],
+      [
+       "Samuro",
+       "Xul",
+       1.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Sgt. Hammer",
+       0.0,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Sonya",
+       2.1,
+       0.0007
+      ],
+      [
+       "Auriel",
+       "The Lost Vikings",
+       0.1,
+       0.0003
+      ],
+      [
+       "Anub'arak",
+       "The Lost Vikings",
+       0.8,
+       0.0003
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.7,
+       0.0011
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       7.0,
+       0.0016
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.4,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Kerrigan",
+       4.7,
+       0.001
+      ]
+     ]
+    },
+    "lobby_3_months": {
+     "followed_games": 2142.2439999999997,
+     "pairs_into_support": 285,
+     "expected_true_gain_pts_per_draft": 0.2330104315385249,
+     "top_pairs": [
+      [
+       "Rehgar",
+       "The Lost Vikings",
+       1.1,
+       0.0009
+      ],
+      [
+       "Deathwing",
+       "Ragnaros",
+       1.2,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       0.1,
+       0.0005
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.5,
+       0.0004
+      ],
+      [
+       "Rexxar",
+       "Tyrande",
+       0.4,
+       0.0004
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       5.5,
+       0.0021
+      ],
+      [
+       "Samuro",
+       "Xul",
+       1.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Sgt. Hammer",
+       0.0,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Sonya",
+       2.1,
+       0.0007
+      ],
+      [
+       "Auriel",
+       "The Lost Vikings",
+       0.1,
+       0.0003
+      ],
+      [
+       "Anub'arak",
+       "The Lost Vikings",
+       0.8,
+       0.0003
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.7,
+       0.0011
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       7.0,
+       0.0016
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.4,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Kerrigan",
+       4.7,
+       0.001
+      ]
+     ]
+    },
+    "lobby_12_months": {
+     "followed_games": 8568.975999999999,
+     "pairs_into_support": 779,
+     "expected_true_gain_pts_per_draft": 0.24417969784876595,
+     "top_pairs": [
+      [
+       "Rehgar",
+       "The Lost Vikings",
+       1.1,
+       0.0009
+      ],
+      [
+       "Deathwing",
+       "Ragnaros",
+       1.2,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       0.1,
+       0.0005
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.5,
+       0.0004
+      ],
+      [
+       "Rexxar",
+       "Tyrande",
+       0.4,
+       0.0004
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       5.5,
+       0.0021
+      ],
+      [
+       "Samuro",
+       "Xul",
+       1.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Sgt. Hammer",
+       0.0,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Sonya",
+       2.1,
+       0.0007
+      ],
+      [
+       "Auriel",
+       "The Lost Vikings",
+       0.1,
+       0.0003
+      ],
+      [
+       "Anub'arak",
+       "The Lost Vikings",
+       0.8,
+       0.0003
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.7,
+       0.0011
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       7.0,
+       0.0016
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.4,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Kerrigan",
+       4.7,
+       0.001
+      ]
+     ]
+    },
+    "single_3_months": {
+     "followed_games": 119.01355555555553,
+     "pairs_into_support": 46,
+     "expected_true_gain_pts_per_draft": 0.19184567143208273,
+     "top_pairs": [
+      [
+       "Rehgar",
+       "The Lost Vikings",
+       1.1,
+       0.0009
+      ],
+      [
+       "Deathwing",
+       "Ragnaros",
+       1.2,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       0.1,
+       0.0005
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.5,
+       0.0004
+      ],
+      [
+       "Rexxar",
+       "Tyrande",
+       0.4,
+       0.0004
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       5.5,
+       0.0021
+      ],
+      [
+       "Samuro",
+       "Xul",
+       1.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Sgt. Hammer",
+       0.0,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Sonya",
+       2.1,
+       0.0007
+      ],
+      [
+       "Auriel",
+       "The Lost Vikings",
+       0.1,
+       0.0003
+      ],
+      [
+       "Anub'arak",
+       "The Lost Vikings",
+       0.8,
+       0.0003
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.7,
+       0.0011
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       7.0,
+       0.0016
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.4,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Kerrigan",
+       4.7,
+       0.001
+      ]
+     ]
+    },
+    "single_12_months": {
+     "followed_games": 476.0542222222221,
+     "pairs_into_support": 113,
+     "expected_true_gain_pts_per_draft": 0.20916664017026693,
+     "top_pairs": [
+      [
+       "Rehgar",
+       "The Lost Vikings",
+       1.1,
+       0.0009
+      ],
+      [
+       "Deathwing",
+       "Ragnaros",
+       1.2,
+       0.0007
+      ],
+      [
+       "D.Va",
+       "Samuro",
+       0.1,
+       0.0005
+      ],
+      [
+       "Hogger",
+       "Thrall",
+       0.5,
+       0.0004
+      ],
+      [
+       "Rexxar",
+       "Tyrande",
+       0.4,
+       0.0004
+      ],
+      [
+       "Hogger",
+       "Samuro",
+       5.5,
+       0.0021
+      ],
+      [
+       "Samuro",
+       "Xul",
+       1.8,
+       0.0007
+      ],
+      [
+       "Hogger",
+       "Sgt. Hammer",
+       0.0,
+       0.0003
+      ],
+      [
+       "Deathwing",
+       "Sonya",
+       2.1,
+       0.0007
+      ],
+      [
+       "Auriel",
+       "The Lost Vikings",
+       0.1,
+       0.0003
+      ],
+      [
+       "Anub'arak",
+       "The Lost Vikings",
+       0.8,
+       0.0003
+      ],
+      [
+       "Rehgar",
+       "Rexxar",
+       3.7,
+       0.0011
+      ],
+      [
+       "Deathwing",
+       "Hogger",
+       7.0,
+       0.0016
+      ],
+      [
+       "Deathwing",
+       "Gazlowe",
+       5.4,
+       0.0012
+      ],
+      [
+       "Deathwing",
+       "Kerrigan",
+       4.7,
+       0.001
+      ]
+     ]
+    }
+   }
+  }
+ }
+}
