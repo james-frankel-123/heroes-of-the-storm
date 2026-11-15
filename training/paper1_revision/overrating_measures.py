@@ -1,0 +1,137 @@
+"""
+Overrating of rare teams by support measure (extends overrating.py stage A, which bins by min3 only).
+
+Same NODRIFT held-out games, the same cached agent-leaf and gN-judge values (cache/overrating/vals_nodrift.npz)
+and the same main-effects baseline. Only the binning measure changes. Measures, per team, against
+training-split teams:
+  min2, min3, min4  count of the team's rarest 2-, 3-, 4-hero subset
+  n5                count of the exact five
+  pmi               mean pointwise mutual information of the team's 10 pairs (low = heroes rarely played together)
+  rc                count of the team's role composition
+  matchup           rarest cross-team hero pair (hero a on this team vs hero b on the opponent), in games
+Every measure is put on one scale: the percentile among held-out human teams (mid-rank for ties). Bins
+are human percentiles 0-1, 1-2.5, 2.5-5, 5-10, 10-25, 25-50, 50-100. "Below floor" means below the
+human 5th percentile, the analogue of min3 < 25 (human p5 of min3 is about 23). Opponent filter:
+opponent at or above its own p5 (matchup is game-level, so it has no opponent filter).
+
+From training/ with the paper-1 env. Writes site/results/overrating/measures.json and MEASURES.md.
+"""
+import os
+import sys
+import json
+
+import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(HERE))
+from paper1_revision import overrating as ov
+
+PCT_EDGES = [0, 1, 2.5, 5, 10, 25, 50, 100.0001]
+P_FLOOR = 5.0
+MEASURES = ["min3", "min2", "min4", "n5", "pmi", "rc", "matchup"]
+
+
+def human_pct(x, ref):
+    """Mid-rank percentile of x among ref (ties share one percentile)."""
+    s = np.sort(ref)
+    lo = np.searchsorted(s, x, side="left")
+    hi = np.searchsorted(s, x, side="right")
+    return 100.0 * (lo + hi) / (2.0 * len(s))
+
+
+def cross_counts():
+    from paper1_revision import judge_ood_calibration as joc
+    p = os.path.join(ov.CACHE, "cross_pairs.npy")
+    if os.path.exists(p):
+        return np.load(p)
+    G = ov.split_games()["train"]
+    T0, T1 = joc.idx_teams(G, 3), joc.idx_teams(G, 4)
+    a = np.repeat(T0, 5, axis=1).ravel()
+    b = np.tile(T1, (1, 5)).ravel()
+    M = np.zeros((128, 128), np.int64)
+    np.add.at(M, (a, b), 1)
+    M = M + M.T
+    np.save(p, M)
+    return M
+
+
+def matchup(M, A, B):
+    return M[A[:, :, None], B[:, None, :]].reshape(len(A), 25).min(1)
+
+
+def main():
+    from paper1_revision import support_mitigation as sm
+    C = sm.sup_corpus()
+    games, rows, y0 = ov.nodrift()
+    A0, A1 = ov.hidx([g[3] for g in games]), ov.hidx([g[4] for g in games])
+    maps, tiers = [g[2] for g in games], [g[1] for g in games]
+    z = np.load(os.path.join(ov.CACHE, "vals_nodrift.npz"))
+    V = {k: z[k] for k in z.files}
+    b0 = ov.sig(ov.MainEffects(ov.base_path("current")).logit(A0, A1, maps, tiers))
+    M0, M1 = C.metrics(A0), C.metrics(A1)
+    mu = matchup(cross_counts(), A0, A1)
+    M0["matchup"], M1["matchup"] = mu, mu
+
+    ov.FLOOR = P_FLOOR      # pooled() splits at the module floor; here it is a percentile
+    res = {"games": len(games), "pct_edges": PCT_EDGES[:-1] + [100], "floor_pct": P_FLOOR, "measures": {}}
+    for m in MEASURES:
+        ref = np.concatenate([M0[m], M1[m]]).astype(float)
+        q0, q1 = human_pct(M0[m].astype(float), ref), human_pct(M1[m].astype(float), ref)
+        r = {"human_p5_value": float(np.percentile(ref, 5)), "human_p50_value": float(np.percentile(ref, 50)),
+             "corr_with_min3_pct": None}
+        if m != "min3":
+            ref3 = np.concatenate([M0["min3"], M1["min3"]]).astype(float)
+            r["corr_with_min3_pct"] = float(np.corrcoef(human_pct(ref3, ref3), human_pct(ref, ref))[0, 1])
+        opp_floor = 0 if m == "matchup" else P_FLOOR
+        for val in ("agent", "gN"):
+            y, p, b, own, opp, gid = ov.team_rows(y0, V[val], b0, q0, q1)
+            if opp_floor == 0:
+                opp = np.full_like(opp, 100.0)
+            r[val] = {"bins": ov.bin_table(y, p, b, own, opp, gid, edges=PCT_EDGES, opp_floor=opp_floor),
+                      "pooled": ov.pooled(y, p, b, own, opp, gid, edges=PCT_EDGES, opp_floor=opp_floor)}
+        res["measures"][m] = r
+        P = r["agent"]["pooled"]
+        print(f"{m:8s} p5={r['human_p5_value']:8.2f} beta below {P['below_floor']['beta'][0]:.2f}±{P['below_floor']['beta'][1]:.2f} "
+              f"in {P['in_support']['beta'][0]:.2f}±{P['in_support']['beta'][1]:.2f} "
+              f"diff {P['beta_diff_below_minus_in'][0]:+.2f}±{P['beta_diff_below_minus_in'][1]:.2f} "
+              f"overval below {P['below_floor']['overval_p_minus_y'][0]:+.2f} top-dec diff "
+              f"{P['topdec_overval_diff_below_minus_in'][0]:+.2f}±{P['topdec_overval_diff_below_minus_in'][1]:.2f}", flush=True)
+    json.dump(res, open(os.path.join(ov.OUT, "measures.json"), "w"), indent=1)
+    report(res)
+
+
+def f(x, d=2):
+    return f"{x[0]:+.{d}f} ± {x[1]:.{d}f}"
+
+
+def report(res):
+    L = ["# Overrating by support measure", "",
+         f"Generated by `overrating_measures.py` from {res['games']:,} NODRIFT held-out games. Same data, agent leaf, gN judge "
+         "and main-effects baseline as OVERRATING.md stage A; only the rarity measure changes. Every measure is "
+         "expressed as a percentile among held-out human teams; \"below floor\" = below the human 5th percentile "
+         "(the min3 < 25 analogue). Points are win-probability points; SEs clustered by game.", "",
+         "beta = share of the model's claimed non-additive value that shows up in real results (1 = right on average).", ""]
+    for val, name in (("agent", "Agent leaf (enriched WP)"), ("gN", "gN judge")):
+        L += [f"## {name}", "",
+              "| measure | human p5 value | corr w/ min3 | beta below p5 | beta at/above p5 | diff | overval p−y below | top-decile overval diff (below − in) |",
+              "|---|---|---|---|---|---|---|---|"]
+        for m, r in res["measures"].items():
+            P = r[val]["pooled"]
+            c = "—" if r["corr_with_min3_pct"] is None else f"{r['corr_with_min3_pct']:.2f}"
+            L.append(f"| {m} | {r['human_p5_value']:.2f} | {c} | {f(P['below_floor']['beta'])} | {f(P['in_support']['beta'])} | "
+                     f"{f(P['beta_diff_below_minus_in'])} | {f(P['below_floor']['overval_p_minus_y'])} | "
+                     f"{f(P['topdec_overval_diff_below_minus_in'])} |")
+        L.append("")
+    L += ["## Per-bin beta, agent leaf (human percentile bins)", "",
+          "| measure | " + " | ".join(f"{a}–{b if b <= 100 else 100:g}" for a, b in zip(PCT_EDGES[:-1], PCT_EDGES[1:])) + " |",
+          "|---|" + "---|" * (len(PCT_EDGES) - 1)]
+    for m, r in res["measures"].items():
+        cells = []
+        for x in r["agent"]["bins"]:
+            cells.append(f"{x['beta'][0]:.2f} ± {x['beta'][1]:.2f} (n {x['n']:,})" if "beta" in x else f"n {x['n']:,}")
+        L.append(f"| {m} | " + " | ".join(cells) + " |")
+    open(os.path.join(ov.OUT, "MEASURES.md"), "w").write("\n".join(L) + "\n")
+
+
+if __name__ == "__main__":
+    main()
