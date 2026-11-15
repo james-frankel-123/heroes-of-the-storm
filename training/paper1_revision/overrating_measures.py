@@ -9,7 +9,7 @@ training-split teams:
   pmi               mean pointwise mutual information of the team's 10 pairs (low = heroes rarely played together)
   rc                count of the team's role composition
   matchup           rarest cross-team hero pair (hero a on this team vs hero b on the opponent), in games
-Every measure is put on one scale: the percentile among held-out human teams (mid-rank for ties). Bins
+Every measure is put on one scale: the percent of held-out human teams strictly rarer (ties count low). Bins
 are human percentiles 0-1, 1-2.5, 2.5-5, 5-10, 10-25, 25-50, 50-100. "Below floor" means below the
 human 5th percentile, the analogue of min3 < 25 (human p5 of min3 is about 23). Opponent filter:
 opponent at or above its own p5 (matchup is game-level, so it has no opponent filter).
@@ -32,11 +32,8 @@ MEASURES = ["min3", "min2", "min4", "n5", "pmi", "rc", "matchup"]
 
 
 def human_pct(x, ref):
-    """Mid-rank percentile of x among ref (ties share one percentile)."""
-    s = np.sort(ref)
-    lo = np.searchsorted(s, x, side="left")
-    hi = np.searchsorted(s, x, side="right")
-    return 100.0 * (lo + hi) / (2.0 * len(s))
+    """Share of ref strictly below x, in percent (ties at the minimum land in the bottom bin)."""
+    return 100.0 * np.searchsorted(np.sort(ref), x, side="left") / len(ref)
 
 
 def cross_counts():
@@ -78,7 +75,7 @@ def main():
         ref = np.concatenate([M0[m], M1[m]]).astype(float)
         q0, q1 = human_pct(M0[m].astype(float), ref), human_pct(M1[m].astype(float), ref)
         r = {"human_p5_value": float(np.percentile(ref, 5)), "human_p50_value": float(np.percentile(ref, 50)),
-             "corr_with_min3_pct": None}
+             "corr_with_min3_pct": None, "human_share_below_floor": float((human_pct(ref, ref) < P_FLOOR).mean())}
         if m != "min3":
             ref3 = np.concatenate([M0["min3"], M1["min3"]]).astype(float)
             r["corr_with_min3_pct"] = float(np.corrcoef(human_pct(ref3, ref3), human_pct(ref, ref))[0, 1])
@@ -113,12 +110,12 @@ def report(res):
          "beta = share of the model's claimed non-additive value that shows up in real results (1 = right on average).", ""]
     for val, name in (("agent", "Agent leaf (enriched WP)"), ("gN", "gN judge")):
         L += [f"## {name}", "",
-              "| measure | human p5 value | corr w/ min3 | beta below p5 | beta at/above p5 | diff | overval p−y below | top-decile overval diff (below − in) |",
-              "|---|---|---|---|---|---|---|---|"]
+              "| measure | human p5 value | human share below | corr w/ min3 | beta below p5 | beta at/above p5 | diff | overval p−y below | top-decile overval diff (below − in) |",
+              "|---|---|---|---|---|---|---|---|---|"]
         for m, r in res["measures"].items():
             P = r[val]["pooled"]
             c = "—" if r["corr_with_min3_pct"] is None else f"{r['corr_with_min3_pct']:.2f}"
-            L.append(f"| {m} | {r['human_p5_value']:.2f} | {c} | {f(P['below_floor']['beta'])} | {f(P['in_support']['beta'])} | "
+            L.append(f"| {m} | {r['human_p5_value']:.2f} | {100 * r['human_share_below_floor']:.1f}% | {c} | {f(P['below_floor']['beta'])} | {f(P['in_support']['beta'])} | "
                      f"{f(P['beta_diff_below_minus_in'])} | {f(P['below_floor']['overval_p_minus_y'])} | "
                      f"{f(P['topdec_overval_diff_below_minus_in'])} |")
         L.append("")
