@@ -1,0 +1,10 @@
+{
+ "beta_s": 2.43371151855075,
+ "beta_off": -0.0368581135190452,
+ "se": [
+  0.07041177586034084,
+  0.0073767619633871555
+ ],
+ "fit_games": 81329,
+ "what": "f-cov: v2 outcome-only term + beta . (drafter state s, off-role), fit on judge-window half A; partly circular"
+}

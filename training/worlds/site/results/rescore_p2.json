@@ -108973,6 +108973,922 @@
      }
     }
    }
+  },
+  "fc": {
+   "worlds": 1000,
+   "cells": [
+    {
+     "assign": "random"
+    },
+    {
+     "assign": "human"
+    },
+    {
+     "assign": "best"
+    }
+   ],
+   "arms": {
+    "{\"assign\": \"random\"}": {
+     "x-combo1-dr-chance": {
+      "value_pts": 58.91654968261719,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ]
+     },
+     "s-floor10": {
+      "value_pts": 59.12092208862305,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.2043586254119873,
+       "lo95": -0.4196213185787201,
+       "hi95": 0.8534646034240722,
+       "p_gt0": 0.729,
+       "worst10_mean": -0.3699536919593811,
+       "worlds": 1000
+      }
+     },
+     "s-floor15": {
+      "value_pts": 58.954917907714844,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.03836345672607422,
+       "lo95": -0.647769570350647,
+       "hi95": 0.6952400505542754,
+       "p_gt0": 0.546,
+       "worst10_mean": -0.5702823400497437,
+       "worlds": 1000
+      }
+     },
+     "s-floor20": {
+      "value_pts": 58.934913635253906,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.018348467350006104,
+       "lo95": -0.7076860964298248,
+       "hi95": 0.7173989713191986,
+       "p_gt0": 0.526,
+       "worst10_mean": -0.6110368967056274,
+       "worlds": 1000
+      }
+     },
+     "s-floor25": {
+      "value_pts": 59.00675582885742,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.09019752144813538,
+       "lo95": -0.6031790375709534,
+       "hi95": 0.7399830222129821,
+       "p_gt0": 0.599,
+       "worst10_mean": -0.5408845543861389,
+       "worlds": 1000
+      }
+     },
+     "s-pcal": {
+      "value_pts": 59.30768966674805,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.39112969040870665,
+       "lo95": -0.22793084383010864,
+       "hi95": 1.0009168088436127,
+       "p_gt0": 0.883,
+       "worst10_mean": -0.1676560640335083,
+       "worlds": 1000
+      }
+     },
+     "s-pcal-floor25": {
+      "value_pts": 59.625022888183594,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.708463704586029,
+       "lo95": 0.04061311483383179,
+       "hi95": 1.3630789518356319,
+       "p_gt0": 0.982,
+       "worst10_mean": 0.09990519285202026,
+       "worlds": 1000
+      }
+     },
+     "s-leaf1": {
+      "value_pts": 59.03303146362305,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.11647436022758484,
+       "lo95": -0.5321991443634033,
+       "hi95": 0.7940459251403809,
+       "p_gt0": 0.63,
+       "worst10_mean": -0.4620516300201416,
+       "worlds": 1000
+      }
+     },
+     "s-leaf3": {
+      "value_pts": 59.09746170043945,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.18090612292289734,
+       "lo95": -0.5275292694568634,
+       "hi95": 0.8479277789592742,
+       "p_gt0": 0.702,
+       "worst10_mean": -0.4366360902786255,
+       "worlds": 1000
+      }
+     },
+     "s-leaf10": {
+      "value_pts": 59.17973327636719,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.26317583322525023,
+       "lo95": -0.44575780630111694,
+       "hi95": 0.95078244805336,
+       "p_gt0": 0.775,
+       "worst10_mean": -0.38322412967681885,
+       "worlds": 1000
+      }
+     },
+     "s-leaf30": {
+      "value_pts": 59.106414794921875,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.18985648155212403,
+       "lo95": -0.5101251602172852,
+       "hi95": 0.9188830852508545,
+       "p_gt0": 0.692,
+       "worst10_mean": -0.44383788108825684,
+       "worlds": 1000
+      }
+     },
+     "s-gd025": {
+      "value_pts": 59.818214416503906,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.901651930809021,
+       "lo95": 0.1543407142162323,
+       "hi95": 1.6795873641967773,
+       "p_gt0": 0.995,
+       "worst10_mean": 0.24340933561325073,
+       "worlds": 1000
+      }
+     },
+     "s-gd05": {
+      "value_pts": 60.09575271606445,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 1.179195189476013,
+       "lo95": -0.12710601091384888,
+       "hi95": 2.6132944226264954,
+       "p_gt0": 0.948,
+       "worst10_mean": -0.03868585824966431,
+       "worlds": 1000
+      }
+     },
+     "s-gd1": {
+      "value_pts": 59.41606903076172,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.49951199293136594,
+       "lo95": -0.9703725576400757,
+       "hi95": 2.0737752318382263,
+       "p_gt0": 0.681,
+       "worst10_mean": -0.8321608901023865,
+       "worlds": 1000
+      }
+     },
+     "s-gd2": {
+      "value_pts": 57.6799201965332,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -1.2366412341594697,
+       "lo95": -2.8508061170578003,
+       "hi95": 0.6185075640678395,
+       "p_gt0": 0.113,
+       "worst10_mean": -2.720796763896942,
+       "worlds": 1000
+      }
+     },
+     "s-ffloor": {
+      "value_pts": 59.755558013916016,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.8389980435371399,
+       "lo95": 0.17033711075782776,
+       "hi95": 1.5200196206569672,
+       "p_gt0": 0.994,
+       "worst10_mean": 0.24451285600662231,
+       "worlds": 1000
+      }
+     },
+     "s-ffloor-floor25": {
+      "value_pts": 59.72176742553711,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.8052071273326874,
+       "lo95": 0.12471318244934082,
+       "hi95": 1.4743888378143304,
+       "p_gt0": 0.991,
+       "worst10_mean": 0.1930719017982483,
+       "worlds": 1000
+      }
+     }
+    },
+    "{\"assign\": \"human\"}": {
+     "x-combo1-dr-chance": {
+      "value_pts": 66.81865692138672,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ]
+     },
+     "s-floor10": {
+      "value_pts": 66.83902740478516,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.020370626449584962,
+       "lo95": -0.3495505452156067,
+       "hi95": 0.4223398864269256,
+       "p_gt0": 0.531,
+       "worst10_mean": -0.311651349067688,
+       "worlds": 1000
+      }
+     },
+     "s-floor15": {
+      "value_pts": 66.5545425415039,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.2641058683395386,
+       "lo95": -0.6487037241458893,
+       "hi95": 0.14441385865211484,
+       "p_gt0": 0.108,
+       "worst10_mean": -0.6206436157226562,
+       "worlds": 1000
+      }
+     },
+     "s-floor20": {
+      "value_pts": 66.6277084350586,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.19094164967536925,
+       "lo95": -0.6284312903881073,
+       "hi95": 0.3084063529968261,
+       "p_gt0": 0.23,
+       "worst10_mean": -0.5967461466789246,
+       "worlds": 1000
+      }
+     },
+     "s-floor25": {
+      "value_pts": 66.60054779052734,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.21810309886932372,
+       "lo95": -0.6488390266895294,
+       "hi95": 0.2641624212265014,
+       "p_gt0": 0.152,
+       "worst10_mean": -0.6125516295433044,
+       "worlds": 1000
+      }
+     },
+     "s-pcal": {
+      "value_pts": 66.55073547363281,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.26791914105415343,
+       "lo95": -0.6104113161563873,
+       "hi95": 0.09060055017471312,
+       "p_gt0": 0.064,
+       "worst10_mean": -0.585028350353241,
+       "worlds": 1000
+      }
+     },
+     "s-pcal-floor25": {
+      "value_pts": 66.42781829833984,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.3908377230167389,
+       "lo95": -0.8115033805370331,
+       "hi95": 0.06931528449058519,
+       "p_gt0": 0.046,
+       "worst10_mean": -0.7584325075149536,
+       "worlds": 1000
+      }
+     },
+     "s-leaf1": {
+      "value_pts": 66.76148986816406,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.05715698003768921,
+       "lo95": -0.4323898255825043,
+       "hi95": 0.31310439109802246,
+       "p_gt0": 0.381,
+       "worst10_mean": -0.3887985944747925,
+       "worlds": 1000
+      }
+     },
+     "s-leaf3": {
+      "value_pts": 66.78255462646484,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.03609561324119568,
+       "lo95": -0.4508018493652344,
+       "hi95": 0.392930507659912,
+       "p_gt0": 0.436,
+       "worst10_mean": -0.4097437262535095,
+       "worlds": 1000
+      }
+     },
+     "s-leaf10": {
+      "value_pts": 66.87614440917969,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.057493627071380615,
+       "lo95": -0.39717867970466614,
+       "hi95": 0.5759884417057036,
+       "p_gt0": 0.589,
+       "worst10_mean": -0.35336506366729736,
+       "worlds": 1000
+      }
+     },
+     "s-leaf30": {
+      "value_pts": 66.48179626464844,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.33685622811317445,
+       "lo95": -0.8092665672302246,
+       "hi95": 0.225001126527786,
+       "p_gt0": 0.104,
+       "worst10_mean": -0.7510061860084534,
+       "worlds": 1000
+      }
+     },
+     "s-gd025": {
+      "value_pts": 67.3091049194336,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.4904576659202576,
+       "lo95": -0.008141100406646706,
+       "hi95": 1.0832616686820982,
+       "p_gt0": 0.97,
+       "worst10_mean": 0.037808120250701904,
+       "worlds": 1000
+      }
+     },
+     "s-gd05": {
+      "value_pts": 67.00004577636719,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.18140273094177245,
+       "lo95": -0.9539487957954407,
+       "hi95": 1.5499433875083923,
+       "p_gt0": 0.565,
+       "worst10_mean": -0.8791723847389221,
+       "worlds": 1000
+      }
+     },
+     "s-gd1": {
+      "value_pts": 64.7136001586914,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -2.1050542831420898,
+       "lo95": -3.3637478947639465,
+       "hi95": -0.558284968137742,
+       "p_gt0": 0.005,
+       "worst10_mean": -3.2967891693115234,
+       "worlds": 1000
+      }
+     },
+     "s-gd2": {
+      "value_pts": 60.55950927734375,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -6.259141254425049,
+       "lo95": -7.735399454832077,
+       "hi95": -4.331602305173874,
+       "p_gt0": 0.0,
+       "worst10_mean": -7.652409732341766,
+       "worlds": 1000
+      }
+     },
+     "s-ffloor": {
+      "value_pts": 66.85894012451172,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.04029107093811035,
+       "lo95": -0.37854835391044617,
+       "hi95": 0.46020880341529824,
+       "p_gt0": 0.579,
+       "worst10_mean": -0.34007757902145386,
+       "worlds": 1000
+      }
+     },
+     "s-ffloor-floor25": {
+      "value_pts": 66.44055938720703,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.378093010187149,
+       "lo95": -0.8446943759918213,
+       "hi95": 0.0824557244777679,
+       "p_gt0": 0.051,
+       "worst10_mean": -0.7965223789215088,
+       "worlds": 1000
+      }
+     }
+    },
+    "{\"assign\": \"best\"}": {
+     "x-combo1-dr-chance": {
+      "value_pts": 66.19994354248047,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ]
+     },
+     "s-floor10": {
+      "value_pts": 66.25757598876953,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.05763740539550781,
+       "lo95": -0.184926837682724,
+       "hi95": 0.330868661403656,
+       "p_gt0": 0.663,
+       "worst10_mean": -0.16756868362426758,
+       "worlds": 1000
+      }
+     },
+     "s-floor15": {
+      "value_pts": 66.00737762451172,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.19256743788719177,
+       "lo95": -0.447709858417511,
+       "hi95": 0.11140346527099608,
+       "p_gt0": 0.09,
+       "worst10_mean": -0.42391490936279297,
+       "worlds": 1000
+      }
+     },
+     "s-floor20": {
+      "value_pts": 66.01847839355469,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.18145869970321654,
+       "lo95": -0.4990418255329132,
+       "hi95": 0.25748208165168757,
+       "p_gt0": 0.178,
+       "worst10_mean": -0.4712042212486267,
+       "worlds": 1000
+      }
+     },
+     "s-floor25": {
+      "value_pts": 66.0282974243164,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.17164846658706664,
+       "lo95": -0.4598572850227356,
+       "hi95": 0.22786244750022877,
+       "p_gt0": 0.158,
+       "worst10_mean": -0.4452109932899475,
+       "worlds": 1000
+      }
+     },
+     "s-pcal": {
+      "value_pts": 65.99994659423828,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.19998796582221984,
+       "lo95": -0.3832629323005676,
+       "hi95": -0.007647275924682699,
+       "p_gt0": 0.021,
+       "worst10_mean": -0.3655431866645813,
+       "worlds": 1000
+      }
+     },
+     "s-pcal-floor25": {
+      "value_pts": 65.99014282226562,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.20979872941970826,
+       "lo95": -0.49091532826423645,
+       "hi95": 0.12248903512954691,
+       "p_gt0": 0.1,
+       "worst10_mean": -0.4594905376434326,
+       "worlds": 1000
+      }
+     },
+     "s-leaf1": {
+      "value_pts": 66.15911102294922,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.04082984924316406,
+       "lo95": -0.2620963752269745,
+       "hi95": 0.21681860089302063,
+       "p_gt0": 0.363,
+       "worst10_mean": -0.24200308322906494,
+       "worlds": 1000
+      }
+     },
+     "s-leaf3": {
+      "value_pts": 66.20909881591797,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.009157735109329223,
+       "lo95": -0.24720609188079834,
+       "hi95": 0.3230386972427367,
+       "p_gt0": 0.501,
+       "worst10_mean": -0.2238791584968567,
+       "worlds": 1000
+      }
+     },
+     "s-leaf10": {
+      "value_pts": 66.25869750976562,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.05875693559646607,
+       "lo95": -0.25766581296920776,
+       "hi95": 0.5176222324371337,
+       "p_gt0": 0.574,
+       "worst10_mean": -0.22484958171844482,
+       "worlds": 1000
+      }
+     },
+     "s-leaf30": {
+      "value_pts": 65.91089630126953,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.2890364646911621,
+       "lo95": -0.6194959580898285,
+       "hi95": 0.1859676837921142,
+       "p_gt0": 0.104,
+       "worst10_mean": -0.5932756662368774,
+       "worlds": 1000
+      }
+     },
+     "s-gd025": {
+      "value_pts": 66.73883056640625,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.5388923943042755,
+       "lo95": 0.1702532172203064,
+       "hi95": 1.0758778452873223,
+       "p_gt0": 0.999,
+       "worst10_mean": 0.1922551393508911,
+       "worlds": 1000
+      }
+     },
+     "s-gd05": {
+      "value_pts": 66.54653930664062,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.34659159779548643,
+       "lo95": -0.7046188414096832,
+       "hi95": 1.7150050401687622,
+       "p_gt0": 0.633,
+       "worst10_mean": -0.6561914682388306,
+       "worlds": 1000
+      }
+     },
+     "s-gd1": {
+      "value_pts": 64.52587127685547,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -1.674066001176834,
+       "lo95": -2.8309185802936554,
+       "hi95": -0.0912678241729738,
+       "p_gt0": 0.015,
+       "worst10_mean": -2.8070396780967712,
+       "worlds": 1000
+      }
+     },
+     "s-gd2": {
+      "value_pts": 60.69403839111328,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -5.505904710292816,
+       "lo95": -6.947724223136902,
+       "hi95": -3.592751026153565,
+       "p_gt0": 0.0,
+       "worst10_mean": -6.849734425544739,
+       "worlds": 1000
+      }
+     },
+     "s-ffloor": {
+      "value_pts": 66.35469055175781,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": 0.15475470423698426,
+       "lo95": -0.15636876225471497,
+       "hi95": 0.4717183113098144,
+       "p_gt0": 0.829,
+       "worst10_mean": -0.1237075924873352,
+       "worlds": 1000
+      }
+     },
+     "s-ffloor-floor25": {
+      "value_pts": 66.03773498535156,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp",
+       "GD",
+       "DraftRec",
+       "Real"
+      ],
+      "minus_sel": {
+       "mean": -0.16221272349357604,
+       "lo95": -0.52469402551651,
+       "hi95": 0.23993477225303642,
+       "p_gt0": 0.197,
+       "worst10_mean": -0.48812055587768555,
+       "worlds": 1000
+      }
+     }
+    }
+   }
   }
  },
  "tune": {
@@ -146388,6 +147304,319 @@
        "hi95": 1.1549788713455198,
        "p_gt0": 1.0,
        "worst10_mean": 0.31601858139038086,
+       "worlds": 1000
+      }
+     }
+    }
+   }
+  },
+  "fc": {
+   "worlds": 1000,
+   "cells": [
+    {
+     "assign": "random"
+    },
+    {
+     "assign": "human"
+    },
+    {
+     "assign": "best"
+    }
+   ],
+   "arms": {
+    "{\"assign\": \"random\"}": {
+     "x-combo1-dr-chance": {
+      "value_pts": 52.881187438964844,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ]
+     },
+     "s-floor10": {
+      "value_pts": 52.97555923461914,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.09437488317489624,
+       "lo95": -0.9704223275184631,
+       "hi95": 1.1812925338745117,
+       "p_gt0": 0.57,
+       "worst10_mean": -0.8463334143161774,
+       "worlds": 1000
+      }
+     },
+     "s-floor15": {
+      "value_pts": 53.08496856689453,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.20378142595291138,
+       "lo95": -0.915755033493042,
+       "hi95": 1.3321144878864286,
+       "p_gt0": 0.636,
+       "worst10_mean": -0.8083797097206116,
+       "worlds": 1000
+      }
+     },
+     "s-floor20": {
+      "value_pts": 52.86193084716797,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": -0.019265413284301758,
+       "lo95": -1.2022940814495087,
+       "hi95": 1.1444896459579468,
+       "p_gt0": 0.485,
+       "worst10_mean": -1.0689135193824768,
+       "worlds": 1000
+      }
+     },
+     "s-floor25": {
+      "value_pts": 52.69416427612305,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": -0.18702211678028108,
+       "lo95": -1.4549389481544495,
+       "hi95": 0.9846243262290955,
+       "p_gt0": 0.389,
+       "worst10_mean": -1.3314704596996307,
+       "worlds": 1000
+      }
+     },
+     "s-pcal": {
+      "value_pts": 53.21052169799805,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.3293305218219757,
+       "lo95": -0.8066003024578094,
+       "hi95": 1.441327482461929,
+       "p_gt0": 0.709,
+       "worst10_mean": -0.6860661506652832,
+       "worlds": 1000
+      }
+     },
+     "s-pcal-floor25": {
+      "value_pts": 53.54921340942383,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.6680250763893127,
+       "lo95": -0.437537282705307,
+       "hi95": 1.72651007771492,
+       "p_gt0": 0.893,
+       "worst10_mean": -0.3246651291847229,
+       "worlds": 1000
+      }
+     }
+    },
+    "{\"assign\": \"human\"}": {
+     "x-combo1-dr-chance": {
+      "value_pts": 61.400611877441406,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ]
+     },
+     "s-floor10": {
+      "value_pts": 61.66317367553711,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.26256595849990844,
+       "lo95": -0.34224241971969604,
+       "hi95": 0.8995521068572997,
+       "p_gt0": 0.799,
+       "worst10_mean": -0.2801838517189026,
+       "worlds": 1000
+      }
+     },
+     "s-floor15": {
+      "value_pts": 61.70083999633789,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.30022541880607606,
+       "lo95": -0.35497725009918213,
+       "hi95": 0.9996475279331207,
+       "p_gt0": 0.809,
+       "worst10_mean": -0.2821728587150574,
+       "worlds": 1000
+      }
+     },
+     "s-floor20": {
+      "value_pts": 61.620079040527344,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.21946653723716736,
+       "lo95": -0.4354003071784973,
+       "hi95": 0.9290395677089689,
+       "p_gt0": 0.747,
+       "worst10_mean": -0.36942923069000244,
+       "worlds": 1000
+      }
+     },
+     "s-floor25": {
+      "value_pts": 61.6047248840332,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.2041067063808441,
+       "lo95": -0.5594936013221741,
+       "hi95": 1.0923288762569427,
+       "p_gt0": 0.674,
+       "worst10_mean": -0.49242132902145386,
+       "worlds": 1000
+      }
+     },
+     "s-pcal": {
+      "value_pts": 61.278160095214844,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": -0.12245564460754395,
+       "lo95": -0.7508537173271179,
+       "hi95": 0.5105841159820556,
+       "p_gt0": 0.362,
+       "worst10_mean": -0.7140257954597473,
+       "worlds": 1000
+      }
+     },
+     "s-pcal-floor25": {
+      "value_pts": 61.38762283325195,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": -0.012995237112045288,
+       "lo95": -0.651780515909195,
+       "hi95": 0.6852190196514127,
+       "p_gt0": 0.47,
+       "worst10_mean": -0.5952059030532837,
+       "worlds": 1000
+      }
+     }
+    },
+    "{\"assign\": \"best\"}": {
+     "x-combo1-dr-chance": {
+      "value_pts": 60.31511306762695,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ]
+     },
+     "s-floor10": {
+      "value_pts": 60.54539489746094,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.23028998374938964,
+       "lo95": -0.1337692141532898,
+       "hi95": 0.607863813638687,
+       "p_gt0": 0.892,
+       "worst10_mean": -0.1002054214477539,
+       "worlds": 1000
+      }
+     },
+     "s-floor15": {
+      "value_pts": 60.534889221191406,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.21977612972259522,
+       "lo95": -0.20002350211143494,
+       "hi95": 0.7293431460857389,
+       "p_gt0": 0.814,
+       "worst10_mean": -0.16561174392700195,
+       "worlds": 1000
+      }
+     },
+     "s-floor20": {
+      "value_pts": 60.4296989440918,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.11459389328956604,
+       "lo95": -0.32036736607551575,
+       "hi95": 0.6229518353939056,
+       "p_gt0": 0.657,
+       "worst10_mean": -0.2832498550415039,
+       "worlds": 1000
+      }
+     },
+     "s-floor25": {
+      "value_pts": 60.37105941772461,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.05594063401222229,
+       "lo95": -0.5148133635520935,
+       "hi95": 0.8021461963653563,
+       "p_gt0": 0.526,
+       "worst10_mean": -0.478487491607666,
+       "worlds": 1000
+      }
+     },
+     "s-pcal": {
+      "value_pts": 60.27155685424805,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": -0.04355078935623169,
+       "lo95": -0.42498067021369934,
+       "hi95": 0.3492644429206848,
+       "p_gt0": 0.424,
+       "worst10_mean": -0.392517626285553,
+       "worlds": 1000
+      }
+     },
+     "s-pcal-floor25": {
+      "value_pts": 60.44618606567383,
+      "opponents": [
+       "pMCTS-cur",
+       "aMCTS-pp"
+      ],
+      "minus_sel": {
+       "mean": 0.13107386231422424,
+       "lo95": -0.3097189962863922,
+       "hi95": 0.6191547214984893,
+       "p_gt0": 0.701,
+       "worst10_mean": -0.25917577743530273,
        "worlds": 1000
       }
      }

@@ -1280,6 +1280,102 @@ Break-even (family d): mean paired difference by full-grade shift delta (points;
 | cql_enr_a2.0 - constrained_mcts | -17.38 [-19.36, -16.14] | 0.00 | -19.33 |
 | iql_td_t0.7_b10.0 - constrained_mcts | -16.78 [-18.61, -15.33] | 0.00 | -18.59 |
 
+### Family f, dials {"assign": "random"} (1000 worlds)
+
+| contrast | mean [95%] | P(X>Y) | worst 10% |
+|---|---|---|---|
+| constrained_mcts_sf - constrained_mcts | -2.19 [-3.94, -0.08] | 0.02 | -3.78 |
+| constrained_mcts_ft - constrained_mcts | +1.57 [+0.13, +3.05] | 0.98 | +0.27 |
+| constrained_mcts_ft_sf - constrained_mcts | +0.71 [-0.97, +2.33] | 0.80 | -0.79 |
+| constrained_mcts_ft_sf - constrained_mcts_ft | -0.86 [-1.77, +0.23] | 0.06 | -1.69 |
+| search_sf - constrained_mcts | -0.83 [-3.08, +1.88] | 0.28 | -2.92 |
+| search_ft_sf - constrained_mcts | +1.46 [-0.18, +3.05] | 0.95 | -0.02 |
+| mcts - constrained_mcts | +1.57 [+0.01, +2.95] | 0.98 | +0.18 |
+| mcts_lcb - mcts_search | -0.23 [-0.80, +0.31] | 0.22 | -0.73 |
+| mcq_t0.5 - constrained_mcts | -12.07 [-15.92, -7.18] | 0.00 | -15.51 |
+| cql_enr_a2.0 - constrained_mcts | -16.04 [-21.75, -7.85] | 0.00 | -21.49 |
+| iql_td_t0.7_b10.0 - constrained_mcts | -15.48 [-21.33, -7.50] | 0.00 | -21.01 |
+
+### Family f, dials {"assign": "human"} (1000 worlds)
+
+| contrast | mean [95%] | P(X>Y) | worst 10% |
+|---|---|---|---|
+| constrained_mcts_sf - constrained_mcts | -2.30 [-4.09, -0.13] | 0.02 | -3.91 |
+| constrained_mcts_ft - constrained_mcts | +1.44 [-0.01, +2.86] | 0.97 | +0.14 |
+| constrained_mcts_ft_sf - constrained_mcts | +0.74 [-0.91, +2.29] | 0.81 | -0.75 |
+| constrained_mcts_ft_sf - constrained_mcts_ft | -0.70 [-1.60, +0.36] | 0.10 | -1.54 |
+| search_sf - constrained_mcts | -0.67 [-2.94, +2.05] | 0.32 | -2.78 |
+| search_ft_sf - constrained_mcts | +1.57 [-0.04, +3.15] | 0.97 | +0.10 |
+| mcts - constrained_mcts | +1.43 [-0.09, +2.79] | 0.96 | +0.06 |
+| mcts_lcb - mcts_search | -0.28 [-0.80, +0.24] | 0.16 | -0.74 |
+| mcq_t0.5 - constrained_mcts | -12.27 [-16.07, -7.27] | 0.00 | -15.71 |
+| cql_enr_a2.0 - constrained_mcts | -15.66 [-21.50, -7.47] | 0.00 | -21.16 |
+| iql_td_t0.7_b10.0 - constrained_mcts | -15.17 [-21.11, -7.15] | 0.00 | -20.76 |
+
+### Family f, dials {"assign": "best"} (1000 worlds)
+
+| contrast | mean [95%] | P(X>Y) | worst 10% |
+|---|---|---|---|
+| constrained_mcts_sf - constrained_mcts | -2.19 [-3.90, -0.05] | 0.02 | -3.75 |
+| constrained_mcts_ft - constrained_mcts | +1.56 [+0.12, +2.96] | 0.98 | +0.26 |
+| constrained_mcts_ft_sf - constrained_mcts | +0.78 [-0.81, +2.32] | 0.81 | -0.71 |
+| constrained_mcts_ft_sf - constrained_mcts_ft | -0.77 [-1.66, +0.25] | 0.07 | -1.59 |
+| search_sf - constrained_mcts | -0.66 [-2.88, +2.08] | 0.33 | -2.72 |
+| search_ft_sf - constrained_mcts | +1.58 [-0.01, +3.10] | 0.97 | +0.11 |
+| mcts - constrained_mcts | +1.38 [-0.18, +2.72] | 0.96 | +0.01 |
+| mcts_lcb - mcts_search | -0.24 [-0.69, +0.25] | 0.16 | -0.67 |
+| mcq_t0.5 - constrained_mcts | -12.58 [-16.30, -7.67] | 0.00 | -15.99 |
+| cql_enr_a2.0 - constrained_mcts | -16.15 [-21.89, -7.86] | 0.00 | -21.59 |
+| iql_td_t0.7_b10.0 - constrained_mcts | -15.57 [-21.44, -7.47] | 0.00 | -21.11 |
+
+### Family fc, dials {"assign": "random"} (1000 worlds)
+
+| contrast | mean [95%] | P(X>Y) | worst 10% |
+|---|---|---|---|
+| constrained_mcts_sf - constrained_mcts | -1.73 [-3.61, +0.33] | 0.06 | -3.43 |
+| constrained_mcts_ft - constrained_mcts | +1.75 [+0.27, +3.18] | 0.99 | +0.42 |
+| constrained_mcts_ft_sf - constrained_mcts | +1.31 [-0.35, +2.99] | 0.94 | -0.19 |
+| constrained_mcts_ft_sf - constrained_mcts_ft | -0.43 [-1.40, +0.65] | 0.21 | -1.31 |
+| search_sf - constrained_mcts | -0.32 [-2.61, +2.27] | 0.41 | -2.46 |
+| search_ft_sf - constrained_mcts | +2.14 [+0.49, +3.72] | 0.99 | +0.66 |
+| mcts - constrained_mcts | +1.29 [-0.23, +2.78] | 0.94 | -0.10 |
+| mcts_lcb - mcts_search | -0.17 [-0.81, +0.42] | 0.30 | -0.72 |
+| mcq_t0.5 - constrained_mcts | -11.74 [-15.63, -6.92] | 0.00 | -15.21 |
+| cql_enr_a2.0 - constrained_mcts | -13.20 [-19.18, -5.26] | 0.00 | -18.80 |
+| iql_td_t0.7_b10.0 - constrained_mcts | -12.98 [-19.09, -5.21] | 0.00 | -18.68 |
+
+### Family fc, dials {"assign": "human"} (1000 worlds)
+
+| contrast | mean [95%] | P(X>Y) | worst 10% |
+|---|---|---|---|
+| constrained_mcts_sf - constrained_mcts | -1.90 [-3.75, +0.29] | 0.04 | -3.56 |
+| constrained_mcts_ft - constrained_mcts | +1.52 [+0.09, +2.93] | 0.98 | +0.24 |
+| constrained_mcts_ft_sf - constrained_mcts | +1.35 [-0.31, +2.88] | 0.94 | -0.12 |
+| constrained_mcts_ft_sf - constrained_mcts_ft | -0.17 [-1.11, +0.83] | 0.38 | -1.05 |
+| search_sf - constrained_mcts | -0.05 [-2.38, +2.60] | 0.47 | -2.20 |
+| search_ft_sf - constrained_mcts | +2.29 [+0.73, +3.88] | 1.00 | +0.85 |
+| mcts - constrained_mcts | +1.15 [-0.34, +2.63] | 0.93 | -0.18 |
+| mcts_lcb - mcts_search | -0.20 [-0.77, +0.33] | 0.24 | -0.70 |
+| mcq_t0.5 - constrained_mcts | -12.13 [-15.97, -7.18] | 0.00 | -15.60 |
+| cql_enr_a2.0 - constrained_mcts | -12.79 [-18.80, -4.77] | 0.00 | -18.42 |
+| iql_td_t0.7_b10.0 - constrained_mcts | -12.61 [-18.70, -4.78] | 0.00 | -18.34 |
+
+### Family fc, dials {"assign": "best"} (1000 worlds)
+
+| contrast | mean [95%] | P(X>Y) | worst 10% |
+|---|---|---|---|
+| constrained_mcts_sf - constrained_mcts | -1.80 [-3.56, +0.31] | 0.05 | -3.42 |
+| constrained_mcts_ft - constrained_mcts | +1.64 [+0.21, +3.03] | 0.99 | +0.36 |
+| constrained_mcts_ft_sf - constrained_mcts | +1.37 [-0.22, +2.90] | 0.94 | -0.10 |
+| constrained_mcts_ft_sf - constrained_mcts_ft | -0.27 [-1.19, +0.72] | 0.30 | -1.11 |
+| search_sf - constrained_mcts | -0.09 [-2.31, +2.54] | 0.46 | -2.20 |
+| search_ft_sf - constrained_mcts | +2.24 [+0.67, +3.75] | 1.00 | +0.79 |
+| mcts - constrained_mcts | +1.16 [-0.33, +2.61] | 0.93 | -0.18 |
+| mcts_lcb - mcts_search | -0.13 [-0.60, +0.34] | 0.30 | -0.56 |
+| mcq_t0.5 - constrained_mcts | -12.35 [-16.04, -7.51] | 0.00 | -15.75 |
+| cql_enr_a2.0 - constrained_mcts | -13.34 [-19.29, -5.22] | 0.00 | -18.92 |
+| iql_td_t0.7_b10.0 - constrained_mcts | -13.15 [-19.26, -5.21] | 0.00 | -18.82 |
+
 Share of teams below min3 25 per strategy: constrained_greedy 65%, constrained_greedy_sf 3%, constrained_greedy_sp 68%, constrained_k 63%, constrained_k_sf 0%, constrained_mcts 67%, constrained_mcts_ft 45%, constrained_mcts_ft_sf 0%, constrained_mcts_sf 1%, constrained_mcts_sf10 62%, constrained_mcts_sf100 10%, constrained_mcts_sf200 17%, constrained_mcts_sf5 67%, constrained_mcts_sf50 7%, constrained_wr 80%, constrained_wr_sf 9%, cql_enr_a2.0 14%, cql_naive_a1.0 17%, cql_td_a0.1 24%, cql_td_a0.5 19%, cql_td_a1.0 16%, cql_td_a2.0 20%, cql_td_a5.0 20%, enriched 67%, gd 18%, gourdeau 80%, gourdeau_disc 18%, iql_td_t0.7_b10.0 22%, iql_td_t0.7_b3.0 21%, iql_td_t0.7_b30.0 27%, iql_td_t0.9_b3.0 19%, iql_td_t0.9_b30.0 30%, k_oof 76%, mcq_real 92%, mcq_t0.5 65%, mcts 78%, mcts_lcb 74%, mcts_lcb2 73%, mcts_search 73%, search_ft_sf 0%, search_sf 1%
 
 ## Rescoring: paper 2
@@ -2339,4 +2435,18 @@ Arm minus the selected design (x-combo1-dr-chance), mean over the common opponen
 | s-floor25 | 51.29 | -0.14 [-0.77, +0.59] | 0.34 | -0.72 |
 | s-pcal | 51.91 | +0.47 [+0.08, +0.84] | 0.99 | +0.12 |
 | s-pcal-floor25 | 52.15 | +0.71 [+0.28, +1.15] | 1.00 | +0.32 |
+
+### Recovery (family a: refit on one world's outcomes, coverage of the truth on probe games)
+
+| world | probes | min3 bin | n | cover 50% | cover 90% | z mean | z SD | post SD (pts) | abs err (pts) |
+|---|---|---|---|---|---|---|---|---|---|
+| 900 | search | 0-1 | 444 | 0.14 | 0.63 | -0.30 | 1.49 | 19.41 | 29.81 |
+| 900 | human | 1-5 | 155 | 0.50 | 0.89 | -0.07 | 0.99 | 4.69 | 3.76 |
+| 900 | search | 1-5 | 2386 | 0.13 | 0.67 | +0.07 | 1.44 | 17.89 | 25.65 |
+| 900 | human | 5-25 | 1916 | 0.49 | 0.90 | -0.04 | 1.00 | 4.10 | 3.29 |
+| 900 | search | 5-25 | 13043 | 0.38 | 0.82 | +0.10 | 1.18 | 7.99 | 10.14 |
+| 900 | human | 25-100 | 7007 | 0.50 | 0.89 | -0.01 | 1.01 | 3.63 | 2.93 |
+| 900 | search | 25-100 | 4021 | 0.43 | 0.82 | -0.01 | 1.17 | 4.65 | 4.87 |
+| 900 | human | 100- | 10909 | 0.51 | 0.90 | -0.02 | 0.99 | 3.04 | 2.39 |
+| 900 | search | 100- | 106 | 0.42 | 0.82 | -0.23 | 1.15 | 3.28 | 3.28 |
 
