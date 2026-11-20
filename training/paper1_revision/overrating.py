@@ -799,10 +799,9 @@ def stage_report():
 BOTTOM_LINE = """## Bottom line
 
 **Rare teams are not overrated more than common ones. The extra overvaluation below the floor is about 0 pts, with
-a 95% upper bound of about 2 pts. Break-even is about 2 pts in both papers.** Paper 1: the floor costs 1.27 pts
-(consensus, corrected) or 1.42 pts (gN) on the common opponent set, with 63% of teams below the floor, so it pays
-only if those teams are overvalued by 2.0–2.3 pts more than their floored replacements. Paper 2: 0.73 pp with 37%
-below the floor, also about 2 pts. Nothing measured on real data reaches that.
+a 95% upper bound of about 2 pts. Break-even is about 2 pts.** The floor costs 1.27 pts (consensus, corrected) or
+1.42 pts (gN) on the common opponent set, with 63% of teams below the floor, so it pays only if those teams are
+overvalued by 2.0–2.3 pts more than their floored replacements. Nothing measured on real data reaches that.
 
 - **Slope (NODRIFT, agent leaf).** The model's non-additive claims are about 10% too large everywhere. Slope below
   the floor: 0.92 ± 0.04. In support: 0.87 ± 0.02. The difference is +0.05 ± 0.05.
@@ -852,8 +851,7 @@ at 1–4 (1,832 human team rows) and absent at 0, where the search puts none of 
 - gN is 0.010 nats better than the agent on NODRIFT (log-loss 0.668 against 0.678). Its statistics may carry outcome
   information for this period, and its v2 structural coefficients may have been fit on NODRIFT-era games. Read its
   slope for direction only.
-- The implied overvaluation for search teams extrapolates the human-data fit to the search's teams.
-- The paper-2 personal term is not measured here."""
+- The implied overvaluation for search teams extrapolates the human-data fit to the search's teams."""
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 """
-Stale vintages of the paper-1 drafter (paper 2 drift question, player-aware
-drafter tournament). A vintage rebuilds the whole paper-1 pipeline (stats,
+Stale vintages of the paper-1 drafter (temporal backtests and drift studies).
+A vintage rebuilds the whole paper-1 pipeline (stats,
 features, enriched WP, MCTS config F) from ONLY the paper-1 train/val games
 whose build is at or before a cutoff build; the test split is unchanged.
 
