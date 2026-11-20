@@ -19,9 +19,21 @@ import { applySelection, lineups, positionProblems, unavailableAt, CHO, GALL, ty
 const C_PUCT = 2.0
 // Tunables: at least MIN_SIMS simulations are always run; after that the
 // search stops when TIME_BUDGET_MS is exceeded or MAX_SIMS is reached.
-const MIN_SIMS = 50
-const MAX_SIMS = 200
-const TIME_BUDGET_MS = 1500
+const MIN_SIMS = 80
+const MAX_SIMS = 600
+const TIME_BUDGET_MS = 3000
+
+// Breadth (Max, 2026-11-19: "search is too narrow"). The policy prior is near-deterministic,
+// so on its own the search spends almost every simulation on a handful of heroes.
+//  - ROOT_UNIFORM_MIX: share of the root prior spread evenly over the legal actions.
+//  - ROOT_TOP_PRIOR: the policy's top heroes at the root, each evaluated once before the
+//    PUCT loop, together with options.rootCandidates (stats picks, players' best heroes).
+//  - PROPOSAL_MIX: share of each decision node's prior taken from options.proposal (the
+//    players' strong heroes), so proposals know who is playing (paper 2: search over a
+//    player-aware value still loses to greedy unless its proposals are player-aware too).
+const ROOT_UNIFORM_MIX = 0.2
+const ROOT_TOP_PRIOR = 12
+const PROPOSAL_MIX = 0.4
 
 function softmaxMasked(logits: Float32Array, mask: Float32Array): Float32Array {
   const result = new Float32Array(logits.length)
@@ -198,6 +210,18 @@ export async function runMCTSSearch(
     rng?: () => number; maxSims?: number; minSims?: number; timeBudgetMs?: number
     /** Test hook: called with every position about to be evaluated and its legality problems */
     onEvaluate?: (sel: Selections, problems: string[]) => void
+    /**
+     * Player-aware leaf: maps the population P(team0 wins) of a position to the value with
+     * the players' skill on their heroes. Applied to every leaf value.
+     */
+    adjustLeaf?: (team0: string[], team1: string[], p0: number) => number
+    /**
+     * Player-aware proposals: a distribution over heroes (encoding order) for our decision at
+     * `step`, mixed into the policy prior with weight PROPOSAL_MIX. Null = no change.
+     */
+    proposal?: (team0: string[], team1: string[], step: number, mask: Float32Array) => Float32Array | null
+    /** Heroes always evaluated at the root (if legal), in addition to the policy's top ones */
+    rootCandidates?: string[]
   },
 ): Promise<{ recommendations: MCTSRecommendation[]; valueEstimate: number; sims: number; illegal: number }> {
 
@@ -259,33 +283,67 @@ export async function runMCTSSearch(
     }
   }
 
+  const adjustLeaf = options?.adjustLeaf
+  /** Our-perspective value of a position from a population P(team0 wins) */
+  const ours = (A: string[], B: string[], p0: number) => {
+    const q0 = adjustLeaf ? adjustLeaf(A, B, p0) : p0
+    return ourTeam === 0 ? q0 : 1 - q0
+  }
   const evaluate = async (node: MCTSNode, policyValue: () => Promise<number>): Promise<number> => {
     assertLegal(node)
     const { A, B } = lineups(node.sel)
     if (node.kind === 'terminal') {
-      if (evaluateTerminal) {
-        const wp0 = await evaluateTerminal(A, B)
-        return ourTeam === 0 ? wp0 : 1 - wp0
-      }
-      return policyValue()
+      if (evaluateTerminal) return ours(A, B, await evaluateTerminal(A, B))
+      const v = await policyValue()
+      return ours(A, B, ourTeam === 0 ? v : 1 - v)
     }
-    if (evaluatePartial) {
-      const p = await evaluatePartial(A, B, Math.max(0, Math.min(15, node.step - 1)))
-      return ourTeam === 0 ? p : 1 - p
+    if (evaluatePartial) return ours(A, B, await evaluatePartial(A, B, Math.max(0, Math.min(15, node.step - 1))))
+    const v = await policyValue()
+    return ours(A, B, ourTeam === 0 ? v : 1 - v)
+  }
+
+  /** Mix `extra` (a distribution over legal actions) into `priors` with weight w. */
+  const mixInto = (priors: Float32Array, extra: Float32Array, mask: Float32Array, w: number) => {
+    let tot = 0
+    for (let i = 0; i < extra.length; i++) if (mask[i] > 0 && extra[i] > 0) tot += extra[i]
+    if (!(tot > 0)) return
+    for (let i = 0; i < priors.length; i++) {
+      priors[i] = mask[i] > 0 ? (1 - w) * priors[i] + (w * Math.max(0, extra[i])) / tot : 0
     }
-    return policyValue()
   }
 
   const expandDecision = async (node: MCTSNode): Promise<number> => {
     const { state, mask } = encodeAt(node)
     const { priors, value } = await runPolicy(state, mask)
+    if (options?.proposal) {
+      const { A, B } = lineups(node.sel)
+      const extra = options.proposal(A, B, node.step, mask)
+      if (extra) mixInto(priors, extra, mask, PROPOSAL_MIX)
+    }
+    if (node === root) {
+      const uniform = new Float32Array(mask.length)
+      for (let i = 0; i < mask.length; i++) uniform[i] = mask[i] > 0 ? 1 : 0
+      mixInto(priors, uniform, mask, ROOT_UNIFORM_MIX)
+    }
     node.probs = priors
     return value
   }
 
-  const root = makeNode(rootSel, draftState.step, -1, null, ourTeam)
+  const root: MCTSNode = makeNode(rootSel, draftState.step, -1, null, ourTeam)
   if (root.kind !== 'decision') throw new Error('search root must be one of our decisions')
   const rootValue = await expandDecision(root)
+
+  // Heroes evaluated once each before the PUCT loop: the policy's top ROOT_TOP_PRIOR, the
+  // caller's candidates, and the proposal's top heroes (all legal at the root).
+  const forced: number[] = []
+  {
+    const probs = root.probs!
+    const seen = new Set<number>()
+    const add = (a: number) => { if (a >= 0 && probs[a] > 0 && !seen.has(a)) { seen.add(a); forced.push(a) } }
+    const byPrior = Array.from(probs.keys()).filter(a => probs[a] > 0).sort((a, b) => probs[b] - probs[a])
+    byPrior.slice(0, ROOT_TOP_PRIOR).forEach(add)
+    for (const h of options?.rootCandidates ?? []) add(HERO_TO_IDX[h] ?? -1)
+  }
 
   const childFor = (node: MCTSNode, a: number): MCTSNode => {
     let child = node.children.get(a)
@@ -307,6 +365,10 @@ export async function runMCTSSearch(
     let node = root
     const path: MCTSNode[] = [root]
     let value: number
+    if (sim < forced.length) {
+      node = childFor(root, forced[sim])
+      path.push(node)
+    }
     for (;;) {
       if (node.kind === 'terminal') {
         value = await evaluate(node, async () => (await runPolicy(encodeAt(node).state, encodeAt(node).mask)).value)

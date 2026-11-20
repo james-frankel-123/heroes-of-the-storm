@@ -42,7 +42,8 @@ export interface Assignment {
   who: Record<string, string>
 }
 
-function playerValue(p: PersonalPlayer, hero: string): number {
+/** One player's personal logit on a hero: b2 s(p, h) plus the off-role term. */
+export function playerValue(p: PersonalPlayer, hero: string): number {
   return p.b2 * (p.s[hero] ?? 0) + (p.offRole[hero] ? p.b3 : 0)
 }
 
@@ -140,4 +141,68 @@ export function banGain(
     }
   }
   return { gain, who }
+}
+
+/** Temperature (logit units) of the player-aware proposal over heroes */
+const PROPOSAL_TAU = 0.1
+
+/**
+ * Hooks that make the draft search player-aware (mcts-search.ts options):
+ *  - adjustLeaf: population P(team0 wins) -> value with both teams' matched players on their
+ *    best assignment (same as personalValue);
+ *  - proposal: for our pick, the heroes the players we have not yet placed are strong on; for
+ *    our ban, the heroes the enemy's unplaced players are strong on (weights exp(v / tau) - 1
+ *    over heroes with positive personal value);
+ *  - topHeroes: the best `k` heroes of each unplaced player, for the root candidate list.
+ * `heroes` is the search's hero order; `isBan(step)` tells bans from picks.
+ */
+export function searchHooks(
+  ourPlayers: PersonalPlayer[],
+  theirPlayers: PersonalPlayer[],
+  c: DraftCoefs,
+  ourIs0: boolean,
+  heroes: readonly string[],
+  isBan: (step: number) => boolean,
+  fixed: Record<string, string> = {},
+  fixedTheirs: Record<string, string> = {},
+) {
+  const split = (A: string[], B: string[]) => (ourIs0 ? { ours: A, theirs: B } : { ours: B, theirs: A })
+  const unplaced = (picked: string[], players: PersonalPlayer[], pins: Record<string, string>) => {
+    const used = new Set(Object.values(bestAssignment(picked, players, c, pins).who))
+    return players.filter(p => !used.has(p.id))
+  }
+  const poolFor = (A: string[], B: string[], step: number) => {
+    const { ours, theirs } = split(A, B)
+    return isBan(step) ? unplaced(theirs, theirPlayers, fixedTheirs) : unplaced(ours, ourPlayers, fixed)
+  }
+  const best = (pool: PersonalPlayer[], hero: string) => Math.max(...pool.map(p => playerValue(p, hero)))
+  return {
+    adjustLeaf(A: string[], B: string[], p0: number): number {
+      const { ours, theirs } = split(A, B)
+      const v = personalValue(ourIs0 ? p0 : 1 - p0, ours, theirs, ourPlayers, theirPlayers, c, fixed, fixedTheirs).value
+      return ourIs0 ? v : 1 - v
+    },
+    proposal(A: string[], B: string[], step: number, mask: Float32Array): Float32Array | null {
+      const pool = poolFor(A, B, step)
+      if (pool.length === 0) return null
+      const out = new Float32Array(heroes.length)
+      let any = false
+      for (let i = 0; i < heroes.length; i++) {
+        if (!(mask[i] > 0)) continue
+        const v = best(pool, heroes[i])
+        if (v > 0) { out[i] = Math.exp(v / PROPOSAL_TAU) - 1; any = true }
+      }
+      return any ? out : null
+    },
+    topHeroes(A: string[], B: string[], step: number, available: (hero: string) => boolean, k = 4): string[] {
+      const out: string[] = []
+      for (const p of poolFor(A, B, step)) {
+        heroes.filter(h => available(h) && playerValue(p, h) > 0)
+          .sort((a, b) => playerValue(p, b) - playerValue(p, a))
+          .slice(0, k)
+          .forEach(h => { if (!out.includes(h)) out.push(h) })
+      }
+      return out
+    },
+  }
 }

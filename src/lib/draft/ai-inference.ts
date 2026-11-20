@@ -326,6 +326,7 @@ async function mctsSearchMainThread(
   takenHeroes: Set<string>,
   ourTeam: number,
   draftData?: DraftData,
+  searchOptions?: SearchOptions,
 ): Promise<{ recommendations: import('./mcts-search').MCTSRecommendation[]; valueEstimate: number; sims: number }> {
   if (!policySession || !gdSession || !ort) {
     throw new Error('AI models not loaded')
@@ -349,8 +350,12 @@ async function mctsSearchMainThread(
     step: draftState.step,
     ourTeam,
     stepType: draftState.stepType,
-  }, takenHeroes, withInferLock, evaluateTerminal, evaluatePartial)
+  }, takenHeroes, withInferLock, evaluateTerminal, evaluatePartial, searchOptions)
 }
+
+/** Player-aware leaf, proposals and extra root candidates for the search (see mcts-search.ts). */
+export type SearchOptions = Pick<NonNullable<Parameters<typeof import('./mcts-search').runMCTSSearch>[8]>,
+  'adjustLeaf' | 'proposal' | 'rootCandidates'>
 
 /**
  * Get AI draft recommendations for the current state.
@@ -370,6 +375,7 @@ export async function getAIRecommendations(
   playerData?: PlayerMAWPData,
   topK = 15,
   draftData?: DraftData,
+  searchOptions?: SearchOptions,
 ): Promise<{ recommendations: AIRecommendation[]; valueEstimate: number; sims?: number }> {
   if (!policySession || !ort) {
     throw new Error('AI models not loaded. Call loadAIModels() first.')
@@ -381,7 +387,7 @@ export async function getAIRecommendations(
 
   // Run MCTS search on main thread
   try {
-    const mctsResult = await mctsSearchMainThread(draftState, takenHeroes, ourTeamNum, draftData)
+    const mctsResult = await mctsSearchMainThread(draftState, takenHeroes, ourTeamNum, draftData, searchOptions)
     const ranked: AIRecommendation[] = mctsResult.recommendations.map(r => {
       const { adjustment, player } = isBanStep
         ? { adjustment: 0, player: null }

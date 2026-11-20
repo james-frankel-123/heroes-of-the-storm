@@ -12,7 +12,8 @@ import { SearchRecommendationPanel, type OpponentPredictionRow, type OurTurnRow 
 import { loadAIModels, getGenericDraftPredictions, getAIRecommendations, evaluatePosition } from '@/lib/draft/ai-inference'
 import { PlayerSlots } from '@/components/draft/player-slots'
 import { InGamePlayers, type PersonalDraftState } from '@/components/draft/in-game-players'
-import { banGain, personalValue } from '@/lib/personal/draft-personal'
+import { banGain, personalValue, searchHooks } from '@/lib/personal/draft-personal'
+import { HEROES } from '@/lib/draft/encoding'
 import { assignOptionsFor, assignPlayer, displayLabels, pinsFor } from '@/lib/draft/assignments'
 import { generateRecommendations } from '@/lib/draft/engine'
 import { applySelection, isLegal, lineups, takenHeroes, unavailableAt } from '@/lib/draft/rules'
@@ -200,6 +201,8 @@ export function DraftClient({
   // Joint estimate from the latest search (root value, %, our perspective).
   // Header and suggestion rows share this scale by construction.
   const [searchProjNow, setSearchProjNow] = useState<number | null>(null)
+  // Whether the latest search already had the matched players' skill in its values
+  const [searchWasPersonal, setSearchWasPersonal] = useState(false)
   // Current-position estimate (our perspective, %), evaluated on every committed action and
   // at completion, separately from the search. `ours`/`theirs` are the picks it was computed
   // on (personal terms use the same picks); `pending` while a newer position is evaluating.
@@ -231,6 +234,24 @@ export function DraftClient({
     }
     return aiState
   }, [state.currentStep, state.selections, state.map, state.tier, state.ourTeam])
+
+  // In-game mode: matched players' skill, inside the search (leaf and proposals) and on the rows
+  // (docs/personalization-site-design.md, "Draft page"). Unmatched players count as average.
+  const [personal, setPersonal] = useState<PersonalDraftState | null>(null)
+
+  // Picks pinned to a player (by id) from the board's assignments, on both teams: a matched
+  // in-game player directly, or a registered party tag via the party member's BattleTag.
+  const { personalFixed, personalFixedTheirs } = useMemo(() => {
+    if (!personal) return { personalFixed: {}, personalFixedTheirs: {} }
+    const picks = (ours: boolean) =>
+      DRAFT_SEQUENCE.flatMap((st, i) =>
+        st.type === 'pick' && state.selections[i] && (st.team === state.ourTeam) === ours ? [{ hero: state.selections[i], stepIndex: i }] : [],
+      )
+    return {
+      personalFixed: pinsFor(picks(true), state.playerAssignments, personal.ours),
+      personalFixedTheirs: pinsFor(picks(false), state.playerAssignments, personal.theirs),
+    }
+  }, [personal, state.selections, state.playerAssignments, state.ourTeam])
 
   // Run expectimax on our turns, GD predictions on opponent turns
   useEffect(() => {
@@ -314,8 +335,21 @@ export function DraftClient({
         const playerData = draftData.playerStats && availableBattletags.length > 0
           ? { playerStats: draftData.playerStats, availableBattletags }
           : undefined
+        // Player-aware search (leaf and proposals) when players are matched, and a wide root:
+        // the stats picks and each unplaced player's best heroes are always evaluated
+        const ourIs0 = state.ourTeam === 'A'
+        const hooks = personal
+          ? searchHooks(personal.ours, personal.theirs, personal.coefs, ourIs0, HEROES,
+              st => DRAFT_SEQUENCE[st]?.type === 'ban', personalFixed, personalFixedTheirs)
+          : null
+        const { A: rootA, B: rootB } = lineups(state.selections)
+        const rootCandidates = [
+          ...recommendations.filter(r => !unavailableHeroes.has(r.hero)).slice(0, 8).map(r => r.hero),
+          ...(hooks ? hooks.topHeroes(rootA, rootB, state.currentStep, h => !unavailableHeroes.has(h)) : []),
+        ]
         const { recommendations: mctsRecs, sims, valueEstimate } = await getAIRecommendations(
-          buildAIState(), unavailableHeroes, step.team, playerData, 10, draftData,
+          buildAIState(), unavailableHeroes, step.team, playerData, 30, draftData,
+          { rootCandidates, ...(hooks ? { adjustLeaf: hooks.adjustLeaf, proposal: hooks.proposal } : {}) },
         )
         if (cancelled) return
 
@@ -344,11 +378,12 @@ export function DraftClient({
             .filter(r => !mctsHeroes.has(r.hero) && !unavailableHeroes.has(r.hero))
             .map(r => toRow(r.hero, true)),
         ]
-          .slice(0, 10)
           .sort(searchedFirst)
+          .slice(0, 12)
           .map(r => (r.hero === aiTopHero ? { ...r, isAiTop: true } : r))
 
         if (!cancelled) {
+          setSearchWasPersonal(hooks !== null)
           setSearchResults(rows)
           setSearchInfo(`${sims ?? 0} sims`)
           setSearching(false)
@@ -364,7 +399,7 @@ export function DraftClient({
     })()
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftData, state.currentStep, state.selections, state.phase, buildAIState])
+  }, [draftData, state.currentStep, state.selections, state.phase, buildAIState, personal, personalFixed, personalFixedTheirs])
 
   // Pick arrays + our-team player assignments (pick index → battletag)
   const pickArrays = useMemo(() => {
@@ -414,24 +449,6 @@ export function DraftClient({
       }
     })()
   }, [draftData, pickArrays, state.phase, state.map, state.tier, state.ourTeam, state.currentStep])
-
-  // In-game mode: matched players' skill on top of the search's values
-  // (docs/personalization-site-design.md, "Draft page"). Unmatched players count as average.
-  const [personal, setPersonal] = useState<PersonalDraftState | null>(null)
-
-  // Picks pinned to a player (by id) from the board's assignments, on both teams: a matched
-  // in-game player directly, or a registered party tag via the party member's BattleTag.
-  const { personalFixed, personalFixedTheirs } = useMemo(() => {
-    if (!personal) return { personalFixed: {}, personalFixedTheirs: {} }
-    const picks = (ours: boolean) =>
-      DRAFT_SEQUENCE.flatMap((st, i) =>
-        st.type === 'pick' && state.selections[i] && (st.team === state.ourTeam) === ours ? [{ hero: state.selections[i], stepIndex: i }] : [],
-      )
-    return {
-      personalFixed: pinsFor(picks(true), state.playerAssignments, personal.ours),
-      personalFixedTheirs: pinsFor(picks(false), state.playerAssignments, personal.theirs),
-    }
-  }, [personal, state.selections, state.playerAssignments, state.ourTeam])
 
   const personalNowPct = useMemo(() => {
     if (!personal || !position) return null
@@ -533,7 +550,8 @@ export function DraftClient({
     const heroes = Object.keys(modelHeroes)
     const available = heroes.filter(h => !unavailableHeroes.has(h))
     const now = personalValue(searchProjNow / 100, ourPicks, enemyPicks, personal.ours, personal.theirs, c, fixed, personalFixedTheirs)
-    const basePct = now.value * 100
+    // A player-aware search's values already include the players; otherwise add them here
+    const basePct = searchWasPersonal ? searchProjNow : now.value * 100
     const isBan = step.type === 'ban'
     const pp = (x: number) => `${x >= 0 ? '+' : ''}${(100 * x).toFixed(1)} pp`
     const logit = (p: number) => Math.log(p / (1 - p))
@@ -544,11 +562,13 @@ export function DraftClient({
       if (isBan) {
         const g = banGain(hero, available, personal.theirs, enemyAssigned, c)
         const qq = Math.min(Math.max(q, 1e-4), 1 - 1e-4)
-        winPct = 100 / (1 + Math.exp(-(c.b0 + c.b1 * logit(qq) + now.ours.value - now.theirs.value + g.gain)))
+        winPct = searchWasPersonal
+          ? 100 / (1 + Math.exp(-(logit(qq) + g.gain)))
+          : 100 / (1 + Math.exp(-(c.b0 + c.b1 * logit(qq) + now.ours.value - now.theirs.value + g.gain)))
         if (g.who && g.gain > 0.01) personalNote = `Takes away ${nameOf(g.who)}'s best option`
       } else {
         const v = personalValue(q, lineups(applySelection(state.selections, state.currentStep, hero).selections)[state.ourTeam], enemyPicks, personal.ours, personal.theirs, c, fixed, personalFixedTheirs)
-        winPct = v.value * 100
+        winPct = searchWasPersonal ? q * 100 : v.value * 100
         const who = v.ours.who[hero]
         const p = personal.ours.find(x => x.id === who)
         if (p) personalNote = `${nameOf(p.id)}: ${pp(p.s[hero] ?? 0)} on ${hero}${p.offRole[hero] ? ' (off-role)' : ''}`
@@ -572,10 +592,12 @@ export function DraftClient({
     const n = personal.ours.length + personal.theirs.length
     return {
       rows,
-      summary: `Rows include player skill for ${n} matched player${n === 1 ? '' : 's'} (search line ${basePct.toFixed(1)}%, ${searchProjNow.toFixed(1)}% without player skill). Rows from a player's own pool were not searched.`,
+      summary: searchWasPersonal
+        ? `The search includes player skill for ${n} matched player${n === 1 ? '' : 's'}: it values each hero for the player who would play it and looks at each player's best heroes.`
+        : `Rows include player skill for ${n} matched player${n === 1 ? '' : 's'} (search line ${basePct.toFixed(1)}%, ${searchProjNow.toFixed(1)}% without player skill). Rows from a player's own pool were not searched.`,
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personal, personalFixed, personalFixedTheirs, searchResults, searchProjNow, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
+  }, [personal, personalFixed, personalFixedTheirs, searchResults, searchProjNow, searchWasPersonal, pickArrays, unavailableHeroes, state.ourTeam, state.currentStep])
 
   // AMA context (updates live with every pick/ban, and keeps the finished draft at completion)
   const amaContext = useMemo(() => {
