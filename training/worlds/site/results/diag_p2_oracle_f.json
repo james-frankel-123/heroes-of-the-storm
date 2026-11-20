@@ -1,0 +1,12 @@
+{
+ "fam": "f",
+ "worlds": 10,
+ "n": 24000,
+ "b2": 1.2370081850227932,
+ "b3": -0.03517838487506812,
+ "b2_only_s": 1.3541306381843554,
+ "drafter_b2": 3.665831779080469,
+ "drafter_b3": -0.027076876325214588,
+ "r2_uncentred": 0.36941410641478833,
+ "note": "OLS of the true best-assignment player term (logit) on the drafter's dS, dO"
+}
