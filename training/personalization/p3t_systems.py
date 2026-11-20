@@ -194,6 +194,15 @@ def matched_systems():
 SYSTEMS.update(matched_systems())
 
 
+def split_systems():
+    """Root-held control with greedy's budget or greedy's proposals swapped in (p3t_split.py)."""
+    import p3t_split as PS
+    return PS.split_systems()
+
+
+SYSTEMS.update(split_systems())
+
+
 # ------------------------------------------------------------------ vintages
 
 class Vintage:
@@ -518,6 +527,9 @@ def act_mcts_x(vint, ctx, x, device=0):
         kmod = M.load_module("explore_kernel" if use_ex else "pvnet_kernel",
                              os.path.join(HERE, "cuda_explore" if use_ex else "cuda_pvnet"))
     sup_kw = {} if sup is None else {"sup": sup, "c3": SP.c3_flat()}
+    if x.get("gd_bans") and not IS_PICK[k]:
+        # split controls (p3t_split.py): greedy's bans (the imitation drafter's argmax under the pool masks)
+        return act_gd(vint, ctx)
     if x.get("depth1"):
         # compute-matched one-step control (p3t_matched.py): the support kernel with the v2 search held to the
         # root (slot_cap 1: PUCT over the same root priors, every simulation a rollout plus the same leaf value)
@@ -636,6 +648,24 @@ def act_mcts_x(vint, ctx, x, device=0):
             if not IS_PICK[j] and DRAFT_TEAM[j] == t:
                 cfg[:, 24 + j] = r
         cfg[:, 56] = 2
+    gcand = None
+    if x.get("greedy_cand") and IS_PICK[k]:
+        # split controls (p3t_split.py): the root sees only player-aware greedy's candidates (p3_dr_drafter._decide:
+        # the free heroes of the team's pools, capped to the union of the top 15 by the imitation drafter and the
+        # top 15 by the team's best personal term) under a flat prior: alpha 0, bias 0 on them, -30 elsewhere
+        Xg = features(ctx["acts"], k, ctx["map"], ctx["tier"], t)
+        free = legal_mask(ctx["acts"], k, ctx["team_pool"])
+        lpg = np.log(np.maximum(gd_probs(vint, Xg[:, :289], free), 1e-30))
+        gcand = np.zeros((B, H), bool)
+        for i in range(B):
+            c = np.flatnonzero(free[i])
+            if len(c) > 30:
+                sb = ctx["s"][i, 5 * t:5 * t + 5].max(0)
+                c = np.union1d(c[np.argsort(-lpg[i, c], kind="stable")[:15]], c[np.argsort(-sb[c], kind="stable")[:15]])
+            gcand[i, c] = True
+        bias[:, 5 * t:5 * t + 5] = np.where(gcand[:, None, :], 0.0, -30.0).astype(np.float32)
+        coefs[5] = 0.0
+        cfg[:, 56] = 1
     if "stranger" in ctx:
         # party mode: a stranger holder's ban is a chance node on its own row (p3t_party.plan_rows),
         # not the ban-bias row that the denial-ban options point our ban steps at
@@ -681,6 +711,10 @@ def act_mcts_x(vint, ctx, x, device=0):
             if sup is not None and sup[0] > 0:
                 # support floor at the root choice too (with paper 1's structural mask; graded as in the kernel)
                 sm = SP.graded_floor(ctx["acts"][ii], k, sm, float(sup[0]))
+            if gcand is not None:
+                # greedy's candidates at the root choice too, unless none of them passes the floor and mask
+                gm = sm & gcand[ii]
+                sm = np.where(gm.any(1, keepdims=True), gm, sm)
             out[ii] = np.where(sm, pol + 1e-6 * q, -1e30).argmax(1)
             cr = croot[ii]
             # root value: the chosen action's q (decision root); visit-weighted mean (chance root)
