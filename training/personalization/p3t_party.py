@@ -80,7 +80,9 @@ TURN = {k: j for j, k in enumerate(PICK_STEPS)}
 TEAM_TURNS = {t: [j for j in range(10) if PICK_TEAM[j] == t] for t in (0, 1)}   # global turn indices
 H = 90
 ARMS_OF = {"effect": ("aware", "blind", "generic", "real"), "grid": ("aware", "generic"), "lock": ("lock",)}
-DESIGN = "x-combo1-dr-chance"
+DESIGN = os.environ.get("P3T_PARTY_DESIGN", "x-combo1-dr-chance")
+# a non-default design (e.g. the promoted s-pcal-floor25, 2026-11-20) writes to its own cache/results suffix
+DTAG = "" if DESIGN == "x-combo1-dr-chance" else "_" + DESIGN
 # lock-or-wait rule, FROZEN 2026-10-23 (chosen on the 300 tournament lobbies, which the party set
 # excludes): mode lookall, LOOK_K 4, value "best". "lookall" (default): lock now iff the chosen hero's value now >= the best later
 # team turn's value, each the mean over LOOK_K sampled futures of the chosen hero's value at that turn
@@ -92,8 +94,8 @@ LOOK_K = int(os.environ.get("P3T_LOOK_K", "4"))
 LOCK_VALUE = os.environ.get("P3T_LOCK_VALUE", "mean" if LOCK_MODE == "chance" else "best")
 BLIND = "x-blind-s400"
 LS = os.environ.get("P3T_LOBBYSET", "")
-OUT = os.path.join(TD.OUT, "party" + (f"_{LS}" if LS else ""))
-RES_NAME = "party" + (f"_{LS}" if LS else "")
+OUT = os.path.join(TD.OUT, "party" + (f"_{LS}" if LS else "") + DTAG)
+RES_NAME = "party" + (f"_{LS}" if LS else "") + DTAG
 # the party study's own lobby set (P3T_LOBBYSET=party), sized for slot-level CIs with both team
 # sides pooled (coordinator, 2026-10-22): up to 1,800 lobbies, the tournament's strict judge rule only
 N_PARTY = int(os.environ.get("P3T_N_PARTY", "1800"))   # target lobbies; fewer if fewer meet the rule (all used); smoke runs set fewer
