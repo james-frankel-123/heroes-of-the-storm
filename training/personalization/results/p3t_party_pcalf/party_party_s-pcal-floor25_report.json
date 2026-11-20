@@ -1,0 +1,331 @@
+{
+ "capture": {
+  "1": {
+   "J": [
+    0.195,
+    0.163,
+    0.23
+   ],
+   "J_cal": [
+    0.198,
+    0.168,
+    0.231
+   ],
+   "CONS": [
+    0.221,
+    0.188,
+    0.254
+   ]
+  },
+  "2": {
+   "J": [
+    0.364,
+    0.322,
+    0.407
+   ],
+   "J_cal": [
+    0.37,
+    0.33,
+    0.412
+   ],
+   "CONS": [
+    0.423,
+    0.381,
+    0.464
+   ]
+  },
+  "3": {
+   "J": [
+    0.623,
+    0.573,
+    0.677
+   ],
+   "J_cal": [
+    0.627,
+    0.579,
+    0.679
+   ],
+   "CONS": [
+    0.651,
+    0.605,
+    0.698
+   ]
+  },
+  "4": {
+   "J": [
+    0.819,
+    0.765,
+    0.879
+   ],
+   "J_cal": [
+    0.823,
+    0.77,
+    0.879
+   ],
+   "CONS": [
+    0.843,
+    0.795,
+    0.891
+   ]
+  },
+  "5": {
+   "J": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "J_cal": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "CONS": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  }
+ },
+ "positions_solo": {
+  "grid_m1_0_t0_ban": {
+   "draft_step": 4,
+   "opponent_picks_before": 0,
+   "best_hero_free_at_turn_generic": 0.923,
+   "skill_of_pick_aware": 1.97,
+   "skill_of_pick_generic": 0.86,
+   "pick_is_his_best_hero_aware": 0.266,
+   "pick_is_his_best_hero_generic": 0.17,
+   "counter_vs_later_opponents_aware": -0.049,
+   "counter_vs_later_opponents_generic": 0.032,
+   "holds_bans": true
+  },
+  "grid_m1_0_t0_noban": {
+   "draft_step": 4,
+   "opponent_picks_before": 0,
+   "best_hero_free_at_turn_generic": 0.92,
+   "skill_of_pick_aware": 0.22,
+   "skill_of_pick_generic": -0.55,
+   "pick_is_his_best_hero_aware": 0.212,
+   "pick_is_his_best_hero_generic": 0.168,
+   "counter_vs_later_opponents_aware": -0.07,
+   "counter_vs_later_opponents_generic": -0.009,
+   "holds_bans": false
+  },
+  "grid_m1_1_t0_ban": {
+   "draft_step": 7,
+   "opponent_picks_before": 2,
+   "best_hero_free_at_turn_generic": 0.887,
+   "skill_of_pick_aware": 2.07,
+   "skill_of_pick_generic": 0.71,
+   "pick_is_his_best_hero_aware": 0.271,
+   "pick_is_his_best_hero_generic": 0.164,
+   "counter_vs_later_opponents_aware": -0.107,
+   "counter_vs_later_opponents_generic": 0.012,
+   "holds_bans": true
+  },
+  "grid_m1_1_t0_noban": {
+   "draft_step": 7,
+   "opponent_picks_before": 2,
+   "best_hero_free_at_turn_generic": 0.883,
+   "skill_of_pick_aware": 0.46,
+   "skill_of_pick_generic": -0.45,
+   "pick_is_his_best_hero_aware": 0.243,
+   "pick_is_his_best_hero_generic": 0.191,
+   "counter_vs_later_opponents_aware": 0.095,
+   "counter_vs_later_opponents_generic": 0.001,
+   "holds_bans": false
+  },
+  "grid_m1_2_t0_ban": {
+   "draft_step": 8,
+   "opponent_picks_before": 2,
+   "best_hero_free_at_turn_generic": 0.872,
+   "skill_of_pick_aware": 1.92,
+   "skill_of_pick_generic": 0.35,
+   "pick_is_his_best_hero_aware": 0.244,
+   "pick_is_his_best_hero_generic": 0.149,
+   "counter_vs_later_opponents_aware": -0.089,
+   "counter_vs_later_opponents_generic": -0.017,
+   "holds_bans": true
+  },
+  "grid_m1_2_t0_noban": {
+   "draft_step": 8,
+   "opponent_picks_before": 2,
+   "best_hero_free_at_turn_generic": 0.871,
+   "skill_of_pick_aware": 0.54,
+   "skill_of_pick_generic": -0.9,
+   "pick_is_his_best_hero_aware": 0.234,
+   "pick_is_his_best_hero_generic": 0.174,
+   "counter_vs_later_opponents_aware": 0.008,
+   "counter_vs_later_opponents_generic": 0.01,
+   "holds_bans": false
+  },
+  "grid_m1_3_t0_ban": {
+   "draft_step": 13,
+   "opponent_picks_before": 4,
+   "best_hero_free_at_turn_generic": 0.784,
+   "skill_of_pick_aware": 1.54,
+   "skill_of_pick_generic": -0.17,
+   "pick_is_his_best_hero_aware": 0.211,
+   "pick_is_his_best_hero_generic": 0.122,
+   "counter_vs_later_opponents_aware": 0.009,
+   "counter_vs_later_opponents_generic": 0.04,
+   "holds_bans": true
+  },
+  "grid_m1_3_t0_noban": {
+   "draft_step": 13,
+   "opponent_picks_before": 4,
+   "best_hero_free_at_turn_generic": 0.772,
+   "skill_of_pick_aware": 0.16,
+   "skill_of_pick_generic": -1.35,
+   "pick_is_his_best_hero_aware": 0.208,
+   "pick_is_his_best_hero_generic": 0.126,
+   "counter_vs_later_opponents_aware": -0.085,
+   "counter_vs_later_opponents_generic": -0.152,
+   "holds_bans": false
+  },
+  "grid_m1_4_t0_ban": {
+   "draft_step": 14,
+   "opponent_picks_before": 4,
+   "best_hero_free_at_turn_generic": 0.777,
+   "skill_of_pick_aware": 1.19,
+   "skill_of_pick_generic": -0.35,
+   "pick_is_his_best_hero_aware": 0.193,
+   "pick_is_his_best_hero_generic": 0.124,
+   "counter_vs_later_opponents_aware": -0.066,
+   "counter_vs_later_opponents_generic": -0.034,
+   "holds_bans": true
+  },
+  "grid_m1_4_t0_noban": {
+   "draft_step": 14,
+   "opponent_picks_before": 4,
+   "best_hero_free_at_turn_generic": 0.763,
+   "skill_of_pick_aware": -0.33,
+   "skill_of_pick_generic": -1.58,
+   "pick_is_his_best_hero_aware": 0.168,
+   "pick_is_his_best_hero_generic": 0.121,
+   "counter_vs_later_opponents_aware": 0.11,
+   "counter_vs_later_opponents_generic": 0.004,
+   "holds_bans": false
+  },
+  "grid_m1_0_t1_ban": {
+   "draft_step": 5,
+   "opponent_picks_before": 1,
+   "best_hero_free_at_turn_generic": 0.898,
+   "skill_of_pick_aware": 2.19,
+   "skill_of_pick_generic": 0.77,
+   "pick_is_his_best_hero_aware": 0.277,
+   "pick_is_his_best_hero_generic": 0.165,
+   "counter_vs_later_opponents_aware": 0.005,
+   "counter_vs_later_opponents_generic": 0.018,
+   "holds_bans": true
+  },
+  "grid_m1_0_t1_noban": {
+   "draft_step": 5,
+   "opponent_picks_before": 1,
+   "best_hero_free_at_turn_generic": 0.902,
+   "skill_of_pick_aware": 0.43,
+   "skill_of_pick_generic": -0.53,
+   "pick_is_his_best_hero_aware": 0.249,
+   "pick_is_his_best_hero_generic": 0.167,
+   "counter_vs_later_opponents_aware": -0.036,
+   "counter_vs_later_opponents_generic": -0.064,
+   "holds_bans": false
+  },
+  "grid_m1_1_t1_ban": {
+   "draft_step": 6,
+   "opponent_picks_before": 1,
+   "best_hero_free_at_turn_generic": 0.884,
+   "skill_of_pick_aware": 2.32,
+   "skill_of_pick_generic": 0.71,
+   "pick_is_his_best_hero_aware": 0.306,
+   "pick_is_his_best_hero_generic": 0.166,
+   "counter_vs_later_opponents_aware": -0.042,
+   "counter_vs_later_opponents_generic": -0.05,
+   "holds_bans": true
+  },
+  "grid_m1_1_t1_noban": {
+   "draft_step": 6,
+   "opponent_picks_before": 1,
+   "best_hero_free_at_turn_generic": 0.884,
+   "skill_of_pick_aware": 0.3,
+   "skill_of_pick_generic": -0.36,
+   "pick_is_his_best_hero_aware": 0.226,
+   "pick_is_his_best_hero_generic": 0.166,
+   "counter_vs_later_opponents_aware": -0.072,
+   "counter_vs_later_opponents_generic": -0.048,
+   "holds_bans": false
+  },
+  "grid_m1_2_t1_ban": {
+   "draft_step": 11,
+   "opponent_picks_before": 3,
+   "best_hero_free_at_turn_generic": 0.781,
+   "skill_of_pick_aware": 2.1,
+   "skill_of_pick_generic": 0.31,
+   "pick_is_his_best_hero_aware": 0.261,
+   "pick_is_his_best_hero_generic": 0.151,
+   "counter_vs_later_opponents_aware": -0.131,
+   "counter_vs_later_opponents_generic": 0.044,
+   "holds_bans": true
+  },
+  "grid_m1_2_t1_noban": {
+   "draft_step": 11,
+   "opponent_picks_before": 3,
+   "best_hero_free_at_turn_generic": 0.818,
+   "skill_of_pick_aware": 0.43,
+   "skill_of_pick_generic": -0.97,
+   "pick_is_his_best_hero_aware": 0.232,
+   "pick_is_his_best_hero_generic": 0.139,
+   "counter_vs_later_opponents_aware": -0.102,
+   "counter_vs_later_opponents_generic": -0.145,
+   "holds_bans": false
+  },
+  "grid_m1_3_t1_ban": {
+   "draft_step": 12,
+   "opponent_picks_before": 3,
+   "best_hero_free_at_turn_generic": 0.774,
+   "skill_of_pick_aware": 1.87,
+   "skill_of_pick_generic": 0.16,
+   "pick_is_his_best_hero_aware": 0.251,
+   "pick_is_his_best_hero_generic": 0.136,
+   "counter_vs_later_opponents_aware": -0.112,
+   "counter_vs_later_opponents_generic": -0.185,
+   "holds_bans": true
+  },
+  "grid_m1_3_t1_noban": {
+   "draft_step": 12,
+   "opponent_picks_before": 3,
+   "best_hero_free_at_turn_generic": 0.795,
+   "skill_of_pick_aware": 0.15,
+   "skill_of_pick_generic": -1.02,
+   "pick_is_his_best_hero_aware": 0.214,
+   "pick_is_his_best_hero_generic": 0.14,
+   "counter_vs_later_opponents_aware": 0.034,
+   "counter_vs_later_opponents_generic": 0.002,
+   "holds_bans": false
+  },
+  "grid_m1_4_t1_ban": {
+   "draft_step": 15,
+   "opponent_picks_before": 5,
+   "best_hero_free_at_turn_generic": 0.735,
+   "skill_of_pick_aware": 1.11,
+   "skill_of_pick_generic": -0.37,
+   "pick_is_his_best_hero_aware": 0.181,
+   "pick_is_his_best_hero_generic": 0.129,
+   "counter_vs_later_opponents_aware": NaN,
+   "counter_vs_later_opponents_generic": NaN,
+   "holds_bans": true
+  },
+  "grid_m1_4_t1_noban": {
+   "draft_step": 15,
+   "opponent_picks_before": 5,
+   "best_hero_free_at_turn_generic": 0.751,
+   "skill_of_pick_aware": -0.29,
+   "skill_of_pick_generic": -1.84,
+   "pick_is_his_best_hero_aware": 0.176,
+   "pick_is_his_best_hero_generic": 0.119,
+   "counter_vs_later_opponents_aware": NaN,
+   "counter_vs_later_opponents_generic": NaN,
+   "holds_bans": false
+  }
+ }
+}
