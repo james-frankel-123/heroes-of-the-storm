@@ -95,6 +95,47 @@ def strat_support(D, idx):
     return {s: float(np.mean(np.concatenate([np.concatenate([m0[f], m1[g]]) for _, f, g in L]) < 25)) for s, L in idx.items()}
 
 
+# Opt-in robustness runs (stage p1 only): WORLDS_P1_TAG suffixes every p1 output (rescore_p1<tag>.json,
+# cache rescore_p1<tag>_<fam>.npz), required with WORLDS_GRADE=flat (world.py) so the default files are never
+# touched; WORLDS_P1_SEEDS=1 adds per-seed entries "<strategy>@s<k>" for the seed-pooled policies (draft i of a
+# pooled policy is played by checkpoint i % n_seeds: tournament.pooled_policy, floor_search.build_actor).
+P1_TAG = os.environ.get("WORLDS_P1_TAG", "")
+P1_SEEDS = {"constrained_mcts": 5, "constrained_mcts_sf": 5, "search_sf": 5,
+            "constrained_mcts_ft": 3, "constrained_mcts_ft_sf": 3, "search_ft_sf": 3}
+
+
+def p1_draft_numbers(D):
+    """Tournament draft index of every paper-1 draft, in p1_drafts order (same dedupe as p1_drafts)."""
+    p = os.path.join(WD.CACHE, "p1_drafts_draftno.npy")
+    if os.path.exists(p):
+        return np.load(p)
+    from paper1_revision import ood_frontier as of
+    seen, out, s0, s1 = set(), [], [], []
+    for a, b, r in of.records():
+        if not (a in OPP8 or b in OPP8):
+            continue
+        k = (a, b, r["draft"], r["game_map"], tuple(r["team0"]["picks"]), tuple(r["team1"]["picks"]))
+        if k not in seen:
+            seen.add(k)
+            out.append(r["draft"])
+            s0.append(a)
+            s1.append(b)
+    assert len(out) == len(D["S0"]) and (np.array(s0) == D["S0"]).all() and (np.array(s1) == D["S1"]).all()
+    out = np.array(out, np.int64)
+    np.save(p, out)
+    return out
+
+
+def p1_seed_index(D, idx):
+    dn = p1_draft_numbers(D)
+    out = {}
+    for s, n in P1_SEEDS.items():
+        for k in range(n):
+            if s in idx:
+                out[f"{s}@s{k}"] = [(o, f[dn[f] % n == k], g[dn[g] % n == k]) for o, f, g in idx[s]]
+    return out
+
+
 _G = {}
 
 
@@ -155,14 +196,18 @@ def stage_p1(fams, n):
     from multiprocessing import get_context
     D = p1_drafts()
     idx = p1_index(D)
+    if W.GRADE != "log" and not P1_TAG:
+        raise SystemExit("WORLDS_GRADE != log needs WORLDS_P1_TAG (never overwrite the default outputs)")
+    if os.environ.get("WORLDS_P1_SEEDS") == "1":
+        idx.update(p1_seed_index(D, idx))
     names = sorted(idx)
     _G.update(D=D, idx=idx, names=names)
-    res_path = os.path.join(WD.RESULTS, "rescore_p1.json")
+    res_path = os.path.join(WD.RESULTS, f"rescore_p1{P1_TAG}.json")
     res = json.load(open(res_path)) if os.path.exists(res_path) else {}
     res["strategies"] = names
     res["support_lt25"] = strat_support(D, idx)
     for fam in fams:
-        out = os.path.join(WD.CACHE, f"rescore_p1_{fam}.npz")
+        out = os.path.join(WD.CACHE, f"rescore_p1{P1_TAG}_{fam}.npz")
         if os.path.exists(out):
             continue
         t0 = time.time()
@@ -408,12 +453,12 @@ def allowed_cells(fam):
 
 
 def summarize_p1():
-    res_path = os.path.join(WD.RESULTS, "rescore_p1.json")
+    res_path = os.path.join(WD.RESULTS, f"rescore_p1{P1_TAG}.json")
     res = json.load(open(res_path))
     names = res["strategies"]
     res["families"] = {}
     for fam in ("a", "b", "c", "d", "e", "g", "f", "fc"):
-        p = os.path.join(WD.CACHE, f"rescore_p1_{fam}.npz")
+        p = os.path.join(WD.CACHE, f"rescore_p1{P1_TAG}_{fam}.npz")
         if not os.path.exists(p):
             continue
         z = np.load(p)
@@ -426,7 +471,7 @@ def summarize_p1():
             F["contrasts"][tag] = {f"{x} - {y}": contrast(V[:, ci, names.index(x)] - V[:, ci, names.index(y)])
                                    for x, y in CONTRASTS_P1 if x in names and y in names}
         if fam in ("a", "b", "c", "d"):
-            al = allowed_cells(fam)
+            al = allowed_cells(fam) if W.GRADE == "log" else None   # check_allowed_* were run under the log grade
             gcells = [{} if ci < len(named) else c for ci, c in enumerate(cells)]   # grid planes only
             F["breakeven"] = {f"{x} - {y}": breakeven(V, gcells, names.index(x), names.index(y), al)
                               for x, y in BE_P1 if x in names and y in names}

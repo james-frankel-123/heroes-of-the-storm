@@ -64,7 +64,12 @@ def hnorm(keys, wid, salt):
     return ndtri(u)
 
 
+GRADE = os.environ.get("WORLDS_GRADE", "log")   # "flat": robustness check, g = 1 below the floor, 0 at or above
+
+
 def grade(m, F):
+    if GRADE == "flat":
+        return (np.asarray(m, float) < F).astype(float)
     return np.clip(1 - np.log1p(np.asarray(m, float)) / np.log1p(F), 0, 1)
 
 
