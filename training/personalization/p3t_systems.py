@@ -185,6 +185,15 @@ def support_systems():
 SYSTEMS.update(support_systems())
 
 
+def matched_systems():
+    """Compute-matched one-step controls (p3t_matched.py): a support arm with the search held to the root."""
+    import p3t_matched as PM
+    return PM.matched_systems()
+
+
+SYSTEMS.update(matched_systems())
+
+
 # ------------------------------------------------------------------ vintages
 
 class Vintage:
@@ -509,6 +518,12 @@ def act_mcts_x(vint, ctx, x, device=0):
         kmod = M.load_module("explore_kernel" if use_ex else "pvnet_kernel",
                              os.path.join(HERE, "cuda_explore" if use_ex else "cuda_pvnet"))
     sup_kw = {} if sup is None else {"sup": sup, "c3": SP.c3_flat()}
+    if x.get("depth1"):
+        # compute-matched one-step control (p3t_matched.py): the support kernel with the v2 search held to the
+        # root (slot_cap 1: PUCT over the same root priors, every simulation a rollout plus the same leaf value)
+        assert sup is not None, "depth1 needs a support block"
+        kmod = M.load_module("support1_kernel", os.path.join(HERE, "cuda_support1"))
+        sup_kw["slot_cap"] = int(x.get("slot_cap", 1))
     cfg = np.full((B, M.CFG_LEN), -1, np.int32)
     cfg[:, 0], cfg[:, 1], cfg[:, 2] = ctx["map"], ctx["tier"], t
     cfg[:, 3], cfg[:, 4], cfg[:, 5], cfg[:, 6], cfg[:, 7] = 0, k, 1, 0, 1

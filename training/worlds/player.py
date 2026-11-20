@@ -529,6 +529,257 @@ class PlayerWorldsCov:
         return self.v2.u(pid, hero, nprior, wid, k, delta) + self.b[0] * s + self.b[1] * off - self.ch[hero]
 
 
+# ── f-cal: outcome-only player term from the drafter's raw information, not its model ──
+# Same raw information the drafter state reads (slot rows plus the merged Heroes Profile rows, each game's
+# scoreboard card a_shrink), before 2026-07-01 only; a different model class: a logistic regression of the
+# outcome (offset logit WP_pop, team-difference sums of the ten slots) on shrunk aggregates of each player's
+# record and scoreboard (player x hero, player x role, player; all-time and a 90-day half-life), log play
+# counts and the familiarity bins. No drafter state, kernel, walk or calibration enters. Fit on Jan-Jun 2026
+# games with features as of the first of each game's month; L2 chosen on June (fit Jan-May); the term is
+# then applied with features as of 2026-06-30. World: u(p, h) = kcal * (x . w + gamma[bin n] - ubar_h)
+# + residual player, player-period, player-role and player-hero effects drawn from N(0, SD) with f-out's
+# evidence SDs (independent of the features). kcal = 1 is the plain fit; kcal > 1 the slope-matched scale.
+CAL = os.path.join(WD.CACHE, "player_cal.npz")
+CAL_JSON = os.path.join(WD.RESULTS, "player_fitcal.json")
+CAL_HL = 90.0
+CAL_MONTHS = ["2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01", "2026-05-01", "2026-06-01"]
+CAL_LAMS = (1.0, 10.0, 100.0, 1000.0)     # L2 on standardized coefficients, summed log loss
+CAL_RESID = {"A": 0.05, "AP": 0.05, "R": 0.08, "E": 0.05}
+
+
+def _day(s):
+    import datetime
+    return (datetime.date.fromisoformat(s) - datetime.date(1970, 1, 1)).days
+
+
+class _CalRows:
+    """Slot and merged HP rows before J0 (not the sealed ids), day-sorted, with the scoreboard card; running
+    sums per player x hero, player, player x role (all-time) and per player x hero, player (90-day half-life)."""
+    GROUPS = ("ph", "p", "pr")
+
+    def __init__(self, J0):
+        sys.path.insert(0, P2)
+        import p3_sealed
+        from shared import HEROES
+        C = os.path.join(P2, "cache_def_def1027")
+        x = np.load(os.path.join(C, "x_slots_ext.npz"), mmap_mode="r")
+        sh = np.array([HEROES.index(str(v)) for v in x["hero_names"]], np.int64)
+        a = np.load(os.path.join(C, "rcf", "aug_merged.npz"), mmap_mode="r")
+        zz = np.load(os.path.join(C, "rcf", "zaug_a_shrink_58686654.npz"), mmap_mode="r")
+        day = np.asarray(a["day"])
+        keep = np.flatnonzero(day < J0)
+        keep = keep[~np.isin(np.asarray(a["rid"])[keep], p3_sealed.sealed_ids())]
+        keep = keep[np.argsort(day[keep], kind="stable")]
+        self.pid = np.asarray(a["pid"])[keep].astype(np.int64)
+        self.hero = sh[np.asarray(a["hero"])[keep]]
+        self.r = np.asarray(a["r"])[keep]
+        self.day = day[keep].astype(np.int64)
+        Z = np.asarray(zz["Z"])[keep].astype(np.float32)
+        w = np.asarray(zz["W"])[keep].astype(np.float32)
+        ok = ~np.isnan(Z)
+        self.Z = np.nan_to_num(Z) * w[:, None]
+        self.Zn = ok * w[:, None]
+        self.role = role_idx()
+        self.keys = {}
+        for g, key in (("ph", self.pid * H + self.hero), ("p", self.pid), ("pr", self.pid * 8 + self.role[self.hero])):
+            u, inv = np.unique(key, return_inverse=True)
+            self.keys[g] = (u, inv)
+        self.state = {}
+        self.T = None
+
+    def advance(self, T):
+        """running sums to rows with day < T (all-time and decayed to T)."""
+        lo = -10 ** 9 if self.T is None else self.T
+        if self.T is not None:
+            f = 0.5 ** ((T - self.T) / CAL_HL)
+            for k, v in self.state.items():
+                if k.endswith(":r"):
+                    for arr in v:
+                        arr *= f
+        i0, i1 = np.searchsorted(self.day, lo), np.searchsorted(self.day, T)
+        w1 = np.ones(i1 - i0)
+        wr = 0.5 ** ((T - self.day[i0:i1]) / CAL_HL)
+        for g, (u, inv) in self.keys.items():
+            ii = inv[i0:i1]
+            L = len(u)
+            for tag, ww in (("", w1), ("r", wr)):
+                if tag == "r" and g == "pr":
+                    continue
+                st = self.state.setdefault(g + ":" + tag, [np.zeros(L), np.zeros(L), np.zeros((L, 15)), np.zeros((L, 15))])
+                st[0] += np.bincount(ii, weights=ww, minlength=L)
+                st[1] += np.bincount(ii, weights=ww * self.r[i0:i1], minlength=L)
+                for k in range(15):
+                    st[2][:, k] += np.bincount(ii, weights=ww * self.Z[i0:i1, k], minlength=L)
+                    st[3][:, k] += np.bincount(ii, weights=ww * self.Zn[i0:i1, k], minlength=L)
+        self.T = T
+
+    def _look(self, name, key):
+        u = self.keys[name.split(":")[0]][0]
+        i = np.clip(np.searchsorted(u, key), 0, len(u) - 1)
+        hit = u[i] == key
+        return [np.where(hit.reshape(hit.shape + (1,) * (v.ndim - 1)), v[i], 0) for v in self.state[name]]
+
+    def feats(self, pid, hero):
+        """(..., 149) features of (player, hero) cells as of the current T."""
+        F = []
+        ro = self.role[hero]
+
+        def add(name, key, kr, km, withn):
+            n, R, Ms, Mn = self._look(name, key)
+            F.extend([R / (n + kr)] + ([np.log1p(n)] if withn else []) + list(np.moveaxis(Ms / (Mn + km), -1, 0)))
+        add("ph:", pid * H + hero, 20, 10, True)
+        add("ph:r", pid * H + hero, 10, 5, True)
+        add("p:", pid, 50, 20, True)
+        add("p:r", pid, 20, 10, True)
+        add("pr:", pid * 8 + ro, 20, 10, True)
+        add("pr:", pid * 8 + ro, 5, 3, False)
+        add("pr:", pid * 8 + ro, 80, 40, False)
+        add("ph:", pid * H + hero, 5, 3, False)
+        add("ph:", pid * H + hero, 80, 40, False)
+        return np.stack(F, -1).astype(np.float32)
+
+
+def _cal_newton(X, off, y, lam, iters=30):
+    """L2 logistic regression with offset (summed log loss + lam/2 |w|^2), Newton steps."""
+    w = np.zeros(X.shape[1])
+    for _ in range(iters):
+        p = 1 / (1 + np.exp(-(off + X @ w)))
+        g = X.T @ (y - p) - lam * w
+        Hm = (X * (p * (1 - p))[:, None]).T @ X + lam * np.eye(len(w))
+        step = np.linalg.solve(Hm, g)
+        w += step
+        if np.abs(step).max() < 1e-9:
+            break
+    return w, Hm
+
+
+def extract_cal():
+    """(main box, light) features, fit and the f-cal tables -> site/cache/player_cal.npz, results/player_fitcal.json"""
+    t0 = time.time()
+    src = dict(np.load(SRC))
+    J0 = int(src["J0"])
+    R = _CalRows(J0)
+    print(f"f-cal rows {len(R.day):,} ({time.time() - t0:.0f}s)", flush=True)
+    cuts = [_day(m) for m in CAL_MONTHS] + [J0]
+    sgn = np.r_[np.ones(5), -np.ones(5)]
+    nb = len(NBINS)
+    blocks = []
+    for j, T in enumerate(cuts[:-1]):
+        R.advance(T)
+        sel = (src["day"] >= T) & (src["day"] < cuts[j + 1])
+        Fx = R.feats(src["pid"][sel], src["hero"][sel])
+        Fg = np.eye(nb, dtype=np.float32)[nbin(src["nprior"][sel])][..., 1:]
+        blocks.append((sel, np.concatenate([Fx, Fg], -1)))
+        print(f"  month {CAL_MONTHS[j]}: {sel.sum():,} games ({time.time() - t0:.0f}s)", flush=True)
+    R.advance(J0)
+    allF = np.concatenate([F for _, F in blocks]).reshape(-1, blocks[0][1].shape[-1])
+    mu, sd = allF.mean(0), allF.std(0) + 1e-6
+    del allF
+
+    def design(js):
+        X = np.concatenate([((blocks[j][1] - mu) / sd).transpose(0, 2, 1) @ sgn for j in js])
+        sel = np.concatenate([np.flatnonzero(blocks[j][0]) for j in js])
+        wp = np.clip(src["wp0"][sel], 1e-6, 1 - 1e-6)
+        return X, np.log(wp / (1 - wp)), src["y0"][sel]
+
+    def nll(z, y):
+        p = np.clip(1 / (1 + np.exp(-z)), 1e-12, 1 - 1e-12)
+        return float(-np.mean(y * np.log(p) + (1 - y) * np.log(1 - p)))
+    Xa, oa, ya = design(range(5))
+    Xv, ov, yv = design([5])
+    val = {}
+    for lam in CAL_LAMS:
+        w, _ = _cal_newton(Xa, oa, ya, lam)
+        val[lam] = nll(ov + Xv @ w, yv)
+        print(f"  lam {lam}: June nll {val[lam]:.5f}", flush=True)
+    lam = min(val, key=val.get)
+    X, o, y = design(range(6))
+    w, Hm = _cal_newton(X, o, y, lam)
+    cov = np.linalg.inv(Hm)
+    wr = w / sd                                      # raw-feature coefficients (the mean shift cancels in team differences)
+    K = len(w)
+    # centring: mean of x . w over the fit window's observed slots per hero
+    hero_fit = np.concatenate([src["hero"][blocks[j][0]] for j in range(6)])
+    u_fit = np.concatenate([blocks[j][1] @ wr for j in range(6)])
+    ubar = np.bincount(hero_fit.ravel(), weights=u_fit.ravel(), minlength=H) / np.maximum(np.bincount(hero_fit.ravel(), minlength=H), 1)
+    gamma = np.r_[0.0, wr[K - (nb - 1):]]
+    wx = wr[:K - (nb - 1)]
+    # tables: judge-window slots and the paper-2 lobby players x every hero, features as of J0
+    jw = src["jw"]
+    jp, jh = src["pid"][jw], src["hero"][jw]
+    L = np.load(P2_LOBBIES)
+    cells = [(jp * H + jh).ravel()]
+    for tag in ("headline", "tune"):
+        P_ = np.repeat(L[f"{tag}_pid"][..., None], H, -1)
+        cells.append((P_ * H + np.arange(H)).ravel())
+    keys = np.unique(np.concatenate(cells))
+    xb = R.feats(keys // H, keys % H) @ wx
+    out = dict(keys=keys, xb=xb, gamma=gamma, ubar=ubar, w=w, sd=sd, mu=mu, cov=cov)
+    np.savez(CAL, **out)
+    # held-out judge window: log loss of each model's mean, and the expected slope of the world's outcome
+    # residual on the drafter's personal term (no outcome noise; the 200-world check is stage slopecal)
+    PWc = PlayerWorldsCal(kcal=1.0)
+    m_j = PWc.mean(jp, jh, src["nprior"][jw]) @ sgn
+    wp = np.clip(src["wp0"][jw], 1e-6, 1 - 1e-6)
+    lw = np.log(wp / (1 - wp))
+    yj = src["y0"][jw]
+    Pj = src["j_P"][:, 0]
+    fout = PlayerWorlds2().u(jp, jh, src["nprior"][jw], 0, mean_only=True) @ sgn
+    sl = lambda a_, b_: float(np.linalg.lstsq(np.column_stack([np.ones(len(a_)), a_]), b_, rcond=None)[0][1])
+    sg = lambda z: 1 / (1 + np.exp(-z))
+    scan = {}
+    for kc in (1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.75, 2.0):
+        q = sg(lw + kc * m_j)
+        scan[str(kc)] = {"judge_nll": nll(lw + kc * m_j, yj), "expected_slope_on_P": sl(Pj, q - wp)}
+    res = {"what": "f-cal: outcome-only player term (records + scoreboard aggregates, logistic, no drafter state or model)",
+           "fit_games": int(len(y)), "features": int(K), "lambda_grid_june_nll": {str(k): v for k, v in val.items()},
+           "lambda": lam, "june_nll_pop": nll(ov, yv), "residual_sd": CAL_RESID, "half_life_days": CAL_HL,
+           "familiarity_gamma_pts_rel_0": (25 * gamma).tolist(), "cells": int(len(keys)),
+           "judge_window": {"games": int(jw.sum()), "nll_pop": nll(lw, yj),
+                            "nll_drafter_P": float(-np.mean(yj * np.log(np.clip(wp + Pj, 1e-9, 1)) + (1 - yj) * np.log(np.clip(1 - wp - Pj, 1e-9, 1)))),
+                            "nll_fout_mean": nll(lw + fout, yj),
+                            "fout_expected_slope_on_P": sl(Pj, sg(lw + fout) - wp),
+                            "slope_of_r_on_P": sl(Pj, yj - wp),
+                            "slope_of_r_on_fcal": sl(sg(lw + m_j) - wp, yj - wp),
+                            "corr_fcal_P": float(np.corrcoef(sg(lw + m_j) - wp, Pj)[0, 1]),
+                            "kcal_scan": scan}}
+    json.dump(res, open(CAL_JSON, "w"), indent=1)
+    print(json.dumps(res, indent=1), flush=True)
+
+
+class PlayerWorldsCal:
+    """f-cal player term of world wid. kcal scales the fitted mean (default: player_fitcal.json 'kcal', else 1);
+    env WORLDS_FCAL_K overrides."""
+    SALT = {"A": 71, "AP": 73, "R": 79, "E": 83}
+
+    def __init__(self, kcal=None):
+        z = np.load(CAL)
+        self.keys, self.xb, self.gamma, self.ubar = z["keys"], z["xb"], z["gamma"], z["ubar"]
+        if kcal is None:
+            kcal = os.environ.get("WORLDS_FCAL_K")
+            if kcal is None and os.path.exists(CAL_JSON):
+                kcal = json.load(open(CAL_JSON)).get("kcal")
+        self.kcal = float(kcal if kcal is not None else 1.0)
+
+    def mean(self, pid, hero, nprior):
+        key = pid * H + hero
+        i = np.clip(np.searchsorted(self.keys, key), 0, len(self.keys) - 1)
+        x = np.where(self.keys[i] == key, self.xb[i], 0.0)
+        return x + self.gamma[nbin(nprior)] - self.ubar[hero]
+
+    def u(self, pid, hero, nprior, wid, k=1.0, delta=0.0, mean_only=False, s=None, off=None):
+        import world as W
+        m = self.kcal * self.mean(pid, hero, nprior)
+        if mean_only:
+            return m
+        sd = CAL_RESID
+        ro = role_idx()[hero]
+        e = sd["A"] * W.hnorm(pid, wid, self.SALT["A"]) + sd["AP"] * W.hnorm(pid * 64 + 7, wid, self.SALT["AP"]) \
+            + sd["R"] * W.hnorm(pid * 8 + ro, wid, self.SALT["R"]) \
+            + sd["E"] * np.where(nprior < FLOOR_N, k, 1.0) * W.hnorm(pid * H + hero, wid, self.SALT["E"])
+        return m + e + np.where(nprior == 0, W.PTS * delta, 0.0)
+
+
 # ── the player term in a world ───────────────────────────────────────────
 class PlayerWorlds:
     def __init__(self):
@@ -552,10 +803,13 @@ class PlayerWorlds:
         return z["gamma"][nbin(n)] + a + e - z["ubar"][hero] + np.where(n == 0, W.PTS * delta, 0.0)
 
 
-def slope(n_worlds, version=1):
+def slope(n_worlds, version=1, kcal=None, tag=""):
     src = dict(np.load(SRC))
     jw = src["jw"]
-    PW = PlayerWorlds() if version == 1 else (PlayerWorldsCov() if version == "cov" else PlayerWorlds2())
+    if version == "cal":
+        PW = PlayerWorldsCal(kcal)
+    else:
+        PW = PlayerWorlds() if version == 1 else (PlayerWorldsCov() if version == "cov" else PlayerWorlds2())
     if version == "cov":
         cov = dict(np.load(COV))
     pid, hero, npr = src["pid"][jw], src["hero"][jw], src["nprior"][jw]
@@ -602,7 +856,9 @@ def slope(n_worlds, version=1):
                                                   "p05": float(np.percentile(v, 5)), "p95": float(np.percentile(v, 95)),
                                                   "real": real[sample][lab], "real_pct": float(100 * (v < real[sample][lab]).mean())}
     out["model_version"] = version
-    suf = {1: "", 2: "2", "cov": "_cov"}[version]
+    if version == "cal":
+        out["kcal"] = PW.kcal
+    suf = {1: "", 2: "2", "cov": "_cov", "cal": "_cal" + tag}[version]
     json.dump(out, open(os.path.join(WD.RESULTS, "check_player_slope" + suf + ".json"), "w"), indent=1)
     print(json.dumps(out["worlds_summary"], indent=1))
 
@@ -610,7 +866,9 @@ def slope(n_worlds, version=1):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=["extract", "extract_p2", "extract_cov", "fit", "slope", "fit2", "slope2", "fitcov",
-                                      "slopecov"])
+                                      "slopecov", "extract_cal", "slopecal"])
+    ap.add_argument("--kcal", type=float, default=None)
+    ap.add_argument("--tag", default="")
     ap.add_argument("--procs", type=int, default=3)
     ap.add_argument("--work", default="")
     ap.add_argument("--n", type=int, default=200)
@@ -621,6 +879,10 @@ if __name__ == "__main__":
         extract_p2()
     elif a.stage == "extract_cov":
         extract_cov(a.work)
+    elif a.stage == "extract_cal":
+        extract_cal()
+    elif a.stage == "slopecal":
+        slope(a.n, version="cal", kcal=a.kcal, tag=a.tag)
     elif a.stage == "fitcov":
         fitcov()
     elif a.stage == "slopecov":

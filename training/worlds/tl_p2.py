@@ -40,6 +40,10 @@ import world as W  # noqa: E402
 OPP = os.environ.get("TL_P2_OPP", "pMCTS-cur")
 OUT = os.path.join(WD.CACHE, "tl_p2" + ("" if OPP == "pMCTS-cur" else "_" + OPP))
 PLAN = [("a", "default", range(20)), ("f", "default", range(20)), ("fc", "default", range(20)), ("a", "stress", range(20))]
+# TL_P2_PLAN=fcal: the f-cal family only (player.PlayerWorldsCal, best assignment), results truthleaf_p2_cal*.json
+PLAN_TAG = os.environ.get("TL_P2_PLAN", "")
+if PLAN_TAG == "fcal":
+    PLAN = [("fcal", "default", range(int(os.environ.get("TL_P2_WORLDS", "20"))))]
 TL_AGENTS = {"TL-sel": "x-combo1-dr-chance", "TL-f25": "s-floor25"}
 _TRUTH = {}
 
@@ -88,6 +92,8 @@ def truth_u_tables(fam, wid, gi):
     if fam == "fc":
         cz = np.load(PL.COV)
         U = PL.PlayerWorldsCov().u(P, Hh, cnt, wid, s=cz["headline_s"][ix], off=cz["headline_off"][ix].astype(float))
+    elif fam == "fcal":
+        U = PL.PlayerWorldsCal().u(P, Hh, cnt, wid)
     else:
         U = PL.PlayerWorlds2().u(P, Hh, cnt, wid)
     return U.reshape(len(gi), 10, 90).astype(np.float32)
@@ -102,7 +108,7 @@ def install(fam, wid, dial_name):
     _TRUTH.clear()
     _TRUTH.update(fam=fam, params=truth_params(wid, dial if fam == "a" else {}),
                   mod=Mc.load_module("truth_kernel", os.path.join(HERE, "cuda_truth")))
-    if fam in ("f", "fc"):
+    if fam in ("f", "fc", "fcal"):
         LB = TT.Lobbies()
         _TRUTH["u"] = dict(zip(LB.gi.tolist(), truth_u_tables(fam, wid, LB.gi)))
     src = inspect.getsource(SY.act_mcts_x)
@@ -213,7 +219,7 @@ def score():
             # the real arms in the same world (rescore, same lobbies, vs pMCTS-cur)
             zf = np.load(os.path.join(WD.CACHE, f"rescore_p2_headline_{fam}.npz"))
             keys = [tuple(k) for k in json.loads(str(zf["keys"]))]
-            ci = 2 if fam in ("f", "fc") else list(W.dials()["named"]).index(dial)    # f: 'best' assignment
+            ci = 2 if fam in ("f", "fc", "fcal") else list(W.dials()["named"]).index(dial)    # f: 'best' assignment
             for arm in ("x-combo1-dr-chance", "s-floor25", "s-pcal-floor25"):
                 if (arm, OPP) in keys:
                     row[arm] = float(zf["V"][w, ci, keys.index((arm, OPP))])
@@ -228,7 +234,8 @@ def score():
                         "s-pcal-floor25 (vs TL-f25)": RS.contrast([r["TL-f25"] - r["s-pcal-floor25"] for r in rows])},
              "floor_true_effect": RS.contrast([r["TL-f25"] - r["TL-sel"] for r in rows])}
         out["settings"][f"{fam}/{dial}"] = S
-    json.dump(out, open(os.path.join(WD.RESULTS, "truthleaf_p2" + ("" if OPP == "pMCTS-cur" else "_" + OPP) + ".json"), "w"), indent=1)
+    stem = "truthleaf_p2" + ("_cal" if PLAN_TAG == "fcal" else "") + ("" if OPP == "pMCTS-cur" else "_" + OPP)
+    json.dump(out, open(os.path.join(WD.RESULTS, stem + ".json"), "w"), indent=1)
     print(json.dumps(out, indent=1))
 
 
@@ -248,7 +255,7 @@ def _truth_p(fam, dial, wid, D):
         d = {k: v for k, v in W.dials()["named"][dial].items() if k != "drift"}
         return M.sig(Ws.logit("a", D, wid, **d))
     import player as PL
-    PW = PL.PlayerWorldsCov() if fam == "fc" else PL.PlayerWorlds2()
+    PW = PL.PlayerWorldsCov() if fam == "fc" else (PL.PlayerWorldsCal() if fam == "fcal" else PL.PlayerWorlds2())
     if fam == "fc":
         cz = np.load(PL.COV)
         D = dict(D, s=cz["headline_s"][D["lob"]], off=cz["headline_off"][D["lob"]])

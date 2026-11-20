@@ -1,0 +1,77 @@
+{
+ "what": "f-cal: outcome-only player term (records + scoreboard aggregates, logistic, no drafter state or model)",
+ "fit_games": 322332,
+ "features": 156,
+ "lambda_grid_june_nll": {
+  "1.0": 0.6488450291780732,
+  "10.0": 0.6488428179599783,
+  "100.0": 0.6488284705440086,
+  "1000.0": 0.6488447823058355
+ },
+ "lambda": 100.0,
+ "june_nll_pop": 0.6761589286005129,
+ "residual_sd": {
+  "A": 0.05,
+  "AP": 0.05,
+  "R": 0.08,
+  "E": 0.05
+ },
+ "half_life_days": 90.0,
+ "familiarity_gamma_pts_rel_0": [
+  0.0,
+  3.134699717028739,
+  4.2791137379283715,
+  4.960957830755981,
+  5.6886194720464225,
+  6.1232065839688365,
+  6.458166515877527,
+  7.26498123646073
+ ],
+ "cells": 813427,
+ "judge_window": {
+  "games": 162657,
+  "nll_pop": 0.6788721355243862,
+  "nll_drafter_P": 0.665211565303909,
+  "nll_fout_mean": 0.6699720616610163,
+  "fout_expected_slope_on_P": 0.20319977346209006,
+  "slope_of_r_on_P": 0.7864725829479298,
+  "slope_of_r_on_fcal": 0.9529303834790794,
+  "corr_fcal_P": 0.6726899318908715,
+  "kcal_scan": {
+   "1.0": {
+    "judge_nll": 0.656512249559385,
+    "expected_slope_on_P": 0.6784908162869364
+   },
+   "1.1": {
+    "judge_nll": 0.6569786845145509,
+    "expected_slope_on_P": 0.7394153865059413
+   },
+   "1.2": {
+    "judge_nll": 0.6578932380978781,
+    "expected_slope_on_P": 0.7986348424086396
+   },
+   "1.3": {
+    "judge_nll": 0.6592429613033314,
+    "expected_slope_on_P": 0.8561009793413096
+   },
+   "1.4": {
+    "judge_nll": 0.6610146313185459,
+    "expected_slope_on_P": 0.9117821065925226
+   },
+   "1.5": {
+    "judge_nll": 0.6631948643548862,
+    "expected_slope_on_P": 0.9656613231261777
+   },
+   "1.75": {
+    "judge_nll": 0.6703447633895732,
+    "expected_slope_on_P": 1.092478072051839
+   },
+   "2.0": {
+    "judge_nll": 0.6797563391381897,
+    "expected_slope_on_P": 1.208255737259229
+   }
+  }
+ },
+ "kcal": 1.1,
+ "kcal_rule": "smallest grid value whose expected slope of the outcome residual on the drafter's personal term (judge window, all games) reaches the real 25-99-bin slope 0.74 (P3_TEAM_SUPPORT.md section 2): 1.1 -> 0.739; kcal = 1 (the plain fit) is run as tag _k1"
+}
