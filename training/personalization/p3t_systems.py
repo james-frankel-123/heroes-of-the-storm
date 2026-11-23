@@ -663,8 +663,12 @@ def act_mcts_x(vint, ctx, x, device=0):
                 sb = ctx["s"][i, 5 * t:5 * t + 5].max(0)
                 c = np.union1d(c[np.argsort(-lpg[i, c], kind="stable")[:15]], c[np.argsort(-sb[c], kind="stable")[:15]])
             gcand[i, c] = True
-        bias[:, 5 * t:5 * t + 5] = np.where(gcand[:, None, :], 0.0, -30.0).astype(np.float32)
-        coefs[5] = 0.0
+        if x["greedy_cand"] == "keep":
+            # greedy's candidate set, weighted by the drafter's own prior and ten-player terms
+            bias[:, 5 * t:5 * t + 5] += np.where(gcand[:, None, :], 0.0, -30.0).astype(np.float32)
+        else:
+            bias[:, 5 * t:5 * t + 5] = np.where(gcand[:, None, :], 0.0, -30.0).astype(np.float32)
+            coefs[5] = 0.0
         cfg[:, 56] = 1
     if "stranger" in ctx:
         # party mode: a stranger holder's ban is a chance node on its own row (p3t_party.plan_rows),

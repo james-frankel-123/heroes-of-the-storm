@@ -28,23 +28,24 @@ if [ "${1:-}" = "smoke" ]; then
   $PM smoke --lobbies 4 --sims 16
   exit 0
 fi
+RT=""; [ "${P3T_SPLIT_ROUND:-1}" = 2 ] && RT="r2"
 step() { local n=$1; shift
-  if [ -e "$MK/split_$n.done" ]; then echo "$(date -Is) $n: done earlier"; return 0; fi
-  echo "$(date -Is) $n: start"; "$@"; date -Is > "$MK/split_$n.done"; echo "$(date -Is) $n: done"; }
+  if [ -e "$MK/split${RT}_$n.done" ]; then echo "$(date -Is) $n: done earlier"; return 0; fi
+  echo "$(date -Is) $n: start"; "$@"; date -Is > "$MK/split${RT}_$n.done"; echo "$(date -Is) $n: done"; }
 run() {
   local pids=() rc=0
   for i in $(seq 0 $((PAR - 1))); do
-    $PM run --shard $i/$PAR > "$MK/split_run_$i.log" 2>&1 &
+    $PM run --shard $i/$PAR > "$MK/split${RT}_run_$i.log" 2>&1 &
     pids+=($!)
   done
   for p in "${pids[@]}"; do wait "$p" || rc=1; done
-  tail -n 3 "$MK"/split_run_*.log
+  tail -n 3 "$MK"/split${RT}_run_*.log
   return $rc
 }
 score() { $PM score; }
 summary() { $PM summary --out "$OUT"; }
 # queued behind paper 1's 8-seed training (worlds/jobs/seeds8_train.sh); touch $MK/split_go to skip
-until grep -q "SEEDS8 TRAIN DONE" ~/hots/logs/seeds8_train.log 2>/dev/null || [ -f "$MK/split_go" ]; do sleep 300; done
+until grep -q "SEEDS8 TRAIN DONE" ~/hots/logs/seeds8_train.log 2>/dev/null || [ -f "$MK/split${RT}_go" ]; do sleep 300; done
 echo "$(date -Is) gate passed"
 step run run
 step score score

@@ -30,6 +30,11 @@ CTRL = "g1-pcal-floor25"
 GREEDY = "a1step-cur"
 SPLIT = {"g1s120-pcal-floor25": dict(sims=120),
          "g1gc-pcal-floor25": dict(greedy_cand=True, gd_bans=True)}
+# second round (P3T_SPLIT_ROUND=2): split greedy's-candidates swap into its parts
+if os.environ.get("P3T_SPLIT_ROUND") == "2":
+    SPLIT = {"g1gb-pcal-floor25": dict(gd_bans=True),                               # greedy's bans only
+             "g1np-pcal-floor25": dict(assign_bias=0.0, ban_bias=0.0, gd_bans=True),  # no ten-player terms
+             "g1gk-pcal-floor25": dict(greedy_cand="keep")}                          # greedy's set, own weights
 OPPS = [GREEDY, CTRL, FINAL, "Real", "pMCTS-cur"]
 
 
@@ -99,13 +104,14 @@ def score():
 def summary(out_dir):
     import p3t_support as SP
     names = list(SPLIT)
-    SP.summary(names, out_dir, opponents=OPPS + names, stem="split_greedy", ref=names[0])
-    js = json.load(open(os.path.join(out_dir, "split_greedy.json")))["arms"]
+    stem = "split_greedy" + ("_r2" if os.environ.get("P3T_SPLIT_ROUND") == "2" else "")
+    SP.summary(names, out_dir, opponents=OPPS + names, stem=stem, ref=names[0])
+    js = json.load(open(os.path.join(out_dir, stem + ".json")))["arms"]
     out = {"what": "paired record (pp; 95% bootstrap over lobbies), J and CONS (win %, both seats), headline lobbies; "
                    "root-held control with greedy's budget (g1s120) or greedy's proposals and bans (g1gc)",
            "arms": {a: {o: (None if v is None else {k: v[k] for k in ("record_pp", "J", "CONS")})
                         for o, v in js[a]["vs"].items()} for a in names}}
-    json.dump(out, open(os.path.join(out_dir, "split_greedy_contrasts.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(out_dir, stem + "_contrasts.json"), "w"), indent=1)
     print(json.dumps(out, indent=1), flush=True)
 
 
