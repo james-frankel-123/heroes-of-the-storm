@@ -28,6 +28,7 @@ from paper1_revision.support_mitigation import lin_feats, bin_feats, fit_offset,
 
 RES = os.path.join(HERE, "site", "results")
 JUDGES = ["consensus", "gN", "RN", "QM2026"]
+VARIANT = os.environ.get("CC_VARIANT", "")   # "mmr": selection audit only, causal player MMR controls
 
 
 def load():
@@ -136,7 +137,8 @@ def forms(D):
 
 
 def selection(D):
-    zc = np.load(os.path.join(T, "overfit2026", "cache", "comp_causal_games.npz"))
+    zc = np.load(os.path.join(T, "overfit2026", "site", "cache", "comp_causal_games_mmr.npz") if VARIANT == "mmr"
+                 else os.path.join(T, "overfit2026", "cache", "comp_causal_games.npz"))
     crid = zc["rid"]
     res = {}
     for s in ("train_loo", "heldout"):
@@ -168,6 +170,7 @@ def selection(D):
         C1 = np.stack([sk[:, 0] - sk[:, 1]], 1)
         C2 = np.concatenate([C1, (pos[:, 0] - pos[:, 1]).reshape(len(pos), -1)], 1)
         C3 = np.concatenate([C2, (party[:, 0] - party[:, 1])[:, None], (never[:, 0] - never[:, 1])[:, None]], 1)
+        C3 = C3[:, C3.std(0) > 0]   # the MMR variant has no never-played counts
         m0 = {k: v[hit] for k, v in d["m0"].items()}
         m1 = {k: v[hit] for k, v in d["m1"].items()}
         X = lin_feats(m0) - lin_feats(m1)
@@ -193,6 +196,11 @@ def selection(D):
 
 def main():
     D = load()
+    if VARIANT == "mmr":
+        out = {"selection": selection(D)}
+        json.dump(out, open(os.path.join(RES, "support_audit_selection_mmr.json"), "w"), indent=1)
+        print("wrote support_audit_selection_mmr.json")
+        return
     out = {"transport": transport(D)}
     print("transport done", flush=True)
     out["forms"] = forms(D)

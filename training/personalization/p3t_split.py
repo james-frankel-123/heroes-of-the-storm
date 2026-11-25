@@ -35,6 +35,10 @@ if os.environ.get("P3T_SPLIT_ROUND") == "2":
     SPLIT = {"g1gb-pcal-floor25": dict(gd_bans=True),                               # greedy's bans only
              "g1np-pcal-floor25": dict(assign_bias=0.0, ban_bias=0.0, gd_bans=True),  # no ten-player terms
              "g1gk-pcal-floor25": dict(greedy_cand="keep")}                          # greedy's set, own weights
+# third round (P3T_SPLIT_ROUND=3): the drafter's own prior with no search (argmax of the root prior the kernel
+# builds, with the ten-player terms and the floor; picks and bans)
+if os.environ.get("P3T_SPLIT_ROUND") == "3":
+    SPLIT = {"g0-pcal-floor25": dict(prior_only=True)}
 OPPS = [GREEDY, CTRL, FINAL, "Real", "pMCTS-cur"]
 
 
@@ -104,7 +108,8 @@ def score():
 def summary(out_dir):
     import p3t_support as SP
     names = list(SPLIT)
-    stem = "split_greedy" + ("_r2" if os.environ.get("P3T_SPLIT_ROUND") == "2" else "")
+    rnd = os.environ.get("P3T_SPLIT_ROUND", "1")
+    stem = "split_greedy" + (f"_r{rnd}" if rnd != "1" else "")
     SP.summary(names, out_dir, opponents=OPPS + names, stem=stem, ref=names[0])
     js = json.load(open(os.path.join(out_dir, stem + ".json")))["arms"]
     out = {"what": "paired record (pp; 95% bootstrap over lobbies), J and CONS (win %, both seats), headline lobbies; "

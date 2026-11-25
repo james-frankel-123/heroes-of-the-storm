@@ -42,7 +42,9 @@ from overfit2026.structure import STRUCT_NAMES
 
 from overfit2026 import data as _odata
 CACHE = _odata.art(HERE, "cache")
-OUT = _odata.art(HERE, "results", "comp_causal.json")
+VARIANT = os.environ.get("CC_VARIANT", "")   # "mmr": causal player MMR controls (comp_causal_mmr_data.py)
+SUF = f"_{VARIANT}" if VARIANT else ""
+OUT = _odata.art(HERE, "results", f"comp_causal{SUF}.json")
 
 
 def judge_by_rid():
@@ -70,7 +72,8 @@ def controls(z, level, var="clean"):
         cols.append((z["first_pick_team"] == 0).astype(float) - (z["first_pick_team"] == 1))
     if level >= 3:
         cols.append(z["partied"][:, 0] - z["partied"][:, 1])
-        cols.append(z["never_played_slots"][:, 0] - z["never_played_slots"][:, 1])
+        if z["never_played_slots"].any():   # zero in the MMR variant (no per-hero quantity)
+            cols.append(z["never_played_slots"][:, 0] - z["never_played_slots"][:, 1])
     return np.column_stack(cols) if cols else np.zeros((len(z["y"]), 0))
 
 
@@ -133,7 +136,7 @@ def boot_any(z, off, mask, level, var="clean", n=100, seed=0):
 
 
 def main():
-    z = dict(np.load(os.path.join(CACHE, "comp_causal_games.npz")))
+    z = dict(np.load(os.path.join(CACHE, f"comp_causal_games{SUF}.npz")))
     rid, p, src = judge_by_rid()
     j = np.searchsorted(rid, z["rid"])
     ok = (j < len(rid)) & (rid[np.minimum(j, len(rid) - 1)] == z["rid"])

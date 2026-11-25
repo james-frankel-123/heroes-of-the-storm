@@ -688,6 +688,10 @@ def act_mcts_x(vint, ctx, x, device=0):
     if x.get("blind"):
         cfg[:, 7] = 0                                    # population leaf only (the pMCTS-cur search through this kernel)
     sims = int(x.get("sims", SIMS))
+    if x.get("prior_only"):
+        # prior-only control (p3t_split.py round 3): one simulation only so the kernel builds the root; the choice
+        # is the argmax of the root prior it reports (learned prior, ten-player terms, floor), no search
+        sims = 1
     cp = float(x.get("c_puct", 2.0))
     out = np.empty(B, np.int64)
     val = np.full(B, np.nan, np.float64)
@@ -710,6 +714,9 @@ def act_mcts_x(vint, ctx, x, device=0):
             del eng
             pol = r_[5][:, 0, :]
             q = np.nan_to_num(r_[6][:, 0, :], nan=-1.0)
+            if x.get("prior_only"):
+                pol = r_[13][:, 0, :]
+                q = np.zeros_like(pol)
             legal = legal_mask(ctx["acts"][ii], k, ctx["team_pool"][ii])
             sm = struct_mask(ctx["acts"][ii], k, legal)
             if sup is not None and sup[0] > 0:

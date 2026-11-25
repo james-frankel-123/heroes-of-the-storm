@@ -28,7 +28,7 @@ if [ "${1:-}" = "smoke" ]; then
   $PM smoke --lobbies 4 --sims 16
   exit 0
 fi
-RT=""; [ "${P3T_SPLIT_ROUND:-1}" = 2 ] && RT="r2"
+RT=""; [ "${P3T_SPLIT_ROUND:-1}" != 1 ] && RT="r${P3T_SPLIT_ROUND}"
 step() { local n=$1; shift
   if [ -e "$MK/split${RT}_$n.done" ]; then echo "$(date -Is) $n: done earlier"; return 0; fi
   echo "$(date -Is) $n: start"; "$@"; date -Is > "$MK/split${RT}_$n.done"; echo "$(date -Is) $n: done"; }
