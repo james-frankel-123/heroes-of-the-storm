@@ -113,7 +113,7 @@ def summary(out_dir):
     SP.summary(names, out_dir, opponents=OPPS + names, stem=stem, ref=names[0])
     js = json.load(open(os.path.join(out_dir, stem + ".json")))["arms"]
     out = {"what": "paired record (pp; 95% bootstrap over lobbies), J and CONS (win %, both seats), headline lobbies; "
-                   "root-held control with greedy's budget (g1s120) or greedy's proposals and bans (g1gc)",
+                   f"split controls of the root-held drafter, arms {', '.join(names)}",
            "arms": {a: {o: (None if v is None else {k: v[k] for k in ("record_pp", "J", "CONS")})
                         for o, v in js[a]["vs"].items()} for a in names}}
     json.dump(out, open(os.path.join(out_dir, stem + "_contrasts.json"), "w"), indent=1)
